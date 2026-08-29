@@ -1,0 +1,29 @@
+{
+  "petra_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FAX",
+  "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+  "artifact_manifest_id": "artifact_manifest_01ARZ3NDEKTSV4RRFFQ69G5FB2",
+  "rights_decision_id": "rights_decision_01ARZ3NDEKTSV4RRFFQ69G5FB3",
+  "parser_run_id": "parser_run_01ARZ3NDEKTSV4RRFFQ69G5FB4",
+  "parsed_document_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+  "structural_block_id": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+  "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+  "claim_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+  "assertion_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+  "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+  "approval_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+  "review_policy_id": "review_policy_01ARZ3NDEKTSV4RRFFQ69G5FBH",
+  "revision": 1,
+  "byte_size": 21,
+  "content_hash": "sha256:dc3d0aca15e39ab6a650065530eb706ffbdd8f9bde76e87927a7b3fab097457d",
+  "timestamp": "2026-08-28T18:00:00.000Z",
+  "actor_ref": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "project_scope": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+  },
+  "evidence_namespace": "scholarly"
+}

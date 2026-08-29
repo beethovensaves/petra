@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/projection-checkpoint/1.0.0/schema.json",
+  "title": "PetraProjectionCheckpoint",
+  "description": "A revisioned PostgreSQL-authoritative snapshot of one Project graph projection's contiguous position, observed outbox head, and visible freshness.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "projection_checkpoint_id",
+    "revision",
+    "project_id",
+    "projection",
+    "content",
+    "content_hash",
+    "recorded_by",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.projection-checkpoint"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "projection_checkpoint_id": {
+      "$ref": "../../graph-projection-record/1.0.0/schema.json#/$defs/ProjectionCheckpointId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "projection": {
+      "$ref": "../../graph-projection-record/1.0.0/schema.json#/$defs/ProjectionIdentity"
+    },
+    "content": {
+      "$ref": "#/$defs/CheckpointContent"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_by": {
+      "$ref": "../../graph-projection-record/1.0.0/schema.json#/$defs/ServiceActorRef"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "CheckpointContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position", "observed_head", "freshness"],
+      "properties": {
+        "position": {
+          "$ref": "#/$defs/CheckpointPosition"
+        },
+        "observed_head": {
+          "$ref": "#/$defs/ObservedHead"
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        }
+      }
+    },
+    "CheckpointPosition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/EmptyPosition"
+        },
+        {
+          "$ref": "#/$defs/AdvancedPosition"
+        }
+      ]
+    },
+    "EmptyPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position_kind", "target_sequence"],
+      "properties": {
+        "position_kind": {
+          "const": "empty"
+        },
+        "target_sequence": {
+          "const": 0
+        }
+      }
+    },
+    "AdvancedPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position_kind",
+        "target_sequence",
+        "outbox_id",
+        "outbox_position",
+        "event_id",
+        "event_position",
+        "stream_revision",
+        "graph_projection_record_id",
+        "advanced_at"
+      ],
+      "properties": {
+        "position_kind": {
+          "const": "advanced"
+        },
+        "target_sequence": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "outbox_id": {
+          "$ref": "../../graph-projection-record/1.0.0/schema.json#/$defs/OutboxId"
+        },
+        "outbox_position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "event_id": {
+          "$ref": "../../graph-projection-record/1.0.0/schema.json#/$defs/EventId"
+        },
+        "event_position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "stream_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "graph_projection_record_id": {
+          "$ref": "../../graph-projection-record/1.0.0/schema.json#/$defs/GraphProjectionRecordId"
+        },
+        "advanced_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "ObservedHead": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_sequence",
+        "outbox_id",
+        "outbox_position",
+        "event_id",
+        "event_position",
+        "stream_revision",
+        "observed_at"
+      ],
+      "properties": {
+        "target_sequence": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "outbox_id": {
+          "$ref": "../../graph-projection-record/1.0.0/schema.json#/$defs/OutboxId"
+        },
+        "outbox_position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "event_id": {
+          "$ref": "../../graph-projection-record/1.0.0/schema.json#/$defs/EventId"
+        },
+        "event_position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "stream_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "observed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "Freshness": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CurrentFreshness"
+        },
+        {
+          "$ref": "#/$defs/CatchingUpFreshness"
+        },
+        {
+          "$ref": "#/$defs/BlockedFreshness"
+        }
+      ]
+    },
+    "CurrentFreshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "pending_records"],
+      "properties": {
+        "state": {
+          "const": "current"
+        },
+        "pending_records": {
+          "const": 0
+        }
+      }
+    },
+    "CatchingUpFreshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "pending_records"],
+      "properties": {
+        "state": {
+          "const": "catching_up"
+        },
+        "pending_records": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "BlockedFreshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "pending_records",
+        "blocking_projection_record_id",
+        "failure_code",
+        "message",
+        "blocked_at"
+      ],
+      "properties": {
+        "state": {
+          "const": "blocked"
+        },
+        "pending_records": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "blocking_projection_record_id": {
+          "$ref": "../../graph-projection-record/1.0.0/schema.json#/$defs/GraphProjectionRecordId"
+        },
+        "failure_code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "blocked_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    }
+  }
+}

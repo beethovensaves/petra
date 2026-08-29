@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project/1.0.0/schema.json",
+  "title": "PetraProject",
+  "description": "The explicit private scope that owns a research question, evidence overlays, hypotheses, and work.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "revision",
+    "name",
+    "status",
+    "visibility",
+    "enabled_evidence_namespaces",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "status": {
+      "enum": ["active", "archived"]
+    },
+    "visibility": {
+      "const": "private"
+    },
+    "enabled_evidence_namespaces": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "../../common/1.0.0/schema.json#/$defs/EvidenceNamespace"
+      }
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "updated_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

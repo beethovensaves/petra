@@ -1,0 +1,78 @@
+{
+  "schema_name": "petra.interaction-feature-manifest",
+  "schema_version": "1.0.0",
+  "interaction_feature_manifest_id": "interaction_feature_manifest_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+  "revision": 1,
+  "content": {
+    "protocol": {
+      "name": "ag-ui",
+      "sdk_version": "0.0.59",
+      "profile_version": "1.0.0"
+    },
+    "transports": ["text_event_stream"],
+    "standard_events": [
+      "RUN_STARTED",
+      "RUN_FINISHED",
+      "RUN_ERROR",
+      "TEXT_MESSAGE_START",
+      "TEXT_MESSAGE_CONTENT",
+      "TEXT_MESSAGE_END",
+      "TOOL_CALL_START",
+      "TOOL_CALL_ARGS",
+      "TOOL_CALL_END",
+      "STATE_SNAPSHOT",
+      "ACTIVITY_SNAPSHOT",
+      "CUSTOM"
+    ],
+    "custom_events": [
+      {
+        "event_name": "petra.work_unit.status",
+        "payload_schema_ref": {
+          "schema_name": "interaction-custom-event",
+          "schema_version": "1.0.0",
+          "content_hash": "sha256:0da3334a20c01b659b7a3ea5c6ec102ac76bda4fc0113eb6cdb21f8a980c8721",
+          "json_pointer": "#/$defs/WorkUnitStatusEvent"
+        },
+        "stability": "stable",
+        "authority_effect": "none"
+      },
+      {
+        "event_name": "petra.review.interrupt",
+        "payload_schema_ref": {
+          "schema_name": "interaction-custom-event",
+          "schema_version": "1.0.0",
+          "content_hash": "sha256:0da3334a20c01b659b7a3ea5c6ec102ac76bda4fc0113eb6cdb21f8a980c8721",
+          "json_pointer": "#/$defs/ReviewInterruptEvent"
+        },
+        "stability": "stable",
+        "authority_effect": "none"
+      }
+    ],
+    "features": [
+      { "feature": "text_streaming", "support": "supported" },
+      { "feature": "activity", "support": "supported" },
+      { "feature": "tool_proposals", "support": "supported" },
+      { "feature": "state_projection", "support": "supported" },
+      { "feature": "interrupts", "support": "supported" },
+      { "feature": "resumption", "support": "supported" },
+      { "feature": "replay", "support": "supported" },
+      {
+        "feature": "explicit_work_cancellation",
+        "support": "supported",
+        "limitation": "Connection abort remains separate from the authorized cancellation command."
+      }
+    ],
+    "authority_boundary": {
+      "grants_capabilities": false,
+      "interaction_state_is_authoritative": false,
+      "replay_reapplies_authority": false,
+      "connection_abort_cancels_work": false
+    }
+  },
+  "content_hash": "sha256:de62e60659942bb8bf1b2e9e3c3918f32075f2830631994aa380a211b28f77f7",
+  "compiled_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "compiled_at": "2026-08-29T16:00:00.000Z"
+}

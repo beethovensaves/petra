@@ -1,0 +1,20 @@
+{
+  "schema_name": "petra.approval",
+  "schema_version": "1.0.0",
+  "approval_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+  "revision": 1,
+  "subject": {
+    "subject_kind": "change_set",
+    "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+    "change_set_revision": 1
+  },
+  "decision": "approved",
+  "decision_scope": "exact_change_set",
+  "decided_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "rationale": "Approval without an exact content hash is invalid.",
+  "conditions": [],
+  "decided_at": "2026-08-28T18:13:00.000Z"
+}

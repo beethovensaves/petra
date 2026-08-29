@@ -1,0 +1,56 @@
+{
+  "schema_name": "petra.evidence-packet",
+  "schema_version": "1.0.0",
+  "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCJ",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "snapshot_ref": {
+    "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+    "snapshot_revision": 1,
+    "event_position": 3,
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "content": {
+    "context_packet_ref": {
+      "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+      "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df"
+    },
+    "composition_objective": "Answer from one bounded Claim.",
+    "temporal_perspective": {
+      "perspective": "current",
+      "as_of": "2026-08-29T15:00:01.000Z"
+    },
+    "selected_evidence": [
+      {
+        "context_selection_order": 1,
+        "object_ref": {
+          "object_kind": "claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "object_revision": 2,
+          "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+        },
+        "bearing": "supporting",
+        "source_span_selection_orders": [],
+        "inclusion_reason": "The Claim is selected.",
+        "use_limitations": []
+      }
+    ],
+    "exclusions": [],
+    "coverage": {
+      "state": "bounded",
+      "statement": "The packet is bounded.",
+      "contrary_evidence_status": "not_checked",
+      "qualifying_evidence_status": "not_checked"
+    },
+    "freshness": {
+      "state": "stale",
+      "checked_at": "2026-08-29T15:00:01.000Z"
+    }
+  },
+  "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "compiled_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "compiled_at": "2026-08-29T15:00:01.000Z"
+}

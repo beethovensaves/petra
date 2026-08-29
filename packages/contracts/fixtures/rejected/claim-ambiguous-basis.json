@@ -1,0 +1,61 @@
+{
+  "schema_name": "petra.claim",
+  "schema_version": "1.0.0",
+  "claim_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+  "revision": 1,
+  "canonical_text": "A claim with mixed source and synthesis provenance.",
+  "claim_kind": "descriptive",
+  "normalization_status": "normalized",
+  "scope": {
+    "unreported_dimensions": [
+      "population",
+      "language",
+      "task",
+      "model_family",
+      "dataset",
+      "intervention_or_exposure",
+      "comparator",
+      "outcome",
+      "setting",
+      "temporal_boundary"
+    ]
+  },
+  "basis": {
+    "basis_kind": "source",
+    "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+    "source_scope": "full_text",
+    "detail_level": "broad",
+    "source_span_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+    "source_stance": "states",
+    "attribution": "The authors",
+    "modality": "asserted",
+    "negated": false,
+    "derivation": {
+      "derivation_kind": "model_extraction",
+      "derivation_ref": "extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD"
+    },
+    "validator_results": [
+      {
+        "validator_name": "source-span-resolution",
+        "validator_version": "1.0.0",
+        "outcome": "pass",
+        "code": "SPAN_RESOLVED"
+      }
+    ],
+    "proposed_by": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "model"
+    },
+    "proposed_at": "2026-08-28T18:12:00.000Z",
+    "basis_claim_ids": ["claim_01ARZ3NDEKTSV4RRFFQ69G5FBB"]
+  },
+  "authority": {
+    "zone": "quarantine",
+    "review_state": "unreviewed"
+  },
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "model"
+  },
+  "created_at": "2026-08-28T18:12:00.000Z"
+}

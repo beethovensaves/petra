@@ -1,0 +1,58 @@
+{
+  "schema_name": "petra.worker-input-manifest",
+  "schema_version": "1.0.0",
+  "worker_input_manifest_id": "worker_input_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+  "revision": 1,
+  "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "task": {
+      "task_family": "retrieval",
+      "task_name": "petra.discovery.search",
+      "task_version": "1.0.0"
+    },
+    "worker": {
+      "executor_kind": "python_worker",
+      "worker_name": "petra.science",
+      "worker_version": "0.0.0",
+      "runtime_name": "python",
+      "runtime_version": "3.13.7",
+      "entrypoint": "petra_science.search"
+    },
+    "inputs": [
+      {
+        "binding_kind": "record",
+        "name": "search_request",
+        "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "record_revision": 1,
+        "snapshot_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+      }
+    ],
+    "expected_outputs": [
+      {
+        "output_name": "search_results",
+        "output_role": "proposal",
+        "required": true,
+        "media_type": "application/json",
+        "max_bytes": 1000000
+      }
+    ],
+    "resource_limits": {
+      "max_wall_time_ms": 60000,
+      "max_output_bytes": 1000000,
+      "max_attempts": 1,
+      "max_parallelism": 1
+    },
+    "network_policy": {
+      "network_mode": "allowlist",
+      "destinations": []
+    },
+    "partial_result_policy": "discard"
+  },
+  "content_hash": "sha256:43057052df0f0067186c2a1a0daa8b0827823487141265996ed2deb0fdb7d3e7",
+  "issued_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "issued_at": "2026-08-29T14:00:00.000Z"
+}

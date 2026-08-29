@@ -1,0 +1,145 @@
+{
+  "schema_name": "petra.context-packet",
+  "schema_version": "1.0.0",
+  "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "snapshot_ref": {
+    "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+    "snapshot_revision": 1,
+    "event_position": 3,
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "recipe_ref": {
+    "context_recipe_id": "context_recipe_01ARZ3NDEKTSV4RRFFQ69G5FCF",
+    "revision": 1,
+    "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "content": {
+    "objective": {
+      "objective_kind": "answer",
+      "statement": "What does the selected study report, and what limits the claim?",
+      "target_refs": [
+        {
+          "object_kind": "claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "object_revision": 2,
+          "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+        }
+      ]
+    },
+    "included_objects": [
+      {
+        "selection_order": 1,
+        "object_ref": {
+          "object_kind": "claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "object_revision": 2,
+          "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+        },
+        "evidence_roles": ["relevant", "supporting"],
+        "authority": {
+          "zone": "trusted",
+          "review_state": "human_accepted"
+        },
+        "source_access": "full_text_analyzed",
+        "source_span_refs": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+        "selection": {
+          "route": "deterministic_graph",
+          "rank": 1,
+          "score": "1.0",
+          "reason": "The Claim is the explicit target of the objective."
+        },
+        "estimated_tokens": 120
+      },
+      {
+        "selection_order": 2,
+        "object_ref": {
+          "object_kind": "assertion",
+          "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "object_revision": 2,
+          "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+        },
+        "evidence_roles": ["supporting"],
+        "authority": {
+          "zone": "trusted",
+          "review_state": "human_accepted"
+        },
+        "source_access": "full_text_analyzed",
+        "source_span_refs": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+        "selection": {
+          "route": "graph_expansion",
+          "rank": 2,
+          "score": "1.0",
+          "reason": "The trusted ASSERTS relation connects the WorkVersion to the target Claim."
+        },
+        "estimated_tokens": 80
+      },
+      {
+        "selection_order": 3,
+        "object_ref": {
+          "object_kind": "source_span",
+          "object_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          "object_revision": 1,
+          "object_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+        },
+        "evidence_roles": ["source_location"],
+        "authority": {
+          "zone": "source_record",
+          "review_state": "not_applicable"
+        },
+        "source_access": "full_text_structured",
+        "source_span_refs": [],
+        "selection": {
+          "route": "deterministic_graph",
+          "rank": 3,
+          "reason": "The SourceSpan grounds both selected scientific records."
+        },
+        "estimated_tokens": 60
+      }
+    ],
+    "omissions": [
+      {
+        "omission_kind": "search_boundary",
+        "boundary": "No new literature discovery was performed for this packet.",
+        "reason": "not_retrieved",
+        "material": true,
+        "detail": "The packet describes the selected Project snapshot, not the full literature."
+      }
+    ],
+    "coverage": {
+      "state": "bounded",
+      "statement": "Coverage is limited to the selected Claim and its recorded source path.",
+      "contrary_evidence_checked": true
+    },
+    "budget": {
+      "max_input_tokens": 2000,
+      "max_objects": 10,
+      "max_source_spans": 5,
+      "estimated_input_tokens": 260,
+      "included_object_count": 3,
+      "included_source_span_count": 1,
+      "truncated": false
+    },
+    "dependencies": [
+      {
+        "dependency_kind": "schema",
+        "name": "petra.context-packet",
+        "version": "1.0.0",
+        "content_hash": "sha256:a15938cf28bc5c14ecb51807f38fc03eaa5070393285f25a80c83baeb4c6efd7"
+      },
+      {
+        "dependency_kind": "projection",
+        "name": "petra.authority_graph",
+        "version": "1.0.0",
+        "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df",
+  "compiled_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "compiled_at": "2026-08-29T15:00:00.000Z"
+}

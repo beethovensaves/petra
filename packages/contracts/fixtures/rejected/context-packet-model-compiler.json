@@ -1,0 +1,78 @@
+{
+  "schema_name": "petra.context-packet",
+  "schema_version": "1.0.0",
+  "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCH",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "snapshot_ref": {
+    "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+    "snapshot_revision": 1,
+    "event_position": 3,
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "recipe_ref": {
+    "context_recipe_id": "context_recipe_01ARZ3NDEKTSV4RRFFQ69G5FCF",
+    "revision": 1,
+    "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "content": {
+    "objective": {
+      "objective_kind": "answer",
+      "statement": "Answer from one bounded Claim.",
+      "target_refs": []
+    },
+    "included_objects": [
+      {
+        "selection_order": 1,
+        "object_ref": {
+          "object_kind": "claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "object_revision": 2,
+          "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+        },
+        "evidence_roles": ["relevant"],
+        "authority": {
+          "zone": "trusted",
+          "review_state": "human_accepted"
+        },
+        "source_access": "full_text_analyzed",
+        "source_span_refs": [],
+        "selection": {
+          "route": "deterministic_graph",
+          "rank": 1,
+          "reason": "The Claim is the target."
+        },
+        "estimated_tokens": 100
+      }
+    ],
+    "omissions": [],
+    "coverage": {
+      "state": "bounded",
+      "statement": "The packet is bounded.",
+      "contrary_evidence_checked": false
+    },
+    "budget": {
+      "max_input_tokens": 1000,
+      "max_objects": 5,
+      "max_source_spans": 2,
+      "estimated_input_tokens": 100,
+      "included_object_count": 1,
+      "included_source_span_count": 0,
+      "truncated": false
+    },
+    "dependencies": [
+      {
+        "dependency_kind": "schema",
+        "name": "petra.context-packet",
+        "version": "1.0.0",
+        "content_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    ]
+  },
+  "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "compiled_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "model"
+  },
+  "compiled_at": "2026-08-29T15:00:00.000Z"
+}

@@ -1,0 +1,386 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/assertion/1.0.0/schema.json",
+  "title": "PetraAssertion",
+  "description": "A provenance-bearing typed relation whose authority records representation review rather than scientific truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "assertion_id",
+    "revision",
+    "subject_id",
+    "predicate",
+    "object",
+    "assertion_kind",
+    "authority",
+    "provenance_refs",
+    "scope",
+    "rationale",
+    "recorded_at",
+    "created_by"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.assertion"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "assertion_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/AssertionId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "subject_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "predicate": {
+      "$ref": "#/$defs/Predicate"
+    },
+    "object": {
+      "$ref": "#/$defs/AssertionObject"
+    },
+    "assertion_kind": {
+      "enum": [
+        "source_native",
+        "source_stated",
+        "deterministic_derivation",
+        "model_inference",
+        "human_judgment",
+        "experimental_observation",
+        "synthesis"
+      ]
+    },
+    "authority": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ScientificAuthority"
+    },
+    "provenance_refs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/ProvenanceRef"
+      }
+    },
+    "scope": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ScientificScope"
+    },
+    "scope_comparison": {
+      "$ref": "#/$defs/ScopeComparison"
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8000
+    },
+    "occurred_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "valid_time": {
+      "$ref": "#/$defs/ValidTime"
+    },
+    "supersedes_assertion_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/AssertionId"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    }
+  },
+  "$defs": {
+    "Predicate": {
+      "enum": [
+        "VERSION_OF",
+        "REPRESENTED_BY",
+        "LOCATED_IN",
+        "CITES",
+        "CITES_AS_BACKGROUND",
+        "ASSERTS",
+        "ADDRESSES",
+        "SUPPORTS",
+        "CONTRADICTS",
+        "QUALIFIES",
+        "ADOPTS",
+        "DIRECTLY_TESTS",
+        "EXTENDS",
+        "REFRAMES",
+        "CHALLENGES",
+        "CRITIQUES_METHOD",
+        "ASSUMES",
+        "PREDICTS",
+        "RIVAL_OF",
+        "TESTS",
+        "IMPLEMENTS",
+        "USES",
+        "PRODUCED",
+        "ANALYZES",
+        "EVALUATES",
+        "GOVERNS",
+        "INTERPRETS",
+        "COMPOSED_FROM",
+        "GROUNDS",
+        "RENDERS",
+        "REPLICATES",
+        "FAILS_TO_REPLICATE",
+        "INVESTIGATES",
+        "TESTS_CAUSE",
+        "CORRECTS",
+        "DEPENDS_ON",
+        "SUPERSEDES"
+      ]
+    },
+    "AssertionObject": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/EntityObject"
+        },
+        {
+          "$ref": "#/$defs/StringLiteral"
+        },
+        {
+          "$ref": "#/$defs/BooleanLiteral"
+        },
+        {
+          "$ref": "#/$defs/IntegerLiteral"
+        },
+        {
+          "$ref": "#/$defs/DecimalLiteral"
+        },
+        {
+          "$ref": "#/$defs/TimestampLiteral"
+        }
+      ]
+    },
+    "EntityObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_kind", "entity_id"],
+      "properties": {
+        "object_kind": {
+          "const": "entity"
+        },
+        "entity_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        }
+      }
+    },
+    "StringLiteral": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_kind", "value"],
+      "properties": {
+        "object_kind": {
+          "const": "string"
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 1000000
+        }
+      }
+    },
+    "BooleanLiteral": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_kind", "value"],
+      "properties": {
+        "object_kind": {
+          "const": "boolean"
+        },
+        "value": {
+          "type": "boolean"
+        }
+      }
+    },
+    "IntegerLiteral": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_kind", "value"],
+      "properties": {
+        "object_kind": {
+          "const": "integer"
+        },
+        "value": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "DecimalLiteral": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_kind", "value"],
+      "properties": {
+        "object_kind": {
+          "const": "decimal"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "maxLength": 1000
+        }
+      }
+    },
+    "TimestampLiteral": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_kind", "value"],
+      "properties": {
+        "object_kind": {
+          "const": "timestamp"
+        },
+        "value": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "ProvenanceRef": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SourceSpanProvenance"
+        },
+        {
+          "$ref": "#/$defs/StructuredFieldProvenance"
+        },
+        {
+          "$ref": "#/$defs/AssertionProvenance"
+        },
+        {
+          "$ref": "#/$defs/ActorProvenance"
+        },
+        {
+          "$ref": "#/$defs/RecordProvenance"
+        }
+      ]
+    },
+    "SourceSpanProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance_kind", "source_span_id"],
+      "properties": {
+        "provenance_kind": {
+          "const": "source_span"
+        },
+        "source_span_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/SourceSpanId"
+        }
+      }
+    },
+    "StructuredFieldProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provenance_kind",
+        "artifact_id",
+        "json_pointer",
+        "field_hash"
+      ],
+      "properties": {
+        "provenance_kind": {
+          "const": "structured_field"
+        },
+        "artifact_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+        },
+        "json_pointer": {
+          "type": "string",
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "maxLength": 10000
+        },
+        "field_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "AssertionProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance_kind", "assertion_id"],
+      "properties": {
+        "provenance_kind": {
+          "const": "basis_assertion"
+        },
+        "assertion_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/AssertionId"
+        }
+      }
+    },
+    "ActorProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance_kind", "actor"],
+      "properties": {
+        "provenance_kind": {
+          "const": "actor"
+        },
+        "actor": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        }
+      }
+    },
+    "RecordProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance_kind", "record_id", "role"],
+      "properties": {
+        "provenance_kind": {
+          "const": "record"
+        },
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "role": {
+          "enum": [
+            "derivation",
+            "input",
+            "output",
+            "model_call",
+            "run",
+            "result",
+            "analysis"
+          ]
+        }
+      }
+    },
+    "ScopeComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relation", "rationale"],
+      "properties": {
+        "relation": {
+          "enum": [
+            "aligned",
+            "overlapping",
+            "narrower",
+            "broader",
+            "disjoint",
+            "unknown"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        }
+      }
+    },
+    "ValidTime": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "valid_from": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "valid_to": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      },
+      "minProperties": 1
+    }
+  }
+}

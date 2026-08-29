@@ -1,0 +1,19 @@
+{
+  "name": "@petra/adapters",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@ag-ui/client": "0.0.59",
+    "@ag-ui/core": "0.0.59",
+    "@ag-ui/encoder": "0.0.59",
+    "@petra/contracts": "0.0.0",
+    "@petra/core": "0.0.0"
+  }
+}

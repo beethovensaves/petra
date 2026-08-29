@@ -1,0 +1,391 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/citation-bundle/1.0.0/schema.json",
+  "title": "PetraCitationBundle",
+  "description": "An immutable citation manifest over canonical Petra WorkVersions, exact DraftSpans, source depth, identity warnings, and requested render formats.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "citation_bundle_id",
+    "revision",
+    "project_id",
+    "draft_ref",
+    "evidence_packet_ref",
+    "content",
+    "content_hash",
+    "compiled_by",
+    "compiled_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.citation-bundle" },
+    "schema_version": { "const": "1.0.0" },
+    "citation_bundle_id": {
+      "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/CitationBundleId"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "draft_ref": {
+      "$ref": "../../draft-span/1.0.0/schema.json#/$defs/DraftRef"
+    },
+    "evidence_packet_ref": {
+      "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/EvidencePacketRef"
+    },
+    "content": { "$ref": "#/$defs/CitationContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "compiled_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "compiled_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "CitationContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "style",
+        "export_formats",
+        "citations",
+        "bibliography_artifacts"
+      ],
+      "properties": {
+        "style": { "$ref": "#/$defs/CitationStyle" },
+        "export_formats": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["inline", "markdown", "latex", "bibtex", "csl_json"]
+          }
+        },
+        "citations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100000,
+          "items": { "$ref": "#/$defs/CitationEntry" }
+        },
+        "bibliography_artifacts": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/BibliographyArtifactRef" }
+        }
+      }
+    },
+    "CitationStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["style_kind", "style_name", "style_version"],
+      "properties": {
+        "style_kind": { "enum": ["csl", "bibtex", "plain"] },
+        "style_name": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "style_version": { "type": "string", "minLength": 1, "maxLength": 200 }
+      }
+    },
+    "CitationEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "citation_id",
+        "bibliography_key",
+        "work_ref",
+        "work_version_ref",
+        "author_refs",
+        "external_identifier_refs",
+        "metadata",
+        "identity_status",
+        "metadata_completeness",
+        "identity_warnings",
+        "purposes",
+        "linked_draft_span_ids",
+        "locator",
+        "source_access"
+      ],
+      "properties": {
+        "citation_id": {
+          "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/CitationId"
+        },
+        "bibliography_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_:.+-]{0,199}$"
+        },
+        "work_ref": { "$ref": "#/$defs/WorkRef" },
+        "work_version_ref": { "$ref": "#/$defs/WorkVersionCitationRef" },
+        "author_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/AuthorCitationRef" }
+        },
+        "external_identifier_refs": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/ExternalIdentifierCitationRef" }
+        },
+        "metadata": { "$ref": "#/$defs/CitationMetadata" },
+        "identity_status": { "enum": ["resolved", "provisional", "disputed"] },
+        "metadata_completeness": {
+          "enum": ["complete", "partial", "conflicted"]
+        },
+        "identity_warnings": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/IdentityWarning" }
+        },
+        "purposes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "evidence",
+              "background",
+              "method",
+              "data",
+              "software",
+              "quotation"
+            ]
+          }
+        },
+        "linked_draft_span_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/DraftSpanId"
+          }
+        },
+        "locator": { "$ref": "#/$defs/CitationLocator" },
+        "source_access": { "$ref": "#/$defs/CitationSourceAccess" }
+      }
+    },
+    "WorkRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_id", "revision", "content_hash"],
+      "properties": {
+        "work_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/WorkId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "WorkVersionCitationRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_version_id", "revision", "content_hash"],
+      "properties": {
+        "work_version_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/WorkVersionId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "AuthorCitationRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "author_id",
+        "revision",
+        "content_hash",
+        "position",
+        "display_name"
+      ],
+      "properties": {
+        "author_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/AuthorId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "display_name": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "ExternalIdentifierCitationRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "external_identifier_id",
+        "revision",
+        "content_hash",
+        "namespace",
+        "normalized_value",
+        "verification_status"
+      ],
+      "properties": {
+        "external_identifier_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ExternalIdentifierId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "namespace": {
+          "enum": [
+            "doi",
+            "openalex_work",
+            "semantic_scholar_work",
+            "acl_anthology",
+            "arxiv",
+            "pmid",
+            "isbn",
+            "repository_url"
+          ]
+        },
+        "normalized_value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "verification_status": {
+          "enum": ["verified", "source_reported", "unverified", "disputed"]
+        }
+      }
+    },
+    "CitationMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "work_kind",
+        "version_label",
+        "publication_status",
+        "published_date"
+      ],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "work_kind": {
+          "enum": [
+            "journal_article",
+            "conference_paper",
+            "preprint",
+            "thesis",
+            "book",
+            "chapter",
+            "other"
+          ]
+        },
+        "version_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "publication_status": {
+          "enum": [
+            "preprint",
+            "peer_reviewed",
+            "accepted",
+            "corrected",
+            "retracted",
+            "unknown"
+          ]
+        },
+        "published_date": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PublicationDate"
+            }
+          ]
+        }
+      }
+    },
+    "IdentityWarning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "CitationLocator": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["locator_kind", "value"],
+          "properties": {
+            "locator_kind": {
+              "enum": ["page", "section", "paragraph", "figure", "table"]
+            },
+            "value": { "type": "string", "minLength": 1, "maxLength": 1000 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["locator_kind", "source_span_id"],
+          "properties": {
+            "locator_kind": { "const": "source_span" },
+            "source_span_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/SourceSpanId"
+            }
+          }
+        }
+      ]
+    },
+    "CitationSourceAccess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["processing_depth", "source_span_ids"],
+      "properties": {
+        "processing_depth": {
+          "enum": [
+            "metadata_only",
+            "abstract_only",
+            "full_text_structured",
+            "full_text_analyzed"
+          ]
+        },
+        "source_span_ids": {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/SourceSpanId"
+          }
+        }
+      }
+    },
+    "BibliographyArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "artifact_id", "content_hash"],
+      "properties": {
+        "format": { "enum": ["markdown", "latex", "bibtex", "csl_json"] },
+        "artifact_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    }
+  }
+}

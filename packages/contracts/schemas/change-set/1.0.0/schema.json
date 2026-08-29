@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/change-set/1.0.0/schema.json",
+  "title": "PetraChangeSet",
+  "description": "An immutable, content-bound proposal for one atomic scientific authority change.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "change_set_id",
+    "revision",
+    "state",
+    "content",
+    "content_hash",
+    "proposed_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.change-set"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "change_set_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "state": {
+      "enum": [
+        "draft",
+        "submitted",
+        "approved",
+        "rejected",
+        "applied",
+        "conflicted",
+        "reverted"
+      ]
+    },
+    "content": {
+      "$ref": "#/$defs/ChangeSetContent"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "proposed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ChangeSetContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "origin",
+        "proposed_by",
+        "reason",
+        "operations",
+        "impact",
+        "risk_tier"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "origin": {
+          "enum": ["direct_edit", "agent_proposal", "worker_proposal"]
+        },
+        "proposed_by": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/ChangeOperation"
+          }
+        },
+        "impact": {
+          "$ref": "#/$defs/ImpactPreview"
+        },
+        "risk_tier": {
+          "enum": ["R0", "R1", "R2", "R3", "R4"]
+        }
+      }
+    },
+    "ChangeOperation": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PromoteClaimOperation"
+        },
+        {
+          "$ref": "#/$defs/PromoteAssertionOperation"
+        }
+      ]
+    },
+    "PromoteClaimOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_kind",
+        "target_id",
+        "base_revision",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "operation_kind": {
+          "const": "promote_claim"
+        },
+        "target_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ClaimId"
+        },
+        "base_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "before": {
+          "$ref": "#/$defs/QuarantineState"
+        },
+        "after": {
+          "$ref": "#/$defs/HumanTrustedState"
+        }
+      }
+    },
+    "PromoteAssertionOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_kind",
+        "target_id",
+        "base_revision",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "operation_kind": {
+          "const": "promote_assertion"
+        },
+        "target_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/AssertionId"
+        },
+        "base_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "before": {
+          "$ref": "#/$defs/QuarantineState"
+        },
+        "after": {
+          "$ref": "#/$defs/HumanTrustedState"
+        }
+      }
+    },
+    "QuarantineState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zone", "review_state"],
+      "properties": {
+        "zone": {
+          "const": "quarantine"
+        },
+        "review_state": {
+          "enum": ["unreviewed", "machine_checked"]
+        }
+      }
+    },
+    "HumanTrustedState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zone", "review_state"],
+      "properties": {
+        "zone": {
+          "const": "trusted"
+        },
+        "review_state": {
+          "const": "human_accepted"
+        }
+      }
+    },
+    "ImpactPreview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "affected_object_ids",
+        "downstream_object_ids",
+        "summary",
+        "generated_at"
+      ],
+      "properties": {
+        "affected_object_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+          }
+        },
+        "downstream_object_ids": {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+          }
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "generated_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    }
+  }
+}

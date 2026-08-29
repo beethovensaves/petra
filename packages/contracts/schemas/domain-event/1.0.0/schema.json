@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/domain-event/1.0.0/schema.json",
+  "title": "PetraDomainEvent",
+  "description": "An immutable completed fact in a project authority stream, correlated to the command that caused it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "event_id",
+    "event_position",
+    "stream_type",
+    "stream_id",
+    "stream_revision",
+    "project_id",
+    "actor",
+    "occurred_at",
+    "recorded_at",
+    "correlation_id",
+    "causation_id",
+    "command_id",
+    "idempotency_key",
+    "capability_grant_id",
+    "event"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.domain-event"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "event_id": {
+      "$ref": "#/$defs/EventId"
+    },
+    "event_position": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "stream_type": {
+      "const": "project"
+    },
+    "stream_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "stream_revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "occurred_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "correlation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+    },
+    "causation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "capability_grant_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+    },
+    "event": {
+      "$ref": "#/$defs/Event"
+    }
+  },
+  "$defs": {
+    "EventId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^event_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "Event": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ChangeSetSubmitted"
+        },
+        {
+          "$ref": "#/$defs/ApprovalRecorded"
+        },
+        {
+          "$ref": "#/$defs/ChangeSetApplied"
+        },
+        {
+          "$ref": "#/$defs/ChangeSetConflicted"
+        }
+      ]
+    },
+    "ChangeSetSubmitted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_type", "payload"],
+      "properties": {
+        "event_type": {
+          "const": "change_set.submitted"
+        },
+        "payload": {
+          "$ref": "#/$defs/ChangeSetSubmittedPayload"
+        }
+      }
+    },
+    "ChangeSetSubmittedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["change_set"],
+      "properties": {
+        "change_set": {
+          "$ref": "../../change-set/1.0.0/schema.json"
+        }
+      }
+    },
+    "ApprovalRecorded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_type", "payload"],
+      "properties": {
+        "event_type": {
+          "const": "approval.recorded"
+        },
+        "payload": {
+          "$ref": "#/$defs/ApprovalRecordedPayload"
+        }
+      }
+    },
+    "ApprovalRecordedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approval", "derived_change_set_state"],
+      "properties": {
+        "approval": {
+          "$ref": "../../approval/1.0.0/schema.json"
+        },
+        "derived_change_set_state": {
+          "enum": ["approved", "rejected"]
+        }
+      }
+    },
+    "ChangeSetApplied": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_type", "payload"],
+      "properties": {
+        "event_type": {
+          "const": "change_set.applied"
+        },
+        "payload": {
+          "$ref": "#/$defs/ChangeSetAppliedPayload"
+        }
+      }
+    },
+    "ChangeSetAppliedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "change_set_id",
+        "change_set_revision",
+        "change_set_content_hash",
+        "approval_id",
+        "approval_revision",
+        "prior_claim_revision",
+        "claim",
+        "prior_assertion_revision",
+        "assertion"
+      ],
+      "properties": {
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "change_set_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "change_set_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "approval_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ApprovalId"
+        },
+        "approval_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "prior_claim_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "claim": {
+          "$ref": "../../claim/1.0.0/schema.json"
+        },
+        "prior_assertion_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "assertion": {
+          "$ref": "../../assertion/1.0.0/schema.json"
+        }
+      }
+    },
+    "ChangeSetConflicted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_type", "payload"],
+      "properties": {
+        "event_type": {
+          "const": "change_set.conflicted"
+        },
+        "payload": {
+          "$ref": "#/$defs/ChangeSetConflictedPayload"
+        }
+      }
+    },
+    "ChangeSetConflictedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "change_set_id",
+        "change_set_revision",
+        "change_set_content_hash",
+        "conflict_code",
+        "targets"
+      ],
+      "properties": {
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "change_set_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "change_set_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "conflict_code": {
+          "enum": ["STALE_TARGET_REVISION", "TARGET_AUTHORITY_MISMATCH"]
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/ConflictTarget"
+          }
+        }
+      }
+    },
+    "ConflictTarget": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ClaimConflictTarget"
+        },
+        {
+          "$ref": "#/$defs/AssertionConflictTarget"
+        }
+      ]
+    },
+    "ClaimConflictTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_kind",
+        "target_id",
+        "expected_revision",
+        "actual_revision",
+        "expected_zone",
+        "actual_zone"
+      ],
+      "properties": {
+        "target_kind": {
+          "const": "claim"
+        },
+        "target_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ClaimId"
+        },
+        "expected_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "actual_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "expected_zone": {
+          "const": "quarantine"
+        },
+        "actual_zone": {
+          "enum": ["quarantine", "trusted", "personal"]
+        }
+      }
+    },
+    "AssertionConflictTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_kind",
+        "target_id",
+        "expected_revision",
+        "actual_revision",
+        "expected_zone",
+        "actual_zone"
+      ],
+      "properties": {
+        "target_kind": {
+          "const": "assertion"
+        },
+        "target_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/AssertionId"
+        },
+        "expected_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "actual_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "expected_zone": {
+          "const": "quarantine"
+        },
+        "actual_zone": {
+          "enum": ["quarantine", "trusted", "personal"]
+        }
+      }
+    }
+  }
+}

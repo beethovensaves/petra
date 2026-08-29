@@ -1,0 +1,10 @@
+.cache/
+.data/
+.venv/
+**/*.md
+coverage/
+dist/
+apps/server/public/
+node_modules/
+petra_brand_inspiration_kit.zip
+workers/science/uv.lock

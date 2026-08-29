@@ -1,0 +1,57 @@
+{
+  "schema_name": "petra.graph-projection-record",
+  "schema_version": "1.0.0",
+  "graph_projection_record_id": "graph_projection_record_01ARZ3NDEKTSV4RRFFQ69G5FC8",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "projection": {
+    "target": "neo4j_graph",
+    "projection_name": "petra.authority_graph",
+    "projection_version": "1.0.0",
+    "configuration_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "content": {
+    "outbox_ref": {
+      "outbox_id": "outbox_01ARZ3NDEKTSV4RRFFQ69G5FC6",
+      "outbox_position": 3,
+      "target_sequence": 1,
+      "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+      "event_position": 3,
+      "stream_revision": 3
+    },
+    "attempt": 2,
+    "started_at": "2026-08-29T14:10:02.000Z",
+    "completed_at": "2026-08-29T14:10:03.000Z",
+    "outcome": {
+      "outcome_kind": "applied",
+      "effect": {
+        "source_event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+        "objects": [
+          {
+            "graph_element_kind": "node",
+            "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "object_revision": 2,
+            "operation": "upsert"
+          },
+          {
+            "graph_element_kind": "relationship",
+            "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+            "object_revision": 2,
+            "operation": "upsert"
+          }
+        ]
+      },
+      "effect_hash": "sha256:8c6a77159a811030ab155f007963e78a2ae4b3156aaa9ef93ecbfe1b351a786c",
+      "backend_receipt": {
+        "backend_kind": "neo4j",
+        "receipt": "neo4j:bookmark:v1:tx-000001"
+      }
+    }
+  },
+  "content_hash": "sha256:640ae8e9a235d4816f240e28930f3d7bcec4c5ec7a5ab9818223f08b2412d11b",
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "recorded_at": "2026-08-29T14:10:03.000Z"
+}

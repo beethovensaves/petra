@@ -1,0 +1,539 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/common/1.0.0/schema.json",
+  "title": "PetraCommonDefinitions",
+  "description": "Versioned primitive and reference definitions shared by Petra runtime contracts.",
+  "$defs": {
+    "PetraId": {
+      "type": "string",
+      "description": "A kind-prefixed Petra identifier with a canonical uppercase ULID payload.",
+      "pattern": "^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "ActorId": {
+      "description": "A Petra identifier whose kind is actor.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^actor_"
+        }
+      ]
+    },
+    "ProjectId": {
+      "description": "A Petra identifier whose kind is project.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^project_"
+        }
+      ]
+    },
+    "WorkId": {
+      "description": "A Petra identifier whose kind is work.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^work_"
+        }
+      ]
+    },
+    "WorkVersionId": {
+      "description": "A Petra identifier whose kind is work_version.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^work_version_"
+        }
+      ]
+    },
+    "AuthorId": {
+      "description": "A Petra identifier whose kind is author.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^author_"
+        }
+      ]
+    },
+    "ExternalIdentifierId": {
+      "description": "A Petra identifier whose kind is external_identifier.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^external_identifier_"
+        }
+      ]
+    },
+    "ArtifactId": {
+      "description": "A Petra identifier whose kind is artifact.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^artifact_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ArtifactManifestId": {
+      "description": "A Petra identifier whose kind is artifact_manifest.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^artifact_manifest_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "RightsDecisionId": {
+      "description": "A Petra identifier whose kind is rights_decision.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^rights_decision_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ParserRunId": {
+      "description": "A Petra identifier whose kind is parser_run.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^parser_run_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ParsedDocumentId": {
+      "description": "A Petra identifier whose kind is parsed_document.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^parsed_document_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "StructuralBlockId": {
+      "description": "A Petra identifier whose kind is structural_block.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^structural_block_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "SourceSpanId": {
+      "description": "A Petra identifier whose kind is source_span.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^source_span_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ClaimId": {
+      "description": "A Petra identifier whose kind is claim.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^claim_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "AssertionId": {
+      "description": "A Petra identifier whose kind is assertion.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^assertion_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ChangeSetId": {
+      "description": "A Petra identifier whose kind is change_set.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^change_set_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ApprovalId": {
+      "description": "A Petra identifier whose kind is approval.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^approval_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ReviewPolicyId": {
+      "description": "A Petra identifier whose kind is review_policy.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^review_policy_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "Revision": {
+      "type": "integer",
+      "description": "A one-based optimistic revision within JavaScript's safe-integer range.",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "ContentHash": {
+      "type": "string",
+      "description": "A SHA-256 content identity over the exact bytes or canonical JSON projection defined by the enclosing contract.",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "ByteSize": {
+      "type": "integer",
+      "description": "A non-negative byte count within JavaScript's safe-integer range.",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "Timestamp": {
+      "type": "string",
+      "description": "An RFC 3339 timestamp normalized to UTC with millisecond precision.",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "PublicationDate": {
+      "description": "A publication date that preserves the precision supplied by scholarly metadata instead of inventing a day or time.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["precision", "value"],
+          "properties": {
+            "precision": {
+              "const": "year"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9]{4}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["precision", "value"],
+          "properties": {
+            "precision": {
+              "const": "month"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["precision", "value"],
+          "properties": {
+            "precision": {
+              "const": "day"
+            },
+            "value": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[0-1])$"
+            }
+          }
+        }
+      ]
+    },
+    "ActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "#/$defs/ActorId"
+        },
+        "actor_kind": {
+          "enum": ["human", "service", "model"]
+        }
+      }
+    },
+    "ProjectScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id"],
+      "properties": {
+        "project_id": {
+          "$ref": "#/$defs/ProjectId"
+        }
+      }
+    },
+    "EvidenceNamespace": {
+      "enum": ["scholarly", "operational", "personal", "discovery"]
+    },
+    "ScopeDimensionName": {
+      "enum": [
+        "population",
+        "language",
+        "task",
+        "model_family",
+        "dataset",
+        "intervention_or_exposure",
+        "comparator",
+        "outcome",
+        "setting",
+        "temporal_boundary"
+      ]
+    },
+    "ScopeDimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "entity_refs"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "entity_refs": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/PetraId"
+          }
+        }
+      }
+    },
+    "ScientificScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unreported_dimensions"],
+      "properties": {
+        "population": {
+          "$ref": "#/$defs/ScopeDimension"
+        },
+        "language": {
+          "$ref": "#/$defs/ScopeDimension"
+        },
+        "task": {
+          "$ref": "#/$defs/ScopeDimension"
+        },
+        "model_family": {
+          "$ref": "#/$defs/ScopeDimension"
+        },
+        "dataset": {
+          "$ref": "#/$defs/ScopeDimension"
+        },
+        "intervention_or_exposure": {
+          "$ref": "#/$defs/ScopeDimension"
+        },
+        "comparator": {
+          "$ref": "#/$defs/ScopeDimension"
+        },
+        "outcome": {
+          "$ref": "#/$defs/ScopeDimension"
+        },
+        "setting": {
+          "$ref": "#/$defs/ScopeDimension"
+        },
+        "temporal_boundary": {
+          "$ref": "#/$defs/ScopeDimension"
+        },
+        "unreported_dimensions": {
+          "type": "array",
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/ScopeDimensionName"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    },
+    "ScientificAuthority": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/QuarantineAuthority"
+        },
+        {
+          "$ref": "#/$defs/TrustedAuthority"
+        },
+        {
+          "$ref": "#/$defs/PersonalAuthority"
+        }
+      ]
+    },
+    "QuarantineAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zone", "review_state"],
+      "properties": {
+        "zone": {
+          "const": "quarantine"
+        },
+        "review_state": {
+          "enum": [
+            "unreviewed",
+            "machine_checked",
+            "human_rejected",
+            "disputed"
+          ]
+        }
+      }
+    },
+    "TrustedAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zone", "review_state", "promotion"],
+      "properties": {
+        "zone": {
+          "const": "trusted"
+        },
+        "review_state": {
+          "enum": ["machine_checked", "human_accepted", "disputed"]
+        },
+        "promotion": {
+          "$ref": "#/$defs/PromotionBasis"
+        }
+      }
+    },
+    "PersonalAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zone", "review_state", "recorded_by"],
+      "properties": {
+        "zone": {
+          "const": "personal"
+        },
+        "review_state": {
+          "enum": ["unreviewed", "human_accepted", "disputed"]
+        },
+        "recorded_by": {
+          "$ref": "#/$defs/ActorRef"
+        }
+      }
+    },
+    "PromotionBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["change_set_id", "approval_basis", "applied_at"],
+      "properties": {
+        "change_set_id": {
+          "$ref": "#/$defs/ChangeSetId"
+        },
+        "approval_basis": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/HumanApprovalBasis"
+            },
+            {
+              "$ref": "#/$defs/PolicyApprovalBasis"
+            }
+          ]
+        },
+        "applied_at": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      }
+    },
+    "HumanApprovalBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approval_kind", "approval_id", "approved_by"],
+      "properties": {
+        "approval_kind": {
+          "const": "human"
+        },
+        "approval_id": {
+          "$ref": "#/$defs/ApprovalId"
+        },
+        "approved_by": {
+          "$ref": "#/$defs/ActorRef"
+        }
+      }
+    },
+    "PolicyApprovalBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approval_kind",
+        "review_policy_id",
+        "approval_id",
+        "calibration_ref"
+      ],
+      "properties": {
+        "approval_kind": {
+          "const": "review_policy"
+        },
+        "review_policy_id": {
+          "$ref": "#/$defs/ReviewPolicyId"
+        },
+        "approval_id": {
+          "$ref": "#/$defs/ApprovalId"
+        },
+        "calibration_ref": {
+          "$ref": "#/$defs/PetraId"
+        },
+        "audit_ref": {
+          "$ref": "#/$defs/PetraId"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schema_name": "petra.source-span",
+  "schema_version": "1.0.0",
+  "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+  "revision": 1,
+  "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+  "artifact_content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+  "parsed_document_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+  "parser_run_id": "parser_run_01ARZ3NDEKTSV4RRFFQ69G5FB4",
+  "structural_block_id": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+  "selector_schema_version": "1.0.0",
+  "selector": {
+    "selector_type": "page_region",
+    "page_region": {
+      "page_number": 1,
+      "page_width": 612,
+      "page_height": 792,
+      "unit": "pt",
+      "coordinate_origin": "top_left",
+      "regions": [
+        {
+          "region_kind": "polygon",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": -1,
+              "y": 10
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "extraction": {
+    "method": "visual_region",
+    "method_version": "1.0.0",
+    "normalization_version": "petra-text/1.0.0"
+  },
+  "verification": {
+    "status": "visual_only",
+    "verified_at": "2026-08-28T18:11:02.000Z",
+    "transformations": []
+  },
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "created_at": "2026-08-28T18:11:02.000Z"
+}

@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/graph-projection-record/1.0.0/schema.json",
+  "title": "PetraGraphProjectionRecord",
+  "description": "An immutable receipt for one attempt to project one Neo4j outbox delivery. An applied receipt is recorded only after the graph commit succeeds.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "graph_projection_record_id",
+    "revision",
+    "project_id",
+    "projection",
+    "content",
+    "content_hash",
+    "recorded_by",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.graph-projection-record"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "graph_projection_record_id": {
+      "$ref": "#/$defs/GraphProjectionRecordId"
+    },
+    "revision": {
+      "const": 1,
+      "description": "A retry creates another immutable projection record."
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "projection": {
+      "$ref": "#/$defs/ProjectionIdentity"
+    },
+    "content": {
+      "$ref": "#/$defs/ProjectionContent"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_by": {
+      "$ref": "#/$defs/ServiceActorRef"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "GraphProjectionRecordId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^graph_projection_record_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ProjectionCheckpointId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^projection_checkpoint_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "OutboxId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^outbox_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "EventId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^event_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ProjectionIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "projection_name",
+        "projection_version",
+        "configuration_hash"
+      ],
+      "properties": {
+        "target": {
+          "const": "neo4j_graph"
+        },
+        "projection_name": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200,
+          "pattern": "^[a-z][a-z0-9_-]*(?:\\.[a-z][a-z0-9_-]*)+$"
+        },
+        "projection_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,99}$"
+        },
+        "configuration_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ProjectionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outbox_ref",
+        "attempt",
+        "started_at",
+        "completed_at",
+        "outcome"
+      ],
+      "properties": {
+        "outbox_ref": {
+          "$ref": "#/$defs/OutboxRef"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "started_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "completed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "outcome": {
+          "$ref": "#/$defs/ProjectionOutcome"
+        }
+      }
+    },
+    "OutboxRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outbox_id",
+        "outbox_position",
+        "target_sequence",
+        "event_id",
+        "event_position",
+        "stream_revision"
+      ],
+      "properties": {
+        "outbox_id": {
+          "$ref": "#/$defs/OutboxId"
+        },
+        "outbox_position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "target_sequence": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "event_position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "stream_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        }
+      }
+    },
+    "ProjectionOutcome": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/AppliedOutcome"
+        },
+        {
+          "$ref": "#/$defs/FailedOutcome"
+        }
+      ]
+    },
+    "AppliedOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome_kind", "effect", "effect_hash", "backend_receipt"],
+      "properties": {
+        "outcome_kind": {
+          "const": "applied"
+        },
+        "effect": {
+          "$ref": "#/$defs/ProjectionEffect"
+        },
+        "effect_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "backend_receipt": {
+          "$ref": "#/$defs/BackendReceipt"
+        }
+      }
+    },
+    "FailedOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome_kind", "failure"],
+      "properties": {
+        "outcome_kind": {
+          "const": "failed"
+        },
+        "failure": {
+          "$ref": "#/$defs/ProjectionFailure"
+        }
+      }
+    },
+    "ProjectionEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_event_id", "objects"],
+      "properties": {
+        "source_event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "objects": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/ProjectedObject"
+          }
+        }
+      }
+    },
+    "ProjectedObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "graph_element_kind",
+        "object_id",
+        "object_revision",
+        "operation"
+      ],
+      "properties": {
+        "graph_element_kind": {
+          "enum": ["node", "relationship"]
+        },
+        "object_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "object_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "operation": {
+          "enum": ["upsert", "tombstone"]
+        }
+      }
+    },
+    "BackendReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backend_kind", "receipt"],
+      "properties": {
+        "backend_kind": {
+          "const": "neo4j"
+        },
+        "receipt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "ProjectionFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "retryable"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ServiceActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": {
+          "const": "service"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema_name": "petra.interaction-run",
+  "schema_version": "1.0.0",
+  "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "feature_manifest_ref": {
+    "interaction_feature_manifest_id": "interaction_feature_manifest_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+    "revision": 1,
+    "content_hash": "sha256:de62e60659942bb8bf1b2e9e3c3918f32075f2830631994aa380a211b28f77f7"
+  },
+  "lineage": { "lineage_kind": "root" },
+  "content": {
+    "correlation": {
+      "protocol_thread_id": "thread-m1-fixture",
+      "protocol_run_id": "run-m1-fixture",
+      "request_id": "request_01ARZ3NDEKTSV4RRFFQ69G5FDD",
+      "trace_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FDE",
+      "work_unit_ref": {
+        "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        "revision": 1,
+        "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+      },
+      "model_request_id": "model_request_01ARZ3NDEKTSV4RRFFQ69G5FCV"
+    },
+    "authority_context": {
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FDF",
+      "privacy_profile_ref": {
+        "record_id": "privacy_profile_01ARZ3NDEKTSV4RRFFQ69G5FDG",
+        "revision": 1,
+        "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "budget_profile_ref": {
+        "record_id": "budget_profile_01ARZ3NDEKTSV4RRFFQ69G5FDH",
+        "revision": 1,
+        "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      }
+    },
+    "input": {
+      "input_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "source_message_id": "user-message-m1-fixture"
+    },
+    "lifecycle": {
+      "state": "running",
+      "started_at": "2026-08-29T16:00:01.000Z"
+    },
+    "stream_head": { "state": "empty", "event_count": 0 },
+    "authority_boundary": {
+      "interaction_state_is_authoritative": false,
+      "events_are_domain_ledger": false,
+      "connection_abort_cancels_work": false
+    }
+  },
+  "content_hash": "sha256:84e828f8b25b3fe84ce7ebd25955e50830e0e5937113e94893a106dd3e239c3b",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-08-29T16:00:01.000Z",
+  "updated_at": "2026-08-29T16:00:01.000Z"
+}

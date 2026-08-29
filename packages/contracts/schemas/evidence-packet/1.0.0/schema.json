@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/evidence-packet/1.0.0/schema.json",
+  "title": "PetraEvidencePacket",
+  "description": "An immutable composition-specific selection over one exact ContextPacket; inclusion records authorized evidence, not truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "evidence_packet_id",
+    "revision",
+    "project_id",
+    "snapshot_ref",
+    "content",
+    "content_hash",
+    "compiled_by",
+    "compiled_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.evidence-packet" },
+    "schema_version": { "const": "1.0.0" },
+    "evidence_packet_id": {
+      "$ref": "../../context-packet/1.0.0/schema.json#/$defs/EvidencePacketId"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "snapshot_ref": {
+      "$ref": "../../context-packet/1.0.0/schema.json#/$defs/SnapshotRef"
+    },
+    "content": { "$ref": "#/$defs/EvidencePacketContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "compiled_by": {
+      "$ref": "../../context-packet/1.0.0/schema.json#/$defs/ServiceActorRef"
+    },
+    "compiled_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "EvidencePacketContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_packet_ref",
+        "composition_objective",
+        "temporal_perspective",
+        "selected_evidence",
+        "exclusions",
+        "coverage",
+        "freshness"
+      ],
+      "properties": {
+        "context_packet_ref": { "$ref": "#/$defs/ContextPacketRef" },
+        "composition_objective": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "temporal_perspective": { "$ref": "#/$defs/TemporalPerspective" },
+        "selected_evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/EvidenceSelection" }
+        },
+        "exclusions": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/ContextExclusion" }
+        },
+        "coverage": { "$ref": "#/$defs/EvidenceCoverage" },
+        "freshness": { "$ref": "#/$defs/Freshness" }
+      }
+    },
+    "ContextPacketRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context_packet_id", "content_hash"],
+      "properties": {
+        "context_packet_id": {
+          "$ref": "../../context-packet/1.0.0/schema.json#/$defs/ContextPacketId"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "TemporalPerspective": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["perspective", "as_of"],
+          "properties": {
+            "perspective": { "const": "current" },
+            "as_of": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["perspective", "as_of", "historical_boundary"],
+          "properties": {
+            "perspective": { "enum": ["historical", "comparative"] },
+            "as_of": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            },
+            "historical_boundary": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            }
+          }
+        }
+      ]
+    },
+    "EvidenceSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_selection_order",
+        "object_ref",
+        "bearing",
+        "source_span_selection_orders",
+        "inclusion_reason",
+        "use_limitations"
+      ],
+      "properties": {
+        "context_selection_order": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "object_ref": {
+          "$ref": "../../context-packet/1.0.0/schema.json#/$defs/VersionedObjectRef"
+        },
+        "bearing": {
+          "enum": [
+            "supporting",
+            "contrary",
+            "qualifying",
+            "conflicting",
+            "background",
+            "unresolved"
+          ]
+        },
+        "source_span_selection_orders": {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+          }
+        },
+        "inclusion_reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "use_limitations": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "ContextExclusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context_selection_order", "reason", "detail"],
+      "properties": {
+        "context_selection_order": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "reason": {
+          "enum": [
+            "not_relevant",
+            "redundant",
+            "scope_mismatch",
+            "rights",
+            "budget",
+            "unsupported_depth"
+          ]
+        },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "EvidenceCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "statement",
+        "contrary_evidence_status",
+        "qualifying_evidence_status"
+      ],
+      "properties": {
+        "state": { "enum": ["complete_for_context", "bounded", "partial"] },
+        "statement": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "contrary_evidence_status": {
+          "enum": ["included", "checked_none_in_context", "not_checked"]
+        },
+        "qualifying_evidence_status": {
+          "enum": ["included", "checked_none_in_context", "not_checked"]
+        }
+      }
+    },
+    "Freshness": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "checked_at"],
+          "properties": {
+            "state": { "const": "current_for_snapshot" },
+            "checked_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "checked_at", "invalidated_by"],
+          "properties": {
+            "state": { "const": "stale" },
+            "checked_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            },
+            "invalidated_by": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1000,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "checked_at", "reason"],
+          "properties": {
+            "state": { "const": "unknown" },
+            "checked_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 4000 }
+          }
+        }
+      ]
+    }
+  }
+}

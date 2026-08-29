@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/artifact/1.0.0/schema.json",
+  "title": "PetraArtifact",
+  "description": "The immutable identity and physical characteristics of an exact byte sequence processed by Petra.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_id",
+    "revision",
+    "artifact_kind",
+    "media_type",
+    "content_hash",
+    "byte_size",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.artifact"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "artifact_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+    },
+    "revision": {
+      "const": 1,
+      "description": "Artifacts never update in place; changed bytes receive a new identity."
+    },
+    "artifact_kind": {
+      "enum": [
+        "pdf",
+        "html",
+        "structured_text",
+        "dataset",
+        "code",
+        "environment_lock",
+        "run_output",
+        "image",
+        "export"
+      ]
+    },
+    "media_type": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9!#$&^_.+-]+/[a-zA-Z0-9!#$&^_.+-]+(?:;[ -~]+)?$",
+      "maxLength": 300
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "byte_size": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ByteSize"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

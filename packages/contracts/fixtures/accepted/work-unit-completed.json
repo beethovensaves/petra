@@ -1,0 +1,48 @@
+{
+  "schema_name": "petra.work-unit",
+  "schema_version": "1.0.0",
+  "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+  "revision": 4,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "spec": {
+    "workflow_name": "petra.ingestion.parse",
+    "workflow_version": "1.0.0",
+    "objective": "Parse the exact registered PDF into a candidate Petra ParsedDocument without mutating authority.",
+    "work_mode": "background",
+    "priority": "normal",
+    "dependency_work_unit_ids": [],
+    "input_manifest_ref": {
+      "worker_input_manifest_id": "worker_input_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+      "content_hash": "sha256:43057052df0f0067186c2a1a0daa8b0827823487141265996ed2deb0fdb7d3e7"
+    },
+    "idempotency_key": "parse:artifact-fb1:docling-v1",
+    "cache": {
+      "cache_mode": "reuse_exact",
+      "cache_key": "parse:artifact-fb1:docling-v1"
+    },
+    "cancellation_policy": "cancellable",
+    "checkpoint_policy": "disabled"
+  },
+  "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+  "status": {
+    "state": "completed",
+    "terminal_outcome": "succeeded",
+    "requested_at": "2026-08-29T14:00:00.000Z",
+    "queued_at": "2026-08-29T14:00:01.000Z",
+    "started_at": "2026-08-29T14:00:02.000Z",
+    "completed_at": "2026-08-29T14:00:05.000Z",
+    "attempt": 1,
+    "output_manifest_ref": {
+      "worker_output_manifest_id": "worker_output_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC4",
+      "content_hash": "sha256:5f9c81ae2ed811c77a5166d2a672ddde2243501542a8be66586b63f512458abb"
+    }
+  },
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "trace_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "created_at": "2026-08-29T14:00:00.000Z",
+  "updated_at": "2026-08-29T14:00:05.000Z"
+}

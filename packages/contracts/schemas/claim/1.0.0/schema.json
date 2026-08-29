@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/claim/1.0.0/schema.json",
+  "title": "PetraClaim",
+  "description": "A proposition with explicit scientific scope, epistemic basis, and authority state; existence does not imply truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "claim_id",
+    "revision",
+    "canonical_text",
+    "claim_kind",
+    "normalization_status",
+    "scope",
+    "basis",
+    "authority",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.claim"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "claim_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ClaimId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "canonical_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20000
+    },
+    "claim_kind": {
+      "enum": [
+        "descriptive",
+        "comparative",
+        "causal",
+        "mechanistic",
+        "methodological",
+        "theoretical",
+        "measurement"
+      ]
+    },
+    "normalization_status": {
+      "enum": ["verbatim", "normalized", "composed"]
+    },
+    "scope": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ScientificScope"
+    },
+    "basis": {
+      "$ref": "#/$defs/ClaimBasis"
+    },
+    "authority": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ScientificAuthority"
+    },
+    "supersedes_claim_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ClaimId"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ClaimBasis": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SourceBasis"
+        },
+        {
+          "$ref": "#/$defs/SynthesisBasis"
+        },
+        {
+          "$ref": "#/$defs/ResearcherBasis"
+        }
+      ]
+    },
+    "SourceBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basis_kind",
+        "work_version_id",
+        "source_scope",
+        "detail_level",
+        "source_span_ids",
+        "source_stance",
+        "attribution",
+        "modality",
+        "negated",
+        "derivation",
+        "validator_results",
+        "proposed_by",
+        "proposed_at"
+      ],
+      "properties": {
+        "basis_kind": {
+          "const": "source"
+        },
+        "work_version_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/WorkVersionId"
+        },
+        "source_scope": {
+          "enum": ["full_text", "abstract_only"]
+        },
+        "detail_level": {
+          "enum": ["broad", "detailed"]
+        },
+        "source_span_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/SourceSpanId"
+          }
+        },
+        "source_stance": {
+          "enum": ["states", "hypothesizes", "reports", "qualifies", "rejects"]
+        },
+        "attribution": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "modality": {
+          "enum": ["asserted", "hedged", "conditional", "speculative"]
+        },
+        "negated": {
+          "type": "boolean"
+        },
+        "uncertainty": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "derivation": {
+          "$ref": "#/$defs/Derivation"
+        },
+        "validator_results": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/ValidatorResult"
+          }
+        },
+        "extraction_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "proposed_by": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "proposed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "Derivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["derivation_kind", "derivation_ref"],
+      "properties": {
+        "derivation_kind": {
+          "enum": [
+            "deterministic_mapping",
+            "model_extraction",
+            "human_extraction"
+          ]
+        },
+        "derivation_ref": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        }
+      }
+    },
+    "ValidatorResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["validator_name", "validator_version", "outcome", "code"],
+      "properties": {
+        "validator_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "validator_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "outcome": {
+          "enum": ["pass", "warning", "fail"]
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    },
+    "SynthesisBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basis_kind",
+        "basis_claim_ids",
+        "basis_assertion_ids",
+        "composition_kind",
+        "composition_ref",
+        "composed_by",
+        "composed_at"
+      ],
+      "properties": {
+        "basis_kind": {
+          "const": "synthesis"
+        },
+        "basis_claim_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/ClaimId"
+          }
+        },
+        "basis_assertion_ids": {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/AssertionId"
+          }
+        },
+        "composition_kind": {
+          "enum": ["human", "model_assisted", "deterministic"]
+        },
+        "composition_ref": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "composed_by": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "composed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "ResearcherBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["basis_kind", "rationale", "proposed_by", "proposed_at"],
+      "properties": {
+        "basis_kind": {
+          "const": "researcher"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "proposed_by": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "proposed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    }
+  }
+}

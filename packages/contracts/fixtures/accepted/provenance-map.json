@@ -1,0 +1,75 @@
+{
+  "schema_name": "petra.provenance-map",
+  "schema_version": "1.0.0",
+  "provenance_map_id": "provenance_map_01ARZ3NDEKTSV4RRFFQ69G5FCP",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "draft_ref": {
+    "draft_artifact_id": "draft_artifact_01ARZ3NDEKTSV4RRFFQ69G5FCK",
+    "revision": 1,
+    "content_hash": "sha256:8b9201fc645d1bae2b93e01dff92c3eb96f394e3e6b3fa1238b8106b827a0560"
+  },
+  "evidence_packet_ref": {
+    "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+    "revision": 1,
+    "content_hash": "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64"
+  },
+  "content": {
+    "state": "current",
+    "mappings": [
+      {
+        "draft_span_id": "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCM",
+        "draft_span_revision": 1,
+        "mapping_state": "current",
+        "bases": [
+          {
+            "basis_kind": "evidence",
+            "evidence_selection_order": 1,
+            "object_ref": {
+              "object_kind": "claim",
+              "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "object_revision": 2,
+              "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+            },
+            "relation": "direct_report"
+          },
+          {
+            "basis_kind": "evidence",
+            "evidence_selection_order": 2,
+            "object_ref": {
+              "object_kind": "assertion",
+              "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "object_revision": 2,
+              "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+            },
+            "relation": "direct_report"
+          }
+        ]
+      },
+      {
+        "draft_span_id": "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCN",
+        "draft_span_revision": 1,
+        "mapping_state": "current",
+        "bases": [
+          {
+            "basis_kind": "evidence",
+            "evidence_selection_order": 1,
+            "object_ref": {
+              "object_kind": "claim",
+              "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "object_revision": 2,
+              "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+            },
+            "relation": "qualification"
+          }
+        ]
+      }
+    ]
+  },
+  "content_hash": "sha256:bbc4e68a34f00535febcc7c573cacde13e3d9256614b5cda02b753b41ef441d9",
+  "compiled_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "compiled_at": "2026-08-29T15:10:01.000Z"
+}

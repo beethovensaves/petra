@@ -1,0 +1,41 @@
+{
+  "input": {
+    "schema_name": "petra.source-span",
+    "schema_version": "1.0.0",
+    "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+    "revision": 1,
+    "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+    "artifact_content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+    "parsed_document_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+    "parser_run_id": "parser_run_01ARZ3NDEKTSV4RRFFQ69G5FB4",
+    "structural_block_id": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+    "selector_schema_version": "1.0.0",
+    "selector": {
+      "selector_type": "text_quote",
+      "quote": {
+        "exact_text": "x",
+        "selected_text_hash": "sha256:2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+        "start_codepoint": 0,
+        "end_codepoint": 1,
+        "normalization_version": "petra-text/1.0.0"
+      }
+    },
+    "extraction": {
+      "method": "structured_source",
+      "method_version": "1.0.0",
+      "normalization_version": "petra-text/1.0.0"
+    },
+    "verification": {
+      "status": "normalized",
+      "verified_at": "2026-08-28T18:11:02.000Z",
+      "transformations": ["none"]
+    },
+    "created_by": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-08-28T18:11:02.000Z"
+  },
+  "canonical": "{\"artifact_content_hash\":\"sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e\",\"artifact_id\":\"artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1\",\"created_at\":\"2026-08-28T18:11:02.000Z\",\"created_by\":{\"actor_id\":\"actor_01ARZ3NDEKTSV4RRFFQ69G5FAV\",\"actor_kind\":\"service\"},\"extraction\":{\"method\":\"structured_source\",\"method_version\":\"1.0.0\",\"normalization_version\":\"petra-text/1.0.0\"},\"parsed_document_id\":\"parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5\",\"parser_run_id\":\"parser_run_01ARZ3NDEKTSV4RRFFQ69G5FB4\",\"revision\":1,\"schema_name\":\"petra.source-span\",\"schema_version\":\"1.0.0\",\"selector\":{\"quote\":{\"end_codepoint\":1,\"exact_text\":\"x\",\"normalization_version\":\"petra-text/1.0.0\",\"selected_text_hash\":\"sha256:2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881\",\"start_codepoint\":0},\"selector_type\":\"text_quote\"},\"selector_schema_version\":\"1.0.0\",\"source_span_id\":\"source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7\",\"structural_block_id\":\"structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6\",\"verification\":{\"status\":\"normalized\",\"transformations\":[\"none\"],\"verified_at\":\"2026-08-28T18:11:02.000Z\"}}",
+  "sha256": "sha256:37657b5ef6d0333de3cf428314b36b349cc6c13f5487460528d26f93724c6692"
+}

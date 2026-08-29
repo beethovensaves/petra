@@ -1,0 +1,40 @@
+{
+  "schema_name": "petra.interaction-replay-record",
+  "schema_version": "1.0.0",
+  "interaction_replay_record_id": "interaction_replay_record_01ARZ3NDEKTSV4RRFFQ69G5FD9",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "interaction_run_ref": {
+    "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+    "revision": 1,
+    "content_hash": "sha256:84e828f8b25b3fe84ce7ebd25955e50830e0e5937113e94893a106dd3e239c3b"
+  },
+  "content": {
+    "connection_id": "interaction_connection_01ARZ3NDEKTSV4RRFFQ69G5FDA",
+    "attempt": 1,
+    "request": { "delivery_kind": "initial", "after_sequence": 0 },
+    "started_at": "2026-08-29T16:00:02.000Z",
+    "completed_at": "2026-08-29T16:00:03.000Z",
+    "delivered_event_refs": [],
+    "outcome": {
+      "outcome_kind": "connection_aborted",
+      "last_delivered_sequence": 0
+    },
+    "work_unit_observation": {
+      "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "revision": 1,
+      "status": "cancelled"
+    },
+    "authority_boundary": {
+      "authority_reapplied": false,
+      "commands_reexecuted": false,
+      "durable_work_cancelled": true
+    }
+  },
+  "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "recorded_at": "2026-08-29T16:00:03.000Z"
+}

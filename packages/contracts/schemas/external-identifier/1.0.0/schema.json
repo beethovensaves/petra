@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/external-identifier/1.0.0/schema.json",
+  "title": "PetraExternalIdentifier",
+  "description": "A source-observed external alias bound to the exact scholarly identity level it identifies.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "external_identifier_id",
+    "revision",
+    "subject",
+    "namespace",
+    "normalized_value",
+    "source_name",
+    "verification_status",
+    "observed_at",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.external-identifier"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "external_identifier_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ExternalIdentifierId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "subject": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/WorkSubject"
+        },
+        {
+          "$ref": "#/$defs/WorkVersionSubject"
+        },
+        {
+          "$ref": "#/$defs/AuthorSubject"
+        }
+      ]
+    },
+    "namespace": {
+      "enum": [
+        "doi",
+        "openalex_work",
+        "semantic_scholar_work",
+        "acl_anthology",
+        "arxiv",
+        "pmid",
+        "isbn",
+        "orcid",
+        "openalex_author",
+        "repository_url"
+      ]
+    },
+    "normalized_value": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "source_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "verification_status": {
+      "enum": ["verified", "source_reported", "unverified", "disputed"]
+    },
+    "observed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "WorkSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_kind", "work_id"],
+      "properties": {
+        "subject_kind": {
+          "const": "work"
+        },
+        "work_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/WorkId"
+        }
+      }
+    },
+    "WorkVersionSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_kind", "work_version_id"],
+      "properties": {
+        "subject_kind": {
+          "const": "work_version"
+        },
+        "work_version_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/WorkVersionId"
+        }
+      }
+    },
+    "AuthorSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_kind", "author_id"],
+      "properties": {
+        "subject_kind": {
+          "const": "author"
+        },
+        "author_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/AuthorId"
+        }
+      }
+    }
+  }
+}

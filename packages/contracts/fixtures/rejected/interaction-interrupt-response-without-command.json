@@ -1,0 +1,45 @@
+{
+  "schema_name": "petra.interaction-interrupt",
+  "schema_version": "1.0.0",
+  "interaction_interrupt_id": "interaction_interrupt_01ARZ3NDEKTSV4RRFFQ69G5FD8",
+  "revision": 2,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "interaction_run_ref": {
+    "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+    "revision": 1,
+    "content_hash": "sha256:84e828f8b25b3fe84ce7ebd25955e50830e0e5937113e94893a106dd3e239c3b"
+  },
+  "lineage": {
+    "lineage_kind": "revision",
+    "parent_revision": 1,
+    "parent_hash": "sha256:9244bba2a45fa90c201f10875716855fed0f3cd484f11cb442f91a9dbe28ee5a"
+  },
+  "content": {
+    "state": "responded",
+    "interrupt_kind": "review",
+    "request_event_ref": {
+      "interaction_event_record_id": "interaction_event_record_01ARZ3NDEKTSV4RRFFQ69G5FD7",
+      "sequence": 1,
+      "content_hash": "sha256:04bac9ef5af7020dc433b2f4c345d015447d9a9a5a5d7600dbe8b6325656bb6e"
+    },
+    "subject_refs": ["change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF"],
+    "response_artifact_ref": {
+      "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FDK",
+      "content_sha256": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "byte_size": 384,
+      "media_type": "application/json"
+    },
+    "responded_by": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "human"
+    },
+    "authority_effect": "command_input_only"
+  },
+  "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "created_at": "2026-08-29T16:00:02.000Z",
+  "updated_at": "2026-08-29T16:01:00.000Z"
+}

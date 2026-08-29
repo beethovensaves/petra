@@ -1,0 +1,48 @@
+{
+  "schema_name": "petra.domain-event",
+  "schema_version": "1.0.0",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+  "event_position": 4,
+  "stream_type": "project",
+  "stream_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "stream_revision": 4,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "occurred_at": "2026-08-28T18:13:02.000Z",
+  "recorded_at": "2026-08-28T18:13:02.000Z",
+  "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+  "causation_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBT",
+  "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBT",
+  "idempotency_key": "review:claim-fbb:apply:alternate",
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "event": {
+    "event_type": "change_set.conflicted",
+    "payload": {
+      "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBP",
+      "change_set_revision": 1,
+      "change_set_content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+      "conflict_code": "STALE_TARGET_REVISION",
+      "targets": [
+        {
+          "target_kind": "claim",
+          "target_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "expected_revision": 1,
+          "actual_revision": 2,
+          "expected_zone": "quarantine",
+          "actual_zone": "trusted"
+        },
+        {
+          "target_kind": "assertion",
+          "target_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "expected_revision": 1,
+          "actual_revision": 2,
+          "expected_zone": "quarantine",
+          "actual_zone": "trusted"
+        }
+      ]
+    }
+  }
+}

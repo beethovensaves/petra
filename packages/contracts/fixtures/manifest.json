@@ -1,0 +1,466 @@
+{
+  "fixture_manifest_version": "1.1.0",
+  "accepted": [
+    {
+      "schema": "contract-smoke",
+      "path": "fixtures/accepted/contract-smoke.json"
+    },
+    {
+      "schema": "actor",
+      "path": "fixtures/accepted/actor.json"
+    },
+    {
+      "schema": "project",
+      "path": "fixtures/accepted/project.json"
+    },
+    {
+      "schema": "author",
+      "path": "fixtures/accepted/author.json"
+    },
+    {
+      "schema": "work",
+      "path": "fixtures/accepted/work.json"
+    },
+    {
+      "schema": "work-version",
+      "path": "fixtures/accepted/work-version.json"
+    },
+    {
+      "schema": "external-identifier",
+      "path": "fixtures/accepted/external-identifier.json"
+    },
+    {
+      "schema": "artifact",
+      "path": "fixtures/accepted/artifact.json"
+    },
+    {
+      "schema": "artifact-manifest",
+      "path": "fixtures/accepted/artifact-manifest.json"
+    },
+    {
+      "schema": "rights-decision",
+      "path": "fixtures/accepted/rights-decision.json"
+    },
+    {
+      "schema": "parsed-document",
+      "path": "fixtures/accepted/parsed-document.json"
+    },
+    {
+      "schema": "structural-block",
+      "path": "fixtures/accepted/structural-block.json"
+    },
+    {
+      "schema": "source-span",
+      "path": "fixtures/accepted/source-span.json"
+    },
+    {
+      "schema": "claim",
+      "path": "fixtures/accepted/claim.json"
+    },
+    {
+      "schema": "assertion",
+      "path": "fixtures/accepted/assertion.json"
+    },
+    {
+      "schema": "assertion",
+      "path": "fixtures/accepted/assertion-trusted.json"
+    },
+    {
+      "schema": "change-set",
+      "path": "fixtures/accepted/change-set.json"
+    },
+    {
+      "schema": "approval",
+      "path": "fixtures/accepted/approval.json"
+    },
+    {
+      "schema": "command-envelope",
+      "path": "fixtures/accepted/command-submit-change-set.json"
+    },
+    {
+      "schema": "command-envelope",
+      "path": "fixtures/accepted/command-record-approval.json"
+    },
+    {
+      "schema": "command-envelope",
+      "path": "fixtures/accepted/command-apply-change-set.json"
+    },
+    {
+      "schema": "domain-event",
+      "path": "fixtures/accepted/domain-event-change-set-submitted.json"
+    },
+    {
+      "schema": "domain-event",
+      "path": "fixtures/accepted/domain-event-approval-recorded.json"
+    },
+    {
+      "schema": "domain-event",
+      "path": "fixtures/accepted/domain-event-change-set-applied.json"
+    },
+    {
+      "schema": "domain-event",
+      "path": "fixtures/accepted/domain-event-change-set-conflicted.json"
+    },
+    {
+      "schema": "outbox-record",
+      "path": "fixtures/accepted/outbox-record.json"
+    },
+    {
+      "schema": "worker-input-manifest",
+      "path": "fixtures/accepted/worker-input-manifest.json"
+    },
+    {
+      "schema": "worker-output-manifest",
+      "path": "fixtures/accepted/worker-output-manifest.json"
+    },
+    {
+      "schema": "work-unit",
+      "path": "fixtures/accepted/work-unit-requested.json"
+    },
+    {
+      "schema": "work-unit",
+      "path": "fixtures/accepted/work-unit-completed.json"
+    },
+    {
+      "schema": "graph-projection-record",
+      "path": "fixtures/accepted/graph-projection-record-failed.json"
+    },
+    {
+      "schema": "graph-projection-record",
+      "path": "fixtures/accepted/graph-projection-record-applied.json"
+    },
+    {
+      "schema": "projection-checkpoint",
+      "path": "fixtures/accepted/projection-checkpoint-catching-up.json"
+    },
+    {
+      "schema": "projection-checkpoint",
+      "path": "fixtures/accepted/projection-checkpoint-blocked.json"
+    },
+    {
+      "schema": "projection-checkpoint",
+      "path": "fixtures/accepted/projection-checkpoint-current.json"
+    },
+    {
+      "schema": "context-packet",
+      "path": "fixtures/accepted/context-packet.json"
+    },
+    {
+      "schema": "evidence-packet",
+      "path": "fixtures/accepted/evidence-packet.json"
+    },
+    {
+      "schema": "draft-artifact",
+      "path": "fixtures/accepted/draft-artifact.json"
+    },
+    {
+      "schema": "draft-span",
+      "path": "fixtures/accepted/draft-span-report.json"
+    },
+    {
+      "schema": "draft-span",
+      "path": "fixtures/accepted/draft-span-qualification.json"
+    },
+    {
+      "schema": "provenance-map",
+      "path": "fixtures/accepted/provenance-map.json"
+    },
+    {
+      "schema": "citation-bundle",
+      "path": "fixtures/accepted/citation-bundle.json"
+    },
+    {
+      "schema": "interaction-feature-manifest",
+      "path": "fixtures/accepted/interaction-feature-manifest.json"
+    },
+    {
+      "schema": "interaction-custom-event",
+      "path": "fixtures/accepted/interaction-custom-event.json"
+    },
+    {
+      "schema": "interaction-run",
+      "path": "fixtures/accepted/interaction-run.json"
+    },
+    {
+      "schema": "interaction-event-record",
+      "path": "fixtures/accepted/interaction-event-record.json"
+    },
+    {
+      "schema": "interaction-interrupt",
+      "path": "fixtures/accepted/interaction-interrupt-pending.json"
+    },
+    {
+      "schema": "interaction-interrupt",
+      "path": "fixtures/accepted/interaction-interrupt-responded.json"
+    },
+    {
+      "schema": "interaction-replay-record",
+      "path": "fixtures/accepted/interaction-replay-record.json"
+    }
+  ],
+  "rejected": [
+    {
+      "schema": "contract-smoke",
+      "path": "fixtures/rejected/contract-smoke-unknown-property.json"
+    },
+    {
+      "schema": "contract-smoke",
+      "path": "fixtures/rejected/contract-smoke-wrong-type.json"
+    },
+    {
+      "schema": "actor",
+      "path": "fixtures/rejected/actor-invalid-id.json"
+    },
+    {
+      "schema": "project",
+      "path": "fixtures/rejected/project-unknown-property.json"
+    },
+    {
+      "schema": "project",
+      "path": "fixtures/rejected/project-unsafe-revision.json"
+    },
+    {
+      "schema": "project",
+      "path": "fixtures/rejected/project-invalid-timestamp.json"
+    },
+    {
+      "schema": "project",
+      "path": "fixtures/rejected/project-invalid-namespace.json"
+    },
+    {
+      "schema": "author",
+      "path": "fixtures/rejected/author-wrong-id-kind.json"
+    },
+    {
+      "schema": "work",
+      "path": "fixtures/rejected/work-without-author.json"
+    },
+    {
+      "schema": "work-version",
+      "path": "fixtures/rejected/work-version-precision-mismatch.json"
+    },
+    {
+      "schema": "work-version",
+      "path": "fixtures/rejected/work-version-invalid-calendar-date.json"
+    },
+    {
+      "schema": "external-identifier",
+      "path": "fixtures/rejected/external-identifier-ambiguous-subject.json"
+    },
+    {
+      "schema": "external-identifier",
+      "path": "fixtures/rejected/external-identifier-unknown-namespace.json"
+    },
+    {
+      "schema": "artifact",
+      "path": "fixtures/rejected/artifact-mutable-revision.json"
+    },
+    {
+      "schema": "artifact-manifest",
+      "path": "fixtures/rejected/artifact-manifest-ambiguous-origin.json"
+    },
+    {
+      "schema": "artifact-manifest",
+      "path": "fixtures/rejected/artifact-manifest-failed-integrity.json"
+    },
+    {
+      "schema": "rights-decision",
+      "path": "fixtures/rejected/rights-decision-incomplete-permissions.json"
+    },
+    {
+      "schema": "rights-decision",
+      "path": "fixtures/rejected/rights-decision-wrong-manifest-kind.json"
+    },
+    {
+      "schema": "parsed-document",
+      "path": "fixtures/rejected/parsed-document-duplicate-block.json"
+    },
+    {
+      "schema": "parsed-document",
+      "path": "fixtures/rejected/parsed-document-wrong-artifact-kind.json"
+    },
+    {
+      "schema": "structural-block",
+      "path": "fixtures/rejected/structural-block-ambiguous-content.json"
+    },
+    {
+      "schema": "structural-block",
+      "path": "fixtures/rejected/structural-block-wrong-span-kind.json"
+    },
+    {
+      "schema": "source-span",
+      "path": "fixtures/rejected/source-span-ambiguous-selector.json"
+    },
+    {
+      "schema": "source-span",
+      "path": "fixtures/rejected/source-span-single-component.json"
+    },
+    {
+      "schema": "source-span",
+      "path": "fixtures/rejected/source-span-invalid-polygon.json"
+    },
+    {
+      "schema": "claim",
+      "path": "fixtures/rejected/claim-ambiguous-basis.json"
+    },
+    {
+      "schema": "claim",
+      "path": "fixtures/rejected/claim-trusted-without-promotion.json"
+    },
+    {
+      "schema": "claim",
+      "path": "fixtures/rejected/claim-missing-scope-accounting.json"
+    },
+    {
+      "schema": "assertion",
+      "path": "fixtures/rejected/assertion-quarantine-with-promotion.json"
+    },
+    {
+      "schema": "assertion",
+      "path": "fixtures/rejected/assertion-trusted-without-promotion.json"
+    },
+    {
+      "schema": "assertion",
+      "path": "fixtures/rejected/assertion-ambiguous-object.json"
+    },
+    {
+      "schema": "assertion",
+      "path": "fixtures/rejected/assertion-unknown-predicate.json"
+    },
+    {
+      "schema": "change-set",
+      "path": "fixtures/rejected/change-set-wrong-target-kind.json"
+    },
+    {
+      "schema": "approval",
+      "path": "fixtures/rejected/approval-model-decider.json"
+    },
+    {
+      "schema": "approval",
+      "path": "fixtures/rejected/approval-missing-content-hash.json"
+    },
+    {
+      "schema": "command-envelope",
+      "path": "fixtures/rejected/command-ambiguous-payload.json"
+    },
+    {
+      "schema": "command-envelope",
+      "path": "fixtures/rejected/command-invalid-idempotency-key.json"
+    },
+    {
+      "schema": "domain-event",
+      "path": "fixtures/rejected/domain-event-mismatched-payload.json"
+    },
+    {
+      "schema": "domain-event",
+      "path": "fixtures/rejected/domain-event-conflict-one-target.json"
+    },
+    {
+      "schema": "domain-event",
+      "path": "fixtures/rejected/domain-event-wrong-causation-kind.json"
+    },
+    {
+      "schema": "outbox-record",
+      "path": "fixtures/rejected/outbox-record-unknown-target.json"
+    },
+    {
+      "schema": "worker-input-manifest",
+      "path": "fixtures/rejected/worker-input-manifest-empty-network-allowlist.json"
+    },
+    {
+      "schema": "worker-output-manifest",
+      "path": "fixtures/rejected/worker-output-manifest-self-registers-artifact.json"
+    },
+    {
+      "schema": "work-unit",
+      "path": "fixtures/rejected/work-unit-success-without-output.json"
+    },
+    {
+      "schema": "graph-projection-record",
+      "path": "fixtures/rejected/graph-projection-record-model-recorder.json"
+    },
+    {
+      "schema": "projection-checkpoint",
+      "path": "fixtures/rejected/projection-checkpoint-current-with-pending.json"
+    },
+    {
+      "schema": "context-packet",
+      "path": "fixtures/rejected/context-packet-model-compiler.json"
+    },
+    {
+      "schema": "evidence-packet",
+      "path": "fixtures/rejected/evidence-packet-stale-without-cause.json"
+    },
+    {
+      "schema": "draft-artifact",
+      "path": "fixtures/rejected/draft-artifact-model-without-prompt-hash.json"
+    },
+    {
+      "schema": "draft-span",
+      "path": "fixtures/rejected/draft-span-code-unit-offset.json"
+    },
+    {
+      "schema": "provenance-map",
+      "path": "fixtures/rejected/provenance-map-stale-without-cause.json"
+    },
+    {
+      "schema": "citation-bundle",
+      "path": "fixtures/rejected/citation-bundle-without-authors.json"
+    },
+    {
+      "schema": "interaction-feature-manifest",
+      "path": "fixtures/rejected/interaction-feature-manifest-grants-capability.json"
+    },
+    {
+      "schema": "interaction-custom-event",
+      "path": "fixtures/rejected/interaction-custom-event-unregistered.json"
+    },
+    {
+      "schema": "interaction-run",
+      "path": "fixtures/rejected/interaction-run-authoritative-state.json"
+    },
+    {
+      "schema": "interaction-event-record",
+      "path": "fixtures/rejected/interaction-event-record-unregistered-custom-schema.json"
+    },
+    {
+      "schema": "interaction-interrupt",
+      "path": "fixtures/rejected/interaction-interrupt-response-without-command.json"
+    },
+    {
+      "schema": "interaction-replay-record",
+      "path": "fixtures/rejected/interaction-replay-record-cancels-work.json"
+    }
+  ],
+  "canonical": [
+    {
+      "schema": "contract-smoke",
+      "path": "fixtures/canonical/contract-smoke.json"
+    },
+    {
+      "schema": "project",
+      "path": "fixtures/canonical/project.json"
+    },
+    {
+      "schema": "work-version",
+      "path": "fixtures/canonical/work-version.json"
+    },
+    {
+      "schema": "artifact",
+      "path": "fixtures/canonical/artifact.json"
+    },
+    {
+      "schema": "source-span",
+      "path": "fixtures/canonical/source-span.json"
+    },
+    {
+      "schema": "claim",
+      "path": "fixtures/canonical/claim.json"
+    }
+  ],
+  "version_transitions": [
+    {
+      "path": "fixtures/version-transitions/contract-smoke-1.0.0-to-2.0.0-rejection.json"
+    }
+  ]
+}

@@ -1,0 +1,351 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/interaction-run/1.0.0/schema.json",
+  "title": "PetraInteractionRun",
+  "description": "A revisioned durable record of one Petra interaction run, its protocol correlation, bounded authority context, WorkUnit linkage, and presentation-stream head. It is not a scientific domain ledger.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "interaction_run_id",
+    "revision",
+    "project_id",
+    "feature_manifest_ref",
+    "lineage",
+    "content",
+    "content_hash",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.interaction-run" },
+    "schema_version": { "const": "1.0.0" },
+    "interaction_run_id": { "$ref": "#/$defs/InteractionRunId" },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "feature_manifest_ref": { "$ref": "#/$defs/FeatureManifestRef" },
+    "lineage": { "$ref": "#/$defs/RunLineage" },
+    "content": { "$ref": "#/$defs/RunContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "updated_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "InteractionRunId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^interaction_run_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "InteractionFeatureManifestId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^interaction_feature_manifest_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "FeatureManifestRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interaction_feature_manifest_id",
+        "revision",
+        "content_hash"
+      ],
+      "properties": {
+        "interaction_feature_manifest_id": {
+          "$ref": "#/$defs/InteractionFeatureManifestId"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "RunLineage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lineage_kind"],
+          "properties": { "lineage_kind": { "const": "root" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lineage_kind", "parent_revision", "parent_hash"],
+          "properties": {
+            "lineage_kind": { "const": "revision" },
+            "parent_revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "parent_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        }
+      ]
+    },
+    "OpaqueProtocolId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$"
+    },
+    "TraceId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^trace_[0-9A-HJKMNP-TV-Z]{26}$" }
+      ]
+    },
+    "RequestId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^request_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "CapabilityGrantId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^capability_grant_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "VersionedControlRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "content_hash"],
+      "properties": {
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "WorkUnitRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_unit_id", "revision", "spec_hash"],
+      "properties": {
+        "work_unit_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "spec_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "RunContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "correlation",
+        "authority_context",
+        "input",
+        "lifecycle",
+        "stream_head",
+        "authority_boundary"
+      ],
+      "properties": {
+        "correlation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "protocol_thread_id",
+            "protocol_run_id",
+            "request_id",
+            "trace_id",
+            "work_unit_ref"
+          ],
+          "properties": {
+            "protocol_thread_id": { "$ref": "#/$defs/OpaqueProtocolId" },
+            "protocol_run_id": { "$ref": "#/$defs/OpaqueProtocolId" },
+            "request_id": { "$ref": "#/$defs/RequestId" },
+            "trace_id": { "$ref": "#/$defs/TraceId" },
+            "work_unit_ref": { "$ref": "#/$defs/WorkUnitRef" },
+            "model_request_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "agent_run_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            }
+          }
+        },
+        "authority_context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "actor",
+            "capability_grant_id",
+            "privacy_profile_ref",
+            "budget_profile_ref"
+          ],
+          "properties": {
+            "actor": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+            },
+            "capability_grant_id": { "$ref": "#/$defs/CapabilityGrantId" },
+            "privacy_profile_ref": {
+              "$ref": "#/$defs/VersionedControlRef"
+            },
+            "budget_profile_ref": { "$ref": "#/$defs/VersionedControlRef" }
+          }
+        },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["input_hash", "source_message_id"],
+          "properties": {
+            "input_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "source_message_id": { "$ref": "#/$defs/OpaqueProtocolId" }
+          }
+        },
+        "lifecycle": { "$ref": "#/$defs/RunLifecycle" },
+        "stream_head": { "$ref": "#/$defs/StreamHead" },
+        "authority_boundary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "interaction_state_is_authoritative",
+            "events_are_domain_ledger",
+            "connection_abort_cancels_work"
+          ],
+          "properties": {
+            "interaction_state_is_authoritative": { "const": false },
+            "events_are_domain_ledger": { "const": false },
+            "connection_abort_cancels_work": { "const": false }
+          }
+        }
+      }
+    },
+    "RunLifecycle": {
+      "oneOf": [
+        { "$ref": "#/$defs/ActiveLifecycle" },
+        { "$ref": "#/$defs/AwaitingInterruptLifecycle" },
+        { "$ref": "#/$defs/TerminalLifecycle" }
+      ]
+    },
+    "ActiveLifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "started_at"],
+      "properties": {
+        "state": { "enum": ["queued", "running"] },
+        "started_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "AwaitingInterruptLifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "started_at", "interaction_interrupt_ids"],
+      "properties": {
+        "state": { "const": "awaiting_interrupt" },
+        "started_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "interaction_interrupt_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "allOf": [
+              { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+              {
+                "type": "string",
+                "pattern": "^interaction_interrupt_[0-9A-HJKMNP-TV-Z]{26}$"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "TerminalLifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "started_at", "ended_at", "outcome_code"],
+      "properties": {
+        "state": { "enum": ["completed", "failed", "cancelled"] },
+        "started_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "ended_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "outcome_code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Z][A-Z0-9_]{0,199}$"
+        }
+      }
+    },
+    "StreamHead": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "event_count"],
+          "properties": {
+            "state": { "const": "empty" },
+            "event_count": { "const": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "event_count", "latest_sequence", "head_hash"],
+          "properties": {
+            "state": { "const": "advanced" },
+            "event_count": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "latest_sequence": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "head_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

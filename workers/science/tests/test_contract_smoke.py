@@ -1,0 +1,2994 @@
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+from typing import Any, Literal
+
+import rfc8785
+from jsonschema import Draft202012Validator, FormatChecker
+from pydantic import BaseModel, ConfigDict, RootModel
+from referencing import Registry, Resource
+
+PETRA_ROOT = Path(__file__).resolve().parents[3]
+CONTRACTS_ROOT = PETRA_ROOT / "packages" / "contracts"
+
+
+def read_json(relative_path: str) -> Any:
+    with (CONTRACTS_ROOT / relative_path).open(encoding="utf-8") as source:
+        return json.load(source)
+
+
+REGISTRY = read_json("registry.json")
+MANIFEST = read_json("fixtures/manifest.json")
+SCHEMAS = {entry["name"]: read_json(entry["path"]) for entry in REGISTRY["schemas"]}
+RESOURCE_REGISTRY = Registry().with_resources(
+    [(schema["$id"], Resource.from_contents(schema)) for schema in SCHEMAS.values()]
+)
+VALIDATORS = {
+    name: Draft202012Validator(
+        schema,
+        registry=RESOURCE_REGISTRY,
+        format_checker=FormatChecker(),
+    )
+    for name, schema in SCHEMAS.items()
+}
+COMMON_SCHEMA_ID = next(
+    entry["$id"] for entry in REGISTRY["schemas"] if entry["name"] == "common"
+)
+FOUNDATION_DEFINITIONS = {
+    "petra_id": "PetraId",
+    "actor_id": "ActorId",
+    "project_id": "ProjectId",
+    "artifact_id": "ArtifactId",
+    "artifact_manifest_id": "ArtifactManifestId",
+    "rights_decision_id": "RightsDecisionId",
+    "parser_run_id": "ParserRunId",
+    "parsed_document_id": "ParsedDocumentId",
+    "structural_block_id": "StructuralBlockId",
+    "source_span_id": "SourceSpanId",
+    "claim_id": "ClaimId",
+    "assertion_id": "AssertionId",
+    "change_set_id": "ChangeSetId",
+    "approval_id": "ApprovalId",
+    "review_policy_id": "ReviewPolicyId",
+    "revision": "Revision",
+    "byte_size": "ByteSize",
+    "content_hash": "ContentHash",
+    "timestamp": "Timestamp",
+    "actor_ref": "ActorRef",
+    "project_scope": "ProjectScope",
+    "evidence_namespace": "EvidenceNamespace",
+}
+
+
+class PetraModel(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid", frozen=True)
+
+
+class ContractSmoke(PetraModel):
+    kind: Literal["petra.contract-smoke"]
+    message: str
+    schema_version: Literal["1.0.0"]
+    sequence: int
+
+
+class ActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["human", "service", "model"]
+
+
+class PetraActor(PetraModel):
+    schema_name: Literal["petra.actor"]
+    schema_version: Literal["1.0.0"]
+    actor_id: str
+    actor_kind: Literal["human", "service", "model"]
+    display_name: str
+    created_at: str
+
+
+class PetraProject(PetraModel):
+    schema_name: Literal["petra.project"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    revision: int
+    name: str
+    description: str | None = None
+    status: Literal["active", "archived"]
+    visibility: Literal["private"]
+    enabled_evidence_namespaces: list[
+        Literal["scholarly", "operational", "personal", "discovery"]
+    ]
+    created_by: ActorRef
+    created_at: str
+    updated_at: str
+
+
+class PetraAuthor(PetraModel):
+    schema_name: Literal["petra.author"]
+    schema_version: Literal["1.0.0"]
+    author_id: str
+    revision: int
+    author_kind: Literal["person", "organization", "consortium"]
+    display_name: str
+    identity_status: Literal["resolved", "provisional", "disputed"]
+    created_by: ActorRef
+    created_at: str
+    updated_at: str
+
+
+class AuthorCredit(PetraModel):
+    author_id: str
+    position: int
+    credit_role: Literal["author", "editor"]
+    corresponding: bool | None = None
+
+
+class PetraWork(PetraModel):
+    schema_name: Literal["petra.work"]
+    schema_version: Literal["1.0.0"]
+    work_id: str
+    revision: int
+    title: str
+    work_kind: Literal[
+        "journal_article",
+        "conference_paper",
+        "preprint",
+        "thesis",
+        "book",
+        "chapter",
+        "other",
+    ]
+    identity_status: Literal["resolved", "provisional", "disputed"]
+    author_credits: list[AuthorCredit]
+    created_by: ActorRef
+    created_at: str
+    updated_at: str
+
+
+class PublicationYear(PetraModel):
+    precision: Literal["year"]
+    value: str
+
+
+class PublicationMonth(PetraModel):
+    precision: Literal["month"]
+    value: str
+
+
+class PublicationDay(PetraModel):
+    precision: Literal["day"]
+    value: str
+
+
+class MetadataSource(PetraModel):
+    source_kind: Literal["registry", "repository", "publisher", "provider", "user"]
+    source_name: str
+    source_record_id: str | None = None
+
+
+class PetraWorkVersion(PetraModel):
+    schema_name: Literal["petra.work-version"]
+    schema_version: Literal["1.0.0"]
+    work_version_id: str
+    revision: int
+    work_id: str
+    version_label: str
+    publication_status: Literal[
+        "preprint",
+        "peer_reviewed",
+        "accepted",
+        "corrected",
+        "retracted",
+        "unknown",
+    ]
+    published_date: PublicationYear | PublicationMonth | PublicationDay | None = None
+    metadata_source: MetadataSource
+    metadata_retrieved_at: str
+    created_by: ActorRef
+    created_at: str
+    updated_at: str
+
+
+class WorkSubject(PetraModel):
+    subject_kind: Literal["work"]
+    work_id: str
+
+
+class WorkVersionSubject(PetraModel):
+    subject_kind: Literal["work_version"]
+    work_version_id: str
+
+
+class AuthorSubject(PetraModel):
+    subject_kind: Literal["author"]
+    author_id: str
+
+
+class PetraExternalIdentifier(PetraModel):
+    schema_name: Literal["petra.external-identifier"]
+    schema_version: Literal["1.0.0"]
+    external_identifier_id: str
+    revision: int
+    subject: WorkSubject | WorkVersionSubject | AuthorSubject
+    namespace: Literal[
+        "doi",
+        "openalex_work",
+        "semantic_scholar_work",
+        "acl_anthology",
+        "arxiv",
+        "pmid",
+        "isbn",
+        "orcid",
+        "openalex_author",
+        "repository_url",
+    ]
+    normalized_value: str
+    source_name: str
+    verification_status: Literal[
+        "verified", "source_reported", "unverified", "disputed"
+    ]
+    observed_at: str
+    created_by: ActorRef
+    created_at: str
+
+
+class PetraArtifact(PetraModel):
+    schema_name: Literal["petra.artifact"]
+    schema_version: Literal["1.0.0"]
+    artifact_id: str
+    revision: Literal[1]
+    artifact_kind: Literal[
+        "pdf",
+        "html",
+        "structured_text",
+        "dataset",
+        "code",
+        "environment_lock",
+        "run_output",
+        "image",
+        "export",
+    ]
+    media_type: str
+    content_hash: str
+    byte_size: int
+    created_by: ActorRef
+    created_at: str
+
+
+class ResponseMetadata(PetraModel):
+    status_code: int | None = None
+    content_type: str | None = None
+    content_length: int | None = None
+    etag: str | None = None
+    last_modified: str | None = None
+
+
+class AcquiredOrigin(PetraModel):
+    origin_kind: Literal["acquired"]
+    work_version_id: str
+    source_connector: str
+    connector_version: str
+    retrieval_url: str
+    retrieved_at: str
+    response_metadata: ResponseMetadata
+
+
+class UserSuppliedOrigin(PetraModel):
+    origin_kind: Literal["user_supplied"]
+    supplied_by: ActorRef
+    supplied_at: str
+    original_filename: str
+    work_version_id: str | None = None
+
+
+class GeneratedOrigin(PetraModel):
+    origin_kind: Literal["generated"]
+    generator_name: str
+    generator_version: str
+    generated_at: str
+    input_artifact_ids: list[str]
+
+
+class StorageRef(PetraModel):
+    storage_kind: Literal["content_addressed_object"]
+    store_name: str
+    object_key: str
+    content_hash: str
+    availability: Literal["available"]
+    verified_at: str
+
+
+class IntegrityProblem(PetraModel):
+    code: str
+    severity: Literal["warning"]
+    message: str
+
+
+class VerifiedIntegrity(PetraModel):
+    status: Literal["verified"]
+    checked_at: str
+    problems: list[IntegrityProblem]
+
+
+class WarningIntegrity(PetraModel):
+    status: Literal["verified_with_warnings"]
+    checked_at: str
+    problems: list[IntegrityProblem]
+
+
+class PetraArtifactManifest(PetraModel):
+    schema_name: Literal["petra.artifact-manifest"]
+    schema_version: Literal["1.0.0"]
+    artifact_manifest_id: str
+    revision: Literal[1]
+    artifact_id: str
+    rights_decision_id: str
+    origin: AcquiredOrigin | UserSuppliedOrigin | GeneratedOrigin
+    storage_ref: StorageRef
+    integrity: VerifiedIntegrity | WarningIntegrity
+    recorded_by: ActorRef
+    recorded_at: str
+
+
+class ObservedLicense(PetraModel):
+    identifier: str | None = None
+    url: str | None = None
+    statement: str | None = None
+    source: Literal[
+        "artifact",
+        "license_file",
+        "repository_record",
+        "publisher_record",
+        "user_declaration",
+        "permission_record",
+    ]
+
+
+class RightsPermissions(PetraModel):
+    store_raw_bytes: bool
+    parse: bool
+    index: bool
+    embed: bool
+    send_selected_text_remotely: bool
+    quote_publicly: bool
+    redistribute_artifact: bool
+
+
+class PetraRightsDecision(PetraModel):
+    schema_name: Literal["petra.rights-decision"]
+    schema_version: Literal["1.0.0"]
+    rights_decision_id: str
+    revision: Literal[1]
+    artifact_manifest_id: str
+    source_location: str
+    license_status: Literal["known", "unknown", "restricted"]
+    observed_license: ObservedLicense | None = None
+    access_basis: Literal[
+        "open_license",
+        "public_repository",
+        "subscription",
+        "user_supplied",
+        "permission",
+        "unknown",
+    ]
+    decision_status: Literal[
+        "verified", "inferred", "unknown", "conflicting", "restricted"
+    ]
+    permissions: RightsPermissions
+    conditions: list[
+        Literal[
+            "attribution",
+            "notice",
+            "noncommercial",
+            "share_alike",
+            "no_derivatives",
+        ]
+    ]
+    required_notices: list[str]
+    authorization_reference: str | None = None
+    decision_maker: ActorRef
+    rationale: str
+    observed_at: str
+    policy_version: str
+    created_at: str
+
+
+class VersionedComponent(PetraModel):
+    name: str
+    version: str
+
+
+class ParserProvenance(PetraModel):
+    parser: VersionedComponent
+    configuration_hash: str
+    component_models: list[VersionedComponent] | None = None
+    started_at: str
+    completed_at: str
+
+
+class ParsedPage(PetraModel):
+    page_number: int
+    page_label: str | None = None
+    width: float
+    height: float
+    unit: Literal["pt", "px", "mm"]
+    coordinate_origin: Literal["top_left", "bottom_left"]
+    text_layer_state: Literal["present", "absent", "unusable", "unknown"]
+    parse_state: Literal["complete", "partial", "needs_ocr", "failed"]
+    quality_score: float | None = None
+
+
+class ParseDiagnostic(PetraModel):
+    code: str
+    severity: Literal["info", "warning", "error"]
+    message: str
+    page_number: int | None = None
+
+
+class PetraParsedDocument(PetraModel):
+    schema_name: Literal["petra.parsed-document"]
+    schema_version: Literal["1.0.0"]
+    parsed_document_id: str
+    revision: Literal[1]
+    source_artifact_id: str
+    source_artifact_content_hash: str
+    parser_output_artifact_id: str
+    work_version_id: str
+    parser_run_id: str
+    source_format: Literal[
+        "pdf", "html", "xml", "json", "plain_text", "code", "image", "other"
+    ]
+    document_language: str | None = None
+    adapter: VersionedComponent
+    normalization_version: str
+    parser_provenance: ParserProvenance
+    quality_state: Literal["complete", "partial", "needs_ocr", "failed"]
+    pages: list[ParsedPage]
+    block_ids: list[str]
+    diagnostics: list[ParseDiagnostic]
+    created_by: ActorRef
+    created_at: str
+
+
+class BlockBoundingBox(PetraModel):
+    x: float
+    y: float
+    width: float
+    height: float
+
+
+class BlockPageLocation(PetraModel):
+    page_number: int
+    bounding_boxes: list[BlockBoundingBox]
+
+
+class TextBlockContent(PetraModel):
+    content_kind: Literal["text"]
+    text: str
+    content_hash: str
+
+
+class StructuredBlockContent(PetraModel):
+    content_kind: Literal["structured_artifact"]
+    structured_artifact_id: str
+    content_hash: str
+
+
+class VisualBlockContent(PetraModel):
+    content_kind: Literal["visual_only"]
+
+
+class PetraStructuralBlock(PetraModel):
+    schema_name: Literal["petra.structural-block"]
+    schema_version: Literal["1.0.0"]
+    structural_block_id: str
+    revision: Literal[1]
+    parsed_document_id: str
+    block_kind: Literal[
+        "document_title",
+        "heading",
+        "paragraph",
+        "sentence",
+        "list",
+        "list_item",
+        "footnote",
+        "reference",
+        "formula",
+        "table",
+        "table_row",
+        "table_cell",
+        "figure",
+        "caption",
+        "code_block",
+        "other",
+    ]
+    content_layer: Literal["source_native", "ocr", "parser_derived", "visual_only"]
+    reading_order: int
+    structural_path: list[str]
+    parent_block_id: str | None = None
+    child_block_ids: list[str]
+    previous_block_id: str | None = None
+    next_block_id: str | None = None
+    page_locations: list[BlockPageLocation]
+    content: TextBlockContent | StructuredBlockContent | VisualBlockContent
+    source_span_ids: list[str]
+    created_at: str
+
+
+class SpanTextQuote(PetraModel):
+    exact_text: str | None = None
+    selected_text_hash: str
+    prefix: str | None = None
+    suffix: str | None = None
+    start_codepoint: int
+    end_codepoint: int
+    normalization_version: str
+
+
+class SpanPoint(PetraModel):
+    x: float
+    y: float
+
+
+class SpanBoundingBox(PetraModel):
+    region_kind: Literal["bounding_box"]
+    x: float
+    y: float
+    width: float
+    height: float
+
+
+class SpanPolygon(PetraModel):
+    region_kind: Literal["polygon"]
+    points: list[SpanPoint]
+
+
+class SpanPageRegion(PetraModel):
+    page_number: int
+    page_width: float
+    page_height: float
+    unit: Literal["pt", "px", "mm"]
+    coordinate_origin: Literal["top_left", "bottom_left"]
+    regions: list[SpanBoundingBox | SpanPolygon]
+
+
+class SpanSectionPath(PetraModel):
+    segments: list[str]
+
+
+class SpanJsonPointer(PetraModel):
+    pointer: str
+
+
+class SpanLineRange(PetraModel):
+    start_line: int
+    end_line: int
+
+
+class TextQuoteSelector(PetraModel):
+    selector_type: Literal["text_quote"]
+    quote: SpanTextQuote
+
+
+class PageRegionSelector(PetraModel):
+    selector_type: Literal["page_region"]
+    page_region: SpanPageRegion
+
+
+class SectionPathSelector(PetraModel):
+    selector_type: Literal["section_path"]
+    section_path: SpanSectionPath
+
+
+class JsonPointerSelector(PetraModel):
+    selector_type: Literal["json_pointer"]
+    json_pointer: SpanJsonPointer
+
+
+class LineRangeSelector(PetraModel):
+    selector_type: Literal["line_range"]
+    line_range: SpanLineRange
+
+
+class TextQuoteComponent(PetraModel):
+    component_kind: Literal["text_quote"]
+    quote: SpanTextQuote
+
+
+class PageRegionComponent(PetraModel):
+    component_kind: Literal["page_region"]
+    page_region: SpanPageRegion
+
+
+class SectionPathComponent(PetraModel):
+    component_kind: Literal["section_path"]
+    section_path: SpanSectionPath
+
+
+class JsonPointerComponent(PetraModel):
+    component_kind: Literal["json_pointer"]
+    json_pointer: SpanJsonPointer
+
+
+class LineRangeComponent(PetraModel):
+    component_kind: Literal["line_range"]
+    line_range: SpanLineRange
+
+
+class CompoundSelector(PetraModel):
+    selector_type: Literal["compound"]
+    components: list[
+        TextQuoteComponent
+        | PageRegionComponent
+        | SectionPathComponent
+        | JsonPointerComponent
+        | LineRangeComponent
+    ]
+
+
+class SpanExtraction(PetraModel):
+    method: Literal[
+        "embedded_text",
+        "ocr",
+        "structured_source",
+        "parser_alignment",
+        "manual_selection",
+        "visual_region",
+    ]
+    method_version: str
+    normalization_version: str
+
+
+class SpanVerification(PetraModel):
+    status: Literal[
+        "exact_text_and_geometry",
+        "normalized",
+        "visual_only",
+        "manual_alignment",
+        "unresolved",
+    ]
+    verified_at: str
+    transformations: list[str]
+
+
+class PetraSourceSpan(PetraModel):
+    schema_name: Literal["petra.source-span"]
+    schema_version: Literal["1.0.0"]
+    source_span_id: str
+    revision: Literal[1]
+    artifact_id: str
+    artifact_content_hash: str
+    parsed_document_id: str
+    parser_run_id: str
+    structural_block_id: str
+    selector_schema_version: Literal["1.0.0"]
+    selector: (
+        TextQuoteSelector
+        | PageRegionSelector
+        | SectionPathSelector
+        | JsonPointerSelector
+        | LineRangeSelector
+        | CompoundSelector
+    )
+    extraction: SpanExtraction
+    verification: SpanVerification
+    created_by: ActorRef
+    created_at: str
+
+
+ScopeDimensionName = Literal[
+    "population",
+    "language",
+    "task",
+    "model_family",
+    "dataset",
+    "intervention_or_exposure",
+    "comparator",
+    "outcome",
+    "setting",
+    "temporal_boundary",
+]
+
+
+class ScientificScopeDimension(PetraModel):
+    description: str
+    entity_refs: list[str]
+
+
+class ScientificScope(PetraModel):
+    population: ScientificScopeDimension | None = None
+    language: ScientificScopeDimension | None = None
+    task: ScientificScopeDimension | None = None
+    model_family: ScientificScopeDimension | None = None
+    dataset: ScientificScopeDimension | None = None
+    intervention_or_exposure: ScientificScopeDimension | None = None
+    comparator: ScientificScopeDimension | None = None
+    outcome: ScientificScopeDimension | None = None
+    setting: ScientificScopeDimension | None = None
+    temporal_boundary: ScientificScopeDimension | None = None
+    unreported_dimensions: list[ScopeDimensionName]
+    notes: str | None = None
+
+
+class HumanApprovalBasis(PetraModel):
+    approval_kind: Literal["human"]
+    approval_id: str
+    approved_by: ActorRef
+
+
+class PolicyApprovalBasis(PetraModel):
+    approval_kind: Literal["review_policy"]
+    review_policy_id: str
+    approval_id: str
+    calibration_ref: str
+    audit_ref: str | None = None
+
+
+class PromotionBasis(PetraModel):
+    change_set_id: str
+    approval_basis: HumanApprovalBasis | PolicyApprovalBasis
+    applied_at: str
+
+
+class QuarantineAuthority(PetraModel):
+    zone: Literal["quarantine"]
+    review_state: Literal["unreviewed", "machine_checked", "human_rejected", "disputed"]
+
+
+class TrustedAuthority(PetraModel):
+    zone: Literal["trusted"]
+    review_state: Literal["machine_checked", "human_accepted", "disputed"]
+    promotion: PromotionBasis
+
+
+class PersonalAuthority(PetraModel):
+    zone: Literal["personal"]
+    review_state: Literal["unreviewed", "human_accepted", "disputed"]
+    recorded_by: ActorRef
+
+
+class ClaimDerivation(PetraModel):
+    derivation_kind: Literal[
+        "deterministic_mapping", "model_extraction", "human_extraction"
+    ]
+    derivation_ref: str
+
+
+class ClaimValidatorResult(PetraModel):
+    validator_name: str
+    validator_version: str
+    outcome: Literal["pass", "warning", "fail"]
+    code: str
+    message: str | None = None
+
+
+class SourceClaimBasis(PetraModel):
+    basis_kind: Literal["source"]
+    work_version_id: str
+    source_scope: Literal["full_text", "abstract_only"]
+    detail_level: Literal["broad", "detailed"]
+    source_span_ids: list[str]
+    source_stance: Literal["states", "hypothesizes", "reports", "qualifies", "rejects"]
+    attribution: str
+    modality: Literal["asserted", "hedged", "conditional", "speculative"]
+    negated: bool
+    uncertainty: str | None = None
+    derivation: ClaimDerivation
+    validator_results: list[ClaimValidatorResult]
+    extraction_confidence: float | None = None
+    proposed_by: ActorRef
+    proposed_at: str
+
+
+class SynthesisClaimBasis(PetraModel):
+    basis_kind: Literal["synthesis"]
+    basis_claim_ids: list[str]
+    basis_assertion_ids: list[str]
+    composition_kind: Literal["human", "model_assisted", "deterministic"]
+    composition_ref: str
+    composed_by: ActorRef
+    composed_at: str
+
+
+class ResearcherClaimBasis(PetraModel):
+    basis_kind: Literal["researcher"]
+    rationale: str
+    proposed_by: ActorRef
+    proposed_at: str
+
+
+class PetraClaim(PetraModel):
+    schema_name: Literal["petra.claim"]
+    schema_version: Literal["1.0.0"]
+    claim_id: str
+    revision: int
+    canonical_text: str
+    claim_kind: Literal[
+        "descriptive",
+        "comparative",
+        "causal",
+        "mechanistic",
+        "methodological",
+        "theoretical",
+        "measurement",
+    ]
+    normalization_status: Literal["verbatim", "normalized", "composed"]
+    scope: ScientificScope
+    basis: SourceClaimBasis | SynthesisClaimBasis | ResearcherClaimBasis
+    authority: QuarantineAuthority | TrustedAuthority | PersonalAuthority
+    supersedes_claim_id: str | None = None
+    created_by: ActorRef
+    created_at: str
+
+
+class EntityAssertionObject(PetraModel):
+    object_kind: Literal["entity"]
+    entity_id: str
+
+
+class StringAssertionObject(PetraModel):
+    object_kind: Literal["string"]
+    value: str
+
+
+class BooleanAssertionObject(PetraModel):
+    object_kind: Literal["boolean"]
+    value: bool
+
+
+class IntegerAssertionObject(PetraModel):
+    object_kind: Literal["integer"]
+    value: int
+
+
+class DecimalAssertionObject(PetraModel):
+    object_kind: Literal["decimal"]
+    value: str
+
+
+class TimestampAssertionObject(PetraModel):
+    object_kind: Literal["timestamp"]
+    value: str
+
+
+class SourceSpanProvenance(PetraModel):
+    provenance_kind: Literal["source_span"]
+    source_span_id: str
+
+
+class StructuredFieldProvenance(PetraModel):
+    provenance_kind: Literal["structured_field"]
+    artifact_id: str
+    json_pointer: str
+    field_hash: str
+
+
+class BasisAssertionProvenance(PetraModel):
+    provenance_kind: Literal["basis_assertion"]
+    assertion_id: str
+
+
+class ActorAssertionProvenance(PetraModel):
+    provenance_kind: Literal["actor"]
+    actor: ActorRef
+
+
+class RecordAssertionProvenance(PetraModel):
+    provenance_kind: Literal["record"]
+    record_id: str
+    role: Literal[
+        "derivation", "input", "output", "model_call", "run", "result", "analysis"
+    ]
+
+
+class ScopeComparison(PetraModel):
+    relation: Literal[
+        "aligned", "overlapping", "narrower", "broader", "disjoint", "unknown"
+    ]
+    rationale: str
+
+
+class AssertionValidTime(PetraModel):
+    valid_from: str | None = None
+    valid_to: str | None = None
+
+
+AssertionPredicate = Literal[
+    "VERSION_OF",
+    "REPRESENTED_BY",
+    "LOCATED_IN",
+    "CITES",
+    "CITES_AS_BACKGROUND",
+    "ASSERTS",
+    "ADDRESSES",
+    "SUPPORTS",
+    "CONTRADICTS",
+    "QUALIFIES",
+    "ADOPTS",
+    "DIRECTLY_TESTS",
+    "EXTENDS",
+    "REFRAMES",
+    "CHALLENGES",
+    "CRITIQUES_METHOD",
+    "ASSUMES",
+    "PREDICTS",
+    "RIVAL_OF",
+    "TESTS",
+    "IMPLEMENTS",
+    "USES",
+    "PRODUCED",
+    "ANALYZES",
+    "EVALUATES",
+    "GOVERNS",
+    "INTERPRETS",
+    "COMPOSED_FROM",
+    "GROUNDS",
+    "RENDERS",
+    "REPLICATES",
+    "FAILS_TO_REPLICATE",
+    "INVESTIGATES",
+    "TESTS_CAUSE",
+    "CORRECTS",
+    "DEPENDS_ON",
+    "SUPERSEDES",
+]
+
+
+class PetraAssertion(PetraModel):
+    schema_name: Literal["petra.assertion"]
+    schema_version: Literal["1.0.0"]
+    assertion_id: str
+    revision: int
+    subject_id: str
+    predicate: AssertionPredicate
+    object: (
+        EntityAssertionObject
+        | StringAssertionObject
+        | BooleanAssertionObject
+        | IntegerAssertionObject
+        | DecimalAssertionObject
+        | TimestampAssertionObject
+    )
+    assertion_kind: Literal[
+        "source_native",
+        "source_stated",
+        "deterministic_derivation",
+        "model_inference",
+        "human_judgment",
+        "experimental_observation",
+        "synthesis",
+    ]
+    authority: QuarantineAuthority | TrustedAuthority | PersonalAuthority
+    provenance_refs: list[
+        SourceSpanProvenance
+        | StructuredFieldProvenance
+        | BasisAssertionProvenance
+        | ActorAssertionProvenance
+        | RecordAssertionProvenance
+    ]
+    scope: ScientificScope
+    scope_comparison: ScopeComparison | None = None
+    rationale: str
+    occurred_at: str | None = None
+    recorded_at: str
+    valid_time: AssertionValidTime | None = None
+    supersedes_assertion_id: str | None = None
+    created_by: ActorRef
+
+
+class QuarantineChangeState(PetraModel):
+    zone: Literal["quarantine"]
+    review_state: Literal["unreviewed", "machine_checked"]
+
+
+class HumanTrustedChangeState(PetraModel):
+    zone: Literal["trusted"]
+    review_state: Literal["human_accepted"]
+
+
+class PromoteClaimOperation(PetraModel):
+    operation_kind: Literal["promote_claim"]
+    target_id: str
+    base_revision: int
+    before: QuarantineChangeState
+    after: HumanTrustedChangeState
+
+
+class PromoteAssertionOperation(PetraModel):
+    operation_kind: Literal["promote_assertion"]
+    target_id: str
+    base_revision: int
+    before: QuarantineChangeState
+    after: HumanTrustedChangeState
+
+
+class ChangeSetImpactPreview(PetraModel):
+    affected_object_ids: list[str]
+    downstream_object_ids: list[str]
+    summary: str
+    generated_at: str
+
+
+class ChangeSetContent(PetraModel):
+    project_id: str
+    origin: Literal["direct_edit", "agent_proposal", "worker_proposal"]
+    proposed_by: ActorRef
+    reason: str
+    operations: list[PromoteClaimOperation | PromoteAssertionOperation]
+    impact: ChangeSetImpactPreview
+    risk_tier: Literal["R0", "R1", "R2", "R3", "R4"]
+
+
+class PetraChangeSet(PetraModel):
+    schema_name: Literal["petra.change-set"]
+    schema_version: Literal["1.0.0"]
+    change_set_id: str
+    revision: int
+    state: Literal[
+        "draft",
+        "submitted",
+        "approved",
+        "rejected",
+        "applied",
+        "conflicted",
+        "reverted",
+    ]
+    content: ChangeSetContent
+    content_hash: str
+    proposed_at: str
+
+
+class ApprovalChangeSetSubject(PetraModel):
+    subject_kind: Literal["change_set"]
+    change_set_id: str
+    change_set_revision: int
+    change_set_content_hash: str
+
+
+class HumanActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["human"]
+
+
+class PetraApproval(PetraModel):
+    schema_name: Literal["petra.approval"]
+    schema_version: Literal["1.0.0"]
+    approval_id: str
+    revision: int
+    subject: ApprovalChangeSetSubject
+    decision: Literal["approved", "rejected"]
+    decision_scope: Literal["exact_change_set"]
+    decided_by: HumanActorRef
+    rationale: str
+    conditions: list[str]
+    decided_at: str
+
+
+class SubmitChangeSet(PetraModel):
+    command_name: Literal["SubmitChangeSet"]
+    change_set: PetraChangeSet
+
+
+class RecordApproval(PetraModel):
+    command_name: Literal["RecordApproval"]
+    approval: PetraApproval
+
+
+class ApplyChangeSet(PetraModel):
+    command_name: Literal["ApplyChangeSet"]
+    change_set_id: str
+    change_set_revision: int
+    change_set_content_hash: str
+    approval_id: str
+    approval_revision: int
+
+
+class PetraCommandEnvelope(PetraModel):
+    schema_name: Literal["petra.command-envelope"]
+    schema_version: Literal["1.0.0"]
+    command_id: str
+    idempotency_key: str
+    project_id: str
+    actor: ActorRef
+    capability_grant_id: str
+    correlation_id: str
+    causation_id: str | None = None
+    submitted_at: str
+    command: SubmitChangeSet | RecordApproval | ApplyChangeSet
+
+
+class ChangeSetSubmittedPayload(PetraModel):
+    change_set: PetraChangeSet
+
+
+class ChangeSetSubmittedEvent(PetraModel):
+    event_type: Literal["change_set.submitted"]
+    payload: ChangeSetSubmittedPayload
+
+
+class ApprovalRecordedPayload(PetraModel):
+    approval: PetraApproval
+    derived_change_set_state: Literal["approved", "rejected"]
+
+
+class ApprovalRecordedEvent(PetraModel):
+    event_type: Literal["approval.recorded"]
+    payload: ApprovalRecordedPayload
+
+
+class ChangeSetAppliedPayload(PetraModel):
+    change_set_id: str
+    change_set_revision: int
+    change_set_content_hash: str
+    approval_id: str
+    approval_revision: int
+    prior_claim_revision: int
+    claim: PetraClaim
+    prior_assertion_revision: int
+    assertion: PetraAssertion
+
+
+class ChangeSetAppliedEvent(PetraModel):
+    event_type: Literal["change_set.applied"]
+    payload: ChangeSetAppliedPayload
+
+
+class ClaimConflictTarget(PetraModel):
+    target_kind: Literal["claim"]
+    target_id: str
+    expected_revision: int
+    actual_revision: int
+    expected_zone: Literal["quarantine"]
+    actual_zone: Literal["quarantine", "trusted", "personal"]
+
+
+class AssertionConflictTarget(PetraModel):
+    target_kind: Literal["assertion"]
+    target_id: str
+    expected_revision: int
+    actual_revision: int
+    expected_zone: Literal["quarantine"]
+    actual_zone: Literal["quarantine", "trusted", "personal"]
+
+
+class ChangeSetConflictedPayload(PetraModel):
+    change_set_id: str
+    change_set_revision: int
+    change_set_content_hash: str
+    conflict_code: Literal["STALE_TARGET_REVISION", "TARGET_AUTHORITY_MISMATCH"]
+    targets: list[ClaimConflictTarget | AssertionConflictTarget]
+
+
+class ChangeSetConflictedEvent(PetraModel):
+    event_type: Literal["change_set.conflicted"]
+    payload: ChangeSetConflictedPayload
+
+
+class PetraDomainEvent(PetraModel):
+    schema_name: Literal["petra.domain-event"]
+    schema_version: Literal["1.0.0"]
+    event_id: str
+    event_position: int
+    stream_type: Literal["project"]
+    stream_id: str
+    stream_revision: int
+    project_id: str
+    actor: ActorRef
+    occurred_at: str
+    recorded_at: str
+    correlation_id: str
+    causation_id: str
+    command_id: str
+    idempotency_key: str
+    capability_grant_id: str
+    event: (
+        ChangeSetSubmittedEvent
+        | ApprovalRecordedEvent
+        | ChangeSetAppliedEvent
+        | ChangeSetConflictedEvent
+    )
+
+
+class DomainEventMessage(PetraModel):
+    message_kind: Literal["domain_event"]
+    event: PetraDomainEvent
+
+
+class PetraOutboxRecord(PetraModel):
+    schema_name: Literal["petra.outbox-record"]
+    schema_version: Literal["1.0.0"]
+    outbox_id: str
+    outbox_position: int
+    target: Literal["neo4j_graph", "interface_authority"]
+    target_sequence: int
+    partition_key: str
+    deduplication_key: str
+    enqueued_at: str
+    message: DomainEventMessage
+
+
+class WorkerTaskDescriptor(PetraModel):
+    task_family: Literal[
+        "ingestion",
+        "document_processing",
+        "scientific_extraction",
+        "retrieval",
+        "reasoning",
+        "scientific_computation",
+        "experiment_execution",
+        "projection",
+        "maintenance",
+    ]
+    task_name: str
+    task_version: str
+
+
+class WorkerDescriptor(PetraModel):
+    executor_kind: Literal["python_worker", "typescript_worker", "sandbox"]
+    worker_name: str
+    worker_version: str
+    runtime_name: str
+    runtime_version: str
+    entrypoint: str
+
+
+class WorkerContractRef(PetraModel):
+    schema_name: str
+    schema_version: str
+    schema_hash: str
+
+
+class WorkerArtifactInput(PetraModel):
+    binding_kind: Literal["artifact"]
+    name: str
+    artifact_id: str
+    content_hash: str
+    byte_size: int
+
+
+class WorkerRecordInput(PetraModel):
+    binding_kind: Literal["record"]
+    name: str
+    record_id: str
+    record_revision: int
+    snapshot_hash: str
+
+
+class WorkerExpectedOutput(PetraModel):
+    output_name: str
+    output_role: Literal[
+        "result", "proposal", "diagnostic", "log", "metrics", "checkpoint"
+    ]
+    required: bool
+    media_type: str
+    max_bytes: int
+    contract: WorkerContractRef | None = None
+
+
+class WorkerMonetaryLimit(PetraModel):
+    currency: str
+    max_microunits: int
+
+
+class WorkerResourceLimits(PetraModel):
+    max_wall_time_ms: int
+    max_output_bytes: int
+    max_attempts: int
+    max_parallelism: int
+    max_cpu_time_ms: int | None = None
+    max_memory_bytes: int | None = None
+    max_storage_bytes: int | None = None
+    max_network_bytes: int | None = None
+    max_gpu_time_ms: int | None = None
+    max_input_tokens: int | None = None
+    max_output_tokens: int | None = None
+    monetary_limit: WorkerMonetaryLimit | None = None
+
+
+class BlockedWorkerNetwork(PetraModel):
+    network_mode: Literal["blocked"]
+
+
+class AllowlistedWorkerNetwork(PetraModel):
+    network_mode: Literal["allowlist"]
+    destinations: list[str]
+
+
+class WorkerInputContent(PetraModel):
+    task: WorkerTaskDescriptor
+    worker: WorkerDescriptor
+    inputs: list[WorkerArtifactInput | WorkerRecordInput]
+    expected_outputs: list[WorkerExpectedOutput]
+    resource_limits: WorkerResourceLimits
+    network_policy: BlockedWorkerNetwork | AllowlistedWorkerNetwork
+    partial_result_policy: Literal["discard", "retain_declared", "retain_diagnostics"]
+
+
+class PetraWorkerInputManifest(PetraModel):
+    schema_name: Literal["petra.worker-input-manifest"]
+    schema_version: Literal["1.0.0"]
+    worker_input_manifest_id: str
+    revision: Literal[1]
+    work_unit_id: str
+    project_id: str
+    content: WorkerInputContent
+    content_hash: str
+    issued_by: ActorRef
+    issued_at: str
+
+
+class WorkerProducedOutput(PetraModel):
+    output_name: str
+    output_role: Literal[
+        "result", "proposal", "diagnostic", "log", "metrics", "checkpoint"
+    ]
+    output_handle: str
+    content_hash: str
+    byte_size: int
+    media_type: str
+    contract: WorkerContractRef | None = None
+
+
+class WorkerFailure(PetraModel):
+    code: str
+    message: str
+    retryable: bool
+
+
+class WorkerSucceeded(PetraModel):
+    outcome_kind: Literal["succeeded"]
+    produced_outputs: list[WorkerProducedOutput]
+
+
+class WorkerUnsuccessful(PetraModel):
+    outcome_kind: Literal[
+        "worker_failed", "resource_exhausted", "timed_out", "cancelled"
+    ]
+    failure: WorkerFailure
+    produced_outputs: list[WorkerProducedOutput]
+
+
+class WorkerDiagnostic(PetraModel):
+    code: str
+    severity: Literal["info", "warning", "error"]
+    message: str
+
+
+class WorkerNetworkActivity(PetraModel):
+    destination: str
+    bytes_sent: int
+    bytes_received: int
+
+
+class WorkerMeasuredCost(PetraModel):
+    currency: str
+    microunits: int
+
+
+class WorkerResourceUsage(PetraModel):
+    wall_time_ms: int
+    cpu_time_ms: int
+    peak_memory_bytes: int
+    input_bytes: int
+    output_bytes: int
+    network_bytes: int
+    gpu_time_ms: int | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    cost: WorkerMeasuredCost | None = None
+
+
+class WorkerOutputContent(PetraModel):
+    worker: WorkerDescriptor
+    started_at: str
+    completed_at: str
+    outcome: WorkerSucceeded | WorkerUnsuccessful
+    diagnostics: list[WorkerDiagnostic]
+    network_activity: list[WorkerNetworkActivity]
+    resource_usage: WorkerResourceUsage
+
+
+class PetraWorkerOutputManifest(PetraModel):
+    schema_name: Literal["petra.worker-output-manifest"]
+    schema_version: Literal["1.0.0"]
+    worker_output_manifest_id: str
+    revision: Literal[1]
+    work_unit_id: str
+    project_id: str
+    attempt: int
+    worker_input_manifest_id: str
+    worker_input_manifest_hash: str
+    content: WorkerOutputContent
+    content_hash: str
+    reported_at: str
+
+
+class WorkUnitInputManifestRef(PetraModel):
+    worker_input_manifest_id: str
+    content_hash: str
+
+
+class WorkUnitCacheEnabled(PetraModel):
+    cache_mode: Literal["reuse_exact", "refresh"]
+    cache_key: str
+
+
+class WorkUnitCacheDisabled(PetraModel):
+    cache_mode: Literal["disabled"]
+
+
+class WorkUnitSpec(PetraModel):
+    workflow_name: str
+    workflow_version: str
+    objective: str
+    work_mode: Literal["interactive", "foreground", "background", "batch"]
+    priority: Literal["user_blocking", "user_visible", "normal", "opportunistic"]
+    dependency_work_unit_ids: list[str]
+    input_manifest_ref: WorkUnitInputManifestRef
+    idempotency_key: str
+    cache: WorkUnitCacheEnabled | WorkUnitCacheDisabled
+    cancellation_policy: Literal["cancellable", "checkpoint_then_cancel", "atomic"]
+    checkpoint_policy: Literal["disabled", "latest_valid", "all_valid"]
+    deadline_at: str | None = None
+
+
+class WorkUnitRequested(PetraModel):
+    state: Literal["requested"]
+    requested_at: str
+
+
+class WorkUnitQueued(PetraModel):
+    state: Literal["queued"]
+    requested_at: str
+    queued_at: str
+
+
+class WorkUnitRunning(PetraModel):
+    state: Literal["running"]
+    requested_at: str
+    queued_at: str
+    started_at: str
+    attempt: int
+
+
+class WorkUnitCheckpointRef(PetraModel):
+    artifact_id: str
+    content_hash: str
+    recorded_at: str
+
+
+class WorkUnitCheckpointed(PetraModel):
+    state: Literal["checkpointed"]
+    requested_at: str
+    queued_at: str
+    started_at: str
+    attempt: int
+    checkpoint: WorkUnitCheckpointRef
+
+
+class WorkUnitOutputManifestRef(PetraModel):
+    worker_output_manifest_id: str
+    content_hash: str
+
+
+class WorkUnitSucceeded(PetraModel):
+    state: Literal["completed"]
+    terminal_outcome: Literal["succeeded"]
+    requested_at: str
+    queued_at: str
+    started_at: str
+    completed_at: str
+    attempt: int
+    output_manifest_ref: WorkUnitOutputManifestRef
+
+
+class WorkUnitFailed(PetraModel):
+    state: Literal["completed"]
+    terminal_outcome: Literal[
+        "worker_failed", "validation_failed", "resource_exhausted", "timed_out"
+    ]
+    requested_at: str
+    queued_at: str
+    started_at: str
+    completed_at: str
+    attempt: int
+    failure: WorkerFailure
+    output_manifest_ref: WorkUnitOutputManifestRef | None = None
+
+
+class WorkUnitCancelled(PetraModel):
+    state: Literal["cancelled"]
+    terminal_outcome: Literal["cancelled"]
+    requested_at: str
+    queued_at: str | None = None
+    started_at: str | None = None
+    cancelled_at: str
+    attempt: int
+    reason: str
+    output_manifest_ref: WorkUnitOutputManifestRef | None = None
+
+
+class PetraWorkUnit(PetraModel):
+    schema_name: Literal["petra.work-unit"]
+    schema_version: Literal["1.0.0"]
+    work_unit_id: str
+    revision: int
+    project_id: str
+    spec: WorkUnitSpec
+    spec_hash: str
+    status: (
+        WorkUnitRequested
+        | WorkUnitQueued
+        | WorkUnitRunning
+        | WorkUnitCheckpointed
+        | WorkUnitSucceeded
+        | WorkUnitFailed
+        | WorkUnitCancelled
+    )
+    capability_grant_id: str
+    trace_id: str
+    created_by: ActorRef
+    created_at: str
+    updated_at: str
+
+
+class ProjectionIdentity(PetraModel):
+    target: Literal["neo4j_graph"]
+    projection_name: str
+    projection_version: str
+    configuration_hash: str
+
+
+class ProjectionServiceActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["service"]
+
+
+class ProjectionOutboxRef(PetraModel):
+    outbox_id: str
+    outbox_position: int
+    target_sequence: int
+    event_id: str
+    event_position: int
+    stream_revision: int
+
+
+class ProjectedObject(PetraModel):
+    graph_element_kind: Literal["node", "relationship"]
+    object_id: str
+    object_revision: int
+    operation: Literal["upsert", "tombstone"]
+
+
+class ProjectionEffect(PetraModel):
+    source_event_id: str
+    objects: list[ProjectedObject]
+
+
+class ProjectionBackendReceipt(PetraModel):
+    backend_kind: Literal["neo4j"]
+    receipt: str
+
+
+class ProjectionApplied(PetraModel):
+    outcome_kind: Literal["applied"]
+    effect: ProjectionEffect
+    effect_hash: str
+    backend_receipt: ProjectionBackendReceipt
+
+
+class ProjectionFailure(PetraModel):
+    code: str
+    message: str
+    retryable: bool
+
+
+class ProjectionFailed(PetraModel):
+    outcome_kind: Literal["failed"]
+    failure: ProjectionFailure
+
+
+class GraphProjectionContent(PetraModel):
+    outbox_ref: ProjectionOutboxRef
+    attempt: int
+    started_at: str
+    completed_at: str
+    outcome: ProjectionApplied | ProjectionFailed
+
+
+class PetraGraphProjectionRecord(PetraModel):
+    schema_name: Literal["petra.graph-projection-record"]
+    schema_version: Literal["1.0.0"]
+    graph_projection_record_id: str
+    revision: Literal[1]
+    project_id: str
+    projection: ProjectionIdentity
+    content: GraphProjectionContent
+    content_hash: str
+    recorded_by: ProjectionServiceActorRef
+    recorded_at: str
+
+
+class ProjectionEmptyPosition(PetraModel):
+    position_kind: Literal["empty"]
+    target_sequence: Literal[0]
+
+
+class ProjectionAdvancedPosition(PetraModel):
+    position_kind: Literal["advanced"]
+    target_sequence: int
+    outbox_id: str
+    outbox_position: int
+    event_id: str
+    event_position: int
+    stream_revision: int
+    graph_projection_record_id: str
+    advanced_at: str
+
+
+class ProjectionObservedHead(PetraModel):
+    target_sequence: int
+    outbox_id: str
+    outbox_position: int
+    event_id: str
+    event_position: int
+    stream_revision: int
+    observed_at: str
+
+
+class ProjectionCurrent(PetraModel):
+    state: Literal["current"]
+    pending_records: Literal[0]
+
+
+class ProjectionCatchingUp(PetraModel):
+    state: Literal["catching_up"]
+    pending_records: int
+
+
+class ProjectionBlocked(PetraModel):
+    state: Literal["blocked"]
+    pending_records: int
+    blocking_projection_record_id: str
+    failure_code: str
+    message: str
+    blocked_at: str
+
+
+class ProjectionCheckpointContent(PetraModel):
+    position: ProjectionEmptyPosition | ProjectionAdvancedPosition
+    observed_head: ProjectionObservedHead
+    freshness: ProjectionCurrent | ProjectionCatchingUp | ProjectionBlocked
+
+
+class PetraProjectionCheckpoint(PetraModel):
+    schema_name: Literal["petra.projection-checkpoint"]
+    schema_version: Literal["1.0.0"]
+    projection_checkpoint_id: str
+    revision: int
+    project_id: str
+    projection: ProjectionIdentity
+    content: ProjectionCheckpointContent
+    content_hash: str
+    recorded_by: ProjectionServiceActorRef
+    recorded_at: str
+
+
+class PacketSnapshotRef(PetraModel):
+    snapshot_id: str
+    snapshot_revision: int
+    event_position: int
+    content_hash: str
+
+
+class PacketRecipeRef(PetraModel):
+    context_recipe_id: str
+    revision: int
+    content_hash: str
+
+
+class PacketObjectRef(PetraModel):
+    object_kind: Literal["claim", "assertion", "source_span", "work_version"]
+    object_id: str
+    object_revision: int
+    object_hash: str
+
+
+class PacketObjective(PetraModel):
+    objective_kind: Literal[
+        "answer", "inspect", "compare", "review", "compose", "experiment", "other"
+    ]
+    statement: str
+    target_refs: list[PacketObjectRef]
+
+
+class PacketSelectionAuthority(PetraModel):
+    zone: Literal["quarantine", "trusted", "personal", "source_record"]
+    review_state: Literal[
+        "unreviewed",
+        "machine_checked",
+        "human_rejected",
+        "human_accepted",
+        "disputed",
+        "not_applicable",
+    ]
+
+
+class PacketSelectionTrace(PetraModel):
+    route: Literal[
+        "deterministic_graph",
+        "lexical",
+        "dense",
+        "hybrid",
+        "graph_expansion",
+        "cached",
+        "explicit_user_selection",
+    ]
+    rank: int
+    score: str | None = None
+    reason: str
+
+
+class PacketInclusion(PetraModel):
+    selection_order: int
+    object_ref: PacketObjectRef
+    evidence_roles: list[
+        Literal[
+            "relevant",
+            "supporting",
+            "contrary",
+            "qualifying",
+            "conflicting",
+            "source_location",
+            "workflow_state",
+        ]
+    ]
+    authority: PacketSelectionAuthority
+    source_access: Literal[
+        "metadata_only",
+        "abstract_only",
+        "full_text_structured",
+        "full_text_analyzed",
+        "not_applicable",
+    ]
+    source_span_refs: list[str]
+    selection: PacketSelectionTrace
+    estimated_tokens: int
+
+
+class PacketKnownObjectOmission(PetraModel):
+    omission_kind: Literal["known_object"]
+    object_ref: PacketObjectRef
+    reason: Literal[
+        "budget",
+        "policy",
+        "rights",
+        "visibility",
+        "truncation",
+        "unavailable",
+        "not_retrieved",
+    ]
+    material: bool
+    detail: str
+
+
+class PacketSearchBoundaryOmission(PetraModel):
+    omission_kind: Literal["search_boundary"]
+    boundary: str
+    reason: Literal[
+        "budget",
+        "policy",
+        "rights",
+        "visibility",
+        "truncation",
+        "unavailable",
+        "not_retrieved",
+    ]
+    material: bool
+    detail: str
+
+
+class PacketCoverage(PetraModel):
+    state: Literal["complete_for_recipe", "bounded", "partial", "unknown"]
+    statement: str
+    contrary_evidence_checked: bool
+
+
+class PacketBudget(PetraModel):
+    max_input_tokens: int
+    max_objects: int
+    max_source_spans: int
+    estimated_input_tokens: int
+    included_object_count: int
+    included_source_span_count: int
+    truncated: bool
+
+
+class PacketDependency(PetraModel):
+    dependency_kind: Literal[
+        "record", "artifact", "schema", "projection", "ranking", "policy"
+    ]
+    name: str
+    version: str
+    content_hash: str
+
+
+class ContextPacketContent(PetraModel):
+    objective: PacketObjective
+    included_objects: list[PacketInclusion]
+    omissions: list[PacketKnownObjectOmission | PacketSearchBoundaryOmission]
+    coverage: PacketCoverage
+    budget: PacketBudget
+    dependencies: list[PacketDependency]
+
+
+class PetraContextPacket(PetraModel):
+    schema_name: Literal["petra.context-packet"]
+    schema_version: Literal["1.0.0"]
+    context_packet_id: str
+    revision: Literal[1]
+    project_id: str
+    snapshot_ref: PacketSnapshotRef
+    recipe_ref: PacketRecipeRef
+    content: ContextPacketContent
+    content_hash: str
+    compiled_by: ProjectionServiceActorRef
+    compiled_at: str
+
+
+class ContextPacketRef(PetraModel):
+    context_packet_id: str
+    content_hash: str
+
+
+class CurrentTemporalPerspective(PetraModel):
+    perspective: Literal["current"]
+    as_of: str
+
+
+class HistoricalTemporalPerspective(PetraModel):
+    perspective: Literal["historical", "comparative"]
+    as_of: str
+    historical_boundary: str
+
+
+class EvidenceSelection(PetraModel):
+    context_selection_order: int
+    object_ref: PacketObjectRef
+    bearing: Literal[
+        "supporting",
+        "contrary",
+        "qualifying",
+        "conflicting",
+        "background",
+        "unresolved",
+    ]
+    source_span_selection_orders: list[int]
+    inclusion_reason: str
+    use_limitations: list[str]
+
+
+class EvidenceExclusion(PetraModel):
+    context_selection_order: int
+    reason: Literal[
+        "not_relevant",
+        "redundant",
+        "scope_mismatch",
+        "rights",
+        "budget",
+        "unsupported_depth",
+    ]
+    detail: str
+
+
+class EvidenceCoverage(PetraModel):
+    state: Literal["complete_for_context", "bounded", "partial"]
+    statement: str
+    contrary_evidence_status: Literal[
+        "included", "checked_none_in_context", "not_checked"
+    ]
+    qualifying_evidence_status: Literal[
+        "included", "checked_none_in_context", "not_checked"
+    ]
+
+
+class EvidenceCurrentFreshness(PetraModel):
+    state: Literal["current_for_snapshot"]
+    checked_at: str
+
+
+class EvidenceStaleFreshness(PetraModel):
+    state: Literal["stale"]
+    checked_at: str
+    invalidated_by: list[str]
+
+
+class EvidenceUnknownFreshness(PetraModel):
+    state: Literal["unknown"]
+    checked_at: str
+    reason: str
+
+
+class EvidencePacketContent(PetraModel):
+    context_packet_ref: ContextPacketRef
+    composition_objective: str
+    temporal_perspective: CurrentTemporalPerspective | HistoricalTemporalPerspective
+    selected_evidence: list[EvidenceSelection]
+    exclusions: list[EvidenceExclusion]
+    coverage: EvidenceCoverage
+    freshness: (
+        EvidenceCurrentFreshness | EvidenceStaleFreshness | EvidenceUnknownFreshness
+    )
+
+
+class PetraEvidencePacket(PetraModel):
+    schema_name: Literal["petra.evidence-packet"]
+    schema_version: Literal["1.0.0"]
+    evidence_packet_id: str
+    revision: Literal[1]
+    project_id: str
+    snapshot_ref: PacketSnapshotRef
+    content: EvidencePacketContent
+    content_hash: str
+    compiled_by: ProjectionServiceActorRef
+    compiled_at: str
+
+
+class DraftVersionedControlRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class DraftEvidencePacketRef(PetraModel):
+    evidence_packet_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class DraftProvenanceMapRef(PetraModel):
+    provenance_map_id: str
+    revision: Literal[1]
+
+
+class DraftCitationBundleRef(PetraModel):
+    citation_bundle_id: str
+    revision: Literal[1]
+
+
+class DraftRootLineage(PetraModel):
+    lineage_kind: Literal["root"]
+
+
+class DraftRevisionLineage(PetraModel):
+    lineage_kind: Literal["revision"]
+    parent_draft_artifact_id: str
+    parent_revision: int
+    edit_origin: Literal["researcher_edit", "felicity_revision", "model_revision"]
+
+
+class DraftNamedVersion(PetraModel):
+    name: str
+    version: str
+
+
+class DraftNamedVersionHash(PetraModel):
+    name: str
+    version: str
+    content_hash: str
+
+
+class DraftModelProduction(PetraModel):
+    origin_kind: Literal["model_generated"]
+    model_request_id: str
+    model_call_id: str
+    model_deployment: str
+    prompt_profile: DraftNamedVersion
+    prompt_hash: str
+
+
+class DraftResearcherProduction(PetraModel):
+    origin_kind: Literal["researcher_authored"]
+    researcher_id: str
+
+
+class DraftDeterministicProduction(PetraModel):
+    origin_kind: Literal["deterministic"]
+    producer: DraftNamedVersion
+
+
+class DraftControls(PetraModel):
+    output_profile: DraftNamedVersionHash
+    language_contract: DraftNamedVersionHash
+
+
+class DraftContent(PetraModel):
+    artifact_kind: Literal[
+        "passage",
+        "outline",
+        "table",
+        "methods_description",
+        "experiment_report",
+        "literature_synthesis",
+        "bibliography",
+        "other",
+    ]
+    semantic_format: Literal["plain_text", "markdown", "structured_json"]
+    language: str
+    text: str
+    draft_span_ids: list[str]
+
+
+class DraftValidatorResult(PetraModel):
+    validator: str
+    version: str
+    outcome: Literal["pass", "fail", "warning"]
+    code: str
+    message: str | None = None
+
+
+class DraftValidation(PetraModel):
+    state: Literal["pending", "passed", "failed", "stale"]
+    validator_results: list[DraftValidatorResult]
+    limitations: list[str]
+    unresolved_support_span_ids: list[str]
+
+
+class PetraDraftArtifact(PetraModel):
+    schema_name: Literal["petra.draft-artifact"]
+    schema_version: Literal["1.0.0"]
+    draft_artifact_id: str
+    revision: int
+    project_id: str
+    snapshot_ref: PacketSnapshotRef
+    composition_request_ref: DraftVersionedControlRef
+    composition_plan_ref: DraftVersionedControlRef
+    evidence_packet_ref: DraftEvidencePacketRef
+    provenance_map_ref: DraftProvenanceMapRef
+    citation_bundle_ref: DraftCitationBundleRef
+    lineage: DraftRootLineage | DraftRevisionLineage
+    production: (
+        DraftModelProduction | DraftResearcherProduction | DraftDeterministicProduction
+    )
+    controls: DraftControls
+    content: DraftContent
+    content_hash: str
+    validation: DraftValidation
+    created_by: ActorRef
+    created_at: str
+
+
+class DraftRef(PetraModel):
+    draft_artifact_id: str
+    revision: int
+    content_hash: str
+
+
+class DraftSpanContent(PetraModel):
+    offset_unit: Literal["unicode_code_point"]
+    start: int
+    end: int
+    exact_text: str
+    exact_text_hash: str
+    materiality: Literal["material", "nonmaterial"]
+    semantic_origin: Literal[
+        "source_report",
+        "petra_inference",
+        "researcher_statement",
+        "structural_language",
+    ]
+    scientific_force: Literal[
+        "direct_report",
+        "descriptive",
+        "association",
+        "comparison",
+        "qualification",
+        "causal",
+        "mechanistic",
+        "methodological",
+        "none",
+    ]
+
+
+class PetraDraftSpan(PetraModel):
+    schema_name: Literal["petra.draft-span"]
+    schema_version: Literal["1.0.0"]
+    draft_span_id: str
+    revision: Literal[1]
+    project_id: str
+    draft_ref: DraftRef
+    content: DraftSpanContent
+    content_hash: str
+    created_by: ActorRef
+    created_at: str
+
+
+class ProvenanceEvidenceBasis(PetraModel):
+    basis_kind: Literal["evidence"]
+    evidence_selection_order: int
+    object_ref: PacketObjectRef
+    relation: Literal[
+        "direct_report",
+        "support",
+        "qualification",
+        "comparison",
+        "interpretation",
+        "synthesis",
+        "structural",
+        "unsupported",
+    ]
+
+
+class ProvenanceInferenceBasis(PetraModel):
+    basis_kind: Literal["petra_inference"]
+    inference_kind: Literal[
+        "synthesis", "comparison", "interpretation", "recommendation"
+    ]
+    evidence_selection_orders: list[int]
+    model_request_id: str
+    relation: Literal[
+        "direct_report",
+        "support",
+        "qualification",
+        "comparison",
+        "interpretation",
+        "synthesis",
+        "structural",
+        "unsupported",
+    ]
+    rationale: str
+
+
+class ProvenanceResearcherBasis(PetraModel):
+    basis_kind: Literal["researcher"]
+    researcher_id: str
+    statement_kind: Literal["supplied_statement", "judgment"]
+    relation: Literal[
+        "direct_report",
+        "support",
+        "qualification",
+        "comparison",
+        "interpretation",
+        "synthesis",
+        "structural",
+        "unsupported",
+    ]
+
+
+class ProvenanceStructuralBasis(PetraModel):
+    basis_kind: Literal["structural"]
+    function: Literal["heading", "connective", "transition", "organization"]
+    relation: Literal["structural"]
+
+
+class ProvenanceUnsupportedBasis(PetraModel):
+    basis_kind: Literal["unsupported"]
+    relation: Literal["unsupported"]
+    reason: str
+
+
+ProvenanceBasis = (
+    ProvenanceEvidenceBasis
+    | ProvenanceInferenceBasis
+    | ProvenanceResearcherBasis
+    | ProvenanceStructuralBasis
+    | ProvenanceUnsupportedBasis
+)
+
+
+class ProvenanceCurrentMapping(PetraModel):
+    draft_span_id: str
+    draft_span_revision: Literal[1]
+    mapping_state: Literal["current"]
+    bases: list[ProvenanceBasis]
+
+
+class ProvenanceStaleMapping(PetraModel):
+    draft_span_id: str
+    draft_span_revision: Literal[1]
+    mapping_state: Literal["stale"]
+    bases: list[ProvenanceBasis]
+    invalidated_by: list[str]
+
+
+class ProvenanceContent(PetraModel):
+    state: Literal["current", "stale"]
+    mappings: list[ProvenanceCurrentMapping | ProvenanceStaleMapping]
+
+
+class PetraProvenanceMap(PetraModel):
+    schema_name: Literal["petra.provenance-map"]
+    schema_version: Literal["1.0.0"]
+    provenance_map_id: str
+    revision: Literal[1]
+    project_id: str
+    draft_ref: DraftRef
+    evidence_packet_ref: DraftEvidencePacketRef
+    content: ProvenanceContent
+    content_hash: str
+    compiled_by: ActorRef
+    compiled_at: str
+
+
+class CitationStyle(PetraModel):
+    style_kind: Literal["csl", "bibtex", "plain"]
+    style_name: str
+    style_version: str
+
+
+class CitationWorkRef(PetraModel):
+    work_id: str
+    revision: int
+    content_hash: str
+
+
+class CitationWorkVersionRef(PetraModel):
+    work_version_id: str
+    revision: int
+    content_hash: str
+
+
+class CitationAuthorRef(PetraModel):
+    author_id: str
+    revision: int
+    content_hash: str
+    position: int
+    display_name: str
+
+
+class CitationExternalIdentifierRef(PetraModel):
+    external_identifier_id: str
+    revision: int
+    content_hash: str
+    namespace: Literal[
+        "doi",
+        "openalex_work",
+        "semantic_scholar_work",
+        "acl_anthology",
+        "arxiv",
+        "pmid",
+        "isbn",
+        "repository_url",
+    ]
+    normalized_value: str
+    verification_status: Literal[
+        "verified", "source_reported", "unverified", "disputed"
+    ]
+
+
+class CitationMetadata(PetraModel):
+    title: str
+    work_kind: Literal[
+        "journal_article",
+        "conference_paper",
+        "preprint",
+        "thesis",
+        "book",
+        "chapter",
+        "other",
+    ]
+    version_label: str
+    publication_status: Literal[
+        "preprint",
+        "peer_reviewed",
+        "accepted",
+        "corrected",
+        "retracted",
+        "unknown",
+    ]
+    published_date: PublicationYear | PublicationMonth | PublicationDay | None
+
+
+class CitationIdentityWarning(PetraModel):
+    code: str
+    message: str
+
+
+class CitationNamedLocator(PetraModel):
+    locator_kind: Literal["page", "section", "paragraph", "figure", "table"]
+    value: str
+
+
+class CitationSourceSpanLocator(PetraModel):
+    locator_kind: Literal["source_span"]
+    source_span_id: str
+
+
+class CitationSourceAccess(PetraModel):
+    processing_depth: Literal[
+        "metadata_only", "abstract_only", "full_text_structured", "full_text_analyzed"
+    ]
+    source_span_ids: list[str]
+
+
+class CitationEntry(PetraModel):
+    citation_id: str
+    bibliography_key: str
+    work_ref: CitationWorkRef
+    work_version_ref: CitationWorkVersionRef
+    author_refs: list[CitationAuthorRef]
+    external_identifier_refs: list[CitationExternalIdentifierRef]
+    metadata: CitationMetadata
+    identity_status: Literal["resolved", "provisional", "disputed"]
+    metadata_completeness: Literal["complete", "partial", "conflicted"]
+    identity_warnings: list[CitationIdentityWarning]
+    purposes: list[
+        Literal["evidence", "background", "method", "data", "software", "quotation"]
+    ]
+    linked_draft_span_ids: list[str]
+    locator: CitationNamedLocator | CitationSourceSpanLocator
+    source_access: CitationSourceAccess
+
+
+class CitationBibliographyArtifact(PetraModel):
+    format: Literal["markdown", "latex", "bibtex", "csl_json"]
+    artifact_id: str
+    content_hash: str
+
+
+class CitationContent(PetraModel):
+    style: CitationStyle
+    export_formats: list[Literal["inline", "markdown", "latex", "bibtex", "csl_json"]]
+    citations: list[CitationEntry]
+    bibliography_artifacts: list[CitationBibliographyArtifact]
+
+
+class PetraCitationBundle(PetraModel):
+    schema_name: Literal["petra.citation-bundle"]
+    schema_version: Literal["1.0.0"]
+    citation_bundle_id: str
+    revision: Literal[1]
+    project_id: str
+    draft_ref: DraftRef
+    evidence_packet_ref: DraftEvidencePacketRef
+    content: CitationContent
+    content_hash: str
+    compiled_by: ActorRef
+    compiled_at: str
+
+
+class InteractionProtocolProfile(PetraModel):
+    name: Literal["ag-ui"]
+    sdk_version: str
+    profile_version: str
+
+
+class InteractionSchemaRef(PetraModel):
+    schema_name: str
+    schema_version: str
+    content_hash: str
+    json_pointer: str | None = None
+
+
+class InteractionCustomEventRegistration(PetraModel):
+    event_name: str
+    payload_schema_ref: InteractionSchemaRef
+    stability: Literal["stable", "experimental"]
+    authority_effect: Literal["none"]
+
+
+class InteractionFeatureSupport(PetraModel):
+    feature: Literal[
+        "text_streaming",
+        "activity",
+        "tool_proposals",
+        "state_projection",
+        "interrupts",
+        "resumption",
+        "replay",
+        "explicit_work_cancellation",
+    ]
+    support: Literal["supported", "deferred", "unsupported"]
+    limitation: str | None = None
+
+
+class InteractionFeatureAuthorityBoundary(PetraModel):
+    grants_capabilities: Literal[False]
+    interaction_state_is_authoritative: Literal[False]
+    replay_reapplies_authority: Literal[False]
+    connection_abort_cancels_work: Literal[False]
+
+
+class InteractionFeatureContent(PetraModel):
+    protocol: InteractionProtocolProfile
+    transports: list[Literal["text_event_stream", "binary_stream"]]
+    standard_events: list[
+        Literal[
+            "RUN_STARTED",
+            "RUN_FINISHED",
+            "RUN_ERROR",
+            "TEXT_MESSAGE_START",
+            "TEXT_MESSAGE_CONTENT",
+            "TEXT_MESSAGE_END",
+            "TOOL_CALL_START",
+            "TOOL_CALL_ARGS",
+            "TOOL_CALL_END",
+            "STATE_SNAPSHOT",
+            "STATE_DELTA",
+            "ACTIVITY_SNAPSHOT",
+            "ACTIVITY_DELTA",
+            "CUSTOM",
+        ]
+    ]
+    custom_events: list[InteractionCustomEventRegistration]
+    features: list[InteractionFeatureSupport]
+    authority_boundary: InteractionFeatureAuthorityBoundary
+
+
+class PetraInteractionFeatureManifest(PetraModel):
+    schema_name: Literal["petra.interaction-feature-manifest"]
+    schema_version: Literal["1.0.0"]
+    interaction_feature_manifest_id: str
+    revision: Literal[1]
+    content: InteractionFeatureContent
+    content_hash: str
+    compiled_by: ActorRef
+    compiled_at: str
+
+
+class WorkUnitStatusPayload(PetraModel):
+    work_unit_id: str
+    work_unit_revision: int
+    status: Literal[
+        "requested",
+        "queued",
+        "running",
+        "checkpointed",
+        "succeeded",
+        "failed",
+        "cancelled",
+    ]
+    label: str
+    authority_effect: Literal["none"]
+
+
+class WorkUnitStatusInteractionEvent(PetraModel):
+    schema_name: Literal["petra.interaction-custom-event"]
+    schema_version: Literal["1.0.0"]
+    event_name: Literal["petra.work_unit.status"]
+    payload: WorkUnitStatusPayload
+
+
+class InteractionChangeSetRef(PetraModel):
+    change_set_id: str
+    revision: int
+    content_hash: str
+
+
+class ReviewInterruptPayload(PetraModel):
+    interaction_interrupt_id: str
+    change_set_ref: InteractionChangeSetRef
+    authority_effect: Literal["none"]
+
+
+class ReviewInterruptInteractionEvent(PetraModel):
+    schema_name: Literal["petra.interaction-custom-event"]
+    schema_version: Literal["1.0.0"]
+    event_name: Literal["petra.review.interrupt"]
+    payload: ReviewInterruptPayload
+
+
+class PetraInteractionCustomEvent(
+    RootModel[WorkUnitStatusInteractionEvent | ReviewInterruptInteractionEvent]
+):
+    model_config = ConfigDict(strict=True, frozen=True)
+
+
+class InteractionFeatureManifestRef(PetraModel):
+    interaction_feature_manifest_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class InteractionRootLineage(PetraModel):
+    lineage_kind: Literal["root"]
+
+
+class InteractionRevisionLineage(PetraModel):
+    lineage_kind: Literal["revision"]
+    parent_revision: int
+    parent_hash: str
+
+
+class InteractionWorkUnitRef(PetraModel):
+    work_unit_id: str
+    revision: int
+    spec_hash: str
+
+
+class InteractionCorrelation(PetraModel):
+    protocol_thread_id: str
+    protocol_run_id: str
+    request_id: str
+    trace_id: str
+    work_unit_ref: InteractionWorkUnitRef
+    model_request_id: str | None = None
+    agent_run_id: str | None = None
+
+
+class InteractionControlRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class InteractionAuthorityContext(PetraModel):
+    actor: ActorRef
+    capability_grant_id: str
+    privacy_profile_ref: InteractionControlRef
+    budget_profile_ref: InteractionControlRef
+
+
+class InteractionInput(PetraModel):
+    input_hash: str
+    source_message_id: str
+
+
+class InteractionActiveLifecycle(PetraModel):
+    state: Literal["queued", "running"]
+    started_at: str
+
+
+class InteractionAwaitingLifecycle(PetraModel):
+    state: Literal["awaiting_interrupt"]
+    started_at: str
+    interaction_interrupt_ids: list[str]
+
+
+class InteractionTerminalLifecycle(PetraModel):
+    state: Literal["completed", "failed", "cancelled"]
+    started_at: str
+    ended_at: str
+    outcome_code: str
+
+
+class EmptyInteractionHead(PetraModel):
+    state: Literal["empty"]
+    event_count: Literal[0]
+
+
+class AdvancedInteractionHead(PetraModel):
+    state: Literal["advanced"]
+    event_count: int
+    latest_sequence: int
+    head_hash: str
+
+
+class InteractionRunAuthorityBoundary(PetraModel):
+    interaction_state_is_authoritative: Literal[False]
+    events_are_domain_ledger: Literal[False]
+    connection_abort_cancels_work: Literal[False]
+
+
+class InteractionRunContent(PetraModel):
+    correlation: InteractionCorrelation
+    authority_context: InteractionAuthorityContext
+    input: InteractionInput
+    lifecycle: (
+        InteractionActiveLifecycle
+        | InteractionAwaitingLifecycle
+        | InteractionTerminalLifecycle
+    )
+    stream_head: EmptyInteractionHead | AdvancedInteractionHead
+    authority_boundary: InteractionRunAuthorityBoundary
+
+
+class PetraInteractionRun(PetraModel):
+    schema_name: Literal["petra.interaction-run"]
+    schema_version: Literal["1.0.0"]
+    interaction_run_id: str
+    revision: int
+    project_id: str
+    feature_manifest_ref: InteractionFeatureManifestRef
+    lineage: InteractionRootLineage | InteractionRevisionLineage
+    content: InteractionRunContent
+    content_hash: str
+    created_by: ActorRef
+    created_at: str
+    updated_at: str
+
+
+class InteractionRunRef(PetraModel):
+    interaction_run_id: str
+    revision: int
+    content_hash: str
+
+
+class StartEventLineage(PetraModel):
+    lineage_kind: Literal["start"]
+
+
+class ContinuedEventLineage(PetraModel):
+    lineage_kind: Literal["continuation"]
+    previous_event_record_id: str
+    previous_sequence: int
+    previous_content_hash: str
+
+
+class StandardInteractionProtocolEvent(PetraModel):
+    protocol: Literal["ag-ui"]
+    event_type: Literal[
+        "RUN_STARTED",
+        "RUN_FINISHED",
+        "RUN_ERROR",
+        "TEXT_MESSAGE_START",
+        "TEXT_MESSAGE_CONTENT",
+        "TEXT_MESSAGE_END",
+        "TOOL_CALL_START",
+        "TOOL_CALL_ARGS",
+        "TOOL_CALL_END",
+        "STATE_SNAPSHOT",
+        "STATE_DELTA",
+        "ACTIVITY_SNAPSHOT",
+        "ACTIVITY_DELTA",
+    ]
+    protocol_event_id: str | None = None
+
+
+class CustomInteractionDescriptor(PetraModel):
+    event_name: str
+    schema_name: Literal["interaction-custom-event"]
+    schema_version: Literal["1.0.0"]
+    schema_hash: str
+
+
+class CustomInteractionProtocolEvent(PetraModel):
+    protocol: Literal["ag-ui"]
+    event_type: Literal["CUSTOM"]
+    protocol_event_id: str | None = None
+    custom_event: CustomInteractionDescriptor
+
+
+class InteractionPayloadArtifactRef(PetraModel):
+    artifact_id: str
+    content_sha256: str
+    byte_size: int
+    media_type: str
+
+
+class InteractionVisibility(PetraModel):
+    audience: Literal["researcher", "project", "private_system"]
+    redaction: Literal["none", "metadata_only", "payload_withheld"]
+    reason: str | None = None
+
+
+class NoInteractionAuthorityEffect(PetraModel):
+    effect_kind: Literal["none"]
+
+
+class InteractionCommandRef(PetraModel):
+    command_id: str
+    idempotency_key: str
+    command_hash: str
+
+
+class ReferencedInteractionAuthorityEffect(PetraModel):
+    effect_kind: Literal["command_proposed", "command_result_observed"]
+    command_ref: InteractionCommandRef
+
+
+class InteractionEventContent(PetraModel):
+    protocol: StandardInteractionProtocolEvent | CustomInteractionProtocolEvent
+    semantic_kind: Literal[
+        "run_lifecycle",
+        "assistant_text",
+        "activity",
+        "tool_proposal",
+        "state_projection",
+        "interrupt",
+        "error",
+        "custom",
+    ]
+    payload_artifact_ref: InteractionPayloadArtifactRef
+    visibility: InteractionVisibility
+    authority_effect: (
+        NoInteractionAuthorityEffect | ReferencedInteractionAuthorityEffect
+    )
+
+
+class PetraInteractionEventRecord(PetraModel):
+    schema_name: Literal["petra.interaction-event-record"]
+    schema_version: Literal["1.0.0"]
+    interaction_event_record_id: str
+    revision: Literal[1]
+    project_id: str
+    interaction_run_ref: InteractionRunRef
+    sequence: int
+    lineage: StartEventLineage | ContinuedEventLineage
+    content: InteractionEventContent
+    content_hash: str
+    recorded_by: ActorRef
+    recorded_at: str
+
+
+class InteractionEventRecordRef(PetraModel):
+    interaction_event_record_id: str
+    sequence: int
+    content_hash: str
+
+
+class PendingInteractionInterrupt(PetraModel):
+    state: Literal["pending"]
+    interrupt_kind: Literal[
+        "clarification", "review", "approval", "correction", "budget_escalation"
+    ]
+    request_event_ref: InteractionEventRecordRef
+    subject_refs: list[str]
+    prompt_artifact_ref: InteractionPayloadArtifactRef
+    response_schema_ref: InteractionSchemaRef
+    authority_effect: Literal["none"]
+
+
+class RespondedInteractionInterrupt(PetraModel):
+    state: Literal["responded"]
+    interrupt_kind: Literal[
+        "clarification", "review", "approval", "correction", "budget_escalation"
+    ]
+    request_event_ref: InteractionEventRecordRef
+    subject_refs: list[str]
+    response_artifact_ref: InteractionPayloadArtifactRef
+    responded_by: ActorRef
+    resulting_command_ref: InteractionCommandRef
+    authority_effect: Literal["command_input_only"]
+
+
+class ClosedInteractionInterrupt(PetraModel):
+    state: Literal["closed_without_response"]
+    interrupt_kind: Literal[
+        "clarification", "review", "approval", "correction", "budget_escalation"
+    ]
+    request_event_ref: InteractionEventRecordRef
+    subject_refs: list[str]
+    close_reason: Literal["expired", "withdrawn", "superseded"]
+    authority_effect: Literal["none"]
+
+
+class PetraInteractionInterrupt(PetraModel):
+    schema_name: Literal["petra.interaction-interrupt"]
+    schema_version: Literal["1.0.0"]
+    interaction_interrupt_id: str
+    revision: int
+    project_id: str
+    interaction_run_ref: InteractionRunRef
+    lineage: InteractionRootLineage | InteractionRevisionLineage
+    content: (
+        PendingInteractionInterrupt
+        | RespondedInteractionInterrupt
+        | ClosedInteractionInterrupt
+    )
+    content_hash: str
+    recorded_by: ActorRef
+    created_at: str
+    updated_at: str
+
+
+class InteractionReplayRequest(PetraModel):
+    delivery_kind: Literal["initial", "resume", "replay"]
+    after_sequence: int
+
+
+class CompletedReplayOutcome(PetraModel):
+    outcome_kind: Literal["completed"]
+
+
+class AbortedReplayOutcome(PetraModel):
+    outcome_kind: Literal["connection_aborted"]
+    last_delivered_sequence: int
+
+
+class ReplayError(PetraModel):
+    code: str
+    message: str
+
+
+class FailedReplayOutcome(PetraModel):
+    outcome_kind: Literal["write_error"]
+    last_delivered_sequence: int
+    error: ReplayError
+
+
+class InteractionWorkUnitObservation(PetraModel):
+    work_unit_id: str
+    revision: int
+    status: Literal[
+        "requested",
+        "queued",
+        "running",
+        "checkpointed",
+        "succeeded",
+        "failed",
+        "cancelled",
+    ]
+
+
+class InteractionReplayAuthorityBoundary(PetraModel):
+    authority_reapplied: Literal[False]
+    commands_reexecuted: Literal[False]
+    durable_work_cancelled: Literal[False]
+
+
+class InteractionReplayContent(PetraModel):
+    connection_id: str
+    attempt: int
+    request: InteractionReplayRequest
+    started_at: str
+    completed_at: str
+    delivered_event_refs: list[InteractionEventRecordRef]
+    outcome: CompletedReplayOutcome | AbortedReplayOutcome | FailedReplayOutcome
+    work_unit_observation: InteractionWorkUnitObservation
+    authority_boundary: InteractionReplayAuthorityBoundary
+
+
+class PetraInteractionReplayRecord(PetraModel):
+    schema_name: Literal["petra.interaction-replay-record"]
+    schema_version: Literal["1.0.0"]
+    interaction_replay_record_id: str
+    revision: Literal[1]
+    project_id: str
+    interaction_run_ref: InteractionRunRef
+    content: InteractionReplayContent
+    content_hash: str
+    recorded_by: ActorRef
+    recorded_at: str
+
+
+PYDANTIC_MODELS: dict[str, type[BaseModel]] = {
+    "contract-smoke": ContractSmoke,
+    "actor": PetraActor,
+    "project": PetraProject,
+    "author": PetraAuthor,
+    "work": PetraWork,
+    "work-version": PetraWorkVersion,
+    "external-identifier": PetraExternalIdentifier,
+    "artifact": PetraArtifact,
+    "artifact-manifest": PetraArtifactManifest,
+    "rights-decision": PetraRightsDecision,
+    "parsed-document": PetraParsedDocument,
+    "structural-block": PetraStructuralBlock,
+    "source-span": PetraSourceSpan,
+    "claim": PetraClaim,
+    "assertion": PetraAssertion,
+    "change-set": PetraChangeSet,
+    "approval": PetraApproval,
+    "command-envelope": PetraCommandEnvelope,
+    "domain-event": PetraDomainEvent,
+    "outbox-record": PetraOutboxRecord,
+    "worker-input-manifest": PetraWorkerInputManifest,
+    "worker-output-manifest": PetraWorkerOutputManifest,
+    "work-unit": PetraWorkUnit,
+    "graph-projection-record": PetraGraphProjectionRecord,
+    "projection-checkpoint": PetraProjectionCheckpoint,
+    "context-packet": PetraContextPacket,
+    "evidence-packet": PetraEvidencePacket,
+    "draft-artifact": PetraDraftArtifact,
+    "draft-span": PetraDraftSpan,
+    "provenance-map": PetraProvenanceMap,
+    "citation-bundle": PetraCitationBundle,
+    "interaction-feature-manifest": PetraInteractionFeatureManifest,
+    "interaction-custom-event": PetraInteractionCustomEvent,
+    "interaction-run": PetraInteractionRun,
+    "interaction-event-record": PetraInteractionEventRecord,
+    "interaction-interrupt": PetraInteractionInterrupt,
+    "interaction-replay-record": PetraInteractionReplayRecord,
+}
+
+
+def test_registry_and_draft_2020_12_schemas() -> None:
+    for entry in REGISTRY["schemas"]:
+        schema = SCHEMAS[entry["name"]]
+        Draft202012Validator.check_schema(schema)
+        assert schema["$id"] == entry["$id"]
+        canonical = rfc8785.dumps(schema)
+        digest = hashlib.sha256(canonical).hexdigest()
+        assert f"sha256:{digest}" == entry["canonical_sha256"]
+
+
+def test_accepted_contract_parity_without_mutation() -> None:
+    for fixture in MANIFEST["accepted"]:
+        value = read_json(fixture["path"])
+        before = json.loads(json.dumps(value))
+        VALIDATORS[fixture["schema"]].validate(value)
+        assert value == before
+
+        model = PYDANTIC_MODELS[fixture["schema"]].model_validate(value, strict=True)
+        result = model.model_dump(mode="json", exclude_none=True)
+        assert result == value
+        VALIDATORS[fixture["schema"]].validate(result)
+
+
+def test_rejected_contract_parity() -> None:
+    for fixture in MANIFEST["rejected"]:
+        value = read_json(fixture["path"])
+        assert not VALIDATORS[fixture["schema"]].is_valid(value), fixture["path"]
+
+
+def test_rfc_8785_hash_parity() -> None:
+    for fixture_entry in MANIFEST["canonical"]:
+        fixture = read_json(fixture_entry["path"])
+        VALIDATORS[fixture_entry["schema"]].validate(fixture["input"])
+        canonical = rfc8785.dumps(fixture["input"])
+        digest = hashlib.sha256(canonical).hexdigest()
+
+        assert canonical.decode("utf-8") == fixture["canonical"]
+        assert f"sha256:{digest}" == fixture["sha256"]
+
+
+def test_change_set_content_hash_parity() -> None:
+    change_set = read_json("fixtures/accepted/change-set.json")
+    canonical = rfc8785.dumps(change_set["content"])
+    digest = hashlib.sha256(canonical).hexdigest()
+
+    assert change_set["content_hash"] == f"sha256:{digest}"
+
+
+def test_worker_manifest_and_work_unit_hash_parity() -> None:
+    fixtures = [
+        ("worker-input-manifest.json", "content", "content_hash"),
+        ("worker-output-manifest.json", "content", "content_hash"),
+        ("work-unit-requested.json", "spec", "spec_hash"),
+        ("work-unit-completed.json", "spec", "spec_hash"),
+        ("graph-projection-record-failed.json", "content", "content_hash"),
+        ("graph-projection-record-applied.json", "content", "content_hash"),
+        ("projection-checkpoint-catching-up.json", "content", "content_hash"),
+        ("projection-checkpoint-blocked.json", "content", "content_hash"),
+        ("projection-checkpoint-current.json", "content", "content_hash"),
+        ("context-packet.json", "content", "content_hash"),
+        ("evidence-packet.json", "content", "content_hash"),
+        ("draft-artifact.json", "content", "content_hash"),
+        ("draft-span-report.json", "content", "content_hash"),
+        ("draft-span-qualification.json", "content", "content_hash"),
+        ("provenance-map.json", "content", "content_hash"),
+        ("citation-bundle.json", "content", "content_hash"),
+        ("interaction-feature-manifest.json", "content", "content_hash"),
+        ("interaction-run.json", "content", "content_hash"),
+        ("interaction-event-record.json", "content", "content_hash"),
+        ("interaction-interrupt-pending.json", "content", "content_hash"),
+        ("interaction-interrupt-responded.json", "content", "content_hash"),
+        ("interaction-replay-record.json", "content", "content_hash"),
+    ]
+    for filename, projection, hash_field in fixtures:
+        value = read_json(f"fixtures/accepted/{filename}")
+        canonical = rfc8785.dumps(value[projection])
+        digest = hashlib.sha256(canonical).hexdigest()
+        assert value[hash_field] == f"sha256:{digest}"
+
+
+def test_draft_span_text_hash_parity() -> None:
+    for filename in ["draft-span-report.json", "draft-span-qualification.json"]:
+        value = read_json(f"fixtures/accepted/{filename}")
+        digest = hashlib.sha256(value["content"]["exact_text"].encode()).hexdigest()
+        assert value["content"]["exact_text_hash"] == f"sha256:{digest}"
+
+
+def test_graph_projection_effect_hash_parity() -> None:
+    value = read_json("fixtures/accepted/graph-projection-record-applied.json")
+    outcome = value["content"]["outcome"]
+    canonical = rfc8785.dumps(outcome["effect"])
+    digest = hashlib.sha256(canonical).hexdigest()
+
+    assert outcome["effect_hash"] == f"sha256:{digest}"
+
+
+def common_definition_validator(definition: str) -> Draft202012Validator:
+    schema = {"$ref": f"{COMMON_SCHEMA_ID}#/$defs/{definition}"}
+    return Draft202012Validator(
+        schema,
+        registry=RESOURCE_REGISTRY,
+        format_checker=FormatChecker(),
+    )
+
+
+def test_portable_foundation_values_without_mutation() -> None:
+    values = read_json("fixtures/accepted/foundation-values.json")
+    before = json.loads(json.dumps(values))
+    for field, definition in FOUNDATION_DEFINITIONS.items():
+        common_definition_validator(definition).validate(values[field])
+    assert values == before
+
+
+def test_rejected_foundation_values() -> None:
+    fixtures = read_json("fixtures/rejected/foundation-values.json")
+    for fixture in fixtures:
+        validator = common_definition_validator(fixture["definition"])
+        assert not validator.is_valid(fixture["value"]), fixture["definition"]

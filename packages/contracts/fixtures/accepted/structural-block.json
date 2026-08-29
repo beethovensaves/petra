@@ -1,0 +1,32 @@
+{
+  "schema_name": "petra.structural-block",
+  "schema_version": "1.0.0",
+  "structural_block_id": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+  "revision": 1,
+  "parsed_document_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+  "block_kind": "paragraph",
+  "content_layer": "source_native",
+  "reading_order": 0,
+  "structural_path": ["Results", "Paragraph 1"],
+  "child_block_ids": [],
+  "page_locations": [
+    {
+      "page_number": 1,
+      "bounding_boxes": [
+        {
+          "x": 72,
+          "y": 100,
+          "width": 468,
+          "height": 36
+        }
+      ]
+    }
+  ],
+  "content": {
+    "content_kind": "text",
+    "text": "The study reports a measurable improvement.",
+    "content_hash": "sha256:cfed6ed86a7235363b27b504d804f402d37d220d19d5ae09d9a29fc5473acbe3"
+  },
+  "source_span_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+  "created_at": "2026-08-28T18:11:02.000Z"
+}

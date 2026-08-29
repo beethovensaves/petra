@@ -1,0 +1,28 @@
+{
+  "schema_name": "petra.draft-span",
+  "schema_version": "1.0.0",
+  "draft_span_id": "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCN",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "draft_ref": {
+    "draft_artifact_id": "draft_artifact_01ARZ3NDEKTSV4RRFFQ69G5FCK",
+    "revision": 1,
+    "content_hash": "sha256:8b9201fc645d1bae2b93e01dff92c3eb96f394e3e6b3fa1238b8106b827a0560"
+  },
+  "content": {
+    "offset_unit": "unicode_code_point",
+    "start": 53,
+    "end": 111,
+    "exact_text": "The claim is limited to its study-defined evaluation task.",
+    "exact_text_hash": "sha256:dcaee122ab89d5c6ed14d890ff7773f09bb647f5a2a642d25ac93f3ec2e02380",
+    "materiality": "material",
+    "semantic_origin": "source_report",
+    "scientific_force": "qualification"
+  },
+  "content_hash": "sha256:4de3490bf35a2d39390c0e9e418e12c96c00315d3bda6dd322cbc568685276ec",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "model"
+  },
+  "created_at": "2026-08-29T15:10:00.000Z"
+}

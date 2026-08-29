@@ -1,0 +1,500 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/work-unit/1.0.0/schema.json",
+  "title": "PetraWorkUnit",
+  "description": "A revisioned control-plane record for one bounded task. Lifecycle completion records operational outcome only and never scientific warrant.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "work_unit_id",
+    "revision",
+    "project_id",
+    "spec",
+    "spec_hash",
+    "status",
+    "capability_grant_id",
+    "trace_id",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.work-unit"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "work_unit_id": {
+      "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "spec": {
+      "$ref": "#/$defs/WorkUnitSpec"
+    },
+    "spec_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "status": {
+      "$ref": "#/$defs/WorkUnitStatus"
+    },
+    "capability_grant_id": {
+      "$ref": "#/$defs/CapabilityGrantId"
+    },
+    "trace_id": {
+      "$ref": "#/$defs/TraceId"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "updated_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "CapabilityGrantId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^capability_grant_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "TraceId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^trace_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "WorkUnitSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workflow_name",
+        "workflow_version",
+        "objective",
+        "work_mode",
+        "priority",
+        "dependency_work_unit_ids",
+        "input_manifest_ref",
+        "idempotency_key",
+        "cache",
+        "cancellation_policy",
+        "checkpoint_policy"
+      ],
+      "properties": {
+        "workflow_name": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/NamespacedName"
+        },
+        "workflow_version": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Version"
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "work_mode": {
+          "enum": ["interactive", "foreground", "background", "batch"]
+        },
+        "priority": {
+          "enum": ["user_blocking", "user_visible", "normal", "opportunistic"]
+        },
+        "dependency_work_unit_ids": {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+          }
+        },
+        "input_manifest_ref": {
+          "$ref": "#/$defs/InputManifestRef"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+        },
+        "cache": {
+          "$ref": "#/$defs/CachePolicy"
+        },
+        "cancellation_policy": {
+          "enum": ["cancellable", "checkpoint_then_cancel", "atomic"]
+        },
+        "checkpoint_policy": {
+          "enum": ["disabled", "latest_valid", "all_valid"]
+        },
+        "deadline_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "InputManifestRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["worker_input_manifest_id", "content_hash"],
+      "properties": {
+        "worker_input_manifest_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkerInputManifestId"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "CachePolicy": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CacheEnabled"
+        },
+        {
+          "$ref": "#/$defs/CacheDisabled"
+        }
+      ]
+    },
+    "CacheEnabled": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cache_mode", "cache_key"],
+      "properties": {
+        "cache_mode": {
+          "enum": ["reuse_exact", "refresh"]
+        },
+        "cache_key": {
+          "$ref": "#/$defs/CacheKey"
+        }
+      }
+    },
+    "CacheDisabled": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cache_mode"],
+      "properties": {
+        "cache_mode": {
+          "const": "disabled"
+        }
+      }
+    },
+    "CacheKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "WorkUnitStatus": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RequestedStatus"
+        },
+        {
+          "$ref": "#/$defs/QueuedStatus"
+        },
+        {
+          "$ref": "#/$defs/RunningStatus"
+        },
+        {
+          "$ref": "#/$defs/CheckpointedStatus"
+        },
+        {
+          "$ref": "#/$defs/SucceededStatus"
+        },
+        {
+          "$ref": "#/$defs/FailedStatus"
+        },
+        {
+          "$ref": "#/$defs/CancelledStatus"
+        }
+      ]
+    },
+    "RequestedStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "requested_at"],
+      "properties": {
+        "state": {
+          "const": "requested"
+        },
+        "requested_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "QueuedStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "requested_at", "queued_at"],
+      "properties": {
+        "state": {
+          "const": "queued"
+        },
+        "requested_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "queued_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "RunningStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "requested_at",
+        "queued_at",
+        "started_at",
+        "attempt"
+      ],
+      "properties": {
+        "state": {
+          "const": "running"
+        },
+        "requested_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "queued_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "started_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "attempt": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Attempt"
+        }
+      }
+    },
+    "CheckpointedStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "requested_at",
+        "queued_at",
+        "started_at",
+        "attempt",
+        "checkpoint"
+      ],
+      "properties": {
+        "state": {
+          "const": "checkpointed"
+        },
+        "requested_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "queued_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "started_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "attempt": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Attempt"
+        },
+        "checkpoint": {
+          "$ref": "#/$defs/CheckpointRef"
+        }
+      }
+    },
+    "CheckpointRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "content_hash", "recorded_at"],
+      "properties": {
+        "artifact_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "recorded_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "SucceededStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "terminal_outcome",
+        "requested_at",
+        "queued_at",
+        "started_at",
+        "completed_at",
+        "attempt",
+        "output_manifest_ref"
+      ],
+      "properties": {
+        "state": {
+          "const": "completed"
+        },
+        "terminal_outcome": {
+          "const": "succeeded"
+        },
+        "requested_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "queued_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "started_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "completed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "attempt": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Attempt"
+        },
+        "output_manifest_ref": {
+          "$ref": "#/$defs/OutputManifestRef"
+        }
+      }
+    },
+    "FailedStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "terminal_outcome",
+        "requested_at",
+        "queued_at",
+        "started_at",
+        "completed_at",
+        "attempt",
+        "failure"
+      ],
+      "properties": {
+        "state": {
+          "const": "completed"
+        },
+        "terminal_outcome": {
+          "enum": [
+            "worker_failed",
+            "validation_failed",
+            "resource_exhausted",
+            "timed_out"
+          ]
+        },
+        "requested_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "queued_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "started_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "completed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "attempt": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Attempt"
+        },
+        "failure": {
+          "$ref": "#/$defs/Failure"
+        },
+        "output_manifest_ref": {
+          "$ref": "#/$defs/OutputManifestRef"
+        }
+      }
+    },
+    "CancelledStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "terminal_outcome",
+        "requested_at",
+        "cancelled_at",
+        "attempt",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "const": "cancelled"
+        },
+        "terminal_outcome": {
+          "const": "cancelled"
+        },
+        "requested_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "queued_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "started_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "cancelled_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "output_manifest_ref": {
+          "$ref": "#/$defs/OutputManifestRef"
+        }
+      }
+    },
+    "Failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "retryable"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "OutputManifestRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["worker_output_manifest_id", "content_hash"],
+      "properties": {
+        "worker_output_manifest_id": {
+          "$ref": "../../worker-output-manifest/1.0.0/schema.json#/$defs/WorkerOutputManifestId"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/rights-decision/1.0.0/schema.json",
+  "title": "PetraRightsDecision",
+  "description": "A conservative, copy-specific decision describing how one acquired Artifact may be used.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "rights_decision_id",
+    "revision",
+    "artifact_manifest_id",
+    "source_location",
+    "license_status",
+    "access_basis",
+    "decision_status",
+    "permissions",
+    "conditions",
+    "required_notices",
+    "decision_maker",
+    "rationale",
+    "observed_at",
+    "policy_version",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.rights-decision"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "rights_decision_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/RightsDecisionId"
+    },
+    "revision": {
+      "const": 1,
+      "description": "A changed rights interpretation creates a new decision rather than rewriting this one."
+    },
+    "artifact_manifest_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactManifestId"
+    },
+    "source_location": {
+      "type": "string",
+      "format": "uri",
+      "maxLength": 4000
+    },
+    "license_status": {
+      "enum": ["known", "unknown", "restricted"]
+    },
+    "observed_license": {
+      "$ref": "#/$defs/ObservedLicense"
+    },
+    "access_basis": {
+      "enum": [
+        "open_license",
+        "public_repository",
+        "subscription",
+        "user_supplied",
+        "permission",
+        "unknown"
+      ]
+    },
+    "decision_status": {
+      "enum": ["verified", "inferred", "unknown", "conflicting", "restricted"]
+    },
+    "permissions": {
+      "$ref": "#/$defs/Permissions"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "attribution",
+          "notice",
+          "noncommercial",
+          "share_alike",
+          "no_derivatives"
+        ]
+      },
+      "uniqueItems": true,
+      "maxItems": 5
+    },
+    "required_notices": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "uniqueItems": true,
+      "maxItems": 100
+    },
+    "authorization_reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "decision_maker": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8000
+    },
+    "observed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "policy_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ObservedLicense": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source"],
+      "minProperties": 2,
+      "properties": {
+        "identifier": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 4000
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "source": {
+          "enum": [
+            "artifact",
+            "license_file",
+            "repository_record",
+            "publisher_record",
+            "user_declaration",
+            "permission_record"
+          ]
+        }
+      }
+    },
+    "Permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "store_raw_bytes",
+        "parse",
+        "index",
+        "embed",
+        "send_selected_text_remotely",
+        "quote_publicly",
+        "redistribute_artifact"
+      ],
+      "properties": {
+        "store_raw_bytes": {
+          "type": "boolean"
+        },
+        "parse": {
+          "type": "boolean"
+        },
+        "index": {
+          "type": "boolean"
+        },
+        "embed": {
+          "type": "boolean"
+        },
+        "send_selected_text_remotely": {
+          "type": "boolean"
+        },
+        "quote_publicly": {
+          "type": "boolean"
+        },
+        "redistribute_artifact": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

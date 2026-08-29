@@ -1,0 +1,16 @@
+{
+  "transition_fixture_version": "1.0.0",
+  "schema_name": "contract-smoke",
+  "from_version": "1.0.0",
+  "to_version": "2.0.0",
+  "strategy": "reject",
+  "reason": "No contract-smoke 2.0.0 schema, compatibility declaration, translator, or migration is registered.",
+  "source_fixture_path": "fixtures/accepted/contract-smoke.json",
+  "target_payload": {
+    "kind": "petra.contract-smoke",
+    "message": "A future payload cannot silently cross an unsupported contract boundary.",
+    "schema_version": "2.0.0",
+    "sequence": 2
+  },
+  "expected_error": "CONTRACT_SCHEMA_NOT_REGISTERED"
+}

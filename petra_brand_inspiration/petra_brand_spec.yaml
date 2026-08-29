@@ -1,0 +1,93 @@
+brand:
+  name: Petra
+  tagline: "Where hypotheses earn their edges."
+  product: "Graph-native scientific research workbench"
+
+concept:
+  core_metaphor: "rock as durable evidence; facets as latent graph structure"
+  tone:
+    - calm
+    - precise
+    - evidence-first
+    - skeptical
+    - inspectable
+    - collaborative
+    - durable
+
+logo:
+  mark:
+    object: "single irregular black rock"
+    silhouette: "compact, asymmetric, low-poly/faceted"
+    fill: "solid black"
+    facet_lines: "few, thin, white or negative-space"
+    graph_reading: "secondary/implicit"
+    app_icon_safe: true
+  wordmark:
+    text: PETRA
+    family: "Bebas Neue"
+    case: uppercase
+    style: condensed
+    tracking: slightly_open
+  composition:
+    preferred: "rock left, PETRA right, tagline below"
+    alternates:
+      - icon_only
+      - horizontal_lockup
+      - stacked_lockup
+      - reversed_light_on_dark
+
+palette:
+  off_white: "#F7F6F2"
+  stone: "#E5E2DC"
+  slate: "#B5B1A9"
+  graphite: "#6B6963"
+  charcoal: "#1C1C1C"
+  amber: "#C66A2E"
+  approved: "#159E6E"
+  evidence: "#2563EB"
+  review: "#F59E0B"
+  contradicts: "#DC2626"
+  hypothesis: "#7C3AED"
+  neutral: "#A3A3A3"
+
+typography:
+  display:
+    family: "Bebas Neue"
+    use: [wordmark, major_heading, brand_statement]
+  ui:
+    family: "Inter"
+    weights: [Regular, Medium, Semibold]
+    use: [body, labels, tables, navigation, cards, captions]
+  mono:
+    family: "JetBrains Mono"
+    use: [identifiers, provenance, metrics, code]
+
+product_ui:
+  main_views:
+    - graph_canvas
+    - evidence_inspector
+    - collaborative_assistant
+  components:
+    - semantic_badges
+    - source_span_cards
+    - graph_nodes
+    - graph_edges
+    - evidence_tables
+    - provenance_annotations
+    - change_previews
+    - review_states
+  graph_edges:
+    supports: solid
+    challenges: dashed
+    inferred: dotted_light
+    contradicts: red_explicit
+    active: amber_solid
+
+principles:
+  - "The graph is state, not decoration."
+  - "Rock first, graph second."
+  - "Evidence should be visually inspectable."
+  - "Use color semantically, not decoratively."
+  - "Keep brand surfaces calm; product surfaces may be dense."
+  - "Prefer editorial precision over futuristic sci-fi styling."
+  - "Avoid generic AI gradients and glowing network graphics."

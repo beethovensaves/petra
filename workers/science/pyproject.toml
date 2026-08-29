@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "petra-science"
+version = "0.0.0"
+description = "Bounded scientific workers for Petra."
+requires-python = "==3.13.*"
+dependencies = [
+  "jsonschema==4.25.1",
+  "pydantic==2.11.7",
+  "referencing==0.37.0",
+  "rfc8785==0.1.4",
+]
+
+[dependency-groups]
+dev = [
+  "mypy==1.17.1",
+  "pytest==8.4.1",
+  "ruff==0.12.10",
+  "types-jsonschema==4.26.0.20260518",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/petra_science"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+
+[tool.uv]
+required-version = "==0.12.5"
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

@@ -1,0 +1,184 @@
+{
+  "schema_name": "petra.domain-event",
+  "schema_version": "1.0.0",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "event_position": 3,
+  "stream_type": "project",
+  "stream_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "stream_revision": 3,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "occurred_at": "2026-08-28T18:13:01.000Z",
+  "recorded_at": "2026-08-28T18:13:01.000Z",
+  "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+  "causation_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBN",
+  "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBN",
+  "idempotency_key": "review:claim-fbb:apply:v1",
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "event": {
+    "event_type": "change_set.applied",
+    "payload": {
+      "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+      "change_set_revision": 1,
+      "change_set_content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+      "approval_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+      "approval_revision": 1,
+      "prior_claim_revision": 1,
+      "claim": {
+        "schema_name": "petra.claim",
+        "schema_version": "1.0.0",
+        "claim_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "revision": 2,
+        "canonical_text": "The study reports a measurable improvement.",
+        "claim_kind": "descriptive",
+        "normalization_status": "normalized",
+        "scope": {
+          "task": {
+            "description": "The study-defined evaluation task",
+            "entity_refs": []
+          },
+          "outcome": {
+            "description": "Measurable improvement in the reported metric",
+            "entity_refs": []
+          },
+          "unreported_dimensions": [
+            "population",
+            "language",
+            "model_family",
+            "dataset",
+            "intervention_or_exposure",
+            "comparator",
+            "setting",
+            "temporal_boundary"
+          ]
+        },
+        "basis": {
+          "basis_kind": "source",
+          "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+          "source_scope": "full_text",
+          "detail_level": "detailed",
+          "source_span_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+          "source_stance": "reports",
+          "attribution": "The study authors",
+          "modality": "asserted",
+          "negated": false,
+          "derivation": {
+            "derivation_kind": "model_extraction",
+            "derivation_ref": "extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD"
+          },
+          "validator_results": [
+            {
+              "validator_name": "source-span-resolution",
+              "validator_version": "1.0.0",
+              "outcome": "pass",
+              "code": "SPAN_RESOLVED"
+            },
+            {
+              "validator_name": "scope-preservation",
+              "validator_version": "1.0.0",
+              "outcome": "pass",
+              "code": "SCOPE_PRESERVED"
+            }
+          ],
+          "extraction_confidence": 0.91,
+          "proposed_by": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "model"
+          },
+          "proposed_at": "2026-08-28T18:12:00.000Z"
+        },
+        "authority": {
+          "zone": "trusted",
+          "review_state": "human_accepted",
+          "promotion": {
+            "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+            "approval_basis": {
+              "approval_kind": "human",
+              "approval_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+              "approved_by": {
+                "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                "actor_kind": "human"
+              }
+            },
+            "applied_at": "2026-08-28T18:13:01.000Z"
+          }
+        },
+        "created_by": {
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "actor_kind": "model"
+        },
+        "created_at": "2026-08-28T18:12:00.000Z"
+      },
+      "prior_assertion_revision": 1,
+      "assertion": {
+        "schema_name": "petra.assertion",
+        "schema_version": "1.0.0",
+        "assertion_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+        "revision": 2,
+        "subject_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+        "predicate": "ASSERTS",
+        "object": {
+          "object_kind": "entity",
+          "entity_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB"
+        },
+        "assertion_kind": "source_stated",
+        "authority": {
+          "zone": "trusted",
+          "review_state": "human_accepted",
+          "promotion": {
+            "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+            "approval_basis": {
+              "approval_kind": "human",
+              "approval_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+              "approved_by": {
+                "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                "actor_kind": "human"
+              }
+            },
+            "applied_at": "2026-08-28T18:13:01.000Z"
+          }
+        },
+        "provenance_refs": [
+          {
+            "provenance_kind": "source_span",
+            "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
+          },
+          {
+            "provenance_kind": "record",
+            "record_id": "extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD",
+            "role": "derivation"
+          }
+        ],
+        "scope": {
+          "task": {
+            "description": "The study-defined evaluation task",
+            "entity_refs": []
+          },
+          "outcome": {
+            "description": "Measurable improvement in the reported metric",
+            "entity_refs": []
+          },
+          "unreported_dimensions": [
+            "population",
+            "language",
+            "model_family",
+            "dataset",
+            "intervention_or_exposure",
+            "comparator",
+            "setting",
+            "temporal_boundary"
+          ]
+        },
+        "rationale": "The exact full-text passage is represented as a scoped source-stated Claim.",
+        "recorded_at": "2026-08-28T18:12:00.000Z",
+        "created_by": {
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "actor_kind": "model"
+        }
+      }
+    }
+  }
+}

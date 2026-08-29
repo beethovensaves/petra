@@ -1,0 +1,21 @@
+{
+  "input": {
+    "schema_name": "petra.project",
+    "schema_version": "1.0.0",
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "revision": 1,
+    "name": "Competing explanations",
+    "description": "A bounded project for comparing scientific hypotheses.",
+    "status": "active",
+    "visibility": "private",
+    "enabled_evidence_namespaces": ["scholarly", "personal"],
+    "created_by": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "human"
+    },
+    "created_at": "2026-08-28T18:00:00.000Z",
+    "updated_at": "2026-08-28T18:00:00.000Z"
+  },
+  "canonical": "{\"created_at\":\"2026-08-28T18:00:00.000Z\",\"created_by\":{\"actor_id\":\"actor_01ARZ3NDEKTSV4RRFFQ69G5FAV\",\"actor_kind\":\"human\"},\"description\":\"A bounded project for comparing scientific hypotheses.\",\"enabled_evidence_namespaces\":[\"scholarly\",\"personal\"],\"name\":\"Competing explanations\",\"project_id\":\"project_01ARZ3NDEKTSV4RRFFQ69G5FAW\",\"revision\":1,\"schema_name\":\"petra.project\",\"schema_version\":\"1.0.0\",\"status\":\"active\",\"updated_at\":\"2026-08-28T18:00:00.000Z\",\"visibility\":\"private\"}",
+  "sha256": "sha256:dc3d0aca15e39ab6a650065530eb706ffbdd8f9bde76e87927a7b3fab097457d"
+}

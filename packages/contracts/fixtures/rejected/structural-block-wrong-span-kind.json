@@ -1,0 +1,18 @@
+{
+  "schema_name": "petra.structural-block",
+  "schema_version": "1.0.0",
+  "structural_block_id": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+  "revision": 1,
+  "parsed_document_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+  "block_kind": "figure",
+  "content_layer": "visual_only",
+  "reading_order": 0,
+  "structural_path": ["Figure 1"],
+  "child_block_ids": [],
+  "page_locations": [],
+  "content": {
+    "content_kind": "visual_only"
+  },
+  "source_span_ids": ["artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1"],
+  "created_at": "2026-08-28T18:11:02.000Z"
+}

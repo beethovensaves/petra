@@ -1,0 +1,36 @@
+{
+  "schema_name": "petra.artifact-manifest",
+  "schema_version": "1.0.0",
+  "artifact_manifest_id": "artifact_manifest_01ARZ3NDEKTSV4RRFFQ69G5FB2",
+  "revision": 1,
+  "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+  "rights_decision_id": "rights_decision_01ARZ3NDEKTSV4RRFFQ69G5FB3",
+  "origin": {
+    "origin_kind": "acquired",
+    "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+    "source_connector": "acl-anthology",
+    "connector_version": "1.0.0",
+    "retrieval_url": "https://aclanthology.org/2025.example.pdf",
+    "retrieved_at": "2026-08-28T18:09:00.000Z",
+    "response_metadata": {},
+    "supplied_at": "2026-08-28T18:09:00.000Z"
+  },
+  "storage_ref": {
+    "storage_kind": "content_addressed_object",
+    "store_name": "petra-local",
+    "object_key": "sha256/example",
+    "content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+    "availability": "available",
+    "verified_at": "2026-08-28T18:10:00.000Z"
+  },
+  "integrity": {
+    "status": "verified",
+    "checked_at": "2026-08-28T18:10:00.000Z",
+    "problems": []
+  },
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "recorded_at": "2026-08-28T18:10:00.000Z"
+}

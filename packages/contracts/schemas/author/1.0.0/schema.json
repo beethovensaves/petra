@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/author/1.0.0/schema.json",
+  "title": "PetraAuthor",
+  "description": "A canonical, possibly provisional identity for a person or organization credited on scholarly work.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "author_id",
+    "revision",
+    "author_kind",
+    "display_name",
+    "identity_status",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.author"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "author_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/AuthorId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "author_kind": {
+      "enum": ["person", "organization", "consortium"]
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "identity_status": {
+      "enum": ["resolved", "provisional", "disputed"]
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "updated_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "input": {
+    "kind": "petra.contract-smoke",
+    "message": "Where hypotheses earn their edges.",
+    "schema_version": "1.0.0",
+    "sequence": 1
+  },
+  "canonical": "{\"kind\":\"petra.contract-smoke\",\"message\":\"Where hypotheses earn their edges.\",\"schema_version\":\"1.0.0\",\"sequence\":1}",
+  "sha256": "sha256:f465b090d78ec05421568c6955b5b2257483d2b237a3d9746c0b88edfdbe049e"
+}

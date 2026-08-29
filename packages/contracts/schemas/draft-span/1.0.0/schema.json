@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/draft-span/1.0.0/schema.json",
+  "title": "PetraDraftSpan",
+  "description": "An immutable Unicode-code-point range over one exact DraftArtifact revision with explicit materiality and scientific force.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "draft_span_id",
+    "revision",
+    "project_id",
+    "draft_ref",
+    "content",
+    "content_hash",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.draft-span" },
+    "schema_version": { "const": "1.0.0" },
+    "draft_span_id": {
+      "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/DraftSpanId"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "draft_ref": { "$ref": "#/$defs/DraftRef" },
+    "content": { "$ref": "#/$defs/DraftSpanContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "DraftRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["draft_artifact_id", "revision", "content_hash"],
+      "properties": {
+        "draft_artifact_id": {
+          "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/DraftArtifactId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "DraftSpanContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "offset_unit",
+        "start",
+        "end",
+        "exact_text",
+        "exact_text_hash",
+        "materiality",
+        "semantic_origin",
+        "scientific_force"
+      ],
+      "properties": {
+        "offset_unit": { "const": "unicode_code_point" },
+        "start": { "type": "integer", "minimum": 0, "maximum": 10000000 },
+        "end": { "type": "integer", "minimum": 1, "maximum": 10000000 },
+        "exact_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000000
+        },
+        "exact_text_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "materiality": { "enum": ["material", "nonmaterial"] },
+        "semantic_origin": {
+          "enum": [
+            "source_report",
+            "petra_inference",
+            "researcher_statement",
+            "structural_language"
+          ]
+        },
+        "scientific_force": {
+          "enum": [
+            "direct_report",
+            "descriptive",
+            "association",
+            "comparison",
+            "qualification",
+            "causal",
+            "mechanistic",
+            "methodological",
+            "none"
+          ]
+        }
+      }
+    }
+  }
+}

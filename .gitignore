@@ -1,0 +1,33 @@
+.DS_Store
+
+# JavaScript and TypeScript
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.vite/
+*.tsbuildinfo
+apps/server/public/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Petra runtime state
+.data/
+.cache/
+infra/dev/volumes/
+
+# Logs
+*.log
+npm-debug.log*

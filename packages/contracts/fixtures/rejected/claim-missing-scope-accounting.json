@@ -1,0 +1,28 @@
+{
+  "schema_name": "petra.claim",
+  "schema_version": "1.0.0",
+  "claim_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+  "revision": 1,
+  "canonical_text": "A claim with opaque scope.",
+  "claim_kind": "descriptive",
+  "normalization_status": "composed",
+  "scope": {},
+  "basis": {
+    "basis_kind": "researcher",
+    "rationale": "A provisional research idea.",
+    "proposed_by": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "human"
+    },
+    "proposed_at": "2026-08-28T18:12:00.000Z"
+  },
+  "authority": {
+    "zone": "quarantine",
+    "review_state": "unreviewed"
+  },
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-08-28T18:12:00.000Z"
+}

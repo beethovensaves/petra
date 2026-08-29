@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/draft-artifact/1.0.0/schema.json",
+  "title": "PetraDraftArtifact",
+  "description": "One immutable semantic draft revision bound to an exact snapshot, EvidencePacket, provenance map, citation bundle, production origin, and language controls.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "draft_artifact_id",
+    "revision",
+    "project_id",
+    "snapshot_ref",
+    "composition_request_ref",
+    "composition_plan_ref",
+    "evidence_packet_ref",
+    "provenance_map_ref",
+    "citation_bundle_ref",
+    "lineage",
+    "production",
+    "controls",
+    "content",
+    "content_hash",
+    "validation",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.draft-artifact" },
+    "schema_version": { "const": "1.0.0" },
+    "draft_artifact_id": { "$ref": "#/$defs/DraftArtifactId" },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "snapshot_ref": {
+      "$ref": "../../context-packet/1.0.0/schema.json#/$defs/SnapshotRef"
+    },
+    "composition_request_ref": {
+      "$ref": "#/$defs/CompositionRequestRef"
+    },
+    "composition_plan_ref": { "$ref": "#/$defs/CompositionPlanRef" },
+    "evidence_packet_ref": { "$ref": "#/$defs/EvidencePacketRef" },
+    "provenance_map_ref": { "$ref": "#/$defs/ProvenanceMapRef" },
+    "citation_bundle_ref": { "$ref": "#/$defs/CitationBundleRef" },
+    "lineage": { "$ref": "#/$defs/DraftLineage" },
+    "production": { "$ref": "#/$defs/ProductionOrigin" },
+    "controls": { "$ref": "#/$defs/DraftControls" },
+    "content": { "$ref": "#/$defs/DraftContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "validation": { "$ref": "#/$defs/DraftValidation" },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "DraftArtifactId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^draft_artifact_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "DraftSpanId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^draft_span_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ProvenanceMapId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^provenance_map_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "CitationBundleId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^citation_bundle_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "CitationId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^citation_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "CompositionRequestRef": {
+      "$ref": "#/$defs/VersionedControlRef"
+    },
+    "CompositionPlanRef": { "$ref": "#/$defs/VersionedControlRef" },
+    "VersionedControlRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "content_hash"],
+      "properties": {
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "EvidencePacketRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_packet_id", "revision", "content_hash"],
+      "properties": {
+        "evidence_packet_id": {
+          "$ref": "../../context-packet/1.0.0/schema.json#/$defs/EvidencePacketId"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ProvenanceMapRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance_map_id", "revision"],
+      "properties": {
+        "provenance_map_id": { "$ref": "#/$defs/ProvenanceMapId" },
+        "revision": { "const": 1 }
+      }
+    },
+    "CitationBundleRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["citation_bundle_id", "revision"],
+      "properties": {
+        "citation_bundle_id": { "$ref": "#/$defs/CitationBundleId" },
+        "revision": { "const": 1 }
+      }
+    },
+    "DraftLineage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lineage_kind"],
+          "properties": { "lineage_kind": { "const": "root" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lineage_kind",
+            "parent_draft_artifact_id",
+            "parent_revision",
+            "edit_origin"
+          ],
+          "properties": {
+            "lineage_kind": { "const": "revision" },
+            "parent_draft_artifact_id": {
+              "$ref": "#/$defs/DraftArtifactId"
+            },
+            "parent_revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "edit_origin": {
+              "enum": ["researcher_edit", "felicity_revision", "model_revision"]
+            }
+          }
+        }
+      ]
+    },
+    "ProductionOrigin": {
+      "oneOf": [
+        { "$ref": "#/$defs/ModelProduction" },
+        { "$ref": "#/$defs/ResearcherProduction" },
+        { "$ref": "#/$defs/DeterministicProduction" }
+      ]
+    },
+    "ModelProduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin_kind",
+        "model_request_id",
+        "model_call_id",
+        "model_deployment",
+        "prompt_profile",
+        "prompt_hash"
+      ],
+      "properties": {
+        "origin_kind": { "const": "model_generated" },
+        "model_request_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "model_call_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "model_deployment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "prompt_profile": { "$ref": "#/$defs/NamedVersion" },
+        "prompt_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ResearcherProduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin_kind", "researcher_id"],
+      "properties": {
+        "origin_kind": { "const": "researcher_authored" },
+        "researcher_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        }
+      }
+    },
+    "DeterministicProduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin_kind", "producer"],
+      "properties": {
+        "origin_kind": { "const": "deterministic" },
+        "producer": { "$ref": "#/$defs/NamedVersion" }
+      }
+    },
+    "DraftControls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output_profile", "language_contract"],
+      "properties": {
+        "output_profile": { "$ref": "#/$defs/NamedVersionHash" },
+        "language_contract": { "$ref": "#/$defs/NamedVersionHash" }
+      }
+    },
+    "NamedVersion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 200 }
+      }
+    },
+    "NamedVersionHash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "content_hash"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "DraftContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_kind",
+        "semantic_format",
+        "language",
+        "text",
+        "draft_span_ids"
+      ],
+      "properties": {
+        "artifact_kind": {
+          "enum": [
+            "passage",
+            "outline",
+            "table",
+            "methods_description",
+            "experiment_report",
+            "literature_synthesis",
+            "bibliography",
+            "other"
+          ]
+        },
+        "semantic_format": {
+          "enum": ["plain_text", "markdown", "structured_json"]
+        },
+        "language": {
+          "type": "string",
+          "pattern": "^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$"
+        },
+        "text": { "type": "string", "minLength": 1, "maxLength": 10000000 },
+        "draft_span_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100000,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/DraftSpanId" }
+        }
+      }
+    },
+    "DraftValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "validator_results",
+        "limitations",
+        "unresolved_support_span_ids"
+      ],
+      "properties": {
+        "state": { "enum": ["pending", "passed", "failed", "stale"] },
+        "validator_results": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/ValidatorResult" }
+        },
+        "limitations": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 4000 }
+        },
+        "unresolved_support_span_ids": {
+          "type": "array",
+          "maxItems": 100000,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/DraftSpanId" }
+        }
+      }
+    },
+    "ValidatorResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["validator", "version", "outcome", "code"],
+      "properties": {
+        "validator": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "outcome": { "enum": ["pass", "fail", "warning"] },
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    }
+  }
+}

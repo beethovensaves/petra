@@ -1,0 +1,86 @@
+{
+  "schema_name": "petra.evidence-packet",
+  "schema_version": "1.0.0",
+  "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "snapshot_ref": {
+    "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+    "snapshot_revision": 1,
+    "event_position": 3,
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "content": {
+    "context_packet_ref": {
+      "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+      "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df"
+    },
+    "composition_objective": "Explain the selected study report while preserving its recorded scope and evidence boundary.",
+    "temporal_perspective": {
+      "perspective": "current",
+      "as_of": "2026-08-29T15:00:01.000Z"
+    },
+    "selected_evidence": [
+      {
+        "context_selection_order": 1,
+        "object_ref": {
+          "object_kind": "claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "object_revision": 2,
+          "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+        },
+        "bearing": "supporting",
+        "source_span_selection_orders": [3],
+        "inclusion_reason": "This is the scoped proposition the composition will describe.",
+        "use_limitations": [
+          "Do not generalize beyond the study-defined task and reported outcome."
+        ]
+      },
+      {
+        "context_selection_order": 2,
+        "object_ref": {
+          "object_kind": "assertion",
+          "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "object_revision": 2,
+          "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+        },
+        "bearing": "supporting",
+        "source_span_selection_orders": [3],
+        "inclusion_reason": "The Assertion records that the exact WorkVersion reports the Claim.",
+        "use_limitations": [
+          "The trusted relation represents reviewed source attribution, not independent proof that the Claim is true."
+        ]
+      },
+      {
+        "context_selection_order": 3,
+        "object_ref": {
+          "object_kind": "source_span",
+          "object_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          "object_revision": 1,
+          "object_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+        },
+        "bearing": "background",
+        "source_span_selection_orders": [3],
+        "inclusion_reason": "This is the inspectable source location for the selected Claim and Assertion.",
+        "use_limitations": []
+      }
+    ],
+    "exclusions": [],
+    "coverage": {
+      "state": "complete_for_context",
+      "statement": "Every object in the bounded ContextPacket is accounted for; this is not a claim of literature completeness.",
+      "contrary_evidence_status": "checked_none_in_context",
+      "qualifying_evidence_status": "checked_none_in_context"
+    },
+    "freshness": {
+      "state": "current_for_snapshot",
+      "checked_at": "2026-08-29T15:00:01.000Z"
+    }
+  },
+  "content_hash": "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64",
+  "compiled_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "compiled_at": "2026-08-29T15:00:01.000Z"
+}

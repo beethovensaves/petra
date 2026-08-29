@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="title desc">
+  <title id="title">Petra logo inspiration</title>
+  <desc id="desc">Irregular black rock with sparse facet lines beside a condensed PETRA wordmark and tagline.</desc>
+  <rect width="1200" height="400" fill="#F7F6F2"/>
+  <g transform="translate(70 75)">
+    <path d="M52 44 L145 12 L226 50 L251 132 L219 218 L125 247 L38 205 L12 116 Z" fill="#1C1C1C"/>
+    <path d="M52 44 L112 103 L92 169 L38 205" fill="none" stroke="#F7F6F2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M112 103 L174 70 L226 50" fill="none" stroke="#F7F6F2" stroke-width="5" stroke-linecap="round"/>
+    <path d="M112 103 L178 151 L219 218" fill="none" stroke="#F7F6F2" stroke-width="5" stroke-linecap="round"/>
+    <path d="M92 169 L178 151" fill="none" stroke="#F7F6F2" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <text x="390" y="210" fill="#1C1C1C" font-family="Bebas Neue, Arial Narrow, sans-serif" font-size="150" letter-spacing="12">PETRA</text>
+  <text x="398" y="270" fill="#6B6963" font-family="Inter, Helvetica Neue, Arial, sans-serif" font-size="30">Where hypotheses earn their edges.</text>
+  <line x1="397" y1="302" x2="850" y2="302" stroke="#E5E2DC" stroke-width="2"/>
+  <circle cx="870" cy="302" r="7" fill="#C66A2E"/>
+</svg>

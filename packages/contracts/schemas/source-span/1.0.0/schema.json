@@ -1,0 +1,502 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/source-span/1.0.0/schema.json",
+  "title": "PetraSourceSpan",
+  "description": "A stable, verifiable region of exactly one immutable source Artifact, aligned through one ParsedDocument and StructuralBlock.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "source_span_id",
+    "revision",
+    "artifact_id",
+    "artifact_content_hash",
+    "parsed_document_id",
+    "parser_run_id",
+    "structural_block_id",
+    "selector_schema_version",
+    "selector",
+    "extraction",
+    "verification",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.source-span"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "source_span_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/SourceSpanId"
+    },
+    "revision": {
+      "const": 1
+    },
+    "artifact_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+    },
+    "artifact_content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "parsed_document_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ParsedDocumentId"
+    },
+    "parser_run_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ParserRunId"
+    },
+    "structural_block_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/StructuralBlockId"
+    },
+    "selector_schema_version": {
+      "const": "1.0.0"
+    },
+    "selector": {
+      "$ref": "#/$defs/Selector"
+    },
+    "extraction": {
+      "$ref": "#/$defs/Extraction"
+    },
+    "verification": {
+      "$ref": "#/$defs/Verification"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "Selector": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/TextQuoteSelector"
+        },
+        {
+          "$ref": "#/$defs/PageRegionSelector"
+        },
+        {
+          "$ref": "#/$defs/SectionPathSelector"
+        },
+        {
+          "$ref": "#/$defs/JsonPointerSelector"
+        },
+        {
+          "$ref": "#/$defs/LineRangeSelector"
+        },
+        {
+          "$ref": "#/$defs/CompoundSelector"
+        }
+      ]
+    },
+    "TextQuoteSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selector_type", "quote"],
+      "properties": {
+        "selector_type": {
+          "const": "text_quote"
+        },
+        "quote": {
+          "$ref": "#/$defs/TextQuote"
+        }
+      }
+    },
+    "PageRegionSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selector_type", "page_region"],
+      "properties": {
+        "selector_type": {
+          "const": "page_region"
+        },
+        "page_region": {
+          "$ref": "#/$defs/PageRegion"
+        }
+      }
+    },
+    "SectionPathSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selector_type", "section_path"],
+      "properties": {
+        "selector_type": {
+          "const": "section_path"
+        },
+        "section_path": {
+          "$ref": "#/$defs/SectionPath"
+        }
+      }
+    },
+    "JsonPointerSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selector_type", "json_pointer"],
+      "properties": {
+        "selector_type": {
+          "const": "json_pointer"
+        },
+        "json_pointer": {
+          "$ref": "#/$defs/JsonPointer"
+        }
+      }
+    },
+    "LineRangeSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selector_type", "line_range"],
+      "properties": {
+        "selector_type": {
+          "const": "line_range"
+        },
+        "line_range": {
+          "$ref": "#/$defs/LineRange"
+        }
+      }
+    },
+    "CompoundSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selector_type", "components"],
+      "properties": {
+        "selector_type": {
+          "const": "compound"
+        },
+        "components": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/SelectorComponent"
+          }
+        }
+      }
+    },
+    "SelectorComponent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component_kind", "quote"],
+          "properties": {
+            "component_kind": {
+              "const": "text_quote"
+            },
+            "quote": {
+              "$ref": "#/$defs/TextQuote"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component_kind", "page_region"],
+          "properties": {
+            "component_kind": {
+              "const": "page_region"
+            },
+            "page_region": {
+              "$ref": "#/$defs/PageRegion"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component_kind", "section_path"],
+          "properties": {
+            "component_kind": {
+              "const": "section_path"
+            },
+            "section_path": {
+              "$ref": "#/$defs/SectionPath"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component_kind", "json_pointer"],
+          "properties": {
+            "component_kind": {
+              "const": "json_pointer"
+            },
+            "json_pointer": {
+              "$ref": "#/$defs/JsonPointer"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component_kind", "line_range"],
+          "properties": {
+            "component_kind": {
+              "const": "line_range"
+            },
+            "line_range": {
+              "$ref": "#/$defs/LineRange"
+            }
+          }
+        }
+      ]
+    },
+    "TextQuote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selected_text_hash",
+        "start_codepoint",
+        "end_codepoint",
+        "normalization_version"
+      ],
+      "properties": {
+        "exact_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000000
+        },
+        "selected_text_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "prefix": {
+          "type": "string",
+          "maxLength": 10000
+        },
+        "suffix": {
+          "type": "string",
+          "maxLength": 10000
+        },
+        "start_codepoint": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "end_codepoint": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "normalization_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      }
+    },
+    "PageRegion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "page_number",
+        "page_width",
+        "page_height",
+        "unit",
+        "coordinate_origin",
+        "regions"
+      ],
+      "properties": {
+        "page_number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "page_width": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "page_height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "enum": ["pt", "px", "mm"]
+        },
+        "coordinate_origin": {
+          "enum": ["top_left", "bottom_left"]
+        },
+        "regions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/Region"
+          }
+        }
+      }
+    },
+    "Region": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/BoundingBox"
+        },
+        {
+          "$ref": "#/$defs/Polygon"
+        }
+      ]
+    },
+    "BoundingBox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region_kind", "x", "y", "width", "height"],
+      "properties": {
+        "region_kind": {
+          "const": "bounding_box"
+        },
+        "x": {
+          "type": "number",
+          "minimum": 0
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "Polygon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region_kind", "points"],
+      "properties": {
+        "region_kind": {
+          "const": "polygon"
+        },
+        "points": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/Point"
+          }
+        }
+      }
+    },
+    "Point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "SectionPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["segments"],
+      "properties": {
+        "segments": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      }
+    },
+    "JsonPointer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pointer"],
+      "properties": {
+        "pointer": {
+          "type": "string",
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "maxLength": 10000
+        }
+      }
+    },
+    "LineRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_line", "end_line"],
+      "properties": {
+        "start_line": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "end_line": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "Extraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "method_version", "normalization_version"],
+      "properties": {
+        "method": {
+          "enum": [
+            "embedded_text",
+            "ocr",
+            "structured_source",
+            "parser_alignment",
+            "manual_selection",
+            "visual_region"
+          ]
+        },
+        "method_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "normalization_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      }
+    },
+    "Verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "verified_at", "transformations"],
+      "properties": {
+        "status": {
+          "enum": [
+            "exact_text_and_geometry",
+            "normalized",
+            "visual_only",
+            "manual_alignment",
+            "unresolved"
+          ]
+        },
+        "verified_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "transformations": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      }
+    }
+  }
+}

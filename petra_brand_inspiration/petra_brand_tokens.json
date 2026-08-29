@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "brand": {
+    "name": "Petra",
+    "tagline": "Where hypotheses earn their edges.",
+    "category": "graph-native scientific research workbench",
+    "attributes": [
+      "evidence-first",
+      "graph-native",
+      "inspectable",
+      "precise",
+      "skeptical",
+      "collaborative",
+      "calm",
+      "durable",
+      "scientifically rigorous"
+    ]
+  },
+  "logo": {
+    "primary_mark": "irregular compact black rock",
+    "internal_structure": "few subtle white/negative-space facet lines suggesting graph edges",
+    "must_read_as": "rock first, graph second",
+    "avoid": [
+      "crystal",
+      "gemstone",
+      "mountain",
+      "network-node logo",
+      "occult mark",
+      "gradient"
+    ],
+    "wordmark": {
+      "text": "PETRA",
+      "case": "uppercase",
+      "font_family": "Bebas Neue",
+      "style": "condensed sans-serif",
+      "weight": "regular/display",
+      "tracking": "slightly open"
+    }
+  },
+  "typography": {
+    "display": {
+      "font_family": "Bebas Neue",
+      "fallback": ["Arial Narrow", "Roboto Condensed", "sans-serif"],
+      "use_for": ["wordmark", "major headings", "brand statements"]
+    },
+    "ui": {
+      "font_family": "Inter",
+      "fallback": ["Helvetica Neue", "Arial", "sans-serif"],
+      "weights": [400, 500, 600],
+      "use_for": ["body", "navigation", "tables", "cards", "labels", "captions"]
+    },
+    "mono": {
+      "font_family": "JetBrains Mono",
+      "fallback": ["SFMono-Regular", "Consolas", "monospace"],
+      "use_for": ["IDs", "metrics", "provenance", "code", "technical metadata"]
+    }
+  },
+  "color": {
+    "base": {
+      "off_white": "#F7F6F2",
+      "stone": "#E5E2DC",
+      "slate": "#B5B1A9",
+      "graphite": "#6B6963",
+      "charcoal": "#1C1C1C",
+      "amber": "#C66A2E"
+    },
+    "semantic": {
+      "approved": "#159E6E",
+      "evidence": "#2563EB",
+      "review": "#F59E0B",
+      "contradicts": "#DC2626",
+      "hypothesis": "#7C3AED",
+      "neutral": "#A3A3A3"
+    },
+    "usage": {
+      "background": "off_white",
+      "primary_text": "charcoal",
+      "secondary_text": "graphite",
+      "active_path": "amber",
+      "primary_action": "amber",
+      "borders": "stone"
+    }
+  },
+  "graph_language": {
+    "node_style": "small neutral circles or restrained outlined nodes",
+    "edge_styles": {
+      "supports": "solid thin line",
+      "challenges": "dashed line",
+      "inferred": "light/dotted line",
+      "contradicts": "red dashed/explicit marker",
+      "active_path": "amber solid line"
+    },
+    "principle": "edges communicate scientific meaning; decorative graph motifs should be minimized"
+  },
+  "interaction": {
+    "primary_layout": [
+      "graph_canvas",
+      "evidence_inspector",
+      "collaborative_assistant"
+    ],
+    "behaviors": [
+      "selecting assistant text highlights its graph path",
+      "selecting a graph edge reveals provenance and review state",
+      "evidence cards link to exact source spans",
+      "graph changes are previewable and reversible",
+      "semantic state is visible through badges and edge styles"
+    ]
+  },
+  "layout": {
+    "character": "scientific editorial system + analytical workbench",
+    "density": "dense in product UI, spacious in brand surfaces",
+    "rules": [
+      "thin separators",
+      "strong alignment",
+      "compact controls",
+      "small semantic badges",
+      "generous outer whitespace",
+      "limited decorative illustration"
+    ]
+  }
+}

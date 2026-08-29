@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/structural-block/1.0.0/schema.json",
+  "title": "PetraStructuralBlock",
+  "description": "One immutable ordered and hierarchical unit in a Petra ParsedDocument.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "structural_block_id",
+    "revision",
+    "parsed_document_id",
+    "block_kind",
+    "content_layer",
+    "reading_order",
+    "structural_path",
+    "child_block_ids",
+    "page_locations",
+    "content",
+    "source_span_ids",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.structural-block"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "structural_block_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/StructuralBlockId"
+    },
+    "revision": {
+      "const": 1
+    },
+    "parsed_document_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ParsedDocumentId"
+    },
+    "block_kind": {
+      "enum": [
+        "document_title",
+        "heading",
+        "paragraph",
+        "sentence",
+        "list",
+        "list_item",
+        "footnote",
+        "reference",
+        "formula",
+        "table",
+        "table_row",
+        "table_cell",
+        "figure",
+        "caption",
+        "code_block",
+        "other"
+      ]
+    },
+    "content_layer": {
+      "enum": ["source_native", "ocr", "parser_derived", "visual_only"]
+    },
+    "reading_order": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "structural_path": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 500
+      }
+    },
+    "parent_block_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/StructuralBlockId"
+    },
+    "child_block_ids": {
+      "type": "array",
+      "maxItems": 100000,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "../../common/1.0.0/schema.json#/$defs/StructuralBlockId"
+      }
+    },
+    "previous_block_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/StructuralBlockId"
+    },
+    "next_block_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/StructuralBlockId"
+    },
+    "page_locations": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/PageLocation"
+      }
+    },
+    "content": {
+      "$ref": "#/$defs/BlockContent"
+    },
+    "source_span_ids": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "../../common/1.0.0/schema.json#/$defs/SourceSpanId"
+      }
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "PageLocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["page_number", "bounding_boxes"],
+      "properties": {
+        "page_number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "bounding_boxes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/BoundingBox"
+          }
+        }
+      }
+    },
+    "BoundingBox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "BlockContent": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/TextContent"
+        },
+        {
+          "$ref": "#/$defs/StructuredContent"
+        },
+        {
+          "$ref": "#/$defs/VisualContent"
+        }
+      ]
+    },
+    "TextContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content_kind", "text", "content_hash"],
+      "properties": {
+        "content_kind": {
+          "const": "text"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000000
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "StructuredContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content_kind", "structured_artifact_id", "content_hash"],
+      "properties": {
+        "content_kind": {
+          "const": "structured_artifact"
+        },
+        "structured_artifact_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "VisualContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content_kind"],
+      "properties": {
+        "content_kind": {
+          "const": "visual_only"
+        }
+      }
+    }
+  }
+}

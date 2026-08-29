@@ -1,0 +1,29 @@
+{
+  "schema_name": "petra.interaction-feature-manifest",
+  "schema_version": "1.0.0",
+  "interaction_feature_manifest_id": "interaction_feature_manifest_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+  "revision": 1,
+  "content": {
+    "protocol": {
+      "name": "ag-ui",
+      "sdk_version": "0.0.59",
+      "profile_version": "1.0.0"
+    },
+    "transports": ["text_event_stream"],
+    "standard_events": ["RUN_STARTED"],
+    "custom_events": [],
+    "features": [{ "feature": "text_streaming", "support": "supported" }],
+    "authority_boundary": {
+      "grants_capabilities": true,
+      "interaction_state_is_authoritative": false,
+      "replay_reapplies_authority": false,
+      "connection_abort_cancels_work": false
+    }
+  },
+  "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "compiled_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "compiled_at": "2026-08-29T16:00:00.000Z"
+}

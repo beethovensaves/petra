@@ -1,0 +1,38 @@
+{
+  "schema_name": "petra.projection-checkpoint",
+  "schema_version": "1.0.0",
+  "projection_checkpoint_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "projection": {
+    "target": "neo4j_graph",
+    "projection_name": "petra.authority_graph",
+    "projection_version": "1.0.0",
+    "configuration_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "content": {
+    "position": {
+      "position_kind": "empty",
+      "target_sequence": 0
+    },
+    "observed_head": {
+      "target_sequence": 1,
+      "outbox_id": "outbox_01ARZ3NDEKTSV4RRFFQ69G5FC6",
+      "outbox_position": 3,
+      "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+      "event_position": 3,
+      "stream_revision": 3,
+      "observed_at": "2026-08-29T14:10:00.000Z"
+    },
+    "freshness": {
+      "state": "catching_up",
+      "pending_records": 1
+    }
+  },
+  "content_hash": "sha256:e0a79ef876ef41017f24486b80122e0eefcbc6ff21677370ea1e5143558b06d9",
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "recorded_at": "2026-08-29T14:10:00.000Z"
+}

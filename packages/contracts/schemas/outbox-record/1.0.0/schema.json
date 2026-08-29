@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/outbox-record/1.0.0/schema.json",
+  "title": "PetraOutboxRecord",
+  "description": "An immutable ordered delivery record created atomically with one domain event for one projection target.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "outbox_id",
+    "outbox_position",
+    "target",
+    "target_sequence",
+    "partition_key",
+    "deduplication_key",
+    "enqueued_at",
+    "message"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.outbox-record"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "outbox_id": {
+      "$ref": "#/$defs/OutboxId"
+    },
+    "outbox_position": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "target": {
+      "enum": ["neo4j_graph", "interface_authority"]
+    },
+    "target_sequence": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "partition_key": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "deduplication_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "enqueued_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "message": {
+      "$ref": "#/$defs/DomainEventMessage"
+    }
+  },
+  "$defs": {
+    "OutboxId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^outbox_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "DomainEventMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_kind", "event"],
+      "properties": {
+        "message_kind": {
+          "const": "domain_event"
+        },
+        "event": {
+          "$ref": "../../domain-event/1.0.0/schema.json"
+        }
+      }
+    }
+  }
+}

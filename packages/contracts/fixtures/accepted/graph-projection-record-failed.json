@@ -1,0 +1,40 @@
+{
+  "schema_name": "petra.graph-projection-record",
+  "schema_version": "1.0.0",
+  "graph_projection_record_id": "graph_projection_record_01ARZ3NDEKTSV4RRFFQ69G5FCA",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "projection": {
+    "target": "neo4j_graph",
+    "projection_name": "petra.authority_graph",
+    "projection_version": "1.0.0",
+    "configuration_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "content": {
+    "outbox_ref": {
+      "outbox_id": "outbox_01ARZ3NDEKTSV4RRFFQ69G5FC6",
+      "outbox_position": 3,
+      "target_sequence": 1,
+      "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+      "event_position": 3,
+      "stream_revision": 3
+    },
+    "attempt": 1,
+    "started_at": "2026-08-29T14:10:00.000Z",
+    "completed_at": "2026-08-29T14:10:01.000Z",
+    "outcome": {
+      "outcome_kind": "failed",
+      "failure": {
+        "code": "NEO4J_TRANSACTION_FAILED",
+        "message": "The graph transaction did not commit.",
+        "retryable": true
+      }
+    }
+  },
+  "content_hash": "sha256:643183c72dd07eb4ace3970394a1d83ec49d005bc402f88256df5b266f4cc5ab",
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "recorded_at": "2026-08-29T14:10:01.000Z"
+}

@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/command-envelope/1.0.0/schema.json",
+  "title": "PetraCommandEnvelope",
+  "description": "The adapter-neutral, idempotent command boundary for ChangeSet submission, human review, and application.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "correlation_id",
+    "submitted_at",
+    "command"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.command-envelope"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "command_id": {
+      "$ref": "#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "#/$defs/IdempotencyKey"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "capability_grant_id": {
+      "$ref": "#/$defs/CapabilityGrantId"
+    },
+    "correlation_id": {
+      "$ref": "#/$defs/TraceId"
+    },
+    "causation_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "command": {
+      "$ref": "#/$defs/Command"
+    }
+  },
+  "$defs": {
+    "CommandId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^command_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "CapabilityGrantId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^capability_grant_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "TraceId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^trace_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "IdempotencyKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "Command": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SubmitChangeSet"
+        },
+        {
+          "$ref": "#/$defs/RecordApproval"
+        },
+        {
+          "$ref": "#/$defs/ApplyChangeSet"
+        }
+      ]
+    },
+    "SubmitChangeSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_name", "change_set"],
+      "properties": {
+        "command_name": {
+          "const": "SubmitChangeSet"
+        },
+        "change_set": {
+          "$ref": "../../change-set/1.0.0/schema.json"
+        }
+      }
+    },
+    "RecordApproval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_name", "approval"],
+      "properties": {
+        "command_name": {
+          "const": "RecordApproval"
+        },
+        "approval": {
+          "$ref": "../../approval/1.0.0/schema.json"
+        }
+      }
+    },
+    "ApplyChangeSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_name",
+        "change_set_id",
+        "change_set_revision",
+        "change_set_content_hash",
+        "approval_id",
+        "approval_revision"
+      ],
+      "properties": {
+        "command_name": {
+          "const": "ApplyChangeSet"
+        },
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "change_set_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "change_set_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "approval_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ApprovalId"
+        },
+        "approval_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        }
+      }
+    }
+  }
+}

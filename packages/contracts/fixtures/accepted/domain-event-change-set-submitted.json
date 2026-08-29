@@ -1,0 +1,82 @@
+{
+  "schema_name": "petra.domain-event",
+  "schema_version": "1.0.0",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBV",
+  "event_position": 1,
+  "stream_type": "project",
+  "stream_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "stream_revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "model"
+  },
+  "occurred_at": "2026-08-28T18:12:30.000Z",
+  "recorded_at": "2026-08-28T18:12:30.000Z",
+  "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+  "causation_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBH",
+  "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBH",
+  "idempotency_key": "review:claim-fbb:submit:v1",
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "event": {
+    "event_type": "change_set.submitted",
+    "payload": {
+      "change_set": {
+        "schema_name": "petra.change-set",
+        "schema_version": "1.0.0",
+        "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+        "revision": 1,
+        "state": "submitted",
+        "content": {
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+          "origin": "agent_proposal",
+          "proposed_by": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "model"
+          },
+          "reason": "Promote the reviewed source Claim and its ASSERTS relation as one semantic unit.",
+          "operations": [
+            {
+              "operation_kind": "promote_claim",
+              "target_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "base_revision": 1,
+              "before": {
+                "zone": "quarantine",
+                "review_state": "machine_checked"
+              },
+              "after": {
+                "zone": "trusted",
+                "review_state": "human_accepted"
+              }
+            },
+            {
+              "operation_kind": "promote_assertion",
+              "target_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "base_revision": 1,
+              "before": {
+                "zone": "quarantine",
+                "review_state": "machine_checked"
+              },
+              "after": {
+                "zone": "trusted",
+                "review_state": "human_accepted"
+              }
+            }
+          ],
+          "impact": {
+            "affected_object_ids": [
+              "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC"
+            ],
+            "downstream_object_ids": [],
+            "summary": "The Claim and its source-stated ASSERTS edge become admissible trusted representations; no scientific truth value is assigned.",
+            "generated_at": "2026-08-28T18:12:30.000Z"
+          },
+          "risk_tier": "R2"
+        },
+        "content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+        "proposed_at": "2026-08-28T18:12:30.000Z"
+      }
+    }
+  }
+}

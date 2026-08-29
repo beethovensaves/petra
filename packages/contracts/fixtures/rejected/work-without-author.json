@@ -1,0 +1,16 @@
+{
+  "schema_name": "petra.work",
+  "schema_version": "1.0.0",
+  "work_id": "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+  "revision": 1,
+  "title": "An unattributed record",
+  "work_kind": "journal_article",
+  "identity_status": "provisional",
+  "author_credits": [],
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-08-28T18:00:00.000Z",
+  "updated_at": "2026-08-28T18:00:00.000Z"
+}

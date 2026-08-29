@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres@sha256:4ef4dbc939d61acea57712655ddb4b4ab27419c913f94cca0cd57cb3ea3c2280
+    environment:
+      POSTGRES_DB: petra
+      POSTGRES_USER: petra
+      POSTGRES_PASSWORD: petra-disc04-only
+    ports:
+      - "127.0.0.1::5432"
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petra -d petra"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+      start_period: 2s
+
+  neo4j:
+    image: neo4j@sha256:dbc377fb9cd8fe8dabc19d3041b197d5ca0ef8bae514cea175b8df265e5b7a76
+    environment:
+      NEO4J_AUTH: neo4j/petra-disc04-neo4j
+      NEO4J_dbms_fleet__manager_enabled: "false"
+      NEO4J_dbms_usage__report_enabled: "false"
+      NEO4J_server_fleet__discovery_enabled: "false"
+      NEO4J_server_http_x__forward_enabled: "false"
+      NEO4J_server_memory_heap_initial__size: 256m
+      NEO4J_server_memory_heap_max__size: 512m
+      NEO4J_server_memory_pagecache_size: 256m
+    ports:
+      - "127.0.0.1::7474"
+      - "127.0.0.1::7687"
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "cypher-shell --username=neo4j --password=petra-disc04-neo4j 'RETURN
+          1' >/dev/null",
+        ]
+      interval: 2s
+      timeout: 10s
+      retries: 45
+      start_period: 20s
+
+  artifacts:
+    image: chrislusf/seaweedfs@sha256:43b768cd62b00d132439cda881b93fd1adebf1b315e996e794087743821d771d
+    command:
+      - mini
+      - -dir=/data
+      - -ip.bind=0.0.0.0
+      - -admin.port=12646
+    environment:
+      AWS_ACCESS_KEY_ID: petra-disc04-access
+      AWS_SECRET_ACCESS_KEY: petra-disc04-secret
+      S3_BUCKET: petra-disc04-artifacts
+    ports:
+      - "127.0.0.1::8333"
+    volumes:
+      - artifact-data:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --quiet --output-document=/dev/null
+          http://127.0.0.1:9333/cluster/status",
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 45
+      start_period: 10s
+
+volumes:
+  artifact-data:
+  neo4j-data:
+  neo4j-logs:

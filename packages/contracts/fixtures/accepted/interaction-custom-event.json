@@ -1,0 +1,12 @@
+{
+  "schema_name": "petra.interaction-custom-event",
+  "schema_version": "1.0.0",
+  "event_name": "petra.work_unit.status",
+  "payload": {
+    "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "work_unit_revision": 1,
+    "status": "requested",
+    "label": "The bounded scientific task is registered and awaiting execution.",
+    "authority_effect": "none"
+  }
+}

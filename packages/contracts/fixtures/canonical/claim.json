@@ -1,0 +1,45 @@
+{
+  "input": {
+    "schema_name": "petra.claim",
+    "schema_version": "1.0.0",
+    "claim_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+    "revision": 1,
+    "canonical_text": "A provisional theoretical claim.",
+    "claim_kind": "theoretical",
+    "normalization_status": "composed",
+    "scope": {
+      "unreported_dimensions": [
+        "population",
+        "language",
+        "task",
+        "model_family",
+        "dataset",
+        "intervention_or_exposure",
+        "comparator",
+        "outcome",
+        "setting",
+        "temporal_boundary"
+      ]
+    },
+    "basis": {
+      "basis_kind": "researcher",
+      "rationale": "Recorded as an explicit provisional research idea.",
+      "proposed_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "proposed_at": "2026-08-28T18:12:00.000Z"
+    },
+    "authority": {
+      "zone": "quarantine",
+      "review_state": "unreviewed"
+    },
+    "created_by": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "human"
+    },
+    "created_at": "2026-08-28T18:12:00.000Z"
+  },
+  "canonical": "{\"authority\":{\"review_state\":\"unreviewed\",\"zone\":\"quarantine\"},\"basis\":{\"basis_kind\":\"researcher\",\"proposed_at\":\"2026-08-28T18:12:00.000Z\",\"proposed_by\":{\"actor_id\":\"actor_01ARZ3NDEKTSV4RRFFQ69G5FAV\",\"actor_kind\":\"human\"},\"rationale\":\"Recorded as an explicit provisional research idea.\"},\"canonical_text\":\"A provisional theoretical claim.\",\"claim_id\":\"claim_01ARZ3NDEKTSV4RRFFQ69G5FBB\",\"claim_kind\":\"theoretical\",\"created_at\":\"2026-08-28T18:12:00.000Z\",\"created_by\":{\"actor_id\":\"actor_01ARZ3NDEKTSV4RRFFQ69G5FAV\",\"actor_kind\":\"human\"},\"normalization_status\":\"composed\",\"revision\":1,\"schema_name\":\"petra.claim\",\"schema_version\":\"1.0.0\",\"scope\":{\"unreported_dimensions\":[\"population\",\"language\",\"task\",\"model_family\",\"dataset\",\"intervention_or_exposure\",\"comparator\",\"outcome\",\"setting\",\"temporal_boundary\"]}}",
+  "sha256": "sha256:fa704690902d82ff240d7033c219794c2a943c86f082354e1ba4d00fd692a692"
+}

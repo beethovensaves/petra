@@ -1,0 +1,28 @@
+{
+  "schema_name": "petra.draft-span",
+  "schema_version": "1.0.0",
+  "draft_span_id": "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCM",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "draft_ref": {
+    "draft_artifact_id": "draft_artifact_01ARZ3NDEKTSV4RRFFQ69G5FCK",
+    "revision": 1,
+    "content_hash": "sha256:8b9201fc645d1bae2b93e01dff92c3eb96f394e3e6b3fa1238b8106b827a0560"
+  },
+  "content": {
+    "offset_unit": "unicode_code_point",
+    "start": 0,
+    "end": 52,
+    "exact_text": "The selected study reports a measurable improvement.",
+    "exact_text_hash": "sha256:55a96aff9624999be9037b24b1fd010b17c2ad2135d73ac8a43269f64506c77d",
+    "materiality": "material",
+    "semantic_origin": "source_report",
+    "scientific_force": "direct_report"
+  },
+  "content_hash": "sha256:761af493fddbbe1c73e1e35a31ac702935ff28d2265113dca73cf8a7adb42e48",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "model"
+  },
+  "created_at": "2026-08-29T15:10:00.000Z"
+}

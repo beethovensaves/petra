@@ -1,0 +1,21 @@
+{
+  "schema_name": "petra.approval",
+  "schema_version": "1.0.0",
+  "approval_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+  "revision": 1,
+  "subject": {
+    "subject_kind": "change_set",
+    "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+    "change_set_revision": 1,
+    "change_set_content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "decision": "approved",
+  "decision_scope": "exact_change_set",
+  "decided_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "model"
+  },
+  "rationale": "A model cannot be the human approval authority.",
+  "conditions": [],
+  "decided_at": "2026-08-28T18:13:00.000Z"
+}

@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/artifact-manifest/1.0.0/schema.json",
+  "title": "PetraArtifactManifest",
+  "description": "An immutable record of how exact Artifact bytes entered Petra and where their verified content-addressed copy is available.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "artifact_manifest_id",
+    "revision",
+    "artifact_id",
+    "rights_decision_id",
+    "origin",
+    "storage_ref",
+    "integrity",
+    "recorded_by",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.artifact-manifest"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "artifact_manifest_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactManifestId"
+    },
+    "revision": {
+      "const": 1,
+      "description": "A changed acquisition or storage fact creates a new manifest."
+    },
+    "artifact_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+    },
+    "rights_decision_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/RightsDecisionId"
+    },
+    "origin": {
+      "$ref": "#/$defs/Origin"
+    },
+    "storage_ref": {
+      "$ref": "#/$defs/StorageRef"
+    },
+    "integrity": {
+      "$ref": "#/$defs/Integrity"
+    },
+    "recorded_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "Origin": {
+      "description": "A closed origin variant. Acquired scholarly copies must bind the exact WorkVersion; uploads may remain unbound until identity resolution.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/AcquiredOrigin"
+        },
+        {
+          "$ref": "#/$defs/UserSuppliedOrigin"
+        },
+        {
+          "$ref": "#/$defs/GeneratedOrigin"
+        }
+      ]
+    },
+    "AcquiredOrigin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin_kind",
+        "work_version_id",
+        "source_connector",
+        "connector_version",
+        "retrieval_url",
+        "retrieved_at",
+        "response_metadata"
+      ],
+      "properties": {
+        "origin_kind": {
+          "const": "acquired"
+        },
+        "work_version_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/WorkVersionId"
+        },
+        "source_connector": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "connector_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "retrieval_url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 4000
+        },
+        "retrieved_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "response_metadata": {
+          "$ref": "#/$defs/ResponseMetadata"
+        }
+      }
+    },
+    "UserSuppliedOrigin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin_kind",
+        "supplied_by",
+        "supplied_at",
+        "original_filename"
+      ],
+      "properties": {
+        "origin_kind": {
+          "const": "user_supplied"
+        },
+        "supplied_by": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "supplied_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "original_filename": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "work_version_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/WorkVersionId"
+        }
+      }
+    },
+    "GeneratedOrigin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin_kind",
+        "generator_name",
+        "generator_version",
+        "generated_at",
+        "input_artifact_ids"
+      ],
+      "properties": {
+        "origin_kind": {
+          "const": "generated"
+        },
+        "generator_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "generator_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "generated_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "input_artifact_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+          },
+          "uniqueItems": true,
+          "maxItems": 10000
+        }
+      }
+    },
+    "ResponseMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status_code": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "content_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "content_length": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ByteSize"
+        },
+        "etag": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "last_modified": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "StorageRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "storage_kind",
+        "store_name",
+        "object_key",
+        "content_hash",
+        "availability",
+        "verified_at"
+      ],
+      "properties": {
+        "storage_kind": {
+          "const": "content_addressed_object"
+        },
+        "store_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "object_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "availability": {
+          "const": "available"
+        },
+        "verified_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "IntegrityProblem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "severity": {
+          "const": "warning"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "Integrity": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "checked_at", "problems"],
+          "properties": {
+            "status": {
+              "const": "verified"
+            },
+            "checked_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            },
+            "problems": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "checked_at", "problems"],
+          "properties": {
+            "status": {
+              "const": "verified_with_warnings"
+            },
+            "checked_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            },
+            "problems": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 100,
+              "items": {
+                "$ref": "#/$defs/IntegrityProblem"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

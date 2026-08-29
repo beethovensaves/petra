@@ -1,0 +1,98 @@
+{
+  "schema_name": "petra.citation-bundle",
+  "schema_version": "1.0.0",
+  "citation_bundle_id": "citation_bundle_01ARZ3NDEKTSV4RRFFQ69G5FCQ",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "draft_ref": {
+    "draft_artifact_id": "draft_artifact_01ARZ3NDEKTSV4RRFFQ69G5FCK",
+    "revision": 1,
+    "content_hash": "sha256:8b9201fc645d1bae2b93e01dff92c3eb96f394e3e6b3fa1238b8106b827a0560"
+  },
+  "evidence_packet_ref": {
+    "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+    "revision": 1,
+    "content_hash": "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64"
+  },
+  "content": {
+    "style": {
+      "style_kind": "csl",
+      "style_name": "apa-7",
+      "style_version": "1.0.0"
+    },
+    "export_formats": ["inline", "markdown", "latex", "bibtex"],
+    "citations": [
+      {
+        "citation_id": "citation_01ARZ3NDEKTSV4RRFFQ69G5FCR",
+        "bibliography_key": "Researcher2025Competing",
+        "work_ref": {
+          "work_id": "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+          "revision": 1,
+          "content_hash": "sha256:617df314092d3bc433c21ad70790e0d02e8b88e2341f7988eb75df376ef4e923"
+        },
+        "work_version_ref": {
+          "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+          "revision": 1,
+          "content_hash": "sha256:dba5ca5f392635236e74d317bf2b7443e70c9e991fe85d11f18e5ccaf163f965"
+        },
+        "author_refs": [
+          {
+            "author_id": "author_01ARZ3NDEKTSV4RRFFQ69G5FAY",
+            "revision": 1,
+            "content_hash": "sha256:3395daa2ca66fbdf22218eb6284afbfb632a48319ad62ce1cecc4ca667f61363",
+            "position": 1,
+            "display_name": "Ada Researcher"
+          }
+        ],
+        "external_identifier_refs": [
+          {
+            "external_identifier_id": "external_identifier_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+            "revision": 1,
+            "content_hash": "sha256:083e1069313e7879365f3c1a9987363f30aaeccaad7fd6ecc2e02a5e6e069eae",
+            "namespace": "doi",
+            "normalized_value": "10.5555/petra.example",
+            "verification_status": "verified"
+          }
+        ],
+        "metadata": {
+          "title": "A testable account of competing explanations",
+          "work_kind": "journal_article",
+          "version_label": "Version of record",
+          "publication_status": "peer_reviewed",
+          "published_date": {
+            "precision": "month",
+            "value": "2025-06"
+          }
+        },
+        "identity_status": "provisional",
+        "metadata_completeness": "partial",
+        "identity_warnings": [
+          {
+            "code": "PROVISIONAL_WORK_IDENTITY",
+            "message": "The canonical Work identity remains provisional."
+          }
+        ],
+        "purposes": ["evidence"],
+        "linked_draft_span_ids": [
+          "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCM",
+          "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCN"
+        ],
+        "locator": {
+          "locator_kind": "source_span",
+          "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
+        },
+        "source_access": {
+          "processing_depth": "full_text_analyzed",
+          "source_span_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"]
+        }
+      }
+    ],
+    "bibliography_artifacts": []
+  },
+  "content_hash": "sha256:3e5c7063cbaa866948865b62e8e336e50f87c913dead3b38ef4fbc07db660a22",
+  "compiled_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "compiled_at": "2026-08-29T15:10:01.000Z"
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/actor/1.0.0/schema.json",
+  "title": "PetraActor",
+  "description": "An actor that can create, propose, review, or execute Petra work.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "actor_id",
+    "actor_kind",
+    "display_name",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.actor"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "actor_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+    },
+    "actor_kind": {
+      "enum": ["human", "service", "model"]
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

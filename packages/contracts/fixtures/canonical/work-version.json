@@ -1,0 +1,29 @@
+{
+  "input": {
+    "schema_name": "petra.work-version",
+    "schema_version": "1.0.0",
+    "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+    "revision": 1,
+    "work_id": "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+    "version_label": "Version of record",
+    "publication_status": "peer_reviewed",
+    "published_date": {
+      "precision": "month",
+      "value": "2025-06"
+    },
+    "metadata_source": {
+      "source_kind": "registry",
+      "source_name": "Crossref",
+      "source_record_id": "10.5555/petra.example"
+    },
+    "metadata_retrieved_at": "2026-08-28T18:05:00.000Z",
+    "created_by": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "human"
+    },
+    "created_at": "2026-08-28T18:05:00.000Z",
+    "updated_at": "2026-08-28T18:05:00.000Z"
+  },
+  "canonical": "{\"created_at\":\"2026-08-28T18:05:00.000Z\",\"created_by\":{\"actor_id\":\"actor_01ARZ3NDEKTSV4RRFFQ69G5FAV\",\"actor_kind\":\"human\"},\"metadata_retrieved_at\":\"2026-08-28T18:05:00.000Z\",\"metadata_source\":{\"source_kind\":\"registry\",\"source_name\":\"Crossref\",\"source_record_id\":\"10.5555/petra.example\"},\"publication_status\":\"peer_reviewed\",\"published_date\":{\"precision\":\"month\",\"value\":\"2025-06\"},\"revision\":1,\"schema_name\":\"petra.work-version\",\"schema_version\":\"1.0.0\",\"updated_at\":\"2026-08-28T18:05:00.000Z\",\"version_label\":\"Version of record\",\"work_id\":\"work_01ARZ3NDEKTSV4RRFFQ69G5FAZ\",\"work_version_id\":\"work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0\"}",
+  "sha256": "sha256:dba5ca5f392635236e74d317bf2b7443e70c9e991fe85d11f18e5ccaf163f965"
+}

@@ -1,0 +1,39 @@
+{
+  "schema_name": "petra.command-envelope",
+  "schema_version": "1.0.0",
+  "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBM",
+  "idempotency_key": "review:claim-fbb:approval:v1",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+  "causation_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBH",
+  "submitted_at": "2026-08-28T18:13:00.000Z",
+  "command": {
+    "command_name": "RecordApproval",
+    "approval": {
+      "schema_name": "petra.approval",
+      "schema_version": "1.0.0",
+      "approval_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+      "revision": 1,
+      "subject": {
+        "subject_kind": "change_set",
+        "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+        "change_set_revision": 1,
+        "change_set_content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b"
+      },
+      "decision": "approved",
+      "decision_scope": "exact_change_set",
+      "decided_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "rationale": "The exact source span, scoped Claim, and ASSERTS relation accurately represent what this WorkVersion reports.",
+      "conditions": [],
+      "decided_at": "2026-08-28T18:13:00.000Z"
+    }
+  }
+}

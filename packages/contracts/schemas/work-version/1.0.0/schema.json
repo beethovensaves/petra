@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/work-version/1.0.0/schema.json",
+  "title": "PetraWorkVersion",
+  "description": "One identifiable dated version of a canonical scholarly Work.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "work_version_id",
+    "revision",
+    "work_id",
+    "version_label",
+    "publication_status",
+    "metadata_source",
+    "metadata_retrieved_at",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.work-version"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "work_version_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/WorkVersionId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "work_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/WorkId"
+    },
+    "version_label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "publication_status": {
+      "enum": [
+        "preprint",
+        "peer_reviewed",
+        "accepted",
+        "corrected",
+        "retracted",
+        "unknown"
+      ]
+    },
+    "published_date": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PublicationDate"
+    },
+    "metadata_source": {
+      "$ref": "#/$defs/MetadataSource"
+    },
+    "metadata_retrieved_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "updated_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "MetadataSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_kind", "source_name"],
+      "properties": {
+        "source_kind": {
+          "enum": ["registry", "repository", "publisher", "provider", "user"]
+        },
+        "source_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "source_record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    }
+  }
+}

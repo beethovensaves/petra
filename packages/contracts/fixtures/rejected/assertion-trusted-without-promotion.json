@@ -1,0 +1,43 @@
+{
+  "schema_name": "petra.assertion",
+  "schema_version": "1.0.0",
+  "assertion_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+  "revision": 1,
+  "subject_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+  "predicate": "ASSERTS",
+  "object": {
+    "object_kind": "entity",
+    "entity_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB"
+  },
+  "assertion_kind": "source_stated",
+  "authority": {
+    "zone": "trusted",
+    "review_state": "human_accepted"
+  },
+  "provenance_refs": [
+    {
+      "provenance_kind": "source_span",
+      "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
+    }
+  ],
+  "scope": {
+    "unreported_dimensions": [
+      "population",
+      "language",
+      "task",
+      "model_family",
+      "dataset",
+      "intervention_or_exposure",
+      "comparator",
+      "outcome",
+      "setting",
+      "temporal_boundary"
+    ]
+  },
+  "rationale": "Trusted state requires a complete promotion basis.",
+  "recorded_at": "2026-08-28T18:13:00.000Z",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  }
+}

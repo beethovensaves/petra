@@ -1,0 +1,78 @@
+{
+  "schema_name": "petra.draft-artifact",
+  "schema_version": "1.0.0",
+  "draft_artifact_id": "draft_artifact_01ARZ3NDEKTSV4RRFFQ69G5FCX",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "snapshot_ref": {
+    "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+    "snapshot_revision": 1,
+    "event_position": 3,
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "composition_request_ref": {
+    "record_id": "composition_request_01ARZ3NDEKTSV4RRFFQ69G5FCS",
+    "revision": 1,
+    "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "composition_plan_ref": {
+    "record_id": "composition_plan_01ARZ3NDEKTSV4RRFFQ69G5FCT",
+    "revision": 1,
+    "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "evidence_packet_ref": {
+    "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+    "revision": 1,
+    "content_hash": "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64"
+  },
+  "provenance_map_ref": {
+    "provenance_map_id": "provenance_map_01ARZ3NDEKTSV4RRFFQ69G5FCP",
+    "revision": 1
+  },
+  "citation_bundle_ref": {
+    "citation_bundle_id": "citation_bundle_01ARZ3NDEKTSV4RRFFQ69G5FCQ",
+    "revision": 1
+  },
+  "lineage": { "lineage_kind": "root" },
+  "production": {
+    "origin_kind": "model_generated",
+    "model_request_id": "model_request_01ARZ3NDEKTSV4RRFFQ69G5FCV",
+    "model_call_id": "model_call_01ARZ3NDEKTSV4RRFFQ69G5FCW",
+    "model_deployment": "fixture/synthesist",
+    "prompt_profile": {
+      "name": "petra.synthesist",
+      "version": "1.0.0"
+    }
+  },
+  "controls": {
+    "output_profile": {
+      "name": "petra.research-passage",
+      "version": "1.0.0",
+      "content_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    "language_contract": {
+      "name": "petra.felicity",
+      "version": "1.0.0",
+      "content_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    }
+  },
+  "content": {
+    "artifact_kind": "passage",
+    "semantic_format": "plain_text",
+    "language": "en",
+    "text": "Unsupported model provenance.",
+    "draft_span_ids": ["draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCM"]
+  },
+  "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "validation": {
+    "state": "pending",
+    "validator_results": [],
+    "limitations": [],
+    "unresolved_support_span_ids": []
+  },
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "model"
+  },
+  "created_at": "2026-08-29T15:10:00.000Z"
+}

@@ -1,0 +1,491 @@
+import { HttpAgent } from "@ag-ui/client";
+import {
+  EventType,
+  RunAgentInputSchema,
+  type BaseEvent,
+  type RunAgentInput,
+} from "@ag-ui/core";
+import { EventEncoder } from "@ag-ui/encoder";
+import type { PetraInteractionCustomEvent } from "@petra/contracts";
+import type {
+  PetraFixtureMode,
+  PetraInteractionEvent,
+  StartInteractionRequest,
+} from "@petra/core";
+
+export const PETRA_AG_UI_PROFILE = {
+  sdkVersion: "0.0.59",
+  standardEvents: [
+    "RUN_STARTED",
+    "RUN_FINISHED",
+    "RUN_ERROR",
+    "TEXT_MESSAGE_START",
+    "TEXT_MESSAGE_CONTENT",
+    "TEXT_MESSAGE_END",
+    "TOOL_CALL_START",
+    "TOOL_CALL_ARGS",
+    "TOOL_CALL_END",
+    "STATE_SNAPSHOT",
+    "ACTIVITY_SNAPSHOT",
+    "CUSTOM",
+  ],
+  customEvents: {
+    "petra.work_unit.status": "1.0.0",
+    "petra.review.interrupt": "1.0.0",
+  },
+} as const;
+
+export const toAgUiCustomEvent = (
+  event: PetraInteractionCustomEvent,
+  metadata: Record<string, unknown> = {},
+): BaseEvent => ({
+  type: EventType.CUSTOM,
+  name: event.event_name,
+  value: event,
+  metadata,
+});
+
+export class InteractionInputError extends Error {
+  readonly issues: string[];
+
+  constructor(message: string, issues: string[] = []) {
+    super(message);
+    this.name = "InteractionInputError";
+    this.issues = issues;
+  }
+}
+
+interface PetraForwardedProps {
+  fixtureMode: PetraFixtureMode;
+  afterSequence: number;
+}
+
+export interface ParsedInteractionInput {
+  input: RunAgentInput;
+  request: StartInteractionRequest;
+  afterSequence: number;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const assertAllowedKeys = (
+  value: Record<string, unknown>,
+  allowed: ReadonlySet<string>,
+  label: string,
+): void => {
+  const unknownKeys = Object.keys(value).filter((key) => !allowed.has(key));
+  if (unknownKeys.length > 0) {
+    throw new InteractionInputError(
+      `${label} contains unregistered fields.`,
+      unknownKeys,
+    );
+  }
+};
+
+const parseForwardedProps = (value: unknown): PetraForwardedProps => {
+  if (value === undefined || value === null) {
+    return { fixtureMode: "success", afterSequence: 0 };
+  }
+  if (!isRecord(value))
+    throw new InteractionInputError("forwardedProps must be an object.");
+  assertAllowedKeys(value, new Set(["petra"]), "forwardedProps");
+
+  const petra = value.petra;
+  if (petra === undefined) return { fixtureMode: "success", afterSequence: 0 };
+  if (!isRecord(petra))
+    throw new InteractionInputError("forwardedProps.petra must be an object.");
+  assertAllowedKeys(
+    petra,
+    new Set(["fixtureMode", "afterSequence"]),
+    "forwardedProps.petra",
+  );
+
+  const fixtureMode = petra.fixtureMode ?? "success";
+  if (
+    !(["success", "review", "terminal_error"] as unknown[]).includes(
+      fixtureMode,
+    )
+  ) {
+    throw new InteractionInputError(
+      "fixtureMode is not registered in the M1 profile.",
+    );
+  }
+  const afterSequence = petra.afterSequence ?? 0;
+  if (!Number.isSafeInteger(afterSequence) || (afterSequence as number) < 0) {
+    throw new InteractionInputError(
+      "afterSequence must be a non-negative safe integer.",
+    );
+  }
+  return {
+    fixtureMode: fixtureMode as PetraFixtureMode,
+    afterSequence: afterSequence as number,
+  };
+};
+
+const messageText = (message: RunAgentInput["messages"][number]): string => {
+  if (!("content" in message)) return "";
+  if (typeof message.content === "string") return message.content;
+  if (Array.isArray(message.content)) {
+    return message.content
+      .map((part: unknown) => {
+        if (
+          isRecord(part) &&
+          part.type === "text" &&
+          typeof part.text === "string"
+        )
+          return part.text;
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+  return "";
+};
+
+export const parseAgUiRunInput = (
+  value: unknown,
+  context: { requestId: string; traceId: string },
+): ParsedInteractionInput => {
+  const parsed = RunAgentInputSchema.safeParse(value);
+  if (!parsed.success) {
+    throw new InteractionInputError(
+      "The AG-UI run input is malformed.",
+      parsed.error.issues.map(
+        (issue) => `${issue.path.join(".")}: ${issue.message}`,
+      ),
+    );
+  }
+
+  const forwarded = parseForwardedProps(parsed.data.forwardedProps);
+  const lastUserMessage = [...parsed.data.messages]
+    .reverse()
+    .find((message) => message.role === "user");
+  const prompt =
+    lastUserMessage === undefined ? "" : messageText(lastUserMessage);
+  if (prompt.trim().length === 0) {
+    throw new InteractionInputError(
+      "A non-empty user research prompt is required.",
+    );
+  }
+
+  return {
+    input: parsed.data,
+    request: {
+      threadId: parsed.data.threadId,
+      runId: parsed.data.runId,
+      prompt,
+      requestId: context.requestId,
+      traceId: context.traceId,
+      fixtureMode: forwarded.fixtureMode,
+    },
+    afterSequence: forwarded.afterSequence,
+  };
+};
+
+const metadataFor = (
+  event: PetraInteractionEvent,
+): Record<string, unknown> => ({
+  petra: {
+    sequence: event.sequence,
+    requestId: event.requestId,
+    traceId: event.traceId,
+    workUnitId: event.workUnitId,
+    modelRequestId: event.modelRequestId,
+  },
+});
+
+export const toAgUiEvents = (event: PetraInteractionEvent): BaseEvent[] => {
+  const common = { timestamp: event.timestamp, metadata: metadataFor(event) };
+  switch (event.kind) {
+    case "run.started":
+      return [
+        {
+          ...common,
+          type: EventType.RUN_STARTED,
+          threadId: event.threadId,
+          runId: event.runId,
+        },
+      ];
+    case "state.snapshot":
+      return [
+        { ...common, type: EventType.STATE_SNAPSHOT, snapshot: event.state },
+      ];
+    case "activity.snapshot": {
+      const status = {
+        queued: "queued",
+        running: "running",
+        awaiting_review: "checkpointed",
+        completed: "succeeded",
+        failed: "failed",
+        cancelled: "cancelled",
+      }[event.content.status] as
+        | "queued"
+        | "running"
+        | "checkpointed"
+        | "succeeded"
+        | "failed"
+        | "cancelled";
+      const statusEvent = {
+        schema_name: "petra.interaction-custom-event",
+        schema_version: "1.0.0",
+        event_name: "petra.work_unit.status",
+        payload: {
+          work_unit_id: event.workUnitId,
+          work_unit_revision: event.content.workUnitRevision,
+          status,
+          label: event.content.label,
+          authority_effect: "none",
+        },
+      } satisfies PetraInteractionCustomEvent;
+      return [
+        {
+          ...common,
+          type: EventType.ACTIVITY_SNAPSHOT,
+          messageId: `activity_${event.workUnitId}`,
+          activityType: event.activityType,
+          content: event.content,
+          replace: true,
+        },
+        { ...common, ...toAgUiCustomEvent(statusEvent, common.metadata) },
+      ];
+    }
+    case "tool.proposal":
+      return [
+        {
+          ...common,
+          type: EventType.TOOL_CALL_START,
+          toolCallId: event.toolCallId,
+          toolCallName: event.toolName,
+        },
+        {
+          ...common,
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: event.toolCallId,
+          delta: JSON.stringify(event.arguments),
+        },
+        {
+          ...common,
+          type: EventType.TOOL_CALL_END,
+          toolCallId: event.toolCallId,
+        },
+      ];
+    case "text.start":
+      return [
+        {
+          ...common,
+          type: EventType.TEXT_MESSAGE_START,
+          messageId: event.messageId,
+          role: "assistant",
+        },
+      ];
+    case "text.delta":
+      return [
+        {
+          ...common,
+          type: EventType.TEXT_MESSAGE_CONTENT,
+          messageId: event.messageId,
+          delta: event.delta,
+        },
+      ];
+    case "text.end":
+      return [
+        {
+          ...common,
+          type: EventType.TEXT_MESSAGE_END,
+          messageId: event.messageId,
+        },
+      ];
+    case "review.interrupt": {
+      const interruptEvent = {
+        schema_name: "petra.interaction-custom-event",
+        schema_version: "1.0.0",
+        event_name: "petra.review.interrupt",
+        payload: {
+          interaction_interrupt_id: event.interruptId,
+          change_set_ref: {
+            change_set_id: event.changeSetId,
+            revision: event.changeSetRevision,
+            content_hash: event.changeSetContentHash,
+          },
+          authority_effect: "none",
+        },
+      } satisfies PetraInteractionCustomEvent;
+      const interrupt = {
+        id: event.interruptId,
+        reason: "changeset_review",
+        message:
+          "Review the proposed evidence ChangeSet before it becomes authoritative.",
+        toolCallId: event.toolCallId,
+        responseSchema: {
+          type: "object",
+          additionalProperties: false,
+          required: ["decision", "commandId"],
+          properties: {
+            decision: { enum: ["accept", "reject", "revise"] },
+            commandId: { type: "string" },
+          },
+        },
+        metadata: { changeSetId: event.changeSetId },
+      };
+      return [
+        { ...common, ...toAgUiCustomEvent(interruptEvent, common.metadata) },
+        {
+          ...common,
+          type: EventType.RUN_FINISHED,
+          threadId: event.threadId,
+          runId: event.runId,
+          outcome: { type: "interrupt", interrupts: [interrupt] },
+        },
+      ];
+    }
+    case "run.finished":
+      return [
+        {
+          ...common,
+          type: EventType.RUN_FINISHED,
+          threadId: event.threadId,
+          runId: event.runId,
+          result: event.result,
+          outcome: { type: "success" },
+        },
+      ];
+    case "run.error":
+      return [
+        {
+          ...common,
+          type: EventType.RUN_ERROR,
+          code: event.code,
+          message: event.message,
+        },
+      ];
+  }
+  const unreachable: never = event;
+  return unreachable;
+};
+
+export interface AgUiEncodedStream {
+  contentType: string;
+  chunks: AsyncGenerator<Uint8Array>;
+}
+
+export const encodeAgUiStream = (
+  source: AsyncIterable<PetraInteractionEvent>,
+  accept?: string,
+): AgUiEncodedStream => {
+  const encoder = new EventEncoder(accept === undefined ? {} : { accept });
+  const textEncoder = new TextEncoder();
+  const chunks = (async function* (): AsyncGenerator<Uint8Array> {
+    for await (const petraEvent of source) {
+      for (const event of toAgUiEvents(petraEvent)) {
+        const encoded = encoder.encode(event);
+        yield typeof encoded === "string"
+          ? textEncoder.encode(encoded)
+          : encoded;
+      }
+    }
+  })();
+  return { contentType: encoder.getContentType(), chunks };
+};
+
+export interface PetraClientEvent {
+  type: string;
+  payload: Record<string, unknown>;
+}
+
+export interface PetraInteractionResult {
+  events: PetraClientEvent[];
+  messages: Array<{ id: string; role: string; content?: string }>;
+  state: unknown;
+  pendingInterrupts: Array<{ id: string; reason: string; message?: string }>;
+}
+
+export interface PetraInteractionClientOptions {
+  endpoint: string;
+  token: string;
+  traceId?: string;
+  fetch?: typeof fetch;
+}
+
+export class PetraInteractionClient {
+  readonly #options: PetraInteractionClientOptions;
+
+  constructor(options: PetraInteractionClientOptions) {
+    this.#options = options;
+  }
+
+  async run(parameters: {
+    threadId: string;
+    runId: string;
+    prompt: string;
+    fixtureMode?: PetraFixtureMode;
+    afterSequence?: number;
+    abortController?: AbortController;
+  }): Promise<PetraInteractionResult> {
+    const events: PetraClientEvent[] = [];
+    const agent = new HttpAgent({
+      url: this.#options.endpoint,
+      agentId: "petra-research-assistant",
+      threadId: parameters.threadId,
+      initialState: {},
+      initialMessages: [
+        {
+          id: `user_${parameters.runId}`,
+          role: "user",
+          content: parameters.prompt,
+        },
+      ],
+      headers: {
+        accept: "text/event-stream",
+        authorization: `Bearer ${this.#options.token}`,
+        "x-petra-trace-id":
+          this.#options.traceId ?? `trace_${parameters.runId}`,
+      },
+      ...(this.#options.fetch === undefined
+        ? {}
+        : { fetch: this.#options.fetch }),
+    });
+
+    await agent.runAgent(
+      {
+        runId: parameters.runId,
+        tools: [],
+        context: [],
+        forwardedProps: {
+          petra: {
+            fixtureMode: parameters.fixtureMode ?? "success",
+            afterSequence: parameters.afterSequence ?? 0,
+          },
+        },
+        ...(parameters.abortController === undefined
+          ? {}
+          : { abortController: parameters.abortController }),
+      },
+      {
+        onEvent: ({ event }) => {
+          const { type, ...payload } = event;
+          events.push({ type, payload });
+        },
+      },
+    );
+
+    return {
+      events,
+      messages: agent.messages.map((message) => ({
+        id: message.id,
+        role: message.role,
+        ...("content" in message && typeof message.content === "string"
+          ? { content: message.content }
+          : {}),
+      })),
+      state: agent.state,
+      pendingInterrupts: agent.pendingInterrupts.map((interrupt) => ({
+        id: interrupt.id,
+        reason: interrupt.reason,
+        ...(interrupt.message === undefined
+          ? {}
+          : { message: interrupt.message }),
+      })),
+    };
+  }
+}

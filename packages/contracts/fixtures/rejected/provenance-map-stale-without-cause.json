@@ -1,0 +1,40 @@
+{
+  "schema_name": "petra.provenance-map",
+  "schema_version": "1.0.0",
+  "provenance_map_id": "provenance_map_01ARZ3NDEKTSV4RRFFQ69G5FCY",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "draft_ref": {
+    "draft_artifact_id": "draft_artifact_01ARZ3NDEKTSV4RRFFQ69G5FCK",
+    "revision": 1,
+    "content_hash": "sha256:8b9201fc645d1bae2b93e01dff92c3eb96f394e3e6b3fa1238b8106b827a0560"
+  },
+  "evidence_packet_ref": {
+    "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+    "revision": 1,
+    "content_hash": "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64"
+  },
+  "content": {
+    "state": "stale",
+    "mappings": [
+      {
+        "draft_span_id": "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCM",
+        "draft_span_revision": 1,
+        "mapping_state": "stale",
+        "bases": [
+          {
+            "basis_kind": "unsupported",
+            "relation": "unsupported",
+            "reason": "The former support changed."
+          }
+        ]
+      }
+    ]
+  },
+  "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "compiled_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "compiled_at": "2026-08-29T15:10:01.000Z"
+}

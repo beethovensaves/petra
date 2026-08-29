@@ -1,0 +1,39 @@
+{
+  "schema_name": "petra.source-span",
+  "schema_version": "1.0.0",
+  "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+  "revision": 1,
+  "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+  "artifact_content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+  "parsed_document_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+  "parser_run_id": "parser_run_01ARZ3NDEKTSV4RRFFQ69G5FB4",
+  "structural_block_id": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+  "selector_schema_version": "1.0.0",
+  "selector": {
+    "selector_type": "text_quote",
+    "quote": {
+      "selected_text_hash": "sha256:11dbfa18f25f2587c4e96225884e2d6d1c9e4362210ebf34b3197c03bd05cda6",
+      "start_codepoint": 20,
+      "end_codepoint": 42,
+      "normalization_version": "petra-text/1.0.0"
+    },
+    "page_region": {
+      "page_number": 1
+    }
+  },
+  "extraction": {
+    "method": "embedded_text",
+    "method_version": "test-fixture",
+    "normalization_version": "petra-text/1.0.0"
+  },
+  "verification": {
+    "status": "normalized",
+    "verified_at": "2026-08-28T18:11:02.000Z",
+    "transformations": ["line-break removal"]
+  },
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "created_at": "2026-08-28T18:11:02.000Z"
+}

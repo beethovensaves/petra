@@ -1,0 +1,73 @@
+{
+  "schema_name": "petra.claim",
+  "schema_version": "1.0.0",
+  "claim_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+  "revision": 1,
+  "canonical_text": "The study reports a measurable improvement.",
+  "claim_kind": "descriptive",
+  "normalization_status": "normalized",
+  "scope": {
+    "task": {
+      "description": "The study-defined evaluation task",
+      "entity_refs": []
+    },
+    "outcome": {
+      "description": "Measurable improvement in the reported metric",
+      "entity_refs": []
+    },
+    "unreported_dimensions": [
+      "population",
+      "language",
+      "model_family",
+      "dataset",
+      "intervention_or_exposure",
+      "comparator",
+      "setting",
+      "temporal_boundary"
+    ]
+  },
+  "basis": {
+    "basis_kind": "source",
+    "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+    "source_scope": "full_text",
+    "detail_level": "detailed",
+    "source_span_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+    "source_stance": "reports",
+    "attribution": "The study authors",
+    "modality": "asserted",
+    "negated": false,
+    "derivation": {
+      "derivation_kind": "model_extraction",
+      "derivation_ref": "extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD"
+    },
+    "validator_results": [
+      {
+        "validator_name": "source-span-resolution",
+        "validator_version": "1.0.0",
+        "outcome": "pass",
+        "code": "SPAN_RESOLVED"
+      },
+      {
+        "validator_name": "scope-preservation",
+        "validator_version": "1.0.0",
+        "outcome": "pass",
+        "code": "SCOPE_PRESERVED"
+      }
+    ],
+    "extraction_confidence": 0.91,
+    "proposed_by": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "model"
+    },
+    "proposed_at": "2026-08-28T18:12:00.000Z"
+  },
+  "authority": {
+    "zone": "quarantine",
+    "review_state": "machine_checked"
+  },
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "model"
+  },
+  "created_at": "2026-08-28T18:12:00.000Z"
+}

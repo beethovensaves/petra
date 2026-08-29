@@ -1,0 +1,45 @@
+{
+  "schema_name": "petra.projection-checkpoint",
+  "schema_version": "1.0.0",
+  "projection_checkpoint_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+  "revision": 3,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "projection": {
+    "target": "neo4j_graph",
+    "projection_name": "petra.authority_graph",
+    "projection_version": "1.0.0",
+    "configuration_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "content": {
+    "position": {
+      "position_kind": "advanced",
+      "target_sequence": 1,
+      "outbox_id": "outbox_01ARZ3NDEKTSV4RRFFQ69G5FC6",
+      "outbox_position": 3,
+      "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+      "event_position": 3,
+      "stream_revision": 3,
+      "graph_projection_record_id": "graph_projection_record_01ARZ3NDEKTSV4RRFFQ69G5FC8",
+      "advanced_at": "2026-08-29T14:10:03.000Z"
+    },
+    "observed_head": {
+      "target_sequence": 1,
+      "outbox_id": "outbox_01ARZ3NDEKTSV4RRFFQ69G5FC6",
+      "outbox_position": 3,
+      "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+      "event_position": 3,
+      "stream_revision": 3,
+      "observed_at": "2026-08-29T14:10:00.000Z"
+    },
+    "freshness": {
+      "state": "current",
+      "pending_records": 0
+    }
+  },
+  "content_hash": "sha256:94fd6aa60a0b51b2d84308677e4d3d378781f5b8b545d888ad7af21c532c123b",
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "recorded_at": "2026-08-29T14:10:03.000Z"
+}

@@ -1,0 +1,54 @@
+{
+  "schema_name": "petra.assertion",
+  "schema_version": "1.0.0",
+  "assertion_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+  "revision": 1,
+  "subject_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+  "predicate": "ASSERTS",
+  "object": {
+    "object_kind": "entity",
+    "entity_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB"
+  },
+  "assertion_kind": "source_stated",
+  "authority": {
+    "zone": "quarantine",
+    "review_state": "machine_checked"
+  },
+  "provenance_refs": [
+    {
+      "provenance_kind": "source_span",
+      "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
+    },
+    {
+      "provenance_kind": "record",
+      "record_id": "extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD",
+      "role": "derivation"
+    }
+  ],
+  "scope": {
+    "task": {
+      "description": "The study-defined evaluation task",
+      "entity_refs": []
+    },
+    "outcome": {
+      "description": "Measurable improvement in the reported metric",
+      "entity_refs": []
+    },
+    "unreported_dimensions": [
+      "population",
+      "language",
+      "model_family",
+      "dataset",
+      "intervention_or_exposure",
+      "comparator",
+      "setting",
+      "temporal_boundary"
+    ]
+  },
+  "rationale": "The exact full-text passage is represented as a scoped source-stated Claim.",
+  "recorded_at": "2026-08-28T18:12:00.000Z",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "model"
+  }
+}

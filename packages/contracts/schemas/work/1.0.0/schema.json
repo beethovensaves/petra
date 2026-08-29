@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/work/1.0.0/schema.json",
+  "title": "PetraWork",
+  "description": "The canonical identity of a scholarly work across its supported versions and artifacts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "work_id",
+    "revision",
+    "title",
+    "work_kind",
+    "identity_status",
+    "author_credits",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.work"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "work_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/WorkId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "work_kind": {
+      "enum": [
+        "journal_article",
+        "conference_paper",
+        "preprint",
+        "thesis",
+        "book",
+        "chapter",
+        "other"
+      ]
+    },
+    "identity_status": {
+      "enum": ["resolved", "provisional", "disputed"]
+    },
+    "author_credits": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/AuthorCredit"
+      }
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "updated_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "AuthorCredit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["author_id", "position", "credit_role"],
+      "properties": {
+        "author_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/AuthorId"
+        },
+        "position": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "credit_role": {
+          "enum": ["author", "editor"]
+        },
+        "corresponding": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

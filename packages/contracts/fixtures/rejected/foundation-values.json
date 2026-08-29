@@ -1,0 +1,103 @@
+[
+  {
+    "definition": "PetraId",
+    "value": "claim_friendly-name"
+  },
+  {
+    "definition": "ActorId",
+    "value": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+  },
+  {
+    "definition": "ProjectId",
+    "value": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV"
+  },
+  {
+    "definition": "ArtifactId",
+    "value": "artifact_manifest_01ARZ3NDEKTSV4RRFFQ69G5FB2"
+  },
+  {
+    "definition": "ArtifactManifestId",
+    "value": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1"
+  },
+  {
+    "definition": "RightsDecisionId",
+    "value": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1"
+  },
+  {
+    "definition": "ParserRunId",
+    "value": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5"
+  },
+  {
+    "definition": "ParsedDocumentId",
+    "value": "parser_run_01ARZ3NDEKTSV4RRFFQ69G5FB4"
+  },
+  {
+    "definition": "StructuralBlockId",
+    "value": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
+  },
+  {
+    "definition": "SourceSpanId",
+    "value": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6"
+  },
+  {
+    "definition": "ClaimId",
+    "value": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC"
+  },
+  {
+    "definition": "AssertionId",
+    "value": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB"
+  },
+  {
+    "definition": "ChangeSetId",
+    "value": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG"
+  },
+  {
+    "definition": "ApprovalId",
+    "value": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF"
+  },
+  {
+    "definition": "ReviewPolicyId",
+    "value": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG"
+  },
+  {
+    "definition": "Revision",
+    "value": 0
+  },
+  {
+    "definition": "Revision",
+    "value": 9007199254740992
+  },
+  {
+    "definition": "ByteSize",
+    "value": -1
+  },
+  {
+    "definition": "ByteSize",
+    "value": 9007199254740992
+  },
+  {
+    "definition": "ContentHash",
+    "value": "sha256:DC3D0ACA15E39AB6A650065530EB706FFBDD8F9BDE76E87927A7B3FAB097457D"
+  },
+  {
+    "definition": "Timestamp",
+    "value": "2026-08-28T18:00:00Z"
+  },
+  {
+    "definition": "ActorRef",
+    "value": {
+      "actor_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "actor_kind": "human"
+    }
+  },
+  {
+    "definition": "ProjectScope",
+    "value": {
+      "project_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV"
+    }
+  },
+  {
+    "definition": "EvidenceNamespace",
+    "value": "web"
+  }
+]

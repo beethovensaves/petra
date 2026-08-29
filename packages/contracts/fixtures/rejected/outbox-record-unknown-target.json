@@ -1,0 +1,62 @@
+{
+  "schema_name": "petra.outbox-record",
+  "schema_version": "1.0.0",
+  "outbox_id": "outbox_01ARZ3NDEKTSV4RRFFQ69G5FBY",
+  "outbox_position": 1,
+  "target": "model_context",
+  "target_sequence": 1,
+  "partition_key": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "deduplication_key": "model_context:event_01ARZ3NDEKTSV4RRFFQ69G5FBW",
+  "enqueued_at": "2026-08-28T18:13:00.000Z",
+  "message": {
+    "message_kind": "domain_event",
+    "event": {
+      "schema_name": "petra.domain-event",
+      "schema_version": "1.0.0",
+      "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBW",
+      "event_position": 2,
+      "stream_type": "project",
+      "stream_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "stream_revision": 2,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "occurred_at": "2026-08-28T18:13:00.000Z",
+      "recorded_at": "2026-08-28T18:13:00.000Z",
+      "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+      "causation_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBM",
+      "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBM",
+      "idempotency_key": "review:claim-fbb:approval:v1",
+      "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+      "event": {
+        "event_type": "approval.recorded",
+        "payload": {
+          "approval": {
+            "schema_name": "petra.approval",
+            "schema_version": "1.0.0",
+            "approval_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+            "revision": 1,
+            "subject": {
+              "subject_kind": "change_set",
+              "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+              "change_set_revision": 1,
+              "change_set_content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b"
+            },
+            "decision": "approved",
+            "decision_scope": "exact_change_set",
+            "decided_by": {
+              "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+              "actor_kind": "human"
+            },
+            "rationale": "Valid event beneath an invalid outbox target.",
+            "conditions": [],
+            "decided_at": "2026-08-28T18:13:00.000Z"
+          },
+          "derived_change_set_state": "approved"
+        }
+      }
+    }
+  }
+}

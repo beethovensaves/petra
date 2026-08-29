@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/approval/1.0.0/schema.json",
+  "title": "PetraApproval",
+  "description": "A human decision bound to one exact ChangeSet revision and canonical content hash.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "approval_id",
+    "revision",
+    "subject",
+    "decision",
+    "decision_scope",
+    "decided_by",
+    "rationale",
+    "conditions",
+    "decided_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.approval"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "approval_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ApprovalId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "subject": {
+      "$ref": "#/$defs/ChangeSetSubject"
+    },
+    "decision": {
+      "enum": ["approved", "rejected"]
+    },
+    "decision_scope": {
+      "const": "exact_change_set"
+    },
+    "decided_by": {
+      "$ref": "#/$defs/HumanActorRef"
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8000
+    },
+    "conditions": {
+      "type": "array",
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      }
+    },
+    "decided_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ChangeSetSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_kind",
+        "change_set_id",
+        "change_set_revision",
+        "change_set_content_hash"
+      ],
+      "properties": {
+        "subject_kind": {
+          "const": "change_set"
+        },
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "change_set_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "change_set_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "HumanActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": {
+          "const": "human"
+        }
+      }
+    }
+  }
+}

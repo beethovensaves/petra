@@ -1,0 +1,21 @@
+{
+  "schema_name": "petra.external-identifier",
+  "schema_version": "1.0.0",
+  "external_identifier_id": "external_identifier_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+  "revision": 1,
+  "subject": {
+    "subject_kind": "work_version",
+    "work_id": "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+    "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0"
+  },
+  "namespace": "doi",
+  "normalized_value": "10.5555/petra.example",
+  "source_name": "Crossref",
+  "verification_status": "verified",
+  "observed_at": "2026-08-28T18:05:00.000Z",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-08-28T18:05:00.000Z"
+}

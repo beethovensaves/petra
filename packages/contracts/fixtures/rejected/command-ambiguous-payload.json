@@ -1,0 +1,25 @@
+{
+  "schema_name": "petra.command-envelope",
+  "schema_version": "1.0.0",
+  "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBH",
+  "idempotency_key": "review:claim-fbb:submit:v1",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+  "submitted_at": "2026-08-28T18:13:01.000Z",
+  "command": {
+    "command_name": "ApplyChangeSet",
+    "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+    "change_set_revision": 1,
+    "change_set_content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "approval_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+    "approval_revision": 1,
+    "approval": {
+      "schema_name": "petra.approval"
+    }
+  }
+}

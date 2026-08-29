@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/interaction-custom-event/1.0.0/schema.json",
+  "title": "PetraInteractionCustomEvent",
+  "description": "A closed M1 payload for a Petra-namespaced interaction event. It reports interface state and cannot itself authorize a domain change.",
+  "oneOf": [
+    { "$ref": "#/$defs/WorkUnitStatusEvent" },
+    { "$ref": "#/$defs/ReviewInterruptEvent" }
+  ],
+  "$defs": {
+    "WorkUnitStatusEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_name", "schema_version", "event_name", "payload"],
+      "properties": {
+        "schema_name": { "const": "petra.interaction-custom-event" },
+        "schema_version": { "const": "1.0.0" },
+        "event_name": { "const": "petra.work_unit.status" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "work_unit_id",
+            "work_unit_revision",
+            "status",
+            "label",
+            "authority_effect"
+          ],
+          "properties": {
+            "work_unit_id": {
+              "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+            },
+            "work_unit_revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "status": {
+              "enum": [
+                "requested",
+                "queued",
+                "running",
+                "checkpointed",
+                "succeeded",
+                "failed",
+                "cancelled"
+              ]
+            },
+            "label": { "type": "string", "minLength": 1, "maxLength": 500 },
+            "authority_effect": { "const": "none" }
+          }
+        }
+      }
+    },
+    "ReviewInterruptEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_name", "schema_version", "event_name", "payload"],
+      "properties": {
+        "schema_name": { "const": "petra.interaction-custom-event" },
+        "schema_version": { "const": "1.0.0" },
+        "event_name": { "const": "petra.review.interrupt" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "interaction_interrupt_id",
+            "change_set_ref",
+            "authority_effect"
+          ],
+          "properties": {
+            "interaction_interrupt_id": {
+              "$ref": "#/$defs/InteractionInterruptId"
+            },
+            "change_set_ref": { "$ref": "#/$defs/ChangeSetRef" },
+            "authority_effect": { "const": "none" }
+          }
+        }
+      }
+    },
+    "InteractionInterruptId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^interaction_interrupt_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ChangeSetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["change_set_id", "revision", "content_hash"],
+      "properties": {
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    }
+  }
+}
