@@ -9,6 +9,7 @@ import type {
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
   ArtifactAuthorityRepository,
+  ArtifactStore,
   AttachArtifactManifestInput,
   PersistVerifiedArtifactInput,
   RegisteredArtifact,
@@ -23,7 +24,9 @@ export type PostgresArtifactAuthorityErrorCode =
   | "ARTIFACT_MANIFEST_ID_CONFLICT"
   | "RIGHTS_DECISION_ID_CONFLICT"
   | "ARTIFACT_RELATION_INVALID"
-  | "ARTIFACT_REFERENCE_MISSING";
+  | "ARTIFACT_REFERENCE_MISSING"
+  | "ARTIFACT_OBJECT_UNAVAILABLE"
+  | "ARTIFACT_OBJECT_MISMATCH";
 
 export class PostgresArtifactAuthorityError extends Error {
   readonly code: PostgresArtifactAuthorityErrorCode;
@@ -129,10 +132,16 @@ const registrationCopy = (
 
 export class PostgresArtifactAuthorityRepository implements ArtifactAuthorityRepository {
   readonly #pool: Pool;
+  readonly #artifactStore: Pick<ArtifactStore, "inspectByHash">;
   readonly #contracts: PetraContractRegistry;
 
-  constructor(pool: Pool, contracts = new PetraContractRegistry()) {
+  constructor(
+    pool: Pool,
+    artifactStore: Pick<ArtifactStore, "inspectByHash">,
+    contracts = new PetraContractRegistry(),
+  ) {
     this.#pool = pool;
+    this.#artifactStore = artifactStore;
     this.#contracts = contracts;
   }
 
@@ -142,6 +151,7 @@ export class PostgresArtifactAuthorityRepository implements ArtifactAuthorityRep
     const { artifact, manifest, rightsDecision } = input;
     this.#validateContracts(artifact, manifest, rightsDecision);
     this.#validateRelations(artifact, manifest, rightsDecision);
+    await this.#verifyAvailableArtifact(artifact, manifest);
 
     const client = await this.#pool.connect();
     try {
@@ -248,6 +258,7 @@ export class PostgresArtifactAuthorityRepository implements ArtifactAuthorityRep
       const artifact = artifactRow.payload as PetraArtifact;
       this.#contracts.assertValid("artifact", "1.0.0", artifact);
       this.#validateRelations(artifact, manifest, rightsDecision);
+      await this.#verifyAvailableArtifact(artifact, manifest);
       await this.#requireManifestReferences(client, manifest, rightsDecision);
 
       const replay = await this.#resolveAcquisitionReplay(
@@ -394,6 +405,46 @@ export class PostgresArtifactAuthorityRepository implements ArtifactAuthorityRep
       throw new PostgresArtifactAuthorityError(
         "ARTIFACT_RELATION_INVALID",
         "An available stored Artifact requires explicit raw-byte storage permission.",
+      );
+    }
+  }
+
+  async #verifyAvailableArtifact(
+    artifact: PetraArtifact,
+    manifest: PetraArtifactManifest,
+  ): Promise<void> {
+    const available = await this.#artifactStore.inspectByHash(
+      artifact.content_hash,
+      {
+        byteSize: artifact.byte_size,
+        mediaType: artifact.media_type,
+      },
+    );
+    if (available === undefined) {
+      throw new PostgresArtifactAuthorityError(
+        "ARTIFACT_OBJECT_UNAVAILABLE",
+        "Artifact authority cannot be registered before its exact bytes are durably available.",
+      );
+    }
+    if (
+      available.storeName !== manifest.storage_ref.store_name ||
+      available.objectKey !== manifest.storage_ref.object_key ||
+      available.contentHash !== manifest.storage_ref.content_hash ||
+      available.byteSize !== artifact.byte_size ||
+      available.mediaType !== artifact.media_type
+    ) {
+      throw new PostgresArtifactAuthorityError(
+        "ARTIFACT_OBJECT_MISMATCH",
+        "The available object does not reproduce the ArtifactManifest storage identity.",
+      );
+    }
+    if (
+      available.verification.status === "verified_with_warnings" &&
+      manifest.integrity.status !== "verified_with_warnings"
+    ) {
+      throw new PostgresArtifactAuthorityError(
+        "ARTIFACT_OBJECT_MISMATCH",
+        "ArtifactManifest integrity cannot omit warnings retained by object verification.",
       );
     }
   }

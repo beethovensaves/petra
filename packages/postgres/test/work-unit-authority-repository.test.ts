@@ -23,6 +23,7 @@ import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-r
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
+import { availableArtifactStore } from "./artifact-store-fixture.js";
 
 const { Pool } = pg;
 const connectionString = process.env.PETRA_TEST_POSTGRES_URL;
@@ -55,7 +56,10 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
   const pool = new Pool({ connectionString });
   const scopes = new PostgresResearchScopeRepository(pool);
   const identities = new PostgresScholarlyIdentityRepository(pool);
-  const artifacts = new PostgresArtifactAuthorityRepository(pool);
+  const artifacts = new PostgresArtifactAuthorityRepository(
+    pool,
+    availableArtifactStore,
+  );
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
 
   beforeAll(async () => {

@@ -20,6 +20,7 @@ import type {
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
+import { availableArtifactStore } from "./artifact-store-fixture.js";
 
 const { Pool } = pg;
 const connectionString = process.env.PETRA_TEST_POSTGRES_URL;
@@ -50,7 +51,10 @@ describePostgres("PostgreSQL Artifact authority repository", () => {
   const pool = new Pool({ connectionString });
   const scopes = new PostgresResearchScopeRepository(pool);
   const identities = new PostgresScholarlyIdentityRepository(pool);
-  const artifacts = new PostgresArtifactAuthorityRepository(pool);
+  const artifacts = new PostgresArtifactAuthorityRepository(
+    pool,
+    availableArtifactStore,
+  );
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -366,6 +370,44 @@ describePostgres("PostgreSQL Artifact authority repository", () => {
     });
   });
 
+  it("refuses authority until the exact verified object is available", async () => {
+    await registerPrerequisites();
+    const input = makeInput();
+    const unavailable = new PostgresArtifactAuthorityRepository(pool, {
+      inspectByHash: () => Promise.resolve(undefined),
+    });
+    await expectArtifactCode(
+      () => unavailable.registerVerifiedAcquisition(input),
+      "ARTIFACT_OBJECT_UNAVAILABLE",
+    );
+
+    const mismatched = new PostgresArtifactAuthorityRepository(pool, {
+      inspectByHash: (contentHash, expected) =>
+        Promise.resolve({
+          storeName: "different-store",
+          objectKey: contentAddressedKey(contentHash),
+          contentHash,
+          byteSize: expected?.byteSize ?? 0,
+          mediaType: expected?.mediaType ?? "application/octet-stream",
+          availableAt: "2026-08-28T18:10:00.000Z",
+          verification: {
+            status: "verified",
+            declaredMediaType:
+              expected?.mediaType ?? "application/octet-stream",
+            method: "test-fixture",
+            problems: [],
+          },
+        }),
+    });
+    await expectArtifactCode(
+      () => mismatched.registerVerifiedAcquisition(input),
+      "ARTIFACT_OBJECT_MISMATCH",
+    );
+    expect(await artifacts.getArtifact(input.artifact.artifact_id)).toBe(
+      undefined,
+    );
+  });
+
   it("enforces append-only Artifact authority and typed origin references inside PostgreSQL", async () => {
     await registerPrerequisites();
     const input = makeInput();
@@ -402,3 +444,8 @@ describePostgres("PostgreSQL Artifact authority repository", () => {
     ).toHaveLength(1);
   });
 });
+
+const contentAddressedKey = (contentHash: string): string => {
+  const hex = contentHash.slice("sha256:".length);
+  return `sha256/${hex.slice(0, 2)}/${hex.slice(2)}`;
+};

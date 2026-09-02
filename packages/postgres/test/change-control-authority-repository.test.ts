@@ -32,6 +32,7 @@ import { PostgresDocumentAuthorityRepository } from "../src/document-authority-r
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
+import { availableArtifactStore } from "./artifact-store-fixture.js";
 
 const { Pool } = pg;
 const connectionString = process.env.PETRA_TEST_POSTGRES_URL;
@@ -72,7 +73,10 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
   const pool = new Pool({ connectionString });
   const scopes = new PostgresResearchScopeRepository(pool);
   const identities = new PostgresScholarlyIdentityRepository(pool);
-  const artifacts = new PostgresArtifactAuthorityRepository(pool);
+  const artifacts = new PostgresArtifactAuthorityRepository(
+    pool,
+    availableArtifactStore,
+  );
   const documents = new PostgresDocumentAuthorityRepository(pool);
   const evidence = new PostgresEvidenceAuthorityRepository(pool);
 
@@ -147,7 +151,7 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       generated_at: "2026-08-28T18:11:02.000Z",
       input_artifact_ids: [source.artifact.artifact_id],
     };
-    manifest.storage_ref.object_key = `sha256/${parserHash.slice(7)}`;
+    manifest.storage_ref.object_key = `sha256/${parserHash.slice(7, 9)}/${parserHash.slice(9)}`;
     manifest.storage_ref.content_hash = parserHash;
     manifest.storage_ref.verified_at = "2026-08-28T18:11:02.000Z";
     manifest.integrity.checked_at = "2026-08-28T18:11:02.000Z";

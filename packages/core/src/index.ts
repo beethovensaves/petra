@@ -1,4 +1,5 @@
 export * from "./artifact-registry.js";
+export * from "./artifact-store.js";
 export * from "./change-control-authority-repository.js";
 export * from "./context-packet-registry.js";
 export * from "./composition-registry.js";

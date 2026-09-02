@@ -22,6 +22,11 @@ SeaweedFS remains active, is Apache-2.0 licensed, provides a current multi-arch
 container, and exposes the S3 API Petra requires. A hosted profile may replace
 it without changing artifact identities or application commands.
 
+The accepted adapter and its publication, verification, read, and garbage-
+collection invariants are documented in `infra/artifacts/README.md`. Run
+`npm run test:s3:integration` for the isolated real-service proof; it does not
+reuse or alter the named development volume.
+
 The `-admin.port=12646` option avoids SeaweedFS 4.41's default derived gRPC port
 falling inside Linux's common ephemeral-port range. Remove the workaround only
 after the upstream issue is fixed and the pinned image is retested.

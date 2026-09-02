@@ -74,6 +74,7 @@ without changing an applied migration's checksum.
 | `npm run test` | Run contract, server-conformance, and Python tests. |
 | `npm run test:server` | Run `D014-HC01`–`D014-HC10` against a real local Hono listener. |
 | `npm run test:postgres:integration` | Migrate a disposable PostgreSQL instance, test the typed repository, validate Flyway history, and remove every labeled resource. |
+| `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
 | `npm run test:integration` | Run Vitest and pytest against disposable real services, then delete the stack. |
 | `npm run measure:m1-boundary` | Rebuild and measure the isolated browser cost of Petra's AG-UI client boundary. |
 | `npm run verify` | Run generation, formatting, linting, type checking, and tests. |
@@ -120,10 +121,12 @@ The fixture demonstrates ordered run, state, activity, custom, tool, text, and
 terminal events; review interruption; replay; idempotent commands; explicit
 cancellation; trace correlation; stream abort; body and authentication limits;
 SPA route precedence; concurrent streams; and graceful shutdown. It keeps
-connection abort separate from WorkUnit cancellation. PostgreSQL interaction
-durability, real model requests, and scientific evidence remain later slices;
-the first Actor and Project persistence path is independently executable with
-`npm run test:postgres:integration`.
+connection abort separate from WorkUnit cancellation. PostgreSQL now persists
+the exact interaction manifest, run history, event sequence, interruptions, and
+replay receipts without making the presentation protocol authoritative. Real
+model requests and literature research remain later slices. The ledger and
+artifact gates are independently executable with
+`npm run test:postgres:integration` and `npm run test:s3:integration`.
 
 The exact conformance results and their limits are in
 [M1.0 AG-UI and Hono conformance](reports/M1.0-AGUI-HONO-CONFORMANCE.md).

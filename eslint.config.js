@@ -39,6 +39,7 @@ export default tseslint.config(
             "packages/contracts/*.ts",
             "packages/core/vitest.config.ts",
             "packages/postgres/vitest.config.ts",
+            "packages/s3/vitest.config.ts",
             "apps/server/vitest.config.ts",
           ],
         },
