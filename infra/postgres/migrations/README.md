@@ -38,3 +38,11 @@ WorkVersion, and ExternalIdentifier identities. One canonical entity head and
 revision ledger owns common history, while typed tables retain authorship,
 version, publication, metadata-source, and exact identifier-subject relations
 for ordinary SQL queries and referential constraints.
+
+`V005__evidence_authority.sql` creates the stable global Claim and Assertion
+identity spine and deliberately admits only immutable revision-one quarantine
+proposals. Claims and Assertions retain separate typed tables: Claim basis,
+SourceSpan grounding, and validator results cannot be confused with Assertion
+endpoints and provenance edges. A later forward migration owned by the
+ChangeSet slice must explicitly replace the V005 admission restriction before
+reviewed revisions can enter this ledger.

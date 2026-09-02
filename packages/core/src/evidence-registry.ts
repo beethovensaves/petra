@@ -114,6 +114,19 @@ export interface EvidenceSourceResolver {
   ): EvidenceParsedDocument | undefined;
 }
 
+type EvidenceClaimBasis =
+  | {
+      readonly basis_kind: "source";
+      readonly work_version_id: string;
+      readonly source_span_ids: readonly string[];
+    }
+  | { readonly basis_kind: "synthesis" | "researcher" };
+
+export interface EvidenceProposalResolver extends EvidenceSourceResolver {
+  getClaim(claimId: string): { readonly basis: EvidenceClaimBasis } | undefined;
+  getAssertion(assertionId: string): object | undefined;
+}
+
 export interface CommandAuthorizationRequest {
   readonly actor: PetraCommandEnvelope["actor"];
   readonly capabilityGrantId: string;
@@ -315,6 +328,204 @@ const sourceSpanIds = (assertion: PetraAssertion): string[] =>
       : [],
   );
 
+/** Validate one initial Claim proposal without storing it. */
+export const validateClaimProposal = (
+  claim: PetraClaim,
+  resolver: EvidenceProposalResolver,
+): void => {
+  if (claim.authority.zone !== "quarantine") {
+    throw new EvidenceProposalError(
+      "CLAIM_PROPOSAL_NOT_QUARANTINED",
+      "Claims may enter the evidence registry only as quarantine proposals; promotion is a separate reviewed command.",
+    );
+  }
+  validateInitialRevision(claim.revision);
+  validateScopeAccounting(claim.scope);
+
+  if (claim.basis.basis_kind === "source") {
+    if (claim.normalization_status === "composed") {
+      throw new EvidenceProposalError(
+        "CLAIM_BASIS_MISMATCH",
+        "A source-derived Claim cannot be marked composed.",
+      );
+    }
+    for (const result of claim.basis.validator_results) {
+      if (result.outcome === "fail") {
+        throw new EvidenceProposalError(
+          "VALIDATOR_FAILED",
+          `Claim validator ${result.validator_name} failed with ${result.code}.`,
+        );
+      }
+    }
+    for (const sourceSpanId of claim.basis.source_span_ids) {
+      const span = resolver.getSourceSpan(sourceSpanId);
+      if (span === undefined) {
+        throw new EvidenceProposalError(
+          "SOURCE_SPAN_NOT_REGISTERED",
+          `SourceSpan ${sourceSpanId} is not registered.`,
+        );
+      }
+      if (span.verification.status === "unresolved") {
+        throw new EvidenceProposalError(
+          "SOURCE_SPAN_UNRESOLVED",
+          `SourceSpan ${sourceSpanId} is unresolved and cannot ground a Claim.`,
+        );
+      }
+      const document = resolver.getParsedDocument(span.parsed_document_id);
+      if (document?.work_version_id !== claim.basis.work_version_id) {
+        throw new EvidenceProposalError(
+          "SOURCE_WORK_VERSION_MISMATCH",
+          `SourceSpan ${sourceSpanId} does not belong to WorkVersion ${claim.basis.work_version_id}.`,
+        );
+      }
+    }
+    if (
+      claim.basis.source_scope === "abstract_only" &&
+      (claim.basis.detail_level !== "broad" ||
+        !ABSTRACT_ONLY_BROAD_CLAIM_KINDS.has(claim.claim_kind))
+    ) {
+      throw new EvidenceProposalError(
+        "ABSTRACT_SCOPE_VIOLATION",
+        "Abstract-only evidence may ground only broad descriptive, comparative, or theoretical Claims.",
+      );
+    }
+    return;
+  }
+
+  if (claim.normalization_status !== "composed") {
+    throw new EvidenceProposalError(
+      "CLAIM_BASIS_MISMATCH",
+      "A synthesized or researcher-proposed Claim must be marked composed.",
+    );
+  }
+  if (claim.basis.basis_kind === "synthesis") {
+    for (const claimId of claim.basis.basis_claim_ids) {
+      if (resolver.getClaim(claimId) === undefined) {
+        throw new EvidenceProposalError(
+          "BASIS_CLAIM_NOT_REGISTERED",
+          `Synthesis basis Claim ${claimId} is not registered.`,
+        );
+      }
+    }
+    for (const assertionId of claim.basis.basis_assertion_ids) {
+      if (resolver.getAssertion(assertionId) === undefined) {
+        throw new EvidenceProposalError(
+          "BASIS_ASSERTION_NOT_REGISTERED",
+          `Synthesis basis Assertion ${assertionId} is not registered.`,
+        );
+      }
+    }
+  }
+};
+
+/** Validate one initial Assertion proposal without storing it. */
+export const validateAssertionProposal = (
+  assertion: PetraAssertion,
+  resolver: EvidenceProposalResolver,
+): void => {
+  if (assertion.authority.zone !== "quarantine") {
+    throw new EvidenceProposalError(
+      "ASSERTION_PROPOSAL_NOT_QUARANTINED",
+      "Assertions may enter the evidence registry only as quarantine proposals; promotion is a separate reviewed command.",
+    );
+  }
+  validateInitialRevision(assertion.revision);
+  validateScopeAccounting(assertion.scope);
+
+  const spanIds = sourceSpanIds(assertion);
+  for (const spanId of spanIds) {
+    const span = resolver.getSourceSpan(spanId);
+    if (span === undefined) {
+      throw new EvidenceProposalError(
+        "SOURCE_SPAN_NOT_REGISTERED",
+        `Assertion SourceSpan ${spanId} is not registered.`,
+      );
+    }
+    if (span.verification.status === "unresolved") {
+      throw new EvidenceProposalError(
+        "SOURCE_SPAN_UNRESOLVED",
+        `Assertion SourceSpan ${spanId} is unresolved.`,
+      );
+    }
+  }
+  if (assertion.assertion_kind === "source_stated" && spanIds.length === 0) {
+    throw new EvidenceProposalError(
+      "ASSERTION_SOURCE_SPAN_REQUIRED",
+      "A source-stated Assertion must cite at least one exact SourceSpan.",
+    );
+  }
+
+  if (assertion.predicate === "ASSERTS") {
+    if (
+      petraIdKind(assertion.subject_id) !== "work_version" ||
+      assertion.object.object_kind !== "entity" ||
+      petraIdKind(assertion.object.entity_id) !== "claim"
+    ) {
+      throw new EvidenceProposalError(
+        "ASSERTS_ENDPOINT_MISMATCH",
+        "ASSERTS must connect a WorkVersion subject to a Claim object.",
+      );
+    }
+    if (
+      assertion.assertion_kind !== "source_stated" &&
+      assertion.assertion_kind !== "source_native"
+    ) {
+      throw new EvidenceProposalError(
+        "ASSERTS_KIND_MISMATCH",
+        "ASSERTS must be source-stated or source-native.",
+      );
+    }
+    const claim = resolver.getClaim(assertion.object.entity_id);
+    if (claim === undefined || claim.basis.basis_kind !== "source") {
+      throw new EvidenceProposalError(
+        "ASSERTS_ENDPOINT_MISMATCH",
+        "ASSERTS must target a registered source-derived Claim.",
+      );
+    }
+    const sourceBasis = claim.basis;
+    if (sourceBasis.work_version_id !== assertion.subject_id) {
+      throw new EvidenceProposalError(
+        "SOURCE_WORK_VERSION_MISMATCH",
+        "The ASSERTS subject must be the WorkVersion that grounds its Claim.",
+      );
+    }
+    if (
+      spanIds.length === 0 ||
+      spanIds.some((spanId) => !sourceBasis.source_span_ids.includes(spanId))
+    ) {
+      throw new EvidenceProposalError(
+        "ASSERTION_SOURCE_SPAN_NOT_IN_CLAIM",
+        "ASSERTS provenance must cite a SourceSpan that grounds the target Claim.",
+      );
+    }
+  }
+
+  if (
+    SCIENTIFIC_RELATION_PREDICATES.has(assertion.predicate) &&
+    assertion.scope_comparison === undefined
+  ) {
+    throw new EvidenceProposalError(
+      "SCIENTIFIC_RELATION_SCOPE_REQUIRED",
+      `${assertion.predicate} requires an explicit comparison of scientific scope.`,
+    );
+  }
+  if (
+    SCIENTIFIC_RELATION_PREDICATES.has(assertion.predicate) &&
+    !assertion.provenance_refs.some(
+      (provenance) =>
+        provenance.provenance_kind === "source_span" ||
+        provenance.provenance_kind === "structured_field" ||
+        (provenance.provenance_kind === "record" &&
+          ["run", "result", "analysis"].includes(provenance.role)),
+    )
+  ) {
+    throw new EvidenceProposalError(
+      "SCIENTIFIC_RELATION_PROVENANCE_REQUIRED",
+      `${assertion.predicate} requires exact source or experimental provenance.`,
+    );
+  }
+};
+
 export class InMemoryEvidenceRegistry {
   readonly #sourceResolver: EvidenceSourceResolver;
   readonly #commandAuthorizer: CommandAuthorizer;
@@ -438,83 +649,7 @@ export class InMemoryEvidenceRegistry {
         `Claim ${claim.claim_id} is already proposed.`,
       );
     }
-    validateScopeAccounting(claim.scope);
-
-    if (claim.basis.basis_kind === "source") {
-      if (claim.normalization_status === "composed") {
-        throw new EvidenceProposalError(
-          "CLAIM_BASIS_MISMATCH",
-          "A source-derived Claim cannot be marked composed.",
-        );
-      }
-      for (const result of claim.basis.validator_results) {
-        if (result.outcome === "fail") {
-          throw new EvidenceProposalError(
-            "VALIDATOR_FAILED",
-            `Claim validator ${result.validator_name} failed with ${result.code}.`,
-          );
-        }
-      }
-      for (const sourceSpanId of claim.basis.source_span_ids) {
-        const span = this.#sourceResolver.getSourceSpan(sourceSpanId);
-        if (span === undefined) {
-          throw new EvidenceProposalError(
-            "SOURCE_SPAN_NOT_REGISTERED",
-            `SourceSpan ${sourceSpanId} is not registered.`,
-          );
-        }
-        if (span.verification.status === "unresolved") {
-          throw new EvidenceProposalError(
-            "SOURCE_SPAN_UNRESOLVED",
-            `SourceSpan ${sourceSpanId} is unresolved and cannot ground a Claim.`,
-          );
-        }
-        const document = this.#sourceResolver.getParsedDocument(
-          span.parsed_document_id,
-        );
-        if (document?.work_version_id !== claim.basis.work_version_id) {
-          throw new EvidenceProposalError(
-            "SOURCE_WORK_VERSION_MISMATCH",
-            `SourceSpan ${sourceSpanId} does not belong to WorkVersion ${claim.basis.work_version_id}.`,
-          );
-        }
-      }
-      if (
-        claim.basis.source_scope === "abstract_only" &&
-        (claim.basis.detail_level !== "broad" ||
-          !ABSTRACT_ONLY_BROAD_CLAIM_KINDS.has(claim.claim_kind))
-      ) {
-        throw new EvidenceProposalError(
-          "ABSTRACT_SCOPE_VIOLATION",
-          "Abstract-only evidence may ground only broad descriptive, comparative, or theoretical Claims.",
-        );
-      }
-    } else {
-      if (claim.normalization_status !== "composed") {
-        throw new EvidenceProposalError(
-          "CLAIM_BASIS_MISMATCH",
-          "A synthesized or researcher-proposed Claim must be marked composed.",
-        );
-      }
-      if (claim.basis.basis_kind === "synthesis") {
-        for (const claimId of claim.basis.basis_claim_ids) {
-          if (!this.#claims.has(claimId)) {
-            throw new EvidenceProposalError(
-              "BASIS_CLAIM_NOT_REGISTERED",
-              `Synthesis basis Claim ${claimId} is not registered.`,
-            );
-          }
-        }
-        for (const assertionId of claim.basis.basis_assertion_ids) {
-          if (!this.#assertions.has(assertionId)) {
-            throw new EvidenceProposalError(
-              "BASIS_ASSERTION_NOT_REGISTERED",
-              `Synthesis basis Assertion ${assertionId} is not registered.`,
-            );
-          }
-        }
-      }
-    }
+    validateClaimProposal(claim, this.#proposalResolver());
 
     const registered = immutableCopy(claim);
     this.#claims.set(claim.claim_id, registered);
@@ -536,100 +671,7 @@ export class InMemoryEvidenceRegistry {
         `Assertion ${assertion.assertion_id} is already proposed.`,
       );
     }
-    validateScopeAccounting(assertion.scope);
-
-    const spanIds = sourceSpanIds(assertion);
-    for (const spanId of spanIds) {
-      const span = this.#sourceResolver.getSourceSpan(spanId);
-      if (span === undefined) {
-        throw new EvidenceProposalError(
-          "SOURCE_SPAN_NOT_REGISTERED",
-          `Assertion SourceSpan ${spanId} is not registered.`,
-        );
-      }
-      if (span.verification.status === "unresolved") {
-        throw new EvidenceProposalError(
-          "SOURCE_SPAN_UNRESOLVED",
-          `Assertion SourceSpan ${spanId} is unresolved.`,
-        );
-      }
-    }
-    if (assertion.assertion_kind === "source_stated" && spanIds.length === 0) {
-      throw new EvidenceProposalError(
-        "ASSERTION_SOURCE_SPAN_REQUIRED",
-        "A source-stated Assertion must cite at least one exact SourceSpan.",
-      );
-    }
-
-    if (assertion.predicate === "ASSERTS") {
-      if (
-        petraIdKind(assertion.subject_id) !== "work_version" ||
-        assertion.object.object_kind !== "entity" ||
-        petraIdKind(assertion.object.entity_id) !== "claim"
-      ) {
-        throw new EvidenceProposalError(
-          "ASSERTS_ENDPOINT_MISMATCH",
-          "ASSERTS must connect a WorkVersion subject to a Claim object.",
-        );
-      }
-      if (
-        assertion.assertion_kind !== "source_stated" &&
-        assertion.assertion_kind !== "source_native"
-      ) {
-        throw new EvidenceProposalError(
-          "ASSERTS_KIND_MISMATCH",
-          "ASSERTS must be source-stated or source-native.",
-        );
-      }
-      const claim = this.#claims.get(assertion.object.entity_id);
-      if (claim === undefined || claim.basis.basis_kind !== "source") {
-        throw new EvidenceProposalError(
-          "ASSERTS_ENDPOINT_MISMATCH",
-          "ASSERTS must target a registered source-derived Claim.",
-        );
-      }
-      const sourceBasis = claim.basis;
-      if (sourceBasis.work_version_id !== assertion.subject_id) {
-        throw new EvidenceProposalError(
-          "SOURCE_WORK_VERSION_MISMATCH",
-          "The ASSERTS subject must be the WorkVersion that grounds its Claim.",
-        );
-      }
-      if (
-        spanIds.length === 0 ||
-        spanIds.some((spanId) => !sourceBasis.source_span_ids.includes(spanId))
-      ) {
-        throw new EvidenceProposalError(
-          "ASSERTION_SOURCE_SPAN_NOT_IN_CLAIM",
-          "ASSERTS provenance must cite a SourceSpan that grounds the target Claim.",
-        );
-      }
-    }
-
-    if (
-      SCIENTIFIC_RELATION_PREDICATES.has(assertion.predicate) &&
-      assertion.scope_comparison === undefined
-    ) {
-      throw new EvidenceProposalError(
-        "SCIENTIFIC_RELATION_SCOPE_REQUIRED",
-        `${assertion.predicate} requires an explicit comparison of scientific scope.`,
-      );
-    }
-    if (
-      SCIENTIFIC_RELATION_PREDICATES.has(assertion.predicate) &&
-      !assertion.provenance_refs.some(
-        (provenance) =>
-          provenance.provenance_kind === "source_span" ||
-          provenance.provenance_kind === "structured_field" ||
-          (provenance.provenance_kind === "record" &&
-            ["run", "result", "analysis"].includes(provenance.role)),
-      )
-    ) {
-      throw new EvidenceProposalError(
-        "SCIENTIFIC_RELATION_PROVENANCE_REQUIRED",
-        `${assertion.predicate} requires exact source or experimental provenance.`,
-      );
-    }
+    validateAssertionProposal(assertion, this.#proposalResolver());
 
     const registered = immutableCopy(assertion);
     this.#assertions.set(assertion.assertion_id, registered);
@@ -638,6 +680,17 @@ export class InMemoryEvidenceRegistry {
       new Map([[1, registered]]),
     );
     return registered;
+  }
+
+  #proposalResolver(): EvidenceProposalResolver {
+    return {
+      getSourceSpan: (sourceSpanId) =>
+        this.#sourceResolver.getSourceSpan(sourceSpanId),
+      getParsedDocument: (parsedDocumentId) =>
+        this.#sourceResolver.getParsedDocument(parsedDocumentId),
+      getClaim: (claimId) => this.#claims.get(claimId),
+      getAssertion: (assertionId) => this.#assertions.get(assertionId),
+    };
   }
 
   executeCommand(envelope: PetraCommandEnvelope): ChangeControlCommandResult {

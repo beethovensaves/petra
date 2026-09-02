@@ -3,6 +3,7 @@ export * from "./context-packet-registry.js";
 export * from "./composition-registry.js";
 export * from "./document-authority-repository.js";
 export * from "./document-registry.js";
+export * from "./evidence-authority-repository.js";
 export * from "./evidence-registry.js";
 export * from "./graph-projection-registry.js";
 export * from "./identity.js";
