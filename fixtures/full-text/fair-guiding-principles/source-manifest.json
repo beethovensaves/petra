@@ -1,0 +1,107 @@
+{
+  "fixture_manifest_version": "1.0.0",
+  "fixture_id": "fair-guiding-principles-vor-2016",
+  "purpose": "M1.4 calibration source for rights-aware PDF ingestion, reading-order recovery, boxed layout, and source-span round trips.",
+  "source_scope": "full_text",
+  "scholarly_status": {
+    "work_kind": "journal_article",
+    "article_type": "comment",
+    "publication_status": "peer_reviewed",
+    "title": "The FAIR Guiding Principles for scientific data management and stewardship",
+    "doi": "10.1038/sdata.2016.18",
+    "published_date": "2016-03-15",
+    "version_label": "Publisher version of record",
+    "publisher_landing_url": "https://www.nature.com/articles/sdata201618",
+    "repository_record_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4792175/",
+    "pmid": "26978244",
+    "related_updates": [
+      {
+        "relation": "has_addendum",
+        "doi": "10.1038/s41597-019-0009-6",
+        "published_date": "2019-03-19",
+        "note": "The addendum changes the location of the FAIR principles living document; it does not replace the acquired publisher PDF."
+      }
+    ]
+  },
+  "acquisition": {
+    "retrieval_url": "https://www.nature.com/articles/sdata201618.pdf",
+    "retrieved_at": "2026-09-02T20:01:32.000Z",
+    "pdf_path": "source/wilkinson-et-al-2016.pdf",
+    "media_type": "application/pdf",
+    "byte_size": 254899,
+    "sha256": "cdddd9f4808f7e3e1f013139c3915ef4d7cdccb008fa947ef5f72b4c7b6ffde7",
+    "page_count": 9,
+    "etag": "\"c673d5848f1e19b935c01eb7819e2b2c\"",
+    "last_modified": "Mon, 04 Dec 2023 17:45:57 GMT"
+  },
+  "metadata_observation": {
+    "provider": "Crossref",
+    "retrieval_url": "https://api.crossref.org/works/10.1038/sdata.2016.18",
+    "retrieved_at": "2026-09-02T20:05:00.000Z",
+    "response_path": "source/crossref-response.json",
+    "sha256": "527e5ac7ac3060f080cff6b8cc4df3445a92c2d62a33cee4fb262eb38bee2130"
+  },
+  "rights_evidence": {
+    "license_identifier": "CC-BY-4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "evidence_locations": [
+      "The publisher landing page identifies the article as Creative Commons Attribution 4.0.",
+      "Page 8 of the acquired PDF contains the Creative Commons Attribution 4.0 notice.",
+      "The observed Crossref record associates CC BY 4.0 with both the version of record and text-and-data-mining content."
+    ],
+    "redistribution_permitted_with_attribution": true,
+    "remote_model_egress_enabled": false
+  },
+  "layout_targets": [
+    {
+      "target_id": "box-1-terms-and-abbreviations",
+      "page_number": 2,
+      "expected_kind": "boxed_definition_list",
+      "why": "Exercises separation of boxed material from the surrounding article reading order."
+    },
+    {
+      "target_id": "box-2-fair-guiding-principles",
+      "page_number": 4,
+      "expected_kind": "boxed_hierarchical_list",
+      "why": "Exercises nested labels and ordered principle statements without flattening them into adjacent prose."
+    },
+    {
+      "target_id": "article-body-columns",
+      "page_number": 3,
+      "expected_kind": "multi_column_prose",
+      "why": "Exercises page geometry and reading order on ordinary scientific prose."
+    }
+  ],
+  "source_span_targets": [
+    {
+      "target_id": "broad-machine-actionability-claim",
+      "claim_role": "broad_claim",
+      "page_number": 1,
+      "section_path": ["Abstract"],
+      "exact_text": "the FAIR Principles put specific emphasis on enhancing the ability of machines to automatically find and use the data",
+      "why": "A broad source-reported purpose suitable for exact text-and-geometry grounding."
+    },
+    {
+      "target_id": "principles-not-standard-qualification",
+      "claim_role": "qualification",
+      "page_number": 5,
+      "section_path": ["The Principles precede implementation"],
+      "exact_text": "the Principles are not, themselves, a standard or a specification",
+      "why": "A local qualification that must constrain any stronger summary of the paper."
+    }
+  ],
+  "generated_records": {
+    "generator": "scripts/build-full-text-fixture-records.mjs",
+    "directory": "records",
+    "files": [
+      "actor.json",
+      "artifact-manifest.json",
+      "artifact.json",
+      "authors.json",
+      "external-identifiers.json",
+      "rights-decision.json",
+      "work-version.json",
+      "work.json"
+    ]
+  }
+}

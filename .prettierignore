@@ -7,6 +7,7 @@ dist/
 apps/server/public/
 fixtures/paper-trail/openalex_works.json
 fixtures/paper-trail/source-manifest.json
+fixtures/full-text/fair-guiding-principles/source/crossref-response.json
 node_modules/
 petra_brand_inspiration_kit.zip
 workers/science/uv.lock

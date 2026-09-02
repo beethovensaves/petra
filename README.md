@@ -7,10 +7,11 @@ developer runtime, shared TypeScript/Python contract path, PostgreSQL authority,
 verified S3-compatible Artifact storage, durable interaction history, Hono
 server, React workbench shell, and official AG-UI interaction boundary. M1.3
 adds the frozen Paper Trail retrieval baseline and the PostgreSQL-authorized,
-official-driver Neo4j projection with bounded queries and rebuild. The current
+official-driver Neo4j projection with bounded queries and rebuild. M1.4 has now
+frozen its first lawful, full-text calibration paper and rights record; Docling
+execution and stable SourceSpan generation are in progress. The current
 interaction remains a deterministic boundary fixture, not yet a
-literature-research or model-backed scientific run; lawful full-text ingestion
-is the next implementation slice.
+literature-research or model-backed scientific run.
 
 ## Required software
 
@@ -73,6 +74,8 @@ applied migration's checksum.
 | `npm run db:validate` | Validate available migrations against applied Flyway history. |
 | `npm run db:migrate` | Validate and apply pending forward PostgreSQL migrations. |
 | `npm run contracts:generate` | Regenerate TypeScript declarations from canonical JSON Schema. |
+| `npm run fixtures:generate` | Regenerate deterministic Petra records for the frozen M1.4 full-text fixture. |
+| `npm run fixtures:check-generated` | Verify the full-text source hashes and prove its generated records are current. |
 | `npm run dev` | Run Hono on port 4310 and the Vite workbench on port 4311 with API proxying. |
 | `npm run build` | Compile the server and build the workbench into `apps/server/public`. |
 | `npm start` | Serve the built workbench and Petra HTTP routes from one Node process. |
@@ -139,6 +142,23 @@ Run `npm run test:neo4j:integration` for the disposable cross-database proof.
 For graph shape, Browser inspection queries, limits, and rebuild behavior, see
 the [Neo4j adapter notes](infra/neo4j/README.md) and
 [M1.3 projection report](reports/M1.3-NEO4J-PROJECTION.md).
+
+## Lawful full-text calibration source
+
+M1.4 freezes the exact nine-page publisher PDF of Wilkinson et al. (2016), “The
+FAIR Guiding Principles for scientific data management and stewardship.” The
+article is peer-reviewed and the exact copy is CC BY 4.0. Its 254,899 bytes,
+publisher response metadata, Crossref observation, full 53-author credit list,
+Work/WorkVersion identity, Artifact manifest, and copy-specific RightsDecision
+are checked in and hash-pinned.
+
+The fixture deliberately keeps redistribution rights separate from execution
+authority: CC BY permits the local fixture and attributed redistribution, while
+remote-model egress remains disabled. Its prose, multi-column reading order,
+and two boxed structures provide the Docling calibration target; one broad
+claim and one source-local qualification are frozen for later SourceSpan
+round-trip tests. See the
+[fixture notes](fixtures/full-text/fair-guiding-principles/README.md).
 
 ## Workbench visual baseline
 

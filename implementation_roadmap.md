@@ -1,6 +1,6 @@
 # Petra Implementation Roadmap
 
-Status: M1.3 Paper Trail compatibility and Neo4j projection complete; M1.4 lawful full-text ingestion next
+Status: M1.3 complete; M1.4 lawful full-text fixture complete and Docling worker in progress
 Last updated: 2026-09-02
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
@@ -76,7 +76,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 | `M1.1` | `complete` | Shared runtime and interaction contracts with an in-memory domain kernel | TypeScript, Python, events, jobs, and adapters must agree on identity and authority before persistence | `M1.0` | Cross-language fixtures, stable hashes, invariant and AG-UI mapping tests |
 | `M1.2` | `complete` | PostgreSQL authority, interaction trace, and S3-compatible artifact spine | Petra cannot trust or replay evidence or reconnect interactions without transactional history and immutable bytes | `M1.1` | Repository conformance, domain and interaction replay, artifact verification |
 | `M1.3` | `complete` | Paper Trail regression baseline and Neo4j projection | Petra must demonstrate a real graph while keeping citation and scientific evidence distinct | `M1.2` | Projection replay, assertion trace, baseline retrieval tests |
-| `M1.4` | `planned` | Lawful full-text fixture, Docling worker, and stable SourceSpans | Claims need inspectable source locations rather than metadata or model recollection | `M1.1`, `M1.2` | Reproducible parse, page-level inspection, worker isolation tests |
+| `M1.4` | `in_progress` | Lawful full-text fixture, Docling worker, and stable SourceSpans | Claims need inspectable source locations rather than metadata or model recollection | `M1.1`, `M1.2` | Reproducible parse, page-level inspection, worker isolation tests |
 | `M1.5` | `planned` | Claim proposal, direct and AG-UI-mediated review, ChangeSet, and trusted graph path | Petra's core promise depends on visible promotion and reversible scientific state through one command path | `M1.3`, `M1.4` | Supported promotion, interrupt review, unsupported rejection, correction, reversal |
 | `M1.6` | `planned` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Provenance fast path, validated model response, AG-UI trace, invalidation |
 | `M1.7` | `planned` | Research Brief, evidence view, focused graph, inspector, and Petra interaction client | Researchers need to understand and correct Petra without reading logs, raw tables, or protocol events | `M1.5`, `M1.6` | Cross-view identity, review flow, reconnect, honest async states |
@@ -97,7 +97,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 
 ### Current Petra state
 
-The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries and rebuild; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.3 is complete; M1.4 now owns the first lawful full-text paper and Docling worker.
+The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.3 is complete; M1.4's source-selection work is complete and its Docling worker is next.
 
 The current development environment exposes:
 
@@ -554,7 +554,7 @@ Node and edge updates are serialized through Neo4j projection-head, node-identit
 
 ## M1.4 — lawful full-text fixture and Docling worker
 
-- **Status:** `planned`
+- **Status:** `in_progress`
 - **Builds:** one rights-aware full-text ingestion path, an isolated Docling worker, and stable SourceSpan identities.
 - **Why:** Petra cannot ground detailed Claims in metadata, abstracts, or reconstructed model text.
 - **Depends on:** `M1.1`, `M1.2`.
@@ -565,13 +565,19 @@ Choose one legitimate scholarly paper meeting this fixture specification:
 
 | ID | Status | Fixture specification | Why Petra needs it |
 | --- | --- | --- | --- |
-| `M1.4-W01` | `planned` | Record a stable Work identity and exact version. | Results must identify the paper version actually processed. |
-| `M1.4-W02` | `planned` | Use a full-text PDF Petra may lawfully store and process for the test. | The first detailed Claim must be grounded in accessible source text. |
-| `M1.4-W03` | `planned` | Record redistribution rights, or provide a reproducible acquisition recipe with pinned checksum. | The repository must not trade reproducibility for unlawful redistribution. |
-| `M1.4-W04` | `planned` | Include ordinary paragraphs and at least one layout feature worth validating. | The worker path should test structure, not merely plain-text extraction. |
-| `M1.4-W05` | `planned` | Select text supporting one broad Claim and one source-local limitation or qualification. | The fixture must exercise both assertion and scientific scope. |
+| `M1.4-W01` | `complete` | Freeze Wilkinson et al. (2016), DOI `10.1038/sdata.2016.18`, as a provisional Work with a publisher-version WorkVersion, exact day precision, current Crossref observation, all 53 ordered author credits, DOI/PMID/repository aliases, and a separately recorded 2019 addendum relationship. | Parser, span, and later Claim results now name the exact scholarly version processed without collapsing its addendum, registry observation, or authorship into the PDF filename. |
+| `M1.4-W02` | `complete` | Retain the exact 254,899-byte, nine-page publisher PDF under a content hash and bind it to its WorkVersion through a contract-valid Artifact and ArtifactManifest. | The first detailed Claim can be grounded in the actual full-text bytes rather than an abstract, snippet, or reconstructed passage. |
+| `M1.4-W03` | `complete` | Record CC BY 4.0 evidence from the PDF, publisher, and Crossref; permit attributed local storage, parsing, indexing, quotation, and redistribution; and independently keep remote-model egress disabled. | Reproducibility no longer depends on redistributing an uncertain copy, while a permissive license still does not silently grant a runtime network capability. |
+| `M1.4-W04` | `complete` | Freeze page 3 multi-column prose plus Box 1 and Box 2 on pages 2 and 4 as explicit layout judgments. | The default worker must demonstrate reading order and bounded structure rather than passing on a plain-text-only document. |
+| `M1.4-W05` | `complete` | Freeze an abstract-level machine-actionability statement as the broad Claim target and “not a standard or specification” as a body-text qualification target. | The fixture will test both useful assertion extraction and preservation of source-local force limits. |
 
 The fixture proves the ingestion contract; it does not select Petra's flagship research question.
+
+### Fixture completion evidence
+
+| ID | Status | Executable evidence | Why the evidence is sufficient |
+| --- | --- | --- | --- |
+| `M1.4-EV01` | `pass` | `npm run fixtures:check-generated` verifies the exact PDF and Crossref response hashes and deterministically reproduces eight record files. The contract suite validates the Actor, 53 Authors, Work, WorkVersion, Artifact, ArtifactManifest, RightsDecision, and external identifiers; checks every cross-record identity; and freezes the layout and source-span judgments. | `M1.4-W01`–`M1.4-W05` are inspectable, lawful, and machine-checked before parser installation can transform the source. |
 
 ### Worker boundary
 

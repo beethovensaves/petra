@@ -1,0 +1,15 @@
+{
+  "schema_name": "petra.artifact",
+  "schema_version": "1.0.0",
+  "artifact_id": "artifact_01K45F00000000000000000004",
+  "revision": 1,
+  "artifact_kind": "pdf",
+  "media_type": "application/pdf",
+  "content_hash": "sha256:cdddd9f4808f7e3e1f013139c3915ef4d7cdccb008fa947ef5f72b4c7b6ffde7",
+  "byte_size": 254899,
+  "created_by": {
+    "actor_id": "actor_01K45F00000000000000000001",
+    "actor_kind": "service"
+  },
+  "created_at": "2026-09-02T20:05:00.000Z"
+}

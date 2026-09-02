@@ -1,0 +1,283 @@
+{
+  "schema_name": "petra.work",
+  "schema_version": "1.0.0",
+  "work_id": "work_01K45F00000000000000000002",
+  "revision": 1,
+  "title": "The FAIR Guiding Principles for scientific data management and stewardship",
+  "work_kind": "journal_article",
+  "identity_status": "provisional",
+  "author_credits": [
+    {
+      "author_id": "author_01K45F00000000000000000034",
+      "position": 1,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000035",
+      "position": 2,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000036",
+      "position": 3,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000037",
+      "position": 4,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000038",
+      "position": 5,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000039",
+      "position": 6,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003A",
+      "position": 7,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003B",
+      "position": 8,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003C",
+      "position": 9,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003D",
+      "position": 10,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003E",
+      "position": 11,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003F",
+      "position": 12,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003G",
+      "position": 13,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003H",
+      "position": 14,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003J",
+      "position": 15,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003K",
+      "position": 16,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003M",
+      "position": 17,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003N",
+      "position": 18,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003P",
+      "position": 19,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003Q",
+      "position": 20,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003R",
+      "position": 21,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003S",
+      "position": 22,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003T",
+      "position": 23,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003V",
+      "position": 24,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003W",
+      "position": 25,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003X",
+      "position": 26,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003Y",
+      "position": 27,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000003Z",
+      "position": 28,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000040",
+      "position": 29,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000041",
+      "position": 30,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000042",
+      "position": 31,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000043",
+      "position": 32,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000044",
+      "position": 33,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000045",
+      "position": 34,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000046",
+      "position": 35,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000047",
+      "position": 36,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000048",
+      "position": 37,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F00000000000000000049",
+      "position": 38,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004A",
+      "position": 39,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004B",
+      "position": 40,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004C",
+      "position": 41,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004D",
+      "position": 42,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004E",
+      "position": 43,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004F",
+      "position": 44,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004G",
+      "position": 45,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004H",
+      "position": 46,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004J",
+      "position": 47,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004K",
+      "position": 48,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004M",
+      "position": 49,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004N",
+      "position": 50,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004P",
+      "position": 51,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004Q",
+      "position": 52,
+      "credit_role": "author"
+    },
+    {
+      "author_id": "author_01K45F0000000000000000004R",
+      "position": 53,
+      "credit_role": "author",
+      "corresponding": true
+    }
+  ],
+  "created_by": {
+    "actor_id": "actor_01K45F00000000000000000001",
+    "actor_kind": "service"
+  },
+  "created_at": "2026-09-02T20:05:00.000Z",
+  "updated_at": "2026-09-02T20:05:00.000Z"
+}
