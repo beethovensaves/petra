@@ -56,3 +56,15 @@ per-consumer positions are allocated transactionally, so rollback creates no
 false progress or gaps. Correction, compensating reversal, WorkUnits,
 projection checkpoints, and interaction replay remain closed until their later
 roadmap slices define and test them.
+
+`V007__work_and_projection_control.sql` persists two operational aggregates
+without promoting either into scientific authority. WorkUnits retain immutable
+bounded specifications, exact worker inputs, dependencies, revisioned state,
+resource observations, staged outputs, failure, retry, and cancellation.
+Projection checkpoints retain the authoritative outbox head, contiguous graph
+position, visible freshness, immutable Neo4j attempt receipts, exact projected
+object revisions, and repair state. Both PostgreSQL repositories rehydrate the
+existing in-memory domain engines before every mutation so persistence and
+memory do not acquire different transition semantics. WorkUnit checkpoint
+creation, scheduling leases, interaction replay, and the Neo4j adapter remain
+later slices.
