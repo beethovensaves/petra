@@ -46,3 +46,13 @@ SourceSpan grounding, and validator results cannot be confused with Assertion
 endpoints and provenance edges. A later forward migration owned by the
 ChangeSet slice must explicitly replace the V005 admission restriction before
 reviewed revisions can enter this ledger.
+
+`V006__change_control_event_outbox.sql` opens only the reviewed-promotion path
+proven by the initial ChangeSet contracts. It persists immutable ChangeSets and
+human Approvals, appends trusted Claim and Assertion revisions with exact
+authorization, records the command result and domain event, and enqueues the
+same event for graph and interface projections in one transaction. Global and
+per-consumer positions are allocated transactionally, so rollback creates no
+false progress or gaps. Correction, compensating reversal, WorkUnits,
+projection checkpoints, and interaction replay remain closed until their later
+roadmap slices define and test them.

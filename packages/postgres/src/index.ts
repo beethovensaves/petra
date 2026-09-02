@@ -1,4 +1,5 @@
 export * from "./artifact-authority-repository.js";
+export * from "./change-control-authority-repository.js";
 export * from "./document-authority-repository.js";
 export * from "./evidence-authority-repository.js";
 export * from "./research-scope-repository.js";

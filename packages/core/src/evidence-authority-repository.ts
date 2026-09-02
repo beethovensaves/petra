@@ -3,8 +3,9 @@ import type { PetraAssertion, PetraClaim } from "@petra/contracts";
 /**
  * Storage-neutral authority boundary for scientific evidence records.
  *
- * W05 admits only initial quarantine proposals. Later revisions remain part of
- * the read shape so W06 can append reviewed state without replacing stable IDs.
+ * This port admits only initial quarantine proposals. Reviewed revisions are
+ * appended through ChangeControlAuthorityRepository without replacing stable
+ * evidence IDs, and remain visible through this read shape.
  */
 export interface EvidenceAuthorityRepository {
   proposeClaim(claim: PetraClaim): Promise<PetraClaim>;
