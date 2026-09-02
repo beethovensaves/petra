@@ -16,7 +16,8 @@
   "scripts": {
     "bootstrap": "npm ci && UV_CACHE_DIR=.cache/uv uv sync --project workers/science",
     "build": "npm run build:server && npm run build:workbench",
-    "build:server": "tsc -b",
+    "build:packages": "tsc -b",
+    "build:server": "npm run build:packages",
     "build:workbench": "npm run build --workspace @petra/workbench",
     "check:prerequisites": "node scripts/check-prerequisites.mjs",
     "contracts:check-generated": "npm run generate:check --workspace @petra/contracts",

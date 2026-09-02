@@ -37,13 +37,13 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | --- | --- | --- |
 | Product thesis and scientific contract | Complete | `PETRA.md` |
 | Logical graph and event model | Complete as design | `PETRA_GRAPH_MODEL.md` |
-| Implementation roadmap | M1.2 PostgreSQL authority and artifact spine in progress; see the implementation roadmap for work-item state | `implementation_roadmap.md` |
+| Implementation roadmap | M1.2 PostgreSQL authority and artifact spine complete; M1.3 Paper Trail compatibility and Neo4j projection next | `implementation_roadmap.md` |
 | Design implementation roadmap | UX1.0 foundations and UX1.1 research shell in progress | `design_implementation_roadmap.md` |
-| Source-control boundary | Dedicated `/petra` repository initialized on `main`; initial commit not yet created | `.git/`, `.gitignore`, `implementation_roadmap.md` |
-| Machine-readable schemas | JSON Schema authority accepted; the first Ajv/Python generation, validation, rejection, and canonical-hash smoke path passes | `decisions/D015-language-neutral-runtime-contracts.md`, `packages/contracts/` |
+| Source-control boundary | Dedicated `/petra` repository on `main`, backed by the private `beethovensaves/petra` remote; verified stages are committed and pushed | `.git/`, `.gitignore`, `implementation_roadmap.md` |
+| Machine-readable schemas | JSON Schema authority and the M1.1 contract kernel complete; Ajv/Python parity, generation, rejection, and canonical-hash gates pass | `decisions/D015-language-neutral-runtime-contracts.md`, `packages/contracts/` |
 | Developer runtime | npm and uv verification passes; digest-pinned PostgreSQL, Neo4j, and S3-compatible services pass Compose health and native probes on Docker Desktop | `README.md`, `infra/dev/compose.yaml`, `implementation_roadmap.md` |
 | Migration and integration testing | D016 accepts digest-pinned Flyway OSS with forward-only SQL and a direct disposable Compose harness; the frozen comparison and failure evidence pass | `decisions/D016-flyway-compose-persistence-tooling.md`, `experiments/disc-04/EVIDENCE.md` |
-| Executable event store and graph projection | Not started | — |
+| Executable event store and graph projection | PostgreSQL events, outbox, projection checkpoints, receipts, replay fold, and repair state complete; real Neo4j adapter is M1.3 | `packages/postgres/`, `packages/core/src/authority-event-replay.ts`, `implementation_roadmap.md` |
 | Literature source and rights policy | Complete as design | `decisions/D003-scholarly-discovery-and-rights.md` |
 | Ingestion and claim-extraction pipeline | Complete as design | `decisions/D004-docling-ingestion-and-claim-extraction.md` |
 | Trusted-graph review and direct editing | Complete as design | `decisions/D005-trusted-graph-review-and-direct-editing.md` |

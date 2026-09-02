@@ -69,6 +69,8 @@ const resourceCount = async () => {
 
 let failure;
 try {
+  const build = await requireRun("npm", ["run", "build:packages"]);
+  process.stdout.write(build.stdout);
   await requireRun(
     "docker",
     composeArgs("up", "--detach", "--wait", "artifacts"),

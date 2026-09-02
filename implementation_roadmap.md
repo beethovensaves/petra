@@ -1,7 +1,7 @@
 # Petra Implementation Roadmap
 
-Status: M1.2 PostgreSQL authority and artifact spine in progress
-Last updated: 2026-08-29
+Status: M1.2 complete; M1.3 Paper Trail compatibility and Neo4j projection next
+Last updated: 2026-09-02
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
 Companion documents:
@@ -73,8 +73,8 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 | ID | Status | What Petra builds | Why Petra needs it now | Depends on | Completion evidence |
 | --- | --- | --- | --- | --- | --- |
 | `M1.0` | `complete` | Dedicated repository, reproducible developer runtime, Hono/React shell, and AG-UI interaction scaffold | Every later result needs a controlled source, toolchain, local service boundary, and production interaction contract | Accepted D001–D016 | Clean bootstrap, health checks, cross-language contract smoke test, Hono and AG-UI conformance fixtures |
-| `M1.1` | `in_progress` | Shared runtime and interaction contracts with an in-memory domain kernel | TypeScript, Python, events, jobs, and adapters must agree on identity and authority before persistence | `M1.0` | Cross-language fixtures, stable hashes, invariant and AG-UI mapping tests |
-| `M1.2` | `in_progress` | PostgreSQL authority, interaction trace, and S3-compatible artifact spine | Petra cannot trust or replay evidence or reconnect interactions without transactional history and immutable bytes | `M1.1` | Repository conformance, domain and interaction replay, artifact verification |
+| `M1.1` | `complete` | Shared runtime and interaction contracts with an in-memory domain kernel | TypeScript, Python, events, jobs, and adapters must agree on identity and authority before persistence | `M1.0` | Cross-language fixtures, stable hashes, invariant and AG-UI mapping tests |
+| `M1.2` | `complete` | PostgreSQL authority, interaction trace, and S3-compatible artifact spine | Petra cannot trust or replay evidence or reconnect interactions without transactional history and immutable bytes | `M1.1` | Repository conformance, domain and interaction replay, artifact verification |
 | `M1.3` | `planned` | Paper Trail regression baseline and Neo4j projection | Petra must demonstrate a real graph while keeping citation and scientific evidence distinct | `M1.2` | Projection replay, assertion trace, baseline retrieval tests |
 | `M1.4` | `planned` | Lawful full-text fixture, Docling worker, and stable SourceSpans | Claims need inspectable source locations rather than metadata or model recollection | `M1.1`, `M1.2` | Reproducible parse, page-level inspection, worker isolation tests |
 | `M1.5` | `planned` | Claim proposal, direct and AG-UI-mediated review, ChangeSet, and trusted graph path | Petra's core promise depends on visible promotion and reversible scientific state through one command path | `M1.3`, `M1.4` | Supported promotion, interrupt review, unsupported rejection, correction, reversal |
@@ -97,21 +97,21 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 
 ### Current Petra state
 
-The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. The authoritative event-store migrations remain unimplemented until the M1.1 contracts define the records they must preserve.
+The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.3 now owns the first real Neo4j projection and Paper Trail compatibility baseline.
 
 The current development environment exposes:
 
 - Node.js 24.20.0 and npm 11.19.0;
 - Python 3.13.7 and `uv` 0.12.5;
-- no detected `pnpm` command;
-- Docker Desktop with Docker 29.7.2 and Compose 5.4.0;
-- no detected Neo4j command or Java runtime.
+- no required `pnpm` command;
+- Docker Desktop with Docker 29.7.2 and Compose 5.4.0; and
+- PostgreSQL, Neo4j, SeaweedFS, and Flyway supplied through pinned containers rather than host installations.
 
 These observations describe the current machine, not Petra's supported-runtime policy. Bootstrap work must pin supported versions rather than relying on whichever versions happen to be installed.
 
 ### Source-control boundary
 
-The source-control boundary is resolved. `/Users/felipe.casadei/vscode/graphRAG/petra` is a dedicated Git repository on branch `main`. A Petra-specific `.gitignore` excludes dependencies, build products, Python environments, secrets, runtime state, service volumes, and logs. No initial commit has been created.
+The source-control boundary is resolved. `/Users/felipe.casadei/vscode/graphRAG/petra` is a dedicated Git repository on branch `main`, backed by the private `beethovensaves/petra` remote. A Petra-specific `.gitignore` excludes dependencies, build products, Python environments, secrets, runtime state, service volumes, and logs. Implementation stages are committed and pushed only after their verification gates pass.
 
 The parent repository rooted at `/Users/felipe.casadei/vscode` still contains unrelated modified, deleted, and untracked files. Petra commands must run with `/petra` as their repository root and must not stage, commit, reset, clean, or otherwise mutate the parent worktree.
 
@@ -402,7 +402,7 @@ Implement these rules in memory before persistence:
 
 ## M1.2 — PostgreSQL authority and artifact spine
 
-- **Status:** `in_progress`
+- **Status:** `complete`
 - **Builds:** Petra's transactional research ledger, append-only event path, outbox, and immutable S3-compatible artifact storage.
 - **Why:** Neo4j and the interface need a replayable authority, while scientific sources and outputs need durable content identity.
 - **Depends on:** `M1.1`.
@@ -467,12 +467,18 @@ The persisted M1 runtime uses the accepted S3-compatible adapter against Petra's
 
 | ID | Acceptance specification |
 | --- | --- |
-| `M1.2-AC01` | The in-memory domain tests pass unchanged against PostgreSQL repositories. |
+| `M1.2-AC01` | Canonical accepted inputs and the invariant scenarios proven in memory pass unchanged through the PostgreSQL repository ports; database durability checks remain additive. |
 | `M1.2-AC02` | Replaying accepted events reconstructs the same active revisions. |
 | `M1.2-AC03` | Repeating a command with the same idempotency key cannot duplicate an event or Artifact reference. |
 | `M1.2-AC04` | PostgreSQL cannot point to an Artifact that failed storage verification. |
 | `M1.2-AC05` | A database transaction failure leaves no partially trusted Claim or Assertion. |
-| `M1.2-AC06` | Replaying an interaction stream restores its interface projection but cannot create or alter authoritative domain state. |
+| `M1.2-AC06` | Replaying an ordered interaction stream restores its run, event, interrupt, and delivery projection but cannot create or alter authoritative domain state. |
+
+### Closeout evidence
+
+| ID | Status | Observed implementation evidence | Consequence |
+| --- | --- | --- | --- |
+| `M1.2-EV10` | `pass` | All eight forward-only migrations and nine storage-neutral repository boundaries accept the same canonical contract records used by the in-memory kernel; document, WorkUnit, graph-projection, and interaction repositories additionally rehydrate their exact core state machines before committing. A four-case `replayScientificAuthority` suite folds a complete Project stream into exact trusted Claim and Assertion heads and fails on stream gaps, cross-Project records, noncontiguous revisions, and duplicate events; the PostgreSQL ChangeSet test compares that replay directly with current authoritative reads. Existing real-database cases prove command/Artifact idempotency, rollback without partial evidence, and non-authoritative interaction replay. Both standalone integration commands now build current workspace packages before Docker, removing dependence on stale compiled output. All 42 PostgreSQL integration tests and the full gate—207 contract, 129 core, two always-on S3, 11 server, and 14 Python tests—pass; the seven-case real S3 suite passes separately. | `M1.2-AC01`–`M1.2-AC06` and the slice are complete. M1.3 can delete and rebuild Neo4j from a validated PostgreSQL/outbox stream while comparing projected revisions with the same deterministic authority fold. |
 
 ## M1.3 — Paper Trail compatibility and Neo4j projection
 

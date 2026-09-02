@@ -22,6 +22,7 @@ import type {
   PersistDocumentBundleInput,
   PersistVerifiedArtifactInput,
 } from "@petra/core";
+import { replayScientificAuthority } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -386,6 +387,16 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     ]);
     expect(events.map((event) => event.event_position)).toEqual([1, 2, 3]);
     expect(events.map((event) => event.stream_revision)).toEqual([1, 2, 3]);
+
+    const replayedAuthority = replayScientificAuthority(
+      commands.submit.project_id,
+      events,
+    );
+    expect(replayedAuthority.claims).toEqual([trustedClaim]);
+    expect(replayedAuthority.assertions).toEqual([trustedAssertion]);
+    expect(replayedAuthority.appliedChangeSetIds).toEqual([
+      applied.change_set_id,
+    ]);
 
     const interfaceOutbox = await repository.getOutboxRecords({
       projectId: commands.submit.project_id,

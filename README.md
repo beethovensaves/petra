@@ -2,11 +2,12 @@
 
 > Where hypotheses earn their edges.
 
-Petra is a graph-native scientific research workbench. M1.0 now supplies the
-developer runtime, shared TypeScript/Python contract path, local persistence
-stack, Hono server, React workbench shell, and official AG-UI interaction
-boundary. The current interaction is a deterministic boundary fixture, not yet
-a literature-research or model-backed scientific run.
+Petra is a graph-native scientific research workbench. M1.0–M1.2 now supply the
+developer runtime, shared TypeScript/Python contract path, PostgreSQL authority,
+verified S3-compatible Artifact storage, durable interaction history, Hono
+server, React workbench shell, and official AG-UI interaction boundary. The
+current interaction is a deterministic boundary fixture, not yet a
+literature-research or model-backed scientific run.
 
 ## Required software
 
@@ -50,10 +51,11 @@ npm run verify
 
 `services:up` starts PostgreSQL, Neo4j, and the S3-compatible artifact service,
 then waits for their health checks. `db:migrate` runs the separately selected,
-digest-pinned Flyway OSS profile. M1.2's first migrations establish immutable
-Actor records, revisioned Project scope, and the canonical Author → Work →
-WorkVersion → ExternalIdentifier path; later migrations extend the ledger
-without changing an applied migration's checksum.
+digest-pinned Flyway OSS profile. Eight M1.2 migrations establish immutable
+research scope, scholarly identity, Artifact and document authority, evidence,
+ChangeSets, events and outbox records, durable work and projection control, and
+interaction history. Later migrations extend the ledger without changing an
+applied migration's checksum.
 
 ## Daily commands
 
@@ -71,7 +73,7 @@ without changing an applied migration's checksum.
 | `npm run dev` | Run Hono on port 4310 and the Vite workbench on port 4311 with API proxying. |
 | `npm run build` | Compile the server and build the workbench into `apps/server/public`. |
 | `npm start` | Serve the built workbench and Petra HTTP routes from one Node process. |
-| `npm run test` | Run contract, server-conformance, and Python tests. |
+| `npm run test` | Run contract, core, always-on S3, server-conformance, and Python tests. |
 | `npm run test:server` | Run `D014-HC01`–`D014-HC10` against a real local Hono listener. |
 | `npm run test:postgres:integration` | Migrate a disposable PostgreSQL instance, test the typed repository, validate Flyway history, and remove every labeled resource. |
 | `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
