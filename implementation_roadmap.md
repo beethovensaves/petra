@@ -1,6 +1,6 @@
 # Petra Implementation Roadmap
 
-Status: M1.2 complete; M1.3 Paper Trail compatibility complete and Neo4j projection in progress
+Status: M1.3 Paper Trail compatibility and Neo4j projection complete; M1.4 lawful full-text ingestion next
 Last updated: 2026-09-02
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
@@ -75,7 +75,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 | `M1.0` | `complete` | Dedicated repository, reproducible developer runtime, Hono/React shell, and AG-UI interaction scaffold | Every later result needs a controlled source, toolchain, local service boundary, and production interaction contract | Accepted D001–D016 | Clean bootstrap, health checks, cross-language contract smoke test, Hono and AG-UI conformance fixtures |
 | `M1.1` | `complete` | Shared runtime and interaction contracts with an in-memory domain kernel | TypeScript, Python, events, jobs, and adapters must agree on identity and authority before persistence | `M1.0` | Cross-language fixtures, stable hashes, invariant and AG-UI mapping tests |
 | `M1.2` | `complete` | PostgreSQL authority, interaction trace, and S3-compatible artifact spine | Petra cannot trust or replay evidence or reconnect interactions without transactional history and immutable bytes | `M1.1` | Repository conformance, domain and interaction replay, artifact verification |
-| `M1.3` | `in_progress` | Paper Trail regression baseline and Neo4j projection | Petra must demonstrate a real graph while keeping citation and scientific evidence distinct | `M1.2` | Projection replay, assertion trace, baseline retrieval tests |
+| `M1.3` | `complete` | Paper Trail regression baseline and Neo4j projection | Petra must demonstrate a real graph while keeping citation and scientific evidence distinct | `M1.2` | Projection replay, assertion trace, baseline retrieval tests |
 | `M1.4` | `planned` | Lawful full-text fixture, Docling worker, and stable SourceSpans | Claims need inspectable source locations rather than metadata or model recollection | `M1.1`, `M1.2` | Reproducible parse, page-level inspection, worker isolation tests |
 | `M1.5` | `planned` | Claim proposal, direct and AG-UI-mediated review, ChangeSet, and trusted graph path | Petra's core promise depends on visible promotion and reversible scientific state through one command path | `M1.3`, `M1.4` | Supported promotion, interrupt review, unsupported rejection, correction, reversal |
 | `M1.6` | `planned` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Provenance fast path, validated model response, AG-UI trace, invalidation |
@@ -97,7 +97,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 
 ### Current Petra state
 
-The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.3 now owns the first real Neo4j projection; its Paper Trail compatibility work is complete.
+The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries and rebuild; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.3 is complete; M1.4 now owns the first lawful full-text paper and Docling worker.
 
 The current development environment exposes:
 
@@ -482,7 +482,7 @@ The persisted M1 runtime uses the accepted S3-compatible adapter against Petra's
 
 ## M1.3 — Paper Trail compatibility and Neo4j projection
 
-- **Status:** `in_progress`
+- **Status:** `complete`
 - **Builds:** a frozen retrieval regression baseline plus Petra's first real graph projection and bounded graph queries.
 - **Why:** Petra must demonstrate graph-native retrieval without confusing source citations, derived paths, and scientific evidence.
 - **Depends on:** `M1.2`.
@@ -518,29 +518,39 @@ Implement the outbox projector and bounded graph-query ports:
 
 | ID | Status | Build specification | Why Petra needs it |
 | --- | --- | --- | --- |
-| `M1.3-W09` | `planned` | Project Work and WorkVersion nodes. | The graph needs canonical scholarly objects with explicit versions. |
-| `M1.3-W10` | `planned` | Project Artifact and SourceSpan inspection identities. | A graph relation must lead back to inspectable source evidence. |
-| `M1.3-W11` | `planned` | Project Claim nodes. | Scientific propositions need explicit, reusable graph identity. |
-| `M1.3-W12` | `planned` | Project accepted Assertion relationships with Assertion IDs. | Every scientific edge must resolve to PostgreSQL authority. |
-| `M1.3-W13` | `planned` | Project source-native `CITES` separately from evidence relations. | Literature dialogue and epistemic support require different semantics. |
-| `M1.3-W14` | `planned` | Project revision, trust-zone, review, and projection-position metadata. | Users and services need to see whether a graph object is current and trusted. |
-| `M1.3-W15` | `planned` | Query an object by stable identity. | All focused graph work begins with canonical lookup. |
-| `M1.3-W16` | `planned` | Query an immediate typed neighborhood. | The workbench needs an explainable local graph, not an unbounded corpus view. |
-| `M1.3-W17` | `planned` | Query an exact provenance path. | Common inspection should be fast and require no LLM call. |
-| `M1.3-W18` | `planned` | Query evidence relations around one Claim. | Petra must present support, challenge, qualification, and absence locally. |
-| `M1.3-W19` | `planned` | Query a bounded citation path. | Literature lineage must remain navigable with controlled cost. |
-| `M1.3-W20` | `planned` | Report projection revision and lag. | Stale graph state must be observable rather than silently displayed as current. |
+| `M1.3-W09` | `complete` | Resolve each applied graph outbox record through authoritative repositories and materialize globally keyed `Work` and `WorkVersion` nodes plus an explicit `VERSION_OF` edge, retaining record hash, exact authoritative revision, publication status/date precision, metadata source, and projection identity. | The graph needs canonical scholarly identity and explicit version semantics so retrieval never treats a preprint, accepted manuscript, and version of record as interchangeable text blobs. |
+| `M1.3-W10` | `complete` | Materialize immutable `Artifact` and `SourceSpan` nodes with `REPRESENTED_BY` and `LOCATED_IN` structure, content/selection hashes, page/section selectors, parser identity, and verification state; do not duplicate selected source text into Neo4j. | Every graph-grounded claim must lead to an inspectable byte and selector identity while rights-sensitive content remains governed by Artifact access rather than copied into a convenient read model. |
+| `M1.3-W11` | `complete` | Materialize the exact outbox-embedded, PostgreSQL-matched `Claim` revision with canonical text, Claim kind, scope JSON, source depth, detail level, authority zone, review state, record hash, and Project membership. | A proposition needs a stable visible graph identity with enough force and scope metadata to guide retrieval without asking an LLM to reconstruct what the Claim means. |
+| `M1.3-W12` | `complete` | Materialize the accepted `ASSERTS` Assertion as a native typed Neo4j relationship whose `assertion_id`, revision, record hash, endpoint IDs, Assertion kind, rationale, provenance SourceSpan IDs, trust zone, and review state match PostgreSQL exactly. | A visible edge is useful only if it can resolve to the precise reviewed authority record and cannot hide its origin or current epistemic status. |
+| `M1.3-W13` | `complete` | Support PostgreSQL-registered source-native `CITES` relationships as a distinct `bibliographic` relation class and prove that focused evidence queries exclude them; the ordinary applied-ChangeSet projector remains limited to its current reviewed `ASSERTS` event contract until ingestion emits citation outbox records. | Bibliographic dialogue is valuable graph structure but cannot acquire `SUPPORTS`, `CONTRADICTS`, or other scientific force merely by being traversed or displayed. |
+| `M1.3-W14` | `complete` | Attach stable IDs, authoritative revisions, record hashes, projection name/version/configuration hash, event and outbox positions, Project scope, relation class, trust zone, and review state to the applicable nodes, relationships, and projection head. | Users and services must be able to distinguish current trusted state, visible quarantine state, structural projection edges, and stale read-model state without consulting logs. |
+| `M1.3-W15` | `complete` | Query a scoped node by stable Petra ID or a relationship by Assertion ID and return one normalized, storage-neutral object view with revision, hash, endpoints, semantic class, and visible properties. | Focused graph work begins with canonical lookup, and the application must not expose Neo4j driver objects or Cypher-specific integers to product code. |
+| `M1.3-W16` | `complete` | Query a deterministically ordered immediate neighborhood with explicit incoming, outgoing, or either direction; optional predicate allowlist; Project isolation; and a validated limit of 1–100. | The workbench and fast path need explainable local context with predictable latency and cost, not an unbounded graph dump. |
+| `M1.3-W17` | `complete` | Query the exact `Work → WorkVersion → ASSERTS → Claim → SourceSpan → Artifact` provenance structure for one Assertion ID, returning the typed relationship and inspectable node identities. | Common “where did this come from?” questions should resolve deterministically without model latency or a prose-only provenance explanation. |
+| `M1.3-W18` | `complete` | Query only allowlisted scientific relationships around one Claim, preserve Assertion IDs and direction, cap results to 100, and return an honest empty list when no support, contradiction, or qualification is represented. | Petra must show both evidence and its absence locally while excluding citations, structural edges, and fluent model guesses from the evidence view. |
+| `M1.3-W19` | `complete` | Traverse directed `CITES` and `CITES_AS_BACKGROUND` edges across WorkVersion-to-Work steps with deterministic breadth-first search and a validated one-to-six citation bound. | Literature lineage must remain navigable and fast without reversing citation direction or allowing corpus-scale accidental traversal. |
+| `M1.3-W20` | `complete` | Compare Neo4j's exact Project/projection head with an observed PostgreSQL target sequence and return projected sequence, event and stream revision, pending count, and `current`, `catching_up`, or `ahead_invalid` state. | Projection lag and impossible ahead-of-authority state must be visible before any graph-dependent answer treats the read model as current. |
+
+`@petra/neo4j` pins the official `neo4j-driver` `6.2.0`. It uses only Community-compatible constraints, indexes, Cypher, and bookmarks; no APOC or Graph Data Science plugin is required for the M1.3 graph.
+
+Node and edge updates are serialized through Neo4j projection-head, node-identity, and edge-identity locks. A lower authoritative revision fails the transaction, an equal revision must retain the same record hash and endpoints, and a target sequence must be exactly contiguous. This protects shared scholarly nodes even when two Project streams project concurrently.
+
+### Neo4j completion evidence
+
+| ID | Status | Executable evidence | Why the evidence is sufficient |
+| --- | --- | --- | --- |
+| `M1.3-EV02` | `pass` | A unique disposable Compose stack runs PostgreSQL 18.6, all eight Flyway migrations, and Neo4j Community 2026.07.1. Through the real PostgreSQL repositories, the test registers Project → Work → WorkVersion → verified Artifact → SourceSpan → quarantined Claim/Assertion, executes submit → human approval → apply, consumes the exact `neo4j_graph` outbox record, commits the official-driver Neo4j transaction, and only then records its bookmark receipt and advances PostgreSQL. It verifies stable object lookup, typed neighborhood, exact provenance, absent source text, PostgreSQL hash parity for `ASSERTS`, separately registered `CITES` and `SUPPORTS` semantics, bounded citation and evidence queries, current/catching-up/ahead-invalid freshness, exact retry, stale-revision rollback without head advance, complete Project deletion, and rebuild with the same active Assertion ID. All three Neo4j cases pass under the real-service command, and every labeled container, network, and volume is removed. Three always-on core graph-batch cases and the repository gate also pass. | `M1.3-W09`–`M1.3-W20` and `M1.3-AC02`–`M1.3-AC06` are exercised across the actual ledger, driver, graph engine, and checkpoint boundary rather than a mock. The conformance-only `CITES` and `SUPPORTS` batch uses real PostgreSQL proposal records but does not claim that the current applied-ChangeSet command emits citation events; that remains an ingestion responsibility. |
 
 ### Exit gate
 
-| ID | Acceptance specification |
-| --- | --- |
-| `M1.3-AC01` | The Paper Trail regression suite passes against Petra's fixture adapter. |
-| `M1.3-AC02` | Every projected scientific relationship resolves to its PostgreSQL Assertion. |
-| `M1.3-AC03` | `CITES` never appears as `SUPPORTS`. |
-| `M1.3-AC04` | Reprocessing an outbox record is idempotent. |
-| `M1.3-AC05` | A stale projection record cannot overwrite a newer revision. |
-| `M1.3-AC06` | Neo4j can be deleted and rebuilt from PostgreSQL without changing active Assertion IDs. |
+| ID | Status | Acceptance specification |
+| --- | --- | --- |
+| `M1.3-AC01` | `pass` | The Paper Trail regression suite passes against Petra's fixture adapter. |
+| `M1.3-AC02` | `pass` | Every projected scientific relationship resolves to its PostgreSQL Assertion. |
+| `M1.3-AC03` | `pass` | `CITES` never appears as `SUPPORTS`. |
+| `M1.3-AC04` | `pass` | Reprocessing an outbox record is idempotent. |
+| `M1.3-AC05` | `pass` | A stale projection record cannot overwrite a newer revision. |
+| `M1.3-AC06` | `pass` | Neo4j can be deleted and rebuilt from PostgreSQL without changing active Assertion IDs. |
 
 ## M1.4 — lawful full-text fixture and Docling worker
 

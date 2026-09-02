@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/contracts" },
     { "path": "packages/core" },
+    { "path": "packages/neo4j" },
     { "path": "packages/postgres" },
     { "path": "packages/retrieval" },
     { "path": "packages/s3" },

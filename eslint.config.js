@@ -38,6 +38,7 @@ export default tseslint.config(
           allowDefaultProject: [
             "packages/contracts/*.ts",
             "packages/core/vitest.config.ts",
+            "packages/neo4j/vitest.config.ts",
             "packages/postgres/vitest.config.ts",
             "packages/retrieval/vitest.config.ts",
             "packages/s3/vitest.config.ts",

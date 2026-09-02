@@ -6,9 +6,11 @@ Petra is a graph-native scientific research workbench. M1.0–M1.2 now supply th
 developer runtime, shared TypeScript/Python contract path, PostgreSQL authority,
 verified S3-compatible Artifact storage, durable interaction history, Hono
 server, React workbench shell, and official AG-UI interaction boundary. M1.3
-adds the frozen Paper Trail retrieval baseline while its real Neo4j projection
-is being built. The current interaction remains a deterministic boundary
-fixture, not yet a literature-research or model-backed scientific run.
+adds the frozen Paper Trail retrieval baseline and the PostgreSQL-authorized,
+official-driver Neo4j projection with bounded queries and rebuild. The current
+interaction remains a deterministic boundary fixture, not yet a
+literature-research or model-backed scientific run; lawful full-text ingestion
+is the next implementation slice.
 
 ## Required software
 
@@ -78,6 +80,7 @@ applied migration's checksum.
 | `npm run test:retrieval` | Run the exact Paper Trail lexical, citation-direction, bounded-path, and scientific-semantics regression baseline. |
 | `npm run test:server` | Run `D014-HC01`–`D014-HC10` against a real local Hono listener. |
 | `npm run test:postgres:integration` | Migrate a disposable PostgreSQL instance, test the typed repository, validate Flyway history, and remove every labeled resource. |
+| `npm run test:neo4j:integration` | Migrate disposable PostgreSQL, project reviewed authority through real Neo4j, exercise bounded queries/rebuild, and remove every labeled resource. |
 | `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
 | `npm run test:integration` | Run Vitest and pytest against disposable real services, then delete the stack. |
 | `npm run measure:m1-boundary` | Rebuild and measure the isolated browser cost of Petra's AG-UI client boundary. |
@@ -114,6 +117,28 @@ evidence, inspectable SourceSpans, and the scientific-authority review path.
 Exact provenance, hashes, limits, and preserved behavior are recorded in the
 [Paper Trail fixture notes](fixtures/paper-trail/README.md) and
 [M1.3 baseline report](reports/M1.3-PAPER-TRAIL-BASELINE.md).
+
+## Neo4j projection proof
+
+`@petra/neo4j` uses the official `neo4j-driver` behind Petra's storage-neutral
+graph-store and query ports. The production projector accepts only the next
+PostgreSQL `neo4j_graph` outbox record, resolves its exact authoritative
+dependencies, commits Neo4j, and then records the backend receipt and advances
+the PostgreSQL checkpoint. Exact retries converge; gaps, changed identities,
+and stale revisions fail closed.
+
+The read model exposes Work, WorkVersion, Artifact, SourceSpan, Claim, and
+Project nodes; visible typed provenance and Assertion relationships; stable
+Petra IDs, revisions, hashes, trust/review state, and projection positions; and
+bounded identity, neighborhood, provenance, evidence, citation, and freshness
+queries. Neo4j stores SourceSpan selectors and hashes, not selected source text.
+`CITES` is a bibliographic class and is excluded from scientific-evidence
+queries.
+
+Run `npm run test:neo4j:integration` for the disposable cross-database proof.
+For graph shape, Browser inspection queries, limits, and rebuild behavior, see
+the [Neo4j adapter notes](infra/neo4j/README.md) and
+[M1.3 projection report](reports/M1.3-NEO4J-PROJECTION.md).
 
 ## Workbench visual baseline
 

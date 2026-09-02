@@ -94,7 +94,7 @@ const identitiesMatch = (
   right: ProjectionIdentity,
 ): boolean => canonicalize(left) === canonicalize(right);
 
-const outboxReference = (
+export const graphProjectionOutboxReference = (
   outbox: PetraOutboxRecord,
 ): PetraGraphProjectionRecord["content"]["outbox_ref"] => ({
   outbox_id: outbox.outbox_id,
@@ -109,7 +109,7 @@ const observedHead = (
   outbox: PetraOutboxRecord,
   observedAt: string,
 ): PetraProjectionCheckpoint["content"]["observed_head"] => ({
-  ...outboxReference(outbox),
+  ...graphProjectionOutboxReference(outbox),
   observed_at: observedAt,
 });
 
@@ -118,7 +118,9 @@ const positionSequence = (
     PetraProjectionCheckpoint | DeepReadonly<PetraProjectionCheckpoint>,
 ): number => checkpoint.content.position.target_sequence;
 
-const expectedEffect = (outbox: PetraOutboxRecord): ProjectionEffect => {
+export const graphProjectionEffectForOutbox = (
+  outbox: PetraOutboxRecord,
+): ProjectionEffect => {
   const event = outbox.message.event;
   if (event.event.event_type !== "change_set.applied") {
     throw new GraphProjectionError(
@@ -305,7 +307,8 @@ export class InMemoryGraphProjectionRegistry {
         stream_revision: currentHead.stream_revision,
       };
       if (
-        canonicalize(outboxReference(outbox)) !== canonicalize(comparableHead)
+        canonicalize(graphProjectionOutboxReference(outbox)) !==
+        canonicalize(comparableHead)
       ) {
         throw new GraphProjectionError(
           "PROJECTION_OUTBOX_REFERENCE_MISMATCH",
@@ -477,7 +480,7 @@ export class InMemoryGraphProjectionRegistry {
     }
     if (
       canonicalize(record.content.outbox_ref) !==
-      canonicalize(outboxReference(outbox))
+      canonicalize(graphProjectionOutboxReference(outbox))
     ) {
       throw new GraphProjectionError(
         "PROJECTION_OUTBOX_REFERENCE_MISMATCH",
@@ -514,7 +517,10 @@ export class InMemoryGraphProjectionRegistry {
         "The projection effect hash does not identify its exact canonical effect.",
       );
     }
-    if (canonicalize(outcome.effect) !== canonicalize(expectedEffect(outbox))) {
+    if (
+      canonicalize(outcome.effect) !==
+      canonicalize(graphProjectionEffectForOutbox(outbox))
+    ) {
       throw new GraphProjectionError(
         "PROJECTION_EFFECT_MISMATCH",
         "The graph effect must exactly reproduce the revisions embedded in the applied event.",
