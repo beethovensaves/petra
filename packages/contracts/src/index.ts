@@ -68,6 +68,16 @@ export type {
 } from "./generated/source-span.js";
 export type { PetraDocumentParseBundle } from "./generated/document-parse-bundle.js";
 export type {
+  Candidate as EvidenceProposalCandidate,
+  DeterministicExtraction as DeterministicEvidenceExtraction,
+  Diagnostic as EvidenceProposalDiagnostic,
+  ExtractionIdentity as EvidenceExtractionIdentity,
+  ModelExtraction as ModelEvidenceExtraction,
+  PetraEvidenceProposalBundle,
+  SourceIdentity as EvidenceProposalSourceIdentity,
+  SourceQuote as EvidenceProposalSourceQuote,
+} from "./generated/evidence-proposal-bundle.js";
+export type {
   ClaimBasis,
   Derivation as ClaimDerivation,
   PetraClaim,

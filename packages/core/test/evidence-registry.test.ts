@@ -57,6 +57,35 @@ const expectProposalCode = (operation: () => unknown, code: string): void => {
 };
 
 describe("Claim and Assertion quarantine proposals", () => {
+  it("registers a Claim and Assertion pair atomically", () => {
+    const { registry, claim, assertion } = setup();
+
+    const stored = registry.proposeEvidencePair({ claim, assertion });
+
+    expect(stored.claim.claim_id).toBe(claim.claim_id);
+    expect(stored.assertion.assertion_id).toBe(assertion.assertion_id);
+    expect(registry.claimCount).toBe(1);
+    expect(registry.assertionCount).toBe(1);
+  });
+
+  it("rolls back the Claim when its paired Assertion is invalid", () => {
+    const { registry, claim, assertion } = setup();
+    const provenance = assertion.provenance_refs.find(
+      (value) => value.provenance_kind === "source_span",
+    );
+    if (provenance?.provenance_kind !== "source_span") {
+      throw new Error("Bad fixture");
+    }
+    provenance.source_span_id = "source_span_00000000000000000000000000";
+
+    expectProposalCode(
+      () => registry.proposeEvidencePair({ claim, assertion }),
+      "SOURCE_SPAN_NOT_REGISTERED",
+    );
+    expect(registry.claimCount).toBe(0);
+    expect(registry.assertionCount).toBe(0);
+  });
+
   it("registers immutable source evidence in quarantine", () => {
     const { registry, claim, assertion } = setup();
 

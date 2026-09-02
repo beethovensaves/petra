@@ -1,6 +1,9 @@
+import { createHash } from "node:crypto";
+
 const PETRA_ID_PATTERN = /^([a-z][a-z0-9_]{1,31})_([0-9A-HJKMNP-TV-Z]{26})$/;
 const PETRA_KIND_PATTERN = /^[a-z][a-z0-9_]{1,31}$/;
 const ULID_PATTERN = /^[0-9A-HJKMNP-TV-Z]{26}$/;
+const CROCKFORD_BASE32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
 declare const petraIdBrand: unique symbol;
 
@@ -41,6 +44,23 @@ export const createPetraId = <Kind extends string>(
     );
   }
   return `${kind}_${ulid}` as PetraId<Kind>;
+};
+
+export const derivePetraId = <Kind extends string>(
+  kind: Kind,
+  immutableIdentity: string,
+): PetraId<Kind> => {
+  const digest = createHash("sha256")
+    .update(`${kind}:${immutableIdentity}`, "utf8")
+    .digest()
+    .subarray(0, 16);
+  let value = BigInt(`0x${digest.toString("hex")}`);
+  let payload = "";
+  for (let index = 0; index < 26; index += 1) {
+    payload = CROCKFORD_BASE32[Number(value & 31n)] + payload;
+    value >>= 5n;
+  }
+  return createPetraId(kind, payload);
 };
 
 export const parsePetraId = <Kind extends string>(

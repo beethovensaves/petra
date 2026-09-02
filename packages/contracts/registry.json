@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.13.0",
+  "registry_version": "1.14.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -164,6 +164,17 @@
       "canonical_sha256": "sha256:331fea5e80f94d85f87887b5e37f424339cd6bc8d589a44785a3da1d8ee9e407",
       "generate_typescript": true,
       "typescript_path": "src/generated/document-parse-bundle.ts"
+    },
+    {
+      "name": "evidence-proposal-bundle",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/evidence-proposal-bundle/1.0.0/schema.json",
+      "path": "schemas/evidence-proposal-bundle/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:0b454a89403ed8a600e3c79340b6f57263c7a01854dab9f3f5305e0e90da0115",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/evidence-proposal-bundle.ts"
     },
     {
       "name": "claim",

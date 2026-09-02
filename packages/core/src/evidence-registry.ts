@@ -682,6 +682,24 @@ export class InMemoryEvidenceRegistry {
     return registered;
   }
 
+  proposeEvidencePair(input: {
+    readonly claim: PetraClaim;
+    readonly assertion: PetraAssertion;
+  }): {
+    readonly claim: DeepReadonly<PetraClaim>;
+    readonly assertion: DeepReadonly<PetraAssertion>;
+  } {
+    const snapshot = this.#captureAuthorityTransaction();
+    try {
+      const claim = this.proposeClaim(input.claim);
+      const assertion = this.proposeAssertion(input.assertion);
+      return immutableCopy({ claim, assertion });
+    } catch (error) {
+      this.#restoreAuthorityTransaction(snapshot);
+      throw error;
+    }
+  }
+
   #proposalResolver(): EvidenceProposalResolver {
     return {
       getSourceSpan: (sourceSpanId) =>

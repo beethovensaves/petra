@@ -992,6 +992,94 @@ class PetraAssertion(PetraModel):
     created_by: ActorRef
 
 
+class EvidenceProposalSourceIdentity(PetraModel):
+    document_parse_bundle_id: str
+    parsed_document_id: str
+    source_artifact_id: str
+    source_artifact_content_hash: str
+    work_version_id: str
+    source_scope: Literal["full_text", "abstract_only"]
+
+
+class DeterministicEvidenceExtraction(PetraModel):
+    extraction_kind: Literal["deterministic_mapping"]
+    extraction_run_id: str
+    extractor: VersionedComponent
+    recipe_hash: str
+    started_at: str
+    completed_at: str
+
+
+class EvidenceContextPacketRef(PetraModel):
+    context_packet_id: str
+    content_hash: str
+
+
+class ModelEvidenceExtraction(PetraModel):
+    extraction_kind: Literal["model_extraction"]
+    extraction_run_id: str
+    extractor: VersionedComponent
+    recipe_hash: str
+    model_request_id: str
+    model_call_id: str
+    model_deployment: str
+    prompt_profile: VersionedComponent
+    prompt_hash: str
+    parameters_hash: str
+    context_packet_ref: EvidenceContextPacketRef
+    started_at: str
+    completed_at: str
+
+
+class EvidenceProposalSourceQuote(PetraModel):
+    exact_text: str
+    selected_text_hash: str
+    source_span_ids: list[str]
+
+
+class EvidenceProposalDiagnostic(PetraModel):
+    code: str
+    severity: Literal["info", "warning", "error"]
+    message: str
+    candidate_id: str | None = None
+
+
+class EvidenceProposalCandidate(PetraModel):
+    candidate_id: str
+    proposal_role: Literal[
+        "primary",
+        "qualification",
+        "limitation",
+        "method",
+        "result",
+        "negative_control",
+        "other",
+    ]
+    source_quote: EvidenceProposalSourceQuote
+    claim: PetraClaim
+    assertion: PetraAssertion
+    warnings: list[EvidenceProposalDiagnostic]
+
+
+class EvidenceProposalContent(PetraModel):
+    project_id: str
+    source: EvidenceProposalSourceIdentity
+    extraction: DeterministicEvidenceExtraction | ModelEvidenceExtraction
+    candidates: list[EvidenceProposalCandidate]
+    diagnostics: list[EvidenceProposalDiagnostic]
+
+
+class PetraEvidenceProposalBundle(PetraModel):
+    schema_name: Literal["petra.evidence-proposal-bundle"]
+    schema_version: Literal["1.0.0"]
+    evidence_proposal_bundle_id: str
+    revision: Literal[1]
+    content: EvidenceProposalContent
+    content_hash: str
+    created_by: ActorRef
+    created_at: str
+
+
 class QuarantineChangeState(PetraModel):
     zone: Literal["quarantine"]
     review_state: Literal["unreviewed", "machine_checked"]
@@ -2863,6 +2951,7 @@ PYDANTIC_MODELS: dict[str, type[BaseModel]] = {
     "structural-block": PetraStructuralBlock,
     "source-span": PetraSourceSpan,
     "document-parse-bundle": PetraDocumentParseBundle,
+    "evidence-proposal-bundle": PetraEvidenceProposalBundle,
     "claim": PetraClaim,
     "assertion": PetraAssertion,
     "change-set": PetraChangeSet,

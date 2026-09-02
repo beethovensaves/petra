@@ -9,9 +9,10 @@ server, React workbench shell, and official AG-UI interaction boundary. M1.3
 adds the frozen Paper Trail retrieval baseline and the PostgreSQL-authorized,
 official-driver Neo4j projection with bounded queries and rebuild. M1.4 adds a
 lawful full-text calibration paper and an offline, proposal-only Docling worker
-that emits stable geometry-backed SourceSpans through shared contracts. The
-current interaction remains a deterministic boundary fixture, not yet a
-literature-research or model-backed scientific run.
+that emits stable geometry-backed SourceSpans through shared contracts. M1.5 now
+adds deterministic, content-bound evidence proposals and independent atomic
+quarantine admission; reviewed promotion remains next. The current interaction
+is not yet a literature-research or model-backed scientific run.
 
 ## Required software
 
@@ -87,6 +88,7 @@ applied migration's checksum.
 | `npm run test:postgres:integration` | Migrate a disposable PostgreSQL instance, test the typed repository, validate Flyway history, and remove every labeled resource. |
 | `npm run test:neo4j:integration` | Migrate disposable PostgreSQL, project reviewed authority through real Neo4j, exercise bounded queries/rebuild, and remove every labeled resource. |
 | `npm run test:docling:integration` | Run the lawful PDF twice through local Docling, cross-validate all spans in TypeScript/Python, and prove malformed-PDF containment. |
+| `npm run test:evidence-proposals:integration` | Parse the lawful PDF once, admit grounded primary and qualification pairs into quarantine, and reject a fabricated SourceSpan without partial state. |
 | `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
 | `npm run test:integration` | Run Vitest and pytest against disposable real services, then delete the stack. |
 | `npm run measure:m1-boundary` | Rebuild and measure the isolated browser cost of Petra's AG-UI client boundary. |
@@ -159,8 +161,8 @@ The fixture deliberately keeps redistribution rights separate from execution
 authority: CC BY permits the local fixture and attributed redistribution, while
 remote-model egress remains disabled. Its prose, multi-column reading order,
 and two boxed structures provide the Docling calibration target; one broad
-claim and one source-local qualification are frozen for later SourceSpan
-round-trip tests. See the
+claim and one source-local qualification are frozen for SourceSpan and evidence
+admission round-trip tests. See the
 [fixture notes](fixtures/full-text/fair-guiding-principles/README.md).
 
 The science worker runs Docling 2.121.0 with a pinned born-digital PDF recipe
@@ -177,6 +179,23 @@ The current fixture is correctly labeled `partial` because known Box 2 reading
 order, figure-caption, and multipage-block defects remain visible. Exact
 configuration, results, and limits are recorded in the
 [M1.4 worker report](reports/M1.4-DOCLING-WORKER.md).
+
+## Deterministic evidence proposal proof
+
+M1.5 begins with a model-free reference path. A portable, content-hashed
+evidence proposal names the exact parse bundle, source bytes, parser result,
+WorkVersion, extractor recipe, Claim–`ASSERTS` pairs, candidate roles, exact
+quotes, and SourceSpans. All proposals remain `machine_checked` in quarantine.
+The TypeScript control plane independently resolves the declared source chain;
+extractor warnings or validator results cannot authorize admission.
+
+Run `npm run test:evidence-proposals:integration` to parse the pinned FAIR paper
+once and exercise three deterministic candidates. The page-1 primary Claim and
+page-5 qualification enter the in-memory quarantine registry as atomic pairs.
+A plausible but fabricated reproducibility guarantee cites a nonexistent span,
+is rejected with `SOURCE_SPAN_NOT_IN_BUNDLE`, and leaves no orphaned Claim. The
+test uses no remote model. Exact behavior and current limits are recorded in
+the [M1.5 deterministic proposal report](reports/M1.5-DETERMINISTIC-PROPOSALS.md).
 
 ## Workbench visual baseline
 

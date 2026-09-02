@@ -1,6 +1,6 @@
 # Petra Implementation Roadmap
 
-Status: M1.4 complete; M1.5 deterministic Claim proposal and review path is next
+Status: M1.5 in progress; deterministic proposal and quarantine admission complete, review path next
 Last updated: 2026-09-02
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
@@ -77,7 +77,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 | `M1.2` | `complete` | PostgreSQL authority, interaction trace, and S3-compatible artifact spine | Petra cannot trust or replay evidence or reconnect interactions without transactional history and immutable bytes | `M1.1` | Repository conformance, domain and interaction replay, artifact verification |
 | `M1.3` | `complete` | Paper Trail regression baseline and Neo4j projection | Petra must demonstrate a real graph while keeping citation and scientific evidence distinct | `M1.2` | Projection replay, assertion trace, baseline retrieval tests |
 | `M1.4` | `complete` | Lawful full-text fixture, Docling worker, and stable SourceSpans | Claims need inspectable source locations rather than metadata or model recollection | `M1.1`, `M1.2` | Reproducible parse, page-level inspection, worker isolation tests |
-| `M1.5` | `planned` | Claim proposal, direct and AG-UI-mediated review, ChangeSet, and trusted graph path | Petra's core promise depends on visible promotion and reversible scientific state through one command path | `M1.3`, `M1.4` | Supported promotion, interrupt review, unsupported rejection, correction, reversal |
+| `M1.5` | `in_progress` | Claim proposal, direct and AG-UI-mediated review, ChangeSet, and trusted graph path | Petra's core promise depends on visible promotion and reversible scientific state through one command path | `M1.3`, `M1.4` | Deterministic proposal and quarantine admission pass; supported promotion, interrupt review, correction, and reversal remain |
 | `M1.6` | `planned` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Provenance fast path, validated model response, AG-UI trace, invalidation |
 | `M1.7` | `planned` | Research Brief, evidence view, focused graph, inspector, and Petra interaction client | Researchers need to understand and correct Petra without reading logs, raw tables, or protocol events | `M1.5`, `M1.6` | Cross-view identity, review flow, reconnect, honest async states |
 | `M1.8` | `planned` | DraftArtifact, ProvenanceMap, citations, BibTeX, and LaTeX | Petra must turn evidence into usable scientific writing without losing origin or force | `M1.6`, `M1.7` | Span support, renderer parity, edit and Felicity revalidation |
@@ -97,7 +97,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 
 ### Current Petra state
 
-The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; a pinned offline Docling adapter producing stable geometry-backed SourceSpans through a proposal-only worker manifest; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.4 is complete; M1.5's deterministic Claim proposal and review path is next.
+The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; a pinned offline Docling adapter producing stable geometry-backed SourceSpans through a proposal-only worker manifest; a portable evidence-proposal bundle plus independent TypeScript quarantine-admission boundary; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.5 is in progress: deterministic proposal and rejection pass, while reviewed promotion is next.
 
 The current development environment exposes:
 
@@ -619,7 +619,7 @@ Define selectors that survive normal inspection and replay:
 
 ## M1.5 — Claim proposal, review, and trusted graph
 
-- **Status:** `planned`
+- **Status:** `in_progress`
 - **Builds:** quarantine, validation, review, ChangeSet application, projection, correction, and reversal for scientific Claims.
 - **Why:** visible, reversible promotion is Petra's boundary between model or worker proposals and trusted research state.
 - **Depends on:** `M1.3`, `M1.4`.
@@ -630,18 +630,25 @@ Before a live model, create and process a deterministic extractor fixture:
 
 | ID | Status | Build specification | Why Petra needs it |
 | --- | --- | --- | --- |
-| `M1.5-W01` | `planned` | Include one source-native Claim proposal. | The happy path needs a known scientific proposition. |
-| `M1.5-W02` | `planned` | Include one scoped qualifier or limitation. | Petra must preserve conditions that constrain claim force. |
-| `M1.5-W03` | `planned` | Include one deliberately unsupported proposal. | The system must prove it can refuse plausible but ungrounded output. |
-| `M1.5-W04` | `planned` | Include exact SourceSpan references. | Review must operate against inspectable source evidence. |
-| `M1.5-W05` | `planned` | Include extractor provenance and validation results. | A proposal needs an attributable derivation and machine-check history. |
-| `M1.5-W06` | `planned` | Ingest proposals into quarantine. | Model output cannot begin as trusted state. |
+| `M1.5-W01` | `complete` | Include one source-native Claim proposal. | The happy path needs a known scientific proposition. |
+| `M1.5-W02` | `complete` | Include one scoped qualifier or limitation. | Petra must preserve conditions that constrain claim force. |
+| `M1.5-W03` | `complete` | Include one deliberately unsupported proposal. | The system must prove it can refuse plausible but ungrounded output. |
+| `M1.5-W04` | `complete` | Include exact SourceSpan references. | Review must operate against inspectable source evidence. |
+| `M1.5-W05` | `complete` | Include extractor provenance and validation results. | A proposal needs an attributable derivation and machine-check history. |
+| `M1.5-W06` | `complete` | Ingest proposals into quarantine. | Model output cannot begin as trusted state. |
 | `M1.5-W07` | `planned` | Inspect source span, scope, origin, and validation state together. | Reviewers need the information required for a scientific decision. |
 | `M1.5-W08` | `planned` | Represent accepted, rejected, and corrected review outcomes. | Review is not a binary approval toggle. |
 | `M1.5-W09` | `planned` | Apply one atomic ChangeSet per independently reviewable mutation. | Individual scientific decisions must be reversible without unwinding a batch. |
 | `M1.5-W10` | `planned` | Present review batches without coupling their transactions. | Efficient review must not create all-or-nothing scientific authority. |
 | `M1.5-W11` | `planned` | Project applied changes through the outbox and expose catch-up state. | Graph visibility must follow authority with observable lag. |
 | `M1.5-W12` | `planned` | Apply compensating reversal. | A bad promotion must be undoable without deleting history. |
+
+### Deterministic proposal evidence
+
+| ID | Status | Observed implementation evidence | Consequence |
+| --- | --- | --- | --- |
+| `M1.5-EV01` | `pass` | The accepted `petra.evidence-proposal-bundle` Draft 2020-12 contract is generated into TypeScript and represented in the Python smoke boundary. Its content hash binds one immutable parse source, deterministic or fully attributable model-extraction identity, Claim–`ASSERTS` pairs, exact quotes, SourceSpan IDs, candidate roles, warnings, and diagnostics. Core tests reproduce stable IDs from the same hash recipe in TypeScript and Python, validate the generated proposal, reject mutated content before candidate evaluation, and prove that an invalid Assertion rolls back its paired Claim. | Extractors now have a portable proposal envelope but no route to declare their own evidence trusted. Candidate validation and atomic pair admission remain TypeScript control-plane responsibilities. |
+| `M1.5-EV02` | `pass` | `npm run test:evidence-proposals:integration` processes the pinned Wilkinson et al. PDF locally and offline, reuses the accepted document verifier, and deterministically proposes a broad primary Claim from page 1, a detailed source qualification from page 5, and a plausible fabricated guarantee. Independent admission resolves source bytes, parser run, blocks, pages, quote hashes, reciprocal span references, WorkVersion, scope, and `ASSERTS` endpoints. It admits the two real Claim–Assertion pairs only into quarantine and rejects the fabricated span with `SOURCE_SPAN_NOT_IN_BUNDLE`; neither half of that rejected pair persists. The run performs zero remote model calls. | `M1.5-W01`–`M1.5-W06` are complete against a real peer-reviewed source. The next slice can present the admitted evidence for review without changing extraction contracts or trusting proposer-supplied validator declarations. |
 
 ### Live extraction after the fixture passes
 
