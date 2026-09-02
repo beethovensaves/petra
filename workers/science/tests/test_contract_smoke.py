@@ -3101,6 +3101,50 @@ class PetraInteractionReplayRecord(PetraModel):
     recorded_at: str
 
 
+class PetraModelExtractorOutput(PetraModel):
+    schema_name: Literal["petra.model-extractor-output"]
+    schema_version: Literal["1.0.0"]
+    candidates: list[dict[str, Any]]
+    diagnostics: list[dict[str, Any]]
+
+
+class PetraModelRoleCertification(PetraModel):
+    schema_name: Literal["petra.model-role-certification"]
+    schema_version: Literal["1.0.0"]
+    role_certification_id: str
+    revision: Literal[1]
+    deployment: dict[str, Any]
+    role_profile: dict[str, Any]
+    scope: dict[str, Any]
+    evaluation: dict[str, Any]
+    decision: dict[str, Any]
+    content_hash: str
+    certified_by: ActorRef
+    certified_at: str
+
+
+class PetraModelRequest(PetraModel):
+    schema_name: Literal["petra.model-request"]
+    schema_version: Literal["1.0.0"]
+    model_request_id: str
+    revision: Literal[1]
+    content: dict[str, Any]
+    content_hash: str
+    created_at: str
+    completed_at: str
+
+
+class PetraModelCall(PetraModel):
+    schema_name: Literal["petra.model-call"]
+    schema_version: Literal["1.0.0"]
+    model_call_id: str
+    revision: Literal[1]
+    content: dict[str, Any]
+    content_hash: str
+    started_at: str
+    completed_at: str
+
+
 PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
@@ -3117,6 +3161,10 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "source-span": PetraSourceSpan,
     "document-parse-bundle": PetraDocumentParseBundle,
     "evidence-proposal-bundle": PetraEvidenceProposalBundle,
+    "model-extractor-output": PetraModelExtractorOutput,
+    "model-role-certification": PetraModelRoleCertification,
+    "model-request": PetraModelRequest,
+    "model-call": PetraModelCall,
     "claim": PetraClaim,
     "assertion": PetraAssertion,
     "change-set": PetraChangeSet,
@@ -3233,12 +3281,24 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("interaction-interrupt-pending.json", "content", "content_hash"),
         ("interaction-interrupt-responded.json", "content", "content_hash"),
         ("interaction-replay-record.json", "content", "content_hash"),
+        ("model-request.json", "content", "content_hash"),
+        ("model-call.json", "content", "content_hash"),
     ]
     for filename, projection, hash_field in fixtures:
         value = read_json(f"fixtures/accepted/{filename}")
         canonical = rfc8785.dumps(value[projection])
         digest = hashlib.sha256(canonical).hexdigest()
         assert value[hash_field] == f"sha256:{digest}"
+
+
+def test_model_certification_hash_parity() -> None:
+    value = read_json("fixtures/accepted/model-role-certification.json")
+    projection = {
+        field: value[field]
+        for field in ["deployment", "role_profile", "scope", "evaluation", "decision"]
+    }
+    digest = hashlib.sha256(rfc8785.dumps(projection)).hexdigest()
+    assert value["content_hash"] == f"sha256:{digest}"
 
 
 def test_draft_span_text_hash_parity() -> None:

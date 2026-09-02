@@ -1,0 +1,465 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/model-request/1.0.0/schema.json",
+  "title": "PetraModelRequest",
+  "description": "One completed logical need for bounded model work, including policy-first eligibility, the selected route, budgets, validation outcome, and result references.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "model_request_id",
+    "revision",
+    "content",
+    "content_hash",
+    "created_at",
+    "completed_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.model-request" },
+    "schema_version": { "const": "1.0.0" },
+    "model_request_id": { "$ref": "#/$defs/ModelRequestId" },
+    "revision": { "const": 1 },
+    "content": { "$ref": "#/$defs/RequestContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "completed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "RequestContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "workflow",
+        "role",
+        "objective",
+        "impact_class",
+        "context_packet_ref",
+        "outbound_context",
+        "prompt_profile",
+        "parameters",
+        "output_contract",
+        "routing_policy_ref",
+        "routing",
+        "budget",
+        "terminal"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "workflow": { "$ref": "#/$defs/WorkflowRef" },
+        "role": { "const": "extractor" },
+        "objective": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "impact_class": {
+          "enum": ["routine", "difficult", "adversarial", "high_impact"]
+        },
+        "context_packet_ref": { "$ref": "#/$defs/ContextPacketRef" },
+        "outbound_context": { "$ref": "#/$defs/OutboundContextManifest" },
+        "prompt_profile": { "$ref": "#/$defs/PromptProfile" },
+        "parameters": { "$ref": "#/$defs/Parameters" },
+        "output_contract": { "$ref": "#/$defs/ContractRef" },
+        "routing_policy_ref": { "$ref": "#/$defs/RoutingPolicyRef" },
+        "routing": { "$ref": "#/$defs/RoutingDecision" },
+        "budget": { "$ref": "#/$defs/Budget" },
+        "terminal": { "$ref": "#/$defs/TerminalResult" }
+      }
+    },
+    "WorkflowRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workflow_kind", "workflow_id"],
+      "properties": {
+        "workflow_kind": { "const": "evidence_extraction" },
+        "workflow_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        }
+      }
+    },
+    "ContextPacketRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context_packet_id", "content_hash"],
+      "properties": {
+        "context_packet_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^context_packet_" }
+          ]
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "OutboundContextManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "egress_class",
+        "visibility",
+        "data_classes",
+        "source_artifact_refs",
+        "source_span_ids",
+        "rights_decision_ids",
+        "selected_fields",
+        "redactions",
+        "context_content_hash",
+        "capability_grant_id",
+        "purpose"
+      ],
+      "properties": {
+        "egress_class": { "enum": ["E0", "E1", "E2", "E3"] },
+        "visibility": { "enum": ["private", "workspace", "public"] },
+        "data_classes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "bibliographic_metadata",
+              "licensed_full_text",
+              "open_full_text",
+              "source_spans",
+              "scientific_proposals",
+              "private_notes"
+            ]
+          }
+        },
+        "source_artifact_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/ArtifactRef" }
+        },
+        "source_span_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/SourceSpanId"
+          }
+        },
+        "rights_decision_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/RightsDecisionId"
+          }
+        },
+        "selected_fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+        },
+        "redactions": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/Redaction" }
+        },
+        "context_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "capability_grant_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^grant_" }
+          ]
+        },
+        "purpose": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "ArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "content_hash"],
+      "properties": {
+        "artifact_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "reason"],
+      "properties": {
+        "field": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "PromptProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "content_hash"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["temperature", "max_output_tokens", "content_hash"],
+      "properties": {
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ContractRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_name", "schema_version", "schema_hash"],
+      "properties": {
+        "schema_name": { "const": "model-extractor-output" },
+        "schema_version": { "const": "1.0.0" },
+        "schema_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "RoutingPolicyRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["routing_policy_id", "revision", "content_hash"],
+      "properties": {
+        "routing_policy_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^routing_policy_" }
+          ]
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "RoutingDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eligible", "excluded", "fallback_chain"],
+      "properties": {
+        "eligible": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/EligibleRoute" }
+        },
+        "excluded": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ExcludedRoute" }
+        },
+        "selected": { "$ref": "#/$defs/SelectedRoute" },
+        "fallback_chain": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/ModelDeploymentId" }
+        }
+      }
+    },
+    "EligibleRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_deployment_id",
+        "role_certification_id",
+        "expected_validated_cost_usd",
+        "expected_latency_ms"
+      ],
+      "properties": {
+        "model_deployment_id": { "$ref": "#/$defs/ModelDeploymentId" },
+        "role_certification_id": { "$ref": "#/$defs/RoleCertificationId" },
+        "expected_validated_cost_usd": { "$ref": "#/$defs/DecimalAmount" },
+        "expected_latency_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "ExcludedRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_deployment_id", "code", "reason"],
+      "properties": {
+        "model_deployment_id": { "$ref": "#/$defs/ModelDeploymentId" },
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "SelectedRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_deployment_id", "role_certification_id", "reason"],
+      "properties": {
+        "model_deployment_id": { "$ref": "#/$defs/ModelDeploymentId" },
+        "role_certification_id": { "$ref": "#/$defs/RoleCertificationId" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "Budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_attempts",
+        "max_input_tokens",
+        "max_output_tokens",
+        "max_latency_ms",
+        "max_cost_usd"
+      ],
+      "properties": {
+        "max_attempts": { "type": "integer", "minimum": 1, "maximum": 20 },
+        "max_input_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "max_latency_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400000
+        },
+        "max_cost_usd": { "$ref": "#/$defs/DecimalAmount" }
+      }
+    },
+    "TerminalResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "model_call_ids",
+        "validator_results",
+        "proposal_bundle_ids"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "completed",
+            "blocked_policy",
+            "budget_exhausted",
+            "provider_unavailable",
+            "validation_failed"
+          ]
+        },
+        "model_call_ids": {
+          "type": "array",
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/ModelCallId" }
+        },
+        "validator_results": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/ValidatorResult" }
+        },
+        "proposal_bundle_ids": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/EvidenceProposalBundleId" }
+        },
+        "failure_code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "failure_message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    },
+    "ValidatorResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["validator_name", "validator_version", "outcome", "code"],
+      "properties": {
+        "validator_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "validator_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "outcome": { "enum": ["pass", "warning", "fail"] },
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "ModelRequestId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^model_request_" }
+      ]
+    },
+    "ModelCallId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^model_call_" }
+      ]
+    },
+    "ModelDeploymentId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^model_deployment_" }
+      ]
+    },
+    "RoleCertificationId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^role_certification_" }
+      ]
+    },
+    "EvidenceProposalBundleId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^evidence_proposal_bundle_" }
+      ]
+    },
+    "DecimalAmount": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,12})?$"
+    }
+  }
+}

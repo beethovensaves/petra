@@ -10,9 +10,10 @@ adds the frozen Paper Trail retrieval baseline and the PostgreSQL-authorized,
 official-driver Neo4j projection with bounded queries and rebuild. M1.4 adds a
 lawful full-text calibration paper and an offline, proposal-only Docling worker
 that emits stable geometry-backed SourceSpans through shared contracts. M1.5 now
-adds deterministic, content-bound evidence proposals and independent atomic
-quarantine admission; reviewed promotion remains next. The current interaction
-is not yet a literature-research or model-backed scientific run.
+adds deterministic and model-gateway evidence proposals, independent quarantine
+admission, human-reviewed promotion, graph projection, and compensating
+reversal. No external model deployment is configured yet, and the current
+interaction is not yet a literature-research or model-backed scientific run.
 
 ## Required software
 
@@ -56,11 +57,12 @@ npm run verify
 
 `services:up` starts PostgreSQL, Neo4j, and the S3-compatible artifact service,
 then waits for their health checks. `db:migrate` runs the separately selected,
-digest-pinned Flyway OSS profile. Eight M1.2 migrations establish immutable
-research scope, scholarly identity, Artifact and document authority, evidence,
-ChangeSets, events and outbox records, durable work and projection control, and
-interaction history. Later migrations extend the ledger without changing an
-applied migration's checksum.
+digest-pinned Flyway OSS profile. Ten forward-only migrations establish
+immutable research scope, scholarly identity, Artifact and document authority,
+evidence, ChangeSets, events and outbox records, durable work and projection
+control, interaction history, scientific reversal, and model execution records.
+Later migrations extend the ledger without changing an applied migration's
+checksum.
 
 ## Daily commands
 
@@ -212,7 +214,7 @@ plans. A stale member cannot roll back or block another valid decision. Run
 `npm run test:core` for all direct decision and batch cases, and
 `npm run test:postgres:integration` for the disposable durable proof that a
 generated review plan becomes trusted revisions plus event/outbox history.
-Current behavior and remaining projection/reversal work are recorded in the
+The review command path and its durable evidence are recorded in the
 [M1.5 direct review report](reports/M1.5-DIRECT-REVIEW.md).
 
 ## Compensating reversal proof
@@ -229,6 +231,29 @@ proves the same result after incremental projection and a complete rebuild.
 See the
 [M1.5 compensating reversal report](reports/M1.5-COMPENSATING-REVERSAL.md)
 for semantics, constraints, and evidence.
+
+## Measured model-gateway foundation
+
+The first extractor route now passes through a TypeScript-owned ModelGateway.
+The gateway filters deployments by provider policy, data class and egress,
+active role certification, scientific scope, structured-output support, health,
+context capacity, and hard request budgets. It records eligible and excluded
+routes before selecting by expected validated cost, latency, and stable identity.
+
+Model output has its own narrow schema with no Petra object IDs or authority
+fields. A schema-valid response must also cite an authorized SourceSpan and use
+an exact quote present in the immutable source block. A passing response becomes
+a content-bound Claim–`ASSERTS` proposal in quarantine; it cannot write trusted
+state. Malformed responses, fabricated quotes, deployment-revision drift, E0
+remote routes, and observed budget overruns remain visible but produce no
+proposal.
+
+`V010` stores the RoleCertification, logical ModelRequest, physical ModelCall,
+raw and validated output, prompt and context identities, validation results,
+latency, token use, cost, and proposal bundle as immutable PostgreSQL records.
+The three-case certification fixture establishes exact expected behavior, not a
+general quality score. No live provider has been selected or certified. See the
+[M1.5 model-gateway report](reports/M1.5-MODEL-GATEWAY.md).
 
 ## Workbench visual baseline
 

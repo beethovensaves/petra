@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.4.0",
+  "fixture_manifest_version": "1.5.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -60,6 +60,22 @@
     {
       "schema": "evidence-proposal-bundle",
       "path": "fixtures/accepted/evidence-proposal-bundle.json"
+    },
+    {
+      "schema": "model-extractor-output",
+      "path": "fixtures/accepted/model-extractor-output.json"
+    },
+    {
+      "schema": "model-role-certification",
+      "path": "fixtures/accepted/model-role-certification.json"
+    },
+    {
+      "schema": "model-request",
+      "path": "fixtures/accepted/model-request.json"
+    },
+    {
+      "schema": "model-call",
+      "path": "fixtures/accepted/model-call.json"
     },
     {
       "schema": "claim",

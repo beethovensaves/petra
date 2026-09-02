@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.18.0",
+  "registry_version": "1.19.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -175,6 +175,50 @@
       "canonical_sha256": "sha256:0b454a89403ed8a600e3c79340b6f57263c7a01854dab9f3f5305e0e90da0115",
       "generate_typescript": true,
       "typescript_path": "src/generated/evidence-proposal-bundle.ts"
+    },
+    {
+      "name": "model-extractor-output",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-extractor-output/1.0.0/schema.json",
+      "path": "schemas/model-extractor-output/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:a984faf6bf170124ce4b3ad036a5e395c8cadd766bb866794d34c45e602f5baa",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-extractor-output.ts"
+    },
+    {
+      "name": "model-role-certification",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-role-certification/1.0.0/schema.json",
+      "path": "schemas/model-role-certification/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:e2cd665d5f92edfff000ea3498cea6114a02eb5e6bf1a2214acfc36893c63c12",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-role-certification.ts"
+    },
+    {
+      "name": "model-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-request/1.0.0/schema.json",
+      "path": "schemas/model-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:b8c531c9a198d48f95949345cfa5c045c99af16deccc3e4266b577df3c2ea6b1",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-request.ts"
+    },
+    {
+      "name": "model-call",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-call/1.0.0/schema.json",
+      "path": "schemas/model-call/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:6835d4a16a1876be8af9179d480c384773ee8419547ee186cbd872215e6ab37d",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-call.ts"
     },
     {
       "name": "claim",

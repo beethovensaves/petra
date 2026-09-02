@@ -1,0 +1,44 @@
+{
+  "schema_name": "petra.model-extractor-output",
+  "schema_version": "1.0.0",
+  "candidates": [
+    {
+      "candidate_key": "primary-report",
+      "proposal_role": "primary",
+      "source_quote": {
+        "exact_text": "The study reports a measurable improvement.",
+        "source_span_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"]
+      },
+      "canonical_text": "The study reports a measurable improvement on its evaluation task.",
+      "claim_kind": "descriptive",
+      "scope": {
+        "task": {
+          "description": "The study-defined evaluation task",
+          "entity_refs": []
+        },
+        "outcome": {
+          "description": "Measurable improvement in the reported metric",
+          "entity_refs": []
+        },
+        "unreported_dimensions": [
+          "population",
+          "language",
+          "model_family",
+          "dataset",
+          "intervention_or_exposure",
+          "comparator",
+          "setting",
+          "temporal_boundary"
+        ]
+      },
+      "detail_level": "detailed",
+      "source_stance": "reports",
+      "attribution": "The study authors",
+      "modality": "asserted",
+      "negated": false,
+      "extraction_confidence": 0.82,
+      "warnings": []
+    }
+  ],
+  "diagnostics": []
+}

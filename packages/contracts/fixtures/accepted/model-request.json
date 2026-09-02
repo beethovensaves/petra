@@ -1,0 +1,107 @@
+{
+  "schema_name": "petra.model-request",
+  "schema_version": "1.0.0",
+  "model_request_id": "model_request_01ARZ3NDEKTSV4RRFFQ69G5FD4",
+  "revision": 1,
+  "content": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "workflow": {
+      "workflow_kind": "evidence_extraction",
+      "workflow_id": "extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FD7"
+    },
+    "role": "extractor",
+    "objective": "Extract atomic scientific proposals from the selected source passage.",
+    "impact_class": "routine",
+    "context_packet_ref": {
+      "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+      "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df"
+    },
+    "outbound_context": {
+      "egress_class": "E0",
+      "visibility": "private",
+      "data_classes": ["open_full_text", "source_spans"],
+      "source_artifact_refs": [
+        {
+          "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+          "content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e"
+        }
+      ],
+      "source_span_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+      "rights_decision_ids": ["rights_decision_01ARZ3NDEKTSV4RRFFQ69G5FB3"],
+      "selected_fields": ["exact_text", "structural_path", "page_numbers"],
+      "redactions": [],
+      "context_content_hash": "sha256:2637a92ae979855a545d2e38ce8cf54cc6090266a53142a73531320bbcaa3f6c",
+      "capability_grant_id": "grant_01ARZ3NDEKTSV4RRFFQ69G5FD8",
+      "purpose": "Bounded scientific Claim extraction from an inspectable source selection."
+    },
+    "prompt_profile": {
+      "name": "petra-source-grounded-extractor",
+      "version": "1.0.0",
+      "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "parameters": {
+      "temperature": 0,
+      "seed": 7,
+      "max_output_tokens": 1200,
+      "content_hash": "sha256:440b3886b2eb3fb543f46ad712e2108b83e753774300260ca165f5cbb0f295a9"
+    },
+    "output_contract": {
+      "schema_name": "model-extractor-output",
+      "schema_version": "1.0.0",
+      "schema_hash": "sha256:a984faf6bf170124ce4b3ad036a5e395c8cadd766bb866794d34c45e602f5baa"
+    },
+    "routing_policy_ref": {
+      "routing_policy_id": "routing_policy_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+      "revision": 1,
+      "content_hash": "sha256:18f664de4ea9412ea31901195c0920bad64f26d11a7da7c75c1f2707069daf17"
+    },
+    "routing": {
+      "eligible": [
+        {
+          "model_deployment_id": "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FD1",
+          "role_certification_id": "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FD0",
+          "expected_validated_cost_usd": "0",
+          "expected_latency_ms": 5
+        }
+      ],
+      "excluded": [],
+      "selected": {
+        "model_deployment_id": "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FD1",
+        "role_certification_id": "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FD0",
+        "reason": "The local certified route is the lowest expected validated-cost deployment within the E0 and latency limits."
+      },
+      "fallback_chain": []
+    },
+    "budget": {
+      "max_attempts": 1,
+      "max_input_tokens": 2000,
+      "max_output_tokens": 1200,
+      "max_latency_ms": 5000,
+      "max_cost_usd": "0"
+    },
+    "terminal": {
+      "state": "completed",
+      "model_call_ids": ["model_call_01ARZ3NDEKTSV4RRFFQ69G5FD5"],
+      "validator_results": [
+        {
+          "validator_name": "model-output-schema",
+          "validator_version": "1.0.0",
+          "outcome": "pass",
+          "code": "SCHEMA_VALID"
+        },
+        {
+          "validator_name": "source-span-grounding",
+          "validator_version": "1.0.0",
+          "outcome": "pass",
+          "code": "SOURCE_SELECTIONS_RESOLVED"
+        }
+      ],
+      "proposal_bundle_ids": [
+        "evidence_proposal_bundle_01ARZ3NDEKTSV4RRFFQ69G5FD9"
+      ]
+    }
+  },
+  "content_hash": "sha256:67a107ef15313f2709451cd1e2369ca32a055a314d8fe12e4e6b869e4f182db7",
+  "created_at": "2026-09-02T18:31:00.000Z",
+  "completed_at": "2026-09-02T18:31:00.005Z"
+}

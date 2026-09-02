@@ -1,0 +1,94 @@
+{
+  "schema_name": "petra.model-role-certification",
+  "schema_version": "1.0.0",
+  "role_certification_id": "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FD0",
+  "revision": 1,
+  "deployment": {
+    "model_deployment_id": "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FD1",
+    "provider_id": "provider_01ARZ3NDEKTSV4RRFFQ69G5FD2",
+    "provider_kind": "fixture",
+    "provider_model": "petra-extractor-fixture",
+    "observed_revision": "fixture-v1",
+    "replayability": "exact",
+    "execution_location": "local",
+    "structured_output": true,
+    "max_context_tokens": 8192
+  },
+  "role_profile": {
+    "role_profile_id": "role_profile_01ARZ3NDEKTSV4RRFFQ69G5FD3",
+    "role": "extractor",
+    "version": "1.0.0",
+    "input_contract": {
+      "schema_name": "document-parse-bundle",
+      "schema_version": "1.0.0",
+      "schema_hash": "sha256:331fea5e80f94d85f87887b5e37f424339cd6bc8d589a44785a3da1d8ee9e407"
+    },
+    "output_contract": {
+      "schema_name": "model-extractor-output",
+      "schema_version": "1.0.0",
+      "schema_hash": "sha256:a984faf6bf170124ce4b3ad036a5e395c8cadd766bb866794d34c45e602f5baa"
+    },
+    "required_validators": [
+      "model-output-schema",
+      "source-span-grounding",
+      "abstract-scope"
+    ]
+  },
+  "scope": {
+    "domain": "cross-domain scientific text",
+    "language": "en",
+    "modality": "text",
+    "document_class": "scholarly"
+  },
+  "evaluation": {
+    "suite": {
+      "name": "petra-extractor-role-smoke",
+      "version": "1.0.0"
+    },
+    "dataset_snapshot_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "prompt_profile": {
+      "name": "petra-source-grounded-extractor",
+      "version": "1.0.0",
+      "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "cases_total": 3,
+    "cases_passed": 3,
+    "metrics": [
+      {
+        "name": "fixture_cases_passed",
+        "value": 3,
+        "unit": "count",
+        "direction": "descriptive"
+      },
+      {
+        "name": "schema_failures_missed",
+        "value": 0,
+        "unit": "count",
+        "direction": "lower_is_better"
+      },
+      {
+        "name": "grounding_failures_missed",
+        "value": 0,
+        "unit": "count",
+        "direction": "lower_is_better"
+      }
+    ],
+    "observed_errors": []
+  },
+  "decision": {
+    "status": "active",
+    "reason": "The fixture deployment produced the valid case and exposed the schema and grounding defects expected by the bounded smoke suite.",
+    "valid_from": "2026-09-02T18:30:00.000Z",
+    "invalidation_conditions": [
+      "The deployment identity changes.",
+      "The prompt, input contract, output contract, or required validator changes.",
+      "The fixture no longer produces the expected validation outcomes."
+    ]
+  },
+  "content_hash": "sha256:653a4ead28dc73208b3e98dce476ef0c76ca8f2cccc5559379fe2c4a82e3bdfb",
+  "certified_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+    "actor_kind": "service"
+  },
+  "certified_at": "2026-09-02T18:30:00.000Z"
+}

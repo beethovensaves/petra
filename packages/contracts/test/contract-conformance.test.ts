@@ -299,6 +299,16 @@ describe("Petra canonical contract registry", () => {
       projection: "content",
       hashField: "content_hash",
     },
+    {
+      path: "../fixtures/accepted/model-request.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
+      path: "../fixtures/accepted/model-call.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
   ])("binds $path to its exact canonical $projection", (fixture) => {
     const value = readJson(fixture.path) as Record<string, unknown>;
     const hash = createHash("sha256")
@@ -306,6 +316,22 @@ describe("Petra canonical contract registry", () => {
       .digest("hex");
 
     expect(value[fixture.hashField]).toBe(`sha256:${hash}`);
+  });
+
+  it("binds the model role certification to its exact evidence and decision", () => {
+    const value = readJson(
+      "../fixtures/accepted/model-role-certification.json",
+    ) as Record<string, unknown>;
+    const projection = Object.fromEntries(
+      ["deployment", "role_profile", "scope", "evaluation", "decision"].map(
+        (field) => [field, value[field]],
+      ),
+    );
+    const hash = createHash("sha256")
+      .update(canonicalize(projection))
+      .digest("hex");
+
+    expect(value.content_hash).toBe(`sha256:${hash}`);
   });
 
   it("binds the applied graph projection receipt to its exact effect", () => {

@@ -78,6 +78,29 @@ export type {
   SourceQuote as EvidenceProposalSourceQuote,
 } from "./generated/evidence-proposal-bundle.js";
 export type {
+  Candidate as ModelExtractorCandidate,
+  Diagnostic as ModelExtractorDiagnostic,
+  PetraModelExtractorOutput,
+  SourceQuote as ModelExtractorSourceQuote,
+} from "./generated/model-extractor-output.js";
+export type {
+  CertificationScope as ModelCertificationScope,
+  DeploymentSnapshot as CertifiedModelDeployment,
+  PetraModelRoleCertification,
+  RoleProfileSnapshot as CertifiedRoleProfile,
+} from "./generated/model-role-certification.js";
+export type {
+  OutboundContextManifest,
+  PetraModelRequest,
+  RoutingDecision as ModelRoutingDecision,
+  TerminalResult as ModelRequestTerminalResult,
+} from "./generated/model-request.js";
+export type {
+  DeploymentObservation as ModelDeploymentObservation,
+  ExactInput as ModelCallInput,
+  PetraModelCall,
+} from "./generated/model-call.js";
+export type {
   ClaimBasis,
   Derivation as ClaimDerivation,
   PetraClaim,

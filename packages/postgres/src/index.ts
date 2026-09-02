@@ -4,6 +4,7 @@ export * from "./document-authority-repository.js";
 export * from "./evidence-authority-repository.js";
 export * from "./graph-projection-authority-repository.js";
 export * from "./interaction-authority-repository.js";
+export * from "./model-execution-repository.js";
 export * from "./research-scope-repository.js";
 export * from "./scholarly-identity-repository.js";
 export * from "./work-unit-authority-repository.js";

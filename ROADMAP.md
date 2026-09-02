@@ -37,7 +37,7 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | --- | --- | --- |
 | Product thesis and scientific contract | Complete | `PETRA.md` |
 | Logical graph and event model | Complete as design | `PETRA_GRAPH_MODEL.md` |
-| Implementation roadmap | M1.5 in progress; deterministic proposal, direct review, projection, and compensating reversal complete; measured model extraction and AG-UI review next | `implementation_roadmap.md`, `reports/M1.5-DETERMINISTIC-PROPOSALS.md`, `reports/M1.5-DIRECT-REVIEW.md`, `reports/M1.5-COMPENSATING-REVERSAL.md` |
+| Implementation roadmap | M1.5 in progress; model-gateway proposal foundation, direct review, projection, and compensating reversal complete; live extractor activation and AG-UI review next | `implementation_roadmap.md`, `reports/M1.5-MODEL-GATEWAY.md`, `reports/M1.5-DIRECT-REVIEW.md`, `reports/M1.5-COMPENSATING-REVERSAL.md` |
 | Design implementation roadmap | UX1.0 foundations and UX1.1 research shell in progress | `design_implementation_roadmap.md` |
 | Source-control boundary | Dedicated `/petra` repository on `main`, backed by the private `beethovensaves/petra` remote; verified stages are committed and pushed | `.git/`, `.gitignore`, `implementation_roadmap.md` |
 | Machine-readable schemas | JSON Schema authority and the M1.1 contract kernel complete; Ajv/Python parity, generation, rejection, and canonical-hash gates pass | `decisions/D015-language-neutral-runtime-contracts.md`, `packages/contracts/` |
@@ -48,7 +48,7 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | Ingestion and claim-extraction pipeline | Complete as design | `decisions/D004-docling-ingestion-and-claim-extraction.md` |
 | Trusted-graph review and direct editing | Complete as design | `decisions/D005-trusted-graph-review-and-direct-editing.md` |
 | Language and hypothesis-reference contract | Complete as design | `decisions/D006-petra-language-and-reference-contract.md` |
-| Model gateway, role registry, and routing | Complete as design | `decisions/D007-model-gateway-role-registry-and-routing.md` |
+| Model gateway, role registry, and routing | Provider-neutral extractor foundation implemented; configured live deployment pending | `decisions/D007-model-gateway-role-registry-and-routing.md`, `reports/M1.5-MODEL-GATEWAY.md` |
 | Graph-guided execution, context, and cost | Complete as design | `decisions/D008-graph-guided-execution-context-and-cost.md` |
 | Executable Petra ingestion workflow | Abstract-only Paper Trail baseline and exact CC BY full-text fixture complete; offline Docling returns stable document proposals, and independent TypeScript admission converts supported source passages into atomic quarantine-only Claim–Assertion pairs while rejecting fabricated spans | `fixtures/paper-trail/`, `fixtures/full-text/fair-guiding-principles/`, `packages/retrieval/`, `workers/science/`, `reports/M1.4-DOCLING-WORKER.md`, `reports/M1.5-DETERMINISTIC-PROPOSALS.md` |
 | Petra interface | Object-centered design accepted; deterministic shell preview exists; module design and validation are in progress | `decisions/D009-object-centered-research-workspace.md`, `design_implementation_roadmap.md` |
