@@ -10,12 +10,19 @@ import type {
   PetraClaim,
   PetraCommandEnvelope,
   PetraEvidenceProposalBundle,
+  PetraInteractionEventRecord,
+  PetraInteractionFeatureManifest,
+  PetraInteractionInterrupt,
+  PetraInteractionRun,
   PetraParsedDocument,
   PetraProject,
+  PetraReviewInterruptResponse,
   PetraRightsDecision,
   PetraSourceSpan,
   PetraStructuralBlock,
   PetraWork,
+  PetraWorkerInputManifest,
+  PetraWorkUnit,
   PetraWorkVersion,
 } from "@petra/contracts";
 import type {
@@ -26,6 +33,7 @@ import type {
 import {
   buildCompensatingReversalCommandPlan,
   buildReviewDecisionCommandPlan,
+  DurableReviewInterruptCoordinator,
   executeCompensatingReversalPlan,
   executeReviewDecisionPlan,
   replayScientificAuthority,
@@ -38,8 +46,10 @@ import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-r
 import { PostgresChangeControlAuthorityRepository } from "../src/change-control-authority-repository.js";
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
+import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
+import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
 import { availableArtifactStore } from "./artifact-store-fixture.js";
 
 const { Pool } = pg;
@@ -87,6 +97,8 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
   );
   const documents = new PostgresDocumentAuthorityRepository(pool);
   const evidence = new PostgresEvidenceAuthorityRepository(pool);
+  const interactions = new PostgresInteractionAuthorityRepository(pool);
+  const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -111,6 +123,14 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     actor_kind: "model",
     display_name: "Petra extraction model",
     created_at: "2026-08-28T18:00:01.000Z",
+  });
+
+  const serviceActor = (): PetraActor => ({
+    ...readFixture<PetraActor>("actor"),
+    actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FF0",
+    actor_kind: "service",
+    display_name: "Petra interaction service",
+    created_at: "2026-08-28T18:00:02.000Z",
   });
 
   const registerResearchIdentities = async (): Promise<void> => {
@@ -180,6 +200,43 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     rightsDecision.observed_at = "2026-08-28T18:11:02.000Z";
     rightsDecision.created_at = "2026-08-28T18:11:02.000Z";
     return { artifact, manifest, rightsDecision };
+  };
+
+  const responseArtifactInput = (
+    source: PersistVerifiedArtifactInput,
+    response: PetraReviewInterruptResponse,
+  ): PersistVerifiedArtifactInput => {
+    const value = parserArtifactInput(source);
+    const bytes = new TextEncoder().encode(canonicalize(response));
+    const contentHash = sha256(bytes);
+    value.artifact.artifact_id = "artifact_01ARZ3NDEKTSV4RRFFQ69G5FDK";
+    value.artifact.content_hash = contentHash;
+    value.artifact.byte_size = bytes.byteLength;
+    value.artifact.created_by = {
+      actor_id: serviceActor().actor_id,
+      actor_kind: "service",
+    };
+    value.manifest.artifact_manifest_id =
+      "artifact_manifest_01ARZ3NDEKTSV4RRFFQ69G5FDK";
+    value.manifest.artifact_id = value.artifact.artifact_id;
+    value.manifest.rights_decision_id =
+      "rights_decision_01ARZ3NDEKTSV4RRFFQ69G5FDK";
+    value.manifest.storage_ref.object_key = `sha256/${contentHash.slice(7, 9)}/${contentHash.slice(9)}`;
+    value.manifest.storage_ref.content_hash = contentHash;
+    value.manifest.recorded_by = {
+      actor_id: serviceActor().actor_id,
+      actor_kind: "service",
+    };
+    value.rightsDecision.rights_decision_id = value.manifest.rights_decision_id;
+    value.rightsDecision.artifact_manifest_id =
+      value.manifest.artifact_manifest_id;
+    value.rightsDecision.source_location =
+      "urn:petra:review-response:01ARZ3NDEKTSV4RRFFQ69G5FDK";
+    value.rightsDecision.decision_maker = {
+      actor_id: serviceActor().actor_id,
+      actor_kind: "service",
+    };
+    return value;
   };
 
   const documentBundle = (
@@ -494,6 +551,201 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     expect(
       (await evidence.getClaim(candidate.claim.claim_id))?.authority.zone,
     ).toBe("trusted");
+  });
+
+  it("resolves one durable interaction interrupt through the same PostgreSQL review commands", async () => {
+    await registerEvidenceChain();
+    const service = serviceActor();
+    await scopes.registerActor(service);
+    const serviceRef = {
+      actor_id: service.actor_id,
+      actor_kind: "service" as const,
+    };
+    const workUnit = readFixture<PetraWorkUnit>("work-unit-requested");
+    const inputManifest = readFixture<PetraWorkerInputManifest>(
+      "worker-input-manifest",
+    );
+    workUnit.created_by = serviceRef;
+    inputManifest.issued_by = serviceRef;
+    await workUnits.register({ workUnit, inputManifest });
+
+    const candidate = readFixture<PetraEvidenceProposalBundle>(
+      "evidence-proposal-bundle",
+    ).content.candidates[0];
+    candidate.claim = claimFixture();
+    candidate.assertion = assertionFixture();
+    const reviewer = readFixture<PetraActor>("actor");
+    const actor = {
+      actor_id: reviewer.actor_id,
+      actor_kind: "human" as const,
+    };
+    const capabilityGrantId = "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FDF";
+    const response = readFixture<PetraReviewInterruptResponse>(
+      "review-interrupt-response",
+    );
+    const buildPlan = (input: {
+      decision: "accepted" | "rejected";
+      rationale: string;
+      decided_at: string;
+      actor: typeof actor;
+      capability_grant_id: string;
+    }) =>
+      buildReviewDecisionCommandPlan({
+        project_id: response.project_id,
+        candidate,
+        origin: "agent_proposal",
+        proposed_by: candidate.claim.created_by,
+        reviewer: input.actor,
+        capability_grant_id: input.capability_grant_id,
+        decision: input.decision,
+        reason: "Review the exact source-grounded Claim and ASSERTS pair.",
+        rationale: input.rationale,
+        impact_summary:
+          "This decision changes representation authority, not the proposition's truth value.",
+        timing: {
+          proposed_at: "2026-08-29T16:00:02.000Z",
+          decided_at: input.decided_at,
+          applied_at: input.decided_at,
+        },
+      });
+    const plan = buildPlan({
+      decision: "accepted",
+      rationale: response.rationale,
+      decided_at: response.decided_at,
+      actor,
+      capability_grant_id: capabilityGrantId,
+    });
+
+    const feature = readFixture<PetraInteractionFeatureManifest>(
+      "interaction-feature-manifest",
+    );
+    feature.compiled_by = serviceRef;
+    const run = readFixture<PetraInteractionRun>("interaction-run");
+    const parserArtifact = parserArtifactInput(sourceArtifactInput()).artifact;
+    const event = readFixture<PetraInteractionEventRecord>(
+      "interaction-event-record",
+    );
+    event.recorded_by = serviceRef;
+    event.content.payload_artifact_ref = {
+      artifact_id: parserArtifact.artifact_id,
+      content_sha256: parserArtifact.content_hash,
+      byte_size: parserArtifact.byte_size,
+      media_type: parserArtifact.media_type,
+    };
+    event.content_hash = canonicalHash(event.content);
+    const pending = readFixture<PetraInteractionInterrupt>(
+      "interaction-interrupt-pending",
+    );
+    if (pending.content.state !== "pending") {
+      throw new Error("Expected a pending interaction fixture.");
+    }
+    pending.recorded_by = serviceRef;
+    pending.content.request_event_ref.content_hash = event.content_hash;
+    pending.content.prompt_artifact_ref = structuredClone(
+      event.content.payload_artifact_ref,
+    );
+    pending.content.subject_refs = [plan.change_set.change_set_id];
+    pending.content.response_schema_ref = {
+      schema_name: "review-interrupt-response",
+      schema_version: "1.0.0",
+      content_hash:
+        "sha256:81a8a6771e1e7155681741b024f94862bf0e4c1cb7b8ff737b2fcf14f2a20306",
+    };
+    pending.content_hash = canonicalHash(pending.content);
+    response.interrupt_ref = {
+      interaction_interrupt_id: pending.interaction_interrupt_id,
+      revision: pending.revision,
+      content_hash: pending.content_hash,
+    };
+    response.change_set_ref = {
+      change_set_id: plan.change_set.change_set_id,
+      revision: plan.change_set.revision,
+      content_hash: plan.change_set.content_hash,
+    };
+
+    await interactions.registerFeatureManifest(feature);
+    await interactions.registerRun(run);
+    await interactions.appendEvent(event);
+    await interactions.registerInterrupt(pending);
+    const responseArtifact = responseArtifactInput(
+      sourceArtifactInput(),
+      response,
+    );
+    await artifacts.registerVerifiedAcquisition(responseArtifact);
+
+    const commands = authority();
+    const coordinator = new DurableReviewInterruptCoordinator({
+      repository: interactions,
+      executor: commands,
+      payloads: {
+        recordResponse: () => ({
+          artifact_id: responseArtifact.artifact.artifact_id,
+          content_sha256: responseArtifact.artifact.content_hash,
+          byte_size: responseArtifact.artifact.byte_size,
+          media_type: responseArtifact.artifact.media_type,
+        }),
+      },
+      authorizer: { authorize: () => true },
+      serviceActor: serviceRef,
+    });
+    coordinator.registerBinding({
+      presentation: {
+        protocol_run_id: run.content.correlation.protocol_run_id,
+        project_id: pending.project_id,
+        interaction_run_id: pending.interaction_run_ref.interaction_run_id,
+        interrupt_ref: structuredClone(response.interrupt_ref),
+        change_set_ref: structuredClone(response.change_set_ref),
+      },
+      authority_context: {
+        actor,
+        capability_grant_id: capabilityGrantId,
+      },
+      buildPlan,
+    });
+
+    await expect(
+      coordinator.presentReview(run.content.correlation.protocol_run_id),
+    ).resolves.toMatchObject({ change_set_ref: response.change_set_ref });
+    const first = await coordinator.resolveReview(response, {
+      actor,
+      capability_grant_id: capabilityGrantId,
+    });
+    const replay = await coordinator.resolveReview(response, {
+      actor,
+      capability_grant_id: capabilityGrantId,
+    });
+
+    expect(first).toMatchObject({
+      replayed: false,
+      result: { outcome: "applied", claim_revision: 2 },
+    });
+    expect(replay).toMatchObject({
+      replayed: true,
+      result: { outcome: "applied", claim_revision: 2 },
+    });
+    expect(
+      (await evidence.getClaim(candidate.claim.claim_id))?.authority.zone,
+    ).toBe("trusted");
+    const durableCounts = await pool.query<{
+      interrupt_revisions: string;
+      command_executions: string;
+      applied_events: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text
+            FROM petra.interaction_interrupt_revisions
+           WHERE interaction_interrupt_id = $1) AS interrupt_revisions,
+         (SELECT count(*)::text FROM petra.command_executions) AS command_executions,
+         (SELECT count(*)::text
+            FROM petra.domain_events
+           WHERE event_type = 'change_set.applied') AS applied_events`,
+      [pending.interaction_interrupt_id],
+    );
+    expect(durableCounts.rows[0]).toEqual({
+      interrupt_revisions: "2",
+      command_executions: "3",
+      applied_events: "1",
+    });
   });
 
   it("durably reverses a trusted pair while preserving every prior revision", async () => {

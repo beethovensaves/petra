@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.19.0",
+  "registry_version": "1.20.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -516,6 +516,17 @@
       "canonical_sha256": "sha256:ec69115ed7fd247c287d859e499eb73bc52538091d292e7a8b81f6a762bdb087",
       "generate_typescript": true,
       "typescript_path": "src/generated/interaction-interrupt.ts"
+    },
+    {
+      "name": "review-interrupt-response",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-interrupt-response/1.0.0/schema.json",
+      "path": "schemas/review-interrupt-response/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:81a8a6771e1e7155681741b024f94862bf0e4c1cb7b8ff737b2fcf14f2a20306",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-interrupt-response.ts"
     },
     {
       "name": "interaction-replay-record",

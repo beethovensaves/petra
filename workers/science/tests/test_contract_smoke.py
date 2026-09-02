@@ -3145,6 +3145,31 @@ class PetraModelCall(PetraModel):
     completed_at: str
 
 
+class ReviewInterruptRef(PetraModel):
+    interaction_interrupt_id: str
+    revision: int
+    content_hash: str
+
+
+class ReviewChangeSetRef(PetraModel):
+    change_set_id: str
+    revision: int
+    content_hash: str
+
+
+class PetraReviewInterruptResponse(PetraModel):
+    schema_name: Literal["petra.review-interrupt-response"]
+    schema_version: Literal["1.0.0"]
+    client_response_id: str
+    project_id: str
+    interaction_run_id: str
+    interrupt_ref: ReviewInterruptRef
+    change_set_ref: ReviewChangeSetRef
+    decision: Literal["accept", "reject"]
+    rationale: str
+    decided_at: str
+
+
 PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
@@ -3188,6 +3213,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "interaction-run": PetraInteractionRun,
     "interaction-event-record": PetraInteractionEventRecord,
     "interaction-interrupt": PetraInteractionInterrupt,
+    "review-interrupt-response": PetraReviewInterruptResponse,
     "interaction-replay-record": PetraInteractionReplayRecord,
 }
 PYDANTIC_MODELS: dict[tuple[str, str], type[BaseModel]] = {

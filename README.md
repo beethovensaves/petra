@@ -12,8 +12,10 @@ lawful full-text calibration paper and an offline, proposal-only Docling worker
 that emits stable geometry-backed SourceSpans through shared contracts. M1.5 now
 adds deterministic and model-gateway evidence proposals, independent quarantine
 admission, human-reviewed promotion, graph projection, and compensating
-reversal. No external model deployment is configured yet, and the current
-interaction is not yet a literature-research or model-backed scientific run.
+reversal. Its official AG-UI boundary now resolves a durable review interrupt
+through the same authority commands as direct review. No external model
+deployment is configured yet, and the current interaction is not yet a
+literature-research or model-backed scientific run.
 
 ## Required software
 
@@ -255,6 +257,21 @@ The three-case certification fixture establishes exact expected behavior, not a
 general quality score. No live provider has been selected or certified. See the
 [M1.5 model-gateway report](reports/M1.5-MODEL-GATEWAY.md).
 
+## Durable assistant-mediated review
+
+The review interrupt now names an exact pending interrupt revision and exact
+ChangeSet. The browser may submit only `accept` or `reject`, a rationale, a
+client retry identity, and those immutable references. Actor and capability
+identity come from authenticated server context, never the response body.
+
+Petra records the response as a second immutable interrupt revision with
+`command_input_only` effect, then calls the same `SubmitChangeSet →
+RecordApproval → ApplyChangeSet` executor used by direct review. Exact retries
+return the prior result without another evidence revision or domain event;
+malformed, incomplete, stale, conflicting, and unauthorized inputs cannot
+apply. The official AG-UI SDK remains contained in the adapter. See the
+[M1.5 AG-UI review report](reports/M1.5-AGUI-REVIEW-INTERRUPT.md).
+
 ## Workbench visual baseline
 
 `petra_brand_inspiration` is the design source for Petra's palette, typography
@@ -279,7 +296,7 @@ evidence, graph, and WorkUnit views. It imports the official AG-UI client only
 through `PetraInteractionClient`; AG-UI and Hono types do not enter Petra core.
 
 The fixture demonstrates ordered run, state, activity, custom, tool, text, and
-terminal events; review interruption; replay; idempotent commands; explicit
+terminal events; durable review interruption; replay; idempotent commands; explicit
 cancellation; trace correlation; stream abort; body and authentication limits;
 SPA route precedence; concurrent streams; and graceful shutdown. It keeps
 connection abort separate from WorkUnit cancellation. PostgreSQL now persists

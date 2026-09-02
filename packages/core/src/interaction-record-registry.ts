@@ -579,6 +579,22 @@ export class InMemoryInteractionRecordRegistry {
     return this.#eventsByRun.get(interactionRunId) ?? [];
   }
 
+  getInterrupt(
+    interactionInterruptId: string,
+  ): DeepReadonly<PetraInteractionInterrupt> | undefined {
+    const revision = this.#currentInterruptRevision.get(interactionInterruptId);
+    return revision === undefined
+      ? undefined
+      : this.#interrupts.get(interruptKey(interactionInterruptId, revision));
+  }
+
+  getInterruptRevision(
+    interactionInterruptId: string,
+    revision: number,
+  ): DeepReadonly<PetraInteractionInterrupt> | undefined {
+    return this.#interrupts.get(interruptKey(interactionInterruptId, revision));
+  }
+
   #assertContentHash(actual: string, content: unknown): void {
     if (actual !== canonicalHash(content)) {
       throw new InteractionRecordError(

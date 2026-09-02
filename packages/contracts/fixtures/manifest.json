@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.5.0",
+  "fixture_manifest_version": "1.6.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -226,6 +226,10 @@
     {
       "schema": "interaction-interrupt",
       "path": "fixtures/accepted/interaction-interrupt-responded.json"
+    },
+    {
+      "schema": "review-interrupt-response",
+      "path": "fixtures/accepted/review-interrupt-response.json"
     },
     {
       "schema": "interaction-replay-record",
@@ -460,6 +464,10 @@
     {
       "schema": "interaction-interrupt",
       "path": "fixtures/rejected/interaction-interrupt-response-without-command.json"
+    },
+    {
+      "schema": "review-interrupt-response",
+      "path": "fixtures/rejected/review-interrupt-response-authority-injection.json"
     },
     {
       "schema": "interaction-replay-record",

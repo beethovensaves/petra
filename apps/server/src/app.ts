@@ -11,7 +11,13 @@ import {
   encodeAgUiStream,
   parseAgUiRunInput,
 } from "@petra/adapters";
-import { PetraInteractionRuntime } from "@petra/core";
+import { parseAgUiReviewResponse } from "@petra/adapters/server";
+import {
+  DurableReviewInterruptError,
+  PetraInteractionRuntime,
+  type ReviewInterruptBoundary,
+  type ReviewResolutionContext,
+} from "@petra/core";
 
 interface Variables {
   requestId: string;
@@ -22,6 +28,8 @@ type PetraHono = Hono<{ Variables: Variables }>;
 
 export interface PetraAppOptions {
   runtime?: PetraInteractionRuntime;
+  reviewBoundary?: ReviewInterruptBoundary;
+  reviewAuthority?: ReviewResolutionContext;
   authToken?: string;
   maxBodyBytes?: number;
   publicDir?: string;
@@ -40,7 +48,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const jsonError = (
   context: Context<{ Variables: Variables }>,
-  status: 400 | 401 | 404 | 409 | 413 | 422 | 503,
+  status: 400 | 401 | 403 | 404 | 409 | 413 | 422 | 503,
   code: string,
   message: string,
   details?: unknown,
@@ -101,7 +109,13 @@ const safeAssetPath = (
 
 export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   const app = new Hono<{ Variables: Variables }>();
-  const runtime = options.runtime ?? new PetraInteractionRuntime();
+  const runtime =
+    options.runtime ??
+    new PetraInteractionRuntime(
+      options.reviewBoundary === undefined
+        ? {}
+        : { reviewBoundary: options.reviewBoundary },
+    );
   const authToken = options.authToken ?? "petra-local-development";
   const maxBodyBytes = options.maxBodyBytes ?? 64 * 1024;
   const activeStreams = new Set<AbortController>();
@@ -258,33 +272,32 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   app.post("/api/commands/reviews/resolve", async (context) => {
     try {
       const body = await readBoundedJson(context, maxBodyBytes);
-      if (!isRecord(body))
-        throw new InteractionInputError("Review command must be an object.");
-      const { commandId, interruptId, runId, decision } = body;
-      if (
-        typeof commandId !== "string" ||
-        typeof interruptId !== "string" ||
-        typeof runId !== "string" ||
-        !["accept", "reject", "revise"].includes(String(decision))
-      ) {
-        throw new InteractionInputError(
-          "Review command fields are incomplete or invalid.",
+      const response = parseAgUiReviewResponse(body);
+      if (options.reviewAuthority === undefined) {
+        return jsonError(
+          context,
+          503,
+          "REVIEW_BOUNDARY_UNAVAILABLE",
+          "No authenticated durable review authority is configured.",
         );
       }
       return context.json(
-        runtime.resolveReview({
-          commandId,
-          interruptId,
-          runId,
-          decision: decision as "accept" | "reject" | "revise",
-        }),
+        await runtime.resolveReview(response, options.reviewAuthority),
       );
     } catch (error: unknown) {
+      const status =
+        error instanceof InteractionInputError
+          ? 422
+          : error instanceof DurableReviewInterruptError &&
+              error.code === "REVIEW_INTERRUPT_UNAUTHORIZED"
+            ? 403
+            : 409;
       return jsonError(
         context,
-        error instanceof InteractionInputError ? 422 : 409,
+        status,
         "REVIEW_COMMAND_REJECTED",
         error instanceof Error ? error.message : "Review command rejected.",
+        error instanceof InteractionInputError ? error.issues : undefined,
       );
     }
   });

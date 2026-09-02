@@ -37,7 +37,7 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | --- | --- | --- |
 | Product thesis and scientific contract | Complete | `PETRA.md` |
 | Logical graph and event model | Complete as design | `PETRA_GRAPH_MODEL.md` |
-| Implementation roadmap | M1.5 in progress; model-gateway proposal foundation, direct review, projection, and compensating reversal complete; live extractor activation and AG-UI review next | `implementation_roadmap.md`, `reports/M1.5-MODEL-GATEWAY.md`, `reports/M1.5-DIRECT-REVIEW.md`, `reports/M1.5-COMPENSATING-REVERSAL.md` |
+| Implementation roadmap | M1.5 in progress; model-gateway proposal foundation, direct and AG-UI-mediated review, projection, and compensating reversal complete; configured live extractor activation remains | `implementation_roadmap.md`, `reports/M1.5-MODEL-GATEWAY.md`, `reports/M1.5-DIRECT-REVIEW.md`, `reports/M1.5-AGUI-REVIEW-INTERRUPT.md`, `reports/M1.5-COMPENSATING-REVERSAL.md` |
 | Design implementation roadmap | UX1.0 foundations and UX1.1 research shell in progress | `design_implementation_roadmap.md` |
 | Source-control boundary | Dedicated `/petra` repository on `main`, backed by the private `beethovensaves/petra` remote; verified stages are committed and pushed | `.git/`, `.gitignore`, `implementation_roadmap.md` |
 | Machine-readable schemas | JSON Schema authority and the M1.1 contract kernel complete; Ajv/Python parity, generation, rejection, and canonical-hash gates pass | `decisions/D015-language-neutral-runtime-contracts.md`, `packages/contracts/` |
@@ -52,7 +52,7 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | Graph-guided execution, context, and cost | Complete as design | `decisions/D008-graph-guided-execution-context-and-cost.md` |
 | Executable Petra ingestion workflow | Abstract-only Paper Trail baseline and exact CC BY full-text fixture complete; offline Docling returns stable document proposals, and independent TypeScript admission converts supported source passages into atomic quarantine-only Claim–Assertion pairs while rejecting fabricated spans | `fixtures/paper-trail/`, `fixtures/full-text/fair-guiding-principles/`, `packages/retrieval/`, `workers/science/`, `reports/M1.4-DOCLING-WORKER.md`, `reports/M1.5-DETERMINISTIC-PROPOSALS.md` |
 | Petra interface | Object-centered design accepted; deterministic shell preview exists; module design and validation are in progress | `decisions/D009-object-centered-research-workspace.md`, `design_implementation_roadmap.md` |
-| AG-UI interaction protocol | Official SDK and Petra adapter boundary accepted; M1 scaffold and conformance fixtures pass | `decisions/D013-ag-ui-sdk-interaction-boundary.md`, `reports/M1.0-AGUI-HONO-CONFORMANCE.md` |
+| AG-UI interaction protocol | Official SDK and Petra adapter boundary accepted; M1 conformance and durable review-command fixtures pass without creating a second authority path | `decisions/D013-ag-ui-sdk-interaction-boundary.md`, `reports/M1.0-AGUI-HONO-CONFORMANCE.md`, `reports/M1.5-AGUI-REVIEW-INTERRUPT.md` |
 | Web workbench shell | Hono/React/Vite shell and addressable preview routes exist; scientific production views remain M1.7 work | `decisions/D014-hono-react-vite-workbench-shell.md`, `implementation_roadmap.md` |
 | Hypothesis assessment and posture | Complete as design | `decisions/D010-hypothesis-assessment-posture-and-obligations.md` |
 | Agent runtime and permissions | Partial design | Product, graph, D005, D007, D008, and D010 specifications |

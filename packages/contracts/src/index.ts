@@ -354,6 +354,11 @@ export type {
   RespondedInterrupt,
 } from "./generated/interaction-interrupt.js";
 export type {
+  ChangeSetRef as ReviewInterruptChangeSetRef,
+  InterruptRef as ReviewInterruptRef,
+  PetraReviewInterruptResponse,
+} from "./generated/review-interrupt-response.js";
+export type {
   DeliveryOutcome as InteractionDeliveryOutcome,
   PetraInteractionReplayRecord,
   ReplayContent as InteractionReplayContent,

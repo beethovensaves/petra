@@ -8,6 +8,7 @@ export * from "./composition-registry.js";
 export * from "./document-authority-repository.js";
 export * from "./document-registry.js";
 export * from "./deterministic-evidence-extraction.js";
+export * from "./durable-review-interrupt.js";
 export * from "./evidence-authority-repository.js";
 export * from "./evidence-proposal-admission.js";
 export * from "./evidence-registry.js";

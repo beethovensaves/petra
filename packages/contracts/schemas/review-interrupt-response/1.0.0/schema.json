@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-interrupt-response/1.0.0/schema.json",
+  "title": "PetraReviewInterruptResponse",
+  "description": "A non-authoritative researcher response to one exact review interrupt and ChangeSet. Authentication and capability context are supplied by the server, not this payload.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "client_response_id",
+    "project_id",
+    "interaction_run_id",
+    "interrupt_ref",
+    "change_set_ref",
+    "decision",
+    "rationale",
+    "decided_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.review-interrupt-response" },
+    "schema_version": { "const": "1.0.0" },
+    "client_response_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "interaction_run_id": { "$ref": "#/$defs/InteractionRunId" },
+    "interrupt_ref": { "$ref": "#/$defs/InterruptRef" },
+    "change_set_ref": { "$ref": "#/$defs/ChangeSetRef" },
+    "decision": { "enum": ["accept", "reject"] },
+    "rationale": { "type": "string", "minLength": 1, "maxLength": 5000 },
+    "decided_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "InteractionRunId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^interaction_run_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "InteractionInterruptId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^interaction_interrupt_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "InterruptRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interaction_interrupt_id", "revision", "content_hash"],
+      "properties": {
+        "interaction_interrupt_id": {
+          "$ref": "#/$defs/InteractionInterruptId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ChangeSetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["change_set_id", "revision", "content_hash"],
+      "properties": {
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    }
+  }
+}

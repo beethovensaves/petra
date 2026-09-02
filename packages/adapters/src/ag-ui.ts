@@ -6,7 +6,10 @@ import {
   type RunAgentInput,
 } from "@ag-ui/core";
 import { EventEncoder } from "@ag-ui/encoder";
-import type { PetraInteractionCustomEvent } from "@petra/contracts";
+import type {
+  PetraInteractionCustomEvent,
+  PetraReviewInterruptResponse,
+} from "@petra/contracts";
 import type {
   PetraFixtureMode,
   PetraInteractionEvent,
@@ -320,13 +323,57 @@ export const toAgUiEvents = (event: PetraInteractionEvent): BaseEvent[] => {
         responseSchema: {
           type: "object",
           additionalProperties: false,
-          required: ["decision", "commandId"],
+          required: [
+            "schema_name",
+            "schema_version",
+            "client_response_id",
+            "project_id",
+            "interaction_run_id",
+            "interrupt_ref",
+            "change_set_ref",
+            "decision",
+            "rationale",
+            "decided_at",
+          ],
           properties: {
-            decision: { enum: ["accept", "reject", "revise"] },
-            commandId: { type: "string" },
+            schema_name: { const: "petra.review-interrupt-response" },
+            schema_version: { const: "1.0.0" },
+            client_response_id: { type: "string", minLength: 1 },
+            project_id: { const: event.projectId },
+            interaction_run_id: { const: event.interactionRunId },
+            interrupt_ref: {
+              const: {
+                interaction_interrupt_id: event.interruptId,
+                revision: event.interruptRevision,
+                content_hash: event.interruptContentHash,
+              },
+            },
+            change_set_ref: {
+              const: {
+                change_set_id: event.changeSetId,
+                revision: event.changeSetRevision,
+                content_hash: event.changeSetContentHash,
+              },
+            },
+            decision: { enum: ["accept", "reject"] },
+            rationale: { type: "string", minLength: 1, maxLength: 5000 },
+            decided_at: { type: "string", format: "date-time" },
           },
         },
-        metadata: { changeSetId: event.changeSetId },
+        metadata: {
+          projectId: event.projectId,
+          interactionRunId: event.interactionRunId,
+          interactionInterruptRef: {
+            interaction_interrupt_id: event.interruptId,
+            revision: event.interruptRevision,
+            content_hash: event.interruptContentHash,
+          },
+          changeSetRef: {
+            change_set_id: event.changeSetId,
+            revision: event.changeSetRevision,
+            content_hash: event.changeSetContentHash,
+          },
+        },
       };
       return [
         { ...common, ...toAgUiCustomEvent(interruptEvent, common.metadata) },
@@ -402,6 +449,7 @@ export interface PetraInteractionResult {
 
 export interface PetraInteractionClientOptions {
   endpoint: string;
+  reviewCommandEndpoint?: string;
   token: string;
   traceId?: string;
   fetch?: typeof fetch;
@@ -412,6 +460,36 @@ export class PetraInteractionClient {
 
   constructor(options: PetraInteractionClientOptions) {
     this.#options = options;
+  }
+
+  async resolveReview(
+    response: PetraReviewInterruptResponse,
+  ): Promise<Record<string, unknown>> {
+    const endpoint =
+      this.#options.reviewCommandEndpoint ??
+      new URL(
+        "/api/commands/reviews/resolve",
+        this.#options.endpoint,
+      ).toString();
+    const request = this.#options.fetch ?? fetch;
+    const result = await request(endpoint, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${this.#options.token}`,
+        "content-type": "application/json",
+        ...(this.#options.traceId === undefined
+          ? {}
+          : { "x-petra-trace-id": this.#options.traceId }),
+      },
+      body: JSON.stringify(response),
+    });
+    const body = (await result.json()) as Record<string, unknown>;
+    if (!result.ok) {
+      throw new InteractionInputError("Petra rejected the review response.", [
+        JSON.stringify(body),
+      ]);
+    }
+    return body;
   }
 
   async run(parameters: {
