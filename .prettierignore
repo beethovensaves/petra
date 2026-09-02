@@ -5,6 +5,8 @@
 coverage/
 dist/
 apps/server/public/
+fixtures/paper-trail/openalex_works.json
+fixtures/paper-trail/source-manifest.json
 node_modules/
 petra_brand_inspiration_kit.zip
 workers/science/uv.lock

@@ -4,6 +4,7 @@
     { "path": "packages/contracts" },
     { "path": "packages/core" },
     { "path": "packages/postgres" },
+    { "path": "packages/retrieval" },
     { "path": "packages/s3" },
     { "path": "packages/adapters" },
     { "path": "apps/server" }

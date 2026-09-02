@@ -37,7 +37,7 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | --- | --- | --- |
 | Product thesis and scientific contract | Complete | `PETRA.md` |
 | Logical graph and event model | Complete as design | `PETRA_GRAPH_MODEL.md` |
-| Implementation roadmap | M1.2 PostgreSQL authority and artifact spine complete; M1.3 Paper Trail compatibility and Neo4j projection next | `implementation_roadmap.md` |
+| Implementation roadmap | M1.2 complete; M1.3 Paper Trail compatibility complete and real Neo4j projection in progress | `implementation_roadmap.md`, `reports/M1.3-PAPER-TRAIL-BASELINE.md` |
 | Design implementation roadmap | UX1.0 foundations and UX1.1 research shell in progress | `design_implementation_roadmap.md` |
 | Source-control boundary | Dedicated `/petra` repository on `main`, backed by the private `beethovensaves/petra` remote; verified stages are committed and pushed | `.git/`, `.gitignore`, `implementation_roadmap.md` |
 | Machine-readable schemas | JSON Schema authority and the M1.1 contract kernel complete; Ajv/Python parity, generation, rejection, and canonical-hash gates pass | `decisions/D015-language-neutral-runtime-contracts.md`, `packages/contracts/` |
@@ -50,7 +50,7 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | Language and hypothesis-reference contract | Complete as design | `decisions/D006-petra-language-and-reference-contract.md` |
 | Model gateway, role registry, and routing | Complete as design | `decisions/D007-model-gateway-role-registry-and-routing.md` |
 | Graph-guided execution, context, and cost | Complete as design | `decisions/D008-graph-guided-execution-context-and-cost.md` |
-| Executable Petra ingestion workflow | Not started; local Paper Trail metadata baseline exists outside Petra and is not a runtime dependency | `implementation_roadmap.md` |
+| Executable Petra ingestion workflow | Abstract-only Paper Trail metadata fixture and deterministic retrieval adapter complete inside Petra; lawful full-text ingestion remains M1.4 | `fixtures/paper-trail/`, `packages/retrieval/`, `implementation_roadmap.md` |
 | Petra interface | Object-centered design accepted; deterministic shell preview exists; module design and validation are in progress | `decisions/D009-object-centered-research-workspace.md`, `design_implementation_roadmap.md` |
 | AG-UI interaction protocol | Official SDK and Petra adapter boundary accepted; M1 scaffold and conformance fixtures pass | `decisions/D013-ag-ui-sdk-interaction-boundary.md`, `reports/M1.0-AGUI-HONO-CONFORMANCE.md` |
 | Web workbench shell | Hono/React/Vite shell and addressable preview routes exist; scientific production views remain M1.7 work | `decisions/D014-hono-react-vite-workbench-shell.md`, `implementation_roadmap.md` |

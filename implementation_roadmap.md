@@ -1,6 +1,6 @@
 # Petra Implementation Roadmap
 
-Status: M1.2 complete; M1.3 Paper Trail compatibility and Neo4j projection next
+Status: M1.2 complete; M1.3 Paper Trail compatibility complete and Neo4j projection in progress
 Last updated: 2026-09-02
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
@@ -75,7 +75,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 | `M1.0` | `complete` | Dedicated repository, reproducible developer runtime, Hono/React shell, and AG-UI interaction scaffold | Every later result needs a controlled source, toolchain, local service boundary, and production interaction contract | Accepted D001–D016 | Clean bootstrap, health checks, cross-language contract smoke test, Hono and AG-UI conformance fixtures |
 | `M1.1` | `complete` | Shared runtime and interaction contracts with an in-memory domain kernel | TypeScript, Python, events, jobs, and adapters must agree on identity and authority before persistence | `M1.0` | Cross-language fixtures, stable hashes, invariant and AG-UI mapping tests |
 | `M1.2` | `complete` | PostgreSQL authority, interaction trace, and S3-compatible artifact spine | Petra cannot trust or replay evidence or reconnect interactions without transactional history and immutable bytes | `M1.1` | Repository conformance, domain and interaction replay, artifact verification |
-| `M1.3` | `planned` | Paper Trail regression baseline and Neo4j projection | Petra must demonstrate a real graph while keeping citation and scientific evidence distinct | `M1.2` | Projection replay, assertion trace, baseline retrieval tests |
+| `M1.3` | `in_progress` | Paper Trail regression baseline and Neo4j projection | Petra must demonstrate a real graph while keeping citation and scientific evidence distinct | `M1.2` | Projection replay, assertion trace, baseline retrieval tests |
 | `M1.4` | `planned` | Lawful full-text fixture, Docling worker, and stable SourceSpans | Claims need inspectable source locations rather than metadata or model recollection | `M1.1`, `M1.2` | Reproducible parse, page-level inspection, worker isolation tests |
 | `M1.5` | `planned` | Claim proposal, direct and AG-UI-mediated review, ChangeSet, and trusted graph path | Petra's core promise depends on visible promotion and reversible scientific state through one command path | `M1.3`, `M1.4` | Supported promotion, interrupt review, unsupported rejection, correction, reversal |
 | `M1.6` | `planned` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Provenance fast path, validated model response, AG-UI trace, invalidation |
@@ -97,7 +97,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 
 ### Current Petra state
 
-The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.3 now owns the first real Neo4j projection and Paper Trail compatibility baseline.
+The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.3 now owns the first real Neo4j projection; its Paper Trail compatibility work is complete.
 
 The current development environment exposes:
 
@@ -482,7 +482,7 @@ The persisted M1 runtime uses the accepted S3-compatible adapter against Petra's
 
 ## M1.3 — Paper Trail compatibility and Neo4j projection
 
-- **Status:** `planned`
+- **Status:** `in_progress`
 - **Builds:** a frozen retrieval regression baseline plus Petra's first real graph projection and bounded graph queries.
 - **Why:** Petra must demonstrate graph-native retrieval without confusing source citations, derived paths, and scientific evidence.
 - **Depends on:** `M1.2`.
@@ -495,16 +495,22 @@ Port these behavioral baselines into Petra tests:
 
 | ID | Status | Compatibility specification | Why Petra preserves it |
 | --- | --- | --- | --- |
-| `M1.3-W01` | `planned` | Preserve title-weighted lexical ordering for the frozen sample. | Later retrieval must beat a known, deterministic baseline. |
-| `M1.3-W02` | `planned` | Preserve explicit year filtering. | Temporal scope must be visible and testable. |
-| `M1.3-W03` | `planned` | Preserve directed reference and cited-by neighbors. | Citation direction affects traversal meaning. |
-| `M1.3-W04` | `planned` | Preserve bounded path behavior. | Graph retrieval must have predictable scope and cost. |
-| `M1.3-W05` | `planned` | Preserve source-native `CITES` direction. | Petra must not infer scientific support from graph orientation. |
-| `M1.3-W06` | `planned` | Reject unknown works explicitly. | Missing identity must not degrade into fabricated graph objects. |
-| `M1.3-W07` | `planned` | Preserve chronology quality flags. | Imperfect source metadata must remain visible. |
-| `M1.3-W08` | `planned` | Test that citation and scientific support remain distinct. | Bibliographic dialogue is not evidence for a proposition. |
+| `M1.3-W01` | `complete` | Copy the exact 50-Work CC0 OpenAlex snapshot into Petra, pin its SHA-256, and reproduce the legacy tokenizer plus BM25 parameters—title frequency `2.5`, abstract frequency `1.0`, `k1 = 1.5`, and `b = 0.75`—including deterministic score and tie ordering for the frozen eight-hit query. | Every later sparse, dense, graph, or hybrid retriever needs a byte-identified deterministic floor so an apparent improvement can be measured rather than remembered. |
+| `M1.3-W02` | `complete` | Apply an explicit caller-supplied lower publication-year bound before ranking and prove excluded Works cannot re-enter through ranking or truncation. | A visible temporal scope is required for reproducible searches and prevents a current-literature request from silently becoming an all-time result set. |
+| `M1.3-W03` | `complete` | Build separate in-corpus `references` and reverse `cited-by` indexes, return only the requested direction, sort neighbors deterministically, and cap each result to a validated limit of 1–100. | Citation orientation changes the historical and explanatory meaning of a traversal, while a bound keeps graph work predictable in latency and cost. |
+| `M1.3-W04` | `complete` | Reproduce breadth-first shortest-path behavior for `references`, `cited-by`, or `either` traversal with a validated one-to-six-edge depth bound, including the frozen path that exists at depth two and not at depth one. | Path answers must expose both their traversal semantics and maximum search radius instead of hiding an unbounded or model-invented connection. |
+| `M1.3-W05` | `complete` | Normalize an inspected citation edge to the source-native citing Work → `CITES` → referenced Work orientation even when the user traversed the reverse `cited-by` direction, while retaining a human-readable path step. | Traversal order is a query concern and must never reverse the bibliographic fact stored in the graph. |
+| `M1.3-W06` | `complete` | Fail with typed errors for unknown Work identities, nonadjacent inspected edges, invalid direction, invalid limit, invalid depth, duplicate Work IDs, and malformed or count-mismatched snapshots. | Missing or corrupt identity must stop the operation explicitly rather than produce fabricated nodes, partial paths, or ambiguous empty results. |
+| `M1.3-W07` | `complete` | Preserve source chronology flags on Work views and derive an edge-level warning when a citing Work's recorded year predates its referenced Work's recorded year. | Source metadata can be incomplete or temporally inconsistent; retaining the warning lets later retrieval use the edge without presenting the metadata as clean fact. |
+| `M1.3-W08` | `complete` | Expose only the bibliographic relation literal `CITES` from the abstract-only adapter, assert that no `SUPPORTS` value is emitted, and document that the sample cannot establish peer review, methods, validity, reproduction, or proposition-level scientific support. | A paper mentioning another paper demonstrates dialogue, not epistemic agreement; scientific relations require separate Claims, SourceSpans, review, and PostgreSQL-authorized Assertions. |
 
 The exact BM25 implementation may initially remain a test adapter. Its results provide a floor for later PostgreSQL, Neo4j, or dedicated retrieval implementations.
+
+### Incremental completion evidence
+
+| ID | Status | Executable evidence | Why the evidence is sufficient for this increment |
+| --- | --- | --- | --- |
+| `M1.3-EV01` | `pass` | The exact `openalex_works.json` and `source-manifest.json` copies retain SHA-256 identities `3f3086df898fc2769b88209043c5ea374f2bf721ac7a6e46eaf0f155edd0e017` and `ed529c3b9a06879045baa65e183586c94219214e55cbc4a365a4cf9fba446620`. Nine TypeScript compatibility cases pin snapshot metadata and count, tokenization, eight actual-corpus Work IDs and four-decimal scores, title weighting, year filtering, both directed neighborhoods, depth-bounded path discovery, source-native `CITES`, unknown-identity failure, chronology warnings, absence of `SUPPORTS`, and malformed/duplicate corpus rejection. The full repository verification gate passes with 207 contract, 129 core, 9 retrieval, 2 always-on S3, 11 server, and 14 Python tests. | `M1.3-W01`–`M1.3-W08` now execute independently inside Petra without a runtime dependency on the teaching code, while exact bytes and expected results still tie the port to its frozen oracle. The fixture and adapter explicitly remain abstract-only retrieval evidence rather than an admissible full-text scientific source. |
 
 ### Neo4j projection
 

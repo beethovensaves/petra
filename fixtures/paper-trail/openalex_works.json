@@ -1,0 +1,3179 @@
+{
+  "meta": {
+    "schema_version": "1.0",
+    "source": "OpenAlex API",
+    "source_url": "https://api.openalex.org/works?search=graph+retrieval+augmented+generation&filter=from_publication_date%3A2023-01-01%2Chas_abstract%3Atrue&per-page=50&select=id%2Ctitle%2Cpublication_year%2Cabstract_inverted_index%2Cauthorships%2Cprimary_topic%2Creferenced_works%2Ccited_by_count%2Cdoi%2Ctype%2Clanguage",
+    "documentation_url": "https://help.openalex.org/api/",
+    "license": "CC0",
+    "query": "graph retrieval augmented generation",
+    "from_year": 2023,
+    "fetched_at": "2026-08-25T03:29:48+00:00",
+    "work_count": 50,
+    "limitations": [
+      "Search results are a relevance-ranked sample, not a complete field bibliography.",
+      "Abstracts, citation links, authors, and topics can be missing or incorrect.",
+      "Primary topics are model-assigned predictions in OpenAlex."
+    ]
+  },
+  "works": [
+    {
+      "id": "W4416379250",
+      "openalex_url": "https://openalex.org/W4416379250",
+      "title": "Graph Retrieval-Augmented Generation: A Survey",
+      "year": 2025,
+      "abstract": "Recently, Retrieval-Augmented Generation (RAG) has achieved remarkable success in addressing the challenges of Large Language Models (LLMs) without necessitating retraining. By referencing an external knowledge base, RAG refines LLM outputs, effectively mitigating issues such as “hallucination,” lack of domain-specific knowledge, and outdated information. However, the complex structure of relationships among different entities in databases presents challenges for RAG systems. In response, GraphRAG leverages structural information across entities to enable more precise and comprehensive retrieval, capturing relational knowledge and facilitating more accurate, context-aware responses. Given the novelty and potential of GraphRAG, a systematic review of current technologies is imperative. This article provides the first comprehensive overview of GraphRAG methodologies. We formalize the GraphRAG workflow, encompassing Graph-Based Indexing, Graph-Guided Retrieval, and Graph-Enhanced Generation. We then outline the core technologies and training methods at each stage. Additionally, we examine downstream tasks, application domains, evaluation methodologies, and industrial use cases of GraphRAG. Finally, we explore future research directions to inspire further inquiries and advance progress in the field. In order to track recent progress, we set up a repository at https://github.com/pengboci/GraphRAG-Survey .",
+      "doi": "https://doi.org/10.1145/3777378",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 95,
+      "authors": [
+        {
+          "id": "A5057316227",
+          "display_name": "Boci Peng"
+        },
+        {
+          "id": "A5102978951",
+          "display_name": "Yun Zhu"
+        },
+        {
+          "id": "A5100617992",
+          "display_name": "Yongchao Liu"
+        },
+        {
+          "id": "A5112972631",
+          "display_name": "Xiaohe Bo"
+        },
+        {
+          "id": "A5059766198",
+          "display_name": "Haizhou Shi"
+        },
+        {
+          "id": "A5055553785",
+          "display_name": "Chuntao Hong"
+        },
+        {
+          "id": "A5022499183",
+          "display_name": "Yan Zhang"
+        },
+        {
+          "id": "A5063062444",
+          "display_name": "Siliang Tang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11273",
+        "display_name": "Advanced Graph Neural Networks",
+        "score": 0.7554000020027161
+      },
+      "referenced_works": [
+        "W1964189668",
+        "W2080133951",
+        "W3021393704",
+        "W3131198033",
+        "W3175795662",
+        "W3186799149",
+        "W3211136280",
+        "W4206004462",
+        "W4312634749",
+        "W4360992621",
+        "W4375928571",
+        "W4379382656",
+        "W4385572149",
+        "W4385734275",
+        "W4389523813",
+        "W4390075319",
+        "W4390692489",
+        "W4390759672",
+        "W4390772948",
+        "W4391876619",
+        "W4392562708",
+        "W4393277515",
+        "W4400676476",
+        "W4402669912",
+        "W4403020956",
+        "W4403536437",
+        "W4404035348",
+        "W4404351611",
+        "W4405518282",
+        "W4407951611",
+        "W4412888323",
+        "W4414359625",
+        "W4415797946",
+        "W4416035633"
+      ],
+      "source_rank": 1,
+      "quality_flags": []
+    },
+    {
+      "id": "W4411120544",
+      "openalex_url": "https://openalex.org/W4411120544",
+      "title": "GRAG: Graph Retrieval-Augmented Generation",
+      "year": 2025,
+      "abstract": "Naive Retrieval-Augmented Generation (RAG) focuses on individual documents during retrieval and, as a result, falls short in handling networked documents which are very popular in many applications such as citation graphs, social media, and knowledge graphs.To overcome this limitation, we introduce Graph Retrieval-Augmented Generation (GRAG), which tackles the fundamental challenges in retrieving textual subgraphs and integrating the joint textual and topological information into Large Language Models (LLMs) to enhance its generation.To enable efficient textual subgraph retrieval, we propose a novel divide-and-conquer strategy that retrieves the optimal subgraph structure in linear time.To achieve graph context-aware generation, incorporate textual graphs into LLMs through two complementary views-the text view and the graph view-enabling LLMs to more effectively comprehend and utilize the graph context.Extensive experiments on graph reasoning benchmarks demonstrate that in scenarios requiring multi-hop reasoning on textual graphs, our GRAG approach significantly outperforms current state-of-the-art RAG methods.Our datasets as well as codes of GRAG are available at https://github.com/HuieL/GRAG.",
+      "doi": "https://doi.org/10.18653/v1/2025.findings-naacl.232",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 65,
+      "authors": [
+        {
+          "id": "A5060713000",
+          "display_name": "Yuntong Hu"
+        },
+        {
+          "id": "A5100315542",
+          "display_name": "Zhihan Lei"
+        },
+        {
+          "id": "A5100459086",
+          "display_name": "Zheng Zhang"
+        },
+        {
+          "id": "A5114198055",
+          "display_name": "Bo Pan"
+        },
+        {
+          "id": "A5033765170",
+          "display_name": "Liang Zhao"
+        }
+      ],
+      "primary_topic": {
+        "id": "T12292",
+        "display_name": "Graph Theory and Algorithms",
+        "score": 0.9474999904632568
+      },
+      "referenced_works": [],
+      "source_rank": 2,
+      "quality_flags": []
+    },
+    {
+      "id": "W4404954244",
+      "openalex_url": "https://openalex.org/W4404954244",
+      "title": "Graph Retrieval-Augmented Generation for Large Language Models: A Survey",
+      "year": 2024,
+      "abstract": "Large Language Models (LLMs) demonstrate general knowledge, but they suffer when specifically needed knowledge is not present in their training set. Two approaches to ameliorating this, without retraining, are 1) prompt engineering and 2) Retrieval-Augmented Generation (RAG). RAG is a form of prompt engineering, insofar as relevant lexical snippets retrieved from RAG corpora are vectorized and aggregated with prompts. However, RAG documents are often noisy, i.e., while relevant to a given prompt, they can contain much other information that obfuscates the desired snippet. If the purpose of pretraining a LLM on massive and general corpora is to engender a generally applicable model, RAG is not: it is a means of LLM optimization, and as such, RAG document selection must be precise, not general. For expert tasks, it is imperative that a RAG corpus be as noise-free as possible, in much the same way a good prompt should be free of irrelevant text. Knowledge Graphs (KGs) provide a concise means of representing domain knowledge free of noisy information. This paper surveys work incorporating KGs with LLM RAG, intending to equip scientists with a better understanding of this novel research area for future work.",
+      "doi": "https://doi.org/10.1109/aixset62544.2024.00030",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 63,
+      "authors": [
+        {
+          "id": "A5088933959",
+          "display_name": "Tyler Procko"
+        },
+        {
+          "id": "A5007729921",
+          "display_name": "Omar Ochoa"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9984999895095825
+      },
+      "referenced_works": [
+        "W2501157161",
+        "W3156082048",
+        "W3185341429",
+        "W3196122592",
+        "W4287891177",
+        "W4385278011",
+        "W4385570710",
+        "W4385570984",
+        "W4386065803",
+        "W4389519872",
+        "W4390692489",
+        "W4390824394",
+        "W4392172801",
+        "W4392362484",
+        "W4393147129",
+        "W4394619840",
+        "W4396823873",
+        "W4404781685",
+        "W4404781788",
+        "W6777615688",
+        "W6809646742",
+        "W6810738896",
+        "W6852418670"
+      ],
+      "source_rank": 3,
+      "quality_flags": []
+    },
+    {
+      "id": "W4412889887",
+      "openalex_url": "https://openalex.org/W4412889887",
+      "title": "Knowledge Graph Retrieval-Augmented Generation for LLM-based Recommendation",
+      "year": 2025,
+      "abstract": "Shijie Wang, Wenqi Fan, Yue Feng, Lin Shanru, Xinyu Ma, Shuaiqiang Wang, Dawei Yin. Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2025.",
+      "doi": "https://doi.org/10.18653/v1/2025.acl-long.1317",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 47,
+      "authors": [
+        {
+          "id": "A5103147054",
+          "display_name": "Shijie Wang"
+        },
+        {
+          "id": "A5084060785",
+          "display_name": "Wenqi Fan"
+        },
+        {
+          "id": "A5100955101",
+          "display_name": "Yue Feng"
+        },
+        {
+          "id": "A5119181889",
+          "display_name": "Lin Shanru"
+        },
+        {
+          "id": "A5056848863",
+          "display_name": "Xinyu Ma"
+        },
+        {
+          "id": "A5050255638",
+          "display_name": "Shuaiqiang Wang"
+        },
+        {
+          "id": "A5100594590",
+          "display_name": "Dawei Yin"
+        }
+      ],
+      "primary_topic": {
+        "id": "T13062",
+        "display_name": "Cognitive Computing and Networks",
+        "score": 0.9218999743461609
+      },
+      "referenced_works": [],
+      "source_rank": 4,
+      "quality_flags": []
+    },
+    {
+      "id": "W4403589311",
+      "openalex_url": "https://openalex.org/W4403589311",
+      "title": "Graph Retrieval-Augmented Generation: A Survey",
+      "year": 2024,
+      "abstract": "Recently, Retrieval-Augmented Generation (RAG) has achieved remarkable success in addressing the challenges of Large Language Models (LLMs) without necessitating retraining. By referencing an external knowledge base, RAG refines LLM outputs, effectively mitigating issues such as ``hallucination'', lack of domain-specific knowledge, and outdated information. However, the complex structure of relationships among different entities in databases presents challenges for RAG systems. In response, GraphRAG leverages structural information across entities to enable more precise and comprehensive retrieval, capturing relational knowledge and facilitating more accurate, context-aware responses. Given the novelty and potential of GraphRAG, a systematic review of current technologies is imperative. This paper provides the first comprehensive overview of GraphRAG methodologies. We formalize the GraphRAG workflow, encompassing Graph-Based Indexing, Graph-Guided Retrieval, and Graph-Enhanced Generation. We then outline the core technologies and training methods at each stage. Additionally, we examine downstream tasks, application domains, evaluation methodologies, and industrial use cases of GraphRAG. Finally, we explore future research directions to inspire further inquiries and advance progress in the field. In order to track recent progress in this field, we set up a repository at \\url{https://github.com/pengboci/GraphRAG-Survey}.",
+      "doi": "https://doi.org/10.48550/arxiv.2408.08921",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 26,
+      "authors": [
+        {
+          "id": "A5057316227",
+          "display_name": "Boci Peng"
+        },
+        {
+          "id": "A5110757091",
+          "display_name": "Yun Zhu"
+        },
+        {
+          "id": "A5100617992",
+          "display_name": "Yongchao Liu"
+        },
+        {
+          "id": "A5112972631",
+          "display_name": "Xiaohe Bo"
+        },
+        {
+          "id": "A5019328288",
+          "display_name": "Haizhou Shi"
+        },
+        {
+          "id": "A5055553785",
+          "display_name": "Chuntao Hong"
+        },
+        {
+          "id": "A5100456170",
+          "display_name": "Yan Zhang"
+        },
+        {
+          "id": "A5063062444",
+          "display_name": "Siliang Tang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11273",
+        "display_name": "Advanced Graph Neural Networks",
+        "score": 0.9901000261306763
+      },
+      "referenced_works": [],
+      "source_rank": 5,
+      "quality_flags": []
+    },
+    {
+      "id": "W4412889782",
+      "openalex_url": "https://openalex.org/W4412889782",
+      "title": "Medical Graph RAG: Evidence-based Medical Large Language Model via Graph Retrieval-Augmented Generation",
+      "year": 2025,
+      "abstract": "Junde Wu, Jiayuan Zhu, Yunli Qi, Jingkun Chen, Min Xu, Filippo Menolascina, Yueming Jin, Vicente Grau. Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2025.",
+      "doi": "https://doi.org/10.18653/v1/2025.acl-long.1381",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 66,
+      "authors": [
+        {
+          "id": "A5011430407",
+          "display_name": "Junde Wu"
+        },
+        {
+          "id": "A5119247428",
+          "display_name": "Jiayuan Zhu"
+        },
+        {
+          "id": "A5065419725",
+          "display_name": "Qi Yang"
+        },
+        {
+          "id": "A5101552816",
+          "display_name": "Min Xu"
+        },
+        {
+          "id": "A5083704013",
+          "display_name": "Filippo Menolascina"
+        },
+        {
+          "id": "A5050163233",
+          "display_name": "Yueming Jin"
+        },
+        {
+          "id": "A5023353591",
+          "display_name": "Vicente Grau"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11396",
+        "display_name": "Artificial Intelligence in Healthcare",
+        "score": 0.9125000238418579
+      },
+      "referenced_works": [],
+      "source_rank": 6,
+      "quality_flags": []
+    },
+    {
+      "id": "W4396823873",
+      "openalex_url": "https://openalex.org/W4396823873",
+      "title": "Retrieval-Augmented Generation with Knowledge Graphs for Customer Service Question Answering",
+      "year": 2024,
+      "abstract": "In customer service technical support, swiftly and accurately retrieving relevant past issues is critical for efficiently resolving customer inquiries. The conventional retrieval methods in retrieval-augmented generation (RAG) for large language models (LLMs) treat a large corpus of past issue tracking tickets as plain text, ignoring the crucial intra-issue structure and inter-issue relations, which limits performance. We introduce a novel customer service question-answering method that amalgamates RAG with a knowledge graph (KG). Our method constructs a KG from historical issues for use in retrieval, retaining the intra-issue structure and inter-issue relations. During the question-answering phase, our method parses consumer queries and retrieves related sub-graphs from the KG to generate answers. This integration of a KG not only improves retrieval accuracy by preserving customer service structure information but also enhances answering quality by mitigating the effects of text segmentation. Empirical assessments on our benchmark datasets, utilizing key retrieval (MRR, Recall@K, NDCG@K) and text generation (BLEU, ROUGE, METEOR) metrics, reveal that our method outperforms the baseline by 77.6% in MRR and by 0.32 in BLEU. Our method has been deployed within LinkedIn's customer service team for approximately six months and has reduced the median per-issue resolution time by 28.6%.",
+      "doi": "https://doi.org/10.1145/3626772.3661370",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 145,
+      "authors": [
+        {
+          "id": "A5013990700",
+          "display_name": "Zhentao Xu"
+        },
+        {
+          "id": "A5091653107",
+          "display_name": "Missy Meine C. Dela Cruz"
+        },
+        {
+          "id": "A5103325322",
+          "display_name": "Matthew Guevara"
+        },
+        {
+          "id": "A5103326221",
+          "display_name": "Tie Wang"
+        },
+        {
+          "id": "A5006066900",
+          "display_name": "M. N. DESHPANDE"
+        },
+        {
+          "id": "A5103325595",
+          "display_name": "Xiaofeng Wang"
+        },
+        {
+          "id": "A5103325697",
+          "display_name": "Zheng Li"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9979000091552734
+      },
+      "referenced_works": [
+        "W1593271688",
+        "W1801721664",
+        "W2151149636",
+        "W2251079237",
+        "W2600463316",
+        "W2887428522",
+        "W3027879771",
+        "W3046081331"
+      ],
+      "source_rank": 7,
+      "quality_flags": [
+        "references_later_dated_work"
+      ]
+    },
+    {
+      "id": "W4403443396",
+      "openalex_url": "https://openalex.org/W4403443396",
+      "title": "Medical Graph RAG: Towards Safe Medical Large Language Model via Graph Retrieval-Augmented Generation",
+      "year": 2024,
+      "abstract": "We introduce a novel graph-based Retrieval-Augmented Generation (RAG) framework specifically designed for the medical domain, called \\textbf{MedGraphRAG}, aimed at enhancing Large Language Model (LLM) capabilities for generating evidence-based medical responses, thereby improving safety and reliability when handling private medical data. Graph-based RAG (GraphRAG) leverages LLMs to organize RAG data into graphs, showing strong potential for gaining holistic insights from long-form documents. However, its standard implementation is overly complex for general use and lacks the ability to generate evidence-based responses, limiting its effectiveness in the medical field. To extend the capabilities of GraphRAG to the medical domain, we propose unique Triple Graph Construction and U-Retrieval techniques over it. In our graph construction, we create a triple-linked structure that connects user documents to credible medical sources and controlled vocabularies. In the retrieval process, we propose U-Retrieval which combines Top-down Precise Retrieval with Bottom-up Response Refinement to balance global context awareness with precise indexing. These effort enable both source information retrieval and comprehensive response generation. Our approach is validated on 9 medical Q\\&A benchmarks, 2 health fact-checking benchmarks, and one collected dataset testing long-form generation. The results show that MedGraphRAG consistently outperforms state-of-the-art models across all benchmarks, while also ensuring that responses include credible source documentation and definitions. Our code is released at: https://github.com/MedicineToken/Medical-Graph-RAG.",
+      "doi": "https://doi.org/10.48550/arxiv.2408.04187",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 30,
+      "authors": [
+        {
+          "id": "A5011430407",
+          "display_name": "Junde Wu"
+        },
+        {
+          "id": "A5119247428",
+          "display_name": "Jiayuan Zhu"
+        },
+        {
+          "id": "A5065419725",
+          "display_name": "Qi Yang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.961899995803833
+      },
+      "referenced_works": [],
+      "source_rank": 8,
+      "quality_flags": []
+    },
+    {
+      "id": "W4399115692",
+      "openalex_url": "https://openalex.org/W4399115692",
+      "title": "GRAG: Graph Retrieval-Augmented Generation",
+      "year": 2024,
+      "abstract": "Naive Retrieval-Augmented Generation (RAG) focuses on individual documents during retrieval and, as a result, falls short in handling networked documents which are very popular in many applications such as citation graphs, social media, and knowledge graphs. To overcome this limitation, we introduce Graph Retrieval-Augmented Generation (GRAG), which tackles the fundamental challenges in retrieving textual subgraphs and integrating the joint textual and topological information into Large Language Models (LLMs) to enhance its generation. To enable efficient textual subgraph retrieval, we propose a novel divide-and-conquer strategy that retrieves the optimal subgraph structure in linear time. To achieve graph context-aware generation, incorporate textual graphs into LLMs through two complementary views-the text view and the graph view-enabling LLMs to more effectively comprehend and utilize the graph context. Extensive experiments on graph reasoning benchmarks demonstrate that in scenarios requiring multi-hop reasoning on textual graphs, our GRAG approach significantly outperforms current state-of-the-art RAG methods. Our datasets as well as codes of GRAG are available at https://github.com/HuieL/GRAG.",
+      "doi": "https://doi.org/10.48550/arxiv.2405.16506",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 10,
+      "authors": [
+        {
+          "id": "A5060713000",
+          "display_name": "Yuntong Hu"
+        },
+        {
+          "id": "A5100315542",
+          "display_name": "Zhihan Lei"
+        },
+        {
+          "id": "A5100459086",
+          "display_name": "Zheng Zhang"
+        },
+        {
+          "id": "A5114198055",
+          "display_name": "Bo Pan"
+        },
+        {
+          "id": "A5048756500",
+          "display_name": "Liang Zhao"
+        }
+      ],
+      "primary_topic": {
+        "id": "T12292",
+        "display_name": "Graph Theory and Algorithms",
+        "score": 0.9455000162124634
+      },
+      "referenced_works": [],
+      "source_rank": 9,
+      "quality_flags": []
+    },
+    {
+      "id": "W4404351611",
+      "openalex_url": "https://openalex.org/W4404351611",
+      "title": "HybridRAG: Integrating Knowledge Graphs and Vector Retrieval Augmented Generation for Efficient Information Extraction",
+      "year": 2024,
+      "abstract": "Extraction and interpretation of intricate information from unstructured text data arising in financial applications, such as earnings call transcripts, present substantial challenges to large language models (LLMs) even using the current best practices to use Retrieval Augmented Generation (RAG) (referred to as VectorRAG techniques which utilize vector databases for information retrieval) due to challenges such as domain specific terminology and complex formats of the documents. We introduce a novel approach based on a combination, called HybridRAG, of the Knowledge Graphs (KGs) based RAG techniques (called GraphRAG) and VectorRAG techniques to enhance question-answer (Q&A) systems for information extraction from financial documents that is shown to be capable of generating accurate and contextually relevant answers. Using experiments on a set of financial earning call transcripts documents which come in the form of Q&A format, and hence provide a natural set of pairs of ground-truth Q&As, we show that HybridRAG which retrieves context from both vector database and KG outperforms both traditional VectorRAG and GraphRAG individually when evaluated at both the retrieval and generation stages in terms of retrieval accuracy and answer generation. The proposed technique has applications beyond the financial domain.",
+      "doi": "https://doi.org/10.1145/3677052.3698671",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 117,
+      "authors": [
+        {
+          "id": "A5040045971",
+          "display_name": "Bhaskarjit Sarmah"
+        },
+        {
+          "id": "A5056701307",
+          "display_name": "Dhagash Mehta"
+        },
+        {
+          "id": "A5063377969",
+          "display_name": "Benika Hall"
+        },
+        {
+          "id": "A5050978747",
+          "display_name": "Rohan Rao"
+        },
+        {
+          "id": "A5103730297",
+          "display_name": "Sunil Patel"
+        },
+        {
+          "id": "A5030132224",
+          "display_name": "Stefano Pasquali"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9987999796867371
+      },
+      "referenced_works": [
+        "W1614298861",
+        "W2798658104",
+        "W3003265726",
+        "W3027879771",
+        "W3091938162",
+        "W3106255016",
+        "W4233278670",
+        "W4386443326",
+        "W4396988255",
+        "W4401706657",
+        "W4404954244",
+        "W6757606169"
+      ],
+      "source_rank": 10,
+      "quality_flags": [
+        "references_later_dated_work"
+      ]
+    },
+    {
+      "id": "W4409657176",
+      "openalex_url": "https://openalex.org/W4409657176",
+      "title": "MedRAG: Enhancing Retrieval-augmented Generation with Knowledge Graph-Elicited Reasoning for Healthcare Copilot",
+      "year": 2025,
+      "abstract": "Retrieval-augmented generation (RAG) is a well-suited technique for retrieving privacy-sensitive Electronic Health Records (EHR).It can serve as a key module of the healthcare copilot, helping reduce misdiagnosis for healthcare practitioners and patients.However, the diagnostic accuracy and specificity of existing heuristic-based RAG models used in the medical domain are inadequate, particularly for diseases with similar manifestations.This paper proposes MedRAG, a RAG model enhanced by knowledge graph (KG)-elicited reasoning for the medical domain that retrieves diagnosis and treatment recommendations based on manifestations.MedRAG systematically constructs a comprehensive four-tier hierarchical diagnostic KG encompassing critical diagnostic differences of various diseases.These differences are dynamically integrated with similar EHRs retrieved from an EHR database, and reasoned within a large language model.This process enables more accurate and specific decision support, while also proactively providing follow-up questions to enhance personalized medical decision-making.MedRAG is evaluated on both a public dataset DDXPlus and a private chronic pain diagnostic dataset (CPDD) collected from Tan Tock Seng Hospital, and its performance is compared against various existing RAG methods.Experimental results show that, leveraging the information integration and relational abilities of the KG, our MedRAG provides more specific diagnostic insights and outperforms state-of-the-art models in reducing misdiagnosis rates.Our code will be available at https:// github.com/ SNOWTEAM2023/ MedRAG",
+      "doi": "https://doi.org/10.1145/3696410.3714782",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 98,
+      "authors": [
+        {
+          "id": "A5101656979",
+          "display_name": "Xuejiao Zhao"
+        },
+        {
+          "id": "A5065609019",
+          "display_name": "Siyan Liu"
+        },
+        {
+          "id": "A5058665540",
+          "display_name": "Su-Yin Yang"
+        },
+        {
+          "id": "A5100382077",
+          "display_name": "Chunyan Miao"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9987999796867371
+      },
+      "referenced_works": [
+        "W1593271688",
+        "W1994084271",
+        "W2600463316",
+        "W2901934569",
+        "W3027879771",
+        "W3035356453",
+        "W3176750236",
+        "W3202900983",
+        "W3214498419",
+        "W4205807230",
+        "W4214876804",
+        "W4312113035",
+        "W4318983406",
+        "W4360620260",
+        "W4384524772",
+        "W4385570710",
+        "W4385571179",
+        "W4386443326",
+        "W4388778348",
+        "W4391376033",
+        "W4399526596",
+        "W4400525811",
+        "W4401042451",
+        "W4401100256",
+        "W4401857375",
+        "W4402567773",
+        "W4404587109"
+      ],
+      "source_rank": 11,
+      "quality_flags": [
+        "references_later_dated_work"
+      ]
+    },
+    {
+      "id": "W4405288416",
+      "openalex_url": "https://openalex.org/W4405288416",
+      "title": "Integrating Graph Retrieval-Augmented Generation With Large Language Models for Supplier Discovery",
+      "year": 2024,
+      "abstract": "Abstract As supply chain complexity and dynamism challenge traditional management approaches, integrating large language models (LLMs) and knowledge graphs (KGs) emerges as a promising method for advancing supply chain analytics. This article presents a methodology crafted to harness the synergies between LLMs and KGs, with a particular focus on enhancing supplier discovery practices. The primary goal is to transform and integrate a vast body of unstructured supplier capability data into a harmonized KG, thus improving the supplier discovery process and enhancing the accessibility and findability of manufacturing suppliers. Through an ontology-driven graph construction process, the presented methodology integrates KGs and retrieval-augmented generation with advanced LLM-based natural language processing techniques. With the aid of a detailed case study, we showcase how this integrated approach not only enhances the quality of answers and increases visibility for small- and medium-sized manufacturers but also amplifies agility and provides strategic insights into supply chain management.",
+      "doi": "https://doi.org/10.1115/1.4067389",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 16,
+      "authors": [
+        {
+          "id": "A5025713791",
+          "display_name": "Yunqing Li"
+        },
+        {
+          "id": "A5072607312",
+          "display_name": "Hyunwoong Ko"
+        },
+        {
+          "id": "A5078728714",
+          "display_name": "Farhad Ameri"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10164",
+        "display_name": "Quality and Supply Management",
+        "score": 0.9505000114440918
+      },
+      "referenced_works": [
+        "W2040793436",
+        "W2056605588",
+        "W2738130425",
+        "W2793120087",
+        "W3092319349",
+        "W3143371164",
+        "W3177015224",
+        "W4200186624",
+        "W4312044727",
+        "W4383480635",
+        "W4386126398",
+        "W4390563409",
+        "W4394929238",
+        "W4402567773",
+        "W6679457452",
+        "W6743882432",
+        "W6764804849",
+        "W6798558263",
+        "W6853543057"
+      ],
+      "source_rank": 12,
+      "quality_flags": []
+    },
+    {
+      "id": "W4411119292",
+      "openalex_url": "https://openalex.org/W4411119292",
+      "title": "Knowledge Graph-Guided Retrieval Augmented Generation",
+      "year": 2025,
+      "abstract": "Xiangrong Zhu, Yuexiang Xie, Yi Liu, Yaliang Li, Wei Hu. Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers). 2025.",
+      "doi": "https://doi.org/10.18653/v1/2025.naacl-long.449",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 71,
+      "authors": [
+        {
+          "id": "A5110840412",
+          "display_name": "Xiangrong Zhu"
+        },
+        {
+          "id": "A5064794276",
+          "display_name": "Yuexiang Xie"
+        },
+        {
+          "id": "A5100330446",
+          "display_name": "Yi Liu"
+        },
+        {
+          "id": "A5041456755",
+          "display_name": "Yuanman Li"
+        },
+        {
+          "id": "A5100727084",
+          "display_name": "Wei Hu"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11273",
+        "display_name": "Advanced Graph Neural Networks",
+        "score": 0.8353000283241272
+      },
+      "referenced_works": [],
+      "source_rank": 13,
+      "quality_flags": []
+    },
+    {
+      "id": "W4406840433",
+      "openalex_url": "https://openalex.org/W4406840433",
+      "title": "A Survey of Graph Retrieval-Augmented Generation for Customized Large Language Models",
+      "year": 2025,
+      "abstract": "Large language models (LLMs) have demonstrated remarkable capabilities in a wide range of tasks, yet their application to specialized domains remains challenging due to the need for deep expertise. Retrieval-Augmented generation (RAG) has emerged as a promising solution to customize LLMs for professional fields by seamlessly integrating external knowledge bases, enabling real-time access to domain-specific expertise during inference. Despite its potential, traditional RAG systems, based on flat text retrieval, face three critical challenges: (i) complex query understanding in professional contexts, (ii) difficulties in knowledge integration across distributed sources, and (iii) system efficiency bottlenecks at scale. This survey presents a systematic analysis of Graph-based Retrieval-Augmented Generation (GraphRAG), a new paradigm that revolutionizes domain-specific LLM applications. GraphRAG addresses traditional RAG limitations through three key innovations: (i) graph-structured knowledge representation that explicitly captures entity relationships and domain hierarchies, (ii) efficient graph-based retrieval techniques that enable context-preserving knowledge retrieval with multihop reasoning ability, and (iii) structure-aware knowledge integration algorithms that leverage retrieved knowledge for accurate and logical coherent generation of LLMs. In this survey, we systematically analyze the technical foundations of GraphRAG and examine current implementations across various professional domains, identifying key technical challenges and promising research directions. All the related resources of GraphRAG, including research papers, open-source data, and projects, are collected for the community in https://github.com/DEEP-PolyU/Awesome-GraphRAG.",
+      "doi": "https://doi.org/10.48550/arxiv.2501.13958",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 11,
+      "authors": [
+        {
+          "id": "A5058417704",
+          "display_name": "Qinggang Zhang"
+        },
+        {
+          "id": "A5004805571",
+          "display_name": "Shengyuan Chen"
+        },
+        {
+          "id": "A5035660751",
+          "display_name": "Yuanchen Bei"
+        },
+        {
+          "id": "A5102095560",
+          "display_name": "Zheng Yuan"
+        },
+        {
+          "id": "A5049663232",
+          "display_name": "Huachi Zhou"
+        },
+        {
+          "id": "A5101383081",
+          "display_name": "Zijin Hong"
+        },
+        {
+          "id": "A5100353673",
+          "display_name": "Hao Chen"
+        },
+        {
+          "id": "A5038326486",
+          "display_name": "Junnan Dong"
+        },
+        {
+          "id": "A5049349192",
+          "display_name": "Yi Chang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9944000244140625
+      },
+      "referenced_works": [],
+      "source_rank": 14,
+      "quality_flags": []
+    },
+    {
+      "id": "W4389984066",
+      "openalex_url": "https://openalex.org/W4389984066",
+      "title": "Retrieval-Augmented Generation for Large Language Models: A Survey",
+      "year": 2023,
+      "abstract": "Large Language Models (LLMs) showcase impressive capabilities but encounter challenges like hallucination, outdated knowledge, and non-transparent, untraceable reasoning processes. Retrieval-Augmented Generation (RAG) has emerged as a promising solution by incorporating knowledge from external databases. This enhances the accuracy and credibility of the generation, particularly for knowledge-intensive tasks, and allows for continuous knowledge updates and integration of domain-specific information. RAG synergistically merges LLMs' intrinsic knowledge with the vast, dynamic repositories of external databases. This comprehensive review paper offers a detailed examination of the progression of RAG paradigms, encompassing the Naive RAG, the Advanced RAG, and the Modular RAG. It meticulously scrutinizes the tripartite foundation of RAG frameworks, which includes the retrieval, the generation and the augmentation techniques. The paper highlights the state-of-the-art technologies embedded in each of these critical components, providing a profound understanding of the advancements in RAG systems. Furthermore, this paper introduces up-to-date evaluation framework and benchmark. At the end, this article delineates the challenges currently faced and points out prospective avenues for research and development.",
+      "doi": "https://doi.org/10.48550/arxiv.2312.10997",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 707,
+      "authors": [
+        {
+          "id": "A5102001778",
+          "display_name": "Yunfan Gao"
+        },
+        {
+          "id": "A5001877137",
+          "display_name": "Yun Xiong"
+        },
+        {
+          "id": "A5101581913",
+          "display_name": "Xinyu Gao"
+        },
+        {
+          "id": "A5109666673",
+          "display_name": "Kangxiang Jia"
+        },
+        {
+          "id": "A5104217086",
+          "display_name": "Jinliu Pan"
+        },
+        {
+          "id": "A5104217087",
+          "display_name": "Yuxi Bi"
+        },
+        {
+          "id": "A5100647639",
+          "display_name": "Yi Dai"
+        },
+        {
+          "id": "A5101598822",
+          "display_name": "Jiawei Sun"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9979000091552734
+      },
+      "referenced_works": [],
+      "source_rank": 15,
+      "quality_flags": []
+    },
+    {
+      "id": "W4408184619",
+      "openalex_url": "https://openalex.org/W4408184619",
+      "title": "Knowledge graph enhanced retrieval-augmented generation for failure mode and effects analysis",
+      "year": 2025,
+      "abstract": "Failure mode and effects analysis (FMEA) is an essential tool for mitigating potential failures, particularly during the ramp-up phases of new products. However, its effectiveness is often limited by the reasoning capabilities of the FMEA tools, which are usually tabular structured. Meanwhile, large language models (LLMs) offer novel prospects for advanced natural language processing tasks. However, LLMs face challenges in tasks that require factual knowledge, a gap that retrieval-augmented generation (RAG) approaches aim to fill. RAG retrieves information from a non-parametric data store and uses a language model to generate responses. Building on this concept, we propose to enhance the non-parametric data store with a knowledge graph (KG). By integrating a KG into the RAG framework, we aim to leverage analytical and semantic question-answering capabilities for FMEA data. This paper contributes by presenting set-theoretic standardization and a schema for FMEA data, an algorithm for creating vector embeddings from the FMEA-KG, and a KG-enhanced RAG framework. Our approach is validated through a user experience design study, and we measure the precision and performance of the context retrieval recall. • This paper proposes integrating knowledge graphs within a retrieval-augmented generation (KG-RAG) framework, utilizing a query search to deliver user-friendly and analytic question answering on failure mode and effects analysis (FMEA) data. • It builds on a set-theoretic standardization of FMEA, enabling any FMEA to be converted into a KG. An FMEA schema is proposed to facilitate this transposition. Additionally, an algorithm is suggested for traversing the FMEA-KG to generate vector embeddings. • A user experience design study and performance measurements of context recall and precision validate the approach. Initial results indicate that (i) the query search outperforms RAG approaches that rely solely on vector search for retrieving numerical information, and (ii) well-defined vector embeddings of the FMEA-KG are crucial for effective information retrieval in expert domain data.",
+      "doi": "https://doi.org/10.1016/j.jii.2025.100807",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 52,
+      "authors": [
+        {
+          "id": "A5099611070",
+          "display_name": "Lukas Bahr"
+        },
+        {
+          "id": "A5001408301",
+          "display_name": "Christoph Wehner"
+        },
+        {
+          "id": "A5017870049",
+          "display_name": "Judith Wewerka"
+        },
+        {
+          "id": "A5099611071",
+          "display_name": "José Bittencourt"
+        },
+        {
+          "id": "A5027156356",
+          "display_name": "Ute Schmid"
+        },
+        {
+          "id": "A5024110966",
+          "display_name": "Rüdiger Daub"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11273",
+        "display_name": "Advanced Graph Neural Networks",
+        "score": 0.991599977016449
+      },
+      "referenced_works": [
+        "W12711134",
+        "W1614298861",
+        "W2030261407",
+        "W2072134551",
+        "W2081580037",
+        "W2121337044",
+        "W2147464091",
+        "W2606555609",
+        "W2753718471",
+        "W2768305981",
+        "W2886321131",
+        "W2914304175",
+        "W2963850840",
+        "W2964221236",
+        "W2972535098",
+        "W2980472264",
+        "W2990138404",
+        "W3014596384",
+        "W3101118213",
+        "W3134774296",
+        "W4205599788",
+        "W4225576545",
+        "W4226069413",
+        "W4234335790",
+        "W4238625289",
+        "W4252644175",
+        "W4293451348",
+        "W4298274365",
+        "W4306955484",
+        "W4309674289",
+        "W4327810158",
+        "W4362515116",
+        "W4381198997",
+        "W4385819888",
+        "W4386780130",
+        "W4389984066",
+        "W4390176470",
+        "W4390692489",
+        "W4392134042",
+        "W4393440167",
+        "W4395663988",
+        "W4400530533",
+        "W4404783772",
+        "W6604189946",
+        "W6636006307",
+        "W6641765549",
+        "W6755207826",
+        "W6774977730",
+        "W6776447763",
+        "W6777615688",
+        "W6778883912",
+        "W6783672905",
+        "W6794173217",
+        "W6811366633",
+        "W6854027915",
+        "W6856187016",
+        "W6857108601",
+        "W6859201984",
+        "W6861649182",
+        "W6862120909",
+        "W6863708851",
+        "W6865006770"
+      ],
+      "source_rank": 16,
+      "quality_flags": []
+    },
+    {
+      "id": "W4406031095",
+      "openalex_url": "https://openalex.org/W4406031095",
+      "title": "Retrieval-Augmented Generation with Graphs (GraphRAG)",
+      "year": 2024,
+      "abstract": "Retrieval-augmented generation (RAG) is a powerful technique that enhances downstream task execution by retrieving additional information, such as knowledge, skills, and tools from external sources. Graph, by its intrinsic \"nodes connected by edges\" nature, encodes massive heterogeneous and relational information, making it a golden resource for RAG in tremendous real-world applications. As a result, we have recently witnessed increasing attention on equipping RAG with Graph, i.e., GraphRAG. However, unlike conventional RAG, where the retriever, generator, and external data sources can be uniformly designed in the neural-embedding space, the uniqueness of graph-structured data, such as diverse-formatted and domain-specific relational knowledge, poses unique and significant challenges when designing GraphRAG for different domains. Given the broad applicability, the associated design challenges, and the recent surge in GraphRAG, a systematic and up-to-date survey of its key concepts and techniques is urgently desired. Following this motivation, we present a comprehensive and up-to-date survey on GraphRAG. Our survey first proposes a holistic GraphRAG framework by defining its key components, including query processor, retriever, organizer, generator, and data source. Furthermore, recognizing that graphs in different domains exhibit distinct relational patterns and require dedicated designs, we review GraphRAG techniques uniquely tailored to each domain. Finally, we discuss research challenges and brainstorm directions to inspire cross-disciplinary opportunities. Our survey repository is publicly maintained at https://github.com/Graph-RAG/GraphRAG/.",
+      "doi": "https://doi.org/10.48550/arxiv.2501.00309",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 27,
+      "authors": [
+        {
+          "id": "A5051577458",
+          "display_name": "Haoyu Han"
+        },
+        {
+          "id": "A5100445079",
+          "display_name": "Yu Wang"
+        },
+        {
+          "id": "A5057319756",
+          "display_name": "Harry Shomer"
+        },
+        {
+          "id": "A5012173640",
+          "display_name": "Kai Guo"
+        },
+        {
+          "id": "A5109694219",
+          "display_name": "Jiayuan Ding"
+        },
+        {
+          "id": "A5075175819",
+          "display_name": "Mahantesh Halappanavar"
+        },
+        {
+          "id": "A5009957887",
+          "display_name": "Ryan A. Rossi"
+        },
+        {
+          "id": "A5103853262",
+          "display_name": "Subhabrata Mukherjee"
+        },
+        {
+          "id": "A5046942012",
+          "display_name": "Xianfeng Tang"
+        },
+        {
+          "id": "A5004624014",
+          "display_name": "Qi He"
+        },
+        {
+          "id": "A5100991712",
+          "display_name": "Zhigang Hua"
+        },
+        {
+          "id": "A5101920986",
+          "display_name": "Bo Long"
+        },
+        {
+          "id": "A5026002295",
+          "display_name": "Tong Zhao"
+        },
+        {
+          "id": "A5108127895",
+          "display_name": "Neil Shah"
+        },
+        {
+          "id": "A5012977185",
+          "display_name": "Amin Javari"
+        },
+        {
+          "id": "A5052933431",
+          "display_name": "Yinglong Xia"
+        },
+        {
+          "id": "A5040639891",
+          "display_name": "Jiliang Tang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T12072",
+        "display_name": "Machine Learning and Algorithms",
+        "score": 0.9257000088691711
+      },
+      "referenced_works": [],
+      "source_rank": 17,
+      "quality_flags": []
+    },
+    {
+      "id": "W4412923497",
+      "openalex_url": "https://openalex.org/W4412923497",
+      "title": "Multilingual graph retrieval-augmented generation for product design using design knowledge",
+      "year": 2025,
+      "abstract": "Product design integrates knowledge from multilingual sources (e.g. manuals, patents, news) across life cycle stages. However, fragmented and language-specific representations hinder designers' ability to unify domain concepts and leverage cross-lingual insights for knowledge construction and recommendation. In this study, we propose a multilingual design knowledge graph-guided retrieval-augmented generation framework (MDKG-RAG), which can reduce the multilingual design knowledge extraction cost while promoting the domain design knowledge recommendation. Firstly, the multilingual design knowledge is dynamically optimised and extracted from the multilingual design-relevant corpus by LLMs for the design knowledge graph construction module (MDKGC). Next, the multilingual graph retrieval-augmented generation (MGRAG) assembles the constructed design knowledge graph and the collected intelligence database into user query analysis. The integration process can enhance LLM's capability to better understand professional terms by adaptively retrieving key multilingual texts with entity paths. Then, these retrieved multilingual texts are independently encoded with collaborative LLMs in MGRAG, which aims to output the final query answers by generating, aggregating, and validating multiple query answers with multilingual prompts. Finally, experiments on two question-answering datasets, including multilingual ship outfitting design and long document retrieval, demonstrate MDKG-RAG's effectiveness by acquiring the maximum answer similarity of 32.4% and the most context recall of 35.1%.",
+      "doi": "https://doi.org/10.1080/09544828.2025.2537464",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 5,
+      "authors": [
+        {
+          "id": "A5081554265",
+          "display_name": "Hongbin Zhang"
+        },
+        {
+          "id": "A5025318443",
+          "display_name": "Tao Wang"
+        },
+        {
+          "id": "A5030229805",
+          "display_name": "Zhenghao Huang"
+        },
+        {
+          "id": "A5100348795",
+          "display_name": "Chong Chen"
+        },
+        {
+          "id": "A5032362514",
+          "display_name": "Lianglun Cheng"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10215",
+        "display_name": "Semantic Web and Ontologies",
+        "score": 0.9955999851226807
+      },
+      "referenced_works": [
+        "W1552847225",
+        "W2080133951",
+        "W2174541394",
+        "W2485978960",
+        "W2755967825",
+        "W2988839538",
+        "W3027879771",
+        "W3035390927",
+        "W3164045210",
+        "W3205783417",
+        "W4205738953",
+        "W4221143046",
+        "W4283026156",
+        "W4308760226",
+        "W4372272503",
+        "W4381711094",
+        "W4383737134",
+        "W4384007385",
+        "W4385565351",
+        "W4385570508",
+        "W4385573402",
+        "W4385957532",
+        "W4386876236",
+        "W4387746371",
+        "W4387800173",
+        "W4388144297",
+        "W4388585881",
+        "W4389518671",
+        "W4389519117",
+        "W4389519817",
+        "W4389520468",
+        "W4389520538",
+        "W4389523853",
+        "W4391445915",
+        "W4392822529",
+        "W4394834458",
+        "W4395686609",
+        "W4396515322",
+        "W4396600262",
+        "W4398157615",
+        "W4398183058",
+        "W4400624693",
+        "W4401042773",
+        "W4402670856",
+        "W4402683011",
+        "W4403347014",
+        "W4404534210",
+        "W4406241919",
+        "W4406292864",
+        "W4406748748",
+        "W4407589735",
+        "W4407778253",
+        "W4408804546",
+        "W4409157490",
+        "W4409348212",
+        "W4410638117",
+        "W4411132827",
+        "W4411550028",
+        "W4411630045",
+        "W4412887996"
+      ],
+      "source_rank": 18,
+      "quality_flags": [
+        "references_later_dated_work"
+      ]
+    },
+    {
+      "id": "W4414609312",
+      "openalex_url": "https://openalex.org/W4414609312",
+      "title": "DietQA: A Comprehensive Framework for Personalized Multi-Diet Recipe Retrieval Using Knowledge Graphs, Retrieval-Augmented Generation, and Large Language Models",
+      "year": 2025,
+      "abstract": "Recipes available on the web often lack nutritional transparency and clear indicators of dietary suitability. While searching by title is straightforward, exploring recipes that meet combined dietary needs, nutritional goals, and ingredient-level preferences remains challenging. Most existing recipe search systems do not effectively support flexible multi-dietary reasoning in combination with user preferences and restrictions. For example, users may seek gluten-free and dairy-free dinners with suitable substitutions, or compound goals such as vegan and low-fat desserts. Recent systematic reviews report that most food recommender systems are content-based and often non-personalized, with limited support for dietary restrictions, ingredient-level exclusions, and multi-criteria nutrition goals. This paper introduces DietQA, an end-to-end, language-adaptable chatbot system that integrates a Knowledge Graph (KG), Retrieval-Augmented Generation (RAG), and a Large Language Model (LLM) to support personalized, dietary-aware recipe search and question answering. DietQA crawls Greek-language recipe websites to extract structured information such as titles, ingredients, and quantities. Nutritional values are calculated using validated food composition databases, and dietary tags are inferred automatically based on ingredient composition. All information is stored in a Neo4j-based knowledge graph, enabling flexible querying via Cypher. Users interact with the system through a natural language chatbot friendly interface, where they can express preferences for ingredients, nutrients, dishes, and diets, and filter recipes based on multiple factors such as ingredient availability, exclusions, and nutritional goals. DietQA supports multi-diet recipe search by retrieving both compliant recipes and those adaptable via ingredient substitutions, explaining how each result aligns with user preferences and constraints. An LLM extracts intents and entities from user queries to support rule-based Cypher retrieval, while the RAG pipeline generates contextualized responses using the user query and preferences, retrieved recipes, statistical summaries, and substitution logic. The system integrates real-time updates of recipe and nutritional data, supporting up-to-date, relevant, and personalized recommendations. It is designed for language-adaptable deployment and has been developed and evaluated using Greek-language content. DietQA provides a scalable framework for transparent and adaptive dietary recommendation systems powered by conversational AI.",
+      "doi": "https://doi.org/10.3390/computers14100412",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 10,
+      "authors": [
+        {
+          "id": "A5099517666",
+          "display_name": "Ioannis Tsampos"
+        },
+        {
+          "id": "A5009937562",
+          "display_name": "Emmanouil Marakakis"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11710",
+        "display_name": "Biomedical Text Mining and Ontologies",
+        "score": 0.9904000163078308
+      },
+      "referenced_works": [
+        "W2136727184",
+        "W2532492761",
+        "W2604325789",
+        "W2646738377",
+        "W2906341468",
+        "W2908230750",
+        "W2948916521",
+        "W2953500863",
+        "W2960416371",
+        "W2980563481",
+        "W3022290554",
+        "W3024130274",
+        "W3116705075",
+        "W3118964795",
+        "W3120468617",
+        "W4200270845",
+        "W4210453261",
+        "W4280630420",
+        "W4293010852",
+        "W4319019061",
+        "W4387675603",
+        "W4389995523",
+        "W4393327656",
+        "W4400037558",
+        "W4403019432",
+        "W4409684301",
+        "W4412527478",
+        "W4413161995"
+      ],
+      "source_rank": 19,
+      "quality_flags": []
+    },
+    {
+      "id": "W3027879771",
+      "openalex_url": "https://openalex.org/W3027879771",
+      "title": "Affordance-Compiled Intelligence: Observable-Only Cognitive Impedance Matching for No-Meta LLM-Integrated Systems",
+      "year": 2026,
+      "abstract": "Affordance-Compiled Intelligence develops Cognitive Impedance Matching Theory (CIMT), an observable-only and no-meta protected compiler theory for LLM-integrated systems. The paper studies how a fixed model-policy can exhibit different operational capability when the surrounding world is redesigned through observations, typed action handles, validators, repair paths, rollback modes, authority scopes, context summaries, and auditable receipts. CIMT treats system-level capability amplification as a world-side compilation problem rather than a model-weight improvement problem. It defines operational claims through explicit claim objects and evidence objects, using committed observable ledgers, target-evaluation channels, deterministic reducers, validity budget ledgers, evidence dependency graphs, artifact I/O manifests, conformance envelopes, and finite-sample or sequential certificates. Human reviewers, LLM judges, benchmarks, and external auditors are not treated as privileged evaluators; they are modeled as named, fallible measurement channels. The theory provides a conservative certification framework for paired target-channel improvement, vector debt accounting, forbidden-coordinate zero certificates, target-firewall discipline, scope simulation, dynamic widening, runtime and model-policy conformance, macro reliability, repair contraction, distribution-shift transfer, and receipt sufficiency. It also includes worked examples for code-editing agents and retrieval-augmented generation systems. The intended contribution is a practical formal foundation for making fixed-model LLM systems more reliable through observable world-side interface, authority, validation, repair, and audit design.",
+      "doi": "https://doi.org/10.5281/zenodo.20116149",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 3053,
+      "authors": [
+        {
+          "id": "A5063377058",
+          "display_name": "Patrick Lewis"
+        },
+        {
+          "id": "A5091112967",
+          "display_name": "Ethan Perez"
+        },
+        {
+          "id": "A5045247944",
+          "display_name": "Aleksandara Piktus"
+        },
+        {
+          "id": "A5093091829",
+          "display_name": "Fabio Petroni"
+        },
+        {
+          "id": "A5032508066",
+          "display_name": "Vladimir Karpukhin"
+        },
+        {
+          "id": "A5075834790",
+          "display_name": "Naman Goyal"
+        },
+        {
+          "id": "A5004147468",
+          "display_name": "Heinrich Küttler"
+        },
+        {
+          "id": "A5004412943",
+          "display_name": "Mike Lewis"
+        },
+        {
+          "id": "A5066873932",
+          "display_name": "Wen-tau Yih"
+        },
+        {
+          "id": "A5079315903",
+          "display_name": "Tim Rocktäschel"
+        },
+        {
+          "id": "A5101404695",
+          "display_name": "Sebastian Riedel"
+        },
+        {
+          "id": "A5016956470",
+          "display_name": "Douwe Kiela"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 1.0
+      },
+      "referenced_works": [
+        "W1793121960",
+        "W1801866228",
+        "W2155482025",
+        "W2252136820",
+        "W2558203065",
+        "W2586847566",
+        "W2593864460",
+        "W2609826708",
+        "W2617160040",
+        "W2765390718",
+        "W2788277448",
+        "W2788330850",
+        "W2788448041",
+        "W2789566302",
+        "W2798664956",
+        "W2885421725",
+        "W2888812214",
+        "W2890397703",
+        "W2891103209",
+        "W2909544278",
+        "W2912924812",
+        "W2933138175",
+        "W2950681488",
+        "W2951434086",
+        "W2951534261",
+        "W2962985038",
+        "W2963018920",
+        "W2963045354",
+        "W2963112338",
+        "W2963206148",
+        "W2963310665",
+        "W2963339397",
+        "W2963341956",
+        "W2963403868",
+        "W2963469388",
+        "W2963475460",
+        "W2963777589",
+        "W2964121744",
+        "W2969958763",
+        "W2970401203",
+        "W2970476646",
+        "W2970630590",
+        "W2971455676",
+        "W2971883198",
+        "W2980282514",
+        "W2981852735",
+        "W2982399380",
+        "W2990704537",
+        "W2995154514",
+        "W3005742798",
+        "W3007672467",
+        "W3015883388",
+        "W3016309009",
+        "W3016512233",
+        "W3022255726",
+        "W3033176962",
+        "W3037881859",
+        "W3099180151",
+        "W3102659883"
+      ],
+      "source_rank": 20,
+      "quality_flags": [
+        "cited_by_earlier_dated_work"
+      ]
+    },
+    {
+      "id": "W4410600121",
+      "openalex_url": "https://openalex.org/W4410600121",
+      "title": "Document GraphRAG: Knowledge Graph Enhanced Retrieval Augmented Generation for Document Question Answering Within the Manufacturing Domain",
+      "year": 2025,
+      "abstract": "Retrieval-Augmented Generation (RAG) systems have shown significant potential for domain-specific Question Answering (QA) tasks, although persistent challenges in retrieval precision and context selection continue to hinder their effectiveness. This study introduces Document Graph RAG (GraphRAG), a novel framework that bolsters retrieval robustness and enhances answer generation by incorporating Knowledge Graphs (KGs) built upon a document’s intrinsic structure into the RAG pipeline. Through the application of the Design Science Research methodology, we systematically design, implement, and evaluate GraphRAG, leveraging graph-based document structuring and a keyword-based semantic linking mechanism to improve retrieval quality. The evaluation, conducted on well-established datasets including SQuAD, HotpotQA, and a newly developed manufacturing dataset, demonstrates consistent performance gains over a naive RAG baseline across both retrieval and generation metrics. The results indicate that GraphRAG improves Context Relevance metrics, with task-dependent optimizations for chunk size, keyword density, and top-k retrieval further enhancing performance. Notably, multi-hop questions benefit most from GraphRAG’s structured retrieval strategy, highlighting its advantages in complex reasoning tasks.",
+      "doi": "https://doi.org/10.3390/electronics14112102",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 41,
+      "authors": [
+        {
+          "id": "A5093049266",
+          "display_name": "Simon Knollmeyer"
+        },
+        {
+          "id": "A5114797584",
+          "display_name": "Oğuz Caymazer"
+        },
+        {
+          "id": "A5106615617",
+          "display_name": "Daniel Großmann"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9990000128746033
+      },
+      "referenced_works": [
+        "W18209118",
+        "W1276866904",
+        "W2136922540",
+        "W2584261443",
+        "W2889787757",
+        "W2963323070",
+        "W2973226110",
+        "W3003265726",
+        "W3027879771",
+        "W3099700870",
+        "W3146147453",
+        "W3151685851",
+        "W3190126809",
+        "W3201145629",
+        "W3204562006",
+        "W4225123286",
+        "W4304013646",
+        "W4362579589",
+        "W4385287322",
+        "W4385570569",
+        "W4385570777",
+        "W4385573970",
+        "W4386126398",
+        "W4387567343",
+        "W4389518671",
+        "W4390692489",
+        "W4391172131",
+        "W4393152682",
+        "W4394693799",
+        "W4396722757",
+        "W4396823873",
+        "W4398757454",
+        "W4399180800",
+        "W4399273485",
+        "W4401043168",
+        "W4402502830",
+        "W4403447129",
+        "W4404188586",
+        "W4404720445",
+        "W4404781788",
+        "W4404782367",
+        "W4404782883",
+        "W4404783040",
+        "W4404783156",
+        "W4404783613",
+        "W4404783839",
+        "W4406772193",
+        "W4407917311",
+        "W4407983647",
+        "W4407995309",
+        "W4408184619",
+        "W4412544568",
+        "W6866897111",
+        "W6869774921",
+        "W6873935053"
+      ],
+      "source_rank": 21,
+      "quality_flags": [
+        "references_later_dated_work"
+      ]
+    },
+    {
+      "id": "W4394619840",
+      "openalex_url": "https://openalex.org/W4394619840",
+      "title": "Nanjing Yunjin intelligent question-answering system based on knowledge graphs and retrieval augmented generation technology",
+      "year": 2024,
+      "abstract": "Abstract Nanjing Yunjin, a traditional Chinese silk weaving craft, is celebrated globally for its unique local characteristics and exquisite workmanship, forming an integral part of the world's intangible cultural heritage. However, with the advancement of information technology, the experiential knowledge of the Nanjing Yunjin production process is predominantly stored in text format. As a highly specialized and vertical domain, this information is not readily convert into usable data. Previous studies on a knowledge graph-based Nanjing Yunjin Question-Answering System have partially addressed this issue. However, knowledge graphs need to be constantly updated and rely on predefined entities and relationship types. Faced with ambiguous or complex natural language problems, knowledge graph information retrieval faces some challenges. Therefore, this study proposes a Nanjing Yunjin Question-Answering System that integrates Knowledge Graphs and Retrieval Augmented Generation techniques. In this system, the ROBERTA model is first utilized to vectorize Nanjing Yunjin textual information, delving deep into textual semantics to unveil its profound cultural connotations. Additionally, the FAISS vector database is employed for efficient storage and retrieval of Nanjing Yunjin information, achieving a deep semantic match between questions and answers. Ultimately, related retrieval results are fed into the Large Language Model for enhanced generation, aiming for more accurate text generation outcomes and improving the interpretability and logic of the Question-Answering System. This research merges technologies like text embedding, vectorized retrieval, and natural language generation, aiming to overcome the limitations of knowledge graphs-based Question-Answering System in terms of graph updating, dependency on predefined types, and semantic understanding. System implementation and testing have shown that the Nanjing Yunjin Intelligent Question-Answering System, constructed on the basis of Knowledge Graphs and Retrieval Augmented Generation, possesses a broader knowledge base that considers context, resolving issues of polysemy, vague language, and sentence ambiguity, and efficiently and accurately generates answers to natural language queries. This significantly facilitates the retrieval and utilization of Yunjin knowledge, providing a paradigm for constructing Question-Answering System for other intangible cultural heritages, and holds substantial theoretical and practical significance for the deep exploration and discovery of the knowledge structure of human intangible heritage, promoting cultural inheritance and protection.",
+      "doi": "https://doi.org/10.1186/s40494-024-01231-3",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 38,
+      "authors": [
+        {
+          "id": "A5023681675",
+          "display_name": "Liang Xu"
+        },
+        {
+          "id": "A5100366034",
+          "display_name": "Lu Lu"
+        },
+        {
+          "id": "A5028799862",
+          "display_name": "Minglu Liu"
+        },
+        {
+          "id": "A5046773461",
+          "display_name": "Chengxuan Song"
+        },
+        {
+          "id": "A5101333844",
+          "display_name": "Lizhen Wu"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9966999888420105
+      },
+      "referenced_works": [
+        "W1987224537",
+        "W2017598294",
+        "W2036001619",
+        "W2045045706",
+        "W2053668131",
+        "W2067818700",
+        "W2072284316",
+        "W2136189984",
+        "W2141756401",
+        "W2142920810",
+        "W2150874198",
+        "W2250539671",
+        "W2276571877",
+        "W2328694828",
+        "W2343145095",
+        "W2756822826",
+        "W2799900537",
+        "W2947897749",
+        "W2954203194",
+        "W2963435533",
+        "W2980255006",
+        "W2981175810",
+        "W2990887822",
+        "W2998702515",
+        "W3021895194",
+        "W3121045010",
+        "W3127649957",
+        "W3152069444",
+        "W3169175990",
+        "W3173599196",
+        "W3204556275",
+        "W3210747383",
+        "W4206962558",
+        "W4211017292",
+        "W4214848303",
+        "W4238697446",
+        "W4281566185",
+        "W4304690363",
+        "W4309236643",
+        "W4317898419",
+        "W4319918988",
+        "W4321502015",
+        "W4323357155",
+        "W4361289889",
+        "W4362601804",
+        "W4366816352",
+        "W4376122030",
+        "W4379347837",
+        "W4380757924",
+        "W4384388099",
+        "W4385647272",
+        "W4386002732",
+        "W4386048112",
+        "W4386947897",
+        "W4387776463",
+        "W4388409567",
+        "W4388657703",
+        "W4390195781",
+        "W4390457872"
+      ],
+      "source_rank": 22,
+      "quality_flags": []
+    },
+    {
+      "id": "W4416354085",
+      "openalex_url": "https://openalex.org/W4416354085",
+      "title": "Knowledge graph-extended retrieval augmented generation for question answering",
+      "year": 2025,
+      "abstract": "Abstract Large Language Models (LLMs) and Knowledge Graphs (KGs) offer a promising approach to robust and explainable Question Answering (QA). While LLMs excel at natural language understanding, they suffer from knowledge gaps and hallucinations. KGs provide structured knowledge but lack natural language interaction. Ideally, an AI system should be both robust to missing facts as well as easy to communicate with. This paper proposes such a system that integrates LLMs and KGs without requiring training, ensuring adaptability across different KGs with minimal human effort. The resulting approach can be classified as a specific form of a Retrieval Augmented Generation (RAG) with a KG, thus, it is dubbed Knowledge Graph-extended Retrieval Augmented Generation (KG-RAG). It includes a question decomposition module to enhance multi-hop information retrieval and answer explainability. Using In-Context Learning (ICL) and Chain-of-Thought (CoT) prompting, it generates explicit reasoning chains processed separately to improve truthfulness. Experiments on the MetaQA benchmark show increased accuracy for multi-hop questions, though with a slight trade-off in single-hop performance compared to LLM with KG baselines. These findings demonstrate KG-RAG’s potential to improve transparency in QA by bridging unstructured language understanding with structured knowledge retrieval.",
+      "doi": "https://doi.org/10.1007/s10489-025-06885-5",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 25,
+      "authors": [
+        {
+          "id": "A5004385039",
+          "display_name": "Jakub M. Tomczak"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.45239999890327454
+      },
+      "referenced_works": [
+        "W2084124103",
+        "W2142120379",
+        "W2252136820",
+        "W2511149293",
+        "W2755637027",
+        "W2912924812",
+        "W2980401255",
+        "W2993055513",
+        "W2998500863",
+        "W3133702157",
+        "W3172648852",
+        "W3204877056",
+        "W4283070885",
+        "W4309674289",
+        "W4367671721",
+        "W4385570710",
+        "W4385572149",
+        "W4390692489",
+        "W4396823873",
+        "W4399305008",
+        "W4404852772",
+        "W4409403576",
+        "W4410331119",
+        "W4411245045"
+      ],
+      "source_rank": 23,
+      "quality_flags": []
+    },
+    {
+      "id": "W4401453137",
+      "openalex_url": "https://openalex.org/W4401453137",
+      "title": "Causal Reasoning in Large Language Models using Causal Graph Retrieval Augmented Generation",
+      "year": 2024,
+      "abstract": "Large Language Models (LLMs) are leading the Generative Artificial Intelligence transformation in natural language understanding. Beyond language understanding, LLMs have demonstrated capabilities in reasoning tasks, including commonsense, logical, and mathematical reasoning. However, their proficiency in causal understanding has been limited due to the complex nature of causal reasoning. Several recent studies have discussed the role of external causal models for improved causal understanding. Building on the success of Retrieval-Augmented Generation (RAG) for factual reasoning in LLMs, this paper introduces a novel approach that utilizes Causal Graphs as external sources for establishing causal relationships between complex vectors. This method is empirically evaluated using two benchmark datasets across the metrics of Context Relevance, Answer Relevance, and Grounding, in its ability to retrieve relevant context with causal alignment. The retrieval effectiveness is further compared with traditional RAG methods that are based on semantic proximity.",
+      "doi": "https://doi.org/10.1109/hsi61632.2024.10613566",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 5,
+      "authors": [
+        {
+          "id": "A5040271994",
+          "display_name": "Chamod Samarajeewa"
+        },
+        {
+          "id": "A5064845769",
+          "display_name": "Daswin De Silva"
+        },
+        {
+          "id": "A5090043052",
+          "display_name": "Evgeny Osipov"
+        },
+        {
+          "id": "A5008490552",
+          "display_name": "Damminda Alahakoon"
+        },
+        {
+          "id": "A5032679061",
+          "display_name": "Milos Manic"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9995999932289124
+      },
+      "referenced_works": [
+        "W1770604065",
+        "W1978072631",
+        "W2775120828",
+        "W2898695519",
+        "W2906708754",
+        "W2978376076",
+        "W2993709311",
+        "W3003928769",
+        "W3027879771",
+        "W3105662186",
+        "W3197940319",
+        "W4221143046",
+        "W4224035735",
+        "W4239019441",
+        "W4281250694",
+        "W4283390999",
+        "W4287802874",
+        "W4378508644",
+        "W4385572162",
+        "W4386240783",
+        "W4387074717",
+        "W4389519818",
+        "W4389524307",
+        "W4390528013",
+        "W4390692489",
+        "W4391988054",
+        "W4392538136",
+        "W4393152682",
+        "W4394737154",
+        "W4402779033",
+        "W6755829550",
+        "W6767742017",
+        "W6776218486",
+        "W6777615688",
+        "W6809646742",
+        "W6809885388",
+        "W6838954895",
+        "W6853035495",
+        "W6856079252",
+        "W6859922691",
+        "W6861410269",
+        "W6862315763",
+        "W6864447308"
+      ],
+      "source_rank": 24,
+      "quality_flags": [
+        "references_later_dated_work"
+      ]
+    },
+    {
+      "id": "W4410191504",
+      "openalex_url": "https://openalex.org/W4410191504",
+      "title": "Addressing the information silo of construction planning constraints – a graph retrieval augmented generation approach",
+      "year": 2025,
+      "abstract": "Purpose Removing planning constraints is crucial for ensuring a reliable construction plan and workflow. However, essential information related to these constraints is often scattered and fragmented, leading to the creation of information silos that hinder efficient decision-making. This research aims to develop a framework that integrates disjointed planning constraint attributes, thereby facilitating accurate and reliable access to constraint-related information. Design/methodology/approach This study develops a constraint knowledge graph to organize and integrate constraint attributes with building information modeling (BIM) objects. A knowledge graph-enhanced retrieval-augmented generation (graph RAG) framework was developed to enrich large language models’ (LLMs) knowledge in responding to project constraint-related queries. The framework’s effectiveness was validated using a real-world building project with 1,122 BIM objects and 37 planning constraints. Findings Evaluation results demonstrate that the constraint knowledge graph effectively organizes and represents planning constraints information. The Graph RAG framework correctly answered all 16 testing queries, significantly outperforming traditional RAG in delivering accurate and reliable responses. A 40.6% improvement in correctness score and a 28.3% improvement in ROUGE score compared with baseline RAG were found during end-to-end performance evaluation. Originality/value This study is the first to apply a knowledge graph for organizing construction planning constraint attributes alongside BIM objects. It innovatively utilizes a knowledge graph to enhance LLMs performance in answering constraint domain-specific queries. This research offers a practical tool for improving construction managers’ awareness of planning constraints through a conversational interface. The developed framework is generalizable, allowing for expansion and representing extensive construction knowledge that facilitates knowledge-informed decision-making.",
+      "doi": "https://doi.org/10.1108/ecam-08-2024-1066",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 5,
+      "authors": [
+        {
+          "id": "A5081794329",
+          "display_name": "Chuanni He"
+        },
+        {
+          "id": "A5100343919",
+          "display_name": "Min Liu"
+        },
+        {
+          "id": "A5101445928",
+          "display_name": "Wei He"
+        },
+        {
+          "id": "A5100371697",
+          "display_name": "Zijian Wang"
+        },
+        {
+          "id": "A5060850400",
+          "display_name": "Simon M. Hsiang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11006",
+        "display_name": "BIM and Construction Integration",
+        "score": 0.9976000189781189
+      },
+      "referenced_works": [
+        "W1524322402",
+        "W1905938889",
+        "W1977178401",
+        "W1987476605",
+        "W2028821604",
+        "W2075192667",
+        "W2107170653",
+        "W2126864831",
+        "W2133109597",
+        "W2136922540",
+        "W2137703737",
+        "W2154652894",
+        "W2267378885",
+        "W2313754768",
+        "W2315965488",
+        "W2340900365",
+        "W2559282977",
+        "W2572147858",
+        "W2734504650",
+        "W2903376769",
+        "W2903580520",
+        "W2918507475",
+        "W2975420090",
+        "W3003115413",
+        "W3027879771",
+        "W3028794039",
+        "W3036067204",
+        "W3040363485",
+        "W3042965572",
+        "W3089558719",
+        "W3093272668",
+        "W3133403743",
+        "W3135042231",
+        "W3172375550",
+        "W3203241482",
+        "W4212806832",
+        "W4214931764",
+        "W4280638966",
+        "W4281778680",
+        "W4284886889",
+        "W4290706548",
+        "W4291007294",
+        "W4292400893",
+        "W4298012455",
+        "W4308943736",
+        "W4309029860",
+        "W4313856245",
+        "W4317898419",
+        "W4323566124",
+        "W4367399327",
+        "W4376150892",
+        "W4385718101",
+        "W4386276891",
+        "W4386864235",
+        "W4390563409",
+        "W4391319748",
+        "W4392672322",
+        "W4393101728",
+        "W4393262113",
+        "W4394812171",
+        "W4394929238",
+        "W4398760003",
+        "W4403491186",
+        "W4404834017"
+      ],
+      "source_rank": 25,
+      "quality_flags": [
+        "references_later_dated_work"
+      ]
+    },
+    {
+      "id": "W4401857375",
+      "openalex_url": "https://openalex.org/W4401857375",
+      "title": "A Survey on RAG Meeting LLMs: Towards Retrieval-Augmented Large Language Models",
+      "year": 2024,
+      "abstract": "As one of the most advanced techniques in AI, Retrieval-Augmented Generation (RAG) can offer reliable and up-to-date external knowledge, providing huge convenience for numerous tasks. Particularly in the era of AI-Generated Content (AIGC), the powerful capacity of retrieval in providing additional knowledge enables RAG to assist existing generative AI in producing high-quality outputs. Recently, Large Language Models (LLMs) have demonstrated revolutionary abilities in language understanding and generation, while still facing inherent limitations such as hallucinations and out-of-date internal knowledge. Given the powerful abilities of RAG in providing the latest and helpful auxiliary information, Retrieval-Augmented Large Language Models (RA-LLMs) have emerged to harness external and authoritative knowledge bases, rather than solely relying on the model's internal knowledge, to augment the quality of the generated content of LLMs. In this survey, we comprehensively review existing research studies in RA-LLMs, covering three primary technical perspectives: Furthermore, to deliver deeper insights, we discuss current limitations and several promising directions for future research. Updated information about this survey can be found at: https://advanced-recommender-systems.github.io/RAG-Meets-LLMs/",
+      "doi": "https://doi.org/10.1145/3637528.3671470",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 706,
+      "authors": [
+        {
+          "id": "A5043696243",
+          "display_name": "Wenqi Fan"
+        },
+        {
+          "id": "A5091807843",
+          "display_name": "Yujuan Ding"
+        },
+        {
+          "id": "A5031718186",
+          "display_name": "Liangbo Ning"
+        },
+        {
+          "id": "A5103147054",
+          "display_name": "Shijie Wang"
+        },
+        {
+          "id": "A5064920618",
+          "display_name": "Hengyun Li"
+        },
+        {
+          "id": "A5101771060",
+          "display_name": "Dawei Yin"
+        },
+        {
+          "id": "A5089404640",
+          "display_name": "Tat‐Seng Chua"
+        },
+        {
+          "id": "A5100404176",
+          "display_name": "Qing Li"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10181",
+        "display_name": "Natural Language Processing Techniques",
+        "score": 0.9980999827384949
+      },
+      "referenced_works": [
+        "W8870360",
+        "W2031302834",
+        "W2046325278",
+        "W2144211451",
+        "W2197084977",
+        "W2513853793",
+        "W2907364369",
+        "W2914721378",
+        "W2950902819",
+        "W2962985038",
+        "W2970641574",
+        "W2981852735",
+        "W3003608386",
+        "W3034569646",
+        "W3036611629",
+        "W3099700870",
+        "W3100292568",
+        "W3104123491",
+        "W3135858376",
+        "W3155807546",
+        "W3156789018",
+        "W3157700644",
+        "W3174681481",
+        "W3175142666",
+        "W3186138538",
+        "W4205694376",
+        "W4224308101",
+        "W4225744354",
+        "W4252076394",
+        "W4284704639",
+        "W4284976473",
+        "W4286750695",
+        "W4287855143",
+        "W4287891464",
+        "W4288089799",
+        "W4301243929",
+        "W4303444943",
+        "W4317898419",
+        "W4320888920",
+        "W4367046619",
+        "W4381804476",
+        "W4384302749",
+        "W4384642600",
+        "W4385567171",
+        "W4385570290",
+        "W4385570444",
+        "W4385570798",
+        "W4385571264",
+        "W4385571271",
+        "W4385573102",
+        "W4386076004",
+        "W4386729453",
+        "W4388778348",
+        "W4388994251",
+        "W4389518711",
+        "W4389518895",
+        "W4389519070",
+        "W4389519118",
+        "W4389520468",
+        "W4389524585",
+        "W4389888290",
+        "W4394994587",
+        "W4396843610",
+        "W4399418686",
+        "W4402670423",
+        "W4405648826",
+        "W6810081322"
+      ],
+      "source_rank": 26,
+      "quality_flags": []
+    },
+    {
+      "id": "W4417097190",
+      "openalex_url": "https://openalex.org/W4417097190",
+      "title": "When to use Graphs in RAG: A Comprehensive Analysis for Graph Retrieval-Augmented Generation",
+      "year": 2025,
+      "abstract": "Graph retrieval-augmented generation (GraphRAG) has emerged as a powerful paradigm for enhancing large language models (LLMs) with external knowledge. It leverages graphs to model the hierarchical structure between specific concepts, enabling more coherent and effective knowledge retrieval for accurate reasoning.Despite its conceptual promise, recent studies report that GraphRAG frequently underperforms vanilla RAG on many real-world tasks. This raises a critical question: Is GraphRAG really effective, and in which scenarios do graph structures provide measurable benefits for RAG systems? To address this, we propose GraphRAG-Bench, a comprehensive benchmark designed to evaluate GraphRAG models onboth hierarchical knowledge retrieval and deep contextual reasoning. GraphRAG-Bench features a comprehensive dataset with tasks of increasing difficulty, coveringfact retrieval, complex reasoning, contextual summarization, and creative generation, and a systematic evaluation across the entire pipeline, from graph constructionand knowledge retrieval to final generation. Leveraging this novel benchmark, we systematically investigate the conditions when GraphRAG surpasses traditional RAG and the underlying reasons for its success, offering guidelines for its practical application. All related resources and analyses are collected for the community at https://github.com/GraphRAG-Bench/GraphRAG-Benchmark.",
+      "doi": "https://doi.org/10.48550/arxiv.2506.05690",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 3,
+      "authors": [
+        {
+          "id": "A5100667249",
+          "display_name": "Zhiyi Xiang"
+        },
+        {
+          "id": "A5060849206",
+          "display_name": "Chuanjie Wu"
+        },
+        {
+          "id": "A5058417704",
+          "display_name": "Qinggang Zhang"
+        },
+        {
+          "id": "A5004805571",
+          "display_name": "Shengyuan Chen"
+        },
+        {
+          "id": "A5101383081",
+          "display_name": "Zijin Hong"
+        },
+        {
+          "id": "A5066326238",
+          "display_name": "Jinsong Su"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11273",
+        "display_name": "Advanced Graph Neural Networks",
+        "score": 0.7944999933242798
+      },
+      "referenced_works": [],
+      "source_rank": 27,
+      "quality_flags": []
+    },
+    {
+      "id": "W4414638840",
+      "openalex_url": "https://openalex.org/W4414638840",
+      "title": "Leveraging Graph Retrieval-Augmented Generation to Support Learners’ Understanding of Knowledge Concepts in MOOCs",
+      "year": 2025,
+      "abstract": "Abstract Massive Open Online Courses (MOOCs) lack direct interaction between learners and instructors, making it challenging for learners to understand new knowledge concepts. Recently, learners have increasingly used Large Language Models (LLMs) to support them in acquiring new knowledge. However, LLMs are prone to hallucinations which limits their reliability. Retrieval-Augmented Generation (RAG) addresses this issue by retrieving relevant documents before generating a response. However, the application of RAG across different MOOCs is limited by unstructured learning material. Furthermore, current RAG systems do not actively guide learners toward their learning needs. To address these challenges, we propose a Graph RAG pipeline that leverages Educational Knowledge Graphs (EduKGs) and Personal Knowledge Graphs (PKGs) to guide learners to understand knowledge concepts in the MOOC platform CourseMapper. Specifically, we implement (1) a PKG-based Question Generation method to recommend personalized questions for learners in context, and (2) an EduKG-based Question Answering method that leverages the relationships between knowledge concepts in the EduKG to answer learner selected questions. To evaluate both methods, we conducted a study with 3 expert instructors on 3 different MOOCs in the MOOC platform CourseMapper. The results of the evaluation show the potential of Graph RAG to empower learners to understand new knowledge concepts in a personalized learning experience.",
+      "doi": "https://doi.org/10.1007/978-3-032-00056-9_10",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 4,
+      "authors": [
+        {
+          "id": "A5086299076",
+          "display_name": "M.F. Abdel-Magied"
+        },
+        {
+          "id": "A5073171751",
+          "display_name": "Mohamed Amine Chatti"
+        },
+        {
+          "id": "A5024688562",
+          "display_name": "Shoeb Joarder"
+        },
+        {
+          "id": "A5051736487",
+          "display_name": "Qurat Ul Ain"
+        },
+        {
+          "id": "A5059818289",
+          "display_name": "Rawaa Alatrash"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11902",
+        "display_name": "Intelligent Tutoring Systems and Adaptive Learning",
+        "score": 0.9936000108718872
+      },
+      "referenced_works": [
+        "W3205226130",
+        "W4281398834",
+        "W4320806926",
+        "W4387120448",
+        "W4392484223",
+        "W4392563703",
+        "W4400210764",
+        "W4404782257",
+        "W4410987966"
+      ],
+      "source_rank": 28,
+      "quality_flags": []
+    },
+    {
+      "id": "W4402670290",
+      "openalex_url": "https://openalex.org/W4402670290",
+      "title": "Benchmarking Retrieval-Augmented Generation for Medicine",
+      "year": 2024,
+      "abstract": "While large language models (LLMs) have achieved state-of-the-art performance on a wide range of medical question answering (QA) tasks, they still face challenges with hallucinations and outdated knowledge.Retrievalaugmented generation (RAG) is a promising solution and has been widely adopted.However, a RAG system can involve multiple flexible components, and there is a lack of best practices regarding the optimal RAG setting for various medical purposes.To systematically evaluate such systems, we propose the Medical Information Retrieval-Augmented Generation Evaluation (MIRAGE), a first-of-its-kind benchmark including 7,663 questions from five medical QA datasets.Using MIRAGE, we conducted large-scale experiments with over 1.8 trillion prompt tokens on 41 combinations of different corpora, retrievers, and backbone LLMs through the MEDRAG toolkit introduced in this work.Overall, MEDRAG improves the accuracy of six different LLMs by up to 18% over chain-of-thought prompting, elevating the performance of GPT-3.5 and Mixtral to GPT-4level.Our results show that the combination of various medical corpora and retrievers achieves the best performance.In addition, we discovered a log-linear scaling property and the \"lostin-the-middle\" effects in medical RAG.We believe our comprehensive evaluations can serve as practical guidelines for implementing RAG systems for medicine 1 .",
+      "doi": "https://doi.org/10.18653/v1/2024.findings-acl.372",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 249,
+      "authors": [
+        {
+          "id": "A5047322230",
+          "display_name": "Guangzhi Xiong"
+        },
+        {
+          "id": "A5100611571",
+          "display_name": "Qiao Jin"
+        },
+        {
+          "id": "A5083081872",
+          "display_name": "Zhiyong Lu"
+        },
+        {
+          "id": "A5013588572",
+          "display_name": "Aidong Zhang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11902",
+        "display_name": "Intelligent Tutoring Systems and Adaptive Learning",
+        "score": 0.7786999940872192
+      },
+      "referenced_works": [],
+      "source_rank": 29,
+      "quality_flags": []
+    },
+    {
+      "id": "W7133118333",
+      "openalex_url": "https://openalex.org/W7133118333",
+      "title": "Research on graph-retrieval augmented generation based on historical text knowledge graphs",
+      "year": 2026,
+      "abstract": "Abstract This article addresses domain knowledge gaps in general large language models for historical text analysis in the context of computational humanities and AIGC technology. We propose the GraphRAG framework, combining chain-of-thought prompting, self-instruction generation, and process supervision to create a “The First Four Histories” character relationship dataset with minimal manual annotation. This dataset supports automated historical knowledge extraction, reducing labor costs. In the graph-augmented generation phase, we introduce a collaborative mechanism between knowledge graphs and retrieval-augmented generation, improving the alignment of general models with historical knowledge. Experiments show that the domain-specific model Xunzi-Qwen1.5-14B, with Simplified Chinese input and chain-of-thought prompting, achieves optimal performance in relation extraction (F1 = 0.68). The DeepSeek-R1 model integrated with GraphRAG achieves an absolute F1 increase of 0.11 (0.08 → 0.19) on the open-domain C-CLUE relation extraction dataset, surpassing the F1 value of Xunzi-Qwen1.5-14B (0.12), effectively alleviating “hallucinations,” and improving interpretability. This framework offers a low-resource solution for classical text knowledge extraction, advancing historical knowledge services and humanities research.",
+      "doi": "https://doi.org/10.1093/llc/fqag006",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 3,
+      "authors": [
+        {
+          "id": "A5127768310",
+          "display_name": "Fan Yang"
+        },
+        {
+          "id": "A5127749085",
+          "display_name": "Qi Zhang"
+        },
+        {
+          "id": "A5127763446",
+          "display_name": "Wenqian Xing"
+        },
+        {
+          "id": "A5127774915",
+          "display_name": "Chang Liu"
+        },
+        {
+          "id": "A5006614831",
+          "display_name": "Liu Liu"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.4018999934196472
+      },
+      "referenced_works": [
+        "W2164777277",
+        "W2889787757",
+        "W7131792589"
+      ],
+      "source_rank": 30,
+      "quality_flags": []
+    },
+    {
+      "id": "W4416034797",
+      "openalex_url": "https://openalex.org/W4416034797",
+      "title": "LightRAG: Simple and Fast Retrieval-Augmented Generation",
+      "year": 2025,
+      "abstract": "Retrieval-Augmented Generation (RAG) systems enhance large language models (LLMs) by integrating external knowledge sources, enabling more accurate and contextually relevant responses tailored to user needs.However, existing RAG systems have significant limitations, including reliance on flat data representations and inadequate contextual awareness, which can lead to fragmented answers that fail to capture complex interdependencies.To address these challenges, we propose Ligh-tRAG, a novel framework that incorporates graph structures into text indexing and retrieval processes.This innovative approach employs a dual-level retrieval system that enhances comprehensive information retrieval from both lowand high-level knowledge discovery.Additionally, the integration of graph structures with vector representations facilitates efficient retrieval of related entities and their relationships, significantly improving response times while maintaining contextual relevance.This capability is further enhanced by an incremental update algorithm that ensures the timely integration of new data, allowing the system to remain effective and responsive in rapidly changing data environments.Extensive experimental validation demonstrates considerable improvements in retrieval accuracy and efficiency compared to existing approaches.",
+      "doi": "https://doi.org/10.18653/v1/2025.findings-emnlp.568",
+      "language": null,
+      "type": "conference-paper",
+      "cited_by_count": 131,
+      "authors": [
+        {
+          "id": "A5051193909",
+          "display_name": "Zirui Guo"
+        },
+        {
+          "id": "A5019844880",
+          "display_name": "Lianghao Xia"
+        },
+        {
+          "id": "A5100955788",
+          "display_name": "Yanhua Yu"
+        },
+        {
+          "id": "A5113430900",
+          "display_name": "Tu Ao"
+        },
+        {
+          "id": "A5101402511",
+          "display_name": "Chao Huang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11019",
+        "display_name": "Image Enhancement Techniques",
+        "score": 0.09049999713897705
+      },
+      "referenced_works": [],
+      "source_rank": 31,
+      "quality_flags": []
+    },
+    {
+      "id": "W4391799277",
+      "openalex_url": "https://openalex.org/W4391799277",
+      "title": "G-Retriever: Retrieval-Augmented Generation for Textual Graph Understanding and Question Answering",
+      "year": 2024,
+      "abstract": "Given a graph with textual attributes, we enable users to `chat with their graph': that is, to ask questions about the graph using a conversational interface. In response to a user's questions, our method provides textual replies and highlights the relevant parts of the graph. While existing works integrate large language models (LLMs) and graph neural networks (GNNs) in various ways, they mostly focus on either conventional graph tasks (such as node, edge, and graph classification), or on answering simple graph queries on small or synthetic graphs. In contrast, we develop a flexible question-answering framework targeting real-world textual graphs, applicable to multiple applications including scene graph understanding, common sense reasoning, and knowledge graph reasoning. Toward this goal, we first develop a Graph Question Answering (GraphQA) benchmark with data collected from different tasks. Then, we propose our G-Retriever method, introducing the first retrieval-augmented generation (RAG) approach for general textual graphs, which can be fine-tuned to enhance graph understanding via soft prompting. To resist hallucination and to allow for textual graphs that greatly exceed the LLM's context window size, G-Retriever performs RAG over a graph by formulating this task as a Prize-Collecting Steiner Tree optimization problem. Empirical evaluations show that our method outperforms baselines on textual graph tasks from multiple domains, scales well with larger graph sizes, and mitigates hallucination.~\\footnote{Our codes and datasets are available at: \\url{https://github.com/XiaoxinHe/G-Retriever}}",
+      "doi": "https://doi.org/10.48550/arxiv.2402.07630",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 22,
+      "authors": [
+        {
+          "id": "A5100849212",
+          "display_name": "Xiaoxin He"
+        },
+        {
+          "id": "A5057838053",
+          "display_name": "Yijun Tian"
+        },
+        {
+          "id": "A5100612588",
+          "display_name": "Yifei Sun"
+        },
+        {
+          "id": "A5068157871",
+          "display_name": "Nitesh V. Chawla"
+        },
+        {
+          "id": "A5024411628",
+          "display_name": "Thomas Laurent"
+        },
+        {
+          "id": "A5001226970",
+          "display_name": "Yann LeCun"
+        },
+        {
+          "id": "A5031210396",
+          "display_name": "Xavier Bresson"
+        },
+        {
+          "id": "A5065675832",
+          "display_name": "Bryan Hooi"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9983999729156494
+      },
+      "referenced_works": [],
+      "source_rank": 32,
+      "quality_flags": []
+    },
+    {
+      "id": "W4409386825",
+      "openalex_url": "https://openalex.org/W4409386825",
+      "title": "Detecting emergencies in patient portal messages using large language models and knowledge graph-based retrieval-augmented generation",
+      "year": 2025,
+      "abstract": "OBJECTIVES: This study aims to develop and evaluate an approach using large language models (LLMs) and a knowledge graph to triage patient messages that need emergency care. The goal is to notify patients when their messages indicate an emergency, guiding them to seek immediate help rather than using the patient portal, to improve patient safety. MATERIALS AND METHODS: We selected 1020 messages sent to Vanderbilt University Medical Center providers between January 1, 2022 and March 7, 2023. We developed four models to triage these messages for emergencies: (1) Prompt-Only: the patient message was input with a prompt directly into the LLM; (2) Naïve Retrieval Augmented Generation (RAG): provided retrieved information as context to the LLM; (3) RAG from Knowledge Graph with Local Search: a knowledge graph was used to retrieve locally relevant information based on semantic similarities; (4) RAG from Knowledge Graph with Global Search: a knowledge graph was used to retrieve globally relevant information through hierarchical community detection. The knowledge base was a triage book covering 225 protocols. RESULTS: The RAG from Knowledge Graph model with global search outperformed other models, achieving an accuracy of 0.99, a sensitivity of 0.98, and a specificity of 0.99. It demonstrated significant improvements in triaging emergency messages compared to LLM without RAG and naïve RAG. DISCUSSION: The traditional LLM without any retrieval mechanism underperformed compared to models with RAG, which aligns with the expected benefits of augmenting LLMs with domain-specific knowledge sources. Our results suggest that providing external knowledge, especially in a structured manner and in community summaries, can improve LLM performance in triaging patient portal messages. CONCLUSION: LLMs can effectively assist in triaging emergency patient messages after integrating with a knowledge graph about a nurse triage book. Future research should focus on expanding the knowledge graph and deploying the system to evaluate its impact on patient outcomes.",
+      "doi": "https://doi.org/10.1093/jamia/ocaf059",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 32,
+      "authors": [
+        {
+          "id": "A5091713549",
+          "display_name": "Siru Liu"
+        },
+        {
+          "id": "A5084108623",
+          "display_name": "Aileen P. Wright"
+        },
+        {
+          "id": "A5086954690",
+          "display_name": "Allison B. McCoy"
+        },
+        {
+          "id": "A5084194339",
+          "display_name": "Sean S Huang"
+        },
+        {
+          "id": "A5082251203",
+          "display_name": "Bryan D. Steitz"
+        },
+        {
+          "id": "A5004738173",
+          "display_name": "Adam Wright"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11273",
+        "display_name": "Advanced Graph Neural Networks",
+        "score": 0.21449999511241913
+      },
+      "referenced_works": [
+        "W1565746575",
+        "W2599795825",
+        "W2735585131",
+        "W2754518417",
+        "W2897249806",
+        "W3021036350",
+        "W3093164586",
+        "W3106188259",
+        "W3216484856",
+        "W4200043507",
+        "W4292779060",
+        "W4293457270",
+        "W4309791331",
+        "W4366769280",
+        "W4367310920",
+        "W4380995257",
+        "W4390692489",
+        "W4390741581",
+        "W4390862251",
+        "W4391158659",
+        "W4391876619",
+        "W4392542153",
+        "W4392741075",
+        "W4392928544",
+        "W4399667220",
+        "W4399994866",
+        "W4400187039",
+        "W4400718310",
+        "W4400921803",
+        "W4400937555",
+        "W4402684120",
+        "W4404622689",
+        "W4406421570",
+        "W6633774736",
+        "W6861195436",
+        "W6870696741"
+      ],
+      "source_rank": 33,
+      "quality_flags": []
+    },
+    {
+      "id": "W4415061514",
+      "openalex_url": "https://openalex.org/W4415061514",
+      "title": "DEMENTIA-PLAN: An Agent-Based Framework for Multi-Knowledge Graph Retrieval-Augmented Generation in Dementia Care",
+      "year": 2025,
+      "abstract": "Mild-stage dementia patients primarily experience two critical symptoms: severe memory loss and emotional instability. To address these challenges, we propose DEMENTIA-PLAN, an innovative retrieval-augmented generation framework that leverages large language models to enhance conversational support. Our model employs a multiple knowledge graph architecture, integrating various dimensional knowledge representations including daily routine graphs and life memory graphs. Through this multi-graph architecture, DEMENTIA-PLAN comprehensively addresses both immediate care needs and facilitates deeper emotional resonance through personal memories, helping stabilize patient mood while providing reliable memory support. Our notable innovation is the self-reflection planning agent, which systematically coordinates knowledge retrieval and semantic integration across multiple knowledge graphs, while scoring retrieved content from daily routine and life memory graphs to dynamically adjust their retrieval weights for optimized response generation. DEMENTIA-PLAN represents a significant advancement in the clinical application of large language models for dementia care, bridging the gap between AI tools and caregivers interventions.",
+      "doi": "https://doi.org/10.48550/arxiv.2503.20950",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 4,
+      "authors": [
+        {
+          "id": "A5084274495",
+          "display_name": "Chenhan Lyu"
+        },
+        {
+          "id": "A5103790347",
+          "display_name": "Pengfei Zhang"
+        },
+        {
+          "id": "A5089865252",
+          "display_name": "Sabine Brunswicker"
+        },
+        {
+          "id": "A5007817952",
+          "display_name": "Nikil Dutt"
+        },
+        {
+          "id": "A5042140592",
+          "display_name": "Amir M. Rahmani"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11273",
+        "display_name": "Advanced Graph Neural Networks",
+        "score": 0.9606999754905701
+      },
+      "referenced_works": [],
+      "source_rank": 34,
+      "quality_flags": []
+    },
+    {
+      "id": "W4412887679",
+      "openalex_url": "https://openalex.org/W4412887679",
+      "title": "CausalRAG: Integrating Causal Graphs into Retrieval-Augmented Generation",
+      "year": 2025,
+      "abstract": "Large language models (LLMs) have revolutionized natural language processing (NLP), particularly through Retrieval-Augmented Generation (RAG), which enhances LLM capabilities by integrating external knowledge.However, traditional RAG systems face critical limitations, including disrupted contextual integrity due to text chunking, and over-reliance on semantic similarity for retrieval.To address these issues, we propose CausalRAG, a novel framework that incorporates causal graphs into the retrieval process.By constructing and tracing causal relationships, CausalRAG preserves contextual continuity and improves retrieval precision, leading to more accurate and interpretable responses.We evaluate CausalRAG against regular RAG and graph-based RAG approaches, demonstrating its superiority across several metrics.Our findings suggest that grounding retrieval in causal reasoning provides a promising approach to knowledge-intensive tasks 1 .",
+      "doi": "https://doi.org/10.18653/v1/2025.findings-acl.1165",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 13,
+      "authors": [
+        {
+          "id": "A5116337235",
+          "display_name": "Xiaotian Han"
+        },
+        {
+          "id": "A5010712539",
+          "display_name": "Jing Ma"
+        },
+        {
+          "id": "A5004523290",
+          "display_name": "Vipin Chaudhary"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11303",
+        "display_name": "Bayesian Modeling and Causal Inference",
+        "score": 0.9793999791145325
+      },
+      "referenced_works": [],
+      "source_rank": 35,
+      "quality_flags": []
+    },
+    {
+      "id": "W4391221150",
+      "openalex_url": "https://openalex.org/W4391221150",
+      "title": "Almanac — Retrieval-Augmented Language Models for Clinical Medicine",
+      "year": 2024,
+      "abstract": "BACKGROUND: Large language models (LLMs) have recently shown impressive zero-shot capabilities, whereby they can use auxiliary data, without the availability of task-specific training examples, to complete a variety of natural language tasks, such as summarization, dialogue generation, and question answering. However, despite many promising applications of LLMs in clinical medicine, adoption of these models has been limited by their tendency to generate incorrect and sometimes even harmful statements. METHODS: We tasked a panel of eight board-certified clinicians and two health care practitioners with evaluating Almanac, an LLM framework augmented with retrieval capabilities from curated medical resources for medical guideline and treatment recommendations. The panel compared responses from Almanac and standard LLMs (ChatGPT-4, Bing, and Bard) versus a novel data set of 314 clinical questions spanning nine medical specialties. RESULTS: Almanac showed a significant improvement in performance compared with the standard LLMs across axes of factuality, completeness, user preference, and adversarial safety. CONCLUSIONS: Our results show the potential for LLMs with access to domain-specific corpora to be effective in clinical decision-making. The findings also underscore the importance of carefully testing LLMs before deployment to mitigate their shortcomings. (Funded by the National Institutes of Health, National Heart, Lung, and Blood Institute.).",
+      "doi": "https://doi.org/10.1056/aioa2300068",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 372,
+      "authors": [
+        {
+          "id": "A5010687578",
+          "display_name": "Cyril Zakka"
+        },
+        {
+          "id": "A5071294018",
+          "display_name": "Rohan Shad"
+        },
+        {
+          "id": "A5001692979",
+          "display_name": "Akash Chaurasia"
+        },
+        {
+          "id": "A5087640615",
+          "display_name": "Alex R. Dalal"
+        },
+        {
+          "id": "A5082216611",
+          "display_name": "Jennifer L. Kim"
+        },
+        {
+          "id": "A5021730842",
+          "display_name": "Michael Moor"
+        },
+        {
+          "id": "A5000468245",
+          "display_name": "Robyn Fong"
+        },
+        {
+          "id": "A5102955907",
+          "display_name": "C. Phillips"
+        },
+        {
+          "id": "A5091031375",
+          "display_name": "Kevin Alexander"
+        },
+        {
+          "id": "A5075711252",
+          "display_name": "Euan A. Ashley"
+        },
+        {
+          "id": "A5059409369",
+          "display_name": "Jack Boyd"
+        },
+        {
+          "id": "A5101960215",
+          "display_name": "Kathleen Boyd"
+        },
+        {
+          "id": "A5081506933",
+          "display_name": "Karen G. Hirsch"
+        },
+        {
+          "id": "A5114121518",
+          "display_name": "Curt Langlotz"
+        },
+        {
+          "id": "A5032509115",
+          "display_name": "Rita Lee"
+        },
+        {
+          "id": "A5051644214",
+          "display_name": "Joanna Melia"
+        },
+        {
+          "id": "A5023413213",
+          "display_name": "Joanna Nelson"
+        },
+        {
+          "id": "A5053972379",
+          "display_name": "Karim Sallam"
+        },
+        {
+          "id": "A5093786742",
+          "display_name": "Stacey Tullis"
+        },
+        {
+          "id": "A5062174210",
+          "display_name": "Melissa A. Vogelsong"
+        },
+        {
+          "id": "A5030697996",
+          "display_name": "John P. Cunningham"
+        },
+        {
+          "id": "A5057824212",
+          "display_name": "William Hiesinger"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11636",
+        "display_name": "Artificial Intelligence in Healthcare and Education",
+        "score": 0.927299976348877
+      },
+      "referenced_works": [
+        "W49450175",
+        "W2002085760",
+        "W2101105183",
+        "W2109629022",
+        "W2123179625",
+        "W2903795157",
+        "W2911489562",
+        "W2913593516",
+        "W2963469388",
+        "W2970482702",
+        "W2970771982",
+        "W3006249050",
+        "W3020254748",
+        "W3046375318",
+        "W3104578551",
+        "W3160638507",
+        "W3172669006",
+        "W3183832440",
+        "W3186799149",
+        "W3214646361",
+        "W4226449849",
+        "W4285210452",
+        "W4297253404",
+        "W4309674289",
+        "W4315644297",
+        "W4388778348",
+        "W4389518805"
+      ],
+      "source_rank": 36,
+      "quality_flags": []
+    },
+    {
+      "id": "W4408147114",
+      "openalex_url": "https://openalex.org/W4408147114",
+      "title": "Domain-Specific Retrieval-Augmented Generation Using Vector Stores, Knowledge Graphs, and Tensor Factorization",
+      "year": 2024,
+      "abstract": "Large Language Models (LLMs) are pre-trained on large-scale corpora and excel in numerous general natural language processing (NLP) tasks, such as question answering (QA). Despite their advanced language capabilities, when it comes to domain-specific and knowledge-intensive tasks, LLMs suffer from hallucinations, knowledge cut-offs, and lack of knowledge attributions. Additionally, fine tuning LLMs' intrinsic knowledge to highly specific domains is an expensive and time consuming process. The retrieval-augmented generation (RAG) process has recently emerged as a method capable of optimization of LLM responses, by referencing them to a predetermined ontology. It was shown that using a Knowledge Graph (KG) ontology for RAG improves the QA accuracy, by taking into account relevant sub-graphs that preserve the information in a structured manner. In this paper, we introduce SMART-SLIC, a highly domain-specific LLM framework, that integrates RAG with KG and a vector store (VS) that store factual domain specific information. Importantly, to avoid hallucinations in the KG, we build these highly domain-specific KGs and VSs without the use of LLMs, but via NLP, data mining, and nonnegative tensor factorization with automatic model selection. Pairing our RAG with a domain-specific: (i) KG (containing structured information), and (ii) VS (containing unstructured information) enables the development of domain-specific chat-bots that attribute the source of information, mitigate hallucinations, lessen the need for fine-tuning, and excel in highly domain-specific question answering tasks. We pair SMART-SLIC with chain-of-thought prompting agents. The framework is designed to be generalizable to adapt to any specific or specialized domain. In this paper, we demonstrate the question answering capabilities of our framework on a corpus of scientific publications on malware analysis and anomaly detection.",
+      "doi": "https://doi.org/10.1109/icmla61862.2024.00258",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 23,
+      "authors": [
+        {
+          "id": "A5082439654",
+          "display_name": "Ryan Barron"
+        },
+        {
+          "id": "A5115057181",
+          "display_name": "Vesselin Grantcharov"
+        },
+        {
+          "id": "A5076380072",
+          "display_name": "Selma Wanna"
+        },
+        {
+          "id": "A5066261993",
+          "display_name": "Maksim E. Eren"
+        },
+        {
+          "id": "A5012614331",
+          "display_name": "Manish Bhattarai"
+        },
+        {
+          "id": "A5071250989",
+          "display_name": "Nicholas Solovyev"
+        },
+        {
+          "id": "A5027904936",
+          "display_name": "George Tompkins"
+        },
+        {
+          "id": "A5025012064",
+          "display_name": "Charles Nicholas"
+        },
+        {
+          "id": "A5078718511",
+          "display_name": "K. Ø. Rasmussen"
+        },
+        {
+          "id": "A5019767181",
+          "display_name": "Cynthia Matuszek"
+        },
+        {
+          "id": "A5079029372",
+          "display_name": "Boian S. Alexandrov"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9509999752044678
+      },
+      "referenced_works": [
+        "W2037043950",
+        "W2962985038",
+        "W3003265726",
+        "W3042082631",
+        "W3130402426",
+        "W3174809957",
+        "W3193658714",
+        "W4385567522",
+        "W4385571451",
+        "W4387560121",
+        "W4390692489",
+        "W4392942838",
+        "W4396823873",
+        "W4398160894",
+        "W4400679649",
+        "W4401023489",
+        "W4402684030",
+        "W6776073429",
+        "W6777615688",
+        "W6783856332",
+        "W6784560321",
+        "W6846254642",
+        "W6857420988",
+        "W6858849614",
+        "W6860169332",
+        "W6860328803",
+        "W6861290951",
+        "W6866367421",
+        "W6869234627",
+        "W6873812103",
+        "W6893227881"
+      ],
+      "source_rank": 37,
+      "quality_flags": []
+    },
+    {
+      "id": "W4404188586",
+      "openalex_url": "https://openalex.org/W4404188586",
+      "title": "StructuGraphRAG: Structured Document-Informed Knowledge Graphs for Retrieval-Augmented Generation",
+      "year": 2024,
+      "abstract": "Retrieval-augmented generation (RAG) enhances large language models (LLMs) by incorporating external data sources beyond their training sets and querying predefined knowledge bases to generate accurate, context-rich responses. Most RAG implementations use vector similarity searches, but the effectiveness of this approach and the representation of knowledge bases remain underexplored. Emerging research suggests knowledge graphs as a promising solution. Therefore, this paper presents StructuGraphRAG, which leverages document structures to inform the extraction process and constructs knowledge graphs to enhance RAG for social science research, specifically using NSDUH datasets. Our method parses document structures to extract entities and relationships, constructing comprehensive and relevant knowledge graphs. Experimental results show that StructuGraphRAG outperforms traditional RAG methods in accuracy, comprehensiveness, and contextual relevance. This approach provides a robust tool for social science researchers, facilitating precise analysis of social determinants of health and justice, and underscores the potential of structured document-informed knowledge graph construction in AI and social science research.",
+      "doi": "https://doi.org/10.1609/aaaiss.v4i1.31798",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 14,
+      "authors": [
+        {
+          "id": "A5054497139",
+          "display_name": "Xishi Zhu"
+        },
+        {
+          "id": "A5037287876",
+          "display_name": "Xiaoming Guo"
+        },
+        {
+          "id": "A5001503165",
+          "display_name": "Shengting Cao"
+        },
+        {
+          "id": "A5101593027",
+          "display_name": "Shenglin Li"
+        },
+        {
+          "id": "A5032219874",
+          "display_name": "Jiaqi Gong"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.9973999857902527
+      },
+      "referenced_works": [],
+      "source_rank": 38,
+      "quality_flags": []
+    },
+    {
+      "id": "W7166864397",
+      "openalex_url": "https://openalex.org/W7166864397",
+      "title": "Exposing Privacy Risks in Graph Retrieval-Augmented Generation",
+      "year": 2026,
+      "abstract": "Retrieval-Augmented Generation (RAG) is a powerful technique for enhancing Large Language Models (LLMs) with external, up-todate knowledge.Graph RAG has emerged as an advanced paradigm that leverages graph-based knowledge structures to provide more coherent and contextually rich answers.However, the move from plain document retrieval to structured graph traversal introduces new, underexplored privacy risks.This paper investigates the data extraction vulnerabilities of the Graph RAG systems.We design and execute tailored data extraction attacks to probe their susceptibility to leaking both raw text and structured data, such as entities and their relationships.Our findings reveal a critical trade-off: while Graph RAG systems may reduce raw text leakage, they are significantly more vulnerable to the extraction of structured entity and relationship information.We also explore potential defense mechanisms to mitigate these novel attack surfaces.This work provides a foundational analysis of the unique privacy challenges in Graph RAG and offers insights for building more secure systems.",
+      "doi": "https://doi.org/10.18653/v1/2026.findings-acl.899",
+      "language": null,
+      "type": "conference-paper",
+      "cited_by_count": 1,
+      "authors": [
+        {
+          "id": "A5139772889",
+          "display_name": "Jiale Liu"
+        },
+        {
+          "id": "A5139760485",
+          "display_name": "Jiahao Zhang"
+        },
+        {
+          "id": "A5139826621",
+          "display_name": "Suhang Wang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11273",
+        "display_name": "Advanced Graph Neural Networks",
+        "score": 0.310699999332428
+      },
+      "referenced_works": [],
+      "source_rank": 39,
+      "quality_flags": []
+    },
+    {
+      "id": "W4402670248",
+      "openalex_url": "https://openalex.org/W4402670248",
+      "title": "Enhancing Distractor Generation for Multiple-Choice Questions with Retrieval Augmented Pretraining and Knowledge Graph Integration",
+      "year": 2024,
+      "abstract": "In this paper, we tackle the task of distractor generation (DG) for multiple-choice questions.Our study introduces two key designs.First, we propose retrieval augmented pretraining, which involves refining the language model pretraining to align it more closely with the downstream task of DG.Second, we explore the integration of knowledge graphs to enhance the performance of DG.Through experiments with benchmarking datasets, we show that our models significantly outperform the state-ofthe-art results.Our best-performing model advances the F1@3 score from 14.80 to 16.47 in MCQ dataset and from 15.92 to 16.50 in Sciq dataset.",
+      "doi": "https://doi.org/10.18653/v1/2024.findings-acl.655",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 17,
+      "authors": [
+        {
+          "id": "A5108153899",
+          "display_name": "Han Cheng Yu"
+        },
+        {
+          "id": "A5111019854",
+          "display_name": "Yu An Shih"
+        },
+        {
+          "id": "A5111333820",
+          "display_name": "Kin Man Law"
+        },
+        {
+          "id": "A5076196351",
+          "display_name": "Kai‐Yu Hsieh"
+        },
+        {
+          "id": "A5111599939",
+          "display_name": "Yu Chen Cheng"
+        },
+        {
+          "id": "A5111333821",
+          "display_name": "Hsin Chih Ho"
+        },
+        {
+          "id": "A5113392187",
+          "display_name": "Zih An Lin"
+        },
+        {
+          "id": "A5103394158",
+          "display_name": "Wen-Chuan Hsu"
+        },
+        {
+          "id": "A5024883783",
+          "display_name": "Yao-Chung Fan"
+        }
+      ],
+      "primary_topic": {
+        "id": "T13083",
+        "display_name": "Advanced Text Analysis Techniques",
+        "score": 0.9872999787330627
+      },
+      "referenced_works": [],
+      "source_rank": 40,
+      "quality_flags": []
+    },
+    {
+      "id": "W4403447129",
+      "openalex_url": "https://openalex.org/W4403447129",
+      "title": "Document Knowledge Graph to Enhance Question Answering with Retrieval Augmented Generation",
+      "year": 2024,
+      "abstract": "Reusing and managing existing knowledge from available documents is crucial for success in the factory planning domain. By leveraging Artificial Intelligence (AI) and Question Answering (QA) systems, users can query a document corpus through a chat-based application and receive precise answers. The recent advancements in Large Language Models (LLMs) and their linguistic capabilities present new opportunities for such applications. Utilizing the methodology of Retrieval Augmented Generation (RAG), document sections are provided to the LLM based on user queries. However, existing RAG implementations that use vector databases as document repositories face limitations when answering questions that extend beyond the text content of the documents. To address this issue, this paper proposes a concept to enhance RAG systems by integrating a Knowledge Graph (KG) constructed from the document structures.",
+      "doi": "https://doi.org/10.1109/etfa61755.2024.10711054",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 13,
+      "authors": [
+        {
+          "id": "A5093049266",
+          "display_name": "Simon Knollmeyer"
+        },
+        {
+          "id": "A5059795284",
+          "display_name": "Muhammad Uzair Akmal"
+        },
+        {
+          "id": "A5033359364",
+          "display_name": "Leonid Koval"
+        },
+        {
+          "id": "A5009372684",
+          "display_name": "Saara Asif"
+        },
+        {
+          "id": "A5036343536",
+          "display_name": "Selvine G. Mathias"
+        },
+        {
+          "id": "A5106615617",
+          "display_name": "Daniel Großmann"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.8895999789237976
+      },
+      "referenced_works": [
+        "W2336785612",
+        "W3027879771",
+        "W3118999024",
+        "W4385287322",
+        "W4387735336",
+        "W4389984066",
+        "W4390692489",
+        "W4393152682",
+        "W6777615688",
+        "W6787757238",
+        "W6859201984"
+      ],
+      "source_rank": 41,
+      "quality_flags": [
+        "references_later_dated_work"
+      ]
+    },
+    {
+      "id": "W4406139250",
+      "openalex_url": "https://openalex.org/W4406139250",
+      "title": "Knowledge Graph Retrieval-Augmented Generation for LLM-based Recommendation",
+      "year": 2025,
+      "abstract": "Recommender systems have become increasingly vital in our daily lives, helping to alleviate the problem of information overload across various user-oriented online services. The emergence of Large Language Models (LLMs) has yielded remarkable achievements, demonstrating their potential for the development of next-generation recommender systems. Despite these advancements, LLM-based recommender systems face inherent limitations stemming from their LLM backbones, particularly issues of hallucinations and the lack of up-to-date and domain-specific knowledge. Recently, Retrieval-Augmented Generation (RAG) has garnered significant attention for addressing these limitations by leveraging external knowledge sources to enhance the understanding and generation of LLMs. However, vanilla RAG methods often introduce noise and neglect structural relationships in knowledge, limiting their effectiveness in LLM-based recommendations. To address these limitations, we propose to retrieve high-quality and up-to-date structure information from the knowledge graph (KG) to augment recommendations. Specifically, our approach develops a retrieval-augmented framework, termed K-RagRec, that facilitates the recommendation generation process by incorporating structure information from the external KG. Extensive experiments have been conducted to demonstrate the effectiveness of our proposed method.",
+      "doi": "https://doi.org/10.48550/arxiv.2501.02226",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 1,
+      "authors": [
+        {
+          "id": "A5103147054",
+          "display_name": "Shijie Wang"
+        },
+        {
+          "id": "A5084060785",
+          "display_name": "Wenqi Fan"
+        },
+        {
+          "id": "A5100955101",
+          "display_name": "Yue Feng"
+        },
+        {
+          "id": "A5056848863",
+          "display_name": "Xinyu Ma"
+        },
+        {
+          "id": "A5050255638",
+          "display_name": "Shuaiqiang Wang"
+        },
+        {
+          "id": "A5100594590",
+          "display_name": "Dawei Yin"
+        }
+      ],
+      "primary_topic": {
+        "id": "T13062",
+        "display_name": "Cognitive Computing and Networks",
+        "score": 0.9247000217437744
+      },
+      "referenced_works": [],
+      "source_rank": 42,
+      "quality_flags": []
+    },
+    {
+      "id": "W4407362435",
+      "openalex_url": "https://openalex.org/W4407362435",
+      "title": "To Enhance Graph-Based Retrieval-Augmented Generation (RAG) with Robust Retrieval Techniques",
+      "year": 2024,
+      "abstract": "Large language models have demonstrated exceptional performance in multiple domains. However, practical deployment in the healthcare sector has distinctive challenges. These challenges include hallucination, inconsistency, explainability, reasoning, authenticity, and validity of information sources. Hallucinations in LLM often emerge due to unstructured and obsolete training data and the incompetence to upgrade the model data post-training. Retrieval-augmented generation (RAG) integration with LLM decision-making helps access real-time information from external resources. However, further improvements are needed to improve accurate response generation. A knowledge Graph is a structured data comprising nodes as entities and edges as relationships. When integrated with RAG, Knowledge Graph-based retrieval offers better contextu-ally relevant responses, traceability, and explainability of generated responses than RAG alone. This study proposes a novel knowledge graph-based RAG framework with a refined retrieval pipeline, robust chunking mechanism, and source traceability for enhanced diabetes-focused LLM. The retrieval pipeline integrates three robust retrieval strategies: keyword, graph, and vector. To ensure the authenticity of responses, a knowledge base focusing on diabetes is designed from validated sources. This verified knowledge base is preprocessed and converted to a knowledge graph to design A graph-based RAG pipeline. The empirical results demonstrate effective performance in diabetes-focused LLM, achieving a Rouge 1 score of 82.19%.",
+      "doi": "https://doi.org/10.1109/icosst64562.2024.10871140",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 10,
+      "authors": [
+        {
+          "id": "A5062087547",
+          "display_name": "Maneeha Rani"
+        },
+        {
+          "id": "A5102934829",
+          "display_name": "Bhupesh Kumar Mishra"
+        },
+        {
+          "id": "A5035962673",
+          "display_name": "Dhavalkumar Thakker"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11269",
+        "display_name": "Algorithms and Data Compression",
+        "score": 0.6915000081062317
+      },
+      "referenced_works": [
+        "W4323655724",
+        "W4377197101",
+        "W4385227045",
+        "W4392193191",
+        "W4398217444",
+        "W4399305008",
+        "W4400524835",
+        "W4400531852",
+        "W4401213083",
+        "W4401386758",
+        "W4401504499",
+        "W4404954244"
+      ],
+      "source_rank": 43,
+      "quality_flags": []
+    },
+    {
+      "id": "W7138469371",
+      "openalex_url": "https://openalex.org/W7138469371",
+      "title": "ViG-RAG: Video-aware Graph Retrieval-Augmented Generation via Temporal and Semantic Hybrid Reasoning",
+      "year": 2026,
+      "abstract": "Retrieval-augmented generation (RAG) has greatly improved Large Language Models (LLMs) by adding external knowledge. However, current RAG-based methods face difficulties with long-context video understanding due to two main challenges. First, Current RAG-based methods for long-context video understanding struggle to effectively integrate multimodal and long-range temporal information, resulting in fragmented and context-insensitive knowledge representations. Furthermore, their retrieval mechanisms often rely on static textual matching, failing to dynamically align user queries with the most relevant video segments and leading to suboptimal downstream performance. To overcome these issues, we introduce ViG-RAG, a new framework to enhance long-context video understanding through structured textual knowledge grounding and multi-modal retrieval. Specifically, we segment video transcripts into structured units, extract key entities, form temporal connections, and assign confidence for evidence, enabling coherent long-range reasoning. In this way, it utilizes a knowledge-aware grounding mechanism and a context-aware retrieval process that dynamically builds a probabilistic temporal knowledge graph to organize multi-video content. To improve retrieval accuracy, we propose a hybrid retrieval strategy for semantic and temporal features, with an adaptive distribution modeling the relevance. In this way, it achieves the optimal retrieval distribution for each query, enhancing generation efficiency by reducing unnecessary computations. On top of this, ViG-RAG uses a vision-language model to integrate semantic anchors, expanded contextual fields, and selected video frames, generating an accurate response. We evaluate ViG-RAG on several benchmarks, demonstrating that it significantly surpasses current RAG-based methods.",
+      "doi": "https://doi.org/10.1609/aaai.v40i1.36963",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 2,
+      "authors": [
+        {
+          "id": "A5129730535",
+          "display_name": "Zongsheng Cao"
+        },
+        {
+          "id": "A5129648375",
+          "display_name": "Anran Liu"
+        },
+        {
+          "id": "A5129646620",
+          "display_name": "Yangfan He"
+        },
+        {
+          "id": "A5129652431",
+          "display_name": "Jing Li"
+        },
+        {
+          "id": "A5129678275",
+          "display_name": "Bo Zhang"
+        },
+        {
+          "id": "A5103057256",
+          "display_name": "Zigan Wang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11714",
+        "display_name": "Multimodal Machine Learning Applications",
+        "score": 0.9854999780654907
+      },
+      "referenced_works": [],
+      "source_rank": 44,
+      "quality_flags": []
+    },
+    {
+      "id": "W7166847319",
+      "openalex_url": "https://openalex.org/W7166847319",
+      "title": "TagRAG: Tag-guided Hierarchical Knowledge Graph Retrieval-Augmented Generation",
+      "year": 2026,
+      "abstract": "Retrieval-Augmented Generation enhances language models by retrieving external knowledge to support informed and grounded responses.However, traditional RAG methods rely on fragment-level retrieval, limiting their ability to address query-focused summarization queries.GraphRAG introduces a graphbased paradigm for global knowledge reasoning, yet suffers from inefficiencies in information extraction, costly resource consumption, and poor adaptability to incremental updates.To overcome these limitations, we propose TagRAG, a tag-guided hierarchical knowledge graph RAG framework designed for efficient global reasoning and scalable graph maintenance.TagRAG introduces two key components: (1) Tag Knowledge Graph Construction, which extracts object tags and their relationships from documents and organizes them into hierarchical domain tag chains for structured knowledge representation, and (2) Tag-Guided Retrieval-Augmented Generation, which retrieves domain-centric tag chains to localize and synthesize relevant knowledge during inference.This design significantly adapts to smaller language models, improves retrieval granularity, and supports efficient knowledge increment.Extensive experiments on Ultra-Domain datasets spanning Agriculture, Computer Science, Law, and cross-domain settings demonstrate that TagRAG achieves an average winning rate of 78.36% against baselines while maintaining about 14.6x construction and 1.9x retrieval efficiency compared with GraphRAG.... ...",
+      "doi": "https://doi.org/10.18653/v1/2026.findings-acl.321",
+      "language": null,
+      "type": "conference-paper",
+      "cited_by_count": 1,
+      "authors": [
+        {
+          "id": "A5139734848",
+          "display_name": "Wenbiao Tao"
+        },
+        {
+          "id": "A5139726432",
+          "display_name": "Xinyuan Li"
+        },
+        {
+          "id": "A5090588589",
+          "display_name": "Yunshi Lan"
+        },
+        {
+          "id": "A5139740617",
+          "display_name": "Weining Qian"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11273",
+        "display_name": "Advanced Graph Neural Networks",
+        "score": 0.8597999811172485
+      },
+      "referenced_works": [],
+      "source_rank": 45,
+      "quality_flags": []
+    },
+    {
+      "id": "W4415709283",
+      "openalex_url": "https://openalex.org/W4415709283",
+      "title": "Multi-Level Graph Pruning-Based Framework for Graph Retrieval-Augmented Generation",
+      "year": 2025,
+      "abstract": "Naive retrieval-augmented generation (RAG) methods enhance large language models (LLMs) by retrieving relevant textual information, improving the accuracy of responses. However, they are limited in capturing the complex relationships and structures in textual graphs, where both textual and topological information are crucial for graph reasoning. To address this issue, we propose a multi-level pruning graph RAG framework, called MGRAG. MGRAG consists of three stages: sub-graph retrieval, multi-level graph pruning, and answer generation. We first index and rank the subgraphs to improve retrieval efficiency. Then, we apply dynamic pruning at both the subgraph and node levels to extract the most relevant graph structures. Finally, we integrate the query, graph description, and optimized graph structure as inputs to the LLM for response generation. Experimental results on multi-hop reasoning benchmarks demonstrate that MGRAG effectively eliminates irrelevant structures, significantly improving response accuracy and overall model performance.",
+      "doi": "https://doi.org/10.1109/icme59968.2025.11209364",
+      "language": null,
+      "type": "conference-paper",
+      "cited_by_count": 1,
+      "authors": [
+        {
+          "id": "A5100751981",
+          "display_name": "Hongxu Li"
+        },
+        {
+          "id": "A5100755100",
+          "display_name": "Xiaodi Li"
+        },
+        {
+          "id": "A5036891870",
+          "display_name": "Fulin Su"
+        },
+        {
+          "id": "A5072389850",
+          "display_name": "Qinglang Guo"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.7735000252723694
+      },
+      "referenced_works": [
+        "W2283196293",
+        "W2908230750",
+        "W2970641574",
+        "W2985547638",
+        "W3010336026",
+        "W3034862985",
+        "W3039695075",
+        "W3091993229",
+        "W3172335055",
+        "W4300865673",
+        "W4309674289",
+        "W4385734218",
+        "W4388778348",
+        "W4393147025",
+        "W4393277515",
+        "W4411120544"
+      ],
+      "source_rank": 46,
+      "quality_flags": []
+    },
+    {
+      "id": "W4412888323",
+      "openalex_url": "https://openalex.org/W4412888323",
+      "title": "GeAR: Graph-enhanced Agent for Retrieval-augmented Generation",
+      "year": 2025,
+      "abstract": "Zhili Shen, Chenxin Diao, Pavlos Vougiouklis, Pascual Merita, Shriram Piramanayagam, Enting Chen, Damien Graux, Andre Melo, Ruofei Lai, Zeren Jiang, Zhongyang Li, Ye Qi, Yang Ren, Dandan Tu, Jeff Z. Pan. Findings of the Association for Computational Linguistics: ACL 2025. 2025.",
+      "doi": "https://doi.org/10.18653/v1/2025.findings-acl.624",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 10,
+      "authors": [
+        {
+          "id": "A5083813347",
+          "display_name": "Zhili Shen"
+        },
+        {
+          "id": "A5102628038",
+          "display_name": "Chenxin Diao"
+        },
+        {
+          "id": "A5061611097",
+          "display_name": "Pavlos Vougiouklis"
+        },
+        {
+          "id": "A5115653499",
+          "display_name": "Pascual Merita"
+        },
+        {
+          "id": "A5016068326",
+          "display_name": "Enting Chen"
+        },
+        {
+          "id": "A5056690478",
+          "display_name": "Damien Graux"
+        },
+        {
+          "id": "A5101469138",
+          "display_name": "André Melo"
+        },
+        {
+          "id": "A5022971977",
+          "display_name": "Ruofei Lai"
+        },
+        {
+          "id": "A5100773642",
+          "display_name": "Zhongyang Li"
+        },
+        {
+          "id": "A5109491178",
+          "display_name": "Qi Ye"
+        },
+        {
+          "id": "A5100413313",
+          "display_name": "Yang Ren"
+        },
+        {
+          "id": "A5114424772",
+          "display_name": "Dandan Tu"
+        },
+        {
+          "id": "A5066422711",
+          "display_name": "Jeff Z. Pan"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10627",
+        "display_name": "Advanced Image and Video Retrieval Techniques",
+        "score": 0.9488999843597412
+      },
+      "referenced_works": [],
+      "source_rank": 47,
+      "quality_flags": []
+    },
+    {
+      "id": "W7134170217",
+      "openalex_url": "https://openalex.org/W7134170217",
+      "title": "GRAFT - Graph Retrieval Augmented Generation Fine-Tuning Approach",
+      "year": 2025,
+      "abstract": "5583",
+      "doi": "https://doi.org/10.1109/bigdata66926.2025.11401495",
+      "language": "en",
+      "type": "conference-paper",
+      "cited_by_count": 1,
+      "authors": [
+        {
+          "id": "A5079788541",
+          "display_name": "Moritz Busch"
+        },
+        {
+          "id": "A5038865767",
+          "display_name": "Giuliana Defilippis"
+        },
+        {
+          "id": "A5128335065",
+          "display_name": "Philipp Weiß"
+        },
+        {
+          "id": "A5039809923",
+          "display_name": "Christian Beecks"
+        },
+        {
+          "id": "A5125997444",
+          "display_name": "Stefan Decker"
+        },
+        {
+          "id": "A5055319070",
+          "display_name": "Diego Collarana"
+        }
+      ],
+      "primary_topic": {
+        "id": "T12292",
+        "display_name": "Graph Theory and Algorithms",
+        "score": 0.22669999301433563
+      },
+      "referenced_works": [
+        "W3172335055",
+        "W4389520494",
+        "W4404724992",
+        "W4415800738"
+      ],
+      "source_rank": 48,
+      "quality_flags": []
+    },
+    {
+      "id": "W4417307696",
+      "openalex_url": "https://openalex.org/W4417307696",
+      "title": "GraphRAG-Bench: Challenging Domain-Specific Reasoning for Evaluating Graph Retrieval-Augmented Generation",
+      "year": 2025,
+      "abstract": "Graph Retrieval Augmented Generation (GraphRAG) has garnered increasing recognition for its potential to enhance large language models (LLMs) by structurally organizing domain-specific corpora and facilitating complex reasoning. However, current evaluations of GraphRAG models predominantly rely on traditional question-answering datasets. Their limited scope in questions and evaluation metrics fails to comprehensively assess the reasoning capacity improvements enabled by GraphRAG models. To address this gap, we introduce GraphRAG-Bench, a large-scale, domain-specific benchmark designed to rigorously evaluate GraphRAG models. Our benchmark offers three key superiorities: \\((i)\\) Challenging question design. Featuring college-level, domain-specific questions that demand multi-hop reasoning, the benchmark ensures that simple content retrieval is insufficient for problem-solving. For example, some questions require mathematical reasoning or programming. \\((ii)\\) Diverse task coverage. The dataset includes a broad spectrum of reasoning tasks, multiple-choice, true/false, multi-select, open-ended, and fill-in-the-blank. It spans 16 disciplines in twenty core textbooks. \\((iii)\\) Holistic evaluation framework. GraphRAG-Bench provides comprehensive assessment across the entire GraphRAG pipeline, including graph construction, knowledge retrieval, and answer generation. Beyond final-answer correctness, it evaluates the logical coherence of the reasoning process. By applying nine contemporary GraphRAG methods to GraphRAG-Bench, we demonstrate its utility in quantifying how graph-based structuring improves model reasoning capabilities. Our analysis reveals critical insights about graph architectures, retrieval efficacy, and reasoning capabilities, offering actionable guidance for the research community.",
+      "doi": "https://doi.org/10.48550/arxiv.2506.02404",
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 1,
+      "authors": [
+        {
+          "id": "A5034298718",
+          "display_name": "Yilin Xiao"
+        },
+        {
+          "id": "A5038326486",
+          "display_name": "Junnan Dong"
+        },
+        {
+          "id": "A5113231894",
+          "display_name": "Chuang Zhou"
+        },
+        {
+          "id": "A5104257263",
+          "display_name": "Dong Su"
+        },
+        {
+          "id": "A5100766229",
+          "display_name": "Qianwen Zhang"
+        },
+        {
+          "id": "A5100567807",
+          "display_name": "Di Yin"
+        },
+        {
+          "id": "A5110860333",
+          "display_name": "Xing Sun"
+        },
+        {
+          "id": "A5100565926",
+          "display_name": "Xiao Huang"
+        }
+      ],
+      "primary_topic": {
+        "id": "T10028",
+        "display_name": "Topic Modeling",
+        "score": 0.5630000233650208
+      },
+      "referenced_works": [],
+      "source_rank": 49,
+      "quality_flags": []
+    },
+    {
+      "id": "W4399305008",
+      "openalex_url": "https://openalex.org/W4399305008",
+      "title": "KRAGEN: a knowledge graph-enhanced RAG framework for biomedical problem solving using large language models",
+      "year": 2024,
+      "abstract": "MOTIVATION: Answering and solving complex problems using a large language model (LLM) given a certain domain such as biomedicine is a challenging task that requires both factual consistency and logic, and LLMs often suffer from some major limitations, such as hallucinating false or irrelevant information, or being influenced by noisy data. These issues can compromise the trustworthiness, accuracy, and compliance of LLM-generated text and insights. RESULTS: Knowledge Retrieval Augmented Generation ENgine (KRAGEN) is a new tool that combines knowledge graphs, Retrieval Augmented Generation (RAG), and advanced prompting techniques to solve complex problems with natural language. KRAGEN converts knowledge graphs into a vector database and uses RAG to retrieve relevant facts from it. KRAGEN uses advanced prompting techniques: namely graph-of-thoughts (GoT), to dynamically break down a complex problem into smaller subproblems, and proceeds to solve each subproblem by using the relevant knowledge through the RAG framework, which limits the hallucinations, and finally, consolidates the subproblems and provides a solution. KRAGEN's graph visualization allows the user to interact with and evaluate the quality of the solution's GoT structure and logic. AVAILABILITY AND IMPLEMENTATION: KRAGEN is deployed by running its custom Docker containers. KRAGEN is available as open-source from GitHub at: https://github.com/EpistasisLab/KRAGEN.",
+      "doi": "https://doi.org/10.1093/bioinformatics/btae353",
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 101,
+      "authors": [
+        {
+          "id": "A5054144186",
+          "display_name": "Nicholas Matsumoto"
+        },
+        {
+          "id": "A5111219334",
+          "display_name": "Jay Moran"
+        },
+        {
+          "id": "A5101864277",
+          "display_name": "Hyun‐Jun Choi"
+        },
+        {
+          "id": "A5101646780",
+          "display_name": "Miguel Hernandez"
+        },
+        {
+          "id": "A5058539869",
+          "display_name": "Mythreye Venkatesan"
+        },
+        {
+          "id": "A5042224273",
+          "display_name": "Paul P. Wang"
+        },
+        {
+          "id": "A5032971510",
+          "display_name": "Jason H. Moore"
+        }
+      ],
+      "primary_topic": {
+        "id": "T11273",
+        "display_name": "Advanced Graph Neural Networks",
+        "score": 0.40139999985694885
+      },
+      "referenced_works": [
+        "W2963895422",
+        "W3027879771",
+        "W4297253404",
+        "W4309674289",
+        "W4388467895",
+        "W6777615688"
+      ],
+      "source_rank": 50,
+      "quality_flags": [
+        "references_later_dated_work"
+      ]
+    }
+  ]
+}

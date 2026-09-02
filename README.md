@@ -5,9 +5,10 @@
 Petra is a graph-native scientific research workbench. M1.0–M1.2 now supply the
 developer runtime, shared TypeScript/Python contract path, PostgreSQL authority,
 verified S3-compatible Artifact storage, durable interaction history, Hono
-server, React workbench shell, and official AG-UI interaction boundary. The
-current interaction is a deterministic boundary fixture, not yet a
-literature-research or model-backed scientific run.
+server, React workbench shell, and official AG-UI interaction boundary. M1.3
+adds the frozen Paper Trail retrieval baseline while its real Neo4j projection
+is being built. The current interaction remains a deterministic boundary
+fixture, not yet a literature-research or model-backed scientific run.
 
 ## Required software
 
@@ -74,6 +75,7 @@ applied migration's checksum.
 | `npm run build` | Compile the server and build the workbench into `apps/server/public`. |
 | `npm start` | Serve the built workbench and Petra HTTP routes from one Node process. |
 | `npm run test` | Run contract, core, always-on S3, server-conformance, and Python tests. |
+| `npm run test:retrieval` | Run the exact Paper Trail lexical, citation-direction, bounded-path, and scientific-semantics regression baseline. |
 | `npm run test:server` | Run `D014-HC01`–`D014-HC10` against a real local Hono listener. |
 | `npm run test:postgres:integration` | Migrate a disposable PostgreSQL instance, test the typed repository, validate Flyway history, and remove every labeled resource. |
 | `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
@@ -95,6 +97,23 @@ accept, reject, and hash the same fixtures without input mutation.
 Generated TypeScript declarations are committed for inspection but never become
 runtime authority. Pydantic consumes canonically validated data inside the
 Python worker and cannot broaden the shared contract.
+
+## Paper Trail compatibility proof
+
+`fixtures/paper-trail` contains exact byte copies of the 50-Work CC0 OpenAlex
+snapshot and source manifest used by the earlier teaching baseline. The
+`@petra/retrieval` adapter independently reproduces its title-weighted BM25,
+year filter, directed neighborhoods, bounded paths, citation orientation, and
+chronology warnings. Tests pin the real corpus's ranking and scores rather than
+only checking a synthetic example.
+
+This sample is abstract-only and does not establish peer-review status,
+methodological quality, agreement, or scientific support. Its graph relation is
+only `CITES`; Petra cannot promote it to `SUPPORTS` without proposition-level
+evidence, inspectable SourceSpans, and the scientific-authority review path.
+Exact provenance, hashes, limits, and preserved behavior are recorded in the
+[Paper Trail fixture notes](fixtures/paper-trail/README.md) and
+[M1.3 baseline report](reports/M1.3-PAPER-TRAIL-BASELINE.md).
 
 ## Workbench visual baseline
 
