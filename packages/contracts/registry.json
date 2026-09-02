@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.14.0",
+  "registry_version": "1.18.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -210,6 +210,17 @@
       "typescript_path": "src/generated/change-set.ts"
     },
     {
+      "name": "change-set",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/change-set/1.1.0/schema.json",
+      "path": "schemas/change-set/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-compensating-reversal",
+      "canonical_sha256": "sha256:e8deaafc74d2ef3b89600b05bfcb89b72523ed5d6c13d50c463343c5a747de27",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/change-set-v1-1.ts"
+    },
+    {
       "name": "approval",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/approval/1.0.0/schema.json",
@@ -232,6 +243,17 @@
       "typescript_path": "src/generated/command-envelope.ts"
     },
     {
+      "name": "command-envelope",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/command-envelope/1.1.0/schema.json",
+      "path": "schemas/command-envelope/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-compensating-reversal",
+      "canonical_sha256": "sha256:45e7bfd33a9459decbcb5053592df7065bff231717899d1edc10060e82d7fbdb",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/command-envelope-v1-1.ts"
+    },
+    {
       "name": "domain-event",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/domain-event/1.0.0/schema.json",
@@ -243,6 +265,17 @@
       "typescript_path": "src/generated/domain-event.ts"
     },
     {
+      "name": "domain-event",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/domain-event/1.1.0/schema.json",
+      "path": "schemas/domain-event/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-compensating-reversal",
+      "canonical_sha256": "sha256:5e529e672e30d66ab97037c3a970745b1dc97475af58befc133ee82a2fa3a980",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/domain-event-v1-1.ts"
+    },
+    {
       "name": "outbox-record",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/outbox-record/1.0.0/schema.json",
@@ -252,6 +285,17 @@
       "canonical_sha256": "sha256:0624508f033cad177d8c8441515021a02f0a03f21a3f4782549aa52ffa662110",
       "generate_typescript": true,
       "typescript_path": "src/generated/outbox-record.ts"
+    },
+    {
+      "name": "outbox-record",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/outbox-record/1.1.0/schema.json",
+      "path": "schemas/outbox-record/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-compensating-reversal",
+      "canonical_sha256": "sha256:1178c17f3edb542543da5bf5cda1a62cf6eb42a5dbb6aea4a85e34e4dc6c847f",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/outbox-record-v1-1.ts"
     },
     {
       "name": "worker-input-manifest",

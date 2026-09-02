@@ -21,17 +21,20 @@ def read_json(relative_path: str) -> Any:
 
 REGISTRY = read_json("registry.json")
 MANIFEST = read_json("fixtures/manifest.json")
-SCHEMAS = {entry["name"]: read_json(entry["path"]) for entry in REGISTRY["schemas"]}
+SCHEMAS = {
+    (entry["name"], entry["version"]): read_json(entry["path"])
+    for entry in REGISTRY["schemas"]
+}
 RESOURCE_REGISTRY = Registry().with_resources(
     [(schema["$id"], Resource.from_contents(schema)) for schema in SCHEMAS.values()]
 )
 VALIDATORS = {
-    name: Draft202012Validator(
+    key: Draft202012Validator(
         schema,
         registry=RESOURCE_REGISTRY,
         format_checker=FormatChecker(),
     )
-    for name, schema in SCHEMAS.items()
+    for key, schema in SCHEMAS.items()
 }
 COMMON_SCHEMA_ID = next(
     entry["$id"] for entry in REGISTRY["schemas"] if entry["name"] == "common"
@@ -1309,6 +1312,168 @@ class PetraOutboxRecord(PetraModel):
     deduplication_key: str
     enqueued_at: str
     message: DomainEventMessage
+
+
+class HumanRejectedChangeState(PetraModel):
+    zone: Literal["quarantine"]
+    review_state: Literal["human_rejected"]
+
+
+class RetractClaimOperation(PetraModel):
+    operation_kind: Literal["retract_claim"]
+    target_id: str
+    base_revision: int
+    before: HumanTrustedChangeState
+    after: HumanRejectedChangeState
+
+
+class RetractAssertionOperation(PetraModel):
+    operation_kind: Literal["retract_assertion"]
+    target_id: str
+    base_revision: int
+    before: HumanTrustedChangeState
+    after: HumanRejectedChangeState
+
+
+class ChangeSetContentV110(PetraModel):
+    project_id: str
+    origin: Literal["direct_edit", "agent_proposal", "worker_proposal"]
+    proposed_by: ActorRef
+    reason: str
+    operations: list[
+        PromoteClaimOperation
+        | PromoteAssertionOperation
+        | RetractClaimOperation
+        | RetractAssertionOperation
+    ]
+    impact: ChangeSetImpactPreview
+    risk_tier: Literal["R0", "R1", "R2", "R3", "R4"]
+    compensates_change_set_id: str | None = None
+
+
+class PetraChangeSetV110(PetraModel):
+    schema_name: Literal["petra.change-set"]
+    schema_version: Literal["1.1.0"]
+    change_set_id: str
+    revision: Literal[1]
+    state: Literal["submitted"]
+    content: ChangeSetContentV110
+    content_hash: str
+    proposed_at: str
+
+
+class SubmitChangeSetV110(PetraModel):
+    command_name: Literal["SubmitChangeSet"]
+    change_set: PetraChangeSetV110
+
+
+class PetraCommandEnvelopeV110(PetraModel):
+    schema_name: Literal["petra.command-envelope"]
+    schema_version: Literal["1.1.0"]
+    command_id: str
+    idempotency_key: str
+    project_id: str
+    actor: ActorRef
+    capability_grant_id: str
+    correlation_id: str
+    causation_id: str | None = None
+    submitted_at: str
+    command: SubmitChangeSetV110 | RecordApproval | ApplyChangeSet
+
+
+class ChangeSetSubmittedPayloadV110(PetraModel):
+    change_set: PetraChangeSetV110
+
+
+class ChangeSetSubmittedEventV110(PetraModel):
+    event_type: Literal["change_set.submitted"]
+    payload: ChangeSetSubmittedPayloadV110
+
+
+class ChangeSetRevertedPayload(PetraModel):
+    change_set_id: str
+    change_set_revision: Literal[1]
+    change_set_content_hash: str
+    compensates_change_set_id: str
+    approval_id: str
+    approval_revision: Literal[1]
+    prior_claim_revision: int
+    claim: PetraClaim
+    prior_assertion_revision: int
+    assertion: PetraAssertion
+
+
+class ChangeSetRevertedEvent(PetraModel):
+    event_type: Literal["change_set.reverted"]
+    payload: ChangeSetRevertedPayload
+
+
+class ReversalConflictTarget(PetraModel):
+    target_kind: Literal["claim", "assertion"]
+    target_id: str
+    expected_revision: int
+    actual_revision: int
+    expected_zone: Literal["trusted"]
+    actual_zone: Literal["quarantine", "trusted", "personal"]
+
+
+class ReversalConflictedPayload(PetraModel):
+    change_set_id: str
+    change_set_revision: Literal[1]
+    change_set_content_hash: str
+    compensates_change_set_id: str
+    conflict_code: Literal["STALE_TARGET_REVISION", "TARGET_AUTHORITY_MISMATCH"]
+    targets: list[ReversalConflictTarget]
+
+
+class ReversalConflictedEvent(PetraModel):
+    event_type: Literal["change_set.reversal_conflicted"]
+    payload: ReversalConflictedPayload
+
+
+class PetraDomainEventV110(PetraModel):
+    schema_name: Literal["petra.domain-event"]
+    schema_version: Literal["1.1.0"]
+    event_id: str
+    event_position: int
+    stream_type: Literal["project"]
+    stream_id: str
+    stream_revision: int
+    project_id: str
+    actor: ActorRef
+    occurred_at: str
+    recorded_at: str
+    correlation_id: str
+    causation_id: str
+    command_id: str
+    idempotency_key: str
+    capability_grant_id: str
+    event: (
+        ChangeSetSubmittedEventV110
+        | ApprovalRecordedEvent
+        | ChangeSetAppliedEvent
+        | ChangeSetConflictedEvent
+        | ChangeSetRevertedEvent
+        | ReversalConflictedEvent
+    )
+
+
+class DomainEventMessageV110(PetraModel):
+    message_kind: Literal["domain_event"]
+    event: PetraDomainEventV110
+
+
+class PetraOutboxRecordV110(PetraModel):
+    schema_name: Literal["petra.outbox-record"]
+    schema_version: Literal["1.1.0"]
+    outbox_id: str
+    outbox_position: int
+    target: Literal["neo4j_graph", "interface_authority"]
+    target_sequence: int
+    partition_key: str
+    deduplication_key: str
+    enqueued_at: str
+    message: DomainEventMessageV110
 
 
 class WorkerTaskDescriptor(PetraModel):
@@ -2936,7 +3101,7 @@ class PetraInteractionReplayRecord(PetraModel):
     recorded_at: str
 
 
-PYDANTIC_MODELS: dict[str, type[BaseModel]] = {
+PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
     "project": PetraProject,
@@ -2977,11 +3142,22 @@ PYDANTIC_MODELS: dict[str, type[BaseModel]] = {
     "interaction-interrupt": PetraInteractionInterrupt,
     "interaction-replay-record": PetraInteractionReplayRecord,
 }
+PYDANTIC_MODELS: dict[tuple[str, str], type[BaseModel]] = {
+    (name, "1.0.0"): model for name, model in PYDANTIC_MODELS_V100.items()
+}
+PYDANTIC_MODELS.update(
+    {
+        ("change-set", "1.1.0"): PetraChangeSetV110,
+        ("command-envelope", "1.1.0"): PetraCommandEnvelopeV110,
+        ("domain-event", "1.1.0"): PetraDomainEventV110,
+        ("outbox-record", "1.1.0"): PetraOutboxRecordV110,
+    }
+)
 
 
 def test_registry_and_draft_2020_12_schemas() -> None:
     for entry in REGISTRY["schemas"]:
-        schema = SCHEMAS[entry["name"]]
+        schema = SCHEMAS[(entry["name"], entry["version"])]
         Draft202012Validator.check_schema(schema)
         assert schema["$id"] == entry["$id"]
         canonical = rfc8785.dumps(schema)
@@ -2993,25 +3169,31 @@ def test_accepted_contract_parity_without_mutation() -> None:
     for fixture in MANIFEST["accepted"]:
         value = read_json(fixture["path"])
         before = json.loads(json.dumps(value))
-        VALIDATORS[fixture["schema"]].validate(value)
+        key = (fixture["schema"], fixture.get("version", "1.0.0"))
+        VALIDATORS[key].validate(value)
         assert value == before
 
-        model = PYDANTIC_MODELS[fixture["schema"]].model_validate(value, strict=True)
+        model = PYDANTIC_MODELS[key].model_validate(value, strict=True)
         result = model.model_dump(mode="json", exclude_none=True)
         assert result == value
-        VALIDATORS[fixture["schema"]].validate(result)
+        VALIDATORS[key].validate(result)
 
 
 def test_rejected_contract_parity() -> None:
     for fixture in MANIFEST["rejected"]:
         value = read_json(fixture["path"])
-        assert not VALIDATORS[fixture["schema"]].is_valid(value), fixture["path"]
+        key = (fixture["schema"], fixture.get("version", "1.0.0"))
+        assert not VALIDATORS[key].is_valid(value), fixture["path"]
 
 
 def test_rfc_8785_hash_parity() -> None:
     for fixture_entry in MANIFEST["canonical"]:
         fixture = read_json(fixture_entry["path"])
-        VALIDATORS[fixture_entry["schema"]].validate(fixture["input"])
+        key = (
+            fixture_entry["schema"],
+            fixture_entry.get("version", "1.0.0"),
+        )
+        VALIDATORS[key].validate(fixture["input"])
         canonical = rfc8785.dumps(fixture["input"])
         digest = hashlib.sha256(canonical).hexdigest()
 

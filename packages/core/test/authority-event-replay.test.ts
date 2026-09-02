@@ -37,6 +37,7 @@ describe("scientific authority event replay", () => {
       claims: [applied.event.payload.claim],
       assertions: [applied.event.payload.assertion],
       appliedChangeSetIds: [applied.event.payload.change_set_id],
+      revertedChangeSetIds: [],
     });
   });
 
@@ -50,6 +51,7 @@ describe("scientific authority event replay", () => {
       claims: [],
       assertions: [],
       appliedChangeSetIds: [],
+      revertedChangeSetIds: [],
     });
   });
 

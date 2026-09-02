@@ -215,6 +215,21 @@ generated review plan becomes trusted revisions plus event/outbox history.
 Current behavior and remaining projection/reversal work are recorded in the
 [M1.5 direct review report](reports/M1.5-DIRECT-REVIEW.md).
 
+## Compensating reversal proof
+
+An accepted evidence pair can now leave active authority without losing its
+history. Petra builds a second R2 ChangeSet that names the exact promotion it
+compensates, requires a human Approval, and writes rejected Claim and Assertion
+revision 3. The proposal, trusted revision 2, Approval, commands, and events
+remain immutable in PostgreSQL.
+
+The ordered graph projector updates the Claim to visible rejected state and
+tombstones the active `ASSERTS` relationship. A real PostgreSQL–Neo4j test
+proves the same result after incremental projection and a complete rebuild.
+See the
+[M1.5 compensating reversal report](reports/M1.5-COMPENSATING-REVERSAL.md)
+for semantics, constraints, and evidence.
+
 ## Workbench visual baseline
 
 `petra_brand_inspiration` is the design source for Petra's palette, typography

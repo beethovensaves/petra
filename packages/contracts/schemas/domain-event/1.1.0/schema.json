@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/domain-event/1.1.0/schema.json",
+  "title": "PetraDomainEventV110",
+  "description": "An immutable project-stream fact supporting compensating scientific-authority reversal without erasing prior promotion.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "event_id",
+    "event_position",
+    "stream_type",
+    "stream_id",
+    "stream_revision",
+    "project_id",
+    "actor",
+    "occurred_at",
+    "recorded_at",
+    "correlation_id",
+    "causation_id",
+    "command_id",
+    "idempotency_key",
+    "capability_grant_id",
+    "event"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.domain-event" },
+    "schema_version": { "const": "1.1.0" },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "event_position": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "stream_type": { "const": "project" },
+    "stream_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "stream_revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "occurred_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "correlation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+    },
+    "causation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "capability_grant_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+    },
+    "event": { "$ref": "#/$defs/Event" }
+  },
+  "$defs": {
+    "Event": {
+      "oneOf": [
+        { "$ref": "#/$defs/ChangeSetSubmitted" },
+        {
+          "$ref": "../../domain-event/1.0.0/schema.json#/$defs/ApprovalRecorded"
+        },
+        {
+          "$ref": "../../domain-event/1.0.0/schema.json#/$defs/ChangeSetApplied"
+        },
+        {
+          "$ref": "../../domain-event/1.0.0/schema.json#/$defs/ChangeSetConflicted"
+        },
+        { "$ref": "#/$defs/ChangeSetReverted" },
+        { "$ref": "#/$defs/ReversalConflicted" }
+      ]
+    },
+    "ChangeSetSubmitted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_type", "payload"],
+      "properties": {
+        "event_type": { "const": "change_set.submitted" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["change_set"],
+          "properties": {
+            "change_set": {
+              "$ref": "../../change-set/1.1.0/schema.json"
+            }
+          }
+        }
+      }
+    },
+    "ChangeSetReverted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_type", "payload"],
+      "properties": {
+        "event_type": { "const": "change_set.reverted" },
+        "payload": { "$ref": "#/$defs/ChangeSetRevertedPayload" }
+      }
+    },
+    "ChangeSetRevertedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "change_set_id",
+        "change_set_revision",
+        "change_set_content_hash",
+        "compensates_change_set_id",
+        "approval_id",
+        "approval_revision",
+        "prior_claim_revision",
+        "claim",
+        "prior_assertion_revision",
+        "assertion"
+      ],
+      "properties": {
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "change_set_revision": { "const": 1 },
+        "change_set_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "compensates_change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "approval_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ApprovalId"
+        },
+        "approval_revision": { "const": 1 },
+        "prior_claim_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "claim": { "$ref": "../../claim/1.0.0/schema.json" },
+        "prior_assertion_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "assertion": { "$ref": "../../assertion/1.0.0/schema.json" }
+      }
+    },
+    "ReversalConflicted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_type", "payload"],
+      "properties": {
+        "event_type": { "const": "change_set.reversal_conflicted" },
+        "payload": { "$ref": "#/$defs/ReversalConflictedPayload" }
+      }
+    },
+    "ReversalConflictedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "change_set_id",
+        "change_set_revision",
+        "change_set_content_hash",
+        "compensates_change_set_id",
+        "conflict_code",
+        "targets"
+      ],
+      "properties": {
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "change_set_revision": { "const": 1 },
+        "change_set_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "compensates_change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "conflict_code": {
+          "enum": ["STALE_TARGET_REVISION", "TARGET_AUTHORITY_MISMATCH"]
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/ReversalConflictTarget" }
+        }
+      }
+    },
+    "ReversalConflictTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_kind",
+        "target_id",
+        "expected_revision",
+        "actual_revision",
+        "expected_zone",
+        "actual_zone"
+      ],
+      "properties": {
+        "target_kind": { "enum": ["claim", "assertion"] },
+        "target_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "expected_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "actual_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "expected_zone": { "const": "trusted" },
+        "actual_zone": {
+          "enum": ["quarantine", "trusted", "personal"]
+        }
+      }
+    }
+  }
+}

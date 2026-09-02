@@ -11,6 +11,7 @@ import {
 
 interface FixtureEntry {
   schema: string;
+  version?: string;
   path: string;
 }
 
@@ -54,12 +55,16 @@ describe("Petra runtime contract registry", () => {
     for (const fixture of manifest.accepted) {
       const value = readJson<unknown>(fixture.path);
       const before = structuredClone(value);
-      registry.assertValid(fixture.schema, "1.0.0", value);
+      registry.assertValid(fixture.schema, fixture.version ?? "1.0.0", value);
       expect(value).toStrictEqual(before);
     }
     for (const fixture of manifest.rejected) {
       expect(
-        registry.isValid(fixture.schema, "1.0.0", readJson(fixture.path)),
+        registry.isValid(
+          fixture.schema,
+          fixture.version ?? "1.0.0",
+          readJson(fixture.path),
+        ),
       ).toBe(false);
     }
   });

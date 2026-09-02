@@ -4,7 +4,7 @@ import type {
   PetraArtifact,
   PetraAssertion,
   PetraClaim,
-  PetraOutboxRecord,
+  PetraOutboxRecordRecord,
   PetraProject,
   PetraSourceSpan,
   PetraWork,
@@ -37,7 +37,9 @@ export interface AuthorityGraphProjectionMaterial {
 }
 
 export interface AuthorityGraphProjectionSource {
-  load(outbox: PetraOutboxRecord): Promise<AuthorityGraphProjectionMaterial>;
+  load(
+    outbox: PetraOutboxRecordRecord,
+  ): Promise<AuthorityGraphProjectionMaterial>;
 }
 
 export type AuthorityGraphProjectionLoadErrorCode =
@@ -115,7 +117,7 @@ export class RepositoryAuthorityGraphProjectionSource implements AuthorityGraphP
   }
 
   async load(
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
   ): Promise<AuthorityGraphProjectionMaterial> {
     if (
       outbox.target !== "neo4j_graph" ||
@@ -124,20 +126,30 @@ export class RepositoryAuthorityGraphProjectionSource implements AuthorityGraphP
     ) {
       throw new AuthorityGraphProjectionLoadError(
         "GRAPH_SOURCE_OUTBOX_INVALID",
-        "The authority graph accepts only Project-consistent Neo4j change_set.applied deliveries.",
+        "The authority graph accepts only Project-consistent Neo4j authority-change deliveries.",
       );
     }
     const event = outbox.message.event;
-    if (event.event.event_type !== "change_set.applied") {
+    if (
+      event.event.event_type !== "change_set.applied" &&
+      event.event.event_type !== "change_set.reverted"
+    ) {
       throw new AuthorityGraphProjectionLoadError(
         "GRAPH_SOURCE_OUTBOX_INVALID",
-        "The authority graph accepts only change_set.applied domain events.",
+        "The authority graph accepts only applied promotion or reversal domain events.",
       );
     }
     const { claim, assertion } = event.event.payload;
+    const authorityStateMatches =
+      event.event.event_type === "change_set.applied"
+        ? claim.authority.zone === "trusted" &&
+          assertion.authority.zone === "trusted"
+        : claim.authority.zone === "quarantine" &&
+          claim.authority.review_state === "human_rejected" &&
+          assertion.authority.zone === "quarantine" &&
+          assertion.authority.review_state === "human_rejected";
     if (
-      claim.authority.zone !== "trusted" ||
-      assertion.authority.zone !== "trusted" ||
+      !authorityStateMatches ||
       assertion.object.object_kind !== "entity" ||
       assertion.object.entity_id !== claim.claim_id ||
       assertion.subject_id !==
@@ -147,7 +159,7 @@ export class RepositoryAuthorityGraphProjectionSource implements AuthorityGraphP
     ) {
       throw new AuthorityGraphProjectionLoadError(
         "GRAPH_SOURCE_RELATION_INVALID",
-        "The applied event does not contain one trusted Claim and its endpoint-consistent Assertion.",
+        "The authority event does not contain one state-consistent Claim and endpoint-consistent Assertion.",
       );
     }
 
@@ -352,13 +364,14 @@ const spanSelectorProperties = (
 
 export const buildAuthorityGraphBatch = (
   projection: ProjectionIdentity,
-  outbox: PetraOutboxRecord,
+  outbox: PetraOutboxRecordRecord,
   material: AuthorityGraphProjectionMaterial,
 ): AuthorityGraphBatch => {
   const event = outbox.message.event;
   if (
     outbox.target !== "neo4j_graph" ||
-    event.event.event_type !== "change_set.applied" ||
+    (event.event.event_type !== "change_set.applied" &&
+      event.event.event_type !== "change_set.reverted") ||
     event.project_id !== material.project.project_id ||
     event.event.payload.claim.claim_id !== material.claim.claim_id ||
     event.event.payload.assertion.assertion_id !==
@@ -368,7 +381,7 @@ export const buildAuthorityGraphBatch = (
   ) {
     throw new AuthorityGraphProjectionLoadError(
       "GRAPH_SOURCE_AUTHORITY_MISMATCH",
-      "Projection material does not match the exact applied outbox event.",
+      "Projection material does not match the exact authority-change outbox event.",
     );
   }
   if (
@@ -540,32 +553,34 @@ export const buildAuthorityGraphBatch = (
       ),
     );
   }
-  relationships.push({
-    edgeId: material.assertion.assertion_id,
-    assertionId: material.assertion.assertion_id,
-    predicate: material.assertion.predicate,
-    relationClass: relationClass(material.assertion.predicate),
-    sourceId: material.assertion.subject_id,
-    targetId: material.claim.claim_id,
-    authoritativeRevision: material.assertion.revision,
-    recordHash: hash(material.assertion),
-    properties: scalarProperties({
-      project_id: material.project.project_id,
-      assertion_kind: material.assertion.assertion_kind,
-      authority_zone: material.assertion.authority.zone,
-      review_state: material.assertion.authority.review_state,
-      rationale: material.assertion.rationale,
-      provenance_source_span_ids: material.sourceSpans.map(
-        (span) => span.source_span_id,
-      ),
-      scope_json: canonicalize(material.assertion.scope),
-      scope_comparison_json:
-        material.assertion.scope_comparison === undefined
-          ? undefined
-          : canonicalize(material.assertion.scope_comparison),
-      ...common,
-    }),
-  });
+  if (event.event.event_type === "change_set.applied") {
+    relationships.push({
+      edgeId: material.assertion.assertion_id,
+      assertionId: material.assertion.assertion_id,
+      predicate: material.assertion.predicate,
+      relationClass: relationClass(material.assertion.predicate),
+      sourceId: material.assertion.subject_id,
+      targetId: material.claim.claim_id,
+      authoritativeRevision: material.assertion.revision,
+      recordHash: hash(material.assertion),
+      properties: scalarProperties({
+        project_id: material.project.project_id,
+        assertion_kind: material.assertion.assertion_kind,
+        authority_zone: material.assertion.authority.zone,
+        review_state: material.assertion.authority.review_state,
+        rationale: material.assertion.rationale,
+        provenance_source_span_ids: material.sourceSpans.map(
+          (span) => span.source_span_id,
+        ),
+        scope_json: canonicalize(material.assertion.scope),
+        scope_comparison_json:
+          material.assertion.scope_comparison === undefined
+            ? undefined
+            : canonicalize(material.assertion.scope_comparison),
+        ...common,
+      }),
+    });
+  }
 
   return {
     projectId: material.project.project_id,
@@ -581,5 +596,17 @@ export const buildAuthorityGraphBatch = (
     },
     nodes,
     relationships,
+    removals:
+      event.event.event_type === "change_set.reverted"
+        ? [
+            {
+              edgeId: material.assertion.assertion_id,
+              expectedAuthoritativeRevision:
+                event.event.payload.prior_assertion_revision,
+              tombstoneRevision: material.assertion.revision,
+              recordHash: hash(material.assertion),
+            },
+          ]
+        : [],
   };
 };

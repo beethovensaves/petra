@@ -22,7 +22,9 @@ import type {
 import {
   RepositoryAuthorityGraphProjectionSource,
   ScientificGraphProjector,
+  buildCompensatingReversalCommandPlan,
   buildAuthorityGraphBatch,
+  executeCompensatingReversalPlan,
   type ArtifactStore,
   type AuthorityGraphNode,
   type AuthorityGraphRelationship,
@@ -704,11 +706,116 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
       expect.objectContaining({ state: "current", pendingRecords: 0 }),
     );
 
+    const trustedClaim = await evidence.getClaim(appliedPayload.claim.claim_id);
+    const trustedPairAssertion = await evidence.getAssertion(
+      appliedPayload.assertion.assertion_id,
+    );
+    if (trustedClaim === undefined || trustedPairAssertion === undefined) {
+      throw new Error("Expected current trusted evidence before reversal.");
+    }
+    const reviewer =
+      commands.approve.command.command_name === "RecordApproval"
+        ? commands.approve.command.approval.decided_by
+        : undefined;
+    if (reviewer === undefined) throw new Error("Expected human reviewer.");
+    const reversal = buildCompensatingReversalCommandPlan({
+      project_id: event.project_id,
+      claim: trustedClaim,
+      assertion: trustedPairAssertion,
+      compensates_change_set_id: appliedPayload.change_set_id,
+      proposed_by: reviewer,
+      reviewer,
+      capability_grant_id: commands.submit.capability_grant_id,
+      reason: "Correct the accepted direct evidence review.",
+      rationale: "The represented claim does not survive exact-source review.",
+      impact_summary: "Remove the ASSERTS edge from active graph authority.",
+      timing: {
+        proposed_at: "2026-09-02T19:00:10.000Z",
+        decided_at: "2026-09-02T19:00:11.000Z",
+        applied_at: "2026-09-02T19:00:12.000Z",
+      },
+    });
+    await executeCompensatingReversalPlan(changeControl, reversal);
+    const graphOutboxes = await changeControl.getOutboxRecords({
+      projectId: event.project_id,
+      target: "neo4j_graph",
+    });
+    const reversalOutbox = graphOutboxes[1];
+    if (reversalOutbox === undefined) {
+      throw new Error("Expected compensating graph outbox record.");
+    }
+    const observed = await projectionAuthority.observeHead(
+      checkpoint.projection_checkpoint_id,
+      reversalOutbox,
+      projected.checkpoint.revision,
+      "2026-09-02T19:00:05.500Z",
+    );
+    const reversedProjection = await projector.project(
+      checkpoint.projection_checkpoint_id,
+      reversalOutbox,
+    );
+    expect(observed.content.freshness.state).toBe("catching_up");
+    expect(reversedProjection.checkpoint.content.freshness.state).toBe(
+      "current",
+    );
+    expect(
+      reversedProjection.record?.content.outcome.outcome_kind === "applied"
+        ? reversedProjection.record.content.outcome.effect.objects
+        : [],
+    ).toContainEqual(
+      expect.objectContaining({
+        graph_element_kind: "relationship",
+        object_id: appliedPayload.assertion.assertion_id,
+        object_revision: 3,
+        operation: "tombstone",
+      }),
+    );
+    expect(
+      await graph.getObject(
+        event.project_id,
+        appliedPayload.assertion.assertion_id,
+      ),
+    ).toBeUndefined();
+    expect(
+      await graph.getProvenancePath(
+        event.project_id,
+        appliedPayload.assertion.assertion_id,
+      ),
+    ).toBeUndefined();
+    const rejectedClaimView = await graph.getObject(
+      event.project_id,
+      appliedPayload.claim.claim_id,
+    );
+    expect(rejectedClaimView).toEqual(
+      expect.objectContaining({
+        elementKind: "node",
+        authoritativeRevision: 3,
+      }),
+    );
+    expect(rejectedClaimView?.properties).toEqual(
+      expect.objectContaining({
+        authority_zone: "quarantine",
+        review_state: "human_rejected",
+      }),
+    );
+    await expect(
+      projector.rebuild(event.project_id, projection, graphOutboxes),
+    ).resolves.toEqual([
+      expect.objectContaining({ targetSequence: 1 }),
+      expect.objectContaining({ targetSequence: 2 }),
+    ]);
+    expect(
+      await graph.getObject(
+        event.project_id,
+        appliedPayload.assertion.assertion_id,
+      ),
+    ).toBeUndefined();
+
     const records = await projectionAuthority.getProjectionRecords(
       checkpoint.projection_checkpoint_id,
     );
-    expect(records).toHaveLength(1);
-    expect(records[0]?.content.outcome).toEqual(
+    expect(records).toHaveLength(2);
+    expect(records[1]?.content.outcome).toEqual(
       expect.objectContaining({ outcome_kind: "applied" }),
     );
   });

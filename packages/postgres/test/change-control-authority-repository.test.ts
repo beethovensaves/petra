@@ -24,7 +24,9 @@ import type {
   PersistVerifiedArtifactInput,
 } from "@petra/core";
 import {
+  buildCompensatingReversalCommandPlan,
   buildReviewDecisionCommandPlan,
+  executeCompensatingReversalPlan,
   executeReviewDecisionPlan,
   replayScientificAuthority,
 } from "@petra/core";
@@ -492,6 +494,102 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     expect(
       (await evidence.getClaim(candidate.claim.claim_id))?.authority.zone,
     ).toBe("trusted");
+  });
+
+  it("durably reverses a trusted pair while preserving every prior revision", async () => {
+    await registerEvidenceChain();
+    const commands = commandFixtures();
+    const repository = authority();
+    await repository.executeCommand(commands.submit);
+    await repository.executeCommand(commands.approve);
+    const promoted = await repository.executeCommand(commands.apply);
+    if (
+      promoted.outcome !== "applied" ||
+      commands.submit.command.command_name !== "SubmitChangeSet" ||
+      commands.approve.command.command_name !== "RecordApproval"
+    ) {
+      throw new Error("Expected an applied promotion pipeline.");
+    }
+    const trustedClaim = await evidence.getClaim(promoted.claim_id);
+    const trustedAssertion = await evidence.getAssertion(promoted.assertion_id);
+    if (trustedClaim === undefined || trustedAssertion === undefined) {
+      throw new Error("Expected current trusted evidence.");
+    }
+    const reviewer = commands.approve.command.approval.decided_by;
+    const reversal = buildCompensatingReversalCommandPlan({
+      project_id: commands.submit.project_id,
+      claim: trustedClaim,
+      assertion: trustedAssertion,
+      compensates_change_set_id: promoted.change_set_id,
+      proposed_by: reviewer,
+      reviewer,
+      capability_grant_id: commands.submit.capability_grant_id,
+      reason: "Correct the direct evidence review.",
+      rationale:
+        "The accepted representation does not survive exact-source review.",
+      impact_summary:
+        "Remove the Claim and ASSERTS edge from active authority.",
+      timing: {
+        proposed_at: "2026-08-30T10:00:00.000Z",
+        decided_at: "2026-08-30T10:01:00.000Z",
+        applied_at: "2026-08-30T10:02:00.000Z",
+      },
+    });
+
+    const result = await executeCompensatingReversalPlan(repository, reversal);
+
+    expect(result).toMatchObject({
+      outcome: "reverted",
+      compensates_change_set_id: promoted.change_set_id,
+      claim_revision: 3,
+      assertion_revision: 3,
+    });
+    expect(await repository.getChangeSetState(promoted.change_set_id)).toBe(
+      "reverted",
+    );
+    expect(
+      await repository.getChangeSetState(reversal.change_set.change_set_id),
+    ).toBe("applied");
+    expect((await evidence.getClaim(promoted.claim_id))?.authority).toEqual({
+      zone: "quarantine",
+      review_state: "human_rejected",
+    });
+    expect(
+      (await evidence.getAssertion(promoted.assertion_id))?.authority,
+    ).toEqual({ zone: "quarantine", review_state: "human_rejected" });
+    expect(
+      (await evidence.getClaim(promoted.claim_id, 2))?.authority.zone,
+    ).toBe("trusted");
+
+    const events = await repository.getDomainEvents({
+      projectId: commands.submit.project_id,
+    });
+    expect(events.map((event) => event.event.event_type)).toEqual([
+      "change_set.submitted",
+      "approval.recorded",
+      "change_set.applied",
+      "change_set.submitted",
+      "approval.recorded",
+      "change_set.reverted",
+    ]);
+    expect(events.slice(-3).map((event) => event.schema_version)).toEqual([
+      "1.1.0",
+      "1.1.0",
+      "1.1.0",
+    ]);
+    const authorizations = await pool.query<{
+      admission_kind: string;
+      evidence_revision: string;
+    }>(
+      `SELECT admission_kind, evidence_revision::text
+         FROM petra.evidence_revision_authorizations
+        WHERE evidence_revision = 3
+        ORDER BY evidence_kind`,
+    );
+    expect(authorizations.rows).toEqual([
+      { admission_kind: "reversal", evidence_revision: "3" },
+      { admission_kind: "reversal", evidence_revision: "3" },
+    ]);
   });
 
   it("deduplicates concurrent exact retries and rejects key or command rebound", async () => {

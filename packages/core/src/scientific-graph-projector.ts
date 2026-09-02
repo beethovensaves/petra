@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import type {
   PetraGraphProjectionRecord,
-  PetraOutboxRecord,
+  PetraOutboxRecordRecord,
   PetraProjectionCheckpoint,
   ProjectionIdentity,
 } from "@petra/contracts";
@@ -98,7 +98,7 @@ export class ScientificGraphProjector {
 
   async project(
     checkpointId: string,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
   ): Promise<ScientificGraphProjectionResult> {
     const checkpoint = await this.#authority.getCheckpoint(checkpointId);
     if (checkpoint === undefined) {
@@ -186,7 +186,7 @@ export class ScientificGraphProjector {
   async rebuild(
     projectId: string,
     projection: ProjectionIdentity,
-    outboxes: readonly PetraOutboxRecord[],
+    outboxes: readonly PetraOutboxRecordRecord[],
   ): Promise<readonly GraphCommitReceipt[]> {
     const ordered = [...outboxes].sort(
       (left, right) => left.target_sequence - right.target_sequence,
@@ -217,7 +217,7 @@ export class ScientificGraphProjector {
   }
 
   #record(
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     projection: ProjectionIdentity,
     input: Pick<
       PetraGraphProjectionRecord["content"],

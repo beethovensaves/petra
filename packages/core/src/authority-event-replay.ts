@@ -1,7 +1,7 @@
 import type {
   PetraAssertion,
   PetraClaim,
-  PetraDomainEvent,
+  PetraDomainEventRecord,
 } from "@petra/contracts";
 
 export type AuthorityEventReplayErrorCode =
@@ -11,7 +11,8 @@ export type AuthorityEventReplayErrorCode =
   | "AUTHORITY_REPLAY_EVENT_DUPLICATE"
   | "AUTHORITY_REPLAY_CHANGE_SET_DUPLICATE"
   | "AUTHORITY_REPLAY_REVISION_INVALID"
-  | "AUTHORITY_REPLAY_PROMOTION_INVALID";
+  | "AUTHORITY_REPLAY_PROMOTION_INVALID"
+  | "AUTHORITY_REPLAY_REVERSAL_INVALID";
 
 export class AuthorityEventReplayError extends Error {
   readonly code: AuthorityEventReplayErrorCode;
@@ -30,9 +31,21 @@ export interface ReplayedScientificAuthority {
   claims: readonly PetraClaim[];
   assertions: readonly PetraAssertion[];
   appliedChangeSetIds: readonly string[];
+  revertedChangeSetIds: readonly string[];
 }
 
+type DeepReadonly<Value> = Value extends (...args: never[]) => unknown
+  ? Value
+  : Value extends readonly (infer Item)[]
+    ? readonly DeepReadonly<Item>[]
+    : Value extends object
+      ? { readonly [Key in keyof Value]: DeepReadonly<Value[Key]> }
+      : Value;
+
 const clone = <Value>(value: Value): Value => structuredClone(value);
+
+const cloneReadonly = <Value>(value: DeepReadonly<Value>): Value =>
+  structuredClone(value) as Value;
 
 const invalid = (
   code: AuthorityEventReplayErrorCode,
@@ -49,12 +62,13 @@ const invalid = (
  */
 export const replayScientificAuthority = (
   projectId: string,
-  events: readonly PetraDomainEvent[],
+  events: readonly DeepReadonly<PetraDomainEventRecord>[],
 ): ReplayedScientificAuthority => {
   const claims = new Map<string, PetraClaim>();
   const assertions = new Map<string, PetraAssertion>();
   const eventIds = new Set<string>();
   const appliedChangeSetIds = new Set<string>();
+  const revertedChangeSetIds = new Set<string>();
   let priorPosition = 0;
 
   for (const [index, event] of events.entries()) {
@@ -90,7 +104,12 @@ export const replayScientificAuthority = (
     }
     eventIds.add(event.event_id);
 
-    if (event.event.event_type !== "change_set.applied") continue;
+    if (
+      event.event.event_type !== "change_set.applied" &&
+      event.event.event_type !== "change_set.reverted"
+    ) {
+      continue;
+    }
     const payload = event.event.payload;
     if (appliedChangeSetIds.has(payload.change_set_id)) {
       invalid(
@@ -113,23 +132,55 @@ export const replayScientificAuthority = (
         "An applied event must advance both evidence objects from the recorded active revisions.",
       );
     }
-    if (
-      payload.claim.authority.zone !== "trusted" ||
-      payload.assertion.authority.zone !== "trusted" ||
-      payload.claim.authority.promotion.change_set_id !==
-        payload.change_set_id ||
-      payload.assertion.authority.promotion.change_set_id !==
-        payload.change_set_id ||
-      payload.assertion.object.object_kind !== "entity" ||
-      payload.assertion.object.entity_id !== payload.claim.claim_id
-    ) {
-      invalid(
-        "AUTHORITY_REPLAY_PROMOTION_INVALID",
-        "An applied event must contain its exact trusted Claim and Assertion promotion pair.",
-      );
+    if (event.event.event_type === "change_set.applied") {
+      if (
+        payload.claim.authority.zone !== "trusted" ||
+        payload.assertion.authority.zone !== "trusted" ||
+        payload.claim.authority.promotion.change_set_id !==
+          payload.change_set_id ||
+        payload.assertion.authority.promotion.change_set_id !==
+          payload.change_set_id ||
+        payload.assertion.object.object_kind !== "entity" ||
+        payload.assertion.object.entity_id !== payload.claim.claim_id
+      ) {
+        invalid(
+          "AUTHORITY_REPLAY_PROMOTION_INVALID",
+          "An applied event must contain its exact trusted Claim and Assertion promotion pair.",
+        );
+      }
+    } else {
+      const reversalPayload = event.event.payload;
+      if (
+        currentClaim?.authority.zone !== "trusted" ||
+        currentAssertion?.authority.zone !== "trusted" ||
+        currentClaim.authority.promotion.change_set_id !==
+          reversalPayload.compensates_change_set_id ||
+        currentAssertion.authority.promotion.change_set_id !==
+          reversalPayload.compensates_change_set_id ||
+        !appliedChangeSetIds.has(reversalPayload.compensates_change_set_id) ||
+        revertedChangeSetIds.has(reversalPayload.compensates_change_set_id) ||
+        payload.claim.authority.zone !== "quarantine" ||
+        payload.claim.authority.review_state !== "human_rejected" ||
+        payload.assertion.authority.zone !== "quarantine" ||
+        payload.assertion.authority.review_state !== "human_rejected" ||
+        payload.assertion.object.object_kind !== "entity" ||
+        payload.assertion.object.entity_id !== payload.claim.claim_id
+      ) {
+        invalid(
+          "AUTHORITY_REPLAY_REVERSAL_INVALID",
+          "A reversed event must advance and quarantine the exact pair created by its compensated promotion.",
+        );
+      }
+      revertedChangeSetIds.add(reversalPayload.compensates_change_set_id);
     }
-    claims.set(payload.claim.claim_id, clone(payload.claim));
-    assertions.set(payload.assertion.assertion_id, clone(payload.assertion));
+    claims.set(
+      payload.claim.claim_id,
+      cloneReadonly<PetraClaim>(payload.claim),
+    );
+    assertions.set(
+      payload.assertion.assertion_id,
+      cloneReadonly<PetraAssertion>(payload.assertion),
+    );
     appliedChangeSetIds.add(payload.change_set_id);
   }
 
@@ -140,5 +191,6 @@ export const replayScientificAuthority = (
     claims: [...claims.values()].map(clone),
     assertions: [...assertions.values()].map(clone),
     appliedChangeSetIds: [...appliedChangeSetIds],
+    revertedChangeSetIds: [...revertedChangeSetIds],
   };
 };

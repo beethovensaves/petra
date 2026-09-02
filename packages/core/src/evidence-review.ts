@@ -3,8 +3,13 @@ import { createHash } from "node:crypto";
 import type {
   ActorRef,
   PetraApproval,
+  PetraAssertion,
   PetraChangeSet,
+  PetraChangeSetV110,
+  PetraClaim,
   PetraCommandEnvelope,
+  PetraCommandEnvelopeRecord,
+  PetraCommandEnvelopeV110,
   PetraDocumentParseBundle,
   PetraEvidenceProposalBundle,
 } from "@petra/contracts";
@@ -97,8 +102,15 @@ export interface ReviewDecisionCommandPlan {
 
 export interface ReviewCommandExecutor {
   executeCommand(
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
   ): ChangeControlCommandResult | Promise<ChangeControlCommandResult>;
+}
+
+export interface CompensatingReversalCommandPlan {
+  readonly change_set: PetraChangeSetV110;
+  readonly submit: PetraCommandEnvelopeV110;
+  readonly review: PetraCommandEnvelopeV110;
+  readonly apply: PetraCommandEnvelopeV110;
 }
 
 export type ReviewDecisionExecutionResult =
@@ -462,6 +474,178 @@ export const buildReviewDecisionCommandPlan = (input: {
     review,
     ...(apply === undefined ? {} : { apply }),
   });
+};
+
+export const buildCompensatingReversalCommandPlan = (input: {
+  readonly project_id: string;
+  readonly claim: PetraClaim;
+  readonly assertion: PetraAssertion;
+  readonly compensates_change_set_id: string;
+  readonly proposed_by: ActorRef;
+  readonly reviewer: PetraApproval["decided_by"];
+  readonly capability_grant_id: string;
+  readonly reason: string;
+  readonly rationale: string;
+  readonly impact_summary: string;
+  readonly downstream_object_ids?: readonly string[];
+  readonly timing: ReviewDecisionTiming;
+}): CompensatingReversalCommandPlan => {
+  if (
+    input.claim.authority.zone !== "trusted" ||
+    input.assertion.authority.zone !== "trusted" ||
+    input.claim.authority.review_state !== "human_accepted" ||
+    input.assertion.authority.review_state !== "human_accepted" ||
+    input.claim.authority.promotion.change_set_id !==
+      input.compensates_change_set_id ||
+    input.assertion.authority.promotion.change_set_id !==
+      input.compensates_change_set_id ||
+    input.assertion.predicate !== "ASSERTS" ||
+    input.assertion.object.object_kind !== "entity" ||
+    input.assertion.object.entity_id !== input.claim.claim_id
+  ) {
+    throw new EvidenceReviewPreparationError(
+      "REVIEW_PAIR_MISMATCH",
+      "A reversal must target the trusted Claim–ASSERTS pair created by the compensated promotion.",
+    );
+  }
+  const content: PetraChangeSetV110["content"] = {
+    project_id: input.project_id,
+    origin: "direct_edit",
+    proposed_by: structuredClone(input.proposed_by),
+    reason: input.reason,
+    operations: [
+      {
+        operation_kind: "retract_claim",
+        target_id: input.claim.claim_id,
+        base_revision: input.claim.revision,
+        before: { zone: "trusted", review_state: "human_accepted" },
+        after: { zone: "quarantine", review_state: "human_rejected" },
+      },
+      {
+        operation_kind: "retract_assertion",
+        target_id: input.assertion.assertion_id,
+        base_revision: input.assertion.revision,
+        before: { zone: "trusted", review_state: "human_accepted" },
+        after: { zone: "quarantine", review_state: "human_rejected" },
+      },
+    ],
+    impact: {
+      affected_object_ids: [input.claim.claim_id, input.assertion.assertion_id],
+      downstream_object_ids: [...(input.downstream_object_ids ?? [])],
+      summary: input.impact_summary,
+      generated_at: input.timing.proposed_at,
+    },
+    risk_tier: "R2",
+    compensates_change_set_id: input.compensates_change_set_id,
+  };
+  const contentHash = canonicalHash(content);
+  const changeSetId = derivePetraId(
+    "change_set",
+    `${contentHash}|${input.timing.proposed_at}`,
+  );
+  const changeSet: PetraChangeSetV110 = {
+    schema_name: "petra.change-set",
+    schema_version: "1.1.0",
+    change_set_id: changeSetId,
+    revision: 1,
+    state: "submitted",
+    content,
+    content_hash: contentHash,
+    proposed_at: input.timing.proposed_at,
+  };
+  const traceId = derivePetraId("trace", changeSetId);
+  const submitCommandId = derivePetraId("command", `${changeSetId}|submit`);
+  const approvalId = derivePetraId(
+    "approval",
+    canonicalize({
+      change_set_id: changeSetId,
+      decision: "approved",
+      reviewer: input.reviewer,
+      rationale: input.rationale,
+      decided_at: input.timing.decided_at,
+    }),
+  );
+  const approval: PetraApproval = {
+    schema_name: "petra.approval",
+    schema_version: "1.0.0",
+    approval_id: approvalId,
+    revision: 1,
+    subject: {
+      subject_kind: "change_set",
+      change_set_id: changeSetId,
+      change_set_revision: 1,
+      change_set_content_hash: contentHash,
+    },
+    decision: "approved",
+    decision_scope: "exact_change_set",
+    decided_by: structuredClone(input.reviewer),
+    rationale: input.rationale,
+    conditions: [],
+    decided_at: input.timing.decided_at,
+  };
+  const reviewCommandId = derivePetraId("command", `${approvalId}|record`);
+  const submit: PetraCommandEnvelopeV110 = {
+    schema_name: "petra.command-envelope",
+    schema_version: "1.1.0",
+    command_id: submitCommandId,
+    idempotency_key: `reversal:${changeSetId}:submit`,
+    project_id: input.project_id,
+    actor: structuredClone(input.proposed_by),
+    capability_grant_id: input.capability_grant_id,
+    correlation_id: traceId,
+    submitted_at: input.timing.proposed_at,
+    command: {
+      command_name: "SubmitChangeSet",
+      change_set: structuredClone(changeSet),
+    },
+  };
+  const review: PetraCommandEnvelopeV110 = {
+    schema_name: "petra.command-envelope",
+    schema_version: "1.1.0",
+    command_id: reviewCommandId,
+    idempotency_key: `reversal:${changeSetId}:approved`,
+    project_id: input.project_id,
+    actor: structuredClone(input.reviewer),
+    capability_grant_id: input.capability_grant_id,
+    correlation_id: traceId,
+    causation_id: submitCommandId,
+    submitted_at: input.timing.decided_at,
+    command: { command_name: "RecordApproval", approval },
+  };
+  const apply: PetraCommandEnvelopeV110 = {
+    schema_name: "petra.command-envelope",
+    schema_version: "1.1.0",
+    command_id: derivePetraId("command", `${changeSetId}|apply`),
+    idempotency_key: `reversal:${changeSetId}:apply`,
+    project_id: input.project_id,
+    actor: structuredClone(input.reviewer),
+    capability_grant_id: input.capability_grant_id,
+    correlation_id: traceId,
+    causation_id: reviewCommandId,
+    submitted_at: input.timing.applied_at,
+    command: {
+      command_name: "ApplyChangeSet",
+      change_set_id: changeSetId,
+      change_set_revision: 1,
+      change_set_content_hash: contentHash,
+      approval_id: approvalId,
+      approval_revision: 1,
+    },
+  };
+  return immutableCopy({ change_set: changeSet, submit, review, apply });
+};
+
+export const executeCompensatingReversalPlan = async (
+  executor: ReviewCommandExecutor,
+  plan: CompensatingReversalCommandPlan,
+): Promise<Extract<ChangeControlCommandResult, { outcome: "reverted" }>> => {
+  await executor.executeCommand(plan.submit);
+  await executor.executeCommand(plan.review);
+  const result = await executor.executeCommand(plan.apply);
+  if (result.outcome !== "reverted") {
+    throw new Error("Compensating ApplyChangeSet did not return a reversal.");
+  }
+  return result;
 };
 
 export const executeReviewDecisionPlan = async (

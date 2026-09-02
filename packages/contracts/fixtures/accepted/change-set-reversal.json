@@ -1,0 +1,57 @@
+{
+  "schema_name": "petra.change-set",
+  "schema_version": "1.1.0",
+  "change_set_id": "change_set_5ER8J7AJSBE1AYPNZEP1Q419ZB",
+  "revision": 1,
+  "state": "submitted",
+  "content": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "origin": "direct_edit",
+    "proposed_by": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "human"
+    },
+    "reason": "Reverse the accepted pair after corrected direct review.",
+    "operations": [
+      {
+        "operation_kind": "retract_claim",
+        "target_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "base_revision": 2,
+        "before": {
+          "zone": "trusted",
+          "review_state": "human_accepted"
+        },
+        "after": {
+          "zone": "quarantine",
+          "review_state": "human_rejected"
+        }
+      },
+      {
+        "operation_kind": "retract_assertion",
+        "target_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+        "base_revision": 2,
+        "before": {
+          "zone": "trusted",
+          "review_state": "human_accepted"
+        },
+        "after": {
+          "zone": "quarantine",
+          "review_state": "human_rejected"
+        }
+      }
+    ],
+    "impact": {
+      "affected_object_ids": [
+        "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC"
+      ],
+      "downstream_object_ids": [],
+      "summary": "The Claim and ASSERTS edge leave active authority while their immutable revisions remain auditable.",
+      "generated_at": "2026-08-30T10:00:00.000Z"
+    },
+    "risk_tier": "R2",
+    "compensates_change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF"
+  },
+  "content_hash": "sha256:d378f43e03642db2e0da1b503e95c235950f527e093bc51c6d7e1e78ebcf3666",
+  "proposed_at": "2026-08-30T10:00:00.000Z"
+}

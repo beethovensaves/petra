@@ -10,7 +10,7 @@ import { canonicalize } from "json-canonicalize";
 import type { PoolClient } from "pg";
 
 export type PersistedEvidenceRecord = PetraClaim | PetraAssertion;
-export type EvidenceAdmissionKind = "proposal" | "promotion";
+export type EvidenceAdmissionKind = "proposal" | "promotion" | "reversal";
 
 const recordHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;

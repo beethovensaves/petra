@@ -45,6 +45,13 @@ export interface AuthorityGraphRelationship {
   properties: Readonly<Record<string, GraphProperty>>;
 }
 
+export interface AuthorityGraphRelationshipRemoval {
+  edgeId: string;
+  expectedAuthoritativeRevision: number;
+  tombstoneRevision: number;
+  recordHash: string;
+}
+
 export interface AuthorityGraphOutboxReference {
   outboxId: string;
   outboxPosition: number;
@@ -61,6 +68,7 @@ export interface AuthorityGraphBatch {
   outbox: AuthorityGraphOutboxReference;
   nodes: readonly AuthorityGraphNode[];
   relationships: readonly AuthorityGraphRelationship[];
+  removals?: readonly AuthorityGraphRelationshipRemoval[];
 }
 
 export interface GraphCommitReceipt {

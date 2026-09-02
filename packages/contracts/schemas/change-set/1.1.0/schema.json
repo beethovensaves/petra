@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/change-set/1.1.0/schema.json",
+  "title": "PetraChangeSetV110",
+  "description": "An immutable, content-bound scientific authority change supporting both initial promotion and explicit compensating reversal.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "change_set_id",
+    "revision",
+    "state",
+    "content",
+    "content_hash",
+    "proposed_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.change-set" },
+    "schema_version": { "const": "1.1.0" },
+    "change_set_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+    },
+    "revision": { "const": 1 },
+    "state": { "const": "submitted" },
+    "content": { "$ref": "#/$defs/ChangeSetContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "proposed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ChangeSetContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "origin",
+        "proposed_by",
+        "reason",
+        "operations",
+        "impact",
+        "risk_tier"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "origin": {
+          "enum": ["direct_edit", "agent_proposal", "worker_proposal"]
+        },
+        "proposed_by": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ChangeOperation" }
+        },
+        "impact": {
+          "$ref": "../../change-set/1.0.0/schema.json#/$defs/ImpactPreview"
+        },
+        "risk_tier": { "enum": ["R0", "R1", "R2", "R3", "R4"] },
+        "compensates_change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "operations": {
+              "type": "array",
+              "contains": {
+                "type": "object",
+                "required": ["operation_kind"],
+                "properties": {
+                  "operation_kind": {
+                    "enum": ["retract_claim", "retract_assertion"]
+                  }
+                }
+              }
+            },
+            "compensates_change_set_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+            }
+          },
+          "required": ["compensates_change_set_id"]
+        },
+        {
+          "properties": {
+            "operations": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "type": "object",
+                  "required": ["operation_kind"],
+                  "properties": {
+                    "operation_kind": {
+                      "enum": ["retract_claim", "retract_assertion"]
+                    }
+                  }
+                }
+              }
+            },
+            "compensates_change_set_id": false
+          }
+        }
+      ]
+    },
+    "ChangeOperation": {
+      "oneOf": [
+        {
+          "$ref": "../../change-set/1.0.0/schema.json#/$defs/PromoteClaimOperation"
+        },
+        {
+          "$ref": "../../change-set/1.0.0/schema.json#/$defs/PromoteAssertionOperation"
+        },
+        { "$ref": "#/$defs/RetractClaimOperation" },
+        { "$ref": "#/$defs/RetractAssertionOperation" }
+      ]
+    },
+    "RetractClaimOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_kind",
+        "target_id",
+        "base_revision",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "operation_kind": { "const": "retract_claim" },
+        "target_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ClaimId"
+        },
+        "base_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "before": { "$ref": "#/$defs/HumanTrustedState" },
+        "after": { "$ref": "#/$defs/HumanRejectedState" }
+      }
+    },
+    "RetractAssertionOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_kind",
+        "target_id",
+        "base_revision",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "operation_kind": { "const": "retract_assertion" },
+        "target_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/AssertionId"
+        },
+        "base_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "before": { "$ref": "#/$defs/HumanTrustedState" },
+        "after": { "$ref": "#/$defs/HumanRejectedState" }
+      }
+    },
+    "HumanTrustedState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zone", "review_state"],
+      "properties": {
+        "zone": { "const": "trusted" },
+        "review_state": { "const": "human_accepted" }
+      }
+    },
+    "HumanRejectedState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zone", "review_state"],
+      "properties": {
+        "zone": { "const": "quarantine" },
+        "review_state": { "const": "human_rejected" }
+      }
+    }
+  }
+}

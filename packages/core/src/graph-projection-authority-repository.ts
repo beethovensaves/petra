@@ -1,6 +1,6 @@
 import type {
   PetraGraphProjectionRecord,
-  PetraOutboxRecord,
+  PetraOutboxRecordRecord,
   PetraProjectionCheckpoint,
 } from "@petra/contracts";
 
@@ -26,13 +26,13 @@ export interface GraphProjectionAuthorityRepository {
   getRepairQueue(checkpointId: string): Promise<PetraGraphProjectionRecord[]>;
   observeHead(
     checkpointId: string,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     expectedRevision: number,
     observedAt: string,
   ): Promise<PetraProjectionCheckpoint>;
   record(
     checkpointId: string,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     record: PetraGraphProjectionRecord,
     expectedRevision: number,
   ): Promise<PetraProjectionCheckpoint>;

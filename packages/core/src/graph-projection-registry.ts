@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import type {
   PetraGraphProjectionRecord,
-  PetraOutboxRecord,
+  PetraOutboxRecordRecord,
   PetraProjectionCheckpoint,
   ProjectionCheckpointContent,
   ProjectionEffect,
@@ -95,7 +95,7 @@ const identitiesMatch = (
 ): boolean => canonicalize(left) === canonicalize(right);
 
 export const graphProjectionOutboxReference = (
-  outbox: PetraOutboxRecord,
+  outbox: PetraOutboxRecordRecord,
 ): PetraGraphProjectionRecord["content"]["outbox_ref"] => ({
   outbox_id: outbox.outbox_id,
   outbox_position: outbox.outbox_position,
@@ -106,7 +106,7 @@ export const graphProjectionOutboxReference = (
 });
 
 const observedHead = (
-  outbox: PetraOutboxRecord,
+  outbox: PetraOutboxRecordRecord,
   observedAt: string,
 ): PetraProjectionCheckpoint["content"]["observed_head"] => ({
   ...graphProjectionOutboxReference(outbox),
@@ -119,15 +119,20 @@ const positionSequence = (
 ): number => checkpoint.content.position.target_sequence;
 
 export const graphProjectionEffectForOutbox = (
-  outbox: PetraOutboxRecord,
+  outbox: PetraOutboxRecordRecord,
 ): ProjectionEffect => {
   const event = outbox.message.event;
-  if (event.event.event_type !== "change_set.applied") {
+  if (
+    event.event.event_type !== "change_set.applied" &&
+    event.event.event_type !== "change_set.reverted"
+  ) {
     throw new GraphProjectionError(
       "PROJECTION_EFFECT_MISMATCH",
-      "Only a self-contained change_set.applied event can enter the authority graph projection.",
+      "Only a self-contained applied promotion or reversal can enter the authority graph projection.",
     );
   }
+  const operation =
+    event.event.event_type === "change_set.applied" ? "upsert" : "tombstone";
   return {
     source_event_id: event.event_id,
     objects: [
@@ -141,7 +146,7 @@ export const graphProjectionEffectForOutbox = (
         graph_element_kind: "relationship",
         object_id: event.event.payload.assertion.assertion_id,
         object_revision: event.event.payload.assertion.revision,
-        operation: "upsert",
+        operation,
       },
     ],
   };
@@ -149,7 +154,7 @@ export const graphProjectionEffectForOutbox = (
 
 const assertOutboxForCheckpoint = (
   checkpoint: DeepReadonly<PetraProjectionCheckpoint>,
-  outbox: PetraOutboxRecord,
+  outbox: PetraOutboxRecordRecord,
 ): void => {
   if (outbox.target !== "neo4j_graph") {
     throw new GraphProjectionError(
@@ -290,7 +295,7 @@ export class InMemoryGraphProjectionRegistry {
 
   observeHead(
     checkpointId: string,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     expectedRevision: number,
     observedAt: string,
   ): DeepReadonly<PetraProjectionCheckpoint> {
@@ -353,7 +358,7 @@ export class InMemoryGraphProjectionRegistry {
 
   record(
     checkpointId: string,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     record: PetraGraphProjectionRecord,
     expectedRevision: number,
   ): DeepReadonly<PetraProjectionCheckpoint> {
@@ -459,7 +464,7 @@ export class InMemoryGraphProjectionRegistry {
 
   #validateRecord(
     state: ProjectionState,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     record: PetraGraphProjectionRecord,
   ): void {
     assertOutboxForCheckpoint(state.checkpoint, outbox);
@@ -506,7 +511,7 @@ export class InMemoryGraphProjectionRegistry {
   }
 
   #validateAppliedEffect(
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     record: PetraGraphProjectionRecord,
   ): void {
     const outcome = record.content.outcome;

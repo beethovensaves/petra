@@ -1,9 +1,9 @@
 import type {
   PetraApproval,
-  PetraChangeSet,
-  PetraCommandEnvelope,
-  PetraDomainEvent,
-  PetraOutboxRecord,
+  PetraChangeSetRecord,
+  PetraCommandEnvelopeRecord,
+  PetraDomainEventRecord,
+  PetraOutboxRecordRecord,
 } from "@petra/contracts";
 
 import type {
@@ -19,7 +19,7 @@ export interface DomainEventQuery {
 
 export interface OutboxQuery {
   projectId: string;
-  target: PetraOutboxRecord["target"];
+  target: PetraOutboxRecordRecord["target"];
   afterTargetSequence?: number;
   limit?: number;
 }
@@ -31,13 +31,13 @@ export interface OutboxQuery {
  */
 export interface ChangeControlAuthorityRepository {
   executeCommand(
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
   ): Promise<ChangeControlCommandResult>;
-  getChangeSet(changeSetId: string): Promise<PetraChangeSet | undefined>;
+  getChangeSet(changeSetId: string): Promise<PetraChangeSetRecord | undefined>;
   getChangeSetState(
     changeSetId: string,
   ): Promise<ChangeSetDerivedState | undefined>;
   getApproval(approvalId: string): Promise<PetraApproval | undefined>;
-  getDomainEvents(query: DomainEventQuery): Promise<PetraDomainEvent[]>;
-  getOutboxRecords(query: OutboxQuery): Promise<PetraOutboxRecord[]>;
+  getDomainEvents(query: DomainEventQuery): Promise<PetraDomainEventRecord[]>;
+  getOutboxRecords(query: OutboxQuery): Promise<PetraOutboxRecordRecord[]>;
 }

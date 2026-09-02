@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import type {
   PetraGraphProjectionRecord,
-  PetraOutboxRecord,
+  PetraOutboxRecordRecord,
   PetraProjectionCheckpoint,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -172,11 +172,11 @@ export class PostgresGraphProjectionAuthorityRepository implements GraphProjecti
 
   async observeHead(
     checkpointId: string,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     expectedRevision: number,
     observedAt: string,
   ): Promise<PetraProjectionCheckpoint> {
-    this.#contracts.assertValid("outbox-record", "1.0.0", outbox);
+    this.#contracts.assertValid("outbox-record", outbox.schema_version, outbox);
     return this.#transaction(async (client) => {
       await this.#lock(client, [
         `projection-checkpoint:${checkpointId}`,
@@ -207,11 +207,11 @@ export class PostgresGraphProjectionAuthorityRepository implements GraphProjecti
 
   async record(
     checkpointId: string,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     record: PetraGraphProjectionRecord,
     expectedRevision: number,
   ): Promise<PetraProjectionCheckpoint> {
-    this.#contracts.assertValid("outbox-record", "1.0.0", outbox);
+    this.#contracts.assertValid("outbox-record", outbox.schema_version, outbox);
     this.#contracts.assertValid("graph-projection-record", "1.0.0", record);
     return this.#transaction(async (client) => {
       await this.#lock(client, [
@@ -311,7 +311,7 @@ export class PostgresGraphProjectionAuthorityRepository implements GraphProjecti
       "SELECT outbox_id, payload FROM petra.outbox_records WHERE outbox_id = ANY($1::text[])",
       [[...outboxIds]],
     );
-    const outboxes = new Map<string, PetraOutboxRecord>();
+    const outboxes = new Map<string, PetraOutboxRecordRecord>();
     for (const row of outboxResult.rows) {
       outboxes.set(row.outbox_id, this.#requiredOutbox(row.payload));
     }
@@ -555,8 +555,8 @@ export class PostgresGraphProjectionAuthorityRepository implements GraphProjecti
 
   async #requireExactOutbox(
     client: PoolClient,
-    supplied: PetraOutboxRecord,
-  ): Promise<PetraOutboxRecord> {
+    supplied: PetraOutboxRecordRecord,
+  ): Promise<PetraOutboxRecordRecord> {
     const result = await client.query<PayloadRow>(
       "SELECT payload FROM petra.outbox_records WHERE outbox_id = $1",
       [supplied.outbox_id],
@@ -654,9 +654,21 @@ export class PostgresGraphProjectionAuthorityRepository implements GraphProjecti
     return clone(payload as PetraGraphProjectionRecord);
   }
 
-  #requiredOutbox(payload: unknown): PetraOutboxRecord {
-    this.#contracts.assertValid("outbox-record", "1.0.0", payload);
-    return clone(payload as PetraOutboxRecord);
+  #requiredOutbox(payload: unknown): PetraOutboxRecordRecord {
+    if (
+      typeof payload !== "object" ||
+      payload === null ||
+      !("schema_version" in payload) ||
+      (payload.schema_version !== "1.0.0" && payload.schema_version !== "1.1.0")
+    ) {
+      throw new Error("Stored graph outbox has no supported schema version.");
+    }
+    this.#contracts.assertValid(
+      "outbox-record",
+      payload.schema_version,
+      payload,
+    );
+    return clone(payload as PetraOutboxRecordRecord);
   }
 
   async #lock(client: PoolClient, keys: readonly string[]): Promise<void> {

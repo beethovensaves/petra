@@ -4,11 +4,10 @@ import type {
   ActorRef,
   PetraApproval,
   PetraAssertion,
-  PetraChangeSet,
-  PetraCommand,
-  PetraCommandEnvelope,
-  PetraDomainEvent,
-  PetraOutboxRecord,
+  PetraChangeSetRecord,
+  PetraCommandEnvelopeRecord,
+  PetraDomainEventRecord,
+  PetraOutboxRecordRecord,
   PetraClaim,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -28,14 +27,28 @@ import type { Pool, PoolClient } from "pg";
 
 import { insertEvidenceRecordRevision } from "./evidence-record-persistence.js";
 
+type ChangeOperation<
+  ChangeSet extends PetraChangeSetRecord = PetraChangeSetRecord,
+> = ChangeSet extends PetraChangeSetRecord
+  ? ChangeSet["content"]["operations"][number]
+  : never;
 type PromoteClaimChange = Extract<
-  PetraChangeSet["content"]["operations"][number],
+  ChangeOperation,
   { operation_kind: "promote_claim" }
 >;
 type PromoteAssertionChange = Extract<
-  PetraChangeSet["content"]["operations"][number],
+  ChangeOperation,
   { operation_kind: "promote_assertion" }
 >;
+type RetractClaimChange = Extract<
+  ChangeOperation,
+  { operation_kind: "retract_claim" }
+>;
+type RetractAssertionChange = Extract<
+  ChangeOperation,
+  { operation_kind: "retract_assertion" }
+>;
+type CommandRecord = PetraCommandEnvelopeRecord["command"];
 
 interface CommandExecutionRow {
   command_id: string;
@@ -88,13 +101,15 @@ interface StateRow {
 type CommandPlan =
   | {
       result: ChangeControlCommandResult;
-      event: PetraDomainEvent["event"];
-      targets: readonly PetraOutboxRecord["target"][];
+      event: PetraDomainEventRecord["event"];
+      targets: readonly PetraOutboxRecordRecord["target"][];
+      schemaVersion: PetraDomainEventRecord["schema_version"];
     }
   | {
       failure: ChangeControlError;
-      event: PetraDomainEvent["event"];
+      event: PetraDomainEventRecord["event"];
       targets: readonly ["interface_authority"];
+      schemaVersion: PetraDomainEventRecord["schema_version"];
     };
 
 const clone = <Value>(value: Value): Value => structuredClone(value);
@@ -157,9 +172,13 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
   }
 
   async executeCommand(
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
   ): Promise<ChangeControlCommandResult> {
-    this.#contracts.assertValid("command-envelope", "1.0.0", envelope);
+    this.#contracts.assertValid(
+      "command-envelope",
+      envelope.schema_version,
+      envelope,
+    );
     if (
       !this.#commandAuthorizer.authorize({
         actor: envelope.actor,
@@ -198,6 +217,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
         plan.event,
         plan.targets,
         recordedAt,
+        plan.schemaVersion,
       );
       await this.#insertCommandExecution(
         client,
@@ -221,15 +241,16 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
     }
   }
 
-  async getChangeSet(changeSetId: string): Promise<PetraChangeSet | undefined> {
+  async getChangeSet(
+    changeSetId: string,
+  ): Promise<PetraChangeSetRecord | undefined> {
     const result = await this.#pool.query<PayloadRow>(
       "SELECT payload FROM petra.change_sets WHERE change_set_id = $1",
       [changeSetId],
     );
     const payload = result.rows[0]?.payload;
     if (payload === undefined) return undefined;
-    this.#contracts.assertValid("change-set", "1.0.0", payload);
-    return clone(payload as PetraChangeSet);
+    return this.#readChangeSet(payload);
   }
 
   async getChangeSetState(
@@ -253,7 +274,9 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
     return clone(payload as PetraApproval);
   }
 
-  async getDomainEvents(query: DomainEventQuery): Promise<PetraDomainEvent[]> {
+  async getDomainEvents(
+    query: DomainEventQuery,
+  ): Promise<PetraDomainEventRecord[]> {
     const result = await this.#pool.query<PayloadRow>(
       `SELECT payload
          FROM petra.domain_events
@@ -267,12 +290,13 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       ],
     );
     return result.rows.map(({ payload }) => {
-      this.#contracts.assertValid("domain-event", "1.0.0", payload);
-      return clone(payload as PetraDomainEvent);
+      return this.#readDomainEvent(payload);
     });
   }
 
-  async getOutboxRecords(query: OutboxQuery): Promise<PetraOutboxRecord[]> {
+  async getOutboxRecords(
+    query: OutboxQuery,
+  ): Promise<PetraOutboxRecordRecord[]> {
     const result = await this.#pool.query<PayloadRow>(
       `SELECT payload
          FROM petra.outbox_records
@@ -289,14 +313,13 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       ],
     );
     return result.rows.map(({ payload }) => {
-      this.#contracts.assertValid("outbox-record", "1.0.0", payload);
-      return clone(payload as PetraOutboxRecord);
+      return this.#readOutboxRecord(payload);
     });
   }
 
   async #lockCommandScope(
     client: PoolClient,
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
   ): Promise<void> {
     const keys = new Set<string>([
       "authority:positions",
@@ -333,7 +356,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
 
   async #findReplay(
     client: PoolClient,
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
     fingerprint: string,
   ): Promise<CommandExecutionRow | undefined> {
     const byIdempotency = await client.query<CommandExecutionRow>(
@@ -386,7 +409,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
 
   async #requireCommandContext(
     client: PoolClient,
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
   ): Promise<void> {
     const context = await client.query<{ actor_kind: ActorRef["actor_kind"] }>(
       `SELECT actor.actor_kind
@@ -411,7 +434,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
 
   #executeUnseenCommand(
     client: PoolClient,
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
   ): Promise<CommandPlan> {
     switch (envelope.command.command_name) {
       case "SubmitChangeSet":
@@ -425,8 +448,8 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
 
   async #submitChangeSet(
     client: PoolClient,
-    envelope: PetraCommandEnvelope,
-    command: Extract<PetraCommand, { command_name: "SubmitChangeSet" }>,
+    envelope: PetraCommandEnvelopeRecord,
+    command: Extract<CommandRecord, { command_name: "SubmitChangeSet" }>,
   ): Promise<CommandPlan> {
     const changeSet = command.change_set;
     if (changeSet.revision !== 1 || changeSet.state !== "submitted") {
@@ -470,9 +493,33 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       );
     }
 
-    const pair = this.#promotionPair(changeSet);
-    const targets = await this.#loadPromotionTargets(client, pair);
-    this.#validatePromotionTargets(changeSet, pair, targets);
+    if (this.#isReversalChangeSet(changeSet)) {
+      if (
+        changeSet.schema_version !== "1.1.0" ||
+        changeSet.content.compensates_change_set_id === undefined
+      ) {
+        throw new ChangeControlError(
+          "CHANGE_SET_COMPENSATION_REQUIRED",
+          "A reversal must use ChangeSet 1.1 and name the applied ChangeSet it compensates.",
+        );
+      }
+      const pair = this.#reversalPair(changeSet);
+      const targets = await this.#loadEvidenceTargets(client, pair);
+      await this.#validateReversalTargets(client, changeSet, pair, targets);
+    } else {
+      if (
+        "compensates_change_set_id" in changeSet.content &&
+        changeSet.content.compensates_change_set_id !== undefined
+      ) {
+        throw new ChangeControlError(
+          "CHANGE_SET_COMPENSATION_INVALID",
+          "A promotion cannot name a compensated ChangeSet.",
+        );
+      }
+      const pair = this.#promotionPair(changeSet);
+      const targets = await this.#loadEvidenceTargets(client, pair);
+      this.#validatePromotionTargets(changeSet, pair, targets);
+    }
     await this.#insertChangeSet(client, changeSet);
 
     const result: ChangeControlCommandResult = {
@@ -486,15 +533,16 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       event: {
         event_type: "change_set.submitted",
         payload: { change_set: clone(changeSet) },
-      },
+      } as PetraDomainEventRecord["event"],
       targets: ["interface_authority"],
+      schemaVersion: changeSet.schema_version,
     };
   }
 
   async #recordApproval(
     client: PoolClient,
-    envelope: PetraCommandEnvelope,
-    command: Extract<PetraCommand, { command_name: "RecordApproval" }>,
+    envelope: PetraCommandEnvelopeRecord,
+    command: Extract<CommandRecord, { command_name: "RecordApproval" }>,
   ): Promise<CommandPlan> {
     const approval = command.approval;
     if (approval.revision !== 1) {
@@ -578,13 +626,14 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
         },
       },
       targets: ["interface_authority"],
+      schemaVersion: changeSet.schema_version,
     };
   }
 
   async #applyChangeSet(
     client: PoolClient,
-    envelope: PetraCommandEnvelope,
-    command: Extract<PetraCommand, { command_name: "ApplyChangeSet" }>,
+    envelope: PetraCommandEnvelopeRecord,
+    command: Extract<CommandRecord, { command_name: "ApplyChangeSet" }>,
   ): Promise<CommandPlan> {
     const row = await this.#loadChangeSet(client, command.change_set_id);
     if (row === undefined) {
@@ -663,8 +712,12 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       );
     }
 
+    if (this.#isReversalChangeSet(changeSet)) {
+      return this.#applyReversal(client, envelope, changeSet, approval);
+    }
+
     const pair = this.#promotionPair(changeSet);
-    const targets = await this.#loadPromotionTargets(client, pair);
+    const targets = await this.#loadEvidenceTargets(client, pair);
     try {
       this.#validatePromotionTargets(changeSet, pair, targets);
     } catch (error) {
@@ -683,6 +736,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
           failure: error,
           event: this.#conflictEvent(changeSet, pair, targets, error.code),
           targets: ["interface_authority"],
+          schemaVersion: changeSet.schema_version,
         };
       }
       throw error;
@@ -726,6 +780,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       changeSet,
       approval,
       envelope.submitted_at,
+      "promotion",
     );
     await this.#insertEvidenceAuthorization(
       client,
@@ -733,6 +788,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       changeSet,
       approval,
       envelope.submitted_at,
+      "promotion",
     );
     await client.query(
       `UPDATE petra.evidence_entities
@@ -777,10 +833,160 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
         },
       },
       targets: ["neo4j_graph", "interface_authority"],
+      schemaVersion: changeSet.schema_version,
     };
   }
 
-  #promotionPair(changeSet: PetraChangeSet): {
+  async #applyReversal(
+    client: PoolClient,
+    envelope: PetraCommandEnvelopeRecord,
+    changeSet: PetraChangeSetRecord,
+    approval: PetraApproval,
+  ): Promise<CommandPlan> {
+    if (
+      changeSet.schema_version !== "1.1.0" ||
+      changeSet.content.compensates_change_set_id === undefined
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_REQUIRED",
+        "A reversal must name the applied ChangeSet it compensates.",
+      );
+    }
+    const pair = this.#reversalPair(changeSet);
+    const targets = await this.#loadEvidenceTargets(client, pair);
+    try {
+      await this.#validateReversalTargets(client, changeSet, pair, targets);
+    } catch (error) {
+      if (
+        error instanceof ChangeControlError &&
+        (error.code === "STALE_TARGET_REVISION" ||
+          error.code === "TARGET_AUTHORITY_MISMATCH")
+      ) {
+        await client.query(
+          `UPDATE petra.change_sets
+              SET current_state = 'conflicted', state_updated_at = $2::timestamptz
+            WHERE change_set_id = $1`,
+          [changeSet.change_set_id, envelope.submitted_at],
+        );
+        return {
+          failure: error,
+          event: this.#reversalConflictEvent(
+            changeSet,
+            pair,
+            targets,
+            error.code,
+          ),
+          targets: ["interface_authority"],
+          schemaVersion: "1.1.0",
+        };
+      }
+      throw error;
+    }
+
+    const rejectedAuthority = {
+      zone: "quarantine" as const,
+      review_state: "human_rejected" as const,
+    };
+    const rejectedClaim = clone(targets.claim);
+    rejectedClaim.revision += 1;
+    rejectedClaim.authority = clone(rejectedAuthority);
+    const rejectedAssertion = clone(targets.assertion);
+    rejectedAssertion.revision += 1;
+    rejectedAssertion.authority = clone(rejectedAuthority);
+    this.#contracts.assertValid("claim", "1.0.0", rejectedClaim);
+    this.#contracts.assertValid("assertion", "1.0.0", rejectedAssertion);
+
+    await insertEvidenceRecordRevision(client, rejectedClaim, {
+      admissionKind: "reversal",
+      recordedAt: envelope.submitted_at,
+      createIdentity: false,
+    });
+    await insertEvidenceRecordRevision(client, rejectedAssertion, {
+      admissionKind: "reversal",
+      recordedAt: envelope.submitted_at,
+      createIdentity: false,
+    });
+    await this.#insertEvidenceAuthorization(
+      client,
+      rejectedClaim,
+      changeSet,
+      approval,
+      envelope.submitted_at,
+      "reversal",
+    );
+    await this.#insertEvidenceAuthorization(
+      client,
+      rejectedAssertion,
+      changeSet,
+      approval,
+      envelope.submitted_at,
+      "reversal",
+    );
+    await client.query(
+      `UPDATE petra.evidence_entities
+          SET current_revision = current_revision + 1
+        WHERE evidence_id = ANY($1::text[])`,
+      [[rejectedClaim.claim_id, rejectedAssertion.assertion_id]],
+    );
+    await client.query(
+      `UPDATE petra.change_sets
+          SET current_state = 'applied', state_updated_at = $2::timestamptz,
+              applied_approval_id = $3
+        WHERE change_set_id = $1`,
+      [changeSet.change_set_id, envelope.submitted_at, approval.approval_id],
+    );
+    await client.query(
+      `UPDATE petra.change_sets
+          SET current_state = 'reverted', state_updated_at = $2::timestamptz
+        WHERE change_set_id = $1`,
+      [changeSet.content.compensates_change_set_id, envelope.submitted_at],
+    );
+
+    const result: ChangeControlCommandResult = {
+      outcome: "reverted",
+      command_id: envelope.command_id,
+      change_set_id: changeSet.change_set_id,
+      change_set_state: "applied",
+      compensates_change_set_id: changeSet.content.compensates_change_set_id,
+      approval_id: approval.approval_id,
+      claim_id: rejectedClaim.claim_id,
+      claim_revision: rejectedClaim.revision,
+      assertion_id: rejectedAssertion.assertion_id,
+      assertion_revision: rejectedAssertion.revision,
+      applied_at: envelope.submitted_at,
+    };
+    return {
+      result,
+      event: {
+        event_type: "change_set.reverted",
+        payload: {
+          change_set_id: changeSet.change_set_id,
+          change_set_revision: 1,
+          change_set_content_hash: changeSet.content_hash,
+          compensates_change_set_id:
+            changeSet.content.compensates_change_set_id,
+          approval_id: approval.approval_id,
+          approval_revision: 1,
+          prior_claim_revision: rejectedClaim.revision - 1,
+          claim: clone(rejectedClaim),
+          prior_assertion_revision: rejectedAssertion.revision - 1,
+          assertion: clone(rejectedAssertion),
+        },
+      },
+      targets: ["neo4j_graph", "interface_authority"],
+      schemaVersion: "1.1.0",
+    };
+  }
+
+  #isReversalChangeSet(changeSet: PetraChangeSetRecord): boolean {
+    return changeSet.content.operations.some(
+      (operation) =>
+        operation.operation_kind === "retract_claim" ||
+        operation.operation_kind === "retract_assertion",
+    );
+  }
+
+  #promotionPair(changeSet: PetraChangeSetRecord): {
     claim: PromoteClaimChange;
     assertion: PromoteAssertionChange;
   } {
@@ -804,12 +1010,46 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
         "The first scientific promotion ChangeSet must contain exactly one Claim and one Assertion operation.",
       );
     }
-    return { claim: claims[0], assertion: assertions[0] };
+    return {
+      claim: claims[0] as PromoteClaimChange,
+      assertion: assertions[0] as PromoteAssertionChange,
+    };
   }
 
-  async #loadPromotionTargets(
+  #reversalPair(changeSet: PetraChangeSetRecord): {
+    claim: RetractClaimChange;
+    assertion: RetractAssertionChange;
+  } {
+    const claims = changeSet.content.operations.filter(
+      (operation) => operation.operation_kind === "retract_claim",
+    );
+    const assertions = changeSet.content.operations.filter(
+      (operation) => operation.operation_kind === "retract_assertion",
+    );
+    if (
+      changeSet.content.operations.length !== 2 ||
+      claims.length !== 1 ||
+      assertions.length !== 1 ||
+      claims[0] === undefined ||
+      assertions[0] === undefined
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_OPERATION_SET_INVALID",
+        "A scientific authority reversal must contain exactly one Claim and one Assertion retraction.",
+      );
+    }
+    return {
+      claim: claims[0] as RetractClaimChange,
+      assertion: assertions[0] as RetractAssertionChange,
+    };
+  }
+
+  async #loadEvidenceTargets(
     client: PoolClient,
-    pair: { claim: PromoteClaimChange; assertion: PromoteAssertionChange },
+    pair: {
+      claim: PromoteClaimChange | RetractClaimChange;
+      assertion: PromoteAssertionChange | RetractAssertionChange;
+    },
   ): Promise<{ claim: PetraClaim; assertion: PetraAssertion }> {
     const ids = [pair.claim.target_id, pair.assertion.target_id].sort();
     const result = await client.query<EvidenceRow>(
@@ -847,7 +1087,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
   }
 
   #validatePromotionTargets(
-    changeSet: PetraChangeSet,
+    changeSet: PetraChangeSetRecord,
     pair: { claim: PromoteClaimChange; assertion: PromoteAssertionChange },
     targets: { claim: PetraClaim; assertion: PetraAssertion },
   ): void {
@@ -895,12 +1135,120 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
     }
   }
 
+  async #validateReversalTargets(
+    client: PoolClient,
+    changeSet: PetraChangeSetRecord,
+    pair: { claim: RetractClaimChange; assertion: RetractAssertionChange },
+    targets: { claim: PetraClaim; assertion: PetraAssertion },
+  ): Promise<void> {
+    if (
+      changeSet.schema_version !== "1.1.0" ||
+      changeSet.content.compensates_change_set_id === undefined
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_REQUIRED",
+        "A reversal must name the promotion ChangeSet it compensates.",
+      );
+    }
+    const compensatedRow = await this.#loadChangeSet(
+      client,
+      changeSet.content.compensates_change_set_id,
+    );
+    if (compensatedRow === undefined) {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_INVALID",
+        "The compensated ChangeSet must be a registered promotion.",
+      );
+    }
+    const compensated = this.#readChangeSet(compensatedRow.payload);
+    if (this.#isReversalChangeSet(compensated)) {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_INVALID",
+        "A reversal cannot compensate another reversal.",
+      );
+    }
+    if (compensatedRow.current_state === "reverted") {
+      throw new ChangeControlError(
+        "CHANGE_SET_ALREADY_REVERTED",
+        `ChangeSet ${compensated.change_set_id} has already been reversed.`,
+      );
+    }
+    if (compensatedRow.current_state !== "applied") {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_INVALID",
+        "Only an applied promotion ChangeSet may be reversed.",
+      );
+    }
+    const promoted = this.#promotionPair(compensated);
+    if (
+      promoted.claim.target_id !== pair.claim.target_id ||
+      promoted.assertion.target_id !== pair.assertion.target_id
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_INVALID",
+        "A reversal must target the exact pair created by the compensated promotion.",
+      );
+    }
+    if (
+      targets.claim.revision !== pair.claim.base_revision ||
+      targets.assertion.revision !== pair.assertion.base_revision
+    ) {
+      throw new ChangeControlError(
+        "STALE_TARGET_REVISION",
+        "At least one reversal target has changed since the impact preview.",
+      );
+    }
+    const compensatedId = compensated.change_set_id;
+    if (
+      targets.claim.authority.zone !== "trusted" ||
+      targets.assertion.authority.zone !== "trusted" ||
+      targets.claim.authority.review_state !== "human_accepted" ||
+      targets.assertion.authority.review_state !== "human_accepted" ||
+      targets.claim.authority.promotion.change_set_id !== compensatedId ||
+      targets.assertion.authority.promotion.change_set_id !== compensatedId ||
+      pair.claim.before.zone !== "trusted" ||
+      pair.claim.before.review_state !== "human_accepted" ||
+      pair.assertion.before.zone !== "trusted" ||
+      pair.assertion.before.review_state !== "human_accepted" ||
+      pair.claim.after.zone !== "quarantine" ||
+      pair.claim.after.review_state !== "human_rejected" ||
+      pair.assertion.after.zone !== "quarantine" ||
+      pair.assertion.after.review_state !== "human_rejected"
+    ) {
+      throw new ChangeControlError(
+        "TARGET_AUTHORITY_MISMATCH",
+        "The targets are no longer the trusted pair created by the compensated promotion.",
+      );
+    }
+    if (
+      targets.assertion.predicate !== "ASSERTS" ||
+      targets.assertion.object.object_kind !== "entity" ||
+      targets.assertion.object.entity_id !== targets.claim.claim_id
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_TARGET_MISMATCH",
+        "The reversal pair must contain a Claim and its corresponding ASSERTS Assertion.",
+      );
+    }
+    const affected = new Set(changeSet.content.impact.affected_object_ids);
+    if (
+      affected.size !== 2 ||
+      !affected.has(targets.claim.claim_id) ||
+      !affected.has(targets.assertion.assertion_id)
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_TARGET_MISMATCH",
+        "The reversal impact preview must name exactly the Claim and Assertion being retracted.",
+      );
+    }
+  }
+
   #conflictEvent(
-    changeSet: PetraChangeSet,
+    changeSet: PetraChangeSetRecord,
     pair: { claim: PromoteClaimChange; assertion: PromoteAssertionChange },
     targets: { claim: PetraClaim; assertion: PetraAssertion },
     code: "STALE_TARGET_REVISION" | "TARGET_AUTHORITY_MISMATCH",
-  ): PetraDomainEvent["event"] {
+  ): PetraDomainEventRecord["event"] {
     return {
       event_type: "change_set.conflicted",
       payload: {
@@ -930,6 +1278,50 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
     };
   }
 
+  #reversalConflictEvent(
+    changeSet: PetraChangeSetRecord,
+    pair: { claim: RetractClaimChange; assertion: RetractAssertionChange },
+    targets: { claim: PetraClaim; assertion: PetraAssertion },
+    code: "STALE_TARGET_REVISION" | "TARGET_AUTHORITY_MISMATCH",
+  ): PetraDomainEventRecord["event"] {
+    if (
+      changeSet.schema_version !== "1.1.0" ||
+      changeSet.content.compensates_change_set_id === undefined
+    ) {
+      throw new Error(
+        "A reversal conflict requires its compensated ChangeSet.",
+      );
+    }
+    return {
+      event_type: "change_set.reversal_conflicted",
+      payload: {
+        change_set_id: changeSet.change_set_id,
+        change_set_revision: 1,
+        change_set_content_hash: changeSet.content_hash,
+        compensates_change_set_id: changeSet.content.compensates_change_set_id,
+        conflict_code: code,
+        targets: [
+          {
+            target_kind: "claim",
+            target_id: targets.claim.claim_id,
+            expected_revision: pair.claim.base_revision,
+            actual_revision: targets.claim.revision,
+            expected_zone: "trusted",
+            actual_zone: targets.claim.authority.zone,
+          },
+          {
+            target_kind: "assertion",
+            target_id: targets.assertion.assertion_id,
+            expected_revision: pair.assertion.base_revision,
+            actual_revision: targets.assertion.revision,
+            expected_zone: "trusted",
+            actual_zone: targets.assertion.authority.zone,
+          },
+        ],
+      },
+    };
+  }
+
   async #loadChangeSet(
     client: PoolClient,
     changeSetId: string,
@@ -946,16 +1338,17 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
 
   async #insertChangeSet(
     client: PoolClient,
-    changeSet: PetraChangeSet,
+    changeSet: PetraChangeSetRecord,
   ): Promise<void> {
     await client.query(
       `INSERT INTO petra.change_sets (
          change_set_id, revision, project_id, origin, proposed_by_actor_id,
          proposed_by_actor_kind, reason, impact, risk_tier, content_hash,
-         current_state, state_updated_at, record_hash, payload, proposed_at
+         current_state, state_updated_at, record_hash, payload, proposed_at,
+         compensates_change_set_id
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10,
                  'submitted', $11::timestamptz, $12, $13::jsonb,
-                 $14::timestamptz)`,
+                 $14::timestamptz, $15)`,
       [
         changeSet.change_set_id,
         changeSet.revision,
@@ -971,6 +1364,9 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
         canonicalHash(changeSet),
         JSON.stringify(changeSet),
         changeSet.proposed_at,
+        changeSet.schema_version === "1.1.0"
+          ? (changeSet.content.compensates_change_set_id ?? null)
+          : null,
       ],
     );
     for (const [index, operation] of changeSet.content.operations.entries()) {
@@ -987,7 +1383,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
           index + 1,
           operation.operation_kind,
           operation.target_id,
-          operation.operation_kind === "promote_claim" ? "claim" : "assertion",
+          operation.operation_kind.endsWith("_claim") ? "claim" : "assertion",
           operation.base_revision,
           operation.before.zone,
           operation.before.review_state,
@@ -1033,9 +1429,10 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
   async #insertEvidenceAuthorization(
     client: PoolClient,
     evidence: PetraClaim | PetraAssertion,
-    changeSet: PetraChangeSet,
+    changeSet: PetraChangeSetRecord,
     approval: PetraApproval,
     appliedAt: string,
+    admissionKind: "promotion" | "reversal",
   ): Promise<void> {
     const evidenceId =
       evidence.schema_name === "petra.claim"
@@ -1049,12 +1446,13 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
          change_set_id, change_set_revision, change_set_content_hash,
          approval_id, approval_revision, approved_by_actor_id,
          approved_by_actor_kind, applied_at
-       ) VALUES ($1, $2, $3, 'promotion', $4, $5, $6, $7, $8, $9, $10,
-                 $11::timestamptz)`,
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+                 $12::timestamptz)`,
       [
         evidenceId,
         evidenceKind,
         evidence.revision,
+        admissionKind,
         changeSet.change_set_id,
         changeSet.revision,
         changeSet.content_hash,
@@ -1069,10 +1467,11 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
 
   async #appendEventAndOutbox(
     client: PoolClient,
-    envelope: PetraCommandEnvelope,
-    event: PetraDomainEvent["event"],
-    targets: readonly PetraOutboxRecord["target"][],
+    envelope: PetraCommandEnvelopeRecord,
+    event: PetraDomainEventRecord["event"],
+    targets: readonly PetraOutboxRecordRecord["target"][],
     recordedAt: string,
+    schemaVersion: PetraDomainEventRecord["schema_version"],
   ): Promise<void> {
     const positionResult = await client.query<PositionRow>(
       `UPDATE petra.authority_positions
@@ -1106,9 +1505,9 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
     if (petraIdKind(eventId) !== "event") {
       throw new Error("DomainRecordFactory returned a non-event ID.");
     }
-    const domainEvent: PetraDomainEvent = {
+    const domainEvent = {
       schema_name: "petra.domain-event",
-      schema_version: "1.0.0",
+      schema_version: schemaVersion,
       event_id: eventId,
       event_position: eventPosition,
       stream_type: "project",
@@ -1124,8 +1523,8 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       idempotency_key: envelope.idempotency_key,
       capability_grant_id: envelope.capability_grant_id,
       event: clone(event),
-    };
-    this.#contracts.assertValid("domain-event", "1.0.0", domainEvent);
+    } as PetraDomainEventRecord;
+    this.#contracts.assertValid("domain-event", schemaVersion, domainEvent);
     await client.query(
       `INSERT INTO petra.domain_events (
          event_id, event_position, project_id, stream_revision, actor_id,
@@ -1170,9 +1569,9 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       if (petraIdKind(outboxId) !== "outbox") {
         throw new Error("DomainRecordFactory returned a non-outbox ID.");
       }
-      const outbox: PetraOutboxRecord = {
+      const outbox = {
         schema_name: "petra.outbox-record",
-        schema_version: "1.0.0",
+        schema_version: schemaVersion,
         outbox_id: outboxId,
         outbox_position: firstOutboxPosition + index,
         target,
@@ -1181,8 +1580,8 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
         deduplication_key: `${target}:${eventId}`,
         enqueued_at: recordedAt,
         message: { message_kind: "domain_event", event: clone(domainEvent) },
-      };
-      this.#contracts.assertValid("outbox-record", "1.0.0", outbox);
+      } as PetraOutboxRecordRecord;
+      this.#contracts.assertValid("outbox-record", schemaVersion, outbox);
       await client.query(
         `INSERT INTO petra.outbox_records (
            outbox_id, outbox_position, target, target_sequence,
@@ -1208,7 +1607,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
 
   async #insertCommandExecution(
     client: PoolClient,
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
     fingerprint: string,
     plan: CommandPlan,
     completedAt: string,
@@ -1244,9 +1643,37 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
     );
   }
 
-  #readChangeSet(payload: unknown): PetraChangeSet {
-    this.#contracts.assertValid("change-set", "1.0.0", payload);
-    return clone(payload as PetraChangeSet);
+  #readChangeSet(payload: unknown): PetraChangeSetRecord {
+    const schemaVersion = this.#schemaVersion(payload, "change-set");
+    this.#contracts.assertValid("change-set", schemaVersion, payload);
+    return clone(payload as PetraChangeSetRecord);
+  }
+
+  #readDomainEvent(payload: unknown): PetraDomainEventRecord {
+    const schemaVersion = this.#schemaVersion(payload, "domain-event");
+    this.#contracts.assertValid("domain-event", schemaVersion, payload);
+    return clone(payload as PetraDomainEventRecord);
+  }
+
+  #readOutboxRecord(payload: unknown): PetraOutboxRecordRecord {
+    const schemaVersion = this.#schemaVersion(payload, "outbox-record");
+    this.#contracts.assertValid("outbox-record", schemaVersion, payload);
+    return clone(payload as PetraOutboxRecordRecord);
+  }
+
+  #schemaVersion(
+    payload: unknown,
+    recordName: "change-set" | "domain-event" | "outbox-record",
+  ): "1.0.0" | "1.1.0" {
+    if (
+      typeof payload !== "object" ||
+      payload === null ||
+      !("schema_version" in payload) ||
+      (payload.schema_version !== "1.0.0" && payload.schema_version !== "1.1.0")
+    ) {
+      throw new Error(`Stored ${recordName} has no supported schema version.`);
+    }
+    return payload.schema_version;
   }
 
   #readApproval(payload: unknown): PetraApproval {

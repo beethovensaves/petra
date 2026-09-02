@@ -13,6 +13,7 @@ import {
   type AuthorityGraphProvenancePath,
   type AuthorityGraphRelationClass,
   type AuthorityGraphRelationship,
+  type AuthorityGraphRelationshipRemoval,
   type AuthorityGraphStore,
   type GraphCommitReceipt,
   type GraphProperty,
@@ -334,6 +335,25 @@ const validateBatch = (batch: AuthorityGraphBatch): void => {
     }
     edges.add(relationship.edgeId);
   }
+  const removals = new Set<string>();
+  for (const removal of batch.removals ?? []) {
+    if (
+      removal.edgeId === "" ||
+      removals.has(removal.edgeId) ||
+      edges.has(removal.edgeId) ||
+      !Number.isSafeInteger(removal.expectedAuthoritativeRevision) ||
+      removal.expectedAuthoritativeRevision < 1 ||
+      !Number.isSafeInteger(removal.tombstoneRevision) ||
+      removal.tombstoneRevision !== removal.expectedAuthoritativeRevision + 1 ||
+      !HASH.test(removal.recordHash)
+    ) {
+      throw error(
+        "GRAPH_BATCH_INVALID",
+        `Graph relationship removal ${removal.edgeId || "<empty>"} is invalid.`,
+      );
+    }
+    removals.add(removal.edgeId);
+  }
 };
 
 const neo4jValue = (value: GraphProperty): unknown => {
@@ -449,6 +469,11 @@ export class Neo4jAuthorityGraphStore implements AuthorityGraphStore {
           );
         }
 
+        for (const removal of [...(batch.removals ?? [])].sort((a, b) =>
+          a.edgeId.localeCompare(b.edgeId),
+        )) {
+          await this.#removeRelationship(transaction, batch, removal);
+        }
         for (const node of [...batch.nodes].sort((a, b) =>
           a.id.localeCompare(b.id),
         )) {
@@ -1050,6 +1075,68 @@ export class Neo4jAuthorityGraphStore implements AuthorityGraphStore {
         predicate: relationship.predicate,
         sourceId: relationship.sourceId,
         targetId: relationship.targetId,
+      },
+    );
+  }
+
+  async #removeRelationship(
+    transaction: ManagedTransaction,
+    batch: AuthorityGraphBatch,
+    removal: AuthorityGraphRelationshipRemoval,
+  ): Promise<void> {
+    const existing = await transaction.run(
+      `MATCH (identity:PetraEdgeIdentity {petra_edge_id: $edgeId})
+       RETURN identity.authoritative_revision AS revision,
+              identity.record_hash AS record_hash`,
+      { edgeId: removal.edgeId },
+    );
+    const record = existing.records[0];
+    if (record === undefined) {
+      throw error(
+        "GRAPH_IDENTITY_CONFLICT",
+        `Relationship ${removal.edgeId} cannot be removed because its identity is absent.`,
+      );
+    }
+    const revision = nativeNumber(
+      recordGet(record, "revision"),
+      "Relationship removal revision",
+    );
+    if (revision !== removal.expectedAuthoritativeRevision) {
+      throw error(
+        revision > removal.expectedAuthoritativeRevision
+          ? "GRAPH_PROJECTION_STALE"
+          : "GRAPH_IDENTITY_CONFLICT",
+        `Relationship ${removal.edgeId} is at revision ${revision}, not ${removal.expectedAuthoritativeRevision}.`,
+      );
+    }
+    const deleted = await transaction.run(
+      `MATCH (:PetraNode)-[relation {petra_edge_id: $edgeId}]->(:PetraNode)
+       WHERE relation.project_id = $projectId
+       DELETE relation
+       RETURN count(relation) AS deleted_count`,
+      { edgeId: removal.edgeId, projectId: batch.projectId },
+    );
+    const deletedCount = nativeNumber(
+      recordGet(deleted.records[0]!, "deleted_count"),
+      "Deleted relationship count",
+    );
+    if (deletedCount !== 1) {
+      throw error(
+        "GRAPH_IDENTITY_CONFLICT",
+        `Relationship ${removal.edgeId} did not resolve to one active projected edge.`,
+      );
+    }
+    await transaction.run(
+      `MATCH (identity:PetraEdgeIdentity {petra_edge_id: $edgeId})
+       SET identity.authoritative_revision = $revision,
+           identity.record_hash = $recordHash,
+           identity.tombstoned = true,
+           identity.tombstoned_by_event_id = $eventId`,
+      {
+        edgeId: removal.edgeId,
+        revision: int(removal.tombstoneRevision),
+        recordHash: removal.recordHash,
+        eventId: batch.sourceEventId,
       },
     );
   }
