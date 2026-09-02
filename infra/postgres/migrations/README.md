@@ -68,3 +68,13 @@ existing in-memory domain engines before every mutation so persistence and
 memory do not acquire different transition semantics. WorkUnit checkpoint
 creation, scheduling leases, interaction replay, and the Neo4j adapter remain
 later slices.
+
+`V008__interaction_authority.sql` persists Petra's pinned AG-UI compatibility
+profile, stable interaction-run identity, revisioned lifecycle and stream heads,
+content-addressed presentation events, review interrupts, and immutable delivery
+receipts. Typed columns retain protocol correlation, ordering, visibility,
+Artifact provenance, command-input linkage, and observed WorkUnit state. The
+database and storage-neutral repository both enforce the crucial authority
+boundary: an interaction event is not a domain event, an interrupt response
+does not apply its referenced command, replay does not reexecute authority, and
+connection abort does not cancel durable work.

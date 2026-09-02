@@ -11,6 +11,7 @@ export * from "./graph-projection-registry.js";
 export * from "./identity.js";
 export * from "./interaction-runtime.js";
 export * from "./interaction-record-registry.js";
+export * from "./interaction-authority-repository.js";
 export * from "./research-scope-repository.js";
 export * from "./scholarly-identity-repository.js";
 export * from "./work-unit-registry.js";
