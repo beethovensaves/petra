@@ -66,6 +66,7 @@ export type {
   TextQuoteSelector,
   Verification,
 } from "./generated/source-span.js";
+export type { PetraDocumentParseBundle } from "./generated/document-parse-bundle.js";
 export type {
   ClaimBasis,
   Derivation as ClaimDerivation,

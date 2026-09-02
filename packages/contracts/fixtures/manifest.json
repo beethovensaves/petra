@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.1.0",
+  "fixture_manifest_version": "1.2.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -52,6 +52,10 @@
     {
       "schema": "source-span",
       "path": "fixtures/accepted/source-span.json"
+    },
+    {
+      "schema": "document-parse-bundle",
+      "path": "fixtures/accepted/document-parse-bundle.json"
     },
     {
       "schema": "claim",

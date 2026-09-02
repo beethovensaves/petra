@@ -7,10 +7,10 @@ developer runtime, shared TypeScript/Python contract path, PostgreSQL authority,
 verified S3-compatible Artifact storage, durable interaction history, Hono
 server, React workbench shell, and official AG-UI interaction boundary. M1.3
 adds the frozen Paper Trail retrieval baseline and the PostgreSQL-authorized,
-official-driver Neo4j projection with bounded queries and rebuild. M1.4 has now
-frozen its first lawful, full-text calibration paper and rights record; Docling
-execution and stable SourceSpan generation are in progress. The current
-interaction remains a deterministic boundary fixture, not yet a
+official-driver Neo4j projection with bounded queries and rebuild. M1.4 adds a
+lawful full-text calibration paper and an offline, proposal-only Docling worker
+that emits stable geometry-backed SourceSpans through shared contracts. The
+current interaction remains a deterministic boundary fixture, not yet a
 literature-research or model-backed scientific run.
 
 ## Required software
@@ -76,6 +76,8 @@ applied migration's checksum.
 | `npm run contracts:generate` | Regenerate TypeScript declarations from canonical JSON Schema. |
 | `npm run fixtures:generate` | Regenerate deterministic Petra records for the frozen M1.4 full-text fixture. |
 | `npm run fixtures:check-generated` | Verify the full-text source hashes and prove its generated records are current. |
+| `npm run models:docling` | Download the pinned Docling layout and TableFormer assets into the ignored local cache and verify their hashes. |
+| `npm run models:docling:check` | Verify all required local Docling model files without downloading anything. |
 | `npm run dev` | Run Hono on port 4310 and the Vite workbench on port 4311 with API proxying. |
 | `npm run build` | Compile the server and build the workbench into `apps/server/public`. |
 | `npm start` | Serve the built workbench and Petra HTTP routes from one Node process. |
@@ -84,6 +86,7 @@ applied migration's checksum.
 | `npm run test:server` | Run `D014-HC01`–`D014-HC10` against a real local Hono listener. |
 | `npm run test:postgres:integration` | Migrate a disposable PostgreSQL instance, test the typed repository, validate Flyway history, and remove every labeled resource. |
 | `npm run test:neo4j:integration` | Migrate disposable PostgreSQL, project reviewed authority through real Neo4j, exercise bounded queries/rebuild, and remove every labeled resource. |
+| `npm run test:docling:integration` | Run the lawful PDF twice through local Docling, cross-validate all spans in TypeScript/Python, and prove malformed-PDF containment. |
 | `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
 | `npm run test:integration` | Run Vitest and pytest against disposable real services, then delete the stack. |
 | `npm run measure:m1-boundary` | Rebuild and measure the isolated browser cost of Petra's AG-UI client boundary. |
@@ -159,6 +162,21 @@ and two boxed structures provide the Docling calibration target; one broad
 claim and one source-local qualification are frozen for later SourceSpan
 round-trip tests. See the
 [fixture notes](fixtures/full-text/fair-guiding-principles/README.md).
+
+The science worker runs Docling 2.121.0 with a pinned born-digital PDF recipe
+and locally hash-verified model assets. It stages a gzipped native parser
+Artifact, a contract-valid document parse bundle, a log, and a content-bound
+worker output manifest. It has no database or graph mutation capability. The
+TypeScript verifier independently checks output bytes, contracts, authority
+links, block ordering, text hashes, code-point offsets, page geometry, and both
+frozen source targets before treating the result as a quarantine proposal.
+
+Prepare the ignored model cache once with `npm run models:docling`, then run the
+two-pass and malformed-input proof with `npm run test:docling:integration`.
+The current fixture is correctly labeled `partial` because known Box 2 reading
+order, figure-caption, and multipage-block defects remain visible. Exact
+configuration, results, and limits are recorded in the
+[M1.4 worker report](reports/M1.4-DOCLING-WORKER.md).
 
 ## Workbench visual baseline
 

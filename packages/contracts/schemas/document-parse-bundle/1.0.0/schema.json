@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/document-parse-bundle/1.0.0/schema.json",
+  "title": "PetraDocumentParseBundle",
+  "description": "One immutable, quarantine-only parser proposal containing a Petra-normalized document, its structural blocks, source-span candidates, and explicit diagnostics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "document_parse_bundle_id",
+    "revision",
+    "source_artifact_manifest_id",
+    "rights_decision_id",
+    "source_scope",
+    "document",
+    "blocks",
+    "spans",
+    "diagnostics",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.document-parse-bundle"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "document_parse_bundle_id": {
+      "$ref": "#/$defs/DocumentParseBundleId"
+    },
+    "revision": {
+      "const": 1,
+      "description": "A changed source, parser, configuration, adapter, normalization, or correction creates another bundle."
+    },
+    "source_artifact_manifest_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactManifestId"
+    },
+    "rights_decision_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/RightsDecisionId"
+    },
+    "source_scope": {
+      "enum": ["full_text", "abstract_only"]
+    },
+    "document": {
+      "$ref": "../../parsed-document/1.0.0/schema.json"
+    },
+    "blocks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000000,
+      "items": {
+        "$ref": "../../structural-block/1.0.0/schema.json"
+      }
+    },
+    "spans": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000000,
+      "items": {
+        "$ref": "../../source-span/1.0.0/schema.json"
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "../../parsed-document/1.0.0/schema.json#/$defs/Diagnostic"
+      }
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "DocumentParseBundleId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^document_parse_bundle_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    }
+  }
+}

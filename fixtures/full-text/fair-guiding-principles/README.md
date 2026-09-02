@@ -40,9 +40,14 @@ data management and stewardship. Scientific Data 3, 160018 (2016).
 and initial source-span judgments. `source/crossref-response.json` is the exact
 metadata response observed for this fixture; it is evidence input, not Petra's
 database of truth. Files in `records/` are deterministic Petra contract records
-generated from those frozen inputs.
+generated from those frozen inputs. They include the exact worker job and its
+scoped file-binding index, so the executable parse cannot broaden its own
+inputs, output slots, retry allowance, resource envelope, or network policy.
 
 Run `npm run fixtures:check-generated` to verify both source hashes and prove
 that every generated record is current. The ordinary contract test suite also
 validates each generated record against its registered JSON Schema and checks
-the cross-record identities.
+the cross-record identities. After preparing the ignored local model cache with
+`npm run models:docling`, run `npm run test:docling:integration` for the real
+two-pass parse, TypeScript/Python SourceSpan acceptance, and malformed-PDF
+failure proof.

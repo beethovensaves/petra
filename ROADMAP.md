@@ -37,7 +37,7 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | --- | --- | --- |
 | Product thesis and scientific contract | Complete | `PETRA.md` |
 | Logical graph and event model | Complete as design | `PETRA_GRAPH_MODEL.md` |
-| Implementation roadmap | M1.3 complete; M1.4 in progress with its lawful full-text source and rights records frozen | `implementation_roadmap.md`, `reports/M1.3-PAPER-TRAIL-BASELINE.md`, `reports/M1.3-NEO4J-PROJECTION.md`, `reports/M1.4-LAWFUL-FULL-TEXT-FIXTURE.md` |
+| Implementation roadmap | M1.4 complete; M1.5 deterministic Claim proposal and review path next | `implementation_roadmap.md`, `reports/M1.3-NEO4J-PROJECTION.md`, `reports/M1.4-LAWFUL-FULL-TEXT-FIXTURE.md`, `reports/M1.4-DOCLING-WORKER.md` |
 | Design implementation roadmap | UX1.0 foundations and UX1.1 research shell in progress | `design_implementation_roadmap.md` |
 | Source-control boundary | Dedicated `/petra` repository on `main`, backed by the private `beethovensaves/petra` remote; verified stages are committed and pushed | `.git/`, `.gitignore`, `implementation_roadmap.md` |
 | Machine-readable schemas | JSON Schema authority and the M1.1 contract kernel complete; Ajv/Python parity, generation, rejection, and canonical-hash gates pass | `decisions/D015-language-neutral-runtime-contracts.md`, `packages/contracts/` |
@@ -50,7 +50,7 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | Language and hypothesis-reference contract | Complete as design | `decisions/D006-petra-language-and-reference-contract.md` |
 | Model gateway, role registry, and routing | Complete as design | `decisions/D007-model-gateway-role-registry-and-routing.md` |
 | Graph-guided execution, context, and cost | Complete as design | `decisions/D008-graph-guided-execution-context-and-cost.md` |
-| Executable Petra ingestion workflow | Abstract-only Paper Trail retrieval baseline complete; exact CC BY full-text calibration PDF, WorkVersion, Artifact, rights decision, author credits, and source judgments frozen; Docling worker next | `fixtures/paper-trail/`, `fixtures/full-text/fair-guiding-principles/`, `packages/retrieval/`, `implementation_roadmap.md` |
+| Executable Petra ingestion workflow | Abstract-only Paper Trail baseline and exact CC BY full-text fixture complete; offline Docling now returns stable, geometry-backed, cross-runtime-validated document proposals with explicit partial-parse diagnostics | `fixtures/paper-trail/`, `fixtures/full-text/fair-guiding-principles/`, `packages/retrieval/`, `workers/science/`, `reports/M1.4-DOCLING-WORKER.md` |
 | Petra interface | Object-centered design accepted; deterministic shell preview exists; module design and validation are in progress | `decisions/D009-object-centered-research-workspace.md`, `design_implementation_roadmap.md` |
 | AG-UI interaction protocol | Official SDK and Petra adapter boundary accepted; M1 scaffold and conformance fixtures pass | `decisions/D013-ag-ui-sdk-interaction-boundary.md`, `reports/M1.0-AGUI-HONO-CONFORMANCE.md` |
 | Web workbench shell | Hono/React/Vite shell and addressable preview routes exist; scientific production views remain M1.7 work | `decisions/D014-hono-react-vite-workbench-shell.md`, `implementation_roadmap.md` |

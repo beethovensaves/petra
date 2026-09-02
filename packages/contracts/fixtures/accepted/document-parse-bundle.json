@@ -1,0 +1,165 @@
+{
+  "schema_name": "petra.document-parse-bundle",
+  "schema_version": "1.0.0",
+  "document_parse_bundle_id": "document_parse_bundle_01ARZ3NDEKTSV4RRFFQ69G5FB9",
+  "revision": 1,
+  "source_artifact_manifest_id": "artifact_manifest_01ARZ3NDEKTSV4RRFFQ69G5FB2",
+  "rights_decision_id": "rights_decision_01ARZ3NDEKTSV4RRFFQ69G5FB3",
+  "source_scope": "full_text",
+  "document": {
+    "schema_name": "petra.parsed-document",
+    "schema_version": "1.0.0",
+    "parsed_document_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+    "revision": 1,
+    "source_artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+    "source_artifact_content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+    "parser_output_artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB8",
+    "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+    "parser_run_id": "parser_run_01ARZ3NDEKTSV4RRFFQ69G5FB4",
+    "source_format": "pdf",
+    "document_language": "en",
+    "adapter": {
+      "name": "petra-docling-adapter",
+      "version": "1.0.0"
+    },
+    "normalization_version": "petra-text/1.0.0",
+    "parser_provenance": {
+      "parser": {
+        "name": "docling",
+        "version": "test-fixture"
+      },
+      "configuration_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "component_models": [],
+      "started_at": "2026-08-28T18:11:00.000Z",
+      "completed_at": "2026-08-28T18:11:01.000Z"
+    },
+    "quality_state": "complete",
+    "pages": [
+      {
+        "page_number": 1,
+        "page_label": "1",
+        "width": 612,
+        "height": 792,
+        "unit": "pt",
+        "coordinate_origin": "top_left",
+        "text_layer_state": "present",
+        "parse_state": "complete",
+        "quality_score": 0.99
+      }
+    ],
+    "block_ids": ["structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6"],
+    "diagnostics": [],
+    "created_by": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-08-28T18:11:02.000Z"
+  },
+  "blocks": [
+    {
+      "schema_name": "petra.structural-block",
+      "schema_version": "1.0.0",
+      "structural_block_id": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+      "revision": 1,
+      "parsed_document_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+      "block_kind": "paragraph",
+      "content_layer": "source_native",
+      "reading_order": 0,
+      "structural_path": ["Results", "Paragraph 1"],
+      "child_block_ids": [],
+      "page_locations": [
+        {
+          "page_number": 1,
+          "bounding_boxes": [
+            {
+              "x": 72,
+              "y": 100,
+              "width": 468,
+              "height": 36
+            }
+          ]
+        }
+      ],
+      "content": {
+        "content_kind": "text",
+        "text": "The study reports a measurable improvement.",
+        "content_hash": "sha256:cfed6ed86a7235363b27b504d804f402d37d220d19d5ae09d9a29fc5473acbe3"
+      },
+      "source_span_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+      "created_at": "2026-08-28T18:11:02.000Z"
+    }
+  ],
+  "spans": [
+    {
+      "schema_name": "petra.source-span",
+      "schema_version": "1.0.0",
+      "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+      "revision": 1,
+      "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+      "artifact_content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+      "parsed_document_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+      "parser_run_id": "parser_run_01ARZ3NDEKTSV4RRFFQ69G5FB4",
+      "structural_block_id": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+      "selector_schema_version": "1.0.0",
+      "selector": {
+        "selector_type": "compound",
+        "components": [
+          {
+            "component_kind": "page_region",
+            "page_region": {
+              "page_number": 1,
+              "page_width": 612,
+              "page_height": 792,
+              "unit": "pt",
+              "coordinate_origin": "top_left",
+              "regions": [
+                {
+                  "region_kind": "bounding_box",
+                  "x": 72,
+                  "y": 100,
+                  "width": 468,
+                  "height": 36
+                }
+              ]
+            }
+          },
+          {
+            "component_kind": "text_quote",
+            "quote": {
+              "exact_text": "measurable improvement",
+              "selected_text_hash": "sha256:11dbfa18f25f2587c4e96225884e2d6d1c9e4362210ebf34b3197c03bd05cda6",
+              "prefix": "The study reports a ",
+              "suffix": ".",
+              "start_codepoint": 20,
+              "end_codepoint": 42,
+              "normalization_version": "petra-text/1.0.0"
+            }
+          },
+          {
+            "component_kind": "section_path",
+            "section_path": {
+              "segments": ["Results", "Paragraph 1"]
+            }
+          }
+        ]
+      },
+      "extraction": {
+        "method": "embedded_text",
+        "method_version": "docling/test-fixture",
+        "normalization_version": "petra-text/1.0.0"
+      },
+      "verification": {
+        "status": "exact_text_and_geometry",
+        "verified_at": "2026-08-28T18:11:02.000Z",
+        "transformations": []
+      },
+      "created_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "service"
+      },
+      "created_at": "2026-08-28T18:11:02.000Z"
+    }
+  ],
+  "diagnostics": [],
+  "created_at": "2026-08-28T18:11:02.000Z"
+}

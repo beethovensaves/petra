@@ -1,0 +1,105 @@
+{
+  "schema_name": "petra.worker-input-manifest",
+  "schema_version": "1.0.0",
+  "worker_input_manifest_id": "worker_input_manifest_01K45F0000000000000000000C",
+  "revision": 1,
+  "work_unit_id": "work_unit_01K45F0000000000000000000B",
+  "project_id": "project_01K45F0000000000000000000A",
+  "content": {
+    "task": {
+      "task_family": "document_processing",
+      "task_name": "petra.document.parse",
+      "task_version": "1.0.0"
+    },
+    "worker": {
+      "executor_kind": "python_worker",
+      "worker_name": "petra.science",
+      "worker_version": "0.0.0",
+      "runtime_name": "python",
+      "runtime_version": "3.13.7",
+      "entrypoint": "petra_science.document_worker:main"
+    },
+    "inputs": [
+      {
+        "binding_kind": "artifact",
+        "name": "source_pdf",
+        "artifact_id": "artifact_01K45F00000000000000000004",
+        "content_hash": "sha256:cdddd9f4808f7e3e1f013139c3915ef4d7cdccb008fa947ef5f72b4c7b6ffde7",
+        "byte_size": 254899
+      },
+      {
+        "binding_kind": "record",
+        "name": "source_artifact",
+        "record_id": "artifact_01K45F00000000000000000004",
+        "record_revision": 1,
+        "snapshot_hash": "sha256:f83bc24543f7fc8b56c5d923fd2c9e90c1011f2dff48dfcd8cb3685204c61fbe"
+      },
+      {
+        "binding_kind": "record",
+        "name": "source_artifact_manifest",
+        "record_id": "artifact_manifest_01K45F00000000000000000005",
+        "record_revision": 1,
+        "snapshot_hash": "sha256:8cea45a714f494b1da465b4c84ef34d65e9f31b97ff5f364e27082b34cb8e47d"
+      },
+      {
+        "binding_kind": "record",
+        "name": "rights_decision",
+        "record_id": "rights_decision_01K45F00000000000000000006",
+        "record_revision": 1,
+        "snapshot_hash": "sha256:b85b71389853d02bf4ea1f7f1f413ea883a365d78d3b529443dde62498d30b8e"
+      },
+      {
+        "binding_kind": "record",
+        "name": "work_version",
+        "record_id": "work_version_01K45F00000000000000000003",
+        "record_revision": 1,
+        "snapshot_hash": "sha256:726f06ead61e53b95eaa0b1d9a49493f95d1747d789a4b4e5a0695b6a4630944"
+      }
+    ],
+    "expected_outputs": [
+      {
+        "output_name": "docling_document",
+        "output_role": "result",
+        "required": true,
+        "media_type": "application/gzip",
+        "max_bytes": 30000000
+      },
+      {
+        "output_name": "document_parse_bundle",
+        "output_role": "proposal",
+        "required": true,
+        "media_type": "application/json",
+        "max_bytes": 20000000,
+        "contract": {
+          "schema_name": "petra.document-parse-bundle",
+          "schema_version": "1.0.0",
+          "schema_hash": "sha256:331fea5e80f94d85f87887b5e37f424339cd6bc8d589a44785a3da1d8ee9e407"
+        }
+      },
+      {
+        "output_name": "worker_log",
+        "output_role": "log",
+        "required": false,
+        "media_type": "text/plain",
+        "max_bytes": 1000000
+      }
+    ],
+    "resource_limits": {
+      "max_wall_time_ms": 300000,
+      "max_output_bytes": 51000000,
+      "max_attempts": 2,
+      "max_parallelism": 1,
+      "max_cpu_time_ms": 300000,
+      "max_memory_bytes": 4294967296,
+      "max_storage_bytes": 1073741824
+    },
+    "network_policy": { "network_mode": "blocked" },
+    "partial_result_policy": "retain_diagnostics"
+  },
+  "content_hash": "sha256:f66ec97bec832ede009108ac1a0682a6c16118331150fa8917920a64f8705753",
+  "issued_by": {
+    "actor_id": "actor_01K45F00000000000000000001",
+    "actor_kind": "service"
+  },
+  "issued_at": "2026-09-02T20:05:00.000Z"
+}

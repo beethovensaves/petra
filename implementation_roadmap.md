@@ -1,6 +1,6 @@
 # Petra Implementation Roadmap
 
-Status: M1.3 complete; M1.4 lawful full-text fixture complete and Docling worker in progress
+Status: M1.4 complete; M1.5 deterministic Claim proposal and review path is next
 Last updated: 2026-09-02
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
@@ -76,7 +76,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 | `M1.1` | `complete` | Shared runtime and interaction contracts with an in-memory domain kernel | TypeScript, Python, events, jobs, and adapters must agree on identity and authority before persistence | `M1.0` | Cross-language fixtures, stable hashes, invariant and AG-UI mapping tests |
 | `M1.2` | `complete` | PostgreSQL authority, interaction trace, and S3-compatible artifact spine | Petra cannot trust or replay evidence or reconnect interactions without transactional history and immutable bytes | `M1.1` | Repository conformance, domain and interaction replay, artifact verification |
 | `M1.3` | `complete` | Paper Trail regression baseline and Neo4j projection | Petra must demonstrate a real graph while keeping citation and scientific evidence distinct | `M1.2` | Projection replay, assertion trace, baseline retrieval tests |
-| `M1.4` | `in_progress` | Lawful full-text fixture, Docling worker, and stable SourceSpans | Claims need inspectable source locations rather than metadata or model recollection | `M1.1`, `M1.2` | Reproducible parse, page-level inspection, worker isolation tests |
+| `M1.4` | `complete` | Lawful full-text fixture, Docling worker, and stable SourceSpans | Claims need inspectable source locations rather than metadata or model recollection | `M1.1`, `M1.2` | Reproducible parse, page-level inspection, worker isolation tests |
 | `M1.5` | `planned` | Claim proposal, direct and AG-UI-mediated review, ChangeSet, and trusted graph path | Petra's core promise depends on visible promotion and reversible scientific state through one command path | `M1.3`, `M1.4` | Supported promotion, interrupt review, unsupported rejection, correction, reversal |
 | `M1.6` | `planned` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Provenance fast path, validated model response, AG-UI trace, invalidation |
 | `M1.7` | `planned` | Research Brief, evidence view, focused graph, inspector, and Petra interaction client | Researchers need to understand and correct Petra without reading logs, raw tables, or protocol events | `M1.5`, `M1.6` | Cross-view identity, review flow, reconnect, honest async states |
@@ -97,7 +97,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 
 ### Current Petra state
 
-The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.3 is complete; M1.4's source-selection work is complete and its Docling worker is next.
+The `/petra` directory contains product, graph, roadmap, and D001–D016 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eight forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; a pinned offline Docling adapter producing stable geometry-backed SourceSpans through a proposal-only worker manifest; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.4 is complete; M1.5's deterministic Claim proposal and review path is next.
 
 The current development environment exposes:
 
@@ -554,7 +554,7 @@ Node and edge updates are serialized through Neo4j projection-head, node-identit
 
 ## M1.4 — lawful full-text fixture and Docling worker
 
-- **Status:** `in_progress`
+- **Status:** `complete`
 - **Builds:** one rights-aware full-text ingestion path, an isolated Docling worker, and stable SourceSpan identities.
 - **Why:** Petra cannot ground detailed Claims in metadata, abstracts, or reconstructed model text.
 - **Depends on:** `M1.1`, `M1.2`.
@@ -577,7 +577,8 @@ The fixture proves the ingestion contract; it does not select Petra's flagship r
 
 | ID | Status | Executable evidence | Why the evidence is sufficient |
 | --- | --- | --- | --- |
-| `M1.4-EV01` | `pass` | `npm run fixtures:check-generated` verifies the exact PDF and Crossref response hashes and deterministically reproduces eight record files. The contract suite validates the Actor, 53 Authors, Work, WorkVersion, Artifact, ArtifactManifest, RightsDecision, and external identifiers; checks every cross-record identity; and freezes the layout and source-span judgments. | `M1.4-W01`–`M1.4-W05` are inspectable, lawful, and machine-checked before parser installation can transform the source. |
+| `M1.4-EV01` | `pass` | `npm run fixtures:check-generated` verifies the exact PDF and Crossref response hashes and deterministically reproduces ten files: eight scholarly/rights records plus the exact worker input manifest and scoped binding index. The contract suite validates the Actor, 53 Authors, Work, WorkVersion, Artifact, ArtifactManifest, RightsDecision, external identifiers, and worker envelope; checks every cross-record and snapshot identity; and freezes the layout and source-span judgments. | `M1.4-W01`–`M1.4-W07` are inspectable, lawful, and machine-checked before parser execution can transform the source. |
+| `M1.4-EV02` | `pass` | `npm run test:docling:integration` verifies four exact local model files, runs Docling 2.121.0 twice with network blocked, validates both outputs in Python and through the TypeScript contract/document registries, grounds both frozen targets on pages 1 and 5, reproduces all stable document/block/span IDs, and rejects an identity-valid but malformed PDF with `DOCLING_CONVERSION_FAILED` and no proposal. The calibrated parse contains nine pages, 116 blocks, 116 spans, zero reported network activity, and explicit reading-order, missing-caption, and multipage-block diagnostics; its quality state is `partial`. | The worker, cross-runtime boundary, stable selectors, failure containment, and known parser limitations are exercised on real bytes and real local models rather than mocks. |
 
 ### Worker boundary
 
@@ -585,12 +586,13 @@ Implement the Python science worker as a bounded job processor:
 
 | ID | Status | Build specification | Why Petra needs it |
 | --- | --- | --- | --- |
-| `M1.4-W06` | `planned` | Receive a validated job and capability envelope. | The worker must know exactly what it may read, spend, and produce. |
-| `M1.4-W07` | `planned` | Read one permitted Artifact through a scoped adapter. | Processing access must remain least-privileged and traceable. |
-| `M1.4-W08` | `planned` | Run a pinned Docling version and configuration. | Parse output must be reproducible and attributable. |
-| `M1.4-W09` | `planned` | Emit a ParsedDocument, StructuralBlocks, SourceSpan candidates, diagnostics, and output artifacts. | The control plane needs structured proposals plus explicit defects. |
-| `M1.4-W10` | `planned` | Return a shared-contract-validated worker manifest. | Cross-process completion must be machine-verifiable. |
-| `M1.4-W11` | `planned` | Prohibit direct PostgreSQL and Neo4j writes. | Workers may propose results but cannot grant them authority. |
+| `M1.4-W06` | `complete` | Validate one immutable `worker-input-manifest@1.0.0`, its RFC 8785 content hash, exact task/worker route, output contract, retry allowance, resource envelope, and blocked-network policy before processing. | The worker knows exactly what it may read, spend, and produce. |
+| `M1.4-W07` | `complete` | Resolve exactly five named bindings under one explicit input root; reject path escape, changed Artifact bytes, changed record snapshots, broken WorkVersion/Artifact/Rights identity, or absent verified parse permission. | Processing access remains least-privileged and traceable. |
+| `M1.4-W08` | `complete` | Run Docling 2.121.0 with a Petra-owned born-digital recipe, CPU/4-thread execution, OCR and enrichments disabled, remote services/plugins blocked, exact model revisions recorded, and four model assets verified by SHA-256 at execution. | Parse output is reproducible and attributable without implicit downloads or model egress. |
+| `M1.4-W09` | `complete` | Stage a strict-JSON gzipped native Docling Artifact and one `document-parse-bundle@1.0.0` containing the ParsedDocument, geometry-backed StructuralBlocks, compound SourceSpan candidates, and diagnostics. Recover only Docling-split ligatures from geometry-bounded embedded PDF text and record that transformation. | The control plane receives source-faithful structured proposals plus explicit defects, while native parser output remains inspectable. |
+| `M1.4-W10` | `complete` | Return an RFC 8785 content-bound `worker-output-manifest@1.0.0` with exact handles, byte hashes, sizes, contract identity, measured resource use, diagnostics, zero network activity, and an atomic success or typed failure outcome. | Cross-process completion is machine-verifiable in both TypeScript and Python. |
+| `M1.4-W11` | `complete` | Keep the worker dependency surface and entry point free of PostgreSQL and Neo4j clients and expose only staged files plus a proposal manifest for TypeScript acceptance. | Workers may propose results but cannot grant them authority. |
+| `M1.4-W12` | `complete` | Mark the calibrated document `partial`, its affected page partial, and record reading-order geometry conflicts, unresolved figure captions, multipage omitted blocks, conversion failures, and other structural uncertainty as typed diagnostics. | Missing or ambiguous structure cannot silently appear complete. |
 
 ### SourceSpan stability
 
@@ -605,17 +607,15 @@ Define selectors that survive normal inspection and replay:
 | `M1.4-SS05` | Exact quoted-text hash. | Drift or accidental substitution must be detectable. |
 | `M1.4-SS06` | Parser and normalization versions. | A changed parser must not silently reinterpret an old span. |
 
-`M1.4-W12` records partial parsing, reading-order defects, missing pages, table or caption ambiguity, and span relinking as explicit states so missing or ambiguous structure cannot silently appear complete.
-
 ### Exit gate
 
-| ID | Acceptance specification |
-| --- | --- |
-| `M1.4-AC01` | The same PDF and parser configuration reproduce the same structural and span identities, or expose recorded nondeterminism. |
-| `M1.4-AC02` | One selected SourceSpan opens in context and resolves to the original Artifact page. |
-| `M1.4-AC03` | A deliberately malformed or unsupported Artifact fails without mutating trusted state. |
-| `M1.4-AC04` | Abstract-only fixture content cannot produce detailed method, validity, or reproduction Claims. |
-| `M1.4-AC05` | Worker payloads pass the shared TypeScript and Python contract tests. |
+| ID | Status | Acceptance specification |
+| --- | --- | --- |
+| `M1.4-AC01` | `pass` | Two executions over the same PDF, parser recipe, and model identities reproduce the same ParsedDocument, StructuralBlock, and SourceSpan IDs; run timestamps and measured use remain attempt observations rather than identity material. |
+| `M1.4-AC02` | `pass` | The TypeScript verifier resolves both frozen passage targets through their StructuralBlock and compound SourceSpan to geometry on original Artifact pages 1 and 5. |
+| `M1.4-AC03` | `pass` | An identity-consistent deliberately malformed PDF returns a typed failure manifest, stages no parse proposal, and has no worker path to mutate trusted stores. |
+| `M1.4-AC04` | `pass` | The existing Claim proposal boundary accepts only broad descriptive, comparative, or theoretical abstract-only Claims and rejects detailed or causal proposals with `ABSTRACT_SCOPE_VIOLATION`; document parsing itself creates no Claim. |
+| `M1.4-AC05` | `pass` | The new parse-bundle fixture and real worker payloads pass Draft 2020-12 validation in Python and TypeScript, then pass TypeScript's cross-record document, block, selector, text-hash, and geometry invariants. |
 
 ## M1.5 — Claim proposal, review, and trusted graph
 

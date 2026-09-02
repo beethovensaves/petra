@@ -101,7 +101,9 @@
       "external-identifiers.json",
       "rights-decision.json",
       "work-version.json",
-      "work.json"
+      "work.json",
+      "worker-input-bindings.json",
+      "worker-input-manifest.json"
     ]
   }
 }

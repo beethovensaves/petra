@@ -677,6 +677,21 @@ class PetraSourceSpan(PetraModel):
     created_at: str
 
 
+class PetraDocumentParseBundle(PetraModel):
+    schema_name: Literal["petra.document-parse-bundle"]
+    schema_version: Literal["1.0.0"]
+    document_parse_bundle_id: str
+    revision: Literal[1]
+    source_artifact_manifest_id: str
+    rights_decision_id: str
+    source_scope: Literal["full_text", "abstract_only"]
+    document: PetraParsedDocument
+    blocks: list[PetraStructuralBlock]
+    spans: list[PetraSourceSpan]
+    diagnostics: list[ParseDiagnostic]
+    created_at: str
+
+
 ScopeDimensionName = Literal[
     "population",
     "language",
@@ -2847,6 +2862,7 @@ PYDANTIC_MODELS: dict[str, type[BaseModel]] = {
     "parsed-document": PetraParsedDocument,
     "structural-block": PetraStructuralBlock,
     "source-span": PetraSourceSpan,
+    "document-parse-bundle": PetraDocumentParseBundle,
     "claim": PetraClaim,
     "assertion": PetraAssertion,
     "change-set": PetraChangeSet,

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
+import { canonicalize } from "json-canonicalize";
 
 import { PetraContractRegistry } from "../src/validator.js";
 
@@ -33,6 +34,7 @@ interface FixtureManifest {
     page_number: number;
     exact_text: string;
   }>;
+  generated_records: { files: string[] };
 }
 
 const fixtureRoot = new URL(
@@ -43,6 +45,8 @@ const readJson = <Value>(path: string): Value =>
   JSON.parse(readFileSync(new URL(path, fixtureRoot), "utf8")) as Value;
 const digest = (bytes: Uint8Array): string =>
   createHash("sha256").update(bytes).digest("hex");
+const canonicalHash = (value: unknown): string =>
+  `sha256:${digest(Buffer.from(canonicalize(value), "utf8"))}`;
 const manifest = readJson<FixtureManifest>("source-manifest.json");
 const registry = new PetraContractRegistry();
 
@@ -142,6 +146,84 @@ describe("M1.4 lawful full-text calibration fixture", () => {
       parse: true,
       send_selected_text_remotely: false,
     });
+  });
+
+  it("binds the parser job to exact records, bytes, limits, and local execution", () => {
+    const artifact = readJson<Record<string, unknown>>("records/artifact.json");
+    const artifactManifest = readJson<Record<string, unknown>>(
+      "records/artifact-manifest.json",
+    );
+    const rightsDecision = readJson<Record<string, unknown>>(
+      "records/rights-decision.json",
+    );
+    const workVersion = readJson<Record<string, unknown>>(
+      "records/work-version.json",
+    );
+    const workerInput = readJson<{
+      content: {
+        worker: { entrypoint: string };
+        inputs: Array<{
+          binding_kind: string;
+          name: string;
+          snapshot_hash?: string;
+        }>;
+        expected_outputs: Array<{
+          output_name: string;
+          contract?: { schema_hash: string };
+        }>;
+        resource_limits: { max_parallelism: number };
+        network_policy: { network_mode: string };
+      };
+      content_hash: string;
+    }>("records/worker-input-manifest.json");
+    const bindingIndex = readJson<{
+      binding_index_version: string;
+      bindings: Record<string, string>;
+    }>("records/worker-input-bindings.json");
+
+    registry.assertValid("worker-input-manifest", "1.0.0", workerInput);
+    expect(workerInput.content_hash).toBe(canonicalHash(workerInput.content));
+    expect(workerInput.content.worker.entrypoint).toBe(
+      "petra_science.document_worker:main",
+    );
+    expect(workerInput.content.network_policy.network_mode).toBe("blocked");
+    expect(workerInput.content.resource_limits.max_parallelism).toBe(1);
+    expect(bindingIndex).toEqual({
+      binding_index_version: "1.0.0",
+      bindings: {
+        source_pdf: manifest.acquisition.pdf_path,
+        source_artifact: "records/artifact.json",
+        source_artifact_manifest: "records/artifact-manifest.json",
+        rights_decision: "records/rights-decision.json",
+        work_version: "records/work-version.json",
+      },
+    });
+
+    const records = new Map([
+      ["source_artifact", artifact],
+      ["source_artifact_manifest", artifactManifest],
+      ["rights_decision", rightsDecision],
+      ["work_version", workVersion],
+    ]);
+    for (const input of workerInput.content.inputs) {
+      if (input.binding_kind !== "record") continue;
+      expect(input.snapshot_hash).toBe(canonicalHash(records.get(input.name)));
+    }
+    const bundleOutput = workerInput.content.expected_outputs.find(
+      (output) => output.output_name === "document_parse_bundle",
+    );
+    expect(bundleOutput?.contract?.schema_hash).toBe(
+      registry.entries.find(
+        (entry) =>
+          entry.name === "document-parse-bundle" && entry.version === "1.0.0",
+      )?.canonical_sha256,
+    );
+    expect(manifest.generated_records.files).toContain(
+      "worker-input-manifest.json",
+    );
+    expect(manifest.generated_records.files).toContain(
+      "worker-input-bindings.json",
+    );
   });
 
   it("freezes layout and broad-claim/qualification judgments for parser evaluation", () => {

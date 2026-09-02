@@ -8,6 +8,7 @@ from .contracts import (
     assert_portable_schema,
     schema_digest,
 )
+from .document_job import DocumentJobError
 
 WORKER_BOUNDARY = "petra-science"
 
@@ -16,6 +17,7 @@ __all__ = [
     "WORKER_BOUNDARY",
     "ContractRegistryEntry",
     "ContractRegistryError",
+    "DocumentJobError",
     "PetraContractRegistry",
     "assert_portable_schema",
     "schema_digest",

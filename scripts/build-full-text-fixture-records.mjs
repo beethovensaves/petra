@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { canonicalize } from "json-canonicalize";
 import { format } from "prettier";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -17,6 +18,8 @@ const createdAt = "2026-09-02T20:05:00.000Z";
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const canonicalHash = (value) =>
+  `sha256:${sha256(Buffer.from(canonicalize(value), "utf8"))}`;
 
 const encodeBase32 = (number) => {
   let value = BigInt(number);
@@ -35,6 +38,9 @@ const workVersionId = id("work_version", 3);
 const artifactId = id("artifact", 4);
 const artifactManifestId = id("artifact_manifest", 5);
 const rightsDecisionId = id("rights_decision", 6);
+const projectId = id("project", 10);
+const workUnitId = id("work_unit", 11);
+const workerInputManifestId = id("worker_input_manifest", 12);
 const serviceActor = { actor_id: actorId, actor_kind: "service" };
 
 const manifestPath = resolve(fixtureRoot, "source-manifest.json");
@@ -275,6 +281,123 @@ const externalIdentifiers = [
   ...identifier,
 }));
 
+const contractsRegistry = readJson(
+  resolve(repositoryRoot, "packages/contracts/registry.json"),
+);
+const parseBundleContract = contractsRegistry.schemas.find(
+  (entry) =>
+    entry.name === "document-parse-bundle" && entry.version === "1.0.0",
+);
+if (!parseBundleContract) {
+  throw new Error(
+    "The document-parse-bundle@1.0.0 contract is not registered.",
+  );
+}
+
+const recordBinding = (name, record, idField) => ({
+  binding_kind: "record",
+  name,
+  record_id: record[idField],
+  record_revision: record.revision,
+  snapshot_hash: canonicalHash(record),
+});
+
+const workerInputContent = {
+  task: {
+    task_family: "document_processing",
+    task_name: "petra.document.parse",
+    task_version: "1.0.0",
+  },
+  worker: {
+    executor_kind: "python_worker",
+    worker_name: "petra.science",
+    worker_version: "0.0.0",
+    runtime_name: "python",
+    runtime_version: "3.13.7",
+    entrypoint: "petra_science.document_worker:main",
+  },
+  inputs: [
+    {
+      binding_kind: "artifact",
+      name: "source_pdf",
+      artifact_id: artifact.artifact_id,
+      content_hash: artifact.content_hash,
+      byte_size: artifact.byte_size,
+    },
+    recordBinding("source_artifact", artifact, "artifact_id"),
+    recordBinding(
+      "source_artifact_manifest",
+      artifactManifest,
+      "artifact_manifest_id",
+    ),
+    recordBinding("rights_decision", rightsDecision, "rights_decision_id"),
+    recordBinding("work_version", workVersion, "work_version_id"),
+  ],
+  expected_outputs: [
+    {
+      output_name: "docling_document",
+      output_role: "result",
+      required: true,
+      media_type: "application/gzip",
+      max_bytes: 30_000_000,
+    },
+    {
+      output_name: "document_parse_bundle",
+      output_role: "proposal",
+      required: true,
+      media_type: "application/json",
+      max_bytes: 20_000_000,
+      contract: {
+        schema_name: "petra.document-parse-bundle",
+        schema_version: "1.0.0",
+        schema_hash: parseBundleContract.canonical_sha256,
+      },
+    },
+    {
+      output_name: "worker_log",
+      output_role: "log",
+      required: false,
+      media_type: "text/plain",
+      max_bytes: 1_000_000,
+    },
+  ],
+  resource_limits: {
+    max_wall_time_ms: 300_000,
+    max_output_bytes: 51_000_000,
+    max_attempts: 2,
+    max_parallelism: 1,
+    max_cpu_time_ms: 300_000,
+    max_memory_bytes: 4_294_967_296,
+    max_storage_bytes: 1_073_741_824,
+  },
+  network_policy: { network_mode: "blocked" },
+  partial_result_policy: "retain_diagnostics",
+};
+
+const workerInputManifest = {
+  schema_name: "petra.worker-input-manifest",
+  schema_version: "1.0.0",
+  worker_input_manifest_id: workerInputManifestId,
+  revision: 1,
+  work_unit_id: workUnitId,
+  project_id: projectId,
+  content: workerInputContent,
+  content_hash: canonicalHash(workerInputContent),
+  issued_by: serviceActor,
+  issued_at: createdAt,
+};
+
+const workerInputBindings = {
+  binding_index_version: "1.0.0",
+  bindings: {
+    source_pdf: manifest.acquisition.pdf_path,
+    source_artifact: "records/artifact.json",
+    source_artifact_manifest: "records/artifact-manifest.json",
+    rights_decision: "records/rights-decision.json",
+    work_version: "records/work-version.json",
+  },
+};
+
 const outputs = new Map([
   ["actor.json", actor],
   ["artifact-manifest.json", artifactManifest],
@@ -284,6 +407,8 @@ const outputs = new Map([
   ["rights-decision.json", rightsDecision],
   ["work-version.json", workVersion],
   ["work.json", work],
+  ["worker-input-bindings.json", workerInputBindings],
+  ["worker-input-manifest.json", workerInputManifest],
 ]);
 
 for (const [filename, value] of outputs) {
