@@ -197,6 +197,24 @@ is rejected with `SOURCE_SPAN_NOT_IN_BUNDLE`, and leaves no orphaned Claim. The
 test uses no remote model. Exact behavior and current limits are recorded in
 the [M1.5 deterministic proposal report](reports/M1.5-DETERMINISTIC-PROPOSALS.md).
 
+## Direct evidence review proof
+
+An immutable review projection now gives the interface and assistant one
+model-agnostic shape containing the exact quote and surrounding block, pages,
+SourceSpan verification, source identity, scientific scope, extraction origin,
+declared validators, independent admission result, and proposed action. Human
+acceptance and rejection compile to exact ChangeSet and Approval commands.
+Corrections preserve the rejected original and create a new independently
+grounded proposal with Claim and Assertion supersession lineage.
+
+Review batches are presentation manifests over independently executed command
+plans. A stale member cannot roll back or block another valid decision. Run
+`npm run test:core` for all direct decision and batch cases, and
+`npm run test:postgres:integration` for the disposable durable proof that a
+generated review plan becomes trusted revisions plus event/outbox history.
+Current behavior and remaining projection/reversal work are recorded in the
+[M1.5 direct review report](reports/M1.5-DIRECT-REVIEW.md).
+
 ## Workbench visual baseline
 
 `petra_brand_inspiration` is the design source for Petra's palette, typography

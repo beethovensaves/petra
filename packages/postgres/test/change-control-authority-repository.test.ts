@@ -9,6 +9,7 @@ import type {
   PetraAuthor,
   PetraClaim,
   PetraCommandEnvelope,
+  PetraEvidenceProposalBundle,
   PetraParsedDocument,
   PetraProject,
   PetraRightsDecision,
@@ -22,7 +23,11 @@ import type {
   PersistDocumentBundleInput,
   PersistVerifiedArtifactInput,
 } from "@petra/core";
-import { replayScientificAuthority } from "@petra/core";
+import {
+  buildReviewDecisionCommandPlan,
+  executeReviewDecisionPlan,
+  replayScientificAuthority,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -440,6 +445,53 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         approval_id: applied.approval_id,
       },
     ]);
+  });
+
+  it("executes a generated review plan through the durable command boundary", async () => {
+    await registerEvidenceChain();
+    const repository = authority();
+    const candidate = readFixture<PetraEvidenceProposalBundle>(
+      "evidence-proposal-bundle",
+    ).content.candidates[0];
+    candidate.claim = claimFixture();
+    candidate.assertion = assertionFixture();
+    const reviewer = readFixture<PetraActor>("actor");
+    const plan = buildReviewDecisionCommandPlan({
+      project_id: "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      candidate,
+      origin: "agent_proposal",
+      proposed_by: candidate.claim.created_by,
+      reviewer: {
+        actor_id: reviewer.actor_id,
+        actor_kind: "human",
+      },
+      capability_grant_id: "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+      decision: "accepted",
+      reason: "Promote the independently reviewed evidence pair.",
+      rationale: "The exact source and scoped representation agree.",
+      impact_summary:
+        "The Claim and ASSERTS edge become trusted representations.",
+      timing: {
+        proposed_at: "2026-08-28T18:12:30.000Z",
+        decided_at: "2026-08-28T18:13:00.000Z",
+        applied_at: "2026-08-28T18:13:01.000Z",
+      },
+    });
+
+    const result = await executeReviewDecisionPlan(repository, plan);
+
+    expect(result).toMatchObject({
+      outcome: "applied",
+      candidate_id: candidate.candidate_id,
+      claim_revision: 2,
+      assertion_revision: 2,
+    });
+    expect(
+      await repository.getChangeSet(plan.change_set.change_set_id),
+    ).toEqual(plan.change_set);
+    expect(
+      (await evidence.getClaim(candidate.claim.claim_id))?.authority.zone,
+    ).toBe("trusted");
   });
 
   it("deduplicates concurrent exact retries and rejects key or command rebound", async () => {

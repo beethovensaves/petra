@@ -51,6 +51,9 @@ export interface DeterministicClaimCandidateRecipe {
   readonly attribution: string;
   readonly modality: "asserted" | "hedged" | "conditional" | "speculative";
   readonly negated: boolean;
+  readonly derivation_kind?: "deterministic_mapping" | "human_extraction";
+  readonly supersedes_claim_id?: string;
+  readonly supersedes_assertion_id?: string;
 }
 
 export interface DeterministicEvidenceRecipe {
@@ -184,7 +187,8 @@ export const buildDeterministicEvidenceProposalBundle = (
         modality: candidateRecipe.modality,
         negated: candidateRecipe.negated,
         derivation: {
-          derivation_kind: "deterministic_mapping",
+          derivation_kind:
+            candidateRecipe.derivation_kind ?? "deterministic_mapping",
           derivation_ref: extractionRunId,
         },
         validator_results: source.verified
@@ -216,6 +220,9 @@ export const buildDeterministicEvidenceProposalBundle = (
         proposed_at: recipe.created_at,
       },
       authority: { zone: "quarantine", review_state: "machine_checked" },
+      ...(candidateRecipe.supersedes_claim_id === undefined
+        ? {}
+        : { supersedes_claim_id: candidateRecipe.supersedes_claim_id }),
       created_by: recipe.created_by,
       created_at: recipe.created_at,
     };
@@ -248,6 +255,11 @@ export const buildDeterministicEvidenceProposalBundle = (
       rationale:
         "The WorkVersion is proposed as asserting this source-grounded Claim; acceptance remains a separate review decision.",
       recorded_at: recipe.created_at,
+      ...(candidateRecipe.supersedes_assertion_id === undefined
+        ? {}
+        : {
+            supersedes_assertion_id: candidateRecipe.supersedes_assertion_id,
+          }),
       created_by: recipe.created_by,
     };
     return {

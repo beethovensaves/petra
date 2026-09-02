@@ -11,6 +11,7 @@ export * from "./deterministic-evidence-extraction.js";
 export * from "./evidence-authority-repository.js";
 export * from "./evidence-proposal-admission.js";
 export * from "./evidence-registry.js";
+export * from "./evidence-review.js";
 export * from "./graph-projection-authority-repository.js";
 export * from "./graph-projection-registry.js";
 export * from "./graph-store.js";
