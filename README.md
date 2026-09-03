@@ -395,11 +395,14 @@ the subscription as general Responses API access. App Server notifications are
 translated into AG-UI and provider-neutral graph-runtime observations with no
 scientific-authority effect. A strict read-only, no-tool structured extractor
 adapter reaches the same provider-neutral ModelGateway port. GPT-5.6 Terra is
-active only for the exact certified extractor role; other Codex models and
-scientific roles remain inactive until they pass their own Petra suites. See
-[D017](decisions/D017-codex-app-server-subscription-provider.md) and the
-[live adapter report](reports/M1.5-CODEX-APP-SERVER.md), plus the
-[subscription extractor report](reports/M1.5-CODEX-EXTRACTOR-CERTIFICATION.md).
+active only for its exact certified extractor and synthesist roles; other Codex
+models and scientific roles remain inactive until they pass their own Petra
+suites. See
+[D017](decisions/D017-codex-app-server-subscription-provider.md), the
+[live adapter report](reports/M1.5-CODEX-APP-SERVER.md), the
+[subscription extractor report](reports/M1.5-CODEX-EXTRACTOR-CERTIFICATION.md),
+and the
+[subscription synthesist certification report](reports/M1.6-CODEX-SYNTHESIST-CERTIFICATION.md).
 
 ## Durable assistant-mediated review
 
