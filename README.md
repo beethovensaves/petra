@@ -290,6 +290,14 @@ omissions, and quarantined records. This contract is model- and
 provider-neutral; a configured synthesist deployment is the next stage. See the
 [M1.6 synthesis contract report](reports/M1.6-SYNTHESIS-CONTRACT.md).
 
+The synthesist runtime also has independent `1.1.0` certification, request, and
+call contracts. They bind one physical model call to the exact ContextPacket,
+EvidencePacket, outbound canonical objects, rights decisions, routing choice,
+validation, latency, usage, and cost record without altering the frozen
+extractor contracts. The OpenAI route for this workbench is the managed Codex
+App Server ChatGPT OAuth session; no Platform API key is required. See the
+[synthesis runtime contract report](reports/M1.6-SYNTHESIS-RUNTIME-CONTRACTS.md).
+
 ## Measured model-gateway foundation
 
 The first extractor route now passes through a TypeScript-owned ModelGateway.

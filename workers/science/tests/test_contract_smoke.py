@@ -3152,6 +3152,43 @@ class PetraModelCall(PetraModel):
     completed_at: str
 
 
+class PetraSynthesistRoleCertification(PetraModel):
+    schema_name: Literal["petra.model-role-certification"]
+    schema_version: Literal["1.1.0"]
+    role_certification_id: str
+    revision: Literal[1]
+    deployment: dict[str, Any]
+    role_profile: dict[str, Any]
+    scope: dict[str, Any]
+    evaluation: dict[str, Any]
+    decision: dict[str, Any]
+    content_hash: str
+    certified_by: ActorRef
+    certified_at: str
+
+
+class PetraSynthesistModelRequest(PetraModel):
+    schema_name: Literal["petra.model-request"]
+    schema_version: Literal["1.1.0"]
+    model_request_id: str
+    revision: Literal[1]
+    content: dict[str, Any]
+    content_hash: str
+    created_at: str
+    completed_at: str
+
+
+class PetraSynthesistModelCall(PetraModel):
+    schema_name: Literal["petra.model-call"]
+    schema_version: Literal["1.1.0"]
+    model_call_id: str
+    revision: Literal[1]
+    content: dict[str, Any]
+    content_hash: str
+    started_at: str
+    completed_at: str
+
+
 class ReviewInterruptRef(PetraModel):
     interaction_interrupt_id: str
     revision: int
@@ -3233,6 +3270,12 @@ PYDANTIC_MODELS.update(
         ("command-envelope", "1.1.0"): PetraCommandEnvelopeV110,
         ("domain-event", "1.1.0"): PetraDomainEventV110,
         ("outbox-record", "1.1.0"): PetraOutboxRecordV110,
+        (
+            "model-role-certification",
+            "1.1.0",
+        ): PetraSynthesistRoleCertification,
+        ("model-request", "1.1.0"): PetraSynthesistModelRequest,
+        ("model-call", "1.1.0"): PetraSynthesistModelCall,
     }
 )
 

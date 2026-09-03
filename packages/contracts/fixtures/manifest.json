@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.6.0",
+  "fixture_manifest_version": "1.7.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -74,12 +74,27 @@
       "path": "fixtures/accepted/model-role-certification.json"
     },
     {
+      "schema": "model-role-certification",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/model-role-certification-synthesist.json"
+    },
+    {
       "schema": "model-request",
       "path": "fixtures/accepted/model-request.json"
     },
     {
+      "schema": "model-request",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/model-request-synthesist.json"
+    },
+    {
       "schema": "model-call",
       "path": "fixtures/accepted/model-call.json"
+    },
+    {
+      "schema": "model-call",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/model-call-synthesist.json"
     },
     {
       "schema": "claim",
@@ -436,6 +451,21 @@
     {
       "schema": "model-synthesist-output",
       "path": "fixtures/rejected/model-synthesist-output-authority-injection.json"
+    },
+    {
+      "schema": "model-role-certification",
+      "version": "1.1.0",
+      "path": "fixtures/rejected/model-role-certification-synthesist-wrong-version.json"
+    },
+    {
+      "schema": "model-request",
+      "version": "1.1.0",
+      "path": "fixtures/rejected/model-request-synthesist-wrong-version.json"
+    },
+    {
+      "schema": "model-call",
+      "version": "1.1.0",
+      "path": "fixtures/rejected/model-call-synthesist-wrong-version.json"
     },
     {
       "schema": "evidence-packet",

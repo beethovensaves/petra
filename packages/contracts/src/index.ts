@@ -99,16 +99,33 @@ export type {
   RoleProfileSnapshot as CertifiedRoleProfile,
 } from "./generated/model-role-certification.js";
 export type {
+  CertificationScope as SynthesistCertificationScope,
+  DeploymentSnapshot as CertifiedSynthesistDeployment,
+  PetraSynthesistRoleCertification,
+  RoleProfile as CertifiedSynthesistRoleProfile,
+} from "./generated/model-role-certification-v1-1.js";
+export type {
   OutboundContextManifest,
   PetraModelRequest,
   RoutingDecision as ModelRoutingDecision,
   TerminalResult as ModelRequestTerminalResult,
 } from "./generated/model-request.js";
 export type {
+  OutboundContext as SynthesistOutboundContext,
+  PetraSynthesistModelRequest,
+  RoutingDecision as SynthesistRoutingDecision,
+  TerminalResult as SynthesistModelRequestTerminalResult,
+} from "./generated/model-request-v1-1.js";
+export type {
   DeploymentObservation as ModelDeploymentObservation,
   ExactInput as ModelCallInput,
   PetraModelCall,
 } from "./generated/model-call.js";
+export type {
+  DeploymentObservation as SynthesistDeploymentObservation,
+  ExactInput as SynthesistModelCallInput,
+  PetraSynthesistModelCall,
+} from "./generated/model-call-v1-1.js";
 export type {
   ClaimBasis,
   Derivation as ClaimDerivation,

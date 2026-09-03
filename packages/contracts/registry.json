@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.21.0",
+  "registry_version": "1.25.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -210,6 +210,27 @@
       "typescript_path": "src/generated/model-role-certification.ts"
     },
     {
+      "name": "model-runtime-common",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-runtime-common/1.0.0/schema.json",
+      "path": "schemas/model-runtime-common/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-shared-model-runtime-definitions",
+      "canonical_sha256": "sha256:a3fb5bc936645c3830e340a8637d7535622467c17c9eab22f40e44fb1ac0ae9b",
+      "generate_typescript": false
+    },
+    {
+      "name": "model-role-certification",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/model-role-certification/1.1.0/schema.json",
+      "path": "schemas/model-role-certification/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "new-bounded-synthesist-role",
+      "canonical_sha256": "sha256:7bab65763e37fc2bec0b9fa64d178ae37e769882717a445bb2a5f0fb650a40f1",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-role-certification-v1-1.ts"
+    },
+    {
       "name": "model-request",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/model-request/1.0.0/schema.json",
@@ -221,6 +242,17 @@
       "typescript_path": "src/generated/model-request.ts"
     },
     {
+      "name": "model-request",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/model-request/1.1.0/schema.json",
+      "path": "schemas/model-request/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "new-bounded-synthesist-workflow",
+      "canonical_sha256": "sha256:4428141a074f28a35f3039b774f9039d9322feb14595e9b1fc3d3ee08520618a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-request-v1-1.ts"
+    },
+    {
       "name": "model-call",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/model-call/1.0.0/schema.json",
@@ -230,6 +262,17 @@
       "canonical_sha256": "sha256:6835d4a16a1876be8af9179d480c384773ee8419547ee186cbd872215e6ab37d",
       "generate_typescript": true,
       "typescript_path": "src/generated/model-call.ts"
+    },
+    {
+      "name": "model-call",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/model-call/1.1.0/schema.json",
+      "path": "schemas/model-call/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "new-evidence-packet-synthesist-call",
+      "canonical_sha256": "sha256:95e3c4bf5b0d012874b499f2c5a30fd2daec6d252d509d1224ff9d6c00e8f946",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-call-v1-1.ts"
     },
     {
       "name": "claim",

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/model-role-certification/1.1.0/schema.json",
+  "title": "PetraSynthesistRoleCertification",
+  "description": "An immutable decision about one model deployment's eligibility for Petra's bounded synthesist role; it never certifies scientific truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "role_certification_id",
+    "revision",
+    "deployment",
+    "role_profile",
+    "scope",
+    "evaluation",
+    "decision",
+    "content_hash",
+    "certified_by",
+    "certified_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.model-role-certification" },
+    "schema_version": { "const": "1.1.0" },
+    "role_certification_id": {
+      "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/RoleCertificationId"
+    },
+    "revision": { "const": 1 },
+    "deployment": {
+      "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/DeploymentSnapshot"
+    },
+    "role_profile": { "$ref": "#/$defs/RoleProfile" },
+    "scope": {
+      "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/CertificationScope"
+    },
+    "evaluation": {
+      "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/Evaluation"
+    },
+    "decision": {
+      "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/Decision"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "certified_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "certified_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "RoleProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role_profile_id",
+        "role",
+        "version",
+        "input_contract",
+        "output_contract",
+        "required_validators"
+      ],
+      "properties": {
+        "role_profile_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^role_profile_" }
+          ]
+        },
+        "role": { "const": "synthesist" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "input_contract": { "$ref": "#/$defs/InputContract" },
+        "output_contract": { "$ref": "#/$defs/OutputContract" },
+        "required_validators": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+        }
+      }
+    },
+    "InputContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_name", "schema_version", "schema_hash"],
+      "properties": {
+        "schema_name": { "const": "evidence-packet" },
+        "schema_version": { "const": "1.0.0" },
+        "schema_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "OutputContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_name", "schema_version", "schema_hash"],
+      "properties": {
+        "schema_name": { "const": "model-synthesist-output" },
+        "schema_version": { "const": "1.0.0" },
+        "schema_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    }
+  }
+}

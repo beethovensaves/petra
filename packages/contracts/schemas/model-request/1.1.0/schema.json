@@ -1,0 +1,310 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/model-request/1.1.0/schema.json",
+  "title": "PetraSynthesistModelRequest",
+  "description": "One logical bounded synthesist need with exact context and evidence packets, policy-first routing, budget, validation, and terminal outcome.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "model_request_id",
+    "revision",
+    "content",
+    "content_hash",
+    "created_at",
+    "completed_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.model-request" },
+    "schema_version": { "const": "1.1.0" },
+    "model_request_id": { "$ref": "#/$defs/ModelRequestId" },
+    "revision": { "const": 1 },
+    "content": { "$ref": "#/$defs/RequestContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" },
+    "completed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "RequestContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "workflow",
+        "role",
+        "objective",
+        "impact_class",
+        "context_packet_ref",
+        "evidence_packet_ref",
+        "outbound_context",
+        "prompt_profile",
+        "parameters",
+        "output_contract",
+        "routing_policy_ref",
+        "routing",
+        "budget",
+        "terminal"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "workflow": { "$ref": "#/$defs/WorkflowRef" },
+        "role": { "const": "synthesist" },
+        "objective": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "impact_class": {
+          "enum": ["routine", "difficult", "adversarial", "high_impact"]
+        },
+        "context_packet_ref": {
+          "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/ContextPacketRef"
+        },
+        "evidence_packet_ref": {
+          "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/EvidencePacketRef"
+        },
+        "outbound_context": { "$ref": "#/$defs/OutboundContext" },
+        "prompt_profile": {
+          "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/PromptProfile"
+        },
+        "parameters": {
+          "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/Parameters"
+        },
+        "output_contract": { "$ref": "#/$defs/OutputContract" },
+        "routing_policy_ref": { "$ref": "#/$defs/RoutingPolicyRef" },
+        "routing": {
+          "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/RoutingDecision"
+        },
+        "budget": {
+          "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/Budget"
+        },
+        "terminal": { "$ref": "#/$defs/TerminalResult" }
+      }
+    },
+    "WorkflowRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workflow_kind", "workflow_id"],
+      "properties": {
+        "workflow_kind": { "const": "grounded_synthesis" },
+        "workflow_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        }
+      }
+    },
+    "OutboundContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "egress_class",
+        "visibility",
+        "data_classes",
+        "context_object_refs",
+        "rights_decision_ids",
+        "selected_fields",
+        "redactions",
+        "context_content_hash",
+        "capability_grant_id",
+        "purpose"
+      ],
+      "properties": {
+        "egress_class": { "enum": ["E0", "E1", "E2", "E3"] },
+        "visibility": { "enum": ["private", "workspace", "public"] },
+        "data_classes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "bibliographic_metadata",
+              "licensed_full_text",
+              "open_full_text",
+              "source_spans",
+              "trusted_scientific_records",
+              "private_notes"
+            ]
+          }
+        },
+        "context_object_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/ContextObjectRef" }
+        },
+        "rights_decision_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/RightsDecisionId"
+          }
+        },
+        "selected_fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+        },
+        "redactions": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/Redaction" }
+        },
+        "context_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "capability_grant_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "purpose": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "ContextObjectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_kind",
+        "object_id",
+        "object_revision",
+        "object_hash"
+      ],
+      "properties": {
+        "object_kind": {
+          "enum": ["claim", "assertion", "source_span", "work_version"]
+        },
+        "object_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "object_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "object_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "reason"],
+      "properties": {
+        "field": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "OutputContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_name", "schema_version", "schema_hash"],
+      "properties": {
+        "schema_name": { "const": "model-synthesist-output" },
+        "schema_version": { "const": "1.0.0" },
+        "schema_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "RoutingPolicyRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["routing_policy_id", "revision", "content_hash"],
+      "properties": {
+        "routing_policy_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "TerminalResult": {
+      "oneOf": [
+        { "$ref": "#/$defs/CompletedTerminal" },
+        { "$ref": "#/$defs/FailedTerminal" }
+      ]
+    },
+    "CompletedTerminal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "model_call_ids",
+        "validator_results",
+        "output_hash"
+      ],
+      "properties": {
+        "state": { "const": "completed" },
+        "model_call_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/ModelCallId" }
+        },
+        "validator_results": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/ValidatorResult"
+          }
+        },
+        "output_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "FailedTerminal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "model_call_ids", "validator_results", "failure"],
+      "properties": {
+        "state": {
+          "enum": [
+            "blocked_policy",
+            "budget_exhausted",
+            "provider_unavailable",
+            "validation_failed"
+          ]
+        },
+        "model_call_ids": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/ModelCallId" }
+        },
+        "validator_results": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/ValidatorResult"
+          }
+        },
+        "failure": {
+          "$ref": "../../model-runtime-common/1.0.0/schema.json#/$defs/Failure"
+        }
+      }
+    },
+    "ModelRequestId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^model_request_" }
+      ]
+    },
+    "ModelCallId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^model_call_" }
+      ]
+    }
+  }
+}
