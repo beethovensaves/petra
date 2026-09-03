@@ -49,9 +49,30 @@ canonical contracts, required validators, effective runtime configuration,
 Docker Model Runner versions, and local hardware profile. A material change
 requires another certification.
 
-## Remote extractor
+## Subscription-backed extractor
 
-The remote candidates use the official OpenAI TypeScript SDK and Responses API.
-Set `OPENAI_API_KEY` in the local shell or an ignored environment file; never
-commit it or paste it into a report. Remote live certification remains a
-separate gate and cannot be inferred from the local result.
+The initial remote candidates use the existing Codex-managed ChatGPT OAuth
+session. No Platform API key is required:
+
+```sh
+npm run test:codex-extractor:integration
+```
+
+The command discovers the current entitlement through App Server `model/list`,
+evaluates GPT-5.6 Luna and Terra by default, records each result independently,
+and passes the portfolio gate only when at least one model earns active
+extractor certification and produces a machine-checked quarantine proposal.
+It uses ephemeral read-only threads, rejects any tool activity, and reports
+subscription token and per-call cost accounting as unavailable.
+
+Override the candidate list only for an explicit comparison:
+
+```sh
+PETRA_CODEX_CERTIFICATION_MODELS=gpt-5.6-luna npm run test:codex-extractor:integration
+```
+
+## Optional Platform extractor
+
+The official OpenAI TypeScript SDK and Responses API adapter remains available
+for a future metered Platform deployment. It is not required by Petra's
+individual-workbench baseline and is not part of the M1.5 completion gate.

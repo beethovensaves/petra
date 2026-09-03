@@ -25,8 +25,13 @@ export interface ModelAdapterClock {
 export const projectExtractorOutputSchemaForProvider = (
   outputSchema: Readonly<Record<string, unknown>>,
   commonSchema: Readonly<Record<string, unknown>>,
-  arrayItemLimit = 10,
+  options: {
+    readonly arrayItemLimit?: number;
+    readonly strictObjectProperties?: boolean;
+  } = {},
 ): Record<string, unknown> => {
+  const arrayItemLimit = options.arrayItemLimit ?? 10;
+  const strictObjectProperties = options.strictObjectProperties ?? false;
   const bundled: Record<string, unknown> = structuredClone(outputSchema);
   delete bundled.$schema;
   delete bundled.$id;
@@ -111,16 +116,43 @@ export const projectExtractorOutputSchemaForProvider = (
         if (!isSchemaRecord(member)) {
           throw new Error("Provider schema properties must be an object.");
         }
+        const required = Array.isArray(value.required)
+          ? new Set(
+              value.required.filter(
+                (name): name is string => typeof name === "string",
+              ),
+            )
+          : new Set<string>();
         result.properties = Object.fromEntries(
-          Object.entries(member).map(([name, schema]) => [
-            name,
-            simplify(schema),
-          ]),
+          Object.entries(member)
+            .filter(([name]) => !strictObjectProperties || required.has(name))
+            .map(([name, schema]) => [name, simplify(schema)]),
         );
       } else if (key === "maxItems" && Number.isInteger(member)) {
         result.maxItems = Math.min(member as number, arrayItemLimit);
       } else if (supported.has(key)) {
         result[key] = simplify(member);
+      }
+    }
+    if (
+      strictObjectProperties &&
+      result.type === undefined &&
+      "const" in result
+    ) {
+      const type = schemaPrimitiveType(result.const);
+      if (type !== undefined) result.type = type;
+    }
+    if (
+      strictObjectProperties &&
+      result.type === undefined &&
+      Array.isArray(result.enum)
+    ) {
+      const types = new Set(
+        result.enum.map((member) => schemaPrimitiveType(member)),
+      );
+      if (types.size === 1) {
+        const [type] = types;
+        if (type !== undefined) result.type = type;
       }
     }
     return result;
@@ -142,6 +174,16 @@ export const projectExtractorOutputSchemaForProvider = (
 
 const isSchemaRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+const schemaPrimitiveType = (
+  value: unknown,
+): "string" | "number" | "boolean" | "null" | undefined => {
+  if (value === null) return "null";
+  if (typeof value === "string") return "string";
+  if (typeof value === "number") return "number";
+  if (typeof value === "boolean") return "boolean";
+  return undefined;
+};
 
 export const systemClock: ModelAdapterClock = {
   now: () => performance.now(),

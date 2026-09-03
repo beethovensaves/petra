@@ -10,6 +10,7 @@ import {
   LocalOpenAICompatibleExtractorAdapter,
   OpenAIResponsesExtractorAdapter,
   parseDockerModelRunnerInspection,
+  projectExtractorOutputSchemaForProvider,
   resolveDockerModelRunnerConfiguration,
   type ExtractorOutputSchema,
   type ModelAdapterClock,
@@ -35,6 +36,79 @@ describe("provider failure normalization", () => {
   it("bounds non-string error codes without losing the failure record", () => {
     expect(boundedFailureCode(400)).toBe("PROVIDER_400");
     expect(boundedFailureCode({ code: "bad" })).toBe("PROVIDER_ERROR");
+  });
+});
+
+describe("extractor provider-schema projection", () => {
+  it("adds strict primitive types and omits optional fields without changing the local projection", () => {
+    const commonDefinitions = Object.fromEntries(
+      [
+        "PetraId",
+        "SourceSpanId",
+        "ScopeDimensionName",
+        "ScopeDimension",
+        "ScientificScope",
+      ].map((name) => [name, { type: "string" }]),
+    );
+    const canonical = {
+      type: "object",
+      additionalProperties: false,
+      required: ["schema_name", "schema_version", "candidates", "diagnostics"],
+      properties: {
+        schema_name: { const: "petra.model-extractor-output" },
+        schema_version: { const: "1.0.0" },
+        candidates: {
+          type: "array",
+          maxItems: 100,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["kind"],
+            properties: {
+              kind: { enum: ["descriptive", "comparative"] },
+              optional_note: { type: "string" },
+            },
+          },
+        },
+        diagnostics: { type: "array", items: { type: "string" } },
+      },
+      $defs: {},
+    };
+    const local = projectExtractorOutputSchemaForProvider(canonical, {
+      $defs: commonDefinitions,
+    });
+    const strict = projectExtractorOutputSchemaForProvider(
+      canonical,
+      { $defs: commonDefinitions },
+      { strictObjectProperties: true },
+    );
+
+    expect((local.properties as Record<string, unknown>).schema_name).toEqual({
+      const: "petra.model-extractor-output",
+    });
+    expect(
+      (
+        (
+          (local.properties as Record<string, unknown>).candidates as Record<
+            string,
+            unknown
+          >
+        ).items as Record<string, unknown>
+      ).properties,
+    ).toHaveProperty("optional_note");
+    expect((strict.properties as Record<string, unknown>).schema_name).toEqual({
+      const: "petra.model-extractor-output",
+      type: "string",
+    });
+    const strictCandidate = (
+      (strict.properties as Record<string, unknown>).candidates as Record<
+        string,
+        unknown
+      >
+    ).items as Record<string, unknown>;
+    expect(strictCandidate.properties).toEqual({
+      kind: { enum: ["descriptive", "comparative"], type: "string" },
+    });
   });
 });
 

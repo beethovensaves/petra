@@ -263,9 +263,10 @@ subscription-backed GPT-5.6 Luna and GPT-5.6 Terra with benchmarked local
 open-weight deployments under the same role contract. Pinned Qwen3.5 35B-A3B
 passed the bounded extractor suite twice and produced a machine-checked
 quarantine proposal through the real gateway; gpt-oss and Qwen2.5 remain
-visible failed local candidates. At least one Codex subscription route must
-still qualify before M1.5 closes. Model agreement will not be treated as
-scientific corroboration. See the
+visible failed local candidates. GPT-5.6 Terra passed the same suite twice and
+produced machine-checked quarantine proposals through the subscription-backed
+gateway route; Luna remains a visible failed candidate. Model agreement is not
+treated as scientific corroboration. See the
 [M1.5 model-gateway report](reports/M1.5-MODEL-GATEWAY.md).
 
 The active remote candidate uses Codex App Server and managed ChatGPT OAuth. An
@@ -305,11 +306,12 @@ Codex credential files, does not accept `chatgptAuthTokens`, and does not treat
 the subscription as general Responses API access. App Server notifications are
 translated into AG-UI and provider-neutral graph-runtime observations with no
 scientific-authority effect. A strict read-only, no-tool structured extractor
-adapter now reaches the same provider-neutral ModelGateway port, but the route
-remains inactive until its exact subscription model passes the same Petra
-certification suite. See
+adapter reaches the same provider-neutral ModelGateway port. GPT-5.6 Terra is
+active only for the exact certified extractor role; other Codex models and
+scientific roles remain inactive until they pass their own Petra suites. See
 [D017](decisions/D017-codex-app-server-subscription-provider.md) and the
-[live adapter report](reports/M1.5-CODEX-APP-SERVER.md).
+[live adapter report](reports/M1.5-CODEX-APP-SERVER.md), plus the
+[subscription extractor report](reports/M1.5-CODEX-EXTRACTOR-CERTIFICATION.md).
 
 ## Durable assistant-mediated review
 
