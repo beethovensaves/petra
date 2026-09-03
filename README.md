@@ -306,6 +306,13 @@ against exact packet evidence before use. A live GPT-5.6 Terra smoke synthesis
 passed through the existing ChatGPT session with no API key. See the
 [subscription synthesist report](reports/M1.6-CODEX-SYNTHESIST-ADAPTER.md).
 
+The provider-neutral `SynthesistGateway` now compiles those packets into the
+exact model input, applies egress, data-class, budget, health, and independent
+role-certification checks before invocation, and records immutable synthesist
+ModelRequests and ModelCalls. Invalid output remains inspectable as raw provider
+output but cannot become an accepted answer. See the
+[synthesist gateway report](reports/M1.6-SYNTHESIST-GATEWAY.md).
+
 ## Measured model-gateway foundation
 
 The first extractor route now passes through a TypeScript-owned ModelGateway.
