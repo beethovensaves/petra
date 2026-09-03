@@ -84,6 +84,15 @@ export type {
   SourceQuote as ModelExtractorSourceQuote,
 } from "./generated/model-extractor-output.js";
 export type {
+  CoverageDisclosure as ModelSynthesisCoverageDisclosure,
+  EvidenceRef as ModelSynthesisEvidenceRef,
+  PetraModelSynthesistOutput,
+  PetraSynthesisStatement as ModelPetraSynthesisStatement,
+  SourceReportStatement as ModelSourceReportStatement,
+  Statement as ModelSynthesisStatement,
+  UnresolvedInferenceStatement as ModelUnresolvedInferenceStatement,
+} from "./generated/model-synthesist-output.js";
+export type {
   CertificationScope as ModelCertificationScope,
   DeploymentSnapshot as CertifiedModelDeployment,
   PetraModelRoleCertification,

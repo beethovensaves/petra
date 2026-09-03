@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.20.0",
+  "registry_version": "1.21.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -186,6 +186,17 @@
       "canonical_sha256": "sha256:a984faf6bf170124ce4b3ad036a5e395c8cadd766bb866794d34c45e602f5baa",
       "generate_typescript": true,
       "typescript_path": "src/generated/model-extractor-output.ts"
+    },
+    {
+      "name": "model-synthesist-output",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-synthesist-output/1.0.0/schema.json",
+      "path": "schemas/model-synthesist-output/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:c9feeb397df01f2772c81c53fd2edadf7154c836a273df87a8e47806b500164b",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-synthesist-output.ts"
     },
     {
       "name": "model-role-certification",

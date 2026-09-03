@@ -3108,6 +3108,13 @@ class PetraModelExtractorOutput(PetraModel):
     diagnostics: list[dict[str, Any]]
 
 
+class PetraModelSynthesistOutput(PetraModel):
+    schema_name: Literal["petra.model-synthesist-output"]
+    schema_version: Literal["1.0.0"]
+    statements: list[dict[str, Any]]
+    coverage: dict[str, Any]
+
+
 class PetraModelRoleCertification(PetraModel):
     schema_name: Literal["petra.model-role-certification"]
     schema_version: Literal["1.0.0"]
@@ -3187,6 +3194,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "document-parse-bundle": PetraDocumentParseBundle,
     "evidence-proposal-bundle": PetraEvidenceProposalBundle,
     "model-extractor-output": PetraModelExtractorOutput,
+    "model-synthesist-output": PetraModelSynthesistOutput,
     "model-role-certification": PetraModelRoleCertification,
     "model-request": PetraModelRequest,
     "model-call": PetraModelCall,

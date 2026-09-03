@@ -66,6 +66,10 @@
       "path": "fixtures/accepted/model-extractor-output.json"
     },
     {
+      "schema": "model-synthesist-output",
+      "path": "fixtures/accepted/model-synthesist-output.json"
+    },
+    {
       "schema": "model-role-certification",
       "path": "fixtures/accepted/model-role-certification.json"
     },
@@ -424,6 +428,14 @@
     {
       "schema": "context-packet",
       "path": "fixtures/rejected/context-packet-model-compiler.json"
+    },
+    {
+      "schema": "model-synthesist-output",
+      "path": "fixtures/rejected/model-synthesist-output-ungrounded-report.json"
+    },
+    {
+      "schema": "model-synthesist-output",
+      "path": "fixtures/rejected/model-synthesist-output-authority-injection.json"
     },
     {
       "schema": "evidence-packet",

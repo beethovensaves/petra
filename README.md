@@ -272,6 +272,24 @@ object and cannot select a Claim or Assertion while excluding its cited
 SourceSpan. Contrary and qualifying coverage remain distinct. See the
 [M1.6 packet report](reports/M1.6-PACKET-COMPILATION.md).
 
+## Grounded synthesist contract
+
+Petra's synthesist has no unrestricted answer field. Every material sentence is
+a typed `source_report`, `petra_synthesis`, or `unresolved_inference` statement.
+Source reports and syntheses must cite exact Claim or Assertion selections and
+their exact SourceSpan selection orders; unresolved inferences instead name
+what evidence or experiment would resolve them. A separate coverage disclosure
+must reproduce packet scope, omissions, abstract-only use, and contrary and
+qualifying evidence status.
+
+The post-schema validator resolves every citation against the immutable
+EvidencePacket and ContextPacket, requires current-for-snapshot and trusted
+evidence, and requires source reports to pass through a trusted `ASSERTS`
+record. It rejects plausible IDs outside the packet, changed span links, hidden
+omissions, and quarantined records. This contract is model- and
+provider-neutral; a configured synthesist deployment is the next stage. See the
+[M1.6 synthesis contract report](reports/M1.6-SYNTHESIS-CONTRACT.md).
+
 ## Measured model-gateway foundation
 
 The first extractor route now passes through a TypeScript-owned ModelGateway.

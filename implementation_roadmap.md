@@ -78,7 +78,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 | `M1.3` | `complete` | Paper Trail regression baseline and Neo4j projection | Petra must demonstrate a real graph while keeping citation and scientific evidence distinct | `M1.2` | Projection replay, assertion trace, baseline retrieval tests |
 | `M1.4` | `complete` | Lawful full-text fixture, Docling worker, and stable SourceSpans | Claims need inspectable source locations rather than metadata or model recollection | `M1.1`, `M1.2` | Reproducible parse, page-level inspection, worker isolation tests |
 | `M1.5` | `complete` | Claim proposal, direct and AG-UI-mediated review, ChangeSet, and trusted graph path | Petra's core promise depends on visible promotion and reversible scientific state through one command path | `M1.3`, `M1.4` | Deterministic proposal, measured provider-neutral extractor route, active local Qwen and managed-subscription Terra certifications, durable request/call records, inspection, direct accept/reject/correct, independent batch execution, durable AG-UI review, promotion, visible projection, and non-destructive reversal pass |
-| `M1.6` | `in progress` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Exact identity, lexical, neighborhood, provenance, hybrid retrieval, and immutable packet compilation pass; validated model response, AG-UI trace, and invalidation remain |
+| `M1.6` | `in progress` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Retrieval, immutable packet compilation, strict synthesist output, evidence validation, and origin labels pass; configured ModelRequest/ModelCall, AG-UI trace, benchmark record, and invalidation remain |
 | `M1.7` | `planned` | Research Brief, evidence view, focused graph, inspector, and Petra interaction client | Researchers need to understand and correct Petra without reading logs, raw tables, or protocol events | `M1.5`, `M1.6` | Cross-view identity, review flow, reconnect, honest async states |
 | `M1.8` | `planned` | DraftArtifact, ProvenanceMap, citations, BibTeX, and LaTeX | Petra must turn evidence into usable scientific writing without losing origin or force | `M1.6`, `M1.7` | Span support, renderer parity, edit and Felicity revalidation |
 | `M1.9` | `planned` | Clean-start acceptance run, replay, recovery, and M1 closure | The parts count only when the complete evidence path survives failure and rebuild | `M1.0`–`M1.8` | Scripted demonstration and all required test groups |
@@ -705,6 +705,10 @@ Implement only the routes needed by the M1 demonstration:
 
 `M1.6-W17` records the Paper Trail lexical result beside Petra's hybrid route so later challengers are compared against a stable floor rather than memory. Dense retrieval, community summaries, HippoRAG2, and other challengers remain benchmark candidates after a representative corpus and judgments exist.
 
+| ID | Status | Benchmark specification | Why Petra needs it |
+| --- | --- | --- | --- |
+| `M1.6-W17` | `planned` | Record the frozen Paper Trail lexical result beside Petra's versioned hybrid recipe and explicitly defer quality ranking until representative judgments exist. | Retrieval challengers need a stable measured floor without turning a fixture result into a premature production choice. |
+
 ### Retrieval evidence
 
 | ID | Status | Executable evidence | Consequence |
@@ -733,7 +737,19 @@ Compile one immutable ContextPacket and composition-specific EvidencePacket with
 
 ### Grounded response
 
-`M1.6-W13` establishes the synthesist contract with a deterministic fixture. `M1.6-W14` produces one short response through a certified configured deployment. `M1.6-W15` validates that every material scientific statement resolves to included trusted Assertions and exact SourceSpans. `M1.6-W16` labels source report, Petra synthesis, and unresolved inference distinctly so fluent prose cannot conceal epistemic origin. `M1.6-W18` translates the bounded run, visible activity, grounded text, EvidencePacket readiness, and terminal outcome into the registered Petra AG-UI profile.
+| ID | Status | Response specification | Why Petra needs it |
+| --- | --- | --- | --- |
+| `M1.6-W13` | `complete` | Establish the strict provider-neutral synthesist output contract with accepted and rejected deterministic fixtures. | Model prose needs a narrow machine-checkable surface before it can be shown as a scientific answer. |
+| `M1.6-W14` | `planned` | Produce one short response through a certified configured deployment and record its ModelRequest and ModelCall. | A deterministic validator is insufficient until the real provider route satisfies it. |
+| `M1.6-W15` | `complete` | Validate every material source report and Petra synthesis against selected trusted records and exact SourceSpan selection orders. | Schema-valid object IDs must not substitute for packet membership, trust, or provenance. |
+| `M1.6-W16` | `complete` | Require distinct `source_report`, `petra_synthesis`, and `unresolved_inference` statement forms. | Fluent prose must not conceal whether language comes from a source, Petra's bounded composition, or an unresolved inference. |
+| `M1.6-W18` | `planned` | Translate the bounded run, visible activity, grounded text, EvidencePacket readiness, and terminal outcome into Petra's registered AG-UI profile. | Grounded execution must reach the workbench through the production interaction protocol without making AG-UI authoritative. |
+
+### Grounded-response evidence
+
+| ID | Status | Executable evidence | Consequence |
+| --- | --- | --- | --- |
+| `M1.6-EV03` | `pass` | The accepted cross-language synthesist fixture contains one source report, one Petra synthesis, and one explicitly unresolved inference. Two rejected fixtures block a source report without evidence and model-injected trusted authority. Six domain cases additionally reject exact-looking objects outside the EvidencePacket, non-`ASSERTS` source attribution, changed SourceSpan orders, hidden coverage, duplicate statement keys, and canonical but quarantined scientific records. The complete gate passes with 495 always-on tests and six expected service skips. | `M1.6-W13`, `M1.6-W15`, and `M1.6-W16` are complete independently of provider behavior. Only validated, current-for-snapshot output may proceed to rendering or streaming; `M1.6-W14` still requires a certified configured synthesist route and recorded call. |
 
 ### Exit gate
 
