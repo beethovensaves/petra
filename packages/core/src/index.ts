@@ -30,6 +30,7 @@ export * from "./interaction-authority-repository.js";
 export * from "./research-scope-repository.js";
 export * from "./scientific-graph-projector.js";
 export * from "./scholarly-identity-repository.js";
+export * from "./synthesist-model-adapter.js";
 export * from "./work-unit-registry.js";
 export * from "./work-unit-authority-repository.js";
 

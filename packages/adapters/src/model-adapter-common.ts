@@ -28,10 +28,27 @@ export const projectExtractorOutputSchemaForProvider = (
   options: {
     readonly arrayItemLimit?: number;
     readonly strictObjectProperties?: boolean;
+    readonly commonDefinitionNames?: readonly string[];
+    readonly requiredRootProperties?: readonly string[];
+    readonly preserveAlternatives?: boolean;
   } = {},
 ): Record<string, unknown> => {
   const arrayItemLimit = options.arrayItemLimit ?? 10;
   const strictObjectProperties = options.strictObjectProperties ?? false;
+  const preserveAlternatives = options.preserveAlternatives ?? false;
+  const commonDefinitionNames = options.commonDefinitionNames ?? [
+    "PetraId",
+    "SourceSpanId",
+    "ScopeDimensionName",
+    "ScopeDimension",
+    "ScientificScope",
+  ];
+  const requiredRootProperties = options.requiredRootProperties ?? [
+    "schema_name",
+    "schema_version",
+    "candidates",
+    "diagnostics",
+  ];
   const bundled: Record<string, unknown> = structuredClone(outputSchema);
   delete bundled.$schema;
   delete bundled.$id;
@@ -45,13 +62,7 @@ export const projectExtractorOutputSchemaForProvider = (
   if (outputDefinitions === undefined || commonDefinitions === undefined) {
     throw new Error("Extractor schemas must expose object-valued $defs.");
   }
-  for (const name of [
-    "PetraId",
-    "SourceSpanId",
-    "ScopeDimensionName",
-    "ScopeDimension",
-    "ScientificScope",
-  ]) {
+  for (const name of commonDefinitionNames) {
     const definition = commonDefinitions[name];
     if (definition === undefined) {
       throw new Error(`Canonical common schema is missing $defs/${name}.`);
@@ -102,6 +113,19 @@ export const projectExtractorOutputSchemaForProvider = (
     if (!isSchemaRecord(value)) return value;
     if (typeof value.$ref === "string") {
       return simplify(pointerValue(value.$ref));
+    }
+    if (
+      preserveAlternatives &&
+      (Array.isArray(value.oneOf) || Array.isArray(value.anyOf))
+    ) {
+      const alternatives: unknown[] = Array.isArray(value.oneOf)
+        ? value.oneOf
+        : Array.isArray(value.anyOf)
+          ? value.anyOf
+          : [];
+      return {
+        anyOf: alternatives.map((member) => simplify(member)),
+      };
     }
     if (Array.isArray(value.allOf)) {
       const merged: Record<string, unknown> = {};
@@ -162,15 +186,31 @@ export const projectExtractorOutputSchemaForProvider = (
     throw new Error("Provider schema projection lost its root properties.");
   }
   const rootProperties = Object.keys(simplified.properties);
-  if (
-    !["schema_name", "schema_version", "candidates", "diagnostics"].every(
-      (name) => rootProperties.includes(name),
-    )
-  ) {
+  if (!requiredRootProperties.every((name) => rootProperties.includes(name))) {
     throw new Error("Provider schema projection lost required root fields.");
   }
   return simplified;
 };
+
+export const projectSynthesistOutputSchemaForProvider = (
+  outputSchema: Readonly<Record<string, unknown>>,
+  commonSchema: Readonly<Record<string, unknown>>,
+  options: {
+    readonly arrayItemLimit?: number;
+    readonly strictObjectProperties?: boolean;
+  } = {},
+): Record<string, unknown> =>
+  projectExtractorOutputSchemaForProvider(outputSchema, commonSchema, {
+    ...options,
+    commonDefinitionNames: ["PetraId", "Revision", "ContentHash"],
+    preserveAlternatives: true,
+    requiredRootProperties: [
+      "schema_name",
+      "schema_version",
+      "statements",
+      "coverage",
+    ],
+  });
 
 const isSchemaRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);

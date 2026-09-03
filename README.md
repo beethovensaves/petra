@@ -97,6 +97,7 @@ checksum.
 | `npm run test:docling:integration` | Run the lawful PDF twice through local Docling, cross-validate all spans in TypeScript/Python, and prove malformed-PDF containment. |
 | `npm run test:evidence-proposals:integration` | Parse the lawful PDF once, admit grounded primary and qualification pairs into quarantine, and reject a fabricated SourceSpan without partial state. |
 | `npm run test:codex-app-server:integration` | Start a real Codex App Server sidecar, use the existing managed ChatGPT session for one ephemeral read-only no-tool turn, verify AG-UI and graph-runtime translation, and close it. |
+| `npm run test:codex-synthesist:integration` | Use the existing managed ChatGPT OAuth session for one structured, read-only, no-tool synthesis and require exact ContextPacket/EvidencePacket grounding. No API key is used. |
 | `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
 | `npm run test:integration` | Run Vitest and pytest against disposable real services, then delete the stack. |
 | `npm run measure:m1-boundary` | Rebuild and measure the isolated browser cost of Petra's AG-UI client boundary. |
@@ -297,6 +298,13 @@ validation, latency, usage, and cost record without altering the frozen
 extractor contracts. The OpenAI route for this workbench is the managed Codex
 App Server ChatGPT OAuth session; no Platform API key is required. See the
 [synthesis runtime contract report](reports/M1.6-SYNTHESIS-RUNTIME-CONTRACTS.md).
+
+That OAuth route now has a dedicated, subscription-only synthesist adapter. It
+rejects API-key-authenticated sessions, accepts no API-key configuration, runs
+ephemeral read-only turns with tools disabled, and validates returned structure
+against exact packet evidence before use. A live GPT-5.6 Terra smoke synthesis
+passed through the existing ChatGPT session with no API key. See the
+[subscription synthesist report](reports/M1.6-CODEX-SYNTHESIST-ADAPTER.md).
 
 ## Measured model-gateway foundation
 
