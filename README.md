@@ -238,6 +238,23 @@ See the
 [M1.5 compensating reversal report](reports/M1.5-COMPENSATING-REVERSAL.md)
 for semantics, constraints, and evidence.
 
+## Bounded graph-guided retrieval
+
+M1.6 begins with a model-free fast path. Petra can resolve a known object or an
+exact Assertion provenance chain directly from the authority graph. Exploratory
+queries use a provider-neutral lexical index whose response names its BM25
+scorer, Project and object-kind scope, corpus size, rank, score, matched terms,
+object revision, and record hash.
+
+The first hybrid recipe resolves each lexical candidate against the current
+graph object before expanding a small predicate-explicit neighborhood. Missing,
+identity-mismatched, and stale index entries remain visible omissions; they are
+never silently supplied as context. The current in-memory index establishes
+deterministic behavior for evaluation and leaves the eventual PostgreSQL search
+adapter replaceable. Run `npm run test:retrieval`; architecture and limits are
+recorded in the
+[M1.6 retrieval report](reports/M1.6-RETRIEVAL-FOUNDATION.md).
+
 ## Measured model-gateway foundation
 
 The first extractor route now passes through a TypeScript-owned ModelGateway.

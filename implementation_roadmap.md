@@ -78,7 +78,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 | `M1.3` | `complete` | Paper Trail regression baseline and Neo4j projection | Petra must demonstrate a real graph while keeping citation and scientific evidence distinct | `M1.2` | Projection replay, assertion trace, baseline retrieval tests |
 | `M1.4` | `complete` | Lawful full-text fixture, Docling worker, and stable SourceSpans | Claims need inspectable source locations rather than metadata or model recollection | `M1.1`, `M1.2` | Reproducible parse, page-level inspection, worker isolation tests |
 | `M1.5` | `complete` | Claim proposal, direct and AG-UI-mediated review, ChangeSet, and trusted graph path | Petra's core promise depends on visible promotion and reversible scientific state through one command path | `M1.3`, `M1.4` | Deterministic proposal, measured provider-neutral extractor route, active local Qwen and managed-subscription Terra certifications, durable request/call records, inspection, direct accept/reject/correct, independent batch execution, durable AG-UI review, promotion, visible projection, and non-destructive reversal pass |
-| `M1.6` | `planned` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Provenance fast path, validated model response, AG-UI trace, invalidation |
+| `M1.6` | `in progress` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Exact identity, lexical, neighborhood, provenance, and hybrid routes pass; packet compilation, validated model response, AG-UI trace, and invalidation remain |
 | `M1.7` | `planned` | Research Brief, evidence view, focused graph, inspector, and Petra interaction client | Researchers need to understand and correct Petra without reading logs, raw tables, or protocol events | `M1.5`, `M1.6` | Cross-view identity, review flow, reconnect, honest async states |
 | `M1.8` | `planned` | DraftArtifact, ProvenanceMap, citations, BibTeX, and LaTeX | Petra must turn evidence into usable scientific writing without losing origin or force | `M1.6`, `M1.7` | Span support, renderer parity, edit and Felicity revalidation |
 | `M1.9` | `planned` | Clean-start acceptance run, replay, recovery, and M1 closure | The parts count only when the complete evidence path survives failure and rebuild | `M1.0`–`M1.8` | Scripted demonstration and all required test groups |
@@ -97,7 +97,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 
 ### Current Petra state
 
-The `/petra` directory contains product, graph, roadmap, and D001–D017 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; ten forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries, ordered tombstones, and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; a pinned offline Docling adapter producing stable geometry-backed SourceSpans through a proposal-only worker manifest; a portable evidence-proposal bundle plus independent TypeScript quarantine-admission boundary; a provider-neutral, policy-first extractor gateway with exact fixture certification and durable request/call/proposal records; active certified Qwen3.5 local and managed-subscription GPT-5.6 Terra extractors; an opt-in Codex App Server provider with entitlement-derived model discovery; one immutable review projection and storage-neutral command planner/executor; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.5 is complete without a Platform API key. M1.6 bounded graph-guided retrieval and grounded response is next.
+The `/petra` directory contains product, graph, roadmap, and D001–D017 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; ten forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries, ordered tombstones, and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; a pinned offline Docling adapter producing stable geometry-backed SourceSpans through a proposal-only worker manifest; a portable evidence-proposal bundle plus independent TypeScript quarantine-admission boundary; a provider-neutral, policy-first extractor gateway with exact fixture certification and durable request/call/proposal records; active certified Qwen3.5 local and managed-subscription GPT-5.6 Terra extractors; an opt-in Codex App Server provider with entitlement-derived model discovery; one immutable review projection and storage-neutral command planner/executor; a bounded, model-free lexical-to-graph retrieval recipe with exact revision checks and visible omissions; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.5 is complete without a Platform API key. M1.6 packet compilation and grounded response now build on the completed retrieval foundation.
 
 The current development environment exposes:
 
@@ -686,7 +686,7 @@ A candidate model is allowed to fail the fixture-derived quality checks. Failure
 
 ## M1.6 — bounded retrieval, ContextPacket, and grounded response
 
-- **Status:** `planned`
+- **Status:** `in progress`
 - **Builds:** the first graph-guided retrieval recipe, immutable context artifacts, provenance fast path, and validated LLM synthesis.
 - **Why:** Petra's assistant must answer from explicit graph state and evidence rather than an opaque prompt assembled anew each turn.
 - **Depends on:** `M1.5`.
@@ -697,13 +697,19 @@ Implement only the routes needed by the M1 demonstration:
 
 | ID | Status | Build specification | Why Petra needs it |
 | --- | --- | --- | --- |
-| `M1.6-W01` | `planned` | Retrieve a canonical object by stable identity. | Known-object questions should bypass expensive search and generation. |
-| `M1.6-W02` | `planned` | Retrieve lexical candidates with explicit scores and scope. | Text relevance provides a cheap, inspectable candidate generator. |
-| `M1.6-W03` | `planned` | Retrieve a focused typed evidence neighborhood. | The graph should guide the model to local scientific structure. |
-| `M1.6-W04` | `planned` | Retrieve an exact provenance path. | Common evidence inspection should feel immediate and use no LLM. |
-| `M1.6-W05` | `planned` | Join text candidates and typed graph evidence in one small hybrid recipe. | M1 must test graph-guided RAG without prematurely adopting a retrieval framework. |
+| `M1.6-W01` | `complete` | Retrieve a canonical object by stable identity. | Known-object questions should bypass expensive search and generation. |
+| `M1.6-W02` | `complete` | Retrieve lexical candidates with explicit scores and scope. | Text relevance provides a cheap, inspectable candidate generator. |
+| `M1.6-W03` | `complete` | Retrieve a focused typed evidence neighborhood. | The graph should guide the model to local scientific structure. |
+| `M1.6-W04` | `complete` | Retrieve an exact provenance path. | Common evidence inspection should feel immediate and use no LLM. |
+| `M1.6-W05` | `complete` | Join text candidates and typed graph evidence in one small hybrid recipe. | M1 must test graph-guided RAG without prematurely adopting a retrieval framework. |
 
 `M1.6-W17` records the Paper Trail lexical result beside Petra's hybrid route so later challengers are compared against a stable floor rather than memory. Dense retrieval, community summaries, HippoRAG2, and other challengers remain benchmark candidates after a representative corpus and judgments exist.
+
+### Retrieval evidence
+
+| ID | Status | Executable evidence | Consequence |
+| --- | --- | --- | --- |
+| `M1.6-EV01` | `pass` | Six scientific-retrieval cases prove a zero-LLM stable-identity route, Project- and object-kind-scoped deterministic BM25 with explicit scoring identity and bounds, predicate-explicit focused neighborhoods, exact provenance delegation, and a versioned lexical-to-graph join that admits only matching authoritative revisions and hashes while reporting missing or stale candidates. The complete gate passes with 479 always-on tests and six expected service skips. | `M1.6-W01`–`M1.6-W05` are complete behind provider-neutral lexical and authority-graph ports. The in-memory index fixes semantics for development but does not choose Petra's eventual PostgreSQL lexical adapter or claim retrieval-quality superiority. |
 
 ### Context compilation
 

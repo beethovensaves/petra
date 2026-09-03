@@ -11,5 +11,8 @@
   },
   "scripts": {
     "test": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@petra/core": "0.0.0"
   }
 }
