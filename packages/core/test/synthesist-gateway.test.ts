@@ -324,6 +324,33 @@ describe("SynthesistGateway", () => {
     expect(invoke).not.toHaveBeenCalled();
   });
 
+  it("withholds output when the provider reports a revision outside the certification", async () => {
+    const { packets, context, evidence } = setupPackets();
+    const { deployment, certification } = certifiedDeployment();
+    const output = readFixture<PetraModelSynthesistOutput>(
+      "model-synthesist-output",
+    );
+    const gateway = new SynthesistGateway(packets);
+    gateway.registerDeployment(deployment, {
+      invoke: () =>
+        Promise.resolve({
+          ...successfulResponse(output),
+          observed_revision: "fixture-v2",
+        }),
+    });
+    gateway.registerCertification(certification);
+
+    const result = await gateway.execute(
+      buildRequest(packets, context, evidence, deployment),
+    );
+
+    expect(result.request.content.terminal.state).toBe("validation_failed");
+    expect(result.calls[0]?.content.validation[0]?.code).toBe(
+      "DEPLOYMENT_REVISION_DRIFT",
+    );
+    expect(result).not.toHaveProperty("output");
+  });
+
   it("rejects a certification whose hash does not bind the registered deployment and evaluation", () => {
     const { packets } = setupPackets();
     const { deployment, certification } = certifiedDeployment();

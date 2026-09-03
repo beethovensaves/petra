@@ -76,3 +76,19 @@ PETRA_CODEX_CERTIFICATION_MODELS=gpt-5.6-luna npm run test:codex-extractor:integ
 The official OpenAI TypeScript SDK and Responses API adapter remains available
 for a future metered Platform deployment. It is not required by Petra's
 individual-workbench baseline and is not part of the M1.5 completion gate.
+
+## Subscription-backed synthesist
+
+The synthesist is certified independently from the extractor through the same
+Codex-managed ChatGPT OAuth session:
+
+```sh
+npm run test:codex-synthesist:certification
+```
+
+The command first evaluates one exact ContextPacket/EvidencePacket response and
+two deterministic negative controls. Only an active role certification allows a
+second model turn through `SynthesistGateway`. That turn records the exact
+prompt, packet records, routing choice, validation, timing, and unavailable
+subscription accounting in `model-request@1.1.0` and `model-call@1.1.0` objects.
+It accepts no API-key configuration.

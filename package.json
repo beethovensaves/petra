@@ -52,6 +52,7 @@
     "test:integration": "node experiments/disc-04/run-integration.mjs",
     "test:docling:integration": "node scripts/test-docling-integration.mjs",
     "test:codex-app-server:integration": "npm run build:packages && node scripts/test-codex-app-server-integration.mjs",
+    "test:codex-synthesist:certification": "npm run build:packages && node experiments/model-certification/run-codex-synthesist.mjs",
     "test:codex-synthesist:integration": "npm run build:packages && node scripts/test-codex-synthesist-integration.mjs",
     "test:codex-extractor:integration": "npm run build:packages && node experiments/model-certification/run-codex.mjs",
     "test:evidence-proposals:integration": "node scripts/test-evidence-proposal-integration.mjs",

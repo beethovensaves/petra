@@ -212,6 +212,71 @@ export const buildSynthesistPromptMessages = (
   ] as PetraSynthesistModelCall["content"]["input"]["messages"];
 };
 
+export const buildSynthesistExactInput = (
+  input: Pick<SynthesistGatewayRequest, "objective" | "base_messages">,
+  packets: InMemoryContextPacketRegistry,
+  contextPacketId: string,
+  evidencePacketId: string,
+): PetraSynthesistModelCall["content"]["input"] => {
+  const context = packets.getContextPacket(contextPacketId);
+  const evidence = packets.getEvidencePacket(evidencePacketId);
+  if (context === undefined || evidence === undefined) {
+    throw new SynthesistGatewayError(
+      "SYNTHESIST_PACKET_MISSING",
+      "The exact ContextPacket and EvidencePacket must be registered before input compilation.",
+    );
+  }
+  const messages = buildSynthesistPromptMessages(
+    input,
+    packets,
+    contextPacketId,
+    evidencePacketId,
+  );
+  const contextSelections = evidence.content.selected_evidence.map(
+    (selection) => {
+      const inclusion = context.content.included_objects.find(
+        (candidate) =>
+          candidate.selection_order === selection.context_selection_order,
+      );
+      const record = packets.getContextRecord(
+        context.context_packet_id,
+        selection.object_ref.object_id,
+        selection.object_ref.object_revision,
+      );
+      if (inclusion === undefined || record === undefined) {
+        throw new SynthesistGatewayError(
+          "SYNTHESIST_PACKET_MISMATCH",
+          `Evidence selection ${selection.context_selection_order} has no exact context record.`,
+        );
+      }
+      return {
+        context_selection_order: selection.context_selection_order,
+        object_ref: structuredClone(selection.object_ref),
+        rendered_content: canonicalize({ inclusion, selection, record }),
+        source_span_selection_orders: [
+          ...selection.source_span_selection_orders,
+        ],
+      };
+    },
+  ) as PetraSynthesistModelCall["content"]["input"]["context_selections"];
+  const inputWithoutHash = {
+    context_packet_ref: {
+      context_packet_id: context.context_packet_id,
+      content_hash: context.content_hash,
+    },
+    evidence_packet_ref: {
+      evidence_packet_id: evidence.evidence_packet_id,
+      content_hash: evidence.content_hash,
+    },
+    messages,
+    context_selections: contextSelections,
+  };
+  return {
+    ...inputWithoutHash,
+    content_hash: canonicalHash(inputWithoutHash),
+  };
+};
+
 const deploymentMatches = (
   left: PetraSynthesistRoleCertification["deployment"],
   right: PetraSynthesistRoleCertification["deployment"],
@@ -406,7 +471,7 @@ export class SynthesistGateway {
         "The requested packets do not identify the same exact Project context.",
       );
     }
-    const messages = buildSynthesistPromptMessages(
+    const exactInput = buildSynthesistExactInput(
       input,
       this.#packets,
       context.context_packet_id,
@@ -424,7 +489,9 @@ export class SynthesistGateway {
         "The synthesist routing policy hash does not bind its exact policy content.",
       );
     }
-    if (input.prompt_profile.content_hash !== canonicalHash(messages)) {
+    if (
+      input.prompt_profile.content_hash !== canonicalHash(exactInput.messages)
+    ) {
       throw new SynthesistGatewayError(
         "SYNTHESIST_PROMPT_PROFILE_HASH_MISMATCH",
         "The synthesist prompt profile hash does not bind the exact message stack sent to the adapter.",
@@ -450,55 +517,12 @@ export class SynthesistGateway {
       ...input.parameters,
       content_hash: canonicalHash(input.parameters),
     };
-    const contextSelections = evidence.content.selected_evidence.map(
-      (selection) => {
-        const inclusion = context.content.included_objects.find(
-          (candidate) =>
-            candidate.selection_order === selection.context_selection_order,
-        );
-        const record = this.#packets.getContextRecord(
-          context.context_packet_id,
-          selection.object_ref.object_id,
-          selection.object_ref.object_revision,
-        );
-        if (inclusion === undefined || record === undefined) {
-          throw new SynthesistGatewayError(
-            "SYNTHESIST_PACKET_MISMATCH",
-            `Evidence selection ${selection.context_selection_order} has no exact context record.`,
-          );
-        }
-        return {
-          context_selection_order: selection.context_selection_order,
-          object_ref: structuredClone(selection.object_ref),
-          rendered_content: canonicalize({ inclusion, selection, record }),
-          source_span_selection_orders: [
-            ...selection.source_span_selection_orders,
-          ],
-        };
-      },
-    ) as PetraSynthesistModelCall["content"]["input"]["context_selections"];
-    const exactInputWithoutHash = {
-      context_packet_ref: {
-        context_packet_id: context.context_packet_id,
-        content_hash: context.content_hash,
-      },
-      evidence_packet_ref: {
-        evidence_packet_id: evidence.evidence_packet_id,
-        content_hash: evidence.content_hash,
-      },
-      messages,
-      context_selections: contextSelections,
-    };
-    const exactInput: PetraSynthesistModelCall["content"]["input"] = {
-      ...exactInputWithoutHash,
-      content_hash: canonicalHash(exactInputWithoutHash),
-    };
     const outboundContext: PetraSynthesistModelRequest["content"]["outbound_context"] =
       {
         egress_class: input.egress_class,
         visibility: input.visibility,
         data_classes: [...input.data_classes],
-        context_object_refs: contextSelections.map((item) =>
+        context_object_refs: exactInput.context_selections.map((item) =>
           structuredClone(item.object_ref),
         ) as PetraSynthesistModelRequest["content"]["outbound_context"]["context_object_refs"],
         rights_decision_ids: [...input.rights_decision_ids],
@@ -802,20 +826,32 @@ export class SynthesistGateway {
 
     let output: DeepReadonly<PetraModelSynthesistOutput> | undefined;
     let validation: PetraSynthesistModelCall["content"]["validation"];
-    try {
-      output = this.#grounded.validate(
-        args.response.output,
-        args.exactInput.context_packet_ref.context_packet_id,
-        args.exactInput.evidence_packet_ref.evidence_packet_id,
-      );
-      validation = successValidations();
-    } catch (error) {
-      const code =
-        error instanceof GroundedSynthesisError
-          ? error.code
-          : "SYNTHESIST_OUTPUT_SCHEMA_INVALID";
-      const message = error instanceof Error ? error.message : String(error);
-      validation = [failureValidation(code, message)];
+    if (
+      args.response.observed_revision !==
+      args.selected.deployment.deployment.observed_revision
+    ) {
+      validation = [
+        failureValidation(
+          "DEPLOYMENT_REVISION_DRIFT",
+          "The provider reported a model revision different from the certified deployment revision.",
+        ),
+      ];
+    } else {
+      try {
+        output = this.#grounded.validate(
+          args.response.output,
+          args.exactInput.context_packet_ref.context_packet_id,
+          args.exactInput.evidence_packet_ref.evidence_packet_id,
+        );
+        validation = successValidations();
+      } catch (error) {
+        const code =
+          error instanceof GroundedSynthesisError
+            ? error.code
+            : "SYNTHESIST_OUTPUT_SCHEMA_INVALID";
+        const message = error instanceof Error ? error.message : String(error);
+        validation = [failureValidation(code, message)];
+      }
     }
     if (output === undefined) {
       const failure = {

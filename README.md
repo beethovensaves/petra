@@ -98,6 +98,7 @@ checksum.
 | `npm run test:evidence-proposals:integration` | Parse the lawful PDF once, admit grounded primary and qualification pairs into quarantine, and reject a fabricated SourceSpan without partial state. |
 | `npm run test:codex-app-server:integration` | Start a real Codex App Server sidecar, use the existing managed ChatGPT session for one ephemeral read-only no-tool turn, verify AG-UI and graph-runtime translation, and close it. |
 | `npm run test:codex-synthesist:integration` | Use the existing managed ChatGPT OAuth session for one structured, read-only, no-tool synthesis and require exact ContextPacket/EvidencePacket grounding. No API key is used. |
+| `npm run test:codex-synthesist:certification` | Evaluate an entitlement-exposed model for the exact synthesist role, activate only a passing deployment, and record a second call through `SynthesistGateway`. No API key is accepted or used. |
 | `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
 | `npm run test:integration` | Run Vitest and pytest against disposable real services, then delete the stack. |
 | `npm run measure:m1-boundary` | Rebuild and measure the isolated browser cost of Petra's AG-UI client boundary. |
@@ -318,6 +319,12 @@ epistemic-behavior cases into the deployment's role record. It can reject a
 fluent, grounded response that omits a required origin, and it cannot reuse an
 extractor certification. See the
 [synthesist certification fixture report](reports/M1.6-SYNTHESIST-CERTIFICATION-FIXTURE.md).
+
+GPT-5.6 Terra has now passed that exact suite through Codex-managed ChatGPT
+OAuth and completed a second recorded call through the production gateway. The
+first attempt failed safely on a ContextPacket/EvidencePacket coverage mismatch;
+the corrected, newly hashed prompt passed. See the
+[subscription synthesist certification report](reports/M1.6-CODEX-SYNTHESIST-CERTIFICATION.md).
 
 ## Measured model-gateway foundation
 
