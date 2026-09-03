@@ -26,6 +26,16 @@ Embedding and reranking deployments also use the gateway, but they are model tas
 
 The first router will be deterministic and inspectable. Exact provider and model assignments belong in versioned registry configuration and evaluation manifests, not in this decision document.
 
+### Initial mixed-provider implementation constraint
+
+The first non-fixture portfolio must exercise both model plurality and provider independence. It will contain at least two remote OpenAI deployments and at least one locally executed open-weight deployment. All candidates enter through the same role, policy, validation, provenance, and authority contracts even when their provider adapters use different wire protocols.
+
+For the M1.5 extractor slice, every candidate runs the same versioned certification cases under comparable prompt, schema, context, and budget conditions. M1.5 closes only after at least one OpenAI deployment and one local deployment earn active extractor certifications and produce valid quarantine proposals through the recorded gateway route. A candidate that fails remains registered with its observed result but cannot be activated for that role.
+
+The initial evaluation candidates are GPT-5.6 Luna, GPT-5.6 Terra, and local `gpt-oss-20b`. These are test targets rather than permanent role assignments. GPT-5.6 Sol remains a possible later escalation candidate. The local development runtime is also test-before-lock: it must expose a bounded loopback adapter and cannot become part of the scientific contract.
+
+The local route is first-class. It supports E0 processing, offline continuity, provider-outage continuity, private-corpus work, reproducible comparison, and future controlled fine-tuning. Agreement between local and remote models is recorded as model comparison, never presented as independent scientific corroboration.
+
 ## Context
 
 Petra needs different model capabilities for extraction, criticism, synthesis, conversation, retrieval, vision, and later code and experiment work. Those tasks have different evidence requirements, privacy constraints, latency tolerances, failure modes, and cost profiles.
@@ -327,7 +337,7 @@ D007 does not choose:
 - numerical certification thresholds before baseline evaluation;
 - a learned or LLM-based meta-router;
 - builder, vision, experimentalist, or other later role implementations;
-- a requirement for multiple model families in the minimum offline package;
+- a permanent local runtime or model family after the initial mixed-provider proof;
 - provider-specific prompt-caching or batch features as architectural dependencies;
 - end-to-end context compilation, graph fast paths, or job scheduling, which belong to D008.
 

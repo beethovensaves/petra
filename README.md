@@ -254,7 +254,11 @@ proposal.
 raw and validated output, prompt and context identities, validation results,
 latency, token use, cost, and proposal bundle as immutable PostgreSQL records.
 The three-case certification fixture establishes exact expected behavior, not a
-general quality score. No live provider has been selected or certified. See the
+general quality score. The first non-fixture portfolio will compare GPT-5.6
+Luna, GPT-5.6 Terra, and a locally executed `gpt-oss-20b` under the same role
+contract. At least one OpenAI route and the local route must qualify before M1.5
+closes; model agreement will not be treated as scientific corroboration. No
+non-fixture deployment has been certified yet. See the
 [M1.5 model-gateway report](reports/M1.5-MODEL-GATEWAY.md).
 
 ## Durable assistant-mediated review

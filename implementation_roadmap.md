@@ -642,7 +642,7 @@ Before a live model, create and process a deterministic extractor fixture:
 | `M1.5-W10` | `complete` | Present review batches without coupling their transactions. | Efficient review must not create all-or-nothing scientific authority. |
 | `M1.5-W11` | `complete` | Project applied promotions and reversals through ordered outbox records, expose checkpoint catch-up state, and reproduce active state through rebuild. | Graph visibility must follow authority with observable lag. |
 | `M1.5-W12` | `complete` | Apply one R2 compensating ChangeSet to the exact promoted Claim–`ASSERTS` pair; retain prior PostgreSQL revisions and tombstone only the active graph edge. | A bad promotion must be undoable without deleting history or implying that the Claim was scientifically disproved. |
-| `M1.5-W13` | `in_progress` | Route one extractor through the TypeScript-owned ModelGateway after permission, egress, role certification, scope, structured-output, context, cost, latency, and health checks. The provider-neutral fixture route passes; a configured live deployment remains. | A model must be replaceable and policy-eligible before its output can enter the proposal path. |
+| `M1.5-W13` | `in_progress` | Configure Petra's first mixed-provider portfolio with GPT-5.6 Luna, GPT-5.6 Terra, and one locally executed `gpt-oss-20b` deployment. Run the same versioned extractor certification route after permission, egress, role, scope, structured-output, context, cost, latency, and health checks. Activate only passing role routes. M1.5 requires at least one OpenAI deployment and the local deployment to earn active extractor certifications and produce valid quarantine proposals; every result, including failure, remains visible. | Petra must prove model replaceability, local E0 operation, and provider independence before model output enters the proposal path. Multiple outputs are comparisons, not scientific votes. |
 | `M1.5-W14` | `complete` | Run an exact three-case certification fixture covering a valid grounded output, malformed structured output, and a schema-valid fabricated quote before gateway activation. | A deployment earns role eligibility from observed bounded behavior rather than vendor identity or general fluency. |
 | `M1.5-W15` | `complete` | Record immutable ModelRequest, ModelCall, prompt, parameters, bounded context, eligible and excluded routes, deployment revision, raw and validated output, validators, latency, tokens, cost, and proposal IDs in PostgreSQL. | Model behavior remains inspectable and comparable without consulting a chat transcript or trusting mutable provider logs. |
 | `M1.5-W16` | `complete` | Present one fixture ChangeSet through a durable AG-UI review interrupt and resolve the response through the same idempotent command used by direct review. | Conversational mediation must not create a second scientific-authority path. |
@@ -661,9 +661,9 @@ Before a live model, create and process a deterministic extractor fixture:
 
 ### Live extraction after the fixture passes
 
-The provider-neutral ModelGateway, certification fixture, durable execution records, and AG-UI-mediated review command are implemented. `M1.5-W13` is the only remaining M1.5 work item: a configured non-fixture deployment must run the same route and earn an active extractor certification.
+The provider-neutral ModelGateway, certification fixture, durable execution records, and AG-UI-mediated review command are implemented. `M1.5-W13` is the only remaining M1.5 work item: the two OpenAI candidates and local candidate must run the same non-fixture route. At least one OpenAI deployment and the local deployment must earn active extractor certifications.
 
-A live model is allowed to fail the fixture-derived quality checks. Failure remains visible and cannot block development of the deterministic spine, but M1 closure requires one certified configured deployment to return a valid proposal through the recorded route.
+A candidate model is allowed to fail the fixture-derived quality checks. Failure remains visible and cannot block development of the deterministic spine. M1 closure nevertheless requires a certified remote route and a certified local route to each return a valid proposal through the recorded gateway path. This is an architectural and operational diversity check, not evidence corroboration by model agreement.
 
 ### Exit gate
 
@@ -675,6 +675,7 @@ A live model is allowed to fail the fixture-derived quality checks. Failure rema
 | `M1.5-AC04` | Reversal removes the active projected edge without deleting its history. |
 | `M1.5-AC05` | No model or worker output can write trusted state directly. |
 | `M1.5-AC06` | Malformed, incomplete, stale, duplicate, or unauthorized AG-UI interrupt input cannot apply a ChangeSet. |
+| `M1.5-AC07` | The same extractor role and output contract can route through certified OpenAI and local deployments without changing proposal, validation, review, or authority semantics. |
 
 ## M1.6 — bounded retrieval, ContextPacket, and grounded response
 
