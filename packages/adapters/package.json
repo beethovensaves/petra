@@ -13,11 +13,16 @@
       "default": "./dist/server.js"
     }
   },
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts"
+  },
   "dependencies": {
     "@ag-ui/client": "0.0.59",
     "@ag-ui/core": "0.0.59",
     "@ag-ui/encoder": "0.0.59",
     "@petra/contracts": "0.0.0",
-    "@petra/core": "0.0.0"
+    "@petra/core": "0.0.0",
+    "json-canonicalize": "3.0.0",
+    "openai": "7.9.0"
   }
 }

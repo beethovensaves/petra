@@ -261,6 +261,12 @@ closes; model agreement will not be treated as scientific corroboration. No
 non-fixture deployment has been certified yet. See the
 [M1.5 model-gateway report](reports/M1.5-MODEL-GATEWAY.md).
 
+The remote implementation uses the official OpenAI TypeScript SDK and the
+Responses API. The local implementation uses a separate OpenAI-compatible HTTP
+adapter restricted to loopback addresses. Both stop at the same provider-neutral
+gateway response, and the local adapter requires a runtime-specific revision
+resolver before Petra can call its weights exactly replayable.
+
 ## Durable assistant-mediated review
 
 The review interrupt now names an exact pending interrupt revision and exact
