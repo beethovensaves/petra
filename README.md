@@ -255,6 +255,23 @@ adapter replaceable. Run `npm run test:retrieval`; architecture and limits are
 recorded in the
 [M1.6 retrieval report](reports/M1.6-RETRIEVAL-FOUNDATION.md).
 
+## Immutable context and evidence compilation
+
+The deterministic packet compiler turns exact authority records—not redacted
+graph properties—into registered ContextPacket and EvidencePacket records. It
+binds Project snapshot and recipe revisions, derives stable object refs and
+content hashes, carries trust and processing depth, requires a hashed rights
+decision for source-backed context, and accounts for every included record and
+estimated token.
+
+Budget selection preserves provenance closure. If a non-target candidate does
+not fit with its required SourceSpans, Petra records a material omission. If the
+objective target itself cannot fit with its source path, compilation fails.
+Evidence compilation then requires one explicit decision for every context
+object and cannot select a Claim or Assertion while excluding its cited
+SourceSpan. Contrary and qualifying coverage remain distinct. See the
+[M1.6 packet report](reports/M1.6-PACKET-COMPILATION.md).
+
 ## Measured model-gateway foundation
 
 The first extractor route now passes through a TypeScript-owned ModelGateway.

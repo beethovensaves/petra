@@ -50,7 +50,7 @@ export class ContextPacketError extends Error {
   }
 }
 
-type DeepReadonly<Value> = Value extends (...args: never[]) => unknown
+export type DeepReadonly<Value> = Value extends (...args: never[]) => unknown
   ? Value
   : Value extends readonly (infer Item)[]
     ? readonly DeepReadonly<Item>[]
