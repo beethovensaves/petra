@@ -6,6 +6,7 @@
 - **Depends on:** [D001](D001-local-first-runtime.md), [D005](D005-trusted-graph-review-and-direct-editing.md), [D007](D007-model-gateway-role-registry-and-routing.md), [D008](D008-graph-guided-execution-context-and-cost.md), [D009](D009-object-centered-research-workspace.md), [D012](D012-scoped-research-artifacts-and-external-adapters.md)
 - **Amends:** D009's provisional AG-UI evaluation boundary
 - **Implemented for M1 by:** [D014](D014-hono-react-vite-workbench-shell.md)
+- **Extended by:** [D017](D017-codex-app-server-subscription-provider.md) for Codex agent-event ingress
 
 ## Decision
 
@@ -33,6 +34,8 @@ Petra keeps two coordinated application paths:
 2. **AG-UI interaction:** streamed assistant conversation, activity, tool proposals, interruption, resumption, and synchronized interface projections.
 
 Both paths reach the same server-side policies and application commands. AG-UI does not create a second mutation path.
+
+D017 applies the same rule to Codex App Server. Provider notifications and server requests are translated into standard AG-UI events and provider-neutral runtime observations at the adapter boundary. They do not expose Codex protocol types to Petra core or create a scientific mutation path.
 
 ## Why AG-UI begins in M1
 

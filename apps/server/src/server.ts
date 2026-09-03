@@ -1,6 +1,12 @@
 import type { ServerType } from "@hono/node-server";
 import { serve } from "@hono/node-server";
 
+import {
+  CodexSubscriptionProvider,
+  type CodexSidecarOptions,
+  type CodexSubscriptionProviderPort,
+} from "@petra/adapters/server";
+
 import { createPetraApp, type PetraAppOptions } from "./app.js";
 
 export interface PetraServer {
@@ -9,31 +15,57 @@ export interface PetraServer {
   shutdown: () => Promise<void>;
   runtime: ReturnType<typeof createPetraApp>["runtime"];
   server: ServerType;
+  codexProvider?: CodexSubscriptionProviderPort;
+}
+
+export interface PetraServerOptions extends PetraAppOptions {
+  port?: number;
+  hostname?: string;
+  codexSidecar?: CodexSidecarOptions;
 }
 
 export const startPetraServer = async (
-  options: PetraAppOptions & { port?: number; hostname?: string } = {},
+  options: PetraServerOptions = {},
 ): Promise<PetraServer> => {
   const host = options.hostname ?? "127.0.0.1";
-  const petra = createPetraApp(options);
-  const server = serve({
-    fetch: petra.app.fetch,
-    hostname: host,
-    port: options.port ?? 4310,
+  const ownedCodexProvider =
+    options.codexProvider === undefined && options.codexSidecar !== undefined
+      ? await CodexSubscriptionProvider.startSidecar(options.codexSidecar)
+      : undefined;
+  const codexProvider = options.codexProvider ?? ownedCodexProvider;
+  const petra = createPetraApp({
+    ...options,
+    ...(codexProvider === undefined ? {} : { codexProvider }),
+    ...(options.codexWorkspaceRoot !== undefined
+      ? {}
+      : options.codexSidecar?.cwd === undefined
+        ? {}
+        : { codexWorkspaceRoot: options.codexSidecar.cwd }),
   });
+  let server: ServerType;
+  try {
+    server = serve({
+      fetch: petra.app.fetch,
+      hostname: host,
+      port: options.port ?? 4310,
+    });
 
-  await new Promise<void>((resolve, reject) => {
-    const onListening = (): void => {
-      server.removeListener("error", onError);
-      resolve();
-    };
-    const onError = (error: Error): void => {
-      server.removeListener("listening", onListening);
-      reject(error);
-    };
-    server.once("listening", onListening);
-    server.once("error", onError);
-  });
+    await new Promise<void>((resolve, reject) => {
+      const onListening = (): void => {
+        server.removeListener("error", onError);
+        resolve();
+      };
+      const onError = (error: Error): void => {
+        server.removeListener("listening", onListening);
+        reject(error);
+      };
+      server.once("listening", onListening);
+      server.once("error", onError);
+    });
+  } catch (error) {
+    await ownedCodexProvider?.close();
+    throw error;
+  }
 
   const address = server.address();
   if (address === null || typeof address === "string") {
@@ -44,14 +76,18 @@ export const startPetraServer = async (
     shutdownPromise ??= (async () => {
       petra.runtime.stopAdmission();
       petra.closeInteractionStreams();
-      await new Promise<void>((resolveClose, rejectClose) => {
-        server.close((error: Error | undefined) =>
-          error === undefined ? resolveClose() : rejectClose(error),
-        );
-        if ("closeIdleConnections" in server) server.closeIdleConnections();
-        if ("closeAllConnections" in server) server.closeAllConnections();
-      });
-      await petra.runtime.drain();
+      try {
+        await new Promise<void>((resolveClose, rejectClose) => {
+          server.close((error: Error | undefined) =>
+            error === undefined ? resolveClose() : rejectClose(error),
+          );
+          if ("closeIdleConnections" in server) server.closeIdleConnections();
+          if ("closeAllConnections" in server) server.closeAllConnections();
+        });
+        await petra.runtime.drain();
+      } finally {
+        await ownedCodexProvider?.close();
+      }
     })();
     return shutdownPromise;
   };
@@ -62,5 +98,6 @@ export const startPetraServer = async (
     shutdown,
     runtime: petra.runtime,
     server,
+    ...(codexProvider === undefined ? {} : { codexProvider }),
   };
 };

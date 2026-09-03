@@ -51,6 +51,7 @@
     "test:s3:integration": "node scripts/test-s3-integration.mjs",
     "test:integration": "node experiments/disc-04/run-integration.mjs",
     "test:docling:integration": "node scripts/test-docling-integration.mjs",
+    "test:codex-app-server:integration": "npm run build:packages && node scripts/test-codex-app-server-integration.mjs",
     "test:evidence-proposals:integration": "node scripts/test-evidence-proposal-integration.mjs",
     "test:python": "UV_CACHE_DIR=.cache/uv uv run --project workers/science pytest workers/science/tests",
     "test:server": "npm test --workspace @petra/server",

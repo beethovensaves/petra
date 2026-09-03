@@ -4,6 +4,7 @@
 - **Accepted:** 2026-08-28
 - **Scope:** Model and provider identity, bounded scientific roles, role certification, deterministic routing, egress, budgets, retries, fallbacks, call provenance, and Petra-language integration
 - **Depends on:** [D001](D001-local-first-runtime.md), [D002](D002-postgres-neo4j-artifacts.md), [D004](D004-docling-ingestion-and-claim-extraction.md), [D005](D005-trusted-graph-review-and-direct-editing.md), [D006](D006-petra-language-and-reference-contract.md)
+- **Extended by:** [D017](D017-codex-app-server-subscription-provider.md) for subscription-backed Codex agent work
 
 ## Decision
 
@@ -35,6 +36,8 @@ For the M1.5 extractor slice, every candidate runs the same versioned certificat
 The initial remote evaluation candidates are GPT-5.6 Luna and GPT-5.6 Terra. The local benchmark began with `gpt-oss-20b`, then added Qwen2.5 and Qwen3.5 after observed role-certification failures. These are test targets rather than permanent role assignments. GPT-5.6 Sol remains a possible later escalation candidate. The local development runtime is also test-before-lock: it must expose a bounded loopback adapter and cannot become part of the scientific contract.
 
 The local route is first-class. It supports E0 processing, offline continuity, provider-outage continuity, private-corpus work, reproducible comparison, and future controlled fine-tuning. Agreement between local and remote models is recorded as model comparison, never presented as independent scientific corroboration.
+
+D017 adds Codex App Server as a separate first-class agent-provider boundary for subscription-backed coding and agentic experimentation. It is not a general OpenAI API transport and does not satisfy the M1.5 remote extractor gate unless the exact route later earns its own role certification. The Responses API and local model paths remain required for controlled scientific extraction and validation.
 
 ## Context
 

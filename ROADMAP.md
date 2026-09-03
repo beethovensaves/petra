@@ -37,7 +37,7 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | --- | --- | --- |
 | Product thesis and scientific contract | Complete | `PETRA.md` |
 | Logical graph and event model | Complete as design | `PETRA_GRAPH_MODEL.md` |
-| Implementation roadmap | M1.5 in progress; model-gateway proposal foundation, direct and AG-UI-mediated review, projection, and compensating reversal complete; configured live extractor activation remains | `implementation_roadmap.md`, `reports/M1.5-MODEL-GATEWAY.md`, `reports/M1.5-DIRECT-REVIEW.md`, `reports/M1.5-AGUI-REVIEW-INTERRUPT.md`, `reports/M1.5-COMPENSATING-REVERSAL.md` |
+| Implementation roadmap | M1.5 in progress; model-gateway proposal foundation, certified local extraction, Codex subscription-agent adapter, direct and AG-UI-mediated review, projection, and compensating reversal complete; OpenAI Responses extractor certification remains | `implementation_roadmap.md`, `reports/M1.5-MODEL-GATEWAY.md`, `reports/M1.5-CODEX-APP-SERVER.md`, `reports/M1.5-DIRECT-REVIEW.md`, `reports/M1.5-AGUI-REVIEW-INTERRUPT.md`, `reports/M1.5-COMPENSATING-REVERSAL.md` |
 | Design implementation roadmap | UX1.0 foundations and UX1.1 research shell in progress | `design_implementation_roadmap.md` |
 | Source-control boundary | Dedicated `/petra` repository on `main`, backed by the private `beethovensaves/petra` remote; verified stages are committed and pushed | `.git/`, `.gitignore`, `implementation_roadmap.md` |
 | Machine-readable schemas | JSON Schema authority and the M1.1 contract kernel complete; Ajv/Python parity, generation, rejection, and canonical-hash gates pass | `decisions/D015-language-neutral-runtime-contracts.md`, `packages/contracts/` |
@@ -48,14 +48,14 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | Ingestion and claim-extraction pipeline | Complete as design | `decisions/D004-docling-ingestion-and-claim-extraction.md` |
 | Trusted-graph review and direct editing | Complete as design | `decisions/D005-trusted-graph-review-and-direct-editing.md` |
 | Language and hypothesis-reference contract | Complete as design | `decisions/D006-petra-language-and-reference-contract.md` |
-| Model gateway, role registry, and routing | Provider-neutral extractor foundation implemented; configured live deployment pending | `decisions/D007-model-gateway-role-registry-and-routing.md`, `reports/M1.5-MODEL-GATEWAY.md` |
+| Model gateway, role registry, and routing | Provider-neutral extractor foundation and certified Qwen3.5 local route implemented; OpenAI Responses certification remains | `decisions/D007-model-gateway-role-registry-and-routing.md`, `reports/M1.5-MODEL-GATEWAY.md` |
 | Graph-guided execution, context, and cost | Complete as design | `decisions/D008-graph-guided-execution-context-and-cost.md` |
 | Executable Petra ingestion workflow | Abstract-only Paper Trail baseline and exact CC BY full-text fixture complete; offline Docling returns stable document proposals, and independent TypeScript admission converts supported source passages into atomic quarantine-only Claim–Assertion pairs while rejecting fabricated spans | `fixtures/paper-trail/`, `fixtures/full-text/fair-guiding-principles/`, `packages/retrieval/`, `workers/science/`, `reports/M1.4-DOCLING-WORKER.md`, `reports/M1.5-DETERMINISTIC-PROPOSALS.md` |
 | Petra interface | Object-centered design accepted; deterministic shell preview exists; module design and validation are in progress | `decisions/D009-object-centered-research-workspace.md`, `design_implementation_roadmap.md` |
 | AG-UI interaction protocol | Official SDK and Petra adapter boundary accepted; M1 conformance and durable review-command fixtures pass without creating a second authority path | `decisions/D013-ag-ui-sdk-interaction-boundary.md`, `reports/M1.0-AGUI-HONO-CONFORMANCE.md`, `reports/M1.5-AGUI-REVIEW-INTERRUPT.md` |
 | Web workbench shell | Hono/React/Vite shell and addressable preview routes exist; scientific production views remain M1.7 work | `decisions/D014-hono-react-vite-workbench-shell.md`, `implementation_roadmap.md` |
 | Hypothesis assessment and posture | Complete as design | `decisions/D010-hypothesis-assessment-posture-and-obligations.md` |
-| Agent runtime and permissions | Partial design | Product, graph, D005, D007, D008, and D010 specifications |
+| Agent runtime and permissions | First Codex App Server adapter implemented for managed ChatGPT auth, bounded conversation, approvals, AG-UI translation, and non-authoritative runtime events; full workflow persistence and role certification remain | `decisions/D017-codex-app-server-subscription-provider.md`, `reports/M1.5-CODEX-APP-SERVER.md` |
 | Experiment runtime | Complete as design; implementation not started | `decisions/D011-experiment-sandbox-and-reproducibility.md` |
 | Research-artifact composition | Complete as design; implementation follows grounded synthesis | `decisions/D012-scoped-research-artifacts-and-external-adapters.md` |
 | External API and MCP | Shared boundary accepted; concrete adapters deferred | `decisions/D012-scoped-research-artifacts-and-external-adapters.md` |
@@ -85,6 +85,7 @@ Only the current decision should be resolved in detail. Later decisions remain p
 | [D014](decisions/D014-hono-react-vite-workbench-shell.md) | Hono-first TypeScript server and React/Vite workbench shell | Gives the mandatory AG-UI stream a Web Standard Node host while keeping Fastify as an evidence-triggered fallback | Accepted |
 | [D015](decisions/D015-language-neutral-runtime-contracts.md) | Language-neutral runtime contracts with JSON Schema | Gives TypeScript, Python, persistence, workers, and adapters one portable contract authority while keeping generated types and Pydantic downstream | Accepted |
 | [D016](decisions/D016-flyway-compose-persistence-tooling.md) | Flyway migrations and direct Compose integration harness | Selects the migration and real-service test lifecycle only after checksum, concurrency, rollback, interruption, recovery, diagnostics, and cleanup fixtures pass | Accepted |
+| [D017](decisions/D017-codex-app-server-subscription-provider.md) | Codex App Server managed subscription provider | Adds subscription-backed Codex for agentic and coding work without copying credentials, replacing the API/local routes, or granting scientific authority | Accepted |
 
 The queue may change when an implementation slice reveals a dependency. Reordering requires a short reason in the roadmap; it does not require pretending the original sequence was a failure.
 

@@ -13,9 +13,11 @@ that emits stable geometry-backed SourceSpans through shared contracts. M1.5 now
 adds deterministic and model-gateway evidence proposals, independent quarantine
 admission, human-reviewed promotion, graph projection, and compensating
 reversal. Its official AG-UI boundary now resolves a durable review interrupt
-through the same authority commands as direct review. No external model
-deployment is configured yet, and the current interaction is not yet a
-literature-research or model-backed scientific run.
+through the same authority commands as direct review. A certified Qwen3.5 local
+extractor now exercises the real quarantine route. An opt-in Codex App Server
+provider can also use the researcher's managed ChatGPT subscription for bounded
+agentic and coding work, but is not certified for scientific extraction. The
+current interaction is not yet a literature-research run.
 
 ## Required software
 
@@ -26,6 +28,7 @@ literature-research or model-backed scientific run.
 | Python | 3.13.7 | Installed. `uv` also honors `workers/science/.python-version`. |
 | uv | 0.12.5 | Installed. |
 | Docker Desktop | Current Apple-silicon release with Compose | Docker 29.7.2 and Compose 5.4.0 are active. |
+| Codex CLI | Optional; required only for the subscription provider | Codex CLI 0.151.0 passed the current App Server smoke test. |
 
 For the current Apple-silicon development machine, install Docker Desktop from
 the [official macOS installer](https://docs.docker.com/desktop/setup/install/mac-install/)
@@ -93,6 +96,7 @@ checksum.
 | `npm run test:neo4j:integration` | Migrate disposable PostgreSQL, project reviewed authority through real Neo4j, exercise bounded queries/rebuild, and remove every labeled resource. |
 | `npm run test:docling:integration` | Run the lawful PDF twice through local Docling, cross-validate all spans in TypeScript/Python, and prove malformed-PDF containment. |
 | `npm run test:evidence-proposals:integration` | Parse the lawful PDF once, admit grounded primary and qualification pairs into quarantine, and reject a fabricated SourceSpan without partial state. |
+| `npm run test:codex-app-server:integration` | Start a real Codex App Server sidecar, use the existing managed ChatGPT session for one ephemeral read-only no-tool turn, verify AG-UI and graph-runtime translation, and close it. |
 | `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
 | `npm run test:integration` | Run Vitest and pytest against disposable real services, then delete the stack. |
 | `npm run measure:m1-boundary` | Rebuild and measure the isolated browser cost of Petra's AG-UI client boundary. |
@@ -270,6 +274,35 @@ gateway response, and the local adapter requires a runtime-specific revision
 resolver before Petra can call its weights exactly replayable.
 The reproducible Docker Model Runner setup and live command are in
 [experiments/model-certification](experiments/model-certification/README.md).
+
+## Codex subscription provider
+
+Petra can start Codex App Server as an opt-in local sidecar and use the person's
+managed ChatGPT session for coding and agentic experimentation. This is a
+separate provider from both the OpenAI Responses API and the local open-weight
+runtime.
+
+Enable it for the server process:
+
+```sh
+export PETRA_CODEX_APP_SERVER_ENABLED=true
+npm run dev
+```
+
+The authenticated Petra API then exposes credential-free account status,
+managed `chatgpt` or `chatgptDeviceCode` login, thread and turn commands,
+interruption, and command/file approval resolution under
+`/api/providers/codex/*`. Petra fixes the workspace root and permits only
+`read-only` or `workspace-write` sandboxes at this boundary.
+
+Codex App Server owns OAuth persistence and refresh. Petra never reads or copies
+Codex credential files, does not accept `chatgptAuthTokens`, and does not treat
+the subscription as general Responses API access. App Server notifications are
+translated into AG-UI and provider-neutral graph-runtime observations with no
+scientific-authority effect. The route remains unavailable to the scientific
+extractor until it passes the same Petra certification suite. See
+[D017](decisions/D017-codex-app-server-subscription-provider.md) and the
+[live adapter report](reports/M1.5-CODEX-APP-SERVER.md).
 
 ## Durable assistant-mediated review
 

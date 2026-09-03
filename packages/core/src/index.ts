@@ -1,5 +1,6 @@
 export * from "./artifact-registry.js";
 export * from "./artifact-store.js";
+export * from "./agent-runtime-event.js";
 export * from "./authority-graph-projection.js";
 export * from "./authority-event-replay.js";
 export * from "./change-control-authority-repository.js";
