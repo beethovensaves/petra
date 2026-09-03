@@ -254,11 +254,13 @@ proposal.
 raw and validated output, prompt and context identities, validation results,
 latency, token use, cost, and proposal bundle as immutable PostgreSQL records.
 The three-case certification fixture establishes exact expected behavior, not a
-general quality score. The first non-fixture portfolio will compare GPT-5.6
-Luna, GPT-5.6 Terra, and a locally executed `gpt-oss-20b` under the same role
-contract. At least one OpenAI route and the local route must qualify before M1.5
-closes; model agreement will not be treated as scientific corroboration. No
-non-fixture deployment has been certified yet. See the
+general quality score. The first non-fixture portfolio compares GPT-5.6 Luna
+and GPT-5.6 Terra with benchmarked local open-weight deployments under the same
+role contract. Pinned Qwen3.5 35B-A3B passed the bounded extractor suite twice
+and produced a machine-checked quarantine proposal through the real gateway;
+gpt-oss and Qwen2.5 remain visible failed local candidates. At least one OpenAI
+route must still qualify before M1.5 closes. Model agreement will not be treated
+as scientific corroboration. See the
 [M1.5 model-gateway report](reports/M1.5-MODEL-GATEWAY.md).
 
 The remote implementation uses the official OpenAI TypeScript SDK and the
@@ -266,6 +268,8 @@ Responses API. The local implementation uses a separate OpenAI-compatible HTTP
 adapter restricted to loopback addresses. Both stop at the same provider-neutral
 gateway response, and the local adapter requires a runtime-specific revision
 resolver before Petra can call its weights exactly replayable.
+The reproducible Docker Model Runner setup and live command are in
+[experiments/model-certification](experiments/model-certification/README.md).
 
 ## Durable assistant-mediated review
 

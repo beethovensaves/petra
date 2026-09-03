@@ -32,7 +32,7 @@ The first non-fixture portfolio must exercise both model plurality and provider 
 
 For the M1.5 extractor slice, every candidate runs the same versioned certification cases under comparable prompt, schema, context, and budget conditions. M1.5 closes only after at least one OpenAI deployment and one local deployment earn active extractor certifications and produce valid quarantine proposals through the recorded gateway route. A candidate that fails remains registered with its observed result but cannot be activated for that role.
 
-The initial evaluation candidates are GPT-5.6 Luna, GPT-5.6 Terra, and local `gpt-oss-20b`. These are test targets rather than permanent role assignments. GPT-5.6 Sol remains a possible later escalation candidate. The local development runtime is also test-before-lock: it must expose a bounded loopback adapter and cannot become part of the scientific contract.
+The initial remote evaluation candidates are GPT-5.6 Luna and GPT-5.6 Terra. The local benchmark began with `gpt-oss-20b`, then added Qwen2.5 and Qwen3.5 after observed role-certification failures. These are test targets rather than permanent role assignments. GPT-5.6 Sol remains a possible later escalation candidate. The local development runtime is also test-before-lock: it must expose a bounded loopback adapter and cannot become part of the scientific contract.
 
 The local route is first-class. It supports E0 processing, offline continuity, provider-outage continuity, private-corpus work, reproducible comparison, and future controlled fine-tuning. Agreement between local and remote models is recorded as model comparison, never presented as independent scientific corroboration.
 

@@ -25,6 +25,7 @@ export interface LocalOpenAICompatibleExtractorOptions {
   readonly baseURL: string;
   readonly timeoutMs: number;
   readonly outputSchema: ExtractorOutputSchema;
+  readonly reasoningEffort?: "low" | "medium" | "high";
   readonly revisionResolver?: LocalModelRevisionResolver;
   readonly clock?: ModelAdapterClock;
   readonly fetch?: typeof globalThis.fetch;
@@ -49,6 +50,7 @@ export class LocalOpenAICompatibleExtractorAdapter implements ExtractorModelAdap
   readonly #client: OpenAI;
   readonly #outputSchema: ExtractorOutputSchema;
   readonly #revisionResolver: LocalModelRevisionResolver | undefined;
+  readonly #reasoningEffort: "low" | "medium" | "high" | undefined;
   readonly #clock: ModelAdapterClock;
 
   constructor(options: LocalOpenAICompatibleExtractorOptions) {
@@ -60,6 +62,7 @@ export class LocalOpenAICompatibleExtractorAdapter implements ExtractorModelAdap
       maxRetries: 0,
     });
     this.#outputSchema = options.outputSchema;
+    this.#reasoningEffort = options.reasoningEffort;
     this.#revisionResolver = options.revisionResolver;
     this.#clock = options.clock ?? systemClock;
   }
@@ -100,6 +103,9 @@ export class LocalOpenAICompatibleExtractorAdapter implements ExtractorModelAdap
         messages: renderExtractorInput(request),
         temperature: request.parameters.temperature,
         max_completion_tokens: request.parameters.max_output_tokens,
+        ...(this.#reasoningEffort === undefined
+          ? {}
+          : { reasoning_effort: this.#reasoningEffort }),
         ...(request.parameters.seed === undefined
           ? {}
           : { seed: request.parameters.seed }),
@@ -143,14 +149,15 @@ export class LocalOpenAICompatibleExtractorAdapter implements ExtractorModelAdap
           },
         };
       }
-      if (choice.message.refusal !== null) {
+      const refusal = choice.message.refusal;
+      if (typeof refusal === "string" && refusal.length > 0) {
         return {
           ...observation,
           outcome: "refusal",
-          output: { refusal: choice.message.refusal },
+          output: { refusal },
           failure: {
             code: "MODEL_REFUSAL",
-            message: choice.message.refusal,
+            message: refusal,
             retryable: false,
           },
         };

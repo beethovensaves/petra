@@ -5,11 +5,25 @@ import type {
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  boundedFailureCode,
+  DockerModelRunnerRevisionResolver,
   LocalOpenAICompatibleExtractorAdapter,
   OpenAIResponsesExtractorAdapter,
+  parseDockerModelRunnerInspection,
+  resolveDockerModelRunnerConfiguration,
   type ExtractorOutputSchema,
   type ModelAdapterClock,
 } from "../src/index.js";
+
+const localModelDigest =
+  "sha256:008cd4c511a1a06903eb0f12dad45acd574ef21aef5476de2bf3aff2c90912aa";
+
+describe("provider failure normalization", () => {
+  it("bounds non-string error codes without losing the failure record", () => {
+    expect(boundedFailureCode(400)).toBe("PROVIDER_400");
+    expect(boundedFailureCode({ code: "bad" })).toBe("PROVIDER_ERROR");
+  });
+});
 
 const outputSchema: ExtractorOutputSchema = {
   name: "petra_model_extractor_output",
@@ -151,7 +165,6 @@ const localCompletion = () => ({
       logprobs: null,
       message: {
         role: "assistant",
-        refusal: null,
         content: JSON.stringify(extracted),
       },
     },
@@ -324,6 +337,7 @@ describe("local OpenAI-compatible extractor adapter", () => {
       baseURL: "http://127.0.0.1:11434/v1",
       timeoutMs: 4_000,
       outputSchema,
+      reasoningEffort: "low",
       revisionResolver: { resolve },
       clock: clock(200, 242),
       fetch,
@@ -366,6 +380,7 @@ describe("local OpenAI-compatible extractor adapter", () => {
           strict: true,
         },
       },
+      reasoning_effort: "low",
     });
   });
 
@@ -389,5 +404,102 @@ describe("local OpenAI-compatible extractor adapter", () => {
       },
     });
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("Docker Model Runner revision resolver", () => {
+  it("resolves an exact digest only when the requested tag identifies it", async () => {
+    const inspect = vi.fn(() =>
+      Promise.resolve({
+        id: localModelDigest,
+        tags: ["docker.io/ai/gpt-oss:latest"],
+        created: 0,
+        config: { format: "gguf" },
+      }),
+    );
+    const resolver = new DockerModelRunnerRevisionResolver({ inspect });
+
+    await expect(resolver.resolve("docker.io/ai/gpt-oss:latest")).resolves.toBe(
+      localModelDigest,
+    );
+    expect(inspect).toHaveBeenCalledWith("docker.io/ai/gpt-oss:latest");
+  });
+
+  it("rejects mutable, malformed, and differently tagged inspection results", async () => {
+    expect(() =>
+      parseDockerModelRunnerInspection({
+        id: "gpt-oss:latest",
+        tags: ["docker.io/ai/gpt-oss:latest"],
+        created: 0,
+        config: {},
+      }),
+    ).toThrow("immutable sha256 model digest");
+
+    const resolver = new DockerModelRunnerRevisionResolver({
+      inspect: () =>
+        Promise.resolve({
+          id: localModelDigest,
+          tags: ["docker.io/ai/another-model:latest"],
+          created: 0,
+          config: { format: "gguf" },
+        }),
+    });
+    await expect(
+      resolver.resolve("docker.io/ai/gpt-oss:latest"),
+    ).rejects.toThrow("is not tagged as");
+  });
+
+  it("selects one exact backend configuration for the inspected digest", () => {
+    expect(
+      resolveDockerModelRunnerConfiguration(
+        [
+          {
+            Backend: "llama.cpp",
+            Model: "docker.io/ai/gpt-oss:latest",
+            ModelID: localModelDigest,
+            Mode: "completion",
+            Config: { "context-size": 8192 },
+          },
+        ],
+        {
+          modelReference: "docker.io/ai/gpt-oss:latest",
+          modelId: localModelDigest,
+          backend: "llama.cpp",
+        },
+      ),
+    ).toEqual({
+      Backend: "llama.cpp",
+      Model: "docker.io/ai/gpt-oss:latest",
+      ModelID: localModelDigest,
+      Mode: "completion",
+      Config: { "context-size": 8192 },
+    });
+  });
+
+  it("rejects absent, ambiguous, and malformed runtime configurations", () => {
+    const identity = {
+      modelReference: "docker.io/ai/gpt-oss:latest",
+      modelId: localModelDigest,
+      backend: "llama.cpp",
+    };
+    expect(() => resolveDockerModelRunnerConfiguration([], identity)).toThrow(
+      "exposed 0 configurations",
+    );
+    const match = {
+      Backend: "llama.cpp",
+      Model: identity.modelReference,
+      ModelID: identity.modelId,
+      Mode: "completion",
+      Config: {},
+    };
+    expect(() =>
+      resolveDockerModelRunnerConfiguration([match, match], identity),
+    ).toThrow("exposed 2 configurations");
+    expect(() =>
+      resolveDockerModelRunnerConfiguration(
+        [{ ...match, Config: "not-an-object" }],
+        identity,
+      ),
+    ).toThrow("has no Config object");
   });
 });

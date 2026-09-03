@@ -96,10 +96,12 @@ export const parseStructuredText = (value: string): unknown => {
   }
 };
 
-export const boundedFailureCode = (
-  value: string | null | undefined,
-): string => {
-  const normalized = (value ?? "PROVIDER_ERROR")
+export const boundedFailureCode = (value: unknown): string => {
+  const source =
+    typeof value === "string" || typeof value === "number"
+      ? String(value)
+      : "PROVIDER_ERROR";
+  const normalized = source
     .toUpperCase()
     .replace(/[^A-Z0-9_]/g, "_")
     .replace(/_+/g, "_")

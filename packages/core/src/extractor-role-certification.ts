@@ -27,6 +27,19 @@ export interface ExtractorCertificationCase {
   readonly expected_outcome:
     | { readonly outcome: "valid" }
     | { readonly outcome: "invalid"; readonly error_code: string };
+  readonly expected_candidate?: ExtractorCandidateExpectation;
+}
+
+type ExtractorCandidate = PetraModelExtractorOutput["candidates"][number];
+
+export interface ExtractorCandidateExpectation {
+  readonly source_span_id: string;
+  readonly proposal_roles?: readonly ExtractorCandidate["proposal_role"][];
+  readonly claim_kinds?: readonly ExtractorCandidate["claim_kind"][];
+  readonly detail_levels?: readonly ExtractorCandidate["detail_level"][];
+  readonly source_stances?: readonly ExtractorCandidate["source_stance"][];
+  readonly modalities?: readonly ExtractorCandidate["modality"][];
+  readonly negated?: boolean;
 }
 
 export interface ExtractorCertificationFixture {
@@ -83,6 +96,31 @@ const observeCase = (
     return error instanceof ModelEvidenceExtractionError
       ? error.code
       : "MODEL_OUTPUT_VALIDATION_FAILED";
+  }
+  if (fixtureCase.expected_candidate !== undefined) {
+    const output = fixtureCase.observed_output as PetraModelExtractorOutput;
+    const expectation = fixtureCase.expected_candidate;
+    const candidates = output.candidates.filter((candidate) =>
+      candidate.source_quote.source_span_ids.includes(
+        expectation.source_span_id,
+      ),
+    );
+    const matches = candidates.some(
+      (candidate) =>
+        (expectation.proposal_roles === undefined ||
+          expectation.proposal_roles.includes(candidate.proposal_role)) &&
+        (expectation.claim_kinds === undefined ||
+          expectation.claim_kinds.includes(candidate.claim_kind)) &&
+        (expectation.detail_levels === undefined ||
+          expectation.detail_levels.includes(candidate.detail_level)) &&
+        (expectation.source_stances === undefined ||
+          expectation.source_stances.includes(candidate.source_stance)) &&
+        (expectation.modalities === undefined ||
+          expectation.modalities.includes(candidate.modality)) &&
+        (expectation.negated === undefined ||
+          expectation.negated === candidate.negated),
+    );
+    if (!matches) return "MODEL_OUTPUT_EXPECTATION_FAILED";
   }
   return "valid";
 };

@@ -293,6 +293,82 @@ const requestFor = (
   requested_at: "2026-09-02T19:01:00.000Z",
 });
 
+describe("extractor role certification expectations", () => {
+  it("requires the grounded candidate to preserve bounded scientific semantics", () => {
+    const observed = extractorOutput();
+    const baseCase = {
+      case_id: "semantic-negation",
+      source_bundle: sourceBundle(),
+      source_selections: selections(),
+      observed_output: observed,
+      expected_outcome: { outcome: "valid" as const },
+    };
+    const fixture = {
+      suite: { name: "petra-extractor-role-semantics", version: "1.0.0" },
+      dataset_snapshot_hash: canonicalHash({ case: "semantic-negation" }),
+      deployment: deploymentSnapshot(),
+      role_profile: roleProfile(),
+      scope: {
+        domain: "cross-domain scientific text",
+        language: "en",
+        modality: "text" as const,
+        document_class: "scholarly" as const,
+      },
+      prompt_profile: {
+        name: "petra-source-grounded-extractor",
+        version: "1.0.0",
+        content_hash: canonicalHash(messages),
+      },
+      certified_by: {
+        actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        actor_kind: "service" as const,
+      },
+      certified_at: "2026-09-02T19:00:00.000Z",
+    };
+
+    const failed = runExtractorRoleCertificationFixture({
+      ...fixture,
+      cases: [
+        {
+          ...baseCase,
+          expected_candidate: {
+            source_span_id: selections()[0].source_span_id,
+            proposal_roles: ["negative_control" as const],
+            source_stances: ["reports" as const],
+            negated: false,
+          },
+        },
+      ],
+    });
+    expect(failed.certification.decision.status).toBe("failed");
+    expect(failed.cases[0]).toMatchObject({
+      expected: "valid",
+      observed: "MODEL_OUTPUT_EXPECTATION_FAILED",
+      passed: false,
+    });
+
+    const passed = runExtractorRoleCertificationFixture({
+      ...fixture,
+      cases: [
+        {
+          ...baseCase,
+          expected_candidate: {
+            source_span_id: selections()[0].source_span_id,
+            proposal_roles: ["primary" as const],
+            claim_kinds: ["descriptive" as const],
+            detail_levels: ["detailed" as const],
+            source_stances: ["reports" as const],
+            modalities: ["asserted" as const],
+            negated: false,
+          },
+        },
+      ],
+    });
+    expect(passed.certification.decision.status).toBe("active");
+    expect(passed.cases[0]?.passed).toBe(true);
+  });
+});
+
 describe("policy-first extractor ModelGateway", () => {
   it("certifies exact fixture behavior before activating a deployment", () => {
     const certification = certify();
