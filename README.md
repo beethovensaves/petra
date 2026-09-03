@@ -313,6 +313,12 @@ ModelRequests and ModelCalls. Invalid output remains inspectable as raw provider
 output but cannot become an accepted answer. See the
 [synthesist gateway report](reports/M1.6-SYNTHESIST-GATEWAY.md).
 
+A separate synthesist certification evaluator freezes packet-grounding and
+epistemic-behavior cases into the deployment's role record. It can reject a
+fluent, grounded response that omits a required origin, and it cannot reuse an
+extractor certification. See the
+[synthesist certification fixture report](reports/M1.6-SYNTHESIST-CERTIFICATION-FIXTURE.md).
+
 ## Measured model-gateway foundation
 
 The first extractor route now passes through a TypeScript-owned ModelGateway.

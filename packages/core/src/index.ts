@@ -32,6 +32,7 @@ export * from "./scientific-graph-projector.js";
 export * from "./scholarly-identity-repository.js";
 export * from "./synthesist-model-adapter.js";
 export * from "./synthesist-gateway.js";
+export * from "./synthesist-role-certification.js";
 export * from "./work-unit-registry.js";
 export * from "./work-unit-authority-repository.js";
 
