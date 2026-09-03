@@ -164,6 +164,50 @@ describe("Codex app-server subscription provider", () => {
     await provider.close();
   });
 
+  it("discovers only picker-visible subscription models through the stable catalog", async () => {
+    const port = initializedPort({
+      "model/list": () => ({
+        data: [
+          {
+            id: "gpt-5.6-sol",
+            model: "gpt-5.6-sol",
+            displayName: "GPT-5.6 Sol",
+            hidden: false,
+            isDefault: true,
+            defaultReasoningEffort: "low",
+            supportedReasoningEfforts: [
+              { reasoningEffort: "low", description: "Fast" },
+              { reasoningEffort: "medium", description: "Balanced" },
+            ],
+            inputModalities: ["text", "image"],
+            supportsPersonality: true,
+          },
+        ],
+        nextCursor: null,
+      }),
+    });
+    const provider = await CodexSubscriptionProvider.connect(port);
+
+    await expect(provider.listModels()).resolves.toEqual([
+      {
+        id: "gpt-5.6-sol",
+        model: "gpt-5.6-sol",
+        displayName: "GPT-5.6 Sol",
+        hidden: false,
+        isDefault: true,
+        defaultReasoningEffort: "low",
+        supportedReasoningEfforts: ["low", "medium"],
+        inputModalities: ["text", "image"],
+        supportsPersonality: true,
+      },
+    ]);
+    expect(port.sent.at(-1)).toMatchObject({
+      method: "model/list",
+      params: { limit: 100, includeHidden: false },
+    });
+    await provider.close();
+  });
+
   it("refuses a managed-login response that points outside OpenAI authentication", async () => {
     const port = initializedPort({
       "account/login/start": () => ({

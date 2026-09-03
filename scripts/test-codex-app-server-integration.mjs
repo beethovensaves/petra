@@ -16,6 +16,10 @@ try {
       "No managed ChatGPT session is available. Start Petra's chatgpt or chatgptDeviceCode login flow first.",
     );
   }
+  const models = await provider.listModels();
+  if (models.length === 0) {
+    throw new Error("The managed ChatGPT session exposed no Codex models.");
+  }
 
   const thread = await provider.startThread({
     cwd: process.cwd(),
@@ -96,6 +100,11 @@ try {
           model: thread.model,
           modelProvider: thread.modelProvider,
         },
+        catalog: models.map((model) => ({
+          model: model.model,
+          isDefault: model.isDefault,
+          supportedReasoningEfforts: model.supportedReasoningEfforts,
+        })),
         turn: { status: "completed", turnIdPresent: turn.turnId.length > 0 },
         translation: {
           agUiEvents: translated.length,

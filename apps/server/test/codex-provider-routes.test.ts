@@ -38,6 +38,36 @@ class FakeCodexProvider implements CodexSubscriptionProviderPort {
     };
   }
 
+  listModels(): Promise<
+    readonly [
+      {
+        id: "gpt-5.6-sol";
+        model: "gpt-5.6-sol";
+        displayName: "GPT-5.6 Sol";
+        hidden: false;
+        isDefault: true;
+        defaultReasoningEffort: "low";
+        supportedReasoningEfforts: readonly ["low", "medium"];
+        inputModalities: readonly ["text", "image"];
+        supportsPersonality: true;
+      },
+    ]
+  > {
+    return Promise.resolve([
+      {
+        id: "gpt-5.6-sol",
+        model: "gpt-5.6-sol",
+        displayName: "GPT-5.6 Sol",
+        hidden: false,
+        isDefault: true,
+        defaultReasoningEffort: "low",
+        supportedReasoningEfforts: ["low", "medium"],
+        inputModalities: ["text", "image"],
+        supportsPersonality: true,
+      },
+    ]);
+  }
+
   readAccount(): Promise<{
     authenticated: true;
     authMode: "chatgpt";
@@ -151,6 +181,12 @@ describe("Codex provider application boundary", () => {
       authMode: "chatgpt",
       planType: "plus",
       requiresOpenaiAuth: true,
+    });
+
+    const models = await request(petra.app, "/api/providers/codex/models");
+    expect(models.status).toBe(200);
+    expect(await models.json()).toMatchObject({
+      models: [{ model: "gpt-5.6-sol", isDefault: true }],
     });
 
     const login = await request(petra.app, "/api/providers/codex/login", {

@@ -14,6 +14,19 @@ import {
   type ExtractorOutputSchema,
   type ModelAdapterClock,
 } from "../src/index.js";
+import {
+  CodexSubscriptionExtractorAdapter,
+  type CodexAccountSummary,
+  type CodexManagedLoginResult,
+  type CodexModelSummary,
+  type CodexProviderDiagnostics,
+  type CodexProviderEvent,
+  type CodexSubscriptionProviderPort,
+  type CodexThreadStartRequest,
+  type CodexThreadSummary,
+  type CodexTurnStartRequest,
+  type CodexTurnSummary,
+} from "../src/server.js";
 
 const localModelDigest =
   "sha256:008cd4c511a1a06903eb0f12dad45acd574ef21aef5476de2bf3aff2c90912aa";
@@ -110,6 +123,134 @@ const requestFor = (
       "sha256:4444444444444444444444444444444444444444444444444444444444444444",
   },
 });
+
+const codexDeployment = (): ExtractorAdapterRequest["deployment"] => ({
+  ...deployment("remote"),
+  provider_kind: "codex_app_server",
+  provider_model: "gpt-5.6-sol",
+  observed_revision: "gpt-5.6-sol",
+});
+
+class FakeCodexExtractorProvider implements CodexSubscriptionProviderPort {
+  readonly threadRequests: CodexThreadStartRequest[] = [];
+  readonly turnRequests: CodexTurnStartRequest[] = [];
+  readonly #listeners = new Set<(event: CodexProviderEvent) => void>();
+  authMode: CodexAccountSummary["authMode"] = "chatgpt";
+  toolType: string | undefined;
+
+  diagnostics(): CodexProviderDiagnostics {
+    return {
+      providerKind: "codex_app_server",
+      initialized: true,
+      transport: "stdio_jsonl",
+      stableApiOnly: true,
+      managedChatgptAuthOnly: true,
+      pendingRequests: 0,
+      pendingServerRequests: 0,
+      scientificExtractionEligible: false,
+    };
+  }
+
+  readAccount(): Promise<CodexAccountSummary> {
+    return Promise.resolve({
+      authenticated: this.authMode !== "none",
+      authMode: this.authMode,
+      planType: this.authMode === "chatgpt" ? "plus" : null,
+      requiresOpenaiAuth: true,
+    });
+  }
+
+  listModels(): Promise<readonly CodexModelSummary[]> {
+    return Promise.resolve([]);
+  }
+
+  startManagedLogin(): Promise<CodexManagedLoginResult> {
+    throw new Error("Not used by the extractor test.");
+  }
+
+  cancelManagedLogin(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  startThread(request: CodexThreadStartRequest): Promise<CodexThreadSummary> {
+    this.threadRequests.push(request);
+    return Promise.resolve({
+      threadId: "thr_extractor",
+      model: request.model ?? null,
+      modelProvider: "openai",
+      cwd: request.cwd,
+    });
+  }
+
+  startTurn(request: CodexTurnStartRequest): Promise<CodexTurnSummary> {
+    this.turnRequests.push(request);
+    queueMicrotask(() => {
+      if (this.toolType !== undefined) {
+        this.#emit({
+          kind: "notification",
+          method: "item/started",
+          params: {
+            threadId: request.threadId,
+            turnId: "turn_extractor",
+            item: { id: "tool_1", type: this.toolType },
+          },
+        });
+      }
+      this.#emit({
+        kind: "notification",
+        method: "item/completed",
+        params: {
+          threadId: request.threadId,
+          turnId: "turn_extractor",
+          item: {
+            id: "message_1",
+            type: "agentMessage",
+            phase: "final_answer",
+            text: JSON.stringify(extracted),
+          },
+        },
+      });
+      this.#emit({
+        kind: "notification",
+        method: "turn/completed",
+        params: {
+          threadId: request.threadId,
+          turn: {
+            id: "turn_extractor",
+            status: "completed",
+            error: null,
+          },
+        },
+      });
+    });
+    return Promise.resolve({
+      threadId: request.threadId,
+      turnId: "turn_extractor",
+      status: "inProgress",
+    });
+  }
+
+  interruptTurn(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  resolveApproval(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  onEvent(listener: (event: CodexProviderEvent) => void): () => void {
+    this.#listeners.add(listener);
+    return () => this.#listeners.delete(listener);
+  }
+
+  close(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  #emit(event: CodexProviderEvent): void {
+    for (const listener of this.#listeners) listener(event);
+  }
+}
 
 const openAIResponse = () => ({
   id: "resp_petra_test",
@@ -404,6 +545,105 @@ describe("local OpenAI-compatible extractor adapter", () => {
       },
     });
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("Codex subscription extractor adapter", () => {
+  it("uses managed ChatGPT, a read-only no-tool turn, and structured output", async () => {
+    const provider = new FakeCodexExtractorProvider();
+    const adapter = new CodexSubscriptionExtractorAdapter({
+      provider,
+      workspaceRoot: "/work/petra",
+      timeoutMs: 1_000,
+      outputSchema,
+      clock: clock(400, 425),
+    });
+
+    await expect(
+      adapter.invoke(requestFor(codexDeployment())),
+    ).resolves.toMatchObject({
+      outcome: "success",
+      provider_request_id: "turn_extractor",
+      observed_revision: "gpt-5.6-sol",
+      output: extracted,
+      timing: { total_ms: 25 },
+      usage: { accounting: "unavailable" },
+      cost: { accounting: "unavailable" },
+    });
+    expect(provider.threadRequests).toHaveLength(1);
+    expect(provider.threadRequests[0]).toMatchObject({
+      model: "gpt-5.6-sol",
+      cwd: "/work/petra",
+      approvalPolicy: "never",
+      sandbox: "read-only",
+      ephemeral: true,
+    });
+    expect(provider.threadRequests[0]?.developerInstructions).toContain(
+      "Do not invoke tools",
+    );
+    expect(provider.turnRequests[0]).toMatchObject({
+      model: "gpt-5.6-sol",
+      effort: "low",
+      outputSchema: outputSchema.schema,
+    });
+    expect(provider.turnRequests[0]?.prompt).toContain(
+      "source_span_01ARZ3NDEKTSV4RRFFQ69G5FE5",
+    );
+  });
+
+  it("rejects non-ChatGPT authentication and tool activity", async () => {
+    const apiProvider = new FakeCodexExtractorProvider();
+    apiProvider.authMode = "apiKey";
+    const apiAdapter = new CodexSubscriptionExtractorAdapter({
+      provider: apiProvider,
+      workspaceRoot: "/work/petra",
+      timeoutMs: 1_000,
+      outputSchema,
+    });
+    await expect(
+      apiAdapter.invoke(requestFor(codexDeployment())),
+    ).resolves.toMatchObject({
+      outcome: "provider_error",
+      failure: { code: "CODEX_CHATGPT_LOGIN_REQUIRED" },
+    });
+    expect(apiProvider.threadRequests).toHaveLength(0);
+
+    const toolProvider = new FakeCodexExtractorProvider();
+    toolProvider.toolType = "webSearch";
+    const toolAdapter = new CodexSubscriptionExtractorAdapter({
+      provider: toolProvider,
+      workspaceRoot: "/work/petra",
+      timeoutMs: 1_000,
+      outputSchema,
+    });
+    await expect(
+      toolAdapter.invoke(requestFor(codexDeployment())),
+    ).resolves.toMatchObject({
+      outcome: "provider_error",
+      failure: { code: "CODEX_EXTRACTOR_TOOL_ACTIVITY" },
+    });
+  });
+
+  it("refuses an unsupported seed instead of silently dropping it", async () => {
+    const provider = new FakeCodexExtractorProvider();
+    const adapter = new CodexSubscriptionExtractorAdapter({
+      provider,
+      workspaceRoot: "/work/petra",
+      timeoutMs: 1_000,
+      outputSchema,
+    });
+    const request = requestFor(codexDeployment());
+
+    await expect(
+      adapter.invoke({
+        ...request,
+        parameters: { ...request.parameters, seed: 17 },
+      }),
+    ).resolves.toMatchObject({
+      outcome: "provider_error",
+      failure: { code: "CODEX_PARAMETER_UNSUPPORTED" },
+    });
+    expect(provider.threadRequests).toHaveLength(0);
   });
 });
 

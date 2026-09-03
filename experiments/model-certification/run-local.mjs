@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import {
   DockerModelRunnerRevisionResolver,
   LocalOpenAICompatibleExtractorAdapter,
+  projectExtractorOutputSchemaForProvider,
   resolveDockerModelRunnerConfiguration,
 } from "@petra/adapters";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -26,7 +27,6 @@ const baseURL =
 const isGptOss = modelReference.includes("gpt-oss");
 const reasoningEffort = isGptOss ? "low" : undefined;
 const certifiedAt = new Date().toISOString();
-const providerArrayItemLimit = 10;
 const processor = cpus();
 const hardwareProfile = {
   platform: platform(),
@@ -45,110 +45,6 @@ const fixtureId = (kind, label) =>
 
 const readJson = async (path) =>
   JSON.parse(await readFile(new URL(path, import.meta.url), "utf8"));
-
-const bundleProviderSchema = (outputSchema, commonSchema) => {
-  const bundled = structuredClone(outputSchema);
-  delete bundled.$schema;
-  delete bundled.$id;
-  delete bundled.title;
-  const requiredCommonDefinitions = [
-    "PetraId",
-    "SourceSpanId",
-    "ScopeDimensionName",
-    "ScopeDimension",
-    "ScientificScope",
-  ];
-  for (const name of requiredCommonDefinitions) {
-    const definition = commonSchema.$defs?.[name];
-    if (definition === undefined) {
-      throw new Error(`Canonical common schema is missing $defs/${name}.`);
-    }
-    bundled.$defs[name] = structuredClone(definition);
-  }
-  const localizeReferences = (value) => {
-    if (Array.isArray(value)) {
-      for (const member of value) localizeReferences(member);
-      return;
-    }
-    if (typeof value !== "object" || value === null) return;
-    if (
-      typeof value.$ref === "string" &&
-      value.$ref.startsWith("../../common/1.0.0/schema.json#/$defs/")
-    ) {
-      value.$ref = value.$ref.replace("../../common/1.0.0/schema.json", "");
-    }
-    for (const member of Object.values(value)) localizeReferences(member);
-  };
-  localizeReferences(bundled);
-  const pointerValue = (reference) => {
-    if (!reference.startsWith("#/$defs/")) {
-      throw new Error(
-        `Provider schema contains an unbundled $ref: ${reference}`,
-      );
-    }
-    const name = reference.slice("#/$defs/".length);
-    const definition = bundled.$defs?.[name];
-    if (definition === undefined) {
-      throw new Error(`Provider schema cannot resolve ${reference}.`);
-    }
-    return definition;
-  };
-  const simplify = (value) => {
-    if (Array.isArray(value)) return value.map((member) => simplify(member));
-    if (typeof value !== "object" || value === null) return value;
-    if (typeof value.$ref === "string") {
-      return simplify(pointerValue(value.$ref));
-    }
-    if (Array.isArray(value.allOf)) {
-      const members = value.allOf.map((member) => simplify(member));
-      const merged = {};
-      for (const member of members) {
-        if (typeof member === "object" && member !== null) {
-          Object.assign(merged, member);
-        }
-      }
-      return merged;
-    }
-    const supported = new Set([
-      "type",
-      "const",
-      "enum",
-      "additionalProperties",
-      "required",
-      "properties",
-      "items",
-      "minItems",
-      "maxItems",
-      "minLength",
-    ]);
-    const result = {};
-    for (const [key, member] of Object.entries(value)) {
-      if (key === "properties") {
-        result.properties = Object.fromEntries(
-          Object.entries(member).map(([propertyName, propertySchema]) => [
-            propertyName,
-            simplify(propertySchema),
-          ]),
-        );
-      } else if (key === "maxItems" && Number.isInteger(member)) {
-        result.maxItems = Math.min(member, providerArrayItemLimit);
-      } else if (supported.has(key)) {
-        result[key] = simplify(member);
-      }
-    }
-    return result;
-  };
-  const simplified = simplify(bundled);
-  const rootProperties = Object.keys(simplified.properties ?? {});
-  if (
-    !["schema_name", "schema_version", "candidates", "diagnostics"].every(
-      (name) => rootProperties.includes(name),
-    )
-  ) {
-    throw new Error("Provider schema projection lost required root fields.");
-  }
-  return simplified;
-};
 
 const buildSyntheticCase = (template, definition) => {
   const sourceBundle = structuredClone(template);
@@ -250,7 +146,7 @@ const main = async () => {
         "../../packages/contracts/fixtures/accepted/document-parse-bundle.json",
       ),
     ]);
-  const providerSchema = bundleProviderSchema(
+  const providerSchema = projectExtractorOutputSchemaForProvider(
     outputSchemaDocument,
     commonSchema,
   );

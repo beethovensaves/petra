@@ -57,8 +57,8 @@ The three initial execution boundaries remain complementary:
 
 | Boundary | Best initial use | Governing limits |
 | --- | --- | --- |
-| Codex App Server subscription | Interactive coding, agentic experimentation, code review, and later conversational assistance | ChatGPT entitlement, Codex surface, per-user managed login, and agent permissions |
-| OpenAI Responses API | Predictable production calls, explicit API model selection, metered budgets, structured extraction, and service deployment | Platform project, API key, API data policy, and measured token cost |
+| Codex App Server subscription | Interactive coding, agentic experimentation, code review, and certification-gated scientific roles | ChatGPT entitlement, Codex surface, per-user managed login, agent permissions, and unavailable per-call API pricing |
+| OpenAI Responses API | Optional later production calls, explicit API model selection, metered budgets, and service deployment | Platform project, API key, API data policy, and measured token cost; not required by the individual-workbench baseline |
 | Local open-weight runtime | E0 data, offline continuity, controlled benchmarking, exact local revision, and future fine-tuning | Local hardware, runtime quality, and role certification |
 
 The Codex route does not replace either of the others.
@@ -71,7 +71,7 @@ The provider cannot enter the extractor, critic, synthesist, or conversational s
 
 If Codex later passes extractor certification, it still produces only validated quarantine proposals through the existing ModelGateway and evidence-admission path. It never receives a direct trusted-state adapter. A subscription-backed output and an API-backed output from related OpenAI models are model comparisons, not independent scientific corroboration.
 
-The M1.5 requirement for a certified OpenAI Responses API extractor remains unchanged. A successful Codex smoke turn does not satisfy it.
+M1.5 requires one subscription-backed Codex model and one local model to earn extractor certification and produce quarantine proposals. It does not require an API key or a Responses API call. A successful generic Codex smoke turn still does not satisfy the extractor gate: the exact structured-output route must pass Petra's scientific certification suite first.
 
 ## Conversations and permissions
 

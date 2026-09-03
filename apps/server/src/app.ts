@@ -328,6 +328,29 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     }
   });
 
+  app.get("/api/providers/codex/models", async (context) => {
+    if (options.codexProvider === undefined) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_PROVIDER_UNAVAILABLE",
+        "The Codex subscription provider is not enabled.",
+      );
+    }
+    try {
+      return context.json({ models: await options.codexProvider.listModels() });
+    } catch (error) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_MODEL_CATALOG_UNAVAILABLE",
+        error instanceof Error
+          ? error.message
+          : "The Codex model catalog is unavailable.",
+      );
+    }
+  });
+
   app.post("/api/providers/codex/login", async (context) => {
     if (options.codexProvider === undefined) {
       return jsonError(

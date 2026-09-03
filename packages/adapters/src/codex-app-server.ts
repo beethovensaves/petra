@@ -30,6 +30,18 @@ export interface CodexAccountSummary {
   requiresOpenaiAuth: boolean;
 }
 
+export interface CodexModelSummary {
+  id: string;
+  model: string;
+  displayName: string;
+  hidden: boolean;
+  isDefault: boolean;
+  defaultReasoningEffort: string | null;
+  supportedReasoningEfforts: readonly string[];
+  inputModalities: readonly string[];
+  supportsPersonality: boolean;
+}
+
 export type CodexManagedLoginResult =
   | {
       type: "chatgpt";
@@ -116,6 +128,7 @@ export interface CodexProviderDiagnostics {
 export interface CodexSubscriptionProviderPort {
   diagnostics(): CodexProviderDiagnostics;
   readAccount(): Promise<CodexAccountSummary>;
+  listModels(): Promise<readonly CodexModelSummary[]>;
   startManagedLogin(
     type: "chatgpt" | "chatgptDeviceCode",
   ): Promise<CodexManagedLoginResult>;
@@ -412,6 +425,102 @@ export class CodexSubscriptionProvider implements CodexSubscriptionProviderPort 
         type === "chatgpt" ? optionalString(result.account.planType) : null,
       requiresOpenaiAuth: result.requiresOpenaiAuth,
     };
+  }
+
+  async listModels(): Promise<readonly CodexModelSummary[]> {
+    const models: CodexModelSummary[] = [];
+    const modelIds = new Set<string>();
+    const cursors = new Set<string>();
+    let cursor: string | undefined;
+
+    for (let page = 0; page < 10; page += 1) {
+      const result = await this.#request("model/list", {
+        limit: 100,
+        includeHidden: false,
+        ...(cursor === undefined ? {} : { cursor }),
+      });
+      if (!isRecord(result) || !Array.isArray(result.data)) {
+        throw new CodexAppServerProtocolError(
+          "CODEX_RESPONSE_INVALID",
+          "Codex app-server returned an invalid model catalog.",
+        );
+      }
+      if (result.data.length > 100) {
+        throw new CodexAppServerProtocolError(
+          "CODEX_RESPONSE_INVALID",
+          "Codex app-server exceeded Petra's bounded model-catalog page size.",
+        );
+      }
+      for (const value of result.data) {
+        if (!isRecord(value)) {
+          throw new CodexAppServerProtocolError(
+            "CODEX_RESPONSE_INVALID",
+            "Codex app-server returned a malformed model entry.",
+          );
+        }
+        const id = nonEmptyString(value.id, "model.id");
+        if (modelIds.has(id)) continue;
+        modelIds.add(id);
+        const efforts = Array.isArray(value.supportedReasoningEfforts)
+          ? value.supportedReasoningEfforts.map((effort) => {
+              if (!isRecord(effort)) {
+                throw new CodexAppServerProtocolError(
+                  "CODEX_RESPONSE_INVALID",
+                  "Codex app-server returned a malformed reasoning-effort entry.",
+                );
+              }
+              return nonEmptyString(
+                effort.reasoningEffort,
+                "model.supportedReasoningEfforts.reasoningEffort",
+              );
+            })
+          : [];
+        const inputModalities =
+          value.inputModalities === undefined
+            ? ["text", "image"]
+            : Array.isArray(value.inputModalities) &&
+                value.inputModalities.every(
+                  (modality): modality is string =>
+                    typeof modality === "string" && modality.length > 0,
+                )
+              ? value.inputModalities
+              : undefined;
+        if (inputModalities === undefined) {
+          throw new CodexAppServerProtocolError(
+            "CODEX_RESPONSE_INVALID",
+            "Codex app-server returned malformed model input modalities.",
+          );
+        }
+        const model = nonEmptyString(value.model, "model.model");
+        models.push({
+          id,
+          model,
+          displayName: optionalString(value.displayName) ?? model,
+          hidden: value.hidden === true,
+          isDefault: value.isDefault === true,
+          defaultReasoningEffort: optionalString(value.defaultReasoningEffort),
+          supportedReasoningEfforts: efforts,
+          inputModalities: [...inputModalities],
+          supportsPersonality: value.supportsPersonality === true,
+        });
+      }
+
+      const nextCursor = optionalString(result.nextCursor);
+      if (nextCursor === null) return models;
+      if (cursors.has(nextCursor)) {
+        throw new CodexAppServerProtocolError(
+          "CODEX_RESPONSE_INVALID",
+          "Codex app-server repeated a model-catalog cursor.",
+        );
+      }
+      cursors.add(nextCursor);
+      cursor = nextCursor;
+    }
+
+    throw new CodexAppServerProtocolError(
+      "CODEX_RESPONSE_INVALID",
+      "Codex app-server exceeded Petra's bounded model-catalog pagination limit.",
+    );
   }
 
   async startManagedLogin(
