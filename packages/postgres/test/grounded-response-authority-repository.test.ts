@@ -9,6 +9,8 @@ import type {
   PetraAuthor,
   PetraClaim,
   PetraCommandEnvelope,
+  PetraCompositionPlan,
+  PetraCompositionRequest,
   PetraDomainEventRecord,
   PetraEvidencePacket,
   PetraGroundedResponse,
@@ -51,6 +53,11 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
 import { PostgresChangeControlAuthorityRepository } from "../src/change-control-authority-repository.js";
+import {
+  type CompositionPersistenceError,
+  type CompositionPersistenceErrorCode,
+  PostgresCompositionAuthorityRepository,
+} from "../src/composition-authority-repository.js";
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
 import { PostgresGroundedResponseAuthorityRepository } from "../src/grounded-response-authority-repository.js";
@@ -88,6 +95,15 @@ const sha256 = (bytes: Uint8Array): string =>
 
 const canonicalHash = (value: unknown): string =>
   sha256(new TextEncoder().encode(canonicalize(value)));
+
+const expectCompositionCode = async (
+  operation: () => Promise<unknown>,
+  code: CompositionPersistenceErrorCode,
+): Promise<void> => {
+  await expect(operation()).rejects.toEqual(
+    expect.objectContaining<Partial<CompositionPersistenceError>>({ code }),
+  );
+};
 
 const serviceActor = (): PetraActor => ({
   ...readFixture<PetraActor>("actor"),
@@ -707,6 +723,133 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       context_packet_id: stored.content.context_packet_ref.context_packet_id,
       model_request_id: stored.content.execution_ref.model_request_id,
     });
+  });
+
+  it("persists immutable composition controls and rehydrates them after restart", async () => {
+    const terminal = await persistTerminal();
+    await new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      terminal.packets,
+    ).register(terminal.input);
+    const request = readFixture<PetraCompositionRequest>("composition-request");
+    const plan = readFixture<PetraCompositionPlan>("composition-plan");
+    plan.compiled_by = serviceRef();
+    const repository = new PostgresCompositionAuthorityRepository(
+      pool,
+      terminal.packets,
+    );
+
+    const storedRequest = await repository.registerRequest(request);
+    const storedPlan = await repository.registerPlan(plan);
+    expect(await repository.registerRequest(structuredClone(request))).toEqual(
+      storedRequest,
+    );
+    expect(await repository.registerPlan(structuredClone(plan))).toEqual(
+      storedPlan,
+    );
+
+    const restarted = new PostgresCompositionAuthorityRepository(
+      pool,
+      new InMemoryContextPacketRegistry(),
+    );
+    expect(await restarted.getRequest(request.composition_request_id)).toEqual(
+      storedRequest,
+    );
+    expect(await restarted.getPlan(plan.composition_plan_id)).toEqual(
+      storedPlan,
+    );
+    expect(await restarted.registerPlan(structuredClone(plan))).toEqual(
+      storedPlan,
+    );
+
+    const counts = await pool.query<{
+      evidence_refs: string;
+      plans: string;
+      requests: string;
+      subjects: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.composition_requests) AS requests,
+         (SELECT count(*)::text FROM petra.composition_request_subjects) AS subjects,
+         (SELECT count(*)::text FROM petra.composition_plans) AS plans,
+         (SELECT count(*)::text FROM petra.composition_plan_evidence_refs) AS evidence_refs`,
+    );
+    expect(counts.rows[0]).toEqual({
+      requests: "1",
+      subjects: "1",
+      plans: "1",
+      evidence_refs: "3",
+    });
+  });
+
+  it("rejects conflicting control identities and missing durable evidence atomically", async () => {
+    const terminal = await persistTerminal();
+    await new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      terminal.packets,
+    ).register(terminal.input);
+    const repository = new PostgresCompositionAuthorityRepository(
+      pool,
+      terminal.packets,
+    );
+    const request = readFixture<PetraCompositionRequest>("composition-request");
+    await repository.registerRequest(request);
+
+    const changedRequest = structuredClone(request);
+    changedRequest.content.objective = "A different composition objective.";
+    changedRequest.content_hash = canonicalHash(changedRequest.content);
+    await expectCompositionCode(
+      () => repository.registerRequest(changedRequest),
+      "COMPOSITION_PERSISTENCE_REQUEST_ID_CONFLICT",
+    );
+
+    const missingEvidence =
+      readFixture<PetraCompositionPlan>("composition-plan");
+    missingEvidence.evidence_packet_ref.evidence_packet_id =
+      "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FD0";
+    await expectCompositionCode(
+      () => repository.registerPlan(missingEvidence),
+      "COMPOSITION_PERSISTENCE_REFERENCE_MISSING",
+    );
+    const count = await pool.query<{ value: string }>(
+      "SELECT count(*)::text AS value FROM petra.composition_plans",
+    );
+    expect(count.rows[0]?.value).toBe("0");
+  });
+
+  it("prevents SQL mutation of composition controls", async () => {
+    const terminal = await persistTerminal();
+    await new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      terminal.packets,
+    ).register(terminal.input);
+    const repository = new PostgresCompositionAuthorityRepository(
+      pool,
+      terminal.packets,
+    );
+    const request = readFixture<PetraCompositionRequest>("composition-request");
+    await repository.registerRequest(request);
+
+    try {
+      await pool.query(
+        `UPDATE petra.composition_requests
+            SET requested_at = requested_at + interval '1 second'
+          WHERE composition_request_id = $1`,
+        [request.composition_request_id],
+      );
+      throw new Error("Expected the immutable trigger to reject the update.");
+    } catch (error: unknown) {
+      expect(error).toBeInstanceOf(Error);
+      expect(error).toEqual(expect.objectContaining({ code: "55000" }));
+      if (error instanceof Error) {
+        expect(error.message).toContain(
+          "Composition control records are immutable",
+        );
+      }
+    }
+    expect(await repository.getRequest(request.composition_request_id)).toEqual(
+      request,
+    );
   });
 
   it("records the complete grounded terminal and converges on exact replay", async () => {

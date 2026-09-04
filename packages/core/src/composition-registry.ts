@@ -102,6 +102,17 @@ export interface RegisterCompositionInput {
   scholarlyRecords: ScholarlyCitationRecords;
 }
 
+export interface CompositionControlAuthorityRepository {
+  registerRequest(
+    request: PetraCompositionRequest,
+  ): Promise<PetraCompositionRequest>;
+  registerPlan(plan: PetraCompositionPlan): Promise<PetraCompositionPlan>;
+  getRequest(
+    compositionRequestId: string,
+  ): Promise<PetraCompositionRequest | undefined>;
+  getPlan(compositionPlanId: string): Promise<PetraCompositionPlan | undefined>;
+}
+
 interface StoredComposition {
   readonly fingerprint: string;
   readonly draft: DeepReadonly<PetraDraftArtifact>;
