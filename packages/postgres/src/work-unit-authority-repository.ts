@@ -4,14 +4,18 @@ import type {
   PetraWorkerInputManifest,
   PetraWorkerOutputManifest,
   PetraWorkUnit,
+  PetraWorkUnitCancellation,
+  WorkUnitCancellationCommand,
   WorkerFailure,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
+  derivePetraId,
   InMemoryWorkUnitRegistry,
   WorkUnitError,
   type RegisterWorkUnitInput,
   type WorkUnitAuthorityRepository,
+  type WorkUnitCancellationResult,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
@@ -314,6 +318,147 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
         registry.cancel(workUnitId, expectedRevision, reason, cancelledAt),
       ),
     );
+  }
+
+  async getCancellationByCommand(
+    commandId: string,
+  ): Promise<PetraWorkUnitCancellation | undefined> {
+    const result = await this.#pool.query<PayloadRow>(
+      `SELECT payload
+         FROM petra.work_unit_cancellations
+        WHERE command_id = $1`,
+      [commandId],
+    );
+    return this.#readCancellation(result.rows[0]?.payload);
+  }
+
+  async cancelByCommand(
+    command: WorkUnitCancellationCommand,
+  ): Promise<WorkUnitCancellationResult> {
+    return this.#transaction(async (client) => {
+      await this.#lock(client, [
+        `work-unit:${command.expected_work_unit_ref.work_unit_id}`,
+        `work-unit-cancellation-command:${command.command_id}`,
+        `work-unit-cancellation-idempotency:${command.idempotency_key}`,
+      ]);
+
+      const existingResult = await client.query<PayloadRow>(
+        `SELECT payload
+           FROM petra.work_unit_cancellations
+          WHERE command_id = $1 OR idempotency_key = $2
+          ORDER BY command_id`,
+        [command.command_id, command.idempotency_key],
+      );
+      if (existingResult.rows.length > 0) {
+        if (existingResult.rows.length !== 1) {
+          throw new WorkUnitError(
+            "WORK_UNIT_CANCELLATION_COMMAND_CONFLICT",
+            "The cancellation command ID and idempotency key identify different commands.",
+          );
+        }
+        const existing = this.#readCancellation(
+          existingResult.rows[0]?.payload,
+        );
+        if (
+          existing === undefined ||
+          canonicalize(existing.content.command) !== canonicalize(command)
+        ) {
+          throw new WorkUnitError(
+            "WORK_UNIT_CANCELLATION_COMMAND_CONFLICT",
+            "The cancellation command ID or idempotency key is already bound to different input.",
+          );
+        }
+        const resultRef = existing.content.outcome.work_unit_ref;
+        const workUnit = await this.#getWorkUnitRevision(
+          client,
+          resultRef.work_unit_id,
+          resultRef.revision,
+        );
+        if (workUnit === undefined) {
+          throw new Error(
+            "A persisted cancellation lost its WorkUnit revision.",
+          );
+        }
+        return { cancellation: existing, workUnit, applied: false };
+      }
+
+      const expected = command.expected_work_unit_ref;
+      await this.#requireHead(client, expected.work_unit_id);
+      const current = await this.#getWorkUnit(client, expected.work_unit_id);
+      if (
+        current === undefined ||
+        current.revision !== expected.revision ||
+        current.spec_hash !== expected.spec_hash
+      ) {
+        throw new WorkUnitError(
+          "WORK_UNIT_CANCELLATION_REFERENCE_MISMATCH",
+          "Cancellation must name the exact current WorkUnit revision and specification.",
+        );
+      }
+      if (
+        current.capability_grant_id !== command.capability_grant_id ||
+        current.created_by.actor_id !== command.requested_by.actor_id ||
+        current.created_by.actor_kind !== command.requested_by.actor_kind
+      ) {
+        throw new WorkUnitError(
+          "WORK_UNIT_CANCELLATION_NOT_AUTHORIZED",
+          "The cancellation command is not authorized by this WorkUnit's capability and service identity.",
+        );
+      }
+
+      const registry = await this.#rehydrate(client, expected.work_unit_id);
+      const next = mutableWorkUnit(
+        registry.cancel(
+          expected.work_unit_id,
+          expected.revision,
+          command.reason,
+          command.requested_at,
+        ),
+      );
+      this.#contracts.assertValid("work-unit", "1.0.0", next);
+
+      const content: PetraWorkUnitCancellation["content"] = {
+        command: clone(command),
+        outcome: {
+          outcome_kind: "cancelled",
+          work_unit_ref: {
+            work_unit_id: next.work_unit_id,
+            revision: next.revision,
+            spec_hash: next.spec_hash,
+          },
+          cancelled_at: command.requested_at,
+        },
+        authority_boundary: {
+          effect_kind: "operational_only",
+          scientific_authority_changed: false,
+          connection_abort_was_command: false,
+        },
+      };
+      const cancellation: PetraWorkUnitCancellation = {
+        schema_name: "petra.work-unit-cancellation",
+        schema_version: "1.0.0",
+        work_unit_cancellation_id: derivePetraId(
+          "work_unit_cancellation",
+          command.command_id,
+        ),
+        revision: 1,
+        project_id: next.project_id,
+        content,
+        content_hash: canonicalHash(content),
+        recorded_by: clone(command.requested_by),
+        recorded_at: command.requested_at,
+      };
+      this.#contracts.assertValid(
+        "work-unit-cancellation",
+        "1.0.0",
+        cancellation,
+      );
+
+      await this.#insertWorkUnitRevision(client, next);
+      await this.#advanceHead(client, next);
+      await this.#insertCancellation(client, cancellation);
+      return { cancellation, workUnit: next, applied: true };
+    });
   }
 
   async #transition(
@@ -769,6 +914,20 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
     return this.#readWorkUnit(result.rows[0]?.payload);
   }
 
+  async #getWorkUnitRevision(
+    queryable: Pick<Pool, "query"> | Pick<PoolClient, "query">,
+    workUnitId: string,
+    revision: number,
+  ): Promise<PetraWorkUnit | undefined> {
+    const result = await queryable.query<PayloadRow>(
+      `SELECT payload
+         FROM petra.work_unit_revisions
+        WHERE work_unit_id = $1 AND revision = $2`,
+      [workUnitId, revision],
+    );
+    return this.#readWorkUnit(result.rows[0]?.payload);
+  }
+
   #readWorkUnit(payload: unknown): PetraWorkUnit | undefined {
     if (payload === undefined) return undefined;
     this.#contracts.assertValid("work-unit", "1.0.0", payload);
@@ -785,6 +944,60 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
     if (payload === undefined) return undefined;
     this.#contracts.assertValid("worker-output-manifest", "1.0.0", payload);
     return clone(payload as PetraWorkerOutputManifest);
+  }
+
+  #readCancellation(payload: unknown): PetraWorkUnitCancellation | undefined {
+    if (payload === undefined) return undefined;
+    this.#contracts.assertValid("work-unit-cancellation", "1.0.0", payload);
+    return clone(payload as PetraWorkUnitCancellation);
+  }
+
+  async #insertCancellation(
+    client: PoolClient,
+    cancellation: PetraWorkUnitCancellation,
+  ): Promise<void> {
+    const command = cancellation.content.command;
+    const expected = command.expected_work_unit_ref;
+    const outcome = cancellation.content.outcome;
+    await client.query(
+      `INSERT INTO petra.work_unit_cancellations (
+         work_unit_cancellation_id, revision, project_id, work_unit_id,
+         command_id, idempotency_key, expected_revision, resulting_revision,
+         spec_hash, protocol_thread_id, protocol_run_id, reason,
+         requested_by_actor_id, requested_by_actor_kind, capability_grant_id,
+         trace_id, requested_at, cancelled_at, content_hash,
+         recorded_by_actor_id, recorded_by_actor_kind, recorded_at,
+         record_hash, payload
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+                 $13, $14, $15, $16, $17::timestamptz, $18::timestamptz,
+                 $19, $20, $21, $22::timestamptz, $23, $24::jsonb)`,
+      [
+        cancellation.work_unit_cancellation_id,
+        cancellation.revision,
+        cancellation.project_id,
+        expected.work_unit_id,
+        command.command_id,
+        command.idempotency_key,
+        expected.revision,
+        outcome.work_unit_ref.revision,
+        expected.spec_hash,
+        command.interaction.protocol_thread_id,
+        command.interaction.protocol_run_id,
+        command.reason,
+        command.requested_by.actor_id,
+        command.requested_by.actor_kind,
+        command.capability_grant_id,
+        command.trace_id,
+        command.requested_at,
+        outcome.cancelled_at,
+        cancellation.content_hash,
+        cancellation.recorded_by.actor_id,
+        cancellation.recorded_by.actor_kind,
+        cancellation.recorded_at,
+        canonicalHash(cancellation),
+        JSON.stringify(cancellation),
+      ],
+    );
   }
 
   async #lock(client: PoolClient, keys: readonly string[]): Promise<void> {

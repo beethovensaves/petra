@@ -104,3 +104,12 @@ original response nor its Markdown Artifact is rewritten.
 outcomes while allowing a later revision to advance only the immutable
 presentation-event head. This closes the answer-bearing suffix after its
 GroundedResponse has persisted without reopening or rewriting the run.
+
+`V013__durable_work_unit_cancellation.sql` adds the immutable command receipt
+for explicit WorkUnit cancellation. A receipt binds the command and
+idempotency identities, exact expected and resulting WorkUnit revisions,
+capability, requesting service, interaction correlation, trace, reason, and
+time. The transition and receipt commit atomically; duplicate delivery returns
+the same result, conflicting reuse is rejected, and the stored authority
+boundary makes clear that neither scientific authority nor a mere connection
+abort caused the cancellation.

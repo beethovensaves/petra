@@ -257,6 +257,10 @@
     {
       "schema": "interaction-replay-record",
       "path": "fixtures/accepted/interaction-replay-record.json"
+    },
+    {
+      "schema": "work-unit-cancellation",
+      "path": "fixtures/accepted/work-unit-cancellation.json"
     }
   ],
   "rejected": [
@@ -522,6 +526,10 @@
     {
       "schema": "interaction-replay-record",
       "path": "fixtures/rejected/interaction-replay-record-cancels-work.json"
+    },
+    {
+      "schema": "work-unit-cancellation",
+      "path": "fixtures/rejected/work-unit-cancellation-changes-science.json"
     }
   ],
   "canonical": [

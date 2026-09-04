@@ -1801,6 +1801,65 @@ class PetraWorkUnit(PetraModel):
     updated_at: str
 
 
+class WorkUnitCancellationServiceActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["service"]
+
+
+class WorkUnitCancellationRef(PetraModel):
+    work_unit_id: str
+    revision: int
+    spec_hash: str
+
+
+class WorkUnitCancellationInteraction(PetraModel):
+    protocol_thread_id: str
+    protocol_run_id: str
+
+
+class WorkUnitCancellationCommand(PetraModel):
+    command_name: Literal["CancelWorkUnit"]
+    command_id: str
+    idempotency_key: str
+    expected_work_unit_ref: WorkUnitCancellationRef
+    interaction: WorkUnitCancellationInteraction
+    reason: str
+    requested_by: WorkUnitCancellationServiceActorRef
+    capability_grant_id: str
+    trace_id: str
+    requested_at: str
+
+
+class WorkUnitCancellationOutcome(PetraModel):
+    outcome_kind: Literal["cancelled"]
+    work_unit_ref: WorkUnitCancellationRef
+    cancelled_at: str
+
+
+class WorkUnitCancellationAuthorityBoundary(PetraModel):
+    effect_kind: Literal["operational_only"]
+    scientific_authority_changed: Literal[False]
+    connection_abort_was_command: Literal[False]
+
+
+class WorkUnitCancellationContent(PetraModel):
+    command: WorkUnitCancellationCommand
+    outcome: WorkUnitCancellationOutcome
+    authority_boundary: WorkUnitCancellationAuthorityBoundary
+
+
+class PetraWorkUnitCancellation(PetraModel):
+    schema_name: Literal["petra.work-unit-cancellation"]
+    schema_version: Literal["1.0.0"]
+    work_unit_cancellation_id: str
+    revision: Literal[1]
+    project_id: str
+    content: WorkUnitCancellationContent
+    content_hash: str
+    recorded_by: WorkUnitCancellationServiceActorRef
+    recorded_at: str
+
+
 class ProjectionIdentity(PetraModel):
     target: Literal["neo4j_graph"]
     projection_name: str
@@ -3333,6 +3392,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "worker-input-manifest": PetraWorkerInputManifest,
     "worker-output-manifest": PetraWorkerOutputManifest,
     "work-unit": PetraWorkUnit,
+    "work-unit-cancellation": PetraWorkUnitCancellation,
     "graph-projection-record": PetraGraphProjectionRecord,
     "projection-checkpoint": PetraProjectionCheckpoint,
     "context-packet": PetraContextPacket,

@@ -429,6 +429,17 @@
       "typescript_path": "src/generated/work-unit.ts"
     },
     {
+      "name": "work-unit-cancellation",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/work-unit-cancellation/1.0.0/schema.json",
+      "path": "schemas/work-unit-cancellation/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-operational-cancellation-receipt",
+      "canonical_sha256": "sha256:58a0af3a6be92d18726466b18a8833198e515d89c7ba9fcc522bc305fca76c4c",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/work-unit-cancellation.ts"
+    },
+    {
       "name": "graph-projection-record",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/graph-projection-record/1.0.0/schema.json",

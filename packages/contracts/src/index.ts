@@ -225,6 +225,10 @@ export type {
   WorkUnitStatus,
 } from "./generated/work-unit.js";
 export type {
+  CancellationCommand as WorkUnitCancellationCommand,
+  PetraWorkUnitCancellation,
+} from "./generated/work-unit-cancellation.js";
+export type {
   AppliedOutcome as GraphProjectionAppliedOutcome,
   BackendReceipt as GraphProjectionBackendReceipt,
   FailedOutcome as GraphProjectionFailedOutcome,

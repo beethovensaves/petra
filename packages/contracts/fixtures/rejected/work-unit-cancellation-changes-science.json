@@ -1,0 +1,51 @@
+{
+  "schema_name": "petra.work-unit-cancellation",
+  "schema_version": "1.0.0",
+  "work_unit_cancellation_id": "work_unit_cancellation_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "command": {
+      "command_name": "CancelWorkUnit",
+      "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+      "idempotency_key": "cancel:run-m1-fixture",
+      "expected_work_unit_ref": {
+        "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        "revision": 3,
+        "spec_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "interaction": {
+        "protocol_thread_id": "thread-m1-fixture",
+        "protocol_run_id": "run-m1-fixture"
+      },
+      "reason": "The researcher explicitly stopped this running task.",
+      "requested_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "service"
+      },
+      "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+      "trace_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+      "requested_at": "2026-09-04T04:00:00.000Z"
+    },
+    "outcome": {
+      "outcome_kind": "cancelled",
+      "work_unit_ref": {
+        "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        "revision": 4,
+        "spec_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "cancelled_at": "2026-09-04T04:00:00.000Z"
+    },
+    "authority_boundary": {
+      "effect_kind": "operational_only",
+      "scientific_authority_changed": true,
+      "connection_abort_was_command": false
+    }
+  },
+  "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "recorded_at": "2026-09-04T04:00:00.000Z"
+}
