@@ -36,11 +36,13 @@ import type {
 import {
   buildCompensatingReversalCommandPlan,
   derivePetraId,
+  DurableInteractionHistory,
   executeCompensatingReversalPlan,
   GroundedSynthesisTerminalRecorder,
   groundedResponseCacheKey,
   InMemoryContextPacketRegistry,
   type GroundedSynthesisTerminalRequest,
+  type PetraInteractionEvent,
   type RegisterGroundedResponseInput,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -891,6 +893,137 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       work_units: "2",
       interaction_runs: "2",
     });
+  });
+
+  it("persists explicit cancellation and restores its terminal interaction without model work", async () => {
+    const { registry: packets } = makePackets();
+    const store = createMemoryArtifactStore();
+    const artifactAuthority = new PostgresArtifactAuthorityRepository(
+      pool,
+      store,
+    );
+    const feature = readFixture<PetraInteractionFeatureManifest>(
+      "interaction-feature-manifest",
+    );
+    feature.compiled_by = serviceRef();
+    const history = new DurableInteractionHistory({
+      serviceActor: serviceActor(),
+      artifactStore: store,
+      artifacts: artifactAuthority,
+      interactions,
+      workUnits,
+    });
+    const recorder = new GroundedSynthesisTerminalRecorder({
+      actors: [readFixture<PetraActor>("actor"), serviceActor()],
+      serviceActor: serviceActor(),
+      project: readFixture<PetraProject>("project"),
+      featureManifest: feature,
+      roleCertification: certification(),
+      packets,
+      scopes,
+      artifactStore: store,
+      artifacts: artifactAuthority,
+      executions: synthesist,
+      workUnits,
+      interactions,
+      groundedResponses: new PostgresGroundedResponseAuthorityRepository(
+        pool,
+        packets,
+      ),
+      interactionHistory: history,
+      runtimeVersion: "24.20.0",
+    });
+    const interaction = {
+      protocol_thread_id: "thread_grounded_cancellation",
+      protocol_run_id: "run_grounded_cancellation",
+      request_id: "request_grounded_cancellation",
+      trace_id: "trace_grounded_cancellation",
+      work_unit_id: derivePetraId("work_unit", "run_grounded_cancellation"),
+      started_at: "2026-09-04T02:29:59.000Z",
+    };
+    const prompt = "Stop this bounded synthesis before it produces an answer.";
+    const running = await recorder.startWork({ interaction, prompt });
+    const cancellation = await recorder.cancelWork({
+      interaction,
+      work: running,
+      command_id: "command_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+      reason: "The researcher explicitly stopped this running task.",
+      requested_at: "2026-09-04T02:30:01.000Z",
+    });
+    const envelope = {
+      threadId: interaction.protocol_thread_id,
+      runId: interaction.protocol_run_id,
+      workUnitId: interaction.work_unit_id,
+      modelRequestId: "unavailable",
+      requestId: interaction.request_id,
+      traceId: interaction.trace_id,
+    };
+    const events = [
+      {
+        ...envelope,
+        sequence: 1,
+        timestamp: Date.parse(interaction.started_at),
+        kind: "run.started",
+      },
+      {
+        ...envelope,
+        sequence: 2,
+        timestamp: Date.parse("2026-09-04T02:30:00.000Z"),
+        kind: "activity.snapshot",
+        activityType: "petra.work_unit.status",
+        content: {
+          label: "Cancellable grounded work registered",
+          status: "running",
+          workUnitRevision: 3,
+          detail: { authority_effect: "none" },
+        },
+      },
+      {
+        ...envelope,
+        sequence: 3,
+        timestamp: Date.parse(cancellation.cancelled_at),
+        kind: "run.error",
+        code: "WORK_UNIT_CANCELLED",
+        message: "The WorkUnit was cancelled by an explicit Petra command.",
+      },
+    ] satisfies PetraInteractionEvent[];
+
+    await recorder.persistCancellation({
+      interaction,
+      prompt,
+      cancellation,
+      presentation_events: events,
+    });
+    const replayedCancellation = await recorder.cancelWork({
+      interaction,
+      work: running,
+      command_id: cancellation.command_id,
+      reason: "The researcher explicitly stopped this running task.",
+      requested_at: "2026-09-04T02:30:05.000Z",
+    });
+    expect(replayedCancellation).toEqual({
+      ...cancellation,
+      applied: false,
+    });
+    const restored = await history.restore(
+      interaction.protocol_thread_id,
+      interaction.protocol_run_id,
+    );
+    expect(restored?.status).toBe("cancelled");
+    expect(restored?.events).toEqual(events);
+    expect(restored?.workUnit.revision).toBe(4);
+    expect(restored?.workUnit.status.state).toBe("cancelled");
+    expect(restored?.run.content.lifecycle).toEqual({
+      state: "cancelled",
+      started_at: interaction.started_at,
+      ended_at: cancellation.cancelled_at,
+      outcome_code: "WORK_UNIT_CANCELLED",
+    });
+    expect(
+      await pool.query(
+        "SELECT count(*)::integer AS count FROM petra.grounded_responses",
+      ),
+    ).toEqual(expect.objectContaining({ rows: [{ count: 0 }] }));
   });
 
   it("rolls back packets and response state when an exact upstream binding is absent", async () => {

@@ -33,7 +33,7 @@ Hono on Node
 ├── /api/queries/*
 ├── /api/interactions/run
 ├── /api/interactions/:id
-├── /api/work-units/:id/cancel
+├── /api/work-units/:runId/cancel
 ├── /health and diagnostics
 └── built Vite assets and SPA fallback
                  │
@@ -95,6 +95,12 @@ Client connection and durable work remain separate:
 - reconnecting reads the persisted `PetraInteractionRun` and replay checkpoint;
 - cancelling research invokes an explicit authorized WorkUnit command;
 - a route or middleware abort callback cannot silently cancel scientific work.
+
+The cancellation route resolves the protocol run to its exact running
+WorkUnit. It accepts a canonical Petra command ID and an optional human-readable
+reason, then returns the immutable cancellation receipt identity and resulting
+WorkUnit revision. Petra commits that command before interrupting provider work;
+retries return the same effect, while stale or conflicting commands fail.
 
 Errors discovered before response streaming use the normal typed HTTP error path. Errors after the stream begins produce a valid terminal AG-UI event and recorded Petra terminal state; they cannot rely on replacing the already-started HTTP response.
 

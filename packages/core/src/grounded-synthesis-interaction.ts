@@ -144,6 +144,32 @@ export interface GroundedSynthesisWorkBinding {
   readonly started_at: string;
 }
 
+export interface GroundedSynthesisCancellationRequest {
+  readonly interaction: GroundedSynthesisTerminalRequest["interaction"];
+  readonly work: GroundedSynthesisWorkBinding;
+  readonly command_id: string;
+  readonly reason: string;
+  readonly requested_at: string;
+}
+
+export interface GroundedSynthesisCancellationBinding {
+  readonly work_unit_cancellation_id: string;
+  readonly command_id: string;
+  readonly cancellation_hash: string;
+  readonly applied: boolean;
+  readonly work_unit_id: string;
+  readonly work_unit_revision: number;
+  readonly work_unit_spec_hash: string;
+  readonly cancelled_at: string;
+}
+
+export interface GroundedSynthesisCancellationPresentationRequest {
+  readonly interaction: GroundedSynthesisTerminalRequest["interaction"];
+  readonly prompt: string;
+  readonly cancellation: GroundedSynthesisCancellationBinding;
+  readonly presentation_events: readonly PetraInteractionEvent[];
+}
+
 export interface GroundedSynthesisTerminalBinding {
   readonly grounded_response_id: string;
   readonly grounded_response_revision: number;
@@ -167,6 +193,20 @@ export interface GroundedSynthesisTerminalPort {
   readonly startWork?: (
     request: GroundedSynthesisWorkStartRequest,
   ) => Promise<GroundedSynthesisWorkBinding>;
+  /**
+   * Applies one explicit cancellation command to the exact running WorkUnit.
+   * A transport abort never invokes this method.
+   */
+  readonly cancelWork?: (
+    request: GroundedSynthesisCancellationRequest,
+  ) => Promise<GroundedSynthesisCancellationBinding>;
+  /**
+   * Closes the cancelled interaction history before the terminal event is
+   * exposed. Production durable terminals implement this alongside cancelWork.
+   */
+  readonly persistCancellation?: (
+    request: GroundedSynthesisCancellationPresentationRequest,
+  ) => Promise<void>;
   readonly persist: (
     request: GroundedSynthesisTerminalRequest,
   ) => Promise<GroundedSynthesisTerminalBinding>;

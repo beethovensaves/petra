@@ -4,6 +4,7 @@ import type { PetraReviewInterruptResponse } from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
 
 import type {
+  GroundedSynthesisCancellationBinding,
   GroundedSynthesisInteractionExecutorPort,
   GroundedSynthesisInteractionResult,
   GroundedSynthesisProgress,
@@ -124,6 +125,7 @@ export interface StartInteractionRequest {
 export interface CancellationCommand {
   commandId: string;
   runId: string;
+  reason: string;
 }
 
 export interface CommandResult {
@@ -131,6 +133,10 @@ export interface CommandResult {
   commandId: string;
   effectId: string;
   runId: string;
+  workUnitId?: string;
+  workUnitRevision?: number;
+  workUnitCancellationId?: string;
+  cancellationHash?: string;
 }
 
 export interface InteractionRunSnapshot extends InteractionIdentity {
@@ -150,6 +156,15 @@ interface RunRecord {
   events: PetraInteractionEvent[];
   terminal: boolean;
   cancellationRequested: boolean;
+  workflow: PetraInteractionWorkflow;
+  prompt: string;
+  workBinding?: GroundedSynthesisWorkBinding;
+  workBindingReady: Promise<GroundedSynthesisWorkBinding | undefined>;
+  resolveWorkBinding: (
+    binding: GroundedSynthesisWorkBinding | undefined,
+  ) => void;
+  cancellationBinding?: GroundedSynthesisCancellationBinding;
+  cancellationTask?: Promise<CommandResult>;
   listeners: Set<() => void>;
   delivery: InteractionRunSnapshot["delivery"];
   abortController: AbortController;
@@ -212,7 +227,10 @@ const canonicalClone = <Value>(value: Value): Value =>
 
 export class PetraInteractionRuntime {
   readonly #runs = new Map<string, RunRecord>();
-  readonly #commandEffects = new Map<string, CommandResult>();
+  readonly #commandEffects = new Map<
+    string,
+    { readonly inputHash: string; readonly result: Promise<CommandResult> }
+  >();
   readonly #stepDelayMs: number;
   readonly #now: () => number;
   readonly #reviewBoundary: ReviewInterruptBoundary | undefined;
@@ -262,6 +280,14 @@ export class PetraInteractionRuntime {
       requestId: request.requestId,
       traceId: request.traceId,
     };
+    let resolveWorkBinding!: (
+      binding: GroundedSynthesisWorkBinding | undefined,
+    ) => void;
+    const workBindingReady = new Promise<
+      GroundedSynthesisWorkBinding | undefined
+    >((resolve) => {
+      resolveWorkBinding = resolve;
+    });
     const record: RunRecord = {
       identity,
       inputHash: promptHash(request.prompt),
@@ -269,6 +295,10 @@ export class PetraInteractionRuntime {
       events: [],
       terminal: false,
       cancellationRequested: false,
+      workflow: request.workflow ?? "fixture",
+      prompt: request.prompt,
+      workBindingReady,
+      resolveWorkBinding,
       listeners: new Set(),
       delivery: { completed: 0, aborted: 0, writeErrors: 0 },
       abortController: new AbortController(),
@@ -366,6 +396,21 @@ export class PetraInteractionRuntime {
     const active = ["queued", "running"].includes(
       restored.run.content.lifecycle.state,
     );
+    if (restored.workUnit.status.state === "checkpointed") {
+      throw new Error(
+        "Checkpointed grounded work cannot be restored without a checkpoint command.",
+      );
+    }
+    const restoredWorkBinding: GroundedSynthesisWorkBinding = {
+      work_unit_id: restored.workUnit.work_unit_id,
+      work_unit_revision: restored.workUnit.revision,
+      work_unit_spec_hash: restored.workUnit.spec_hash,
+      state: restored.workUnit.status.state,
+      started_at:
+        "started_at" in restored.workUnit.status
+          ? restored.workUnit.status.started_at
+          : restored.workUnit.created_at,
+    };
     const record: RunRecord = {
       identity,
       inputHash: restored.run.content.input.input_hash,
@@ -373,6 +418,11 @@ export class PetraInteractionRuntime {
       events: structuredClone(restored.events) as PetraInteractionEvent[],
       terminal: !active,
       cancellationRequested: false,
+      workflow: "grounded_synthesis",
+      prompt: prompt ?? "",
+      workBinding: restoredWorkBinding,
+      workBindingReady: Promise.resolve(restoredWorkBinding),
+      resolveWorkBinding: () => undefined,
       listeners: new Set(),
       delivery: { completed: 0, aborted: 0, writeErrors: 0 },
       abortController: new AbortController(),
@@ -382,21 +432,93 @@ export class PetraInteractionRuntime {
     return this.snapshot(runId);
   }
 
-  cancel(command: CancellationCommand): CommandResult {
+  async cancel(command: CancellationCommand): Promise<CommandResult> {
+    if (!/^command_[0-9A-HJKMNP-TV-Z]{26}$/.test(command.commandId)) {
+      throw new Error("Cancellation requires a canonical Petra command ID.");
+    }
+    if (command.reason.trim().length === 0 || command.reason.length > 4_000) {
+      throw new Error(
+        "Cancellation reason must contain between 1 and 4000 characters.",
+      );
+    }
+    const inputHash = promptHash(canonicalize(command));
     const prior = this.#commandEffects.get(command.commandId);
-    if (prior !== undefined) return { ...prior, applied: false };
+    if (prior !== undefined) {
+      if (prior.inputHash !== inputHash) {
+        throw new Error(
+          "Cancellation command identity is already bound to different input.",
+        );
+      }
+      return { ...(await prior.result), applied: false };
+    }
 
     const record = this.#requireRun(command.runId);
-    record.cancellationRequested = true;
-    record.abortController.abort();
-    const result = {
-      applied: true,
-      commandId: command.commandId,
-      effectId: `cancellation_${normalizedIdPart(command.runId)}`,
-      runId: command.runId,
-    } satisfies CommandResult;
-    this.#commandEffects.set(command.commandId, result);
-    return result;
+    if (record.terminal) {
+      throw new Error("A terminal interaction run cannot be cancelled.");
+    }
+    const result = (async (): Promise<CommandResult> => {
+      if (
+        record.workflow === "grounded_synthesis" &&
+        this.#groundedSynthesisTerminal?.cancelWork !== undefined
+      ) {
+        if (this.#groundedSynthesisTerminal.persistCancellation === undefined) {
+          throw new Error(
+            "The durable terminal cannot cancel work without cancelled-interaction persistence.",
+          );
+        }
+        const work = await record.workBindingReady;
+        if (work === undefined) {
+          throw new Error(
+            "The grounded WorkUnit was not durably registered for cancellation.",
+          );
+        }
+        const cancellation = await this.#groundedSynthesisTerminal.cancelWork({
+          interaction: {
+            protocol_thread_id: record.identity.threadId,
+            protocol_run_id: record.identity.runId,
+            request_id: record.identity.requestId,
+            trace_id: record.identity.traceId,
+            work_unit_id: record.identity.workUnitId,
+            started_at: new Date(
+              record.events[0]?.timestamp ?? this.#now(),
+            ).toISOString(),
+          },
+          work,
+          command_id: command.commandId,
+          reason: command.reason,
+          requested_at: new Date(this.#now()).toISOString(),
+        });
+        record.cancellationBinding = cancellation;
+        record.cancellationRequested = true;
+        record.abortController.abort();
+        return {
+          applied: cancellation.applied,
+          commandId: command.commandId,
+          effectId: cancellation.work_unit_cancellation_id,
+          runId: command.runId,
+          workUnitId: cancellation.work_unit_id,
+          workUnitRevision: cancellation.work_unit_revision,
+          workUnitCancellationId: cancellation.work_unit_cancellation_id,
+          cancellationHash: cancellation.cancellation_hash,
+        };
+      }
+      record.cancellationRequested = true;
+      record.abortController.abort();
+      return {
+        applied: true,
+        commandId: command.commandId,
+        effectId: `cancellation_${normalizedIdPart(command.runId)}`,
+        runId: command.runId,
+      };
+    })();
+    record.cancellationTask = result;
+    this.#commandEffects.set(command.commandId, { inputHash, result });
+    try {
+      return await result;
+    } catch (error) {
+      this.#commandEffects.delete(command.commandId);
+      throw error;
+    }
   }
 
   async resolveReview(
@@ -718,6 +840,63 @@ export class PetraInteractionRuntime {
     });
   }
 
+  async #closeGroundedCancellation(
+    record: RunRecord,
+    request: StartInteractionRequest,
+  ): Promise<void> {
+    if (record.terminal) return;
+    if (record.cancellationTask !== undefined) {
+      await record.cancellationTask;
+    }
+    const event = this.#prepare(record, [
+      {
+        kind: "run.error",
+        code: "WORK_UNIT_CANCELLED",
+        message: "The WorkUnit was cancelled by an explicit Petra command.",
+      },
+    ]);
+    const cancellation = record.cancellationBinding;
+    if (
+      cancellation !== undefined &&
+      this.#groundedSynthesisTerminal?.persistCancellation !== undefined
+    ) {
+      try {
+        await this.#groundedSynthesisTerminal.persistCancellation({
+          interaction: {
+            protocol_thread_id: record.identity.threadId,
+            protocol_run_id: record.identity.runId,
+            request_id: record.identity.requestId,
+            trace_id: record.identity.traceId,
+            work_unit_id: record.identity.workUnitId,
+            started_at: new Date(
+              record.events[0]?.timestamp ?? this.#now(),
+            ).toISOString(),
+          },
+          prompt: request.prompt,
+          cancellation,
+          presentation_events: [...record.events, ...event],
+        });
+      } catch (error) {
+        record.status = "cancelled";
+        this.#append(record, {
+          kind: "run.error",
+          code: "GROUNDED_CANCELLATION_PERSISTENCE_FAILED",
+          message:
+            error instanceof Error
+              ? error.message
+              : "The cancelled interaction history could not be persisted.",
+        });
+        record.terminal = true;
+        this.#wake(record);
+        return;
+      }
+    }
+    record.status = "cancelled";
+    this.#publish(record, event);
+    record.terminal = true;
+    this.#wake(record);
+  }
+
   async #executeGroundedSynthesis(
     record: RunRecord,
     request: StartInteractionRequest,
@@ -737,6 +916,7 @@ export class PetraInteractionRuntime {
       },
     });
     if (this.#groundedSynthesisExecutor === undefined) {
+      record.resolveWorkBinding(undefined);
       record.status = "failed";
       this.#append(record, {
         kind: "run.error",
@@ -765,7 +945,10 @@ export class PetraInteractionRuntime {
           },
           prompt: request.prompt,
         });
+        record.workBinding = durableWork;
+        record.resolveWorkBinding(durableWork);
       } catch (error) {
+        record.resolveWorkBinding(undefined);
         record.status = "failed";
         this.#append(record, {
           kind: "run.error",
@@ -803,6 +986,8 @@ export class PetraInteractionRuntime {
           detail: { authority_effect: "none" },
         },
       });
+    } else {
+      record.resolveWorkBinding(undefined);
     }
 
     let result: GroundedSynthesisInteractionResult;
@@ -816,13 +1001,16 @@ export class PetraInteractionRuntime {
     } catch (error) {
       const cancelled =
         record.cancellationRequested || record.abortController.signal.aborted;
-      record.status = cancelled ? "cancelled" : "failed";
+      if (cancelled) {
+        await this.#closeGroundedCancellation(record, request);
+        return;
+      }
+      record.status = "failed";
       this.#append(record, {
         kind: "run.error",
-        code: cancelled ? "WORK_UNIT_CANCELLED" : "GROUNDED_SYNTHESIS_FAILED",
-        message: cancelled
-          ? "The WorkUnit was cancelled by an explicit Petra command."
-          : error instanceof Error
+        code: "GROUNDED_SYNTHESIS_FAILED",
+        message:
+          error instanceof Error
             ? error.message
             : "The grounded synthesis failed without an accepted response.",
       });
@@ -831,14 +1019,7 @@ export class PetraInteractionRuntime {
       return;
     }
     if (record.cancellationRequested) {
-      record.status = "cancelled";
-      this.#append(record, {
-        kind: "run.error",
-        code: "WORK_UNIT_CANCELLED",
-        message: "The WorkUnit was cancelled by an explicit Petra command.",
-      });
-      record.terminal = true;
-      this.#wake(record);
+      await this.#closeGroundedCancellation(record, request);
       return;
     }
 
@@ -868,6 +1049,10 @@ export class PetraInteractionRuntime {
           presentation_events: structuredClone(record.events),
         });
       } catch (error) {
+        if (record.cancellationRequested) {
+          await this.#closeGroundedCancellation(record, request);
+          return;
+        }
         record.status = "failed";
         this.#append(record, {
           kind: "run.error",

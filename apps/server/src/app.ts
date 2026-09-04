@@ -704,19 +704,26 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   app.post("/api/work-units/:runId/cancel", async (context) => {
     try {
       const body = await readBoundedJson(context, maxBodyBytes);
-      if (!isRecord(body) || typeof body.commandId !== "string") {
-        throw new InteractionInputError("Cancellation requires a commandId.");
+      if (!isRecord(body)) {
+        throw new InteractionInputError("Cancellation requires a JSON object.");
       }
+      assertExactKeys(body, new Set(["commandId", "reason"]), "Cancellation");
+      const commandId = requiredString(body, "commandId");
+      const reason =
+        body.reason === undefined
+          ? "The researcher explicitly stopped this running task."
+          : requiredString(body, "reason");
       return context.json(
-        runtime.cancel({
-          commandId: body.commandId,
+        await runtime.cancel({
+          commandId,
           runId: context.req.param("runId"),
+          reason,
         }),
       );
     } catch (error: unknown) {
       return jsonError(
         context,
-        error instanceof InteractionInputError ? 422 : 404,
+        error instanceof InteractionInputError ? 422 : 409,
         "CANCELLATION_REJECTED",
         error instanceof Error ? error.message : "Cancellation rejected.",
       );

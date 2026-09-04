@@ -17,6 +17,7 @@ import type {
   PetraWorkerInputManifest,
   PetraWorkerOutputManifest,
   PetraWorkUnit,
+  WorkUnitCancellationCommand,
 } from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
 
@@ -26,6 +27,9 @@ import type { InMemoryContextPacketRegistry } from "./context-packet-registry.js
 import type { GroundedResponseAuthorityRepository } from "./grounded-response-registry.js";
 import { groundedResponseCacheKey } from "./grounded-response-registry.js";
 import type {
+  GroundedSynthesisCancellationBinding,
+  GroundedSynthesisCancellationPresentationRequest,
+  GroundedSynthesisCancellationRequest,
   GroundedSynthesisTerminalBinding,
   GroundedSynthesisTerminalPort,
   GroundedSynthesisTerminalRequest,
@@ -869,6 +873,81 @@ const terminalInteractionRecords = (
   return [initial, terminal];
 };
 
+const cancelledInteractionRoot = (
+  request: GroundedSynthesisCancellationPresentationRequest,
+  workUnit: PetraWorkUnit,
+  feature: PetraInteractionFeatureManifest,
+  serviceActor: PetraActor,
+): PetraInteractionRun => {
+  const actor = serviceRef(serviceActor);
+  const interactionRunId = derivePetraId(
+    "interaction_run",
+    `${request.interaction.protocol_thread_id}|${request.interaction.protocol_run_id}`,
+  );
+  const content: PetraInteractionRun["content"] = {
+    correlation: {
+      protocol_thread_id: request.interaction.protocol_thread_id,
+      protocol_run_id: request.interaction.protocol_run_id,
+      request_id: petraCorrelationId("request", request.interaction.request_id),
+      trace_id: petraCorrelationId("trace", request.interaction.trace_id),
+      work_unit_ref: {
+        work_unit_id: workUnit.work_unit_id,
+        revision: workUnit.revision,
+        spec_hash: workUnit.spec_hash,
+      },
+    },
+    authority_context: {
+      actor,
+      capability_grant_id: workUnit.capability_grant_id,
+      privacy_profile_ref: {
+        record_id: derivePetraId("privacy_profile", interactionRunId),
+        revision: 1,
+        content_hash: canonicalHash({ profile: "private" }),
+      },
+      budget_profile_ref: {
+        record_id: derivePetraId("budget_profile", interactionRunId),
+        revision: 1,
+        content_hash: canonicalHash({ workflow: "grounded_synthesis" }),
+      },
+    },
+    input: {
+      input_hash: canonicalHash({ prompt: request.prompt }),
+      source_message_id: derivePetraId(
+        "source_message",
+        `${interactionRunId}|${request.prompt}`,
+      ),
+    },
+    lifecycle: {
+      state: "running",
+      started_at: request.interaction.started_at,
+    },
+    stream_head: { state: "empty", event_count: 0 },
+    authority_boundary: {
+      interaction_state_is_authoritative: false,
+      events_are_domain_ledger: false,
+      connection_abort_cancels_work: false,
+    },
+  };
+  return {
+    schema_name: "petra.interaction-run",
+    schema_version: "1.0.0",
+    interaction_run_id: interactionRunId,
+    revision: 1,
+    project_id: workUnit.project_id,
+    feature_manifest_ref: {
+      interaction_feature_manifest_id: feature.interaction_feature_manifest_id,
+      revision: feature.revision,
+      content_hash: feature.content_hash,
+    },
+    lineage: { lineage_kind: "root" },
+    content,
+    content_hash: canonicalHash(content),
+    created_by: actor,
+    created_at: request.interaction.started_at,
+    updated_at: request.interaction.started_at,
+  };
+};
+
 const terminalGroundedResponse = (
   request: GroundedSynthesisTerminalRequest,
   artifact: PetraArtifact,
@@ -1172,6 +1251,142 @@ export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTermi
       state: workUnit.status.state,
       started_at: workUnit.status.started_at,
     };
+  }
+
+  async cancelWork(
+    request: GroundedSynthesisCancellationRequest,
+  ): Promise<GroundedSynthesisCancellationBinding> {
+    const workUnit = await this.#options.workUnits.getWorkUnit(
+      request.work.work_unit_id,
+    );
+    if (
+      workUnit === undefined ||
+      workUnit.spec_hash !== request.work.work_unit_spec_hash ||
+      request.work.state !== "running"
+    ) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+        "Cancellation must target the exact running grounded WorkUnit.",
+      );
+    }
+    const prior = await this.#options.workUnits.getCancellationByCommand(
+      request.command_id,
+    );
+    const proposed: WorkUnitCancellationCommand = {
+      command_name: "CancelWorkUnit",
+      command_id: request.command_id,
+      idempotency_key: `cancel:${request.interaction.protocol_run_id}:${request.command_id}`,
+      expected_work_unit_ref: {
+        work_unit_id: request.work.work_unit_id,
+        revision: request.work.work_unit_revision,
+        spec_hash: request.work.work_unit_spec_hash,
+      },
+      interaction: {
+        protocol_thread_id: request.interaction.protocol_thread_id,
+        protocol_run_id: request.interaction.protocol_run_id,
+      },
+      reason: request.reason,
+      requested_by: serviceRef(this.#options.serviceActor),
+      capability_grant_id: workUnit.capability_grant_id,
+      trace_id: petraCorrelationId("trace", request.interaction.trace_id),
+      requested_at: request.requested_at,
+    };
+    if (
+      prior !== undefined &&
+      (prior.content.command.command_id !== proposed.command_id ||
+        prior.content.command.idempotency_key !== proposed.idempotency_key ||
+        canonicalize(prior.content.command.expected_work_unit_ref) !==
+          canonicalize(proposed.expected_work_unit_ref) ||
+        canonicalize(prior.content.command.interaction) !==
+          canonicalize(proposed.interaction) ||
+        prior.content.command.reason !== proposed.reason ||
+        canonicalize(prior.content.command.requested_by) !==
+          canonicalize(proposed.requested_by) ||
+        prior.content.command.capability_grant_id !==
+          proposed.capability_grant_id ||
+        prior.content.command.trace_id !== proposed.trace_id)
+    ) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+        "The cancellation command identity is already bound to different input.",
+      );
+    }
+    const command =
+      prior === undefined ? proposed : clone(prior.content.command);
+    const result = await this.#options.workUnits.cancelByCommand(command);
+    return {
+      work_unit_cancellation_id: result.cancellation.work_unit_cancellation_id,
+      command_id: command.command_id,
+      cancellation_hash: result.cancellation.content_hash,
+      applied: result.applied,
+      work_unit_id: result.workUnit.work_unit_id,
+      work_unit_revision: result.workUnit.revision,
+      work_unit_spec_hash: result.workUnit.spec_hash,
+      cancelled_at: result.cancellation.content.outcome.cancelled_at,
+    };
+  }
+
+  async persistCancellation(
+    request: GroundedSynthesisCancellationPresentationRequest,
+  ): Promise<void> {
+    const cancellation = await this.#options.workUnits.getCancellationByCommand(
+      request.cancellation.command_id,
+    );
+    const workUnit = await this.#options.workUnits.getWorkUnitRevision(
+      request.cancellation.work_unit_id,
+      request.cancellation.work_unit_revision,
+    );
+    if (
+      cancellation === undefined ||
+      cancellation.work_unit_cancellation_id !==
+        request.cancellation.work_unit_cancellation_id ||
+      cancellation.content_hash !== request.cancellation.cancellation_hash ||
+      workUnit === undefined ||
+      workUnit.spec_hash !== request.cancellation.work_unit_spec_hash ||
+      workUnit.status.state !== "cancelled"
+    ) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+        "Cancelled interaction history requires the exact durable cancellation and WorkUnit revision.",
+      );
+    }
+    await this.#options.interactions.registerFeatureManifest(
+      this.#options.featureManifest,
+    );
+    const root = cancelledInteractionRoot(
+      request,
+      workUnit,
+      this.#options.featureManifest,
+      this.#options.serviceActor,
+    );
+    const existing =
+      await this.#options.interactions.getRunByProtocolCorrelation(
+        request.interaction.protocol_thread_id,
+        request.interaction.protocol_run_id,
+      );
+    if (existing?.content.lifecycle.state === "cancelled") return;
+    if (existing !== undefined) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+        "The interaction correlation is already bound to a different terminal outcome.",
+      );
+    }
+    const initial = await this.#options.interactions.registerRun(root);
+    const events = await this.#history.persistEvents(
+      initial,
+      request.presentation_events,
+    );
+    await this.#history.advanceRun(
+      initial,
+      events,
+      {
+        state: "cancelled",
+        started_at: request.interaction.started_at,
+        ended_at: request.cancellation.cancelled_at,
+        outcome_code: "WORK_UNIT_CANCELLED",
+      },
+      request.cancellation.cancelled_at,
+    );
   }
 
   async persist(

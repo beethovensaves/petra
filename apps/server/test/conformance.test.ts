@@ -721,8 +721,10 @@ describe("D014 Hono conformance", () => {
     });
   });
 
-  test("M1.6-W18: cancellation aborts grounded execution and emits one terminal failure without an answer", async () => {
+  test("M1.7-W12: durable cancellation precedes provider interruption and terminal publication", async () => {
     let signalObserved = false;
+    let durableCancellationApplied = false;
+    let cancellationPresentationPersisted = false;
     let markStarted: (() => void) | undefined;
     const started = new Promise<void>((resolveStarted) => {
       markStarted = resolveStarted;
@@ -739,7 +741,7 @@ describe("D014 Hono conformance", () => {
         return await new Promise<GroundedSynthesisInteractionResult>(
           (_resolve, reject) => {
             const rejectCancelled = (): void => {
-              signalObserved = true;
+              signalObserved = durableCancellationApplied;
               reject(new Error("grounded execution interrupted"));
             };
             if (signal?.aborted === true) rejectCancelled();
@@ -751,8 +753,48 @@ describe("D014 Hono conformance", () => {
         );
       },
     };
+    const terminal: GroundedSynthesisTerminalPort = {
+      startWork: () =>
+        Promise.resolve({
+          work_unit_id: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          work_unit_revision: 3,
+          work_unit_spec_hash:
+            "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          state: "running",
+          started_at: "2026-09-04T02:00:00.000Z",
+        }),
+      cancelWork: (request) => {
+        expect(request.work.work_unit_revision).toBe(3);
+        expect(request.reason).toBe(
+          "The researcher explicitly stopped this running task.",
+        );
+        durableCancellationApplied = true;
+        return Promise.resolve({
+          work_unit_cancellation_id:
+            "work_unit_cancellation_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+          command_id: request.command_id,
+          cancellation_hash:
+            "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          applied: true,
+          work_unit_id: request.work.work_unit_id,
+          work_unit_revision: 4,
+          work_unit_spec_hash: request.work.work_unit_spec_hash,
+          cancelled_at: request.requested_at,
+        });
+      },
+      persistCancellation: (request) => {
+        expect(request.presentation_events.at(-1)).toMatchObject({
+          kind: "run.error",
+          code: "WORK_UNIT_CANCELLED",
+        });
+        cancellationPresentationPersisted = true;
+        return Promise.resolve();
+      },
+      persist: () => Promise.reject(new Error("must not persist an answer")),
+    };
     const runtime = new PetraInteractionRuntime({
       groundedSynthesisExecutor: executor,
+      groundedSynthesisTerminal: terminal,
     });
     const cancellationServer = await startPetraServer({
       port: 0,
@@ -772,17 +814,24 @@ describe("D014 Hono conformance", () => {
             authorization: `Bearer ${TOKEN}`,
             "content-type": "application/json",
           },
-          body: JSON.stringify({ commandId: "cancel_m16_w18" }),
+          body: JSON.stringify({
+            commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+          }),
         },
       );
       expect(cancellation.status).toBe(200);
       expect(await cancellation.json()).toMatchObject({
         applied: true,
-        commandId: "cancel_m16_w18",
+        commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FE9",
         runId: "run_m16_w18_cancel",
+        workUnitId: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        workUnitRevision: 4,
+        workUnitCancellationId:
+          "work_unit_cancellation_01ARZ3NDEKTSV4RRFFQ69G5FEA",
       });
       const events = decodeSse(await response.text());
       expect(signalObserved).toBe(true);
+      expect(cancellationPresentationPersisted).toBe(true);
       expect(events.at(-1)).toMatchObject({
         type: EventType.RUN_ERROR,
         code: "WORK_UNIT_CANCELLED",
@@ -796,6 +845,73 @@ describe("D014 Hono conformance", () => {
       expect(runtime.snapshot("run_m16_w18_cancel").status).toBe("cancelled");
     } finally {
       await cancellationServer.shutdown();
+    }
+  });
+
+  test("M1.7-W12: aborting one AG-UI delivery does not issue a durable cancellation", async () => {
+    const completed = await completedGroundedExecutor();
+    let releaseExecution: (() => void) | undefined;
+    const released = new Promise<void>((resolve) => {
+      releaseExecution = resolve;
+    });
+    let executionStarted: (() => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      executionStarted = resolve;
+    });
+    let cancellationCommands = 0;
+    const terminal: GroundedSynthesisTerminalPort = {
+      startWork: () =>
+        Promise.resolve({
+          work_unit_id: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          work_unit_revision: 3,
+          work_unit_spec_hash:
+            "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          state: "running",
+          started_at: "2026-09-04T02:00:00.000Z",
+        }),
+      cancelWork: () => {
+        cancellationCommands += 1;
+        return Promise.reject(new Error("must not cancel durable work"));
+      },
+      persistCancellation: () => Promise.resolve(),
+      persist: () => Promise.resolve(terminalBindingFixture()),
+      persistPresentation: () => Promise.resolve(),
+    };
+    const runtime = new PetraInteractionRuntime({
+      groundedSynthesisExecutor: {
+        async execute(request) {
+          executionStarted?.();
+          await released;
+          return completed.execute(request);
+        },
+      },
+      groundedSynthesisTerminal: terminal,
+    });
+    const deliveryServer = await startPetraServer({
+      port: 0,
+      authToken: TOKEN,
+      runtime,
+    });
+    try {
+      const response = await rawRun(deliveryServer, "run_m17_abort_only", {
+        workflow: "grounded_synthesis",
+      });
+      await started;
+      const reader = response.body?.getReader();
+      expect(reader).toBeDefined();
+      await reader?.read();
+      const aborted = reader?.cancel();
+      await new Promise<void>((resolve) => setTimeout(resolve, 30));
+      releaseExecution?.();
+      await aborted;
+      await runtime.drain();
+      expect(cancellationCommands).toBe(0);
+      expect(runtime.snapshot("run_m17_abort_only")).toMatchObject({
+        status: "completed",
+        delivery: { aborted: 1 },
+      });
+    } finally {
+      await deliveryServer.shutdown();
     }
   });
 
