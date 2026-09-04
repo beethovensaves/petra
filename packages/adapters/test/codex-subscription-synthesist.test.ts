@@ -138,9 +138,11 @@ const clock = (...values: number[]): ModelAdapterClock => ({
 class FakeCodexSynthesistProvider implements CodexSubscriptionProviderPort {
   readonly threadRequests: CodexThreadStartRequest[] = [];
   readonly turnRequests: CodexTurnStartRequest[] = [];
+  readonly interruptedTurns: Array<{ threadId: string; turnId: string }> = [];
   readonly #listeners = new Set<(event: CodexProviderEvent) => void>();
   authMode: CodexAccountSummary["authMode"] = "chatgpt";
   toolType: string | undefined;
+  completeTurn = true;
 
   diagnostics(): CodexProviderDiagnostics {
     return {
@@ -190,41 +192,42 @@ class FakeCodexSynthesistProvider implements CodexSubscriptionProviderPort {
 
   startTurn(requestValue: CodexTurnStartRequest): Promise<CodexTurnSummary> {
     this.turnRequests.push(requestValue);
-    queueMicrotask(() => {
-      if (this.toolType !== undefined) {
+    if (this.completeTurn)
+      queueMicrotask(() => {
+        if (this.toolType !== undefined) {
+          this.#emit({
+            kind: "notification",
+            method: "item/started",
+            params: {
+              threadId: requestValue.threadId,
+              turnId: "turn_synthesist",
+              item: { id: "tool_1", type: this.toolType },
+            },
+          });
+        }
         this.#emit({
           kind: "notification",
-          method: "item/started",
+          method: "item/completed",
           params: {
             threadId: requestValue.threadId,
             turnId: "turn_synthesist",
-            item: { id: "tool_1", type: this.toolType },
+            item: {
+              id: "message_1",
+              type: "agentMessage",
+              phase: "final_answer",
+              text: JSON.stringify(output),
+            },
           },
         });
-      }
-      this.#emit({
-        kind: "notification",
-        method: "item/completed",
-        params: {
-          threadId: requestValue.threadId,
-          turnId: "turn_synthesist",
-          item: {
-            id: "message_1",
-            type: "agentMessage",
-            phase: "final_answer",
-            text: JSON.stringify(output),
+        this.#emit({
+          kind: "notification",
+          method: "turn/completed",
+          params: {
+            threadId: requestValue.threadId,
+            turn: { id: "turn_synthesist", status: "completed", error: null },
           },
-        },
+        });
       });
-      this.#emit({
-        kind: "notification",
-        method: "turn/completed",
-        params: {
-          threadId: requestValue.threadId,
-          turn: { id: "turn_synthesist", status: "completed", error: null },
-        },
-      });
-    });
     return Promise.resolve({
       threadId: requestValue.threadId,
       turnId: "turn_synthesist",
@@ -232,7 +235,8 @@ class FakeCodexSynthesistProvider implements CodexSubscriptionProviderPort {
     });
   }
 
-  interruptTurn(): Promise<void> {
+  interruptTurn(threadId: string, turnId: string): Promise<void> {
+    this.interruptedTurns.push({ threadId, turnId });
     return Promise.resolve();
   }
 
@@ -332,6 +336,30 @@ describe("Codex subscription synthesist adapter", () => {
       failure: { code: "CODEX_CHATGPT_LOGIN_REQUIRED", retryable: false },
     });
     expect(provider.threadRequests).toHaveLength(0);
+  });
+
+  it("interrupts the exact App Server turn when Petra cancels synthesis", async () => {
+    const provider = new FakeCodexSynthesistProvider();
+    provider.completeTurn = false;
+    const adapter = new CodexSubscriptionSynthesistAdapter({
+      provider,
+      workspaceRoot: "/work/petra",
+      timeoutMs: 10_000,
+      outputSchema,
+    });
+    const controller = new AbortController();
+    const response = adapter.invoke(request(), { signal: controller.signal });
+    await vi.waitFor(() => expect(provider.turnRequests).toHaveLength(1));
+    controller.abort();
+
+    await expect(response).resolves.toMatchObject({
+      outcome: "provider_error",
+      provider_request_id: "turn_synthesist",
+      failure: { code: "CODEX_SYNTHESIST_CANCELLED", retryable: false },
+    });
+    expect(provider.interruptedTurns).toEqual([
+      { threadId: "thr_synthesist", turnId: "turn_synthesist" },
+    ]);
   });
 
   it("invalidates output after tool activity and refuses unsupported controls", async () => {

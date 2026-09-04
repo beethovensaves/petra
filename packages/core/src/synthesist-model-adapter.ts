@@ -20,6 +20,10 @@ export interface SynthesistAdapterRequest {
   readonly output_contract: PetraSynthesistModelRequest["content"]["output_contract"];
 }
 
+export interface SynthesistAdapterInvocationOptions {
+  readonly signal?: AbortSignal;
+}
+
 interface SynthesistAdapterObservation {
   readonly provider_request_id?: string;
   readonly observed_revision: string;
@@ -46,5 +50,6 @@ export type SynthesistAdapterResponse =
 export interface SynthesistModelAdapter {
   readonly invoke: (
     request: SynthesistAdapterRequest,
+    options?: SynthesistAdapterInvocationOptions,
   ) => Promise<SynthesistAdapterResponse>;
 }

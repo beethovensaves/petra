@@ -63,6 +63,7 @@ export interface GroundedSynthesisPlanner {
 export interface GroundedSynthesisGatewayPort {
   readonly execute: (
     input: SynthesistGatewayRequest,
+    options?: { readonly signal?: AbortSignal },
   ) => Promise<SynthesistGatewayExecution>;
 }
 
@@ -239,7 +240,10 @@ export class GroundedSynthesisInteractionExecutor implements GroundedSynthesisIn
       label: "Running the certified synthesist",
       detail: { authority_effect: "none" },
     });
-    const execution = await this.#gateway.execute(plan.gateway_request);
+    const execution = await this.#gateway.execute(
+      plan.gateway_request,
+      request.signal === undefined ? {} : { signal: request.signal },
+    );
     const call = execution.calls.at(-1);
     const selected = execution.request.content.routing.selected;
     request.onProgress({

@@ -1,5 +1,6 @@
 import type {
   SynthesistAdapterRequest,
+  SynthesistAdapterInvocationOptions,
   SynthesistAdapterResponse,
   SynthesistModelAdapter,
 } from "@petra/core";
@@ -40,8 +41,18 @@ interface TurnObservation {
   readonly reroutedModel: string | null;
 }
 
+class CodexSynthesistCancelledError extends Error {
+  constructor() {
+    super("The Codex synthesis turn was cancelled by Petra.");
+    this.name = "CODEX_SYNTHESIST_CANCELLED";
+  }
+}
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+const signalAborted = (signal: AbortSignal | undefined): boolean =>
+  signal?.aborted === true;
 
 const stringMember = (
   value: Record<string, unknown>,
@@ -114,8 +125,17 @@ export class CodexSubscriptionSynthesistAdapter implements SynthesistModelAdapte
 
   async invoke(
     request: SynthesistAdapterRequest,
+    options: SynthesistAdapterInvocationOptions = {},
   ): Promise<SynthesistAdapterResponse> {
     const startedAt = this.#clock.now();
+    if (signalAborted(options.signal)) {
+      return this.#failure(
+        request,
+        startedAt,
+        "CODEX_SYNTHESIST_CANCELLED",
+        "The Codex synthesis turn was cancelled before execution.",
+      );
+    }
     if (
       request.deployment.execution_location !== "remote" ||
       request.deployment.provider_kind !== "codex_app_server"
@@ -146,6 +166,9 @@ export class CodexSubscriptionSynthesistAdapter implements SynthesistModelAdapte
 
     try {
       const account = await this.#provider.readAccount();
+      if (signalAborted(options.signal)) {
+        throw new CodexSynthesistCancelledError();
+      }
       if (!account.authenticated || account.authMode !== "chatgpt") {
         return this.#failure(
           request,
@@ -178,9 +201,13 @@ export class CodexSubscriptionSynthesistAdapter implements SynthesistModelAdapte
         ].join(" "),
         ephemeral: true,
       });
+      if (signalAborted(options.signal)) {
+        throw new CodexSynthesistCancelledError();
+      }
 
       let expectedTurnId: string | undefined;
       let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+      let abortListener: (() => void) | undefined;
       let finalText: string | null = null;
       let toolActivity: string | null = null;
       let reroutedModel: string | null = null;
@@ -256,13 +283,27 @@ export class CodexSubscriptionSynthesistAdapter implements SynthesistModelAdapte
         });
         turnId = turn.turnId;
         expectedTurnId = turn.turnId;
+        if (signalAborted(options.signal)) {
+          throw new CodexSynthesistCancelledError();
+        }
         const timeout = new Promise<never>((_resolve, reject) => {
           timeoutHandle = setTimeout(
             () => reject(new Error("The Codex synthesis turn timed out.")),
             this.#timeoutMs,
           );
         });
-        const observation = await Promise.race([terminal, timeout]);
+        const cancellation = new Promise<never>((_resolve, reject) => {
+          if (options.signal === undefined) return;
+          abortListener = () => reject(new CodexSynthesistCancelledError());
+          options.signal.addEventListener("abort", abortListener, {
+            once: true,
+          });
+        });
+        const observation = await Promise.race([
+          terminal,
+          timeout,
+          cancellation,
+        ]);
         if (observation.toolActivity !== null) {
           return this.#failure(
             request,
@@ -351,6 +392,9 @@ export class CodexSubscriptionSynthesistAdapter implements SynthesistModelAdapte
         );
       } finally {
         if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
+        if (abortListener !== undefined) {
+          options.signal?.removeEventListener("abort", abortListener);
+        }
         unsubscribe();
       }
     } catch (error) {

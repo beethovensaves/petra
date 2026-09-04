@@ -20,6 +20,7 @@ import {
 } from "./grounded-synthesis.js";
 import { derivePetraId } from "./identity.js";
 import type {
+  SynthesistAdapterInvocationOptions,
   SynthesistAdapterResponse,
   SynthesistModelAdapter,
 } from "./synthesist-model-adapter.js";
@@ -450,6 +451,7 @@ export class SynthesistGateway {
 
   async execute(
     input: SynthesistGatewayRequest,
+    options: SynthesistAdapterInvocationOptions = {},
   ): Promise<SynthesistGatewayExecution> {
     const context = this.#packets.getContextPacket(input.context_packet_id);
     const evidence = this.#packets.getEvidencePacket(input.evidence_packet_id);
@@ -604,14 +606,17 @@ export class SynthesistGateway {
     );
     let response: SynthesistAdapterResponse;
     try {
-      response = await adapter.invoke({
-        model_request_id: modelRequestId,
-        model_call_id: modelCallId,
-        deployment: selected.deployment.deployment,
-        input: exactInput,
-        parameters: input.parameters,
-        output_contract: outputContract,
-      });
+      response = await adapter.invoke(
+        {
+          model_request_id: modelRequestId,
+          model_call_id: modelCallId,
+          deployment: selected.deployment.deployment,
+          input: exactInput,
+          parameters: input.parameters,
+          output_contract: outputContract,
+        },
+        options,
+      );
     } catch (error) {
       response = {
         outcome: "provider_error",
