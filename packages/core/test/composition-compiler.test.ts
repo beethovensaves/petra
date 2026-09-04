@@ -814,6 +814,21 @@ describe("additive researcher draft revision", () => {
       () => registry.register(inconsistent, harness.edited.composition),
       "DRAFT_SUPPORT_ASSESSMENT_STATE_INVALID",
     );
+
+    const wrongResearcher = structuredClone(harness.edited.assessment);
+    if (wrongResearcher.trigger.trigger_kind !== "researcher_edit") {
+      throw new Error("Expected a researcher-edit assessment.");
+    }
+    wrongResearcher.trigger.researcher.actor_id =
+      "actor_01ARZ3NDEKTSV4RRFFQ69G5FAZ";
+    expectAssessmentCode(
+      () =>
+        new InMemoryDraftSupportAssessmentRegistry().register(
+          wrongResearcher,
+          harness.edited.composition,
+        ),
+      "DRAFT_SUPPORT_ASSESSMENT_REFERENCE_MISMATCH",
+    );
   });
 });
 

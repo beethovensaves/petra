@@ -166,6 +166,16 @@ export class InMemoryDraftSupportAssessmentRegistry {
     assessment: PetraDraftSupportAssessment,
     composition: RegisterCompositionInput,
   ): void {
+    const triggerActorMatches =
+      assessment.trigger.trigger_kind === "researcher_edit"
+        ? composition.draft.revision > 1 &&
+          composition.draft.lineage.lineage_kind === "revision" &&
+          composition.draft.lineage.edit_origin === "researcher_edit" &&
+          composition.draft.production.origin_kind === "researcher_authored" &&
+          same(assessment.trigger.researcher, composition.draft.created_by) &&
+          assessment.trigger.researcher.actor_id ===
+            composition.draft.production.researcher_id
+        : same(assessment.trigger.executed_by, assessment.assessed_by);
     if (
       assessment.content_hash !== canonicalHash(assessment.content) ||
       assessment.project_id !== composition.draft.project_id ||
@@ -176,12 +186,13 @@ export class InMemoryDraftSupportAssessmentRegistry {
       ) ||
       !same(assessment.citation_bundle_ref, citationRef(composition)) ||
       assessment.assessed_by.actor_kind !== "service" ||
+      !triggerActorMatches ||
       assessment.assessed_at < composition.provenanceMap.compiled_at ||
       assessment.assessed_at < composition.citationBundle.compiled_at
     ) {
       throw new DraftSupportAssessmentError(
         "DRAFT_SUPPORT_ASSESSMENT_REFERENCE_MISMATCH",
-        "An assessment must bind the exact draft, provenance map, citation bundle, Project, service, content hash, and a non-antecedent time.",
+        "An assessment must bind the exact draft, provenance map, citation bundle, Project, responsible actors, content hash, and a non-antecedent time.",
       );
     }
   }

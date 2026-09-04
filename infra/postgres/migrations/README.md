@@ -130,3 +130,19 @@ rows support graph projection and later invalidation queries, while immutable
 payloads retain exact restart recovery. A model-produced draft additionally
 binds to the one current reusable GroundedResponse with the same execution,
 EvidencePacket, and snapshot.
+
+`V016__rendered_artifact_authority.sql` records deterministic Markdown, LaTeX,
+and BibTeX publication lineage only after the exact output bytes are available
+as a verified Artifact. Each record binds its DraftArtifact, CitationBundle,
+renderer identity, semantic hash, output media identity, and explicitly
+non-authoritative transformation boundary without copying source rights to the
+generated export.
+
+`V017__draft_revision_support_authority.sql` opens additive researcher editing
+without permitting overwrite. One transaction advances a DraftArtifact head by
+exactly one revision, commits its new spans, provenance, citations, and root
+DraftSupportAssessment, or commits none of them. Later revalidation advances
+only the immutable assessment ledger. Normalized support and citation states,
+exact subject foreign keys, unique command binding, deferred completeness
+checks, and immutable prior revisions make reuse eligibility queryable while
+keeping the assessment explicitly outside scientific evidence authority.

@@ -41,6 +41,7 @@ import {
   type CompositionPublicationError,
   derivePetraId,
   DeterministicCompositionRenderer,
+  DraftRevisionEngine,
   DurableInteractionHistory,
   executeCompensatingReversalPlan,
   GroundedCompositionCompiler,
@@ -765,6 +766,40 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     return { terminal, compiled };
   };
 
+  const compileDurableEdit = async () => {
+    const { terminal, compiled } = await compileDurableComposition();
+    const repository = new PostgresCompositionAggregateRepository(
+      pool,
+      terminal.packets,
+    );
+    await repository.register(compiled);
+    const firstSpan = compiled.spans[0];
+    if (firstSpan === undefined) {
+      throw new Error("Expected a compiled DraftSpan for the edit fixture.");
+    }
+    const researcher = readFixture<PetraActor>("actor");
+    const engine = new DraftRevisionEngine();
+    const edited = engine.edit({
+      previous: compiled,
+      commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FCY",
+      researcher: {
+        actor_id: researcher.actor_id,
+        actor_kind: "human",
+      },
+      serviceActor: serviceRef(),
+      replacements: [
+        {
+          draftSpanId: firstSpan.draft_span_id,
+          expectedExactTextHash: firstSpan.content.exact_text_hash,
+          replacementText:
+            "The selected study reports a modest measurable improvement.",
+        },
+      ],
+      editedAt: "2026-09-04T05:00:00.000Z",
+    });
+    return { terminal, compiled, repository, engine, researcher, edited };
+  };
+
   it("persists an exact reusable response and rehydrates it after restart", async () => {
     const terminal = await persistTerminal();
     const repository = new PostgresGroundedResponseAuthorityRepository(
@@ -1088,6 +1123,345 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     expect(unchanged?.draft.content.text).toBe(
       "The selected study reports a measurable improvement. The claim is limited to its study-defined evaluation task.",
     );
+  });
+
+  it("persists an additive draft edit and root support assessment atomically", async () => {
+    const { compiled, repository, edited } = await compileDurableEdit();
+    const stored = await repository.registerRevision(edited);
+    expect(await repository.registerRevision(structuredClone(edited))).toEqual(
+      stored,
+    );
+    expect(stored).toEqual({
+      composition: {
+        draft: edited.composition.draft,
+        spans: edited.composition.spans,
+        provenanceMap: edited.composition.provenanceMap,
+        citationBundle: edited.composition.citationBundle,
+      },
+      assessment: edited.assessment,
+    });
+
+    const restarted = new PostgresCompositionAggregateRepository(
+      pool,
+      new InMemoryContextPacketRegistry(),
+    );
+    expect(await restarted.get(compiled.draft.draft_artifact_id, 1)).toEqual({
+      draft: compiled.draft,
+      spans: compiled.spans,
+      provenanceMap: compiled.provenanceMap,
+      citationBundle: compiled.citationBundle,
+    });
+    expect(
+      await restarted.getCurrent(compiled.draft.draft_artifact_id),
+    ).toEqual(stored.composition);
+    expect(
+      await restarted.getCurrentAssessment(
+        edited.assessment.draft_support_assessment_id,
+      ),
+    ).toEqual(edited.assessment);
+    expect(await restarted.registerRevision(structuredClone(edited))).toEqual(
+      stored,
+    );
+
+    const counts = await pool.query<{
+      assessment_revisions: string;
+      assessments: string;
+      bundles: string;
+      citation_assessments: string;
+      drafts: string;
+      maps: string;
+      span_assessments: string;
+      spans: string;
+      stale_spans: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.draft_artifact_revisions) AS drafts,
+         (SELECT count(*)::text FROM petra.draft_spans) AS spans,
+         (SELECT count(*)::text FROM petra.provenance_maps) AS maps,
+         (SELECT count(*)::text FROM petra.citation_bundles) AS bundles,
+         (SELECT count(*)::text FROM petra.draft_support_assessments) AS assessments,
+         (SELECT count(*)::text FROM petra.draft_support_assessment_revisions) AS assessment_revisions,
+         (SELECT count(*)::text FROM petra.draft_support_span_assessments) AS span_assessments,
+         (SELECT count(*)::text FROM petra.draft_support_citation_assessments) AS citation_assessments,
+         (SELECT count(*)::text FROM petra.draft_support_citation_stale_spans) AS stale_spans`,
+    );
+    expect(counts.rows[0]).toEqual({
+      drafts: "2",
+      spans: "4",
+      maps: "2",
+      bundles: "2",
+      assessments: "1",
+      assessment_revisions: "1",
+      span_assessments: "2",
+      citation_assessments: "1",
+      stale_spans: "1",
+    });
+  });
+
+  it("appends passing support revalidation without rewriting the edited draft", async () => {
+    const { repository, engine, researcher, edited } =
+      await compileDurableEdit();
+    await repository.registerRevision(edited);
+    const staleSpan = edited.assessment.content.span_assessments.find(
+      (span) => span.support_state === "stale",
+    );
+    if (staleSpan === undefined) throw new Error("Expected one stale span.");
+    const revalidated = engine.revalidate({
+      composition: edited.composition,
+      previousAssessment: edited.assessment,
+      commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FCZ",
+      requestedBy: {
+        actor_id: researcher.actor_id,
+        actor_kind: "human",
+      },
+      serviceActor: serviceRef(),
+      spanResults: [
+        {
+          draftSpanId: staleSpan.draft_span_id,
+          outcome: "pass",
+          validatorResults: [
+            {
+              validator: "petra.span-support",
+              version: "1.0.0",
+              outcome: "pass",
+              code: "EDITED_SPAN_SUPPORT_PRESERVED",
+            },
+          ],
+          reason:
+            "The wording remains within the exact evidence and scientific-force boundary.",
+        },
+      ],
+      validatorResults: [
+        {
+          validator: "petra.felicity-force-preservation",
+          version: "1.0.0",
+          outcome: "pass",
+          code: "SCIENTIFIC_FORCE_PRESERVED",
+        },
+      ],
+      limitations: [
+        "Revalidation covers the existing EvidencePacket, not a new literature search.",
+      ],
+      assessedAt: "2026-09-04T05:01:00.000Z",
+    });
+
+    expect(await repository.registerAssessment(revalidated)).toEqual(
+      revalidated,
+    );
+    expect(
+      await repository.registerAssessment(structuredClone(revalidated)),
+    ).toEqual(revalidated);
+    const rebound = structuredClone(revalidated);
+    rebound.draft_support_assessment_id = derivePetraId(
+      "draft_support_assessment",
+      "conflicting-revalidation-command",
+    );
+    await expectCompositionAggregateCode(
+      () => repository.registerAssessment(rebound),
+      "DRAFT_SUPPORT_ASSESSMENT_COMMAND_CONFLICT",
+    );
+    expect(
+      await repository.getAssessment(
+        revalidated.draft_support_assessment_id,
+        1,
+      ),
+    ).toEqual(edited.assessment);
+    expect(
+      await repository.getCurrentAssessment(
+        revalidated.draft_support_assessment_id,
+      ),
+    ).toEqual(revalidated);
+    expect(
+      await repository.getCurrent(edited.composition.draft.draft_artifact_id),
+    ).toEqual({
+      draft: edited.composition.draft,
+      spans: edited.composition.spans,
+      provenanceMap: edited.composition.provenanceMap,
+      citationBundle: edited.composition.citationBundle,
+    });
+
+    const typed = await pool.query<{
+      current_revision: string;
+      current_spans: string;
+      passed_spans: string;
+      reuse_allowed: boolean;
+      state: string;
+    }>(
+      `SELECT authority.current_revision::text,
+              revision.assessment_state AS state,
+              revision.reuse_allowed,
+              count(span.position) FILTER (
+                WHERE span.support_state = 'current'
+              )::text AS current_spans,
+              count(span.position) FILTER (
+                WHERE span.support_state = 'passed'
+              )::text AS passed_spans
+         FROM petra.draft_support_assessments AS authority
+         JOIN petra.draft_support_assessment_revisions AS revision
+           ON revision.draft_support_assessment_id =
+                authority.draft_support_assessment_id
+          AND revision.revision = authority.current_revision
+         JOIN petra.draft_support_span_assessments AS span
+           ON span.draft_support_assessment_id =
+                revision.draft_support_assessment_id
+          AND span.assessment_revision = revision.revision
+        WHERE authority.draft_support_assessment_id = $1
+        GROUP BY authority.current_revision, revision.assessment_state,
+                 revision.reuse_allowed`,
+      [revalidated.draft_support_assessment_id],
+    );
+    expect(typed.rows[0]).toEqual({
+      current_revision: "2",
+      state: "passed",
+      reuse_allowed: true,
+      current_spans: "1",
+      passed_spans: "1",
+    });
+  });
+
+  it("persists failed revalidation as non-reusable support state", async () => {
+    const { repository, engine, researcher, edited } =
+      await compileDurableEdit();
+    await repository.registerRevision(edited);
+    const staleSpan = edited.assessment.content.span_assessments.find(
+      (span) => span.support_state === "stale",
+    );
+    if (staleSpan === undefined) throw new Error("Expected one stale span.");
+    const failed = engine.revalidate({
+      composition: edited.composition,
+      previousAssessment: edited.assessment,
+      commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FD0",
+      requestedBy: {
+        actor_id: researcher.actor_id,
+        actor_kind: "human",
+      },
+      serviceActor: serviceRef(),
+      spanResults: [
+        {
+          draftSpanId: staleSpan.draft_span_id,
+          outcome: "fail",
+          validatorResults: [
+            {
+              validator: "petra.span-support",
+              version: "1.0.0",
+              outcome: "fail",
+              code: "EDITED_SPAN_STRENGTHENS_CLAIM",
+            },
+          ],
+          reason: "The wording exceeds the source-reported claim strength.",
+        },
+      ],
+      validatorResults: [
+        {
+          validator: "petra.felicity-force-preservation",
+          version: "1.0.0",
+          outcome: "fail",
+          code: "SCIENTIFIC_FORCE_STRENGTHENED",
+        },
+      ],
+      limitations: ["The strengthened wording is not supported."],
+      assessedAt: "2026-09-04T05:01:00.000Z",
+    });
+
+    expect(await repository.registerAssessment(failed)).toMatchObject({
+      content: {
+        state: "failed",
+        reuse_policy: { reuse_allowed: false },
+        citation_assessments: [{ link_state: "partially_stale" }],
+      },
+    });
+    const typed = await pool.query<{
+      assessment_state: string;
+      reuse_allowed: boolean;
+      stale_span_count: string;
+    }>(
+      `SELECT revision.assessment_state, revision.reuse_allowed,
+              count(stale.draft_span_id)::text AS stale_span_count
+         FROM petra.draft_support_assessment_revisions AS revision
+         JOIN petra.draft_support_citation_assessments AS citation
+           ON citation.draft_support_assessment_id =
+                revision.draft_support_assessment_id
+          AND citation.assessment_revision = revision.revision
+         LEFT JOIN petra.draft_support_citation_stale_spans AS stale
+           ON stale.draft_support_assessment_id =
+                citation.draft_support_assessment_id
+          AND stale.assessment_revision = citation.assessment_revision
+          AND stale.citation_position = citation.position
+        WHERE revision.draft_support_assessment_id = $1
+          AND revision.revision = 2
+        GROUP BY revision.assessment_state, revision.reuse_allowed`,
+      [failed.draft_support_assessment_id],
+    );
+    expect(typed.rows[0]).toEqual({
+      assessment_state: "failed",
+      reuse_allowed: false,
+      stale_span_count: "1",
+    });
+  });
+
+  it("rejects an invalid root assessment and rolls back the entire new aggregate", async () => {
+    const { compiled, repository, edited } = await compileDurableEdit();
+    const invalid = structuredClone(edited);
+    const compiledFirstSpan = compiled.spans[0];
+    if (compiledFirstSpan === undefined) {
+      throw new Error("Expected one compiled DraftSpan.");
+    }
+    invalid.assessment.content.span_assessments[0].draft_span_id =
+      compiledFirstSpan.draft_span_id;
+    invalid.assessment.content_hash = canonicalHash(invalid.assessment.content);
+    await expect(repository.registerRevision(invalid)).rejects.toEqual(
+      expect.objectContaining({
+        code: "DRAFT_SUPPORT_ASSESSMENT_SPAN_INVALID",
+      }),
+    );
+
+    const skippedHead = structuredClone(edited);
+    skippedHead.composition.draft.revision = 3;
+    if (skippedHead.composition.draft.lineage.lineage_kind !== "revision") {
+      throw new Error("Expected a revision lineage fixture.");
+    }
+    skippedHead.composition.draft.lineage.parent_revision = 2;
+    await expectCompositionAggregateCode(
+      () => repository.registerRevision(skippedHead),
+      "COMPOSITION_AGGREGATE_REVISION_HEAD_CONFLICT",
+    );
+
+    expect(
+      await repository.get(compiled.draft.draft_artifact_id, 2),
+    ).toBeUndefined();
+    expect(
+      await repository.getCurrent(compiled.draft.draft_artifact_id),
+    ).toEqual({
+      draft: compiled.draft,
+      spans: compiled.spans,
+      provenanceMap: compiled.provenanceMap,
+      citationBundle: compiled.citationBundle,
+    });
+    const count = await pool.query<{ value: string }>(
+      "SELECT count(*)::text AS value FROM petra.draft_support_assessments",
+    );
+    expect(count.rows[0]?.value).toBe("0");
+  });
+
+  it("enforces immutable support history at the database boundary", async () => {
+    const { repository, edited } = await compileDurableEdit();
+    await repository.registerRevision(edited);
+    try {
+      await pool.query(
+        `UPDATE petra.draft_support_span_assessments
+            SET support_state = 'passed'
+          WHERE draft_support_assessment_id = $1`,
+        [edited.assessment.draft_support_assessment_id],
+      );
+      throw new Error("Expected immutable support history to reject mutation.");
+    } catch (error: unknown) {
+      expect(error).toEqual(expect.objectContaining({ code: "55000" }));
+      if (error instanceof Error) {
+        expect(error.message).toContain(
+          "DraftSupportAssessment records are immutable",
+        );
+      }
+    }
   });
 
   it("publishes all requested composition formats and rehydrates their exact durable lineage", async () => {

@@ -7,6 +7,7 @@ import type {
   PetraCompositionRequest,
   PetraDraftArtifact,
   PetraDraftSpan,
+  PetraDraftSupportAssessment,
   PetraEvidencePacket,
   PetraProvenanceMap,
   ProvenanceBasis,
@@ -17,7 +18,10 @@ import type {
   InMemoryContextPacketRegistry,
   RegisterCompositionInput,
 } from "@petra/core";
-import { InMemoryCompositionRegistry } from "@petra/core";
+import {
+  InMemoryCompositionRegistry,
+  InMemoryDraftSupportAssessmentRegistry,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
 
@@ -28,6 +32,10 @@ export type CompositionAggregatePersistenceErrorCode =
   | "COMPOSITION_AGGREGATE_REFERENCE_MISMATCH"
   | "COMPOSITION_AGGREGATE_GROUNDED_RESPONSE_NOT_REUSABLE"
   | "COMPOSITION_AGGREGATE_REVISION_UNSUPPORTED"
+  | "COMPOSITION_AGGREGATE_REVISION_HEAD_CONFLICT"
+  | "DRAFT_SUPPORT_ASSESSMENT_ID_CONFLICT"
+  | "DRAFT_SUPPORT_ASSESSMENT_COMMAND_CONFLICT"
+  | "DRAFT_SUPPORT_ASSESSMENT_REFERENCE_MISSING"
   | "COMPOSITION_AGGREGATE_STORED_RECORD_CORRUPT";
 
 export class CompositionAggregatePersistenceError extends Error {
@@ -47,6 +55,10 @@ interface StoredRow {
 
 interface StoredDraftRow extends StoredRow {
   aggregate_hash: string;
+}
+
+interface StoredAssessmentRow extends StoredRow {
+  content_hash: string;
 }
 
 interface GroundedResponseRow {
@@ -90,6 +102,16 @@ const aggregateFrom = (
   citationBundle: clone(input.citationBundle),
 });
 
+export interface RegisterDraftRevisionInput {
+  readonly composition: RegisterCompositionInput;
+  readonly assessment: PetraDraftSupportAssessment;
+}
+
+export interface DurableDraftRevision {
+  readonly composition: CompositionAggregate;
+  readonly assessment: PetraDraftSupportAssessment;
+}
+
 const dependencyKey = (dependency: AuthorityDependency): string =>
   [
     dependency.role,
@@ -121,7 +143,7 @@ export class PostgresCompositionAggregateRepository {
     if (input.draft.revision !== 1) {
       throw new CompositionAggregatePersistenceError(
         "COMPOSITION_AGGREGATE_REVISION_UNSUPPORTED",
-        "The first durable composition slice accepts only a root DraftArtifact; additive editing opens in M1.8-W09.",
+        "Root registration accepts only DraftArtifact revision 1; use registerRevision for an additive researcher edit.",
       );
     }
     const candidate = aggregateFrom(input);
@@ -193,6 +215,229 @@ export class PostgresCompositionAggregateRepository {
     });
   }
 
+  async registerRevision(
+    input: RegisterDraftRevisionInput,
+  ): Promise<DurableDraftRevision> {
+    const { composition, assessment } = input;
+    this.#assertContracts(composition);
+    this.#assertAssessmentContract(assessment);
+    if (
+      composition.draft.revision <= 1 ||
+      composition.draft.lineage.lineage_kind !== "revision" ||
+      composition.draft.lineage.edit_origin !== "researcher_edit" ||
+      composition.draft.production.origin_kind !== "researcher_authored" ||
+      assessment.revision !== 1 ||
+      assessment.lineage.lineage_kind !== "root" ||
+      assessment.trigger.trigger_kind !== "researcher_edit"
+    ) {
+      throw new CompositionAggregatePersistenceError(
+        "COMPOSITION_AGGREGATE_REVISION_UNSUPPORTED",
+        "Additive draft registration requires one researcher-authored next revision and its root researcher-edit support assessment.",
+      );
+    }
+    const candidate = aggregateFrom(composition);
+    const candidateHash = canonicalHash(candidate);
+    return this.#transaction(async (client) => {
+      await this.#lock(client, [
+        `composition-draft:${composition.draft.draft_artifact_id}`,
+        `composition-provenance:${composition.provenanceMap.provenance_map_id}`,
+        `composition-citations:${composition.citationBundle.citation_bundle_id}`,
+        `draft-support:${assessment.draft_support_assessment_id}`,
+        `draft-support-command:${assessment.trigger.command_id}`,
+        ...composition.spans.map(
+          (span) => `composition-span:${span.draft_span_id}`,
+        ),
+      ]);
+
+      const existingDraft = await this.#selectDraft(
+        client,
+        composition.draft.draft_artifact_id,
+        composition.draft.revision,
+      );
+      const existingAssessment = await this.#selectAssessment(
+        client,
+        assessment.draft_support_assessment_id,
+        assessment.revision,
+      );
+      if (existingDraft !== undefined || existingAssessment !== undefined) {
+        if (existingDraft === undefined || existingAssessment === undefined) {
+          throw new CompositionAggregatePersistenceError(
+            "COMPOSITION_AGGREGATE_ID_CONFLICT",
+            "The draft revision or support-assessment identity is already bound independently of the submitted pair.",
+          );
+        }
+        const storedComposition = await this.#loadAggregate(
+          client,
+          composition.draft.draft_artifact_id,
+          composition.draft.revision,
+        );
+        const storedAssessment = this.#assessmentFromRow(existingAssessment);
+        if (
+          existingDraft.aggregate_hash !== candidateHash ||
+          !same(storedComposition, candidate) ||
+          !same(storedAssessment, assessment)
+        ) {
+          throw new CompositionAggregatePersistenceError(
+            "COMPOSITION_AGGREGATE_ID_CONFLICT",
+            "The draft revision or its root support assessment is already bound to different canonical content.",
+          );
+        }
+        return {
+          composition: storedComposition,
+          assessment: storedAssessment,
+        };
+      }
+
+      await this.#requireAssessmentCommandAvailable(client, assessment);
+      await this.#requireDraftHead(
+        client,
+        composition.draft.draft_artifact_id,
+        composition.draft.revision - 1,
+      );
+      await this.#requireComponentIdsAvailable(client, composition);
+      const controls = await this.#requireDurableControls(
+        client,
+        composition.draft,
+      );
+      const evidence = this.#packets.getEvidencePacket(
+        composition.draft.evidence_packet_ref.evidence_packet_id,
+      );
+      if (evidence === undefined || !same(evidence, controls.evidence)) {
+        throw new CompositionAggregatePersistenceError(
+          "COMPOSITION_AGGREGATE_REFERENCE_MISMATCH",
+          "The in-memory EvidencePacket must exactly match its durable record before draft revision persistence.",
+        );
+      }
+      const validator = new InMemoryCompositionRegistry(this.#packets);
+      validator.registerRequest(clone(controls.request));
+      validator.registerPlan(clone(controls.plan));
+      for (
+        let revision = 1;
+        revision < composition.draft.revision;
+        revision += 1
+      ) {
+        const prior = await this.#loadAggregate(
+          client,
+          composition.draft.draft_artifact_id,
+          revision,
+        );
+        validator.register({
+          ...clone(prior),
+          scholarlyRecords: clone(composition.scholarlyRecords),
+        });
+      }
+      validator.register(clone(composition));
+      new InMemoryDraftSupportAssessmentRegistry(this.#contracts).register(
+        clone(assessment),
+        clone(composition),
+      );
+      await this.#requireCanonicalCitationReferences(client, composition);
+
+      await this.#insertDraft(client, composition.draft, candidateHash);
+      await this.#insertSpans(client, composition.spans);
+      await this.#insertProvenance(client, composition.provenanceMap);
+      await this.#insertCitations(client, composition.citationBundle);
+      await this.#insertDependencies(client, composition);
+      await this.#insertAssessment(client, assessment);
+      await this.#advanceDraftHead(
+        client,
+        composition.draft.draft_artifact_id,
+        composition.draft.revision,
+      );
+      return { composition: candidate, assessment: clone(assessment) };
+    });
+  }
+
+  async registerAssessment(
+    assessment: PetraDraftSupportAssessment,
+  ): Promise<PetraDraftSupportAssessment> {
+    this.#assertAssessmentContract(assessment);
+    if (
+      assessment.revision <= 1 ||
+      assessment.lineage.lineage_kind !== "revision" ||
+      assessment.trigger.trigger_kind !== "support_revalidation"
+    ) {
+      throw new CompositionAggregatePersistenceError(
+        "COMPOSITION_AGGREGATE_REVISION_UNSUPPORTED",
+        "Standalone support registration accepts only a later explicit revalidation assessment.",
+      );
+    }
+    return this.#transaction(async (client) => {
+      await this.#lock(client, [
+        `composition-draft:${assessment.draft_ref.draft_artifact_id}`,
+        `draft-support:${assessment.draft_support_assessment_id}`,
+        `draft-support-command:${assessment.trigger.command_id}`,
+      ]);
+      const existing = await this.#selectAssessment(
+        client,
+        assessment.draft_support_assessment_id,
+        assessment.revision,
+      );
+      if (existing !== undefined) {
+        const stored = this.#assessmentFromRow(existing);
+        if (!same(stored, assessment)) {
+          throw new CompositionAggregatePersistenceError(
+            "DRAFT_SUPPORT_ASSESSMENT_ID_CONFLICT",
+            "The support assessment revision is already bound to different canonical content.",
+          );
+        }
+        return stored;
+      }
+      await this.#requireAssessmentCommandAvailable(client, assessment);
+      await this.#requireAssessmentHead(
+        client,
+        assessment.draft_support_assessment_id,
+        assessment.revision - 1,
+      );
+      const composition = await this.#loadAggregate(
+        client,
+        assessment.draft_ref.draft_artifact_id,
+        assessment.draft_ref.revision,
+      );
+      const assessmentValidator = new InMemoryDraftSupportAssessmentRegistry(
+        this.#contracts,
+      );
+      for (let revision = 1; revision < assessment.revision; revision += 1) {
+        const prior = await this.#selectAssessment(
+          client,
+          assessment.draft_support_assessment_id,
+          revision,
+        );
+        if (prior === undefined) {
+          throw new CompositionAggregatePersistenceError(
+            "DRAFT_SUPPORT_ASSESSMENT_REFERENCE_MISSING",
+            "Every prior support assessment revision must remain available for revalidation.",
+          );
+        }
+        assessmentValidator.register(this.#assessmentFromRow(prior), {
+          ...clone(composition),
+          scholarlyRecords: {
+            works: [],
+            workVersions: [],
+            authors: [],
+            externalIdentifiers: [],
+          },
+        });
+      }
+      assessmentValidator.register(clone(assessment), {
+        ...clone(composition),
+        scholarlyRecords: {
+          works: [],
+          workVersions: [],
+          authors: [],
+          externalIdentifiers: [],
+        },
+      });
+      await this.#insertAssessment(client, assessment);
+      await this.#advanceAssessmentHead(
+        client,
+        assessment.draft_support_assessment_id,
+        assessment.revision,
+      );
+      return clone(assessment);
+    });
+  }
+
   async get(
     draftArtifactId: string,
     revision: number,
@@ -223,6 +468,34 @@ export class PostgresCompositionAggregateRepository {
       : this.get(draftArtifactId, Number(row.current_revision));
   }
 
+  async getAssessment(
+    assessmentId: string,
+    revision: number,
+  ): Promise<PetraDraftSupportAssessment | undefined> {
+    const client = await this.#pool.connect();
+    try {
+      const row = await this.#selectAssessment(client, assessmentId, revision);
+      return row === undefined ? undefined : this.#assessmentFromRow(row);
+    } finally {
+      client.release();
+    }
+  }
+
+  async getCurrentAssessment(
+    assessmentId: string,
+  ): Promise<PetraDraftSupportAssessment | undefined> {
+    const result = await this.#pool.query<{ current_revision: string }>(
+      `SELECT current_revision
+         FROM petra.draft_support_assessments
+        WHERE draft_support_assessment_id = $1`,
+      [assessmentId],
+    );
+    const row = result.rows[0];
+    return row === undefined
+      ? undefined
+      : this.getAssessment(assessmentId, Number(row.current_revision));
+  }
+
   #assertContracts(input: RegisterCompositionInput): void {
     this.#contracts.assertValid(
       "draft-artifact",
@@ -241,6 +514,14 @@ export class PostgresCompositionAggregateRepository {
       "citation-bundle",
       input.citationBundle.schema_version,
       input.citationBundle,
+    );
+  }
+
+  #assertAssessmentContract(assessment: PetraDraftSupportAssessment): void {
+    this.#contracts.assertValid(
+      "draft-support-assessment",
+      assessment.schema_version,
+      assessment,
     );
   }
 
@@ -423,20 +704,22 @@ export class PostgresCompositionAggregateRepository {
     client: PoolClient,
     draft: PetraDraftArtifact,
     aggregateHash: string,
-    grounded: GroundedResponseRow | undefined,
+    grounded?: GroundedResponseRow,
   ): Promise<void> {
     const production = draft.production;
-    await client.query(
-      `INSERT INTO petra.draft_artifacts (
-         draft_artifact_id, project_id, current_revision, created_at
-       ) VALUES ($1, $2, $3, $4::timestamptz)`,
-      [
-        draft.draft_artifact_id,
-        draft.project_id,
-        draft.revision,
-        draft.created_at,
-      ],
-    );
+    if (draft.revision === 1) {
+      await client.query(
+        `INSERT INTO petra.draft_artifacts (
+           draft_artifact_id, project_id, current_revision, created_at
+         ) VALUES ($1, $2, $3, $4::timestamptz)`,
+        [
+          draft.draft_artifact_id,
+          draft.project_id,
+          draft.revision,
+          draft.created_at,
+        ],
+      );
+    }
     await client.query(
       `INSERT INTO petra.draft_artifact_revisions (
          draft_artifact_id, revision, project_id,
@@ -838,6 +1121,281 @@ export class PostgresCompositionAggregateRepository {
     }
   }
 
+  async #insertAssessment(
+    client: PoolClient,
+    assessment: PetraDraftSupportAssessment,
+  ): Promise<void> {
+    const trigger = assessment.trigger;
+    const lineage = assessment.lineage;
+    const triggerActor =
+      trigger.trigger_kind === "researcher_edit"
+        ? trigger.researcher
+        : trigger.requested_by;
+    const executedBy =
+      trigger.trigger_kind === "support_revalidation"
+        ? trigger.executed_by
+        : undefined;
+    if (assessment.revision === 1) {
+      await client.query(
+        `INSERT INTO petra.draft_support_assessments (
+           draft_support_assessment_id, project_id, draft_artifact_id,
+           draft_artifact_revision, draft_content_hash, current_revision,
+           created_at
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz)`,
+        [
+          assessment.draft_support_assessment_id,
+          assessment.project_id,
+          assessment.draft_ref.draft_artifact_id,
+          assessment.draft_ref.revision,
+          assessment.draft_ref.content_hash,
+          assessment.revision,
+          assessment.assessed_at,
+        ],
+      );
+    }
+    await client.query(
+      `INSERT INTO petra.draft_support_assessment_revisions (
+         draft_support_assessment_id, revision, project_id,
+         draft_artifact_id, draft_artifact_revision, draft_content_hash,
+         provenance_map_id, provenance_map_revision, provenance_map_hash,
+         citation_bundle_id, citation_bundle_revision, citation_bundle_hash,
+         lineage_kind, parent_revision, parent_content_hash, trigger_kind,
+         command_id, trigger_actor_id, trigger_actor_kind,
+         executed_by_actor_id, executed_by_actor_kind, assessment_state,
+         reuse_allowed, assessment_is_scientific_evidence,
+         assessment_controls_draft_reuse, span_assessment_count,
+         citation_assessment_count, validator_result_count,
+         assessed_by_actor_id, assessed_by_actor_kind, assessed_at,
+         content_hash, record_hash, payload
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+         $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+         $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
+         $31::timestamptz, $32, $33, $34::jsonb
+       )`,
+      [
+        assessment.draft_support_assessment_id,
+        assessment.revision,
+        assessment.project_id,
+        assessment.draft_ref.draft_artifact_id,
+        assessment.draft_ref.revision,
+        assessment.draft_ref.content_hash,
+        assessment.provenance_map_ref.provenance_map_id,
+        assessment.provenance_map_ref.revision,
+        assessment.provenance_map_ref.content_hash,
+        assessment.citation_bundle_ref.citation_bundle_id,
+        assessment.citation_bundle_ref.revision,
+        assessment.citation_bundle_ref.content_hash,
+        lineage.lineage_kind,
+        lineage.lineage_kind === "revision" ? lineage.parent_revision : null,
+        lineage.lineage_kind === "revision"
+          ? lineage.parent_content_hash
+          : null,
+        trigger.trigger_kind,
+        trigger.command_id,
+        triggerActor.actor_id,
+        triggerActor.actor_kind,
+        executedBy?.actor_id ?? null,
+        executedBy?.actor_kind ?? null,
+        assessment.content.state,
+        assessment.content.reuse_policy.reuse_allowed,
+        assessment.content.authority_boundary.assessment_is_scientific_evidence,
+        assessment.content.authority_boundary.assessment_controls_draft_reuse,
+        assessment.content.span_assessments.length,
+        assessment.content.citation_assessments.length,
+        assessment.content.validator_results.length,
+        assessment.assessed_by.actor_id,
+        assessment.assessed_by.actor_kind,
+        assessment.assessed_at,
+        assessment.content_hash,
+        canonicalHash(assessment),
+        JSON.stringify(assessment),
+      ],
+    );
+    for (const [index, span] of assessment.content.span_assessments.entries()) {
+      await client.query(
+        `INSERT INTO petra.draft_support_span_assessments (
+           draft_support_assessment_id, assessment_revision, position,
+           draft_artifact_id, draft_artifact_revision, draft_span_id,
+           draft_span_revision, support_state, citation_state,
+           basis_snapshot_hash, validator_result_count, reason_count, payload
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, 1, $7, $8, $9, $10, $11, $12::jsonb
+         )`,
+        [
+          assessment.draft_support_assessment_id,
+          assessment.revision,
+          index + 1,
+          assessment.draft_ref.draft_artifact_id,
+          assessment.draft_ref.revision,
+          span.draft_span_id,
+          span.support_state,
+          span.citation_state,
+          canonicalHash(span.basis_snapshot),
+          span.validator_results.length,
+          span.reasons.length,
+          JSON.stringify(span),
+        ],
+      );
+    }
+    for (const [
+      index,
+      citation,
+    ] of assessment.content.citation_assessments.entries()) {
+      const citationPosition = index + 1;
+      await client.query(
+        `INSERT INTO petra.draft_support_citation_assessments (
+           draft_support_assessment_id, assessment_revision, position,
+           citation_bundle_id, citation_bundle_revision, citation_id,
+           link_state, stale_span_count, payload
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)`,
+        [
+          assessment.draft_support_assessment_id,
+          assessment.revision,
+          citationPosition,
+          assessment.citation_bundle_ref.citation_bundle_id,
+          assessment.citation_bundle_ref.revision,
+          citation.citation_id,
+          citation.link_state,
+          citation.stale_draft_span_ids.length,
+          JSON.stringify(citation),
+        ],
+      );
+      for (const [
+        spanIndex,
+        spanId,
+      ] of citation.stale_draft_span_ids.entries()) {
+        await client.query(
+          `INSERT INTO petra.draft_support_citation_stale_spans (
+             draft_support_assessment_id, assessment_revision,
+             citation_position, span_position, draft_span_id,
+             draft_span_revision
+           ) VALUES ($1, $2, $3, $4, $5, 1)`,
+          [
+            assessment.draft_support_assessment_id,
+            assessment.revision,
+            citationPosition,
+            spanIndex + 1,
+            spanId,
+          ],
+        );
+      }
+    }
+  }
+
+  async #requireDraftHead(
+    client: PoolClient,
+    draftArtifactId: string,
+    expectedRevision: number,
+  ): Promise<void> {
+    const result = await client.query<{ current_revision: string }>(
+      `SELECT current_revision
+         FROM petra.draft_artifacts
+        WHERE draft_artifact_id = $1
+        FOR UPDATE`,
+      [draftArtifactId],
+    );
+    const current = result.rows[0]?.current_revision;
+    if (current === undefined) {
+      throw new CompositionAggregatePersistenceError(
+        "COMPOSITION_AGGREGATE_REFERENCE_MISSING",
+        "The prior durable DraftArtifact identity does not exist.",
+      );
+    }
+    if (Number(current) !== expectedRevision) {
+      throw new CompositionAggregatePersistenceError(
+        "COMPOSITION_AGGREGATE_REVISION_HEAD_CONFLICT",
+        "The additive draft edit does not advance the current durable revision exactly once.",
+      );
+    }
+  }
+
+  async #advanceDraftHead(
+    client: PoolClient,
+    draftArtifactId: string,
+    revision: number,
+  ): Promise<void> {
+    const result = await client.query(
+      `UPDATE petra.draft_artifacts
+          SET current_revision = $2
+        WHERE draft_artifact_id = $1 AND current_revision = $2 - 1`,
+      [draftArtifactId, revision],
+    );
+    if (result.rowCount !== 1) {
+      throw new CompositionAggregatePersistenceError(
+        "COMPOSITION_AGGREGATE_REVISION_HEAD_CONFLICT",
+        "The durable DraftArtifact head changed before the revision could commit.",
+      );
+    }
+  }
+
+  async #requireAssessmentHead(
+    client: PoolClient,
+    assessmentId: string,
+    expectedRevision: number,
+  ): Promise<void> {
+    const result = await client.query<{ current_revision: string }>(
+      `SELECT current_revision
+         FROM petra.draft_support_assessments
+        WHERE draft_support_assessment_id = $1
+        FOR UPDATE`,
+      [assessmentId],
+    );
+    const current = result.rows[0]?.current_revision;
+    if (current === undefined) {
+      throw new CompositionAggregatePersistenceError(
+        "DRAFT_SUPPORT_ASSESSMENT_REFERENCE_MISSING",
+        "The prior durable DraftSupportAssessment identity does not exist.",
+      );
+    }
+    if (Number(current) !== expectedRevision) {
+      throw new CompositionAggregatePersistenceError(
+        "COMPOSITION_AGGREGATE_REVISION_HEAD_CONFLICT",
+        "The support revalidation does not advance the current assessment revision exactly once.",
+      );
+    }
+  }
+
+  async #advanceAssessmentHead(
+    client: PoolClient,
+    assessmentId: string,
+    revision: number,
+  ): Promise<void> {
+    const result = await client.query(
+      `UPDATE petra.draft_support_assessments
+          SET current_revision = $2
+        WHERE draft_support_assessment_id = $1 AND current_revision = $2 - 1`,
+      [assessmentId, revision],
+    );
+    if (result.rowCount !== 1) {
+      throw new CompositionAggregatePersistenceError(
+        "COMPOSITION_AGGREGATE_REVISION_HEAD_CONFLICT",
+        "The durable support-assessment head changed before revalidation could commit.",
+      );
+    }
+  }
+
+  async #requireAssessmentCommandAvailable(
+    client: PoolClient,
+    assessment: PetraDraftSupportAssessment,
+  ): Promise<void> {
+    const result = await client.query<{
+      draft_support_assessment_id: string;
+      revision: string;
+    }>(
+      `SELECT draft_support_assessment_id, revision::text AS revision
+         FROM petra.draft_support_assessment_revisions
+        WHERE command_id = $1`,
+      [assessment.trigger.command_id],
+    );
+    if (result.rowCount !== 0) {
+      throw new CompositionAggregatePersistenceError(
+        "DRAFT_SUPPORT_ASSESSMENT_COMMAND_CONFLICT",
+        "The support-assessment command ID is already bound to another revision.",
+      );
+    }
+  }
+
   #dependencies(input: RegisterCompositionInput): AuthorityDependency[] {
     const dependencies = new Map<string, AuthorityDependency>();
     const usedEvidenceOrders = new Set<number>();
@@ -1037,6 +1595,37 @@ export class PostgresCompositionAggregateRepository {
       [draftArtifactId, revision],
     );
     return result.rows[0];
+  }
+
+  async #selectAssessment(
+    client: PoolClient,
+    assessmentId: string,
+    revision: number,
+  ): Promise<StoredAssessmentRow | undefined> {
+    const result = await client.query<StoredAssessmentRow>(
+      `SELECT content_hash, record_hash, payload
+         FROM petra.draft_support_assessment_revisions
+        WHERE draft_support_assessment_id = $1 AND revision = $2`,
+      [assessmentId, revision],
+    );
+    return result.rows[0];
+  }
+
+  #assessmentFromRow(row: StoredAssessmentRow): PetraDraftSupportAssessment {
+    this.#assertStoredRecord(row, "DraftSupportAssessment");
+    this.#contracts.assertValid(
+      "draft-support-assessment",
+      "1.0.0",
+      row.payload,
+    );
+    const assessment = clone(row.payload) as PetraDraftSupportAssessment;
+    if (row.content_hash !== assessment.content_hash) {
+      throw new CompositionAggregatePersistenceError(
+        "COMPOSITION_AGGREGATE_STORED_RECORD_CORRUPT",
+        "The stored DraftSupportAssessment content hash no longer matches its payload.",
+      );
+    }
+    return assessment;
   }
 
   async #selectStored(
