@@ -264,6 +264,26 @@ describe("grounded response registration and authority invalidation", () => {
     );
   });
 
+  it("keeps per-interaction WorkUnit caching separate from response reuse", () => {
+    const { registry, input } = makeRegistration();
+    input.workUnit.spec.cache = { cache_mode: "disabled" };
+    input.workUnit.spec_hash = canonicalHash(input.workUnit.spec);
+    input.interactionRun.content.correlation.work_unit_ref.spec_hash =
+      input.workUnit.spec_hash;
+    input.interactionRun.content_hash = canonicalHash(
+      input.interactionRun.content,
+    );
+    input.response.content.interaction_ref.work_unit_ref.spec_hash =
+      input.workUnit.spec_hash;
+    input.response.content.interaction_ref.interaction_run_ref.content_hash =
+      input.interactionRun.content_hash;
+    input.response.content_hash = canonicalHash(input.response.content);
+
+    const stored = registry.register(input);
+    expect(input.workUnit.spec.cache.cache_mode).toBe("disabled");
+    expect(stored.content.cache.state).toBe("reusable");
+  });
+
   it("rejects mismatched immutable response bytes atomically", () => {
     const { registry, input } = makeRegistration();
     const mismatched = {

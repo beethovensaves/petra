@@ -21,7 +21,7 @@ import type {
 import { canonicalize } from "json-canonicalize";
 
 import type { ArtifactAuthorityRepository } from "./artifact-registry.js";
-import type { ArtifactStore } from "./artifact-store.js";
+import type { ArtifactStore, AvailableArtifact } from "./artifact-store.js";
 import type { InMemoryContextPacketRegistry } from "./context-packet-registry.js";
 import type { GroundedResponseAuthorityRepository } from "./grounded-response-registry.js";
 import { groundedResponseCacheKey } from "./grounded-response-registry.js";
@@ -29,6 +29,8 @@ import type {
   GroundedSynthesisTerminalBinding,
   GroundedSynthesisTerminalPort,
   GroundedSynthesisTerminalRequest,
+  GroundedSynthesisWorkBinding,
+  GroundedSynthesisWorkStartRequest,
 } from "./grounded-synthesis-interaction.js";
 import { derivePetraId } from "./identity.js";
 import {
@@ -42,6 +44,7 @@ import type { SynthesistExecutionRepository } from "./synthesist-execution-repos
 import type { WorkUnitAuthorityRepository } from "./work-unit-authority-repository.js";
 
 const RESPONSE_MEDIA_TYPE = "text/markdown; charset=utf-8" as const;
+const PROMPT_MEDIA_TYPE = "text/plain; charset=utf-8" as const;
 const WORKER_MEDIA_TYPE = "text/markdown" as const;
 const MAX_RESPONSE_BYTES = 4_000_000;
 
@@ -258,9 +261,101 @@ const terminalArtifactRecords = (
   return { artifact, manifest, rightsDecision };
 };
 
+const promptArtifactRecords = (
+  request: GroundedSynthesisWorkStartRequest,
+  available: AvailableArtifact,
+  serviceActor: PetraActor,
+): {
+  artifact: PetraArtifact;
+  manifest: PetraArtifactManifest;
+  rightsDecision: PetraRightsDecision;
+} => {
+  const actor = serviceRef(serviceActor);
+  const seed = `${request.interaction.protocol_thread_id}|${request.interaction.protocol_run_id}|${available.contentHash}`;
+  const artifactId = derivePetraId("artifact", available.contentHash);
+  const manifestId = derivePetraId("artifact_manifest", seed);
+  const rightsId = derivePetraId("rights_decision", seed);
+  const artifact: PetraArtifact = {
+    schema_name: "petra.artifact",
+    schema_version: "1.0.0",
+    artifact_id: artifactId,
+    revision: 1,
+    artifact_kind: "structured_text",
+    media_type: PROMPT_MEDIA_TYPE,
+    content_hash: available.contentHash,
+    byte_size: available.byteSize,
+    created_by: actor,
+    created_at: available.availableAt,
+  };
+  const manifest: PetraArtifactManifest = {
+    schema_name: "petra.artifact-manifest",
+    schema_version: "1.0.0",
+    artifact_manifest_id: manifestId,
+    revision: 1,
+    artifact_id: artifactId,
+    rights_decision_id: rightsId,
+    origin: {
+      origin_kind: "generated",
+      generator_name: "petra-interaction-input",
+      generator_version: "1.0.0",
+      generated_at: available.availableAt,
+      input_artifact_ids: [],
+    },
+    storage_ref: {
+      storage_kind: "content_addressed_object",
+      store_name: available.storeName,
+      object_key: available.objectKey,
+      content_hash: available.contentHash,
+      availability: "available",
+      verified_at: available.availableAt,
+    },
+    integrity: artifactIntegrity(available.verification, available.availableAt),
+    recorded_by: actor,
+    recorded_at: available.availableAt,
+  };
+  const rightsDecision: PetraRightsDecision = {
+    schema_name: "petra.rights-decision",
+    schema_version: "1.0.0",
+    rights_decision_id: rightsId,
+    revision: 1,
+    artifact_manifest_id: manifestId,
+    source_location: `urn:petra:interaction-input:${request.interaction.protocol_run_id}`,
+    license_status: "known",
+    observed_license: {
+      statement: "Private authenticated interaction input.",
+      source: "artifact",
+    },
+    access_basis: "permission",
+    decision_status: "verified",
+    permissions: {
+      store_raw_bytes: true,
+      parse: true,
+      index: false,
+      embed: false,
+      send_selected_text_remotely: true,
+      quote_publicly: false,
+      redistribute_artifact: false,
+    },
+    conditions: [],
+    required_notices: [],
+    authorization_reference: "petra-private-interaction-input/1.0.0",
+    decision_maker: actor,
+    rationale:
+      "The authenticated researcher supplied this private prompt for the requested model-assisted workflow.",
+    observed_at: available.availableAt,
+    policy_version: "petra-rights/1.0.0",
+    created_at: available.availableAt,
+  };
+  return { artifact, manifest, rightsDecision };
+};
+
 const persistArtifactAcquisition = async (
   repository: ArtifactAuthorityRepository,
-  records: ReturnType<typeof terminalArtifactRecords>,
+  records: {
+    artifact: PetraArtifact;
+    manifest: PetraArtifactManifest;
+    rightsDecision: PetraRightsDecision;
+  },
 ): Promise<void> => {
   const existing = await repository.getArtifact(records.artifact.artifact_id);
   if (existing === undefined) {
@@ -281,7 +376,7 @@ const persistArtifactAcquisition = async (
   } else if (canonicalize(existing) !== canonicalize(records.artifact)) {
     throw new GroundedSynthesisTerminalError(
       "GROUNDED_TERMINAL_ARTIFACT_CONFLICT",
-      "The response byte identity is already bound to a different Artifact record.",
+      "The byte identity is already bound to a different Artifact record.",
     );
   }
   await repository.attachVerifiedManifest({
@@ -289,6 +384,194 @@ const persistArtifactAcquisition = async (
     manifest: records.manifest,
     rightsDecision: records.rightsDecision,
   });
+};
+
+const groundedWorkStartRecords = (
+  request: GroundedSynthesisWorkStartRequest,
+  promptArtifact: PetraArtifact,
+  serviceActor: PetraActor,
+  projectId: string,
+  runtimeVersion: string,
+  startedAt: string,
+): { root: PetraWorkUnit; input: PetraWorkerInputManifest } => {
+  const actor = serviceRef(serviceActor);
+  const inputId = derivePetraId(
+    "worker_input_manifest",
+    `${request.interaction.work_unit_id}|${promptArtifact.content_hash}`,
+  );
+  const worker = {
+    executor_kind: "typescript_worker" as const,
+    worker_name: "petra.grounded_synthesis",
+    worker_version: "1.0.0",
+    runtime_name: "node",
+    runtime_version: runtimeVersion,
+    entrypoint: "petra.grounded_synthesis.execute",
+  };
+  const inputContent: PetraWorkerInputManifest["content"] = {
+    task: {
+      task_family: "reasoning",
+      task_name: "petra.synthesis.grounded",
+      task_version: "1.0.0",
+    },
+    worker,
+    inputs: [
+      {
+        binding_kind: "artifact",
+        name: "research_prompt",
+        artifact_id: promptArtifact.artifact_id,
+        content_hash: promptArtifact.content_hash,
+        byte_size: promptArtifact.byte_size,
+      },
+    ],
+    expected_outputs: [
+      {
+        output_name: "grounded_response",
+        output_role: "result",
+        required: true,
+        media_type: WORKER_MEDIA_TYPE,
+        max_bytes: MAX_RESPONSE_BYTES,
+      },
+    ],
+    resource_limits: {
+      max_wall_time_ms: 120_000,
+      max_output_bytes: MAX_RESPONSE_BYTES,
+      max_attempts: 1,
+      max_parallelism: 1,
+      max_input_tokens: 4096,
+      max_output_tokens: 1600,
+    },
+    network_policy: {
+      network_mode: "allowlist",
+      destinations: ["https://chatgpt.com/"],
+    },
+    partial_result_policy: "discard",
+  };
+  const input: PetraWorkerInputManifest = {
+    schema_name: "petra.worker-input-manifest",
+    schema_version: "1.0.0",
+    worker_input_manifest_id: inputId,
+    revision: 1,
+    work_unit_id: request.interaction.work_unit_id,
+    project_id: projectId,
+    content: inputContent,
+    content_hash: canonicalHash(inputContent),
+    issued_by: actor,
+    issued_at: startedAt,
+  };
+  const spec: PetraWorkUnit["spec"] = {
+    workflow_name: "petra.synthesis.grounded",
+    workflow_version: "1.0.0",
+    objective:
+      "Answer the exact authenticated research prompt through Petra's bounded grounded-synthesis workflow.",
+    work_mode: "interactive",
+    priority: "user_blocking",
+    dependency_work_unit_ids: [],
+    input_manifest_ref: {
+      worker_input_manifest_id: inputId,
+      content_hash: input.content_hash,
+    },
+    idempotency_key: `work:${derivePetraId(
+      "operation",
+      `${request.interaction.protocol_thread_id}|${request.interaction.protocol_run_id}|${promptArtifact.content_hash}`,
+    )}`,
+    cache: { cache_mode: "disabled" },
+    cancellation_policy: "cancellable",
+    checkpoint_policy: "disabled",
+  };
+  const root: PetraWorkUnit = {
+    schema_name: "petra.work-unit",
+    schema_version: "1.0.0",
+    work_unit_id: request.interaction.work_unit_id,
+    revision: 1,
+    project_id: projectId,
+    spec,
+    spec_hash: canonicalHash(spec),
+    status: { state: "requested", requested_at: startedAt },
+    capability_grant_id: derivePetraId(
+      "capability_grant",
+      `${request.interaction.work_unit_id}|grounded-synthesis`,
+    ),
+    trace_id: petraCorrelationId("trace", request.interaction.trace_id),
+    created_by: actor,
+    created_at: startedAt,
+    updated_at: startedAt,
+  };
+  return { root, input };
+};
+
+const groundedWorkOutput = (
+  request: GroundedSynthesisTerminalRequest,
+  workUnit: PetraWorkUnit,
+  input: PetraWorkerInputManifest,
+  responseHash: string,
+  responseBytes: number,
+  completedAt: string,
+): PetraWorkerOutputManifest => {
+  const startedAt =
+    workUnit.status.state === "running" ||
+    workUnit.status.state === "checkpointed" ||
+    workUnit.status.state === "completed" ||
+    workUnit.status.state === "cancelled"
+      ? workUnit.status.started_at
+      : undefined;
+  if (startedAt === undefined) {
+    throw new GroundedSynthesisTerminalError(
+      "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+      "The grounded WorkUnit must be running before it can produce a response.",
+    );
+  }
+  const content: PetraWorkerOutputManifest["content"] = {
+    worker: clone(input.content.worker),
+    started_at: startedAt,
+    completed_at: completedAt,
+    outcome: {
+      outcome_kind: "succeeded",
+      produced_outputs: [
+        {
+          output_name: "grounded_response",
+          output_role: "result",
+          output_handle: `output:${derivePetraId("result", responseHash).slice("result_".length)}`,
+          content_hash: responseHash,
+          byte_size: responseBytes,
+          media_type: WORKER_MEDIA_TYPE,
+        },
+      ],
+    },
+    diagnostics: [],
+    network_activity: [],
+    resource_usage: {
+      wall_time_ms: Math.max(
+        new Date(completedAt).getTime() - new Date(startedAt).getTime(),
+        0,
+      ),
+      cpu_time_ms: 0,
+      peak_memory_bytes: 0,
+      input_bytes: input.content.inputs.reduce(
+        (total, binding) =>
+          total + (binding.binding_kind === "artifact" ? binding.byte_size : 0),
+        0,
+      ),
+      output_bytes: responseBytes,
+      network_bytes: 0,
+    },
+  };
+  return {
+    schema_name: "petra.worker-output-manifest",
+    schema_version: "1.0.0",
+    worker_output_manifest_id: derivePetraId(
+      "worker_output_manifest",
+      `${request.interaction.work_unit_id}|${responseHash}`,
+    ),
+    revision: 1,
+    work_unit_id: request.interaction.work_unit_id,
+    project_id: workUnit.project_id,
+    attempt: 1,
+    worker_input_manifest_id: input.worker_input_manifest_id,
+    worker_input_manifest_hash: input.content_hash,
+    content,
+    content_hash: canonicalHash(content),
+    reported_at: completedAt,
+  };
 };
 
 const terminalWorkRecords = (
@@ -750,6 +1033,147 @@ export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTermi
       });
   }
 
+  async startWork(
+    request: GroundedSynthesisWorkStartRequest,
+  ): Promise<GroundedSynthesisWorkBinding> {
+    const options = this.#options;
+    if (request.prompt.trim().length === 0) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_EXECUTION_MISMATCH",
+        "A grounded WorkUnit requires a non-empty research prompt.",
+      );
+    }
+    for (const actor of options.actors)
+      await options.scopes.registerActor(actor);
+    await options.scopes.registerProjectRevision(options.project);
+
+    const promptBytes = new TextEncoder().encode(request.prompt);
+    const promptHash = byteHash(promptBytes);
+    const expectedArtifactId = derivePetraId("artifact", promptHash);
+    const existing = await options.workUnits.getWorkUnit(
+      request.interaction.work_unit_id,
+    );
+    if (existing !== undefined) {
+      const input = await options.workUnits.getInputManifest(
+        existing.spec.input_manifest_ref.worker_input_manifest_id,
+      );
+      const promptBinding = input?.content.inputs.find(
+        (binding) => binding.name === "research_prompt",
+      );
+      if (
+        existing.project_id !== options.project.project_id ||
+        existing.spec_hash !== canonicalHash(existing.spec) ||
+        input === undefined ||
+        input.content_hash !== existing.spec.input_manifest_ref.content_hash ||
+        promptBinding?.binding_kind !== "artifact" ||
+        promptBinding.artifact_id !== expectedArtifactId ||
+        promptBinding.content_hash !== promptHash ||
+        existing.spec.cancellation_policy !== "cancellable" ||
+        existing.status.state === "checkpointed"
+      ) {
+        throw new GroundedSynthesisTerminalError(
+          "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+          "The existing grounded WorkUnit does not match this exact prompt and cancellable workflow.",
+        );
+      }
+      let recovered = existing;
+      const resumedAt = laterTimestamp(
+        existing.updated_at,
+        request.interaction.started_at,
+      );
+      if (recovered.status.state === "requested") {
+        recovered = await options.workUnits.queue(
+          recovered.work_unit_id,
+          recovered.revision,
+          resumedAt,
+        );
+      }
+      if (recovered.status.state === "queued") {
+        recovered = await options.workUnits.start(
+          recovered.work_unit_id,
+          recovered.revision,
+          1,
+          resumedAt,
+        );
+      }
+      const recoveredState = recovered.status.state;
+      if (recoveredState === "checkpointed") {
+        throw new GroundedSynthesisTerminalError(
+          "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+          "Checkpointed grounded work cannot resume without an accepted checkpoint command.",
+        );
+      }
+      return {
+        work_unit_id: recovered.work_unit_id,
+        work_unit_revision: recovered.revision,
+        work_unit_spec_hash: recovered.spec_hash,
+        state: recoveredState,
+        started_at:
+          "started_at" in recovered.status
+            ? recovered.status.started_at
+            : recovered.created_at,
+      };
+    }
+
+    const staged = await options.artifactStore.stage({
+      bytes: [promptBytes],
+      declaredByteSize: promptBytes.byteLength,
+      declaredMediaType: PROMPT_MEDIA_TYPE,
+      expectedContentHash: promptHash,
+    });
+    const available = await options.artifactStore.makeAvailable(staged);
+    const promptRecords = promptArtifactRecords(
+      request,
+      available,
+      options.serviceActor,
+    );
+    await persistArtifactAcquisition(options.artifacts, promptRecords);
+    const startedAt = laterTimestamp(
+      request.interaction.started_at,
+      available.availableAt,
+    );
+    const records = groundedWorkStartRecords(
+      request,
+      promptRecords.artifact,
+      options.serviceActor,
+      options.project.project_id,
+      options.runtimeVersion ?? process.versions.node,
+      startedAt,
+    );
+    let workUnit = await options.workUnits.register({
+      workUnit: records.root,
+      inputManifest: records.input,
+    });
+    if (workUnit.status.state === "requested") {
+      workUnit = await options.workUnits.queue(
+        workUnit.work_unit_id,
+        workUnit.revision,
+        startedAt,
+      );
+    }
+    if (workUnit.status.state === "queued") {
+      workUnit = await options.workUnits.start(
+        workUnit.work_unit_id,
+        workUnit.revision,
+        1,
+        startedAt,
+      );
+    }
+    if (workUnit.status.state !== "running") {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+        "The grounded WorkUnit did not enter its running state.",
+      );
+    }
+    return {
+      work_unit_id: workUnit.work_unit_id,
+      work_unit_revision: workUnit.revision,
+      work_unit_spec_hash: workUnit.spec_hash,
+      state: workUnit.status.state,
+      started_at: workUnit.status.started_at,
+    };
+  }
+
   async persist(
     request: GroundedSynthesisTerminalRequest,
   ): Promise<GroundedSynthesisTerminalBinding> {
@@ -816,46 +1240,120 @@ export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTermi
     const priorWorkUnit = await options.workUnits.getWorkUnit(
       request.interaction.work_unit_id,
     );
-    const startedAt =
-      priorWorkUnit?.created_at ?? request.interaction.started_at;
-    const persistedAt =
-      priorWorkUnit?.status.state === "completed"
-        ? priorWorkUnit.updated_at
-        : laterTimestamp(startedAt, available.availableAt);
-    const workRecords = terminalWorkRecords(
-      request,
-      cacheKey,
-      artifactRecords.artifact.content_hash,
-      artifactRecords.artifact.byte_size,
-      options.serviceActor,
-      options.runtimeVersion ?? process.versions.node,
-      startedAt,
-      persistedAt,
-    );
-    let workUnit = await options.workUnits.register({
-      workUnit: workRecords.root,
-      inputManifest: workRecords.input,
-    });
-    if (workUnit.status.state === "requested") {
-      workUnit = await options.workUnits.queue(
-        workUnit.work_unit_id,
-        workUnit.revision,
+    let startedAt: string;
+    let persistedAt: string;
+    let workUnit: PetraWorkUnit;
+    if (
+      priorWorkUnit === undefined ||
+      priorWorkUnit.spec.cancellation_policy !== "cancellable"
+    ) {
+      startedAt = priorWorkUnit?.created_at ?? request.interaction.started_at;
+      persistedAt =
+        priorWorkUnit?.status.state === "completed"
+          ? priorWorkUnit.updated_at
+          : laterTimestamp(startedAt, available.availableAt);
+      const workRecords = terminalWorkRecords(
+        request,
+        cacheKey,
+        artifactRecords.artifact.content_hash,
+        artifactRecords.artifact.byte_size,
+        options.serviceActor,
+        options.runtimeVersion ?? process.versions.node,
         startedAt,
+        persistedAt,
       );
-    }
-    if (workUnit.status.state === "queued") {
-      workUnit = await options.workUnits.start(
-        workUnit.work_unit_id,
-        workUnit.revision,
-        1,
-        startedAt,
+      workUnit = await options.workUnits.register({
+        workUnit: workRecords.root,
+        inputManifest: workRecords.input,
+      });
+      if (workUnit.status.state === "requested") {
+        workUnit = await options.workUnits.queue(
+          workUnit.work_unit_id,
+          workUnit.revision,
+          startedAt,
+        );
+      }
+      if (workUnit.status.state === "queued") {
+        workUnit = await options.workUnits.start(
+          workUnit.work_unit_id,
+          workUnit.revision,
+          1,
+          startedAt,
+        );
+      }
+      if (workUnit.status.state === "running") {
+        workUnit = await options.workUnits.complete(
+          workRecords.output,
+          workUnit.revision,
+        );
+      }
+    } else {
+      if (priorWorkUnit.project_id !== options.project.project_id) {
+        throw new GroundedSynthesisTerminalError(
+          "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+          "The cancellable grounded WorkUnit belongs to a different Project.",
+        );
+      }
+      const input = await options.workUnits.getInputManifest(
+        priorWorkUnit.spec.input_manifest_ref.worker_input_manifest_id,
       );
-    }
-    if (workUnit.status.state === "running") {
-      workUnit = await options.workUnits.complete(
-        workRecords.output,
-        workUnit.revision,
-      );
+      if (
+        input === undefined ||
+        input.content_hash !==
+          priorWorkUnit.spec.input_manifest_ref.content_hash ||
+        input.work_unit_id !== priorWorkUnit.work_unit_id
+      ) {
+        throw new GroundedSynthesisTerminalError(
+          "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+          "The cancellable grounded WorkUnit lost its exact input manifest.",
+        );
+      }
+      startedAt =
+        "started_at" in priorWorkUnit.status
+          ? priorWorkUnit.status.started_at
+          : priorWorkUnit.created_at;
+      persistedAt =
+        priorWorkUnit.status.state === "completed"
+          ? priorWorkUnit.updated_at
+          : laterTimestamp(startedAt, available.availableAt);
+      workUnit = priorWorkUnit;
+      if (workUnit.status.state === "running") {
+        workUnit = await options.workUnits.complete(
+          groundedWorkOutput(
+            request,
+            workUnit,
+            input,
+            artifactRecords.artifact.content_hash,
+            artifactRecords.artifact.byte_size,
+            persistedAt,
+          ),
+          workUnit.revision,
+        );
+      }
+      if (workUnit.status.state === "completed") {
+        const output =
+          workUnit.status.output_manifest_ref === undefined
+            ? undefined
+            : await options.workUnits.getOutputManifest(
+                workUnit.status.output_manifest_ref.worker_output_manifest_id,
+              );
+        const responseOutput =
+          output?.content.outcome.outcome_kind === "succeeded"
+            ? output.content.outcome.produced_outputs.find(
+                (candidate) => candidate.output_name === "grounded_response",
+              )
+            : undefined;
+        if (
+          responseOutput?.content_hash !==
+            artifactRecords.artifact.content_hash ||
+          responseOutput.byte_size !== artifactRecords.artifact.byte_size
+        ) {
+          throw new GroundedSynthesisTerminalError(
+            "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+            "The completed grounded WorkUnit does not identify this exact response Artifact.",
+          );
+        }
+      }
     }
     if (
       workUnit.status.state !== "completed" ||

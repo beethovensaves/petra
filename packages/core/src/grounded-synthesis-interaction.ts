@@ -130,6 +130,20 @@ export interface GroundedSynthesisTerminalRequest {
   readonly presentation_events: readonly PetraInteractionEvent[];
 }
 
+export interface GroundedSynthesisWorkStartRequest {
+  readonly interaction: GroundedSynthesisTerminalRequest["interaction"];
+  readonly prompt: string;
+}
+
+export interface GroundedSynthesisWorkBinding {
+  readonly work_unit_id: string;
+  readonly work_unit_revision: number;
+  readonly work_unit_spec_hash: string;
+  readonly state:
+    "requested" | "queued" | "running" | "completed" | "cancelled";
+  readonly started_at: string;
+}
+
 export interface GroundedSynthesisTerminalBinding {
   readonly grounded_response_id: string;
   readonly grounded_response_revision: number;
@@ -146,6 +160,13 @@ export interface GroundedSynthesisTerminalBinding {
 }
 
 export interface GroundedSynthesisTerminalPort {
+  /**
+   * Registers and starts the cancellable orchestration WorkUnit before any
+   * provider execution. Production durable terminals implement this method.
+   */
+  readonly startWork?: (
+    request: GroundedSynthesisWorkStartRequest,
+  ) => Promise<GroundedSynthesisWorkBinding>;
   readonly persist: (
     request: GroundedSynthesisTerminalRequest,
   ) => Promise<GroundedSynthesisTerminalBinding>;

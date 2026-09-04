@@ -797,6 +797,16 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       },
     };
 
+    const running = await recorder.startWork({
+      interaction: terminalRequest.interaction,
+      prompt: terminalRequest.prompt,
+    });
+    expect(running).toMatchObject({
+      work_unit_revision: 3,
+      state: "running",
+    });
+    const startedWorkUnit = await workUnits.getWorkUnit(running.work_unit_id);
+    expect(startedWorkUnit?.spec.cancellation_policy).toBe("cancellable");
     const first = await recorder.persist(terminalRequest);
     expect(await recorder.persist(structuredClone(terminalRequest))).toEqual(
       first,
@@ -812,6 +822,12 @@ describePostgres("PostgreSQL grounded-response authority", () => {
         work_unit_id: derivePetraId("work_unit", cacheRunId),
       },
     };
+    expect(
+      await recorder.startWork({
+        interaction: cacheRequest.interaction,
+        prompt: cacheRequest.prompt,
+      }),
+    ).toMatchObject({ state: "running", work_unit_revision: 3 });
     const cacheHit = await recorder.persist(cacheRequest);
     expect(cacheHit).toEqual(
       expect.objectContaining({
@@ -871,7 +887,7 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     );
     expect(counts.rows[0]).toEqual({
       responses: "1",
-      artifacts: "2",
+      artifacts: "3",
       work_units: "2",
       interaction_runs: "2",
     });

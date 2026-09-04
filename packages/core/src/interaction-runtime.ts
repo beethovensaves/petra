@@ -9,6 +9,7 @@ import type {
   GroundedSynthesisProgress,
   GroundedSynthesisTerminalBinding,
   GroundedSynthesisTerminalPort,
+  GroundedSynthesisWorkBinding,
 } from "./grounded-synthesis-interaction.js";
 import type {
   ReviewInterruptBoundary,
@@ -746,6 +747,62 @@ export class PetraInteractionRuntime {
       record.terminal = true;
       this.#wake(record);
       return;
+    }
+
+    let durableWork: GroundedSynthesisWorkBinding | undefined;
+    if (this.#groundedSynthesisTerminal?.startWork !== undefined) {
+      try {
+        durableWork = await this.#groundedSynthesisTerminal.startWork({
+          interaction: {
+            protocol_thread_id: record.identity.threadId,
+            protocol_run_id: record.identity.runId,
+            request_id: record.identity.requestId,
+            trace_id: record.identity.traceId,
+            work_unit_id: record.identity.workUnitId,
+            started_at: new Date(
+              record.events[0]?.timestamp ?? this.#now(),
+            ).toISOString(),
+          },
+          prompt: request.prompt,
+        });
+      } catch (error) {
+        record.status = "failed";
+        this.#append(record, {
+          kind: "run.error",
+          code: "GROUNDED_WORK_START_FAILED",
+          message:
+            error instanceof Error
+              ? error.message
+              : "The grounded WorkUnit could not be registered.",
+        });
+        record.terminal = true;
+        this.#wake(record);
+        return;
+      }
+      if (durableWork.state === "cancelled") {
+        record.status = "cancelled";
+        this.#append(record, {
+          kind: "run.error",
+          code: "WORK_UNIT_CANCELLED",
+          message: "The WorkUnit was cancelled by an explicit Petra command.",
+        });
+        record.terminal = true;
+        this.#wake(record);
+        return;
+      }
+      this.#append(record, {
+        kind: "activity.snapshot",
+        activityType: "petra.work_unit.status",
+        content: {
+          label:
+            durableWork.state === "completed"
+              ? "Grounded work recovered from its durable terminal"
+              : "Cancellable grounded work registered",
+          status: durableWork.state === "completed" ? "completed" : "running",
+          workUnitRevision: durableWork.work_unit_revision,
+          detail: { authority_effect: "none" },
+        },
+      });
     }
 
     let result: GroundedSynthesisInteractionResult;

@@ -692,8 +692,8 @@ export class InMemoryGroundedResponseRegistry {
       workUnit.spec_hash !== interactionRef.work_unit_ref.spec_hash ||
       workUnit.spec.workflow_name !== GROUNDED_RESPONSE_WORKFLOW.name ||
       workUnit.spec.workflow_version !== GROUNDED_RESPONSE_WORKFLOW.version ||
-      workUnit.spec.cache.cache_mode === "disabled" ||
-      workUnit.spec.cache.cache_key !== response.content.cache.cache_key ||
+      (workUnit.spec.cache.cache_mode !== "disabled" &&
+        workUnit.spec.cache.cache_key !== response.content.cache.cache_key) ||
       workUnit.status.state !== "completed" ||
       workUnit.status.terminal_outcome !== "succeeded"
     ) {
