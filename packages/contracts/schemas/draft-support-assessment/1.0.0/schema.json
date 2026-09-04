@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/draft-support-assessment/1.0.0/schema.json",
+  "title": "PetraDraftSupportAssessment",
+  "description": "An immutable, revisioned assessment of whether one exact DraftArtifact revision's span provenance and citation links remain reusable after editing or explicit revalidation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "draft_support_assessment_id",
+    "revision",
+    "project_id",
+    "draft_ref",
+    "provenance_map_ref",
+    "citation_bundle_ref",
+    "lineage",
+    "trigger",
+    "content",
+    "content_hash",
+    "assessed_by",
+    "assessed_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.draft-support-assessment" },
+    "schema_version": { "const": "1.0.0" },
+    "draft_support_assessment_id": {
+      "$ref": "#/$defs/DraftSupportAssessmentId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "draft_ref": {
+      "$ref": "../../draft-span/1.0.0/schema.json#/$defs/DraftRef"
+    },
+    "provenance_map_ref": { "$ref": "#/$defs/ProvenanceMapRef" },
+    "citation_bundle_ref": { "$ref": "#/$defs/CitationBundleRef" },
+    "lineage": { "$ref": "#/$defs/AssessmentLineage" },
+    "trigger": { "$ref": "#/$defs/AssessmentTrigger" },
+    "content": { "$ref": "#/$defs/AssessmentContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "assessed_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "assessed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "DraftSupportAssessmentId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^draft_support_assessment_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ProvenanceMapRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance_map_id", "revision", "content_hash"],
+      "properties": {
+        "provenance_map_id": {
+          "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/ProvenanceMapId"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "CitationBundleRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["citation_bundle_id", "revision", "content_hash"],
+      "properties": {
+        "citation_bundle_id": {
+          "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/CitationBundleId"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "AssessmentLineage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lineage_kind"],
+          "properties": { "lineage_kind": { "const": "root" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lineage_kind",
+            "parent_revision",
+            "parent_content_hash"
+          ],
+          "properties": {
+            "lineage_kind": { "const": "revision" },
+            "parent_revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "parent_content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        }
+      ]
+    },
+    "HumanActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "human" }
+      }
+    },
+    "ServiceActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "service" }
+      }
+    },
+    "AssessmentTrigger": {
+      "oneOf": [
+        { "$ref": "#/$defs/ResearcherEditTrigger" },
+        { "$ref": "#/$defs/RevalidationTrigger" }
+      ]
+    },
+    "ResearcherEditTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trigger_kind", "command_id", "researcher"],
+      "properties": {
+        "trigger_kind": { "const": "researcher_edit" },
+        "command_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "researcher": { "$ref": "#/$defs/HumanActorRef" }
+      }
+    },
+    "RevalidationTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trigger_kind", "command_id", "requested_by", "executed_by"],
+      "properties": {
+        "trigger_kind": { "const": "support_revalidation" },
+        "command_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "requested_by": { "$ref": "#/$defs/HumanActorRef" },
+        "executed_by": { "$ref": "#/$defs/ServiceActorRef" }
+      }
+    },
+    "AssessmentContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "span_assessments",
+        "citation_assessments",
+        "validator_results",
+        "limitations",
+        "reuse_policy",
+        "authority_boundary"
+      ],
+      "properties": {
+        "state": { "enum": ["stale", "passed", "failed"] },
+        "span_assessments": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100000,
+          "items": { "$ref": "#/$defs/SpanAssessment" }
+        },
+        "citation_assessments": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100000,
+          "items": { "$ref": "#/$defs/CitationAssessment" }
+        },
+        "validator_results": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/ValidatorResult" }
+        },
+        "limitations": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 4000 }
+        },
+        "reuse_policy": { "$ref": "#/$defs/ReusePolicy" },
+        "authority_boundary": { "$ref": "#/$defs/AuthorityBoundary" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "properties": { "state": { "const": "passed" } },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "reuse_policy": {
+                "type": "object",
+                "properties": { "reuse_allowed": { "const": true } }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "reuse_policy": {
+                "type": "object",
+                "properties": { "reuse_allowed": { "const": false } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "SpanAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "draft_span_id",
+        "support_state",
+        "citation_state",
+        "basis_snapshot",
+        "validator_results",
+        "reasons"
+      ],
+      "properties": {
+        "draft_span_id": {
+          "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/DraftSpanId"
+        },
+        "support_state": { "enum": ["current", "stale", "passed", "failed"] },
+        "citation_state": { "enum": ["current", "stale", "not_required"] },
+        "basis_snapshot": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "$ref": "../../provenance-map/1.0.0/schema.json#/$defs/ProvenanceBasis"
+          }
+        },
+        "validator_results": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/ValidatorResult" }
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 4000 }
+        }
+      }
+    },
+    "CitationAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["citation_id", "link_state", "stale_draft_span_ids"],
+      "properties": {
+        "citation_id": {
+          "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/CitationId"
+        },
+        "link_state": { "enum": ["current", "partially_stale", "stale"] },
+        "stale_draft_span_ids": {
+          "type": "array",
+          "maxItems": 100000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../draft-artifact/1.0.0/schema.json#/$defs/DraftSpanId"
+          }
+        }
+      }
+    },
+    "ValidatorResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["validator", "version", "outcome", "code"],
+      "properties": {
+        "validator": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "outcome": { "enum": ["pass", "fail", "warning"] },
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "ReusePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reuse_allowed", "reason"],
+      "properties": {
+        "reuse_allowed": { "type": "boolean" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "AuthorityBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessment_is_scientific_evidence",
+        "assessment_controls_draft_reuse"
+      ],
+      "properties": {
+        "assessment_is_scientific_evidence": { "const": false },
+        "assessment_controls_draft_reuse": { "const": true }
+      }
+    }
+  }
+}

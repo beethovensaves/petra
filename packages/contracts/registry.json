@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.29.0",
+  "registry_version": "1.30.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -559,6 +559,17 @@
       "canonical_sha256": "sha256:95130f1885cfd33da5f9fb3549b6b4719bd1bcff48438e52bb78887c75351a29",
       "generate_typescript": true,
       "typescript_path": "src/generated/citation-bundle.ts"
+    },
+    {
+      "name": "draft-support-assessment",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/draft-support-assessment/1.0.0/schema.json",
+      "path": "schemas/draft-support-assessment/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-additive-draft-support-state",
+      "canonical_sha256": "sha256:20aa0ca992de01eaf425cae23f8fdc823a1d0497f5c574c6f773ddc90e8720a2",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/draft-support-assessment.ts"
     },
     {
       "name": "rendered-artifact",

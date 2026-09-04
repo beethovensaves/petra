@@ -366,6 +366,16 @@ export type {
   WorkVersionCitationRef,
 } from "./generated/citation-bundle.js";
 export type {
+  AssessmentContent as DraftSupportAssessmentContent,
+  AssessmentLineage as DraftSupportAssessmentLineage,
+  AssessmentTrigger as DraftSupportAssessmentTrigger,
+  CitationAssessment as DraftCitationAssessment,
+  PetraDraftSupportAssessment,
+  ReusePolicy as DraftReusePolicy,
+  SpanAssessment as DraftSpanAssessment,
+  ValidatorResult as DraftSupportValidatorResult,
+} from "./generated/draft-support-assessment.js";
+export type {
   AuthorityBoundary as RenderedArtifactAuthorityBoundary,
   CitationBundleRef as RenderedArtifactCitationBundleRef,
   DraftRef as RenderedArtifactDraftRef,

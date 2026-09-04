@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.9.0",
+  "fixture_manifest_version": "1.10.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -233,6 +233,10 @@
     {
       "schema": "citation-bundle",
       "path": "fixtures/accepted/citation-bundle.json"
+    },
+    {
+      "schema": "draft-support-assessment",
+      "path": "fixtures/accepted/draft-support-assessment-stale.json"
     },
     {
       "schema": "rendered-artifact",
@@ -526,6 +530,10 @@
     {
       "schema": "citation-bundle",
       "path": "fixtures/rejected/citation-bundle-without-authors.json"
+    },
+    {
+      "schema": "draft-support-assessment",
+      "path": "fixtures/rejected/draft-support-assessment-grants-evidence.json"
     },
     {
       "schema": "rendered-artifact",

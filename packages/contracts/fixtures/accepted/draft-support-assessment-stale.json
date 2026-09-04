@@ -1,0 +1,116 @@
+{
+  "schema_name": "petra.draft-support-assessment",
+  "schema_version": "1.0.0",
+  "draft_support_assessment_id": "draft_support_assessment_01ARZ3NDEKTSV4RRFFQ69G5FCX",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "draft_ref": {
+    "draft_artifact_id": "draft_artifact_01ARZ3NDEKTSV4RRFFQ69G5FCK",
+    "revision": 1,
+    "content_hash": "sha256:8b9201fc645d1bae2b93e01dff92c3eb96f394e3e6b3fa1238b8106b827a0560"
+  },
+  "provenance_map_ref": {
+    "provenance_map_id": "provenance_map_01ARZ3NDEKTSV4RRFFQ69G5FCP",
+    "revision": 1,
+    "content_hash": "sha256:bbc4e68a34f00535febcc7c573cacde13e3d9256614b5cda02b753b41ef441d9"
+  },
+  "citation_bundle_ref": {
+    "citation_bundle_id": "citation_bundle_01ARZ3NDEKTSV4RRFFQ69G5FCQ",
+    "revision": 1,
+    "content_hash": "sha256:3e5c7063cbaa866948865b62e8e336e50f87c913dead3b38ef4fbc07db660a22"
+  },
+  "lineage": { "lineage_kind": "root" },
+  "trigger": {
+    "trigger_kind": "researcher_edit",
+    "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FCY",
+    "researcher": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAX",
+      "actor_kind": "human"
+    }
+  },
+  "content": {
+    "state": "stale",
+    "span_assessments": [
+      {
+        "draft_span_id": "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCM",
+        "support_state": "stale",
+        "citation_state": "stale",
+        "basis_snapshot": [
+          {
+            "basis_kind": "evidence",
+            "evidence_selection_order": 1,
+            "object_ref": {
+              "object_kind": "claim",
+              "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "object_revision": 2,
+              "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+            },
+            "relation": "direct_report"
+          },
+          {
+            "basis_kind": "researcher",
+            "researcher_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAX",
+            "statement_kind": "supplied_statement",
+            "relation": "interpretation"
+          }
+        ],
+        "validator_results": [],
+        "reasons": [
+          "The researcher changed this span after its evidence mapping was compiled."
+        ]
+      },
+      {
+        "draft_span_id": "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCN",
+        "support_state": "current",
+        "citation_state": "current",
+        "basis_snapshot": [
+          {
+            "basis_kind": "evidence",
+            "evidence_selection_order": 1,
+            "object_ref": {
+              "object_kind": "claim",
+              "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "object_revision": 2,
+              "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+            },
+            "relation": "qualification"
+          }
+        ],
+        "validator_results": [],
+        "reasons": []
+      }
+    ],
+    "citation_assessments": [
+      {
+        "citation_id": "citation_01ARZ3NDEKTSV4RRFFQ69G5FCR",
+        "link_state": "partially_stale",
+        "stale_draft_span_ids": ["draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCM"]
+      }
+    ],
+    "validator_results": [
+      {
+        "validator": "petra.edit-staleness",
+        "version": "1.0.0",
+        "outcome": "warning",
+        "code": "EDITED_SUPPORT_REQUIRES_REVALIDATION"
+      }
+    ],
+    "limitations": [
+      "The edited span and its citation link cannot be reused as supported until explicit revalidation passes."
+    ],
+    "reuse_policy": {
+      "reuse_allowed": false,
+      "reason": "At least one material span has stale support."
+    },
+    "authority_boundary": {
+      "assessment_is_scientific_evidence": false,
+      "assessment_controls_draft_reuse": true
+    }
+  },
+  "content_hash": "sha256:5ac780d50bf847a01accb0ee75446d880dea227ed4e474fd8e817d92fa082606",
+  "assessed_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "assessed_at": "2026-08-29T15:12:00.000Z"
+}

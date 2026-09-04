@@ -33,6 +33,18 @@ import {
   InMemoryContextPacketRegistry,
   type PacketRecord,
 } from "../src/context-packet-registry.js";
+import { InMemoryCompositionRegistry } from "../src/composition-registry.js";
+import {
+  type DraftRevisionError,
+  type DraftRevisionErrorCode,
+  DraftRevisionEngine,
+  type ResearcherDraftEditInput,
+} from "../src/draft-revision.js";
+import {
+  type DraftSupportAssessmentError,
+  type DraftSupportAssessmentErrorCode,
+  InMemoryDraftSupportAssessmentRegistry,
+} from "../src/draft-support-assessment-registry.js";
 
 const readFixture = <Value>(name: string): Value =>
   JSON.parse(
@@ -112,6 +124,7 @@ const makeHarness = (
 ): {
   compiler: GroundedCompositionCompiler;
   input: CompileGroundedCompositionInput;
+  packets: InMemoryContextPacketRegistry;
 } => {
   const records = packetRecords();
   const value: MutableHarness = {
@@ -196,6 +209,7 @@ const makeHarness = (
   packets.registerEvidencePacket(value.evidence);
   return {
     compiler: new GroundedCompositionCompiler(packets),
+    packets,
     input: {
       request: value.request,
       plan: value.plan,
@@ -243,6 +257,69 @@ const expectRendererCode = (
   expect(operation).toThrowError(
     expect.objectContaining<Partial<CompositionRendererError>>({ code }),
   );
+};
+
+const expectDraftRevisionCode = (
+  operation: () => unknown,
+  code: DraftRevisionErrorCode,
+): void => {
+  expect(operation).toThrowError(
+    expect.objectContaining<Partial<DraftRevisionError>>({ code }),
+  );
+};
+
+const expectAssessmentCode = (
+  operation: () => unknown,
+  code: DraftSupportAssessmentErrorCode,
+): void => {
+  expect(operation).toThrowError(
+    expect.objectContaining<Partial<DraftSupportAssessmentError>>({ code }),
+  );
+};
+
+const editHarness = () => {
+  const { compiler, input, packets } = makeHarness();
+  const initial = compiler.compile(input);
+  const compositions = new InMemoryCompositionRegistry(packets);
+  compositions.registerRequest(input.request);
+  compositions.registerPlan(input.plan);
+  compositions.register(initial);
+  const engine = new DraftRevisionEngine();
+  const researcher = {
+    actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FAX",
+    actor_kind: "human" as const,
+  };
+  const serviceActor = {
+    actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+    actor_kind: "service" as const,
+  };
+  const firstSpan = initial.spans[0];
+  if (firstSpan === undefined) throw new Error("Expected a DraftSpan fixture.");
+  const editInput = {
+    previous: initial,
+    commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FCY",
+    researcher,
+    serviceActor,
+    replacements: [
+      {
+        draftSpanId: firstSpan.draft_span_id,
+        expectedExactTextHash: firstSpan.content.exact_text_hash,
+        replacementText:
+          "The selected study reports a modest measurable improvement.",
+      },
+    ] as const,
+    editedAt: "2026-09-04T05:00:00.000Z",
+  };
+  const edited = engine.edit(editInput);
+  return {
+    engine,
+    initial,
+    edited,
+    editInput,
+    compositions,
+    researcher,
+    serviceActor,
+  };
 };
 
 const renderHarness = () => {
@@ -404,6 +481,338 @@ describe("grounded composition compiler", () => {
     ).toBe("abstract_only");
     expect(result.draft.validation.limitations).toContain(
       "Abstract-only evidence was used; the draft is limited to broad source-reported claims because methods and results were not available for detailed inspection.",
+    );
+  });
+});
+
+describe("additive researcher draft revision", () => {
+  it("creates one immutable revision and makes changed support and citation links stale", () => {
+    const harness = editHarness();
+    const before = structuredClone(harness.editInput);
+    const replay = harness.engine.edit(structuredClone(harness.editInput));
+
+    expect(replay).toEqual(harness.edited);
+    expect(harness.editInput).toEqual(before);
+    expect(harness.edited.composition.draft).toMatchObject({
+      draft_artifact_id: harness.initial.draft.draft_artifact_id,
+      revision: 2,
+      lineage: {
+        lineage_kind: "revision",
+        parent_draft_artifact_id: harness.initial.draft.draft_artifact_id,
+        parent_revision: 1,
+        edit_origin: "researcher_edit",
+      },
+      production: {
+        origin_kind: "researcher_authored",
+        researcher_id: harness.researcher.actor_id,
+      },
+      validation: { state: "stale" },
+    });
+    expect(harness.edited.composition.draft.content.text).toBe(
+      "The selected study reports a modest measurable improvement. The claim is limited to its study-defined evaluation task.",
+    );
+    expect(harness.edited.composition.spans).toHaveLength(2);
+    expect(harness.edited.composition.spans[0]?.content).toMatchObject({
+      start: 0,
+      end: 59,
+      semantic_origin: "researcher_statement",
+    });
+    expect(harness.edited.composition.spans[1]?.content.start).toBe(60);
+    expect(
+      harness.edited.composition.provenanceMap.content.mappings.map(
+        (mapping) => mapping.mapping_state,
+      ),
+    ).toEqual(["stale", "current"]);
+    expect(
+      harness.edited.composition.provenanceMap.content.mappings[0]?.bases.map(
+        (basis) => basis.basis_kind,
+      ),
+    ).toEqual(["evidence", "evidence", "researcher"]);
+    expect(
+      harness.edited.composition.citationBundle.content.citations[0]
+        ?.linked_draft_span_ids,
+    ).toEqual(harness.edited.composition.draft.content.draft_span_ids);
+    expect(harness.edited.assessment.content).toMatchObject({
+      state: "stale",
+      reuse_policy: { reuse_allowed: false },
+      authority_boundary: {
+        assessment_is_scientific_evidence: false,
+        assessment_controls_draft_reuse: true,
+      },
+      citation_assessments: [{ link_state: "partially_stale" }],
+    });
+    expect(() =>
+      harness.compositions.register(harness.edited.composition),
+    ).not.toThrow();
+    expect(
+      harness.compositions.getDraft(harness.initial.draft.draft_artifact_id, 1),
+    ).toEqual(harness.initial.draft);
+  });
+
+  it("rejects imprecise, duplicate, no-op, and compounded stale replacements", () => {
+    const harness = editHarness();
+    const replacement = harness.editInput.replacements[0];
+    const wrongHash: ResearcherDraftEditInput = {
+      ...harness.editInput,
+      replacements: [
+        {
+          ...replacement,
+          expectedExactTextHash:
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        },
+      ],
+    };
+    expectDraftRevisionCode(
+      () => harness.engine.edit(wrongHash),
+      "DRAFT_REVISION_REPLACEMENT_INVALID",
+    );
+
+    const noOp: ResearcherDraftEditInput = {
+      ...harness.editInput,
+      replacements: [
+        {
+          ...replacement,
+          replacementText: harness.initial.spans[0]!.content.exact_text,
+        },
+      ],
+    };
+    expectDraftRevisionCode(
+      () => harness.engine.edit(noOp),
+      "DRAFT_REVISION_REPLACEMENT_INVALID",
+    );
+
+    const duplicate: ResearcherDraftEditInput = {
+      ...harness.editInput,
+      replacements: [
+        structuredClone(replacement),
+        structuredClone(replacement),
+      ],
+    };
+    expectDraftRevisionCode(
+      () => harness.engine.edit(duplicate),
+      "DRAFT_REVISION_REPLACEMENT_INVALID",
+    );
+
+    const compounded: ResearcherDraftEditInput = {
+      ...harness.editInput,
+      previous: structuredClone(harness.edited.composition),
+      replacements: [
+        {
+          draftSpanId: harness.edited.composition.spans[0]!.draft_span_id,
+          expectedExactTextHash:
+            harness.edited.composition.spans[0]!.content.exact_text_hash,
+          replacementText: "A second unreviewed change.",
+        },
+      ],
+    };
+    expectDraftRevisionCode(
+      () => harness.engine.edit(compounded),
+      "DRAFT_REVISION_BASE_INVALID",
+    );
+  });
+
+  it("registers exact assessment replay while preserving caller and prior state", () => {
+    const harness = editHarness();
+    const registry = new InMemoryDraftSupportAssessmentRegistry();
+    const before = structuredClone(harness.edited.assessment);
+    const stored = registry.register(
+      harness.edited.assessment,
+      harness.edited.composition,
+    );
+    expect(
+      registry.register(
+        structuredClone(harness.edited.assessment),
+        structuredClone(harness.edited.composition),
+      ),
+    ).toBe(stored);
+    expect(harness.edited.assessment).toEqual(before);
+    expect(Object.isFrozen(stored)).toBe(true);
+    expect(registry.getCurrent(stored.draft_support_assessment_id)).toBe(
+      stored,
+    );
+
+    const changed = structuredClone(harness.edited.assessment);
+    changed.content.limitations.push("Conflicting limitation.");
+    changed.content_hash = canonicalHash(changed.content);
+    expectAssessmentCode(
+      () => registry.register(changed, harness.edited.composition),
+      "DRAFT_SUPPORT_ASSESSMENT_ID_CONFLICT",
+    );
+    expect(registry.get(stored.draft_support_assessment_id, 1)).toEqual(before);
+  });
+
+  it("records explicit passing revalidation without rewriting the edited draft", () => {
+    const harness = editHarness();
+    const registry = new InMemoryDraftSupportAssessmentRegistry();
+    const stale = registry.register(
+      harness.edited.assessment,
+      harness.edited.composition,
+    );
+    const staleSpan = stale.content.span_assessments.find(
+      (assessment) => assessment.support_state === "stale",
+    );
+    if (staleSpan === undefined) throw new Error("Expected one stale span.");
+    const passed = harness.engine.revalidate({
+      composition: harness.edited.composition,
+      previousAssessment: harness.edited.assessment,
+      commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FCZ",
+      requestedBy: harness.researcher,
+      serviceActor: harness.serviceActor,
+      spanResults: [
+        {
+          draftSpanId: staleSpan.draft_span_id,
+          outcome: "pass",
+          validatorResults: [
+            {
+              validator: "petra.span-support",
+              version: "1.0.0",
+              outcome: "pass",
+              code: "EDITED_SPAN_SUPPORT_PRESERVED",
+            },
+          ],
+          reason:
+            "The revised wording remains within the exact evidence and force boundary.",
+        },
+      ],
+      validatorResults: [
+        {
+          validator: "petra.felicity-force-preservation",
+          version: "1.0.0",
+          outcome: "pass",
+          code: "SCIENTIFIC_FORCE_PRESERVED",
+        },
+      ],
+      limitations: [
+        "Revalidation covers the existing EvidencePacket, not a new literature search.",
+      ],
+      assessedAt: "2026-09-04T05:01:00.000Z",
+    });
+    const stored = registry.register(passed, harness.edited.composition);
+
+    expect(stored).toMatchObject({
+      revision: 2,
+      lineage: {
+        lineage_kind: "revision",
+        parent_revision: 1,
+        parent_content_hash: stale.content_hash,
+      },
+      content: {
+        state: "passed",
+        reuse_policy: { reuse_allowed: true },
+        citation_assessments: [{ link_state: "current" }],
+      },
+    });
+    expect(
+      stored.content.span_assessments.map((span) => span.support_state),
+    ).toEqual(["passed", "current"]);
+    expect(registry.get(stored.draft_support_assessment_id, 1)).toBe(stale);
+    expect(harness.edited.composition.draft.validation.state).toBe("stale");
+  });
+
+  it("keeps a failed revalidation and its affected citation non-reusable", () => {
+    const harness = editHarness();
+    const staleSpan = harness.edited.assessment.content.span_assessments.find(
+      (assessment) => assessment.support_state === "stale",
+    );
+    if (staleSpan === undefined) throw new Error("Expected one stale span.");
+    const failed = harness.engine.revalidate({
+      composition: harness.edited.composition,
+      previousAssessment: harness.edited.assessment,
+      commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FD0",
+      requestedBy: harness.researcher,
+      serviceActor: harness.serviceActor,
+      spanResults: [
+        {
+          draftSpanId: staleSpan.draft_span_id,
+          outcome: "fail",
+          validatorResults: [
+            {
+              validator: "petra.span-support",
+              version: "1.0.0",
+              outcome: "fail",
+              code: "EDITED_SPAN_STRENGTHENS_CLAIM",
+            },
+          ],
+          reason: "The edit increases claim strength beyond the source report.",
+        },
+      ],
+      validatorResults: [
+        {
+          validator: "petra.felicity-force-preservation",
+          version: "1.0.0",
+          outcome: "fail",
+          code: "SCIENTIFIC_FORCE_STRENGTHENED",
+        },
+      ],
+      limitations: ["The strengthened wording is not supported."],
+      assessedAt: "2026-09-04T05:01:00.000Z",
+    });
+    const registry = new InMemoryDraftSupportAssessmentRegistry();
+    registry.register(harness.edited.assessment, harness.edited.composition);
+    expect(() =>
+      registry.register(failed, harness.edited.composition),
+    ).not.toThrow();
+    expect(failed.content).toMatchObject({
+      state: "failed",
+      reuse_policy: { reuse_allowed: false },
+      citation_assessments: [{ link_state: "partially_stale" }],
+    });
+    expect(failed.content.span_assessments[0]?.support_state).toBe("failed");
+  });
+
+  it("rejects incomplete revalidation and internally inconsistent support state", () => {
+    const harness = editHarness();
+    const staleSpan = harness.edited.assessment.content.span_assessments.find(
+      (assessment) => assessment.support_state === "stale",
+    );
+    if (staleSpan === undefined) throw new Error("Expected one stale span.");
+    expectDraftRevisionCode(
+      () =>
+        harness.engine.revalidate({
+          composition: harness.edited.composition,
+          previousAssessment: harness.edited.assessment,
+          commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FD1",
+          requestedBy: harness.researcher,
+          serviceActor: harness.serviceActor,
+          spanResults: [
+            {
+              draftSpanId: staleSpan.draft_span_id,
+              outcome: "pass",
+              validatorResults: [
+                {
+                  validator: "petra.span-support",
+                  version: "1.0.0",
+                  outcome: "fail",
+                  code: "CONTRADICTORY_RESULT",
+                },
+              ],
+              reason: "The declared outcome contradicts the validator.",
+            },
+          ],
+          validatorResults: [
+            {
+              validator: "petra.whole-draft",
+              version: "1.0.0",
+              outcome: "pass",
+              code: "WHOLE_DRAFT_CHECKED",
+            },
+          ],
+          limitations: [],
+          assessedAt: "2026-09-04T05:01:00.000Z",
+        }),
+      "DRAFT_REVISION_REVALIDATION_INVALID",
+    );
+
+    const registry = new InMemoryDraftSupportAssessmentRegistry();
+    const inconsistent = structuredClone(harness.edited.assessment);
+    inconsistent.content.span_assessments[0].support_state = "current";
+    inconsistent.content.span_assessments[0].citation_state = "current";
+    inconsistent.content.citation_assessments[0].link_state = "current";
+    inconsistent.content.citation_assessments[0].stale_draft_span_ids = [];
+    inconsistent.content_hash = canonicalHash(inconsistent.content);
+    expectAssessmentCode(
+      () => registry.register(inconsistent, harness.edited.composition),
+      "DRAFT_SUPPORT_ASSESSMENT_STATE_INVALID",
     );
   });
 });

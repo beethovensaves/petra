@@ -7,7 +7,7 @@ from typing import Any, Literal
 
 import rfc8785
 from jsonschema import Draft202012Validator, FormatChecker
-from pydantic import BaseModel, ConfigDict, RootModel
+from pydantic import BaseModel, ConfigDict, RootModel, model_validator
 from referencing import Registry, Resource
 
 PETRA_ROOT = Path(__file__).resolve().parents[3]
@@ -2875,6 +2875,117 @@ class PetraCitationBundle(PetraModel):
     compiled_at: str
 
 
+class DraftSupportProvenanceMapRef(PetraModel):
+    provenance_map_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class DraftSupportCitationBundleRef(PetraModel):
+    citation_bundle_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class DraftSupportRootLineage(PetraModel):
+    lineage_kind: Literal["root"]
+
+
+class DraftSupportRevisionLineage(PetraModel):
+    lineage_kind: Literal["revision"]
+    parent_revision: int
+    parent_content_hash: str
+
+
+class DraftSupportHumanActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["human"]
+
+
+class DraftSupportServiceActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["service"]
+
+
+class DraftSupportResearcherEditTrigger(PetraModel):
+    trigger_kind: Literal["researcher_edit"]
+    command_id: str
+    researcher: DraftSupportHumanActorRef
+
+
+class DraftSupportRevalidationTrigger(PetraModel):
+    trigger_kind: Literal["support_revalidation"]
+    command_id: str
+    requested_by: DraftSupportHumanActorRef
+    executed_by: DraftSupportServiceActorRef
+
+
+class DraftSupportValidatorResult(PetraModel):
+    validator: str
+    version: str
+    outcome: Literal["pass", "fail", "warning"]
+    code: str
+    message: str | None = None
+
+
+class DraftSupportSpanAssessment(PetraModel):
+    draft_span_id: str
+    support_state: Literal["current", "stale", "passed", "failed"]
+    citation_state: Literal["current", "stale", "not_required"]
+    basis_snapshot: list[ProvenanceBasis]
+    validator_results: list[DraftSupportValidatorResult]
+    reasons: list[str]
+
+
+class DraftSupportCitationAssessment(PetraModel):
+    citation_id: str
+    link_state: Literal["current", "partially_stale", "stale"]
+    stale_draft_span_ids: list[str]
+
+
+class DraftSupportReusePolicy(PetraModel):
+    reuse_allowed: bool
+    reason: str
+
+
+class DraftSupportAuthorityBoundary(PetraModel):
+    assessment_is_scientific_evidence: Literal[False]
+    assessment_controls_draft_reuse: Literal[True]
+
+
+class DraftSupportContent(PetraModel):
+    state: Literal["stale", "passed", "failed"]
+    span_assessments: list[DraftSupportSpanAssessment]
+    citation_assessments: list[DraftSupportCitationAssessment]
+    validator_results: list[DraftSupportValidatorResult]
+    limitations: list[str]
+    reuse_policy: DraftSupportReusePolicy
+    authority_boundary: DraftSupportAuthorityBoundary
+
+    @model_validator(mode="after")
+    def reuse_matches_state(self) -> DraftSupportContent:
+        if self.reuse_policy.reuse_allowed != (self.state == "passed"):
+            raise ValueError("Draft support reuse must match the assessment state.")
+        return self
+
+
+class PetraDraftSupportAssessment(PetraModel):
+    schema_name: Literal["petra.draft-support-assessment"]
+    schema_version: Literal["1.0.0"]
+    draft_support_assessment_id: str
+    revision: int
+    project_id: str
+    draft_ref: DraftRef
+    provenance_map_ref: DraftSupportProvenanceMapRef
+    citation_bundle_ref: DraftSupportCitationBundleRef
+    lineage: DraftSupportRootLineage | DraftSupportRevisionLineage
+    trigger: DraftSupportResearcherEditTrigger | DraftSupportRevalidationTrigger
+    content: DraftSupportContent
+    content_hash: str
+    assessed_by: ActorRef
+    assessed_at: str
+
+
 class RenderedArtifactDraftRef(PetraModel):
     draft_artifact_id: str
     revision: int
@@ -3686,6 +3797,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "draft-span": PetraDraftSpan,
     "provenance-map": PetraProvenanceMap,
     "citation-bundle": PetraCitationBundle,
+    "draft-support-assessment": PetraDraftSupportAssessment,
     "rendered-artifact": PetraRenderedArtifact,
     "interaction-feature-manifest": PetraInteractionFeatureManifest,
     "interaction-custom-event": PetraInteractionCustomEvent,
@@ -3786,6 +3898,7 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("draft-span-qualification.json", "content", "content_hash"),
         ("provenance-map.json", "content", "content_hash"),
         ("citation-bundle.json", "content", "content_hash"),
+        ("draft-support-assessment-stale.json", "content", "content_hash"),
         ("rendered-artifact-markdown.json", "content", "content_hash"),
         ("rendered-artifact-latex.json", "content", "content_hash"),
         ("rendered-artifact-bibtex.json", "content", "content_hash"),
