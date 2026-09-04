@@ -1,25 +1,7 @@
 :root {
-  --off-white: #f7f6f2;
-  --paper: #fffefb;
-  --stone: #e5e2dc;
-  --slate: #b5b1a9;
-  --graphite: #6b6963;
-  --charcoal: #1c1c1c;
-  --amber: #c66a2e;
-  --approved: #159e6e;
-  --evidence: #2563eb;
-  --review: #f59e0b;
-  --contradicts: #dc2626;
-  --hypothesis: #7c3aed;
-  --neutral: #a3a3a3;
-  --rule: #dedbd5;
-  --font-display:
-    "DIN Condensed", "Arial Narrow", "Avenir Next Condensed", sans-serif;
-  --font-ui: Inter, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
-  color: var(--charcoal);
-  background: var(--off-white);
-  font-family: var(--font-ui);
+  color: var(--petra-text-primary);
+  background: var(--petra-surface-app);
+  font-family: var(--petra-font-ui);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -38,11 +20,7 @@ body,
 
 body {
   min-height: 100vh;
-  background:
-    linear-gradient(rgb(28 28 28 / 1.7%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(28 28 28 / 1.7%) 1px, transparent 1px),
-    var(--off-white);
-  background-size: 24px 24px;
+  background: var(--petra-surface-app);
 }
 
 button,
@@ -62,7 +40,7 @@ a {
 button:focus-visible,
 textarea:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: 2px solid var(--petra-focus-ring);
   outline-offset: 2px;
 }
 
@@ -98,37 +76,17 @@ a:focus-visible {
 }
 
 .brand {
-  --rock-cut: var(--off-white);
   display: inline-flex;
   align-items: center;
   gap: 10px;
   color: var(--charcoal);
-  font-family: var(--font-display);
   font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
   line-height: 1;
   text-decoration: none;
 }
 
-.rock-mark {
-  display: block;
-  width: 30px;
-  height: 29px;
-  flex: 0 0 auto;
-  overflow: visible;
-}
-
-.rock-body {
-  fill: var(--charcoal);
-}
-
-.rock-facet {
-  fill: none;
-  stroke: var(--rock-cut, var(--off-white));
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 6;
+.brand .petra-lockup {
+  font-size: 1em;
 }
 
 .product-statement {
@@ -138,8 +96,6 @@ a:focus-visible {
   color: var(--graphite);
   font-size: 11px;
   font-weight: 650;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
 }
 
 .header-context {
@@ -159,9 +115,7 @@ a:focus-visible {
   color: var(--graphite);
   font-size: 9px;
   font-weight: 750;
-  letter-spacing: 0.08em;
   line-height: 1;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -269,13 +223,8 @@ a:focus-visible {
 }
 
 .rail-rock {
-  --rock-cut: var(--charcoal);
   margin-top: auto;
   opacity: 0.52;
-}
-
-.rail-rock .rock-body {
-  fill: var(--off-white);
 }
 
 .workspace {
@@ -302,8 +251,6 @@ a:focus-visible {
   color: var(--amber);
   font-size: 9px;
   font-weight: 750;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
 }
 
 h1,
@@ -319,9 +266,7 @@ h1 {
   font-family: var(--font-display);
   font-size: clamp(40px, 4vw, 63px);
   font-weight: 700;
-  letter-spacing: 0.015em;
-  line-height: 0.95;
-  text-transform: uppercase;
+  line-height: 1;
 }
 
 .lede {
@@ -347,8 +292,6 @@ h1 {
   color: var(--graphite);
   font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
 }
 
 .brief-meta strong {
@@ -424,8 +367,6 @@ textarea {
   color: var(--graphite);
   font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .mode-switch {
@@ -530,9 +471,7 @@ textarea {
   margin: 3px 0 0;
   font-family: var(--font-display);
   font-size: 25px;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  text-transform: uppercase;
+  line-height: 1.1;
 }
 
 .workspace-titlebar > p {
@@ -841,8 +780,6 @@ textarea {
   background: var(--off-white);
   font-size: 8px;
   font-weight: 750;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .depth-rules div {
@@ -882,7 +819,6 @@ textarea {
 }
 
 .assistant-avatar {
-  --rock-cut: var(--charcoal);
   display: grid;
   width: 27px;
   height: 27px;
@@ -891,13 +827,8 @@ textarea {
   background: var(--charcoal);
 }
 
-.assistant-avatar .rock-mark {
+.assistant-avatar .petra-mark {
   width: 17px;
-  height: 17px;
-}
-
-.assistant-avatar .rock-body {
-  fill: var(--off-white);
 }
 
 .assistant-message {
@@ -946,8 +877,6 @@ textarea {
   color: var(--neutral);
   font-family: var(--font-mono);
   font-size: 8px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .run-state.running {
@@ -979,8 +908,6 @@ textarea {
 .research-principles strong {
   color: var(--charcoal);
   font-size: 9px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .object-page {
@@ -1040,7 +967,6 @@ textarea {
 }
 
 .empty-canvas {
-  --rock-cut: var(--off-white);
   min-height: 320px;
   display: grid;
   place-content: center;
@@ -1053,9 +979,8 @@ textarea {
   text-align: center;
 }
 
-.empty-canvas .rock-mark {
+.empty-canvas .petra-mark {
   width: 48px;
-  height: 47px;
 }
 
 .collection-page {
@@ -1073,7 +998,6 @@ textarea {
 }
 
 .route-error {
-  --rock-cut: var(--off-white);
   min-height: 100vh;
   display: grid;
   place-content: center;
@@ -1182,11 +1106,6 @@ textarea {
 
   .brand {
     font-size: 26px;
-  }
-
-  .brand .rock-mark {
-    width: 26px;
-    height: 25px;
   }
 
   .engine-status {

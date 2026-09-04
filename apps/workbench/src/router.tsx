@@ -11,6 +11,12 @@ import {
 
 import type { PetraClientEvent } from "@petra/adapters";
 
+import { PetraLockup, PetraMark } from "./design-system/brand.js";
+import { BrandGallery } from "./fixtures/BrandGallery.js";
+import { FoundationGallery } from "./fixtures/FoundationGallery.js";
+import { PrimitiveGallery } from "./fixtures/PrimitiveGallery.js";
+import { ShellGallery } from "./fixtures/ShellGallery.js";
+
 interface HealthState {
   ok: boolean;
   accepting: boolean;
@@ -51,24 +57,6 @@ const loadObject = (kind: string) => (args: LoaderFunctionArgs) => ({
   projectId: args.params.projectId,
 });
 
-const RockMark = (): React.JSX.Element => (
-  <svg
-    className="rock-mark"
-    viewBox="0 0 264 260"
-    aria-hidden="true"
-    focusable="false"
-  >
-    <path
-      className="rock-body"
-      d="M52 44 145 12l81 38 25 82-32 86-94 29-87-42-26-89Z"
-    />
-    <path
-      className="rock-facet"
-      d="M52 44l60 59-20 66-54 36m74-102 62-33 52-20m-114 53 66 48 41 67m-127-49 86-18"
-    />
-  </svg>
-);
-
 const AppIcon = ({ name }: { name: IconName }): React.JSX.Element => (
   <svg className="app-icon" viewBox="0 0 24 24" aria-hidden="true">
     <path d={ICON_PATHS[name]} />
@@ -81,8 +69,7 @@ const Shell = (): React.JSX.Element => {
     <div className="shell">
       <header className="app-header">
         <Link to="/" className="brand" aria-label="Petra home">
-          <RockMark />
-          <span>PETRA</span>
+          <PetraLockup variant="compact" />
         </Link>
         <div className="product-statement">
           Graph-native scientific research workbench
@@ -131,7 +118,7 @@ const Shell = (): React.JSX.Element => {
             </NavLink>
           </nav>
           <div className="rail-rock" aria-hidden="true">
-            <RockMark />
+            <PetraMark tone="on_dark" />
           </div>
         </aside>
         <main className="workspace">
@@ -397,7 +384,7 @@ const AssistantPanel = ({
       </div>
       <div className="assistant-thread">
         <div className="assistant-avatar">
-          <RockMark />
+          <PetraMark tone="on_dark" />
         </div>
         <div className="assistant-message">
           {status === "idle" ? (
@@ -628,7 +615,7 @@ const ObjectPage = (): React.JSX.Element => {
           : descriptor}
       </h1>
       <div className="empty-canvas">
-        <RockMark />
+        <PetraMark />
         <p>This addressable view is ready for its M1 scientific objects.</p>
       </div>
     </section>
@@ -654,7 +641,7 @@ const CollectionPage = ({
 
 const RouteError = (): React.JSX.Element => (
   <main className="route-error">
-    <RockMark />
+    <PetraMark />
     <h1>That research object is not available.</h1>
     <Link to="/">Return to the research brief</Link>
   </main>
@@ -712,5 +699,25 @@ export const router = createBrowserRouter([
         ),
       },
     ],
+  },
+  {
+    path: "/__fixtures/foundation",
+    element: <FoundationGallery />,
+  },
+  {
+    path: "/__fixtures/foundation/:fixtureId",
+    element: <FoundationGallery />,
+  },
+  {
+    path: "/__fixtures/brand",
+    element: <BrandGallery />,
+  },
+  {
+    path: "/__fixtures/primitives",
+    element: <PrimitiveGallery />,
+  },
+  {
+    path: "/__fixtures/shell",
+    element: <ShellGallery />,
   },
 ]);

@@ -1,0 +1,411 @@
+.focused-graph {
+  min-width: 0;
+  display: grid;
+  gap: var(--petra-space-4);
+}
+
+.focused-graph__heading,
+.focused-graph__controls,
+.focused-graph__selected-heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--petra-space-3);
+}
+
+.focused-graph__heading p,
+.focused-graph__inspector span,
+.focused-graph__inspector h4,
+.focused-graph__filters legend {
+  margin: 0;
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.focused-graph__heading h2,
+.focused-graph__inspector h3 {
+  margin: var(--petra-space-1) 0 0;
+  color: var(--petra-text-primary);
+  font-size: var(--petra-font-size-section);
+  font-weight: var(--petra-weight-semibold);
+  line-height: var(--petra-line-height-tight);
+}
+
+.focused-graph__scope {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--petra-space-1) var(--petra-space-3);
+  color: var(--petra-text-tertiary);
+  font-family: var(--petra-font-mono);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph__scope span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.focused-graph__controls {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  padding: var(--petra-space-2);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-chrome);
+}
+
+.focused-graph__history,
+.focused-graph__layouts {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petra-space-1);
+}
+
+.focused-graph__history {
+  flex: 1 0 13rem;
+}
+
+.focused-graph__layouts {
+  flex: 1 1 19rem;
+}
+
+.focused-graph__history .petra-action,
+.focused-graph__layouts .petra-action {
+  display: inline-flex;
+}
+
+.focused-graph__layouts .petra-button[aria-pressed="true"] {
+  background: var(--petra-surface-selection);
+  box-shadow: inset 0 0 0 1px var(--petra-action-primary);
+}
+
+.focused-graph__depth {
+  min-height: var(--petra-control-height-compact);
+  display: flex;
+  align-items: center;
+  gap: var(--petra-space-2);
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.focused-graph__depth input {
+  width: 5rem;
+  accent-color: var(--petra-action-primary);
+}
+
+.focused-graph__depth output {
+  width: 1ch;
+  color: var(--petra-text-primary);
+  font-family: var(--petra-font-mono);
+}
+
+.focused-graph__filters {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petra-space-2) var(--petra-space-4);
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.focused-graph__filters legend {
+  float: left;
+  width: 100%;
+  margin-bottom: var(--petra-space-2);
+  padding: 0;
+}
+
+.focused-graph__filters label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--petra-space-2);
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+  cursor: pointer;
+}
+
+.focused-graph__filters input {
+  accent-color: var(--petra-action-primary);
+}
+
+.focused-graph__filters label > span,
+.focused-graph__inspector li > span {
+  width: 1.25rem;
+  height: 2px;
+  flex: 0 0 auto;
+  background: var(--petra-text-tertiary);
+}
+
+[data-relation="supports"] > span {
+  height: 3px !important;
+  background: var(--petra-tone-positive) !important;
+}
+
+[data-relation="contradicts"] > span {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--petra-tone-danger) 0 4px,
+    transparent 4px 7px
+  ) !important;
+}
+
+[data-relation="qualifies"] > span {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--petra-tone-caution) 0 2px,
+    transparent 2px 5px
+  ) !important;
+}
+
+[data-relation="asserts"] > span,
+[data-relation="provenance_for"] > span {
+  background: var(--petra-tone-information) !important;
+}
+
+.focused-graph__workspace {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 18rem);
+  overflow: hidden;
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+  box-shadow: var(--petra-shadow-raised);
+}
+
+.focused-graph__canvas-frame {
+  position: relative;
+  min-width: 0;
+  min-height: 32rem;
+  overflow: hidden;
+  background-color: var(--petra-surface-canvas);
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--petra-border-default) 58%, transparent) 0.75px,
+    transparent 0.8px
+  );
+  background-size: 18px 18px;
+}
+
+.focused-graph__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.focused-graph__gesture-hint {
+  position: absolute;
+  right: var(--petra-space-3);
+  bottom: var(--petra-space-3);
+  margin: 0;
+  padding: var(--petra-space-1) var(--petra-space-2);
+  border-radius: var(--petra-radius-small);
+  color: var(--petra-text-tertiary);
+  background: color-mix(in srgb, var(--petra-surface-panel) 90%, transparent);
+  font-size: var(--petra-font-size-caption);
+  pointer-events: none;
+}
+
+.focused-graph__inspector {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: var(--petra-space-4);
+  padding: var(--petra-space-4);
+  box-shadow: inset 1px 0 var(--petra-border-subtle);
+}
+
+.focused-graph__selected-heading strong {
+  border-radius: var(--petra-radius-pill);
+  padding: var(--petra-space-1) var(--petra-space-2);
+  color: var(--petra-action-primary);
+  background: var(--petra-surface-selection);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph__inspector > p,
+.focused-graph__inspector section > p,
+.focused-graph__text-view p,
+.focused-graph__dimension-note {
+  margin: 0;
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-label);
+  line-height: var(--petra-line-height-body);
+}
+
+.focused-graph__inspector dl {
+  display: grid;
+  gap: var(--petra-space-3);
+  margin: 0;
+}
+
+.focused-graph__node-picker {
+  min-width: 0;
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.focused-graph__node-picker select {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--petra-control-height-compact);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  padding: 0 var(--petra-space-2);
+  color: var(--petra-text-primary);
+  background: var(--petra-surface-panel);
+  font: inherit;
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph__node-picker select:focus-visible {
+  outline: 2px solid var(--petra-focus-ring);
+  outline-offset: 2px;
+  box-shadow: var(--petra-shadow-focus);
+}
+
+.focused-graph__inspector dl > div {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.focused-graph__inspector dt {
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.focused-graph__inspector dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+  line-height: var(--petra-line-height-body);
+}
+
+.focused-graph__inspector code,
+.focused-graph__snapshot-id {
+  overflow-wrap: anywhere;
+  color: var(--petra-text-tertiary);
+  font-family: var(--petra-font-mono);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph__inspector section {
+  display: grid;
+  gap: var(--petra-space-2);
+}
+
+.focused-graph__inspector h4 {
+  margin: 0;
+}
+
+.focused-graph__inspector ul {
+  display: grid;
+  gap: var(--petra-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.focused-graph__inspector li {
+  display: flex;
+  align-items: center;
+  gap: var(--petra-space-2);
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph__text-view {
+  padding: var(--petra-space-3) var(--petra-space-4);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-subtle);
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph__text-view summary {
+  color: var(--petra-text-primary);
+  font-weight: var(--petra-weight-semibold);
+  cursor: pointer;
+}
+
+.focused-graph__text-view ol {
+  display: grid;
+  gap: var(--petra-space-2);
+  margin-bottom: 0;
+  padding-left: var(--petra-space-5);
+  line-height: var(--petra-line-height-body);
+}
+
+.focused-graph__dimension-note {
+  padding-left: var(--petra-space-3);
+  box-shadow: inset 2px 0 var(--petra-border-strong);
+}
+
+.focused-graph__snapshot-id {
+  justify-self: end;
+}
+
+@media (max-width: 72rem) {
+  .focused-graph__workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .focused-graph__inspector {
+    box-shadow: inset 0 1px var(--petra-border-subtle);
+  }
+}
+
+@media (max-width: 54rem) {
+  .focused-graph__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .focused-graph__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .focused-graph__scope {
+    width: 100%;
+    display: grid;
+    justify-content: flex-start;
+  }
+
+  .focused-graph__history,
+  .focused-graph__layouts,
+  .focused-graph__depth {
+    width: 100%;
+    flex-basis: 100%;
+  }
+
+  .focused-graph__history {
+    display: grid;
+    grid-template-columns: repeat(6, var(--petra-control-height-compact));
+  }
+
+  .focused-graph__layouts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .focused-graph__layouts .petra-action,
+  .focused-graph__layouts .petra-button {
+    width: 100%;
+  }
+
+  .focused-graph__canvas-frame {
+    min-height: 25rem;
+  }
+
+  .focused-graph__gesture-hint {
+    display: none;
+  }
+}

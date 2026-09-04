@@ -1,0 +1,404 @@
+@import "@primer/primitives/dist/css/primitives.css";
+
+@font-face {
+  font-family: "Petra Bebas Neue";
+  src: url("../assets/fonts/BebasNeue-Regular.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Petra Inter";
+  src: url("../assets/fonts/InterVariable.woff2") format("woff2-variations");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 900;
+}
+
+:root {
+  /* Palette foundations. Components consume semantic roles below. */
+  --petra-palette-off-white: #f7f6f2;
+  --petra-palette-paper: #fffefb;
+  --petra-palette-stone: #e5e2dc;
+  --petra-palette-slate: #b5b1a9;
+  --petra-palette-graphite: #6b6963;
+  --petra-palette-charcoal: #1c1c1c;
+  --petra-palette-black: #090909;
+  --petra-palette-amber: #c66a2e;
+  --petra-palette-green: #157a59;
+  --petra-palette-blue: #245b9e;
+  --petra-palette-red: #b83232;
+  --petra-palette-violet: #6f4a9e;
+
+  /* Surface, text, rule, and focus roles. */
+  --petra-surface-app: #f4f5f5;
+  --petra-surface-chrome: #eceeef;
+  --petra-surface-work: #fbfbfa;
+  --petra-surface-overlay: #ffffff;
+  --petra-surface-inset: #f0f1f2;
+  --petra-surface-canvas: var(--petra-surface-app);
+  --petra-surface-panel: var(--petra-surface-work);
+  --petra-surface-subtle: var(--petra-surface-inset);
+  --petra-surface-raised: var(--petra-surface-overlay);
+  --petra-surface-hover: #e8ebed;
+  --petra-surface-pressed: #dfe3e6;
+  --petra-surface-sticky: color-mix(
+    in srgb,
+    var(--petra-surface-canvas) 96%,
+    transparent
+  );
+  --petra-surface-inverse: var(--petra-palette-charcoal);
+  --petra-surface-selection: #ddf4ff;
+  --petra-text-primary: #25292e;
+  --petra-text-secondary: #59636e;
+  --petra-text-tertiary: #6e7781;
+  --petra-text-inverse: var(--petra-palette-off-white);
+  --petra-text-link: #0969da;
+  --petra-text-disabled: #818b98;
+  --petra-border-subtle: #e6eaef;
+  --petra-border-default: #d1d9e0;
+  --petra-border-strong: #afb8c1;
+  --petra-border-inverse: #4b4a47;
+  --petra-focus-ring: #0969da;
+  --petra-focus-offset: var(--petra-surface-panel);
+  --petra-action-primary: #0969da;
+  --petra-action-primary-hover: #0757ba;
+  --petra-action-primary-active: #033d8b;
+  --petra-action-disabled: #d1d9e0;
+  --petra-action-danger: var(--petra-palette-red);
+  --petra-action-danger-hover: #8f2626;
+  --petra-overlay-scrim: rgb(9 9 9 / 58%);
+  --petra-brand-accent: var(--petra-palette-amber);
+  --petra-review-accent: #9a550f;
+  --petra-review-accent-soft: #fff1e5;
+
+  /* Semantic tones. Color is always paired with text and a symbol or pattern. */
+  --petra-tone-positive: var(--petra-palette-green);
+  --petra-tone-positive-soft: #e8f3ee;
+  --petra-tone-information: var(--petra-palette-blue);
+  --petra-tone-information-soft: #eaf0f8;
+  --petra-tone-caution: #9c570c;
+  --petra-tone-caution-soft: #f8eddf;
+  --petra-tone-danger: var(--petra-palette-red);
+  --petra-tone-danger-soft: #f8e9e7;
+  --petra-tone-hypothesis: var(--petra-palette-violet);
+  --petra-tone-hypothesis-soft: #f0ebf6;
+  --petra-tone-neutral: var(--petra-text-secondary);
+  --petra-tone-neutral-soft: var(--petra-surface-subtle);
+
+  /* Collaborative and IDE surfaces. */
+  --petra-surface-assistant: var(--petra-surface-chrome);
+  --petra-code-background: #26292d;
+  --petra-code-foreground: #e6e3dc;
+  --petra-code-keyword: #e39a73;
+  --petra-code-function: #8fc6b0;
+  --petra-code-string: #d7bd7b;
+  --petra-code-property: #9dbbe8;
+  --petra-code-number: #c7a6df;
+  --petra-code-comment: #959a9f;
+  --petra-code-operator: #d3d0ca;
+
+  /* Typography roles. Bebas Neue is intentionally wordmark-only. */
+  --petra-font-wordmark: "Petra Bebas Neue", "Arial Narrow", sans-serif;
+  --petra-font-ui: "Petra Inter", Inter, "Helvetica Neue", Arial, sans-serif;
+  --petra-font-mono:
+    "JetBrains Mono", ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas,
+    monospace;
+  --petra-font-size-caption: 0.75rem;
+  --petra-font-size-label: 0.8125rem;
+  --petra-font-size-body: 0.875rem;
+  --petra-font-size-body-large: 1rem;
+  --petra-font-size-section: 1.25rem;
+  --petra-font-size-title: 1.5rem;
+  --petra-font-size-page: clamp(1.75rem, 3vw, 2.25rem);
+  --petra-line-height-tight: 1.25;
+  --petra-line-height-body: 1.5;
+  --petra-weight-regular: 400;
+  --petra-weight-medium: 500;
+  --petra-weight-semibold: 600;
+
+  /* Spacing, sizing, density, and shape roles. */
+  --petra-space-1: var(--space-xs);
+  --petra-space-2: var(--space-sm);
+  --petra-space-3: var(--space-md);
+  --petra-space-4: var(--space-lg);
+  --petra-space-5: var(--space-xl);
+  --petra-space-6: var(--base-size-32);
+  --petra-space-7: var(--base-size-48);
+  --petra-control-height-compact: var(--base-size-32);
+  --petra-control-height-default: var(--base-size-40);
+  --petra-control-height-comfortable: var(--petra-control-height-default);
+  --petra-target-min: var(--base-size-32);
+  --petra-row-height-compact: 2rem;
+  --petra-row-height-comfortable: 2.75rem;
+  --petra-radius-none: 0;
+  --petra-radius-small: var(--borderRadius-default);
+  --petra-radius-medium: var(--borderRadius-large);
+  --petra-radius-large: var(--borderRadius-large);
+  --petra-radius-pill: var(--borderRadius-full);
+  --petra-rule-thin: 1px;
+  --petra-shadow-raised:
+    0 1px 2px rgb(31 35 40 / 4%), 0 8px 24px rgb(31 35 40 / 8%);
+  --petra-shadow-overlay:
+    0 8px 24px rgb(31 35 40 / 12%), 0 1px 4px rgb(31 35 40 / 8%);
+  --petra-shadow-focus: 0 0 0 3px rgb(9 105 218 / 20%);
+  --petra-motion-fast: 120ms;
+
+  /* Compatibility aliases for the pre-foundation shell. New code must not use them. */
+  --off-white: var(--petra-surface-canvas);
+  --paper: var(--petra-surface-panel);
+  --stone: var(--petra-palette-stone);
+  --slate: var(--petra-palette-slate);
+  --graphite: var(--petra-text-secondary);
+  --charcoal: var(--petra-text-primary);
+  --amber: var(--petra-action-primary);
+  --approved: var(--petra-tone-positive);
+  --evidence: var(--petra-tone-information);
+  --review: var(--petra-tone-caution);
+  --contradicts: var(--petra-tone-danger);
+  --hypothesis: var(--petra-tone-hypothesis);
+  --neutral: var(--petra-tone-neutral);
+  --rule: var(--petra-border-subtle);
+  --font-display: var(--petra-font-ui);
+  --font-ui: var(--petra-font-ui);
+  --font-mono: var(--petra-font-mono);
+}
+
+[data-petra-theme="stone"],
+[data-petra-theme="system"] {
+  color-scheme: light;
+}
+
+[data-petra-theme="graphite"] {
+  color-scheme: dark;
+  --petra-surface-app: #151b23;
+  --petra-surface-chrome: #1b222c;
+  --petra-surface-work: #212830;
+  --petra-surface-overlay: #262c36;
+  --petra-surface-inset: #171d25;
+  --petra-surface-canvas: var(--petra-surface-app);
+  --petra-surface-panel: var(--petra-surface-work);
+  --petra-surface-subtle: var(--petra-surface-inset);
+  --petra-surface-raised: var(--petra-surface-overlay);
+  --petra-surface-hover: #2a313c;
+  --petra-surface-pressed: #343b47;
+  --petra-surface-sticky: color-mix(in srgb, #1b222c 96%, transparent);
+  --petra-surface-inverse: #f0f6fc;
+  --petra-surface-selection: #143d79;
+  --petra-surface-assistant: var(--petra-surface-chrome);
+  --petra-text-primary: #f0f6fc;
+  --petra-text-secondary: #b7bdc8;
+  --petra-text-tertiary: #9198a1;
+  --petra-text-inverse: #151b23;
+  --petra-text-link: #6cb6ff;
+  --petra-text-disabled: #656c76;
+  --petra-border-subtle: #2f3742;
+  --petra-border-default: #3d444d;
+  --petra-border-strong: #656c76;
+  --petra-border-inverse: #c8c5be;
+  --petra-focus-ring: #6cb6ff;
+  --petra-focus-offset: #212830;
+  --petra-action-primary: #316dca;
+  --petra-action-primary-hover: #4184e4;
+  --petra-action-primary-active: #539bf5;
+  --petra-action-disabled: #2f3742;
+  --petra-action-danger: #ef8585;
+  --petra-action-danger-hover: #f39b9b;
+  --petra-overlay-scrim: rgb(5 7 9 / 72%);
+  --petra-brand-accent: #e0823d;
+  --petra-review-accent: #e3b341;
+  --petra-review-accent-soft: #342a16;
+  --petra-tone-positive: #71c69f;
+  --petra-tone-positive-soft: #213b32;
+  --petra-tone-information: #86ace2;
+  --petra-tone-information-soft: #26374d;
+  --petra-tone-caution: #e9a764;
+  --petra-tone-caution-soft: #403224;
+  --petra-tone-danger: #ef8585;
+  --petra-tone-danger-soft: #43292b;
+  --petra-tone-hypothesis: #c6a5e3;
+  --petra-tone-hypothesis-soft: #382e46;
+  --petra-tone-neutral: #c2bfb8;
+  --petra-tone-neutral-soft: #2a3036;
+  --petra-code-background: #191c1f;
+  --petra-code-foreground: #e6e3dc;
+  --petra-code-keyword: #f09d79;
+  --petra-code-function: #91d0b6;
+  --petra-code-string: #e0c47c;
+  --petra-code-property: #a9c7ef;
+  --petra-code-number: #d0ade6;
+  --petra-code-comment: #9aa0a6;
+  --petra-code-operator: #d8d5cf;
+  --petra-shadow-raised:
+    0 1px 2px rgb(0 0 0 / 24%), 0 8px 24px rgb(0 0 0 / 20%);
+  --petra-shadow-overlay:
+    0 12px 32px rgb(0 0 0 / 32%), 0 2px 6px rgb(0 0 0 / 24%);
+  --petra-shadow-focus: 0 0 0 3px rgb(108 182 255 / 24%);
+}
+
+[data-petra-theme="contrast"] {
+  color-scheme: light;
+  --petra-surface-app: #ffffff;
+  --petra-surface-chrome: #f1f1f1;
+  --petra-surface-work: #ffffff;
+  --petra-surface-overlay: #ffffff;
+  --petra-surface-inset: #f1f1f1;
+  --petra-surface-canvas: #ffffff;
+  --petra-surface-panel: #ffffff;
+  --petra-surface-subtle: #f1f1f1;
+  --petra-surface-raised: #ffffff;
+  --petra-surface-hover: #e3e3e3;
+  --petra-surface-pressed: #d2d2d2;
+  --petra-surface-sticky: #ffffff;
+  --petra-surface-inverse: #000000;
+  --petra-surface-selection: #fff0d8;
+  --petra-surface-assistant: var(--petra-surface-chrome);
+  --petra-text-primary: #000000;
+  --petra-text-secondary: #1f1f1f;
+  --petra-text-tertiary: #3a3a3a;
+  --petra-text-inverse: #ffffff;
+  --petra-text-link: #004a99;
+  --petra-text-disabled: #555555;
+  --petra-border-subtle: #767676;
+  --petra-border-default: #4d4d4d;
+  --petra-border-strong: #000000;
+  --petra-focus-ring: #005fcc;
+  --petra-focus-offset: #ffffff;
+  --petra-action-primary: #004a99;
+  --petra-action-primary-hover: #002155;
+  --petra-action-primary-active: #000000;
+  --petra-brand-accent: #7a3100;
+  --petra-review-accent: #7a3d00;
+  --petra-review-accent-soft: #fff0d8;
+  --petra-tone-positive: #005a35;
+  --petra-tone-information: #004a99;
+  --petra-tone-caution: #7a3d00;
+  --petra-tone-danger: #9e0000;
+  --petra-tone-hypothesis: #51128a;
+  --petra-tone-positive-soft: #e4f5ed;
+  --petra-tone-information-soft: #e5f0ff;
+  --petra-tone-caution-soft: #fff0d8;
+  --petra-tone-danger-soft: #ffe9e9;
+  --petra-tone-hypothesis-soft: #f2e7ff;
+  --petra-shadow-raised: none;
+  --petra-shadow-overlay: 0 0 0 2px #000000;
+  --petra-shadow-focus: 0 0 0 3px rgb(0 95 204 / 24%);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-petra-theme="system"] {
+    color-scheme: dark;
+    --petra-surface-app: #151b23;
+    --petra-surface-chrome: #1b222c;
+    --petra-surface-work: #212830;
+    --petra-surface-overlay: #262c36;
+    --petra-surface-inset: #171d25;
+    --petra-surface-canvas: var(--petra-surface-app);
+    --petra-surface-panel: var(--petra-surface-work);
+    --petra-surface-subtle: var(--petra-surface-inset);
+    --petra-surface-raised: var(--petra-surface-overlay);
+    --petra-surface-hover: #2a313c;
+    --petra-surface-pressed: #343b47;
+    --petra-surface-sticky: color-mix(in srgb, #1b222c 96%, transparent);
+    --petra-surface-inverse: #f0f6fc;
+    --petra-surface-selection: #143d79;
+    --petra-surface-assistant: var(--petra-surface-chrome);
+    --petra-text-primary: #f0f6fc;
+    --petra-text-secondary: #b7bdc8;
+    --petra-text-tertiary: #9198a1;
+    --petra-text-inverse: #151b23;
+    --petra-text-link: #6cb6ff;
+    --petra-text-disabled: #656c76;
+    --petra-border-subtle: #2f3742;
+    --petra-border-default: #3d444d;
+    --petra-border-strong: #656c76;
+    --petra-focus-ring: #6cb6ff;
+    --petra-focus-offset: #212830;
+    --petra-action-primary: #316dca;
+    --petra-action-primary-hover: #4184e4;
+    --petra-action-primary-active: #539bf5;
+    --petra-brand-accent: #e0823d;
+    --petra-review-accent: #e3b341;
+    --petra-review-accent-soft: #342a16;
+    --petra-tone-positive: #71c69f;
+    --petra-tone-positive-soft: #213b32;
+    --petra-tone-information: #86ace2;
+    --petra-tone-information-soft: #26374d;
+    --petra-tone-caution: #e9a764;
+    --petra-tone-caution-soft: #403224;
+    --petra-tone-danger: #ef8585;
+    --petra-tone-danger-soft: #43292b;
+    --petra-tone-hypothesis: #c6a5e3;
+    --petra-tone-hypothesis-soft: #382e46;
+    --petra-tone-neutral: #c2bfb8;
+    --petra-tone-neutral-soft: #2a3036;
+    --petra-code-background: #191c1f;
+    --petra-code-foreground: #e6e3dc;
+    --petra-code-keyword: #f09d79;
+    --petra-code-function: #91d0b6;
+    --petra-code-string: #e0c47c;
+    --petra-code-property: #a9c7ef;
+    --petra-code-number: #d0ade6;
+    --petra-code-comment: #9aa0a6;
+    --petra-code-operator: #d8d5cf;
+    --petra-shadow-raised:
+      0 1px 2px rgb(0 0 0 / 24%), 0 8px 24px rgb(0 0 0 / 20%);
+    --petra-shadow-overlay:
+      0 12px 32px rgb(0 0 0 / 32%), 0 2px 6px rgb(0 0 0 / 24%);
+    --petra-shadow-focus: 0 0 0 3px rgb(108 182 255 / 24%);
+  }
+}
+
+[data-petra-reduced-motion="true"] {
+  --petra-motion-fast: 0ms;
+}
+
+@media (forced-colors: active) {
+  [data-petra-theme] {
+    --petra-surface-app: Canvas;
+    --petra-surface-chrome: Canvas;
+    --petra-surface-work: Canvas;
+    --petra-surface-overlay: Canvas;
+    --petra-surface-inset: Canvas;
+    --petra-surface-canvas: Canvas;
+    --petra-surface-panel: Canvas;
+    --petra-surface-subtle: Canvas;
+    --petra-surface-raised: Canvas;
+    --petra-surface-hover: Highlight;
+    --petra-surface-pressed: Highlight;
+    --petra-surface-sticky: Canvas;
+    --petra-surface-selection: Canvas;
+    --petra-surface-assistant: Canvas;
+    --petra-text-primary: CanvasText;
+    --petra-text-secondary: CanvasText;
+    --petra-text-tertiary: CanvasText;
+    --petra-text-link: LinkText;
+    --petra-border-subtle: CanvasText;
+    --petra-border-default: CanvasText;
+    --petra-border-strong: CanvasText;
+    --petra-focus-ring: Highlight;
+    --petra-action-primary: ButtonText;
+    --petra-tone-positive: CanvasText;
+    --petra-tone-information: CanvasText;
+    --petra-tone-caution: CanvasText;
+    --petra-tone-danger: CanvasText;
+    --petra-tone-hypothesis: CanvasText;
+    forced-color-adjust: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --petra-motion-fast: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
