@@ -45,6 +45,12 @@ import {
   type DraftSupportAssessmentErrorCode,
   InMemoryDraftSupportAssessmentRegistry,
 } from "../src/draft-support-assessment-registry.js";
+import {
+  type FelicityRevisionError,
+  type FelicityRevisionErrorCode,
+  FelicityRevisionEngine,
+  InMemoryFelicityRevisionRegistry,
+} from "../src/felicity-revision.js";
 
 const readFixture = <Value>(name: string): Value =>
   JSON.parse(
@@ -277,6 +283,15 @@ const expectAssessmentCode = (
   );
 };
 
+const expectFelicityCode = (
+  operation: () => unknown,
+  code: FelicityRevisionErrorCode,
+): void => {
+  expect(operation).toThrowError(
+    expect.objectContaining<Partial<FelicityRevisionError>>({ code }),
+  );
+};
+
 const editHarness = () => {
   const { compiler, input, packets } = makeHarness();
   const initial = compiler.compile(input);
@@ -320,6 +335,26 @@ const editHarness = () => {
     researcher,
     serviceActor,
   };
+};
+
+const felicityHarness = (mutate?: (value: MutableHarness) => void) => {
+  const { compiler, input, packets } = makeHarness(mutate);
+  const initial = compiler.compile(input);
+  const compositions = new InMemoryCompositionRegistry(packets);
+  compositions.registerRequest(input.request);
+  compositions.registerPlan(input.plan);
+  compositions.register(initial);
+  const engine = new FelicityRevisionEngine();
+  const reviseInput = {
+    previous: initial,
+    commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FD2",
+    serviceActor: {
+      actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+      actor_kind: "service" as const,
+    },
+    revisedAt: "2026-09-04T06:00:00.000Z",
+  };
+  return { engine, initial, reviseInput, compositions };
 };
 
 const renderHarness = () => {
@@ -828,6 +863,151 @@ describe("additive researcher draft revision", () => {
           harness.edited.composition,
         ),
       "DRAFT_SUPPORT_ASSESSMENT_REFERENCE_MISMATCH",
+    );
+  });
+});
+
+describe("bounded Felicity revision", () => {
+  it("creates a passed additive revision while preserving scientific semantics", () => {
+    const harness = felicityHarness();
+    const before = structuredClone(harness.reviseInput);
+    const revised = harness.engine.revise(harness.reviseInput);
+    const replay = harness.engine.revise(structuredClone(harness.reviseInput));
+
+    expect(replay).toEqual(revised);
+    expect(harness.reviseInput).toEqual(before);
+    expect(revised.composition.draft).toMatchObject({
+      draft_artifact_id: harness.initial.draft.draft_artifact_id,
+      revision: 2,
+      lineage: {
+        lineage_kind: "revision",
+        parent_revision: 1,
+        edit_origin: "felicity_revision",
+      },
+      production: {
+        origin_kind: "deterministic",
+        producer: { name: "petra.felicity-rewriter", version: "1.0.0" },
+      },
+      validation: { state: "passed", unresolved_support_span_ids: [] },
+    });
+    expect(revised.composition.draft.content.text).toBe(
+      harness.initial.draft.content.text,
+    );
+    expect(
+      revised.composition.draft.validation.validator_results.map(
+        (result) => result.code,
+      ),
+    ).not.toContain("FELICITY_REVALIDATION_PENDING");
+    expect(
+      revised.composition.provenanceMap.content.mappings.map(
+        (mapping) => mapping.bases,
+      ),
+    ).toEqual(
+      harness.initial.provenanceMap.content.mappings.map(
+        (mapping) => mapping.bases,
+      ),
+    );
+    expect(revised.record.content).toMatchObject({
+      state: "passed",
+      preservation: {
+        scientific_force_preserved: true,
+        epistemic_origin_preserved: true,
+        provenance_bases_preserved: true,
+        citation_scope_preserved: true,
+      },
+      authority_boundary: {
+        record_is_scientific_evidence: false,
+        content_changes_require_new_draft_revision: true,
+      },
+    });
+    expect(
+      revised.record.content.transformations.map(
+        (value) => value.transformation_kind,
+      ),
+    ).toEqual(["unchanged", "unchanged"]);
+    expect(() =>
+      harness.compositions.register(revised.composition),
+    ).not.toThrow();
+  });
+
+  it("removes only allowlisted filler and records the exact transformation", () => {
+    const harness = felicityHarness((value) => {
+      const move = value.plan.content.sections[0]?.moves[0];
+      if (move === undefined) throw new Error("Expected a plan move.");
+      move.planned_text =
+        "It is important to note that the selected study reports a measurable improvement.";
+      value.plan.content_hash = canonicalHash(value.plan.content);
+    });
+    const revised = harness.engine.revise(harness.reviseInput);
+
+    expect(revised.composition.draft.content.text).toBe(
+      "The selected study reports a measurable improvement. The claim is limited to its study-defined evaluation task.",
+    );
+    expect(revised.record.content.transformations[0].transformation_kind).toBe(
+      "filler_reduction",
+    );
+    expect(revised.composition.spans[0]?.content).toMatchObject({
+      semantic_origin: "source_report",
+      scientific_force: "direct_report",
+      exact_text: "The selected study reports a measurable improvement.",
+    });
+  });
+
+  it("fails closed on proof language and origin-erasing source reports", () => {
+    const proof = felicityHarness((value) => {
+      const move = value.plan.content.sections[0]?.moves[0];
+      if (move === undefined) throw new Error("Expected a plan move.");
+      move.planned_text =
+        "The selected study clearly proves a measurable improvement.";
+      value.plan.content_hash = canonicalHash(value.plan.content);
+    });
+    expectFelicityCode(
+      () => proof.engine.revise(proof.reviseInput),
+      "FELICITY_REVISION_LANGUAGE_RISK",
+    );
+
+    const unattributed = felicityHarness((value) => {
+      const move = value.plan.content.sections[0]?.moves[0];
+      if (move === undefined) throw new Error("Expected a plan move.");
+      move.planned_text = "A measurable improvement occurred.";
+      value.plan.content_hash = canonicalHash(value.plan.content);
+    });
+    expectFelicityCode(
+      () => unattributed.engine.revise(unattributed.reviseInput),
+      "FELICITY_REVISION_LANGUAGE_RISK",
+    );
+  });
+
+  it("registers immutable exact receipts and rejects preservation drift", () => {
+    const harness = felicityHarness();
+    const revised = harness.engine.revise(harness.reviseInput);
+    const registry = new InMemoryFelicityRevisionRegistry();
+    const stored = registry.register(
+      revised.record,
+      harness.initial,
+      revised.composition,
+    );
+    expect(
+      registry.register(
+        structuredClone(revised.record),
+        structuredClone(harness.initial),
+        structuredClone(revised.composition),
+      ),
+    ).toBe(stored);
+    expect(Object.isFrozen(stored.content.transformations)).toBe(true);
+
+    const changed = structuredClone(revised.record);
+    changed.content.transformations[0].basis_snapshot_hash =
+      "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    changed.content_hash = canonicalHash(changed.content);
+    expectFelicityCode(
+      () =>
+        new InMemoryFelicityRevisionRegistry().register(
+          changed,
+          harness.initial,
+          revised.composition,
+        ),
+      "FELICITY_REVISION_RECORD_MISMATCH",
     );
   });
 });

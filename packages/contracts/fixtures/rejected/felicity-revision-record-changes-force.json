@@ -1,0 +1,97 @@
+{
+  "schema_name": "petra.felicity-revision-record",
+  "schema_version": "1.0.0",
+  "felicity_revision_record_id": "felicity_revision_record_01ARZ3NDEKTSV4RRFFQ69G5FD1",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FD2",
+  "previous_draft_ref": {
+    "draft_artifact_id": "draft_artifact_01ARZ3NDEKTSV4RRFFQ69G5FCK",
+    "revision": 1,
+    "content_hash": "sha256:8b9201fc645d1bae2b93e01dff92c3eb96f394e3e6b3fa1238b8106b827a0560"
+  },
+  "revised_draft_ref": {
+    "draft_artifact_id": "draft_artifact_01ARZ3NDEKTSV4RRFFQ69G5FCK",
+    "revision": 2,
+    "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "provenance_map_ref": {
+    "provenance_map_id": "provenance_map_01ARZ3NDEKTSV4RRFFQ69G5FD3",
+    "revision": 1,
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "citation_bundle_ref": {
+    "citation_bundle_id": "citation_bundle_01ARZ3NDEKTSV4RRFFQ69G5FD4",
+    "revision": 1,
+    "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "language_contract": {
+    "name": "petra.felicity",
+    "version": "1.0.0",
+    "content_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "content": {
+    "state": "passed",
+    "transformations": [
+      {
+        "position": 1,
+        "previous_draft_span_id": "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FCM",
+        "previous_exact_text_hash": "sha256:55a96aff9624999be9037b24b1fd010b17c2ad2135d73ac8a43269f64506c77d",
+        "revised_draft_span_id": "draft_span_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+        "revised_exact_text_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "transformation_kind": "filler_reduction",
+        "basis_snapshot_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "previous_citation_ids": [],
+        "revised_citation_ids": []
+      }
+    ],
+    "validator_results": [
+      {
+        "validator": "felicity-language-contract",
+        "version": "1.0.0",
+        "outcome": "pass",
+        "code": "FELICITY_LANGUAGE_PASSED"
+      },
+      {
+        "validator": "scientific-force-preservation",
+        "version": "1.0.0",
+        "outcome": "fail",
+        "code": "SCIENTIFIC_FORCE_CHANGED"
+      },
+      {
+        "validator": "epistemic-origin-preservation",
+        "version": "1.0.0",
+        "outcome": "pass",
+        "code": "EPISTEMIC_ORIGIN_PRESERVED"
+      },
+      {
+        "validator": "provenance-basis-preservation",
+        "version": "1.0.0",
+        "outcome": "pass",
+        "code": "PROVENANCE_BASES_PRESERVED"
+      },
+      {
+        "validator": "citation-scope-preservation",
+        "version": "1.0.0",
+        "outcome": "pass",
+        "code": "CITATION_SCOPE_PRESERVED"
+      }
+    ],
+    "preservation": {
+      "scientific_force_preserved": false,
+      "epistemic_origin_preserved": true,
+      "provenance_bases_preserved": true,
+      "citation_scope_preserved": true
+    },
+    "authority_boundary": {
+      "record_is_scientific_evidence": false,
+      "content_changes_require_new_draft_revision": true
+    }
+  },
+  "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+    "actor_kind": "service"
+  },
+  "recorded_at": "2026-09-04T06:00:00.000Z"
+}

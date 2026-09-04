@@ -376,6 +376,13 @@ export type {
   ValidatorResult as DraftSupportValidatorResult,
 } from "./generated/draft-support-assessment.js";
 export type {
+  AuthorityBoundary as FelicityRevisionAuthorityBoundary,
+  PetraFelicityRevisionRecord,
+  PreservationBoundary as FelicityPreservationBoundary,
+  RevisionContent as FelicityRevisionContent,
+  SpanTransformation as FelicitySpanTransformation,
+} from "./generated/felicity-revision-record.js";
+export type {
   AuthorityBoundary as RenderedArtifactAuthorityBoundary,
   CitationBundleRef as RenderedArtifactCitationBundleRef,
   DraftRef as RenderedArtifactDraftRef,

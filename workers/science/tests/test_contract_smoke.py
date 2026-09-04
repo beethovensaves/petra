@@ -2986,6 +2986,67 @@ class PetraDraftSupportAssessment(PetraModel):
     assessed_at: str
 
 
+class FelicityNamedVersionHash(PetraModel):
+    name: str
+    version: str
+    content_hash: str
+
+
+class FelicitySpanTransformation(PetraModel):
+    position: int
+    previous_draft_span_id: str
+    previous_exact_text_hash: str
+    revised_draft_span_id: str
+    revised_exact_text_hash: str
+    transformation_kind: Literal[
+        "unchanged",
+        "filler_reduction",
+        "whitespace_normalization",
+        "filler_and_whitespace",
+    ]
+    basis_snapshot_hash: str
+    previous_citation_ids: list[str]
+    revised_citation_ids: list[str]
+
+
+class FelicityPreservationBoundary(PetraModel):
+    scientific_force_preserved: Literal[True]
+    epistemic_origin_preserved: Literal[True]
+    provenance_bases_preserved: Literal[True]
+    citation_scope_preserved: Literal[True]
+
+
+class FelicityAuthorityBoundary(PetraModel):
+    record_is_scientific_evidence: Literal[False]
+    content_changes_require_new_draft_revision: Literal[True]
+
+
+class FelicityRevisionContent(PetraModel):
+    state: Literal["passed"]
+    transformations: list[FelicitySpanTransformation]
+    validator_results: list[DraftSupportValidatorResult]
+    preservation: FelicityPreservationBoundary
+    authority_boundary: FelicityAuthorityBoundary
+
+
+class PetraFelicityRevisionRecord(PetraModel):
+    schema_name: Literal["petra.felicity-revision-record"]
+    schema_version: Literal["1.0.0"]
+    felicity_revision_record_id: str
+    revision: Literal[1]
+    project_id: str
+    command_id: str
+    previous_draft_ref: DraftRef
+    revised_draft_ref: DraftRef
+    provenance_map_ref: DraftSupportProvenanceMapRef
+    citation_bundle_ref: DraftSupportCitationBundleRef
+    language_contract: FelicityNamedVersionHash
+    content: FelicityRevisionContent
+    content_hash: str
+    recorded_by: DraftSupportServiceActorRef
+    recorded_at: str
+
+
 class RenderedArtifactDraftRef(PetraModel):
     draft_artifact_id: str
     revision: int
@@ -3798,6 +3859,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "provenance-map": PetraProvenanceMap,
     "citation-bundle": PetraCitationBundle,
     "draft-support-assessment": PetraDraftSupportAssessment,
+    "felicity-revision-record": PetraFelicityRevisionRecord,
     "rendered-artifact": PetraRenderedArtifact,
     "interaction-feature-manifest": PetraInteractionFeatureManifest,
     "interaction-custom-event": PetraInteractionCustomEvent,
@@ -3899,6 +3961,7 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("provenance-map.json", "content", "content_hash"),
         ("citation-bundle.json", "content", "content_hash"),
         ("draft-support-assessment-stale.json", "content", "content_hash"),
+        ("felicity-revision-record.json", "content", "content_hash"),
         ("rendered-artifact-markdown.json", "content", "content_hash"),
         ("rendered-artifact-latex.json", "content", "content_hash"),
         ("rendered-artifact-bibtex.json", "content", "content_hash"),

@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.10.0",
+  "fixture_manifest_version": "1.11.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -237,6 +237,10 @@
     {
       "schema": "draft-support-assessment",
       "path": "fixtures/accepted/draft-support-assessment-stale.json"
+    },
+    {
+      "schema": "felicity-revision-record",
+      "path": "fixtures/accepted/felicity-revision-record.json"
     },
     {
       "schema": "rendered-artifact",
@@ -534,6 +538,10 @@
     {
       "schema": "draft-support-assessment",
       "path": "fixtures/rejected/draft-support-assessment-grants-evidence.json"
+    },
+    {
+      "schema": "felicity-revision-record",
+      "path": "fixtures/rejected/felicity-revision-record-changes-force.json"
     },
     {
       "schema": "rendered-artifact",

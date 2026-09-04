@@ -290,6 +290,11 @@ describe("Petra canonical contract registry", () => {
       hashField: "content_hash",
     },
     {
+      path: "../fixtures/accepted/felicity-revision-record.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
       path: "../fixtures/accepted/rendered-artifact-markdown.json",
       projection: "content",
       hashField: "content_hash",
