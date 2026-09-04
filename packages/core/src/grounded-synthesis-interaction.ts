@@ -5,13 +5,18 @@ import type {
 } from "@petra/contracts";
 
 import type { DeepReadonly } from "./context-packet-registry.js";
+import type { PetraInteractionEvent } from "./interaction-runtime.js";
 import type {
   SynthesistGatewayExecution,
   SynthesistGatewayRequest,
 } from "./synthesist-gateway.js";
 
 export type GroundedSynthesisStage =
-  "retrieval" | "packet_compilation" | "model_execution" | "validation";
+  | "retrieval"
+  | "packet_compilation"
+  | "model_execution"
+  | "validation"
+  | "persistence";
 
 export interface GroundedSynthesisProgress {
   readonly stage: GroundedSynthesisStage;
@@ -27,6 +32,7 @@ export interface GroundedSynthesisProgress {
     readonly model_deployment_id?: string;
     readonly role_certification_id?: string;
     readonly terminal_state?: PetraSynthesistModelRequest["content"]["terminal"]["state"];
+    readonly execution_source?: SynthesistGatewayExecution["execution_source"];
     readonly elapsed_ms?: number;
     readonly authority_effect: "none";
   };
@@ -63,6 +69,7 @@ export interface GroundedSynthesisPlanner {
 export interface GroundedSynthesisGatewayPort {
   readonly execute: (
     input: SynthesistGatewayRequest,
+    options?: { readonly signal?: AbortSignal },
   ) => Promise<SynthesistGatewayExecution>;
 }
 
@@ -90,6 +97,7 @@ export interface GroundedSynthesisInteractionResult {
   readonly model_deployment_id: string;
   readonly role_certification_id: string;
   readonly output_hash: string;
+  readonly execution_source: SynthesistGatewayExecution["execution_source"];
   readonly trace: {
     readonly retrieval_ms: number;
     readonly lexical_ms: number;
@@ -103,6 +111,114 @@ export interface GroundedSynthesisInteractionResult {
     readonly total_ms: number;
   };
   readonly cost: PetraSynthesistModelCall["content"]["cost"];
+  readonly model_request: DeepReadonly<PetraSynthesistModelRequest>;
+  readonly model_call: DeepReadonly<PetraSynthesistModelCall>;
+}
+
+export interface GroundedSynthesisTerminalRequest {
+  readonly interaction: {
+    readonly protocol_thread_id: string;
+    readonly protocol_run_id: string;
+    readonly request_id: string;
+    readonly trace_id: string;
+    readonly work_unit_id: string;
+    readonly started_at: string;
+  };
+  readonly prompt: string;
+  readonly result: GroundedSynthesisInteractionResult;
+  /** Events already exposed before the grounded response becomes available. */
+  readonly presentation_events: readonly PetraInteractionEvent[];
+}
+
+export interface GroundedSynthesisWorkStartRequest {
+  readonly interaction: GroundedSynthesisTerminalRequest["interaction"];
+  readonly prompt: string;
+}
+
+export interface GroundedSynthesisWorkBinding {
+  readonly work_unit_id: string;
+  readonly work_unit_revision: number;
+  readonly work_unit_spec_hash: string;
+  readonly state:
+    "requested" | "queued" | "running" | "completed" | "cancelled";
+  readonly started_at: string;
+}
+
+export interface GroundedSynthesisCancellationRequest {
+  readonly interaction: GroundedSynthesisTerminalRequest["interaction"];
+  readonly work: GroundedSynthesisWorkBinding;
+  readonly command_id: string;
+  readonly reason: string;
+  readonly requested_at: string;
+}
+
+export interface GroundedSynthesisCancellationBinding {
+  readonly work_unit_cancellation_id: string;
+  readonly command_id: string;
+  readonly cancellation_hash: string;
+  readonly applied: boolean;
+  readonly work_unit_id: string;
+  readonly work_unit_revision: number;
+  readonly work_unit_spec_hash: string;
+  readonly cancelled_at: string;
+}
+
+export interface GroundedSynthesisCancellationPresentationRequest {
+  readonly interaction: GroundedSynthesisTerminalRequest["interaction"];
+  readonly prompt: string;
+  readonly cancellation: GroundedSynthesisCancellationBinding;
+  readonly presentation_events: readonly PetraInteractionEvent[];
+}
+
+export interface GroundedSynthesisTerminalBinding {
+  readonly grounded_response_id: string;
+  readonly grounded_response_revision: number;
+  readonly grounded_response_hash: string;
+  readonly response_artifact_id: string;
+  readonly response_artifact_hash: string;
+  readonly interaction_run_id: string;
+  readonly interaction_run_revision: number;
+  readonly interaction_run_hash: string;
+  readonly work_unit_id: string;
+  readonly work_unit_revision: number;
+  readonly work_unit_spec_hash: string;
+  readonly persisted_at: string;
+}
+
+export interface GroundedSynthesisTerminalPort {
+  /**
+   * Registers and starts the cancellable orchestration WorkUnit before any
+   * provider execution. Production durable terminals implement this method.
+   */
+  readonly startWork?: (
+    request: GroundedSynthesisWorkStartRequest,
+  ) => Promise<GroundedSynthesisWorkBinding>;
+  /**
+   * Applies one explicit cancellation command to the exact running WorkUnit.
+   * A transport abort never invokes this method.
+   */
+  readonly cancelWork?: (
+    request: GroundedSynthesisCancellationRequest,
+  ) => Promise<GroundedSynthesisCancellationBinding>;
+  /**
+   * Closes the cancelled interaction history before the terminal event is
+   * exposed. Production durable terminals implement this alongside cancelWork.
+   */
+  readonly persistCancellation?: (
+    request: GroundedSynthesisCancellationPresentationRequest,
+  ) => Promise<void>;
+  readonly persist: (
+    request: GroundedSynthesisTerminalRequest,
+  ) => Promise<GroundedSynthesisTerminalBinding>;
+  /**
+   * Persists the answer-bearing suffix before the runtime exposes any member
+   * of that suffix to a client. Optional test doubles may omit this method;
+   * production durable terminals implement it.
+   */
+  readonly persistPresentation?: (request: {
+    readonly binding: GroundedSynthesisTerminalBinding;
+    readonly events: readonly PetraInteractionEvent[];
+  }) => Promise<void>;
 }
 
 export interface GroundedSynthesisInteractionExecutorPort {
@@ -239,7 +355,10 @@ export class GroundedSynthesisInteractionExecutor implements GroundedSynthesisIn
       label: "Running the certified synthesist",
       detail: { authority_effect: "none" },
     });
-    const execution = await this.#gateway.execute(plan.gateway_request);
+    const execution = await this.#gateway.execute(
+      plan.gateway_request,
+      request.signal === undefined ? {} : { signal: request.signal },
+    );
     const call = execution.calls.at(-1);
     const selected = execution.request.content.routing.selected;
     request.onProgress({
@@ -256,6 +375,7 @@ export class GroundedSynthesisInteractionExecutor implements GroundedSynthesisIn
               role_certification_id: selected.role_certification_id,
             }),
         terminal_state: execution.request.content.terminal.state,
+        execution_source: execution.execution_source,
         elapsed_ms: call?.content.timing.total_ms ?? 0,
         authority_effect: "none",
       },
@@ -334,8 +454,11 @@ export class GroundedSynthesisInteractionExecutor implements GroundedSynthesisIn
       model_deployment_id: selected.model_deployment_id,
       role_certification_id: selected.role_certification_id,
       output_hash: outputHash,
+      execution_source: execution.execution_source,
       trace,
       cost: structuredClone(call.content.cost),
+      model_request: structuredClone(execution.request),
+      model_call: structuredClone(call),
     };
   }
 }

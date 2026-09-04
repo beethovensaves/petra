@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.25.0",
+  "registry_version": "1.31.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -429,6 +429,17 @@
       "typescript_path": "src/generated/work-unit.ts"
     },
     {
+      "name": "work-unit-cancellation",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/work-unit-cancellation/1.0.0/schema.json",
+      "path": "schemas/work-unit-cancellation/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-operational-cancellation-receipt",
+      "canonical_sha256": "sha256:58a0af3a6be92d18726466b18a8833198e515d89c7ba9fcc522bc305fca76c4c",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/work-unit-cancellation.ts"
+    },
+    {
       "name": "graph-projection-record",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/graph-projection-record/1.0.0/schema.json",
@@ -473,6 +484,39 @@
       "typescript_path": "src/generated/evidence-packet.ts"
     },
     {
+      "name": "grounded-response",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/grounded-response/1.0.0/schema.json",
+      "path": "schemas/grounded-response/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-grounded-response-cache-and-terminal-binding",
+      "canonical_sha256": "sha256:f3124ac0fe817fcce8d2c9937d73d16a6aa0aa91c648016a019d964c4cba2e3a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/grounded-response.ts"
+    },
+    {
+      "name": "composition-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/composition-request/1.0.0/schema.json",
+      "path": "schemas/composition-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-snapshot-bound-composition-intent",
+      "canonical_sha256": "sha256:ad597f766b60e4ae6dc418615569f04beea6bb8e1279381f5fdd8d27a30e0175",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/composition-request.ts"
+    },
+    {
+      "name": "composition-plan",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/composition-plan/1.0.0/schema.json",
+      "path": "schemas/composition-plan/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-inspectable-evidence-to-prose-plan",
+      "canonical_sha256": "sha256:84e4176447fda9cd0d2520c4f57e1e57bc0513d547146ed7d931d7c81f1d3a13",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/composition-plan.ts"
+    },
+    {
       "name": "draft-artifact",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/draft-artifact/1.0.0/schema.json",
@@ -515,6 +559,39 @@
       "canonical_sha256": "sha256:95130f1885cfd33da5f9fb3549b6b4719bd1bcff48438e52bb78887c75351a29",
       "generate_typescript": true,
       "typescript_path": "src/generated/citation-bundle.ts"
+    },
+    {
+      "name": "draft-support-assessment",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/draft-support-assessment/1.0.0/schema.json",
+      "path": "schemas/draft-support-assessment/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-additive-draft-support-state",
+      "canonical_sha256": "sha256:20aa0ca992de01eaf425cae23f8fdc823a1d0497f5c574c6f773ddc90e8720a2",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/draft-support-assessment.ts"
+    },
+    {
+      "name": "felicity-revision-record",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/felicity-revision-record/1.0.0/schema.json",
+      "path": "schemas/felicity-revision-record/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-bounded-felicity-revision-receipt",
+      "canonical_sha256": "sha256:c0dc1e51c04e1da87602bb6e4e1abbfbb713c3ee23ba5d5accba818c7817eafb",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/felicity-revision-record.ts"
+    },
+    {
+      "name": "rendered-artifact",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/rendered-artifact/1.0.0/schema.json",
+      "path": "schemas/rendered-artifact/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-deterministic-composition-render-record",
+      "canonical_sha256": "sha256:274de132c5f15aefce3773b86dc2e2b7acc98d9d601f6dd576c0589bd3e4bf45",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/rendered-artifact.ts"
     },
     {
       "name": "interaction-feature-manifest",

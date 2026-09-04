@@ -13,6 +13,7 @@ import type {
   PetraWork,
   PetraWorkUnit,
   PetraWorkVersion,
+  WorkUnitCancellationCommand,
 } from "@petra/contracts";
 import type { PersistVerifiedArtifactInput } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -116,6 +117,31 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
 
   const successfulOutput = (): PetraWorkerOutputManifest =>
     readFixture<PetraWorkerOutputManifest>("worker-output-manifest");
+
+  const cancellationCommand = (
+    workUnit: PetraWorkUnit,
+  ): WorkUnitCancellationCommand => ({
+    command_name: "CancelWorkUnit",
+    command_id: "command_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+    idempotency_key: "cancel:run-work-unit-repository-test",
+    expected_work_unit_ref: {
+      work_unit_id: workUnit.work_unit_id,
+      revision: workUnit.revision,
+      spec_hash: workUnit.spec_hash,
+    },
+    interaction: {
+      protocol_thread_id: "thread-work-unit-repository-test",
+      protocol_run_id: "run-work-unit-repository-test",
+    },
+    reason: "The researcher explicitly stopped this running task.",
+    requested_by: {
+      actor_id: serviceActor().actor_id,
+      actor_kind: "service",
+    },
+    capability_grant_id: workUnit.capability_grant_id,
+    trace_id: "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+    requested_at: "2026-08-29T14:00:06.000Z",
+  });
 
   it("persists exact registration, lifecycle history, and a bounded successful output", async () => {
     const input = registration();
@@ -286,6 +312,91 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
       "2026-08-29T14:00:06.000Z",
     );
     expect(cancelled.status.state).toBe("cancelled");
+  });
+
+  it("atomically records an authorized cancellation and replays duplicate delivery", async () => {
+    const input = registration();
+    await workUnits.register(input);
+    await workUnits.queue(
+      input.workUnit.work_unit_id,
+      1,
+      "2026-08-29T14:00:01.000Z",
+    );
+    const running = await workUnits.start(
+      input.workUnit.work_unit_id,
+      2,
+      1,
+      "2026-08-29T14:00:02.000Z",
+    );
+    const command = cancellationCommand(running);
+
+    const applied = await workUnits.cancelByCommand(command);
+    expect(applied.applied).toBe(true);
+    expect(applied.workUnit.revision).toBe(4);
+    expect(applied.workUnit.status.state).toBe("cancelled");
+    if (applied.workUnit.status.state !== "cancelled") {
+      throw new Error("The WorkUnit did not enter its cancelled state.");
+    }
+    expect(applied.workUnit.status.reason).toBe(command.reason);
+    expect(applied.workUnit.status.cancelled_at).toBe(command.requested_at);
+    expect(applied.cancellation.content.authority_boundary).toEqual({
+      effect_kind: "operational_only",
+      scientific_authority_changed: false,
+      connection_abort_was_command: false,
+    });
+    expect(
+      await workUnits.getCancellationByCommand(command.command_id),
+    ).toEqual(applied.cancellation);
+
+    const replayed = await workUnits.cancelByCommand(command);
+    expect(replayed).toEqual({ ...applied, applied: false });
+    expect(
+      (await workUnits.getWorkUnit(input.workUnit.work_unit_id))?.revision,
+    ).toBe(4);
+
+    const conflicting = structuredClone(command);
+    conflicting.reason = "Different input under an existing command identity.";
+    await expect(workUnits.cancelByCommand(conflicting)).rejects.toEqual(
+      expect.objectContaining({
+        code: "WORK_UNIT_CANCELLATION_COMMAND_CONFLICT",
+      }),
+    );
+    await expect(
+      pool.query("DELETE FROM petra.work_unit_cancellations"),
+    ).rejects.toEqual(expect.objectContaining({ code: "55000" }));
+  });
+
+  it("rejects cancellation without the WorkUnit capability", async () => {
+    const input = registration();
+    await workUnits.register(input);
+    await workUnits.queue(
+      input.workUnit.work_unit_id,
+      1,
+      "2026-08-29T14:00:01.000Z",
+    );
+    const running = await workUnits.start(
+      input.workUnit.work_unit_id,
+      2,
+      1,
+      "2026-08-29T14:00:02.000Z",
+    );
+    const unauthorized = cancellationCommand(running);
+    unauthorized.command_id = "command_01ARZ3NDEKTSV4RRFFQ69G5FE8";
+    unauthorized.idempotency_key = "cancel:unauthorized";
+    unauthorized.capability_grant_id =
+      "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBL";
+
+    await expect(workUnits.cancelByCommand(unauthorized)).rejects.toEqual(
+      expect.objectContaining({
+        code: "WORK_UNIT_CANCELLATION_NOT_AUTHORIZED",
+      }),
+    );
+    expect(
+      (await workUnits.getWorkUnit(input.workUnit.work_unit_id))?.revision,
+    ).toBe(3);
+    expect(
+      await workUnits.getCancellationByCommand(unauthorized.command_id),
+    ).toBe(undefined);
   });
 
   it("enforces successful dependencies before queueing dependent work", async () => {

@@ -91,6 +91,8 @@ checksum.
 | `npm start` | Serve the built workbench and Petra HTTP routes from one Node process. |
 | `npm run test` | Run contract, core, always-on S3, server-conformance, and Python tests. |
 | `npm run test:retrieval` | Run the exact Paper Trail lexical, citation-direction, bounded-path, and scientific-semantics regression baseline. |
+| `npm run benchmark:retrieval:m1-floor` | Regenerate the content-hashed comparison between the frozen Paper Trail result and Petra's bounded lexical-to-graph recipe. |
+| `npm run benchmark:retrieval:m1-floor:check` | Recompute the M1 retrieval floor and fail if its committed artifact or interpretation boundary has drifted. |
 | `npm run test:server` | Run `D014-HC01`–`D014-HC10` against a real local Hono listener. |
 | `npm run test:postgres:integration` | Migrate a disposable PostgreSQL instance, test the typed repository, validate Flyway history, and remove every labeled resource. |
 | `npm run test:neo4j:integration` | Migrate disposable PostgreSQL, project reviewed authority through real Neo4j, exercise bounded queries/rebuild, and remove every labeled resource. |
@@ -99,6 +101,7 @@ checksum.
 | `npm run test:codex-app-server:integration` | Start a real Codex App Server sidecar, use the existing managed ChatGPT session for one ephemeral read-only no-tool turn, verify AG-UI and graph-runtime translation, and close it. |
 | `npm run test:codex-synthesist:integration` | Use the existing managed ChatGPT OAuth session for one structured, read-only, no-tool synthesis and require exact ContextPacket/EvidencePacket grounding. No API key is used. |
 | `npm run test:codex-synthesist:certification` | Evaluate an entitlement-exposed model for the exact synthesist role, activate only a passing deployment, and record a second call through `SynthesistGateway`. No API key is accepted or used. |
+| `npm run test:codex-grounded-ag-ui:integration` | Run the certified Terra synthesist from the frozen M1 packet through Petra's live AG-UI client, persist its exact PostgreSQL/S3 terminal before text, and reuse a matching durable execution after restart. It uses managed ChatGPT OAuth and no API key; configured local services must be healthy and migrated. |
 | `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
 | `npm run test:integration` | Run Vitest and pytest against disposable real services, then delete the stack. |
 | `npm run measure:m1-boundary` | Rebuild and measure the isolated browser cost of Petra's AG-UI client boundary. |
@@ -257,6 +260,13 @@ adapter replaceable. Run `npm run test:retrieval`; architecture and limits are
 recorded in the
 [M1.6 retrieval report](reports/M1.6-RETRIEVAL-FOUNDATION.md).
 
+The frozen Paper Trail query now also runs through Petra's versioned hybrid
+recipe over the exact same 50 abstract-only Works. The content-hashed record
+pins rank, score, graph admission, bounds, omissions, and zero model calls while
+explicitly refusing quality or latency rankings without representative
+judgments. Run `npm run benchmark:retrieval:m1-floor:check`; see the
+[M1.6 retrieval floor report](reports/M1.6-RETRIEVAL-FLOOR.md).
+
 ## Immutable context and evidence compilation
 
 The deterministic packet compiler turns exact authority records—not redacted
@@ -326,6 +336,30 @@ first attempt failed safely on a ContextPacket/EvidencePacket coverage mismatch;
 the corrected, newly hashed prompt passed. See the
 [subscription synthesist certification report](reports/M1.6-CODEX-SYNTHESIST-CERTIFICATION.md).
 
+The certified route now reaches Petra's production interaction protocol under
+the explicit `grounded_synthesis` workflow. Before every call, the server checks
+the current OAuth account, Codex runtime, provider schema, prompt, deployment,
+entitlement catalog entry, and endpoint fingerprint against the active recorded
+certification. The AG-UI stream exposes retrieval, packet readiness, model,
+validation, persistence, grounded text, and exact terminal provenance, all with
+no scientific authority effect. Petra emits no answer text until the exact model
+execution, immutable Markdown Artifact, WorkUnit, InteractionRun, packets, and
+GroundedResponse terminal have persisted. A terminal failure ends in
+`RUN_ERROR`; a matching execution can be rehydrated from PostgreSQL after
+restart without another model turn. Run
+`npm run test:codex-grounded-ag-ui:integration`; see the
+[durable terminal report](reports/M1.6-DURABLE-GROUNDED-TERMINAL.md).
+
+A displayed answer now also has a narrow, revisioned `GroundedResponse`
+identity. It binds immutable Markdown Artifact bytes to the exact packets,
+snapshot, selected scientific dependencies, successful model execution,
+InteractionRun, WorkUnit, cache decision, and terminal time. A later authority
+change touching a selected Claim or Assertion creates an invalidated response
+revision while retaining both the original record and Artifact bytes. Exact
+event replay is idempotent, and unrelated or pre-snapshot events cannot evict a
+valid answer. See the
+[grounded-response invalidation report](reports/M1.6-GROUNDED-RESPONSE-INVALIDATION.md).
+
 ## Measured model-gateway foundation
 
 The first extractor route now passes through a TypeScript-owned ModelGateway.
@@ -379,6 +413,8 @@ Enable it for the server process:
 
 ```sh
 export PETRA_CODEX_APP_SERVER_ENABLED=true
+npm run services:up
+npm run db:migrate
 npm run dev
 ```
 

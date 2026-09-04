@@ -7,7 +7,7 @@ from typing import Any, Literal
 
 import rfc8785
 from jsonschema import Draft202012Validator, FormatChecker
-from pydantic import BaseModel, ConfigDict, RootModel
+from pydantic import BaseModel, ConfigDict, RootModel, model_validator
 from referencing import Registry, Resource
 
 PETRA_ROOT = Path(__file__).resolve().parents[3]
@@ -1801,6 +1801,65 @@ class PetraWorkUnit(PetraModel):
     updated_at: str
 
 
+class WorkUnitCancellationServiceActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["service"]
+
+
+class WorkUnitCancellationRef(PetraModel):
+    work_unit_id: str
+    revision: int
+    spec_hash: str
+
+
+class WorkUnitCancellationInteraction(PetraModel):
+    protocol_thread_id: str
+    protocol_run_id: str
+
+
+class WorkUnitCancellationCommand(PetraModel):
+    command_name: Literal["CancelWorkUnit"]
+    command_id: str
+    idempotency_key: str
+    expected_work_unit_ref: WorkUnitCancellationRef
+    interaction: WorkUnitCancellationInteraction
+    reason: str
+    requested_by: WorkUnitCancellationServiceActorRef
+    capability_grant_id: str
+    trace_id: str
+    requested_at: str
+
+
+class WorkUnitCancellationOutcome(PetraModel):
+    outcome_kind: Literal["cancelled"]
+    work_unit_ref: WorkUnitCancellationRef
+    cancelled_at: str
+
+
+class WorkUnitCancellationAuthorityBoundary(PetraModel):
+    effect_kind: Literal["operational_only"]
+    scientific_authority_changed: Literal[False]
+    connection_abort_was_command: Literal[False]
+
+
+class WorkUnitCancellationContent(PetraModel):
+    command: WorkUnitCancellationCommand
+    outcome: WorkUnitCancellationOutcome
+    authority_boundary: WorkUnitCancellationAuthorityBoundary
+
+
+class PetraWorkUnitCancellation(PetraModel):
+    schema_name: Literal["petra.work-unit-cancellation"]
+    schema_version: Literal["1.0.0"]
+    work_unit_cancellation_id: str
+    revision: Literal[1]
+    project_id: str
+    content: WorkUnitCancellationContent
+    content_hash: str
+    recorded_by: WorkUnitCancellationServiceActorRef
+    recorded_at: str
+
+
 class ProjectionIdentity(PetraModel):
     target: Literal["neo4j_graph"]
     projection_name: str
@@ -2198,6 +2257,206 @@ class PetraEvidencePacket(PetraModel):
     project_id: str
     snapshot_ref: PacketSnapshotRef
     content: EvidencePacketContent
+    content_hash: str
+    compiled_by: ProjectionServiceActorRef
+    compiled_at: str
+
+
+class CompositionNamedVersionHash(PetraModel):
+    name: str
+    version: str
+    content_hash: str
+
+
+class CompositionFelicityContractRef(PetraModel):
+    name: Literal["petra.felicity"]
+    version: str
+    content_hash: str
+
+
+class CompositionVersionedControlRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class CompositionRequestedOutput(PetraModel):
+    artifact_kind: Literal[
+        "passage",
+        "outline",
+        "table",
+        "methods_description",
+        "experiment_report",
+        "literature_synthesis",
+        "bibliography",
+        "other",
+    ]
+    description: str
+    audience: str
+    language: str
+    semantic_format: Literal["plain_text", "markdown", "structured_json"]
+    permitted_scientific_forces: list[
+        Literal[
+            "direct_report",
+            "descriptive",
+            "association",
+            "comparison",
+            "qualification",
+            "causal",
+            "mechanistic",
+            "methodological",
+            "none",
+        ]
+    ]
+    target_code_points: int | None = None
+
+
+class CompositionCitationStyle(PetraModel):
+    style_kind: Literal["csl"]
+    style_name: str
+    style_version: str
+
+
+class CompositionCitationPreferences(PetraModel):
+    style: CompositionCitationStyle
+    export_formats: list[Literal["inline", "markdown", "latex", "bibtex"]]
+
+
+class CompositionEvidencePolicy(PetraModel):
+    allowed_namespaces: list[
+        Literal["scholarly", "operational", "personal", "discovery"]
+    ]
+    inference_policy: Literal[
+        "source_reports_only",
+        "bounded_synthesis_allowed",
+        "researcher_material_allowed",
+    ]
+    desired_depth: Literal["concise", "standard", "deep"]
+
+
+class CompositionControlContext(PetraModel):
+    output_profile: CompositionNamedVersionHash
+    language_contract: CompositionFelicityContractRef
+    capability_grant_id: str
+    privacy_profile_ref: CompositionVersionedControlRef
+    budget_profile_ref: CompositionVersionedControlRef
+    approval_mode: Literal["automatic_with_validation", "review_before_draft"]
+
+
+class CompositionRequestAuthorityBoundary(PetraModel):
+    request_is_scientific_authority: Literal[False]
+    request_authorizes_publication: Literal[False]
+
+
+class CompositionRequestContent(PetraModel):
+    objective: str
+    subject_refs: list[PacketObjectRef]
+    requested_output: CompositionRequestedOutput
+    citation_preferences: CompositionCitationPreferences
+    evidence_policy: CompositionEvidencePolicy
+    control_context: CompositionControlContext
+    authority_boundary: CompositionRequestAuthorityBoundary
+
+
+class PetraCompositionRequest(PetraModel):
+    schema_name: Literal["petra.composition-request"]
+    schema_version: Literal["1.0.0"]
+    composition_request_id: str
+    revision: Literal[1]
+    project_id: str
+    snapshot_ref: PacketSnapshotRef
+    content: CompositionRequestContent
+    content_hash: str
+    requested_by: ActorRef
+    requested_at: str
+
+
+class CompositionRequestRef(PetraModel):
+    composition_request_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class CompositionPlanEvidencePacketRef(PetraModel):
+    evidence_packet_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class CompositionPlanEvidenceRef(PetraModel):
+    context_selection_order: int
+    object_ref: PacketObjectRef
+    relation: Literal["direct_report", "qualification", "supports_inference", "context"]
+
+
+class CompositionMove(PetraModel):
+    move_id: str
+    position: int
+    planned_text: str
+    semantic_origin: Literal[
+        "source_report",
+        "petra_inference",
+        "researcher_statement",
+        "structural_language",
+    ]
+    scientific_force: Literal[
+        "direct_report",
+        "descriptive",
+        "association",
+        "comparison",
+        "qualification",
+        "causal",
+        "mechanistic",
+        "methodological",
+        "none",
+    ]
+    evidence_refs: list[CompositionPlanEvidenceRef]
+    citation_required: bool
+    limitations: list[str]
+
+
+class CompositionSection(PetraModel):
+    section_id: str
+    position: int
+    heading: str
+    purpose: str
+    moves: list[CompositionMove]
+
+
+class CompositionUnresolvedSupport(PetraModel):
+    description: str
+    affected_move_ids: list[str]
+
+
+class CompositionCoverage(PetraModel):
+    state: Literal["sufficient", "partial", "insufficient"]
+    statement: str
+    limitations: list[str]
+
+
+class CompositionPlanAuthorityBoundary(PetraModel):
+    plan_is_scientific_authority: Literal[False]
+    prose_may_exceed_evidence: Literal[False]
+
+
+class CompositionPlanContent(PetraModel):
+    state: Literal["ready", "blocked"]
+    sections: list[CompositionSection]
+    unresolved_support: list[CompositionUnresolvedSupport]
+    coverage: CompositionCoverage
+    authority_boundary: CompositionPlanAuthorityBoundary
+
+
+class PetraCompositionPlan(PetraModel):
+    schema_name: Literal["petra.composition-plan"]
+    schema_version: Literal["1.0.0"]
+    composition_plan_id: str
+    revision: Literal[1]
+    project_id: str
+    composition_request_ref: CompositionRequestRef
+    evidence_packet_ref: CompositionPlanEvidencePacketRef
+    snapshot_ref: PacketSnapshotRef
+    content: CompositionPlanContent
     content_hash: str
     compiled_by: ProjectionServiceActorRef
     compiled_at: str
@@ -2614,6 +2873,260 @@ class PetraCitationBundle(PetraModel):
     content_hash: str
     compiled_by: ActorRef
     compiled_at: str
+
+
+class DraftSupportProvenanceMapRef(PetraModel):
+    provenance_map_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class DraftSupportCitationBundleRef(PetraModel):
+    citation_bundle_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class DraftSupportRootLineage(PetraModel):
+    lineage_kind: Literal["root"]
+
+
+class DraftSupportRevisionLineage(PetraModel):
+    lineage_kind: Literal["revision"]
+    parent_revision: int
+    parent_content_hash: str
+
+
+class DraftSupportHumanActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["human"]
+
+
+class DraftSupportServiceActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["service"]
+
+
+class DraftSupportResearcherEditTrigger(PetraModel):
+    trigger_kind: Literal["researcher_edit"]
+    command_id: str
+    researcher: DraftSupportHumanActorRef
+
+
+class DraftSupportRevalidationTrigger(PetraModel):
+    trigger_kind: Literal["support_revalidation"]
+    command_id: str
+    requested_by: DraftSupportHumanActorRef
+    executed_by: DraftSupportServiceActorRef
+
+
+class DraftSupportValidatorResult(PetraModel):
+    validator: str
+    version: str
+    outcome: Literal["pass", "fail", "warning"]
+    code: str
+    message: str | None = None
+
+
+class DraftSupportSpanAssessment(PetraModel):
+    draft_span_id: str
+    support_state: Literal["current", "stale", "passed", "failed"]
+    citation_state: Literal["current", "stale", "not_required"]
+    basis_snapshot: list[ProvenanceBasis]
+    validator_results: list[DraftSupportValidatorResult]
+    reasons: list[str]
+
+
+class DraftSupportCitationAssessment(PetraModel):
+    citation_id: str
+    link_state: Literal["current", "partially_stale", "stale"]
+    stale_draft_span_ids: list[str]
+
+
+class DraftSupportReusePolicy(PetraModel):
+    reuse_allowed: bool
+    reason: str
+
+
+class DraftSupportAuthorityBoundary(PetraModel):
+    assessment_is_scientific_evidence: Literal[False]
+    assessment_controls_draft_reuse: Literal[True]
+
+
+class DraftSupportContent(PetraModel):
+    state: Literal["stale", "passed", "failed"]
+    span_assessments: list[DraftSupportSpanAssessment]
+    citation_assessments: list[DraftSupportCitationAssessment]
+    validator_results: list[DraftSupportValidatorResult]
+    limitations: list[str]
+    reuse_policy: DraftSupportReusePolicy
+    authority_boundary: DraftSupportAuthorityBoundary
+
+    @model_validator(mode="after")
+    def reuse_matches_state(self) -> DraftSupportContent:
+        if self.reuse_policy.reuse_allowed != (self.state == "passed"):
+            raise ValueError("Draft support reuse must match the assessment state.")
+        return self
+
+
+class PetraDraftSupportAssessment(PetraModel):
+    schema_name: Literal["petra.draft-support-assessment"]
+    schema_version: Literal["1.0.0"]
+    draft_support_assessment_id: str
+    revision: int
+    project_id: str
+    draft_ref: DraftRef
+    provenance_map_ref: DraftSupportProvenanceMapRef
+    citation_bundle_ref: DraftSupportCitationBundleRef
+    lineage: DraftSupportRootLineage | DraftSupportRevisionLineage
+    trigger: DraftSupportResearcherEditTrigger | DraftSupportRevalidationTrigger
+    content: DraftSupportContent
+    content_hash: str
+    assessed_by: ActorRef
+    assessed_at: str
+
+
+class FelicityNamedVersionHash(PetraModel):
+    name: str
+    version: str
+    content_hash: str
+
+
+class FelicitySpanTransformation(PetraModel):
+    position: int
+    previous_draft_span_id: str
+    previous_exact_text_hash: str
+    revised_draft_span_id: str
+    revised_exact_text_hash: str
+    transformation_kind: Literal[
+        "unchanged",
+        "filler_reduction",
+        "whitespace_normalization",
+        "filler_and_whitespace",
+    ]
+    basis_snapshot_hash: str
+    previous_citation_ids: list[str]
+    revised_citation_ids: list[str]
+
+
+class FelicityPreservationBoundary(PetraModel):
+    scientific_force_preserved: Literal[True]
+    epistemic_origin_preserved: Literal[True]
+    provenance_bases_preserved: Literal[True]
+    citation_scope_preserved: Literal[True]
+
+
+class FelicityAuthorityBoundary(PetraModel):
+    record_is_scientific_evidence: Literal[False]
+    content_changes_require_new_draft_revision: Literal[True]
+
+
+class FelicityRevisionContent(PetraModel):
+    state: Literal["passed"]
+    transformations: list[FelicitySpanTransformation]
+    validator_results: list[DraftSupportValidatorResult]
+    preservation: FelicityPreservationBoundary
+    authority_boundary: FelicityAuthorityBoundary
+
+
+class PetraFelicityRevisionRecord(PetraModel):
+    schema_name: Literal["petra.felicity-revision-record"]
+    schema_version: Literal["1.0.0"]
+    felicity_revision_record_id: str
+    revision: Literal[1]
+    project_id: str
+    command_id: str
+    previous_draft_ref: DraftRef
+    revised_draft_ref: DraftRef
+    provenance_map_ref: DraftSupportProvenanceMapRef
+    citation_bundle_ref: DraftSupportCitationBundleRef
+    language_contract: FelicityNamedVersionHash
+    content: FelicityRevisionContent
+    content_hash: str
+    recorded_by: DraftSupportServiceActorRef
+    recorded_at: str
+
+
+class RenderedArtifactDraftRef(PetraModel):
+    draft_artifact_id: str
+    revision: int
+    content_hash: str
+
+
+class RenderedArtifactCitationBundleRef(PetraModel):
+    citation_bundle_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class RenderedArtifactRendererRef(PetraModel):
+    name: str
+    version: str
+    content_hash: str
+
+
+class RenderedArtifactOptions(PetraModel):
+    encoding: Literal["utf-8"]
+    line_ending: Literal["lf"]
+    citation_rendering: Literal["linked_span_suffix"]
+    bibliography_rendering: Literal["canonical_metadata_only"]
+    standalone_document: bool
+
+
+class RenderedArtifactOutputRef(PetraModel):
+    artifact_id: str
+    revision: Literal[1]
+    content_hash: str
+    byte_size: int
+    media_type: str
+
+
+class RenderedArtifactWarning(PetraModel):
+    code: str
+    message: str
+
+
+class RenderedArtifactTransformation(PetraModel):
+    kind: Literal[
+        "citation_insertion",
+        "syntax_escape",
+        "bibliography_projection",
+        "document_wrapper",
+    ]
+    behavior: str
+    lossy: bool
+    semantic_effect: Literal["none"]
+
+
+class RenderedArtifactAuthorityBoundary(PetraModel):
+    rendered_artifact_is_scientific_authority: Literal[False]
+    renderer_may_change_support: Literal[False]
+
+
+class RenderedArtifactContent(PetraModel):
+    format: Literal["markdown", "latex", "bibtex"]
+    content_scope: Literal["draft_with_citations", "citations_only"]
+    renderer: RenderedArtifactRendererRef
+    options: RenderedArtifactOptions
+    output_artifact_ref: RenderedArtifactOutputRef
+    semantic_content_hash: str
+    warnings: list[RenderedArtifactWarning]
+    transformations: list[RenderedArtifactTransformation]
+    authority_boundary: RenderedArtifactAuthorityBoundary
+
+
+class PetraRenderedArtifact(PetraModel):
+    schema_name: Literal["petra.rendered-artifact"]
+    schema_version: Literal["1.0.0"]
+    rendered_artifact_id: str
+    revision: Literal[1]
+    project_id: str
+    draft_ref: RenderedArtifactDraftRef
+    citation_bundle_ref: RenderedArtifactCitationBundleRef
+    content: RenderedArtifactContent
+    content_hash: str
+    rendered_by: ActorRef
+    rendered_at: str
 
 
 class InteractionProtocolProfile(PetraModel):
@@ -3214,6 +3727,94 @@ class PetraReviewInterruptResponse(PetraModel):
     decided_at: str
 
 
+class GroundedResponseArtifactRef(PetraModel):
+    artifact_id: str
+    content_hash: str
+    byte_size: int
+    media_type: Literal["text/markdown; charset=utf-8"]
+
+
+class GroundedContextPacketRef(PetraModel):
+    context_packet_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class GroundedEvidencePacketRef(PetraModel):
+    evidence_packet_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class GroundedExecutionRef(PetraModel):
+    model_request_id: str
+    model_call_id: str
+    model_deployment_id: str
+    role_certification_id: str
+
+
+class GroundedInteractionRef(PetraModel):
+    interaction_run_ref: InteractionRunRef
+    work_unit_ref: InteractionWorkUnitRef
+
+
+class GroundedDependency(PetraModel):
+    dependency_role: Literal["selected_evidence", "provenance", "control"]
+    object_ref: PacketObjectRef
+
+
+class GroundedReusableCache(PetraModel):
+    state: Literal["reusable"]
+    cache_key: str
+    checked_at: str
+
+
+class GroundedInvalidationCause(PetraModel):
+    event_id: str
+    event_type: Literal["change_set.applied", "change_set.reverted"]
+    change_set_id: str
+
+
+class GroundedInvalidatedCache(PetraModel):
+    state: Literal["invalidated"]
+    cache_key: str
+    checked_at: str
+    invalidated_by: list[GroundedInvalidationCause]
+    affected_dependency_ids: list[str]
+
+
+class GroundedPersistedTerminal(PetraModel):
+    state: Literal["completed"]
+    persisted_at: str
+    authority_effect: Literal["none"]
+
+
+class GroundedResponseContent(PetraModel):
+    response_artifact_ref: GroundedResponseArtifactRef
+    context_packet_ref: GroundedContextPacketRef
+    evidence_packet_ref: GroundedEvidencePacketRef
+    snapshot_ref: PacketSnapshotRef
+    execution_ref: GroundedExecutionRef
+    interaction_ref: GroundedInteractionRef
+    dependencies: list[GroundedDependency]
+    model_output_hash: str
+    cache: GroundedReusableCache | GroundedInvalidatedCache
+    terminal: GroundedPersistedTerminal
+
+
+class PetraGroundedResponse(PetraModel):
+    schema_name: Literal["petra.grounded-response"]
+    schema_version: Literal["1.0.0"]
+    grounded_response_id: str
+    revision: int
+    project_id: str
+    lineage: InteractionRootLineage | InteractionRevisionLineage
+    content: GroundedResponseContent
+    content_hash: str
+    recorded_by: ProjectionServiceActorRef
+    recorded_at: str
+
+
 PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
@@ -3245,14 +3846,21 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "worker-input-manifest": PetraWorkerInputManifest,
     "worker-output-manifest": PetraWorkerOutputManifest,
     "work-unit": PetraWorkUnit,
+    "work-unit-cancellation": PetraWorkUnitCancellation,
     "graph-projection-record": PetraGraphProjectionRecord,
     "projection-checkpoint": PetraProjectionCheckpoint,
     "context-packet": PetraContextPacket,
     "evidence-packet": PetraEvidencePacket,
+    "grounded-response": PetraGroundedResponse,
+    "composition-request": PetraCompositionRequest,
+    "composition-plan": PetraCompositionPlan,
     "draft-artifact": PetraDraftArtifact,
     "draft-span": PetraDraftSpan,
     "provenance-map": PetraProvenanceMap,
     "citation-bundle": PetraCitationBundle,
+    "draft-support-assessment": PetraDraftSupportAssessment,
+    "felicity-revision-record": PetraFelicityRevisionRecord,
+    "rendered-artifact": PetraRenderedArtifact,
     "interaction-feature-manifest": PetraInteractionFeatureManifest,
     "interaction-custom-event": PetraInteractionCustomEvent,
     "interaction-run": PetraInteractionRun,
@@ -3352,6 +3960,11 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("draft-span-qualification.json", "content", "content_hash"),
         ("provenance-map.json", "content", "content_hash"),
         ("citation-bundle.json", "content", "content_hash"),
+        ("draft-support-assessment-stale.json", "content", "content_hash"),
+        ("felicity-revision-record.json", "content", "content_hash"),
+        ("rendered-artifact-markdown.json", "content", "content_hash"),
+        ("rendered-artifact-latex.json", "content", "content_hash"),
+        ("rendered-artifact-bibtex.json", "content", "content_hash"),
         ("interaction-feature-manifest.json", "content", "content_hash"),
         ("interaction-run.json", "content", "content_hash"),
         ("interaction-event-record.json", "content", "content_hash"),

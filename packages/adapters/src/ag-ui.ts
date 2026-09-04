@@ -13,6 +13,7 @@ import type {
 import type {
   PetraFixtureMode,
   PetraInteractionEvent,
+  PetraInteractionWorkflow,
   StartInteractionRequest,
 } from "@petra/core";
 
@@ -59,14 +60,17 @@ export class InteractionInputError extends Error {
 }
 
 interface PetraForwardedProps {
+  workflow: PetraInteractionWorkflow;
   fixtureMode: PetraFixtureMode;
   afterSequence: number;
+  connectionId?: string;
 }
 
 export interface ParsedInteractionInput {
   input: RunAgentInput;
   request: StartInteractionRequest;
   afterSequence: number;
+  connectionId?: string;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -88,22 +92,30 @@ const assertAllowedKeys = (
 
 const parseForwardedProps = (value: unknown): PetraForwardedProps => {
   if (value === undefined || value === null) {
-    return { fixtureMode: "success", afterSequence: 0 };
+    return { workflow: "fixture", fixtureMode: "success", afterSequence: 0 };
   }
   if (!isRecord(value))
     throw new InteractionInputError("forwardedProps must be an object.");
   assertAllowedKeys(value, new Set(["petra"]), "forwardedProps");
 
   const petra = value.petra;
-  if (petra === undefined) return { fixtureMode: "success", afterSequence: 0 };
+  if (petra === undefined) {
+    return { workflow: "fixture", fixtureMode: "success", afterSequence: 0 };
+  }
   if (!isRecord(petra))
     throw new InteractionInputError("forwardedProps.petra must be an object.");
   assertAllowedKeys(
     petra,
-    new Set(["fixtureMode", "afterSequence"]),
+    new Set(["workflow", "fixtureMode", "afterSequence", "connectionId"]),
     "forwardedProps.petra",
   );
 
+  const workflow = petra.workflow ?? "fixture";
+  if (!(workflow === "fixture" || workflow === "grounded_synthesis")) {
+    throw new InteractionInputError(
+      "workflow is not registered in the M1 profile.",
+    );
+  }
   const fixtureMode = petra.fixtureMode ?? "success";
   if (
     !(["success", "review", "terminal_error"] as unknown[]).includes(
@@ -114,15 +126,32 @@ const parseForwardedProps = (value: unknown): PetraForwardedProps => {
       "fixtureMode is not registered in the M1 profile.",
     );
   }
+  if (workflow === "grounded_synthesis" && petra.fixtureMode !== undefined) {
+    throw new InteractionInputError(
+      "fixtureMode cannot be combined with the grounded_synthesis workflow.",
+    );
+  }
   const afterSequence = petra.afterSequence ?? 0;
   if (!Number.isSafeInteger(afterSequence) || (afterSequence as number) < 0) {
     throw new InteractionInputError(
       "afterSequence must be a non-negative safe integer.",
     );
   }
+  const connectionId = petra.connectionId;
+  if (
+    connectionId !== undefined &&
+    (typeof connectionId !== "string" ||
+      !/^interaction_connection_[0-9A-HJKMNP-TV-Z]{26}$/.test(connectionId))
+  ) {
+    throw new InteractionInputError(
+      "connectionId must be a Petra InteractionConnection identifier.",
+    );
+  }
   return {
+    workflow,
     fixtureMode: fixtureMode as PetraFixtureMode,
     afterSequence: afterSequence as number,
+    ...(connectionId === undefined ? {} : { connectionId }),
   };
 };
 
@@ -180,9 +209,13 @@ export const parseAgUiRunInput = (
       prompt,
       requestId: context.requestId,
       traceId: context.traceId,
+      workflow: forwarded.workflow,
       fixtureMode: forwarded.fixtureMode,
     },
     afterSequence: forwarded.afterSequence,
+    ...(forwarded.connectionId === undefined
+      ? {}
+      : { connectionId: forwarded.connectionId }),
   };
 };
 
@@ -419,6 +452,7 @@ export interface AgUiEncodedStream {
 export const encodeAgUiStream = (
   source: AsyncIterable<PetraInteractionEvent>,
   accept?: string,
+  onEventEncoded?: (event: PetraInteractionEvent) => void,
 ): AgUiEncodedStream => {
   const encoder = new EventEncoder(accept === undefined ? {} : { accept });
   const textEncoder = new TextEncoder();
@@ -430,6 +464,7 @@ export const encodeAgUiStream = (
           ? textEncoder.encode(encoded)
           : encoded;
       }
+      onEventEncoded?.(petraEvent);
     }
   })();
   return { contentType: encoder.getContentType(), chunks };
@@ -496,8 +531,10 @@ export class PetraInteractionClient {
     threadId: string;
     runId: string;
     prompt: string;
+    workflow?: PetraInteractionWorkflow;
     fixtureMode?: PetraFixtureMode;
     afterSequence?: number;
+    connectionId?: string;
     abortController?: AbortController;
   }): Promise<PetraInteractionResult> {
     const events: PetraClientEvent[] = [];
@@ -531,8 +568,14 @@ export class PetraInteractionClient {
         context: [],
         forwardedProps: {
           petra: {
-            fixtureMode: parameters.fixtureMode ?? "success",
+            workflow: parameters.workflow ?? "fixture",
+            ...((parameters.workflow ?? "fixture") === "grounded_synthesis"
+              ? {}
+              : { fixtureMode: parameters.fixtureMode ?? "success" }),
             afterSequence: parameters.afterSequence ?? 0,
+            ...(parameters.connectionId === undefined
+              ? {}
+              : { connectionId: parameters.connectionId }),
           },
         },
         ...(parameters.abortController === undefined

@@ -11,8 +11,8 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
+    "dev": "node --env-file-if-exists=../../.env --import tsx --watch src/index.ts",
+    "start": "node --env-file-if-exists=../../.env dist/index.js",
     "test": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
@@ -20,10 +20,15 @@
     "@hono/node-server": "2.1.1",
     "@petra/adapters": "0.0.0",
     "@petra/core": "0.0.0",
-    "hono": "4.13.5"
+    "@petra/postgres": "0.0.0",
+    "@petra/s3": "0.0.0",
+    "@aws-sdk/client-s3": "3.1124.0",
+    "hono": "4.13.5",
+    "json-canonicalize": "3.0.0",
+    "pg": "8.16.3"
   },
   "devDependencies": {
     "@petra/contracts": "0.0.0",
-    "json-canonicalize": "3.0.0"
+    "@types/pg": "8.15.5"
   }
 }

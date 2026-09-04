@@ -1,0 +1,303 @@
+{
+  "schema_name": "petra.m1-retrieval-floor",
+  "schema_version": "1.0.0",
+  "source": {
+    "fixture": "fixtures/paper-trail/openalex_works.json",
+    "fixture_sha256": "3f3086df898fc2769b88209043c5ea374f2bf721ac7a6e46eaf0f155edd0e017",
+    "expectations": "fixtures/paper-trail/baseline-expectations.json",
+    "expectations_sha256": "70f987c9dd13d7170069f949ec4df13703a5809a61f55ddb7b5eddf1fcc84aad",
+    "fetched_at": "2026-08-25T03:29:48+00:00",
+    "license": "CC0",
+    "access_depth": "abstract_only",
+    "works": 50
+  },
+  "request": {
+    "query": "graph retrieval augmented generation",
+    "limit": 8,
+    "project_id": "project-paper-trail-retrieval-floor",
+    "object_kinds": [
+      "Work"
+    ]
+  },
+  "paper_trail_floor": {
+    "scorer": "bm25-k1.5-b0.75-title2.5-abstract1.0",
+    "ordered_hits": [
+      {
+        "rank": 1,
+        "work_id": "W7134170217",
+        "score_4dp": 3.8186,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 2,
+        "work_id": "W4402670248",
+        "score_4dp": 3.3998,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 3,
+        "work_id": "W4403447129",
+        "score_4dp": 3.3685,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 4,
+        "work_id": "W4411119292",
+        "score_4dp": 3.1098,
+        "matched_terms": [
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 5,
+        "work_id": "W4410600121",
+        "score_4dp": 3.1032,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 6,
+        "work_id": "W4401453137",
+        "score_4dp": 3.0462,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 7,
+        "work_id": "W4416354085",
+        "score_4dp": 2.9714,
+        "matched_terms": [
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 8,
+        "work_id": "W4394619840",
+        "score_4dp": 2.9415,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      }
+    ]
+  },
+  "petra_hybrid": {
+    "recipe": {
+      "name": "petra-bounded-lexical-graph",
+      "version": "1.0.0"
+    },
+    "scorer": "bm25-k1.5-b0.75-title2.5-body1.0",
+    "lexical_scope": {
+      "projectId": "project-paper-trail-retrieval-floor",
+      "objectKinds": [
+        "Work"
+      ],
+      "scopedCorpusSize": 50
+    },
+    "graph_scope": {
+      "direction": "either",
+      "predicates": [
+        "CITES"
+      ],
+      "neighborsPerCandidate": 8
+    },
+    "ordered_hits": [
+      {
+        "rank": 1,
+        "work_id": "W7134170217",
+        "score_4dp": 3.8186,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 2,
+        "work_id": "W4402670248",
+        "score_4dp": 3.3998,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 3,
+        "work_id": "W4403447129",
+        "score_4dp": 3.3685,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 4,
+        "work_id": "W4411119292",
+        "score_4dp": 3.1098,
+        "matched_terms": [
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 5,
+        "work_id": "W4410600121",
+        "score_4dp": 3.1032,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 6,
+        "work_id": "W4401453137",
+        "score_4dp": 3.0462,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 7,
+        "work_id": "W4416354085",
+        "score_4dp": 2.9714,
+        "matched_terms": [
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      },
+      {
+        "rank": 8,
+        "work_id": "W4394619840",
+        "score_4dp": 2.9415,
+        "matched_terms": [
+          "graph",
+          "retrieval",
+          "augmented",
+          "generation"
+        ]
+      }
+    ],
+    "admitted_candidates": [
+      {
+        "work_id": "W7134170217",
+        "rank": 1,
+        "citation_neighbors_returned": 0
+      },
+      {
+        "work_id": "W4402670248",
+        "rank": 2,
+        "citation_neighbors_returned": 0
+      },
+      {
+        "work_id": "W4403447129",
+        "rank": 3,
+        "citation_neighbors_returned": 3
+      },
+      {
+        "work_id": "W4411119292",
+        "rank": 4,
+        "citation_neighbors_returned": 0
+      },
+      {
+        "work_id": "W4410600121",
+        "rank": 5,
+        "citation_neighbors_returned": 5
+      },
+      {
+        "work_id": "W4401453137",
+        "rank": 6,
+        "citation_neighbors_returned": 1
+      },
+      {
+        "work_id": "W4416354085",
+        "rank": 7,
+        "citation_neighbors_returned": 2
+      },
+      {
+        "work_id": "W4394619840",
+        "rank": 8,
+        "citation_neighbors_returned": 1
+      }
+    ],
+    "omissions": []
+  },
+  "descriptive_observations": {
+    "exact_rank_and_score_parity": true,
+    "top_k_overlap_count": 8,
+    "admitted_candidate_count": 8,
+    "omitted_candidate_count": 0,
+    "model_calls": 0,
+    "external_calls": 0
+  },
+  "interpretation_boundary": {
+    "use": "deterministic_compatibility_and_graph_admission_floor",
+    "representative_relevance_judgments": false,
+    "retrieval_quality_ranking_permitted": false,
+    "latency_ranking_permitted": false,
+    "scientific_evidence_admissible": false,
+    "reason": "One abstract-only query with no relevance judgments can detect regression but cannot rank retrieval systems."
+  },
+  "challenger_gate": {
+    "status": "deferred_until_representative_corpus_and_judgments",
+    "candidates": [
+      "dense_retrieval",
+      "community_summaries",
+      "hipporag2",
+      "alternative_graph_retrieval"
+    ],
+    "required_before_ranking": [
+      "representative_multi-domain_corpus",
+      "frozen_query_set",
+      "independent_relevance_judgments",
+      "quality_metrics_with_uncertainty",
+      "latency_and_cost_measurement_protocol",
+      "identical_rights_and_evidence_constraints"
+    ]
+  },
+  "recipe_identity": {
+    "name": "petra-bounded-lexical-graph",
+    "version": "1.0.0"
+  },
+  "content_hash": "sha256:c5fcac247ddc00610e9b133c6c62b9ec8629629145046a3856cc86fd4e22c98d"
+}

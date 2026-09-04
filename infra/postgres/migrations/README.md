@@ -78,3 +78,81 @@ database and storage-neutral repository both enforce the crucial authority
 boundary: an interaction event is not a domain event, an interrupt response
 does not apply its referenced command, replay does not reexecute authority, and
 connection abort does not cancel durable work.
+
+`V009__scientific_authority_reversal.sql` adds compensating ChangeSets without
+rewriting accepted history. A reversal appends superseding Claim and Assertion
+revisions, records the relationship to the promotion it compensates, and emits
+an immutable `change_set.reverted` ledger event and outbox record. Current
+authority moves forward while the proposal, approval, promotion, and reversal
+remain inspectable.
+
+`V010__model_execution_records.sql` persists certified extractor executions:
+role certifications, bounded requests, ordered calls, and proposal bundles.
+Exact hashes and immutable payloads preserve what was selected, what left the
+authority boundary, which deployment answered, and what validation accepted.
+
+`V011__grounded_response_authority.sql` expands the model-execution tables to
+the paired synthesist `1.1.0` contracts and adds durable ContextPackets,
+EvidencePackets, and GroundedResponses. A response root is foreign-keyed to its
+exact Artifact, packets, authority snapshot, certified request and call,
+terminal InteractionRun revision, and successful WorkUnit revision. Selected
+evidence dependencies remain queryable. Later authority events append an
+invalidated response revision and advance its head atomically; neither the
+original response nor its Markdown Artifact is rewritten.
+
+`V012__durable_interaction_replay.sql` preserves terminal InteractionRun
+outcomes while allowing a later revision to advance only the immutable
+presentation-event head. This closes the answer-bearing suffix after its
+GroundedResponse has persisted without reopening or rewriting the run.
+
+`V013__durable_work_unit_cancellation.sql` adds the immutable command receipt
+for explicit WorkUnit cancellation. A receipt binds the command and
+idempotency identities, exact expected and resulting WorkUnit revisions,
+capability, requesting service, interaction correlation, trace, reason, and
+time. The transition and receipt commit atomically; duplicate delivery returns
+the same result, conflicting reuse is rejected, and the stored authority
+boundary makes clear that neither scientific authority nor a mere connection
+abort caused the cancellation.
+
+`V014__composition_control_authority.sql` persists immutable
+CompositionRequests and ready or blocked CompositionPlans before prose exists.
+Exact request, EvidencePacket, Project snapshot, actor, planned move, and
+evidence-reference hashes remain both queryable and recoverable. This keeps a
+model's eventual draft subordinate to an inspectable plan rather than allowing
+fluent text to become its own authority.
+
+`V015__composition_aggregate_authority.sql` persists one DraftArtifact revision,
+its Unicode DraftSpans, exhaustive ProvenanceMap, and canonical CitationBundle
+as a single transaction. Deferred foreign keys close the intentional
+draft–provenance–citation reference cycle without weakening exact identity.
+Normalized mappings, bases, citation authorities, linked spans, and dependency
+rows support graph projection and later invalidation queries, while immutable
+payloads retain exact restart recovery. A model-produced draft additionally
+binds to the one current reusable GroundedResponse with the same execution,
+EvidencePacket, and snapshot.
+
+`V016__rendered_artifact_authority.sql` records deterministic Markdown, LaTeX,
+and BibTeX publication lineage only after the exact output bytes are available
+as a verified Artifact. Each record binds its DraftArtifact, CitationBundle,
+renderer identity, semantic hash, output media identity, and explicitly
+non-authoritative transformation boundary without copying source rights to the
+generated export.
+
+`V017__draft_revision_support_authority.sql` opens additive researcher editing
+without permitting overwrite. One transaction advances a DraftArtifact head by
+exactly one revision, commits its new spans, provenance, citations, and root
+DraftSupportAssessment, or commits none of them. Later revalidation advances
+only the immutable assessment ledger. Normalized support and citation states,
+exact subject foreign keys, unique command binding, deferred completeness
+checks, and immutable prior revisions make reuse eligibility queryable while
+keeping the assessment explicitly outside scientific evidence authority.
+
+`V018__felicity_revision_authority.sql` opens only the deterministic bounded
+Felicity edit origin. It commits the next DraftArtifact revision, exact
+ProvenanceMap and CitationBundle, normalized one-to-one span transformations,
+and immutable FelicityRevisionRecord before advancing the draft head. Deferred
+checks require all five preservation validators, exact language-contract and
+service identity, and complete canonical transformations. A shared immutable
+command ledger prevents one revision command from being reused across
+researcher edits, revalidation, and Felicity revision while remaining outside
+scientific evidence authority.

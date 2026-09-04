@@ -97,6 +97,7 @@ const successfulExecution = (): SynthesistGatewayExecution => ({
   request: readFixture<PetraSynthesistModelRequest>("model-request-synthesist"),
   calls: [readFixture<PetraSynthesistModelCall>("model-call-synthesist")],
   output: readFixture<PetraModelSynthesistOutput>("model-synthesist-output"),
+  execution_source: "provider",
 });
 
 describe("GroundedSynthesisInteractionExecutor", () => {
@@ -178,6 +179,7 @@ describe("GroundedSynthesisInteractionExecutor", () => {
           Promise.resolve({
             request,
             calls: execution.calls,
+            execution_source: "provider",
           }),
       },
     );

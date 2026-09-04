@@ -22,6 +22,10 @@ export interface InteractionAuthorityRepository {
   ): Promise<PetraInteractionFeatureManifest | undefined>;
   registerRun(run: PetraInteractionRun): Promise<PetraInteractionRun>;
   getRun(interactionRunId: string): Promise<PetraInteractionRun | undefined>;
+  getRunByProtocolCorrelation(
+    protocolThreadId: string,
+    protocolRunId: string,
+  ): Promise<PetraInteractionRun | undefined>;
   getRunRevision(
     interactionRunId: string,
     revision: number,
@@ -53,4 +57,5 @@ export interface InteractionAuthorityRepository {
   getReplay(
     interactionReplayRecordId: string,
   ): Promise<PetraInteractionReplayRecord | undefined>;
+  getConnectionAttempt(connectionId: string): Promise<number>;
 }

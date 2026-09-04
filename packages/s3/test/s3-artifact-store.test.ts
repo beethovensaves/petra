@@ -76,6 +76,26 @@ describe("ArtifactStore deterministic validation", () => {
       }),
     );
   });
+
+  it("preserves the exact UTF-8 Markdown media type used by grounded responses", () => {
+    const markdown = new TextEncoder().encode(
+      "H01 — A bounded scientific response.\n",
+    );
+    expect(
+      verifyArtifactMediaType("text/markdown; charset=utf-8", markdown),
+    ).toEqual({
+      status: "verified",
+      declaredMediaType: "text/markdown; charset=utf-8",
+      observedMediaType: "text/markdown; charset=utf-8",
+      method: "utf-8-sample",
+      problems: [],
+    });
+    expect(() =>
+      verifyArtifactMediaType("text/markdown; charset=us-ascii", markdown),
+    ).toThrowError(
+      expect.objectContaining({ code: "ARTIFACT_STORE_MEDIA_TYPE_INVALID" }),
+    );
+  });
 });
 
 const endpoint = process.env.PETRA_TEST_S3_ENDPOINT;
@@ -196,6 +216,30 @@ describeS3("SeaweedFS S3-compatible ArtifactStore", () => {
         }),
       ),
     ).rejects.toMatchObject({ $metadata: { httpStatusCode: 404 } });
+  });
+
+  it("publishes grounded-response Markdown with its exact charset identity", async () => {
+    const bytes = new TextEncoder().encode(
+      "H01 — A bounded response backed by exact evidence references.\n",
+    );
+    const staged = await store.stage({
+      bytes: chunks(bytes),
+      declaredByteSize: bytes.byteLength,
+      declaredMediaType: "text/markdown; charset=utf-8",
+      expectedContentHash: hash(bytes),
+    });
+    const available = await store.makeAvailable(staged);
+    expect(available.mediaType).toBe("text/markdown; charset=utf-8");
+    expect(available.verification.status).toBe("verified");
+    expect(available.verification.observedMediaType).toBe(
+      "text/markdown; charset=utf-8",
+    );
+    expect(
+      await store.inspectByHash(available.contentHash, {
+        byteSize: bytes.byteLength,
+        mediaType: "text/markdown; charset=utf-8",
+      }),
+    ).toEqual(available);
   });
 
   it("removes failed staging writes and never publishes mismatched identity", async () => {

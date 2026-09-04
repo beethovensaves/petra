@@ -2,10 +2,18 @@ import type {
   PetraWorkerInputManifest,
   PetraWorkerOutputManifest,
   PetraWorkUnit,
+  PetraWorkUnitCancellation,
+  WorkUnitCancellationCommand,
   WorkerFailure,
 } from "@petra/contracts";
 
 import type { RegisterWorkUnitInput } from "./work-unit-registry.js";
+
+export interface WorkUnitCancellationResult {
+  readonly cancellation: PetraWorkUnitCancellation;
+  readonly workUnit: PetraWorkUnit;
+  readonly applied: boolean;
+}
 
 /**
  * Durable control-plane boundary for bounded worker execution.
@@ -55,4 +63,10 @@ export interface WorkUnitAuthorityRepository {
     reason: string,
     cancelledAt: string,
   ): Promise<PetraWorkUnit>;
+  cancelByCommand(
+    command: WorkUnitCancellationCommand,
+  ): Promise<WorkUnitCancellationResult>;
+  getCancellationByCommand(
+    commandId: string,
+  ): Promise<PetraWorkUnitCancellation | undefined>;
 }

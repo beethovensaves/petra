@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/work-unit-cancellation/1.0.0/schema.json",
+  "title": "PetraWorkUnitCancellation",
+  "description": "An immutable receipt for one authorized, idempotent command that cancels a durable WorkUnit. Cancellation is operational history and never a scientific finding.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "work_unit_cancellation_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "recorded_by",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.work-unit-cancellation" },
+    "schema_version": { "const": "1.0.0" },
+    "work_unit_cancellation_id": {
+      "$ref": "#/$defs/WorkUnitCancellationId"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/CancellationContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_by": { "$ref": "#/$defs/ServiceActorRef" },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "WorkUnitCancellationId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^work_unit_cancellation_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ServiceActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "service" }
+      }
+    },
+    "WorkUnitRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_unit_id", "revision", "spec_hash"],
+      "properties": {
+        "work_unit_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "spec_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "InteractionCorrelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_thread_id", "protocol_run_id"],
+      "properties": {
+        "protocol_thread_id": {
+          "$ref": "../../interaction-run/1.0.0/schema.json#/$defs/OpaqueProtocolId"
+        },
+        "protocol_run_id": {
+          "$ref": "../../interaction-run/1.0.0/schema.json#/$defs/OpaqueProtocolId"
+        }
+      }
+    },
+    "CancellationCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_name",
+        "command_id",
+        "idempotency_key",
+        "expected_work_unit_ref",
+        "interaction",
+        "reason",
+        "requested_by",
+        "capability_grant_id",
+        "trace_id",
+        "requested_at"
+      ],
+      "properties": {
+        "command_name": { "const": "CancelWorkUnit" },
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "idempotency_key": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+        },
+        "expected_work_unit_ref": { "$ref": "#/$defs/WorkUnitRef" },
+        "interaction": { "$ref": "#/$defs/InteractionCorrelation" },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "requested_by": { "$ref": "#/$defs/ServiceActorRef" },
+        "capability_grant_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+        },
+        "trace_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+        },
+        "requested_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "CancelledOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome_kind", "work_unit_ref", "cancelled_at"],
+      "properties": {
+        "outcome_kind": { "const": "cancelled" },
+        "work_unit_ref": { "$ref": "#/$defs/WorkUnitRef" },
+        "cancelled_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "CancellationContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "outcome", "authority_boundary"],
+      "properties": {
+        "command": { "$ref": "#/$defs/CancellationCommand" },
+        "outcome": { "$ref": "#/$defs/CancelledOutcome" },
+        "authority_boundary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "effect_kind",
+            "scientific_authority_changed",
+            "connection_abort_was_command"
+          ],
+          "properties": {
+            "effect_kind": { "const": "operational_only" },
+            "scientific_authority_changed": { "const": false },
+            "connection_abort_was_command": { "const": false }
+          }
+        }
+      }
+    }
+  }
+}

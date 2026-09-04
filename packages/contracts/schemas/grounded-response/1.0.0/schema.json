@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/grounded-response/1.0.0/schema.json",
+  "title": "PetraGroundedResponse",
+  "description": "A revisioned operational record binding immutable grounded-response bytes to their exact scientific, model, WorkUnit, interaction, and cache dependencies. Invalidation never rewrites the Artifact or scientific authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "grounded_response_id",
+    "revision",
+    "project_id",
+    "lineage",
+    "content",
+    "content_hash",
+    "recorded_by",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.grounded-response" },
+    "schema_version": { "const": "1.0.0" },
+    "grounded_response_id": { "$ref": "#/$defs/GroundedResponseId" },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "lineage": { "$ref": "#/$defs/Lineage" },
+    "content": { "$ref": "#/$defs/Content" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_by": { "$ref": "#/$defs/ServiceActorRef" },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "GroundedResponseId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^grounded_response_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "Lineage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lineage_kind"],
+          "properties": { "lineage_kind": { "const": "root" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lineage_kind", "parent_revision", "parent_hash"],
+          "properties": {
+            "lineage_kind": { "const": "revision" },
+            "parent_revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "parent_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        }
+      ]
+    },
+    "Content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "response_artifact_ref",
+        "context_packet_ref",
+        "evidence_packet_ref",
+        "snapshot_ref",
+        "execution_ref",
+        "interaction_ref",
+        "dependencies",
+        "model_output_hash",
+        "cache",
+        "terminal"
+      ],
+      "properties": {
+        "response_artifact_ref": { "$ref": "#/$defs/ResponseArtifactRef" },
+        "context_packet_ref": { "$ref": "#/$defs/ContextPacketRef" },
+        "evidence_packet_ref": { "$ref": "#/$defs/EvidencePacketRef" },
+        "snapshot_ref": {
+          "$ref": "../../context-packet/1.0.0/schema.json#/$defs/SnapshotRef"
+        },
+        "execution_ref": { "$ref": "#/$defs/ExecutionRef" },
+        "interaction_ref": { "$ref": "#/$defs/InteractionRef" },
+        "dependencies": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/Dependency" }
+        },
+        "model_output_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "cache": { "$ref": "#/$defs/CacheState" },
+        "terminal": { "$ref": "#/$defs/PersistedTerminal" }
+      }
+    },
+    "ResponseArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "content_hash", "byte_size", "media_type"],
+      "properties": {
+        "artifact_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "byte_size": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ByteSize"
+        },
+        "media_type": {
+          "type": "string",
+          "const": "text/markdown; charset=utf-8"
+        }
+      }
+    },
+    "ContextPacketRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context_packet_id", "revision", "content_hash"],
+      "properties": {
+        "context_packet_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^context_packet_" }
+          ]
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "EvidencePacketRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_packet_id", "revision", "content_hash"],
+      "properties": {
+        "evidence_packet_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^evidence_packet_" }
+          ]
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ExecutionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_request_id",
+        "model_call_id",
+        "model_deployment_id",
+        "role_certification_id"
+      ],
+      "properties": {
+        "model_request_id": { "$ref": "#/$defs/ModelRequestId" },
+        "model_call_id": { "$ref": "#/$defs/ModelCallId" },
+        "model_deployment_id": { "$ref": "#/$defs/ModelDeploymentId" },
+        "role_certification_id": {
+          "$ref": "#/$defs/RoleCertificationId"
+        }
+      }
+    },
+    "InteractionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interaction_run_ref", "work_unit_ref"],
+      "properties": {
+        "interaction_run_ref": {
+          "$ref": "../../interaction-event-record/1.0.0/schema.json#/$defs/InteractionRunRef"
+        },
+        "work_unit_ref": {
+          "$ref": "../../interaction-run/1.0.0/schema.json#/$defs/WorkUnitRef"
+        }
+      }
+    },
+    "Dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dependency_role", "object_ref"],
+      "properties": {
+        "dependency_role": {
+          "enum": ["selected_evidence", "provenance", "control"]
+        },
+        "object_ref": {
+          "$ref": "../../context-packet/1.0.0/schema.json#/$defs/VersionedObjectRef"
+        }
+      }
+    },
+    "CacheState": {
+      "oneOf": [
+        { "$ref": "#/$defs/ReusableCache" },
+        { "$ref": "#/$defs/InvalidatedCache" }
+      ]
+    },
+    "ReusableCache": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "cache_key", "checked_at"],
+      "properties": {
+        "state": { "const": "reusable" },
+        "cache_key": { "$ref": "#/$defs/CacheKey" },
+        "checked_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "InvalidatedCache": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "cache_key",
+        "checked_at",
+        "invalidated_by",
+        "affected_dependency_ids"
+      ],
+      "properties": {
+        "state": { "const": "invalidated" },
+        "cache_key": { "$ref": "#/$defs/CacheKey" },
+        "checked_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "invalidated_by": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/InvalidationCause" }
+        },
+        "affected_dependency_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+          }
+        }
+      }
+    },
+    "InvalidationCause": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "event_type", "change_set_id"],
+      "properties": {
+        "event_id": { "$ref": "#/$defs/EventId" },
+        "event_type": {
+          "enum": ["change_set.applied", "change_set.reverted"]
+        },
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        }
+      }
+    },
+    "PersistedTerminal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "persisted_at", "authority_effect"],
+      "properties": {
+        "state": { "const": "completed" },
+        "persisted_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "authority_effect": { "const": "none" }
+      }
+    },
+    "CacheKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "ModelRequestId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^model_request_" }
+      ]
+    },
+    "ModelCallId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^model_call_" }
+      ]
+    },
+    "ModelDeploymentId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^model_deployment_" }
+      ]
+    },
+    "RoleCertificationId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^role_certification_" }
+      ]
+    },
+    "EventId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^event_" }
+      ]
+    },
+    "ServiceActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "service" }
+      }
+    }
+  }
+}

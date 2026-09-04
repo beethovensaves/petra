@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.7.0",
+  "fixture_manifest_version": "1.11.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -203,6 +203,18 @@
       "path": "fixtures/accepted/evidence-packet.json"
     },
     {
+      "schema": "grounded-response",
+      "path": "fixtures/accepted/grounded-response.json"
+    },
+    {
+      "schema": "composition-request",
+      "path": "fixtures/accepted/composition-request.json"
+    },
+    {
+      "schema": "composition-plan",
+      "path": "fixtures/accepted/composition-plan.json"
+    },
+    {
       "schema": "draft-artifact",
       "path": "fixtures/accepted/draft-artifact.json"
     },
@@ -221,6 +233,26 @@
     {
       "schema": "citation-bundle",
       "path": "fixtures/accepted/citation-bundle.json"
+    },
+    {
+      "schema": "draft-support-assessment",
+      "path": "fixtures/accepted/draft-support-assessment-stale.json"
+    },
+    {
+      "schema": "felicity-revision-record",
+      "path": "fixtures/accepted/felicity-revision-record.json"
+    },
+    {
+      "schema": "rendered-artifact",
+      "path": "fixtures/accepted/rendered-artifact-markdown.json"
+    },
+    {
+      "schema": "rendered-artifact",
+      "path": "fixtures/accepted/rendered-artifact-latex.json"
+    },
+    {
+      "schema": "rendered-artifact",
+      "path": "fixtures/accepted/rendered-artifact-bibtex.json"
     },
     {
       "schema": "interaction-feature-manifest",
@@ -253,9 +285,21 @@
     {
       "schema": "interaction-replay-record",
       "path": "fixtures/accepted/interaction-replay-record.json"
+    },
+    {
+      "schema": "work-unit-cancellation",
+      "path": "fixtures/accepted/work-unit-cancellation.json"
     }
   ],
   "rejected": [
+    {
+      "schema": "composition-request",
+      "path": "fixtures/rejected/composition-request-publication-authority.json"
+    },
+    {
+      "schema": "composition-plan",
+      "path": "fixtures/rejected/composition-plan-uncited-source-report.json"
+    },
     {
       "schema": "contract-smoke",
       "path": "fixtures/rejected/contract-smoke-unknown-property.json"
@@ -472,6 +516,10 @@
       "path": "fixtures/rejected/evidence-packet-stale-without-cause.json"
     },
     {
+      "schema": "grounded-response",
+      "path": "fixtures/rejected/grounded-response-invalidated-without-cause.json"
+    },
+    {
       "schema": "draft-artifact",
       "path": "fixtures/rejected/draft-artifact-model-without-prompt-hash.json"
     },
@@ -486,6 +534,18 @@
     {
       "schema": "citation-bundle",
       "path": "fixtures/rejected/citation-bundle-without-authors.json"
+    },
+    {
+      "schema": "draft-support-assessment",
+      "path": "fixtures/rejected/draft-support-assessment-grants-evidence.json"
+    },
+    {
+      "schema": "felicity-revision-record",
+      "path": "fixtures/rejected/felicity-revision-record-changes-force.json"
+    },
+    {
+      "schema": "rendered-artifact",
+      "path": "fixtures/rejected/rendered-artifact-scientific-authority.json"
     },
     {
       "schema": "interaction-feature-manifest",
@@ -514,6 +574,10 @@
     {
       "schema": "interaction-replay-record",
       "path": "fixtures/rejected/interaction-replay-record-cancels-work.json"
+    },
+    {
+      "schema": "work-unit-cancellation",
+      "path": "fixtures/rejected/work-unit-cancellation-changes-science.json"
     }
   ],
   "canonical": [

@@ -18,6 +18,7 @@ import {
 import {
   DurableReviewInterruptError,
   PetraInteractionRuntime,
+  derivePetraId,
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
 } from "@petra/core";
@@ -165,12 +166,16 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
 
   const interactionStreamResponse = (parameters: {
     runId: string;
+    connectionId: string;
+    deliveryKind: "initial" | "resume" | "replay";
     afterSequence: number;
     accept: string | undefined;
     requestId: string;
     traceId: string;
     requestSignal: AbortSignal;
   }): Response => {
+    const startedAt = new Date().toISOString();
+    let lastDeliveredSequence = parameters.afterSequence;
     const streamAbort = new AbortController();
     activeStreams.add(streamAbort);
     const abortFromRequest = (): void => streamAbort.abort();
@@ -184,17 +189,29 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         streamAbort.signal,
       ),
       parameters.accept,
+      (event) => {
+        lastDeliveredSequence = event.sequence;
+      },
     );
     const iterator = encoded.chunks[Symbol.asyncIterator]();
     let deliveryRecorded = false;
-    const recordDelivery = (
+    const recordDelivery = async (
       outcome: "completed" | "aborted" | "write_error",
-    ): void => {
+      error?: { code: string; message: string },
+    ): Promise<void> => {
       if (deliveryRecorded) return;
       deliveryRecorded = true;
       activeStreams.delete(streamAbort);
       parameters.requestSignal.removeEventListener("abort", abortFromRequest);
-      runtime.recordDelivery(parameters.runId, outcome);
+      await runtime.recordDelivery(parameters.runId, outcome, {
+        connectionId: parameters.connectionId,
+        deliveryKind: parameters.deliveryKind,
+        afterSequence: parameters.afterSequence,
+        lastDeliveredSequence,
+        startedAt,
+        completedAt: new Date().toISOString(),
+        ...(error === undefined ? {} : { error }),
+      });
     };
     let streamClosed = false;
     const bodyStream = new ReadableStream<Uint8Array>({
@@ -205,7 +222,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             if (streamClosed) return;
             streamClosed = true;
             void iterator.return?.(undefined);
-            recordDelivery("aborted");
+            void recordDelivery("aborted").catch(() => undefined);
             controller.close();
           },
           { once: true },
@@ -218,7 +235,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           if (result.done) {
             if (streamClosed) return;
             streamClosed = true;
-            recordDelivery(
+            await recordDelivery(
               streamAbort.signal.aborted ? "aborted" : "completed",
             );
             controller.close();
@@ -228,7 +245,13 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         } catch (error: unknown) {
           if (streamClosed) return;
           streamClosed = true;
-          recordDelivery("write_error");
+          await recordDelivery("write_error", {
+            code: "INTERACTION_STREAM_WRITE_FAILED",
+            message:
+              error instanceof Error
+                ? error.message
+                : "The interaction stream failed while writing.",
+          });
           controller.error(error);
         }
       },
@@ -237,7 +260,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         streamClosed = true;
         streamAbort.abort();
         await iterator.return?.(undefined);
-        recordDelivery("aborted");
+        await recordDelivery("aborted");
       },
     });
     return new Response(bodyStream, {
@@ -681,19 +704,26 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   app.post("/api/work-units/:runId/cancel", async (context) => {
     try {
       const body = await readBoundedJson(context, maxBodyBytes);
-      if (!isRecord(body) || typeof body.commandId !== "string") {
-        throw new InteractionInputError("Cancellation requires a commandId.");
+      if (!isRecord(body)) {
+        throw new InteractionInputError("Cancellation requires a JSON object.");
       }
+      assertExactKeys(body, new Set(["commandId", "reason"]), "Cancellation");
+      const commandId = requiredString(body, "commandId");
+      const reason =
+        body.reason === undefined
+          ? "The researcher explicitly stopped this running task."
+          : requiredString(body, "reason");
       return context.json(
-        runtime.cancel({
-          commandId: body.commandId,
+        await runtime.cancel({
+          commandId,
           runId: context.req.param("runId"),
+          reason,
         }),
       );
     } catch (error: unknown) {
       return jsonError(
         context,
-        error instanceof InteractionInputError ? 422 : 404,
+        error instanceof InteractionInputError ? 422 : 409,
         "CANCELLATION_REJECTED",
         error instanceof Error ? error.message : "Cancellation rejected.",
       );
@@ -718,10 +748,27 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         traceId: context.get("traceId"),
       });
       runId = parsed.request.runId;
-      runtime.startInteraction(parsed.request);
+      const restored = await runtime.restoreInteraction(
+        parsed.request.threadId,
+        runId,
+        parsed.request.prompt,
+      );
+      if (restored === undefined) runtime.startInteraction(parsed.request);
 
       return interactionStreamResponse({
         runId,
+        connectionId:
+          parsed.connectionId ??
+          derivePetraId(
+            "interaction_connection",
+            `${parsed.request.threadId}|default`,
+          ),
+        deliveryKind:
+          restored === undefined
+            ? "initial"
+            : parsed.afterSequence > 0
+              ? "resume"
+              : "replay",
         afterSequence: parsed.afterSequence,
         requestId: context.get("requestId"),
         traceId: context.get("traceId"),
@@ -745,7 +792,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     }
   });
 
-  app.get("/api/interactions/:runId", (context) => {
+  app.get("/api/interactions/:runId", async (context) => {
     const runId = context.req.param("runId");
     const afterSequence = Number(context.req.query("after") ?? "0");
     if (!Number.isSafeInteger(afterSequence) || afterSequence < 0) {
@@ -757,9 +804,38 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       );
     }
     try {
-      runtime.snapshot(runId);
+      let snapshot: ReturnType<PetraInteractionRuntime["snapshot"]> | undefined;
+      try {
+        snapshot = runtime.snapshot(runId);
+      } catch {
+        const threadId = context.req.query("thread");
+        if (threadId === undefined || !ID_PATTERN.test(threadId)) {
+          throw new InteractionInputError(
+            "A valid thread query parameter is required to restore a durable interaction.",
+          );
+        }
+        snapshot = await runtime.restoreInteraction(threadId, runId);
+      }
+      if (snapshot === undefined)
+        throw new Error(`Unknown interaction run: ${runId}`);
+      const connection = context.req.query("connection");
+      if (
+        connection !== undefined &&
+        !/^interaction_connection_[0-9A-HJKMNP-TV-Z]{26}$/.test(connection)
+      ) {
+        throw new InteractionInputError(
+          "connection must be a Petra InteractionConnection identifier.",
+        );
+      }
       return interactionStreamResponse({
         runId,
+        connectionId:
+          connection ??
+          derivePetraId(
+            "interaction_connection",
+            `${snapshot.threadId}|default`,
+          ),
+        deliveryKind: afterSequence > 0 ? "resume" : "replay",
         afterSequence,
         requestId: context.get("requestId"),
         traceId: context.get("traceId"),
@@ -769,8 +845,10 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     } catch (error: unknown) {
       return jsonError(
         context,
-        404,
-        "RUN_NOT_FOUND",
+        error instanceof InteractionInputError ? 422 : 404,
+        error instanceof InteractionInputError
+          ? "INVALID_REPLAY_REQUEST"
+          : "RUN_NOT_FOUND",
         error instanceof Error ? error.message : "Interaction run not found.",
       );
     }

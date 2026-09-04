@@ -20,9 +20,11 @@ import {
 } from "./grounded-synthesis.js";
 import { derivePetraId } from "./identity.js";
 import type {
+  SynthesistAdapterInvocationOptions,
   SynthesistAdapterResponse,
   SynthesistModelAdapter,
 } from "./synthesist-model-adapter.js";
+import type { SynthesistExecutionRepository } from "./synthesist-execution-repository.js";
 
 type EgressClass =
   PetraSynthesistModelRequest["content"]["outbound_context"]["egress_class"];
@@ -46,6 +48,7 @@ export type SynthesistGatewayErrorCode =
   | "SYNTHESIST_PROMPT_PROFILE_HASH_MISMATCH"
   | "SYNTHESIST_PACKET_MISSING"
   | "SYNTHESIST_PACKET_MISMATCH"
+  | "SYNTHESIST_PERSISTED_EXECUTION_INVALID"
   | "SYNTHESIST_REQUEST_ID_REUSED"
   | "SYNTHESIST_CALL_ID_REUSED";
 
@@ -117,6 +120,7 @@ export interface SynthesistGatewayExecution {
   readonly request: DeepReadonly<PetraSynthesistModelRequest>;
   readonly calls: readonly DeepReadonly<PetraSynthesistModelCall>[];
   readonly output?: DeepReadonly<PetraModelSynthesistOutput>;
+  readonly execution_source: "provider" | "memory_cache" | "durable_cache";
 }
 
 interface EligibleRoute {
@@ -327,6 +331,7 @@ export class SynthesistGateway {
   readonly #contracts: PetraContractRegistry;
   readonly #packets: InMemoryContextPacketRegistry;
   readonly #grounded: GroundedSynthesisValidator;
+  readonly #executionRepository: SynthesistExecutionRepository | undefined;
   readonly #deployments = new Map<string, SynthesistModelDeployment>();
   readonly #adapters = new Map<string, SynthesistModelAdapter>();
   readonly #certifications = new Map<
@@ -346,10 +351,12 @@ export class SynthesistGateway {
   constructor(
     packets: InMemoryContextPacketRegistry,
     contracts: PetraContractRegistry = new PetraContractRegistry(),
+    executionRepository?: SynthesistExecutionRepository,
   ) {
     this.#packets = packets;
     this.#contracts = contracts;
     this.#grounded = new GroundedSynthesisValidator(packets, contracts);
+    this.#executionRepository = executionRepository;
   }
 
   registerDeployment(
@@ -450,6 +457,7 @@ export class SynthesistGateway {
 
   async execute(
     input: SynthesistGatewayRequest,
+    options: SynthesistAdapterInvocationOptions = {},
   ): Promise<SynthesistGatewayExecution> {
     const context = this.#packets.getContextPacket(input.context_packet_id);
     const evidence = this.#packets.getEvidencePacket(input.evidence_packet_id);
@@ -556,8 +564,14 @@ export class SynthesistGateway {
           (call) => call.content.model_request_id === modelRequestId,
         ),
         ...(existingOutput === undefined ? {} : { output: existingOutput }),
+        execution_source: "memory_cache",
       };
     }
+    const durable = await this.#loadPersistedExecution(
+      modelRequestId,
+      exactInput,
+    );
+    if (durable !== undefined) return durable;
 
     const routing = this.#route(input, outputContract);
     if (routing.eligible.length === 0) {
@@ -586,7 +600,11 @@ export class SynthesistGateway {
         },
         completedAt: input.requested_at,
       });
-      return { request: this.#storeRequest(request), calls: [] };
+      return {
+        request: this.#storeRequest(request),
+        calls: [],
+        execution_source: "provider",
+      };
     }
 
     const selected = routing.eligible[0];
@@ -604,14 +622,17 @@ export class SynthesistGateway {
     );
     let response: SynthesistAdapterResponse;
     try {
-      response = await adapter.invoke({
-        model_request_id: modelRequestId,
-        model_call_id: modelCallId,
-        deployment: selected.deployment.deployment,
-        input: exactInput,
-        parameters: input.parameters,
-        output_contract: outputContract,
-      });
+      response = await adapter.invoke(
+        {
+          model_request_id: modelRequestId,
+          model_call_id: modelCallId,
+          deployment: selected.deployment.deployment,
+          input: exactInput,
+          parameters: input.parameters,
+          output_contract: outputContract,
+        },
+        options,
+      );
     } catch (error) {
       response = {
         outcome: "provider_error",
@@ -635,18 +656,111 @@ export class SynthesistGateway {
         },
       };
     }
-    return this.#complete({
-      input,
-      modelRequestId,
-      modelCallId,
-      outboundContext,
-      parameters,
-      exactInput,
-      outputContract,
-      routing,
-      selected,
-      response,
-    });
+    return {
+      ...this.#complete({
+        input,
+        modelRequestId,
+        modelCallId,
+        outboundContext,
+        parameters,
+        exactInput,
+        outputContract,
+        routing,
+        selected,
+        response,
+      }),
+      execution_source: "provider",
+    };
+  }
+
+  async #loadPersistedExecution(
+    modelRequestId: string,
+    exactInput: PetraSynthesistModelCall["content"]["input"],
+  ): Promise<SynthesistGatewayExecution | undefined> {
+    const repository = this.#executionRepository;
+    if (repository === undefined) return undefined;
+    const request = await repository.getRequest(modelRequestId);
+    if (request === undefined) return undefined;
+    const calls = await repository.listCalls(modelRequestId);
+    this.#contracts.assertValid("model-request", "1.1.0", request);
+    for (const call of calls) {
+      this.#contracts.assertValid("model-call", "1.1.0", call);
+    }
+    const selected = request.content.routing.selected;
+    const terminalIds = request.content.terminal.model_call_ids;
+    const callIds = calls.map((call) => call.model_call_id);
+    const exactCalls =
+      terminalIds.length === callIds.length &&
+      terminalIds.every((id, index) => id === callIds[index]);
+    const callsValid = calls.every(
+      (call, index) =>
+        call.content_hash === canonicalHash(call.content) &&
+        call.content.model_request_id === modelRequestId &&
+        call.content.attempt === index + 1 &&
+        call.content.input.content_hash === exactInput.content_hash &&
+        call.content.input.context_packet_ref.context_packet_id ===
+          exactInput.context_packet_ref.context_packet_id &&
+        call.content.input.context_packet_ref.content_hash ===
+          exactInput.context_packet_ref.content_hash &&
+        call.content.input.evidence_packet_ref.evidence_packet_id ===
+          exactInput.evidence_packet_ref.evidence_packet_id &&
+        call.content.input.evidence_packet_ref.content_hash ===
+          exactInput.evidence_packet_ref.content_hash,
+    );
+    const selectedIsCurrent =
+      selected === undefined ||
+      (this.#deployments.has(selected.model_deployment_id) &&
+        this.#certifications.has(selected.role_certification_id));
+    if (
+      request.content_hash !== canonicalHash(request.content) ||
+      request.content.context_packet_ref.context_packet_id !==
+        exactInput.context_packet_ref.context_packet_id ||
+      request.content.context_packet_ref.content_hash !==
+        exactInput.context_packet_ref.content_hash ||
+      request.content.evidence_packet_ref.evidence_packet_id !==
+        exactInput.evidence_packet_ref.evidence_packet_id ||
+      request.content.evidence_packet_ref.content_hash !==
+        exactInput.evidence_packet_ref.content_hash ||
+      !exactCalls ||
+      !callsValid ||
+      !selectedIsCurrent
+    ) {
+      throw new SynthesistGatewayError(
+        "SYNTHESIST_PERSISTED_EXECUTION_INVALID",
+        "The durable synthesist execution does not match the current exact request, packet, deployment, and certification boundary.",
+      );
+    }
+
+    let output: DeepReadonly<PetraModelSynthesistOutput> | undefined;
+    if (request.content.terminal.state === "completed") {
+      const call = calls.at(-1);
+      if (
+        call?.content.outcome !== "success" ||
+        call.content.output === undefined ||
+        request.content.terminal.output_hash !==
+          canonicalHash(call.content.output)
+      ) {
+        throw new SynthesistGatewayError(
+          "SYNTHESIST_PERSISTED_EXECUTION_INVALID",
+          "The durable completed synthesist execution has no exact successful output.",
+        );
+      }
+      output = this.#grounded.validate(
+        call.content.output,
+        exactInput.context_packet_ref.context_packet_id,
+        exactInput.evidence_packet_ref.evidence_packet_id,
+      );
+    }
+
+    const storedCalls = calls.map((call) => this.#storeCall(call));
+    const storedRequest = this.#storeRequest(request);
+    if (output !== undefined) this.#outputs.set(modelRequestId, output);
+    return {
+      request: storedRequest,
+      calls: storedCalls,
+      ...(output === undefined ? {} : { output }),
+      execution_source: "durable_cache",
+    };
   }
 
   #route(
@@ -737,6 +851,12 @@ export class SynthesistGateway {
           candidate.decision.status === "active" &&
           (candidate.decision.expires_at === undefined ||
             new Date(candidate.decision.expires_at).getTime() > now) &&
+          candidate.evaluation.prompt_profile.name ===
+            input.prompt_profile.name &&
+          candidate.evaluation.prompt_profile.version ===
+            input.prompt_profile.version &&
+          candidate.evaluation.prompt_profile.content_hash ===
+            input.prompt_profile.content_hash &&
           candidate.role_profile.output_contract.schema_hash ===
             outputContract.schema_hash &&
           scopeMatches(candidate, input.certification_scope),
@@ -783,7 +903,7 @@ export class SynthesistGateway {
     routing: RoutingResult;
     selected: EligibleRoute;
     response: SynthesistAdapterResponse;
-  }): SynthesistGatewayExecution {
+  }): Omit<SynthesistGatewayExecution, "execution_source"> {
     const completedAt = timestampPlus(
       args.input.requested_at,
       args.response.timing.total_ms,

@@ -6,8 +6,19 @@ import {
   type CodexSidecarOptions,
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
+import {
+  DurableInteractionHistory,
+  GroundedSynthesisTerminalRecorder,
+  PetraInteractionRuntime,
+  type GroundedSynthesisTerminalPort,
+} from "@petra/core";
 
 import { createPetraApp, type PetraAppOptions } from "./app.js";
+import type { GroundedSynthesisPersistence } from "./grounded-synthesis-persistence.js";
+import {
+  createM1GroundedSynthesisRuntime,
+  type M1GroundedSynthesisOptions,
+} from "./m1-grounded-synthesis.js";
 
 export interface PetraServer {
   port: number;
@@ -22,6 +33,12 @@ export interface PetraServerOptions extends PetraAppOptions {
   port?: number;
   hostname?: string;
   codexSidecar?: CodexSidecarOptions;
+  codexGroundedSynthesis?: Omit<
+    M1GroundedSynthesisOptions,
+    "provider" | "workspaceRoot" | "executionRepository"
+  >;
+  groundedSynthesisTerminal?: GroundedSynthesisTerminalPort;
+  groundedSynthesisPersistence?: GroundedSynthesisPersistence;
 }
 
 export const startPetraServer = async (
@@ -33,17 +50,113 @@ export const startPetraServer = async (
       ? await CodexSubscriptionProvider.startSidecar(options.codexSidecar)
       : undefined;
   const codexProvider = options.codexProvider ?? ownedCodexProvider;
-  const petra = createPetraApp({
-    ...options,
-    ...(codexProvider === undefined ? {} : { codexProvider }),
-    ...(options.codexWorkspaceRoot !== undefined
-      ? {}
-      : options.codexSidecar?.cwd === undefined
-        ? {}
-        : { codexWorkspaceRoot: options.codexSidecar.cwd }),
-  });
+  const codexWorkspaceRoot =
+    options.codexWorkspaceRoot ?? options.codexSidecar?.cwd;
+  let petra: ReturnType<typeof createPetraApp>;
   let server: ServerType;
   try {
+    if (
+      options.codexGroundedSynthesis !== undefined &&
+      options.runtime !== undefined
+    ) {
+      throw new Error(
+        "codexGroundedSynthesis cannot replace an explicitly supplied interaction runtime.",
+      );
+    }
+    if (
+      options.codexGroundedSynthesis !== undefined &&
+      (codexProvider === undefined || codexWorkspaceRoot === undefined)
+    ) {
+      throw new Error(
+        "codexGroundedSynthesis requires a Codex provider and server-owned workspace root.",
+      );
+    }
+    const grounded =
+      options.codexGroundedSynthesis === undefined ||
+      codexProvider === undefined ||
+      codexWorkspaceRoot === undefined
+        ? undefined
+        : await createM1GroundedSynthesisRuntime({
+            ...options.codexGroundedSynthesis,
+            provider: codexProvider,
+            workspaceRoot: codexWorkspaceRoot,
+            ...(options.groundedSynthesisPersistence === undefined
+              ? {}
+              : {
+                  executionRepository:
+                    options.groundedSynthesisPersistence.executions,
+                }),
+          });
+    if (
+      (options.groundedSynthesisPersistence !== undefined ||
+        options.groundedSynthesisTerminal !== undefined) &&
+      grounded === undefined
+    ) {
+      throw new Error(
+        "A grounded-synthesis terminal requires the server-owned Codex grounded-synthesis runtime.",
+      );
+    }
+    if (
+      options.groundedSynthesisPersistence !== undefined &&
+      options.groundedSynthesisTerminal !== undefined
+    ) {
+      throw new Error(
+        "Supply either groundedSynthesisPersistence or a groundedSynthesisTerminal, not both.",
+      );
+    }
+    if (
+      grounded !== undefined &&
+      options.groundedSynthesisPersistence === undefined &&
+      options.groundedSynthesisTerminal === undefined
+    ) {
+      throw new Error(
+        "The server-owned Codex grounded-synthesis runtime requires a terminal persistence boundary.",
+      );
+    }
+    const interactionHistory =
+      grounded === undefined ||
+      options.groundedSynthesisPersistence === undefined
+        ? undefined
+        : new DurableInteractionHistory({
+            serviceActor: grounded.terminalContext.serviceActor,
+            artifactStore: options.groundedSynthesisPersistence.artifactStore,
+            artifacts: options.groundedSynthesisPersistence.artifacts,
+            interactions: options.groundedSynthesisPersistence.interactions,
+            workUnits: options.groundedSynthesisPersistence.workUnits,
+          });
+    const groundedSynthesisTerminal =
+      options.groundedSynthesisTerminal ??
+      (options.groundedSynthesisPersistence === undefined ||
+      grounded === undefined
+        ? undefined
+        : new GroundedSynthesisTerminalRecorder({
+            ...grounded.terminalContext,
+            ...options.groundedSynthesisPersistence,
+            groundedResponses:
+              options.groundedSynthesisPersistence.groundedResponses(
+                grounded.terminalContext.packets,
+              ),
+            ...(interactionHistory === undefined ? {} : { interactionHistory }),
+          }));
+    const runtime =
+      grounded === undefined
+        ? options.runtime
+        : new PetraInteractionRuntime({
+            ...(options.reviewBoundary === undefined
+              ? {}
+              : { reviewBoundary: options.reviewBoundary }),
+            groundedSynthesisExecutor: grounded.executor,
+            ...(groundedSynthesisTerminal === undefined
+              ? {}
+              : { groundedSynthesisTerminal }),
+            ...(interactionHistory === undefined ? {} : { interactionHistory }),
+          });
+    petra = createPetraApp({
+      ...options,
+      ...(runtime === undefined ? {} : { runtime }),
+      ...(codexProvider === undefined ? {} : { codexProvider }),
+      ...(codexWorkspaceRoot === undefined ? {} : { codexWorkspaceRoot }),
+    });
     server = serve({
       fetch: petra.app.fetch,
       hostname: host,
@@ -63,7 +176,10 @@ export const startPetraServer = async (
       server.once("error", onError);
     });
   } catch (error) {
-    await ownedCodexProvider?.close();
+    await Promise.all([
+      ownedCodexProvider?.close(),
+      options.groundedSynthesisPersistence?.close?.(),
+    ]);
     throw error;
   }
 
@@ -86,7 +202,10 @@ export const startPetraServer = async (
         });
         await petra.runtime.drain();
       } finally {
-        await ownedCodexProvider?.close();
+        await Promise.all([
+          ownedCodexProvider?.close(),
+          options.groundedSynthesisPersistence?.close?.(),
+        ]);
       }
     })();
     return shutdownPromise;

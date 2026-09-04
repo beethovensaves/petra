@@ -210,6 +210,11 @@ describe("Petra canonical contract registry", () => {
       hashField: "spec_hash",
     },
     {
+      path: "../fixtures/accepted/work-unit-cancellation.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
       path: "../fixtures/accepted/graph-projection-record-failed.json",
       projection: "content",
       hashField: "content_hash",
@@ -245,6 +250,16 @@ describe("Petra canonical contract registry", () => {
       hashField: "content_hash",
     },
     {
+      path: "../fixtures/accepted/composition-request.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
+      path: "../fixtures/accepted/composition-plan.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
       path: "../fixtures/accepted/draft-artifact.json",
       projection: "content",
       hashField: "content_hash",
@@ -266,6 +281,31 @@ describe("Petra canonical contract registry", () => {
     },
     {
       path: "../fixtures/accepted/citation-bundle.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
+      path: "../fixtures/accepted/draft-support-assessment-stale.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
+      path: "../fixtures/accepted/felicity-revision-record.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
+      path: "../fixtures/accepted/rendered-artifact-markdown.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
+      path: "../fixtures/accepted/rendered-artifact-latex.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
+      path: "../fixtures/accepted/rendered-artifact-bibtex.json",
       projection: "content",
       hashField: "content_hash",
     },

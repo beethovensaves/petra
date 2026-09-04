@@ -210,6 +210,24 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
     return this.#getCurrentRun(this.#pool, interactionRunId);
   }
 
+  async getRunByProtocolCorrelation(
+    protocolThreadId: string,
+    protocolRunId: string,
+  ): Promise<PetraInteractionRun | undefined> {
+    const result = await this.#pool.query<PayloadRow>(
+      `SELECT revision.payload
+         FROM petra.interaction_runs AS head
+         JOIN petra.interaction_run_revisions AS revision
+           ON revision.interaction_run_id = head.interaction_run_id
+          AND revision.revision = head.current_revision
+        WHERE head.protocol_thread_id = $1 AND head.protocol_run_id = $2`,
+      [protocolThreadId, protocolRunId],
+    );
+    return result.rows[0] === undefined
+      ? undefined
+      : this.#readRun(result.rows[0].payload);
+  }
+
   async getRunRevision(
     interactionRunId: string,
     revision: number,
@@ -472,6 +490,16 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
       interactionReplayRecordId,
     );
     return row === undefined ? undefined : this.#readReplay(row.payload);
+  }
+
+  async getConnectionAttempt(connectionId: string): Promise<number> {
+    const result = await this.#pool.query<ConnectionRow>(
+      `SELECT interaction_run_id, current_attempt
+         FROM petra.interaction_connections
+        WHERE connection_id = $1`,
+      [connectionId],
+    );
+    return result.rows[0]?.current_attempt ?? 0;
   }
 
   async #insertRunHead(client: PoolClient, run: PetraInteractionRun) {

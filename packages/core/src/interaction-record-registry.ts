@@ -623,6 +623,7 @@ export class InMemoryInteractionRecordRegistry {
     prior: DeepReadonly<PetraInteractionRun>,
     next: PetraInteractionRun,
   ): void {
+    const priorIsTerminal = terminalStates.has(prior.content.lifecycle.state);
     if (
       prior.project_id !== next.project_id ||
       !equal(prior.feature_manifest_ref, next.feature_manifest_ref) ||
@@ -634,11 +635,22 @@ export class InMemoryInteractionRecordRegistry {
         next.content.authority_boundary,
       ) ||
       prior.created_at !== next.created_at ||
-      terminalStates.has(prior.content.lifecycle.state)
+      (priorIsTerminal &&
+        !equal(prior.content.lifecycle, next.content.lifecycle))
     ) {
       throw new InteractionRecordError(
         "INTERACTION_RUN_STATE_INVALID",
-        "Run revisions may advance lifecycle and stream head without rewriting identity, input, authority context, or a terminal state.",
+        "Run revisions may advance lifecycle and stream head without rewriting identity, input, authority context, or a terminal outcome.",
+      );
+    }
+    if (
+      priorIsTerminal &&
+      prior.content.stream_head.event_count >=
+        next.content.stream_head.event_count
+    ) {
+      throw new InteractionRecordError(
+        "INTERACTION_RUN_STATE_INVALID",
+        "A terminal run revision may only advance its presentation stream head.",
       );
     }
   }

@@ -225,6 +225,10 @@ export type {
   WorkUnitStatus,
 } from "./generated/work-unit.js";
 export type {
+  CancellationCommand as WorkUnitCancellationCommand,
+  PetraWorkUnitCancellation,
+} from "./generated/work-unit-cancellation.js";
+export type {
   AppliedOutcome as GraphProjectionAppliedOutcome,
   BackendReceipt as GraphProjectionBackendReceipt,
   FailedOutcome as GraphProjectionFailedOutcome,
@@ -282,6 +286,34 @@ export type {
   TemporalPerspective as EvidenceTemporalPerspective,
 } from "./generated/evidence-packet.js";
 export type {
+  CacheState as GroundedResponseCacheState,
+  Content as GroundedResponseContent,
+  Dependency as GroundedResponseDependency,
+  ExecutionRef as GroundedResponseExecutionRef,
+  InteractionRef as GroundedResponseInteractionRef,
+  InvalidationCause as GroundedResponseInvalidationCause,
+  PetraGroundedResponse,
+  ResponseArtifactRef as GroundedResponseArtifactRef,
+} from "./generated/grounded-response.js";
+export type {
+  CitationPreferences as CompositionCitationPreferences,
+  CompositionRequestContent,
+  ControlContext as CompositionControlContext,
+  EvidencePolicy as CompositionEvidencePolicy,
+  PetraCompositionRequest,
+  RequestedOutput as CompositionRequestedOutput,
+} from "./generated/composition-request.js";
+export type {
+  CompositionMove,
+  CompositionPlanContent,
+  CompositionRequestRef,
+  CompositionSection,
+  EvidencePacketRef as CompositionEvidencePacketRef,
+  PetraCompositionPlan,
+  PlanEvidenceRef,
+  UnresolvedSupport as CompositionUnresolvedSupport,
+} from "./generated/composition-plan.js";
+export type {
   CitationBundleRef as DraftCitationBundleRef,
   DeterministicProduction as DraftDeterministicProduction,
   DraftContent,
@@ -333,6 +365,35 @@ export type {
   WorkRef as CitationWorkRef,
   WorkVersionCitationRef,
 } from "./generated/citation-bundle.js";
+export type {
+  AssessmentContent as DraftSupportAssessmentContent,
+  AssessmentLineage as DraftSupportAssessmentLineage,
+  AssessmentTrigger as DraftSupportAssessmentTrigger,
+  CitationAssessment as DraftCitationAssessment,
+  PetraDraftSupportAssessment,
+  ReusePolicy as DraftReusePolicy,
+  SpanAssessment as DraftSpanAssessment,
+  ValidatorResult as DraftSupportValidatorResult,
+} from "./generated/draft-support-assessment.js";
+export type {
+  AuthorityBoundary as FelicityRevisionAuthorityBoundary,
+  PetraFelicityRevisionRecord,
+  PreservationBoundary as FelicityPreservationBoundary,
+  RevisionContent as FelicityRevisionContent,
+  SpanTransformation as FelicitySpanTransformation,
+} from "./generated/felicity-revision-record.js";
+export type {
+  AuthorityBoundary as RenderedArtifactAuthorityBoundary,
+  CitationBundleRef as RenderedArtifactCitationBundleRef,
+  DraftRef as RenderedArtifactDraftRef,
+  OutputArtifactRef as RenderedOutputArtifactRef,
+  PetraRenderedArtifact,
+  RendererRef,
+  RenderOptions,
+  RenderedContent,
+  RenderWarning,
+  Transformation as RenderTransformation,
+} from "./generated/rendered-artifact.js";
 export type {
   CustomEventRegistration,
   FeatureContent as InteractionFeatureContent,

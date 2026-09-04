@@ -18,7 +18,11 @@ import type {
   PetraWorkUnit,
   PetraWorkVersion,
 } from "@petra/contracts";
-import type { PersistVerifiedArtifactInput } from "@petra/core";
+import {
+  DurableInteractionHistory,
+  type PersistVerifiedArtifactInput,
+  type PetraInteractionEvent,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -28,7 +32,10 @@ import { PostgresInteractionAuthorityRepository } from "../src/interaction-autho
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
-import { availableArtifactStore } from "./artifact-store-fixture.js";
+import {
+  availableArtifactStore,
+  createMemoryArtifactStore,
+} from "./artifact-store-fixture.js";
 
 const { Pool } = pg;
 const connectionString = process.env.PETRA_TEST_POSTGRES_URL;
@@ -470,5 +477,119 @@ describePostgres("PostgreSQL durable interaction authority", () => {
     expect(
       await interactions.listEvents(run().interaction_run_id),
     ).toHaveLength(1);
+  });
+
+  it("persists logical events as immutable Artifacts and restores exact replay after restart", async () => {
+    await registerRun();
+    const root = run();
+    const originalWorkUnit = await workUnits.getWorkUnit(
+      root.content.correlation.work_unit_ref.work_unit_id,
+    );
+    const store = createMemoryArtifactStore();
+    const history = new DurableInteractionHistory({
+      serviceActor: serviceActor(),
+      artifactStore: store,
+      artifacts: new PostgresArtifactAuthorityRepository(pool, store),
+      interactions,
+      workUnits,
+    });
+    const envelope = {
+      threadId: root.content.correlation.protocol_thread_id,
+      runId: root.content.correlation.protocol_run_id,
+      workUnitId: root.content.correlation.work_unit_ref.work_unit_id,
+      modelRequestId: root.content.correlation.model_request_id!,
+      requestId: root.content.correlation.request_id,
+      traceId: root.content.correlation.trace_id,
+    };
+    const events = [
+      {
+        ...envelope,
+        sequence: 1,
+        timestamp: Date.parse("2026-09-04T02:30:00.000Z"),
+        kind: "run.started",
+      },
+      {
+        ...envelope,
+        sequence: 2,
+        timestamp: Date.parse("2026-09-04T02:30:00.100Z"),
+        kind: "text.start",
+        messageId: "message_durable_replay",
+      },
+      {
+        ...envelope,
+        sequence: 3,
+        timestamp: Date.parse("2026-09-04T02:30:00.200Z"),
+        kind: "text.delta",
+        messageId: "message_durable_replay",
+        delta: "A durable, non-authoritative presentation event.",
+      },
+    ] satisfies PetraInteractionEvent[];
+
+    const initialRecords = await history.persistEvents(
+      root,
+      events.slice(0, 2),
+    );
+    const terminalLifecycle = {
+      state: "completed",
+      started_at: root.content.lifecycle.started_at,
+      ended_at: "2026-09-04T02:30:02.000Z",
+      outcome_code: "INTERACTION_PRESENTATION_READY",
+    } as const;
+    const terminal = await history.advanceRun(
+      root,
+      initialRecords,
+      terminalLifecycle,
+      terminalLifecycle.ended_at,
+    );
+    expect(terminal.revision).toBe(2);
+    expect(terminal.content.stream_head).toEqual(
+      expect.objectContaining({ event_count: 2, latest_sequence: 2 }),
+    );
+
+    const completeRecords = await history.persistEvents(terminal, [events[2]!]);
+    const presented = await history.advanceRun(
+      terminal,
+      completeRecords,
+      terminal.content.lifecycle,
+      "2026-09-04T02:30:03.000Z",
+    );
+    expect(presented.revision).toBe(3);
+    expect(presented.content.lifecycle).toEqual(terminal.content.lifecycle);
+    expect(presented.content.stream_head).toEqual(
+      expect.objectContaining({ event_count: 3, latest_sequence: 3 }),
+    );
+
+    const restored = await history.restore(envelope.threadId, envelope.runId);
+    expect(restored?.events).toEqual(events);
+    expect(restored?.run).toEqual(presented);
+    expect(restored?.status).toBe("completed");
+
+    const connectionId = "interaction_connection_01ARZ3NDEKTSV4RRFFQ69G5FDS";
+    await history.recordDelivery({
+      connectionId,
+      threadId: envelope.threadId,
+      runId: envelope.runId,
+      deliveryKind: "initial",
+      afterSequence: 0,
+      lastDeliveredSequence: 3,
+      outcome: "completed",
+      startedAt: "2026-09-04T02:30:04.000Z",
+      completedAt: "2026-09-04T02:30:05.000Z",
+    });
+    await history.recordDelivery({
+      connectionId,
+      threadId: envelope.threadId,
+      runId: envelope.runId,
+      deliveryKind: "resume",
+      afterSequence: 3,
+      lastDeliveredSequence: 3,
+      outcome: "completed",
+      startedAt: "2026-09-04T02:30:06.000Z",
+      completedAt: "2026-09-04T02:30:07.000Z",
+    });
+    expect(await interactions.getConnectionAttempt(connectionId)).toBe(2);
+    expect(await workUnits.getWorkUnit(envelope.workUnitId)).toEqual(
+      originalWorkUnit,
+    );
   });
 });
