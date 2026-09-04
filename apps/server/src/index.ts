@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { startPetraServer } from "./server.js";
 
 export * from "./app.js";
+export * from "./m1-grounded-synthesis.js";
 export * from "./server.js";
 
 const isEntryPoint =
@@ -27,6 +28,7 @@ if (isEntryPoint) {
       ? {
           codexWorkspaceRoot: workspaceRoot,
           codexSidecar: { cwd: workspaceRoot },
+          codexGroundedSynthesis: {},
         }
       : {}),
   });

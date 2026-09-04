@@ -271,6 +271,7 @@ export class PetraInteractionRuntime {
         yield event;
       }
 
+      if (record.events.some((event) => event.sequence > cursor)) continue;
       if (record.terminal || signal?.aborted === true) return;
       await new Promise<void>((resolve) => {
         const wake = (): void => {
@@ -280,6 +281,13 @@ export class PetraInteractionRuntime {
         };
         record.listeners.add(wake);
         signal?.addEventListener("abort", wake, { once: true });
+        if (
+          record.terminal ||
+          signal?.aborted === true ||
+          record.events.some((event) => event.sequence > cursor)
+        ) {
+          wake();
+        }
       });
     }
   }

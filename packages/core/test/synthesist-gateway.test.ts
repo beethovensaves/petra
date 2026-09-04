@@ -38,6 +38,20 @@ const readFixture = <Value>(name: string): Value =>
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
 
+const gatewayBaseMessages = [
+  {
+    role: "system" as const,
+    content:
+      "Synthesize only from the immutable EvidencePacket and preserve epistemic boundaries.",
+  },
+  {
+    role: "user" as const,
+    content: "Explain the selected report and its recorded limits.",
+  },
+] as const;
+const gatewayObjective =
+  "Explain the selected study report while preserving its evidence boundary.";
+
 const packetRecords = (): PacketRecord[] => {
   const event = readFixture<PetraDomainEvent>(
     "domain-event-change-set-applied",
@@ -61,20 +75,42 @@ const setupPackets = () => {
   return { packets, context, evidence };
 };
 
-const certifiedDeployment = (): {
+const certifiedDeployment = (
+  packets: InMemoryContextPacketRegistry,
+  context: PetraContextPacket,
+  evidence: PetraEvidencePacket,
+): {
   deployment: SynthesistModelDeployment;
   certification: PetraSynthesistRoleCertification;
 } => {
   const fixture = readFixture<PetraSynthesistRoleCertification>(
     "model-role-certification-synthesist",
   );
+  const evaluation = {
+    ...fixture.evaluation,
+    prompt_profile: {
+      ...fixture.evaluation.prompt_profile,
+      content_hash: canonicalHash(
+        buildSynthesistPromptMessages(
+          {
+            objective: gatewayObjective,
+            base_messages: gatewayBaseMessages,
+          },
+          packets,
+          context.context_packet_id,
+          evidence.evidence_packet_id,
+        ),
+      ),
+    },
+  };
   const certification: PetraSynthesistRoleCertification = {
     ...fixture,
+    evaluation,
     content_hash: synthesistCertificationHash({
       deployment: fixture.deployment,
       role_profile: fixture.role_profile,
       scope: fixture.scope,
-      evaluation: fixture.evaluation,
+      evaluation,
       decision: fixture.decision,
     }),
   };
@@ -126,21 +162,8 @@ const buildRequest = (
   evidence: PetraEvidencePacket,
   deployment: SynthesistModelDeployment,
 ): SynthesistGatewayRequest => {
-  const baseMessages = [
-    {
-      role: "system" as const,
-      content:
-        "Synthesize only from the immutable EvidencePacket and preserve epistemic boundaries.",
-    },
-    {
-      role: "user" as const,
-      content: "Explain the selected report and its recorded limits.",
-    },
-  ] as const;
-  const objective =
-    "Explain the selected study report while preserving its evidence boundary.";
   const messages = buildSynthesistPromptMessages(
-    { objective, base_messages: baseMessages },
+    { objective: gatewayObjective, base_messages: gatewayBaseMessages },
     packets,
     context.context_packet_id,
     evidence.evidence_packet_id,
@@ -158,7 +181,7 @@ const buildRequest = (
   return {
     project_id: context.project_id,
     workflow_id: "synthesis_run_01ARZ3NDEKTSV4RRFFQ69G5FE7",
-    objective,
+    objective: gatewayObjective,
     impact_class: "routine",
     context_packet_id: context.context_packet_id,
     evidence_packet_id: evidence.evidence_packet_id,
@@ -184,7 +207,7 @@ const buildRequest = (
       version: "1.0.0",
       content_hash: canonicalHash(messages),
     },
-    base_messages: baseMessages,
+    base_messages: gatewayBaseMessages,
     parameters: { temperature: 0, max_output_tokens: 1600 },
     budget: {
       max_attempts: 1,
@@ -215,7 +238,11 @@ const buildRequest = (
 describe("SynthesistGateway", () => {
   it("routes exact packets through an independently certified synthesist and records the result", async () => {
     const { packets, context, evidence } = setupPackets();
-    const { deployment, certification } = certifiedDeployment();
+    const { deployment, certification } = certifiedDeployment(
+      packets,
+      context,
+      evidence,
+    );
     const output = readFixture<PetraModelSynthesistOutput>(
       "model-synthesist-output",
     );
@@ -267,7 +294,11 @@ describe("SynthesistGateway", () => {
 
   it("withholds a well-formed response whose evidence references escape the packet", async () => {
     const { packets, context, evidence } = setupPackets();
-    const { deployment, certification } = certifiedDeployment();
+    const { deployment, certification } = certifiedDeployment(
+      packets,
+      context,
+      evidence,
+    );
     const output = readFixture<PetraModelSynthesistOutput>(
       "model-synthesist-output",
     );
@@ -298,7 +329,7 @@ describe("SynthesistGateway", () => {
 
   it("blocks before invocation when no exact active synthesist certification exists", async () => {
     const { packets, context, evidence } = setupPackets();
-    const { deployment } = certifiedDeployment();
+    const { deployment } = certifiedDeployment(packets, context, evidence);
     const invoke = vi.fn(() =>
       Promise.resolve(
         successfulResponse(
@@ -326,7 +357,11 @@ describe("SynthesistGateway", () => {
 
   it("withholds output when the provider reports a revision outside the certification", async () => {
     const { packets, context, evidence } = setupPackets();
-    const { deployment, certification } = certifiedDeployment();
+    const { deployment, certification } = certifiedDeployment(
+      packets,
+      context,
+      evidence,
+    );
     const output = readFixture<PetraModelSynthesistOutput>(
       "model-synthesist-output",
     );
@@ -351,9 +386,58 @@ describe("SynthesistGateway", () => {
     expect(result).not.toHaveProperty("output");
   });
 
+  it("blocks a prompt profile that was not part of the active certification", async () => {
+    const { packets, context, evidence } = setupPackets();
+    const { deployment, certification } = certifiedDeployment(
+      packets,
+      context,
+      evidence,
+    );
+    const invoke = vi.fn(() =>
+      Promise.resolve(
+        successfulResponse(
+          readFixture<PetraModelSynthesistOutput>("model-synthesist-output"),
+        ),
+      ),
+    );
+    const gateway = new SynthesistGateway(packets);
+    gateway.registerDeployment(deployment, { invoke });
+    gateway.registerCertification(certification);
+    const request = buildRequest(packets, context, evidence, deployment);
+    const driftedObjective = `${request.objective} Add an uncatalogued interpretation.`;
+    const driftedMessages = buildSynthesistPromptMessages(
+      {
+        objective: driftedObjective,
+        base_messages: request.base_messages,
+      },
+      packets,
+      context.context_packet_id,
+      evidence.evidence_packet_id,
+    );
+
+    const result = await gateway.execute({
+      ...request,
+      objective: driftedObjective,
+      prompt_profile: {
+        ...request.prompt_profile,
+        content_hash: canonicalHash(driftedMessages),
+      },
+    });
+
+    expect(result.request.content.terminal.state).toBe("blocked_policy");
+    expect(result.request.content.routing.excluded[0]?.code).toBe(
+      "ACTIVE_SYNTHESIST_CERTIFICATION_REQUIRED",
+    );
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
   it("rejects a certification whose hash does not bind the registered deployment and evaluation", () => {
-    const { packets } = setupPackets();
-    const { deployment, certification } = certifiedDeployment();
+    const { packets, context, evidence } = setupPackets();
+    const { deployment, certification } = certifiedDeployment(
+      packets,
+      context,
+      evidence,
+    );
     const gateway = new SynthesistGateway(packets);
     gateway.registerDeployment(deployment, {
       invoke: () => {

@@ -742,6 +742,12 @@ export class SynthesistGateway {
           candidate.decision.status === "active" &&
           (candidate.decision.expires_at === undefined ||
             new Date(candidate.decision.expires_at).getTime() > now) &&
+          candidate.evaluation.prompt_profile.name ===
+            input.prompt_profile.name &&
+          candidate.evaluation.prompt_profile.version ===
+            input.prompt_profile.version &&
+          candidate.evaluation.prompt_profile.content_hash ===
+            input.prompt_profile.content_hash &&
           candidate.role_profile.output_contract.schema_hash ===
             outputContract.schema_hash &&
           scopeMatches(candidate, input.certification_scope),

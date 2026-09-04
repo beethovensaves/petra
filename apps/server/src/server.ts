@@ -6,8 +6,13 @@ import {
   type CodexSidecarOptions,
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
+import { PetraInteractionRuntime } from "@petra/core";
 
 import { createPetraApp, type PetraAppOptions } from "./app.js";
+import {
+  createM1GroundedSynthesisRuntime,
+  type M1GroundedSynthesisOptions,
+} from "./m1-grounded-synthesis.js";
 
 export interface PetraServer {
   port: number;
@@ -22,6 +27,10 @@ export interface PetraServerOptions extends PetraAppOptions {
   port?: number;
   hostname?: string;
   codexSidecar?: CodexSidecarOptions;
+  codexGroundedSynthesis?: Omit<
+    M1GroundedSynthesisOptions,
+    "provider" | "workspaceRoot"
+  >;
 }
 
 export const startPetraServer = async (
@@ -33,17 +42,52 @@ export const startPetraServer = async (
       ? await CodexSubscriptionProvider.startSidecar(options.codexSidecar)
       : undefined;
   const codexProvider = options.codexProvider ?? ownedCodexProvider;
-  const petra = createPetraApp({
-    ...options,
-    ...(codexProvider === undefined ? {} : { codexProvider }),
-    ...(options.codexWorkspaceRoot !== undefined
-      ? {}
-      : options.codexSidecar?.cwd === undefined
-        ? {}
-        : { codexWorkspaceRoot: options.codexSidecar.cwd }),
-  });
+  const codexWorkspaceRoot =
+    options.codexWorkspaceRoot ?? options.codexSidecar?.cwd;
+  let petra: ReturnType<typeof createPetraApp>;
   let server: ServerType;
   try {
+    if (
+      options.codexGroundedSynthesis !== undefined &&
+      options.runtime !== undefined
+    ) {
+      throw new Error(
+        "codexGroundedSynthesis cannot replace an explicitly supplied interaction runtime.",
+      );
+    }
+    if (
+      options.codexGroundedSynthesis !== undefined &&
+      (codexProvider === undefined || codexWorkspaceRoot === undefined)
+    ) {
+      throw new Error(
+        "codexGroundedSynthesis requires a Codex provider and server-owned workspace root.",
+      );
+    }
+    const grounded =
+      options.codexGroundedSynthesis === undefined ||
+      codexProvider === undefined ||
+      codexWorkspaceRoot === undefined
+        ? undefined
+        : await createM1GroundedSynthesisRuntime({
+            ...options.codexGroundedSynthesis,
+            provider: codexProvider,
+            workspaceRoot: codexWorkspaceRoot,
+          });
+    const runtime =
+      grounded === undefined
+        ? options.runtime
+        : new PetraInteractionRuntime({
+            ...(options.reviewBoundary === undefined
+              ? {}
+              : { reviewBoundary: options.reviewBoundary }),
+            groundedSynthesisExecutor: grounded.executor,
+          });
+    petra = createPetraApp({
+      ...options,
+      ...(runtime === undefined ? {} : { runtime }),
+      ...(codexProvider === undefined ? {} : { codexProvider }),
+      ...(codexWorkspaceRoot === undefined ? {} : { codexWorkspaceRoot }),
+    });
     server = serve({
       fetch: petra.app.fetch,
       hostname: host,

@@ -1,0 +1,164 @@
+{
+  "schema_name": "petra.recorded-codex-synthesist-certification",
+  "schema_version": "1.0.0",
+  "runtime": {
+    "name": "codex-app-server",
+    "codex_version": "codex-cli 0.151.0",
+    "auth_mode": "chatgpt",
+    "plan_type_observed": "prolite",
+    "api_key_used": false,
+    "api_key_configuration_supported": false,
+    "model": "gpt-5.6-terra",
+    "model_catalog_entry": {
+      "id": "gpt-5.6-terra",
+      "model": "gpt-5.6-terra",
+      "displayName": "GPT-5.6-Terra",
+      "hidden": false,
+      "isDefault": false,
+      "defaultReasoningEffort": "medium",
+      "supportedReasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "inputModalities": ["text", "image"],
+      "supportsPersonality": false
+    },
+    "effort": "low",
+    "context_ceiling": 8192,
+    "provider_schema_hash": "sha256:9b8f1357dd84064ccf63fcaab59fa3987aac9b1073fe7855ec4c1ebe585b49bf",
+    "token_accounting": "unavailable",
+    "per_call_cost_accounting": "unavailable"
+  },
+  "certification": {
+    "schema_name": "petra.model-role-certification",
+    "schema_version": "1.1.0",
+    "role_certification_id": "role_certification_2Y0M9BRCDNMBMK55DXEMV31Q8Y",
+    "revision": 1,
+    "deployment": {
+      "model_deployment_id": "model_deployment_2GQKKQBMKS7BTZ6CCES42FNHV8",
+      "provider_id": "provider_38X86GHP79R4HZDR2A72D7EJAW",
+      "provider_kind": "codex_app_server",
+      "provider_model": "gpt-5.6-terra",
+      "observed_revision": "gpt-5.6-terra",
+      "replayability": "best_effort",
+      "execution_location": "remote",
+      "structured_output": true,
+      "max_context_tokens": 8192
+    },
+    "role_profile": {
+      "role_profile_id": "role_profile_28CAT0SJ95T7RXP6TMY27H1AY8",
+      "role": "synthesist",
+      "version": "1.1.0",
+      "input_contract": {
+        "schema_name": "evidence-packet",
+        "schema_version": "1.0.0",
+        "schema_hash": "sha256:62369877ccf6e8ffe35e8f740614ad370e6f8b8d7c8e6f917f22dcfb70418bb4"
+      },
+      "output_contract": {
+        "schema_name": "model-synthesist-output",
+        "schema_version": "1.0.0",
+        "schema_hash": "sha256:c9feeb397df01f2772c81c53fd2edadf7154c836a273df87a8e47806b500164b"
+      },
+      "required_validators": [
+        "model-output-schema",
+        "context-packet-grounding",
+        "evidence-packet-grounding",
+        "statement-origin-separation"
+      ]
+    },
+    "scope": {
+      "domain": "cross-domain scientific synthesis",
+      "language": "en",
+      "modality": "text",
+      "document_class": "scholarly"
+    },
+    "evaluation": {
+      "suite": {
+        "name": "petra-live-synthesist",
+        "version": "1.1.0"
+      },
+      "dataset_snapshot_hash": "sha256:9a460c6c5fb43bed09e12e0440b8ebd238f470b50326f28ad35a18a1458c6093",
+      "prompt_profile": {
+        "name": "petra-grounded-synthesist",
+        "version": "1.1.0",
+        "content_hash": "sha256:f5831888ea65bac5bbbe6f76a2701f38525b17848465577d4650d8fc3bc2c47d"
+      },
+      "cases_total": 3,
+      "cases_passed": 3,
+      "metrics": [
+        {
+          "name": "fixture_cases_passed",
+          "value": 3,
+          "unit": "count",
+          "direction": "descriptive"
+        },
+        {
+          "name": "expected_failures_missed",
+          "value": 0,
+          "unit": "count",
+          "direction": "lower_is_better"
+        }
+      ],
+      "observed_errors": [
+        {
+          "code": "SYNTHESIS_EVIDENCE_REF_MISMATCH",
+          "count": 1
+        },
+        {
+          "code": "SYNTHESIST_OUTPUT_SCHEMA_INVALID",
+          "count": 1
+        }
+      ]
+    },
+    "decision": {
+      "status": "active",
+      "reason": "The deployment matched every exact expected outcome in the bounded synthesist role fixture.",
+      "valid_from": "2026-09-04T00:25:41.533Z",
+      "invalidation_conditions": [
+        "The deployment identity changes.",
+        "The prompt, packet contracts, output contract, or required validator changes.",
+        "The certification fixture or its expected outcomes change."
+      ]
+    },
+    "content_hash": "sha256:dfdedf8432ea5fe5b634ba2ba7afb1cedef0295147df0d5538603beb25b1a09d",
+    "certified_by": {
+      "actor_id": "actor_7RVPE6RBYWGY6B71FQGPHREE8Q",
+      "actor_kind": "service"
+    },
+    "certified_at": "2026-09-04T00:25:41.533Z"
+  },
+  "cases": [
+    {
+      "case_id": "live-bounded-origins",
+      "expected": "valid",
+      "observed": "valid",
+      "passed": true
+    },
+    {
+      "case_id": "malformed-negative-control",
+      "expected": "SYNTHESIST_OUTPUT_SCHEMA_INVALID",
+      "observed": "SYNTHESIST_OUTPUT_SCHEMA_INVALID",
+      "passed": true
+    },
+    {
+      "case_id": "escaped-reference-negative-control",
+      "expected": "SYNTHESIS_EVIDENCE_REF_MISMATCH",
+      "observed": "SYNTHESIS_EVIDENCE_REF_MISMATCH",
+      "passed": true
+    }
+  ],
+  "recorded_execution": {
+    "model_request_id": "model_request_1QWZYMTKYE2NT02DGX6Z6Y2NDR",
+    "model_call_id": "model_call_2BJFMW2M5Q2F7AZS52PZNWFQ6R",
+    "endpoint_fingerprint": "sha256:3bf520194b2b0411228a0e70a1e85b66f69588c75c0e49a235df7ea455f34c68",
+    "certification_latency_ms": 19859,
+    "gateway_latency_ms": 19173
+  },
+  "gate": {
+    "passed": true
+  }
+}
