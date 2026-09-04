@@ -345,6 +345,16 @@ validation, grounded text, and exact terminal provenance, all with no scientific
 authority effect. Run `npm run test:codex-grounded-ag-ui:integration`; see the
 [grounded AG-UI report](reports/M1.6-GROUNDED-AG-UI.md).
 
+A displayed answer now also has a narrow, revisioned `GroundedResponse`
+identity. It binds immutable Markdown Artifact bytes to the exact packets,
+snapshot, selected scientific dependencies, successful model execution,
+InteractionRun, WorkUnit, cache decision, and terminal time. A later authority
+change touching a selected Claim or Assertion creates an invalidated response
+revision while retaining both the original record and Artifact bytes. Exact
+event replay is idempotent, and unrelated or pre-snapshot events cannot evict a
+valid answer. See the
+[grounded-response invalidation report](reports/M1.6-GROUNDED-RESPONSE-INVALIDATION.md).
+
 ## Measured model-gateway foundation
 
 The first extractor route now passes through a TypeScript-owned ModelGateway.

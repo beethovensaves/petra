@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.25.0",
+  "registry_version": "1.26.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -471,6 +471,17 @@
       "canonical_sha256": "sha256:62369877ccf6e8ffe35e8f740614ad370e6f8b8d7c8e6f917f22dcfb70418bb4",
       "generate_typescript": true,
       "typescript_path": "src/generated/evidence-packet.ts"
+    },
+    {
+      "name": "grounded-response",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/grounded-response/1.0.0/schema.json",
+      "path": "schemas/grounded-response/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-grounded-response-cache-and-terminal-binding",
+      "canonical_sha256": "sha256:f3124ac0fe817fcce8d2c9937d73d16a6aa0aa91c648016a019d964c4cba2e3a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/grounded-response.ts"
     },
     {
       "name": "draft-artifact",

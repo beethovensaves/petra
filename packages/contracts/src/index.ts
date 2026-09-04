@@ -282,6 +282,16 @@ export type {
   TemporalPerspective as EvidenceTemporalPerspective,
 } from "./generated/evidence-packet.js";
 export type {
+  CacheState as GroundedResponseCacheState,
+  Content as GroundedResponseContent,
+  Dependency as GroundedResponseDependency,
+  ExecutionRef as GroundedResponseExecutionRef,
+  InteractionRef as GroundedResponseInteractionRef,
+  InvalidationCause as GroundedResponseInvalidationCause,
+  PetraGroundedResponse,
+  ResponseArtifactRef as GroundedResponseArtifactRef,
+} from "./generated/grounded-response.js";
+export type {
   CitationBundleRef as DraftCitationBundleRef,
   DeterministicProduction as DraftDeterministicProduction,
   DraftContent,

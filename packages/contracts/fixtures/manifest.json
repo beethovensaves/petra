@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.7.0",
+  "fixture_manifest_version": "1.8.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -201,6 +201,10 @@
     {
       "schema": "evidence-packet",
       "path": "fixtures/accepted/evidence-packet.json"
+    },
+    {
+      "schema": "grounded-response",
+      "path": "fixtures/accepted/grounded-response.json"
     },
     {
       "schema": "draft-artifact",
@@ -470,6 +474,10 @@
     {
       "schema": "evidence-packet",
       "path": "fixtures/rejected/evidence-packet-stale-without-cause.json"
+    },
+    {
+      "schema": "grounded-response",
+      "path": "fixtures/rejected/grounded-response-invalidated-without-cause.json"
     },
     {
       "schema": "draft-artifact",
