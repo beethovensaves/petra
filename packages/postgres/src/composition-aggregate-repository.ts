@@ -9,18 +9,21 @@ import type {
   PetraDraftSpan,
   PetraDraftSupportAssessment,
   PetraEvidencePacket,
+  PetraFelicityRevisionRecord,
   PetraProvenanceMap,
   ProvenanceBasis,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
   CompositionAggregate,
+  FelicityRevisionResult,
   InMemoryContextPacketRegistry,
   RegisterCompositionInput,
 } from "@petra/core";
 import {
   InMemoryCompositionRegistry,
   InMemoryDraftSupportAssessmentRegistry,
+  InMemoryFelicityRevisionRegistry,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
@@ -36,6 +39,8 @@ export type CompositionAggregatePersistenceErrorCode =
   | "DRAFT_SUPPORT_ASSESSMENT_ID_CONFLICT"
   | "DRAFT_SUPPORT_ASSESSMENT_COMMAND_CONFLICT"
   | "DRAFT_SUPPORT_ASSESSMENT_REFERENCE_MISSING"
+  | "FELICITY_REVISION_RECORD_ID_CONFLICT"
+  | "FELICITY_REVISION_COMMAND_CONFLICT"
   | "COMPOSITION_AGGREGATE_STORED_RECORD_CORRUPT";
 
 export class CompositionAggregatePersistenceError extends Error {
@@ -58,6 +63,10 @@ interface StoredDraftRow extends StoredRow {
 }
 
 interface StoredAssessmentRow extends StoredRow {
+  content_hash: string;
+}
+
+interface StoredFelicityRevisionRow extends StoredRow {
   content_hash: string;
 }
 
@@ -110,6 +119,11 @@ export interface RegisterDraftRevisionInput {
 export interface DurableDraftRevision {
   readonly composition: CompositionAggregate;
   readonly assessment: PetraDraftSupportAssessment;
+}
+
+export interface DurableFelicityRevision {
+  readonly composition: CompositionAggregate;
+  readonly record: PetraFelicityRevisionRecord;
 }
 
 const dependencyKey = (dependency: AuthorityDependency): string =>
@@ -243,7 +257,7 @@ export class PostgresCompositionAggregateRepository {
         `composition-provenance:${composition.provenanceMap.provenance_map_id}`,
         `composition-citations:${composition.citationBundle.citation_bundle_id}`,
         `draft-support:${assessment.draft_support_assessment_id}`,
-        `draft-support-command:${assessment.trigger.command_id}`,
+        `composition-revision-command:${assessment.trigger.command_id}`,
         ...composition.spans.map(
           (span) => `composition-span:${span.draft_span_id}`,
         ),
@@ -348,6 +362,150 @@ export class PostgresCompositionAggregateRepository {
     });
   }
 
+  async registerFelicityRevision(
+    input: FelicityRevisionResult,
+  ): Promise<DurableFelicityRevision> {
+    const { composition, record } = input;
+    this.#assertContracts(composition);
+    this.#assertFelicityRevisionContract(record);
+    if (
+      composition.draft.revision <= 1 ||
+      composition.draft.lineage.lineage_kind !== "revision" ||
+      composition.draft.lineage.edit_origin !== "felicity_revision" ||
+      composition.draft.production.origin_kind !== "deterministic" ||
+      composition.draft.validation.state !== "passed" ||
+      record.revision !== 1
+    ) {
+      throw new CompositionAggregatePersistenceError(
+        "COMPOSITION_AGGREGATE_REVISION_UNSUPPORTED",
+        "Felicity registration requires one passed deterministic next revision and its root FelicityRevisionRecord.",
+      );
+    }
+    const candidate = aggregateFrom(composition);
+    const candidateHash = canonicalHash(candidate);
+    return this.#transaction(async (client) => {
+      await this.#lock(client, [
+        `composition-draft:${composition.draft.draft_artifact_id}`,
+        `composition-provenance:${composition.provenanceMap.provenance_map_id}`,
+        `composition-citations:${composition.citationBundle.citation_bundle_id}`,
+        `felicity-revision:${record.felicity_revision_record_id}`,
+        `composition-revision-command:${record.command_id}`,
+        ...composition.spans.map(
+          (span) => `composition-span:${span.draft_span_id}`,
+        ),
+      ]);
+
+      const existingDraft = await this.#selectDraft(
+        client,
+        composition.draft.draft_artifact_id,
+        composition.draft.revision,
+      );
+      const existingRecord = await this.#selectFelicityRevision(
+        client,
+        record.felicity_revision_record_id,
+        record.revision,
+      );
+      if (existingDraft !== undefined || existingRecord !== undefined) {
+        if (existingDraft === undefined || existingRecord === undefined) {
+          throw new CompositionAggregatePersistenceError(
+            "FELICITY_REVISION_RECORD_ID_CONFLICT",
+            "The draft revision or Felicity receipt identity is already bound independently of the submitted pair.",
+          );
+        }
+        const storedComposition = await this.#loadAggregate(
+          client,
+          composition.draft.draft_artifact_id,
+          composition.draft.revision,
+        );
+        const storedRecord = this.#felicityRevisionFromRow(existingRecord);
+        if (
+          existingDraft.aggregate_hash !== candidateHash ||
+          !same(storedComposition, candidate) ||
+          !same(storedRecord, record)
+        ) {
+          throw new CompositionAggregatePersistenceError(
+            "FELICITY_REVISION_RECORD_ID_CONFLICT",
+            "The draft revision or its Felicity receipt is already bound to different canonical content.",
+          );
+        }
+        return {
+          composition: storedComposition,
+          record: storedRecord,
+        };
+      }
+
+      await this.#requireFelicityCommandAvailable(client, record);
+      await this.#requireDraftHead(
+        client,
+        composition.draft.draft_artifact_id,
+        composition.draft.revision - 1,
+      );
+      await this.#requireComponentIdsAvailable(client, composition);
+      const controls = await this.#requireDurableControls(
+        client,
+        composition.draft,
+      );
+      const evidence = this.#packets.getEvidencePacket(
+        composition.draft.evidence_packet_ref.evidence_packet_id,
+      );
+      if (evidence === undefined || !same(evidence, controls.evidence)) {
+        throw new CompositionAggregatePersistenceError(
+          "COMPOSITION_AGGREGATE_REFERENCE_MISMATCH",
+          "The in-memory EvidencePacket must exactly match its durable record before Felicity revision persistence.",
+        );
+      }
+
+      const validator = new InMemoryCompositionRegistry(this.#packets);
+      validator.registerRequest(clone(controls.request));
+      validator.registerPlan(clone(controls.plan));
+      let previous: CompositionAggregate | undefined;
+      for (
+        let revision = 1;
+        revision < composition.draft.revision;
+        revision += 1
+      ) {
+        previous = await this.#loadAggregate(
+          client,
+          composition.draft.draft_artifact_id,
+          revision,
+        );
+        validator.register({
+          ...clone(previous),
+          scholarlyRecords: clone(composition.scholarlyRecords),
+        });
+      }
+      if (previous === undefined) {
+        throw new CompositionAggregatePersistenceError(
+          "COMPOSITION_AGGREGATE_REFERENCE_MISSING",
+          "The exact prior DraftArtifact revision must remain durable for Felicity validation.",
+        );
+      }
+      validator.register(clone(composition));
+      new InMemoryFelicityRevisionRegistry(this.#contracts).register(
+        clone(record),
+        {
+          ...clone(previous),
+          scholarlyRecords: clone(composition.scholarlyRecords),
+        },
+        clone(composition),
+      );
+      await this.#requireCanonicalCitationReferences(client, composition);
+
+      await this.#insertDraft(client, composition.draft, candidateHash);
+      await this.#insertSpans(client, composition.spans);
+      await this.#insertProvenance(client, composition.provenanceMap);
+      await this.#insertCitations(client, composition.citationBundle);
+      await this.#insertDependencies(client, composition);
+      await this.#insertFelicityRevision(client, record);
+      await this.#advanceDraftHead(
+        client,
+        composition.draft.draft_artifact_id,
+        composition.draft.revision,
+      );
+      return { composition: candidate, record: clone(record) };
+    });
+  }
+
   async registerAssessment(
     assessment: PetraDraftSupportAssessment,
   ): Promise<PetraDraftSupportAssessment> {
@@ -366,7 +524,7 @@ export class PostgresCompositionAggregateRepository {
       await this.#lock(client, [
         `composition-draft:${assessment.draft_ref.draft_artifact_id}`,
         `draft-support:${assessment.draft_support_assessment_id}`,
-        `draft-support-command:${assessment.trigger.command_id}`,
+        `composition-revision-command:${assessment.trigger.command_id}`,
       ]);
       const existing = await this.#selectAssessment(
         client,
@@ -496,6 +654,23 @@ export class PostgresCompositionAggregateRepository {
       : this.getAssessment(assessmentId, Number(row.current_revision));
   }
 
+  async getFelicityRevision(
+    recordId: string,
+    revision = 1,
+  ): Promise<PetraFelicityRevisionRecord | undefined> {
+    const client = await this.#pool.connect();
+    try {
+      const row = await this.#selectFelicityRevision(
+        client,
+        recordId,
+        revision,
+      );
+      return row === undefined ? undefined : this.#felicityRevisionFromRow(row);
+    } finally {
+      client.release();
+    }
+  }
+
   #assertContracts(input: RegisterCompositionInput): void {
     this.#contracts.assertValid(
       "draft-artifact",
@@ -522,6 +697,14 @@ export class PostgresCompositionAggregateRepository {
       "draft-support-assessment",
       assessment.schema_version,
       assessment,
+    );
+  }
+
+  #assertFelicityRevisionContract(record: PetraFelicityRevisionRecord): void {
+    this.#contracts.assertValid(
+      "felicity-revision-record",
+      record.schema_version,
+      record,
     );
   }
 
@@ -1283,6 +1466,107 @@ export class PostgresCompositionAggregateRepository {
     }
   }
 
+  async #insertFelicityRevision(
+    client: PoolClient,
+    record: PetraFelicityRevisionRecord,
+  ): Promise<void> {
+    await client.query(
+      `INSERT INTO petra.felicity_revision_records (
+         felicity_revision_record_id, revision, project_id, command_id,
+         previous_draft_artifact_id, previous_draft_revision,
+         previous_draft_hash, revised_draft_artifact_id,
+         revised_draft_revision, revised_draft_hash, provenance_map_id,
+         provenance_map_revision, provenance_map_hash, citation_bundle_id,
+         citation_bundle_revision, citation_bundle_hash,
+         language_contract_name, language_contract_version,
+         language_contract_hash, revision_state, transformation_count,
+         validator_result_count, scientific_force_preserved,
+         epistemic_origin_preserved, provenance_bases_preserved,
+         citation_scope_preserved, record_is_scientific_evidence,
+         content_changes_require_new_draft_revision, recorded_by_actor_id,
+         recorded_by_actor_kind, recorded_at, content_hash, record_hash,
+         payload
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+         $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+         $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
+         $31::timestamptz, $32, $33, $34::jsonb
+       )`,
+      [
+        record.felicity_revision_record_id,
+        record.revision,
+        record.project_id,
+        record.command_id,
+        record.previous_draft_ref.draft_artifact_id,
+        record.previous_draft_ref.revision,
+        record.previous_draft_ref.content_hash,
+        record.revised_draft_ref.draft_artifact_id,
+        record.revised_draft_ref.revision,
+        record.revised_draft_ref.content_hash,
+        record.provenance_map_ref.provenance_map_id,
+        record.provenance_map_ref.revision,
+        record.provenance_map_ref.content_hash,
+        record.citation_bundle_ref.citation_bundle_id,
+        record.citation_bundle_ref.revision,
+        record.citation_bundle_ref.content_hash,
+        record.language_contract.name,
+        record.language_contract.version,
+        record.language_contract.content_hash,
+        record.content.state,
+        record.content.transformations.length,
+        record.content.validator_results.length,
+        record.content.preservation.scientific_force_preserved,
+        record.content.preservation.epistemic_origin_preserved,
+        record.content.preservation.provenance_bases_preserved,
+        record.content.preservation.citation_scope_preserved,
+        record.content.authority_boundary.record_is_scientific_evidence,
+        record.content.authority_boundary
+          .content_changes_require_new_draft_revision,
+        record.recorded_by.actor_id,
+        record.recorded_by.actor_kind,
+        record.recorded_at,
+        record.content_hash,
+        canonicalHash(record),
+        JSON.stringify(record),
+      ],
+    );
+    for (const transformation of record.content.transformations) {
+      await client.query(
+        `INSERT INTO petra.felicity_span_transformations (
+           felicity_revision_record_id, record_revision, position,
+           previous_draft_artifact_id, previous_draft_revision,
+           previous_draft_span_id, previous_draft_span_revision,
+           previous_exact_text_hash, revised_draft_artifact_id,
+           revised_draft_revision, revised_draft_span_id,
+           revised_draft_span_revision, revised_exact_text_hash,
+           transformation_kind, basis_snapshot_hash,
+           previous_citation_count, revised_citation_count, payload
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, 1, $7, $8, $9,
+           $10, 1, $11, $12, $13, $14, $15, $16::jsonb
+         )`,
+        [
+          record.felicity_revision_record_id,
+          record.revision,
+          transformation.position,
+          record.previous_draft_ref.draft_artifact_id,
+          record.previous_draft_ref.revision,
+          transformation.previous_draft_span_id,
+          transformation.previous_exact_text_hash,
+          record.revised_draft_ref.draft_artifact_id,
+          record.revised_draft_ref.revision,
+          transformation.revised_draft_span_id,
+          transformation.revised_exact_text_hash,
+          transformation.transformation_kind,
+          transformation.basis_snapshot_hash,
+          transformation.previous_citation_ids.length,
+          transformation.revised_citation_ids.length,
+          JSON.stringify(transformation),
+        ],
+      );
+    }
+  }
+
   async #requireDraftHead(
     client: PoolClient,
     draftArtifactId: string,
@@ -1383,8 +1667,9 @@ export class PostgresCompositionAggregateRepository {
       draft_support_assessment_id: string;
       revision: string;
     }>(
-      `SELECT draft_support_assessment_id, revision::text AS revision
-         FROM petra.draft_support_assessment_revisions
+      `SELECT authority_id AS draft_support_assessment_id,
+              authority_revision::text AS revision
+         FROM petra.composition_revision_commands
         WHERE command_id = $1`,
       [assessment.trigger.command_id],
     );
@@ -1392,6 +1677,24 @@ export class PostgresCompositionAggregateRepository {
       throw new CompositionAggregatePersistenceError(
         "DRAFT_SUPPORT_ASSESSMENT_COMMAND_CONFLICT",
         "The support-assessment command ID is already bound to another revision.",
+      );
+    }
+  }
+
+  async #requireFelicityCommandAvailable(
+    client: PoolClient,
+    record: PetraFelicityRevisionRecord,
+  ): Promise<void> {
+    const result = await client.query(
+      `SELECT 1
+         FROM petra.composition_revision_commands
+        WHERE command_id = $1`,
+      [record.command_id],
+    );
+    if (result.rowCount !== 0) {
+      throw new CompositionAggregatePersistenceError(
+        "FELICITY_REVISION_COMMAND_CONFLICT",
+        "The composition-revision command ID is already bound to another authority record.",
       );
     }
   }
@@ -1611,6 +1914,20 @@ export class PostgresCompositionAggregateRepository {
     return result.rows[0];
   }
 
+  async #selectFelicityRevision(
+    client: PoolClient,
+    recordId: string,
+    revision: number,
+  ): Promise<StoredFelicityRevisionRow | undefined> {
+    const result = await client.query<StoredFelicityRevisionRow>(
+      `SELECT content_hash, record_hash, payload
+         FROM petra.felicity_revision_records
+        WHERE felicity_revision_record_id = $1 AND revision = $2`,
+      [recordId, revision],
+    );
+    return result.rows[0];
+  }
+
   #assessmentFromRow(row: StoredAssessmentRow): PetraDraftSupportAssessment {
     this.#assertStoredRecord(row, "DraftSupportAssessment");
     this.#contracts.assertValid(
@@ -1626,6 +1943,25 @@ export class PostgresCompositionAggregateRepository {
       );
     }
     return assessment;
+  }
+
+  #felicityRevisionFromRow(
+    row: StoredFelicityRevisionRow,
+  ): PetraFelicityRevisionRecord {
+    this.#assertStoredRecord(row, "FelicityRevisionRecord");
+    this.#contracts.assertValid(
+      "felicity-revision-record",
+      "1.0.0",
+      row.payload,
+    );
+    const record = clone(row.payload) as PetraFelicityRevisionRecord;
+    if (row.content_hash !== record.content_hash) {
+      throw new CompositionAggregatePersistenceError(
+        "COMPOSITION_AGGREGATE_STORED_RECORD_CORRUPT",
+        "The stored FelicityRevisionRecord content hash no longer matches its payload.",
+      );
+    }
+    return record;
   }
 
   async #selectStored(

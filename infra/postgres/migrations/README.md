@@ -146,3 +146,13 @@ only the immutable assessment ledger. Normalized support and citation states,
 exact subject foreign keys, unique command binding, deferred completeness
 checks, and immutable prior revisions make reuse eligibility queryable while
 keeping the assessment explicitly outside scientific evidence authority.
+
+`V018__felicity_revision_authority.sql` opens only the deterministic bounded
+Felicity edit origin. It commits the next DraftArtifact revision, exact
+ProvenanceMap and CitationBundle, normalized one-to-one span transformations,
+and immutable FelicityRevisionRecord before advancing the draft head. Deferred
+checks require all five preservation validators, exact language-contract and
+service identity, and complete canonical transformations. A shared immutable
+command ledger prevents one revision command from being reused across
+researcher edits, revalidation, and Felicity revision while remaining outside
+scientific evidence authority.

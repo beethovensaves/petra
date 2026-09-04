@@ -44,6 +44,7 @@ import {
   DraftRevisionEngine,
   DurableInteractionHistory,
   executeCompensatingReversalPlan,
+  FelicityRevisionEngine,
   GroundedCompositionCompiler,
   GroundedSynthesisTerminalRecorder,
   groundedResponseCacheKey,
@@ -800,6 +801,23 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     return { terminal, compiled, repository, engine, researcher, edited };
   };
 
+  const compileDurableFelicityRevision = async () => {
+    const { terminal, compiled } = await compileDurableComposition();
+    const repository = new PostgresCompositionAggregateRepository(
+      pool,
+      terminal.packets,
+    );
+    await repository.register(compiled);
+    const engine = new FelicityRevisionEngine();
+    const revised = engine.revise({
+      previous: compiled,
+      commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FD3",
+      serviceActor: serviceRef(),
+      revisedAt: "2026-09-04T06:00:00.000Z",
+    });
+    return { terminal, compiled, repository, engine, revised };
+  };
+
   it("persists an exact reusable response and rehydrates it after restart", async () => {
     const terminal = await persistTerminal();
     const repository = new PostgresGroundedResponseAuthorityRepository(
@@ -1459,6 +1477,206 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       if (error instanceof Error) {
         expect(error.message).toContain(
           "DraftSupportAssessment records are immutable",
+        );
+      }
+    }
+  });
+
+  it("persists a bounded Felicity revision and receipt atomically", async () => {
+    const { compiled, repository, revised } =
+      await compileDurableFelicityRevision();
+    const stored = await repository.registerFelicityRevision(revised);
+    expect(
+      await repository.registerFelicityRevision(structuredClone(revised)),
+    ).toEqual(stored);
+    expect(stored).toEqual({
+      composition: {
+        draft: revised.composition.draft,
+        spans: revised.composition.spans,
+        provenanceMap: revised.composition.provenanceMap,
+        citationBundle: revised.composition.citationBundle,
+      },
+      record: revised.record,
+    });
+
+    const restarted = new PostgresCompositionAggregateRepository(
+      pool,
+      new InMemoryContextPacketRegistry(),
+    );
+    expect(await restarted.get(compiled.draft.draft_artifact_id, 1)).toEqual({
+      draft: compiled.draft,
+      spans: compiled.spans,
+      provenanceMap: compiled.provenanceMap,
+      citationBundle: compiled.citationBundle,
+    });
+    expect(
+      await restarted.getCurrent(compiled.draft.draft_artifact_id),
+    ).toEqual(stored.composition);
+    expect(
+      await restarted.getFelicityRevision(
+        revised.record.felicity_revision_record_id,
+      ),
+    ).toEqual(revised.record);
+    expect(
+      await restarted.registerFelicityRevision(structuredClone(revised)),
+    ).toEqual(stored);
+
+    const counts = await pool.query<{
+      commands: string;
+      drafts: string;
+      records: string;
+      transformations: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.draft_artifact_revisions) AS drafts,
+         (SELECT count(*)::text FROM petra.felicity_revision_records) AS records,
+         (SELECT count(*)::text FROM petra.felicity_span_transformations) AS transformations,
+         (SELECT count(*)::text FROM petra.composition_revision_commands) AS commands`,
+    );
+    expect(counts.rows[0]).toEqual({
+      drafts: "2",
+      records: "1",
+      transformations: String(revised.record.content.transformations.length),
+      commands: "1",
+    });
+  });
+
+  it("keeps normalized Felicity transformations and required validators queryable", async () => {
+    const { repository, revised } = await compileDurableFelicityRevision();
+    await repository.registerFelicityRevision(revised);
+    const typed = await pool.query<{
+      edit_origin: string;
+      passing_required_validators: string;
+      production_origin: string;
+      transformation_count: string;
+      validation_state: string;
+    }>(
+      `SELECT draft.edit_origin, draft.production_origin,
+              draft.validation_state,
+              count(DISTINCT transformation.position)::text AS transformation_count,
+              count(DISTINCT validator.payload ->> 'validator') FILTER (
+                WHERE validator.payload ->> 'outcome' = 'pass'
+                  AND validator.payload ->> 'validator' = ANY($2::text[])
+              )::text AS passing_required_validators
+         FROM petra.felicity_revision_records AS record
+         JOIN petra.draft_artifact_revisions AS draft
+           ON draft.draft_artifact_id = record.revised_draft_artifact_id
+          AND draft.revision = record.revised_draft_revision
+         JOIN petra.felicity_span_transformations AS transformation
+           ON transformation.felicity_revision_record_id =
+                record.felicity_revision_record_id
+          AND transformation.record_revision = record.revision
+        CROSS JOIN LATERAL jsonb_array_elements(
+          record.payload #> '{content,validator_results}'
+        ) AS validator(payload)
+        WHERE record.felicity_revision_record_id = $1
+        GROUP BY draft.edit_origin, draft.production_origin,
+                 draft.validation_state`,
+      [
+        revised.record.felicity_revision_record_id,
+        [
+          "felicity-language-contract",
+          "scientific-force-preservation",
+          "epistemic-origin-preservation",
+          "provenance-basis-preservation",
+          "citation-scope-preservation",
+        ],
+      ],
+    );
+    expect(typed.rows[0]).toEqual({
+      edit_origin: "felicity_revision",
+      production_origin: "deterministic",
+      validation_state: "passed",
+      transformation_count: String(
+        revised.record.content.transformations.length,
+      ),
+      passing_required_validators: "5",
+    });
+  });
+
+  it("rolls back a Felicity revision whose receipt drifts from its exact prior span", async () => {
+    const { compiled, repository, revised } =
+      await compileDurableFelicityRevision();
+    const invalid = structuredClone(revised);
+    invalid.record.content.transformations[0].previous_exact_text_hash =
+      "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+    invalid.record.content_hash = canonicalHash(invalid.record.content);
+
+    await expect(repository.registerFelicityRevision(invalid)).rejects.toEqual(
+      expect.objectContaining({ code: "FELICITY_REVISION_RECORD_MISMATCH" }),
+    );
+    expect(
+      await repository.get(compiled.draft.draft_artifact_id, 2),
+    ).toBeUndefined();
+    expect(
+      await repository.getCurrent(compiled.draft.draft_artifact_id),
+    ).toEqual({
+      draft: compiled.draft,
+      spans: compiled.spans,
+      provenanceMap: compiled.provenanceMap,
+      citationBundle: compiled.citationBundle,
+    });
+    expect(
+      await repository.getFelicityRevision(
+        invalid.record.felicity_revision_record_id,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("reserves a revision command globally across Felicity and researcher edits", async () => {
+    const { repository, revised } = await compileDurableFelicityRevision();
+    await repository.registerFelicityRevision(revised);
+    const firstSpan = revised.composition.spans[0];
+    if (firstSpan === undefined) throw new Error("Expected a revised span.");
+    const conflictingEdit = new DraftRevisionEngine().edit({
+      previous: revised.composition,
+      commandId: revised.record.command_id,
+      researcher: {
+        actor_id: readFixture<PetraActor>("actor").actor_id,
+        actor_kind: "human",
+      },
+      serviceActor: serviceRef(),
+      replacements: [
+        {
+          draftSpanId: firstSpan.draft_span_id,
+          expectedExactTextHash: firstSpan.content.exact_text_hash,
+          replacementText: `${firstSpan.content.exact_text} In this evaluation.`,
+        },
+      ],
+      editedAt: "2026-09-04T06:01:00.000Z",
+    });
+    await expectCompositionAggregateCode(
+      () => repository.registerRevision(conflictingEdit),
+      "DRAFT_SUPPORT_ASSESSMENT_COMMAND_CONFLICT",
+    );
+    expect(
+      await repository.getCurrent(revised.composition.draft.draft_artifact_id),
+    ).toEqual({
+      draft: revised.composition.draft,
+      spans: revised.composition.spans,
+      provenanceMap: revised.composition.provenanceMap,
+      citationBundle: revised.composition.citationBundle,
+    });
+  });
+
+  it("enforces immutable Felicity receipts at the database boundary", async () => {
+    const { repository, revised } = await compileDurableFelicityRevision();
+    await repository.registerFelicityRevision(revised);
+    try {
+      await pool.query(
+        `UPDATE petra.felicity_span_transformations
+            SET transformation_kind = 'unchanged'
+          WHERE felicity_revision_record_id = $1`,
+        [revised.record.felicity_revision_record_id],
+      );
+      throw new Error(
+        "Expected immutable Felicity history to reject mutation.",
+      );
+    } catch (error: unknown) {
+      expect(error).toEqual(expect.objectContaining({ code: "55000" }));
+      if (error instanceof Error) {
+        expect(error.message).toContain(
+          "FelicityRevisionRecord records are immutable",
         );
       }
     }
