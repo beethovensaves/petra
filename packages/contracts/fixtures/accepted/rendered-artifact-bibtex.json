@@ -1,0 +1,81 @@
+{
+  "schema_name": "petra.rendered-artifact",
+  "schema_version": "1.0.0",
+  "rendered_artifact_id": "rendered_artifact_3R2SM9KE96YWB4TTYWH17VZ1PG",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "draft_ref": {
+    "draft_artifact_id": "draft_artifact_01ARZ3NDEKTSV4RRFFQ69G5FCK",
+    "revision": 1,
+    "content_hash": "sha256:8b9201fc645d1bae2b93e01dff92c3eb96f394e3e6b3fa1238b8106b827a0560"
+  },
+  "citation_bundle_ref": {
+    "citation_bundle_id": "citation_bundle_01ARZ3NDEKTSV4RRFFQ69G5FCQ",
+    "revision": 1,
+    "content_hash": "sha256:3e5c7063cbaa866948865b62e8e336e50f87c913dead3b38ef4fbc07db660a22"
+  },
+  "content": {
+    "format": "bibtex",
+    "content_scope": "citations_only",
+    "renderer": {
+      "name": "petra.deterministic-composition-renderer",
+      "version": "1.0.0",
+      "content_hash": "sha256:849dad0492984b379df5024b7310f413b549776944046506c9363ad5a7a79ad7"
+    },
+    "options": {
+      "encoding": "utf-8",
+      "line_ending": "lf",
+      "citation_rendering": "linked_span_suffix",
+      "bibliography_rendering": "canonical_metadata_only",
+      "standalone_document": false
+    },
+    "output_artifact_ref": {
+      "artifact_id": "artifact_0SDMVWZC9KGHYF0E0MQQCDXKF0",
+      "revision": 1,
+      "content_hash": "sha256:ec7d636b47598e0759a8a456fd3d6cfd52c9fed36210979e4cbb40b5b0fc676d",
+      "byte_size": 603,
+      "media_type": "application/x-bibtex; charset=utf-8"
+    },
+    "semantic_content_hash": "sha256:8b9201fc645d1bae2b93e01dff92c3eb96f394e3e6b3fa1238b8106b827a0560",
+    "warnings": [
+      {
+        "code": "CITATION_METADATA_PARTIAL",
+        "message": "Citation Researcher2025Competing has partial canonical metadata."
+      },
+      {
+        "code": "PROVISIONAL_WORK_IDENTITY",
+        "message": "The canonical Work identity remains provisional."
+      }
+    ],
+    "transformations": [
+      {
+        "kind": "syntax_escape",
+        "behavior": "Escape BibTeX field values without parsing canonical display names.",
+        "lossy": false,
+        "semantic_effect": "none"
+      },
+      {
+        "kind": "bibliography_projection",
+        "behavior": "Project citations only; omit unavailable bibliographic fields.",
+        "lossy": false,
+        "semantic_effect": "none"
+      },
+      {
+        "kind": "document_wrapper",
+        "behavior": "Add source-record comments to the BibTeX file.",
+        "lossy": false,
+        "semantic_effect": "none"
+      }
+    ],
+    "authority_boundary": {
+      "rendered_artifact_is_scientific_authority": false,
+      "renderer_may_change_support": false
+    }
+  },
+  "content_hash": "sha256:18d3ed049b5172652e0b67579f132b49f7afa8b76f80f09c51e1028aa3b7519a",
+  "rendered_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+    "actor_kind": "service"
+  },
+  "rendered_at": "2026-09-04T04:00:00.000Z"
+}

@@ -235,6 +235,18 @@
       "path": "fixtures/accepted/citation-bundle.json"
     },
     {
+      "schema": "rendered-artifact",
+      "path": "fixtures/accepted/rendered-artifact-markdown.json"
+    },
+    {
+      "schema": "rendered-artifact",
+      "path": "fixtures/accepted/rendered-artifact-latex.json"
+    },
+    {
+      "schema": "rendered-artifact",
+      "path": "fixtures/accepted/rendered-artifact-bibtex.json"
+    },
+    {
       "schema": "interaction-feature-manifest",
       "path": "fixtures/accepted/interaction-feature-manifest.json"
     },
@@ -514,6 +526,10 @@
     {
       "schema": "citation-bundle",
       "path": "fixtures/rejected/citation-bundle-without-authors.json"
+    },
+    {
+      "schema": "rendered-artifact",
+      "path": "fixtures/rejected/rendered-artifact-scientific-authority.json"
     },
     {
       "schema": "interaction-feature-manifest",

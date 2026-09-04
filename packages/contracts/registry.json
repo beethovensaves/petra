@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.28.0",
+  "registry_version": "1.29.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -559,6 +559,17 @@
       "canonical_sha256": "sha256:95130f1885cfd33da5f9fb3549b6b4719bd1bcff48438e52bb78887c75351a29",
       "generate_typescript": true,
       "typescript_path": "src/generated/citation-bundle.ts"
+    },
+    {
+      "name": "rendered-artifact",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/rendered-artifact/1.0.0/schema.json",
+      "path": "schemas/rendered-artifact/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-deterministic-composition-render-record",
+      "canonical_sha256": "sha256:274de132c5f15aefce3773b86dc2e2b7acc98d9d601f6dd576c0589bd3e4bf45",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/rendered-artifact.ts"
     },
     {
       "name": "interaction-feature-manifest",

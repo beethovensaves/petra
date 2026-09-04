@@ -25,6 +25,11 @@ import {
   GroundedCompositionCompiler,
 } from "../src/composition-compiler.js";
 import {
+  type CompositionRendererError,
+  type CompositionRendererErrorCode,
+  DeterministicCompositionRenderer,
+} from "../src/composition-renderer.js";
+import {
   InMemoryContextPacketRegistry,
   type PacketRecord,
 } from "../src/context-packet-registry.js";
@@ -42,6 +47,9 @@ const readFixture = <Value>(name: string): Value =>
 
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
+
+const textHash = (value: string): string =>
+  `sha256:${createHash("sha256").update(value, "utf8").digest("hex")}`;
 
 interface MutableHarness {
   context: PetraContextPacket;
@@ -228,6 +236,36 @@ const expectCompilerCode = (
   );
 };
 
+const expectRendererCode = (
+  operation: () => unknown,
+  code: CompositionRendererErrorCode,
+): void => {
+  expect(operation).toThrowError(
+    expect.objectContaining<Partial<CompositionRendererError>>({ code }),
+  );
+};
+
+const renderHarness = () => {
+  const { compiler, input } = makeHarness();
+  const compiled = compiler.compile(input);
+  return {
+    renderer: new DeterministicCompositionRenderer(),
+    renderInput: {
+      aggregate: {
+        draft: compiled.draft,
+        spans: compiled.spans,
+        provenanceMap: compiled.provenanceMap,
+        citationBundle: compiled.citationBundle,
+      },
+      renderedBy: {
+        actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+        actor_kind: "service" as const,
+      },
+      renderedAt: "2026-09-04T04:00:00.000Z",
+    },
+  };
+};
+
 describe("grounded composition compiler", () => {
   it("deterministically compiles plan moves into a validated composition aggregate", () => {
     const { compiler, input } = makeHarness();
@@ -367,5 +405,151 @@ describe("grounded composition compiler", () => {
     expect(result.draft.validation.limitations).toContain(
       "Abstract-only evidence was used; the draft is limited to broad source-reported claims because methods and results were not available for detailed inspection.",
     );
+  });
+});
+
+describe("deterministic composition renderer", () => {
+  it("renders the requested formats as stable content-addressed Artifact candidates", () => {
+    const { renderer, renderInput } = renderHarness();
+    const first = renderer.renderRequested(renderInput);
+    const replay = renderer.renderRequested(structuredClone(renderInput));
+
+    expect(first).toEqual(replay);
+    expect(first.map((value) => value.format)).toEqual([
+      "markdown",
+      "latex",
+      "bibtex",
+    ]);
+    expect(new Set(first.map((value) => value.artifact.artifact_id)).size).toBe(
+      3,
+    );
+    for (const rendered of first) {
+      expect(rendered.artifact).toMatchObject({
+        artifact_kind: "export",
+        byte_size: rendered.bytes.byteLength,
+        content_hash: textHash(rendered.text),
+      });
+      expect(new TextDecoder().decode(rendered.bytes)).toBe(rendered.text);
+      expect(rendered.semanticContentHash).toBe(
+        renderInput.aggregate.draft.content_hash,
+      );
+      expect(rendered.record.content.output_artifact_ref).toEqual({
+        artifact_id: rendered.artifact.artifact_id,
+        revision: 1,
+        content_hash: rendered.artifact.content_hash,
+        byte_size: rendered.artifact.byte_size,
+        media_type: rendered.artifact.media_type,
+      });
+      expect(rendered.record.content.authority_boundary).toEqual({
+        rendered_artifact_is_scientific_authority: false,
+        renderer_may_change_support: false,
+      });
+      expect(rendered.record.content_hash).toBe(
+        canonicalHash(rendered.record.content),
+      );
+    }
+  });
+
+  it("renders citations and warnings without inventing unavailable publication fields", () => {
+    const { renderer, renderInput } = renderHarness();
+    const markdown = renderer.renderOne(renderInput, "markdown").text;
+    const latex = renderer.renderOne(renderInput, "latex").text;
+    const bibtex = renderer.renderOne(renderInput, "bibtex").text;
+
+    expect(markdown.match(/\[@Researcher2025explanations\]/g)).toHaveLength(3);
+    expect(markdown).toContain("## References");
+    expect(markdown).toContain("DOI: 10\\.5555/petra\\.example");
+    expect(markdown).toContain(
+      "The canonical Work identity remains provisional",
+    );
+    expect(markdown).toContain("Source access: full text analyzed");
+
+    expect(latex.match(/\\cite\{Researcher2025explanations\}/g)).toHaveLength(
+      2,
+    );
+    expect(latex).toContain("\\begin{thebibliography}{99}");
+    expect(latex).toContain(
+      "\\bibitem{Researcher2025explanations} Ada Researcher (2025).",
+    );
+
+    expect(bibtex).toContain("@article{Researcher2025explanations,");
+    expect(bibtex).toContain("author = {{Ada Researcher}},");
+    expect(bibtex).toContain("year = {2025},");
+    expect(bibtex).toContain("date = {2025-06},");
+    expect(bibtex).toContain("doi = {10.5555/petra.example},");
+    expect(bibtex).not.toMatch(/\n\s*(journal|volume|number|pages)\s*=/);
+  });
+
+  it("escapes LaTeX syntax while retaining Unicode draft content", () => {
+    const { compiler, input } = makeHarness(({ plan }) => {
+      plan.content.sections[0].moves[0].planned_text =
+        "🪨 Evidence uses 50% A&B_1.";
+    });
+    const compiled = compiler.compile(input);
+    const renderer = new DeterministicCompositionRenderer();
+    const latex = renderer.renderOne(
+      {
+        aggregate: compiled,
+        renderedBy: {
+          actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+          actor_kind: "service",
+        },
+        renderedAt: "2026-09-04T04:00:00.000Z",
+      },
+      "latex",
+    );
+
+    expect(latex.text).toContain("🪨 Evidence uses 50\\% A\\&B\\_1.");
+    expect(latex.semanticContentHash).toBe(compiled.draft.content_hash);
+  });
+
+  it("fails closed on aggregate drift or an unrequested format", () => {
+    const drifted = renderHarness();
+    const firstSpan = drifted.renderInput.aggregate.spans[0];
+    if (firstSpan === undefined)
+      throw new Error("Expected a DraftSpan fixture.");
+    firstSpan.content.exact_text = "Changed";
+    expectRendererCode(
+      () => drifted.renderer.renderRequested(drifted.renderInput),
+      "COMPOSITION_RENDERER_AGGREGATE_INVALID",
+    );
+
+    const unrequested = renderHarness();
+    unrequested.renderInput.aggregate.citationBundle.content.export_formats = [
+      "inline",
+      "markdown",
+      "bibtex",
+    ];
+    unrequested.renderInput.aggregate.citationBundle.content_hash =
+      canonicalHash(unrequested.renderInput.aggregate.citationBundle.content);
+    expectRendererCode(
+      () => unrequested.renderer.renderOne(unrequested.renderInput, "latex"),
+      "COMPOSITION_RENDERER_FORMAT_NOT_REQUESTED",
+    );
+  });
+
+  it("keeps missing dates and identifiers visibly absent from BibTeX", () => {
+    const { compiler, input } = makeHarness();
+    input.scholarlyRecords.externalIdentifiers = [];
+    const version = input.scholarlyRecords.workVersions[0];
+    if (version === undefined) {
+      throw new Error("Expected one WorkVersion fixture.");
+    }
+    delete version.published_date;
+    const compiled = compiler.compile(input);
+    const bibtex = new DeterministicCompositionRenderer().renderOne(
+      {
+        aggregate: compiled,
+        renderedBy: {
+          actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+          actor_kind: "service",
+        },
+        renderedAt: "2026-09-04T04:00:00.000Z",
+      },
+      "bibtex",
+    ).text;
+
+    expect(bibtex).not.toMatch(/\n\s*(year|date|doi|url|eprint)\s*=/);
+    expect(bibtex).toContain("Metadata is partial.");
   });
 });

@@ -8,6 +8,7 @@ export * from "./context-packet-registry.js";
 export * from "./context-packet-compiler.js";
 export * from "./composition-registry.js";
 export * from "./composition-compiler.js";
+export * from "./composition-renderer.js";
 export * from "./document-authority-repository.js";
 export * from "./document-registry.js";
 export * from "./deterministic-evidence-extraction.js";

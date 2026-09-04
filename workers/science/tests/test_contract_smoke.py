@@ -2875,6 +2875,88 @@ class PetraCitationBundle(PetraModel):
     compiled_at: str
 
 
+class RenderedArtifactDraftRef(PetraModel):
+    draft_artifact_id: str
+    revision: int
+    content_hash: str
+
+
+class RenderedArtifactCitationBundleRef(PetraModel):
+    citation_bundle_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class RenderedArtifactRendererRef(PetraModel):
+    name: str
+    version: str
+    content_hash: str
+
+
+class RenderedArtifactOptions(PetraModel):
+    encoding: Literal["utf-8"]
+    line_ending: Literal["lf"]
+    citation_rendering: Literal["linked_span_suffix"]
+    bibliography_rendering: Literal["canonical_metadata_only"]
+    standalone_document: bool
+
+
+class RenderedArtifactOutputRef(PetraModel):
+    artifact_id: str
+    revision: Literal[1]
+    content_hash: str
+    byte_size: int
+    media_type: str
+
+
+class RenderedArtifactWarning(PetraModel):
+    code: str
+    message: str
+
+
+class RenderedArtifactTransformation(PetraModel):
+    kind: Literal[
+        "citation_insertion",
+        "syntax_escape",
+        "bibliography_projection",
+        "document_wrapper",
+    ]
+    behavior: str
+    lossy: bool
+    semantic_effect: Literal["none"]
+
+
+class RenderedArtifactAuthorityBoundary(PetraModel):
+    rendered_artifact_is_scientific_authority: Literal[False]
+    renderer_may_change_support: Literal[False]
+
+
+class RenderedArtifactContent(PetraModel):
+    format: Literal["markdown", "latex", "bibtex"]
+    content_scope: Literal["draft_with_citations", "citations_only"]
+    renderer: RenderedArtifactRendererRef
+    options: RenderedArtifactOptions
+    output_artifact_ref: RenderedArtifactOutputRef
+    semantic_content_hash: str
+    warnings: list[RenderedArtifactWarning]
+    transformations: list[RenderedArtifactTransformation]
+    authority_boundary: RenderedArtifactAuthorityBoundary
+
+
+class PetraRenderedArtifact(PetraModel):
+    schema_name: Literal["petra.rendered-artifact"]
+    schema_version: Literal["1.0.0"]
+    rendered_artifact_id: str
+    revision: Literal[1]
+    project_id: str
+    draft_ref: RenderedArtifactDraftRef
+    citation_bundle_ref: RenderedArtifactCitationBundleRef
+    content: RenderedArtifactContent
+    content_hash: str
+    rendered_by: ActorRef
+    rendered_at: str
+
+
 class InteractionProtocolProfile(PetraModel):
     name: Literal["ag-ui"]
     sdk_version: str
@@ -3604,6 +3686,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "draft-span": PetraDraftSpan,
     "provenance-map": PetraProvenanceMap,
     "citation-bundle": PetraCitationBundle,
+    "rendered-artifact": PetraRenderedArtifact,
     "interaction-feature-manifest": PetraInteractionFeatureManifest,
     "interaction-custom-event": PetraInteractionCustomEvent,
     "interaction-run": PetraInteractionRun,
@@ -3703,6 +3786,9 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("draft-span-qualification.json", "content", "content_hash"),
         ("provenance-map.json", "content", "content_hash"),
         ("citation-bundle.json", "content", "content_hash"),
+        ("rendered-artifact-markdown.json", "content", "content_hash"),
+        ("rendered-artifact-latex.json", "content", "content_hash"),
+        ("rendered-artifact-bibtex.json", "content", "content_hash"),
         ("interaction-feature-manifest.json", "content", "content_hash"),
         ("interaction-run.json", "content", "content_hash"),
         ("interaction-event-record.json", "content", "content_hash"),

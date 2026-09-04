@@ -366,6 +366,18 @@ export type {
   WorkVersionCitationRef,
 } from "./generated/citation-bundle.js";
 export type {
+  AuthorityBoundary as RenderedArtifactAuthorityBoundary,
+  CitationBundleRef as RenderedArtifactCitationBundleRef,
+  DraftRef as RenderedArtifactDraftRef,
+  OutputArtifactRef as RenderedOutputArtifactRef,
+  PetraRenderedArtifact,
+  RendererRef,
+  RenderOptions,
+  RenderedContent,
+  RenderWarning,
+  Transformation as RenderTransformation,
+} from "./generated/rendered-artifact.js";
+export type {
   CustomEventRegistration,
   FeatureContent as InteractionFeatureContent,
   FeatureSupport as InteractionFeatureSupport,
