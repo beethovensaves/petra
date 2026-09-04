@@ -5,6 +5,7 @@ import type {
 } from "@petra/contracts";
 
 import type { DeepReadonly } from "./context-packet-registry.js";
+import type { PetraInteractionEvent } from "./interaction-runtime.js";
 import type {
   SynthesistGatewayExecution,
   SynthesistGatewayRequest,
@@ -125,6 +126,8 @@ export interface GroundedSynthesisTerminalRequest {
   };
   readonly prompt: string;
   readonly result: GroundedSynthesisInteractionResult;
+  /** Events already exposed before the grounded response becomes available. */
+  readonly presentation_events: readonly PetraInteractionEvent[];
 }
 
 export interface GroundedSynthesisTerminalBinding {
@@ -146,6 +149,15 @@ export interface GroundedSynthesisTerminalPort {
   readonly persist: (
     request: GroundedSynthesisTerminalRequest,
   ) => Promise<GroundedSynthesisTerminalBinding>;
+  /**
+   * Persists the answer-bearing suffix before the runtime exposes any member
+   * of that suffix to a client. Optional test doubles may omit this method;
+   * production durable terminals implement it.
+   */
+  readonly persistPresentation?: (request: {
+    readonly binding: GroundedSynthesisTerminalBinding;
+    readonly events: readonly PetraInteractionEvent[];
+  }) => Promise<void>;
 }
 
 export interface GroundedSynthesisInteractionExecutorPort {

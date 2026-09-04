@@ -36,6 +36,25 @@ import {
 
 const TOKEN = "petra-conformance-token";
 
+const terminalBindingFixture = () => ({
+  grounded_response_id: "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+  grounded_response_revision: 1,
+  grounded_response_hash:
+    "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  response_artifact_id: "artifact_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+  response_artifact_hash:
+    "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  interaction_run_id: "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+  interaction_run_revision: 2,
+  interaction_run_hash:
+    "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  work_unit_id: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+  work_unit_revision: 4,
+  work_unit_spec_hash:
+    "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  persisted_at: "2026-09-04T02:00:00.000Z",
+});
+
 const inputFor = (
   runId: string,
   options: {
@@ -344,7 +363,7 @@ describe("D014 Hono conformance", () => {
     expect(errorEvents.at(-1)?.type).toBe(EventType.RUN_ERROR);
     expect(server.runtime.snapshot("run_hc03_error").status).toBe("failed");
 
-    server.runtime.recordDelivery("run_hc03_error", "write_error");
+    void server.runtime.recordDelivery("run_hc03_error", "write_error");
     expect(server.runtime.snapshot("run_hc03_error").delivery.writeErrors).toBe(
       1,
     );
@@ -528,6 +547,7 @@ describe("D014 Hono conformance", () => {
 
   test("M1.6-W20: durable terminal persistence completes before answer text", async () => {
     let persisted = false;
+    let presentationPersisted = false;
     const terminal: GroundedSynthesisTerminalPort = {
       persist: async () => {
         await Promise.resolve();
@@ -551,6 +571,11 @@ describe("D014 Hono conformance", () => {
           persisted_at: "2026-09-04T02:00:00.000Z",
         };
       },
+      persistPresentation: async ({ events }) => {
+        expect(events.some((event) => event.kind === "text.delta")).toBe(true);
+        await Promise.resolve();
+        presentationPersisted = true;
+      },
     };
     const runtime = new PetraInteractionRuntime({
       groundedSynthesisExecutor: await completedGroundedExecutor(),
@@ -567,6 +592,7 @@ describe("D014 Hono conformance", () => {
       });
       const events = decodeSse(await response.text());
       expect(persisted).toBe(true);
+      expect(presentationPersisted).toBe(true);
       const persistenceComplete = events.findIndex(
         (event) =>
           event.type === EventType.ACTIVITY_SNAPSHOT &&
@@ -616,6 +642,40 @@ describe("D014 Hono conformance", () => {
         type: EventType.RUN_ERROR,
         code: "GROUNDED_TERMINAL_PERSISTENCE_FAILED",
         message: "database unavailable",
+      });
+      expect(
+        events.some((event) => event.type === EventType.TEXT_MESSAGE_CONTENT),
+      ).toBe(false);
+    } finally {
+      await failedServer.shutdown();
+    }
+  });
+
+  test("M1.7-W12: answer-bearing event persistence fails closed before text", async () => {
+    const runtime = new PetraInteractionRuntime({
+      groundedSynthesisExecutor: await completedGroundedExecutor(),
+      groundedSynthesisTerminal: {
+        persist: () => Promise.resolve(terminalBindingFixture()),
+        persistPresentation: () =>
+          Promise.reject(new Error("interaction history unavailable")),
+      },
+    });
+    const failedServer = await startPetraServer({
+      port: 0,
+      authToken: TOKEN,
+      runtime,
+    });
+    try {
+      const response = await rawRun(
+        failedServer,
+        "run_m17_w12_presentation_failure",
+        { workflow: "grounded_synthesis" },
+      );
+      const events = decodeSse(await response.text());
+      expect(events.at(-1)).toMatchObject({
+        type: EventType.RUN_ERROR,
+        code: "GROUNDED_PRESENTATION_PERSISTENCE_FAILED",
+        message: "interaction history unavailable",
       });
       expect(
         events.some((event) => event.type === EventType.TEXT_MESSAGE_CONTENT),

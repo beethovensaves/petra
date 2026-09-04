@@ -1,4 +1,5 @@
 import { PetraInteractionClient } from "@petra/adapters";
+import { derivePetraId } from "@petra/core";
 import {
   M1_GROUNDED_SYNTHESIS_QUESTION,
   createGroundedSynthesisPersistenceFromEnvironment,
@@ -7,33 +8,46 @@ import {
 
 const workspaceRoot = process.cwd();
 const token = "petra-codex-grounded-integration";
-const persistence = await createGroundedSynthesisPersistenceFromEnvironment();
-const server = await startPetraServer({
-  port: 0,
-  authToken: token,
-  codexWorkspaceRoot: workspaceRoot,
-  codexSidecar: { cwd: workspaceRoot, requestTimeoutMs: 30_000 },
-  codexGroundedSynthesis: { timeoutMs: 120_000 },
-  groundedSynthesisPersistence: persistence,
-});
+const threadId = "thread_codex_grounded_ag_ui";
+const runId = `run_codex_grounded_ag_ui_${Date.now()}`;
+const connectionId = derivePetraId(
+  "interaction_connection",
+  `${threadId}|${runId}|integration`,
+);
+
+const launch = async () => {
+  const persistence = await createGroundedSynthesisPersistenceFromEnvironment();
+  const server = await startPetraServer({
+    port: 0,
+    authToken: token,
+    codexWorkspaceRoot: workspaceRoot,
+    codexSidecar: { cwd: workspaceRoot, requestTimeoutMs: 30_000 },
+    codexGroundedSynthesis: { timeoutMs: 120_000 },
+    groundedSynthesisPersistence: persistence,
+  });
+  return { persistence, server };
+};
+
+let active = await launch();
 
 try {
-  const account = await server.codexProvider?.readAccount();
+  const account = await active.server.codexProvider?.readAccount();
   if (!account?.authenticated || account.authMode !== "chatgpt") {
     throw new Error(
       "The W18 integration requires Codex-managed ChatGPT OAuth; no API-key fallback is allowed.",
     );
   }
   const client = new PetraInteractionClient({
-    endpoint: `${server.url}/api/interactions/run`,
+    endpoint: `${active.server.url}/api/interactions/run`,
     token,
     traceId: "trace_codex_grounded_ag_ui",
   });
   const result = await client.run({
-    threadId: "thread_codex_grounded_ag_ui",
-    runId: `run_codex_grounded_ag_ui_${Date.now()}`,
+    threadId,
+    runId,
     prompt: M1_GROUNDED_SYNTHESIS_QUESTION,
     workflow: "grounded_synthesis",
+    connectionId,
   });
   const terminal = result.events.find((event) => event.type === "RUN_FINISHED")
     ?.payload.result;
@@ -73,6 +87,69 @@ try {
       "The certified OAuth run did not reach a complete, non-authoritative AG-UI terminal result.",
     );
   }
+  const initialAttempt =
+    await active.persistence.interactions.getConnectionAttempt(connectionId);
+  if (initialAttempt !== 1) {
+    throw new Error(
+      "The initial AG-UI delivery was not recorded exactly once.",
+    );
+  }
+
+  await active.server.shutdown();
+  active = await launch();
+  const replayClient = new PetraInteractionClient({
+    endpoint: `${active.server.url}/api/interactions/run`,
+    token,
+    traceId: "trace_codex_grounded_ag_ui_replay",
+  });
+  const replay = await replayClient.run({
+    threadId,
+    runId,
+    prompt: M1_GROUNDED_SYNTHESIS_QUESTION,
+    workflow: "grounded_synthesis",
+    connectionId,
+  });
+  const replayAttempt =
+    await active.persistence.interactions.getConnectionAttempt(connectionId);
+  const durableRun =
+    await active.persistence.interactions.getRunByProtocolCorrelation(
+      threadId,
+      runId,
+    );
+  const replayChecks = {
+    exactEvents:
+      JSON.stringify(replay.events) === JSON.stringify(result.events),
+    exactMessages:
+      JSON.stringify(replay.messages) === JSON.stringify(result.messages),
+    replayAttempt,
+    runRevision: durableRun?.revision,
+    lifecycle: durableRun?.content.lifecycle.state,
+    streamHead: durableRun?.content.stream_head,
+    eventCounts: [result.events.length, replay.events.length],
+    firstEventDifference: result.events
+      .map((event, index) => ({
+        index,
+        initial: event,
+        replay: replay.events[index],
+      }))
+      .find(
+        ({ initial, replay: replayEvent }) =>
+          JSON.stringify(initial) !== JSON.stringify(replayEvent),
+      ),
+  };
+  if (
+    !replayChecks.exactEvents ||
+    !replayChecks.exactMessages ||
+    replayAttempt !== 2 ||
+    durableRun?.revision !== 3 ||
+    durableRun.content.lifecycle.state !== "completed" ||
+    durableRun.content.stream_head.state !== "advanced" ||
+    durableRun.content.stream_head.event_count < 1
+  ) {
+    throw new Error(
+      `A restarted Petra process did not replay the exact durable presentation and record its delivery: ${JSON.stringify(replayChecks)}`,
+    );
+  }
   const activities = result.events
     .filter((event) => event.type === "ACTIVITY_SNAPSHOT")
     .map((event) => event.payload.activityType);
@@ -101,11 +178,19 @@ try {
           execution_source: terminal.executionSource,
           terminal_binding: terminal.terminalBinding,
         },
+        durable_replay: {
+          exact_events: true,
+          exact_messages: true,
+          delivery_attempts: replayAttempt,
+          interaction_run_revision: durableRun.revision,
+          logical_event_count: durableRun.content.stream_head.event_count,
+          scientific_work_reexecuted: false,
+        },
       },
       null,
       2,
     )}\n`,
   );
 } finally {
-  await server.shutdown();
+  await active.server.shutdown();
 }

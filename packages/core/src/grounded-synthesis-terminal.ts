@@ -6,6 +6,7 @@ import type {
   PetraArtifactManifest,
   PetraEvidencePacket,
   PetraGroundedResponse,
+  PetraInteractionEventRecord,
   PetraInteractionFeatureManifest,
   PetraInteractionRun,
   PetraProject,
@@ -30,7 +31,12 @@ import type {
   GroundedSynthesisTerminalRequest,
 } from "./grounded-synthesis-interaction.js";
 import { derivePetraId } from "./identity.js";
+import {
+  DurableInteractionHistory,
+  type InteractionHistoryPort,
+} from "./interaction-history.js";
 import type { InteractionAuthorityRepository } from "./interaction-authority-repository.js";
+import type { PetraInteractionEvent } from "./interaction-runtime.js";
 import type { ResearchScopeRepository } from "./research-scope-repository.js";
 import type { SynthesistExecutionRepository } from "./synthesist-execution-repository.js";
 import type { WorkUnitAuthorityRepository } from "./work-unit-authority-repository.js";
@@ -88,6 +94,7 @@ export interface GroundedSynthesisTerminalRecorderOptions {
   readonly workUnits: WorkUnitAuthorityRepository;
   readonly interactions: InteractionAuthorityRepository;
   readonly groundedResponses: GroundedResponseAuthorityRepository;
+  readonly interactionHistory?: InteractionHistoryPort;
   readonly runtimeVersion?: string;
 }
 
@@ -473,6 +480,7 @@ const terminalInteractionRecords = (
   serviceActor: PetraActor,
   startedAt: string,
   persistedAt: string,
+  events: readonly PetraInteractionEventRecord[],
 ): readonly [PetraInteractionRun, PetraInteractionRun] => {
   const actor = serviceRef(serviceActor);
   const interactionRunId = derivePetraId(
@@ -553,6 +561,15 @@ const terminalInteractionRecords = (
       ended_at: persistedAt,
       outcome_code: "GROUNDED_RESPONSE_READY",
     },
+    stream_head:
+      events.length === 0
+        ? { state: "empty", event_count: 0 }
+        : {
+            state: "advanced",
+            event_count: events.length,
+            latest_sequence: events.length,
+            head_hash: events.at(-1)!.content_hash,
+          },
   };
   const terminal: PetraInteractionRun = {
     ...clone(initial),
@@ -717,10 +734,20 @@ const terminalBinding = (
 
 export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTerminalPort {
   readonly #options: GroundedSynthesisTerminalRecorderOptions;
+  readonly #history: InteractionHistoryPort;
 
   constructor(options: GroundedSynthesisTerminalRecorderOptions) {
     ensureServiceConfiguration(options);
     this.#options = options;
+    this.#history =
+      options.interactionHistory ??
+      new DurableInteractionHistory({
+        serviceActor: options.serviceActor,
+        artifactStore: options.artifactStore,
+        artifacts: options.artifacts,
+        interactions: options.interactions,
+        workUnits: options.workUnits,
+      });
   }
 
   async persist(
@@ -841,15 +868,35 @@ export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTermi
     }
 
     await options.interactions.registerFeatureManifest(options.featureManifest);
-    const interactionRecords = terminalInteractionRecords(
+    const provisionalInteractionRecords = terminalInteractionRecords(
       request,
       workUnit,
       options.featureManifest,
       options.serviceActor,
       startedAt,
       persistedAt,
+      [],
     );
-    await options.interactions.registerRun(interactionRecords[0]);
+    const initialInteraction = await options.interactions.registerRun(
+      provisionalInteractionRecords[0],
+    );
+    const eventRecords = await this.#history.persistEvents(
+      initialInteraction,
+      request.presentation_events,
+    );
+    const interactionPersistedAt = laterTimestamp(
+      persistedAt,
+      eventRecords.at(-1)?.recorded_at ?? persistedAt,
+    );
+    const interactionRecords = terminalInteractionRecords(
+      request,
+      workUnit,
+      options.featureManifest,
+      options.serviceActor,
+      startedAt,
+      interactionPersistedAt,
+      eventRecords,
+    );
     const interaction = await options.interactions.registerRun(
       interactionRecords[1],
     );
@@ -878,7 +925,7 @@ export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTermi
       interaction,
       options.packets,
       options.serviceActor,
-      persistedAt,
+      interactionPersistedAt,
     );
     const grounded = await options.groundedResponses.register({
       response,
@@ -894,6 +941,41 @@ export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTermi
       artifactRecords.artifact,
       interaction,
       workUnit,
+    );
+  }
+
+  async persistPresentation(request: {
+    readonly binding: GroundedSynthesisTerminalBinding;
+    readonly events: readonly PetraInteractionEvent[];
+  }): Promise<void> {
+    const boundRun = await this.#options.interactions.getRunRevision(
+      request.binding.interaction_run_id,
+      request.binding.interaction_run_revision,
+    );
+    if (
+      boundRun === undefined ||
+      boundRun.content_hash !== request.binding.interaction_run_hash ||
+      boundRun.content.correlation.work_unit_ref.work_unit_id !==
+        request.binding.work_unit_id ||
+      boundRun.content.lifecycle.state !== "completed"
+    ) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_EXECUTION_MISMATCH",
+        "The answer-bearing presentation suffix does not match its grounded terminal.",
+      );
+    }
+    const current =
+      (await this.#options.interactions.getRun(boundRun.interaction_run_id)) ??
+      boundRun;
+    const eventRecords = await this.#history.persistEvents(
+      current,
+      request.events,
+    );
+    await this.#history.advanceRun(
+      current,
+      eventRecords,
+      current.content.lifecycle,
+      eventRecords.at(-1)?.recorded_at ?? current.updated_at,
     );
   }
 }

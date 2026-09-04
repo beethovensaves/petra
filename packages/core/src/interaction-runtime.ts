@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import type { PetraReviewInterruptResponse } from "@petra/contracts";
+import { canonicalize } from "json-canonicalize";
 
 import type {
   GroundedSynthesisInteractionExecutorPort,
@@ -14,6 +15,10 @@ import type {
   ReviewInterruptResolutionResult,
   ReviewResolutionContext,
 } from "./durable-review-interrupt.js";
+import type {
+  InteractionDeliveryRecord,
+  InteractionHistoryPort,
+} from "./interaction-history.js";
 
 export type PetraFixtureMode = "success" | "review" | "terminal_error";
 export type PetraInteractionWorkflow = "fixture" | "grounded_synthesis";
@@ -139,6 +144,7 @@ export interface InteractionRunSnapshot extends InteractionIdentity {
 
 interface RunRecord {
   identity: InteractionIdentity;
+  inputHash: string;
   status: WorkUnitStatus;
   events: PetraInteractionEvent[];
   terminal: boolean;
@@ -155,6 +161,17 @@ export interface InteractionRuntimeOptions {
   reviewBoundary?: ReviewInterruptBoundary;
   groundedSynthesisExecutor?: GroundedSynthesisInteractionExecutorPort;
   groundedSynthesisTerminal?: GroundedSynthesisTerminalPort;
+  interactionHistory?: InteractionHistoryPort;
+}
+
+export interface InteractionDeliveryContext {
+  readonly connectionId: string;
+  readonly deliveryKind: "initial" | "resume" | "replay";
+  readonly afterSequence: number;
+  readonly lastDeliveredSequence: number;
+  readonly startedAt: string;
+  readonly completedAt: string;
+  readonly error?: { readonly code: string; readonly message: string };
 }
 
 const pause = async (milliseconds: number): Promise<void> => {
@@ -184,6 +201,14 @@ const fixturePetraId = (kind: string, runId: string): string =>
 const fixtureContentHash = (subject: string): string =>
   `sha256:${createHash("sha256").update(subject).digest("hex")}`;
 
+const promptHash = (prompt: string): string =>
+  `sha256:${createHash("sha256")
+    .update(JSON.stringify({ prompt }))
+    .digest("hex")}`;
+
+const canonicalClone = <Value>(value: Value): Value =>
+  JSON.parse(canonicalize(value)) as Value;
+
 export class PetraInteractionRuntime {
   readonly #runs = new Map<string, RunRecord>();
   readonly #commandEffects = new Map<string, CommandResult>();
@@ -194,6 +219,8 @@ export class PetraInteractionRuntime {
     GroundedSynthesisInteractionExecutorPort | undefined;
   readonly #groundedSynthesisTerminal:
     GroundedSynthesisTerminalPort | undefined;
+  readonly #interactionHistory: InteractionHistoryPort | undefined;
+  readonly #deliveryTasks = new Set<Promise<void>>();
   #accepting = true;
 
   constructor(options: InteractionRuntimeOptions = {}) {
@@ -202,6 +229,7 @@ export class PetraInteractionRuntime {
     this.#reviewBoundary = options.reviewBoundary;
     this.#groundedSynthesisExecutor = options.groundedSynthesisExecutor;
     this.#groundedSynthesisTerminal = options.groundedSynthesisTerminal;
+    this.#interactionHistory = options.interactionHistory;
   }
 
   get accepting(): boolean {
@@ -217,7 +245,7 @@ export class PetraInteractionRuntime {
     if (existing !== undefined) {
       if (
         existing.identity.threadId !== request.threadId ||
-        existing.identity.traceId !== request.traceId
+        existing.inputHash !== promptHash(request.prompt)
       ) {
         throw new Error("Run identity conflicts with an existing interaction.");
       }
@@ -235,6 +263,7 @@ export class PetraInteractionRuntime {
     };
     const record: RunRecord = {
       identity,
+      inputHash: promptHash(request.prompt),
       status: "queued",
       events: [],
       terminal: false,
@@ -298,6 +327,60 @@ export class PetraInteractionRuntime {
     }
   }
 
+  async restoreInteraction(
+    threadId: string,
+    runId: string,
+    prompt?: string,
+  ): Promise<InteractionRunSnapshot | undefined> {
+    const existing = this.#runs.get(runId);
+    if (existing !== undefined) {
+      if (existing.identity.threadId !== threadId) {
+        throw new Error("Run identity conflicts with an existing interaction.");
+      }
+      if (prompt !== undefined && existing.inputHash !== promptHash(prompt)) {
+        throw new Error("Run input conflicts with an existing interaction.");
+      }
+      return this.snapshot(runId);
+    }
+    const restored = await this.#interactionHistory?.restore(threadId, runId);
+    if (restored === undefined) return undefined;
+    if (
+      prompt !== undefined &&
+      restored.run.content.input.input_hash !== promptHash(prompt)
+    ) {
+      throw new Error("Run input conflicts with durable interaction history.");
+    }
+    const first = restored.events[0];
+    const last = restored.events.at(-1);
+    const correlation = restored.run.content.correlation;
+    const identity: InteractionIdentity = {
+      threadId,
+      runId,
+      workUnitId: correlation.work_unit_ref.work_unit_id,
+      modelRequestId:
+        last?.modelRequestId ?? correlation.model_request_id ?? "unavailable",
+      requestId: first?.requestId ?? correlation.request_id,
+      traceId: first?.traceId ?? correlation.trace_id,
+    };
+    const active = ["queued", "running"].includes(
+      restored.run.content.lifecycle.state,
+    );
+    const record: RunRecord = {
+      identity,
+      inputHash: restored.run.content.input.input_hash,
+      status: restored.status,
+      events: structuredClone(restored.events) as PetraInteractionEvent[],
+      terminal: !active,
+      cancellationRequested: false,
+      listeners: new Set(),
+      delivery: { completed: 0, aborted: 0, writeErrors: 0 },
+      abortController: new AbortController(),
+      task: Promise.resolve(),
+    };
+    this.#runs.set(runId, record);
+    return this.snapshot(runId);
+  }
+
   cancel(command: CancellationCommand): CommandResult {
     const prior = this.#commandEffects.get(command.commandId);
     if (prior !== undefined) return { ...prior, applied: false };
@@ -345,11 +428,31 @@ export class PetraInteractionRuntime {
   recordDelivery(
     runId: string,
     outcome: "completed" | "aborted" | "write_error",
-  ): void {
+    context?: InteractionDeliveryContext,
+  ): Promise<void> {
     const record = this.#requireRun(runId);
     if (outcome === "completed") record.delivery.completed += 1;
     if (outcome === "aborted") record.delivery.aborted += 1;
     if (outcome === "write_error") record.delivery.writeErrors += 1;
+    if (context === undefined || this.#interactionHistory === undefined) {
+      return Promise.resolve();
+    }
+    const delivery: InteractionDeliveryRecord = {
+      ...context,
+      threadId: record.identity.threadId,
+      runId,
+      outcome,
+    };
+    const task = (async (): Promise<void> => {
+      await record.task;
+      await this.#interactionHistory?.recordDelivery(delivery);
+    })();
+    this.#deliveryTasks.add(task);
+    void task.then(
+      () => this.#deliveryTasks.delete(task),
+      () => this.#deliveryTasks.delete(task),
+    );
+    return task;
   }
 
   snapshot(runId: string): InteractionRunSnapshot {
@@ -383,6 +486,7 @@ export class PetraInteractionRuntime {
 
   async drain(): Promise<void> {
     await Promise.all([...this.#runs.values()].map((record) => record.task));
+    await Promise.all([...this.#deliveryTasks]);
   }
 
   #requireRun(runId: string): RunRecord {
@@ -411,13 +515,30 @@ export class PetraInteractionRuntime {
   }
 
   #append(record: RunRecord, event: PetraInteractionEventInput): void {
-    const envelope: PetraInteractionEvent = {
-      ...record.identity,
-      sequence: record.events.length + 1,
-      timestamp: this.#now(),
-      ...event,
-    };
-    record.events.push(envelope);
+    this.#publish(record, this.#prepare(record, [event]));
+  }
+
+  #prepare(
+    record: RunRecord,
+    events: readonly PetraInteractionEventInput[],
+  ): PetraInteractionEvent[] {
+    return events.map((event, index) =>
+      canonicalClone({
+        ...record.identity,
+        sequence: record.events.length + index + 1,
+        timestamp: this.#now(),
+        ...event,
+      }),
+    );
+  }
+
+  #publish(record: RunRecord, events: readonly PetraInteractionEvent[]): void {
+    for (const event of events) {
+      if (event.sequence !== record.events.length + 1) {
+        throw new Error("Interaction events must be published contiguously.");
+      }
+      record.events.push(event);
+    }
     this.#wake(record);
   }
 
@@ -664,6 +785,7 @@ export class PetraInteractionRuntime {
       return;
     }
 
+    record.identity.modelRequestId = result.model_request_id;
     let terminalBinding: GroundedSynthesisTerminalBinding | undefined;
     if (this.#groundedSynthesisTerminal !== undefined) {
       this.#appendGroundedProgress(record, {
@@ -686,6 +808,7 @@ export class PetraInteractionRuntime {
           },
           prompt: request.prompt,
           result,
+          presentation_events: structuredClone(record.events),
         });
       } catch (error) {
         record.status = "failed";
@@ -701,65 +824,96 @@ export class PetraInteractionRuntime {
         this.#wake(record);
         return;
       }
-      this.#appendGroundedProgress(record, {
-        stage: "persistence",
-        status: "completed",
-        label: "Exact grounded-response authority persisted",
-        detail: { authority_effect: "none" },
-      });
     }
 
-    record.identity.modelRequestId = result.model_request_id;
-    this.#append(record, {
-      kind: "state.snapshot",
-      state: {
-        activeHypothesis: structuredClone(result.hypothesis),
-        posture: "collaborative_research_assistant",
-        workUnitStatus: "running",
+    const tail = this.#prepare(record, [
+      ...(terminalBinding === undefined
+        ? []
+        : [
+            {
+              kind: "activity.snapshot" as const,
+              activityType: "petra.work_unit.status" as const,
+              content: {
+                label: "Exact grounded-response authority persisted",
+                status: "completed" as const,
+                workUnitRevision: terminalBinding.work_unit_revision,
+                stage: "persistence" as const,
+                detail: { authority_effect: "none" as const },
+              },
+            },
+          ]),
+      {
+        kind: "state.snapshot",
+        state: {
+          activeHypothesis: structuredClone(result.hypothesis),
+          posture: "collaborative_research_assistant",
+          workUnitStatus: "running",
+        },
       },
-    });
-    this.#append(record, { kind: "text.start", messageId });
-    this.#append(record, {
-      kind: "text.delta",
-      messageId,
-      delta: result.rendered_text,
-    });
-    this.#append(record, { kind: "text.end", messageId });
+      { kind: "text.start", messageId },
+      { kind: "text.delta", messageId, delta: result.rendered_text },
+      { kind: "text.end", messageId },
+      {
+        kind: "activity.snapshot",
+        activityType: "petra.work_unit.status",
+        content: {
+          label: "Grounded response ready",
+          status: "completed",
+          workUnitRevision: terminalBinding?.work_unit_revision ?? 1,
+        },
+      },
+      {
+        kind: "run.finished",
+        result: {
+          hypothesisReference: result.hypothesis.reference,
+          contextPacketRef: result.context_packet_ref,
+          evidencePacketRef: result.evidence_packet_ref,
+          snapshotId: result.snapshot_id,
+          modelRequestId: result.model_request_id,
+          modelCallId: result.model_call_id,
+          modelDeploymentId: result.model_deployment_id,
+          roleCertificationId: result.role_certification_id,
+          outputHash: result.output_hash,
+          executionSource: result.execution_source,
+          statementOrigins: result.output.statements.map(
+            (statement) => statement.origin,
+          ),
+          coverage: structuredClone(result.output.coverage),
+          trace: structuredClone(result.trace),
+          cost: structuredClone(result.cost),
+          authorityEffect: "none",
+          ...(terminalBinding === undefined
+            ? {}
+            : { terminalBinding: structuredClone(terminalBinding) }),
+        },
+      },
+    ]);
+    if (
+      terminalBinding !== undefined &&
+      this.#groundedSynthesisTerminal?.persistPresentation !== undefined
+    ) {
+      try {
+        await this.#groundedSynthesisTerminal.persistPresentation({
+          binding: terminalBinding,
+          events: tail,
+        });
+      } catch (error) {
+        record.status = "failed";
+        this.#append(record, {
+          kind: "run.error",
+          code: "GROUNDED_PRESENTATION_PERSISTENCE_FAILED",
+          message:
+            error instanceof Error
+              ? error.message
+              : "The answer-bearing presentation could not be persisted.",
+        });
+        record.terminal = true;
+        this.#wake(record);
+        return;
+      }
+    }
     record.status = "completed";
-    this.#append(record, {
-      kind: "activity.snapshot",
-      activityType: "petra.work_unit.status",
-      content: {
-        label: "Grounded response ready",
-        status: "completed",
-        workUnitRevision: record.events.length + 1,
-      },
-    });
-    this.#append(record, {
-      kind: "run.finished",
-      result: {
-        hypothesisReference: result.hypothesis.reference,
-        contextPacketRef: result.context_packet_ref,
-        evidencePacketRef: result.evidence_packet_ref,
-        snapshotId: result.snapshot_id,
-        modelRequestId: result.model_request_id,
-        modelCallId: result.model_call_id,
-        modelDeploymentId: result.model_deployment_id,
-        roleCertificationId: result.role_certification_id,
-        outputHash: result.output_hash,
-        executionSource: result.execution_source,
-        statementOrigins: result.output.statements.map(
-          (statement) => statement.origin,
-        ),
-        coverage: structuredClone(result.output.coverage),
-        trace: structuredClone(result.trace),
-        cost: structuredClone(result.cost),
-        authorityEffect: "none",
-        ...(terminalBinding === undefined
-          ? {}
-          : { terminalBinding: structuredClone(terminalBinding) }),
-      },
-    });
+    this.#publish(record, tail);
     record.terminal = true;
     this.#wake(record);
   }

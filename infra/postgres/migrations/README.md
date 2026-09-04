@@ -99,3 +99,8 @@ terminal InteractionRun revision, and successful WorkUnit revision. Selected
 evidence dependencies remain queryable. Later authority events append an
 invalidated response revision and advance its head atomically; neither the
 original response nor its Markdown Artifact is rewritten.
+
+`V012__durable_interaction_replay.sql` preserves terminal InteractionRun
+outcomes while allowing a later revision to advance only the immutable
+presentation-event head. This closes the answer-bearing suffix after its
+GroundedResponse has persisted without reopening or rewriting the run.

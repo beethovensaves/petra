@@ -26,6 +26,7 @@ export * from "./grounded-synthesist-profile.js";
 export * from "./grounded-response-registry.js";
 export * from "./identity.js";
 export * from "./interaction-runtime.js";
+export * from "./interaction-history.js";
 export * from "./model-evidence-extraction.js";
 export * from "./model-execution-repository.js";
 export * from "./model-gateway.js";

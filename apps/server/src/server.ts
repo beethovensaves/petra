@@ -7,6 +7,7 @@ import {
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
 import {
+  DurableInteractionHistory,
   GroundedSynthesisTerminalRecorder,
   PetraInteractionRuntime,
   type GroundedSynthesisTerminalPort,
@@ -112,6 +113,17 @@ export const startPetraServer = async (
         "The server-owned Codex grounded-synthesis runtime requires a terminal persistence boundary.",
       );
     }
+    const interactionHistory =
+      grounded === undefined ||
+      options.groundedSynthesisPersistence === undefined
+        ? undefined
+        : new DurableInteractionHistory({
+            serviceActor: grounded.terminalContext.serviceActor,
+            artifactStore: options.groundedSynthesisPersistence.artifactStore,
+            artifacts: options.groundedSynthesisPersistence.artifacts,
+            interactions: options.groundedSynthesisPersistence.interactions,
+            workUnits: options.groundedSynthesisPersistence.workUnits,
+          });
     const groundedSynthesisTerminal =
       options.groundedSynthesisTerminal ??
       (options.groundedSynthesisPersistence === undefined ||
@@ -124,6 +136,7 @@ export const startPetraServer = async (
               options.groundedSynthesisPersistence.groundedResponses(
                 grounded.terminalContext.packets,
               ),
+            ...(interactionHistory === undefined ? {} : { interactionHistory }),
           }));
     const runtime =
       grounded === undefined
@@ -136,6 +149,7 @@ export const startPetraServer = async (
             ...(groundedSynthesisTerminal === undefined
               ? {}
               : { groundedSynthesisTerminal }),
+            ...(interactionHistory === undefined ? {} : { interactionHistory }),
           });
     petra = createPetraApp({
       ...options,

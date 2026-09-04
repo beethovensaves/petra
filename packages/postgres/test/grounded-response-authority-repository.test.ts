@@ -760,6 +760,7 @@ describePostgres("PostgreSQL grounded-response authority", () => {
         started_at: "2026-09-04T02:29:59.000Z",
       },
       prompt: "What does the selected study report?",
+      presentation_events: [],
       result: {
         hypothesis: {
           reference: "H01",
