@@ -1,7 +1,7 @@
 # UX-to-implementation requirements handoff
 
 Status: proposed requests awaiting implementation-track review
-Date: 2026-09-03
+Date: 2026-09-04
 Source: [Petra user-flow architecture](UX-FLOW-ARCHITECTURE.md)
 Design-freeze source: [Petra UX design brief](PETRA-UX-DESIGN-BRIEF.md)
 
@@ -27,11 +27,11 @@ The implementation track may continue already accepted backend work. It should
 not add a demo adapter, corpus path, profile-specific shortcut,
 imported-document promotion behavior, or new shared schema from the future demo contexts
 while the product brief is open. It should review `UX-REQ-004` through
-`UX-REQ-010` as general architecture needs and return a disposition without
+`UX-REQ-012` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
-`UX-REQ-010` follow the accepted Petra interaction, navigation, and Sources
-design; they do not authorize a frontend implementation before the design
-freeze.
+`UX-REQ-012` follow the accepted Petra interaction, navigation, Sources, and
+Review design; they do not authorize a frontend implementation before the
+design freeze.
 
 ## Accepted UX changes with no backend semantic impact
 
@@ -482,6 +482,139 @@ between shell context and task content more important.
 - **Owner and status:** product architecture and implementation track; UX
   requirement accepted, architecture and retention shape `proposed`.
 
+### `UX-REQ-011` — durable conversational working candidates and graph relationships
+
+- **Originating design work:** accepted `DB09` and `UX1.4-DISC01`;
+  `UX1.4-W01`–`W03`, `W07`, `W09`, `W13`, and `W15`; `UX-FLOW-02`,
+  `UX-FLOW-03`, `UX-FLOW-06`–`08`, `UX-FLOW-10`, and `UX-FLOW-12`.
+- **Named fixture need:** `UX-FX23`, two invented Project profiles whose
+  bounded task conversations produce, correct, inspect, retain, and later
+  review profile-valid working candidates and relationships. The scenario is
+  independent of both contextual demo projects.
+- **Implementation links:** `M1.1` task and identity records, `M1.3` graph
+  boundaries, `M1.5` candidate and authority controls, `M1.6` bounded model
+  context and validated outputs, `M1.7` interaction integration, and later
+  registered profile contracts.
+- **Project-author task and failure:** work naturally with a model that
+  structures the exchange into an inspectable Project representation without
+  requiring manual graph entry or treating model inference as accepted state.
+  Current M1.5 evidence candidates are specific to source-grounded scientific
+  Claim–Assertion extraction. Current M1.6 ContextPackets, EvidencePackets,
+  model calls, and synthesis validation record bounded model inputs and
+  outputs but deliberately grant no graph or review authority. No current
+  profile-neutral contract found in the design audit represents a durable
+  conversation-derived working candidate graph across Project profiles.
+- **Requested record behavior:** architecture should define the smallest
+  additive, versioned representation for non-authoritative profile-valid
+  candidates and relationships produced from an exact author interaction,
+  model role, Work result, extraction, import, or direct edit. The record or
+  registered profile equivalent preserves the Project, task/thread, producing
+  run or actor, input snapshot and context references, profile and applicable
+  schema revisions, typed object or relationship meaning, exact basis and
+  provenance references, uncertainty or limitation, validation references,
+  revision and supersession lineage, and current working disposition. These
+  are required semantics, not a proposed JSON shape.
+- **Requested admission and correction behavior:** accept only output that
+  validates against the active registered profile and exact bounded input;
+  reject unknown object types, predicates, references, or unsupported profile
+  revisions. Idempotently retain admitted working revisions without promoting
+  them. Natural-language or direct correction creates a new revision and
+  preserves its origin and supersession lineage. A model may repair mechanical
+  structure but cannot silently resolve substantive ambiguity, source stance,
+  meaning, or authority.
+- **Requested read behavior:** return a snapshot-consistent working overlay
+  that can be inspected beside current authoritative and historical graph
+  state, with exact origin, basis, provenance, validation, uncertainty,
+  exclusions, revision, and safe semantic destinations. Supply a complete
+  textual peer representation. Graph engines remain controlled renderers and
+  do not query or mutate authority directly.
+- **Authority and persistence:** the working layer is durable task state but
+  non-authoritative. Creating, displaying, selecting, arranging, or correcting
+  it cannot emit trusted-domain events, update the authoritative projection,
+  imply approval, or broaden capability. Promotion starts the ordinary Review,
+  ChangeSet, Approval, command, event, and projection path. Retention must align
+  with the accepted Project-thread and privacy boundaries rather than relying
+  on browser-only state.
+- **Smallest viable response:** identify whether existing Artifact,
+  InteractionRun, model-output, evidence-candidate, or future profile records
+  can compose this behavior. Add only the missing durable candidate/relation
+  revision and authorized query boundary. A first response may support one
+  registered profile type if the shared identity and authority boundary is
+  explicitly extensible and not encoded as scientific UI state.
+- **Decision dependencies:** registered object, relationship, validator, and
+  language meaning depends on `UX-REQ-004`; exact task conversation and context
+  lineage depends on `UX-REQ-006`; safe destinations depend on `UX-REQ-008`.
+- **Owner and status:** product architecture and implementation track; UX
+  requirement accepted, canonical persistence and profile shape `proposed`.
+
+### `UX-REQ-012` — profile-neutral Review-session read and command composition
+
+- **Originating design work:** accepted `DB09` and `UX1.4-DISC01`;
+  `UX1.4-W04`–`W15`; `UX-FLOW-06`–`08`, `UX-FLOW-10`–`12`,
+  `UX-FLOW-15`, and `UX-FLOW-16`.
+- **Named fixture need:** `UX-FX23`, with ordinary and exception members,
+  exact comparison, conversational correction, single-ChangeSet application,
+  independent multi-ChangeSet outcomes, stale refresh, projection lag, and
+  governed Revert across two invented profiles.
+- **Implementation links:** existing `M1.5` evidence review, ChangeSet,
+  Approval, ReviewBatch, reversal, event, projection, and durable interrupt
+  behavior; `M1.7` Project workbench queries and commands; and later registered
+  profile contracts.
+- **Project-author task and failure:** make one accountable decision from the
+  exact candidate, producer, basis, validation, difference, and consequence,
+  then return to the originating task. The current M1.5
+  `EvidenceReviewBatchView` provides strong source-grounded scientific evidence
+  review, and the current durable interrupt resolves exact accept or reject
+  responses. It does not establish the complete use-agnostic Review place,
+  profile-owned comparison renderers, task-session lifecycle, deferment,
+  general basis revision, semantic separation, or cross-profile correction
+  boundary required by DB09.
+- **Requested read behavior:** compose a snapshot-consistent Project Review
+  session from existing canonical records. It identifies the objective,
+  responsible decision boundary, origin and return context, exact candidates
+  and findings, Current/Candidate/Origin/Basis/Difference/Consequences roles,
+  ordinary and exception membership, applicable validation and blocking
+  reasons, freshness and conflict, one or more Changes-to-apply previews,
+  ChangeSet atomic boundaries, member outcomes, decision history, and
+  projection status. Profile contracts supply typed content and labels; the
+  shared read model cannot alias unregistered domain objects.
+- **Requested command behavior:** reuse current submit, approval, apply,
+  reversal, capability, hash, idempotency, and conflict controls. Define or map
+  the missing typed behavior for candidate correction, material basis change,
+  explicit separation, deferment and reopen, Review refresh, and member-level
+  retry or recovery. Every operation binds exact revisions and preserves
+  superseded, rejected, deferred, failed, and applied history. Direct and
+  model-mediated entry invokes the same canonical commands.
+- **Atomicity and outcome behavior:** one ChangeSet remains the smallest unit
+  that succeeds and reverses together. A Review session or ReviewBatch may
+  contain independently atomic ChangeSets. Known blocked or stale members are
+  identified before submission; runtime results retain every applied,
+  rejected, failed, and unapplied member. No aggregate status may convert a
+  partly completed session into whole success.
+- **AG-UI boundary:** do not add actor, capability, Approval, command, graph
+  operation, or authority fields to the accepted review-interrupt response.
+  Its existing exact accept/reject path remains valid. Other Review operations
+  use their canonical typed command adapters unless a separately reviewed
+  protocol version is later required; conversational text alone never
+  authorizes them.
+- **Authority and persistence:** Review composition is a read and orchestration
+  boundary over canonical candidates, validation, ChangeSets, Approvals,
+  commands, events, and projections. The browser cannot infer eligibility,
+  sufficient basis, validator force, conflict, authority, impact, or reversal.
+  Contextual, focus, and main-route presentations resolve to one durable Review
+  identity rather than creating presentation-local decisions.
+- **Smallest viable response:** first map the scientific M1.5 evidence-review
+  view and command path into the shared session roles without weakening its
+  exact source semantics. Add a versioned Review-session query and only the
+  missing commands needed for defer, refresh, correction/basis revision,
+  separation, and member recovery. Profile expansion follows `UX-REQ-004`
+  rather than adding a generic client-defined object payload.
+- **Decision dependencies:** candidate/profile meaning depends on
+  `UX-REQ-004` and `UX-REQ-011`; thread linkage on `UX-REQ-006`; reversal on
+  `UX-REQ-007`; origin and return resolution on `UX-REQ-008`.
+- **Owner and status:** product architecture and implementation track; UX
+  requirement accepted, runtime read and missing-command shape `proposed`.
+
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
 integration requests are written.
@@ -495,6 +628,8 @@ They are the shared authorial mechanics, regardless of Project profile:
 | --- | --- |
 | Immutable source and exact revision identity | Artifact, ArtifactManifest, source hashes, and additive revision records from `M1.1`/`M1.2` |
 | Proposal, correction, exact preview, Apply, conflict, and Revert | ChangeSet, Approval, ReviewBatch, and additive event path in `M1.5` |
+| Durable conversation-derived working candidates and relationships | Proposed `UX-REQ-011`; existing bounded model records and evidence candidates remain inputs, not a generic working graph contract |
+| Profile-neutral Review session, comparison, deferment, separation, and member recovery | Proposed `UX-REQ-012`; current M1.5 evidence review remains the scientific contract foundation |
 | Recent reversible-change query and compensation plan | Proposed `UX-REQ-007`; graph exploration history remains client presentation state |
 | Semantic object location, replacement, and safe fallback | Proposed `UX-REQ-008`; the client retains route and layout ownership |
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
@@ -510,13 +645,14 @@ and outputs attached to these mechanics. They should not duplicate Work,
 interaction, proposal, review, approval, cancellation, provenance, or history
 lifecycles merely because the profile uses different nouns.
 
-## Remaining candidate requirement
+## Requirement status after DB09
 
 The authored-project, imported-document, Project-thread, exact turn-context,
-governed-reversal, semantic-location, Project-source-view, and source-lifecycle
-questions are no longer candidates; their accepted UX requirements are
-`UX-REQ-004` through `UX-REQ-010`. Their backend shapes remain proposed until
-the required architecture and retention dispositions.
+governed-reversal, semantic-location, Project-source-view, source-lifecycle,
+conversational-working-graph, and profile-neutral Review questions are no
+longer candidate design ideas; their accepted UX requirements are `UX-REQ-004`
+through `UX-REQ-012`. Their backend shapes remain proposed until the required
+architecture, contract, and retention dispositions.
 
 ### Cross-device preference synchronization
 
@@ -536,5 +672,6 @@ For each proposed request, record one of:
 
 The design track will not claim live integration or `G-CONTRACT` for the shell,
 Brief, SuggestedAction, Project-profile, imported-document, Project-thread,
-governed-reversal, semantic-location, Project-source-view, or source-lifecycle
-flows until the applicable requests have an explicit disposition.
+governed-reversal, semantic-location, Project-source-view, source-lifecycle,
+conversational-working-graph, or profile-neutral Review flows until the
+applicable requests have an explicit disposition.

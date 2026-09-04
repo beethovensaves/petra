@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue the design brief at `DB09`, basis, proposals, and review. `DB04` through `DB08` are accepted. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Continue the design brief at `DB10`, graph and relationship work. `DB04` through `DB09` are accepted. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -84,9 +84,9 @@ AG-UI remains behind `PetraInteractionClient` and Petra-specific hooks. Feature 
 
 Continue with this question:
 
-> I am beginning `DB09`, basis, proposals, and review. I want to agree on how Petra lets an author compare a proposed interpretation or change with its exact basis, concentrate on exceptions without hiding ordinary members, correct the proposal itself, preview every authority and dependency consequence, and approve, reject, defer, split, relink, or Revert through one profile-neutral review grammar. My recommendation is one Review place with task-sized review sessions, an exact source-or-basis comparison, a typed proposal and validation explanation, an explicit ChangeSet preview before application, and no approval from chat, graph selection, batch selection, or Work completion alone.
+> I am beginning `DB10`, graph and relationship work. `DB09` established that a named model role quietly turns bounded natural conversation and Work into a durable non-authoritative working graph; Petra presents and governs those records but is not their author. I want to agree on how an author enters the graph for a real relationship question, distinguishes working, authoritative, projected, and historical state, follows and compares paths without maintaining graph structure manually, controls semantic depth without revealing a hairball, and returns with task context intact. The accepted starting direction keeps task-bounded 2D views and textual parity primary, Cytoscape.js as the current renderer, and 3D through Reagraph only when a named third dimension improves comprehension. My recommendation is to design the graph as an optional inspectable relationship workspace with progressive controls, profile-owned objects and predicates, natural-language correction through the active model, direct manipulation only as an exact candidate change, and no authority in layout, selection, dragging, or renderer state.
 
-Do not implement a Review fixture after this discussion. Complete the full basis,
-proposal, and review specification, then continue through `DB10`–`DB18`.
+Do not implement a Graph fixture after this discussion. Complete the full graph
+and relationship-work specification, then continue through `DB11`–`DB18`.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.

@@ -1,7 +1,7 @@
 # Petra user-flow architecture
 
-Status: accepted product flow, information architecture, and Sources behavior; profile and source-lifecycle contracts awaiting architecture disposition
-Date: 2026-09-03
+Status: accepted product flow, information architecture, Sources, and Review behavior; profile, source-lifecycle, working-graph, and Review contracts awaiting architecture disposition
+Date: 2026-09-04
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as distinct project profiles
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
 
@@ -35,7 +35,8 @@ Across profiles, the project author is responsible for:
 - framing and revising the controlling question, objective, or problem;
 - deciding which sources, constraints, and derived statements are admissible;
 - directing retrieval, analysis, validation, composition, and profile-specific work;
-- reviewing Petra's proposals and correcting its mistakes;
+- reviewing candidates from identifiable authors, model roles, Work,
+  extraction, or import and correcting substantive mistakes;
 - promoting exact, inspectable results into new authoritative revisions;
 - producing traceable project artifacts.
 
@@ -78,10 +79,10 @@ bind Project to profile and immutable source revisions
   -> frame an objective and applicable constraints
   -> inspect the current basis and dependencies
   -> answer locally or start bounded Work
-  -> create a candidate, finding, or ChangeSet
+  -> create or revise a non-authoritative candidate or finding
   -> validate with profile-appropriate roles and rules
   -> inspect provenance, impact, limitations, and exact diff
-  -> approve, correct, reject, defer, branch, or cancel
+  -> prepare exact changes and approve, correct, reject, defer, branch, or cancel
   -> promote through the typed command path
   -> preserve source, candidate, decision, and resulting revision
 ```
@@ -95,8 +96,8 @@ required runtime boundary.
 The model adapts through that same profile boundary. Every material assistant
 or worker request binds the Project profile, its domain schemas, the allowed
 tool and validator set, and the applicable terminology or prompt revision into
-the bounded input record. Outputs are validated as profile-owned proposals or
-artifacts before the ordinary review path. The profile does not silently select
+the bounded input record. Outputs are validated as profile-owned candidates or
+artifacts before any proposal and Review path. The profile does not silently select
 a provider, broaden capabilities, or grant authority; model routing remains a
 separate governed decision.
 
@@ -108,12 +109,13 @@ separate governed decision.
 4. **Object identity survives every representation.** Brief, Evidence, Papers, Graph, Details, assistant, Work, review, and Draft views resolve to the same object and revision.
 5. **Petra answers locally before starting expensive work.** Current-snapshot and cached results appear first; new investigation is a separate, visible choice.
 6. **The governing basis remains one deliberate action away.** A material statement can reveal its profile-owned object, exact source span or result, scope, origin, and review state.
-7. **Read, propose, and apply remain distinct.** Fluent text, selection, graph layout, and a completed WorkUnit do not become domain authority.
+7. **Read, structure, review, and apply remain distinct.** Fluent text, a working-graph candidate, selection, graph layout, and a completed WorkUnit do not become domain authority.
 8. **Direct and conversational actions share one command path.** Chat does not create a second governance system.
 9. **Durable work has a durable lifecycle.** Stopping a stream, hiding a panel, detaching, reconnecting, steering, and cancelling Work are different operations.
 10. **History is additive.** Corrections, supersession, rejection, and Revert preserve the original source, proposal, decision, and revision.
 11. **Progressive disclosure reduces noise without hiding consequence.** Scope, cost, authority, warnings, and recovery appear when they affect the decision.
 12. **Every material path has an accessible equivalent.** Graph-only, color-only, hover-only, drag-only, and stream-order-only understanding is insufficient.
+13. **Natural conversation supplies working structure.** A named model role may turn bounded interaction into durable non-authoritative candidates, relationships, basis, provenance, uncertainty, and validation inputs without requiring graph entry; Petra presents and governs those records but does not author or approve them.
 
 ## Core governed-work loop
 
@@ -344,7 +346,9 @@ Papers, or narrative validation mandatory universal modules.
 - **Path:** enter rough question -> identify ambiguous constructs, population, task, outcome, and intended decision -> compare proposed interpretations and subquestions -> edit -> preview the typed ResearchQuestion -> apply or retain as draft.
 - **Completion:** one active ResearchQuestion has explicit scope, revision, and provenance; unresolved ambiguity remains visible.
 - **Branches:** multiple plausible questions, insufficient scope, imported question, revision conflict, or decision to keep exploratory wording.
-- **Authority:** Petra's interpretation is a proposal; the researcher or approved policy applies the exact question revision.
+- **Authority:** a model-produced interpretation remains a non-authoritative
+  candidate; the researcher or approved policy applies the exact question
+  revision.
 - **Horizon:** minimal M1 question context; fuller M3 question and Hypothesis work.
 
 ### `UX-FLOW-03` — form, compare, and revise Hypotheses
@@ -353,7 +357,9 @@ Papers, or narrative validation mandatory universal modules.
 - **Entry:** question framing, synthesis, unexplained disagreement, experimental result, or direct user creation.
 - **Path:** create or select Hypothesis -> define descriptor and scope -> inspect supporting, contradicting, and qualifying evidence -> compare alternatives -> record predictions and assumptions -> propose revision -> inspect impact -> apply, branch, supersede, or defer.
 - **Completion:** the Hypothesis is understandable by ordinal and descriptor, and its current development, activity, warrant, lifecycle, standing, and obligations are not conflated.
-- **Branches:** seed Hypothesis, competing alternatives, no alternative found, search incomplete, Petra-proposed rival, mature Hypothesis with dependents, or stale assessment.
+- **Branches:** seed Hypothesis, competing alternatives, no alternative found,
+  search incomplete, model-produced rival, mature Hypothesis with dependents,
+  or stale assessment.
 - **Authority:** an assistant suggestion is not a Hypothesis transition; material changes use versioned commands and ChangeSets.
 - **Horizon:** M3, with fixture-level orientation possible earlier.
 
@@ -415,18 +421,19 @@ Papers, or narrative validation mandatory universal modules.
 - **Horizon:** M1 native PDF and supported structured-text path; M2 queues,
   discovery, and larger collections.
 
-### `UX-FLOW-06` — review source-derived proposals
+### `UX-FLOW-06` — review source-derived candidates
 
-- **Goal:** decide whether Petra represented source material faithfully and in
-  the profile-valid type without rereading every ordinary proposal.
+- **Goal:** decide whether an identified extraction or model run represented
+  source material faithfully and in the profile-valid type without rereading
+  every ordinary candidate.
 - **Entry:** Review, completed source-processing Work, selected exception,
   bounded batch recommendation, source reader, or Petra-mediated review.
-- **Path:** orient to proposal or batch and exceptions -> inspect proposed
+- **Path:** orient to candidate or batch and exceptions -> inspect candidate
   meaning, source stance or profile equivalent, scope, origin, validation,
   exact source revision and location, and content limitation -> compare when
   needed -> accept, correct, narrow, split, relink, reject, dispute, or defer as
   the profile permits -> inspect the exact ChangeSet -> apply explicitly.
-- **Completion:** every proposal has an explicit outcome; applied objects retain
+- **Completion:** every reviewed candidate has an explicit outcome; applied objects retain
   source, Artifact, location, processing, validation, and decision provenance;
   rejected and corrected revisions remain in history.
 - **Branches:** ordinary grounded proposal; preview-limited proposal; missing
@@ -441,9 +448,9 @@ Papers, or narrative validation mandatory universal modules.
 
 ### `UX-FLOW-07` — inspect basis and provenance
 
-- **Goal:** understand why Petra, a source, a validator, or an author made a
-  material statement and whether the exact available basis supports its scope,
-  force, and profile meaning.
+- **Goal:** understand why a named model or Work role, a source, a validator,
+  or an author produced a material statement and whether the exact available
+  basis supports its scope, force, and profile meaning.
 - **Entry:** Brief statement, Review row, graph relation, Petra sentence,
   SuggestedAction rationale, result or validation interpretation, Work output,
   or Composition span.
@@ -453,8 +460,8 @@ Papers, or narrative validation mandatory universal modules.
   structured value, Result, or explicit author judgment -> inspect surrounding
   context and downstream use -> return without losing selection.
 - **Completion:** the Project author can distinguish source report, extraction,
-  profile-valid inference, result, validation, author judgment, Petra judgment,
-  and recommendation and can locate the admissible basis or a precise no-path
+  profile-valid inference, result, validation, author judgment, named model or
+  Work output, and recommendation and can locate the admissible basis or a precise no-path
   state for each material step.
 - **Branches:** no admissible path; identity-only, preview-only, or partial
   content; conflicting passages; indirect reference; superseded assertion or
@@ -481,7 +488,8 @@ Papers, or narrative validation mandatory universal modules.
 - **Entry:** Research Brief, Hypothesis Details, completed LandscapeScan, new evidence, or scheduled reassessment.
 - **Path:** inspect snapshot and `as_of` basis -> review direct evidence, replication, criticism, method drift, dialogue, corpus freshness, alternatives, and material omissions -> inspect member evidence -> select a useful next action.
 - **Completion:** the researcher understands the reasoned profile without reducing it to a universal confidence or currentness score.
-- **Branches:** early, developing, mature, disputed, stale, no competitor found, incomplete landscape, or Petra-proposed rival only.
+- **Branches:** early, developing, mature, disputed, stale, no competitor found,
+  incomplete landscape, or only a model-produced rival.
 - **Authority:** standing is a derived, snapshot-bound assessment; transitions and obligations require their own commands.
 - **Horizon:** M2 landscape coverage and M3 assessments.
 
@@ -687,7 +695,7 @@ workflow:
 | Rights-limited source | What may be stored, displayed, or processed | Use permitted metadata/abstract, provide lawful access, or exclude |
 | Parser partial or failed | Which structure and spans are unavailable | Retry, choose another artifact, inspect raw source, or stop |
 | Ambiguous identity | Which candidate records conflict and what would merge | Resolve individually or defer; never auto-merge consequential ambiguity |
-| Proposal | What Petra proposes and what remains untrusted | Review, correct, reject, or defer |
+| Candidate or proposal | What exact content is under review, who or what produced it, and what remains non-authoritative | Review, correct, reject, or defer |
 | Change conflict | Which base revision changed | Regenerate and review a new exact preview |
 | Work awaiting input | What decision blocks progress and what each response does | Clarify, approve, narrow, reject, or cancel |
 | Work failed | What failed, what partial output is safe, and whether authority changed | Retry unchanged input, revise scope, use partial output, or stop |
@@ -766,10 +774,14 @@ rather than open product scope:
 - a snapshot-consistent, profile-resolved Project source and exact-inspection
   read model; and
 - a Project-source association plus governed Project removal and local-copy
-  deletion/retention lifecycle.
+  deletion/retention lifecycle;
+- durable, profile-valid, non-authoritative working candidates and graph
+  relationships derived from bounded interaction; and
+- a snapshot-consistent, profile-neutral Review-session read and command
+  composition over existing ChangeSet and Approval authority.
 
-`UX-REQ-004` through `UX-REQ-010` carry the profile, lineage, thread-context,
-governed-reversal, semantic-location, source-view, and source-lifecycle needs to
-the implementation track.
+`UX-REQ-004` through `UX-REQ-012` carry the profile, lineage, thread-context,
+governed-reversal, semantic-location, source-view, source-lifecycle,
+working-candidate, and Review-session needs to the implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.

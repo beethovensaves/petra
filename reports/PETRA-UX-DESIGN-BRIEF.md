@@ -1,7 +1,7 @@
 # Petra UX design brief
 
 Status: in progress; product design must freeze before reference-UX implementation or contextual demos
-Date: 2026-09-03
+Date: 2026-09-04
 Authority: design specification subordinate to `PETRA.md`, accepted decisions, runtime contracts, and coordinated architecture amendments
 
 ## Purpose
@@ -88,7 +88,7 @@ interaction contract has not yet been designed.
 | `DB06` | Petra interaction system | Dock, sidecar, focus workspace, composer, answers, context, Work, tools, interrupts, review, replay, failure, and history | accepted |
 | `DB07` | Project Brief | Shared base, profile payload boundary, attention ordering, suggested actions, change comparison, empty and stale states | accepted |
 | `DB08` | Sources and exact inspection | Registration, rights, versions, inspection capability, processing, source reading, exact locations, limitations, and provenance | accepted |
-| `DB09` | Basis, proposals, and review | Comparison, validation, exception handling, ChangeSet preview, correction, approval, rejection, deferment, conflict, and revert | not designed |
+| `DB09` | Basis, candidates, and review | Ambient structuring, comparison, validation, exception handling, exact change preview, correction, approval, rejection, deferment, conflict, and Revert | accepted |
 | `DB10` | Graph and relationship work | Task entry, query scope, layouts, depth, selection, temporal state, impact, textual parity, and optional 3D boundary | partial |
 | `DB11` | Durable Work and orchestration | Plans, agents and validators, progress, input, steering, cost, detachment, reconnect, cancellation, result, and retry | not designed |
 | `DB12` | Composition and revision | Artifact planning, editing, provenance, validation, citations where applicable, imported ancestry, promotion, rendering, and export | not designed |
@@ -399,7 +399,7 @@ renderer fails.
 ### Backend and persistence needs
 
 The flow architecture depends on the existing and proposed requirements
-`UX-REQ-001` through `UX-REQ-010`. Individual destination data remains owned by
+`UX-REQ-001` through `UX-REQ-012`. Individual destination data remains owned by
 its module contract. The navigation context, browser history, return target,
 focus target, unsent input, disclosures, and graph exploration trail are client
 presentation state. Project/profile identity, snapshots, typed objects, Work,
@@ -544,9 +544,10 @@ The normal response order is: conclusion or direct answer; basis; material
 limits and uncertainty; what changed when comparison was requested; and one
 useful next action. Prose is editorial rather than a stack of chat bubbles. It
 uses inspectable references and distinguishes source report, extraction,
-profile-valid inference, author judgment, Petra judgment, recommendation,
-question, and action. Petra may expose a concise plan, chosen tools, validation
-results, and decision rationale; it does not expose private chain-of-thought.
+profile-valid inference, author judgment, named model or Work output,
+recommendation, question, and action. Petra may expose a concise plan, chosen
+tools, validation results, and decision rationale; it does not expose private
+chain-of-thought or present the product as the content author.
 
 Current, cached, streaming, partial, and newly completed material remain
 visually and linguistically distinct. Stopping a response preserves the text
@@ -1439,6 +1440,558 @@ a newer source revision with affected dependents, offline and unavailable
 content, Project removal, an eligible local-copy deletion with receipt, and a
 retention-blocked deletion. Neither scenario may use contextual demo material.
 
+## `DB09` — basis, candidates, and review
+
+`DB09` defines how natural author interaction becomes inspectable working
+structure and how an accountable Project decision crosses into authoritative
+state. Review is a calm decision workspace, not an evidence inbox, a model
+transcript, a graph-editing form, or a queue of every object the system has
+noticed.
+
+### Product role and completion condition
+
+The Project author needs to understand five things at a commitment boundary:
+
+1. what exact candidate, finding, or prior change is under review;
+2. who or what produced it and through which task, interaction, or Work;
+3. which exact basis supports, constrains, qualifies, or conflicts with it;
+4. what authoritative and dependent state would change; and
+5. which decisions are available to the responsible author.
+
+Review begins when an accountable decision is required, not whenever
+information is generated. It is complete when the exact candidate and basis
+have a durable outcome; any authoritative change has passed through the
+applicable validation, approval, command, event, and projection boundaries;
+the author understands a partial, stale, blocked, or failed outcome; and the
+originating task has an exact return path.
+
+The application Petra is not the producer, proposer, believer, or decision
+maker. A candidate may originate with an author, a named model role, a Work
+run, an extraction or import, or another registered producer. A validator may
+produce a finding. The interface attributes each record to its actual origin
+and never assigns authorship or judgment to the product shell.
+
+### Shared semantic and authority model
+
+| Concept | Required meaning | Must not imply |
+| --- | --- | --- |
+| Working graph | Durable, task-linked, non-authoritative structured interpretation derived from conversation, Work, and direct author changes | Trusted or accepted Project state merely because an object or edge is visible |
+| Candidate | One exact version of profile-valid content or structure produced by an identified origin | A request for authority, an accepted truth, or a product-authored opinion |
+| Proposal | The technical record that asks to make one candidate or exact group eligible for governed change | That Petra itself proposed the content or that approval already exists |
+| Validation finding | A versioned evaluation of an exact candidate against an applicable rule or constraint | Truth, authorship, approval, or an independent change request |
+| Basis | Exact material used to support, qualify, conflict with, or constrain the candidate | A generic citation list, provenance, completeness, or endorsement |
+| Provenance | How, when, and by whom the candidate, basis link, validation, or change was produced | Evidentiary support merely because processing occurred |
+| Review session | A durable, task-sized decision context bound to exact candidates, findings, origins, and a Project snapshot | One large transaction or a second conversation thread |
+| Changes to apply | The human-facing preview of one exact `ChangeSet` or a disclosed set of independently atomic ChangeSets | Authority before application or hidden operations outside the preview |
+| Decision | An authenticated, capability-checked disposition of the exact review revision | Permission inferred from selection, conversational assent, Work completion, or model confidence |
+| Projection | A derived representation of committed events at a named position | The source of command authority or proof that a command failed |
+
+The profile owns domain object types, predicates, validators, constraints, and
+user-facing object names. The shared kernel owns candidate identity and
+revision, basis and provenance roles, review and decision identity, ChangeSet
+and command boundaries, additive events, projection status, and recovery.
+
+### Natural conversation and the working graph
+
+Natural conversation is the primary capture and correction interface. The
+active model translates bounded conversational steps into typed candidates,
+relationships, basis links, provenance, uncertainty, and validation inputs.
+The author does not have to populate graph fields, choose predicates, classify
+every object, or confirm each inferred structure.
+
+```text
+Natural conversation or bounded Work
+  -> identified model or worker output
+  -> profile-valid working candidates and relationships
+  -> exact basis, provenance, uncertainty, and validation links
+  -> durable non-authoritative working graph
+  -> optional graph or textual inspection
+  -> accountable review only when authority would change
+```
+
+Conversational correction creates a new candidate revision and preserves the
+prior lineage. For example, changing the scope, dependency, relationship,
+source stance, constraint, or basis revises the working structure and reruns
+applicable validation. The model may ask for clarification only when ambiguity
+materially changes the interpretation, blocks useful work, or reaches an
+authority boundary.
+
+The working graph survives closing, detaching, and reconnecting to its Project
+task, subject to the accepted thread, privacy, retention, and profile
+contracts. It remains distinct from the authoritative graph. A model, browser
+component, graph renderer, or conversation transcript cannot promote its
+contents by projection or visibility.
+
+During ordinary work, this semantic machinery is quiet. Graph controls may
+expose working, authoritative, and historical layers; exact basis and
+provenance; validation state; uncertainty; exclusions; and affected paths when
+the author chooses to inspect them. A textual peer view exposes the same facts.
+At an authority boundary, the concise material change and consequence remain
+visible even if the author never opens graph inspection.
+
+### Relationship and operation exposure
+
+The specification maps relationships and operations before mapping them to
+components:
+
+```text
+Conversation or Work
+  -> produces Candidate
+Candidate
+  -> grounded in or constrained by Basis
+  -> evaluated by Validation finding
+  -> grouped into Review session
+Eligible reviewed candidate
+  -> compiled as ChangeSet
+ChangeSet
+  -> authorized by Decision
+  -> emits Domain events
+Domain events
+  -> projected into authoritative graph and peer views
+Later Revert
+  -> compensates the original ChangeSet without deleting it
+```
+
+| Exposure class | Operations | Presentation rule |
+| --- | --- | --- |
+| Automatic | Structure bounded conversation, bind candidate origin, link basis, run mechanical validation, update working graph | Do not interrupt or require graph controls; retain inspectable records |
+| Inspect-only | Exact revisions, hashes, graph edges, model or tool provenance, validator details, omissions, projection position | Reveal through graph controls, Details, or a textual report; do not make routine task furniture |
+| Contextual | Inspect basis, compare, refresh, edit candidate, change basis, separate changes, open affected dependencies | Offer only when the current object and state make the operation meaningful |
+| Explicit commitment | Apply, reject, decide later, and Revert | Use a structured Review checkpoint bound to exact records; never infer from ordinary conversation |
+| Prohibited | Implicit approval, graph-selection authority, silent partial application, history overwrite, validator self-promotion | Fail closed and explain the safe recovery path |
+
+Every post-freeze interaction specification records the producer or actor,
+source and target objects, preconditions, authority level, trigger, result,
+failure and recovery, reversibility, visibility, accessible alternative, and
+runtime contract or `UX-REQ` disposition. An internal operation does not earn a
+button merely because it exists.
+
+### Basis and provenance
+
+Basis is the exact material used to warrant or constrain the item under review.
+Depending on the active profile, it may include source locations, accepted
+graph objects and relationships, governing requirements, prior revisions,
+dependencies, results, or applicable policies and constraints. The profile may
+label these accurately as **Evidence**, **Constraints**, **Prior revision**, or
+**Dependencies** while preserving the shared basis role.
+
+Basis and provenance remain separate:
+
+- basis answers why the candidate may be warranted or limited;
+- provenance answers how, when, and by whom it was produced.
+
+The default decision view shows the principal basis, material counter-basis or
+limitation, origin, and affected scope. Exact inspection adds object and source
+revisions, resolvable source locations, lineage, included and excluded context,
+validator details, and technical identifiers. Missing, inaccessible, partial,
+preview-only, conflicting, or indirect basis is stated rather than smoothed
+into a confident summary.
+
+Changing material basis creates a new candidate or proposal revision,
+invalidates any prior approval or Changes-to-apply preview, and reruns affected
+validation. A source does not support a candidate merely because it was
+processed, retrieved, or linked.
+
+### Review boundary and session architecture
+
+The following do not enter Review merely because they exist:
+
+- a read-only answer;
+- an exploratory graph state;
+- a Work result retained as an artifact;
+- a validation finding that requires no accountable disposition;
+- a working candidate not yet intended to change governed state; or
+- selection, navigation, expansion, filtering, or layout state.
+
+Review is required when the next step would promote working material, revise or
+remove authoritative state, accept a governed relationship, resolve a material
+conflict through a state change, promote an exact output revision, or Revert an
+applied change. A material finding may enter Review when it requires a durable
+decision, but the finding remains an evaluation rather than becoming a
+candidate mutation by itself.
+
+Petra has one canonical Review place. Each Review session is bound to one task,
+objective, responsible decision-maker, Project snapshot, exact candidates and
+findings, origin, and return context. It may appear as a compact structured
+checkpoint beside a simple task, a focus workspace for comparison or
+correction, or the main Review route for several candidates, conflicts, and
+history. These are synchronized presentations of the same records, not separate
+approval systems.
+
+The main Review route uses three quiet groups: **Needs your decision**,
+**Waiting**, and **Completed**. Counts represent decisions rather than every
+candidate, graph object, or validator result. Review sessions keep ordinary
+members inside their task context instead of flooding a global queue. Leaving a
+presentation preserves the session, candidate revision, comparison, focus,
+composer draft, selection, and exact return origin.
+
+### Comparison grammar and information hierarchy
+
+Every profile uses the same semantic comparison positions without forcing its
+objects into a generic card, graph shape, or text diff:
+
+1. **Current** — the authoritative state, if one exists;
+2. **Candidate** — the exact version under review;
+3. **Origin** — the author, named model role, Work, extraction, or import that
+   produced it;
+4. **Basis** — supporting, qualifying, conflicting, missing, and constraining
+   material;
+5. **Difference** — the material meaning, structure, scope, or status change;
+6. **Consequences** — affected authority, dependencies, outputs, rights, and
+   projections; and
+7. **Decision** — the exact available dispositions and their effects.
+
+A new object renders **No accepted version** for Current. A correction compares
+the accepted and candidate revisions. A reversal compares **Current accepted
+state** with **State after reversal**. Scientific profiles may compare Claims,
+relationships, scopes, and source locations; controlled-writing profiles may
+compare passages, constraints, accepted revisions, and dependent sections.
+Their renderers differ while their identity, authority, and control grammar
+does not.
+
+The default view shows material differences, limitations, exceptions, and the
+smallest basis adequate for the decision. Unchanged context, complete member
+lists, graph structure, provenance chains, and technical identifiers remain
+available without dominating the task.
+
+### Validation and exception-led review
+
+Validation runs against exact candidate, profile, basis, rule, and snapshot
+revisions. Its results have three presentation outcomes:
+
+| Outcome | Meaning | User interruption |
+| --- | --- | --- |
+| Resolved automatically | A mechanical structure, normalization, reference, or schema issue was corrected without changing substantive meaning | No interruption; correction remains inspectable |
+| Needs judgment | Ambiguity, conflicting interpretation, uncertain identity, limited basis, disputed relationship, or another question requires author responsibility | Lead the Review session with the decision and relevant basis |
+| Blocks commitment | Invalid reference, missing authority, stale revision, rights restriction, failed invariant, or unsafe ChangeSet prevents application | Disable commitment, explain the exact block, and offer a bounded recovery |
+
+The model may repair structure but not meaning or authority. It cannot silently
+change source stance, choose among materially different interpretations,
+resolve a substantive conflict, broaden scope, or assign authority.
+
+Exception-led review begins with a truthful summary such as **2 decisions need
+your attention; 10 other candidates passed the applicable checks**. It opens on
+the first unresolved exception. Ordinary members may be collapsed, but their
+count, identity, applicable checks, and full inspection path remain available.
+“Passed” means only that the applicable validations succeeded; it does not mean
+true, correct, complete, approved, or supported beyond the stated basis.
+
+### Model interaction during Review
+
+The active task model remains available for natural explanation and correction.
+The author may ask why a relationship was inferred, request the exact source,
+change scope or basis, exclude a constraint, separate changes, inspect
+dependencies, or compare with the accepted version. The model responds against
+the exact Review snapshot rather than silently substituting current state.
+
+Every response distinguishes:
+
+- **Explanation only** — no working or authoritative state changed;
+- **Working candidate updated** — a new non-authoritative revision exists;
+- **Changes to apply updated** — the exact commitment preview was rebuilt; or
+- **Unable to proceed** — named clarification, capability, basis, or recovery
+  is required.
+
+Review continues the same durable task thread. It does not create a generic
+second chat. Direct and model-mediated corrections resolve to the same
+candidate identities, revision lineage, validation, Review session, and
+command path.
+
+Conversational phrases such as “yes,” “looks good,” or “continue” never apply a
+change by themselves. Conversation may prepare an intended disposition, but
+authorization occurs only through the active structured Review checkpoint with
+the exact material consequence visible.
+
+### Changes to apply and decision actions
+
+A Review session may begin before any `ChangeSet` exists. When candidates are
+commitment-ready, the command layer compiles the exact Changes-to-apply preview
+from the current authoritative snapshot. The preview identifies every create,
+revise, supersede, retract, relink, dependency effect, unchanged protected
+object, validation result, capability requirement, and expected projection
+consequence that is material to the author.
+
+The ordinary user language is:
+
+| Control | Exact behavior |
+| --- | --- |
+| **Apply _n_ changes** | Approve and apply the one exact displayed ChangeSet; the supporting record retains the distinct submit, approval, and apply facts |
+| **Apply _n_ reviewed changes** | Submit the disclosed set of independently atomic ChangeSets with member-level outcomes |
+| **Reject candidate** | Record rejection of the exact candidate or proposed change; retain its content, origin, basis, and decision; apply nothing |
+| **Decide later** | Keep the session pending with an optional reason or revisit time; confer no approval and revalidate when reopened |
+| **Edit candidate** | Return to natural correction or an accessible direct editor and create a new candidate revision |
+| **Change basis** | Revise exact basis relationships, create a new candidate or proposal revision where material, and rerun validation |
+| **Separate changes** | Create independently reviewable candidates or ChangeSets; never silently split a semantic unit |
+| **Prepare reversal** | Build an exact compensation preview for an eligible applied change |
+| **Revert change** | Approve and apply the exact compensating ChangeSet while retaining the original decision and events |
+
+The interface does not require separate ordinary **Approve** and **Apply**
+gestures when one direct, explicit application action can record both facts for
+the exact ChangeSet. A policy may require an additional responsible person or
+approval stage, but the interface names that requirement and does not add an
+unexplained duplicate confirmation.
+
+### ChangeSet and Review-session atomicity
+
+A `ChangeSet` is the smallest semantic unit whose operations must apply and
+reverse together. It never partially applies. A Review session or accepted
+`ReviewBatch` may group several independently atomic ChangeSets and is not one
+large database transaction.
+
+Before a multi-ChangeSet action, known stale, blocked, ineligible, or conflicted
+members are identified and require refresh, resolution, exclusion, or explicit
+separation. The preview states whether the visible changes form one atomic
+ChangeSet or several independent ChangeSets. A group selection is never itself
+approval.
+
+An independent member may still fail after submission while other members
+apply. That is a partial Review-session outcome, not a partially applied
+ChangeSet. The interface preserves every successful result, identifies the
+exact failed and unapplied members, states that the session is only partly
+complete, and offers member-specific retry, refresh, correction, separation,
+or deferment. It never reports the entire group as applied.
+
+### Stale state, conflict, application, and projection
+
+A Review revision is bound to exact Project, profile, candidate, basis,
+validator, policy, dependency, and authoritative snapshot revisions. If a
+material input changes while Review is open:
+
+- commitment becomes unavailable;
+- the old comparison remains inspectable as historical state;
+- the interface states what changed in profile-accurate language;
+- **Refresh review** creates a new Review and Changes-to-apply revision; and
+- the earlier revision remains superseded rather than overwritten.
+
+Conflict reasons distinguish changed basis, changed candidate, changed target,
+authority or rights changes, dependency changes, another applied ChangeSet, and
+validator or governing-constraint changes.
+
+After authoritative application, the decision is recorded once. If graph or
+another projection is behind, the state reads **Applied—updating views** and
+the author may return to the originating task without waiting. The same action
+cannot be submitted again. A projection failure is a synchronization problem,
+not a failed decision, and views that require a falsely current projection fail
+closed.
+
+If application itself fails, nothing is presented as applied for that
+ChangeSet. Retry is available only when the exact command is idempotent and
+still valid; otherwise Review must refresh against current state.
+
+### Working recovery, navigation history, and Revert
+
+Three recovery mechanisms remain linguistically and operationally distinct:
+
+| Mechanism | Scope | Authority effect |
+| --- | --- | --- |
+| **Back/Forward in graph** | Up to 10 recent exploration states including task scope, depth, expansion, filters, layout, viewport, time position, and selection | None; presentation only |
+| **Restore working revision** | A prior non-authoritative candidate or composition revision | Creates or selects working lineage; does not change accepted state |
+| **Revert change** | An eligible applied authoritative change | Appends a validated compensating ChangeSet, decision, commands, and events |
+
+A reversal Review shows the current accepted state, expected state after
+reversal, original decision being compensated, affected dependencies and
+outputs, irreversible consequences, and projection effects. Ineligible or
+unsafe reversal explains why and offers a bounded split, refresh, corrective
+forward change, or full-history path.
+
+**Recent changes** is a convenience window over the 10 most recent eligible
+author-visible Project changes, not an event-retention rule. Full authoritative
+history remains durable. Multi-change compensation must preserve the accepted
+independently atomic ChangeSet boundaries.
+
+### Required state and recovery matrix
+
+| State | What the author sees | Required path |
+| --- | --- | --- |
+| No accountable decision | No artificial Review task; recent completed decisions may remain inspectable | Return to the originating task |
+| Working | Origin and quiet indication that non-authoritative structure is being updated | Continue naturally or inspect working graph |
+| Preparing | Candidates or validation are incomplete; authority has not changed | Continue, wait, detach, stop the response, or cancel applicable Work |
+| Needs decision | Exact candidate, origin, principal basis, material difference, consequence, and available decisions | Explain, correct, inspect, defer, reject, or prepare Changes to apply |
+| Needs judgment | One or more material exceptions lead; ordinary members remain countable and inspectable | Resolve conversationally or through accessible direct controls |
+| Blocked | Exact failed prerequisite and responsible boundary | Supply permitted input, narrow, refresh, request capability, correct, defer, or stop |
+| Deferred | No approval; original snapshot and optional rationale retained | Reopen and revalidate before commitment |
+| Stale or conflicted | Historical preview retained; changed inputs and unsafe action identified | Refresh, compare, separate, correct, or defer |
+| Applying | Exact command is in flight; repeat submission unavailable | Wait, detach where safe, or inspect command status |
+| Partly completed session | Per-ChangeSet applied, rejected, failed, and unapplied outcomes | Retry valid members, refresh stale members, correct, separate, or defer |
+| Applied—updating views | Authority committed; named projections are behind | Return, inspect authoritative text, wait, or retry projection |
+| Applied and current | Decision, resulting revisions, projection position, and return origin | Continue task, inspect History, or prepare eligible Revert |
+| Rejected | Exact candidate and rejection retained; no application | Return, create a new candidate, or inspect history |
+| Superseded | Newer candidate or Review revision identified | Open current revision or retain historical comparison |
+| Failed | Authority effect stated precisely; submitted input and safe records retained | Retry exact idempotent command, refresh, or use named no-path recovery |
+| Offline or unauthorized | Available cached facts, age, missing capability, and unsafe actions identified | Continue read-only where valid, reconnect, request/narrow capability, or defer |
+
+### Profile adaptation
+
+The shared interface uses profile-owned object and relationship names rather
+than exposing **Candidate** everywhere. A scientific Project may name a Claim,
+EvidenceRelation, scope interpretation, or source extraction. A
+controlled-writing Project may name a passage revision, constraint,
+dependency, or continuity finding. The shared control meanings and authority
+path do not change.
+
+Profile renderers fill the Current, Candidate, Origin, Basis, Difference,
+Consequences, and Decision roles. A profile cannot relabel an unsupported
+generic record into domain validity, allow its validator to approve its own
+output, inject client code, create a parallel Review lifecycle, or redefine
+Apply, Reject, Decide later, Revert, authority, provenance, and history.
+
+### Responsive and accessibility contract
+
+Review has one logical reading order independent of its visual columns:
+identity and status, candidate, origin, basis, difference, validation,
+consequences, and decisions. A wide presentation may compare Current and
+Candidate side by side while keeping basis or graph inspection contextual. A
+narrow or zoomed presentation stacks the same sequence and keeps the material
+consequence before its commitment action.
+
+Every Review path provides:
+
+- complete textual parity for graph objects, relationships, basis, differences,
+  and consequences;
+- keyboard access to members, exceptions, inspection, correction, decisions,
+  and return;
+- stable headings, names, counts, and table or list semantics for assistive
+  technology;
+- explicit focus entry, focus preservation during refresh, and focus return
+  after correction, decision, or navigation;
+- live status announcements that do not steal focus or repeat streamed detail;
+- no meaning carried only by color, shape, geometry, position, hover, drag, or
+  animation;
+- non-drag alternatives for relink, separation, ordering, and dependency
+  inspection;
+- target sizes, panel resizing, text scaling, forced-colors behavior, and
+  reduced motion consistent with the shared design system; and
+- no preselected approval, hidden primary consequence, countdown pressure, or
+  optimistic success before authority commits.
+
+The graph is never required to complete Review. Graph inspection is an
+optional, synchronized explanation of the same records.
+
+### Language contract
+
+User-facing language names the real object and origin. Prefer **Produced by
+Source-processing work**, **Generated by the active model role**, **Edited by
+you**, **Changes to apply**, **Needs your decision**, **Change basis**,
+**Separate changes**, **Decide later**, and **Applied—updating views**.
+
+Do not write **Petra proposes**, **Petra believes**, **Petra decided**, **Petra
+knows**, or **Petra's judgment**. Petra is the product and control environment,
+not the content origin or authority actor. A conversational model may explain
+its own bounded output, but the interface retains the named model role, Work,
+interaction, basis, and authority state behind that language.
+
+**Proposal**, `ChangeSet`, revision hashes, schema names, command envelopes,
+and projection checkpoints are inspectable technical terms. They do not replace
+profile-accurate object names or consequence-led controls in the ordinary
+interface.
+
+### Authority, data, and backend needs
+
+Current M1.5 contracts already provide scientific evidence candidates and
+admission, a source-grounded evidence ReviewBatch view, exact ChangeSets and
+Approvals, direct accept and reject command plans, human correction lineage,
+independently atomic batch execution, compensating reversal, and projection
+events. The durable AG-UI review interrupt binds accept or reject to exact
+InteractionRun, interrupt, and ChangeSet revisions and does not let the client
+assert actor, capability, Approval, command, or graph authority. DB09 does not
+add fields to that protocol response.
+
+Current M1.6 ContextPacket, EvidencePacket, model-call, and validation records
+can identify the exact bounded basis used by a model role. They do not by
+themselves define a durable, profile-neutral conversation-derived working graph
+or the complete Project Review read and command surface.
+
+The remaining implementation needs are:
+
+- `UX-REQ-004` for registered profile-owned objects, predicates, validators,
+  and language;
+- `UX-REQ-006` for durable Project task threads and exact per-turn context;
+- `UX-REQ-007` for the recent-ten change view and complete governed reversal
+  planning;
+- `UX-REQ-008` for stable origin and return destinations;
+- `UX-REQ-011` for durable, profile-valid, non-authoritative working candidates
+  and relationship overlays derived from bounded interactions; and
+- `UX-REQ-012` for a snapshot-consistent, profile-neutral Review-session read
+  model and the missing correction, basis-change, separation, deferment, and
+  member-outcome command composition.
+
+These requests must reuse existing candidate, Artifact, Work, InteractionRun,
+ChangeSet, Approval, event, projection, and idempotency contracts wherever they
+already supply the required meaning. A browser view model cannot calculate
+authority, promotion eligibility, basis sufficiency, validator force,
+ChangeSet consequences, conflict, or reversal eligibility.
+
+### Nielsen and dangerous-misunderstanding audit
+
+| Heuristic | DB09 resolution |
+| --- | --- |
+| Visibility of system status | Working, authoritative, validation, decision, application, and projection states remain distinct |
+| Match with the real world | Profile object names, producer attribution, basis, differences, consequences, and direct decision verbs replace graph and protocol jargon |
+| User control and freedom | Natural correction, inspection, deferment, rejection, separation, refresh, return, working restoration, and governed Revert have bounded meanings |
+| Consistency and standards | Every entry uses one Review identity, comparison grammar, decision path, and additive history model |
+| Error prevention | Exact snapshot, basis limits, validation, atomic boundary, dependencies, and authority consequences precede commitment |
+| Recognition rather than recall | Origin, current state, candidate, principal basis, exception count, and return context remain present |
+| Flexibility and efficiency | Conversation handles ordinary structuring and correction; exception-led sessions, direct controls, and keyboard paths support deliberate review |
+| Aesthetic and minimalist design | One decision leads, ordinary members collapse without disappearing, and technical graph structure remains optional |
+| Error recovery | Stale previews, member failures, projection lag, rejected and superseded revisions, and Revert preserve exact records and bounded recovery |
+| Help and documentation | Basis, validation force, atomicity, authority, projection, deferment, and reversal consequences are explained in context |
+
+The design fails acceptance if an author could reasonably believe that visible
+working graph content is accepted, Petra authored or endorsed a candidate, a
+validator established truth, processing established support, a batch is one
+transaction when it contains independent ChangeSets, ordinary conversation
+approved a change, Work completion applied a result, selection granted
+authority, rejection deleted a candidate, deferment approved it, correction
+overwrote lineage, Revert erased history, projection lag meant the decision
+failed, or a partly completed session wholly succeeded.
+
+### Acceptance criteria and post-freeze conformance evidence
+
+`DB09` is accepted at specification depth when:
+
+1. natural conversation and Work may create durable profile-valid working
+   candidates and relationships without requiring graph entry or changing
+   authoritative state;
+2. every candidate, basis link, finding, review, and decision names its actual
+   producer or actor rather than attributing authorship to Petra;
+3. basis and provenance remain distinct, exact, revision-bound, limitation-aware,
+   and inspectable in graph and textual forms;
+4. Review begins at an accountable decision rather than every generated object
+   or result;
+5. one Review identity supports contextual, focus, and main-route
+   presentations with exact origin and return;
+6. Current, Candidate, Origin, Basis, Difference, Consequences, and Decision
+   roles support radically different profile objects without semantic aliases;
+7. validation distinguishes automatic structural repair, author judgment, and
+   commitment-blocking failure without implying truth or authority;
+8. exceptions lead without hiding ordinary members, applicable checks, counts,
+   or full inspection;
+9. conversational correction creates new working revisions while structured
+   commitment remains explicit and cannot be inferred from chat;
+10. the human Changes-to-apply preview matches the exact ChangeSet operations,
+    snapshot, dependencies, validation, and atomic boundary;
+11. Apply, Reject candidate, Decide later, Edit candidate, Change basis,
+    Separate changes, Prepare reversal, and Revert change retain their distinct
+    authority and history effects;
+12. one ChangeSet is atomic while a multi-ChangeSet Review session exposes
+    independent member outcomes and never hides partial completion;
+13. stale, conflicted, blocked, failed, deferred, superseded, projection-pending,
+    and partly completed states preserve exact recovery;
+14. graph navigation, working-revision restoration, and authoritative Revert
+    cannot be confused; and
+15. narrow, zoomed, keyboard, screen-reader, touch, resized-panel, reduced-motion,
+    forced-colors, non-graph, and non-color paths preserve the complete decision.
+
+After design freeze, `UX-FX23` must pair two independently invented Project
+profiles in natural task conversations. Each creates and revises a durable
+working graph, attributes author, model-role, and Work origins correctly,
+supports optional graph and textual inspection, exposes ordinary and exception
+members, corrects meaning and basis conversationally, prepares exact Changes to
+apply, applies one atomic ChangeSet, produces one partial multi-ChangeSet
+session outcome, refreshes a stale Review, reports projection lag, and Reverts
+an eligible change. It must not copy or structurally derive from either future
+contextual demo.
+
 ## `UX-DESIGN-FREEZE-01`
 
 The product design may freeze only when:
@@ -1501,9 +2054,9 @@ or default behavior.
 
 The next work remains specification, not demo production:
 
-1. carry accepted `DB04`–`DB08` through their recorded backend dispositions without implementing a product surface;
-2. design `DB09`, basis, proposals, and review, as the next discussion-first section;
-3. design `DB10`–`DB13` module by module through the discussion-first loop;
+1. carry accepted `DB04`–`DB09` through their recorded backend dispositions without implementing a product surface;
+2. design `DB10`, graph and relationship work, as the next discussion-first section;
+3. design `DB11`–`DB13` module by module through the discussion-first loop;
 4. close the design system, language, accessibility, failure, and recovery specifications in `DB14`–`DB17`;
 5. assemble the complete screen, state, flow, and backend blueprint in `DB18`;
 6. review and explicitly record `UX-DESIGN-FREEZE-01`;
