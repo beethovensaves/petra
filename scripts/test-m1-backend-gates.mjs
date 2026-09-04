@@ -46,6 +46,12 @@ const stages = [
     command: ["npm", "run", "test:evidence-proposals:integration"],
     testGroups: ["M1.9-T07", "M1.9-T08"],
   },
+  {
+    id: "recovery",
+    label: "PostgreSQL and ArtifactStore restore with Neo4j rebuild",
+    command: ["npm", "run", "test:m1:recovery"],
+    testGroups: ["M1.9-T12"],
+  },
 ];
 
 const args = process.argv.slice(2);
@@ -78,7 +84,7 @@ if (listOnly) {
         schema_name: "petra.m1-backend-gate-matrix",
         revision: 1,
         stages: selected.map(publicStage),
-        remaining_m1_gate: ["M1.9-T12", "M1.9-DEMO-01..15"],
+        remaining_m1_gate: ["M1.9-DEMO-01..15"],
       },
       null,
       2,
@@ -128,7 +134,7 @@ console.log(
       covered_test_groups: [
         ...new Set(completed.flatMap((stage) => stage.testGroups)),
       ].sort(),
-      remaining_m1_gate: ["M1.9-T12", "M1.9-DEMO-01..15"],
+      remaining_m1_gate: ["M1.9-DEMO-01..15"],
       authority_boundary: {
         result_is_scientific_evidence: false,
         component_pass_does_not_complete_m1: true,

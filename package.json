@@ -54,6 +54,7 @@
     "test:integration": "node experiments/disc-04/run-integration.mjs",
     "test:m1:backend": "node scripts/test-m1-backend-gates.mjs",
     "test:m1:backend:list": "node scripts/test-m1-backend-gates.mjs --list",
+    "test:m1:recovery": "node scripts/test-m1-recovery-integration.mjs",
     "test:docling:integration": "node scripts/test-docling-integration.mjs",
     "test:codex-app-server:integration": "npm run build:packages && node scripts/test-codex-app-server-integration.mjs",
     "test:codex-synthesist:certification": "npm run build:packages && node experiments/model-certification/run-codex-synthesist.mjs",
@@ -73,6 +74,7 @@
     "services:reset": "docker compose --env-file .env -f infra/dev/compose.yaml down --volumes --remove-orphans"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "3.1124.0",
     "@eslint/js": "10.0.1",
     "@types/node": "24.13.3",
     "ajv": "8.20.0",
@@ -81,6 +83,7 @@
     "eslint": "10.9.1",
     "globals": "17.11.0",
     "json-canonicalize": "3.0.0",
+    "neo4j-driver": "6.2.0",
     "json-schema-to-typescript": "16.0.0",
     "node-pg-migrate": "9.0.0",
     "pg": "8.16.3",
