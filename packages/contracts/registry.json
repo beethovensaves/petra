@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.12.0",
+  "registry_version": "1.25.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -155,6 +155,126 @@
       "typescript_path": "src/generated/source-span.ts"
     },
     {
+      "name": "document-parse-bundle",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/document-parse-bundle/1.0.0/schema.json",
+      "path": "schemas/document-parse-bundle/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:331fea5e80f94d85f87887b5e37f424339cd6bc8d589a44785a3da1d8ee9e407",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/document-parse-bundle.ts"
+    },
+    {
+      "name": "evidence-proposal-bundle",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/evidence-proposal-bundle/1.0.0/schema.json",
+      "path": "schemas/evidence-proposal-bundle/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:0b454a89403ed8a600e3c79340b6f57263c7a01854dab9f3f5305e0e90da0115",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/evidence-proposal-bundle.ts"
+    },
+    {
+      "name": "model-extractor-output",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-extractor-output/1.0.0/schema.json",
+      "path": "schemas/model-extractor-output/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:a984faf6bf170124ce4b3ad036a5e395c8cadd766bb866794d34c45e602f5baa",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-extractor-output.ts"
+    },
+    {
+      "name": "model-synthesist-output",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-synthesist-output/1.0.0/schema.json",
+      "path": "schemas/model-synthesist-output/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:c9feeb397df01f2772c81c53fd2edadf7154c836a273df87a8e47806b500164b",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-synthesist-output.ts"
+    },
+    {
+      "name": "model-role-certification",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-role-certification/1.0.0/schema.json",
+      "path": "schemas/model-role-certification/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:e2cd665d5f92edfff000ea3498cea6114a02eb5e6bf1a2214acfc36893c63c12",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-role-certification.ts"
+    },
+    {
+      "name": "model-runtime-common",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-runtime-common/1.0.0/schema.json",
+      "path": "schemas/model-runtime-common/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-shared-model-runtime-definitions",
+      "canonical_sha256": "sha256:a3fb5bc936645c3830e340a8637d7535622467c17c9eab22f40e44fb1ac0ae9b",
+      "generate_typescript": false
+    },
+    {
+      "name": "model-role-certification",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/model-role-certification/1.1.0/schema.json",
+      "path": "schemas/model-role-certification/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "new-bounded-synthesist-role",
+      "canonical_sha256": "sha256:7bab65763e37fc2bec0b9fa64d178ae37e769882717a445bb2a5f0fb650a40f1",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-role-certification-v1-1.ts"
+    },
+    {
+      "name": "model-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-request/1.0.0/schema.json",
+      "path": "schemas/model-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:b8c531c9a198d48f95949345cfa5c045c99af16deccc3e4266b577df3c2ea6b1",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-request.ts"
+    },
+    {
+      "name": "model-request",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/model-request/1.1.0/schema.json",
+      "path": "schemas/model-request/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "new-bounded-synthesist-workflow",
+      "canonical_sha256": "sha256:4428141a074f28a35f3039b774f9039d9322feb14595e9b1fc3d3ee08520618a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-request-v1-1.ts"
+    },
+    {
+      "name": "model-call",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/model-call/1.0.0/schema.json",
+      "path": "schemas/model-call/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:6835d4a16a1876be8af9179d480c384773ee8419547ee186cbd872215e6ab37d",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-call.ts"
+    },
+    {
+      "name": "model-call",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/model-call/1.1.0/schema.json",
+      "path": "schemas/model-call/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "new-evidence-packet-synthesist-call",
+      "canonical_sha256": "sha256:95e3c4bf5b0d012874b499f2c5a30fd2daec6d252d509d1224ff9d6c00e8f946",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/model-call-v1-1.ts"
+    },
+    {
       "name": "claim",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/claim/1.0.0/schema.json",
@@ -188,6 +308,17 @@
       "typescript_path": "src/generated/change-set.ts"
     },
     {
+      "name": "change-set",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/change-set/1.1.0/schema.json",
+      "path": "schemas/change-set/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-compensating-reversal",
+      "canonical_sha256": "sha256:e8deaafc74d2ef3b89600b05bfcb89b72523ed5d6c13d50c463343c5a747de27",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/change-set-v1-1.ts"
+    },
+    {
       "name": "approval",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/approval/1.0.0/schema.json",
@@ -210,6 +341,17 @@
       "typescript_path": "src/generated/command-envelope.ts"
     },
     {
+      "name": "command-envelope",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/command-envelope/1.1.0/schema.json",
+      "path": "schemas/command-envelope/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-compensating-reversal",
+      "canonical_sha256": "sha256:45e7bfd33a9459decbcb5053592df7065bff231717899d1edc10060e82d7fbdb",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/command-envelope-v1-1.ts"
+    },
+    {
       "name": "domain-event",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/domain-event/1.0.0/schema.json",
@@ -221,6 +363,17 @@
       "typescript_path": "src/generated/domain-event.ts"
     },
     {
+      "name": "domain-event",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/domain-event/1.1.0/schema.json",
+      "path": "schemas/domain-event/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-compensating-reversal",
+      "canonical_sha256": "sha256:5e529e672e30d66ab97037c3a970745b1dc97475af58befc133ee82a2fa3a980",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/domain-event-v1-1.ts"
+    },
+    {
       "name": "outbox-record",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/outbox-record/1.0.0/schema.json",
@@ -230,6 +383,17 @@
       "canonical_sha256": "sha256:0624508f033cad177d8c8441515021a02f0a03f21a3f4782549aa52ffa662110",
       "generate_typescript": true,
       "typescript_path": "src/generated/outbox-record.ts"
+    },
+    {
+      "name": "outbox-record",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/outbox-record/1.1.0/schema.json",
+      "path": "schemas/outbox-record/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-compensating-reversal",
+      "canonical_sha256": "sha256:1178c17f3edb542543da5bf5cda1a62cf6eb42a5dbb6aea4a85e34e4dc6c847f",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/outbox-record-v1-1.ts"
     },
     {
       "name": "worker-input-manifest",
@@ -406,6 +570,17 @@
       "canonical_sha256": "sha256:ec69115ed7fd247c287d859e499eb73bc52538091d292e7a8b81f6a762bdb087",
       "generate_typescript": true,
       "typescript_path": "src/generated/interaction-interrupt.ts"
+    },
+    {
+      "name": "review-interrupt-response",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-interrupt-response/1.0.0/schema.json",
+      "path": "schemas/review-interrupt-response/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:81a8a6771e1e7155681741b024f94862bf0e4c1cb7b8ff737b2fcf14f2a20306",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-interrupt-response.ts"
     },
     {
       "name": "interaction-replay-record",

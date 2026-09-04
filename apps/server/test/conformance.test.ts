@@ -20,6 +20,11 @@ import { PetraInteractionRuntime } from "@petra/core";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import { startPetraServer, type PetraServer } from "../src/server.js";
+import {
+  REVIEW_FIXTURE_ACTOR,
+  REVIEW_FIXTURE_CAPABILITY,
+  createDurableReviewFixture,
+} from "./durable-review-fixture.js";
 
 const TOKEN = "petra-conformance-token";
 
@@ -184,7 +189,7 @@ describe("D014 Hono conformance", () => {
     );
   });
 
-  test("D014-HC04: replay and idempotent review preserve every identity", async () => {
+  test("D014-HC04: replay and review presentation preserve every identity", async () => {
     const traceId = "trace_hc04";
     const first = decodeSse(
       await (await rawRun(server, "run_hc04", { traceId })).text(),
@@ -230,25 +235,122 @@ describe("D014 Hono conformance", () => {
     if (reviewValue.event_name !== "petra.review.interrupt") {
       throw new Error("Expected a canonical Petra review interrupt event.");
     }
-    const command = {
-      commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FDZ",
-      interruptId: reviewValue.payload.interaction_interrupt_id,
-      runId: "run_hc04_review",
-      decision: "accept",
-    };
-    const sendReview = async (): Promise<Record<string, unknown>> =>
-      (
-        await fetch(`${server.url}/api/commands/reviews/resolve`, {
+    const finished = reviewEvents.find(
+      (event) => event.type === EventType.RUN_FINISHED,
+    );
+    expect(finished).toMatchObject({
+      outcome: {
+        type: "interrupt",
+        interrupts: [
+          {
+            id: reviewValue.payload.interaction_interrupt_id,
+            responseSchema: {
+              properties: {
+                decision: { enum: ["accept", "reject"] },
+              },
+            },
+          },
+        ],
+      },
+    });
+  });
+
+  test("M1.5-W16: AG-UI review resolution reaches the durable direct-review command", async () => {
+    const fixture = createDurableReviewFixture();
+    const reviewServer = await startPetraServer({
+      port: 0,
+      authToken: TOKEN,
+      runtime: fixture.runtime,
+      reviewAuthority: {
+        actor: REVIEW_FIXTURE_ACTOR,
+        capability_grant_id: REVIEW_FIXTURE_CAPABILITY,
+      },
+    });
+    try {
+      const client = new PetraInteractionClient({
+        endpoint: `${reviewServer.url}/api/interactions/run`,
+        token: TOKEN,
+        traceId: "trace_m15_w16",
+      });
+      const interaction = await client.run({
+        threadId: "thread-m1-fixture",
+        runId: "run-m1-fixture",
+        prompt: "Review the exact source-grounded proposal.",
+        fixtureMode: "review",
+      });
+      expect(interaction.pendingInterrupts).toEqual([
+        expect.objectContaining({
+          id: fixture.response.interrupt_ref.interaction_interrupt_id,
+          reason: "changeset_review",
+        }),
+      ]);
+
+      const staleResponse = structuredClone(fixture.response);
+      staleResponse.interrupt_ref.content_hash =
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+      const stale = await fetch(
+        `${reviewServer.url}/api/commands/reviews/resolve`,
+        {
           method: "POST",
           headers: {
             authorization: `Bearer ${TOKEN}`,
             "content-type": "application/json",
           },
-          body: JSON.stringify(command),
-        })
-      ).json() as Promise<Record<string, unknown>>;
-    expect((await sendReview()).applied).toBe(true);
-    expect((await sendReview()).applied).toBe(false);
+          body: JSON.stringify(staleResponse),
+        },
+      );
+      expect(stale.status).toBe(409);
+      expect(
+        fixture.evidence.getClaim(fixture.candidate.claim.claim_id)?.authority
+          .zone,
+      ).toBe("quarantine");
+
+      const first = await client.resolveReview(fixture.response);
+      const replay = await client.resolveReview(fixture.response);
+      expect(first).toMatchObject({
+        replayed: false,
+        response_recorded: true,
+        result: { outcome: "applied" },
+      });
+      expect(replay).toMatchObject({
+        replayed: true,
+        response_recorded: false,
+        result: { outcome: "applied" },
+      });
+      expect(
+        fixture.evidence.getClaim(fixture.candidate.claim.claim_id)?.authority
+          .zone,
+      ).toBe("trusted");
+
+      const malformed = await fetch(
+        `${reviewServer.url}/api/commands/reviews/resolve`,
+        {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${TOKEN}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ decision: "accept" }),
+        },
+      );
+      expect(malformed.status).toBe(422);
+
+      const unauthorized = await fetch(
+        `${reviewServer.url}/api/commands/reviews/resolve`,
+        {
+          method: "POST",
+          headers: {
+            authorization: "Bearer wrong",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(fixture.response),
+        },
+      );
+      expect(unauthorized.status).toBe(401);
+      expect(fixture.evidence.getEvents()).toHaveLength(3);
+    } finally {
+      await reviewServer.shutdown();
+    }
   });
 
   test("D014-HC05: security and validation reject before application work", async () => {

@@ -4,6 +4,7 @@
 - **Accepted:** 2026-08-28
 - **Scope:** Model and provider identity, bounded scientific roles, role certification, deterministic routing, egress, budgets, retries, fallbacks, call provenance, and Petra-language integration
 - **Depends on:** [D001](D001-local-first-runtime.md), [D002](D002-postgres-neo4j-artifacts.md), [D004](D004-docling-ingestion-and-claim-extraction.md), [D005](D005-trusted-graph-review-and-direct-editing.md), [D006](D006-petra-language-and-reference-contract.md)
+- **Extended by:** [D017](D017-codex-app-server-subscription-provider.md) for subscription-backed Codex agent work
 
 ## Decision
 
@@ -25,6 +26,18 @@ The first evidence-spine implementation supports four scientific model roles:
 Embedding and reranking deployments also use the gateway, but they are model tasks rather than scientific personas. Navigator, relation analyst, experimentalist, builder, and code-auditor roles are added only when their workflows and evaluations exist.
 
 The first router will be deterministic and inspectable. Exact provider and model assignments belong in versioned registry configuration and evaluation manifests, not in this decision document.
+
+### Initial mixed-provider implementation constraint
+
+The first non-fixture portfolio must exercise both model plurality and provider independence. It will contain at least two subscription-backed Codex model candidates and at least one locally executed open-weight deployment. All candidates enter through the same role, policy, validation, provenance, and authority contracts even when their provider adapters use different wire protocols.
+
+For the M1.5 extractor slice, every candidate runs the same versioned certification cases under comparable prompt, schema, context, and budget conditions. M1.5 closes only after at least one managed-ChatGPT Codex deployment and one local deployment earn active extractor certifications and produce valid quarantine proposals through the recorded gateway route. A candidate that fails remains registered with its observed result but cannot be activated for that role.
+
+The initial remote evaluation candidates are GPT-5.6 Luna and GPT-5.6 Terra as discovered from the active account's stable App Server `model/list` surface. The local benchmark began with `gpt-oss-20b`, then added Qwen2.5 and Qwen3.5 after observed role-certification failures. These are test targets rather than permanent role assignments. GPT-5.6 Sol remains a possible escalation candidate. The local development runtime is also test-before-lock: it must expose a bounded loopback adapter and cannot become part of the scientific contract.
+
+The local route is first-class. It supports E0 processing, offline continuity, provider-outage continuity, private-corpus work, reproducible comparison, and future controlled fine-tuning. Agreement between local and remote models is recorded as model comparison, never presented as independent scientific corroboration.
+
+D017 adds Codex App Server as the first subscription-backed remote provider for coding, agentic experimentation, and certification-gated scientific roles. It is not a general OpenAI API transport and does not satisfy the M1.5 remote extractor gate unless the exact model, prompt, schema, scope, permissions, and adapter route earn role certification. The local route remains required. The Responses API adapter is optional infrastructure for later metered Platform deployments and is not an M1 prerequisite.
 
 ## Context
 
@@ -327,7 +340,7 @@ D007 does not choose:
 - numerical certification thresholds before baseline evaluation;
 - a learned or LLM-based meta-router;
 - builder, vision, experimentalist, or other later role implementations;
-- a requirement for multiple model families in the minimum offline package;
+- a permanent local runtime or model family after the initial mixed-provider proof;
 - provider-specific prompt-caching or batch features as architectural dependencies;
 - end-to-end context compilation, graph fast paths, or job scheduling, which belong to D008.
 

@@ -1,14 +1,15 @@
 import { createHash, randomBytes } from "node:crypto";
 
 import type {
+  ChangeOperation as PetraChangeOperation,
+  ChangeOperationV110 as PetraChangeOperationV110,
   PetraApproval,
   PetraAssertion,
-  PetraChangeSet,
+  PetraChangeSetRecord,
   PetraClaim,
-  PetraCommand,
-  PetraCommandEnvelope,
-  PetraDomainEvent,
-  PetraOutboxRecord,
+  PetraCommandEnvelopeRecord,
+  PetraDomainEventRecord,
+  PetraOutboxRecordRecord,
 } from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
 
@@ -58,6 +59,8 @@ export type ChangeControlErrorCode =
   | "CHANGE_SET_PROJECT_MISMATCH"
   | "CHANGE_SET_PROPOSER_MISMATCH"
   | "CHANGE_SET_OPERATION_SET_INVALID"
+  | "CHANGE_SET_COMPENSATION_REQUIRED"
+  | "CHANGE_SET_COMPENSATION_INVALID"
   | "CHANGE_SET_TARGET_MISMATCH"
   | "CHANGE_SET_RISK_TIER_INVALID"
   | "APPROVAL_ACTOR_MISMATCH"
@@ -67,6 +70,7 @@ export type ChangeControlErrorCode =
   | "APPROVAL_CONDITIONS_UNSATISFIED"
   | "CHANGE_SET_NOT_REGISTERED"
   | "CHANGE_SET_ALREADY_APPLIED"
+  | "CHANGE_SET_ALREADY_REVERTED"
   | "STALE_TARGET_REVISION"
   | "TARGET_AUTHORITY_MISMATCH";
 
@@ -97,15 +101,29 @@ type EvidenceParsedDocument = {
   readonly work_version_id: string;
 };
 
+type ChangeOperation = PetraChangeOperation | PetraChangeOperationV110;
+
 type PromoteClaimChange = Extract<
-  PetraChangeSet["content"]["operations"][number],
+  ChangeOperation,
   { operation_kind: "promote_claim" }
 >;
 
 type PromoteAssertionChange = Extract<
-  PetraChangeSet["content"]["operations"][number],
+  ChangeOperation,
   { operation_kind: "promote_assertion" }
 >;
+
+type RetractClaimChange = Extract<
+  ChangeOperation,
+  { operation_kind: "retract_claim" }
+>;
+
+type RetractAssertionChange = Extract<
+  ChangeOperation,
+  { operation_kind: "retract_assertion" }
+>;
+
+type PetraCommandRecord = PetraCommandEnvelopeRecord["command"];
 
 export interface EvidenceSourceResolver {
   getSourceSpan(sourceSpanId: string): EvidenceSourceSpan | undefined;
@@ -114,10 +132,23 @@ export interface EvidenceSourceResolver {
   ): EvidenceParsedDocument | undefined;
 }
 
+type EvidenceClaimBasis =
+  | {
+      readonly basis_kind: "source";
+      readonly work_version_id: string;
+      readonly source_span_ids: readonly string[];
+    }
+  | { readonly basis_kind: "synthesis" | "researcher" };
+
+export interface EvidenceProposalResolver extends EvidenceSourceResolver {
+  getClaim(claimId: string): { readonly basis: EvidenceClaimBasis } | undefined;
+  getAssertion(assertionId: string): object | undefined;
+}
+
 export interface CommandAuthorizationRequest {
-  readonly actor: PetraCommandEnvelope["actor"];
+  readonly actor: PetraCommandEnvelopeRecord["actor"];
   readonly capabilityGrantId: string;
-  readonly commandName: PetraCommand["command_name"];
+  readonly commandName: PetraCommandRecord["command_name"];
   readonly projectId: string;
 }
 
@@ -131,7 +162,7 @@ export interface DomainRecordFactory {
 }
 
 export type ChangeSetDerivedState =
-  "submitted" | "approved" | "rejected" | "applied" | "conflicted";
+  "submitted" | "approved" | "rejected" | "applied" | "conflicted" | "reverted";
 
 export type ChangeControlCommandResult =
   | {
@@ -158,6 +189,19 @@ export type ChangeControlCommandResult =
       readonly assertion_id: string;
       readonly assertion_revision: number;
       readonly applied_at: string;
+    }
+  | {
+      readonly outcome: "reverted";
+      readonly command_id: string;
+      readonly change_set_id: string;
+      readonly change_set_state: "applied";
+      readonly compensates_change_set_id: string;
+      readonly approval_id: string;
+      readonly claim_id: string;
+      readonly claim_revision: number;
+      readonly assertion_id: string;
+      readonly assertion_revision: number;
+      readonly applied_at: string;
     };
 
 type StoredCommandExecution = {
@@ -176,7 +220,7 @@ type AuthorityTransactionSnapshot = {
   assertions: Map<string, DeepReadonly<PetraAssertion>>;
   claimHistory: Map<string, Map<number, DeepReadonly<PetraClaim>>>;
   assertionHistory: Map<string, Map<number, DeepReadonly<PetraAssertion>>>;
-  changeSets: Map<string, DeepReadonly<PetraChangeSet>>;
+  changeSets: Map<string, DeepReadonly<PetraChangeSetRecord>>;
   changeSetStates: Map<string, ChangeSetDerivedState>;
   approvals: Map<string, DeepReadonly<PetraApproval>>;
   appliedChangeSets: Set<string>;
@@ -240,8 +284,8 @@ const immutableCopy = <Value>(value: Value): DeepReadonly<Value> => {
 };
 
 const actorMatches = (
-  left: PetraCommandEnvelope["actor"],
-  right: PetraCommandEnvelope["actor"],
+  left: PetraCommandEnvelopeRecord["actor"],
+  right: PetraCommandEnvelopeRecord["actor"],
 ): boolean =>
   left.actor_id === right.actor_id && left.actor_kind === right.actor_kind;
 
@@ -315,6 +359,204 @@ const sourceSpanIds = (assertion: PetraAssertion): string[] =>
       : [],
   );
 
+/** Validate one initial Claim proposal without storing it. */
+export const validateClaimProposal = (
+  claim: PetraClaim,
+  resolver: EvidenceProposalResolver,
+): void => {
+  if (claim.authority.zone !== "quarantine") {
+    throw new EvidenceProposalError(
+      "CLAIM_PROPOSAL_NOT_QUARANTINED",
+      "Claims may enter the evidence registry only as quarantine proposals; promotion is a separate reviewed command.",
+    );
+  }
+  validateInitialRevision(claim.revision);
+  validateScopeAccounting(claim.scope);
+
+  if (claim.basis.basis_kind === "source") {
+    if (claim.normalization_status === "composed") {
+      throw new EvidenceProposalError(
+        "CLAIM_BASIS_MISMATCH",
+        "A source-derived Claim cannot be marked composed.",
+      );
+    }
+    for (const result of claim.basis.validator_results) {
+      if (result.outcome === "fail") {
+        throw new EvidenceProposalError(
+          "VALIDATOR_FAILED",
+          `Claim validator ${result.validator_name} failed with ${result.code}.`,
+        );
+      }
+    }
+    for (const sourceSpanId of claim.basis.source_span_ids) {
+      const span = resolver.getSourceSpan(sourceSpanId);
+      if (span === undefined) {
+        throw new EvidenceProposalError(
+          "SOURCE_SPAN_NOT_REGISTERED",
+          `SourceSpan ${sourceSpanId} is not registered.`,
+        );
+      }
+      if (span.verification.status === "unresolved") {
+        throw new EvidenceProposalError(
+          "SOURCE_SPAN_UNRESOLVED",
+          `SourceSpan ${sourceSpanId} is unresolved and cannot ground a Claim.`,
+        );
+      }
+      const document = resolver.getParsedDocument(span.parsed_document_id);
+      if (document?.work_version_id !== claim.basis.work_version_id) {
+        throw new EvidenceProposalError(
+          "SOURCE_WORK_VERSION_MISMATCH",
+          `SourceSpan ${sourceSpanId} does not belong to WorkVersion ${claim.basis.work_version_id}.`,
+        );
+      }
+    }
+    if (
+      claim.basis.source_scope === "abstract_only" &&
+      (claim.basis.detail_level !== "broad" ||
+        !ABSTRACT_ONLY_BROAD_CLAIM_KINDS.has(claim.claim_kind))
+    ) {
+      throw new EvidenceProposalError(
+        "ABSTRACT_SCOPE_VIOLATION",
+        "Abstract-only evidence may ground only broad descriptive, comparative, or theoretical Claims.",
+      );
+    }
+    return;
+  }
+
+  if (claim.normalization_status !== "composed") {
+    throw new EvidenceProposalError(
+      "CLAIM_BASIS_MISMATCH",
+      "A synthesized or researcher-proposed Claim must be marked composed.",
+    );
+  }
+  if (claim.basis.basis_kind === "synthesis") {
+    for (const claimId of claim.basis.basis_claim_ids) {
+      if (resolver.getClaim(claimId) === undefined) {
+        throw new EvidenceProposalError(
+          "BASIS_CLAIM_NOT_REGISTERED",
+          `Synthesis basis Claim ${claimId} is not registered.`,
+        );
+      }
+    }
+    for (const assertionId of claim.basis.basis_assertion_ids) {
+      if (resolver.getAssertion(assertionId) === undefined) {
+        throw new EvidenceProposalError(
+          "BASIS_ASSERTION_NOT_REGISTERED",
+          `Synthesis basis Assertion ${assertionId} is not registered.`,
+        );
+      }
+    }
+  }
+};
+
+/** Validate one initial Assertion proposal without storing it. */
+export const validateAssertionProposal = (
+  assertion: PetraAssertion,
+  resolver: EvidenceProposalResolver,
+): void => {
+  if (assertion.authority.zone !== "quarantine") {
+    throw new EvidenceProposalError(
+      "ASSERTION_PROPOSAL_NOT_QUARANTINED",
+      "Assertions may enter the evidence registry only as quarantine proposals; promotion is a separate reviewed command.",
+    );
+  }
+  validateInitialRevision(assertion.revision);
+  validateScopeAccounting(assertion.scope);
+
+  const spanIds = sourceSpanIds(assertion);
+  for (const spanId of spanIds) {
+    const span = resolver.getSourceSpan(spanId);
+    if (span === undefined) {
+      throw new EvidenceProposalError(
+        "SOURCE_SPAN_NOT_REGISTERED",
+        `Assertion SourceSpan ${spanId} is not registered.`,
+      );
+    }
+    if (span.verification.status === "unresolved") {
+      throw new EvidenceProposalError(
+        "SOURCE_SPAN_UNRESOLVED",
+        `Assertion SourceSpan ${spanId} is unresolved.`,
+      );
+    }
+  }
+  if (assertion.assertion_kind === "source_stated" && spanIds.length === 0) {
+    throw new EvidenceProposalError(
+      "ASSERTION_SOURCE_SPAN_REQUIRED",
+      "A source-stated Assertion must cite at least one exact SourceSpan.",
+    );
+  }
+
+  if (assertion.predicate === "ASSERTS") {
+    if (
+      petraIdKind(assertion.subject_id) !== "work_version" ||
+      assertion.object.object_kind !== "entity" ||
+      petraIdKind(assertion.object.entity_id) !== "claim"
+    ) {
+      throw new EvidenceProposalError(
+        "ASSERTS_ENDPOINT_MISMATCH",
+        "ASSERTS must connect a WorkVersion subject to a Claim object.",
+      );
+    }
+    if (
+      assertion.assertion_kind !== "source_stated" &&
+      assertion.assertion_kind !== "source_native"
+    ) {
+      throw new EvidenceProposalError(
+        "ASSERTS_KIND_MISMATCH",
+        "ASSERTS must be source-stated or source-native.",
+      );
+    }
+    const claim = resolver.getClaim(assertion.object.entity_id);
+    if (claim === undefined || claim.basis.basis_kind !== "source") {
+      throw new EvidenceProposalError(
+        "ASSERTS_ENDPOINT_MISMATCH",
+        "ASSERTS must target a registered source-derived Claim.",
+      );
+    }
+    const sourceBasis = claim.basis;
+    if (sourceBasis.work_version_id !== assertion.subject_id) {
+      throw new EvidenceProposalError(
+        "SOURCE_WORK_VERSION_MISMATCH",
+        "The ASSERTS subject must be the WorkVersion that grounds its Claim.",
+      );
+    }
+    if (
+      spanIds.length === 0 ||
+      spanIds.some((spanId) => !sourceBasis.source_span_ids.includes(spanId))
+    ) {
+      throw new EvidenceProposalError(
+        "ASSERTION_SOURCE_SPAN_NOT_IN_CLAIM",
+        "ASSERTS provenance must cite a SourceSpan that grounds the target Claim.",
+      );
+    }
+  }
+
+  if (
+    SCIENTIFIC_RELATION_PREDICATES.has(assertion.predicate) &&
+    assertion.scope_comparison === undefined
+  ) {
+    throw new EvidenceProposalError(
+      "SCIENTIFIC_RELATION_SCOPE_REQUIRED",
+      `${assertion.predicate} requires an explicit comparison of scientific scope.`,
+    );
+  }
+  if (
+    SCIENTIFIC_RELATION_PREDICATES.has(assertion.predicate) &&
+    !assertion.provenance_refs.some(
+      (provenance) =>
+        provenance.provenance_kind === "source_span" ||
+        provenance.provenance_kind === "structured_field" ||
+        (provenance.provenance_kind === "record" &&
+          ["run", "result", "analysis"].includes(provenance.role)),
+    )
+  ) {
+    throw new EvidenceProposalError(
+      "SCIENTIFIC_RELATION_PROVENANCE_REQUIRED",
+      `${assertion.predicate} requires exact source or experimental provenance.`,
+    );
+  }
+};
+
 export class InMemoryEvidenceRegistry {
   readonly #sourceResolver: EvidenceSourceResolver;
   readonly #commandAuthorizer: CommandAuthorizer;
@@ -329,14 +571,14 @@ export class InMemoryEvidenceRegistry {
     string,
     Map<number, DeepReadonly<PetraAssertion>>
   >();
-  readonly #changeSets = new Map<string, DeepReadonly<PetraChangeSet>>();
+  readonly #changeSets = new Map<string, DeepReadonly<PetraChangeSetRecord>>();
   readonly #changeSetStates = new Map<string, ChangeSetDerivedState>();
   readonly #approvals = new Map<string, DeepReadonly<PetraApproval>>();
   readonly #appliedChangeSets = new Set<string>();
   readonly #commandById = new Map<string, StoredCommandExecution>();
   readonly #commandByIdempotencyKey = new Map<string, StoredCommandExecution>();
-  readonly #events: DeepReadonly<PetraDomainEvent>[] = [];
-  readonly #outbox: DeepReadonly<PetraOutboxRecord>[] = [];
+  readonly #events: DeepReadonly<PetraDomainEventRecord>[] = [];
+  readonly #outbox: DeepReadonly<PetraOutboxRecordRecord>[] = [];
   readonly #projectStreamRevisions = new Map<string, number>();
   readonly #targetSequences = new Map<string, number>();
   #eventPosition = 0;
@@ -398,7 +640,9 @@ export class InMemoryEvidenceRegistry {
     return this.#assertionHistory.get(assertionId)?.get(revision);
   }
 
-  getChangeSet(changeSetId: string): DeepReadonly<PetraChangeSet> | undefined {
+  getChangeSet(
+    changeSetId: string,
+  ): DeepReadonly<PetraChangeSetRecord> | undefined {
     return this.#changeSets.get(changeSetId);
   }
 
@@ -410,13 +654,13 @@ export class InMemoryEvidenceRegistry {
     return this.#changeSetStates.get(changeSetId);
   }
 
-  getEvents(): readonly DeepReadonly<PetraDomainEvent>[] {
+  getEvents(): readonly DeepReadonly<PetraDomainEventRecord>[] {
     return Object.freeze([...this.#events]);
   }
 
   getOutboxRecords(
-    target?: PetraOutboxRecord["target"],
-  ): readonly DeepReadonly<PetraOutboxRecord>[] {
+    target?: PetraOutboxRecordRecord["target"],
+  ): readonly DeepReadonly<PetraOutboxRecordRecord>[] {
     return Object.freeze(
       target === undefined
         ? [...this.#outbox]
@@ -438,83 +682,7 @@ export class InMemoryEvidenceRegistry {
         `Claim ${claim.claim_id} is already proposed.`,
       );
     }
-    validateScopeAccounting(claim.scope);
-
-    if (claim.basis.basis_kind === "source") {
-      if (claim.normalization_status === "composed") {
-        throw new EvidenceProposalError(
-          "CLAIM_BASIS_MISMATCH",
-          "A source-derived Claim cannot be marked composed.",
-        );
-      }
-      for (const result of claim.basis.validator_results) {
-        if (result.outcome === "fail") {
-          throw new EvidenceProposalError(
-            "VALIDATOR_FAILED",
-            `Claim validator ${result.validator_name} failed with ${result.code}.`,
-          );
-        }
-      }
-      for (const sourceSpanId of claim.basis.source_span_ids) {
-        const span = this.#sourceResolver.getSourceSpan(sourceSpanId);
-        if (span === undefined) {
-          throw new EvidenceProposalError(
-            "SOURCE_SPAN_NOT_REGISTERED",
-            `SourceSpan ${sourceSpanId} is not registered.`,
-          );
-        }
-        if (span.verification.status === "unresolved") {
-          throw new EvidenceProposalError(
-            "SOURCE_SPAN_UNRESOLVED",
-            `SourceSpan ${sourceSpanId} is unresolved and cannot ground a Claim.`,
-          );
-        }
-        const document = this.#sourceResolver.getParsedDocument(
-          span.parsed_document_id,
-        );
-        if (document?.work_version_id !== claim.basis.work_version_id) {
-          throw new EvidenceProposalError(
-            "SOURCE_WORK_VERSION_MISMATCH",
-            `SourceSpan ${sourceSpanId} does not belong to WorkVersion ${claim.basis.work_version_id}.`,
-          );
-        }
-      }
-      if (
-        claim.basis.source_scope === "abstract_only" &&
-        (claim.basis.detail_level !== "broad" ||
-          !ABSTRACT_ONLY_BROAD_CLAIM_KINDS.has(claim.claim_kind))
-      ) {
-        throw new EvidenceProposalError(
-          "ABSTRACT_SCOPE_VIOLATION",
-          "Abstract-only evidence may ground only broad descriptive, comparative, or theoretical Claims.",
-        );
-      }
-    } else {
-      if (claim.normalization_status !== "composed") {
-        throw new EvidenceProposalError(
-          "CLAIM_BASIS_MISMATCH",
-          "A synthesized or researcher-proposed Claim must be marked composed.",
-        );
-      }
-      if (claim.basis.basis_kind === "synthesis") {
-        for (const claimId of claim.basis.basis_claim_ids) {
-          if (!this.#claims.has(claimId)) {
-            throw new EvidenceProposalError(
-              "BASIS_CLAIM_NOT_REGISTERED",
-              `Synthesis basis Claim ${claimId} is not registered.`,
-            );
-          }
-        }
-        for (const assertionId of claim.basis.basis_assertion_ids) {
-          if (!this.#assertions.has(assertionId)) {
-            throw new EvidenceProposalError(
-              "BASIS_ASSERTION_NOT_REGISTERED",
-              `Synthesis basis Assertion ${assertionId} is not registered.`,
-            );
-          }
-        }
-      }
-    }
+    validateClaimProposal(claim, this.#proposalResolver());
 
     const registered = immutableCopy(claim);
     this.#claims.set(claim.claim_id, registered);
@@ -536,100 +704,7 @@ export class InMemoryEvidenceRegistry {
         `Assertion ${assertion.assertion_id} is already proposed.`,
       );
     }
-    validateScopeAccounting(assertion.scope);
-
-    const spanIds = sourceSpanIds(assertion);
-    for (const spanId of spanIds) {
-      const span = this.#sourceResolver.getSourceSpan(spanId);
-      if (span === undefined) {
-        throw new EvidenceProposalError(
-          "SOURCE_SPAN_NOT_REGISTERED",
-          `Assertion SourceSpan ${spanId} is not registered.`,
-        );
-      }
-      if (span.verification.status === "unresolved") {
-        throw new EvidenceProposalError(
-          "SOURCE_SPAN_UNRESOLVED",
-          `Assertion SourceSpan ${spanId} is unresolved.`,
-        );
-      }
-    }
-    if (assertion.assertion_kind === "source_stated" && spanIds.length === 0) {
-      throw new EvidenceProposalError(
-        "ASSERTION_SOURCE_SPAN_REQUIRED",
-        "A source-stated Assertion must cite at least one exact SourceSpan.",
-      );
-    }
-
-    if (assertion.predicate === "ASSERTS") {
-      if (
-        petraIdKind(assertion.subject_id) !== "work_version" ||
-        assertion.object.object_kind !== "entity" ||
-        petraIdKind(assertion.object.entity_id) !== "claim"
-      ) {
-        throw new EvidenceProposalError(
-          "ASSERTS_ENDPOINT_MISMATCH",
-          "ASSERTS must connect a WorkVersion subject to a Claim object.",
-        );
-      }
-      if (
-        assertion.assertion_kind !== "source_stated" &&
-        assertion.assertion_kind !== "source_native"
-      ) {
-        throw new EvidenceProposalError(
-          "ASSERTS_KIND_MISMATCH",
-          "ASSERTS must be source-stated or source-native.",
-        );
-      }
-      const claim = this.#claims.get(assertion.object.entity_id);
-      if (claim === undefined || claim.basis.basis_kind !== "source") {
-        throw new EvidenceProposalError(
-          "ASSERTS_ENDPOINT_MISMATCH",
-          "ASSERTS must target a registered source-derived Claim.",
-        );
-      }
-      const sourceBasis = claim.basis;
-      if (sourceBasis.work_version_id !== assertion.subject_id) {
-        throw new EvidenceProposalError(
-          "SOURCE_WORK_VERSION_MISMATCH",
-          "The ASSERTS subject must be the WorkVersion that grounds its Claim.",
-        );
-      }
-      if (
-        spanIds.length === 0 ||
-        spanIds.some((spanId) => !sourceBasis.source_span_ids.includes(spanId))
-      ) {
-        throw new EvidenceProposalError(
-          "ASSERTION_SOURCE_SPAN_NOT_IN_CLAIM",
-          "ASSERTS provenance must cite a SourceSpan that grounds the target Claim.",
-        );
-      }
-    }
-
-    if (
-      SCIENTIFIC_RELATION_PREDICATES.has(assertion.predicate) &&
-      assertion.scope_comparison === undefined
-    ) {
-      throw new EvidenceProposalError(
-        "SCIENTIFIC_RELATION_SCOPE_REQUIRED",
-        `${assertion.predicate} requires an explicit comparison of scientific scope.`,
-      );
-    }
-    if (
-      SCIENTIFIC_RELATION_PREDICATES.has(assertion.predicate) &&
-      !assertion.provenance_refs.some(
-        (provenance) =>
-          provenance.provenance_kind === "source_span" ||
-          provenance.provenance_kind === "structured_field" ||
-          (provenance.provenance_kind === "record" &&
-            ["run", "result", "analysis"].includes(provenance.role)),
-      )
-    ) {
-      throw new EvidenceProposalError(
-        "SCIENTIFIC_RELATION_PROVENANCE_REQUIRED",
-        `${assertion.predicate} requires exact source or experimental provenance.`,
-      );
-    }
+    validateAssertionProposal(assertion, this.#proposalResolver());
 
     const registered = immutableCopy(assertion);
     this.#assertions.set(assertion.assertion_id, registered);
@@ -640,7 +715,38 @@ export class InMemoryEvidenceRegistry {
     return registered;
   }
 
-  executeCommand(envelope: PetraCommandEnvelope): ChangeControlCommandResult {
+  proposeEvidencePair(input: {
+    readonly claim: PetraClaim;
+    readonly assertion: PetraAssertion;
+  }): {
+    readonly claim: DeepReadonly<PetraClaim>;
+    readonly assertion: DeepReadonly<PetraAssertion>;
+  } {
+    const snapshot = this.#captureAuthorityTransaction();
+    try {
+      const claim = this.proposeClaim(input.claim);
+      const assertion = this.proposeAssertion(input.assertion);
+      return immutableCopy({ claim, assertion });
+    } catch (error) {
+      this.#restoreAuthorityTransaction(snapshot);
+      throw error;
+    }
+  }
+
+  #proposalResolver(): EvidenceProposalResolver {
+    return {
+      getSourceSpan: (sourceSpanId) =>
+        this.#sourceResolver.getSourceSpan(sourceSpanId),
+      getParsedDocument: (parsedDocumentId) =>
+        this.#sourceResolver.getParsedDocument(parsedDocumentId),
+      getClaim: (claimId) => this.#claims.get(claimId),
+      getAssertion: (assertionId) => this.#assertions.get(assertionId),
+    };
+  }
+
+  executeCommand(
+    envelope: PetraCommandEnvelopeRecord,
+  ): ChangeControlCommandResult {
     if (
       !this.#commandAuthorizer.authorize({
         actor: envelope.actor,
@@ -729,7 +835,7 @@ export class InMemoryEvidenceRegistry {
   }
 
   #executeUnseenCommand(
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
   ): ChangeControlCommandResult {
     switch (envelope.command.command_name) {
       case "SubmitChangeSet":
@@ -742,8 +848,8 @@ export class InMemoryEvidenceRegistry {
   }
 
   #submitChangeSet(
-    envelope: PetraCommandEnvelope,
-    changeSet: PetraChangeSet,
+    envelope: PetraCommandEnvelopeRecord,
+    changeSet: PetraChangeSetRecord,
   ): ChangeControlCommandResult {
     if (changeSet.revision !== 1 || changeSet.state !== "submitted") {
       throw new ChangeControlError(
@@ -785,8 +891,31 @@ export class InMemoryEvidenceRegistry {
       );
     }
 
-    const pair = this.#promotionPair(changeSet);
-    this.#validatePromotionTargets(changeSet, pair.claim, pair.assertion);
+    if (this.#isReversalChangeSet(changeSet)) {
+      if (
+        changeSet.schema_version !== "1.1.0" ||
+        changeSet.content.compensates_change_set_id === undefined
+      ) {
+        throw new ChangeControlError(
+          "CHANGE_SET_COMPENSATION_REQUIRED",
+          "A reversal must use ChangeSet 1.1 and name the applied ChangeSet it compensates.",
+        );
+      }
+      const pair = this.#reversalPair(changeSet);
+      this.#validateReversalTargets(changeSet, pair.claim, pair.assertion);
+    } else {
+      if (
+        "compensates_change_set_id" in changeSet.content &&
+        changeSet.content.compensates_change_set_id !== undefined
+      ) {
+        throw new ChangeControlError(
+          "CHANGE_SET_COMPENSATION_INVALID",
+          "A promotion cannot name a compensated ChangeSet.",
+        );
+      }
+      const pair = this.#promotionPair(changeSet);
+      this.#validatePromotionTargets(changeSet, pair.claim, pair.assertion);
+    }
 
     const registered = immutableCopy(changeSet);
     this.#changeSets.set(changeSet.change_set_id, registered);
@@ -800,7 +929,7 @@ export class InMemoryEvidenceRegistry {
   }
 
   #recordApproval(
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
     approval: PetraApproval,
   ): ChangeControlCommandResult {
     if (approval.revision !== 1) {
@@ -863,8 +992,8 @@ export class InMemoryEvidenceRegistry {
   }
 
   #applyChangeSet(
-    envelope: PetraCommandEnvelope,
-    command: Extract<PetraCommand, { command_name: "ApplyChangeSet" }>,
+    envelope: PetraCommandEnvelopeRecord,
+    command: Extract<PetraCommandRecord, { command_name: "ApplyChangeSet" }>,
   ): ChangeControlCommandResult {
     const changeSet = this.#changeSets.get(command.change_set_id);
     if (changeSet === undefined) {
@@ -938,6 +1067,10 @@ export class InMemoryEvidenceRegistry {
       );
     }
 
+    if (this.#isReversalChangeSet(changeSet)) {
+      return this.#applyReversal(envelope, changeSet, approval);
+    }
+
     const pair = this.#promotionPair(changeSet);
     let currentClaim: DeepReadonly<PetraClaim>;
     let currentAssertion: DeepReadonly<PetraAssertion>;
@@ -1004,12 +1137,89 @@ export class InMemoryEvidenceRegistry {
     };
   }
 
+  #applyReversal(
+    envelope: PetraCommandEnvelopeRecord,
+    changeSet: DeepReadonly<PetraChangeSetRecord>,
+    approval: DeepReadonly<PetraApproval>,
+  ): ChangeControlCommandResult {
+    if (
+      changeSet.schema_version !== "1.1.0" ||
+      changeSet.content.compensates_change_set_id === undefined
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_REQUIRED",
+        "A reversal must name the applied ChangeSet it compensates.",
+      );
+    }
+    const pair = this.#reversalPair(changeSet);
+    let currentClaim: DeepReadonly<PetraClaim>;
+    let currentAssertion: DeepReadonly<PetraAssertion>;
+    try {
+      ({ claim: currentClaim, assertion: currentAssertion } =
+        this.#validateReversalTargets(changeSet, pair.claim, pair.assertion));
+    } catch (error) {
+      if (
+        error instanceof ChangeControlError &&
+        (error.code === "STALE_TARGET_REVISION" ||
+          error.code === "TARGET_AUTHORITY_MISMATCH")
+      ) {
+        this.#changeSetStates.set(changeSet.change_set_id, "conflicted");
+      }
+      throw error;
+    }
+
+    const rejectedAuthority = {
+      zone: "quarantine" as const,
+      review_state: "human_rejected" as const,
+    };
+    const rejectedClaim = structuredClone(currentClaim) as PetraClaim;
+    rejectedClaim.revision += 1;
+    rejectedClaim.authority = structuredClone(rejectedAuthority);
+    const rejectedAssertion = structuredClone(
+      currentAssertion,
+    ) as PetraAssertion;
+    rejectedAssertion.revision += 1;
+    rejectedAssertion.authority = structuredClone(rejectedAuthority);
+    const storedClaim = immutableCopy(rejectedClaim);
+    const storedAssertion = immutableCopy(rejectedAssertion);
+
+    this.#claims.set(rejectedClaim.claim_id, storedClaim);
+    this.#assertions.set(rejectedAssertion.assertion_id, storedAssertion);
+    this.#claimHistory
+      .get(rejectedClaim.claim_id)
+      ?.set(rejectedClaim.revision, storedClaim);
+    this.#assertionHistory
+      .get(rejectedAssertion.assertion_id)
+      ?.set(rejectedAssertion.revision, storedAssertion);
+    this.#appliedChangeSets.add(changeSet.change_set_id);
+    this.#changeSetStates.set(changeSet.change_set_id, "applied");
+    this.#changeSetStates.set(
+      changeSet.content.compensates_change_set_id,
+      "reverted",
+    );
+
+    return {
+      outcome: "reverted",
+      command_id: envelope.command_id,
+      change_set_id: changeSet.change_set_id,
+      change_set_state: "applied",
+      compensates_change_set_id: changeSet.content.compensates_change_set_id,
+      approval_id: approval.approval_id,
+      claim_id: rejectedClaim.claim_id,
+      claim_revision: rejectedClaim.revision,
+      assertion_id: rejectedAssertion.assertion_id,
+      assertion_revision: rejectedAssertion.revision,
+      applied_at: envelope.submitted_at,
+    };
+  }
+
   #appendEventAndOutbox(
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
     result: ChangeControlCommandResult,
   ): void {
-    let event: PetraDomainEvent["event"];
-    let targets: PetraOutboxRecord["target"][] = ["interface_authority"];
+    let event: PetraDomainEventRecord["event"] | undefined;
+    let schemaVersion: PetraDomainEventRecord["schema_version"] = "1.0.0";
+    let targets: PetraOutboxRecordRecord["target"][] = ["interface_authority"];
     switch (result.outcome) {
       case "submitted": {
         const changeSet = this.#changeSets.get(result.change_set_id);
@@ -1020,14 +1230,21 @@ export class InMemoryEvidenceRegistry {
         }
         event = {
           event_type: "change_set.submitted",
-          payload: { change_set: structuredClone(changeSet) as PetraChangeSet },
-        };
+          payload: { change_set: structuredClone(changeSet) },
+        } as PetraDomainEventRecord["event"];
+        schemaVersion = changeSet.schema_version;
         break;
       }
       case "approval_recorded": {
         const approval = this.#approvals.get(result.approval_id);
         if (approval === undefined) {
           throw new Error("Recorded Approval disappeared before event append.");
+        }
+        const changeSet = this.#changeSets.get(result.change_set_id);
+        if (changeSet === undefined) {
+          throw new Error(
+            "Approved ChangeSet disappeared before event append.",
+          );
         }
         event = {
           event_type: "approval.recorded",
@@ -1036,6 +1253,7 @@ export class InMemoryEvidenceRegistry {
             derived_change_set_state: result.change_set_state,
           },
         };
+        schemaVersion = changeSet.schema_version;
         break;
       }
       case "applied": {
@@ -1057,25 +1275,63 @@ export class InMemoryEvidenceRegistry {
           event_type: "change_set.applied",
           payload: {
             change_set_id: changeSet.change_set_id,
-            change_set_revision: changeSet.revision,
+            change_set_revision: 1,
             change_set_content_hash: changeSet.content_hash,
             approval_id: approval.approval_id,
-            approval_revision: approval.revision,
+            approval_revision: 1,
             prior_claim_revision: result.claim_revision - 1,
             claim: structuredClone(claim) as PetraClaim,
             prior_assertion_revision: result.assertion_revision - 1,
             assertion: structuredClone(assertion) as PetraAssertion,
           },
         };
+        schemaVersion = changeSet.schema_version;
+        targets = ["neo4j_graph", "interface_authority"];
+        break;
+      }
+      case "reverted": {
+        const changeSet = this.#changeSets.get(result.change_set_id);
+        const approval = this.#approvals.get(result.approval_id);
+        const claim = this.#claims.get(result.claim_id);
+        const assertion = this.#assertions.get(result.assertion_id);
+        if (
+          changeSet === undefined ||
+          approval === undefined ||
+          claim === undefined ||
+          assertion === undefined
+        ) {
+          throw new Error(
+            "Reverted authority state disappeared before event append.",
+          );
+        }
+        event = {
+          event_type: "change_set.reverted",
+          payload: {
+            change_set_id: changeSet.change_set_id,
+            change_set_revision: 1,
+            change_set_content_hash: changeSet.content_hash,
+            compensates_change_set_id: result.compensates_change_set_id,
+            approval_id: approval.approval_id,
+            approval_revision: 1,
+            prior_claim_revision: result.claim_revision - 1,
+            claim: structuredClone(claim) as PetraClaim,
+            prior_assertion_revision: result.assertion_revision - 1,
+            assertion: structuredClone(assertion) as PetraAssertion,
+          },
+        };
+        schemaVersion = "1.1.0";
         targets = ["neo4j_graph", "interface_authority"];
         break;
       }
     }
-    this.#appendDomainEvent(envelope, event, targets);
+    if (event === undefined) {
+      throw new Error("Command result did not produce a domain event.");
+    }
+    this.#appendDomainEvent(envelope, event, targets, schemaVersion);
   }
 
   #isDurableConflict(
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
     error: unknown,
   ): error is ChangeControlError {
     return (
@@ -1088,7 +1344,7 @@ export class InMemoryEvidenceRegistry {
   }
 
   #appendConflictEventAndOutbox(
-    envelope: PetraCommandEnvelope,
+    envelope: PetraCommandEnvelopeRecord,
     error: ChangeControlError,
   ): void {
     if (
@@ -1102,7 +1358,10 @@ export class InMemoryEvidenceRegistry {
     if (changeSet === undefined) {
       throw new Error("Conflicted ChangeSet disappeared before event append.");
     }
-    const pair = this.#promotionPair(changeSet);
+    const reversal = this.#isReversalChangeSet(changeSet);
+    const pair = reversal
+      ? this.#reversalPair(changeSet)
+      : this.#promotionPair(changeSet);
     const claim = this.#claims.get(pair.claim.target_id);
     const assertion = this.#assertions.get(pair.assertion.target_id);
     if (claim === undefined || assertion === undefined) {
@@ -1110,41 +1369,76 @@ export class InMemoryEvidenceRegistry {
     }
     this.#appendDomainEvent(
       envelope,
-      {
-        event_type: "change_set.conflicted",
-        payload: {
-          change_set_id: changeSet.change_set_id,
-          change_set_revision: changeSet.revision,
-          change_set_content_hash: changeSet.content_hash,
-          conflict_code: error.code,
-          targets: [
-            {
-              target_kind: "claim",
-              target_id: claim.claim_id,
-              expected_revision: pair.claim.base_revision,
-              actual_revision: claim.revision,
-              expected_zone: "quarantine",
-              actual_zone: claim.authority.zone,
+      reversal
+        ? {
+            event_type: "change_set.reversal_conflicted",
+            payload: {
+              change_set_id: changeSet.change_set_id,
+              change_set_revision: 1,
+              change_set_content_hash: changeSet.content_hash,
+              compensates_change_set_id:
+                changeSet.schema_version === "1.1.0" &&
+                changeSet.content.compensates_change_set_id !== undefined
+                  ? changeSet.content.compensates_change_set_id
+                  : changeSet.change_set_id,
+              conflict_code: error.code,
+              targets: [
+                {
+                  target_kind: "claim",
+                  target_id: claim.claim_id,
+                  expected_revision: pair.claim.base_revision,
+                  actual_revision: claim.revision,
+                  expected_zone: "trusted",
+                  actual_zone: claim.authority.zone,
+                },
+                {
+                  target_kind: "assertion",
+                  target_id: assertion.assertion_id,
+                  expected_revision: pair.assertion.base_revision,
+                  actual_revision: assertion.revision,
+                  expected_zone: "trusted",
+                  actual_zone: assertion.authority.zone,
+                },
+              ],
             },
-            {
-              target_kind: "assertion",
-              target_id: assertion.assertion_id,
-              expected_revision: pair.assertion.base_revision,
-              actual_revision: assertion.revision,
-              expected_zone: "quarantine",
-              actual_zone: assertion.authority.zone,
+          }
+        : {
+            event_type: "change_set.conflicted",
+            payload: {
+              change_set_id: changeSet.change_set_id,
+              change_set_revision: 1,
+              change_set_content_hash: changeSet.content_hash,
+              conflict_code: error.code,
+              targets: [
+                {
+                  target_kind: "claim",
+                  target_id: claim.claim_id,
+                  expected_revision: pair.claim.base_revision,
+                  actual_revision: claim.revision,
+                  expected_zone: "quarantine",
+                  actual_zone: claim.authority.zone,
+                },
+                {
+                  target_kind: "assertion",
+                  target_id: assertion.assertion_id,
+                  expected_revision: pair.assertion.base_revision,
+                  actual_revision: assertion.revision,
+                  expected_zone: "quarantine",
+                  actual_zone: assertion.authority.zone,
+                },
+              ],
             },
-          ],
-        },
-      },
+          },
       ["interface_authority"],
+      reversal ? "1.1.0" : "1.0.0",
     );
   }
 
   #appendDomainEvent(
-    envelope: PetraCommandEnvelope,
-    event: PetraDomainEvent["event"],
-    targets: readonly PetraOutboxRecord["target"][],
+    envelope: PetraCommandEnvelopeRecord,
+    event: PetraDomainEventRecord["event"],
+    targets: readonly PetraOutboxRecordRecord["target"][],
+    schemaVersion: PetraDomainEventRecord["schema_version"],
   ): void {
     const eventId = this.#domainRecordFactory.nextId("event");
     if (petraIdKind(eventId) !== "event") {
@@ -1154,9 +1448,9 @@ export class InMemoryEvidenceRegistry {
     const eventPosition = this.#eventPosition + 1;
     const streamRevision =
       (this.#projectStreamRevisions.get(envelope.project_id) ?? 0) + 1;
-    const domainEvent: PetraDomainEvent = {
+    const domainEvent = {
       schema_name: "petra.domain-event",
-      schema_version: "1.0.0",
+      schema_version: schemaVersion,
       event_id: eventId,
       event_position: eventPosition,
       stream_type: "project",
@@ -1172,7 +1466,7 @@ export class InMemoryEvidenceRegistry {
       idempotency_key: envelope.idempotency_key,
       capability_grant_id: envelope.capability_grant_id,
       event: structuredClone(event),
-    };
+    } as PetraDomainEventRecord;
     const storedEvent = immutableCopy(domainEvent);
     const nextSequences = new Map(this.#targetSequences);
     const pendingOutbox = targets.map((target, index) => {
@@ -1183,9 +1477,9 @@ export class InMemoryEvidenceRegistry {
       if (petraIdKind(outboxId) !== "outbox") {
         throw new Error("DomainRecordFactory returned a non-outbox ID.");
       }
-      const outboxRecord: PetraOutboxRecord = {
+      const outboxRecord = {
         schema_name: "petra.outbox-record",
-        schema_version: "1.0.0",
+        schema_version: schemaVersion,
         outbox_id: outboxId,
         outbox_position: this.#outboxPosition + index + 1,
         target,
@@ -1197,7 +1491,7 @@ export class InMemoryEvidenceRegistry {
           message_kind: "domain_event",
           event: structuredClone(domainEvent),
         },
-      };
+      } as PetraOutboxRecordRecord;
       return immutableCopy(outboxRecord);
     });
 
@@ -1255,20 +1549,31 @@ export class InMemoryEvidenceRegistry {
     replaceMap(this.#targetSequences, snapshot.targetSequences);
   }
 
-  #promotionPair(changeSet: DeepReadonly<PetraChangeSet>): {
+  #isReversalChangeSet(changeSet: DeepReadonly<PetraChangeSetRecord>): boolean {
+    return this.#changeOperations(changeSet).some(
+      (operation) =>
+        operation.operation_kind === "retract_claim" ||
+        operation.operation_kind === "retract_assertion",
+    );
+  }
+
+  #promotionPair(changeSet: DeepReadonly<PetraChangeSetRecord>): {
     claim: DeepReadonly<PromoteClaimChange>;
     assertion: DeepReadonly<PromoteAssertionChange>;
   } {
-    const claimOperations = changeSet.content.operations.filter(
-      (operation) => operation.operation_kind === "promote_claim",
+    const operations = this.#changeOperations(changeSet);
+    const claimOperations = operations.filter(
+      (operation): operation is DeepReadonly<PromoteClaimChange> =>
+        operation.operation_kind === "promote_claim",
     );
-    const assertionOperations = changeSet.content.operations.filter(
-      (operation) => operation.operation_kind === "promote_assertion",
+    const assertionOperations = operations.filter(
+      (operation): operation is DeepReadonly<PromoteAssertionChange> =>
+        operation.operation_kind === "promote_assertion",
     );
     const claim = claimOperations[0];
     const assertion = assertionOperations[0];
     if (
-      changeSet.content.operations.length !== 2 ||
+      operations.length !== 2 ||
       claimOperations.length !== 1 ||
       assertionOperations.length !== 1 ||
       claim === undefined ||
@@ -1279,11 +1584,168 @@ export class InMemoryEvidenceRegistry {
         "The first scientific promotion ChangeSet must contain exactly one Claim and one Assertion operation.",
       );
     }
+    return {
+      claim,
+      assertion,
+    };
+  }
+
+  #reversalPair(changeSet: DeepReadonly<PetraChangeSetRecord>): {
+    claim: DeepReadonly<RetractClaimChange>;
+    assertion: DeepReadonly<RetractAssertionChange>;
+  } {
+    const operations = this.#changeOperations(changeSet);
+    const claimOperations = operations.filter(
+      (operation): operation is DeepReadonly<RetractClaimChange> =>
+        operation.operation_kind === "retract_claim",
+    );
+    const assertionOperations = operations.filter(
+      (operation): operation is DeepReadonly<RetractAssertionChange> =>
+        operation.operation_kind === "retract_assertion",
+    );
+    const claim = claimOperations[0];
+    const assertion = assertionOperations[0];
+    if (
+      operations.length !== 2 ||
+      claimOperations.length !== 1 ||
+      assertionOperations.length !== 1 ||
+      claim === undefined ||
+      assertion === undefined
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_OPERATION_SET_INVALID",
+        "A scientific authority reversal must contain exactly one Claim and one Assertion retraction.",
+      );
+    }
+    return {
+      claim,
+      assertion,
+    };
+  }
+
+  #changeOperations(
+    changeSet: DeepReadonly<PetraChangeSetRecord>,
+  ): readonly DeepReadonly<ChangeOperation>[] {
+    // JSON Schema conditionals preserve the runtime operation union, but the
+    // generated 1.1 type intersects it with `unknown[]`. Normalize that
+    // generator artifact once at this contract boundary.
+    return changeSet.content
+      .operations as readonly DeepReadonly<ChangeOperation>[];
+  }
+
+  #validateReversalTargets(
+    changeSet: DeepReadonly<PetraChangeSetRecord>,
+    claimOperation: DeepReadonly<RetractClaimChange>,
+    assertionOperation: DeepReadonly<RetractAssertionChange>,
+  ): {
+    claim: DeepReadonly<PetraClaim>;
+    assertion: DeepReadonly<PetraAssertion>;
+  } {
+    if (
+      changeSet.schema_version !== "1.1.0" ||
+      changeSet.content.compensates_change_set_id === undefined
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_REQUIRED",
+        "A reversal must name the promotion ChangeSet it compensates.",
+      );
+    }
+    const compensatedId = changeSet.content.compensates_change_set_id;
+    const compensated = this.#changeSets.get(compensatedId);
+    if (compensated === undefined || this.#isReversalChangeSet(compensated)) {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_INVALID",
+        "The compensated ChangeSet must be a registered promotion.",
+      );
+    }
+    const compensatedState = this.#changeSetStates.get(compensatedId);
+    if (compensatedState === "reverted") {
+      throw new ChangeControlError(
+        "CHANGE_SET_ALREADY_REVERTED",
+        `ChangeSet ${compensatedId} has already been reversed.`,
+      );
+    }
+    if (compensatedState !== "applied") {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_INVALID",
+        "Only an applied promotion ChangeSet may be reversed.",
+      );
+    }
+    const promoted = this.#promotionPair(compensated);
+    if (
+      promoted.claim.target_id !== claimOperation.target_id ||
+      promoted.assertion.target_id !== assertionOperation.target_id
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_COMPENSATION_INVALID",
+        "A reversal must target the exact Claim and Assertion promoted by the compensated ChangeSet.",
+      );
+    }
+
+    const claim = this.#claims.get(claimOperation.target_id);
+    const assertion = this.#assertions.get(assertionOperation.target_id);
+    if (claim === undefined || assertion === undefined) {
+      throw new ChangeControlError(
+        "CHANGE_SET_TARGET_MISMATCH",
+        "Every reversal target must exist in current scientific authority.",
+      );
+    }
+    if (
+      claim.revision !== claimOperation.base_revision ||
+      assertion.revision !== assertionOperation.base_revision
+    ) {
+      throw new ChangeControlError(
+        "STALE_TARGET_REVISION",
+        "At least one reversal target has changed since the impact preview.",
+      );
+    }
+    if (
+      claim.authority.zone !== "trusted" ||
+      assertion.authority.zone !== "trusted" ||
+      claim.authority.review_state !== "human_accepted" ||
+      assertion.authority.review_state !== "human_accepted" ||
+      claim.authority.promotion.change_set_id !== compensatedId ||
+      assertion.authority.promotion.change_set_id !== compensatedId ||
+      claimOperation.before.zone !== "trusted" ||
+      claimOperation.before.review_state !== "human_accepted" ||
+      assertionOperation.before.zone !== "trusted" ||
+      assertionOperation.before.review_state !== "human_accepted" ||
+      claimOperation.after.zone !== "quarantine" ||
+      claimOperation.after.review_state !== "human_rejected" ||
+      assertionOperation.after.zone !== "quarantine" ||
+      assertionOperation.after.review_state !== "human_rejected"
+    ) {
+      throw new ChangeControlError(
+        "TARGET_AUTHORITY_MISMATCH",
+        "The targets are no longer the trusted pair created by the compensated promotion.",
+      );
+    }
+    if (
+      assertion.predicate !== "ASSERTS" ||
+      assertion.object.object_kind !== "entity" ||
+      assertion.object.entity_id !== claim.claim_id
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_TARGET_MISMATCH",
+        "The reversal pair must contain a Claim and its corresponding ASSERTS Assertion.",
+      );
+    }
+    const affected = new Set(changeSet.content.impact.affected_object_ids);
+    if (
+      affected.size !== 2 ||
+      !affected.has(claim.claim_id) ||
+      !affected.has(assertion.assertion_id)
+    ) {
+      throw new ChangeControlError(
+        "CHANGE_SET_TARGET_MISMATCH",
+        "The reversal impact preview must name exactly the Claim and Assertion being retracted.",
+      );
+    }
     return { claim, assertion };
   }
 
   #validatePromotionTargets(
-    changeSet: DeepReadonly<PetraChangeSet>,
+    changeSet: DeepReadonly<PetraChangeSetRecord>,
     claimOperation: DeepReadonly<PromoteClaimChange>,
     assertionOperation: DeepReadonly<PromoteAssertionChange>,
   ): {

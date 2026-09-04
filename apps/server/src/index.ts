@@ -16,11 +16,19 @@ if (isEntryPoint) {
   );
   const publicDir =
     process.env.PETRA_PUBLIC_DIR ?? resolve(applicationRoot, "public");
+  const workspaceRoot = resolve(applicationRoot, "../..");
+  const codexEnabled = process.env.PETRA_CODEX_APP_SERVER_ENABLED === "true";
   const port = Number(process.env.PORT ?? "4310");
   const server = await startPetraServer({
     port,
     publicDir,
     authToken: process.env.PETRA_AUTH_TOKEN ?? "petra-local-development",
+    ...(codexEnabled
+      ? {
+          codexWorkspaceRoot: workspaceRoot,
+          codexSidecar: { cwd: workspaceRoot },
+        }
+      : {}),
   });
   console.log(`Petra is listening at ${server.url}`);
 

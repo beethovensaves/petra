@@ -1,0 +1,89 @@
+{
+  "schema_name": "petra.model-role-certification",
+  "schema_version": "1.1.0",
+  "role_certification_id": "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FE0",
+  "revision": 1,
+  "deployment": {
+    "model_deployment_id": "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FE1",
+    "provider_id": "provider_01ARZ3NDEKTSV4RRFFQ69G5FE2",
+    "provider_kind": "fixture",
+    "provider_model": "petra-synthesist-fixture",
+    "observed_revision": "fixture-v1",
+    "replayability": "exact",
+    "execution_location": "local",
+    "structured_output": true,
+    "max_context_tokens": 8192
+  },
+  "role_profile": {
+    "role_profile_id": "role_profile_01ARZ3NDEKTSV4RRFFQ69G5FE3",
+    "role": "synthesist",
+    "version": "1.0.0",
+    "input_contract": {
+      "schema_name": "evidence-packet",
+      "schema_version": "1.0.0",
+      "schema_hash": "sha256:62369877ccf6e8ffe35e8f740614ad370e6f8b8d7c8e6f917f22dcfb70418bb4"
+    },
+    "output_contract": {
+      "schema_name": "model-synthesist-output",
+      "schema_version": "1.0.0",
+      "schema_hash": "sha256:c9feeb397df01f2772c81c53fd2edadf7154c836a273df87a8e47806b500164b"
+    },
+    "required_validators": [
+      "model-output-schema",
+      "context-packet-grounding",
+      "evidence-packet-grounding",
+      "statement-origin-separation"
+    ]
+  },
+  "scope": {
+    "domain": "cross-domain scientific synthesis",
+    "language": "en",
+    "modality": "text",
+    "document_class": "scholarly"
+  },
+  "evaluation": {
+    "suite": {
+      "name": "petra-synthesist-role-smoke",
+      "version": "1.0.0"
+    },
+    "dataset_snapshot_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "prompt_profile": {
+      "name": "petra-grounded-synthesist",
+      "version": "1.0.0",
+      "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "cases_total": 4,
+    "cases_passed": 4,
+    "metrics": [
+      {
+        "name": "fixture_cases_passed",
+        "value": 4,
+        "unit": "count",
+        "direction": "descriptive"
+      },
+      {
+        "name": "ungrounded_statements_missed",
+        "value": 0,
+        "unit": "count",
+        "direction": "lower_is_better"
+      }
+    ],
+    "observed_errors": []
+  },
+  "decision": {
+    "status": "active",
+    "reason": "The deterministic fixture satisfies the bounded synthesist contract and grounding checks.",
+    "valid_from": "2026-09-03T18:30:00.000Z",
+    "invalidation_conditions": [
+      "The deployment identity changes.",
+      "The prompt, packet contracts, output contract, or validator set changes.",
+      "The fixture no longer produces the expected validation outcomes."
+    ]
+  },
+  "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "certified_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+    "actor_kind": "service"
+  },
+  "certified_at": "2026-09-03T18:30:00.000Z"
+}

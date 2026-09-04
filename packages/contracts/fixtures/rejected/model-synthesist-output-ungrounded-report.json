@@ -1,0 +1,21 @@
+{
+  "schema_name": "petra.model-synthesist-output",
+  "schema_version": "1.0.0",
+  "statements": [
+    {
+      "statement_key": "unsupported",
+      "origin": "source_report",
+      "text": "The source proves the claim in every population.",
+      "evidence_refs": [],
+      "limitations": []
+    }
+  ],
+  "coverage": {
+    "state": "complete_for_context",
+    "statement": "Complete.",
+    "material_omissions_acknowledged": false,
+    "abstract_only_sources_used": false,
+    "contrary_evidence_status": "not_checked",
+    "qualifying_evidence_status": "not_checked"
+  }
+}

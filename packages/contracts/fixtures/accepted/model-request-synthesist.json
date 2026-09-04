@@ -1,0 +1,131 @@
+{
+  "schema_name": "petra.model-request",
+  "schema_version": "1.1.0",
+  "model_request_id": "model_request_01ARZ3NDEKTSV4RRFFQ69G5FE4",
+  "revision": 1,
+  "content": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "workflow": {
+      "workflow_kind": "grounded_synthesis",
+      "workflow_id": "synthesis_run_01ARZ3NDEKTSV4RRFFQ69G5FE7"
+    },
+    "role": "synthesist",
+    "objective": "Explain the selected study report while preserving its evidence boundary.",
+    "impact_class": "routine",
+    "context_packet_ref": {
+      "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+      "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df"
+    },
+    "evidence_packet_ref": {
+      "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+      "content_hash": "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64"
+    },
+    "outbound_context": {
+      "egress_class": "E0",
+      "visibility": "private",
+      "data_classes": [
+        "open_full_text",
+        "source_spans",
+        "trusted_scientific_records"
+      ],
+      "context_object_refs": [
+        {
+          "object_kind": "claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "object_revision": 2,
+          "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+        },
+        {
+          "object_kind": "assertion",
+          "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "object_revision": 2,
+          "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+        },
+        {
+          "object_kind": "source_span",
+          "object_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          "object_revision": 1,
+          "object_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+        }
+      ],
+      "rights_decision_ids": ["rights_decision_01ARZ3NDEKTSV4RRFFQ69G5FB3"],
+      "selected_fields": [
+        "canonical_text",
+        "predicate",
+        "exact_text",
+        "limitations"
+      ],
+      "redactions": [],
+      "context_content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "capability_grant_id": "grant_01ARZ3NDEKTSV4RRFFQ69G5FE8",
+      "purpose": "Bounded scientific synthesis from an immutable EvidencePacket."
+    },
+    "prompt_profile": {
+      "name": "petra-grounded-synthesist",
+      "version": "1.0.0",
+      "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "parameters": {
+      "temperature": 0,
+      "seed": 7,
+      "max_output_tokens": 1600,
+      "content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "output_contract": {
+      "schema_name": "model-synthesist-output",
+      "schema_version": "1.0.0",
+      "schema_hash": "sha256:c9feeb397df01f2772c81c53fd2edadf7154c836a273df87a8e47806b500164b"
+    },
+    "routing_policy_ref": {
+      "routing_policy_id": "routing_policy_01ARZ3NDEKTSV4RRFFQ69G5FE6",
+      "revision": 1,
+      "content_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    "routing": {
+      "eligible": [
+        {
+          "model_deployment_id": "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FE1",
+          "role_certification_id": "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FE0",
+          "expected_validated_cost_usd": "0",
+          "expected_latency_ms": 5
+        }
+      ],
+      "excluded": [],
+      "selected": {
+        "model_deployment_id": "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FE1",
+        "role_certification_id": "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FE0",
+        "reason": "The certified fixture route satisfies the bounded synthesis policy."
+      },
+      "fallback_chain": []
+    },
+    "budget": {
+      "max_attempts": 1,
+      "max_input_tokens": 3000,
+      "max_output_tokens": 1600,
+      "max_latency_ms": 5000,
+      "max_cost_usd": "0"
+    },
+    "terminal": {
+      "state": "completed",
+      "model_call_ids": ["model_call_01ARZ3NDEKTSV4RRFFQ69G5FE5"],
+      "validator_results": [
+        {
+          "validator_name": "model-output-schema",
+          "validator_version": "1.0.0",
+          "outcome": "pass",
+          "code": "SCHEMA_VALID"
+        },
+        {
+          "validator_name": "grounded-synthesis",
+          "validator_version": "1.0.0",
+          "outcome": "pass",
+          "code": "EVIDENCE_REFS_RESOLVED"
+        }
+      ],
+      "output_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    }
+  },
+  "content_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+  "created_at": "2026-09-03T18:31:00.000Z",
+  "completed_at": "2026-09-03T18:31:00.005Z"
+}

@@ -1,0 +1,167 @@
+{
+  "schema_name": "petra.evidence-proposal-bundle",
+  "schema_version": "1.0.0",
+  "evidence_proposal_bundle_id": "evidence_proposal_bundle_01ARZ3NDEKTSV4RRFFQ69G5FC5",
+  "revision": 1,
+  "content": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "source": {
+      "document_parse_bundle_id": "document_parse_bundle_01ARZ3NDEKTSV4RRFFQ69G5FB9",
+      "parsed_document_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+      "source_artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+      "source_artifact_content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+      "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+      "source_scope": "full_text"
+    },
+    "extraction": {
+      "extraction_kind": "deterministic_mapping",
+      "extraction_run_id": "extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD",
+      "extractor": {
+        "name": "petra-deterministic-source-mapper",
+        "version": "1.0.0"
+      },
+      "recipe_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "started_at": "2026-08-28T18:11:00.000Z",
+      "completed_at": "2026-08-28T18:12:00.000Z"
+    },
+    "candidates": [
+      {
+        "candidate_id": "evidence_candidate_01ARZ3NDEKTSV4RRFFQ69G5FC6",
+        "proposal_role": "primary",
+        "source_quote": {
+          "exact_text": "The study reports a measurable improvement.",
+          "selected_text_hash": "sha256:cfed6ed86a7235363b27b504d804f402d37d220d19d5ae09d9a29fc5473acbe3",
+          "source_span_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"]
+        },
+        "claim": {
+          "schema_name": "petra.claim",
+          "schema_version": "1.0.0",
+          "claim_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 1,
+          "canonical_text": "The study reports a measurable improvement.",
+          "claim_kind": "descriptive",
+          "normalization_status": "normalized",
+          "scope": {
+            "task": {
+              "description": "The study-defined evaluation task",
+              "entity_refs": []
+            },
+            "outcome": {
+              "description": "Measurable improvement in the reported metric",
+              "entity_refs": []
+            },
+            "unreported_dimensions": [
+              "population",
+              "language",
+              "model_family",
+              "dataset",
+              "intervention_or_exposure",
+              "comparator",
+              "setting",
+              "temporal_boundary"
+            ]
+          },
+          "basis": {
+            "basis_kind": "source",
+            "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+            "source_scope": "full_text",
+            "detail_level": "detailed",
+            "source_span_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+            "source_stance": "reports",
+            "attribution": "The study authors",
+            "modality": "asserted",
+            "negated": false,
+            "derivation": {
+              "derivation_kind": "deterministic_mapping",
+              "derivation_ref": "extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD"
+            },
+            "validator_results": [
+              {
+                "validator_name": "source-span-resolution",
+                "validator_version": "1.0.0",
+                "outcome": "pass",
+                "code": "SPAN_RESOLVED"
+              }
+            ],
+            "proposed_by": {
+              "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+              "actor_kind": "service"
+            },
+            "proposed_at": "2026-08-28T18:12:00.000Z"
+          },
+          "authority": {
+            "zone": "quarantine",
+            "review_state": "machine_checked"
+          },
+          "created_by": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "service"
+          },
+          "created_at": "2026-08-28T18:12:00.000Z"
+        },
+        "assertion": {
+          "schema_name": "petra.assertion",
+          "schema_version": "1.0.0",
+          "assertion_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "revision": 1,
+          "subject_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+          "predicate": "ASSERTS",
+          "object": {
+            "object_kind": "entity",
+            "entity_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB"
+          },
+          "assertion_kind": "source_stated",
+          "authority": {
+            "zone": "quarantine",
+            "review_state": "machine_checked"
+          },
+          "provenance_refs": [
+            {
+              "provenance_kind": "source_span",
+              "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
+            },
+            {
+              "provenance_kind": "record",
+              "record_id": "extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD",
+              "role": "derivation"
+            }
+          ],
+          "scope": {
+            "task": {
+              "description": "The study-defined evaluation task",
+              "entity_refs": []
+            },
+            "outcome": {
+              "description": "Measurable improvement in the reported metric",
+              "entity_refs": []
+            },
+            "unreported_dimensions": [
+              "population",
+              "language",
+              "model_family",
+              "dataset",
+              "intervention_or_exposure",
+              "comparator",
+              "setting",
+              "temporal_boundary"
+            ]
+          },
+          "rationale": "The exact full-text passage is represented as a scoped source-stated Claim.",
+          "recorded_at": "2026-08-28T18:12:00.000Z",
+          "created_by": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "service"
+          }
+        },
+        "warnings": []
+      }
+    ],
+    "diagnostics": []
+  },
+  "content_hash": "sha256:ecf6d52b8c87ca63428cd3ddd7a83d20d5e78951cb95aa06d125c63a3e1e8e8d",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "service"
+  },
+  "created_at": "2026-08-28T18:12:00.000Z"
+}

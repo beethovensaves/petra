@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/command-envelope/1.1.0/schema.json",
+  "title": "PetraCommandEnvelopeV110",
+  "description": "The adapter-neutral command envelope for promotion or compensating-reversal ChangeSets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "correlation_id",
+    "submitted_at",
+    "command"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.command-envelope" },
+    "schema_version": { "const": "1.1.0" },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "capability_grant_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+    },
+    "correlation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+    },
+    "causation_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "command": { "$ref": "#/$defs/Command" }
+  },
+  "$defs": {
+    "Command": {
+      "oneOf": [
+        { "$ref": "#/$defs/SubmitChangeSet" },
+        {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/RecordApproval"
+        },
+        {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/ApplyChangeSet"
+        }
+      ]
+    },
+    "SubmitChangeSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_name", "change_set"],
+      "properties": {
+        "command_name": { "const": "SubmitChangeSet" },
+        "change_set": {
+          "$ref": "../../change-set/1.1.0/schema.json"
+        }
+      }
+    }
+  }
+}

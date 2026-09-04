@@ -24,6 +24,7 @@ const observed = {
   python: output("python3", ["--version"])?.replace(/^Python\s+/, "") ?? null,
   docker: output("docker", ["--version"]),
   compose: output("docker", ["compose", "version"]),
+  codex: output("codex", ["--version"]),
 };
 
 const failures = [];
@@ -41,6 +42,12 @@ if (observed.docker === null)
   failures.push("docker: missing or Docker Desktop is not running");
 if (observed.compose === null)
   failures.push("docker compose: missing or Docker Desktop is not running");
+if (
+  process.env.PETRA_CODEX_APP_SERVER_ENABLED === "true" &&
+  observed.codex === null
+) {
+  failures.push("codex: required when PETRA_CODEX_APP_SERVER_ENABLED=true");
+}
 
 for (const [name, version] of Object.entries(observed)) {
   console.log(`${name}: ${version ?? "missing"}`);

@@ -233,6 +233,38 @@ describe("ParsedDocument, StructuralBlock, and SourceSpan registration", () => {
 
   it.each([
     {
+      name: "an absent structured-content Artifact",
+      artifactId: "artifact_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+      contentHash:
+        "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      code: "BLOCK_CONTENT_ARTIFACT_NOT_REGISTERED",
+    },
+    {
+      name: "the wrong structured-content hash",
+      artifactId: "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB8",
+      contentHash:
+        "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      code: "BLOCK_CONTENT_HASH_MISMATCH",
+    },
+  ])(
+    "rejects a StructuralBlock with $name",
+    ({ artifactId, contentHash, code }) => {
+      const { documents, block } = setup(false);
+      block.content = {
+        content_kind: "structured_artifact",
+        structured_artifact_id: artifactId,
+        content_hash: contentHash,
+      };
+
+      expect(() => documents.registerStructuralBlock(block)).toThrowError(
+        expect.objectContaining({ code }),
+      );
+      expect(documents.blockCount).toBe(0);
+    },
+  );
+
+  it.each([
+    {
       name: "another Artifact hash",
       mutate: (span: PetraSourceSpan) => {
         span.artifact_content_hash =

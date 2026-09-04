@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { createPetraId, parsePetraId, petraIdKind } from "../src/identity.js";
+import {
+  createPetraId,
+  derivePetraId,
+  parsePetraId,
+  petraIdKind,
+} from "../src/identity.js";
 
 const ULID = "01ARZ3NDEKTSV4RRFFQ69G5FAV";
 
@@ -40,5 +45,14 @@ describe("Petra identity", () => {
     expect(() => createPetraId("project", ULID.toLowerCase())).toThrowError(
       expect.objectContaining({ code: "INVALID_ULID_PAYLOAD" }),
     );
+  });
+
+  it("derives deterministic IDs compatible with the Python worker", () => {
+    expect(derivePetraId("parsed_document", "immutable-parse-identity")).toBe(
+      "parsed_document_6CYDJS87DQPQP0J98XC4Y3MG7B",
+    );
+    expect(
+      derivePetraId("parsed_document", "immutable-parse-identity"),
+    ).not.toBe(derivePetraId("artifact", "immutable-parse-identity"));
   });
 });

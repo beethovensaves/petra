@@ -11,7 +11,16 @@ import {
   encodeAgUiStream,
   parseAgUiRunInput,
 } from "@petra/adapters";
-import { PetraInteractionRuntime } from "@petra/core";
+import {
+  parseAgUiReviewResponse,
+  type CodexSubscriptionProviderPort,
+} from "@petra/adapters/server";
+import {
+  DurableReviewInterruptError,
+  PetraInteractionRuntime,
+  type ReviewInterruptBoundary,
+  type ReviewResolutionContext,
+} from "@petra/core";
 
 interface Variables {
   requestId: string;
@@ -22,9 +31,13 @@ type PetraHono = Hono<{ Variables: Variables }>;
 
 export interface PetraAppOptions {
   runtime?: PetraInteractionRuntime;
+  reviewBoundary?: ReviewInterruptBoundary;
+  reviewAuthority?: ReviewResolutionContext;
   authToken?: string;
   maxBodyBytes?: number;
   publicDir?: string;
+  codexProvider?: CodexSubscriptionProviderPort;
+  codexWorkspaceRoot?: string;
 }
 
 export interface PetraApp {
@@ -38,9 +51,47 @@ const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$/;
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+const assertExactKeys = (
+  value: Record<string, unknown>,
+  allowed: ReadonlySet<string>,
+  label: string,
+): void => {
+  const unknown = Object.keys(value).filter((key) => !allowed.has(key));
+  if (unknown.length > 0) {
+    throw new InteractionInputError(
+      `${label} contains unregistered fields.`,
+      unknown,
+    );
+  }
+};
+
+const requiredString = (
+  value: Record<string, unknown>,
+  key: string,
+): string => {
+  const member = value[key];
+  if (typeof member !== "string" || member.trim().length === 0) {
+    throw new InteractionInputError(`${key} must be a non-empty string.`);
+  }
+  return member;
+};
+
+const optionalEnum = <Value extends string>(
+  value: Record<string, unknown>,
+  key: string,
+  choices: readonly Value[],
+): Value | undefined => {
+  const member = value[key];
+  if (member === undefined) return undefined;
+  if (typeof member !== "string" || !choices.includes(member as Value)) {
+    throw new InteractionInputError(`${key} is not an allowed value.`);
+  }
+  return member as Value;
+};
+
 const jsonError = (
   context: Context<{ Variables: Variables }>,
-  status: 400 | 401 | 404 | 409 | 413 | 422 | 503,
+  status: 400 | 401 | 403 | 404 | 409 | 413 | 422 | 503,
   code: string,
   message: string,
   details?: unknown,
@@ -101,7 +152,13 @@ const safeAssetPath = (
 
 export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   const app = new Hono<{ Variables: Variables }>();
-  const runtime = options.runtime ?? new PetraInteractionRuntime();
+  const runtime =
+    options.runtime ??
+    new PetraInteractionRuntime(
+      options.reviewBoundary === undefined
+        ? {}
+        : { reviewBoundary: options.reviewBoundary },
+    );
   const authToken = options.authToken ?? "petra-local-development";
   const maxBodyBytes = options.maxBodyBytes ?? 64 * 1024;
   const activeStreams = new Set<AbortController>();
@@ -239,8 +296,341 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       service: "petra",
       runtime: runtime.diagnostics(),
       protocol: { name: "AG-UI", version: "0.0.59" },
+      providers: {
+        codex:
+          options.codexProvider === undefined
+            ? { configured: false }
+            : { configured: true, ...options.codexProvider.diagnostics() },
+      },
     }),
   );
+
+  app.get("/api/providers/codex/account", async (context) => {
+    if (options.codexProvider === undefined) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_PROVIDER_UNAVAILABLE",
+        "The Codex subscription provider is not enabled.",
+      );
+    }
+    try {
+      return context.json(await options.codexProvider.readAccount());
+    } catch (error) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_ACCOUNT_UNAVAILABLE",
+        error instanceof Error
+          ? error.message
+          : "Codex account status is unavailable.",
+      );
+    }
+  });
+
+  app.get("/api/providers/codex/models", async (context) => {
+    if (options.codexProvider === undefined) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_PROVIDER_UNAVAILABLE",
+        "The Codex subscription provider is not enabled.",
+      );
+    }
+    try {
+      return context.json({ models: await options.codexProvider.listModels() });
+    } catch (error) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_MODEL_CATALOG_UNAVAILABLE",
+        error instanceof Error
+          ? error.message
+          : "The Codex model catalog is unavailable.",
+      );
+    }
+  });
+
+  app.post("/api/providers/codex/login", async (context) => {
+    if (options.codexProvider === undefined) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_PROVIDER_UNAVAILABLE",
+        "The Codex subscription provider is not enabled.",
+      );
+    }
+    try {
+      const body = await readBoundedJson(context, maxBodyBytes);
+      if (!isRecord(body)) {
+        throw new InteractionInputError("The login request must be an object.");
+      }
+      assertExactKeys(body, new Set(["type"]), "Codex login request");
+      const type = requiredString(body, "type");
+      if (type !== "chatgpt" && type !== "chatgptDeviceCode") {
+        throw new InteractionInputError(
+          "Only Codex-managed ChatGPT login modes are allowed.",
+        );
+      }
+      return context.json(await options.codexProvider.startManagedLogin(type));
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof InteractionInputError ? 422 : 409,
+        "CODEX_LOGIN_REJECTED",
+        error instanceof Error ? error.message : "Codex login was rejected.",
+        error instanceof InteractionInputError ? error.issues : undefined,
+      );
+    }
+  });
+
+  app.post("/api/providers/codex/login/cancel", async (context) => {
+    if (options.codexProvider === undefined) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_PROVIDER_UNAVAILABLE",
+        "The Codex subscription provider is not enabled.",
+      );
+    }
+    try {
+      const body = await readBoundedJson(context, maxBodyBytes);
+      if (!isRecord(body)) {
+        throw new InteractionInputError(
+          "The login cancellation must be an object.",
+        );
+      }
+      assertExactKeys(body, new Set(["loginId"]), "Codex login cancellation");
+      await options.codexProvider.cancelManagedLogin(
+        requiredString(body, "loginId"),
+      );
+      return context.json({ cancelled: true });
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof InteractionInputError ? 422 : 409,
+        "CODEX_LOGIN_CANCELLATION_REJECTED",
+        error instanceof Error
+          ? error.message
+          : "Codex login cancellation was rejected.",
+      );
+    }
+  });
+
+  app.post("/api/providers/codex/threads", async (context) => {
+    if (
+      options.codexProvider === undefined ||
+      options.codexWorkspaceRoot === undefined
+    ) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_PROVIDER_UNAVAILABLE",
+        "The Codex subscription provider has no configured workspace root.",
+      );
+    }
+    try {
+      const body = await readBoundedJson(context, maxBodyBytes);
+      if (!isRecord(body)) {
+        throw new InteractionInputError(
+          "The thread request must be an object.",
+        );
+      }
+      assertExactKeys(
+        body,
+        new Set([
+          "model",
+          "approvalPolicy",
+          "sandbox",
+          "personality",
+          "ephemeral",
+        ]),
+        "Codex thread request",
+      );
+      const model = body.model;
+      if (
+        model !== undefined &&
+        (typeof model !== "string" || model.length === 0)
+      ) {
+        throw new InteractionInputError("model must be a non-empty string.");
+      }
+      const ephemeral = body.ephemeral;
+      if (ephemeral !== undefined && typeof ephemeral !== "boolean") {
+        throw new InteractionInputError("ephemeral must be a boolean.");
+      }
+      const approvalPolicy = optionalEnum(body, "approvalPolicy", [
+        "untrusted",
+        "on-request",
+        "never",
+      ] as const);
+      const sandbox = optionalEnum(body, "sandbox", [
+        "read-only",
+        "workspace-write",
+      ] as const);
+      const personality = optionalEnum(body, "personality", [
+        "none",
+        "friendly",
+        "pragmatic",
+      ] as const);
+      return context.json(
+        await options.codexProvider.startThread({
+          cwd: resolve(options.codexWorkspaceRoot),
+          ...(model === undefined ? {} : { model }),
+          ...(approvalPolicy === undefined ? {} : { approvalPolicy }),
+          ...(sandbox === undefined ? {} : { sandbox }),
+          ...(personality === undefined ? {} : { personality }),
+          ...(ephemeral === undefined ? {} : { ephemeral }),
+        }),
+      );
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof InteractionInputError ? 422 : 409,
+        "CODEX_THREAD_REJECTED",
+        error instanceof Error ? error.message : "Codex thread was rejected.",
+      );
+    }
+  });
+
+  app.post("/api/providers/codex/turns", async (context) => {
+    if (options.codexProvider === undefined) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_PROVIDER_UNAVAILABLE",
+        "The Codex subscription provider is not enabled.",
+      );
+    }
+    try {
+      const body = await readBoundedJson(context, maxBodyBytes);
+      if (!isRecord(body)) {
+        throw new InteractionInputError("The turn request must be an object.");
+      }
+      assertExactKeys(
+        body,
+        new Set(["threadId", "prompt", "model", "effort"]),
+        "Codex turn request",
+      );
+      const model = body.model;
+      if (
+        model !== undefined &&
+        (typeof model !== "string" || model.length === 0)
+      ) {
+        throw new InteractionInputError("model must be a non-empty string.");
+      }
+      const effort = optionalEnum(body, "effort", [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+      ] as const);
+      return context.json(
+        await options.codexProvider.startTurn({
+          threadId: requiredString(body, "threadId"),
+          prompt: requiredString(body, "prompt"),
+          ...(model === undefined ? {} : { model }),
+          ...(effort === undefined ? {} : { effort }),
+        }),
+      );
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof InteractionInputError ? 422 : 409,
+        "CODEX_TURN_REJECTED",
+        error instanceof Error ? error.message : "Codex turn was rejected.",
+      );
+    }
+  });
+
+  app.post("/api/providers/codex/turns/interrupt", async (context) => {
+    if (options.codexProvider === undefined) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_PROVIDER_UNAVAILABLE",
+        "The Codex subscription provider is not enabled.",
+      );
+    }
+    try {
+      const body = await readBoundedJson(context, maxBodyBytes);
+      if (!isRecord(body)) {
+        throw new InteractionInputError(
+          "The interrupt request must be an object.",
+        );
+      }
+      assertExactKeys(
+        body,
+        new Set(["threadId", "turnId"]),
+        "Codex interrupt request",
+      );
+      await options.codexProvider.interruptTurn(
+        requiredString(body, "threadId"),
+        requiredString(body, "turnId"),
+      );
+      return context.json({ interrupted: true });
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof InteractionInputError ? 422 : 409,
+        "CODEX_INTERRUPT_REJECTED",
+        error instanceof Error
+          ? error.message
+          : "Codex turn interrupt was rejected.",
+      );
+    }
+  });
+
+  app.post("/api/providers/codex/approvals/resolve", async (context) => {
+    if (options.codexProvider === undefined) {
+      return jsonError(
+        context,
+        503,
+        "CODEX_PROVIDER_UNAVAILABLE",
+        "The Codex subscription provider is not enabled.",
+      );
+    }
+    try {
+      const body = await readBoundedJson(context, maxBodyBytes);
+      if (!isRecord(body)) {
+        throw new InteractionInputError(
+          "The approval response must be an object.",
+        );
+      }
+      assertExactKeys(
+        body,
+        new Set(["requestId", "decision"]),
+        "Codex approval response",
+      );
+      const requestId = body.requestId;
+      if (
+        typeof requestId !== "string" &&
+        !(typeof requestId === "number" && Number.isSafeInteger(requestId))
+      ) {
+        throw new InteractionInputError(
+          "requestId must be a string or safe integer.",
+        );
+      }
+      const decision = optionalEnum(body, "decision", [
+        "accept",
+        "acceptForSession",
+        "decline",
+        "cancel",
+      ] as const);
+      if (decision === undefined) {
+        throw new InteractionInputError("decision is required.");
+      }
+      await options.codexProvider.resolveApproval(requestId, decision);
+      return context.json({ resolved: true });
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof InteractionInputError ? 422 : 409,
+        "CODEX_APPROVAL_REJECTED",
+        error instanceof Error ? error.message : "Codex approval was rejected.",
+      );
+    }
+  });
 
   app.get("/api/queries/interactions/:runId", (context) => {
     try {
@@ -258,33 +648,32 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   app.post("/api/commands/reviews/resolve", async (context) => {
     try {
       const body = await readBoundedJson(context, maxBodyBytes);
-      if (!isRecord(body))
-        throw new InteractionInputError("Review command must be an object.");
-      const { commandId, interruptId, runId, decision } = body;
-      if (
-        typeof commandId !== "string" ||
-        typeof interruptId !== "string" ||
-        typeof runId !== "string" ||
-        !["accept", "reject", "revise"].includes(String(decision))
-      ) {
-        throw new InteractionInputError(
-          "Review command fields are incomplete or invalid.",
+      const response = parseAgUiReviewResponse(body);
+      if (options.reviewAuthority === undefined) {
+        return jsonError(
+          context,
+          503,
+          "REVIEW_BOUNDARY_UNAVAILABLE",
+          "No authenticated durable review authority is configured.",
         );
       }
       return context.json(
-        runtime.resolveReview({
-          commandId,
-          interruptId,
-          runId,
-          decision: decision as "accept" | "reject" | "revise",
-        }),
+        await runtime.resolveReview(response, options.reviewAuthority),
       );
     } catch (error: unknown) {
+      const status =
+        error instanceof InteractionInputError
+          ? 422
+          : error instanceof DurableReviewInterruptError &&
+              error.code === "REVIEW_INTERRUPT_UNAUTHORIZED"
+            ? 403
+            : 409;
       return jsonError(
         context,
-        error instanceof InteractionInputError ? 422 : 409,
+        status,
         "REVIEW_COMMAND_REJECTED",
         error instanceof Error ? error.message : "Review command rejected.",
+        error instanceof InteractionInputError ? error.issues : undefined,
       );
     }
   });

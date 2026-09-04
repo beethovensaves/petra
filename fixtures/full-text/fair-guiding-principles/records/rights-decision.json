@@ -1,0 +1,38 @@
+{
+  "schema_name": "petra.rights-decision",
+  "schema_version": "1.0.0",
+  "rights_decision_id": "rights_decision_01K45F00000000000000000006",
+  "revision": 1,
+  "artifact_manifest_id": "artifact_manifest_01K45F00000000000000000005",
+  "source_location": "https://www.nature.com/articles/sdata201618.pdf",
+  "license_status": "known",
+  "observed_license": {
+    "identifier": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "statement": "The exact publisher PDF states that the work is licensed under Creative Commons Attribution 4.0 International.",
+    "source": "artifact"
+  },
+  "access_basis": "open_license",
+  "decision_status": "verified",
+  "permissions": {
+    "store_raw_bytes": true,
+    "parse": true,
+    "index": true,
+    "embed": true,
+    "send_selected_text_remotely": false,
+    "quote_publicly": true,
+    "redistribute_artifact": true
+  },
+  "conditions": ["attribution", "notice"],
+  "required_notices": [
+    "Credit Wilkinson et al. (2016), link the source, preserve the CC BY 4.0 notice, and indicate any changes."
+  ],
+  "decision_maker": {
+    "actor_id": "actor_01K45F00000000000000000001",
+    "actor_kind": "service"
+  },
+  "rationale": "The exact publisher PDF, publisher record, and Crossref observation identify CC BY 4.0. Local parsing, indexing, quotation, and redistribution with attribution are permitted. Remote-model egress remains disabled until Petra grants it separately.",
+  "observed_at": "2026-09-02T20:01:32.000Z",
+  "policy_version": "petra-rights/1.0.0",
+  "created_at": "2026-09-02T20:05:00.000Z"
+}

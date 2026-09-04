@@ -24,6 +24,7 @@ interface RegistryEntry {
 
 interface FixtureEntry {
   schema: string;
+  version?: string;
   path: string;
 }
 
@@ -83,7 +84,10 @@ const rejectedFoundationValues = readJson(
 ) as RejectedFoundationValue[];
 const schemas = new Map<string, AnySchema>();
 for (const entry of registry.schemas) {
-  schemas.set(entry.name, readJson(`../${entry.path}`) as AnySchema);
+  schemas.set(
+    `${entry.name}@${entry.version}`,
+    readJson(`../${entry.path}`) as AnySchema,
+  );
 }
 
 const ajv = new Ajv2020({
@@ -96,8 +100,10 @@ const ajv = new Ajv2020({
 addFormats(ajv, { formats: ["date", "date-time", "uri"] });
 for (const schema of schemas.values()) ajv.addSchema(schema);
 
-const validatorFor = (name: string): ValidateFunction => {
-  const entry = registry.schemas.find((candidate) => candidate.name === name);
+const validatorFor = (name: string, version = "1.0.0"): ValidateFunction => {
+  const entry = registry.schemas.find(
+    (candidate) => candidate.name === name && candidate.version === version,
+  );
   if (entry === undefined)
     throw new Error(`Fixture names unregistered schema ${name}.`);
   const validate = ajv.getSchema(entry.$id);
@@ -122,7 +128,7 @@ describe("Petra canonical contract registry", () => {
   it.each(registry.schemas)(
     "validates $name@$version and its immutable identity",
     (entry) => {
-      const schema = schemas.get(entry.name);
+      const schema = schemas.get(`${entry.name}@${entry.version}`);
       if (schema === undefined) {
         throw new Error(`Registered schema ${entry.name} was not loaded.`);
       }
@@ -140,7 +146,7 @@ describe("Petra canonical contract registry", () => {
     (fixture) => {
       const value = readJson(`../${fixture.path}`);
       const before = structuredClone(value);
-      const validate = validatorFor(fixture.schema);
+      const validate = validatorFor(fixture.schema, fixture.version ?? "1.0.0");
 
       expect(validate(value), JSON.stringify(validate.errors)).toBe(true);
       expect(value).toStrictEqual(before);
@@ -148,7 +154,7 @@ describe("Petra canonical contract registry", () => {
   );
 
   it.each(manifest.rejected)("rejects $path", (fixture) => {
-    const validate = validatorFor(fixture.schema);
+    const validate = validatorFor(fixture.schema, fixture.version ?? "1.0.0");
     expect(validate(readJson(`../${fixture.path}`))).toBe(false);
   });
 
@@ -160,7 +166,7 @@ describe("Petra canonical contract registry", () => {
         input: unknown;
         sha256: string;
       };
-      const validate = validatorFor(fixture.schema);
+      const validate = validatorFor(fixture.schema, fixture.version ?? "1.0.0");
       expect(validate(value.input), JSON.stringify(validate.errors)).toBe(true);
       const canonical = canonicalize(value.input);
       const hash = createHash("sha256").update(canonical).digest("hex");
@@ -293,6 +299,16 @@ describe("Petra canonical contract registry", () => {
       projection: "content",
       hashField: "content_hash",
     },
+    {
+      path: "../fixtures/accepted/model-request.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
+      path: "../fixtures/accepted/model-call.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
   ])("binds $path to its exact canonical $projection", (fixture) => {
     const value = readJson(fixture.path) as Record<string, unknown>;
     const hash = createHash("sha256")
@@ -300,6 +316,22 @@ describe("Petra canonical contract registry", () => {
       .digest("hex");
 
     expect(value[fixture.hashField]).toBe(`sha256:${hash}`);
+  });
+
+  it("binds the model role certification to its exact evidence and decision", () => {
+    const value = readJson(
+      "../fixtures/accepted/model-role-certification.json",
+    ) as Record<string, unknown>;
+    const projection = Object.fromEntries(
+      ["deployment", "role_profile", "scope", "evaluation", "decision"].map(
+        (field) => [field, value[field]],
+      ),
+    );
+    const hash = createHash("sha256")
+      .update(canonicalize(projection))
+      .digest("hex");
+
+    expect(value.content_hash).toBe(`sha256:${hash}`);
   });
 
   it("binds the applied graph projection receipt to its exact effect", () => {

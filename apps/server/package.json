@@ -23,6 +23,7 @@
     "hono": "4.13.5"
   },
   "devDependencies": {
-    "@petra/contracts": "0.0.0"
+    "@petra/contracts": "0.0.0",
+    "json-canonicalize": "3.0.0"
   }
 }

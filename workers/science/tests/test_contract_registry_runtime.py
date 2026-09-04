@@ -29,11 +29,13 @@ def test_runtime_registry_enforces_shared_fixtures_without_mutation() -> None:
     for fixture in manifest["accepted"]:
         value = read_json(fixture["path"])
         before = json.loads(json.dumps(value))
-        registry.assert_valid(fixture["schema"], "1.0.0", value)
+        registry.assert_valid(fixture["schema"], fixture.get("version", "1.0.0"), value)
         assert value == before
     for fixture in manifest["rejected"]:
         assert not registry.is_valid(
-            fixture["schema"], "1.0.0", read_json(fixture["path"])
+            fixture["schema"],
+            fixture.get("version", "1.0.0"),
+            read_json(fixture["path"]),
         )
 
 

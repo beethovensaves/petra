@@ -1,0 +1,797 @@
+[
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000034",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Mark D. Wilkinson",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000035",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Michel Dumontier",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000036",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "IJsbrand Jan Aalbersberg",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000037",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Gabrielle Appleton",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000038",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Myles Axton",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000039",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Arie Baak",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003A",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Niklas Blomberg",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003B",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Jan-Willem Boiten",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003C",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Luiz Bonino da Silva Santos",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003D",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Philip E. Bourne",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003E",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Jildau Bouwman",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003F",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Anthony J. Brookes",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003G",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Tim Clark",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003H",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Mercè Crosas",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003J",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Ingrid Dillo",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003K",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Olivier Dumon",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003M",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Scott Edmunds",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003N",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Chris T. Evelo",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003P",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Richard Finkers",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003Q",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Alejandra Gonzalez-Beltran",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003R",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Alasdair J.G. Gray",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003S",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Paul Groth",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003T",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Carole Goble",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003V",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Jeffrey S. Grethe",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003W",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Jaap Heringa",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003X",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Peter A.C ’t Hoen",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003Y",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Rob Hooft",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000003Z",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Tobias Kuhn",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000040",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Ruben Kok",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000041",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Joost Kok",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000042",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Scott J. Lusher",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000043",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Maryann E. Martone",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000044",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Albert Mons",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000045",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Abel L. Packer",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000046",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Bengt Persson",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000047",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Philippe Rocca-Serra",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000048",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Marco Roos",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F00000000000000000049",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Rene van Schaik",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004A",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Susanna-Assunta Sansone",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004B",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Erik Schultes",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004C",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Thierry Sengstag",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004D",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Ted Slater",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004E",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "George Strawn",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004F",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Morris A. Swertz",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004G",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Mark Thompson",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004H",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Johan van der Lei",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004J",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Erik van Mulligen",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004K",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Jan Velterop",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004M",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Andra Waagmeester",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004N",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Peter Wittenburg",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004P",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Katherine Wolstencroft",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004Q",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Jun Zhao",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  },
+  {
+    "schema_name": "petra.author",
+    "schema_version": "1.0.0",
+    "author_id": "author_01K45F0000000000000000004R",
+    "revision": 1,
+    "author_kind": "person",
+    "display_name": "Barend Mons",
+    "identity_status": "provisional",
+    "created_by": {
+      "actor_id": "actor_01K45F00000000000000000001",
+      "actor_kind": "service"
+    },
+    "created_at": "2026-09-02T20:05:00.000Z",
+    "updated_at": "2026-09-02T20:05:00.000Z"
+  }
+]

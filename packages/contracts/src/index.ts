@@ -66,6 +66,66 @@ export type {
   TextQuoteSelector,
   Verification,
 } from "./generated/source-span.js";
+export type { PetraDocumentParseBundle } from "./generated/document-parse-bundle.js";
+export type {
+  Candidate as EvidenceProposalCandidate,
+  DeterministicExtraction as DeterministicEvidenceExtraction,
+  Diagnostic as EvidenceProposalDiagnostic,
+  ExtractionIdentity as EvidenceExtractionIdentity,
+  ModelExtraction as ModelEvidenceExtraction,
+  PetraEvidenceProposalBundle,
+  SourceIdentity as EvidenceProposalSourceIdentity,
+  SourceQuote as EvidenceProposalSourceQuote,
+} from "./generated/evidence-proposal-bundle.js";
+export type {
+  Candidate as ModelExtractorCandidate,
+  Diagnostic as ModelExtractorDiagnostic,
+  PetraModelExtractorOutput,
+  SourceQuote as ModelExtractorSourceQuote,
+} from "./generated/model-extractor-output.js";
+export type {
+  CoverageDisclosure as ModelSynthesisCoverageDisclosure,
+  EvidenceRef as ModelSynthesisEvidenceRef,
+  PetraModelSynthesistOutput,
+  PetraSynthesisStatement as ModelPetraSynthesisStatement,
+  SourceReportStatement as ModelSourceReportStatement,
+  Statement as ModelSynthesisStatement,
+  UnresolvedInferenceStatement as ModelUnresolvedInferenceStatement,
+} from "./generated/model-synthesist-output.js";
+export type {
+  CertificationScope as ModelCertificationScope,
+  DeploymentSnapshot as CertifiedModelDeployment,
+  PetraModelRoleCertification,
+  RoleProfileSnapshot as CertifiedRoleProfile,
+} from "./generated/model-role-certification.js";
+export type {
+  CertificationScope as SynthesistCertificationScope,
+  DeploymentSnapshot as CertifiedSynthesistDeployment,
+  PetraSynthesistRoleCertification,
+  RoleProfile as CertifiedSynthesistRoleProfile,
+} from "./generated/model-role-certification-v1-1.js";
+export type {
+  OutboundContextManifest,
+  PetraModelRequest,
+  RoutingDecision as ModelRoutingDecision,
+  TerminalResult as ModelRequestTerminalResult,
+} from "./generated/model-request.js";
+export type {
+  OutboundContext as SynthesistOutboundContext,
+  PetraSynthesistModelRequest,
+  RoutingDecision as SynthesistRoutingDecision,
+  TerminalResult as SynthesistModelRequestTerminalResult,
+} from "./generated/model-request-v1-1.js";
+export type {
+  DeploymentObservation as ModelDeploymentObservation,
+  ExactInput as ModelCallInput,
+  PetraModelCall,
+} from "./generated/model-call.js";
+export type {
+  DeploymentObservation as SynthesistDeploymentObservation,
+  ExactInput as SynthesistModelCallInput,
+  PetraSynthesistModelCall,
+} from "./generated/model-call-v1-1.js";
 export type {
   ClaimBasis,
   Derivation as ClaimDerivation,
@@ -94,6 +154,14 @@ export type {
   PromoteClaimOperation,
 } from "./generated/change-set.js";
 export type {
+  ChangeOperation as ChangeOperationV110,
+  ChangeSetContent as ChangeSetContentV110,
+  HumanRejectedState,
+  PetraChangeSetV110,
+  RetractAssertionOperation,
+  RetractClaimOperation,
+} from "./generated/change-set-v1-1.js";
+export type {
   ChangeSetSubject as ApprovalChangeSetSubject,
   PetraApproval,
 } from "./generated/approval.js";
@@ -105,6 +173,10 @@ export type {
   SubmitChangeSet,
 } from "./generated/command-envelope.js";
 export type {
+  Command as PetraCommandV110,
+  PetraCommandEnvelopeV110,
+} from "./generated/command-envelope-v1-1.js";
+export type {
   ApprovalRecorded as ApprovalRecordedEvent,
   ChangeSetApplied as ChangeSetAppliedEvent,
   ChangeSetConflicted as ChangeSetConflictedEvent,
@@ -114,9 +186,17 @@ export type {
   PetraDomainEvent,
 } from "./generated/domain-event.js";
 export type {
+  ChangeSetReverted as ChangeSetRevertedEvent,
+  Event as PetraEventV110,
+  PetraDomainEventV110,
+  ReversalConflicted as ReversalConflictedEvent,
+  ReversalConflictTarget,
+} from "./generated/domain-event-v1-1.js";
+export type {
   DomainEventMessage,
   PetraOutboxRecord,
 } from "./generated/outbox-record.js";
+export type { PetraOutboxRecordV110 } from "./generated/outbox-record-v1-1.js";
 export type {
   ArtifactInputBinding as WorkerArtifactInputBinding,
   ContractRef as WorkerContractRef,
@@ -300,8 +380,28 @@ export type {
   RespondedInterrupt,
 } from "./generated/interaction-interrupt.js";
 export type {
+  ChangeSetRef as ReviewInterruptChangeSetRef,
+  InterruptRef as ReviewInterruptRef,
+  PetraReviewInterruptResponse,
+} from "./generated/review-interrupt-response.js";
+export type {
   DeliveryOutcome as InteractionDeliveryOutcome,
   PetraInteractionReplayRecord,
   ReplayContent as InteractionReplayContent,
   WorkUnitObservation as InteractionWorkUnitObservation,
 } from "./generated/interaction-replay-record.js";
+
+import type { PetraChangeSet } from "./generated/change-set.js";
+import type { PetraChangeSetV110 } from "./generated/change-set-v1-1.js";
+import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
+import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
+import type { PetraDomainEvent } from "./generated/domain-event.js";
+import type { PetraDomainEventV110 } from "./generated/domain-event-v1-1.js";
+import type { PetraOutboxRecord } from "./generated/outbox-record.js";
+import type { PetraOutboxRecordV110 } from "./generated/outbox-record-v1-1.js";
+
+export type PetraChangeSetRecord = PetraChangeSet | PetraChangeSetV110;
+export type PetraCommandEnvelopeRecord =
+  PetraCommandEnvelope | PetraCommandEnvelopeV110;
+export type PetraDomainEventRecord = PetraDomainEvent | PetraDomainEventV110;
+export type PetraOutboxRecordRecord = PetraOutboxRecord | PetraOutboxRecordV110;

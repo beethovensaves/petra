@@ -1,5 +1,13 @@
 import { createHash } from "node:crypto";
 
+import type { PetraReviewInterruptResponse } from "@petra/contracts";
+
+import type {
+  ReviewInterruptBoundary,
+  ReviewInterruptResolutionResult,
+  ReviewResolutionContext,
+} from "./durable-review-interrupt.js";
+
 export type PetraFixtureMode = "success" | "review" | "terminal_error";
 
 export type WorkUnitStatus =
@@ -55,6 +63,10 @@ export type PetraInteractionEvent =
   | (EventEnvelope & {
       kind: "review.interrupt";
       interruptId: string;
+      interruptRevision: number;
+      interruptContentHash: string;
+      interactionRunId: string;
+      projectId: string;
       changeSetId: string;
       changeSetRevision: number;
       changeSetContentHash: string;
@@ -81,13 +93,6 @@ export interface StartInteractionRequest {
   requestId: string;
   traceId: string;
   fixtureMode?: PetraFixtureMode;
-}
-
-export interface ReviewCommand {
-  commandId: string;
-  interruptId: string;
-  runId: string;
-  decision: "accept" | "reject" | "revise";
 }
 
 export interface CancellationCommand {
@@ -126,6 +131,7 @@ interface RunRecord {
 export interface InteractionRuntimeOptions {
   stepDelayMs?: number;
   now?: () => number;
+  reviewBoundary?: ReviewInterruptBoundary;
 }
 
 const pause = async (milliseconds: number): Promise<void> => {
@@ -160,11 +166,13 @@ export class PetraInteractionRuntime {
   readonly #commandEffects = new Map<string, CommandResult>();
   readonly #stepDelayMs: number;
   readonly #now: () => number;
+  readonly #reviewBoundary: ReviewInterruptBoundary | undefined;
   #accepting = true;
 
   constructor(options: InteractionRuntimeOptions = {}) {
     this.#stepDelayMs = options.stepDelayMs ?? 2;
     this.#now = options.now ?? Date.now;
+    this.#reviewBoundary = options.reviewBoundary;
   }
 
   get accepting(): boolean {
@@ -268,26 +276,31 @@ export class PetraInteractionRuntime {
     return result;
   }
 
-  resolveReview(command: ReviewCommand): CommandResult {
-    const prior = this.#commandEffects.get(command.commandId);
-    if (prior !== undefined) return { ...prior, applied: false };
-
-    const record = this.#requireRun(command.runId);
+  async resolveReview(
+    response: PetraReviewInterruptResponse,
+    context: ReviewResolutionContext,
+  ): Promise<ReviewInterruptResolutionResult> {
+    if (this.#reviewBoundary === undefined) {
+      throw new Error(
+        "No durable review command boundary is configured for this runtime.",
+      );
+    }
+    const record = this.#requireRunByInteractionId(response.interaction_run_id);
     const interrupt = record.events.find(
       (event): event is ReviewInterruptEvent =>
         event.kind === "review.interrupt" &&
-        event.interruptId === command.interruptId,
+        event.interruptId === response.interrupt_ref.interaction_interrupt_id,
     );
-    if (interrupt === undefined) throw new Error("Unknown review interrupt.");
-
-    const result = {
-      applied: true,
-      commandId: command.commandId,
-      effectId: interrupt.changeSetId,
-      runId: command.runId,
-    } satisfies CommandResult;
-    this.#commandEffects.set(command.commandId, result);
-    return result;
+    if (
+      interrupt === undefined ||
+      interrupt.interruptRevision !== response.interrupt_ref.revision ||
+      interrupt.interruptContentHash !== response.interrupt_ref.content_hash
+    ) {
+      throw new Error(
+        "The response does not match a presented review interrupt.",
+      );
+    }
+    return this.#reviewBoundary.resolveReview(response, context);
   }
 
   recordDelivery(
@@ -340,6 +353,20 @@ export class PetraInteractionRuntime {
     return record;
   }
 
+  #requireRunByInteractionId(interactionRunId: string): RunRecord {
+    const record = [...this.#runs.values()].find((candidate) =>
+      candidate.events.some(
+        (event) =>
+          event.kind === "review.interrupt" &&
+          event.interactionRunId === interactionRunId,
+      ),
+    );
+    if (record === undefined) {
+      throw new Error(`Unknown interaction run identity: ${interactionRunId}`);
+    }
+    return record;
+  }
+
   #wake(record: RunRecord): void {
     for (const listener of [...record.listeners]) listener();
   }
@@ -376,12 +403,35 @@ export class PetraInteractionRuntime {
   ): Promise<void> {
     const messageId = `message_${normalizedIdPart(request.runId)}`;
     const toolCallId = `tool_${normalizedIdPart(request.runId)}`;
-    const changeSetId = fixturePetraId("change_set", request.runId);
-    const changeSetRevision = 1;
-    const changeSetContentHash = fixtureContentHash(
+    let changeSetId = fixturePetraId("change_set", request.runId);
+    let changeSetRevision = 1;
+    let changeSetContentHash = fixtureContentHash(
       `change-set:${request.runId}`,
     );
-    const interruptId = fixturePetraId("interaction_interrupt", request.runId);
+    let interruptId = fixturePetraId("interaction_interrupt", request.runId);
+    let interruptRevision = 1;
+    let interruptContentHash = fixtureContentHash(
+      `interaction-interrupt:${request.runId}`,
+    );
+    let interactionRunId = fixturePetraId("interaction_run", request.runId);
+    let projectId = fixturePetraId("project", request.runId);
+
+    if (
+      request.fixtureMode === "review" &&
+      this.#reviewBoundary !== undefined
+    ) {
+      const presentation = await this.#reviewBoundary.presentReview(
+        request.runId,
+      );
+      changeSetId = presentation.change_set_ref.change_set_id;
+      changeSetRevision = presentation.change_set_ref.revision;
+      changeSetContentHash = presentation.change_set_ref.content_hash;
+      interruptId = presentation.interrupt_ref.interaction_interrupt_id;
+      interruptRevision = presentation.interrupt_ref.revision;
+      interruptContentHash = presentation.interrupt_ref.content_hash;
+      interactionRunId = presentation.interaction_run_id;
+      projectId = presentation.project_id;
+    }
 
     this.#append(record, { kind: "run.started" });
     if (!(await this.#stage(record))) return;
@@ -440,6 +490,10 @@ export class PetraInteractionRuntime {
       this.#append(record, {
         kind: "review.interrupt",
         interruptId,
+        interruptRevision,
+        interruptContentHash,
+        interactionRunId,
+        projectId,
         changeSetId,
         changeSetRevision,
         changeSetContentHash,

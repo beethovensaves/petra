@@ -51,10 +51,40 @@ export interface AttachArtifactManifestInput {
   rightsDecision: PetraRightsDecision;
 }
 
+export interface PersistVerifiedArtifactInput {
+  artifact: PetraArtifact;
+  manifest: PetraArtifactManifest;
+  rightsDecision: PetraRightsDecision;
+}
+
 export interface RegisteredArtifact {
   artifact: DeepReadonly<PetraArtifact>;
   manifest: DeepReadonly<PetraArtifactManifest>;
   rightsDecision: DeepReadonly<PetraRightsDecision>;
+}
+
+/**
+ * Persistence boundary for Artifact records whose bytes have already passed
+ * the ArtifactStore verification path. PostgreSQL records the immutable byte
+ * identity, acquisition, storage reference, and copy-specific rights; it does
+ * not claim to be the byte store or to verify remote object availability by
+ * itself.
+ */
+export interface ArtifactAuthorityRepository {
+  registerVerifiedAcquisition(
+    input: PersistVerifiedArtifactInput,
+  ): Promise<RegisteredArtifact>;
+  attachVerifiedManifest(
+    input: AttachArtifactManifestInput,
+  ): Promise<RegisteredArtifact>;
+  getArtifact(artifactId: string): Promise<PetraArtifact | undefined>;
+  getByManifestId(manifestId: string): Promise<RegisteredArtifact | undefined>;
+  getRightsDecision(
+    rightsDecisionId: string,
+  ): Promise<PetraRightsDecision | undefined>;
+  getAcquisitionsForArtifact(
+    artifactId: string,
+  ): Promise<readonly RegisteredArtifact[]>;
 }
 
 const sha256 = (bytes: Uint8Array): string =>

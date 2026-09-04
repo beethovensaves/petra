@@ -10,8 +10,6 @@ import type {
   TextQuote,
 } from "@petra/contracts";
 
-import type { InMemoryArtifactRegistry } from "./artifact-registry.js";
-
 export type DocumentRegistrationErrorCode =
   | "SOURCE_ARTIFACT_NOT_REGISTERED"
   | "PARSER_OUTPUT_ARTIFACT_NOT_REGISTERED"
@@ -26,6 +24,7 @@ export type DocumentRegistrationErrorCode =
   | "STRUCTURAL_REFERENCE_OUTSIDE_DOCUMENT"
   | "PAGE_NOT_DECLARED"
   | "REGION_OUT_OF_BOUNDS"
+  | "BLOCK_CONTENT_ARTIFACT_NOT_REGISTERED"
   | "BLOCK_CONTENT_HASH_MISMATCH"
   | "SOURCE_SPAN_ID_ALREADY_REGISTERED"
   | "SPAN_ARTIFACT_MISMATCH"
@@ -86,14 +85,31 @@ const structuralReferences = (block: PetraStructuralBlock): string[] => [
   ...(block.next_block_id === undefined ? [] : [block.next_block_id]),
 ];
 
+/**
+ * The document validator needs only immutable Artifact identity, not byte-store
+ * or acquisition behavior. Keeping this resolver structural lets durable
+ * adapters reuse the same cross-record validation without depending on the
+ * in-memory Artifact registry implementation.
+ */
+export interface DocumentArtifactResolver {
+  getByArtifactId(artifactId: string):
+    | {
+        readonly artifact: {
+          readonly artifact_id: string;
+          readonly content_hash: string;
+        };
+      }
+    | undefined;
+}
+
 export class InMemoryDocumentRegistry {
-  readonly #artifactRegistry: InMemoryArtifactRegistry;
+  readonly #artifactRegistry: DocumentArtifactResolver;
   readonly #documents = new Map<string, DeepReadonly<PetraParsedDocument>>();
   readonly #documentIdByParserRunId = new Map<string, string>();
   readonly #blocks = new Map<string, DeepReadonly<PetraStructuralBlock>>();
   readonly #spans = new Map<string, DeepReadonly<PetraSourceSpan>>();
 
-  constructor(artifactRegistry: InMemoryArtifactRegistry) {
+  constructor(artifactRegistry: DocumentArtifactResolver) {
     this.#artifactRegistry = artifactRegistry;
   }
 
@@ -254,6 +270,23 @@ export class InMemoryDocumentRegistry {
         "BLOCK_CONTENT_HASH_MISMATCH",
         `StructuralBlock ${block.structural_block_id} text does not match its content hash.`,
       );
+    }
+    if (block.content.content_kind === "structured_artifact") {
+      const contentArtifact = this.#artifactRegistry.getByArtifactId(
+        block.content.structured_artifact_id,
+      )?.artifact;
+      if (contentArtifact === undefined) {
+        throw new DocumentRegistrationError(
+          "BLOCK_CONTENT_ARTIFACT_NOT_REGISTERED",
+          `StructuralBlock content Artifact ${block.content.structured_artifact_id} is not registered.`,
+        );
+      }
+      if (contentArtifact.content_hash !== block.content.content_hash) {
+        throw new DocumentRegistrationError(
+          "BLOCK_CONTENT_HASH_MISMATCH",
+          `StructuralBlock ${block.structural_block_id} does not identify the registered structured content bytes.`,
+        );
+      }
     }
 
     const registered = immutableCopy(block);

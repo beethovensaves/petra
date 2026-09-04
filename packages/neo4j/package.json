@@ -1,0 +1,25 @@
+{
+  "name": "@petra/neo4j",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@petra/core": "0.0.0",
+    "neo4j-driver": "6.2.0"
+  },
+  "devDependencies": {
+    "@petra/contracts": "0.0.0",
+    "@petra/postgres": "0.0.0",
+    "json-canonicalize": "3.0.0",
+    "pg": "8.16.3"
+  }
+}

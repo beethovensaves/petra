@@ -1,0 +1,66 @@
+{
+  "schema_name": "petra.model-synthesist-output",
+  "schema_version": "1.0.0",
+  "statements": [
+    {
+      "statement_key": "source_report_1",
+      "origin": "source_report",
+      "text": "The selected WorkVersion reports the bounded Claim.",
+      "evidence_refs": [
+        {
+          "context_selection_order": 2,
+          "object_kind": "assertion",
+          "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "object_revision": 2,
+          "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d",
+          "source_span_selection_orders": [3]
+        }
+      ],
+      "limitations": [
+        "This reports the source attribution represented by ASSERTS; it is not independent proof of truth."
+      ]
+    },
+    {
+      "statement_key": "synthesis_1",
+      "origin": "petra_synthesis",
+      "text": "Within the recorded context, the Claim is inspectably linked to the source passage.",
+      "evidence_refs": [
+        {
+          "context_selection_order": 1,
+          "object_kind": "claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "object_revision": 2,
+          "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa",
+          "source_span_selection_orders": [3]
+        },
+        {
+          "context_selection_order": 2,
+          "object_kind": "assertion",
+          "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "object_revision": 2,
+          "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d",
+          "source_span_selection_orders": [3]
+        }
+      ],
+      "limitations": [
+        "The ContextPacket did not perform new literature discovery."
+      ]
+    },
+    {
+      "statement_key": "unresolved_1",
+      "origin": "unresolved_inference",
+      "text": "Whether the reported relationship generalizes beyond the recorded scope remains unresolved.",
+      "evidence_refs": [],
+      "limitations": ["No generalization evidence is present in the packet."],
+      "resolution_requirement": "Retrieve and evaluate direct replication or external-validation evidence."
+    }
+  ],
+  "coverage": {
+    "state": "complete_for_context",
+    "statement": "Every selected context object is accounted for, but the packet is not literature-complete.",
+    "material_omissions_acknowledged": true,
+    "abstract_only_sources_used": false,
+    "contrary_evidence_status": "checked_none_in_context",
+    "qualifying_evidence_status": "checked_none_in_context"
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.1.0",
+  "fixture_manifest_version": "1.7.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -54,6 +54,49 @@
       "path": "fixtures/accepted/source-span.json"
     },
     {
+      "schema": "document-parse-bundle",
+      "path": "fixtures/accepted/document-parse-bundle.json"
+    },
+    {
+      "schema": "evidence-proposal-bundle",
+      "path": "fixtures/accepted/evidence-proposal-bundle.json"
+    },
+    {
+      "schema": "model-extractor-output",
+      "path": "fixtures/accepted/model-extractor-output.json"
+    },
+    {
+      "schema": "model-synthesist-output",
+      "path": "fixtures/accepted/model-synthesist-output.json"
+    },
+    {
+      "schema": "model-role-certification",
+      "path": "fixtures/accepted/model-role-certification.json"
+    },
+    {
+      "schema": "model-role-certification",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/model-role-certification-synthesist.json"
+    },
+    {
+      "schema": "model-request",
+      "path": "fixtures/accepted/model-request.json"
+    },
+    {
+      "schema": "model-request",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/model-request-synthesist.json"
+    },
+    {
+      "schema": "model-call",
+      "path": "fixtures/accepted/model-call.json"
+    },
+    {
+      "schema": "model-call",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/model-call-synthesist.json"
+    },
+    {
       "schema": "claim",
       "path": "fixtures/accepted/claim.json"
     },
@@ -70,6 +113,11 @@
       "path": "fixtures/accepted/change-set.json"
     },
     {
+      "schema": "change-set",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/change-set-reversal.json"
+    },
+    {
       "schema": "approval",
       "path": "fixtures/accepted/approval.json"
     },
@@ -84,6 +132,11 @@
     {
       "schema": "command-envelope",
       "path": "fixtures/accepted/command-apply-change-set.json"
+    },
+    {
+      "schema": "command-envelope",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/command-submit-reversal.json"
     },
     {
       "schema": "domain-event",
@@ -192,6 +245,10 @@
     {
       "schema": "interaction-interrupt",
       "path": "fixtures/accepted/interaction-interrupt-responded.json"
+    },
+    {
+      "schema": "review-interrupt-response",
+      "path": "fixtures/accepted/review-interrupt-response.json"
     },
     {
       "schema": "interaction-replay-record",
@@ -388,6 +445,29 @@
       "path": "fixtures/rejected/context-packet-model-compiler.json"
     },
     {
+      "schema": "model-synthesist-output",
+      "path": "fixtures/rejected/model-synthesist-output-ungrounded-report.json"
+    },
+    {
+      "schema": "model-synthesist-output",
+      "path": "fixtures/rejected/model-synthesist-output-authority-injection.json"
+    },
+    {
+      "schema": "model-role-certification",
+      "version": "1.1.0",
+      "path": "fixtures/rejected/model-role-certification-synthesist-wrong-version.json"
+    },
+    {
+      "schema": "model-request",
+      "version": "1.1.0",
+      "path": "fixtures/rejected/model-request-synthesist-wrong-version.json"
+    },
+    {
+      "schema": "model-call",
+      "version": "1.1.0",
+      "path": "fixtures/rejected/model-call-synthesist-wrong-version.json"
+    },
+    {
       "schema": "evidence-packet",
       "path": "fixtures/rejected/evidence-packet-stale-without-cause.json"
     },
@@ -426,6 +506,10 @@
     {
       "schema": "interaction-interrupt",
       "path": "fixtures/rejected/interaction-interrupt-response-without-command.json"
+    },
+    {
+      "schema": "review-interrupt-response",
+      "path": "fixtures/rejected/review-interrupt-response-authority-injection.json"
     },
     {
       "schema": "interaction-replay-record",

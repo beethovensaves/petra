@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "artifact": "openalex_works.json",
+  "sha256": "3f3086df898fc2769b88209043c5ea374f2bf721ac7a6e46eaf0f155edd0e017",
+  "source": "OpenAlex API",
+  "documentation_url": "https://help.openalex.org/api/",
+  "license": "CC0",
+  "query": "graph retrieval augmented generation",
+  "from_year": 2023,
+  "fetched_at": "2026-08-25T03:29:48+00:00",
+  "counts": {
+    "works": 50,
+    "missing_abstracts": 0,
+    "internal_citation_edges": 27,
+    "chronology_flagged_edges": 9,
+    "unresolved_reference_ids": 711,
+    "duplicate_title_groups": 3
+  },
+  "limitations": [
+    "Search results are a relevance-ranked sample, not a complete field bibliography.",
+    "Abstracts, citation links, authors, and topics can be missing or incorrect.",
+    "Primary topics are model-assigned predictions in OpenAlex."
+  ]
+}

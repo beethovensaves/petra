@@ -1,0 +1,10 @@
+{
+  "binding_index_version": "1.0.0",
+  "bindings": {
+    "source_pdf": "source/wilkinson-et-al-2016.pdf",
+    "source_artifact": "records/artifact.json",
+    "source_artifact_manifest": "records/artifact-manifest.json",
+    "rights_decision": "records/rights-decision.json",
+    "work_version": "records/work-version.json"
+  }
+}

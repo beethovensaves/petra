@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import type {
   PetraGraphProjectionRecord,
-  PetraOutboxRecord,
+  PetraOutboxRecordRecord,
   PetraProjectionCheckpoint,
   ProjectionCheckpointContent,
   ProjectionEffect,
@@ -94,8 +94,8 @@ const identitiesMatch = (
   right: ProjectionIdentity,
 ): boolean => canonicalize(left) === canonicalize(right);
 
-const outboxReference = (
-  outbox: PetraOutboxRecord,
+export const graphProjectionOutboxReference = (
+  outbox: PetraOutboxRecordRecord,
 ): PetraGraphProjectionRecord["content"]["outbox_ref"] => ({
   outbox_id: outbox.outbox_id,
   outbox_position: outbox.outbox_position,
@@ -106,10 +106,10 @@ const outboxReference = (
 });
 
 const observedHead = (
-  outbox: PetraOutboxRecord,
+  outbox: PetraOutboxRecordRecord,
   observedAt: string,
 ): PetraProjectionCheckpoint["content"]["observed_head"] => ({
-  ...outboxReference(outbox),
+  ...graphProjectionOutboxReference(outbox),
   observed_at: observedAt,
 });
 
@@ -118,14 +118,21 @@ const positionSequence = (
     PetraProjectionCheckpoint | DeepReadonly<PetraProjectionCheckpoint>,
 ): number => checkpoint.content.position.target_sequence;
 
-const expectedEffect = (outbox: PetraOutboxRecord): ProjectionEffect => {
+export const graphProjectionEffectForOutbox = (
+  outbox: PetraOutboxRecordRecord,
+): ProjectionEffect => {
   const event = outbox.message.event;
-  if (event.event.event_type !== "change_set.applied") {
+  if (
+    event.event.event_type !== "change_set.applied" &&
+    event.event.event_type !== "change_set.reverted"
+  ) {
     throw new GraphProjectionError(
       "PROJECTION_EFFECT_MISMATCH",
-      "Only a self-contained change_set.applied event can enter the authority graph projection.",
+      "Only a self-contained applied promotion or reversal can enter the authority graph projection.",
     );
   }
+  const operation =
+    event.event.event_type === "change_set.applied" ? "upsert" : "tombstone";
   return {
     source_event_id: event.event_id,
     objects: [
@@ -139,7 +146,7 @@ const expectedEffect = (outbox: PetraOutboxRecord): ProjectionEffect => {
         graph_element_kind: "relationship",
         object_id: event.event.payload.assertion.assertion_id,
         object_revision: event.event.payload.assertion.revision,
-        operation: "upsert",
+        operation,
       },
     ],
   };
@@ -147,7 +154,7 @@ const expectedEffect = (outbox: PetraOutboxRecord): ProjectionEffect => {
 
 const assertOutboxForCheckpoint = (
   checkpoint: DeepReadonly<PetraProjectionCheckpoint>,
-  outbox: PetraOutboxRecord,
+  outbox: PetraOutboxRecordRecord,
 ): void => {
   if (outbox.target !== "neo4j_graph") {
     throw new GraphProjectionError(
@@ -288,7 +295,7 @@ export class InMemoryGraphProjectionRegistry {
 
   observeHead(
     checkpointId: string,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     expectedRevision: number,
     observedAt: string,
   ): DeepReadonly<PetraProjectionCheckpoint> {
@@ -305,7 +312,8 @@ export class InMemoryGraphProjectionRegistry {
         stream_revision: currentHead.stream_revision,
       };
       if (
-        canonicalize(outboxReference(outbox)) !== canonicalize(comparableHead)
+        canonicalize(graphProjectionOutboxReference(outbox)) !==
+        canonicalize(comparableHead)
       ) {
         throw new GraphProjectionError(
           "PROJECTION_OUTBOX_REFERENCE_MISMATCH",
@@ -350,7 +358,7 @@ export class InMemoryGraphProjectionRegistry {
 
   record(
     checkpointId: string,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     record: PetraGraphProjectionRecord,
     expectedRevision: number,
   ): DeepReadonly<PetraProjectionCheckpoint> {
@@ -456,7 +464,7 @@ export class InMemoryGraphProjectionRegistry {
 
   #validateRecord(
     state: ProjectionState,
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     record: PetraGraphProjectionRecord,
   ): void {
     assertOutboxForCheckpoint(state.checkpoint, outbox);
@@ -477,7 +485,7 @@ export class InMemoryGraphProjectionRegistry {
     }
     if (
       canonicalize(record.content.outbox_ref) !==
-      canonicalize(outboxReference(outbox))
+      canonicalize(graphProjectionOutboxReference(outbox))
     ) {
       throw new GraphProjectionError(
         "PROJECTION_OUTBOX_REFERENCE_MISMATCH",
@@ -503,7 +511,7 @@ export class InMemoryGraphProjectionRegistry {
   }
 
   #validateAppliedEffect(
-    outbox: PetraOutboxRecord,
+    outbox: PetraOutboxRecordRecord,
     record: PetraGraphProjectionRecord,
   ): void {
     const outcome = record.content.outcome;
@@ -514,7 +522,10 @@ export class InMemoryGraphProjectionRegistry {
         "The projection effect hash does not identify its exact canonical effect.",
       );
     }
-    if (canonicalize(outcome.effect) !== canonicalize(expectedEffect(outbox))) {
+    if (
+      canonicalize(outcome.effect) !==
+      canonicalize(graphProjectionEffectForOutbox(outbox))
+    ) {
       throw new GraphProjectionError(
         "PROJECTION_EFFECT_MISMATCH",
         "The graph effect must exactly reproduce the revisions embedded in the applied event.",

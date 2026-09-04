@@ -7,6 +7,7 @@ export default tseslint.config(
     ignores: [
       "**/dist/**",
       "**/node_modules/**",
+      "**/.venv/**",
       "**/src/generated/**",
       "apps/server/public/**",
       ".cache/**",
@@ -37,8 +38,12 @@ export default tseslint.config(
         projectService: {
           allowDefaultProject: [
             "packages/contracts/*.ts",
+            "packages/adapters/vitest.config.ts",
             "packages/core/vitest.config.ts",
+            "packages/neo4j/vitest.config.ts",
             "packages/postgres/vitest.config.ts",
+            "packages/retrieval/vitest.config.ts",
+            "packages/s3/vitest.config.ts",
             "apps/server/vitest.config.ts",
           ],
         },

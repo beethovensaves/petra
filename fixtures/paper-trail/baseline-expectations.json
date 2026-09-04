@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "source_artifact_sha256": "3f3086df898fc2769b88209043c5ea374f2bf721ac7a6e46eaf0f155edd0e017",
+  "lexical_search": {
+    "query": "graph retrieval augmented generation",
+    "limit": 8,
+    "from_year": null,
+    "retrieval": "bm25_title_2.5_abstract_1.0",
+    "ordered_hits": [
+      { "work_id": "W7134170217", "score_4dp": 3.8186 },
+      { "work_id": "W4402670248", "score_4dp": 3.3998 },
+      { "work_id": "W4403447129", "score_4dp": 3.3685 },
+      { "work_id": "W4411119292", "score_4dp": 3.1098 },
+      { "work_id": "W4410600121", "score_4dp": 3.1032 },
+      { "work_id": "W4401453137", "score_4dp": 3.0462 },
+      { "work_id": "W4416354085", "score_4dp": 2.9714 },
+      { "work_id": "W4394619840", "score_4dp": 2.9415 }
+    ]
+  },
+  "bounded_path": {
+    "start": "W4416379250",
+    "end": "W3027879771",
+    "direction": "references",
+    "minimum_depth": 2,
+    "path": ["W4416379250", "W4404351611", "W3027879771"]
+  },
+  "chronology_example": {
+    "source": "W4403447129",
+    "relation": "CITES",
+    "target": "W3027879771",
+    "quality_flag": "citing_work_predates_referenced_work"
+  },
+  "scientific_relation": null
+}

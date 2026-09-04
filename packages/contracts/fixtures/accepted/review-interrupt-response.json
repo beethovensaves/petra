@@ -1,0 +1,20 @@
+{
+  "schema_name": "petra.review-interrupt-response",
+  "schema_version": "1.0.0",
+  "client_response_id": "review-response-run-m1-fixture-1",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+  "interrupt_ref": {
+    "interaction_interrupt_id": "interaction_interrupt_01ARZ3NDEKTSV4RRFFQ69G5FD8",
+    "revision": 1,
+    "content_hash": "sha256:9244bba2a45fa90c201f10875716855fed0f3cd484f11cb442f91a9dbe28ee5a"
+  },
+  "change_set_ref": {
+    "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+    "revision": 1,
+    "content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b"
+  },
+  "decision": "accept",
+  "rationale": "The scoped representation matches the exact source passage.",
+  "decided_at": "2026-08-29T16:01:00.000Z"
+}
