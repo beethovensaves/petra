@@ -10,13 +10,18 @@ import {
   toAgUiCustomEvent,
 } from "@petra/adapters";
 import type {
+  PetraModelSynthesistOutput,
   PetraInteractionCustomEvent,
   PetraInteractionFeatureManifest,
   PetraInteractionInterrupt,
   PetraInteractionRun,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import { PetraInteractionRuntime } from "@petra/core";
+import {
+  PetraInteractionRuntime,
+  type GroundedSynthesisInteractionExecutorPort,
+  type GroundedSynthesisInteractionResult,
+} from "@petra/core";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import { startPetraServer, type PetraServer } from "../src/server.js";
@@ -32,6 +37,7 @@ const inputFor = (
   runId: string,
   options: {
     mode?: "success" | "review" | "terminal_error";
+    workflow?: "fixture" | "grounded_synthesis";
     afterSequence?: number;
   } = {},
 ): Record<string, unknown> => ({
@@ -49,7 +55,10 @@ const inputFor = (
   context: [],
   forwardedProps: {
     petra: {
-      fixtureMode: options.mode ?? "success",
+      workflow: options.workflow ?? "fixture",
+      ...(options.workflow === "grounded_synthesis"
+        ? {}
+        : { fixtureMode: options.mode ?? "success" }),
       afterSequence: options.afterSequence ?? 0,
     },
   },
@@ -60,6 +69,7 @@ const rawRun = async (
   runId: string,
   options: {
     mode?: "success" | "review" | "terminal_error";
+    workflow?: "fixture" | "grounded_synthesis";
     afterSequence?: number;
     traceId?: string;
     token?: string;
@@ -84,6 +94,136 @@ const decodeSse = (text: string): BaseEvent[] =>
     .map((line) => JSON.parse(line.slice(6)) as BaseEvent);
 
 const contractRegistry = new PetraContractRegistry();
+
+const groundedSynthesisResult =
+  async (): Promise<GroundedSynthesisInteractionResult> => {
+    const output = JSON.parse(
+      await readFile(
+        resolve(
+          process.cwd(),
+          "../../packages/contracts/fixtures/accepted/model-synthesist-output.json",
+        ),
+        "utf8",
+      ),
+    ) as PetraModelSynthesistOutput;
+    return {
+      hypothesis: {
+        reference: "H12",
+        descriptor:
+          "The bounded explanation represented by the selected evidence",
+      },
+      rendered_text:
+        "H12 — The bounded explanation represented by the selected evidence\n\nWhat the source reports\nThe selected WorkVersion reports the bounded Claim. [Evidence 2]",
+      output,
+      context_packet_ref: {
+        context_packet_id: "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+        content_hash:
+          "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df",
+      },
+      evidence_packet_ref: {
+        evidence_packet_id: "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+        content_hash:
+          "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64",
+      },
+      snapshot_id: "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+      model_request_id: "model_request_01ARZ3NDEKTSV4RRFFQ69G5FE4",
+      model_call_id: "model_call_01ARZ3NDEKTSV4RRFFQ69G5FE5",
+      model_deployment_id: "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FE1",
+      role_certification_id: "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FE0",
+      output_hash:
+        "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      trace: {
+        retrieval_ms: 8,
+        lexical_ms: 3,
+        graph_ms: 5,
+        context_compilation_ms: 2,
+        evidence_compilation_ms: 2,
+        packet_compilation_ms: 4,
+        model_ms: 11,
+        validation_ms: 2,
+        projection_ms: 1,
+        total_ms: 24,
+      },
+      cost: {
+        amount: "0",
+        currency: "USD",
+        accounting: "computed",
+        pricing_source: "W18 certified fixture route.",
+      },
+    };
+  };
+
+const completedGroundedExecutor =
+  async (): Promise<GroundedSynthesisInteractionExecutorPort> => {
+    const result = await groundedSynthesisResult();
+    return {
+      execute({ onProgress }) {
+        onProgress({
+          stage: "retrieval",
+          status: "running",
+          label: "Finding a bounded evidence path",
+          detail: { authority_effect: "none" },
+        });
+        onProgress({
+          stage: "retrieval",
+          status: "completed",
+          label: "Bounded evidence path selected",
+          detail: {
+            route: "hybrid_local",
+            elapsed_ms: 8,
+            authority_effect: "none",
+          },
+        });
+        onProgress({
+          stage: "packet_compilation",
+          status: "completed",
+          label: "Immutable evidence packet ready",
+          detail: {
+            context_packet_id: result.context_packet_ref.context_packet_id,
+            evidence_packet_id: result.evidence_packet_ref.evidence_packet_id,
+            snapshot_id: result.snapshot_id,
+            elapsed_ms: 4,
+            authority_effect: "none",
+          },
+        });
+        onProgress({
+          stage: "model_execution",
+          status: "running",
+          label: "Running the certified synthesist",
+          detail: { authority_effect: "none" },
+        });
+        onProgress({
+          stage: "model_execution",
+          status: "completed",
+          label: "Certified synthesist call completed",
+          detail: {
+            model_request_id: result.model_request_id,
+            model_call_id: result.model_call_id,
+            model_deployment_id: result.model_deployment_id,
+            role_certification_id: result.role_certification_id,
+            terminal_state: "completed",
+            elapsed_ms: 11,
+            authority_effect: "none",
+          },
+        });
+        onProgress({
+          stage: "validation",
+          status: "completed",
+          label: "Evidence references and epistemic origins validated",
+          detail: {
+            model_request_id: result.model_request_id,
+            model_call_id: result.model_call_id,
+            model_deployment_id: result.model_deployment_id,
+            role_certification_id: result.role_certification_id,
+            terminal_state: "completed",
+            elapsed_ms: 2,
+            authority_effect: "none",
+          },
+        });
+        return Promise.resolve(result);
+      },
+    };
+  };
 
 describe("D014 Hono conformance", () => {
   let server: PetraServer;
@@ -253,6 +393,230 @@ describe("D014 Hono conformance", () => {
         ],
       },
     });
+  });
+
+  test("M1.6-W18: grounded synthesis streams retrieval, packet, model, validation, answer, and exact terminal provenance", async () => {
+    const runtime = new PetraInteractionRuntime({
+      groundedSynthesisExecutor: await completedGroundedExecutor(),
+    });
+    const groundedServer = await startPetraServer({
+      port: 0,
+      authToken: TOKEN,
+      runtime,
+    });
+    try {
+      const response = await rawRun(groundedServer, "run_m16_w18", {
+        workflow: "grounded_synthesis",
+        traceId: "trace_m16_w18",
+      });
+      const events = decodeSse(await response.text());
+      const activities = events.filter(
+        (event) => event.type === EventType.ACTIVITY_SNAPSHOT,
+      );
+      expect(
+        activities.map(
+          (event) =>
+            (event as BaseEvent & { activityType: string }).activityType,
+        ),
+      ).toEqual([
+        "petra.retrieval.status",
+        "petra.retrieval.status",
+        "petra.evidence_packet.status",
+        "petra.model.status",
+        "petra.model.status",
+        "petra.validation.status",
+        "petra.work_unit.status",
+      ]);
+
+      const validationIndex = events.findIndex(
+        (event) =>
+          event.type === EventType.ACTIVITY_SNAPSHOT &&
+          (event as BaseEvent & { activityType: string }).activityType ===
+            "petra.validation.status",
+      );
+      const textIndex = events.findIndex(
+        (event) => event.type === EventType.TEXT_MESSAGE_START,
+      );
+      expect(validationIndex).toBeGreaterThan(-1);
+      expect(textIndex).toBeGreaterThan(validationIndex);
+
+      const text = events.find(
+        (event) => event.type === EventType.TEXT_MESSAGE_CONTENT,
+      ) as BaseEvent & { delta: string };
+      expect(text.delta.match(/H12 —/g)).toHaveLength(1);
+      expect(text.delta).toContain("[Evidence 2]");
+
+      const finished = events.find(
+        (event) => event.type === EventType.RUN_FINISHED,
+      ) as BaseEvent & { result: Record<string, unknown> };
+      expect(finished.result).toMatchObject({
+        hypothesisReference: "H12",
+        contextPacketRef: {
+          context_packet_id: "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+        },
+        evidencePacketRef: {
+          evidence_packet_id: "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+        },
+        snapshotId: "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+        modelRequestId: "model_request_01ARZ3NDEKTSV4RRFFQ69G5FE4",
+        modelCallId: "model_call_01ARZ3NDEKTSV4RRFFQ69G5FE5",
+        modelDeploymentId: "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FE1",
+        roleCertificationId: "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FE0",
+        statementOrigins: [
+          "source_report",
+          "petra_synthesis",
+          "unresolved_inference",
+        ],
+        trace: { total_ms: 24, validation_ms: 2 },
+        cost: { amount: "0", currency: "USD" },
+        authorityEffect: "none",
+      });
+      const answerMetadata = text.metadata?.petra as Record<string, unknown>;
+      expect(answerMetadata).toMatchObject({
+        traceId: "trace_m16_w18",
+        modelRequestId: "model_request_01ARZ3NDEKTSV4RRFFQ69G5FE4",
+      });
+      expect(runtime.snapshot("run_m16_w18")).toMatchObject({
+        status: "completed",
+        modelRequestId: "model_request_01ARZ3NDEKTSV4RRFFQ69G5FE4",
+      });
+
+      const replay = decodeSse(
+        await (
+          await fetch(
+            `${groundedServer.url}/api/interactions/run_m16_w18?after=8`,
+            {
+              headers: {
+                accept: "text/event-stream",
+                authorization: `Bearer ${TOKEN}`,
+              },
+            },
+          )
+        ).text(),
+      );
+      const expectedReplay = events.filter(
+        (event) =>
+          ((event.metadata?.petra as Record<string, unknown>)
+            .sequence as number) > 8,
+      );
+      expect(replay).toEqual(expectedReplay);
+    } finally {
+      await groundedServer.shutdown();
+    }
+  });
+
+  test("M1.6-W18: grounded synthesis fails closed when unavailable or combined with fixture controls", async () => {
+    const unavailable = await rawRun(server, "run_m16_w18_unavailable", {
+      workflow: "grounded_synthesis",
+    });
+    const unavailableEvents = decodeSse(await unavailable.text());
+    expect(unavailableEvents.at(-1)).toMatchObject({
+      type: EventType.RUN_ERROR,
+      code: "GROUNDED_SYNTHESIS_UNAVAILABLE",
+    });
+    expect(
+      unavailableEvents.some(
+        (event) => event.type === EventType.TEXT_MESSAGE_CONTENT,
+      ),
+    ).toBe(false);
+
+    const conflictInput = inputFor("run_m16_w18_conflict");
+    conflictInput.forwardedProps = {
+      petra: {
+        workflow: "grounded_synthesis",
+        fixtureMode: "success",
+        afterSequence: 0,
+      },
+    };
+    const conflict = await rawRun(server, "run_m16_w18_conflict", {
+      body: JSON.stringify(conflictInput),
+    });
+    expect(conflict.status).toBe(422);
+    expect(await conflict.json()).toMatchObject({
+      error: {
+        code: "INTERACTION_REJECTED",
+        message:
+          "fixtureMode cannot be combined with the grounded_synthesis workflow.",
+      },
+    });
+  });
+
+  test("M1.6-W18: cancellation aborts grounded execution and emits one terminal failure without an answer", async () => {
+    let signalObserved = false;
+    let markStarted: (() => void) | undefined;
+    const started = new Promise<void>((resolveStarted) => {
+      markStarted = resolveStarted;
+    });
+    const executor: GroundedSynthesisInteractionExecutorPort = {
+      async execute({ signal, onProgress }) {
+        onProgress({
+          stage: "retrieval",
+          status: "running",
+          label: "Finding a bounded evidence path",
+          detail: { authority_effect: "none" },
+        });
+        markStarted?.();
+        return await new Promise<GroundedSynthesisInteractionResult>(
+          (_resolve, reject) => {
+            const rejectCancelled = (): void => {
+              signalObserved = true;
+              reject(new Error("grounded execution interrupted"));
+            };
+            if (signal?.aborted === true) rejectCancelled();
+            else
+              signal?.addEventListener("abort", rejectCancelled, {
+                once: true,
+              });
+          },
+        );
+      },
+    };
+    const runtime = new PetraInteractionRuntime({
+      groundedSynthesisExecutor: executor,
+    });
+    const cancellationServer = await startPetraServer({
+      port: 0,
+      authToken: TOKEN,
+      runtime,
+    });
+    try {
+      const response = await rawRun(cancellationServer, "run_m16_w18_cancel", {
+        workflow: "grounded_synthesis",
+      });
+      await started;
+      const cancellation = await fetch(
+        `${cancellationServer.url}/api/work-units/run_m16_w18_cancel/cancel`,
+        {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${TOKEN}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ commandId: "cancel_m16_w18" }),
+        },
+      );
+      expect(cancellation.status).toBe(200);
+      expect(await cancellation.json()).toMatchObject({
+        applied: true,
+        commandId: "cancel_m16_w18",
+        runId: "run_m16_w18_cancel",
+      });
+      const events = decodeSse(await response.text());
+      expect(signalObserved).toBe(true);
+      expect(events.at(-1)).toMatchObject({
+        type: EventType.RUN_ERROR,
+        code: "WORK_UNIT_CANCELLED",
+      });
+      expect(
+        events.filter((event) => event.type === EventType.RUN_ERROR),
+      ).toHaveLength(1);
+      expect(
+        events.some((event) => event.type === EventType.TEXT_MESSAGE_CONTENT),
+      ).toBe(false);
+      expect(runtime.snapshot("run_m16_w18_cancel").status).toBe("cancelled");
+    } finally {
+      await cancellationServer.shutdown();
+    }
   });
 
   test("M1.5-W16: AG-UI review resolution reaches the durable direct-review command", async () => {

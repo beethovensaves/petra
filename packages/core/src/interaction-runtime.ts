@@ -3,12 +3,18 @@ import { createHash } from "node:crypto";
 import type { PetraReviewInterruptResponse } from "@petra/contracts";
 
 import type {
+  GroundedSynthesisInteractionExecutorPort,
+  GroundedSynthesisInteractionResult,
+  GroundedSynthesisProgress,
+} from "./grounded-synthesis-interaction.js";
+import type {
   ReviewInterruptBoundary,
   ReviewInterruptResolutionResult,
   ReviewResolutionContext,
 } from "./durable-review-interrupt.js";
 
 export type PetraFixtureMode = "success" | "review" | "terminal_error";
+export type PetraInteractionWorkflow = "fixture" | "grounded_synthesis";
 
 export type WorkUnitStatus =
   | "queued"
@@ -44,11 +50,18 @@ export type PetraInteractionEvent =
     })
   | (EventEnvelope & {
       kind: "activity.snapshot";
-      activityType: "petra.work_unit.status";
+      activityType:
+        | "petra.work_unit.status"
+        | "petra.retrieval.status"
+        | "petra.evidence_packet.status"
+        | "petra.model.status"
+        | "petra.validation.status";
       content: {
         label: string;
         status: WorkUnitStatus;
         workUnitRevision: number;
+        stage?: GroundedSynthesisProgress["stage"];
+        detail?: GroundedSynthesisProgress["detail"];
       };
     })
   | (EventEnvelope & {
@@ -85,6 +98,10 @@ type ReviewInterruptEvent = Extract<
   PetraInteractionEvent,
   { kind: "review.interrupt" }
 >;
+type ActivitySnapshotEvent = Extract<
+  PetraInteractionEvent,
+  { kind: "activity.snapshot" }
+>;
 
 export interface StartInteractionRequest {
   threadId: string;
@@ -92,6 +109,7 @@ export interface StartInteractionRequest {
   prompt: string;
   requestId: string;
   traceId: string;
+  workflow?: PetraInteractionWorkflow;
   fixtureMode?: PetraFixtureMode;
 }
 
@@ -125,6 +143,7 @@ interface RunRecord {
   cancellationRequested: boolean;
   listeners: Set<() => void>;
   delivery: InteractionRunSnapshot["delivery"];
+  abortController: AbortController;
   task: Promise<void>;
 }
 
@@ -132,6 +151,7 @@ export interface InteractionRuntimeOptions {
   stepDelayMs?: number;
   now?: () => number;
   reviewBoundary?: ReviewInterruptBoundary;
+  groundedSynthesisExecutor?: GroundedSynthesisInteractionExecutorPort;
 }
 
 const pause = async (milliseconds: number): Promise<void> => {
@@ -167,12 +187,15 @@ export class PetraInteractionRuntime {
   readonly #stepDelayMs: number;
   readonly #now: () => number;
   readonly #reviewBoundary: ReviewInterruptBoundary | undefined;
+  readonly #groundedSynthesisExecutor:
+    GroundedSynthesisInteractionExecutorPort | undefined;
   #accepting = true;
 
   constructor(options: InteractionRuntimeOptions = {}) {
     this.#stepDelayMs = options.stepDelayMs ?? 2;
     this.#now = options.now ?? Date.now;
     this.#reviewBoundary = options.reviewBoundary;
+    this.#groundedSynthesisExecutor = options.groundedSynthesisExecutor;
   }
 
   get accepting(): boolean {
@@ -212,6 +235,7 @@ export class PetraInteractionRuntime {
       cancellationRequested: false,
       listeners: new Set(),
       delivery: { completed: 0, aborted: 0, writeErrors: 0 },
+      abortController: new AbortController(),
       task: Promise.resolve(),
     };
     this.#runs.set(request.runId, record);
@@ -266,6 +290,7 @@ export class PetraInteractionRuntime {
 
     const record = this.#requireRun(command.runId);
     record.cancellationRequested = true;
+    record.abortController.abort();
     const result = {
       applied: true,
       commandId: command.commandId,
@@ -401,6 +426,10 @@ export class PetraInteractionRuntime {
     record: RunRecord,
     request: StartInteractionRequest,
   ): Promise<void> {
+    if (request.workflow === "grounded_synthesis") {
+      await this.#executeGroundedSynthesis(record, request);
+      return;
+    }
     const messageId = `message_${normalizedIdPart(request.runId)}`;
     const toolCallId = `tool_${normalizedIdPart(request.runId)}`;
     let changeSetId = fixturePetraId("change_set", request.runId);
@@ -520,6 +549,151 @@ export class PetraInteractionRuntime {
         hypothesisReference: "H01",
         evidenceScope: "deterministic_m1_fixture",
         workUnitId: record.identity.workUnitId,
+      },
+    });
+    record.terminal = true;
+    this.#wake(record);
+  }
+
+  #appendGroundedProgress(
+    record: RunRecord,
+    progress: GroundedSynthesisProgress,
+  ): void {
+    if (progress.detail.model_request_id !== undefined) {
+      record.identity.modelRequestId = progress.detail.model_request_id;
+    }
+    const activityType = {
+      retrieval: "petra.retrieval.status",
+      packet_compilation: "petra.evidence_packet.status",
+      model_execution: "petra.model.status",
+      validation: "petra.validation.status",
+    }[progress.stage] as ActivitySnapshotEvent["activityType"];
+    this.#append(record, {
+      kind: "activity.snapshot",
+      activityType,
+      content: {
+        label: progress.label,
+        status: progress.status === "running" ? "running" : "completed",
+        workUnitRevision: record.events.length + 1,
+        stage: progress.stage,
+        detail: structuredClone(progress.detail),
+      },
+    });
+  }
+
+  async #executeGroundedSynthesis(
+    record: RunRecord,
+    request: StartInteractionRequest,
+  ): Promise<void> {
+    const messageId = `message_${normalizedIdPart(request.runId)}`;
+    this.#append(record, { kind: "run.started" });
+    record.status = "running";
+    this.#append(record, {
+      kind: "state.snapshot",
+      state: {
+        activeHypothesis: {
+          reference: "H01",
+          descriptor: "The current working explanation under evidence review",
+        },
+        posture: "collaborative_research_assistant",
+        workUnitStatus: "running",
+      },
+    });
+    if (this.#groundedSynthesisExecutor === undefined) {
+      record.status = "failed";
+      this.#append(record, {
+        kind: "run.error",
+        code: "GROUNDED_SYNTHESIS_UNAVAILABLE",
+        message:
+          "No certified grounded-synthesis executor is configured for this Petra server.",
+      });
+      record.terminal = true;
+      this.#wake(record);
+      return;
+    }
+
+    let result: GroundedSynthesisInteractionResult;
+    try {
+      result = await this.#groundedSynthesisExecutor.execute({
+        prompt: request.prompt,
+        signal: record.abortController.signal,
+        onProgress: (progress) =>
+          this.#appendGroundedProgress(record, progress),
+      });
+    } catch (error) {
+      const cancelled =
+        record.cancellationRequested || record.abortController.signal.aborted;
+      record.status = cancelled ? "cancelled" : "failed";
+      this.#append(record, {
+        kind: "run.error",
+        code: cancelled ? "WORK_UNIT_CANCELLED" : "GROUNDED_SYNTHESIS_FAILED",
+        message: cancelled
+          ? "The WorkUnit was cancelled by an explicit Petra command."
+          : error instanceof Error
+            ? error.message
+            : "The grounded synthesis failed without an accepted response.",
+      });
+      record.terminal = true;
+      this.#wake(record);
+      return;
+    }
+    if (record.cancellationRequested) {
+      record.status = "cancelled";
+      this.#append(record, {
+        kind: "run.error",
+        code: "WORK_UNIT_CANCELLED",
+        message: "The WorkUnit was cancelled by an explicit Petra command.",
+      });
+      record.terminal = true;
+      this.#wake(record);
+      return;
+    }
+
+    record.identity.modelRequestId = result.model_request_id;
+    this.#append(record, {
+      kind: "state.snapshot",
+      state: {
+        activeHypothesis: structuredClone(result.hypothesis),
+        posture: "collaborative_research_assistant",
+        workUnitStatus: "running",
+      },
+    });
+    this.#append(record, { kind: "text.start", messageId });
+    this.#append(record, {
+      kind: "text.delta",
+      messageId,
+      delta: result.rendered_text,
+    });
+    this.#append(record, { kind: "text.end", messageId });
+    record.status = "completed";
+    this.#append(record, {
+      kind: "activity.snapshot",
+      activityType: "petra.work_unit.status",
+      content: {
+        label: "Grounded response ready",
+        status: "completed",
+        workUnitRevision: record.events.length + 1,
+      },
+    });
+    this.#append(record, {
+      kind: "run.finished",
+      result: {
+        hypothesisReference: result.hypothesis.reference,
+        contextPacketRef: result.context_packet_ref,
+        evidencePacketRef: result.evidence_packet_ref,
+        snapshotId: result.snapshot_id,
+        modelRequestId: result.model_request_id,
+        modelCallId: result.model_call_id,
+        modelDeploymentId: result.model_deployment_id,
+        roleCertificationId: result.role_certification_id,
+        outputHash: result.output_hash,
+        statementOrigins: result.output.statements.map(
+          (statement) => statement.origin,
+        ),
+        coverage: structuredClone(result.output.coverage),
+        trace: structuredClone(result.trace),
+        cost: structuredClone(result.cost),
+        authorityEffect: "none",
       },
     });
     record.terminal = true;
