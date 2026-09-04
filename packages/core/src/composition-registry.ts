@@ -2,9 +2,12 @@ import { createHash } from "node:crypto";
 
 import type {
   CitationEntry,
+  CompositionMove,
   ContextInclusion,
   PetraAuthor,
   PetraCitationBundle,
+  PetraCompositionPlan,
+  PetraCompositionRequest,
   PetraDraftArtifact,
   PetraDraftSpan,
   PetraEvidencePacket,
@@ -21,7 +24,18 @@ import { type PacketRecord } from "./context-packet-registry.js";
 
 export type CompositionErrorCode =
   | "COMPOSITION_ALREADY_REGISTERED"
+  | "COMPOSITION_REQUEST_ALREADY_REGISTERED"
+  | "COMPOSITION_REQUEST_CONTENT_HASH_MISMATCH"
+  | "COMPOSITION_PLAN_ALREADY_REGISTERED"
+  | "COMPOSITION_PLAN_CONTENT_HASH_MISMATCH"
+  | "COMPOSITION_PLAN_REFERENCE_MISMATCH"
+  | "COMPOSITION_PLAN_ORDER_INVALID"
+  | "COMPOSITION_PLAN_EVIDENCE_MISMATCH"
+  | "COMPOSITION_PLAN_POLICY_MISMATCH"
+  | "COMPOSITION_PLAN_FORCE_MISMATCH"
+  | "COMPOSITION_PLAN_UNRESOLVED_MISMATCH"
   | "DRAFT_CONTENT_HASH_MISMATCH"
+  | "DRAFT_CONTROL_MISMATCH"
   | "DRAFT_LINEAGE_INVALID"
   | "DRAFT_PRODUCTION_ACTOR_MISMATCH"
   | "DRAFT_EVIDENCE_MISMATCH"
@@ -96,6 +110,11 @@ interface StoredComposition {
   readonly citationBundle: DeepReadonly<PetraCitationBundle>;
 }
 
+interface StoredControl<Value> {
+  readonly fingerprint: string;
+  readonly value: DeepReadonly<Value>;
+}
+
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
 
@@ -133,6 +152,30 @@ const exactEvidenceRef = (evidence: DeepReadonly<PetraEvidencePacket>) => ({
   revision: evidence.revision,
   content_hash: evidence.content_hash,
 });
+
+const exactRequestRef = (request: DeepReadonly<PetraCompositionRequest>) => ({
+  composition_request_id: request.composition_request_id,
+  revision: request.revision,
+  content_hash: request.content_hash,
+});
+
+const exactDraftControlRef = (
+  recordId: string,
+  revision: number,
+  contentHash: string,
+) => ({ record_id: recordId, revision, content_hash: contentHash });
+
+const objectRefKey = (ref: {
+  object_kind: string;
+  object_id: string;
+  object_revision: number;
+  object_hash: string;
+}): string =>
+  `${ref.object_kind}:${ref.object_id}:${ref.object_revision}:${ref.object_hash}`;
+
+const positionsAreContiguous = (
+  values: readonly { readonly position: number }[],
+): boolean => values.every((value, index) => value.position === index + 1);
 
 const sameSet = (left: readonly string[], right: readonly string[]): boolean =>
   left.length === right.length &&
@@ -186,6 +229,11 @@ const recordWorkVersionIds = (
 
 export class InMemoryCompositionRegistry {
   readonly #packetRegistry: InMemoryContextPacketRegistry;
+  readonly #requests = new Map<
+    string,
+    StoredControl<PetraCompositionRequest>
+  >();
+  readonly #plans = new Map<string, StoredControl<PetraCompositionPlan>>();
   readonly #compositions = new Map<string, StoredComposition>();
   readonly #currentDraftRevision = new Map<string, number>();
   readonly #spanIds = new Set<string>();
@@ -198,6 +246,119 @@ export class InMemoryCompositionRegistry {
 
   get size(): number {
     return this.#compositions.size;
+  }
+
+  get requestCount(): number {
+    return this.#requests.size;
+  }
+
+  get planCount(): number {
+    return this.#plans.size;
+  }
+
+  getRequest(
+    compositionRequestId: string,
+  ): DeepReadonly<PetraCompositionRequest> | undefined {
+    return this.#requests.get(compositionRequestId)?.value;
+  }
+
+  getPlan(
+    compositionPlanId: string,
+  ): DeepReadonly<PetraCompositionPlan> | undefined {
+    return this.#plans.get(compositionPlanId)?.value;
+  }
+
+  registerRequest(
+    request: PetraCompositionRequest,
+  ): DeepReadonly<PetraCompositionRequest> {
+    const fingerprint = canonicalHash(request);
+    const existing = this.#requests.get(request.composition_request_id);
+    if (existing !== undefined) {
+      if (existing.fingerprint !== fingerprint) {
+        throw new CompositionError(
+          "COMPOSITION_REQUEST_ALREADY_REGISTERED",
+          "The CompositionRequest ID is already bound to different content.",
+        );
+      }
+      return existing.value;
+    }
+    if (request.content_hash !== canonicalHash(request.content)) {
+      throw new CompositionError(
+        "COMPOSITION_REQUEST_CONTENT_HASH_MISMATCH",
+        "The CompositionRequest hash does not identify its exact semantic content.",
+      );
+    }
+    const stored: StoredControl<PetraCompositionRequest> = {
+      fingerprint,
+      value: immutableCopy(request),
+    };
+    this.#requests.set(request.composition_request_id, stored);
+    return stored.value;
+  }
+
+  registerPlan(plan: PetraCompositionPlan): DeepReadonly<PetraCompositionPlan> {
+    const fingerprint = canonicalHash(plan);
+    const existing = this.#plans.get(plan.composition_plan_id);
+    if (existing !== undefined) {
+      if (existing.fingerprint !== fingerprint) {
+        throw new CompositionError(
+          "COMPOSITION_PLAN_ALREADY_REGISTERED",
+          "The CompositionPlan ID is already bound to different content.",
+        );
+      }
+      return existing.value;
+    }
+    if (plan.content_hash !== canonicalHash(plan.content)) {
+      throw new CompositionError(
+        "COMPOSITION_PLAN_CONTENT_HASH_MISMATCH",
+        "The CompositionPlan hash does not identify its exact semantic content.",
+      );
+    }
+    const request = this.#requests.get(
+      plan.composition_request_ref.composition_request_id,
+    )?.value;
+    const evidence = this.#packetRegistry.getEvidencePacket(
+      plan.evidence_packet_ref.evidence_packet_id,
+    );
+    if (
+      request === undefined ||
+      evidence === undefined ||
+      canonicalize(plan.composition_request_ref) !==
+        canonicalize(exactRequestRef(request)) ||
+      canonicalize(plan.evidence_packet_ref) !==
+        canonicalize(exactEvidenceRef(evidence)) ||
+      plan.project_id !== request.project_id ||
+      plan.project_id !== evidence.project_id ||
+      canonicalize(plan.snapshot_ref) !== canonicalize(request.snapshot_ref) ||
+      canonicalize(plan.snapshot_ref) !== canonicalize(evidence.snapshot_ref)
+    ) {
+      throw new CompositionError(
+        "COMPOSITION_PLAN_REFERENCE_MISMATCH",
+        "The CompositionPlan must bind the exact registered request, EvidencePacket, Project, and snapshot.",
+      );
+    }
+    if (
+      plan.compiled_at < request.requested_at ||
+      plan.compiled_at < evidence.compiled_at
+    ) {
+      throw new CompositionError(
+        "COMPOSITION_TIMESTAMP_INVALID",
+        "A CompositionPlan cannot precede its request or EvidencePacket.",
+      );
+    }
+    if (evidence.content.composition_objective !== request.content.objective) {
+      throw new CompositionError(
+        "COMPOSITION_PLAN_REFERENCE_MISMATCH",
+        "The CompositionPlan EvidencePacket must have been compiled for the request's exact objective.",
+      );
+    }
+    this.#validatePlanStructure(plan, request, evidence);
+    const stored: StoredControl<PetraCompositionPlan> = {
+      fingerprint,
+      value: immutableCopy(plan),
+    };
+    this.#plans.set(plan.composition_plan_id, stored);
+    return stored.value;
   }
 
   getDraft(
@@ -251,7 +412,8 @@ export class InMemoryCompositionRegistry {
     }
 
     const evidence = this.#requireEvidence(draft);
-    this.#validateDraft(draft, evidence);
+    const controls = this.#requireCompositionControls(draft, evidence);
+    this.#validateDraft(draft, evidence, controls.request, controls.plan);
     this.#validateNewComponentIds(spans, provenanceMap, citationBundle);
     const spansById = this.#validateSpans(draft, spans);
     this.#validateProvenance(draft, spansById, provenanceMap, evidence);
@@ -301,9 +463,208 @@ export class InMemoryCompositionRegistry {
     return evidence;
   }
 
+  #requireCompositionControls(
+    draft: PetraDraftArtifact,
+    evidence: DeepReadonly<PetraEvidencePacket>,
+  ): {
+    request: DeepReadonly<PetraCompositionRequest>;
+    plan: DeepReadonly<PetraCompositionPlan>;
+  } {
+    const request = this.#requests.get(
+      draft.composition_request_ref.record_id,
+    )?.value;
+    const plan = this.#plans.get(draft.composition_plan_ref.record_id)?.value;
+    if (
+      request === undefined ||
+      plan === undefined ||
+      canonicalize(draft.composition_request_ref) !==
+        canonicalize(
+          exactDraftControlRef(
+            request.composition_request_id,
+            request.revision,
+            request.content_hash,
+          ),
+        ) ||
+      canonicalize(draft.composition_plan_ref) !==
+        canonicalize(
+          exactDraftControlRef(
+            plan.composition_plan_id,
+            plan.revision,
+            plan.content_hash,
+          ),
+        ) ||
+      plan.composition_request_ref.composition_request_id !==
+        request.composition_request_id ||
+      canonicalize(plan.evidence_packet_ref) !==
+        canonicalize(exactEvidenceRef(evidence))
+    ) {
+      throw new CompositionError(
+        "DRAFT_CONTROL_MISMATCH",
+        "The DraftArtifact must bind the exact registered CompositionRequest and ready CompositionPlan for its EvidencePacket.",
+      );
+    }
+    return { request, plan };
+  }
+
+  #validatePlanStructure(
+    plan: PetraCompositionPlan,
+    request: DeepReadonly<PetraCompositionRequest>,
+    evidence: DeepReadonly<PetraEvidencePacket>,
+  ): void {
+    const sections = plan.content.sections;
+    const allMoves = sections.flatMap((section) => section.moves);
+    if (
+      !positionsAreContiguous(sections) ||
+      sections.some((section) => !positionsAreContiguous(section.moves)) ||
+      new Set(sections.map((section) => section.section_id)).size !==
+        sections.length ||
+      new Set(allMoves.map((move) => move.move_id)).size !== allMoves.length
+    ) {
+      throw new CompositionError(
+        "COMPOSITION_PLAN_ORDER_INVALID",
+        "CompositionPlan sections and moves must have unique IDs and contiguous positions matching their array order.",
+      );
+    }
+    const selectedByOrder = new Map(
+      evidence.content.selected_evidence.map((selection) => [
+        selection.context_selection_order,
+        selection,
+      ]),
+    );
+    for (const move of allMoves) {
+      this.#validatePlanMoveEvidence(move, selectedByOrder);
+    }
+    const selectedKeys = new Set(
+      evidence.content.selected_evidence.map((selection) =>
+        objectRefKey(selection.object_ref),
+      ),
+    );
+    if (
+      plan.content.state === "ready" &&
+      request.content.subject_refs.some(
+        (subject) => !selectedKeys.has(objectRefKey(subject)),
+      )
+    ) {
+      throw new CompositionError(
+        "COMPOSITION_PLAN_EVIDENCE_MISMATCH",
+        "A ready CompositionPlan must include every requested subject in its exact EvidencePacket.",
+      );
+    }
+    const allowedOrigins =
+      request.content.evidence_policy.inference_policy === "source_reports_only"
+        ? new Set(["source_report", "structural_language"])
+        : request.content.evidence_policy.inference_policy ===
+            "bounded_synthesis_allowed"
+          ? new Set(["source_report", "petra_inference", "structural_language"])
+          : new Set([
+              "source_report",
+              "petra_inference",
+              "researcher_statement",
+              "structural_language",
+            ]);
+    if (allMoves.some((move) => !allowedOrigins.has(move.semantic_origin))) {
+      throw new CompositionError(
+        "COMPOSITION_PLAN_POLICY_MISMATCH",
+        "A CompositionPlan move exceeds the request's inference and researcher-material policy.",
+      );
+    }
+    const permittedForces = new Set(
+      request.content.requested_output.permitted_scientific_forces,
+    );
+    if (
+      allMoves.some(
+        (move) =>
+          move.semantic_origin !== "structural_language" &&
+          !permittedForces.has(move.scientific_force),
+      )
+    ) {
+      throw new CompositionError(
+        "COMPOSITION_PLAN_FORCE_MISMATCH",
+        "A CompositionPlan move exceeds the request's permitted scientific-force set.",
+      );
+    }
+    const moveIds = new Set(allMoves.map((move) => move.move_id));
+    if (
+      plan.content.unresolved_support.some(
+        (problem) =>
+          new Set(problem.affected_move_ids).size !==
+            problem.affected_move_ids.length ||
+          problem.affected_move_ids.some((moveId) => !moveIds.has(moveId)),
+      ) ||
+      (plan.content.state === "ready" &&
+        plan.content.unresolved_support.length !== 0) ||
+      (plan.content.state === "blocked" &&
+        plan.content.unresolved_support.length === 0) ||
+      (plan.content.state === "ready" &&
+        plan.content.coverage.state === "insufficient")
+    ) {
+      throw new CompositionError(
+        "COMPOSITION_PLAN_UNRESOLVED_MISMATCH",
+        "Unresolved support must name existing moves, and a ready plan cannot declare insufficient coverage.",
+      );
+    }
+  }
+
+  #validatePlanMoveEvidence(
+    move: CompositionMove,
+    selectedByOrder: ReadonlyMap<
+      number,
+      DeepReadonly<PetraEvidencePacket>["content"]["selected_evidence"][number]
+    >,
+  ): void {
+    const keys = move.evidence_refs.map(
+      (ref) => `${ref.context_selection_order}:${objectRefKey(ref.object_ref)}`,
+    );
+    const mismatched = move.evidence_refs.some((ref) => {
+      const selected = selectedByOrder.get(ref.context_selection_order);
+      return (
+        selected === undefined ||
+        canonicalize(selected.object_ref) !== canonicalize(ref.object_ref)
+      );
+    });
+    const relationMismatch =
+      (move.semantic_origin === "source_report" &&
+        move.evidence_refs.some(
+          (ref) =>
+            ref.relation !== "direct_report" &&
+            ref.relation !== "qualification",
+        )) ||
+      (move.semantic_origin === "petra_inference" &&
+        move.evidence_refs.some(
+          (ref) => ref.relation !== "supports_inference",
+        ));
+    const originBoundaryMismatch =
+      (move.semantic_origin === "source_report" &&
+        (move.evidence_refs.length === 0 ||
+          !move.citation_required ||
+          move.scientific_force === "none")) ||
+      (move.semantic_origin === "petra_inference" &&
+        (move.evidence_refs.length === 0 ||
+          !move.citation_required ||
+          move.scientific_force === "none" ||
+          move.scientific_force === "direct_report")) ||
+      (move.semantic_origin === "structural_language" &&
+        (move.evidence_refs.length !== 0 ||
+          move.citation_required ||
+          move.scientific_force !== "none"));
+    if (
+      mismatched ||
+      relationMismatch ||
+      originBoundaryMismatch ||
+      new Set(keys).size !== keys.length
+    ) {
+      throw new CompositionError(
+        "COMPOSITION_PLAN_EVIDENCE_MISMATCH",
+        "Every planned evidence reference must reproduce one unique exact EvidencePacket selection with an origin-compatible relation.",
+      );
+    }
+  }
+
   #validateDraft(
     draft: PetraDraftArtifact,
     evidence: DeepReadonly<PetraEvidencePacket>,
+    request: DeepReadonly<PetraCompositionRequest>,
+    plan: DeepReadonly<PetraCompositionPlan>,
   ): void {
     if (draft.content_hash !== canonicalHash(draft.content)) {
       throw new CompositionError(
@@ -352,7 +713,25 @@ export class InMemoryCompositionRegistry {
       );
     }
     if (
+      plan.content.state !== "ready" ||
+      draft.content.artifact_kind !==
+        request.content.requested_output.artifact_kind ||
+      draft.content.semantic_format !==
+        request.content.requested_output.semantic_format ||
+      draft.content.language !== request.content.requested_output.language ||
+      canonicalize(draft.controls.output_profile) !==
+        canonicalize(request.content.control_context.output_profile) ||
+      canonicalize(draft.controls.language_contract) !==
+        canonicalize(request.content.control_context.language_contract)
+    ) {
+      throw new CompositionError(
+        "DRAFT_CONTROL_MISMATCH",
+        "The DraftArtifact output shape and controls must reproduce its exact ready request and plan.",
+      );
+    }
+    if (
       draft.created_at < evidence.compiled_at ||
+      draft.created_at < plan.compiled_at ||
       draft.controls.language_contract.name !== "petra.felicity"
     ) {
       throw new CompositionError(

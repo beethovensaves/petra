@@ -13,12 +13,12 @@
   "composition_request_ref": {
     "record_id": "composition_request_01ARZ3NDEKTSV4RRFFQ69G5FCS",
     "revision": 1,
-    "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    "content_hash": "sha256:839f4dea1cdcb721128365cfeaa99ef27edcdedc42a3a5984c0d3df56a1f9eba"
   },
   "composition_plan_ref": {
     "record_id": "composition_plan_01ARZ3NDEKTSV4RRFFQ69G5FCT",
     "revision": 1,
-    "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    "content_hash": "sha256:097274dcfb188ae63f62659a3a5135cd26c305a10372866f102f159acb53eac1"
   },
   "evidence_packet_ref": {
     "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",

@@ -296,6 +296,24 @@ export type {
   ResponseArtifactRef as GroundedResponseArtifactRef,
 } from "./generated/grounded-response.js";
 export type {
+  CitationPreferences as CompositionCitationPreferences,
+  CompositionRequestContent,
+  ControlContext as CompositionControlContext,
+  EvidencePolicy as CompositionEvidencePolicy,
+  PetraCompositionRequest,
+  RequestedOutput as CompositionRequestedOutput,
+} from "./generated/composition-request.js";
+export type {
+  CompositionMove,
+  CompositionPlanContent,
+  CompositionRequestRef,
+  CompositionSection,
+  EvidencePacketRef as CompositionEvidencePacketRef,
+  PetraCompositionPlan,
+  PlanEvidenceRef,
+  UnresolvedSupport as CompositionUnresolvedSupport,
+} from "./generated/composition-plan.js";
+export type {
   CitationBundleRef as DraftCitationBundleRef,
   DeterministicProduction as DraftDeterministicProduction,
   DraftContent,

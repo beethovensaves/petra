@@ -2262,6 +2262,206 @@ class PetraEvidencePacket(PetraModel):
     compiled_at: str
 
 
+class CompositionNamedVersionHash(PetraModel):
+    name: str
+    version: str
+    content_hash: str
+
+
+class CompositionFelicityContractRef(PetraModel):
+    name: Literal["petra.felicity"]
+    version: str
+    content_hash: str
+
+
+class CompositionVersionedControlRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class CompositionRequestedOutput(PetraModel):
+    artifact_kind: Literal[
+        "passage",
+        "outline",
+        "table",
+        "methods_description",
+        "experiment_report",
+        "literature_synthesis",
+        "bibliography",
+        "other",
+    ]
+    description: str
+    audience: str
+    language: str
+    semantic_format: Literal["plain_text", "markdown", "structured_json"]
+    permitted_scientific_forces: list[
+        Literal[
+            "direct_report",
+            "descriptive",
+            "association",
+            "comparison",
+            "qualification",
+            "causal",
+            "mechanistic",
+            "methodological",
+            "none",
+        ]
+    ]
+    target_code_points: int | None = None
+
+
+class CompositionCitationStyle(PetraModel):
+    style_kind: Literal["csl"]
+    style_name: str
+    style_version: str
+
+
+class CompositionCitationPreferences(PetraModel):
+    style: CompositionCitationStyle
+    export_formats: list[Literal["inline", "markdown", "latex", "bibtex"]]
+
+
+class CompositionEvidencePolicy(PetraModel):
+    allowed_namespaces: list[
+        Literal["scholarly", "operational", "personal", "discovery"]
+    ]
+    inference_policy: Literal[
+        "source_reports_only",
+        "bounded_synthesis_allowed",
+        "researcher_material_allowed",
+    ]
+    desired_depth: Literal["concise", "standard", "deep"]
+
+
+class CompositionControlContext(PetraModel):
+    output_profile: CompositionNamedVersionHash
+    language_contract: CompositionFelicityContractRef
+    capability_grant_id: str
+    privacy_profile_ref: CompositionVersionedControlRef
+    budget_profile_ref: CompositionVersionedControlRef
+    approval_mode: Literal["automatic_with_validation", "review_before_draft"]
+
+
+class CompositionRequestAuthorityBoundary(PetraModel):
+    request_is_scientific_authority: Literal[False]
+    request_authorizes_publication: Literal[False]
+
+
+class CompositionRequestContent(PetraModel):
+    objective: str
+    subject_refs: list[PacketObjectRef]
+    requested_output: CompositionRequestedOutput
+    citation_preferences: CompositionCitationPreferences
+    evidence_policy: CompositionEvidencePolicy
+    control_context: CompositionControlContext
+    authority_boundary: CompositionRequestAuthorityBoundary
+
+
+class PetraCompositionRequest(PetraModel):
+    schema_name: Literal["petra.composition-request"]
+    schema_version: Literal["1.0.0"]
+    composition_request_id: str
+    revision: Literal[1]
+    project_id: str
+    snapshot_ref: PacketSnapshotRef
+    content: CompositionRequestContent
+    content_hash: str
+    requested_by: ActorRef
+    requested_at: str
+
+
+class CompositionRequestRef(PetraModel):
+    composition_request_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class CompositionPlanEvidencePacketRef(PetraModel):
+    evidence_packet_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class CompositionPlanEvidenceRef(PetraModel):
+    context_selection_order: int
+    object_ref: PacketObjectRef
+    relation: Literal["direct_report", "qualification", "supports_inference", "context"]
+
+
+class CompositionMove(PetraModel):
+    move_id: str
+    position: int
+    planned_text: str
+    semantic_origin: Literal[
+        "source_report",
+        "petra_inference",
+        "researcher_statement",
+        "structural_language",
+    ]
+    scientific_force: Literal[
+        "direct_report",
+        "descriptive",
+        "association",
+        "comparison",
+        "qualification",
+        "causal",
+        "mechanistic",
+        "methodological",
+        "none",
+    ]
+    evidence_refs: list[CompositionPlanEvidenceRef]
+    citation_required: bool
+    limitations: list[str]
+
+
+class CompositionSection(PetraModel):
+    section_id: str
+    position: int
+    heading: str
+    purpose: str
+    moves: list[CompositionMove]
+
+
+class CompositionUnresolvedSupport(PetraModel):
+    description: str
+    affected_move_ids: list[str]
+
+
+class CompositionCoverage(PetraModel):
+    state: Literal["sufficient", "partial", "insufficient"]
+    statement: str
+    limitations: list[str]
+
+
+class CompositionPlanAuthorityBoundary(PetraModel):
+    plan_is_scientific_authority: Literal[False]
+    prose_may_exceed_evidence: Literal[False]
+
+
+class CompositionPlanContent(PetraModel):
+    state: Literal["ready", "blocked"]
+    sections: list[CompositionSection]
+    unresolved_support: list[CompositionUnresolvedSupport]
+    coverage: CompositionCoverage
+    authority_boundary: CompositionPlanAuthorityBoundary
+
+
+class PetraCompositionPlan(PetraModel):
+    schema_name: Literal["petra.composition-plan"]
+    schema_version: Literal["1.0.0"]
+    composition_plan_id: str
+    revision: Literal[1]
+    project_id: str
+    composition_request_ref: CompositionRequestRef
+    evidence_packet_ref: CompositionPlanEvidencePacketRef
+    snapshot_ref: PacketSnapshotRef
+    content: CompositionPlanContent
+    content_hash: str
+    compiled_by: ProjectionServiceActorRef
+    compiled_at: str
+
+
 class DraftVersionedControlRef(PetraModel):
     record_id: str
     revision: int
@@ -3398,6 +3598,8 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "context-packet": PetraContextPacket,
     "evidence-packet": PetraEvidencePacket,
     "grounded-response": PetraGroundedResponse,
+    "composition-request": PetraCompositionRequest,
+    "composition-plan": PetraCompositionPlan,
     "draft-artifact": PetraDraftArtifact,
     "draft-span": PetraDraftSpan,
     "provenance-map": PetraProvenanceMap,

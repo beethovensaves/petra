@@ -1,0 +1,367 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/composition-plan/1.0.0/schema.json",
+  "title": "PetraCompositionPlan",
+  "description": "An immutable, inspectable plan that assigns evidence, uncertainty, citations, and scientific force before prose is drafted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "composition_plan_id",
+    "revision",
+    "project_id",
+    "composition_request_ref",
+    "evidence_packet_ref",
+    "snapshot_ref",
+    "content",
+    "content_hash",
+    "compiled_by",
+    "compiled_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.composition-plan" },
+    "schema_version": { "const": "1.0.0" },
+    "composition_plan_id": { "$ref": "#/$defs/CompositionPlanId" },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "composition_request_ref": { "$ref": "#/$defs/CompositionRequestRef" },
+    "evidence_packet_ref": { "$ref": "#/$defs/EvidencePacketRef" },
+    "snapshot_ref": {
+      "$ref": "../../context-packet/1.0.0/schema.json#/$defs/SnapshotRef"
+    },
+    "content": { "$ref": "#/$defs/CompositionPlanContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "compiled_by": {
+      "$ref": "../../context-packet/1.0.0/schema.json#/$defs/ServiceActorRef"
+    },
+    "compiled_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "CompositionPlanId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^composition_plan_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "CompositionRequestRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["composition_request_id", "revision", "content_hash"],
+      "properties": {
+        "composition_request_id": {
+          "$ref": "../../composition-request/1.0.0/schema.json#/$defs/CompositionRequestId"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "EvidencePacketRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_packet_id", "revision", "content_hash"],
+      "properties": {
+        "evidence_packet_id": {
+          "$ref": "../../context-packet/1.0.0/schema.json#/$defs/EvidencePacketId"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "PlanEvidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context_selection_order", "object_ref", "relation"],
+      "properties": {
+        "context_selection_order": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "object_ref": {
+          "$ref": "../../context-packet/1.0.0/schema.json#/$defs/VersionedObjectRef"
+        },
+        "relation": {
+          "enum": [
+            "direct_report",
+            "qualification",
+            "supports_inference",
+            "context"
+          ]
+        }
+      }
+    },
+    "CompositionMove": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "move_id",
+        "position",
+        "planned_text",
+        "semantic_origin",
+        "scientific_force",
+        "evidence_refs",
+        "citation_required",
+        "limitations"
+      ],
+      "properties": {
+        "move_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            {
+              "type": "string",
+              "pattern": "^composition_move_[0-9A-HJKMNP-TV-Z]{26}$"
+            }
+          ]
+        },
+        "position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "planned_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000
+        },
+        "semantic_origin": {
+          "enum": [
+            "source_report",
+            "petra_inference",
+            "researcher_statement",
+            "structural_language"
+          ]
+        },
+        "scientific_force": {
+          "description": "The scientific force of the planned language. Origin is recorded separately and must not be inferred from this value.",
+          "enum": [
+            "direct_report",
+            "descriptive",
+            "association",
+            "comparison",
+            "qualification",
+            "causal",
+            "mechanistic",
+            "methodological",
+            "none"
+          ]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/PlanEvidenceRef" }
+        },
+        "citation_required": { "type": "boolean" },
+        "limitations": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "semantic_origin": { "const": "source_report" } },
+            "required": ["semantic_origin"]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": { "type": "array", "minItems": 1 },
+              "citation_required": { "const": true },
+              "scientific_force": {
+                "enum": [
+                  "direct_report",
+                  "descriptive",
+                  "association",
+                  "comparison",
+                  "qualification",
+                  "causal",
+                  "mechanistic",
+                  "methodological"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "semantic_origin": { "const": "structural_language" }
+            },
+            "required": ["semantic_origin"]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": { "type": "array", "maxItems": 0 },
+              "citation_required": { "const": false },
+              "scientific_force": { "const": "none" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "semantic_origin": { "const": "petra_inference" } },
+            "required": ["semantic_origin"]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": { "type": "array", "minItems": 1 },
+              "citation_required": { "const": true },
+              "scientific_force": {
+                "enum": [
+                  "descriptive",
+                  "association",
+                  "comparison",
+                  "qualification",
+                  "causal",
+                  "mechanistic",
+                  "methodological"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "CompositionSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["section_id", "position", "heading", "purpose", "moves"],
+      "properties": {
+        "section_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            {
+              "type": "string",
+              "pattern": "^composition_section_[0-9A-HJKMNP-TV-Z]{26}$"
+            }
+          ]
+        },
+        "position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "heading": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "purpose": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "moves": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/CompositionMove" }
+        }
+      }
+    },
+    "UnresolvedSupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "affected_move_ids"],
+      "properties": {
+        "description": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "affected_move_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "allOf": [
+              { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+              {
+                "type": "string",
+                "pattern": "^composition_move_[0-9A-HJKMNP-TV-Z]{26}$"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "CompositionPlanContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "sections",
+        "unresolved_support",
+        "coverage",
+        "authority_boundary"
+      ],
+      "properties": {
+        "state": { "enum": ["ready", "blocked"] },
+        "sections": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/CompositionSection" }
+        },
+        "unresolved_support": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/UnresolvedSupport" }
+        },
+        "coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "statement", "limitations"],
+          "properties": {
+            "state": { "enum": ["sufficient", "partial", "insufficient"] },
+            "statement": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            },
+            "limitations": {
+              "type": "array",
+              "maxItems": 1000,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1, "maxLength": 4000 }
+            }
+          }
+        },
+        "authority_boundary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "plan_is_scientific_authority",
+            "prose_may_exceed_evidence"
+          ],
+          "properties": {
+            "plan_is_scientific_authority": { "const": false },
+            "prose_may_exceed_evidence": { "const": false }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "state": { "const": "ready" } },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "unresolved_support": { "type": "array", "maxItems": 0 }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "state": { "const": "blocked" } },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "unresolved_support": { "type": "array", "minItems": 1 }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import type {
   PetraAuthor,
   PetraCitationBundle,
+  PetraCompositionPlan,
+  PetraCompositionRequest,
   PetraContextPacket,
   PetraDomainEvent,
   PetraDraftArtifact,
@@ -83,7 +85,12 @@ const makeRegistry = (): InMemoryCompositionRegistry => {
   packetRegistry.registerEvidencePacket(
     readFixture<PetraEvidencePacket>("evidence-packet"),
   );
-  return new InMemoryCompositionRegistry(packetRegistry);
+  const registry = new InMemoryCompositionRegistry(packetRegistry);
+  registry.registerRequest(
+    readFixture<PetraCompositionRequest>("composition-request"),
+  );
+  registry.registerPlan(readFixture<PetraCompositionPlan>("composition-plan"));
+  return registry;
 };
 
 const rehashDraft = (draft: PetraDraftArtifact): void => {
@@ -107,6 +114,103 @@ const expectCode = (operation: () => unknown, code: string): void => {
 };
 
 describe("immutable evidence-bound composition registration", () => {
+  it("registers immutable request and plan controls idempotently", () => {
+    const registry = makeRegistry();
+    const request = readFixture<PetraCompositionRequest>("composition-request");
+    const plan = readFixture<PetraCompositionPlan>("composition-plan");
+
+    const replayedRequest = registry.registerRequest(request);
+    const replayedPlan = registry.registerPlan(plan);
+
+    expect(registry.requestCount).toBe(1);
+    expect(registry.planCount).toBe(1);
+    expect(replayedRequest.content.objective).toBe(request.content.objective);
+    expect(replayedPlan.content.sections[0]?.moves).toHaveLength(2);
+    expect(Object.isFrozen(replayedRequest.content.subject_refs)).toBe(true);
+    expect(Object.isFrozen(replayedPlan.content.sections)).toBe(true);
+  });
+
+  it("rejects plan drift from evidence, request policy, and scientific force", () => {
+    const wrongEvidence = readFixture<PetraCompositionPlan>("composition-plan");
+    const firstEvidenceRef =
+      wrongEvidence.content.sections[0].moves[0].evidence_refs[0];
+    if (firstEvidenceRef === undefined) {
+      throw new Error("Expected the fixture plan to bind evidence.");
+    }
+    firstEvidenceRef.object_ref.object_hash =
+      "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+    wrongEvidence.content_hash = canonicalHash(wrongEvidence.content);
+    const first = makeRegistry();
+    wrongEvidence.composition_plan_id =
+      "composition_plan_01ARZ3NDEKTSV4RRFFQ69G5FD5";
+    expectCode(
+      () => first.registerPlan(wrongEvidence),
+      "COMPOSITION_PLAN_EVIDENCE_MISMATCH",
+    );
+
+    const forbiddenInference =
+      readFixture<PetraCompositionPlan>("composition-plan");
+    forbiddenInference.composition_plan_id =
+      "composition_plan_01ARZ3NDEKTSV4RRFFQ69G5FD6";
+    const move = forbiddenInference.content.sections[0].moves[0];
+    move.semantic_origin = "petra_inference";
+    move.scientific_force = "comparison";
+    move.evidence_refs = move.evidence_refs.map((ref) => ({
+      ...ref,
+      relation: "supports_inference",
+    }));
+    forbiddenInference.content_hash = canonicalHash(forbiddenInference.content);
+    const second = makeRegistry();
+    expectCode(
+      () => second.registerPlan(forbiddenInference),
+      "COMPOSITION_PLAN_POLICY_MISMATCH",
+    );
+
+    const excessForce = readFixture<PetraCompositionPlan>("composition-plan");
+    excessForce.composition_plan_id =
+      "composition_plan_01ARZ3NDEKTSV4RRFFQ69G5FD7";
+    excessForce.content.sections[0].moves[0].scientific_force = "causal";
+    excessForce.content_hash = canonicalHash(excessForce.content);
+    const third = makeRegistry();
+    expectCode(
+      () => third.registerPlan(excessForce),
+      "COMPOSITION_PLAN_FORCE_MISMATCH",
+    );
+
+    const uncitedSource = readFixture<PetraCompositionPlan>("composition-plan");
+    uncitedSource.composition_plan_id =
+      "composition_plan_01ARZ3NDEKTSV4RRFFQ69G5FD9";
+    uncitedSource.content.sections[0].moves[0].citation_required = false;
+    uncitedSource.content_hash = canonicalHash(uncitedSource.content);
+    const fourth = makeRegistry();
+    expectCode(
+      () => fourth.registerPlan(uncitedSource),
+      "COMPOSITION_PLAN_EVIDENCE_MISMATCH",
+    );
+  });
+
+  it("rejects non-contiguous plan order and draft control drift", () => {
+    const unordered = readFixture<PetraCompositionPlan>("composition-plan");
+    unordered.composition_plan_id =
+      "composition_plan_01ARZ3NDEKTSV4RRFFQ69G5FD8";
+    const secondMove = unordered.content.sections[0].moves[1];
+    if (secondMove === undefined) {
+      throw new Error("Expected the fixture plan to contain a second move.");
+    }
+    secondMove.position = 3;
+    unordered.content_hash = canonicalHash(unordered.content);
+    const first = makeRegistry();
+    expectCode(
+      () => first.registerPlan(unordered),
+      "COMPOSITION_PLAN_ORDER_INVALID",
+    );
+
+    const input = makeInput();
+    input.draft.controls.output_profile.version = "2.0.0";
+    const second = makeRegistry();
+    expectCode(() => second.register(input), "DRAFT_CONTROL_MISMATCH");
+  });
+
   it("registers one exact aggregate immutably and replays it idempotently", () => {
     const registry = makeRegistry();
     const input = makeInput();

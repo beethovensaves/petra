@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.26.0",
+  "registry_version": "1.28.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -493,6 +493,28 @@
       "canonical_sha256": "sha256:f3124ac0fe817fcce8d2c9937d73d16a6aa0aa91c648016a019d964c4cba2e3a",
       "generate_typescript": true,
       "typescript_path": "src/generated/grounded-response.ts"
+    },
+    {
+      "name": "composition-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/composition-request/1.0.0/schema.json",
+      "path": "schemas/composition-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-snapshot-bound-composition-intent",
+      "canonical_sha256": "sha256:ad597f766b60e4ae6dc418615569f04beea6bb8e1279381f5fdd8d27a30e0175",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/composition-request.ts"
+    },
+    {
+      "name": "composition-plan",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/composition-plan/1.0.0/schema.json",
+      "path": "schemas/composition-plan/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-inspectable-evidence-to-prose-plan",
+      "canonical_sha256": "sha256:84e4176447fda9cd0d2520c4f57e1e57bc0513d547146ed7d931d7c81f1d3a13",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/composition-plan.ts"
     },
     {
       "name": "draft-artifact",

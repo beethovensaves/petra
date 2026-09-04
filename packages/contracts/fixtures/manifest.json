@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.8.0",
+  "fixture_manifest_version": "1.9.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -207,6 +207,14 @@
       "path": "fixtures/accepted/grounded-response.json"
     },
     {
+      "schema": "composition-request",
+      "path": "fixtures/accepted/composition-request.json"
+    },
+    {
+      "schema": "composition-plan",
+      "path": "fixtures/accepted/composition-plan.json"
+    },
+    {
       "schema": "draft-artifact",
       "path": "fixtures/accepted/draft-artifact.json"
     },
@@ -264,6 +272,14 @@
     }
   ],
   "rejected": [
+    {
+      "schema": "composition-request",
+      "path": "fixtures/rejected/composition-request-publication-authority.json"
+    },
+    {
+      "schema": "composition-plan",
+      "path": "fixtures/rejected/composition-plan-uncited-source-report.json"
+    },
     {
       "schema": "contract-smoke",
       "path": "fixtures/rejected/contract-smoke-unknown-property.json"

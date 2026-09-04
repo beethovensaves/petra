@@ -1,6 +1,6 @@
 # Petra Implementation Roadmap
 
-Status: M1.6 complete; the first bounded scientific response now reaches AG-UI only after its exact execution, immutable Artifact, WorkUnit, InteractionRun, packets, and GroundedResponse terminal have persisted
+Status: M1.6 complete; M1.7's backend interaction contract is stable while its design stream continues, and M1.8 has begun with exact composition-control contracts
 Last updated: 2026-09-04
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
@@ -80,7 +80,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 | `M1.5` | `complete` | Claim proposal, direct and AG-UI-mediated review, ChangeSet, and trusted graph path | Petra's core promise depends on visible promotion and reversible scientific state through one command path | `M1.3`, `M1.4` | Deterministic proposal, measured provider-neutral extractor route, active local Qwen and managed-subscription Terra certifications, durable request/call records, inspection, direct accept/reject/correct, independent batch execution, durable AG-UI review, promotion, visible projection, and non-destructive reversal pass |
 | `M1.6` | `complete` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Retrieval and its frozen floor, immutable packet compilation, strict synthesist output, evidence validation, origin labels, certified managed-ChatGPT synthesis, PostgreSQL/S3 terminal persistence, exact replay and invalidation, durable execution-cache reuse, and grounded AG-UI ordering pass |
 | `M1.7` | `in_progress` | Research Brief, evidence view, focused graph, inspector, and Petra interaction client | Researchers need to understand and correct Petra without reading logs, raw tables, or protocol events | `M1.5`, `M1.6` | Cross-view identity, review flow, reconnect, honest async states |
-| `M1.8` | `planned` | DraftArtifact, ProvenanceMap, citations, BibTeX, and LaTeX | Petra must turn evidence into usable scientific writing without losing origin or force | `M1.6`, `M1.7` | Span support, renderer parity, edit and Felicity revalidation |
+| `M1.8` | `in_progress` | DraftArtifact, ProvenanceMap, citations, BibTeX, and LaTeX | Petra must turn evidence into usable scientific writing without losing origin or force | `M1.6`, `M1.7` | CompositionRequest/Plan contract gate, span support, renderer parity, edit and Felicity revalidation |
 | `M1.9` | `planned` | Clean-start acceptance run, replay, recovery, and M1 closure | The parts count only when the complete evidence path survives failure and rebuild | `M1.0`–`M1.8` | Scripted demonstration and all required test groups |
 
 ## Later milestones at a glance
@@ -97,7 +97,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 
 ### Current Petra state
 
-The `/petra` directory contains product, graph, roadmap, and D001–D017 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; thirteen forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries, ordered tombstones, and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; a pinned offline Docling adapter producing stable geometry-backed SourceSpans through a proposal-only worker manifest; a portable evidence-proposal bundle plus independent TypeScript quarantine-admission boundary; provider-neutral policy-first extractor and synthesist gateways with exact role certifications and request/call records; active certified Qwen3.5 local extraction plus managed-subscription GPT-5.6 Terra extraction and synthesis; an opt-in Codex App Server provider with entitlement-derived model discovery; one immutable review projection and storage-neutral command planner/executor; a bounded, model-free lexical-to-graph retrieval recipe with exact revision checks and visible omissions plus a content-hashed Paper Trail comparison floor; deterministic ContextPacket and EvidencePacket compilation with provenance closure, rights dependency, budget, and coverage checks; a certified grounded interaction executor with visible AG-UI retrieval, packet, model, validation, persistence, response, and terminal events; a revisioned PostgreSQL GroundedResponse with exact dependency and invalidation semantics; durable synthesist execution rehydration; canonical content-addressed grounded-interaction history with process-restart replay and per-connection delivery receipts; an authorized idempotent WorkUnit-cancellation command ledger; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.5 and M1.6 are complete without a Platform API key. M1.7 is in progress: the backend restores a successful grounded presentation after restart and atomically records explicit durable cancellation, while runtime/provider interruption, cancelled-run replay, and the object-centered UX remain open.
+The `/petra` directory contains product, graph, roadmap, and D001–D017 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; thirteen forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries, ordered tombstones, and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; a pinned offline Docling adapter producing stable geometry-backed SourceSpans through a proposal-only worker manifest; a portable evidence-proposal bundle plus independent TypeScript quarantine-admission boundary; provider-neutral policy-first extractor and synthesist gateways with exact role certifications and request/call records; active certified Qwen3.5 local extraction plus managed-subscription GPT-5.6 Terra extraction and synthesis; an opt-in Codex App Server provider with entitlement-derived model discovery; one immutable review projection and storage-neutral command planner/executor; a bounded, model-free lexical-to-graph retrieval recipe with exact revision checks and visible omissions plus a content-hashed Paper Trail comparison floor; deterministic ContextPacket and EvidencePacket compilation with provenance closure, rights dependency, budget, and coverage checks; a certified grounded interaction executor with visible AG-UI retrieval, packet, model, validation, persistence, response, and terminal events; a revisioned PostgreSQL GroundedResponse with exact dependency and invalidation semantics; durable synthesist execution rehydration; canonical content-addressed grounded-interaction history with process-restart replay and per-connection delivery receipts; an authorized idempotent WorkUnit-cancellation command ledger; immutable CompositionRequest and CompositionPlan controls with exact evidence, policy, force, and draft-binding invariants; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.5 and M1.6 are complete without a Platform API key. M1.7 is in progress: its backend now distinguishes explicit stop, disconnect, replay, and completion durably, while the object-centered workbench UX remains in the design stream. M1.8 is in progress at the composition control boundary.
 
 The current development environment exposes:
 
@@ -825,7 +825,7 @@ The first graph view needs interaction and traceability, not visual polish. Rend
 
 ## M1.8 — first DraftArtifact and citations
 
-- **Status:** `planned`
+- **Status:** `in_progress`
 - **Builds:** snapshot-bound scientific prose, span-level provenance, canonical citations, BibTeX, LaTeX, and revision-aware editing.
 - **Why:** Petra must convert evidence into useful research writing without turning fluent language or formatted references into unsupported authority.
 - **Depends on:** `M1.6`, `M1.7`.
@@ -836,9 +836,9 @@ Wrap the grounded response in:
 
 | ID | Status | Build specification | Why Petra needs it |
 | --- | --- | --- | --- |
-| `M1.8-W01` | `planned` | Create one CompositionRequest. | The requested output, audience, and scientific force need explicit input identity. |
-| `M1.8-W02` | `planned` | Retain one inspectable CompositionPlan. | Users and validators need to see how evidence was assigned to prose. |
-| `M1.8-W03` | `planned` | Bind one EvidencePacket. | Drafting must operate on a fixed evidence boundary. |
+| `M1.8-W01` | `in_progress` | Create one CompositionRequest. | The requested output, audience, and scientific force need explicit input identity. |
+| `M1.8-W02` | `in_progress` | Retain one inspectable CompositionPlan. | Users and validators need to see how evidence was assigned to prose. |
+| `M1.8-W03` | `complete` | Bind one EvidencePacket. | Drafting must operate on a fixed evidence boundary. |
 | `M1.8-W04` | `planned` | Create one immutable DraftArtifact revision. | Scientific prose needs reproducible history. |
 | `M1.8-W05` | `planned` | Map DraftSpans through a ProvenanceMap. | Material language must resolve to evidence or an explicit non-evidence origin. |
 | `M1.8-W06` | `planned` | Create one CitationBundle resolving to the exact WorkVersion. | Bibliography and claims must cite the version actually used. |
@@ -868,6 +868,12 @@ Support one researcher edit that:
 | `M1.8-AC03` | Markdown, LaTeX, and BibTeX render without changing semantic support. |
 | `M1.8-AC04` | A language rewrite that strengthens scientific force is rejected or returned for repair. |
 | `M1.8-AC05` | The draft's evidence path is reproducible from its named snapshot after the project advances. |
+
+### Completion evidence
+
+| ID | Status | Recorded evidence | Remaining boundary |
+| --- | --- | --- | --- |
+| `M1.8-EV01` | `pass` | Canonical CompositionRequest and CompositionPlan 1.0 contracts bind one accepted fixture to an exact Project snapshot, EvidencePacket, controls, output shape, evidence policy, origin, scientific force, citation obligation, and limitations. JSON Schema, generated TypeScript, and strict Pydantic parity pass. The in-memory registry rejects reference drift, non-contiguous plan structure, unselected evidence, forbidden inference, excess force, unresolved-support errors, and DraftArtifact control drift. The complete repository gate passes with 563 always-on tests and seven expected service skips. | Persist request and plan records in PostgreSQL and compile them automatically from the grounded-response path before marking `M1.8-W01` and `M1.8-W02` complete. |
 
 ## M1.9 — hardening and M1 closure
 
