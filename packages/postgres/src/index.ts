@@ -9,6 +9,7 @@ export * from "./grounded-response-authority-repository.js";
 export * from "./interaction-authority-repository.js";
 export * from "./model-execution-repository.js";
 export * from "./research-scope-repository.js";
+export * from "./rendered-artifact-authority-repository.js";
 export * from "./scholarly-identity-repository.js";
 export * from "./synthesist-execution-repository.js";
 export * from "./work-unit-authority-repository.js";

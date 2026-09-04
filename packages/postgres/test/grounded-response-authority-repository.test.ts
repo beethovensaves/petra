@@ -37,7 +37,10 @@ import type {
 } from "@petra/core";
 import {
   buildCompensatingReversalCommandPlan,
+  CompositionArtifactPublisher,
+  type CompositionPublicationError,
   derivePetraId,
+  DeterministicCompositionRenderer,
   DurableInteractionHistory,
   executeCompensatingReversalPlan,
   GroundedCompositionCompiler,
@@ -47,6 +50,7 @@ import {
   type GroundedSynthesisTerminalRequest,
   type PetraInteractionEvent,
   type RegisterGroundedResponseInput,
+  type RenderedArtifactAuthorityRepository,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
@@ -69,6 +73,11 @@ import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-r
 import { PostgresGroundedResponseAuthorityRepository } from "../src/grounded-response-authority-repository.js";
 import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
+import {
+  PostgresRenderedArtifactAuthorityRepository,
+  type RenderedArtifactPersistenceError,
+  type RenderedArtifactPersistenceErrorCode,
+} from "../src/rendered-artifact-authority-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresSynthesistExecutionRepository } from "../src/synthesist-execution-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
@@ -117,6 +126,17 @@ const expectCompositionAggregateCode = async (
 ): Promise<void> => {
   await expect(operation()).rejects.toEqual(
     expect.objectContaining<Partial<CompositionAggregatePersistenceError>>({
+      code,
+    }),
+  );
+};
+
+const expectRenderedArtifactCode = async (
+  operation: () => Promise<unknown>,
+  code: RenderedArtifactPersistenceErrorCode,
+): Promise<void> => {
+  await expect(operation()).rejects.toEqual(
+    expect.objectContaining<Partial<RenderedArtifactPersistenceError>>({
       code,
     }),
   );
@@ -1067,6 +1087,260 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     const unchanged = await repository.get(compiled.draft.draft_artifact_id, 1);
     expect(unchanged?.draft.content.text).toBe(
       "The selected study reports a measurable improvement. The claim is limited to its study-defined evaluation task.",
+    );
+  });
+
+  it("publishes all requested composition formats and rehydrates their exact durable lineage", async () => {
+    const { terminal, compiled } = await compileDurableComposition();
+    const aggregate = await new PostgresCompositionAggregateRepository(
+      pool,
+      terminal.packets,
+    ).register(compiled);
+    const rendered = new DeterministicCompositionRenderer().renderRequested({
+      aggregate,
+      renderedBy: serviceRef(),
+      renderedAt: "2026-09-04T02:30:00.000Z",
+    });
+    const store = createMemoryArtifactStore();
+    const artifactAuthority = new PostgresArtifactAuthorityRepository(
+      pool,
+      store,
+    );
+    const repository = new PostgresRenderedArtifactAuthorityRepository(pool);
+    const publisher = new CompositionArtifactPublisher({
+      serviceActor: serviceActor(),
+      artifactStore: store,
+      artifacts: artifactAuthority,
+      renderedArtifacts: repository,
+    });
+
+    const published = await publisher.publishAll(rendered);
+    expect(
+      published.map((item) => item.renderedArtifact.content.format),
+    ).toEqual(["markdown", "latex", "bibtex"]);
+    expect(await publisher.publishAll(structuredClone(rendered))).toEqual(
+      published,
+    );
+
+    const restarted = new PostgresRenderedArtifactAuthorityRepository(pool);
+    expect(
+      await restarted.getForDraft(aggregate.draft.draft_artifact_id, 1),
+    ).toEqual(published.map((item) => item.renderedArtifact));
+    for (const item of published) {
+      const read = await store.readByHash(
+        item.artifactRegistration.artifact.content_hash,
+        {
+          byteSize: item.artifactRegistration.artifact.byte_size,
+          mediaType: item.artifactRegistration.artifact.media_type,
+        },
+      );
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of read.bytes) chunks.push(chunk);
+      expect(chunks).toHaveLength(1);
+      expect(new TextDecoder().decode(chunks[0])).toBe(
+        rendered.find(
+          (candidate) =>
+            candidate.artifact.artifact_id ===
+            item.artifactRegistration.artifact.artifact_id,
+        )?.text,
+      );
+      expect(item.artifactRegistration.manifest.origin).toMatchObject({
+        origin_kind: "generated",
+        generator_name: "petra.deterministic-composition-renderer",
+        input_artifact_ids: [],
+      });
+      expect(item.artifactRegistration.rightsDecision.permissions).toEqual({
+        store_raw_bytes: true,
+        parse: true,
+        index: true,
+        embed: true,
+        send_selected_text_remotely: false,
+        quote_publicly: false,
+        redistribute_artifact: false,
+      });
+    }
+    const counts = await pool.query<{
+      rendered: string;
+      output_artifacts: string;
+      output_manifests: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.rendered_artifacts) AS rendered,
+         (SELECT count(*)::text FROM petra.artifacts
+           WHERE artifact_kind = 'export') AS output_artifacts,
+         (SELECT count(*)::text FROM petra.artifact_manifests
+           WHERE origin_generator_name = 'petra.deterministic-composition-renderer')
+           AS output_manifests`,
+    );
+    expect(counts.rows[0]).toEqual({
+      rendered: "3",
+      output_artifacts: "3",
+      output_manifests: "3",
+    });
+  });
+
+  it("recovers an interrupted publication from its already-available Artifact", async () => {
+    const { terminal, compiled } = await compileDurableComposition();
+    const aggregate = await new PostgresCompositionAggregateRepository(
+      pool,
+      terminal.packets,
+    ).register(compiled);
+    const rendered = new DeterministicCompositionRenderer().renderOne(
+      {
+        aggregate,
+        renderedBy: serviceRef(),
+        renderedAt: "2026-09-04T02:30:00.000Z",
+      },
+      "markdown",
+    );
+    const store = createMemoryArtifactStore();
+    const artifactAuthority = new PostgresArtifactAuthorityRepository(
+      pool,
+      store,
+    );
+    const interrupted: RenderedArtifactAuthorityRepository = {
+      register: () => Promise.reject(new Error("simulated database outage")),
+      get: () => Promise.resolve(undefined),
+      getForDraft: () => Promise.resolve([]),
+    };
+    const firstPublisher = new CompositionArtifactPublisher({
+      serviceActor: serviceActor(),
+      artifactStore: store,
+      artifacts: artifactAuthority,
+      renderedArtifacts: interrupted,
+    });
+    await expect(firstPublisher.publish(rendered)).rejects.toThrow(
+      "simulated database outage",
+    );
+    expect(
+      await artifactAuthority.getArtifact(rendered.artifact.artifact_id),
+    ).toEqual(rendered.artifact);
+    expect(
+      await store.inspectByHash(rendered.artifact.content_hash, {
+        byteSize: rendered.artifact.byte_size,
+        mediaType: rendered.artifact.media_type,
+      }),
+    ).toBeDefined();
+
+    const repository = new PostgresRenderedArtifactAuthorityRepository(pool);
+    const recovered = await new CompositionArtifactPublisher({
+      serviceActor: serviceActor(),
+      artifactStore: store,
+      artifacts: artifactAuthority,
+      renderedArtifacts: repository,
+    }).publish(structuredClone(rendered));
+    expect(recovered.renderedArtifact).toEqual(rendered.record);
+    expect(await repository.get(rendered.record.rendered_artifact_id)).toEqual(
+      rendered.record,
+    );
+  });
+
+  it("rejects changed render bytes and a record whose output Artifact is missing", async () => {
+    const { terminal, compiled } = await compileDurableComposition();
+    const aggregate = await new PostgresCompositionAggregateRepository(
+      pool,
+      terminal.packets,
+    ).register(compiled);
+    const rendered = new DeterministicCompositionRenderer().renderOne(
+      {
+        aggregate,
+        renderedBy: serviceRef(),
+        renderedAt: "2026-09-04T02:30:00.000Z",
+      },
+      "markdown",
+    );
+    const store = createMemoryArtifactStore();
+    const repository = new PostgresRenderedArtifactAuthorityRepository(pool);
+    const publisher = new CompositionArtifactPublisher({
+      serviceActor: serviceActor(),
+      artifactStore: store,
+      artifacts: new PostgresArtifactAuthorityRepository(pool, store),
+      renderedArtifacts: repository,
+    });
+    const changedBytes = {
+      ...rendered,
+      bytes: new TextEncoder().encode(`${rendered.text}changed`),
+    };
+    await expect(publisher.publish(changedBytes)).rejects.toEqual(
+      expect.objectContaining<Partial<CompositionPublicationError>>({
+        code: "COMPOSITION_PUBLICATION_RENDER_INVALID",
+      }),
+    );
+    expect(
+      await store.inspectByHash(rendered.artifact.content_hash),
+    ).toBeUndefined();
+    await expectRenderedArtifactCode(
+      () => repository.register(rendered.record),
+      "RENDERED_ARTIFACT_REFERENCE_MISSING",
+    );
+  });
+
+  it("rejects RenderedArtifact identity drift and direct SQL mutation", async () => {
+    const { terminal, compiled } = await compileDurableComposition();
+    const aggregate = await new PostgresCompositionAggregateRepository(
+      pool,
+      terminal.packets,
+    ).register(compiled);
+    const rendered = new DeterministicCompositionRenderer().renderOne(
+      {
+        aggregate,
+        renderedBy: serviceRef(),
+        renderedAt: "2026-09-04T02:30:00.000Z",
+      },
+      "markdown",
+    );
+    const store = createMemoryArtifactStore();
+    const artifactAuthority = new PostgresArtifactAuthorityRepository(
+      pool,
+      store,
+    );
+    const repository = new PostgresRenderedArtifactAuthorityRepository(pool);
+    await new CompositionArtifactPublisher({
+      serviceActor: serviceActor(),
+      artifactStore: store,
+      artifacts: artifactAuthority,
+      renderedArtifacts: repository,
+    }).publish(rendered);
+
+    const changed = structuredClone(rendered.record);
+    changed.content.warnings.push({
+      code: "TEST_DRIFT",
+      message: "This warning was not part of the persisted representation.",
+    });
+    changed.content_hash = canonicalHash(changed.content);
+    await expectRenderedArtifactCode(
+      () => repository.register(changed),
+      "RENDERED_ARTIFACT_ID_CONFLICT",
+    );
+
+    const competing = structuredClone(rendered.record);
+    competing.rendered_artifact_id = derivePetraId(
+      "rendered_artifact",
+      "competing-render-slot",
+    );
+    await expectRenderedArtifactCode(
+      () => repository.register(competing),
+      "RENDERED_ARTIFACT_SLOT_CONFLICT",
+    );
+
+    try {
+      await pool.query(
+        `UPDATE petra.rendered_artifacts
+            SET rendered_at = rendered_at + interval '1 second'
+          WHERE rendered_artifact_id = $1`,
+        [rendered.record.rendered_artifact_id],
+      );
+      throw new Error("Expected the immutable trigger to reject the update.");
+    } catch (error: unknown) {
+      expect(error).toEqual(expect.objectContaining({ code: "55000" }));
+      if (error instanceof Error) {
+        expect(error.message).toContain(
+          "RenderedArtifact records are immutable",
+        );
+      }
+    }
+    expect(await repository.get(rendered.record.rendered_artifact_id)).toEqual(
+      rendered.record,
     );
   });
 
