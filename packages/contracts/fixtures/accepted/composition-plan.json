@@ -32,7 +32,7 @@
           {
             "move_id": "composition_move_01ARZ3NDEKTSV4RRFFQ69G5FC1",
             "position": 1,
-            "planned_text": "Report that the selected study found a measurable improvement.",
+            "planned_text": "The selected study reports a measurable improvement.",
             "semantic_origin": "source_report",
             "scientific_force": "direct_report",
             "evidence_refs": [
@@ -65,7 +65,7 @@
           {
             "move_id": "composition_move_01ARZ3NDEKTSV4RRFFQ69G5FC2",
             "position": 2,
-            "planned_text": "Limit the report to the study-defined evaluation task.",
+            "planned_text": "The claim is limited to its study-defined evaluation task.",
             "semantic_origin": "source_report",
             "scientific_force": "qualification",
             "evidence_refs": [
@@ -101,7 +101,7 @@
       "prose_may_exceed_evidence": false
     }
   },
-  "content_hash": "sha256:097274dcfb188ae63f62659a3a5135cd26c305a10372866f102f159acb53eac1",
+  "content_hash": "sha256:5a5950d6be2a2a6bbfab635d7aac6f2b0d7beea12b6cbc844ec344068b850a1d",
   "compiled_by": {
     "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
     "actor_kind": "service"
