@@ -6,6 +6,8 @@ import type {
   GroundedSynthesisInteractionExecutorPort,
   GroundedSynthesisInteractionResult,
   GroundedSynthesisProgress,
+  GroundedSynthesisTerminalBinding,
+  GroundedSynthesisTerminalPort,
 } from "./grounded-synthesis-interaction.js";
 import type {
   ReviewInterruptBoundary,
@@ -152,6 +154,7 @@ export interface InteractionRuntimeOptions {
   now?: () => number;
   reviewBoundary?: ReviewInterruptBoundary;
   groundedSynthesisExecutor?: GroundedSynthesisInteractionExecutorPort;
+  groundedSynthesisTerminal?: GroundedSynthesisTerminalPort;
 }
 
 const pause = async (milliseconds: number): Promise<void> => {
@@ -189,6 +192,8 @@ export class PetraInteractionRuntime {
   readonly #reviewBoundary: ReviewInterruptBoundary | undefined;
   readonly #groundedSynthesisExecutor:
     GroundedSynthesisInteractionExecutorPort | undefined;
+  readonly #groundedSynthesisTerminal:
+    GroundedSynthesisTerminalPort | undefined;
   #accepting = true;
 
   constructor(options: InteractionRuntimeOptions = {}) {
@@ -196,6 +201,7 @@ export class PetraInteractionRuntime {
     this.#now = options.now ?? Date.now;
     this.#reviewBoundary = options.reviewBoundary;
     this.#groundedSynthesisExecutor = options.groundedSynthesisExecutor;
+    this.#groundedSynthesisTerminal = options.groundedSynthesisTerminal;
   }
 
   get accepting(): boolean {
@@ -575,6 +581,7 @@ export class PetraInteractionRuntime {
       packet_compilation: "petra.evidence_packet.status",
       model_execution: "petra.model.status",
       validation: "petra.validation.status",
+      persistence: "petra.work_unit.status",
     }[progress.stage] as ActivitySnapshotEvent["activityType"];
     this.#append(record, {
       kind: "activity.snapshot",
@@ -657,6 +664,51 @@ export class PetraInteractionRuntime {
       return;
     }
 
+    let terminalBinding: GroundedSynthesisTerminalBinding | undefined;
+    if (this.#groundedSynthesisTerminal !== undefined) {
+      this.#appendGroundedProgress(record, {
+        stage: "persistence",
+        status: "running",
+        label: "Persisting exact grounded-response authority",
+        detail: { authority_effect: "none" },
+      });
+      try {
+        terminalBinding = await this.#groundedSynthesisTerminal.persist({
+          interaction: {
+            protocol_thread_id: record.identity.threadId,
+            protocol_run_id: record.identity.runId,
+            request_id: record.identity.requestId,
+            trace_id: record.identity.traceId,
+            work_unit_id: record.identity.workUnitId,
+            started_at: new Date(
+              record.events[0]?.timestamp ?? this.#now(),
+            ).toISOString(),
+          },
+          prompt: request.prompt,
+          result,
+        });
+      } catch (error) {
+        record.status = "failed";
+        this.#append(record, {
+          kind: "run.error",
+          code: "GROUNDED_TERMINAL_PERSISTENCE_FAILED",
+          message:
+            error instanceof Error
+              ? error.message
+              : "The grounded response terminal could not be persisted.",
+        });
+        record.terminal = true;
+        this.#wake(record);
+        return;
+      }
+      this.#appendGroundedProgress(record, {
+        stage: "persistence",
+        status: "completed",
+        label: "Exact grounded-response authority persisted",
+        detail: { authority_effect: "none" },
+      });
+    }
+
     record.identity.modelRequestId = result.model_request_id;
     this.#append(record, {
       kind: "state.snapshot",
@@ -695,6 +747,7 @@ export class PetraInteractionRuntime {
         modelDeploymentId: result.model_deployment_id,
         roleCertificationId: result.role_certification_id,
         outputHash: result.output_hash,
+        executionSource: result.execution_source,
         statementOrigins: result.output.statements.map(
           (statement) => statement.origin,
         ),
@@ -702,6 +755,9 @@ export class PetraInteractionRuntime {
         trace: structuredClone(result.trace),
         cost: structuredClone(result.cost),
         authorityEffect: "none",
+        ...(terminalBinding === undefined
+          ? {}
+          : { terminalBinding: structuredClone(terminalBinding) }),
       },
     });
     record.terminal = true;

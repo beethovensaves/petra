@@ -7,6 +7,8 @@ import type {
   PetraEvidencePacket,
   PetraModelSynthesistOutput,
   PetraSourceSpan,
+  PetraSynthesistModelCall,
+  PetraSynthesistModelRequest,
   PetraSynthesistRoleCertification,
 } from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
@@ -20,6 +22,7 @@ import {
   type SynthesistGatewayRequest,
   type SynthesistModelAdapter,
   type SynthesistModelDeployment,
+  type SynthesistExecutionRepository,
   synthesistCertificationHash,
   synthesistRoutingPolicyHash,
 } from "../src/index.js";
@@ -282,6 +285,7 @@ describe("SynthesistGateway", () => {
       "Petra packet controls",
     );
     expect(result.output).toEqual(output);
+    expect(result.execution_source).toBe("provider");
     expect(Object.isFrozen(result.request)).toBe(true);
     expect(Object.isFrozen(result.calls[0])).toBe(true);
     expect(invoke).toHaveBeenCalledTimes(1);
@@ -289,7 +293,43 @@ describe("SynthesistGateway", () => {
     const replay = await gateway.execute(request);
     expect(replay.request).toBe(result.request);
     expect(replay.output).toBe(result.output);
+    expect(replay.execution_source).toBe("memory_cache");
     expect(invoke).toHaveBeenCalledTimes(1);
+
+    const repository: SynthesistExecutionRepository = {
+      registerCertification: (value) => Promise.resolve(value),
+      getCertification: (id) =>
+        Promise.resolve(
+          id === certification.role_certification_id
+            ? structuredClone(certification)
+            : undefined,
+        ),
+      persistExecution: (value) => Promise.resolve(value),
+      getRequest: (id) =>
+        Promise.resolve(
+          id === result.request.model_request_id
+            ? (structuredClone(result.request) as PetraSynthesistModelRequest)
+            : undefined,
+        ),
+      listCalls: (id) =>
+        Promise.resolve(
+          id === result.request.model_request_id
+            ? (structuredClone(result.calls) as PetraSynthesistModelCall[])
+            : [],
+        ),
+    };
+    const durableInvoke = vi.fn(() =>
+      Promise.reject(new Error("The provider must not run on a cache hit.")),
+    );
+    const restarted = new SynthesistGateway(packets, undefined, repository);
+    restarted.registerDeployment(deployment, { invoke: durableInvoke });
+    restarted.registerCertification(certification);
+    const hydrated = await restarted.execute(request);
+    expect(hydrated.execution_source).toBe("durable_cache");
+    expect(hydrated.request).toEqual(result.request);
+    expect(hydrated.calls).toEqual(result.calls);
+    expect(hydrated.output).toEqual(result.output);
+    expect(durableInvoke).not.toHaveBeenCalled();
   });
 
   it("withholds a well-formed response whose evidence references escape the packet", async () => {

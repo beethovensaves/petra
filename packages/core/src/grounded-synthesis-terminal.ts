@@ -1,0 +1,899 @@
+import { createHash } from "node:crypto";
+
+import type {
+  PetraActor,
+  PetraArtifact,
+  PetraArtifactManifest,
+  PetraEvidencePacket,
+  PetraGroundedResponse,
+  PetraInteractionFeatureManifest,
+  PetraInteractionRun,
+  PetraProject,
+  PetraRightsDecision,
+  PetraSynthesistModelCall,
+  PetraSynthesistModelRequest,
+  PetraSynthesistRoleCertification,
+  PetraWorkerInputManifest,
+  PetraWorkerOutputManifest,
+  PetraWorkUnit,
+} from "@petra/contracts";
+import { canonicalize } from "json-canonicalize";
+
+import type { ArtifactAuthorityRepository } from "./artifact-registry.js";
+import type { ArtifactStore } from "./artifact-store.js";
+import type { InMemoryContextPacketRegistry } from "./context-packet-registry.js";
+import type { GroundedResponseAuthorityRepository } from "./grounded-response-registry.js";
+import { groundedResponseCacheKey } from "./grounded-response-registry.js";
+import type {
+  GroundedSynthesisTerminalBinding,
+  GroundedSynthesisTerminalPort,
+  GroundedSynthesisTerminalRequest,
+} from "./grounded-synthesis-interaction.js";
+import { derivePetraId } from "./identity.js";
+import type { InteractionAuthorityRepository } from "./interaction-authority-repository.js";
+import type { ResearchScopeRepository } from "./research-scope-repository.js";
+import type { SynthesistExecutionRepository } from "./synthesist-execution-repository.js";
+import type { WorkUnitAuthorityRepository } from "./work-unit-authority-repository.js";
+
+const RESPONSE_MEDIA_TYPE = "text/markdown; charset=utf-8" as const;
+const WORKER_MEDIA_TYPE = "text/markdown" as const;
+const MAX_RESPONSE_BYTES = 4_000_000;
+
+const canonicalHash = (value: unknown): string =>
+  `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
+
+const byteHash = (bytes: Uint8Array): string =>
+  `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+
+const laterTimestamp = (left: string, right: string): string =>
+  new Date(left).getTime() >= new Date(right).getTime() ? left : right;
+
+const clone = <Value>(value: Value): Value => structuredClone(value);
+
+const petraCorrelationId = (
+  kind: "request" | "trace",
+  value: string,
+): string =>
+  new RegExp(`^${kind}_[0-9A-HJKMNP-TV-Z]{26}$`).test(value)
+    ? value
+    : derivePetraId(kind, value);
+
+const mutableModelRequest = (
+  value: GroundedSynthesisTerminalRequest["result"]["model_request"],
+): PetraSynthesistModelRequest =>
+  structuredClone(value) as PetraSynthesistModelRequest;
+
+const mutableModelCall = (
+  value: GroundedSynthesisTerminalRequest["result"]["model_call"],
+): PetraSynthesistModelCall =>
+  structuredClone(value) as PetraSynthesistModelCall;
+
+const mutableEvidencePacket = (
+  value: NonNullable<
+    ReturnType<InMemoryContextPacketRegistry["getEvidencePacket"]>
+  >,
+): PetraEvidencePacket => structuredClone(value) as PetraEvidencePacket;
+
+export interface GroundedSynthesisTerminalRecorderOptions {
+  readonly actors: readonly PetraActor[];
+  readonly serviceActor: PetraActor;
+  readonly project: PetraProject;
+  readonly featureManifest: PetraInteractionFeatureManifest;
+  readonly roleCertification: PetraSynthesistRoleCertification;
+  readonly packets: InMemoryContextPacketRegistry;
+  readonly scopes: ResearchScopeRepository;
+  readonly artifactStore: ArtifactStore;
+  readonly artifacts: ArtifactAuthorityRepository;
+  readonly executions: SynthesistExecutionRepository;
+  readonly workUnits: WorkUnitAuthorityRepository;
+  readonly interactions: InteractionAuthorityRepository;
+  readonly groundedResponses: GroundedResponseAuthorityRepository;
+  readonly runtimeVersion?: string;
+}
+
+export type GroundedSynthesisTerminalErrorCode =
+  | "GROUNDED_TERMINAL_CONFIGURATION_INVALID"
+  | "GROUNDED_TERMINAL_EXECUTION_MISMATCH"
+  | "GROUNDED_TERMINAL_ARTIFACT_CONFLICT"
+  | "GROUNDED_TERMINAL_CACHE_CONFLICT"
+  | "GROUNDED_TERMINAL_PACKET_MISSING"
+  | "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT";
+
+export class GroundedSynthesisTerminalError extends Error {
+  readonly code: GroundedSynthesisTerminalErrorCode;
+
+  constructor(code: GroundedSynthesisTerminalErrorCode, message: string) {
+    super(message);
+    this.name = "GroundedSynthesisTerminalError";
+    this.code = code;
+  }
+}
+
+const serviceRef = (actor: PetraActor) => ({
+  actor_id: actor.actor_id,
+  actor_kind: "service" as const,
+});
+
+const ensureServiceConfiguration = (
+  options: GroundedSynthesisTerminalRecorderOptions,
+): void => {
+  if (
+    options.serviceActor.actor_kind !== "service" ||
+    options.featureManifest.compiled_by.actor_id !==
+      options.serviceActor.actor_id ||
+    options.featureManifest.compiled_by.actor_kind !== "service" ||
+    options.roleCertification.certified_by.actor_id !==
+      options.serviceActor.actor_id ||
+    options.roleCertification.certified_by.actor_kind !== "service" ||
+    options.project.project_id.trim() === "" ||
+    !options.actors.some(
+      (actor) => actor.actor_id === options.serviceActor.actor_id,
+    )
+  ) {
+    throw new GroundedSynthesisTerminalError(
+      "GROUNDED_TERMINAL_CONFIGURATION_INVALID",
+      "The terminal recorder requires one exact service-owned feature and certification configuration.",
+    );
+  }
+};
+
+const artifactIntegrity = (
+  verification: Awaited<
+    ReturnType<ArtifactStore["makeAvailable"]>
+  >["verification"],
+  checkedAt: string,
+): PetraArtifactManifest["integrity"] => {
+  if (verification.status === "verified") {
+    return { status: "verified", checked_at: checkedAt, problems: [] };
+  }
+  const problems = verification.problems.map((message, index) => ({
+    code: `STORE_WARNING_${String(index + 1).padStart(2, "0")}`,
+    severity: "warning" as const,
+    message,
+  }));
+  const first = problems[0] ?? {
+    code: "STORE_WARNING_01",
+    severity: "warning" as const,
+    message: "The ArtifactStore reported verification with warnings.",
+  };
+  return {
+    status: "verified_with_warnings",
+    checked_at: checkedAt,
+    problems: [first, ...problems.slice(1)],
+  };
+};
+
+const terminalArtifactRecords = (
+  request: GroundedSynthesisTerminalRequest,
+  available: Awaited<ReturnType<ArtifactStore["makeAvailable"]>>,
+  serviceActor: PetraActor,
+): {
+  artifact: PetraArtifact;
+  manifest: PetraArtifactManifest;
+  rightsDecision: PetraRightsDecision;
+} => {
+  const acquisitionSeed = `${request.result.model_request_id}|${available.contentHash}`;
+  const artifactId = derivePetraId("artifact", available.contentHash);
+  const manifestId = derivePetraId("artifact_manifest", acquisitionSeed);
+  const rightsId = derivePetraId("rights_decision", acquisitionSeed);
+  const actor = serviceRef(serviceActor);
+  const artifact: PetraArtifact = {
+    schema_name: "petra.artifact",
+    schema_version: "1.0.0",
+    artifact_id: artifactId,
+    revision: 1,
+    artifact_kind: "run_output",
+    media_type: RESPONSE_MEDIA_TYPE,
+    content_hash: available.contentHash,
+    byte_size: available.byteSize,
+    created_by: actor,
+    created_at: available.availableAt,
+  };
+  const manifest: PetraArtifactManifest = {
+    schema_name: "petra.artifact-manifest",
+    schema_version: "1.0.0",
+    artifact_manifest_id: manifestId,
+    revision: 1,
+    artifact_id: artifactId,
+    rights_decision_id: rightsId,
+    origin: {
+      origin_kind: "generated",
+      generator_name: "petra-grounded-terminal",
+      generator_version: "1.0.0",
+      generated_at: available.availableAt,
+      input_artifact_ids: [],
+    },
+    storage_ref: {
+      storage_kind: "content_addressed_object",
+      store_name: available.storeName,
+      object_key: available.objectKey,
+      content_hash: available.contentHash,
+      availability: "available",
+      verified_at: available.availableAt,
+    },
+    integrity: artifactIntegrity(available.verification, available.availableAt),
+    recorded_by: actor,
+    recorded_at: available.availableAt,
+  };
+  const rightsDecision: PetraRightsDecision = {
+    schema_name: "petra.rights-decision",
+    schema_version: "1.0.0",
+    rights_decision_id: rightsId,
+    revision: 1,
+    artifact_manifest_id: manifestId,
+    source_location: `urn:petra:grounded-response:${request.result.model_request_id}`,
+    license_status: "known",
+    observed_license: {
+      statement: "Petra-generated private research output.",
+      source: "artifact",
+    },
+    access_basis: "permission",
+    decision_status: "verified",
+    permissions: {
+      store_raw_bytes: true,
+      parse: true,
+      index: true,
+      embed: true,
+      send_selected_text_remotely: false,
+      quote_publicly: false,
+      redistribute_artifact: false,
+    },
+    conditions: [],
+    required_notices: [],
+    authorization_reference: "petra-private-generated-output/1.0.0",
+    decision_maker: actor,
+    rationale:
+      "The response was generated inside the researcher's private Petra workspace and remains private by default.",
+    observed_at: available.availableAt,
+    policy_version: "petra-rights/1.0.0",
+    created_at: available.availableAt,
+  };
+  return { artifact, manifest, rightsDecision };
+};
+
+const persistArtifactAcquisition = async (
+  repository: ArtifactAuthorityRepository,
+  records: ReturnType<typeof terminalArtifactRecords>,
+): Promise<void> => {
+  const existing = await repository.getArtifact(records.artifact.artifact_id);
+  if (existing === undefined) {
+    try {
+      await repository.registerVerifiedAcquisition(records);
+      return;
+    } catch (error) {
+      const concurrent = await repository.getArtifact(
+        records.artifact.artifact_id,
+      );
+      if (
+        concurrent === undefined ||
+        canonicalize(concurrent) !== canonicalize(records.artifact)
+      ) {
+        throw error;
+      }
+    }
+  } else if (canonicalize(existing) !== canonicalize(records.artifact)) {
+    throw new GroundedSynthesisTerminalError(
+      "GROUNDED_TERMINAL_ARTIFACT_CONFLICT",
+      "The response byte identity is already bound to a different Artifact record.",
+    );
+  }
+  await repository.attachVerifiedManifest({
+    artifactId: records.artifact.artifact_id,
+    manifest: records.manifest,
+    rightsDecision: records.rightsDecision,
+  });
+};
+
+const terminalWorkRecords = (
+  request: GroundedSynthesisTerminalRequest,
+  cacheKey: string,
+  responseHash: string,
+  responseBytes: number,
+  serviceActor: PetraActor,
+  runtimeVersion: string,
+  startedAt: string,
+  completedAt: string,
+): {
+  root: PetraWorkUnit;
+  input: PetraWorkerInputManifest;
+  output: PetraWorkerOutputManifest;
+} => {
+  const modelRequest = request.result.model_request;
+  const actor = serviceRef(serviceActor);
+  const inputId = derivePetraId(
+    "worker_input_manifest",
+    `${request.interaction.work_unit_id}|${cacheKey}`,
+  );
+  const outputId = derivePetraId(
+    "worker_output_manifest",
+    `${request.interaction.work_unit_id}|${responseHash}`,
+  );
+  const worker = {
+    executor_kind: "typescript_worker" as const,
+    worker_name: "petra.grounded_terminal",
+    worker_version: "1.0.0",
+    runtime_name: "node",
+    runtime_version: runtimeVersion,
+    entrypoint: "petra.grounded_terminal.persist",
+  };
+  const inputContent: PetraWorkerInputManifest["content"] = {
+    task: {
+      task_family: "reasoning",
+      task_name: "petra.synthesis.grounded",
+      task_version: "1.0.0",
+    },
+    worker,
+    inputs: [
+      {
+        binding_kind: "record",
+        name: "context_packet",
+        record_id: request.result.context_packet_ref.context_packet_id,
+        record_revision: 1,
+        snapshot_hash: request.result.context_packet_ref.content_hash,
+      },
+      {
+        binding_kind: "record",
+        name: "evidence_packet",
+        record_id: request.result.evidence_packet_ref.evidence_packet_id,
+        record_revision: 1,
+        snapshot_hash: request.result.evidence_packet_ref.content_hash,
+      },
+      {
+        binding_kind: "record",
+        name: "model_request",
+        record_id: request.result.model_request_id,
+        record_revision: modelRequest.revision,
+        snapshot_hash: modelRequest.content_hash,
+      },
+    ],
+    expected_outputs: [
+      {
+        output_name: "grounded_response",
+        output_role: "result",
+        required: true,
+        media_type: WORKER_MEDIA_TYPE,
+        max_bytes: MAX_RESPONSE_BYTES,
+      },
+    ],
+    resource_limits: {
+      max_wall_time_ms: Math.max(
+        new Date(completedAt).getTime() - new Date(startedAt).getTime(),
+        1,
+      ),
+      max_output_bytes: MAX_RESPONSE_BYTES,
+      max_attempts: 1,
+      max_parallelism: 1,
+      max_input_tokens: modelRequest.content.budget.max_input_tokens,
+      max_output_tokens: modelRequest.content.budget.max_output_tokens,
+    },
+    network_policy: { network_mode: "blocked" },
+    partial_result_policy: "discard",
+  };
+  const input: PetraWorkerInputManifest = {
+    schema_name: "petra.worker-input-manifest",
+    schema_version: "1.0.0",
+    worker_input_manifest_id: inputId,
+    revision: 1,
+    work_unit_id: request.interaction.work_unit_id,
+    project_id: modelRequest.content.project_id,
+    content: inputContent,
+    content_hash: canonicalHash(inputContent),
+    issued_by: actor,
+    issued_at: startedAt,
+  };
+  const workSpec: PetraWorkUnit["spec"] = {
+    workflow_name: "petra.synthesis.grounded",
+    workflow_version: "1.0.0",
+    objective: modelRequest.content.objective,
+    work_mode: "interactive",
+    priority: "user_blocking",
+    dependency_work_unit_ids: [],
+    input_manifest_ref: {
+      worker_input_manifest_id: inputId,
+      content_hash: input.content_hash,
+    },
+    idempotency_key: `work:${derivePetraId(
+      "operation",
+      `${request.interaction.protocol_thread_id}|${request.interaction.protocol_run_id}|${cacheKey}`,
+    )}`,
+    cache: { cache_mode: "reuse_exact", cache_key: cacheKey },
+    cancellation_policy: "atomic",
+    checkpoint_policy: "disabled",
+  };
+  const root: PetraWorkUnit = {
+    schema_name: "petra.work-unit",
+    schema_version: "1.0.0",
+    work_unit_id: request.interaction.work_unit_id,
+    revision: 1,
+    project_id: modelRequest.content.project_id,
+    spec: workSpec,
+    spec_hash: canonicalHash(workSpec),
+    status: { state: "requested", requested_at: startedAt },
+    capability_grant_id: derivePetraId(
+      "capability_grant",
+      `${request.interaction.work_unit_id}|grounded-terminal`,
+    ),
+    trace_id: petraCorrelationId("trace", request.interaction.trace_id),
+    created_by: actor,
+    created_at: startedAt,
+    updated_at: startedAt,
+  };
+  const outputContent: PetraWorkerOutputManifest["content"] = {
+    worker,
+    started_at: startedAt,
+    completed_at: completedAt,
+    outcome: {
+      outcome_kind: "succeeded",
+      produced_outputs: [
+        {
+          output_name: "grounded_response",
+          output_role: "result",
+          output_handle: `output:${derivePetraId("result", responseHash).slice("result_".length)}`,
+          content_hash: responseHash,
+          byte_size: responseBytes,
+          media_type: WORKER_MEDIA_TYPE,
+        },
+      ],
+    },
+    diagnostics: [],
+    network_activity: [],
+    resource_usage: {
+      wall_time_ms: Math.max(
+        new Date(completedAt).getTime() - new Date(startedAt).getTime(),
+        0,
+      ),
+      cpu_time_ms: 0,
+      peak_memory_bytes: 0,
+      input_bytes: 0,
+      output_bytes: responseBytes,
+      network_bytes: 0,
+    },
+  };
+  const output: PetraWorkerOutputManifest = {
+    schema_name: "petra.worker-output-manifest",
+    schema_version: "1.0.0",
+    worker_output_manifest_id: outputId,
+    revision: 1,
+    work_unit_id: request.interaction.work_unit_id,
+    project_id: modelRequest.content.project_id,
+    attempt: 1,
+    worker_input_manifest_id: inputId,
+    worker_input_manifest_hash: input.content_hash,
+    content: outputContent,
+    content_hash: canonicalHash(outputContent),
+    reported_at: completedAt,
+  };
+  return { root, input, output };
+};
+
+const terminalInteractionRecords = (
+  request: GroundedSynthesisTerminalRequest,
+  workUnit: PetraWorkUnit,
+  feature: PetraInteractionFeatureManifest,
+  serviceActor: PetraActor,
+  startedAt: string,
+  persistedAt: string,
+): readonly [PetraInteractionRun, PetraInteractionRun] => {
+  const actor = serviceRef(serviceActor);
+  const interactionRunId = derivePetraId(
+    "interaction_run",
+    `${request.interaction.protocol_thread_id}|${request.interaction.protocol_run_id}`,
+  );
+  const workUnitRef = {
+    work_unit_id: workUnit.work_unit_id,
+    revision: workUnit.revision,
+    spec_hash: workUnit.spec_hash,
+  };
+  const initialContent: PetraInteractionRun["content"] = {
+    correlation: {
+      protocol_thread_id: request.interaction.protocol_thread_id,
+      protocol_run_id: request.interaction.protocol_run_id,
+      request_id: petraCorrelationId("request", request.interaction.request_id),
+      trace_id: petraCorrelationId("trace", request.interaction.trace_id),
+      work_unit_ref: workUnitRef,
+      model_request_id: request.result.model_request_id,
+    },
+    authority_context: {
+      actor,
+      capability_grant_id: workUnit.capability_grant_id,
+      privacy_profile_ref: {
+        record_id: derivePetraId("privacy_profile", interactionRunId),
+        revision: 1,
+        content_hash: canonicalHash({ profile: "private" }),
+      },
+      budget_profile_ref: {
+        record_id: derivePetraId("budget_profile", interactionRunId),
+        revision: 1,
+        content_hash: canonicalHash(
+          request.result.model_request.content.budget,
+        ),
+      },
+    },
+    input: {
+      input_hash: canonicalHash({ prompt: request.prompt }),
+      source_message_id: derivePetraId(
+        "source_message",
+        `${interactionRunId}|${request.prompt}`,
+      ),
+    },
+    lifecycle: {
+      state: "running",
+      started_at: startedAt,
+    },
+    stream_head: { state: "empty", event_count: 0 },
+    authority_boundary: {
+      interaction_state_is_authoritative: false,
+      events_are_domain_ledger: false,
+      connection_abort_cancels_work: false,
+    },
+  };
+  const initial: PetraInteractionRun = {
+    schema_name: "petra.interaction-run",
+    schema_version: "1.0.0",
+    interaction_run_id: interactionRunId,
+    revision: 1,
+    project_id: request.result.model_request.content.project_id,
+    feature_manifest_ref: {
+      interaction_feature_manifest_id: feature.interaction_feature_manifest_id,
+      revision: feature.revision,
+      content_hash: feature.content_hash,
+    },
+    lineage: { lineage_kind: "root" },
+    content: initialContent,
+    content_hash: canonicalHash(initialContent),
+    created_by: actor,
+    created_at: startedAt,
+    updated_at: startedAt,
+  };
+  const terminalContent: PetraInteractionRun["content"] = {
+    ...clone(initialContent),
+    lifecycle: {
+      state: "completed",
+      started_at: startedAt,
+      ended_at: persistedAt,
+      outcome_code: "GROUNDED_RESPONSE_READY",
+    },
+  };
+  const terminal: PetraInteractionRun = {
+    ...clone(initial),
+    revision: 2,
+    lineage: {
+      lineage_kind: "revision",
+      parent_revision: initial.revision,
+      parent_hash: initial.content_hash,
+    },
+    content: terminalContent,
+    content_hash: canonicalHash(terminalContent),
+    updated_at: persistedAt,
+  };
+  return [initial, terminal];
+};
+
+const terminalGroundedResponse = (
+  request: GroundedSynthesisTerminalRequest,
+  artifact: PetraArtifact,
+  workUnit: PetraWorkUnit,
+  interaction: PetraInteractionRun,
+  packets: InMemoryContextPacketRegistry,
+  serviceActor: PetraActor,
+  persistedAt: string,
+): PetraGroundedResponse => {
+  const context = packets.getContextPacket(
+    request.result.context_packet_ref.context_packet_id,
+  );
+  const evidence = packets.getEvidencePacket(
+    request.result.evidence_packet_ref.evidence_packet_id,
+  );
+  if (context === undefined || evidence === undefined) {
+    throw new GroundedSynthesisTerminalError(
+      "GROUNDED_TERMINAL_PACKET_MISSING",
+      "The terminal cannot resolve the exact ContextPacket and EvidencePacket.",
+    );
+  }
+  const dependencies = evidence.content.selected_evidence.map((selection) => ({
+    dependency_role: "selected_evidence" as const,
+    object_ref: clone(selection.object_ref),
+  }));
+  const cacheKey = groundedResponseCacheKey(
+    mutableModelRequest(request.result.model_request),
+    mutableEvidencePacket(evidence),
+  );
+  const content: PetraGroundedResponse["content"] = {
+    response_artifact_ref: {
+      artifact_id: artifact.artifact_id,
+      content_hash: artifact.content_hash,
+      byte_size: artifact.byte_size,
+      media_type: RESPONSE_MEDIA_TYPE,
+    },
+    context_packet_ref: {
+      context_packet_id: context.context_packet_id,
+      revision: 1,
+      content_hash: context.content_hash,
+    },
+    evidence_packet_ref: {
+      evidence_packet_id: evidence.evidence_packet_id,
+      revision: 1,
+      content_hash: evidence.content_hash,
+    },
+    snapshot_ref: clone(evidence.snapshot_ref),
+    execution_ref: {
+      model_request_id: request.result.model_request_id,
+      model_call_id: request.result.model_call_id,
+      model_deployment_id: request.result.model_deployment_id,
+      role_certification_id: request.result.role_certification_id,
+    },
+    interaction_ref: {
+      interaction_run_ref: {
+        interaction_run_id: interaction.interaction_run_id,
+        revision: interaction.revision,
+        content_hash: interaction.content_hash,
+      },
+      work_unit_ref: {
+        work_unit_id: workUnit.work_unit_id,
+        revision: workUnit.revision,
+        spec_hash: workUnit.spec_hash,
+      },
+    },
+    dependencies: [dependencies[0]!, ...dependencies.slice(1)],
+    model_output_hash: request.result.output_hash,
+    cache: { state: "reusable", cache_key: cacheKey, checked_at: persistedAt },
+    terminal: {
+      state: "completed",
+      persisted_at: persistedAt,
+      authority_effect: "none",
+    },
+  };
+  return {
+    schema_name: "petra.grounded-response",
+    schema_version: "1.0.0",
+    grounded_response_id: derivePetraId(
+      "grounded_response",
+      `${request.result.model_request_id}|${cacheKey}`,
+    ),
+    revision: 1,
+    project_id: request.result.model_request.content.project_id,
+    lineage: { lineage_kind: "root" },
+    content,
+    content_hash: canonicalHash(content),
+    recorded_by: serviceRef(serviceActor),
+    recorded_at: persistedAt,
+  };
+};
+
+const assertReusableResponseMatches = (
+  response: PetraGroundedResponse,
+  request: GroundedSynthesisTerminalRequest,
+  artifact: PetraArtifact,
+): void => {
+  const content = response.content;
+  if (
+    response.project_id !== request.result.model_request.content.project_id ||
+    content.response_artifact_ref.artifact_id !== artifact.artifact_id ||
+    content.response_artifact_ref.content_hash !== artifact.content_hash ||
+    content.response_artifact_ref.byte_size !== artifact.byte_size ||
+    content.context_packet_ref.context_packet_id !==
+      request.result.context_packet_ref.context_packet_id ||
+    content.context_packet_ref.content_hash !==
+      request.result.context_packet_ref.content_hash ||
+    content.evidence_packet_ref.evidence_packet_id !==
+      request.result.evidence_packet_ref.evidence_packet_id ||
+    content.evidence_packet_ref.content_hash !==
+      request.result.evidence_packet_ref.content_hash ||
+    content.execution_ref.model_request_id !==
+      request.result.model_request_id ||
+    content.execution_ref.model_call_id !== request.result.model_call_id ||
+    content.execution_ref.model_deployment_id !==
+      request.result.model_deployment_id ||
+    content.execution_ref.role_certification_id !==
+      request.result.role_certification_id ||
+    content.model_output_hash !== request.result.output_hash
+  ) {
+    throw new GroundedSynthesisTerminalError(
+      "GROUNDED_TERMINAL_CACHE_CONFLICT",
+      "The reusable grounded response does not match the exact execution, packets, and response bytes.",
+    );
+  }
+};
+
+const terminalBinding = (
+  grounded: PetraGroundedResponse,
+  artifact: PetraArtifact,
+  interaction: PetraInteractionRun,
+  workUnit: PetraWorkUnit,
+): GroundedSynthesisTerminalBinding => ({
+  grounded_response_id: grounded.grounded_response_id,
+  grounded_response_revision: grounded.revision,
+  grounded_response_hash: grounded.content_hash,
+  response_artifact_id: artifact.artifact_id,
+  response_artifact_hash: artifact.content_hash,
+  interaction_run_id: interaction.interaction_run_id,
+  interaction_run_revision: interaction.revision,
+  interaction_run_hash: interaction.content_hash,
+  work_unit_id: workUnit.work_unit_id,
+  work_unit_revision: workUnit.revision,
+  work_unit_spec_hash: workUnit.spec_hash,
+  persisted_at: interaction.updated_at,
+});
+
+export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTerminalPort {
+  readonly #options: GroundedSynthesisTerminalRecorderOptions;
+
+  constructor(options: GroundedSynthesisTerminalRecorderOptions) {
+    ensureServiceConfiguration(options);
+    this.#options = options;
+  }
+
+  async persist(
+    request: GroundedSynthesisTerminalRequest,
+  ): Promise<GroundedSynthesisTerminalBinding> {
+    const options = this.#options;
+    const modelRequest = mutableModelRequest(request.result.model_request);
+    const modelCall = mutableModelCall(request.result.model_call);
+    if (
+      request.result.model_request_id !== modelRequest.model_request_id ||
+      request.result.model_call_id !== modelCall.model_call_id ||
+      modelCall.content.model_request_id !== modelRequest.model_request_id ||
+      modelRequest.content.project_id !== options.project.project_id
+    ) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_EXECUTION_MISMATCH",
+        "The terminal request does not identify one exact Project-scoped model execution.",
+      );
+    }
+
+    for (const actor of options.actors)
+      await options.scopes.registerActor(actor);
+    await options.scopes.registerProjectRevision(options.project);
+    await options.executions.registerCertification(options.roleCertification);
+    await options.executions.persistExecution({
+      request: modelRequest,
+      calls: [modelCall],
+    });
+
+    const responseBytes = new TextEncoder().encode(
+      request.result.rendered_text,
+    );
+    if (responseBytes.byteLength > MAX_RESPONSE_BYTES) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_EXECUTION_MISMATCH",
+        "The rendered response exceeds Petra's grounded terminal limit.",
+      );
+    }
+    const staged = await options.artifactStore.stage({
+      bytes: [responseBytes],
+      declaredByteSize: responseBytes.byteLength,
+      declaredMediaType: RESPONSE_MEDIA_TYPE,
+      expectedContentHash: byteHash(responseBytes),
+    });
+    const available = await options.artifactStore.makeAvailable(staged);
+    const artifactRecords = terminalArtifactRecords(
+      request,
+      available,
+      options.serviceActor,
+    );
+    await persistArtifactAcquisition(options.artifacts, artifactRecords);
+
+    const evidence = options.packets.getEvidencePacket(
+      request.result.evidence_packet_ref.evidence_packet_id,
+    );
+    if (evidence === undefined) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_PACKET_MISSING",
+        "The terminal EvidencePacket is not registered.",
+      );
+    }
+    const cacheKey = groundedResponseCacheKey(
+      modelRequest,
+      mutableEvidencePacket(evidence),
+    );
+    const priorWorkUnit = await options.workUnits.getWorkUnit(
+      request.interaction.work_unit_id,
+    );
+    const startedAt =
+      priorWorkUnit?.created_at ?? request.interaction.started_at;
+    const persistedAt =
+      priorWorkUnit?.status.state === "completed"
+        ? priorWorkUnit.updated_at
+        : laterTimestamp(startedAt, available.availableAt);
+    const workRecords = terminalWorkRecords(
+      request,
+      cacheKey,
+      artifactRecords.artifact.content_hash,
+      artifactRecords.artifact.byte_size,
+      options.serviceActor,
+      options.runtimeVersion ?? process.versions.node,
+      startedAt,
+      persistedAt,
+    );
+    let workUnit = await options.workUnits.register({
+      workUnit: workRecords.root,
+      inputManifest: workRecords.input,
+    });
+    if (workUnit.status.state === "requested") {
+      workUnit = await options.workUnits.queue(
+        workUnit.work_unit_id,
+        workUnit.revision,
+        startedAt,
+      );
+    }
+    if (workUnit.status.state === "queued") {
+      workUnit = await options.workUnits.start(
+        workUnit.work_unit_id,
+        workUnit.revision,
+        1,
+        startedAt,
+      );
+    }
+    if (workUnit.status.state === "running") {
+      workUnit = await options.workUnits.complete(
+        workRecords.output,
+        workUnit.revision,
+      );
+    }
+    if (
+      workUnit.status.state !== "completed" ||
+      workUnit.status.terminal_outcome !== "succeeded"
+    ) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_WORK_UNIT_CONFLICT",
+        "The grounded terminal WorkUnit did not converge on a successful terminal revision.",
+      );
+    }
+
+    await options.interactions.registerFeatureManifest(options.featureManifest);
+    const interactionRecords = terminalInteractionRecords(
+      request,
+      workUnit,
+      options.featureManifest,
+      options.serviceActor,
+      startedAt,
+      persistedAt,
+    );
+    await options.interactions.registerRun(interactionRecords[0]);
+    const interaction = await options.interactions.registerRun(
+      interactionRecords[1],
+    );
+
+    const reusable =
+      await options.groundedResponses.getReusableByCacheKey(cacheKey);
+    if (reusable !== undefined) {
+      const mutableReusable = clone(reusable);
+      assertReusableResponseMatches(
+        mutableReusable,
+        request,
+        artifactRecords.artifact,
+      );
+      return terminalBinding(
+        mutableReusable,
+        artifactRecords.artifact,
+        interaction,
+        workUnit,
+      );
+    }
+
+    const response = terminalGroundedResponse(
+      request,
+      artifactRecords.artifact,
+      workUnit,
+      interaction,
+      options.packets,
+      options.serviceActor,
+      persistedAt,
+    );
+    const grounded = await options.groundedResponses.register({
+      response,
+      responseArtifact: artifactRecords.artifact,
+      responseBytes,
+      modelRequest,
+      modelCall,
+      interactionRun: interaction,
+      workUnit,
+    });
+    return terminalBinding(
+      grounded,
+      artifactRecords.artifact,
+      interaction,
+      workUnit,
+    );
+  }
+}

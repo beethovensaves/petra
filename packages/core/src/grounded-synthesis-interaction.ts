@@ -11,7 +11,11 @@ import type {
 } from "./synthesist-gateway.js";
 
 export type GroundedSynthesisStage =
-  "retrieval" | "packet_compilation" | "model_execution" | "validation";
+  | "retrieval"
+  | "packet_compilation"
+  | "model_execution"
+  | "validation"
+  | "persistence";
 
 export interface GroundedSynthesisProgress {
   readonly stage: GroundedSynthesisStage;
@@ -27,6 +31,7 @@ export interface GroundedSynthesisProgress {
     readonly model_deployment_id?: string;
     readonly role_certification_id?: string;
     readonly terminal_state?: PetraSynthesistModelRequest["content"]["terminal"]["state"];
+    readonly execution_source?: SynthesistGatewayExecution["execution_source"];
     readonly elapsed_ms?: number;
     readonly authority_effect: "none";
   };
@@ -91,6 +96,7 @@ export interface GroundedSynthesisInteractionResult {
   readonly model_deployment_id: string;
   readonly role_certification_id: string;
   readonly output_hash: string;
+  readonly execution_source: SynthesistGatewayExecution["execution_source"];
   readonly trace: {
     readonly retrieval_ms: number;
     readonly lexical_ms: number;
@@ -104,6 +110,42 @@ export interface GroundedSynthesisInteractionResult {
     readonly total_ms: number;
   };
   readonly cost: PetraSynthesistModelCall["content"]["cost"];
+  readonly model_request: DeepReadonly<PetraSynthesistModelRequest>;
+  readonly model_call: DeepReadonly<PetraSynthesistModelCall>;
+}
+
+export interface GroundedSynthesisTerminalRequest {
+  readonly interaction: {
+    readonly protocol_thread_id: string;
+    readonly protocol_run_id: string;
+    readonly request_id: string;
+    readonly trace_id: string;
+    readonly work_unit_id: string;
+    readonly started_at: string;
+  };
+  readonly prompt: string;
+  readonly result: GroundedSynthesisInteractionResult;
+}
+
+export interface GroundedSynthesisTerminalBinding {
+  readonly grounded_response_id: string;
+  readonly grounded_response_revision: number;
+  readonly grounded_response_hash: string;
+  readonly response_artifact_id: string;
+  readonly response_artifact_hash: string;
+  readonly interaction_run_id: string;
+  readonly interaction_run_revision: number;
+  readonly interaction_run_hash: string;
+  readonly work_unit_id: string;
+  readonly work_unit_revision: number;
+  readonly work_unit_spec_hash: string;
+  readonly persisted_at: string;
+}
+
+export interface GroundedSynthesisTerminalPort {
+  readonly persist: (
+    request: GroundedSynthesisTerminalRequest,
+  ) => Promise<GroundedSynthesisTerminalBinding>;
 }
 
 export interface GroundedSynthesisInteractionExecutorPort {
@@ -260,6 +302,7 @@ export class GroundedSynthesisInteractionExecutor implements GroundedSynthesisIn
               role_certification_id: selected.role_certification_id,
             }),
         terminal_state: execution.request.content.terminal.state,
+        execution_source: execution.execution_source,
         elapsed_ms: call?.content.timing.total_ms ?? 0,
         authority_effect: "none",
       },
@@ -338,8 +381,11 @@ export class GroundedSynthesisInteractionExecutor implements GroundedSynthesisIn
       model_deployment_id: selected.model_deployment_id,
       role_certification_id: selected.role_certification_id,
       output_hash: outputHash,
+      execution_source: execution.execution_source,
       trace,
       cost: structuredClone(call.content.cost),
+      model_request: structuredClone(execution.request),
+      model_call: structuredClone(call),
     };
   }
 }

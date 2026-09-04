@@ -24,7 +24,8 @@ import {
 } from "@petra/core";
 
 const HASH_PATTERN = /^sha256:([0-9a-f]{64})$/;
-const MEDIA_TYPE_PATTERN = /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/;
+const MEDIA_TYPE_PATTERN =
+  /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+(?:; charset=utf-8)?$/;
 const SAMPLE_LIMIT = 8192;
 
 export interface S3ArtifactStoreOptions {
@@ -74,7 +75,7 @@ const normalizeMediaType = (mediaType: string): string => {
   if (normalized !== mediaType || !MEDIA_TYPE_PATTERN.test(normalized)) {
     throw error(
       "ARTIFACT_STORE_MEDIA_TYPE_INVALID",
-      "Artifact media type must be one normalized type/subtype without parameters.",
+      "Artifact media type must be one normalized type/subtype; UTF-8 text may include the exact charset=utf-8 parameter.",
     );
   }
   return normalized;

@@ -15,12 +15,15 @@ import type {
   PetraInteractionFeatureManifest,
   PetraInteractionInterrupt,
   PetraInteractionRun,
+  PetraSynthesistModelCall,
+  PetraSynthesistModelRequest,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   PetraInteractionRuntime,
   type GroundedSynthesisInteractionExecutorPort,
   type GroundedSynthesisInteractionResult,
+  type GroundedSynthesisTerminalPort,
 } from "@petra/core";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
@@ -95,17 +98,32 @@ const decodeSse = (text: string): BaseEvent[] =>
 
 const contractRegistry = new PetraContractRegistry();
 
+const readAcceptedFixture = async <Value>(name: string): Promise<Value> => {
+  const parsed: unknown = JSON.parse(
+    await readFile(
+      resolve(
+        process.cwd(),
+        `../../packages/contracts/fixtures/accepted/${name}`,
+      ),
+      "utf8",
+    ),
+  );
+  return parsed as Value;
+};
+
 const groundedSynthesisResult =
   async (): Promise<GroundedSynthesisInteractionResult> => {
-    const output = JSON.parse(
-      await readFile(
-        resolve(
-          process.cwd(),
-          "../../packages/contracts/fixtures/accepted/model-synthesist-output.json",
-        ),
-        "utf8",
+    const [output, modelRequest, modelCall] = await Promise.all([
+      readAcceptedFixture<PetraModelSynthesistOutput>(
+        "model-synthesist-output.json",
       ),
-    ) as PetraModelSynthesistOutput;
+      readAcceptedFixture<PetraSynthesistModelRequest>(
+        "model-request-synthesist.json",
+      ),
+      readAcceptedFixture<PetraSynthesistModelCall>(
+        "model-call-synthesist.json",
+      ),
+    ]);
     return {
       hypothesis: {
         reference: "H12",
@@ -115,6 +133,8 @@ const groundedSynthesisResult =
       rendered_text:
         "H12 — The bounded explanation represented by the selected evidence\n\nWhat the source reports\nThe selected WorkVersion reports the bounded Claim. [Evidence 2]",
       output,
+      model_request: modelRequest,
+      model_call: modelCall,
       context_packet_ref: {
         context_packet_id: "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
         content_hash:
@@ -132,6 +152,7 @@ const groundedSynthesisResult =
       role_certification_id: "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FE0",
       output_hash:
         "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      execution_source: "provider",
       trace: {
         retrieval_ms: 8,
         lexical_ms: 3,
@@ -502,6 +523,105 @@ describe("D014 Hono conformance", () => {
       expect(replay).toEqual(expectedReplay);
     } finally {
       await groundedServer.shutdown();
+    }
+  });
+
+  test("M1.6-W20: durable terminal persistence completes before answer text", async () => {
+    let persisted = false;
+    const terminal: GroundedSynthesisTerminalPort = {
+      persist: async () => {
+        await Promise.resolve();
+        persisted = true;
+        return {
+          grounded_response_id: "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+          grounded_response_revision: 1,
+          grounded_response_hash:
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          response_artifact_id: "artifact_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+          response_artifact_hash:
+            "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          interaction_run_id: "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+          interaction_run_revision: 2,
+          interaction_run_hash:
+            "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          work_unit_id: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          work_unit_revision: 4,
+          work_unit_spec_hash:
+            "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          persisted_at: "2026-09-04T02:00:00.000Z",
+        };
+      },
+    };
+    const runtime = new PetraInteractionRuntime({
+      groundedSynthesisExecutor: await completedGroundedExecutor(),
+      groundedSynthesisTerminal: terminal,
+    });
+    const durableServer = await startPetraServer({
+      port: 0,
+      authToken: TOKEN,
+      runtime,
+    });
+    try {
+      const response = await rawRun(durableServer, "run_m16_w20", {
+        workflow: "grounded_synthesis",
+      });
+      const events = decodeSse(await response.text());
+      expect(persisted).toBe(true);
+      const persistenceComplete = events.findIndex(
+        (event) =>
+          event.type === EventType.ACTIVITY_SNAPSHOT &&
+          (event as BaseEvent & { activityType: string }).activityType ===
+            "petra.work_unit.status" &&
+          (event as BaseEvent & { content?: { stage?: string } }).content
+            ?.stage === "persistence" &&
+          (event as BaseEvent & { content?: { status?: string } }).content
+            ?.status === "completed",
+      );
+      const textStart = events.findIndex(
+        (event) => event.type === EventType.TEXT_MESSAGE_START,
+      );
+      expect(persistenceComplete).toBeGreaterThan(-1);
+      expect(textStart).toBeGreaterThan(persistenceComplete);
+      const finished = events.find(
+        (event) => event.type === EventType.RUN_FINISHED,
+      ) as BaseEvent & { result: Record<string, unknown> };
+      expect(finished.result.terminalBinding).toMatchObject({
+        grounded_response_id: "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+        interaction_run_revision: 2,
+        work_unit_revision: 4,
+      });
+    } finally {
+      await durableServer.shutdown();
+    }
+  });
+
+  test("M1.6-W20: terminal persistence failure emits no scientific answer", async () => {
+    const runtime = new PetraInteractionRuntime({
+      groundedSynthesisExecutor: await completedGroundedExecutor(),
+      groundedSynthesisTerminal: {
+        persist: () => Promise.reject(new Error("database unavailable")),
+      },
+    });
+    const failedServer = await startPetraServer({
+      port: 0,
+      authToken: TOKEN,
+      runtime,
+    });
+    try {
+      const response = await rawRun(failedServer, "run_m16_w20_failure", {
+        workflow: "grounded_synthesis",
+      });
+      const events = decodeSse(await response.text());
+      expect(events.at(-1)).toMatchObject({
+        type: EventType.RUN_ERROR,
+        code: "GROUNDED_TERMINAL_PERSISTENCE_FAILED",
+        message: "database unavailable",
+      });
+      expect(
+        events.some((event) => event.type === EventType.TEXT_MESSAGE_CONTENT),
+      ).toBe(false);
+    } finally {
+      await failedServer.shutdown();
     }
   });
 

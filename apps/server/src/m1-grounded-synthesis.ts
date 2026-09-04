@@ -11,9 +11,12 @@ import {
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
 import type {
+  PetraActor,
   PetraContextPacket,
   PetraDomainEvent,
   PetraEvidencePacket,
+  PetraInteractionFeatureManifest,
+  PetraProject,
   PetraSourceSpan,
   PetraSynthesistRoleCertification,
 } from "@petra/contracts";
@@ -27,6 +30,7 @@ import {
   synthesistRoutingPolicyHash,
   type GroundedSynthesisInteractionExecutorPort,
   type GroundedSynthesisPlan,
+  type SynthesistExecutionRepository,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 
@@ -67,6 +71,7 @@ export interface M1GroundedSynthesisOptions {
   readonly certificationPath?: string;
   readonly timeoutMs?: number;
   readonly now?: () => string;
+  readonly executionRepository?: SynthesistExecutionRepository;
 }
 
 export interface M1GroundedSynthesisRuntime {
@@ -77,6 +82,14 @@ export interface M1GroundedSynthesisRuntime {
   readonly contextPacketId: string;
   readonly evidencePacketId: string;
   readonly snapshotId: string;
+  readonly terminalContext: {
+    readonly actors: readonly PetraActor[];
+    readonly serviceActor: PetraActor;
+    readonly project: PetraProject;
+    readonly featureManifest: PetraInteractionFeatureManifest;
+    readonly roleCertification: PetraSynthesistRoleCertification;
+    readonly packets: InMemoryContextPacketRegistry;
+  };
 }
 
 export class M1GroundedSynthesisConfigurationError extends Error {
@@ -88,6 +101,11 @@ export class M1GroundedSynthesisConfigurationError extends Error {
 
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
+
+const serviceRef = (actor: PetraActor) => ({
+  actor_id: actor.actor_id,
+  actor_kind: "service" as const,
+});
 
 const readJson = async <Value>(path: string): Promise<Value> =>
   JSON.parse(await readFile(path, "utf8")) as Value;
@@ -147,6 +165,9 @@ export const createM1GroundedSynthesisRuntime = async (
     context,
     evidence,
     event,
+    actor,
+    project,
+    featureManifest,
     span,
     record,
     codexRuntimeVersion,
@@ -177,6 +198,20 @@ export const createM1GroundedSynthesisRuntime = async (
         "domain-event-change-set-applied.json",
       ),
     ),
+    readJson<PetraActor>(
+      join(contractsRoot, "fixtures", "accepted", "actor.json"),
+    ),
+    readJson<PetraProject>(
+      join(contractsRoot, "fixtures", "accepted", "project.json"),
+    ),
+    readJson<PetraInteractionFeatureManifest>(
+      join(
+        contractsRoot,
+        "fixtures",
+        "accepted",
+        "interaction-feature-manifest.json",
+      ),
+    ),
     readJson<PetraSourceSpan>(
       join(contractsRoot, "fixtures", "accepted", "source-span.json"),
     ),
@@ -191,6 +226,16 @@ export const createM1GroundedSynthesisRuntime = async (
       "The M1 packet requires the recorded applied ChangeSet.",
     );
   }
+  const serviceActor: PetraActor = {
+    ...structuredClone(actor),
+    actor_id: record.certification.certified_by.actor_id,
+    actor_kind: "service",
+    display_name: "Petra grounded synthesis service",
+    created_at: record.certification.certified_at,
+  };
+  context.compiled_by = serviceRef(serviceActor);
+  evidence.compiled_by = serviceRef(serviceActor);
+  featureManifest.compiled_by = serviceRef(serviceActor);
 
   const providerSchema = projectSynthesistOutputSchemaForProvider(
     canonicalSchema,
@@ -253,7 +298,11 @@ export const createM1GroundedSynthesisRuntime = async (
     },
     effort: record.runtime.effort,
   });
-  const gateway = new SynthesistGateway(packets);
+  const gateway = new SynthesistGateway(
+    packets,
+    undefined,
+    options.executionRepository,
+  );
   gateway.registerDeployment(
     {
       deployment: record.certification.deployment,
@@ -451,5 +500,13 @@ export const createM1GroundedSynthesisRuntime = async (
     contextPacketId: context.context_packet_id,
     evidencePacketId: evidence.evidence_packet_id,
     snapshotId: context.snapshot_ref.snapshot_id,
+    terminalContext: {
+      actors: [actor, serviceActor],
+      serviceActor,
+      project,
+      featureManifest,
+      roleCertification: record.certification,
+      packets,
+    },
   };
 };

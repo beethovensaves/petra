@@ -101,7 +101,7 @@ checksum.
 | `npm run test:codex-app-server:integration` | Start a real Codex App Server sidecar, use the existing managed ChatGPT session for one ephemeral read-only no-tool turn, verify AG-UI and graph-runtime translation, and close it. |
 | `npm run test:codex-synthesist:integration` | Use the existing managed ChatGPT OAuth session for one structured, read-only, no-tool synthesis and require exact ContextPacket/EvidencePacket grounding. No API key is used. |
 | `npm run test:codex-synthesist:certification` | Evaluate an entitlement-exposed model for the exact synthesist role, activate only a passing deployment, and record a second call through `SynthesistGateway`. No API key is accepted or used. |
-| `npm run test:codex-grounded-ag-ui:integration` | Run the certified Terra synthesist from the frozen M1 packet through Petra's live AG-UI client, with visible stages and exact terminal provenance. It uses managed ChatGPT OAuth and no API key. |
+| `npm run test:codex-grounded-ag-ui:integration` | Run the certified Terra synthesist from the frozen M1 packet through Petra's live AG-UI client, persist its exact PostgreSQL/S3 terminal before text, and reuse a matching durable execution after restart. It uses managed ChatGPT OAuth and no API key; configured local services must be healthy and migrated. |
 | `npm run test:s3:integration` | Test streaming, verification, publication, readback, deduplication, and cleanup against disposable S3-compatible storage. |
 | `npm run test:integration` | Run Vitest and pytest against disposable real services, then delete the stack. |
 | `npm run measure:m1-boundary` | Rebuild and measure the isolated browser cost of Petra's AG-UI client boundary. |
@@ -341,9 +341,14 @@ the explicit `grounded_synthesis` workflow. Before every call, the server checks
 the current OAuth account, Codex runtime, provider schema, prompt, deployment,
 entitlement catalog entry, and endpoint fingerprint against the active recorded
 certification. The AG-UI stream exposes retrieval, packet readiness, model,
-validation, grounded text, and exact terminal provenance, all with no scientific
-authority effect. Run `npm run test:codex-grounded-ag-ui:integration`; see the
-[grounded AG-UI report](reports/M1.6-GROUNDED-AG-UI.md).
+validation, persistence, grounded text, and exact terminal provenance, all with
+no scientific authority effect. Petra emits no answer text until the exact model
+execution, immutable Markdown Artifact, WorkUnit, InteractionRun, packets, and
+GroundedResponse terminal have persisted. A terminal failure ends in
+`RUN_ERROR`; a matching execution can be rehydrated from PostgreSQL after
+restart without another model turn. Run
+`npm run test:codex-grounded-ag-ui:integration`; see the
+[durable terminal report](reports/M1.6-DURABLE-GROUNDED-TERMINAL.md).
 
 A displayed answer now also has a narrow, revisioned `GroundedResponse`
 identity. It binds immutable Markdown Artifact bytes to the exact packets,
@@ -408,6 +413,8 @@ Enable it for the server process:
 
 ```sh
 export PETRA_CODEX_APP_SERVER_ENABLED=true
+npm run services:up
+npm run db:migrate
 npm run dev
 ```
 

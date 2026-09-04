@@ -56,7 +56,7 @@
     "test:codex-app-server:integration": "npm run build:packages && node scripts/test-codex-app-server-integration.mjs",
     "test:codex-synthesist:certification": "npm run build:packages && node experiments/model-certification/run-codex-synthesist.mjs",
     "test:codex-synthesist:integration": "npm run build:packages && node scripts/test-codex-synthesist-integration.mjs",
-    "test:codex-grounded-ag-ui:integration": "npm run build:packages && node scripts/test-codex-grounded-ag-ui-integration.mjs",
+    "test:codex-grounded-ag-ui:integration": "npm run build:packages && node --env-file-if-exists=.env scripts/test-codex-grounded-ag-ui-integration.mjs",
     "test:codex-extractor:integration": "npm run build:packages && node experiments/model-certification/run-codex.mjs",
     "test:evidence-proposals:integration": "node scripts/test-evidence-proposal-integration.mjs",
     "test:python": "UV_CACHE_DIR=.cache/uv uv run --project workers/science pytest workers/science/tests",

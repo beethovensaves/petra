@@ -51,6 +51,24 @@ const certifiedModel: CodexModelSummary = {
   supportsPersonality: false,
 };
 
+const terminalPersistence = {
+  persist: () =>
+    Promise.resolve({
+      grounded_response_id: "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+      grounded_response_revision: 1,
+      grounded_response_hash: `sha256:${"1".repeat(64)}`,
+      response_artifact_id: "artifact_01ARZ3NDEKTSV4RRFFQ69G5FEB",
+      response_artifact_hash: `sha256:${"2".repeat(64)}`,
+      interaction_run_id: "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FEC",
+      interaction_run_revision: 2,
+      interaction_run_hash: `sha256:${"3".repeat(64)}`,
+      work_unit_id: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FED",
+      work_unit_revision: 4,
+      work_unit_spec_hash: `sha256:${"4".repeat(64)}`,
+      persisted_at: "2026-09-04T01:00:01.000Z",
+    }),
+};
+
 class FakeCertifiedCodexProvider implements CodexSubscriptionProviderPort {
   readonly threadRequests: CodexThreadStartRequest[] = [];
   readonly turnRequests: CodexTurnStartRequest[] = [];
@@ -163,6 +181,21 @@ class FakeCertifiedCodexProvider implements CodexSubscriptionProviderPort {
 }
 
 describe("M1.6-W18 certified grounded server composition", () => {
+  it("refuses to expose the live model route without a terminal boundary", async () => {
+    await expect(
+      startPetraServer({
+        port: 0,
+        authToken: TOKEN,
+        codexProvider: new FakeCertifiedCodexProvider(),
+        codexWorkspaceRoot: WORKSPACE_ROOT,
+        codexGroundedSynthesis: {
+          codexRuntimeVersion: CODEX_VERSION,
+          now: () => "2026-09-04T01:00:00.000Z",
+        },
+      }),
+    ).rejects.toThrow("requires a terminal persistence boundary");
+  });
+
   it("loads the recorded certification and executes it through Petra's AG-UI client", async () => {
     const provider = new FakeCertifiedCodexProvider();
     const server = await startPetraServer({
@@ -174,6 +207,7 @@ describe("M1.6-W18 certified grounded server composition", () => {
         codexRuntimeVersion: CODEX_VERSION,
         now: () => "2026-09-04T01:00:00.000Z",
       },
+      groundedSynthesisTerminal: terminalPersistence,
     });
     try {
       const client = new PetraInteractionClient({
@@ -202,6 +236,8 @@ describe("M1.6-W18 certified grounded server composition", () => {
         "petra.model.status",
         "petra.validation.status",
         "petra.work_unit.status",
+        "petra.work_unit.status",
+        "petra.work_unit.status",
       ]);
       const terminal = result.events.find(
         (event) => event.type === "RUN_FINISHED",
@@ -217,6 +253,11 @@ describe("M1.6-W18 certified grounded server composition", () => {
         modelDeploymentId: "model_deployment_2GQKKQBMKS7BTZ6CCES42FNHV8",
         roleCertificationId: "role_certification_2Y0M9BRCDNMBMK55DXEMV31Q8Y",
         authorityEffect: "none",
+        terminalBinding: {
+          grounded_response_id: "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+          interaction_run_revision: 2,
+          work_unit_revision: 4,
+        },
       });
       expect(provider.threadRequests).toHaveLength(1);
       expect(provider.threadRequests[0]).toMatchObject({

@@ -21,6 +21,7 @@ export * from "./graph-projection-registry.js";
 export * from "./graph-store.js";
 export * from "./grounded-synthesis.js";
 export * from "./grounded-synthesis-interaction.js";
+export * from "./grounded-synthesis-terminal.js";
 export * from "./grounded-synthesist-profile.js";
 export * from "./grounded-response-registry.js";
 export * from "./identity.js";

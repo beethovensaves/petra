@@ -1,17 +1,20 @@
 import { PetraInteractionClient } from "@petra/adapters";
 import {
   M1_GROUNDED_SYNTHESIS_QUESTION,
+  createGroundedSynthesisPersistenceFromEnvironment,
   startPetraServer,
 } from "@petra/server";
 
 const workspaceRoot = process.cwd();
 const token = "petra-codex-grounded-integration";
+const persistence = await createGroundedSynthesisPersistenceFromEnvironment();
 const server = await startPetraServer({
   port: 0,
   authToken: token,
   codexWorkspaceRoot: workspaceRoot,
   codexSidecar: { cwd: workspaceRoot, requestTimeoutMs: 30_000 },
   codexGroundedSynthesis: { timeoutMs: 120_000 },
+  groundedSynthesisPersistence: persistence,
 });
 
 try {
@@ -35,6 +38,17 @@ try {
   const terminal = result.events.find((event) => event.type === "RUN_FINISHED")
     ?.payload.result;
   const answer = result.messages.at(-1)?.content;
+  const expectedExecutionSource = process.env.PETRA_EXPECT_EXECUTION_SOURCE;
+  const persistenceComplete = result.events.findIndex(
+    (event) =>
+      event.type === "ACTIVITY_SNAPSHOT" &&
+      event.payload.activityType === "petra.work_unit.status" &&
+      event.payload.content?.stage === "persistence" &&
+      event.payload.content?.status === "completed",
+  );
+  const textStart = result.events.findIndex(
+    (event) => event.type === "TEXT_MESSAGE_START",
+  );
   if (
     typeof answer !== "string" ||
     answer.length === 0 ||
@@ -42,7 +56,18 @@ try {
       "model_deployment_2GQKKQBMKS7BTZ6CCES42FNHV8" ||
     terminal?.roleCertificationId !==
       "role_certification_2Y0M9BRCDNMBMK55DXEMV31Q8Y" ||
-    terminal?.authorityEffect !== "none"
+    terminal?.authorityEffect !== "none" ||
+    !["provider", "memory_cache", "durable_cache"].includes(
+      terminal?.executionSource,
+    ) ||
+    (expectedExecutionSource !== undefined &&
+      terminal.executionSource !== expectedExecutionSource) ||
+    typeof terminal?.terminalBinding?.grounded_response_id !== "string" ||
+    terminal.terminalBinding.grounded_response_revision !== 1 ||
+    terminal.terminalBinding.interaction_run_revision !== 2 ||
+    terminal.terminalBinding.work_unit_revision !== 4 ||
+    persistenceComplete < 0 ||
+    textStart <= persistenceComplete
   ) {
     throw new Error(
       "The certified OAuth run did not reach a complete, non-authoritative AG-UI terminal result.",
@@ -73,6 +98,8 @@ try {
           statement_origins: terminal.statementOrigins,
           authority_effect: terminal.authorityEffect,
           cost_accounting: terminal.cost.accounting,
+          execution_source: terminal.executionSource,
+          terminal_binding: terminal.terminalBinding,
         },
       },
       null,

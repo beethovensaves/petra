@@ -2,8 +2,10 @@ import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { startPetraServer } from "./server.js";
+import { createGroundedSynthesisPersistenceFromEnvironment } from "./grounded-synthesis-persistence.js";
 
 export * from "./app.js";
+export * from "./grounded-synthesis-persistence.js";
 export * from "./m1-grounded-synthesis.js";
 export * from "./server.js";
 
@@ -20,17 +22,20 @@ if (isEntryPoint) {
   const workspaceRoot = resolve(applicationRoot, "../..");
   const codexEnabled = process.env.PETRA_CODEX_APP_SERVER_ENABLED === "true";
   const port = Number(process.env.PORT ?? "4310");
+  const codexOptions = codexEnabled
+    ? {
+        codexWorkspaceRoot: workspaceRoot,
+        codexSidecar: { cwd: workspaceRoot },
+        codexGroundedSynthesis: {},
+        groundedSynthesisPersistence:
+          await createGroundedSynthesisPersistenceFromEnvironment(),
+      }
+    : {};
   const server = await startPetraServer({
     port,
     publicDir,
     authToken: process.env.PETRA_AUTH_TOKEN ?? "petra-local-development",
-    ...(codexEnabled
-      ? {
-          codexWorkspaceRoot: workspaceRoot,
-          codexSidecar: { cwd: workspaceRoot },
-          codexGroundedSynthesis: {},
-        }
-      : {}),
+    ...codexOptions,
   });
   console.log(`Petra is listening at ${server.url}`);
 

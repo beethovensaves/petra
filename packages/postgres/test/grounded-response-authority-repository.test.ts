@@ -35,9 +35,12 @@ import type {
 } from "@petra/core";
 import {
   buildCompensatingReversalCommandPlan,
+  derivePetraId,
   executeCompensatingReversalPlan,
+  GroundedSynthesisTerminalRecorder,
   groundedResponseCacheKey,
   InMemoryContextPacketRegistry,
+  type GroundedSynthesisTerminalRequest,
   type RegisterGroundedResponseInput,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -54,7 +57,10 @@ import { PostgresResearchScopeRepository } from "../src/research-scope-repositor
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresSynthesistExecutionRepository } from "../src/synthesist-execution-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
-import { availableArtifactStore } from "./artifact-store-fixture.js";
+import {
+  availableArtifactStore,
+  createMemoryArtifactStore,
+} from "./artifact-store-fixture.js";
 
 const { Pool } = pg;
 const connectionString = process.env.PETRA_TEST_POSTGRES_URL;
@@ -698,6 +704,175 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       dependency_count: "3",
       context_packet_id: stored.content.context_packet_ref.context_packet_id,
       model_request_id: stored.content.execution_ref.model_request_id,
+    });
+  });
+
+  it("records the complete grounded terminal and converges on exact replay", async () => {
+    const { registry: packets, evidence } = makePackets();
+    const { request, call } = execution(evidence);
+    if (call.content.output === undefined) {
+      throw new Error("Expected a successful synthesist output fixture.");
+    }
+    const store = createMemoryArtifactStore();
+    const artifactAuthority = new PostgresArtifactAuthorityRepository(
+      pool,
+      store,
+    );
+    const feature = readFixture<PetraInteractionFeatureManifest>(
+      "interaction-feature-manifest",
+    );
+    feature.compiled_by = serviceRef();
+    const role = certification();
+    const recorder = new GroundedSynthesisTerminalRecorder({
+      actors: [readFixture<PetraActor>("actor"), serviceActor()],
+      serviceActor: serviceActor(),
+      project: readFixture<PetraProject>("project"),
+      featureManifest: feature,
+      roleCertification: role,
+      packets,
+      scopes,
+      artifactStore: store,
+      artifacts: artifactAuthority,
+      executions: synthesist,
+      workUnits,
+      interactions,
+      groundedResponses: new PostgresGroundedResponseAuthorityRepository(
+        pool,
+        packets,
+      ),
+      runtimeVersion: "24.20.0",
+    });
+    const selected = request.content.routing.selected;
+    if (
+      selected === undefined ||
+      request.content.terminal.state !== "completed"
+    ) {
+      throw new Error("Expected one completed selected synthesist route.");
+    }
+    const terminalRequest: GroundedSynthesisTerminalRequest = {
+      interaction: {
+        protocol_thread_id: "thread_grounded_terminal",
+        protocol_run_id: "run_grounded_terminal",
+        request_id: "request_grounded_terminal",
+        trace_id: "trace_grounded_terminal",
+        work_unit_id: readFixture<PetraWorkUnit>("work-unit-requested")
+          .work_unit_id,
+        started_at: "2026-09-04T02:29:59.000Z",
+      },
+      prompt: "What does the selected study report?",
+      result: {
+        hypothesis: {
+          reference: "H01",
+          descriptor: "The selected study reports a measurable improvement",
+        },
+        rendered_text: RESPONSE_TEXT,
+        output: structuredClone(call.content.output),
+        context_packet_ref: structuredClone(request.content.context_packet_ref),
+        evidence_packet_ref: structuredClone(
+          request.content.evidence_packet_ref,
+        ),
+        snapshot_id: evidence.snapshot_ref.snapshot_id,
+        model_request_id: request.model_request_id,
+        model_call_id: call.model_call_id,
+        model_deployment_id: selected.model_deployment_id,
+        role_certification_id: selected.role_certification_id,
+        output_hash: request.content.terminal.output_hash,
+        execution_source: "provider",
+        trace: {
+          retrieval_ms: 0,
+          lexical_ms: 0,
+          graph_ms: 0,
+          context_compilation_ms: 0,
+          evidence_compilation_ms: 0,
+          packet_compilation_ms: 0,
+          model_ms: call.content.timing.total_ms,
+          validation_ms: call.content.timing.validation_ms,
+          projection_ms: 0,
+          total_ms: call.content.timing.total_ms,
+        },
+        cost: structuredClone(call.content.cost),
+        model_request: structuredClone(request),
+        model_call: structuredClone(call),
+      },
+    };
+
+    const first = await recorder.persist(terminalRequest);
+    expect(await recorder.persist(structuredClone(terminalRequest))).toEqual(
+      first,
+    );
+    const cacheRunId = "run_grounded_terminal_cache";
+    const cacheRequest: GroundedSynthesisTerminalRequest = {
+      ...structuredClone(terminalRequest),
+      interaction: {
+        ...structuredClone(terminalRequest.interaction),
+        protocol_run_id: cacheRunId,
+        request_id: "request_grounded_terminal_cache",
+        trace_id: "trace_grounded_terminal_cache",
+        work_unit_id: derivePetraId("work_unit", cacheRunId),
+      },
+    };
+    const cacheHit = await recorder.persist(cacheRequest);
+    expect(cacheHit).toEqual(
+      expect.objectContaining({
+        grounded_response_id: first.grounded_response_id,
+        grounded_response_revision: first.grounded_response_revision,
+        grounded_response_hash: first.grounded_response_hash,
+        response_artifact_id: first.response_artifact_id,
+        response_artifact_hash: first.response_artifact_hash,
+      }),
+    );
+    expect(cacheHit.work_unit_id).not.toBe(first.work_unit_id);
+    expect(cacheHit.interaction_run_id).not.toBe(first.interaction_run_id);
+    const restarted = new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      new InMemoryContextPacketRegistry(),
+    );
+    const response = await restarted.get(first.grounded_response_id);
+    expect(response).toEqual(
+      expect.objectContaining({
+        grounded_response_id: first.grounded_response_id,
+        revision: first.grounded_response_revision,
+        content_hash: first.grounded_response_hash,
+      }),
+    );
+    expect(response?.content.response_artifact_ref).toEqual({
+      artifact_id: first.response_artifact_id,
+      content_hash: first.response_artifact_hash,
+      byte_size: new TextEncoder().encode(RESPONSE_TEXT).byteLength,
+      media_type: "text/markdown; charset=utf-8",
+    });
+    const persistedWorkUnit = await workUnits.getWorkUnit(first.work_unit_id);
+    expect(persistedWorkUnit?.revision).toBe(first.work_unit_revision);
+    expect(persistedWorkUnit?.spec_hash).toBe(first.work_unit_spec_hash);
+    expect(persistedWorkUnit?.status.state).toBe("completed");
+    expect(
+      persistedWorkUnit?.status.state === "completed"
+        ? persistedWorkUnit.status.terminal_outcome
+        : undefined,
+    ).toBe("succeeded");
+    const persistedInteraction = await interactions.getRun(
+      first.interaction_run_id,
+    );
+    expect(persistedInteraction?.revision).toBe(first.interaction_run_revision);
+    expect(persistedInteraction?.content_hash).toBe(first.interaction_run_hash);
+    expect(persistedInteraction?.content.lifecycle.state).toBe("completed");
+    const counts = await pool.query<{
+      responses: string;
+      artifacts: string;
+      work_units: string;
+      interaction_runs: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.grounded_responses) AS responses,
+         (SELECT count(*)::text FROM petra.artifacts) AS artifacts,
+         (SELECT count(*)::text FROM petra.work_units) AS work_units,
+         (SELECT count(*)::text FROM petra.interaction_runs) AS interaction_runs`,
+    );
+    expect(counts.rows[0]).toEqual({
+      responses: "1",
+      artifacts: "2",
+      work_units: "2",
+      interaction_runs: "2",
     });
   });
 
