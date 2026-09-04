@@ -5,15 +5,20 @@ import type {
   PetraActor,
   PetraArtifact,
   PetraArtifactManifest,
+  PetraAssertion,
   PetraAuthor,
+  PetraClaim,
+  PetraCommandEnvelope,
   PetraDomainEventRecord,
   PetraEvidencePacket,
   PetraGroundedResponse,
   PetraInteractionFeatureManifest,
   PetraInteractionRun,
   PetraProject,
+  PetraParsedDocument,
   PetraRightsDecision,
   PetraSourceSpan,
+  PetraStructuralBlock,
   PetraSynthesistModelCall,
   PetraSynthesistModelRequest,
   PetraSynthesistRoleCertification,
@@ -23,8 +28,14 @@ import type {
   PetraWorkUnit,
   PetraWorkVersion,
 } from "@petra/contracts";
-import type { PersistVerifiedArtifactInput } from "@petra/core";
+import type {
+  DomainRecordFactory,
+  PersistDocumentBundleInput,
+  PersistVerifiedArtifactInput,
+} from "@petra/core";
 import {
+  buildCompensatingReversalCommandPlan,
+  executeCompensatingReversalPlan,
   groundedResponseCacheKey,
   InMemoryContextPacketRegistry,
   type RegisterGroundedResponseInput,
@@ -34,6 +45,9 @@ import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
+import { PostgresChangeControlAuthorityRepository } from "../src/change-control-authority-repository.js";
+import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
+import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
 import { PostgresGroundedResponseAuthorityRepository } from "../src/grounded-response-authority-repository.js";
 import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
@@ -80,7 +94,17 @@ const serviceRef = () => ({
   actor_kind: "service" as const,
 });
 
-const makePackets = (): {
+const modelActor = (): PetraActor => ({
+  ...readFixture<PetraActor>("actor"),
+  actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FF1",
+  actor_kind: "model",
+  display_name: "Petra evidence extractor",
+  created_at: "2026-08-28T18:00:02.000Z",
+});
+
+const makePackets = (
+  selectedRecords?: readonly [PetraClaim, PetraAssertion, PetraSourceSpan],
+): {
   registry: InMemoryContextPacketRegistry;
   evidence: PetraEvidencePacket;
 } => {
@@ -96,13 +120,48 @@ const makePackets = (): {
   if (applied.event.event_type !== "change_set.applied") {
     throw new Error("Expected an applied authority event fixture.");
   }
+  const records: readonly [PetraClaim, PetraAssertion, PetraSourceSpan] =
+    selectedRecords ?? [
+      applied.event.payload.claim,
+      applied.event.payload.assertion,
+      readFixture<PetraSourceSpan>("source-span"),
+    ];
+  const objectRefs = [
+    {
+      object_kind: "claim" as const,
+      object_id: records[0].claim_id,
+      object_revision: records[0].revision,
+      object_hash: canonicalHash(records[0]),
+    },
+    {
+      object_kind: "assertion" as const,
+      object_id: records[1].assertion_id,
+      object_revision: records[1].revision,
+      object_hash: canonicalHash(records[1]),
+    },
+    {
+      object_kind: "source_span" as const,
+      object_id: records[2].source_span_id,
+      object_revision: records[2].revision,
+      object_hash: canonicalHash(records[2]),
+    },
+  ];
+  context.content.objective.target_refs = [structuredClone(objectRefs[0]!)];
+  for (const [index, inclusion] of context.content.included_objects.entries()) {
+    inclusion.object_ref = structuredClone(objectRefs[index]!);
+  }
+  context.content_hash = canonicalHash(context.content);
+  evidence.content.context_packet_ref.content_hash = context.content_hash;
+  for (const [
+    index,
+    selection,
+  ] of evidence.content.selected_evidence.entries()) {
+    selection.object_ref = structuredClone(objectRefs[index]!);
+  }
+  evidence.content_hash = canonicalHash(evidence.content);
   context.compiled_by = serviceRef();
   evidence.compiled_by = serviceRef();
-  registry.registerContextPacket(context, [
-    applied.event.payload.claim,
-    applied.event.payload.assertion,
-    readFixture<PetraSourceSpan>("source-span"),
-  ]);
+  registry.registerContextPacket(context, records);
   registry.registerEvidencePacket(evidence);
   return { registry, evidence };
 };
@@ -121,7 +180,9 @@ const certification = (): PetraSynthesistRoleCertification => {
   return value;
 };
 
-const execution = (): {
+const execution = (
+  evidence: PetraEvidencePacket,
+): {
   request: PetraSynthesistModelRequest;
   call: PetraSynthesistModelCall;
 } => {
@@ -135,6 +196,52 @@ const execution = (): {
   ) {
     throw new Error("Expected completed synthesist fixtures.");
   }
+  const contextRef = evidence.content.context_packet_ref;
+  request.content.context_packet_ref = {
+    context_packet_id: contextRef.context_packet_id,
+    content_hash: contextRef.content_hash,
+  };
+  request.content.evidence_packet_ref = {
+    evidence_packet_id: evidence.evidence_packet_id,
+    content_hash: evidence.content_hash,
+  };
+  const outboundRefs = evidence.content.selected_evidence.map((selection) =>
+    structuredClone(selection.object_ref),
+  );
+  request.content.outbound_context.context_object_refs = [
+    outboundRefs[0]!,
+    ...outboundRefs.slice(1),
+  ];
+  call.content.input.context_packet_ref = structuredClone(
+    request.content.context_packet_ref,
+  );
+  call.content.input.evidence_packet_ref = structuredClone(
+    request.content.evidence_packet_ref,
+  );
+  for (const [
+    index,
+    selection,
+  ] of call.content.input.context_selections.entries()) {
+    selection.object_ref = structuredClone(
+      evidence.content.selected_evidence[index]!.object_ref,
+    );
+  }
+  const selectedById = new Map(
+    evidence.content.selected_evidence.map((selection) => [
+      selection.object_ref.object_id,
+      selection.object_ref,
+    ]),
+  );
+  const modelOutput = call.content.output;
+  for (const statement of modelOutput.statements) {
+    for (const reference of statement.evidence_refs) {
+      const selected = selectedById.get(reference.object_id);
+      if (selected === undefined) continue;
+      reference.object_revision = selected.object_revision;
+      reference.object_hash = selected.object_hash;
+    }
+  }
+  call.content.raw_output = structuredClone(modelOutput);
   request.content.terminal.output_hash = canonicalHash(call.content.output);
   call.content_hash = canonicalHash(call.content);
   request.content_hash = canonicalHash(request.content);
@@ -148,6 +255,7 @@ const verifiedArtifact = (
   byteSize: number,
   mediaType: string,
   kind: PetraArtifact["artifact_kind"],
+  generatedFrom?: string,
 ): PersistVerifiedArtifactInput => {
   const artifact = readFixture<PetraArtifact>("artifact");
   const manifest = readFixture<PetraArtifactManifest>("artifact-manifest");
@@ -165,8 +273,24 @@ const verifiedArtifact = (
   if (manifest.origin.origin_kind !== "acquired") {
     throw new Error("Expected an acquired ArtifactManifest fixture.");
   }
-  manifest.origin.response_metadata.content_type = mediaType;
-  manifest.origin.response_metadata.content_length = byteSize;
+  if (generatedFrom === undefined) {
+    manifest.origin.response_metadata.content_type = mediaType;
+    manifest.origin.response_metadata.content_length = byteSize;
+  } else {
+    manifest.origin = {
+      origin_kind: "generated",
+      generator_name: "petra-test-parser",
+      generator_version: "1.0.0",
+      generated_at: "2026-09-03T18:31:05.500Z",
+      input_artifact_ids: [generatedFrom],
+    };
+    rightsDecision.observed_license = {
+      statement: "Generated test output retained under its source terms.",
+      source: "artifact",
+    };
+    rightsDecision.access_basis = "permission";
+    rightsDecision.authorization_reference = "petra-test/1.0.0";
+  }
   manifest.storage_ref.content_hash = contentHash;
   manifest.storage_ref.object_key = `sha256/${contentHash.slice(7, 9)}/${contentHash.slice(9)}`;
   manifest.recorded_by = serviceRef();
@@ -256,6 +380,8 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     pool,
     availableArtifactStore,
   );
+  const documents = new PostgresDocumentAuthorityRepository(pool);
+  const evidenceAuthority = new PostgresEvidenceAuthorityRepository(pool);
   const synthesist = new PostgresSynthesistExecutionRepository(pool);
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
   const interactions = new PostgresInteractionAuthorityRepository(pool);
@@ -273,6 +399,7 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     );
     await scopes.registerActor(readFixture<PetraActor>("actor"));
     await scopes.registerActor(serviceActor());
+    await scopes.registerActor(modelActor());
     await scopes.registerProjectRevision(readFixture<PetraProject>("project"));
     await identities.registerAuthorRevision(readFixture<PetraAuthor>("author"));
     await identities.registerWorkRevision(readFixture<PetraWork>("work"));
@@ -296,12 +423,128 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     await pool.end();
   });
 
-  const persistTerminal = async (): Promise<{
+  const deterministicFactory = (): DomainRecordFactory => {
+    let eventIndex = 0;
+    let outboxIndex = 0;
+    return {
+      nextId: (kind) => {
+        if (kind === "event") {
+          eventIndex += 1;
+          return `event_01ARZ3NDEKTSV4RRFFQ69G5F${String(eventIndex).padStart(2, "0")}`;
+        }
+        outboxIndex += 1;
+        return `outbox_01ARZ3NDEKTSV4RRFFQ69G5F${String(outboxIndex + 20).padStart(2, "0")}`;
+      },
+      now: () => "2026-09-04T02:04:00.000Z",
+    };
+  };
+
+  const registerReviewedPromotion = async (): Promise<{
+    authority: PostgresChangeControlAuthorityRepository;
+    changeSetId: string;
+    claim: PetraClaim;
+    assertion: PetraAssertion;
+    span: PetraSourceSpan;
+  }> => {
+    await artifacts.registerVerifiedAcquisition(
+      verifiedArtifact(
+        "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB8",
+        "01ARZ3NDEKTSV4RRFFQ69G5FB8",
+        "sha256:abababababababababababababababababababababababababababababababab",
+        256,
+        "application/json",
+        "structured_text",
+        "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+      ),
+    );
+    const document = readFixture<PetraParsedDocument>("parsed-document");
+    const block = readFixture<PetraStructuralBlock>("structural-block");
+    const span = readFixture<PetraSourceSpan>("source-span");
+    document.created_by = serviceRef();
+    span.created_by = serviceRef();
+    const bundle: PersistDocumentBundleInput = {
+      sourceArtifactManifestId: "artifact_manifest_01ARZ3NDEKTSV4RRFFQ69G5FB2",
+      document,
+      blocks: [block],
+      spans: [span],
+    };
+    await documents.registerDocumentBundle(bundle);
+
+    const claim = readFixture<PetraClaim>("claim");
+    const assertion = readFixture<PetraAssertion>("assertion");
+    claim.created_by = {
+      actor_id: modelActor().actor_id,
+      actor_kind: "model",
+    };
+    if (claim.basis.basis_kind !== "source") {
+      throw new Error("Expected a source-derived Claim fixture.");
+    }
+    claim.basis.proposed_by = structuredClone(claim.created_by);
+    assertion.created_by = structuredClone(claim.created_by);
+    await evidenceAuthority.proposeClaim(claim);
+    await evidenceAuthority.proposeAssertion(assertion);
+
+    const submit = readFixture<PetraCommandEnvelope>(
+      "command-submit-change-set",
+    );
+    const approve = readFixture<PetraCommandEnvelope>(
+      "command-record-approval",
+    );
+    const apply = readFixture<PetraCommandEnvelope>("command-apply-change-set");
+    if (
+      submit.command.command_name !== "SubmitChangeSet" ||
+      approve.command.command_name !== "RecordApproval" ||
+      apply.command.command_name !== "ApplyChangeSet"
+    ) {
+      throw new Error("Expected the accepted promotion command sequence.");
+    }
+    submit.actor = structuredClone(claim.created_by);
+    submit.command.change_set.content.proposed_by = structuredClone(
+      claim.created_by,
+    );
+    submit.command.change_set.content_hash = canonicalHash(
+      submit.command.change_set.content,
+    );
+    approve.command.approval.subject.change_set_content_hash =
+      submit.command.change_set.content_hash;
+    apply.command.change_set_content_hash =
+      submit.command.change_set.content_hash;
+
+    const authority = new PostgresChangeControlAuthorityRepository(
+      pool,
+      { authorize: () => true },
+      deterministicFactory(),
+    );
+    await authority.executeCommand(submit);
+    await authority.executeCommand(approve);
+    const applied = await authority.executeCommand(apply);
+    if (applied.outcome !== "applied") {
+      throw new Error("Expected the reviewed evidence pair to be promoted.");
+    }
+    const trustedClaim = await evidenceAuthority.getClaim(claim.claim_id);
+    const trustedAssertion = await evidenceAuthority.getAssertion(
+      assertion.assertion_id,
+    );
+    if (trustedClaim === undefined || trustedAssertion === undefined) {
+      throw new Error("Expected promoted scientific authority records.");
+    }
+    return {
+      authority,
+      changeSetId: applied.change_set_id,
+      claim: structuredClone(trustedClaim),
+      assertion: structuredClone(trustedAssertion),
+      span,
+    };
+  };
+
+  const persistTerminal = async (
+    selectedRecords?: readonly [PetraClaim, PetraAssertion, PetraSourceSpan],
+  ): Promise<{
     packets: InMemoryContextPacketRegistry;
     input: RegisterGroundedResponseInput;
   }> => {
-    const { registry: packets, evidence } = makePackets();
-    const { request, call } = execution();
+    const { registry: packets, evidence } = makePackets(selectedRecords);
+    const { request, call } = execution(evidence);
     const role = certification();
     await synthesist.registerCertification(role);
     await synthesist.persistExecution({ request, calls: [call] });
@@ -355,6 +598,27 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       byte_size: responseArtifact.artifact.byte_size,
       media_type: "text/markdown; charset=utf-8",
     };
+    response.content.context_packet_ref = {
+      context_packet_id: evidence.content.context_packet_ref.context_packet_id,
+      revision: 1,
+      content_hash: evidence.content.context_packet_ref.content_hash,
+    };
+    response.content.evidence_packet_ref = {
+      evidence_packet_id: evidence.evidence_packet_id,
+      revision: evidence.revision,
+      content_hash: evidence.content_hash,
+    };
+    response.content.snapshot_ref = structuredClone(evidence.snapshot_ref);
+    const responseDependencies = evidence.content.selected_evidence.map(
+      (selection) => ({
+        dependency_role: "selected_evidence" as const,
+        object_ref: structuredClone(selection.object_ref),
+      }),
+    );
+    response.content.dependencies = [
+      responseDependencies[0]!,
+      ...responseDependencies.slice(1),
+    ];
     response.content.model_output_hash = request.content.terminal.output_hash;
     response.content.cache.cache_key = groundedResponseCacheKey(
       request,
@@ -471,5 +735,119 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       evidence: "0",
       responses: "0",
     });
+  });
+
+  it("appends invalidation after a durable compensating reversal without rewriting evidence", async () => {
+    const promotion = await registerReviewedPromotion();
+    const terminal = await persistTerminal([
+      promotion.claim,
+      promotion.assertion,
+      promotion.span,
+    ]);
+    const repository = new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      terminal.packets,
+    );
+    const original = await repository.register(terminal.input);
+    const artifactBefore = await pool.query<{ record_hash: string }>(
+      "SELECT record_hash FROM petra.artifacts WHERE artifact_id = $1",
+      [original.content.response_artifact_ref.artifact_id],
+    );
+
+    const researcher = readFixture<PetraActor>("actor");
+    const reviewer = {
+      actor_id: researcher.actor_id,
+      actor_kind: "human" as const,
+    };
+    const reversalPlan = buildCompensatingReversalCommandPlan({
+      project_id: original.project_id,
+      claim: promotion.claim,
+      assertion: promotion.assertion,
+      compensates_change_set_id: promotion.changeSetId,
+      proposed_by: reviewer,
+      reviewer,
+      capability_grant_id: "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+      reason: "The direct evidence review was corrected by the researcher.",
+      rationale: "Invalidate derivatives without erasing scientific history.",
+      impact_summary:
+        "The Claim and its ASSERTS edge leave active scientific authority.",
+      timing: {
+        proposed_at: "2026-09-04T02:01:00.000Z",
+        decided_at: "2026-09-04T02:02:00.000Z",
+        applied_at: "2026-09-04T02:03:00.000Z",
+      },
+    });
+    await executeCompensatingReversalPlan(promotion.authority, reversalPlan);
+    const events = await promotion.authority.getDomainEvents({
+      projectId: original.project_id,
+    });
+    const reversal = events.at(-1);
+    if (reversal?.event.event_type !== "change_set.reverted") {
+      throw new Error("Expected a persisted compensating-reversal event.");
+    }
+
+    const [invalidated] = await repository.invalidateByAuthorityEvent(reversal);
+    expect(invalidated).toEqual(
+      expect.objectContaining({
+        grounded_response_id: original.grounded_response_id,
+        revision: 2,
+        lineage: {
+          lineage_kind: "revision",
+          parent_revision: 1,
+          parent_hash: original.content_hash,
+        },
+      }),
+    );
+    expect(invalidated?.content.cache.state).toBe("invalidated");
+    expect(invalidated?.content.response_artifact_ref).toEqual(
+      original.content.response_artifact_ref,
+    );
+
+    const restarted = new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      new InMemoryContextPacketRegistry(),
+    );
+    expect(await restarted.invalidateByAuthorityEvent(reversal)).toEqual([
+      invalidated,
+    ]);
+    expect(await restarted.get(original.grounded_response_id)).toEqual(
+      invalidated,
+    );
+    expect(
+      await restarted.getRevision(original.grounded_response_id, 1),
+    ).toEqual(original);
+    expect(
+      await restarted.getReusableByCacheKey(original.content.cache.cache_key),
+    ).toBeUndefined();
+    expect(
+      await pool.query<{ record_hash: string }>(
+        "SELECT record_hash FROM petra.artifacts WHERE artifact_id = $1",
+        [original.content.response_artifact_ref.artifact_id],
+      ),
+    ).toEqual(artifactBefore);
+
+    const typed = await pool.query<{
+      current_revision: string;
+      event_id: string;
+      event_type: string;
+      change_set_id: string;
+    }>(
+      `SELECT response.current_revision::text, cause.event_id,
+              cause.event_type, cause.change_set_id
+         FROM petra.grounded_responses AS response
+         JOIN petra.grounded_response_invalidation_causes AS cause
+           ON cause.grounded_response_id = response.grounded_response_id
+          AND cause.response_revision = response.current_revision
+        WHERE response.grounded_response_id = $1`,
+      [original.grounded_response_id],
+    );
+    expect(typed.rows).toEqual([
+      {
+        current_revision: "2",
+        event_id: reversal.event_id,
+        event_type: "change_set.reverted",
+        change_set_id: reversal.event.payload.change_set_id,
+      },
+    ]);
   });
 });
