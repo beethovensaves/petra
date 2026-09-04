@@ -15,6 +15,8 @@
   ],
   "scripts": {
     "bootstrap": "npm ci && UV_CACHE_DIR=.cache/uv uv sync --project workers/science",
+    "benchmark:retrieval:m1-floor": "npm run build:packages && node experiments/retrieval/run-m1-floor.mjs",
+    "benchmark:retrieval:m1-floor:check": "npm run build:packages && node experiments/retrieval/run-m1-floor.mjs --check",
     "build": "npm run build:server && npm run build:workbench",
     "build:packages": "tsc -b",
     "build:server": "npm run build:packages",
@@ -60,7 +62,7 @@
     "test:python": "UV_CACHE_DIR=.cache/uv uv run --project workers/science pytest workers/science/tests",
     "test:server": "npm test --workspace @petra/server",
     "start": "npm run start --workspace @petra/server",
-    "verify": "npm run contracts:check-generated && npm run fixtures:check-generated && npm run format:check && npm run lint && npm run typecheck && npm run build:workbench && npm test",
+    "verify": "npm run contracts:check-generated && npm run fixtures:check-generated && npm run benchmark:retrieval:m1-floor:check && npm run format:check && npm run lint && npm run typecheck && npm run build:workbench && npm test",
     "services:config": "docker compose --env-file .env -f infra/dev/compose.yaml config --quiet",
     "services:up": "docker compose --env-file .env -f infra/dev/compose.yaml up --detach --wait",
     "services:health": "docker compose --env-file .env -f infra/dev/compose.yaml ps",

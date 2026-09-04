@@ -91,6 +91,8 @@ checksum.
 | `npm start` | Serve the built workbench and Petra HTTP routes from one Node process. |
 | `npm run test` | Run contract, core, always-on S3, server-conformance, and Python tests. |
 | `npm run test:retrieval` | Run the exact Paper Trail lexical, citation-direction, bounded-path, and scientific-semantics regression baseline. |
+| `npm run benchmark:retrieval:m1-floor` | Regenerate the content-hashed comparison between the frozen Paper Trail result and Petra's bounded lexical-to-graph recipe. |
+| `npm run benchmark:retrieval:m1-floor:check` | Recompute the M1 retrieval floor and fail if its committed artifact or interpretation boundary has drifted. |
 | `npm run test:server` | Run `D014-HC01`–`D014-HC10` against a real local Hono listener. |
 | `npm run test:postgres:integration` | Migrate a disposable PostgreSQL instance, test the typed repository, validate Flyway history, and remove every labeled resource. |
 | `npm run test:neo4j:integration` | Migrate disposable PostgreSQL, project reviewed authority through real Neo4j, exercise bounded queries/rebuild, and remove every labeled resource. |
@@ -257,6 +259,13 @@ deterministic behavior for evaluation and leaves the eventual PostgreSQL search
 adapter replaceable. Run `npm run test:retrieval`; architecture and limits are
 recorded in the
 [M1.6 retrieval report](reports/M1.6-RETRIEVAL-FOUNDATION.md).
+
+The frozen Paper Trail query now also runs through Petra's versioned hybrid
+recipe over the exact same 50 abstract-only Works. The content-hashed record
+pins rank, score, graph admission, bounds, omissions, and zero model calls while
+explicitly refusing quality or latency rankings without representative
+judgments. Run `npm run benchmark:retrieval:m1-floor:check`; see the
+[M1.6 retrieval floor report](reports/M1.6-RETRIEVAL-FLOOR.md).
 
 ## Immutable context and evidence compilation
 
