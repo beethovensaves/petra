@@ -40,6 +40,7 @@ import {
   derivePetraId,
   DurableInteractionHistory,
   executeCompensatingReversalPlan,
+  GroundedCompositionCompiler,
   GroundedSynthesisTerminalRecorder,
   groundedResponseCacheKey,
   InMemoryContextPacketRegistry,
@@ -53,6 +54,11 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
 import { PostgresChangeControlAuthorityRepository } from "../src/change-control-authority-repository.js";
+import {
+  type CompositionAggregatePersistenceError,
+  type CompositionAggregatePersistenceErrorCode,
+  PostgresCompositionAggregateRepository,
+} from "../src/composition-aggregate-repository.js";
 import {
   type CompositionPersistenceError,
   type CompositionPersistenceErrorCode,
@@ -102,6 +108,17 @@ const expectCompositionCode = async (
 ): Promise<void> => {
   await expect(operation()).rejects.toEqual(
     expect.objectContaining<Partial<CompositionPersistenceError>>({ code }),
+  );
+};
+
+const expectCompositionAggregateCode = async (
+  operation: () => Promise<unknown>,
+  code: CompositionAggregatePersistenceErrorCode,
+): Promise<void> => {
+  await expect(operation()).rejects.toEqual(
+    expect.objectContaining<Partial<CompositionAggregatePersistenceError>>({
+      code,
+    }),
   );
 };
 
@@ -677,6 +694,57 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     };
   };
 
+  const compileDurableComposition = async () => {
+    const terminal = await persistTerminal();
+    const groundedResponse =
+      await new PostgresGroundedResponseAuthorityRepository(
+        pool,
+        terminal.packets,
+      ).register(terminal.input);
+    const request = readFixture<PetraCompositionRequest>("composition-request");
+    const plan = readFixture<PetraCompositionPlan>("composition-plan");
+    plan.compiled_by = serviceRef();
+    const controls = new PostgresCompositionAuthorityRepository(
+      pool,
+      terminal.packets,
+    );
+    await controls.registerRequest(request);
+    await controls.registerPlan(plan);
+    const scholarlyRecords = {
+      works: [readFixture<PetraWork>("work")],
+      workVersions: [readFixture<PetraWorkVersion>("work-version")],
+      authors: [readFixture<PetraAuthor>("author")],
+      externalIdentifiers: [],
+    };
+    const evidence = terminal.packets.getEvidencePacket(
+      plan.evidence_packet_ref.evidence_packet_id,
+    );
+    if (evidence === undefined) {
+      throw new Error("Expected the composition EvidencePacket fixture.");
+    }
+    const compiled = new GroundedCompositionCompiler(terminal.packets).compile({
+      request,
+      plan,
+      evidence: structuredClone(evidence) as PetraEvidencePacket,
+      groundedResponse,
+      modelActor: {
+        actor_id: modelActor().actor_id,
+        actor_kind: "model",
+      },
+      serviceActor: serviceRef(),
+      promptProfile: {
+        name: "petra.grounded-composition",
+        version: "1.0.0",
+      },
+      promptHash: canonicalHash({
+        profile: "petra.grounded-composition",
+        version: "1.0.0",
+      }),
+      scholarlyRecords,
+    });
+    return { terminal, compiled };
+  };
+
   it("persists an exact reusable response and rehydrates it after restart", async () => {
     const terminal = await persistTerminal();
     const repository = new PostgresGroundedResponseAuthorityRepository(
@@ -849,6 +917,156 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     }
     expect(await repository.getRequest(request.composition_request_id)).toEqual(
       request,
+    );
+  });
+
+  it("persists the complete composition aggregate atomically and rehydrates it after restart", async () => {
+    const { terminal, compiled } = await compileDurableComposition();
+    const repository = new PostgresCompositionAggregateRepository(
+      pool,
+      terminal.packets,
+    );
+    const stored = await repository.register(compiled);
+    expect(await repository.register(structuredClone(compiled))).toEqual(
+      stored,
+    );
+
+    const restarted = new PostgresCompositionAggregateRepository(
+      pool,
+      new InMemoryContextPacketRegistry(),
+    );
+    expect(await restarted.get(compiled.draft.draft_artifact_id, 1)).toEqual(
+      stored,
+    );
+    expect(
+      await restarted.getCurrent(compiled.draft.draft_artifact_id),
+    ).toEqual(stored);
+    expect(await restarted.register(structuredClone(compiled))).toEqual(stored);
+
+    const counts = await pool.query<{
+      authors: string;
+      bases: string;
+      bundles: string;
+      citations: string;
+      dependencies: string;
+      drafts: string;
+      linked_spans: string;
+      maps: string;
+      mappings: string;
+      grounded_response_id: string;
+      spans: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.draft_artifact_revisions) AS drafts,
+         (SELECT count(*)::text FROM petra.draft_spans) AS spans,
+         (SELECT count(*)::text FROM petra.provenance_maps) AS maps,
+         (SELECT count(*)::text FROM petra.provenance_span_mappings) AS mappings,
+         (SELECT count(*)::text FROM petra.provenance_bases) AS bases,
+         (SELECT count(*)::text FROM petra.citation_bundles) AS bundles,
+         (SELECT count(*)::text FROM petra.citation_entries) AS citations,
+         (SELECT count(*)::text FROM petra.citation_author_refs) AS authors,
+         (SELECT count(*)::text FROM petra.citation_linked_spans) AS linked_spans,
+         (SELECT count(*)::text FROM petra.draft_authority_dependencies) AS dependencies,
+         (SELECT grounded_response_id FROM petra.draft_artifact_revisions LIMIT 1) AS grounded_response_id`,
+    );
+    expect(counts.rows[0]).toEqual({
+      drafts: "1",
+      spans: "2",
+      maps: "1",
+      mappings: "2",
+      bases: "3",
+      bundles: "1",
+      citations: "1",
+      authors: "1",
+      linked_spans: "2",
+      dependencies: "6",
+      grounded_response_id: terminal.input.response.grounded_response_id,
+    });
+  });
+
+  it("rejects a model draft without its exact reusable GroundedResponse and rolls back", async () => {
+    const { terminal, compiled } = await compileDurableComposition();
+    if (compiled.draft.production.origin_kind !== "model_generated") {
+      throw new Error("Expected a model-generated draft fixture.");
+    }
+    compiled.draft.production.model_call_id =
+      "model_call_01ARZ3NDEKTSV4RRFFQ69G5FD0";
+    const repository = new PostgresCompositionAggregateRepository(
+      pool,
+      terminal.packets,
+    );
+    await expectCompositionAggregateCode(
+      () => repository.register(compiled),
+      "COMPOSITION_AGGREGATE_GROUNDED_RESPONSE_NOT_REUSABLE",
+    );
+    const count = await pool.query<{ value: string }>(
+      "SELECT count(*)::text AS value FROM petra.draft_artifacts",
+    );
+    expect(count.rows[0]?.value).toBe("0");
+  });
+
+  it("rejects citation authority that is not present at its exact durable hash", async () => {
+    const { terminal, compiled } = await compileDurableComposition();
+    const work = compiled.scholarlyRecords.works[0];
+    const citation = compiled.citationBundle.content.citations[0];
+    if (work === undefined || citation === undefined) {
+      throw new Error("Expected one canonical citation fixture.");
+    }
+    work.title = "A changed canonical account of competing explanations";
+    citation.work_ref.content_hash = canonicalHash(work);
+    citation.metadata.title = work.title;
+    compiled.citationBundle.content_hash = canonicalHash(
+      compiled.citationBundle.content,
+    );
+    const repository = new PostgresCompositionAggregateRepository(
+      pool,
+      terminal.packets,
+    );
+    await expectCompositionAggregateCode(
+      () => repository.register(compiled),
+      "COMPOSITION_AGGREGATE_REFERENCE_MISSING",
+    );
+    const count = await pool.query<{ value: string }>(
+      "SELECT count(*)::text AS value FROM petra.draft_artifact_revisions",
+    );
+    expect(count.rows[0]?.value).toBe("0");
+  });
+
+  it("rejects conflicting aggregate replay and direct SQL mutation", async () => {
+    const { terminal, compiled } = await compileDurableComposition();
+    const repository = new PostgresCompositionAggregateRepository(
+      pool,
+      terminal.packets,
+    );
+    await repository.register(compiled);
+    const changed = structuredClone(compiled);
+    changed.draft.content.text += " Changed.";
+    changed.draft.content_hash = canonicalHash(changed.draft.content);
+    await expectCompositionAggregateCode(
+      () => repository.register(changed),
+      "COMPOSITION_AGGREGATE_ID_CONFLICT",
+    );
+
+    try {
+      await pool.query(
+        `UPDATE petra.draft_spans
+            SET start_codepoint = start_codepoint + 1
+          WHERE draft_span_id = $1`,
+        [compiled.spans[0]?.draft_span_id],
+      );
+      throw new Error("Expected the immutable trigger to reject the update.");
+    } catch (error: unknown) {
+      expect(error).toBeInstanceOf(Error);
+      expect(error).toEqual(expect.objectContaining({ code: "55000" }));
+      if (error instanceof Error) {
+        expect(error.message).toContain(
+          "Composition aggregate records are immutable",
+        );
+      }
+    }
+    const unchanged = await repository.get(compiled.draft.draft_artifact_id, 1);
+    expect(unchanged?.draft.content.text).toBe(
+      "The selected study reports a measurable improvement. The claim is limited to its study-defined evaluation task.",
     );
   });
 

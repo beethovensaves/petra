@@ -94,11 +94,14 @@ export interface ScholarlyCitationRecords {
   externalIdentifiers: readonly PetraExternalIdentifier[];
 }
 
-export interface RegisterCompositionInput {
+export interface CompositionAggregate {
   draft: PetraDraftArtifact;
   spans: readonly PetraDraftSpan[];
   provenanceMap: PetraProvenanceMap;
   citationBundle: PetraCitationBundle;
+}
+
+export interface RegisterCompositionInput extends CompositionAggregate {
   scholarlyRecords: ScholarlyCitationRecords;
 }
 

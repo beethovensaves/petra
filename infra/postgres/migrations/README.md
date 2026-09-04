@@ -113,3 +113,20 @@ time. The transition and receipt commit atomically; duplicate delivery returns
 the same result, conflicting reuse is rejected, and the stored authority
 boundary makes clear that neither scientific authority nor a mere connection
 abort caused the cancellation.
+
+`V014__composition_control_authority.sql` persists immutable
+CompositionRequests and ready or blocked CompositionPlans before prose exists.
+Exact request, EvidencePacket, Project snapshot, actor, planned move, and
+evidence-reference hashes remain both queryable and recoverable. This keeps a
+model's eventual draft subordinate to an inspectable plan rather than allowing
+fluent text to become its own authority.
+
+`V015__composition_aggregate_authority.sql` persists one DraftArtifact revision,
+its Unicode DraftSpans, exhaustive ProvenanceMap, and canonical CitationBundle
+as a single transaction. Deferred foreign keys close the intentional
+draft–provenance–citation reference cycle without weakening exact identity.
+Normalized mappings, bases, citation authorities, linked spans, and dependency
+rows support graph projection and later invalidation queries, while immutable
+payloads retain exact restart recovery. A model-produced draft additionally
+binds to the one current reusable GroundedResponse with the same execution,
+EvidencePacket, and snapshot.
