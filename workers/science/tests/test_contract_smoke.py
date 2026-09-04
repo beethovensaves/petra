@@ -3214,6 +3214,94 @@ class PetraReviewInterruptResponse(PetraModel):
     decided_at: str
 
 
+class GroundedResponseArtifactRef(PetraModel):
+    artifact_id: str
+    content_hash: str
+    byte_size: int
+    media_type: Literal["text/markdown; charset=utf-8"]
+
+
+class GroundedContextPacketRef(PetraModel):
+    context_packet_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class GroundedEvidencePacketRef(PetraModel):
+    evidence_packet_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class GroundedExecutionRef(PetraModel):
+    model_request_id: str
+    model_call_id: str
+    model_deployment_id: str
+    role_certification_id: str
+
+
+class GroundedInteractionRef(PetraModel):
+    interaction_run_ref: InteractionRunRef
+    work_unit_ref: InteractionWorkUnitRef
+
+
+class GroundedDependency(PetraModel):
+    dependency_role: Literal["selected_evidence", "provenance", "control"]
+    object_ref: PacketObjectRef
+
+
+class GroundedReusableCache(PetraModel):
+    state: Literal["reusable"]
+    cache_key: str
+    checked_at: str
+
+
+class GroundedInvalidationCause(PetraModel):
+    event_id: str
+    event_type: Literal["change_set.applied", "change_set.reverted"]
+    change_set_id: str
+
+
+class GroundedInvalidatedCache(PetraModel):
+    state: Literal["invalidated"]
+    cache_key: str
+    checked_at: str
+    invalidated_by: list[GroundedInvalidationCause]
+    affected_dependency_ids: list[str]
+
+
+class GroundedPersistedTerminal(PetraModel):
+    state: Literal["completed"]
+    persisted_at: str
+    authority_effect: Literal["none"]
+
+
+class GroundedResponseContent(PetraModel):
+    response_artifact_ref: GroundedResponseArtifactRef
+    context_packet_ref: GroundedContextPacketRef
+    evidence_packet_ref: GroundedEvidencePacketRef
+    snapshot_ref: PacketSnapshotRef
+    execution_ref: GroundedExecutionRef
+    interaction_ref: GroundedInteractionRef
+    dependencies: list[GroundedDependency]
+    model_output_hash: str
+    cache: GroundedReusableCache | GroundedInvalidatedCache
+    terminal: GroundedPersistedTerminal
+
+
+class PetraGroundedResponse(PetraModel):
+    schema_name: Literal["petra.grounded-response"]
+    schema_version: Literal["1.0.0"]
+    grounded_response_id: str
+    revision: int
+    project_id: str
+    lineage: InteractionRootLineage | InteractionRevisionLineage
+    content: GroundedResponseContent
+    content_hash: str
+    recorded_by: ProjectionServiceActorRef
+    recorded_at: str
+
+
 PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
@@ -3249,6 +3337,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "projection-checkpoint": PetraProjectionCheckpoint,
     "context-packet": PetraContextPacket,
     "evidence-packet": PetraEvidencePacket,
+    "grounded-response": PetraGroundedResponse,
     "draft-artifact": PetraDraftArtifact,
     "draft-span": PetraDraftSpan,
     "provenance-map": PetraProvenanceMap,

@@ -78,3 +78,24 @@ database and storage-neutral repository both enforce the crucial authority
 boundary: an interaction event is not a domain event, an interrupt response
 does not apply its referenced command, replay does not reexecute authority, and
 connection abort does not cancel durable work.
+
+`V009__scientific_authority_reversal.sql` adds compensating ChangeSets without
+rewriting accepted history. A reversal appends superseding Claim and Assertion
+revisions, records the relationship to the promotion it compensates, and emits
+an immutable `change_set.reverted` ledger event and outbox record. Current
+authority moves forward while the proposal, approval, promotion, and reversal
+remain inspectable.
+
+`V010__model_execution_records.sql` persists certified extractor executions:
+role certifications, bounded requests, ordered calls, and proposal bundles.
+Exact hashes and immutable payloads preserve what was selected, what left the
+authority boundary, which deployment answered, and what validation accepted.
+
+`V011__grounded_response_authority.sql` expands the model-execution tables to
+the paired synthesist `1.1.0` contracts and adds durable ContextPackets,
+EvidencePackets, and GroundedResponses. A response root is foreign-keyed to its
+exact Artifact, packets, authority snapshot, certified request and call,
+terminal InteractionRun revision, and successful WorkUnit revision. Selected
+evidence dependencies remain queryable. Later authority events append an
+invalidated response revision and advance its head atomically; neither the
+original response nor its Markdown Artifact is rewritten.

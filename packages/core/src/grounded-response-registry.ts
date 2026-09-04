@@ -61,6 +61,23 @@ export interface RegisterGroundedResponseInput {
   readonly workUnit: PetraWorkUnit;
 }
 
+export interface GroundedResponseAuthorityRepository {
+  register(
+    input: RegisterGroundedResponseInput,
+  ): Promise<PetraGroundedResponse>;
+  get(groundedResponseId: string): Promise<PetraGroundedResponse | undefined>;
+  getRevision(
+    groundedResponseId: string,
+    revision: number,
+  ): Promise<PetraGroundedResponse | undefined>;
+  getReusableByCacheKey(
+    cacheKey: string,
+  ): Promise<PetraGroundedResponse | undefined>;
+  invalidateByAuthorityEvent(
+    event: PetraDomainEventRecord,
+  ): Promise<readonly PetraGroundedResponse[]>;
+}
+
 export const GROUNDED_RESPONSE_WORKFLOW = {
   name: "petra.synthesis.grounded",
   version: "1.0.0",
@@ -166,6 +183,63 @@ const eventChangeSetId = (event: PetraDomainEventRecord): string | undefined =>
   event.event.event_type === "change_set.reverted"
     ? event.event.payload.change_set_id
     : undefined;
+
+export const deriveGroundedResponseInvalidation = (
+  current: PetraGroundedResponse | DeepReadonly<PetraGroundedResponse>,
+  event: PetraDomainEventRecord,
+): PetraGroundedResponse | undefined => {
+  const changeSetId = eventChangeSetId(event);
+  if (
+    changeSetId === undefined ||
+    current.project_id !== event.project_id ||
+    event.event_position <= current.content.snapshot_ref.event_position
+  ) {
+    return undefined;
+  }
+  const affectedObjectIds = new Set(eventAffectedObjectIds(event));
+  const affectedDependencies = current.content.dependencies
+    .map((dependency) => dependency.object_ref.object_id)
+    .filter((objectId) => affectedObjectIds.has(objectId));
+  if (affectedDependencies.length === 0) return undefined;
+
+  const next = structuredClone(current) as PetraGroundedResponse;
+  next.revision = current.revision + 1;
+  next.lineage = {
+    lineage_kind: "revision",
+    parent_revision: current.revision,
+    parent_hash: current.content_hash,
+  };
+  const priorCauses =
+    current.content.cache.state === "invalidated"
+      ? [...current.content.cache.invalidated_by]
+      : [];
+  const priorIds =
+    current.content.cache.state === "invalidated"
+      ? [...current.content.cache.affected_dependency_ids]
+      : [];
+  const allAffectedIds = [
+    ...new Set([...priorIds, ...affectedDependencies]),
+  ].sort();
+  next.content.cache = {
+    state: "invalidated",
+    cache_key: current.content.cache.cache_key,
+    checked_at: event.recorded_at,
+    invalidated_by: [
+      {
+        event_id: event.event_id,
+        event_type: event.event.event_type as
+          "change_set.applied" | "change_set.reverted",
+        change_set_id: changeSetId,
+      },
+      ...priorCauses,
+    ],
+    affected_dependency_ids: [allAffectedIds[0]!, ...allAffectedIds.slice(1)],
+  };
+  next.content_hash = canonicalHash(next.content);
+  next.recorded_at = event.recorded_at;
+  next.recorded_by = structuredClone(current.recorded_by);
+  return next;
+};
 
 /**
  * In-memory semantic reference implementation. Durable adapters must preserve
@@ -316,62 +390,13 @@ export class InMemoryGroundedResponseRegistry {
       return replay.revisions;
     }
 
-    const affectedObjectIds = new Set(eventAffectedObjectIds(event));
     const changeSetId = eventChangeSetId(event);
     const pending: StoredResponse[] = [];
     if (changeSetId !== undefined) {
       for (const stored of [...this.#heads.values()]) {
         const current = stored.value;
-        if (
-          current.project_id !== event.project_id ||
-          event.event_position <= current.content.snapshot_ref.event_position
-        ) {
-          continue;
-        }
-        const affectedDependencies = current.content.dependencies
-          .map((dependency) => dependency.object_ref.object_id)
-          .filter((objectId) => affectedObjectIds.has(objectId));
-        if (affectedDependencies.length === 0) continue;
-
-        const next = structuredClone(current) as PetraGroundedResponse;
-        next.revision = current.revision + 1;
-        next.lineage = {
-          lineage_kind: "revision",
-          parent_revision: current.revision,
-          parent_hash: current.content_hash,
-        };
-        const priorCauses =
-          current.content.cache.state === "invalidated"
-            ? [...current.content.cache.invalidated_by]
-            : [];
-        const priorIds =
-          current.content.cache.state === "invalidated"
-            ? [...current.content.cache.affected_dependency_ids]
-            : [];
-        const allAffectedIds = [
-          ...new Set([...priorIds, ...affectedDependencies]),
-        ].sort();
-        next.content.cache = {
-          state: "invalidated",
-          cache_key: current.content.cache.cache_key,
-          checked_at: event.recorded_at,
-          invalidated_by: [
-            {
-              event_id: event.event_id,
-              event_type: event.event.event_type as
-                "change_set.applied" | "change_set.reverted",
-              change_set_id: changeSetId,
-            },
-            ...priorCauses,
-          ],
-          affected_dependency_ids: [
-            allAffectedIds[0]!,
-            ...allAffectedIds.slice(1),
-          ],
-        };
-        next.content_hash = canonicalHash(next.content);
-        next.recorded_at = event.recorded_at;
-        next.recorded_by = structuredClone(current.recorded_by);
+        const next = deriveGroundedResponseInvalidation(current, event);
+        if (next === undefined) continue;
         this.#contracts.assertValid(
           "grounded-response",
           next.schema_version,
