@@ -890,10 +890,25 @@ Support one researcher edit that:
 
 ## M1.9 — hardening and M1 closure
 
-- **Status:** `planned`
+- **Status:** `in_progress`
 - **Builds:** a clean-start acceptance demonstration, complete test evidence, backup, replay, projection rebuild, and recovery.
 - **Why:** M1 is a scientific evidence spine only if the complete path survives retries, reversals, failure, and reconstruction.
 - **Depends on:** `M1.0`–`M1.8`.
+
+### Work sequencing
+
+| ID | Status | Build specification | Why Petra needs it |
+| --- | --- | --- | --- |
+| `M1.9-W01` | `complete` | Compose the existing deterministic repository, PostgreSQL, ArtifactStore, Neo4j, Docling, and proposal-quarantine gates behind one ordered backend command with per-component failure attribution. | M1 evidence must be runnable as a coherent matrix rather than inferred from scattered commands. |
+| `M1.9-W02` | `in_progress` | Exercise PostgreSQL and ArtifactStore backup/restore, rebuild Neo4j from restored authority, and compare active identity plus immutable history. | Component persistence is insufficient until recovery preserves the same scientific state. |
+| `M1.9-W03` | `planned` | Run `M1.9-DEMO-01`–`M1.9-DEMO-15` as one clean-start cumulative trace with an inspectable result manifest. | Only one identity-preserving path can prove the implemented parts compose into Petra's M1 evidence spine. |
+| `M1.9-W04` | `planned` | Merge the completed M1.7 design contract, execute interface recovery assertions, and record the final closeout evidence. | M1 cannot close while user-facing async, provenance, and review states remain owned by an unintegrated design stream. |
+
+### Implementation evidence
+
+| ID | Status | Evidence | Consequence |
+| --- | --- | --- | --- |
+| `M1.9-EV01` | `pass` | `test-m1-backend-gates.mjs` orders six deterministic gates, attributes a failure to its stage, supports isolated reruns and inspection, and names the `M1.9-T*` coverage in its result. Its first complete 108-second run passed 599 always-on repository tests with seven expected service skips, 80 real PostgreSQL cases after 18 migrations, nine real ArtifactStore cases, three real Neo4j/PostgreSQL cases, two stable 116-span Docling parses plus malformed-PDF failure, and a proposal run admitting two grounded candidates while rejecting its fabricated negative control. Both local scientific-processing stages reported zero remote model calls. The runner explicitly reports `M1.9-T12` and the cumulative demonstration as remaining rather than treating component success as M1 completion. | Implement the recovery exercise next, then build the cumulative identity-preserving demonstration after the separate design stream exposes its stable integration contract. |
 
 ### Acceptance demonstration
 

@@ -52,6 +52,8 @@
     "test:s3": "npm test --workspace @petra/s3",
     "test:s3:integration": "node scripts/test-s3-integration.mjs",
     "test:integration": "node experiments/disc-04/run-integration.mjs",
+    "test:m1:backend": "node scripts/test-m1-backend-gates.mjs",
+    "test:m1:backend:list": "node scripts/test-m1-backend-gates.mjs --list",
     "test:docling:integration": "node scripts/test-docling-integration.mjs",
     "test:codex-app-server:integration": "npm run build:packages && node scripts/test-codex-app-server-integration.mjs",
     "test:codex-synthesist:certification": "npm run build:packages && node experiments/model-certification/run-codex-synthesist.mjs",
