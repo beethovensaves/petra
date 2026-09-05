@@ -1992,6 +1992,64 @@ session outcome, refreshes a stale Review, reports projection lag, and Reverts
 an eligible change. It must not copy or structurally derive from either future
 contextual demo.
 
+## `DB10` — graph and relationship work
+
+**Status:** in progress. Entry and state-layer direction is accepted; semantic
+depth and the remaining module specification are still under discussion.
+
+### Accepted entry and layer direction
+
+The Graph is an optional relationship workspace for a named task. It never opens
+as an unrestricted Project or corpus network. A contextual entry preserves the
+originating task, object, snapshot, selection, and return path, and opens the
+smallest relationship view needed by that context. Direct Graph entry begins from
+a recent or saved relationship question, a selected object, or a natural-language
+question. A named model role may translate the natural-language question into a
+bounded object, predicate, depth, snapshot, temporal, and layout request; Petra
+presents and governs that interpretation but does not author its domain meaning.
+The interpreted scope remains inspectable and correctable without requiring the
+author to maintain graph records.
+
+The Graph distinguishes three semantic layers:
+
+| Layer | Meaning | Default and interaction rule |
+| --- | --- | --- |
+| **Current** | The graph projection of current authoritative Project state | Default for direct Graph entry; selection and view manipulation do not change authority |
+| **Working changes** | Durable, profile-valid, non-authoritative candidate objects and relationships from bounded conversation or Work | Relevant working structure may appear with contextual entry; when hidden, its count and reason remain available; any authority change routes through Review |
+| **Historical** | An explicitly selected prior state or temporal comparison position | Clearly headed as historical, disables current-state mutation, and provides **Return to current** |
+
+Projection is not a fourth semantic layer. It is the freshness of a derived graph
+representation relative to authoritative Project state. When projection lags, the
+view states that the authoritative change already applied, identifies the relevant
+snapshot or revision, and provides an authoritative non-graph route while the
+projection catches up. Before/after state uses a dedicated comparison presentation
+rather than overlapping translucent graphs. The textual peer exposes the same
+layers, freshness, scope, omissions, selections, and return behavior.
+
+Layout, position, selection, pinning, dragging, expansion, collapse, grouping,
+filtering, and renderer state are presentation only. They cannot accept a working
+relationship, mutate a Project object, or imply that a graph projection is the
+source of authority. `UX-REQ-011` remains a proposed backend need for the generic
+durable conversational working graph and is not made real by this paper design.
+
+### Pending semantic-depth decision
+
+The current recommendation defines depth as the amount of relationship context
+needed to answer the active question rather than primarily as a hop count. Petra
+would derive the smallest useful focus, predicates, snapshot, temporal position,
+and boundary; lead with meaningful expansion actions such as **Show contrary
+evidence**, **Trace sources**, and **Show downstream effects**; disclose hidden
+counts and summarized groups; and place exact relationship types and hop limits in
+optional inspectable controls. Selection would open Details, all view manipulation
+would remain non-authoritative, and the textual peer would expose identical paths,
+scope, omissions, and expansion actions.
+
+This recommendation is not accepted. Resume DB10 by confirming or revising it,
+then specify selection and path inspection, task layouts and comparison, density
+and grouping, correction boundaries, temporal behavior, adverse states,
+responsive and accessible parity, language, backend needs, acceptance criteria,
+and post-freeze conformance evidence before advancing to DB11.
+
 ## `UX-DESIGN-FREEZE-01`
 
 The product design may freeze only when:

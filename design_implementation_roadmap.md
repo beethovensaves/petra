@@ -678,7 +678,7 @@ The raster reference is a composition and visual-language source, not a screen s
 
 ## `UX1.5` — focused graph and provenance inspection
 
-- **Status:** `planned`
+- **Status:** `in_progress`
 - **Builds:** task-bounded graph views and their textual equivalents.
 - **Why:** Petra must demonstrate that graph structure controls retrieval, review, and generation while remaining understandable to researchers who do not operate a graph database.
 - **Depends on:** `UX1.0`, `UX1.1`, `UX1.2`, `UX1.3`.
@@ -689,6 +689,17 @@ The raster reference is a composition and visual-language source, not a screen s
 | ID | Question | Accepted direction | Why it matters | Affected work | Revisit trigger |
 | --- | --- | --- | --- | --- | --- |
 | `UX1.5-DISC01` | What should graph depth mean, when is 3D justified, and which renderer candidates should Petra evaluate? | Keep 2D authoritative and primary. Define every view by active object, scientific task, hop depth, edge allowlist, snapshot, and projection position. Drive expansion through meaningful actions such as **Show contrary evidence** and **Trace exact sources**, preserve the mental map, and provide back, forward, home, pin, collapse, and reset. Support task-specific Provenance, Neighborhood, Disagreement, Comparison, Impact, and Time layouts with semantic zoom and restrained selected-path motion plus a reduced-motion alternative. Allow literal 3D only when the z-axis represents a named scientific dimension, testing shows a comprehension benefit, full 2D and textual parity exists, and selection plus camera state can be reset, bookmarked, and shared accessibly. Feed a renderer-neutral `FocusedGraphViewModel` into Cytoscape.js as the primary 2D candidate, textual-path and evidence-matrix peer views, and Reagraph as the optional 3D candidate. Do not evaluate yFiles in this slice. No renderer may query Neo4j directly or own authority, permissions, or mutation. Compare candidates on a frozen fixture before adding a dependency. | A graph should look compelling because it exposes scientific structure, not because the camera is novel. Depth is first a scientific and query-scope concept. The adapter boundary avoids renderer lock-in, and textual parity keeps graph evidence understandable and accessible. | `UX1.5-W01`–`UX1.5-W12`, `UX1.5-AC01`–`UX1.5-AC06`, `M1.3`, `M1.5`, `M1.6`, `M1.7`, graph scene and focused-view contracts | Revisit if Cytoscape.js fails density, layout, stability, or accessibility budgets; Reagraph cannot provide 3D parity; a comprehension study demonstrates a necessary 3D benefit; a real fixture requires another renderer; or an engine pressures the client toward direct projection coupling. |
+| `UX1.5-DISC02` | How should an author enter a graph task and distinguish authoritative, working, historical, and projected state? | Never open an unrestricted corpus hairball. Contextual entry opens the exact relationship question with origin, selected object, task, snapshot, and return path intact. Direct Graph entry begins from a recent or saved relationship question, a selected object, or natural language that a named model role translates into an inspectable bounded view. Use three semantic layers: **Current** for the projection of current authoritative Project state and the default view; **Working changes** for relevant durable non-authoritative candidate structure, included on contextual entry and counted when hidden; and **Historical** as an explicit non-editing mode with **Return to current**. Treat projection as view freshness rather than a fourth layer, and state when an authoritative change has applied but its graph representation is catching up. Use a dedicated before/after comparison rather than overlapping translucent states. Expose identical layer, scope, freshness, omission, and return meaning in the textual peer. | Authors need relationship inspection without learning graph storage or mistaking model structure, history, or a delayed projection for current authority. Task-preserving entry and explicit layers reduce disorientation while keeping the graph optional and inspectable. | `DB10`; `UX1.5-W01`, `W02`, `W05`–`W09`, `W11`; `UX1.5-AC02`–`AC04`; `UX-REQ-007`, `UX-REQ-011` | Revisit if task testing shows that contextual entry hides necessary scope, working structure overwhelms the current answer, authors mistake projection freshness for semantic status, or a profile requires a materially different temporal comparison. |
+
+### Open discussion
+
+The next choice is the semantic-depth and expansion model. The recommendation is
+to define depth as the relationship context needed to answer the current question,
+let Petra derive the smallest useful object/predicate/snapshot boundary, lead with
+profile-valid expansion actions, disclose hidden counts and summarized groups, and
+keep exact relationship types and hop limits in optional inspectable controls. This
+recommendation is **not accepted yet** and must not be folded into
+`UX1.5-DISC01` or the DB10 acceptance record without explicit user agreement.
 
 ### Work
 

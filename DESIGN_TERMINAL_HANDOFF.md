@@ -82,9 +82,62 @@ AG-UI remains behind `PetraInteractionClient` and Petra-specific hooks. Feature 
 
 ## Current conversation
 
-Continue with this question:
+`DB10` is in progress. The following direction is accepted:
 
-> I am beginning `DB10`, graph and relationship work. `DB09` established that a named model role quietly turns bounded natural conversation and Work into a durable non-authoritative working graph; Petra presents and governs those records but is not their author. I want to agree on how an author enters the graph for a real relationship question, distinguishes working, authoritative, projected, and historical state, follows and compares paths without maintaining graph structure manually, controls semantic depth without revealing a hairball, and returns with task context intact. The accepted starting direction keeps task-bounded 2D views and textual parity primary, Cytoscape.js as the current renderer, and 3D through Reagraph only when a named third dimension improves comprehension. My recommendation is to design the graph as an optional inspectable relationship workspace with progressive controls, profile-owned objects and predicates, natural-language correction through the active model, direct manipulation only as an exact candidate change, and no authority in layout, selection, dragging, or renderer state.
+- the Graph is an optional, task-bounded relationship workspace rather than a
+  corpus-wide explorer or graph-entry form;
+- contextual entry opens the exact relationship question and preserves its
+  originating object, task, snapshot, selection, and return path;
+- direct Graph entry begins from a recent or saved relationship question, a
+  selected object, or a natural-language relationship question that a named
+  model role translates into inspectable bounded scope;
+- the three semantic layers are **Current**, **Working changes**, and
+  **Historical**. **Current** is the default; contextual entry from conversation,
+  a candidate, or Review may include the relevant non-authoritative **Working
+  changes**; **Historical** is an explicit non-editing mode with **Return to
+  current**;
+- projection is representation freshness, not a fourth semantic layer. A lagging
+  graph says that the authoritative change already applied and provides an
+  authoritative non-graph route while the projection catches up;
+- Graph controls and the textual peer expose layer, scope, hidden working-change
+  counts, snapshot, and projection position. Layout, selection, dragging,
+  filtering, and expansion never carry authority;
+- before/after comparison uses a dedicated comparison presentation rather than
+  translucent overlapping state;
+- 2D and textual parity remain primary, Cytoscape.js remains the 2D candidate,
+  and Reagraph remains optional only when a named third dimension improves
+  comprehension.
+
+Continue by deciding the semantic-depth and expansion model. The current
+recommendation, not yet accepted, is:
+
+> Treat depth as the amount of relationship context needed to answer the current
+> question, not primarily as a hop count. Let Petra derive the smallest useful
+> focus, predicates, snapshot, temporal position, and boundary; lead with named
+> expansion actions such as **Show contrary evidence**, **Trace sources**, and
+> **Show downstream effects**; disclose hidden counts and summarized groups; and
+> place exact relationship types and hop limits in optional inspectable controls.
+> Selection opens Details, view manipulation remains non-authoritative, and the
+> textual peer exposes the same paths, scope, omissions, and expansion actions.
+
+Do not record this semantic-depth recommendation as accepted unless the user
+explicitly agrees. After depth, complete selection/path inspection, layouts and
+comparison, density/grouping, direct-correction boundaries, temporal behavior,
+adverse states, accessibility, language, backend needs, and the DB10 paper audit.
+
+## Latest repository checkpoint
+
+- `design/m1-ux` is synchronized with `origin/design/m1-ux` at merge commit
+  `81c3786`.
+- The merge consumes backend `main` at `344cf77` without workbench or design-doc
+  conflicts.
+- The complete repository verification passed: 599 always-on tests and seven
+  expected service skips.
+- `UX-REQ-011` and `UX-REQ-012` remain proposed design requirements; the merge
+  did not silently implement or close them.
+- `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
+  intentionally untracked user assets. Do not add or remove them without explicit
+  direction.
 
 Do not implement a Graph fixture after this discussion. Complete the full graph
 and relationship-work specification, then continue through `DB11`–`DB18`.
