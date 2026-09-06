@@ -1,6 +1,6 @@
 # Petra Design Implementation Roadmap
 
-Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10 specified and paper-audited; DB11 discussion started
+Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10 specified and paper-audited; DB11 presentation accepted; steering pending
 Last updated: 2026-09-06
 Scope: deliver Petra's M1 experience module by module while implementation continues, without creating a second authority for architecture or feature completion
 
@@ -706,8 +706,8 @@ its runtime shape remains proposed. `UX-FX24` and `UX-FX25` specify the paired
 and adverse conformance scenarios to implement after freeze. The specification
 gate is covered; this module remains `in_progress` because no new frontend,
 live contract, performance, accessibility, or participant evidence is claimed.
-DB11 now has a pending task-and-stage presentation recommendation in the brief;
-it awaits user direction. `UX-DESIGN-FREEZE-01` remains unaccepted.
+DB11's task-and-stage presentation is accepted; its material steering and
+plan-change recommendation remains pending in the brief. `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ### Work
 
@@ -762,6 +762,23 @@ it awaits user direction. `UX-DESIGN-FREEZE-01` remains unaccepted.
 | ID | Question | Accepted direction | Why it matters | Affected work | Revisit trigger |
 | --- | --- | --- | --- | --- | --- |
 | `UX1.6-DISC01` | What is Petra's central AI interaction model, and how can authors recover from wrong graph or Project paths without confusing presentation history with authority? | Petra is one task-linked interaction system presented as a quiet dock, resizable contextual sidecar, focus workspace, or full-width narrow route. It is not a generic chat or a separate authority surface. Each turn binds explicit Project, profile, objective, snapshot, included and excluded context, basis, capabilities, policies, and applicable control revisions. Petra returns a grounded answer, previews a `SuggestedAction` before material Work, or routes a mutation through the same exact `ChangeSet` review used by direct controls. Conversation is editorial; durable Work, observable roles, interrupts, cost, cancellation, replay, proposals, and results remain inspectable without raw protocol chatter or private reasoning. Threads are Project-scoped and task-linked. Graph exploration has a ten-state local Back/Forward history. **Recent changes** exposes the ten most recent eligible author-visible changes, and **Revert change** opens a validated compensating `ChangeSet`; the full additive history remains intact. Thread branching and Work cancellation do not rewind Project state. | Petra is central to the product, but a chat-first model would hide context, work, authority, and recovery. Separating graph view history from governed reversal gives authors a fast exit from unhelpful exploration while preventing a visualization engine or an “undo” label from erasing provenance and decisions. | `DB06`; `UX1.1-W05`; `UX1.4-W05`, `W09`, `W11`; `UX1.5`; `UX1.6-W01`–`W15`; `UX-REQ-003`, `UX-REQ-006`, `UX-REQ-007`; `UX-FLOW-10`–`12`, `UX-FLOW-16` | Revisit if task testing shows that a presentation loses context, ten view states are insufficient for ordinary graph exploration, the recent-ten Project window hides needed recovery, a profile needs materially different context semantics, or the command layer cannot produce safe compensating plans without changing the accepted authority model. |
+| `UX1.6-DISC02` | How should an author follow durable Work and inspect orchestration? | Accepted 2026-09-06: lead with one task overview per bounded objective and meaningful stages. Show status, required input, current/remaining plan, costs/limits, controls, and results. Expand exact role/tool/validator activity beneath its stage; retain a full execution/dependency view and textual equivalent for diagnosis. The Work collection lists tasks and each detail route keeps their canonical identity and exact origin. | Authors need to follow progress and respond to decisions without reconstructing the task from calls or an execution diagram. | `DB11`; `UX1.6-W08`–`W11`, `W15`; `UX-REQ-014`; `UX-FX26` | Revisit if stage grouping obscures concurrent work, dependencies, required input, actual outcomes, resource use, or cancellation scope, or if routine tasks need the full execution structure to be understood. |
+
+### DB11 open discussion
+
+The task/stage presentation is accepted as `UX1.6-DISC02`. DB11 now specifies
+its identity, collection/detail hierarchy, responsive/accessibility behavior,
+status/progress/input meanings, resource and result inspection, and existing
+recovery boundaries. `UX-REQ-014` records the missing Work read composition;
+`UX-FX26` specifies its post-freeze conformance scenario.
+
+The next consequential choice is how a new instruction changes active execution.
+The pending recommendation revises only affected remaining stages, retains prior
+records, validates reuse, and previews material changes to scope, inputs, cost,
+active-stage control, and output. Ordinary supported clarification stays within
+the authorized scope. Do not record this as accepted until the user agrees.
+DB11's full lifecycle/path/language specification and paper audit remain open;
+this checkpoint does not claim its complete `G-SPEC` or advance to DB12.
 
 ### Work
 
@@ -929,6 +946,7 @@ The fixture gallery reuses stable objects across modules. It should remain small
 | `UX-FX23` | Paired conversational working graph and Review | Two invented Project profiles turn bounded natural conversation into durable non-authoritative candidates, relationships, exact origin and basis, optional graph/text inspection, exception-led Review, conversational correction, exact Changes to apply, atomic and independent-batch outcomes, stale refresh, projection lag, and governed Revert without contextual demo material |
 | `UX-FX24` | Paired bounded relationship questions | Two invented profiles exercise question-led scope, exact multi-step paths, contrary or constraining material, working layers, dependencies versus impact, dedicated comparison, direct correction, bounded new Work, textual parity, and exact return |
 | `UX-FX25` | Dense, temporal, and adverse graph exploration | High-degree/cyclic paths, overlapping groups and honest counts, query limits and late responses, historical/unknown dates, stale working base, incomplete comparison, projection lag/blocking, missing/restricted targets, renderer/offline recovery, local saved views, ten-state history, and responsive/accessibility variants |
+| `UX-FX26` | Paired Work task and stage inspection | Invented scientific and writing tasks expose objective, declared stages and concurrent/dependent activity, exact role/tool/validator attempts, required input, progress units, resource coverage, permitted partial outputs, success/failure, checkpoint/cancellation distinctions, reconnect/replay, and responsive/textual parity across task entry points |
 
 Post-freeze fixtures use Petra's canonical IDs and runtime shapes. When a runtime contract is not yet available, a fixture declares its provisional schema and associated `UX-REQ` item. They use synthetic content and remain independent of contextual demo assets and directories. Existing pre-freeze shell and graph fixtures remain exploratory comparison evidence; they do not satisfy the neutral reference-UX gate until reviewed or rebuilt against the frozen brief.
 
@@ -989,6 +1007,7 @@ A local component calculation is allowed for presentation-only state such as pan
 | `UX-REQ-011` | `proposed`; architecture decision required | Durable, profile-valid, non-authoritative working candidates and graph relationships derived from bounded interactions with exact origin, basis, validation, and revision lineage | `M1.1`, `M1.3`, `M1.5`, `M1.6`, `M1.7`, later profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-012` | `proposed` | Snapshot-consistent, profile-neutral Review-session query and missing correction, basis-change, separation, deferment, and member-outcome command composition | `M1.5`, `M1.7`, later profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-013` | `proposed` | Bounded profile-resolved relationship query with exact layers/paths, scope and omissions, finite expansion, supplied comparison/impact facts, and temporal capabilities | `M1.3`, `M1.5`, `M1.6`, `M1.7`, later profile/temporal contracts | `reports/UX-BACKEND-HANDOFF.md` |
+| `UX-REQ-014` | `proposed` | Project Work collection and task/stage read composition with exact identity/activity, required input, outcomes, resource coverage, control eligibility, and safe destinations | `M1.1`, `M1.2`, `M1.6`, `M1.7`, later orchestration/profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
 
 The implementation track owns each request's disposition. A post-freeze synthetic fixture may
 use the proposed shape, but no module may claim `G-CONTRACT` until the request
@@ -1085,8 +1104,8 @@ only after the full reference UX stands independently.
 Backend implementation of already accepted architecture may continue. The
 design track should now:
 
-1. carry the accepted direction and specifications through `DB10` into `UX-REQ-001`–`UX-REQ-013` without implementing a product surface;
-2. discuss and specify `DB11`, durable Work and orchestration, using DB06 and DB10's existing Work boundaries;
+1. carry the accepted direction and specifications through `DB10` and DB11's presentation into `UX-REQ-001`–`UX-REQ-014` without implementing a product surface;
+2. decide DB11's material steering/plan-change model, then finish durable Work and orchestration using DB06 and DB10's existing boundaries;
 3. specify composition, settings, design-system, language, accessibility, and recovery behavior through `DB12`–`DB17`;
 4. maintain the `UX-REQ` register and request architecture dispositions without allowing available backend shapes to dictate the UX;
 5. assemble the complete screen inventory, responsive blueprints, state matrix, flow map, and acceptance plan in `DB18`;

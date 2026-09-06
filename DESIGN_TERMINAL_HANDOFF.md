@@ -133,31 +133,52 @@ architecture owns its disposition. `UX-FX24`/`UX-FX25` specify post-freeze paire
 and adverse conformance scenarios. No fixture, query, renderer, backend contract,
 or product surface was implemented. Paper completion is not runtime validation.
 
-DB11's opening discussion now records a pending recommendation: lead with a
-task overview and meaningful stages, with exact role/tool/validator activity
-expandable beneath each stage and a full execution/dependency view available
-for complex diagnosis. The invented passage/requirements example makes the
-choice concrete. This recommendation is not accepted; await the user's direction
-before closing that choice. The accepted DB06/DB10 Work boundaries still apply.
-Then specify
-plans, roles and validators, progress, required input, steering, cost, detachment,
-reconnect, cancellation, results, retry, adverse states, and the paper audit.
+The user accepted DB11's task overview and meaningful-stage presentation on
+2026-09-06 as `UX1.6-DISC02`. Exact role/tool/validator activity expands beneath
+its stage and a full execution/dependency view remains available for diagnosis.
+The invented passage/requirements example records that direction.
+
+DB11 now specifies the task/stage identity and authority boundary, collection and
+detail hierarchy, responsive/accessibility behavior, progress and input meanings,
+resource/output inspection, and the existing control/recovery boundaries.
+`UX-REQ-014` requests the missing Work collection/detail read composition;
+`UX-FX26` names the post-freeze paired presentation scenario. Current WorkUnit,
+manifest, retry, cancellation, and interaction records remain the foundation.
+Checkpointed does not mean paused/resumable, terminal completed may encode
+failure, and cancellation cannot invent an unsupported stop or cascade.
+
+The next decision, asked in this conversation and still pending, is material
+steering and plan revision. The recommendation is to revise affected remaining
+stages, preserve earlier records, and reuse only validated compatible outputs.
+Material changes preview scope, inputs, affected stages, active-stage stop or
+checkpoint boundary, cost/limits, and expected output. Ordinary supported
+clarification stays within the existing authorized scope. The alternative is to
+restart the whole task when execution scope changes. The passage example narrows
+a running requirements check to continuity only. Do not mark this recommendation
+accepted without the user's response.
+
+After that decision, finish DB11's complete lifecycle/state matrix, exact
+steering/cancellation/retry paths, language ledger, backend command gaps,
+acceptance/conformance criteria, and paper audit before advancing to DB12.
+DB11 is not yet complete at `G-SPEC`; the current checkpoint closes its
+presentation choice only. The accepted DB06/DB10 Work boundaries still apply.
 
 ## Latest repository checkpoint
 
-- This conversation resumed on `design/m1-ux` at `230fadd`, the DB10 discussion
-  checkpoint. The DB10 specification closure is recorded by the commit containing
-  this handoff; inspect Git status/log for the current local and remote position.
+- This conversation resumed on `design/m1-ux` at `230fadd`; DB10's specification
+  closure and DB11 opening discussion were saved at `5cd707b`. The current
+  checkpoint records accepted DB11 presentation and pending steering; inspect
+  Git status/log for the current local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
 - Verification at that preceding merge passed 599 always-on tests with seven
   expected service skips. It is historical evidence, not a test run for this
   documentation-only closure.
-- Documentation checks for the closure covered table/fence structure, new local
+- Documentation checks at the DB10 closure covered table/fence structure, new local
   links, path/audit and decision/request/fixture definitions, acceptance status,
   five-file design-only scope, and `git diff --check`.
-- `UX-REQ-011`, `UX-REQ-012`, and new `UX-REQ-013` remain proposed runtime
+- `UX-REQ-011` through `UX-REQ-014` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit

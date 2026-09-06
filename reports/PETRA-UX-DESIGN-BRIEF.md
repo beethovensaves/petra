@@ -90,7 +90,7 @@ interaction contract has not yet been designed.
 | `DB08` | Sources and exact inspection | Registration, rights, versions, inspection capability, processing, source reading, exact locations, limitations, and provenance | accepted |
 | `DB09` | Basis, candidates, and review | Ambient structuring, comparison, validation, exception handling, exact change preview, correction, approval, rejection, deferment, conflict, and Revert | accepted |
 | `DB10` | Graph and relationship work | Task entry, query scope, layouts, depth, selection, temporal state, impact, textual parity, and optional 3D boundary | specified; direction accepted; paper audit complete |
-| `DB11` | Durable Work and orchestration | Plans, agents and validators, progress, input, steering, cost, detachment, reconnect, cancellation, result, and retry | discussion started; presentation hierarchy pending |
+| `DB11` | Durable Work and orchestration | Plans, agents and validators, progress, input, steering, cost, detachment, reconnect, cancellation, result, and retry | in progress; task/stage presentation accepted; steering decision pending |
 | `DB12` | Composition and revision | Artifact planning, editing, provenance, validation, citations where applicable, imported ancestry, promotion, rendering, and export | not designed |
 | `DB13` | Settings and personal control | Appearance, theme, layout, panel resizing, editor, accessibility, privacy, model visibility, and local preference rules | partial |
 | `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | partial |
@@ -2606,19 +2606,25 @@ DB10 can now hand off to the DB11 discussion without starting Graph implementati
 
 ## `DB11` — durable Work and orchestration
 
-**Status:** discussion started after DB10's specification and paper audit.
+**Status:** in progress. The user accepted the task overview and meaningful-stage
+presentation on 2026-09-06 as `UX1.6-DISC02`. Steering and material changes to
+execution are the next consequential choice; the recommendation below remains
+pending until the user gives direction.
+
 DB06 already establishes durable Work, bounded action previews, accountable
 roles, distinct interrupts, observable activity, cost, cancellation, and exact
 result routing. Those accepted boundaries are not reopened here.
 
+### Product role and accepted presentation
+
 The Project author's task is to understand what is running, whether it needs a
-decision, what it has produced, and what changing or stopping it would do. The
-pending presentation recommendation is to lead with one task overview per bounded
-objective: objective and outcome, required input, current stage and remaining
-plan, cost/limits, and available controls. Observable role/tool/validator runs and
-their inputs, outputs, checkpoints, and errors expand beneath the relevant stage.
-The Work collection lists those tasks; the detail route makes the stages primary.
-A full execution/dependency view remains available for complex diagnosis.
+decision, what it has produced, and what changing or stopping it would do. Work
+leads with one task overview per bounded objective: objective and expected or
+actual outcome, required input, current stage and remaining plan, cost/limits,
+and available controls. Observable role/tool/validator runs and their inputs,
+outputs, checkpoints, and errors expand beneath the relevant stage. The Work
+collection lists those tasks; the detail route makes the stages primary. A full
+execution/dependency view remains available for complex diagnosis.
 
 For an invented writing task, **Check this passage against its requirements**
 could show **Gather requirements → Check dependencies → Validate passage → Collect
@@ -2628,13 +2634,259 @@ input revision, and partial findings from that stage. Supporting runs remain
 inspectable without requiring an execution diagram to follow ordinary progress.
 Stages describe observable work and do not claim access to private model reasoning.
 
-The material choice is whether this task-and-stage presentation should be the
-default or whether the full execution/dependency structure needs primary space.
-The recommendation is **pending user direction**, not an accepted DB11 decision.
-After that direction, complete plan revision and steering consequences, stage and
-task status, required input, cost, detachment/reconnect, cancellation, partial and
-terminal results, retry, responsive/accessibility behavior, backend gaps, and the
-DB11 paper audit before advancing to DB12.
+### Shared roles, identity, and authority
+
+| Role | Shared responsibility | Profile-owned meaning |
+| --- | --- | --- |
+| Objective | Exact Project/task identity, originating request, bounded input, expected outcome, and return | Research, source processing, validation, composition, or another registered task |
+| Plan | Versioned description of declared stages, dependencies, expected outputs, limits, and control boundaries | Valid order, relevant checks, and task-specific prerequisites |
+| Stage | Named observable unit of progress with input/output references and actual execution status | Gather sources, compare scope, check continuity, or another valid workflow step |
+| Execution | WorkUnit, attempt, role/tool/model identity, manifests, timestamps, resource use, and terminal receipts | Registered worker, validator, or specialist role |
+| Required input | Exact unresolved question, responsible actor, permitted response, consequence, and affected work | Domain clarification, validation judgment, or profile-specific choice |
+| Result | Exact output revision, origin, limitations, validation, and destination | Read-only answer, finding, candidate, Artifact, or another registered output |
+| Recovery | Preserved records, eligibility, safe retry/resume/cancel path, and exact outcome | Workflow-specific reusable checkpoints and valid partial outputs |
+
+The author directs the task; named roles and workers produce outputs. The
+application displays their records and enforces registered control boundaries.
+It cannot turn a stage summary into a WorkUnit, invent an execution dependency,
+declare a worker successful, or promote a result because its progress bar ended.
+Profile-specific stage names do not create a parallel Work or approval lifecycle.
+
+The primary durable identity is the canonical WorkUnit bound to the exact action
+and input. A stage may contain several calls or attempts; a call is not
+automatically a separate author-facing task. If a registered workflow composes
+several WorkUnits, its runtime-owned composition identifies the task's members,
+dependencies, and control scope. Without that composition, the UI lists the known
+WorkUnits separately rather than fabricating a parent identity or overall outcome.
+Shared dependencies retain their actual ownership and other consumers.
+
+The task has three separate outcomes: operational execution, whether the expected
+outputs are available and usable, and whether any resulting candidate was applied
+through Review. Success in one does not imply success in the others. A failed
+validation run is distinct from a successfully executed validator finding a domain
+problem. Already authorized policy application, if present, names its separate
+decision and command receipt; Work completion itself grants no new authority.
+
+### Work collection and task-detail hierarchy
+
+The first-class Work route resolves the current Project and profile and exposes
+existing tasks before offering a new action. Contextual entry from Graph, Sources,
+Review, Composition, a Petra thread, or the Brief opens the exact task and relevant
+stage/result with its origin intact. A deep link rechecks the exact permitted
+identity under DB04. Closing Work or switching Project does not cancel execution.
+
+The collection uses task rows with recognizable objective, current condition,
+stage/blocked reason, required input, elapsed time, available cost/limit summary,
+and exact result or recovery destination. Attention-requiring tasks lead under
+DB07's consequence rules. Active tasks and terminal tasks remain reachable through
+named filters; a retained failure is not hidden merely because it is old. Filter
+counts describe authorized membership and disclose partial/unknown totals. Opening
+a row resolves the same identity shown in the dock, thread, or Brief.
+
+The task detail has one logical reading order:
+
+1. objective, expected/actual outcome, status, Project, origin, and return;
+2. any required input or material blocker, with its consequence and scope;
+3. current stage and the remaining plan, including parallel/dependent stages;
+4. limits, elapsed/estimated time, resource use/cost, and available controls;
+5. produced results, their completeness/validation, and useful destinations;
+6. expanded stage activity, exact basis, attempts, checkpoints, and history.
+
+Required input leads while a decision is blocking the task. At a terminal outcome,
+the result or failure explanation occupies that same prominent task area. One
+current or attention-requiring stage expands by default; authors can inspect any
+other stage without automatic recollapse or being pulled back by new activity.
+Several concurrent stages show their actual status; the UI does not pretend they
+execute in the reading order of a linear list.
+
+Each stage names its purpose, prerequisites, accountable role, current condition,
+input revisions, produced outputs, applicable limits, and unresolved findings.
+**Show activity** exposes observable tool/query/validator/model runs, attempts,
+timestamps, checkpoints, and errors. **Show dependencies** opens the complete
+permitted execution structure with an equivalent ordered dependency list.
+Node placement cannot infer prerequisite order, control ownership, or success.
+Selecting a stage or run opens exact Details without changing its execution.
+
+### Responsive and accessible presentation
+
+| Presentation | Required behavior |
+| --- | --- |
+| Wide | Work collection uses readable rows; task detail gives the plan/stages primary space with one contextual Details or Petra panel by default. Dependency view is deliberate. |
+| Medium | Secondary navigation collapses and task fields wrap. Required input, current stage, cost/limits, and control consequences remain visible without shrinking the plan into an illegible diagram. |
+| Narrow/high zoom | Collection and task detail reflow to one column. Details and Petra open full-width with exact return; dependency structure is available as a textual list. Stage expansion and task controls remain complete. |
+
+Task and stage headings, status, dependencies, progress, required input, outputs,
+and controls have textual names and a stable reading order. Keyboard selection,
+stage expansion, dependency inspection, input response, source/result navigation,
+and return work without drag, hover, color, animation, or spatial memory.
+Opening a task focuses its heading or an explicitly invoked input request.
+Opening Details or an input form moves focus deliberately and closing it returns
+to the invoking control or nearest surviving task target.
+
+Stream updates never steal focus, reorder the active row under the pointer, or
+force scroll. A concise live announcement identifies a meaningful stage change,
+new required input, or terminal outcome; it does not read every tool event or
+token. Authors can stop visual follow/auto-scroll while Work continues. Reduced
+motion uses static progress and stage changes; forced colors retain text labels,
+focus, and boundaries. Resized panels, enlarged text, and touch retain the same
+actions and consequence language under DB14/DB16.
+
+### Execution, progress, and required input
+
+Work status is a composition of canonical facts, not one client-generated enum.
+The view separates execution lifecycle, required input/dependency condition,
+connection/replay state, and result/review status. Several conditions can coexist:
+a dependency can fail while another stage runs, or an execution can finish while
+its candidate still needs a decision. The task overview names the condition that
+changes the author's next action and keeps the others inspectable.
+
+| Canonical fact or condition | Required presentation |
+| --- | --- |
+| Requested/queued | Task received or waiting to start, with a known queue/dependency reason if supplied; do not claim a queue position or start time without data |
+| Running | Actual active stage(s), observable activity, elapsed time, and current limits; no simulated progress |
+| Checkpointed | A valid retained checkpoint is recorded; this alone does not mean execution is paused or resumable |
+| Required input | Exact unresolved input record and affected stage/task, why it is needed, permitted responses, and what continues or waits |
+| Dependency blocked | Missing/failed prerequisite and affected successors; unrelated work is not labeled stopped unless the runtime reports it |
+| Terminal succeeded | Operation succeeded; name outputs, limitations, validation, and the separate Review state |
+| Terminal failed | Actual failure kind and affected stage/attempt, retained permitted outputs, and eligible recovery; the canonical `completed` lifecycle value alone cannot render as success |
+| Cancelled | Canonical cancellation outcome, stopped scope, retained permitted outputs, and any independent/shared work that continues |
+| Connection unavailable | Last known task revision and observation time; execution may continue and its terminal result remains unknown until resolved |
+
+Progress describes observable work. Completed-stage or processed-item counts name
+their denominator and plan/input revision. They are not estimates of elapsed-time
+completion unless the runtime supplies a justified estimate. Unknown duration
+stays unknown. Optional, skipped, superseded, failed, and cancelled stages retain
+their distinct reasons; they are not all counted as successful. A retry has its
+own attempt record rather than making the earlier failure disappear.
+
+Input requests preserve DB06's distinction among clarification, capability,
+budget, validation judgment, and Review approval. Each has exact identity/revision,
+scope, question, available responses, consequences, safe waiting behavior, and a
+permitted exit. The same request displayed in Work and Petra resolves once through
+its canonical adapter. Stale, already answered, superseded, or unauthorized input
+shows its actual disposition rather than offering a second active answer form.
+Responding to clarification cannot implicitly approve a ChangeSet or broaden a
+capability. **Decide later** affects only the request's permitted disposition and
+never implies that waiting Work resumed.
+
+### Resource and output inspection
+
+The overview distinguishes elapsed time, an estimate with its basis, measured
+usage, authorized limit, and an unknown or pending amount. Stage detail identifies
+the producing attempt/model/tool and measurement source. Task totals deduplicate
+canonical usage records and disclose incomplete coverage, retries, shared work,
+and whether values are estimates or measurements. Counts, tokens, or a model's
+language cannot manufacture a price or guaranteed finish time.
+
+Budget pressure and resource exhaustion name the affected boundary and available
+response. A new permission or increased spend cannot be inferred from continued
+conversation. Existing approved retries and limits remain inspectable. Exact
+budget-change and remaining-work steering behavior belongs to the pending
+decision below; the interface cannot invent a control merely because a numeric
+field could be edited.
+
+Outputs are exact immutable references with producer, task/stage/attempt, input
+basis, creation time, status, validation, and limitations. A partial output can be
+shown only when the canonical manifest and partial-result policy permit retention
+and the output is actually available. `discard`, `retain_declared`, and
+`retain_diagnostics` are distinct: logs or diagnostic fragments cannot become a
+usable result by being visible. Inspecting retained content grants no approval.
+
+Answers return to their originating task; domain candidates route to the same
+Review identity; draft/artifact work opens its exact Composition or source/output
+destination; failures retain their Work and attempt records. A link to a newer
+output or object is explicit and never silently substitutes for the output being
+inspected. Source, Graph, Review, and Composition inspection preserve the selected
+task/stage/result and return focus.
+
+### Existing control and recovery boundaries
+
+| Control | Meaning already established by DB06 and the runtime boundary |
+| --- | --- |
+| **Stop response** | Stops the delivered response at its supported boundary; never substitutes for a Work cancellation command |
+| **Keep running in background / Return to [origin]** | Changes presentation or detaches from live delivery; the task retains its durable identity and authorized execution |
+| **Reconnect** | Resolves durable status and replays from the known position; it does not start a new task, answer an interrupt again, or repeat a command |
+| **Cancel work** | Requests the exact supported operational cancellation; show its current eligibility, affected task, retained-output policy, and known consequences |
+| **Retry failed work** | Only when runtime eligibility, attempts, dependencies, capability, and unchanged exact inputs permit; creates the next recorded attempt, preserving the failed one |
+| **Resume work** | Only if a registered operation validates the checkpoint and exact input/context; a visible checkpoint or a reconnected stream alone is not evidence of resumability |
+
+The current WorkUnit cancellation policy distinguishes cancellable work,
+checkpoint-before-cancellation, and atomic work. The client cannot promise an
+immediate stop, queue an unsupported future stop, or invent a general Pause
+command. **Cancellation requested** may be shown only when a runtime record
+supports that pending state. **Cancelled** requires a terminal receipt; a race
+with completion resolves to the actual recorded outcome and never retries the
+cancellation blindly. An unavailable action exposes its reason and valid recovery.
+
+Cancellation is operational history. It does not reverse accepted changes, erase
+outputs, refund incurred cost, or terminate a shared dependency by implication.
+Applied effects, if any, remain separately inspectable and use DB09's governed
+Revert. A retry of failed Work cannot be used to apply a result twice. Restored or
+offline views preserve last-known facts and input drafts but do not invent an
+execution command queue while authorization or current state is unknown.
+
+### Backend read needs and contract check
+
+Existing `WorkUnit`, immutable worker input/output manifests, per-attempt outcomes,
+dependency references, resource limits, partial-result policies, and cancellation
+receipts provide the core operational records. `WorkUnitAuthorityRepository`
+retains revisions and manifests and exposes exact state transitions and
+cancellation. `WorkUnitRegistry` enforces dependency readiness, retry limits, and
+cancellation policies. Interaction replay and durable Review responses remain
+behind Petra's interaction adapters.
+
+These records do not establish the complete Project Work collection and task/stage
+read composition required by the accepted presentation: stable stage membership,
+declared dependency structure, attention/input and result summaries, observation
+freshness, reconciled resource use, and safe semantic destinations.
+`UX-REQ-014` requests that read boundary using existing canonical records. It
+does not add a lifecycle or declare generic plan editing, resume, pause, cascaded
+cancellation, or budget commands to be implemented.
+
+The client owns local filters, selection, disclosure, panel layout, unsent input,
+and return context. Runtime contracts own task membership, plan/stage meaning,
+progress, eligibility, required input, resource accounting, results, and control
+outcomes. `UX-REQ-003` remains the start/preview boundary; `UX-REQ-004` supplies
+registered profile vocabulary; `UX-REQ-006` supplies thread/context linkage;
+`UX-REQ-008` supplies safe destinations; and DB09 governs result Review.
+
+### Pending steering and material plan-change decision
+
+The recommendation is to revise affected remaining stages while retaining exact
+completed records and reusing only compatible outputs. An ordinary clarification
+inside the existing authorized scope can be acknowledged through a supported
+steering operation. A change to execution scope, required inputs, affected stages,
+cost authorization, or expected output gets a concrete revised-plan preview.
+The runtime validates the change; an instruction in chat does not edit an immutable
+input manifest or alter an in-flight worker by implication.
+
+The preview would identify:
+
+- which completed results remain usable for the revised task and why;
+- which stages or outputs need replacement, revalidation, or another attempt;
+- which running stages can accept a supported instruction, must finish, or can
+  stop only at their declared cancellation/checkpoint boundary;
+- when the revised plan takes effect and which successors may proceed;
+- the remaining scope, expected result, estimated/measured cost, and limits; and
+- what remains unchanged if the revision is rejected, stale, or fails to apply.
+
+For example, while **Check this passage against its requirements** is running,
+the author asks to check continuity requirements only. Compatible requirement
+collection and dependency outputs could be reused; affected validation would
+follow a revised input/plan at a supported boundary. Earlier findings remain
+attributed to their original scope. If the author instead changes the passage
+revision, the runtime may find that more stages must rerun. Reuse is a validated
+property of exact inputs and dependencies, not a browser optimization.
+
+The alternative is to restart the entire task whenever execution scope changes.
+That simplifies the transition but may repeat compatible work and cost. The
+recommendation to revise affected stages is **pending user direction**. Its
+generic plan-change/steering command shape is also unresolved and must receive
+an explicit backend handoff if the direction is accepted.
+
+DB11 remains open. After this choice, finish the complete lifecycle/state matrix,
+steering/cancellation/retry paths, language ledger, backend command gaps, acceptance
+criteria, neutral conformance scenarios, and paper audit before advancing to DB12.
 
 ## `UX-DESIGN-FREEZE-01`
 

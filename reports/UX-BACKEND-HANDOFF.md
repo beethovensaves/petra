@@ -27,10 +27,10 @@ The implementation track may continue already accepted backend work. It should
 not add a demo adapter, corpus path, profile-specific shortcut,
 imported-document promotion behavior, or new shared schema from the future demo contexts
 while the product brief is open. It should review `UX-REQ-004` through
-`UX-REQ-013` as general architecture needs and return a disposition without
+`UX-REQ-014` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
-`UX-REQ-013` follow the accepted Petra interaction, navigation, Sources,
-Review, and Graph direction; they do not authorize a frontend implementation before the
+`UX-REQ-014` follow the accepted Petra interaction, navigation, Sources,
+Review, Graph, and Work-presentation direction; they do not authorize a frontend implementation before the
 design freeze.
 
 ## Accepted UX changes with no backend semantic impact
@@ -718,6 +718,96 @@ between shell context and task content more important.
   direction accepted on 2026-09-06, runtime query/composition shape `proposed`.
   No backend milestone is changed or closed by this design record.
 
+### `UX-REQ-014` — Project Work collection and task/stage read composition
+
+- **Originating design work:** DB11's accepted presentation direction,
+  `UX1.6-DISC02` (2026-09-06), DB06's Work/interrupt/result boundaries, and
+  `UX-FLOW-11`; `UX1.6-W08`–`W11` and `W15`.
+- **Named design scenario and post-freeze fixture need:** `UX-FX26`, paired
+  invented scientific and controlled-writing tasks with meaningful stages,
+  concurrent or blocked activity, exact role/tool/validator attempts, required
+  input, retained partial outputs, terminal success and failure, a recorded
+  checkpoint, cancellation eligibility, and disconnect/replay. The same task
+  resolves from Work, Brief, Petra, and an originating source/Graph/output.
+  This is a paper scenario until freeze and contains no contextual demo data.
+- **Implementation links:** `M1.1` WorkUnit/manifests and operational records,
+  `M1.2` durable revisions, `M1.6` model/validation/resource records, `M1.7`
+  Work queries and interaction integration, and later orchestration/profile
+  contracts where current workflows do not supply the required meaning.
+- **Project-author task and failure:** understand what a bounded task is doing,
+  what needs a decision, which results exist, and which controls are valid,
+  without reconstructing that state from a transcript or execution graph.
+  Without a composed read boundary, the browser would invent stage membership,
+  aggregate lifecycle, readiness, progress, input ownership, or cost from
+  independent and potentially stale records.
+- **Existing contract check:** `WorkUnit` contains exact objective/spec/input,
+  dependencies, cancellation/checkpoint/cache policies, lifecycle, attempts,
+  and terminal outcome. Input/output manifests provide immutable bindings,
+  resource limits/usage, output slots, failure information, and declared partial
+  retention. `WorkUnitAuthorityRepository` preserves revisions and manifests;
+  `WorkUnitRegistry` constrains retry and cancellation. The current cancellation
+  command/receipt and interaction replay/Review responses remain the operational
+  and protocol foundation. A WorkUnit's `completed` status can encode failure;
+  `checkpointed` alone does not establish a pause/resume operation. These records
+  do not supply the complete Project collection and task/stage presentation.
+- **Requested collection behavior:** return authorized Project/profile task
+  membership, exact identities/revisions, recognizable objectives, canonical
+  execution conditions, required-input/blocked reasons, current stage summary,
+  elapsed time, available usage/limit summary, result/failure destinations,
+  observation freshness, and bounded filters/pagination with honest counts.
+  Ordering reasons follow the accepted attention model; no universal urgency
+  score or invented queue position.
+- **Requested detail behavior:** compose existing records into a versioned view
+  with exact task/action/input/plan references; declared stage membership,
+  purpose, order/dependencies and concurrent status; accountable role/tool/model
+  executions and attempts; immutable input/output/checkpoint references;
+  required-input records and dispositions; resource use and limits; output
+  availability/validation/retention; current supported control eligibility and
+  consequences; semantic destinations; and observation/replay freshness.
+  Every aggregate identifies its input records and coverage. An unavailable
+  stage plan is explicit rather than reconstructed from model prose.
+- **Composition and identity:** use the primary canonical WorkUnit identity and
+  registered workflow records. If a workflow composes several WorkUnits, return
+  their exact membership, dependencies, shared consumers, and control ownership
+  from a runtime-owned composition. Do not invent a new lifecycle merely to make
+  one card; independent WorkUnits remain separate without that canonical mapping.
+- **Status and accounting:** distinguish execution lifecycle, required input,
+  dependency blocking, delivery/replay, output usability, and separate Review
+  outcome. Do not map every terminal WorkUnit to success, a validation finding
+  to execution failure, or a checkpoint to paused/resumable. Progress names its
+  unit, denominator, plan revision, and any missing coverage. Resource totals
+  deduplicate canonical observations and distinguish measured, estimated,
+  authorized, shared, retry, and unknown amounts.
+- **Controls and privacy:** expose only registered, authorized operations and
+  their exact identities/revisions and consequences. Read composition cannot
+  declare generic steering, Pause, resume, budget increase, or recursive
+  cancellation to exist. Access changes and stale input/control revisions fail
+  safely without disclosing restricted task membership or hidden outputs.
+  Work and Petra presentations resolve the same input request and command once.
+- **Authority and persistence:** a read boundary over operational, interaction,
+  output, and Review records, not a new command authority. The runtime owns
+  execution and aggregation meaning; the client owns filters, disclosure,
+  selection, panel state, unsent input, and return focus. Displaying output,
+  completing Work, acknowledging a result, or reconnecting cannot apply it.
+- **Smallest viable response:** compose one exact WorkUnit detail and a bounded
+  Project list from existing records, with honest unavailable stage/resource/input
+  fields and safe control eligibility. Add registered stage/activity composition
+  only where the workflow can supply it. Larger orchestration may be assigned to
+  named milestones with a safe limitation; a simple task view must not claim the
+  entire DB11 runtime contract.
+- **Provisional post-freeze boundary:** a synthetic application-query provider
+  may model the required semantic records and cite `UX-REQ-014`; feature
+  components do not parse raw AG-UI events or derive execution authority from
+  stream order. No runtime contract or frontend is implemented by this request.
+- **Dependencies:** `UX-REQ-003` action preview/start, `UX-REQ-004` registered
+  profile semantics, `UX-REQ-006` exact thread/context, `UX-REQ-008` destinations,
+  existing WorkUnit/manifest/cancellation and interaction contracts, and DB09's
+  candidate/Review boundary.
+- **Owner and status:** product architecture and implementation track;
+  presentation direction accepted, runtime collection/detail composition
+  `proposed`. DB11's material plan-change/steering recommendation is still
+  pending user direction and is not accepted or implemented by this read request.
+
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
 integration requests are written.
@@ -738,6 +828,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
 | Project-source membership, governed removal, and local-copy retention/deletion | Proposed `UX-REQ-010`; Project linking and content-addressed storage remain separate lifecycles |
 | Durable task state and explicit cancellation | WorkUnit and worker manifests from `M1.1`, persistence in `M1.2`, interaction in `M1.7` |
+| Project Work collection, task stages, input/result summaries, and reconciled activity | Proposed `UX-REQ-014`; existing WorkUnit, manifests, cancellation, and interaction records retain operational authority |
 | Current/cached/new evidence boundary | ContextPacket and EvidencePacket from `M1.1`, retrieval path in `M1.6` |
 | Assistant stream, interrupt, reconnect, and replay | PetraInteractionRun and AG-UI adapter boundary from `M1.0`/`M1.1`, product hooks in `M1.7` |
 | Projection freshness | GraphProjectionRecord and ProjectionCheckpoint from `M1.1`, delivery in `M1.3`/`M1.5` |
@@ -749,14 +840,18 @@ and outputs attached to these mechanics. They should not duplicate Work,
 interaction, proposal, review, approval, cancellation, provenance, or history
 lifecycles merely because the profile uses different nouns.
 
-## Requirement status after DB10
+## Requirement status during DB11
 
 The authored-project, imported-document, Project-thread, exact turn-context,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
-conversational-working-graph, profile-neutral Review, and bounded relationship-view questions are no
+conversational-working-graph, profile-neutral Review, bounded relationship-view,
+and Work-presentation questions are no
 longer candidate design ideas; their accepted UX requirements are `UX-REQ-004`
-through `UX-REQ-013`. Their backend shapes remain proposed until the required
+through `UX-REQ-014`. Their backend shapes remain proposed until the required
 architecture, contract, and retention dispositions.
+
+DB11's steering and material execution-plan changes remain a pending product
+choice. `UX-REQ-014` records the accepted presentation's read needs only.
 
 ### Cross-device preference synchronization
 
@@ -777,5 +872,6 @@ For each proposed request, record one of:
 The design track will not claim live integration or `G-CONTRACT` for the shell,
 Brief, SuggestedAction, Project-profile, imported-document, Project-thread,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
-conversational-working-graph, profile-neutral Review, or bounded relationship-view flows until the
+conversational-working-graph, profile-neutral Review, bounded relationship-view,
+or composed Work-presentation flows until the
 applicable requests have an explicit disposition.

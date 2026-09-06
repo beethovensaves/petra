@@ -1,6 +1,6 @@
 # Petra user-flow architecture
 
-Status: accepted product flow, information architecture, Sources, Review, and Graph direction; profile, source-lifecycle, working-graph, Review, and focused-query contracts awaiting architecture disposition
+Status: accepted product flow, information architecture, Sources, Review, Graph, and Work-presentation direction; related runtime compositions awaiting architecture disposition; DB11 steering remains under discussion
 Date: 2026-09-06
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as distinct project profiles
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
@@ -513,6 +513,17 @@ Papers, or narrative validation mandatory universal modules.
 - **Authority:** completed Work may create evidence, analysis, artifact, or ChangeSet proposals; only a separate validated command changes trusted state.
 - **Horizon:** M1 lifecycle foundation and interaction; M2/M3 proactive research; M4 experiments.
 
+[DB11](PETRA-UX-DESIGN-BRIEF.md#db11--durable-work-and-orchestration) supplies
+the accepted task/stage presentation for this flow: a bounded task overview,
+meaningful stages, leading required input, costs/limits, and exact outcomes, with
+role/tool/validator activity and the full dependency structure available for
+inspection. Work, Brief, Petra, and contextual entry resolve the same canonical
+task and input request. Execution lifecycle, input/dependency condition,
+connection/replay, output usability, and Review outcome remain distinct.
+`UX-REQ-014` records the missing read composition. Material steering and revised
+execution-plan consequences remain pending DB11 discussion; this presentation
+record does not accept a new command lifecycle.
+
 ### `UX-FLOW-12` — propose, preview, apply, and reverse a change
 
 - **Goal:** change research state deliberately with inspectable impact and recoverable history.
@@ -810,11 +821,13 @@ work rather than open product scope:
 - a snapshot-consistent, profile-neutral Review-session read and command
   composition over existing ChangeSet and Approval authority; and
 - a bounded profile-resolved relationship query with exact paths/layers,
-  honest omissions, finite expansion, and supported comparison/time positions.
+  honest omissions, finite expansion, and supported comparison/time positions; and
+- a Project Work collection and task/stage read composition with canonical
+  activity, required input, result, resource coverage, and control eligibility.
 
-`UX-REQ-004` through `UX-REQ-013` carry the profile, lineage, thread-context,
+`UX-REQ-004` through `UX-REQ-014` carry the profile, lineage, thread-context,
 governed-reversal, semantic-location, source-view, source-lifecycle,
-working-candidate, Review-session, and focused relationship-query needs to the
+working-candidate, Review-session, focused relationship-query, and Work-read needs to the
 implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.
