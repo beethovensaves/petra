@@ -1,7 +1,7 @@
 # UX-to-implementation requirements handoff
 
 Status: proposed requests awaiting implementation-track review
-Date: 2026-09-04
+Date: 2026-09-06
 Source: [Petra user-flow architecture](UX-FLOW-ARCHITECTURE.md)
 Design-freeze source: [Petra UX design brief](PETRA-UX-DESIGN-BRIEF.md)
 
@@ -27,10 +27,10 @@ The implementation track may continue already accepted backend work. It should
 not add a demo adapter, corpus path, profile-specific shortcut,
 imported-document promotion behavior, or new shared schema from the future demo contexts
 while the product brief is open. It should review `UX-REQ-004` through
-`UX-REQ-012` as general architecture needs and return a disposition without
+`UX-REQ-013` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
-`UX-REQ-012` follow the accepted Petra interaction, navigation, Sources, and
-Review design; they do not authorize a frontend implementation before the
+`UX-REQ-013` follow the accepted Petra interaction, navigation, Sources,
+Review, and Graph direction; they do not authorize a frontend implementation before the
 design freeze.
 
 ## Accepted UX changes with no backend semantic impact
@@ -615,6 +615,109 @@ between shell context and task content more important.
 - **Owner and status:** product architecture and implementation track; UX
   requirement accepted, runtime read and missing-command shape `proposed`.
 
+### `UX-REQ-013` — bounded, profile-resolved relationship-view query
+
+- **Originating design work:** DB10 and accepted `UX1.5-DISC02`–`DISC03`;
+  `UX1.5-W01`–`W12`; `DB10-P01`–`P08`; `UX-FLOW-07`–`12`,
+  `UX-FLOW-15`, and `UX-FLOW-16`.
+- **Named design scenario and post-freeze fixture need:** `UX-FX24` pairs an
+  invented scientific evidence question with a controlled-writing requirements
+  question. Each traces exact recorded paths, shows non-authoritative Working
+  changes, expands dependencies, and returns to its origin. `UX-FX25` adds
+  dense/cyclic results, grouped and unknown counts, limited queries, late
+  responses, stale bases, lagging projections, historical comparison, and
+  missing/restricted endpoints. These are paper scenarios until freeze and use
+  no contextual demo data or user assets.
+- **Implementation links:** `M1.3` graph projection and reads, `M1.5`
+  relationship/candidate/ChangeSet authority, `M1.6` bounded context and model
+  interpretation, `M1.7` workbench query integration, and later profile/temporal
+  contracts where current milestones do not supply the required semantics.
+- **Project-author task and failure:** answer a bounded relationship question
+  and deliberately reveal more recorded context without confusing omitted
+  results with absence, Working changes with authority, or old and current
+  graph positions. Without a runtime-owned read boundary, the browser would
+  infer complete paths, coverage, layer membership, temporal reconstruction,
+  domain differences, or impact from incomplete renderer data.
+- **Existing contract check:** `packages/contracts/src/generated/projection-checkpoint.ts`
+  supplies authoritative projection position, observed head, and current,
+  catching-up, or blocked freshness. `graph-projection-record.ts` supplies
+  immutable delivery-attempt receipts. Existing candidate, ChangeSet, Approval,
+  event, context, and source records remain authoritative inputs. The
+  `FocusedGraphViewModel` in `apps/workbench/src/shell/model.ts` is an
+  exploratory client model with nodes, edges, layout positions, snapshot
+  labels, and a maximum depth. It is not a canonical profile-neutral query
+  contract for the behaviors below; the audit found no complete corresponding
+  boundary in the current contracts/core/adapters/server source.
+- **Requested scope behavior:** validate Project/profile, actor context,
+  exact focus or endpoint revisions, task intent, permitted relationship types
+  and directions, selected layers, authoritative base, requested snapshot,
+  temporal perspective, and finite traversal/result limits. Accept a named
+  profile expansion recipe or validated interpreted scope, not renderer-authored
+  Cypher or arbitrary model predicates. Preserve the interpreted question,
+  producing role/context when applicable, and the effective boundary so direct
+  and conversational entry are inspectable and correctable.
+- **Requested read behavior:** return a versioned, renderer-neutral result with:
+  - query/scope identity and enough request identity to reject late responses;
+  - requested and represented snapshots, canonical projection position/freshness,
+    profile revision, and supported read/expansion/comparison/time capabilities;
+  - exact object and relationship revisions, layer and lifecycle, endpoint
+    direction, predicate meaning, origin, rationale, basis, provenance,
+    validation references, limitations, and safe semantic destinations;
+  - ordered inspectable path steps, including missing/incomplete boundaries,
+    cycles or repeated members, and any disclosed path-ordering rationale;
+  - group membership/facets, count units, overlap, known totals, partial or
+    unknown counts, returned and filtered membership, hidden permitted Working
+    changes, traversal/page limits, and material omissions;
+  - finite continuation/expansion references bound to the same query scope,
+    snapshot, layer set, and access context; and
+  - semantic records sufficient for the full textual path/matrix/timeline peer,
+    without renderer geometry or visual inference supplying missing meaning.
+- **Comparison and temporal behavior:** name both exact positions and their
+  bases, authority layers, freshness, and supported temporal dimension. Compose
+  differences and assessed consequences from canonical records or an authorized
+  read/analysis boundary with known coverage; incomplete node sets cannot imply
+  removals or certain invalidation. Separate recorded dependencies from supplied
+  impact assessments. Distinguish recorded, occurred, publication, and valid time
+  where supported; unknown time remains unknown. Return an explicit unsupported
+  or unavailable state if a historical position cannot be reconstructed.
+- **Working/projection behavior:** compose Working changes through
+  `UX-REQ-011` with exact producer/revision and authoritative base; never rebase
+  them silently. Do not combine old endpoints, new edges, and current counts
+  into an apparently consistent snapshot. When graph projection is behind,
+  identify the represented position and a permitted authoritative Details or
+  Review route; a text table over the same stale projection remains stale.
+- **Authority and persistence:** this is a bounded query/composition boundary,
+  not a new domain store or mutation path. Reads and saved view recipes do not
+  approve candidates, run new scientific assessments, or emit authoritative
+  relationship changes. The client owns local view history, layout, selection,
+  local saved recipes, and return focus. The runtime owns access, profile meaning,
+  exact data membership, completeness, supplied comparison/impact facts, and
+  freshness. Every continuation rechecks authorization without leaking hidden
+  names, counts, or connections. Direct corrections still use DB09's canonical
+  candidate/Review commands; new investigation uses DB06's Work path.
+- **Smallest viable response:** first map a bounded current scientific
+  relationship/source-path read onto existing assertion, source, and projection
+  records, with exact scope, honest completeness, safe failure, and a textual
+  peer. Compose working and Review positions from `UX-REQ-011`/`UX-REQ-012`
+  rather than duplicating them. Explicitly mark unsupported expansion, profile,
+  comparison, and historical capabilities. Architecture may assign remaining
+  capabilities to named milestones with safe unavailable/provisional boundaries;
+  it must not claim the full DB10 runtime contract from a current-only response.
+- **Provisional post-freeze boundary:** an explicitly labeled synthetic provider
+  may supply the required semantic records behind an application query adapter,
+  referencing `UX-REQ-013`. Feature components receive no raw graph-store or
+  AG-UI protocol objects and calculate no authoritative meaning. No fixture,
+  server query, schema, renderer dependency, or live integration is created by
+  this request.
+- **Decision dependencies:** `UX-REQ-004` profile semantics; `UX-REQ-003` and
+  `UX-REQ-006` Work/context for questions needing new computation;
+  `UX-REQ-007` canonical reversal facts; `UX-REQ-008` safe destinations;
+  `UX-REQ-009` exact source inspection; `UX-REQ-011` working structure; and
+  `UX-REQ-012` Review comparison and correction composition.
+- **Owner and status:** product architecture and implementation track; UX
+  direction accepted on 2026-09-06, runtime query/composition shape `proposed`.
+  No backend milestone is changed or closed by this design record.
+
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
 integration requests are written.
@@ -638,6 +741,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Current/cached/new evidence boundary | ContextPacket and EvidencePacket from `M1.1`, retrieval path in `M1.6` |
 | Assistant stream, interrupt, reconnect, and replay | PetraInteractionRun and AG-UI adapter boundary from `M1.0`/`M1.1`, product hooks in `M1.7` |
 | Projection freshness | GraphProjectionRecord and ProjectionCheckpoint from `M1.1`, delivery in `M1.3`/`M1.5` |
+| Bounded relationship scope, paths, omissions, working membership, and temporal comparison | Proposed `UX-REQ-013`; existing projection and domain records remain inputs, and the renderer remains presentation only |
 | Grounded composition and human revision | DraftArtifact, ProvenanceMap, CitationBundle, and renderer path in `M1.8` |
 
 Profile contracts should specialize the domain objects, predicates, validators,
@@ -645,13 +749,13 @@ and outputs attached to these mechanics. They should not duplicate Work,
 interaction, proposal, review, approval, cancellation, provenance, or history
 lifecycles merely because the profile uses different nouns.
 
-## Requirement status after DB09
+## Requirement status after DB10
 
 The authored-project, imported-document, Project-thread, exact turn-context,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
-conversational-working-graph, and profile-neutral Review questions are no
+conversational-working-graph, profile-neutral Review, and bounded relationship-view questions are no
 longer candidate design ideas; their accepted UX requirements are `UX-REQ-004`
-through `UX-REQ-012`. Their backend shapes remain proposed until the required
+through `UX-REQ-013`. Their backend shapes remain proposed until the required
 architecture, contract, and retention dispositions.
 
 ### Cross-device preference synchronization
@@ -673,5 +777,5 @@ For each proposed request, record one of:
 The design track will not claim live integration or `G-CONTRACT` for the shell,
 Brief, SuggestedAction, Project-profile, imported-document, Project-thread,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
-conversational-working-graph, or profile-neutral Review flows until the
+conversational-working-graph, profile-neutral Review, or bounded relationship-view flows until the
 applicable requests have an explicit disposition.

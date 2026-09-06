@@ -1,7 +1,7 @@
 # Petra UX design brief
 
 Status: in progress; product design must freeze before reference-UX implementation or contextual demos
-Date: 2026-09-04
+Date: 2026-09-06
 Authority: design specification subordinate to `PETRA.md`, accepted decisions, runtime contracts, and coordinated architecture amendments
 
 ## Purpose
@@ -89,8 +89,8 @@ interaction contract has not yet been designed.
 | `DB07` | Project Brief | Shared base, profile payload boundary, attention ordering, suggested actions, change comparison, empty and stale states | accepted |
 | `DB08` | Sources and exact inspection | Registration, rights, versions, inspection capability, processing, source reading, exact locations, limitations, and provenance | accepted |
 | `DB09` | Basis, candidates, and review | Ambient structuring, comparison, validation, exception handling, exact change preview, correction, approval, rejection, deferment, conflict, and Revert | accepted |
-| `DB10` | Graph and relationship work | Task entry, query scope, layouts, depth, selection, temporal state, impact, textual parity, and optional 3D boundary | partial |
-| `DB11` | Durable Work and orchestration | Plans, agents and validators, progress, input, steering, cost, detachment, reconnect, cancellation, result, and retry | not designed |
+| `DB10` | Graph and relationship work | Task entry, query scope, layouts, depth, selection, temporal state, impact, textual parity, and optional 3D boundary | specified; direction accepted; paper audit complete |
+| `DB11` | Durable Work and orchestration | Plans, agents and validators, progress, input, steering, cost, detachment, reconnect, cancellation, result, and retry | discussion started; presentation hierarchy pending |
 | `DB12` | Composition and revision | Artifact planning, editing, provenance, validation, citations where applicable, imported ancestry, promotion, rendering, and export | not designed |
 | `DB13` | Settings and personal control | Appearance, theme, layout, panel resizing, editor, accessibility, privacy, model visibility, and local preference rules | partial |
 | `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | partial |
@@ -399,7 +399,7 @@ renderer fails.
 ### Backend and persistence needs
 
 The flow architecture depends on the existing and proposed requirements
-`UX-REQ-001` through `UX-REQ-012`. Individual destination data remains owned by
+`UX-REQ-001` through `UX-REQ-013`. Individual destination data remains owned by
 its module contract. The navigation context, browser history, return target,
 focus target, unsent input, disclosures, and graph exploration trail are client
 presentation state. Project/profile identity, snapshots, typed objects, Work,
@@ -615,9 +615,10 @@ dependency-conflicted step explains why it cannot be reversed and offers the
 safe review, branch, or manual-correction route. Redo is a new forward
 `ChangeSet`, not resurrection of a deleted event.
 
-The graph may preview a reversal by ghosting removed and restored nodes and
-edges, showing dependency impact, and letting the author inspect earlier
-temporal states. A visible **Return to current** action exits historical view.
+The graph previews a reversal in the dedicated comparison specified by DB10,
+with named before/after positions, explicit removed and restored relationships,
+and inspectable dependency impact. A visible **Return to current** action exits
+historical view. Translucent overlapping states do not carry the comparison.
 Neither Cytoscape nor Reagraph owns the history or executes the reversal: Petra
 stores view snapshots in application state and derives authoritative previews
 from the command and event layer. The textual graph alternative exposes the
@@ -1994,8 +1995,49 @@ contextual demo.
 
 ## `DB10` — graph and relationship work
 
-**Status:** in progress. Entry and state-layer direction is accepted; semantic
-depth and the remaining module specification are still under discussion.
+**Status:** specified; entry and state layers were accepted at the checkpoint,
+and the user accepted question-led semantic depth and named expansion actions on
+2026-09-06 as `UX1.5-DISC03`. The remaining rules below complete that direction
+using the accepted DB04–DB09 navigation, inspection, Work, Review, and authority
+boundaries. The paper audit is complete; runtime contracts, implementation, and
+participant validation remain separate gates. This does not record
+`UX-DESIGN-FREEZE-01`.
+
+### Product role, task, and completion condition
+
+The Project author opens Graph to understand a specific relationship question:
+what bears on this object, where a statement came from, how alternatives differ,
+what depends on a proposed change, or what a prior state contained. Graph is
+optional throughout the governed-work loop. A complete answer may be a textual
+path, matrix, or timeline; it need not be a node-link picture.
+
+The task completes when the author can identify the relevant objects and exact
+relationships, distinguish their meaning and authority, follow their available
+basis, and understand the view's scope and material omissions. The author can
+then return to the origin, correct a working candidate, open Review, or start
+bounded Work for an unresolved question. Merely displaying a network or finding
+a connection is not evidence that the relationship question has been answered.
+
+### Shared roles and profile-owned meaning
+
+| Role | Shared responsibility | Profile-owned meaning |
+| --- | --- | --- |
+| Focus and question | Exact object/revision, task, Project, and origin | Recognizable object name and valid relationship question |
+| Object | Stable identity, revision, layer, lifecycle, selection, and destination | Claim, Result, passage, constraint, or another registered domain type |
+| Relationship | Exact endpoints, direction, origin, revision, and inspection reference | Predicate meaning, scope compatibility, basis requirements, and permitted corrections |
+| Path | Ordered, inspectable objects and relationships at a named snapshot | Whether the recorded path expresses evidence, derivation, dependency, or another typed meaning |
+| Basis and provenance | Separate exact references, limitations, and producer history | Admissible evidence or governing material and domain-specific force |
+| Group and boundary | Disclosed membership rule, count unit, omissions, and expansion | Valid grouping facets and named expansion tasks |
+| Comparison and time | Explicit endpoints, revision identity, and read-only historical position | Domain difference, assessed consequence, and applicable temporal dimension |
+
+The responsible author directs the question and any correction. A named model
+role may interpret a natural-language question or explain bounded records;
+validators evaluate profile-valid meaning. The application and renderer do not
+author relationships, infer authority, decide scientific standing, or promote
+their output. A profile registers types, predicates, vocabulary, and expansion
+recipes through `UX-REQ-004`; arbitrary model text cannot become an executable
+predicate or query. Controlled-writing examples here name semantic roles, not a
+final domain schema.
 
 ### Accepted entry and layer direction
 
@@ -2032,23 +2074,567 @@ relationship, mutate a Project object, or imply that a graph projection is the
 source of authority. `UX-REQ-011` remains a proposed backend need for the generic
 durable conversational working graph and is not made real by this paper design.
 
-### Pending semantic-depth decision
+### Accepted semantic depth and expansion
 
-The current recommendation defines depth as the amount of relationship context
-needed to answer the active question rather than primarily as a hop count. Petra
-would derive the smallest useful focus, predicates, snapshot, temporal position,
-and boundary; lead with meaningful expansion actions such as **Show contrary
-evidence**, **Trace sources**, and **Show downstream effects**; disclose hidden
-counts and summarized groups; and place exact relationship types and hop limits in
-optional inspectable controls. Selection would open Details, all view manipulation
-would remain non-authoritative, and the textual peer would expose identical paths,
-scope, omissions, and expansion actions.
+Depth is the amount of relationship context needed to answer the active question.
+The initial scope contains the smallest useful focus and relevant relationship
+families, including contrary and qualifying material when the task asks what
+bears on a proposition. An overview can group details; it cannot hide a known
+material disagreement merely to make the answer look simpler.
 
-This recommendation is not accepted. Resume DB10 by confirming or revising it,
-then specify selection and path inspection, task layouts and comparison, density
-and grouping, correction boundaries, temporal behavior, adverse states,
-responsive and accessible parity, language, backend needs, acceptance criteria,
-and post-freeze conformance evidence before advancing to DB11.
+The author sees the interpreted question and a concise scope summary immediately.
+**Scope** exposes the focus and endpoint revisions, included relationship types
+and directions, included layers, snapshot, temporal perspective, exclusions,
+traversal limits, and result boundary. Hop limits are exact query safeguards
+available for inspection and adjustment within supported limits. They are not
+the primary measure of whether enough context has been shown.
+
+A direct task control uses a registered bounded recipe. A natural-language entry
+binds its interpretation to the named model role and input context, then validates
+it against that same profile and query boundary. Routine read-only interpretation
+does not add a confirmation step. Material ambiguity about the target, meaning,
+or time position requires clarification. The author can change the question or
+use Scope; neither path silently widens to the whole Project.
+
+Named expansion actions state the purpose and target: **Trace sources**, **Show
+contrary evidence**, and **Show downstream effects** in an applicable scientific
+profile; **Trace requirements** or **Show dependent passages** in an applicable
+writing profile. They disclose recorded relationships within the current layer
+and snapshot boundary. They do not silently search new sources, run validators,
+generate assessments, add working candidates, or apply changes. Those outcomes
+use the existing SuggestedAction, Work, candidate, and Review boundaries.
+
+An expansion identifies its branch and acknowledges loading there. Existing
+selection, readable paths, and layout remain available. Results extend that
+branch only when their request, scope, and snapshot still match; a late response
+cannot replace a newer question. A reached limit exposes what stopped traversal
+and the permitted next expansion or narrowing action. Stopping or superseding a
+view query preserves the last usable view and does not cancel independent Work.
+
+#### Concrete accepted example
+
+In an invented scientific Project, the author asks **What supports or challenges
+H4 — Longer spacing improves recall?** The initial view centers that Hypothesis
+and summarizes three supporting Claims, one contrary Claim, and two qualifying
+Claims recorded within the chosen scope. These illustrative counts describe
+recorded relationships, not votes, independent replications, or scientific truth.
+The contrary and qualifying groups remain visible before expansion.
+
+| Action | Result and boundary |
+| --- | --- |
+| **Trace sources** on a supporting Claim | Reveal its recorded source path through the exact passage, Artifact, and source version; inspect every intervening relationship and any missing step |
+| **Show contrary evidence** | Open the contrary Claim with its scope, rationale, and exact available basis; do not conduct a new literature search |
+| **Show downstream effects** on H4 | Reveal recorded dependencies such as an Experiment or draft conclusion; label any separately supplied consequence assessment with its basis and limitations |
+
+Source tracing may require several graph steps. A shallow neighborhood may contain
+many unrelated objects. Named expansion lets the author request the context that
+serves the question while exact traversal limits remain inspectable. A writing
+Project can apply the same mechanics to **Which requirements govern this passage?**
+without storing its requirements as scientific Claims.
+
+### Scope, omissions, and density
+
+The boundary distinguishes what was requested, what was returned, what is currently
+drawn, and what remains unknown. The canvas and textual peer consume the same
+snapshot-bound scope and membership, even when they present different amounts of
+detail at once.
+
+| Condition | Required disclosure and control |
+| --- | --- |
+| Collapsed group | Membership rule, object/relationship count unit, layer, and **Expand group** or textual member list |
+| Filtered records | Active filter and count when known, with **Clear filters**; filtering cannot erase the omission indication |
+| Hidden Working changes | Relevant permitted count and reason when known, with **Show working changes**; unknown is not zero |
+| Traversal or page limit | Reached boundary, returned amount, total if known, and a bounded continuation action |
+| Partial query or unavailable branch | Which branch is incomplete, what remains usable, and branch-specific retry or narrowing |
+| Out-of-scope material | Excluded relationship families, layers, time, or object boundary; disclose counts only if the runtime supplies them |
+| Restricted material | Only a permitted limitation statement; counts, names, and inferred connections cannot disclose unauthorized objects |
+
+Counts identify whether they measure unique objects, relationships, or paths and
+whether they are exact, partial, or estimated by a recorded method. Overlapping
+groups are identified and their counts are not silently summed. The client may
+count a fully loaded presentation group, but cannot extrapolate corpus totals,
+coverage, contrary-evidence absence, or impact from the visible subset.
+
+Grouping uses named, inspectable facets such as source version, relationship
+family, or dependency stage. A group is a presentation container, not a domain
+object or an accepted higher-level assertion. Bundled lines expose the number
+and kinds of member relationships and open their list; they never acquire one
+invented rationale. Opposing relationship families and Current/Working changes
+remain distinguishable inside every summary. Cycles and repeated endpoints stay
+visible in the path list without infinite traversal or duplicate counting.
+
+When the view becomes dense, group or page the unselected context before hiding
+the focus, selected endpoints, relationship labels, or material limitations.
+Semantic zoom changes detail and label density, not scope, layer, authority, or
+membership. An omitted intermediate path segment has an explicit disclosure;
+it cannot look like a direct domain relationship. The text view exposes every
+permitted returned path step and continuation independently of canvas zoom.
+
+Every query and expansion has finite result and traversal limits. Post-freeze
+`UX-FX25` will calibrate visible object/edge, label, layout-time, and interaction
+budgets against supported viewports and reference hardware before renderer
+optimization is accepted. No unmeasured universal node ceiling or latency claim
+is a product fact. The blocking design constraints are readable selection,
+bounded results, stable orientation, usable controls, and complete textual access.
+
+### Information hierarchy and responsive blueprints
+
+Graph has one logical reading order:
+
+1. Project, relationship question, focus descriptor, and return origin;
+2. layer, represented snapshot, freshness, and any material limitation;
+3. scope summary and omission counts, followed by **Scope**;
+4. representation and task-layout controls, then the bounded relationship result;
+5. selected object, relationship, group, or path in Details;
+6. relevant expansion, source, correction, Review, or Work actions.
+
+| Presentation | Blueprint and behavior |
+| --- | --- |
+| Wide | Question and context above a primary graph/text result. A compact toolbar offers Scope, representation, layout, history, and view controls. One contextual Details or Petra panel expands by default; a second requires explicit pinning and sufficient room under DB04. |
+| Medium | Project map collapses; question, state, and scope wrap without losing labels. The result retains usable width; secondary inspection replaces the expanded secondary surface rather than squeezing both into unreadable columns. |
+| Narrow or high zoom | One surface at a time. The textual peer is the initial result on narrow layouts unless the author deliberately chooses Graph; Graph remains available. Controls reflow, Details and Petra use full-width routes, and an explicit return restores the originating result and selection. |
+| Comparison | Wide layouts show named before/after regions with a shared difference list and linked selection. Narrow layouts stack those regions or show one labeled position at a time with the same difference list. The active position and counterpart state remain explicit. |
+
+Resizing changes presentation, not the question or scope. Graph remains a bounded
+canvas with its own pan controls; surrounding prose, tables, controls, and Details
+reflow. At 200% text scale and a 320 CSS-pixel effective width, every material
+action and fact must remain available through the text route without horizontal
+page scrolling. Numeric styling tokens remain owned by DB14/DB16; these are
+DB10 conformance scenarios rather than a claim of measured accessibility.
+
+### Selection, relationship details, and path inspection
+
+Selection is separate from task focus. Selecting an object opens its exact Details
+without recentering the graph, changing the question, or expanding its neighbors.
+**Focus on this object** deliberately starts a bounded question around it and
+records the previous view in graph history. Selecting an edge opens the exact
+Assertion or profile-owned relationship record behind it, including both endpoint
+revisions, direction, predicate meaning, scope, origin, authority layer, lifecycle,
+rationale, basis, validation where applicable, and freshness.
+
+Object labels use the profile type and recognizable descriptor. Source versions,
+exact spans, results, working revisions, and superseded objects retain their own
+identities. A relationship's text label and direction carry its primary meaning;
+line treatment and color reinforce it. Citation, support, contradiction,
+qualification, failed replication, derivation, and inferred relationship remain
+distinct. Nearness, line thickness, visual centrality, or membership in Current
+does not encode scientific warrant. **Current** means accepted Project state,
+not established truth.
+
+**Inspect path** opens an ordered textual sequence with exact references for each
+step, allowing selection of an individual relationship, endpoint, or source.
+Several possible paths appear as separately inspectable results; any ordering
+reason is disclosed and a short path is not labeled the strongest evidence.
+Missing, unavailable, unvalidated, or out-of-scope steps remain explicit. A path
+through a Working change cannot be summarized as wholly authoritative. A recorded
+dependency cannot by itself establish that a change will invalidate its target.
+
+**Open source** uses DB08's exact source version, Artifact, selector, surrounding
+context, and honest location limitation. **Ask Petra** carries the selected
+records, question, layer, snapshot, inclusions, and omissions into DB06's context;
+the model does not receive an unbounded Project simply because Graph is open.
+Following either action preserves the path, selected step, viewport or text
+position, expanded groups, and originating focus for return.
+
+Multi-selection creates an explicit inspection or comparison set. Its membership
+and **Clear selection** remain visible; keyboard and textual selection are
+equivalent. Lassoing, selecting a group, or selecting every returned member grants
+no approval and cannot create a semantic relationship. Comparison requires a
+profile-supported task and names incompatible or unavailable endpoints.
+
+### Task layouts, comparison, and renderer boundary
+
+| Task layout | Primary question and presentation |
+| --- | --- |
+| **Neighborhood** | Which recorded relationships concern this focus? Arrange bounded immediate context by named relationship families; deeper paths expand by purpose. |
+| **Provenance** | Where did this statement or result come from? Show ordered derivation and source steps with an equivalent textual trace. |
+| **Disagreement** | How do these statements conflict or qualify each other? Align endpoints, scope, relationship meaning, and exact basis; an evidence matrix is a full peer. |
+| **Comparison** | What differs between named alternatives, candidate/current positions, or snapshots? Show separate labeled positions and a difference list, including incomparable or missing values. |
+| **Impact** | What recorded objects depend on this target or exact proposed change? Show dependency paths and separately supplied assessed consequences with their coverage limits. |
+| **Time** | What was recorded or applicable at the chosen time? Use a labeled timeline and explicit temporal dimension with historical inspection. |
+
+The task supplies the initial layout. Choosing a supported layout changes only
+the arrangement of the current records. A layout that requires a different query
+exposes that new scope through the normal bounded task action rather than quietly
+fetching a different answer. Profile-inapplicable layouts are omitted or explain
+why the current selection cannot support them.
+
+Before/after comparison identifies both snapshots or exact working revisions,
+their common base where applicable, and each position's authority and freshness.
+It labels **Added**, **Removed**, **Changed**, **Unchanged**, **Not comparable**,
+or **Unavailable** only from supplied comparison facts. Position or layout
+differences are not domain differences. Selecting a difference selects the exact
+counterpart on each side when one exists; missing counterparts are named.
+Matching positions are kept stable when meaningful, without requiring identical
+geometry for different structures. Translucent overlapping graphs do not replace
+the dedicated comparison or its textual difference list.
+
+Candidate comparison uses DB09's **Current**, **Candidate**, **Difference**, and
+**Consequences** roles. Candidate is a comparison position within Working changes,
+not a fourth Graph semantic layer. A proposed or compensating ChangeSet preview
+remains non-authoritative until the exact Review command applies. Historical
+comparison offers no current-state editing; **Return to current** resolves the
+current target before a fresh correction or Review can begin.
+
+2D and the textual peer are primary. Cytoscape.js remains the primary 2D renderer
+candidate, with a renderer-neutral view model and application-owned selection and
+view state. Reagraph remains optional only if a named third dimension improves a
+specific task in post-freeze evaluation, with full 2D/text parity and accessible
+camera reset, saved-view, and permitted link behavior. Depth is not automatically
+a z-axis. No 3D dependency or renderer evaluation is authorized by this brief.
+Neither renderer queries Neo4j directly, parses raw AG-UI events, or owns domain
+meaning, permissions, persistence authority, or mutation.
+
+### View controls, history, and saved questions
+
+| Control | Effect and preservation |
+| --- | --- |
+| **Back in graph / Forward in graph** | Restore the accepted window of ten meaningful view states: question/scope, depth, expansions, filters, layout, viewport, time, layers, and selection; no domain command |
+| **Return to focus** | Bring the task's focus into the viewport or text position without changing selection, scope, or snapshot |
+| **Fit view** | Fit the currently displayed result; do not fetch hidden content or clear filters |
+| **Pin position / Unpin position** | Hold or release an object's layout position; this is distinct from pinning a contextual panel and from accepting an object |
+| **Collapse group** | Hide member detail while retaining group meaning, counts, and access to a selected member in Details; offer **Reveal selection** if the selection is now hidden |
+| **Clear filters** | Remove view filters within the same task boundary; do not reset the question, layer, or time |
+| **Reset view** | Restore the current task's initial presentation at its existing snapshot/layer boundary; retain a return through graph Back and preserve unsent correction input |
+| **Save view** | Retain a named local Project question and view recipe, exact snapshot/revision references, and presentation preferences; do not save an authoritative result or approval |
+| **Return to [origin]** | Restore the initiating object, task, scroll/editor position, selection, and focus using DB04's permitted fallback if the origin changed |
+
+Graph history records settled actions, not every drag coordinate, zoom frame, or
+streamed update. A new exploration after Back discards only the forward
+presentation branch. Reaching the ten-state limit disables unavailable Back with
+an explanation; it does not truncate Project History. Browser Back handles route
+navigation; **Revert change** remains DB09's compensating authority path.
+
+Saved views and recent questions are separate from the ten-state exploration
+window. Reopening a saved view resolves its exact references and rechecks access;
+if it is older, it opens explicitly as Historical with **Return to current**.
+Unavailable revisions or incompatible profile versions expose a safe recovery,
+never an ambient substitution. Applying a saved question to current state creates
+a new view. Local saving makes no cross-device synchronization promise. Permitted
+deep links carry stable task and object references, not private source content,
+credentials, unsent text, or raw model instructions.
+
+### Direct correction and the Work boundary
+
+Ordinary drag changes position. An explicit **Edit relationship**, **Relink**,
+**Split**, or profile-valid scope correction opens structured controls or bounded
+conversation with the selected exact records. Any optional editing gesture has a
+non-drag equivalent and produces the same visible candidate or command preview.
+An accidental drop cannot change an endpoint or predicate.
+
+Working corrections create new non-authoritative revisions and preserve lineage
+under DB09 and `UX-REQ-011`. Correcting Current prepares a candidate and exact
+Changes-to-apply preview, then routes to the existing Review identity. Validation,
+capability, stale-input detection, impact, approval, atomic application, and Revert
+remain owned by that path. A visually drawn edge cannot stand in for a validated
+relationship. Immutable source bytes and earlier revisions remain protected.
+
+Closing unsubmitted correction controls retains the task's draft according to
+DB06/DB09; cancelling an unsubmitted edit leaves domain state unchanged. Once
+submitted, status is read from the canonical command or Work record. Graph does
+not issue a second command because a projection still shows the older edge.
+
+Recorded relationship expansion normally uses the bounded read/query path. A
+material new investigation, source search, assessment, or validation shows DB06's
+SuggestedAction preview with objective, exact scope, role, input, cost/budget where
+applicable, latency or availability limits, expected output, and cancellation
+boundary before Work starts. Unknown cost or duration stays unknown. Graph may
+show a linked Work summary; the Work route owns execution, input requests,
+steering, detach/reconnect, cancellation, and terminal outcomes. Work completion
+returns to the origin, candidate Review, or an output according to DB05; it does
+not quietly enlarge the graph or apply its findings.
+
+### Temporal position and projection refresh
+
+Current entry targets the current authoritative snapshot and identifies the
+snapshot actually represented. Exploration and expansion remain bound to that
+view. If newer authoritative state arrives, **Newer state available** offers
+refresh or comparison; an in-progress inspection is not silently rewritten.
+Refresh preserves the question and view where identities still resolve, explains
+replacements or missing objects, and records the prior graph state for Back.
+
+Projection catch-up can update freshness without switching the chosen snapshot.
+If the graph cannot yet represent that snapshot consistently, preserve the last
+trustworthy view with its actual represented position and a visible lag state.
+Do not combine old endpoints, new edges, and current counts into one apparently
+consistent answer. Working revisions identify their authoritative base; a stale
+working base is not silently rebased when Current refreshes.
+
+Historical mode pins an exact prior snapshot or explicit temporal query and
+disables mutation. A time control has a labeled dimension: recorded time,
+occurred time, publication time, or a profile-valid applicability interval.
+The interface never substitutes ingestion time for publication, observation, or
+valid time. Unknown time has an explicit undated/unknown group and remains
+inspectable. A domain date filter alone does not change Current into Historical;
+the state-layer control states which Project snapshot is being queried.
+
+If historical reconstruction or a selected time dimension is unsupported, the
+view says which question cannot be answered and offers supported History records,
+another temporal dimension, or **Return to current**. A timestamp slider cannot
+fabricate a past graph from today's records. New correction from a historical
+inspection first resolves Current and creates a fresh candidate/Review bound to
+it; it cannot edit the historical position.
+
+### Interaction and path register
+
+Each path preserves Project, profile, exact task references, snapshot, origin,
+return focus, and any unsent local input. Graph and textual controls invoke the
+same actions. The state matrix below supplies failure branches for every path.
+
+| Path | Trigger and precondition | Feedback, completion, and authority | Exit, recovery, and focus |
+| --- | --- | --- | --- |
+| `DB10-P01` Enter a relationship task | Contextual link, selected object, recent/saved question, or interpreted question; permitted target/profile | Show question and scope while resolving, then the bounded graph/text result; read only | Revise ambiguous scope, resolve unavailable target, or return to origin; route entry focuses the question heading |
+| `DB10-P02` Inspect and trace | Select a node, edge, group, or path step in a resolved view | Open exact Details, expose origin/basis/limits, and optionally open exact source; read only | Close Details or return from source to the invoking selection; missing path stays explicit |
+| `DB10-P03` Expand, filter, or refocus | Named expansion, Scope change, or **Focus on this object** within a supported boundary | Acknowledge affected branch; accept only matching query results and expose omissions; presentation/read only | Stop pending read, retry branch, narrow, or Back; keyboard focus stays on invoking control or its stable replacement |
+| `DB10-P04` Change representation or layout | Graph/Text, task layout, group, fit, pin, or reset control | Preserve semantic scope and selection; update arrangement/disclosure and graph history only | Reset/Back or reveal selection; focus remains on the control and text counterpart is reachable |
+| `DB10-P05` Compare or inspect time | Exact endpoints, selected time dimension, or historical link | Show named positions and supplied differences with authority/freshness per side; read only | Select counterpart, inspect History, or Return to current; no current mutation inside historical mode |
+| `DB10-P06` Correct a relationship | Explicit permitted correction on an exact current or working revision | Prepare new working revision or exact Review preview; authority changes only through DB09's validated apply path | Retain draft, cancel unsubmitted edit, refresh conflict, or inspect command outcome; return to corrected target or named replacement |
+| `DB10-P07` Investigate a gap | Insufficient recorded basis and a permitted SuggestedAction | Show scope/cost/consequence preview, start durable Work through DB06, then inspect result; starting Work does not apply findings | Leave/detach without cancelling; explicit Cancel work in Work; return with result or retained failure and original question |
+| `DB10-P08` Resume, refresh, and return | Saved question, graph Back/Forward, reconnect, or newer-state notice | Re-resolve exact identity, access, snapshot, and freshness; restore safe presentation, not domain history | Open current explicitly, retry read, inspect permitted history, or return to stable parent/Brief with reason |
+
+### Required state and recovery matrix
+
+| State | Visible meaning | Required path |
+| --- | --- | --- |
+| No relationship question | Direct Graph entry offers recent/saved questions, object selection, or natural language | Choose a bounded task or return to Brief; no empty corpus network |
+| Interpreting or ambiguous | Named role and interpreted target/scope, with any material unresolved meaning | Correct the question, clarify the consequential ambiguity, stop the response, or choose a direct task |
+| Loading | Question, target, layer, and pending read remain visible; no fabricated nodes | Stop or supersede the read, return, or use retained permitted results |
+| Ordinary, current, complete for scope | Exact represented snapshot, scope, relevant relationships, and material limits | Inspect, expand, compare, correct, or return; complete for scope does not mean complete knowledge |
+| No recorded relationship in scope | Empty result names the queried relationship, layer, time, and coverage | Adjust Scope, show relevant Working changes, inspect another basis, or preview new Work; never assert that no relationship exists anywhere |
+| Dense | Group/page counts, selection, readable labels, and omitted detail | Expand a group, narrow, inspect members in text, or fit/reset the view |
+| Expansion running or interrupted | Affected branch is pending or stopped; existing result remains usable | Stop read, retry that branch, narrow, or Back; unrelated Work continues |
+| Partial, capped, or limited | Returned subset and limit reason, unknown totals, missing basis, or inaccessible source | Continue a supported page/branch, retry, narrow, or follow DB08's exact-source recovery |
+| Disconnected objects or no path | Endpoints exist but no complete recorded path was returned within the named boundary | Inspect endpoints and gaps, deliberately expand scope, or request bounded investigation; do not draw a synthetic bridge |
+| Working or stale working base | Exact producer/revision, non-authority, base snapshot, validation, and any newer revision | Inspect, correct, compare, or open Review; rebase/refresh through canonical working/review behavior |
+| Newer authoritative state | The displayed snapshot remains identifiable; newer state is available | Refresh deliberately, compare, retain historical inspection, or return |
+| Applied—updating views | Exact authoritative change committed while the graph is behind | Open authoritative Details/Review, return, or await/retry the projection read; no duplicate Apply |
+| Projection blocked/rebuilding | Derived graph cannot safely represent the requested snapshot; last valid position is labeled | Use an authorized authoritative non-graph route, retry status/read, or inspect failure; rebuild is a runtime-owned operation |
+| Historical or unsupported time | Named prior snapshot/time dimension, non-editing state, or precise temporal limitation | Inspect supported history/other dimension or Return to current |
+| Comparison partial or stale | Each side's exact revision and missing/incomparable facts; no invented difference | Retry missing side, choose compatible endpoints, refresh the associated Review, or close comparison |
+| Read/renderer failure | Failed read or display is distinct from authority; permitted prior scope and selection survive | Retry bounded read or switch to text when its data is valid; text from the same stale projection is not falsely current |
+| Offline or lost connection | Permitted cached content and age; unresolved read or Work status stays unresolved | Inspect safe cached content, reconnect/requery, or use Work's replay path; no success inferred from disconnect |
+| Missing, replaced, unauthorized, or unsupported profile | Permitted identity/limitation only; no silent current-object substitution or access leak | Follow DB04/UX-REQ-008 replacement resolution, stable parent, or Brief; retain only permitted local context |
+| Correction conflicted, failed, or applied | Canonical candidate/Review/command outcome and projection effect | Use DB09's refresh, exact retry, correction, deferment, or governed Revert; Graph navigation cannot repair authority |
+| Question answered or Work completed | Recorded answer with scope, or linked Work result with its actual outcome | Return to origin, inspect result, open candidate Review or output; no automatic approval or expansion |
+
+### Accessibility and visual language
+
+The textual peer is a complete way to perform every relationship task. It exposes
+the same question, layers, exact objects and relationships, direction, path order,
+basis, scope, omissions, comparison positions, temporal meaning, and expansion
+actions. A renderer failure can fall back to text only if the underlying records
+remain usable. An authoritative fallback during projection lag must identify its
+own valid source and snapshot; a table over the stale graph is still stale.
+
+Keyboard users can enter the result through a named region, navigate an ordered
+object/relationship list, select a record, inspect Details, follow a path, expand,
+filter, compare, correct, and return. They need not tab through every canvas
+primitive or infer spatial neighbors. The canvas uses the same selection model
+and provides named pan, zoom, fit, and reset controls. No gesture or double-click
+is the sole route to a material action, and graph shortcuts do not intercept text
+editing or assistive-technology keys outside the focused graph context.
+
+Selection does not steal keyboard focus on pointer updates. Explicit keyboard
+inspection moves focus to the Details heading; closing returns to the invoking
+record/control or the nearest stable task target if it no longer exists. A real
+modal traps focus only while open; nonmodal Details does not. Async expansion,
+layout, projection refresh, and Work status never force focus or scroll. A polite
+status announcement reports the changed branch/count and limits once, without
+reading every added edge or repeating streamed detail. Urgent action failures
+remain visible and announced at the affected control.
+
+Touch selection opens the same Details; panning does not activate a node or edit
+an edge. Every drag, hover, resize, or camera operation has a control-based
+alternative. Narrow routes, enlarged text, and resized panels preserve the same
+reading order and return path. Touch targets, contrast, focus outlines, and panel
+resize controls inherit DB14/DB16 and must be verified after freeze.
+
+Use the accepted stone/graphite surfaces, readable UI type, and restrained amber
+focus accent. Type labels, relationship words, arrow/direction text, layer badges,
+and explicit difference labels carry meaning in monochrome and forced colors.
+Color, shape, opacity, motion, and location alone never distinguish authority,
+contradiction, selection, or historical state. Reduced motion replaces animated
+layout/path transitions with stable updates; the ordinary view has no perpetual
+simulation or attention-seeking path animation. A selected path remains legible
+without movement.
+
+### Terminology and copy ledger
+
+These terms implement the accepted DB04/DB06/DB09 and `UX1.5-DISC02`–`DISC03`
+meanings. Profile terms require registered semantics under `UX-REQ-004`. All rows
+are specified for paper review; comprehension and accessible rendering require
+post-freeze evidence. Technical IDs and exact predicate names remain inspectable.
+
+| Canonical meaning | User-facing term / allowed short form | Do not use for | Owning source and surfaces |
+| --- | --- | --- | --- |
+| Task-bounded relationship view | **Graph**; question as its heading | Whole-corpus discovery or a second Project home | DB04/DB10; navigation and result heading |
+| Accepted Project state | **Current** | Scientific truth, complete evidence, or guaranteed projection freshness | DB09/DB10; layer, Details, text |
+| Durable candidate structure | **Working changes**; profile-specific candidate name | Applied state or a second authority lifecycle | DB09/UX-REQ-011; layer, group, Details, Review link |
+| Prior selected state | **Historical**, **Return to current** | A domain date filter, active editable Current, or Revert | DB06/DB10; context, time, comparison |
+| Query boundary | **Scope** | Merely the visible canvas or the full authorized Project | UX1.5-DISC03; header, controls, omissions |
+| Recorded relationship expansion | **Trace sources**, **Show contrary evidence**, **Show downstream effects**; registered profile variants | New discovery, inferred support, validation, or automatic mutation | DB10/DB06; result, Details, text |
+| Relationship assertion | Profile predicate and endpoint names | A decorative line, model confidence, citation-as-support, or dependency-as-certain-impact | D005/D006/profile; edge label, Details, path list |
+| Derived representation freshness | **Updating graph**, **Graph unavailable**, **Applied—updating views** when application is known | A fourth semantic layer or a failed authoritative decision | DB09/projection contracts; status and recovery |
+| Presentation recovery | **Back in graph**, **Forward in graph**, **Reset view** | Reversing accepted changes or cancelling Work | DB06/DB10; view toolbar and text controls |
+| Meaning correction | **Edit relationship**, **Relink**, profile-valid correction verb, **Changes to apply** | Position dragging or immediate unreviewed application | D005/DB09; Details, correction, Review |
+| Temporal/comparison positions | Named snapshots or **Current / Candidate**, explicit difference words | Overlapping state, a new semantic layer, or an inferred diff from layout | DB09/DB10; comparison and text list |
+
+Example empty copy is **No contrary relationships recorded in this scope**, with
+the scope and known coverage alongside it. An incomplete read instead says
+**This branch is incomplete** and offers **Retry branch**. A stopped expansion
+says **Expansion stopped; the previous view is available**. Projection-lag copy
+names the committed change and offers **Open applied change**. A restricted or
+missing endpoint uses the permitted resolution message and safe return. Recovery
+labels name their actual object or operation, avoiding a generic **Try again**
+that could mean rerunning Work or reapplying a change.
+
+### Backend and persistence needs
+
+The contract audit found existing `ProjectionCheckpoint` and
+`GraphProjectionRecord` contracts for authoritative projection status and delivery
+receipts. DB09's candidate, ChangeSet, Approval, command, event, and reversal
+boundaries remain the foundation for correction. The existing workbench
+`FocusedGraphViewModel` is an exploratory client model; it does not establish a
+runtime-owned profile-neutral scope, path, omission, or temporal comparison query.
+
+`UX-REQ-013` requests that missing read boundary: a validated task/scope identity,
+snapshot and represented projection position, exact layer/revision membership,
+relationship/path details, counts and completeness, bounded expansion and
+continuations, explicit comparison/time capabilities, and safe semantic
+destinations. Its full record in `UX-BACKEND-HANDOFF.md` distinguishes existing
+inputs from proposed composition and names the smallest viable response.
+
+It depends on `UX-REQ-004` for profile semantics; `UX-REQ-008` and `UX-REQ-009`
+for exact destination/source inspection; `UX-REQ-011` for working structure; and
+`UX-REQ-007`/`UX-REQ-012` for supplied reversal/comparison/Review facts. DB06's
+`UX-REQ-003` and `UX-REQ-006` supply new Work and task context rather than making
+view expansion a second orchestration system.
+
+The client owns renderer geometry, local view history, local saved recipes,
+disclosure, resize, selection, and return context. The runtime owns authorized
+query results, exact revisions, profile validity, source/basis meaning,
+completeness outside a fully loaded local group, comparison facts, impact
+assessments, authority, and projection freshness. No browser traversal may invent
+missing links, infer absence, calculate promotion eligibility, or infer a domain
+difference from two incomplete node sets. Proposed post-freeze fixtures must
+declare the `UX-REQ-013` boundary and cannot claim live integration or `G-CONTRACT`
+before architecture disposition.
+
+### Nielsen and dangerous-misunderstanding paper audit
+
+| Heuristic | DB10 resolution |
+| --- | --- |
+| Visibility of system status | Question, scope, exact layer/snapshot, projection position, omitted results, branch loading, and command outcome remain distinct |
+| Match with the real world | Named relationship questions and profile verbs lead; exact types and hop limits remain inspectable |
+| User control and freedom | Correct scope, expand deliberately, stop reads, select text, Back/Forward, reset, save, and return without altering authority |
+| Consistency and standards | Graph and text use the same identities, source readers, Details, Work, Review, History, and command paths |
+| Error prevention | No automatic scope widening, snapshot mixing, inferred path, hidden contrary group, or mutation through view gestures |
+| Recognition rather than recall | Focus descriptor, selected path, endpoints, group membership, comparison positions, and return origin remain available |
+| Flexibility and efficiency | Named actions, optional exact controls, keyboard inspection, saved questions, and task-specific matrices/timelines serve different inspection needs |
+| Aesthetic and minimalist design | One bounded question, grouped secondary detail, readable selection, and one expanded contextual panel by default |
+| Error recovery | Branch retry, bounded refresh, text fallback, exact historical resolution, Review conflict recovery, and authoritative route during projection lag |
+| Help and documentation | In-place explanation of predicate, scope, count unit, omissions, temporal dimension, working state, and action consequences |
+
+The paper design was checked against `DB10-P01`–`P08`, all rows of the state
+matrix, and both profile examples. This is a specification audit, not a report
+of executed fixtures, performance measurement, accessibility testing, or observed
+participant comprehension.
+
+| Finding | Location/evidence and consequence | Severity | Disposition, owner/gate, and verification |
+| --- | --- | --- | --- |
+| `DB10-A01` Conflicting comparison instruction | Earlier DB06 reversal copy allowed ghosted overlays despite accepted dedicated DB10 comparison; authority positions could be confused | Major | Fixed in this brief by aligning DB06 with DB10; design owner; wording checked in the paper audit |
+| `DB10-A02` Missing complete focused read boundary | Projection receipts and exploratory client model cannot supply scoped completeness, exact paths, working membership, or historical comparisons | Major | Needs contract: `UX-REQ-013`, implementation architecture; explicitly provisional post-freeze adapter; `G-CONTRACT` remains blocked pending disposition |
+| `DB10-A03` Density and spatial comprehension unmeasured | Text specification cannot prove that selected paths remain readable or that a third dimension helps | Moderate | Needs researcher validation: design owner; `UX-FX24`/`UX-FX25` and `UX1.5-EV02`–`EV04` after freeze; no 3D or performance claim accepted without evidence |
+| `DB10-A04` Renderer mistaken for authority | Earlier roadmap phrase described 2D as authoritative; a view could be mistaken for the command/event source | Major | Fixed in the design roadmap to say primary; D005 authority and DB10 renderer boundary checked |
+
+Dangerous misunderstandings are acceptance failures: Current means truth; an edge
+means support regardless of predicate; a short path is stronger evidence; a group
+is an accepted assertion; a count proves independent corroboration; an omitted or
+unknown result proves absence; a dependency proves invalidation; a Working path
+is wholly authoritative; an expansion performs new research or mutation; a new
+layout changes domain state; Historical can be edited; publication and recorded
+time are interchangeable; selection approves a change; Back or Reset Reverts it;
+or projection lag means an applied command should be submitted again.
+
+### Acceptance criteria and post-freeze conformance evidence
+
+The DB10 specification is complete when the following behaviors and their
+boundaries are defined; post-freeze implementation must demonstrate them:
+
+1. contextual and direct entry open a named bounded question with exact origin,
+   Project/profile, focus, layer, snapshot, selection, and return;
+2. Current, Working changes, Historical, and projection freshness remain distinct
+   in every representation and adverse state;
+3. question-led depth, correctable Scope, profile-valid named actions, and finite
+   exact query limits preserve contrary and qualifying material;
+4. expansion reveals recorded relationships, preserves orientation, and separates
+   new investigation/assessment from a read and from authoritative change;
+5. objects, edges, groups, and every returned path step expose exact identity,
+   direction, meaning, origin, basis, limitations, and layer without visual-only
+   inference;
+6. omission reasons, units, unknown totals, overlapping groups, partial reads,
+   restricted records, cycles, and traversal limits remain honest;
+7. layouts change representation while dedicated comparison exposes exact
+   positions, supplied differences, missing counterparts, and consequence limits;
+8. selection, focus, pan, zoom, pin, fit, collapse, reset, ten-state history, local
+   saved questions, and route return have distinct, reversible view effects;
+9. direct and conversational correction create the same candidate/Review path,
+   preserve source and revision lineage, and cannot apply through a gesture;
+10. temporal inspection distinguishes Project snapshot from domain time, labels
+    unknown dates, avoids silent rebasing, and offers Return to current;
+11. every loading, partial, dense, limited, stale, historical, failed, offline,
+    unauthorized, projection-pending, and terminal state has a bounded recovery;
+12. the textual peer, keyboard, screen reader, touch, high zoom, panel resize,
+    forced colors, non-drag actions, and reduced motion preserve the complete task;
+13. graph-origin Work, Review, source inspection, composition return, and History
+    inherit DB04–DB09 identity, authority, and recovery rules;
+14. runtime needs are registered without modifying implementation-owned contracts
+    or treating the pre-freeze graph as conformance evidence; and
+15. paper findings are fixed or assigned to explicit contract/validation gates,
+    with no claim that design completion constitutes runtime completion.
+
+| Scenario | Post-freeze evidence required |
+| --- | --- |
+| `UX-FX24` Paired bounded relationship questions | Independently invented scientific and controlled-writing Projects exercise direct/contextual entry, the H4-style evidence/requirements question, opposing or constraining material, multi-step exact-source tracing, working layers, dependency/impact distinction, correction through Review, linked new Work, and exact return. Graph, matrix/path text, and comparison answer the same questions. |
+| `UX-FX25` Dense, temporal, and adverse graph exploration | Bounded high-degree and cyclic paths, overlapping groups, partial/unknown counts, hidden Working changes, query cancellation and late replies, projection lag/blocking, stale working base, historical and unknown dates, incomplete comparison, missing/restricted objects, renderer failure, offline recovery, saved-view reopening, and the ten-state navigation boundary. Exercise wide, narrow, high-zoom, keyboard, screen-reader, touch, forced-colors, resized-panel, and reduced-motion variants. |
+
+These scenarios are specifications for later synthetic fixtures. They must not
+copy or structurally derive from contextual demo data or user assets.
+`UX1.5-EV01`–`EV04` will record fixture coverage, relationship comprehension,
+graph/text/accessibility parity, and measured density/performance after freeze.
+DB10 can now hand off to the DB11 discussion without starting Graph implementation.
+
+## `DB11` — durable Work and orchestration
+
+**Status:** discussion started after DB10's specification and paper audit.
+DB06 already establishes durable Work, bounded action previews, accountable
+roles, distinct interrupts, observable activity, cost, cancellation, and exact
+result routing. Those accepted boundaries are not reopened here.
+
+The Project author's task is to understand what is running, whether it needs a
+decision, what it has produced, and what changing or stopping it would do. The
+pending presentation recommendation is to lead with one task overview per bounded
+objective: objective and outcome, required input, current stage and remaining
+plan, cost/limits, and available controls. Observable role/tool/validator runs and
+their inputs, outputs, checkpoints, and errors expand beneath the relevant stage.
+The Work collection lists those tasks; the detail route makes the stages primary.
+A full execution/dependency view remains available for complex diagnosis.
+
+For an invented writing task, **Check this passage against its requirements**
+could show **Gather requirements → Check dependencies → Validate passage → Collect
+findings**. If validation needs an author decision, that question leads the task
+overview. The author can inspect the exact requirement, accountable validator,
+input revision, and partial findings from that stage. Supporting runs remain
+inspectable without requiring an execution diagram to follow ordinary progress.
+Stages describe observable work and do not claim access to private model reasoning.
+
+The material choice is whether this task-and-stage presentation should be the
+default or whether the full execution/dependency structure needs primary space.
+The recommendation is **pending user direction**, not an accepted DB11 decision.
+After that direction, complete plan revision and steering consequences, stage and
+task status, required input, cost, detachment/reconnect, cancellation, partial and
+terminal results, retry, responsive/accessibility behavior, backend gaps, and the
+DB11 paper audit before advancing to DB12.
 
 ## `UX-DESIGN-FREEZE-01`
 
@@ -2112,9 +2698,9 @@ or default behavior.
 
 The next work remains specification, not demo production:
 
-1. carry accepted `DB04`–`DB09` through their recorded backend dispositions without implementing a product surface;
-2. design `DB10`, graph and relationship work, as the next discussion-first section;
-3. design `DB11`–`DB13` module by module through the discussion-first loop;
+1. carry the accepted direction and specifications through `DB10` into their recorded backend dispositions without implementing a product surface;
+2. discuss and specify `DB11`, durable Work and orchestration, as the next section;
+3. design `DB12`–`DB13` module by module through the discussion-first loop;
 4. close the design system, language, accessibility, failure, and recovery specifications in `DB14`–`DB17`;
 5. assemble the complete screen, state, flow, and backend blueprint in `DB18`;
 6. review and explicitly record `UX-DESIGN-FREEZE-01`;

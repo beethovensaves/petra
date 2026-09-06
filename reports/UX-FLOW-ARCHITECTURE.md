@@ -1,7 +1,7 @@
 # Petra user-flow architecture
 
-Status: accepted product flow, information architecture, Sources, and Review behavior; profile, source-lifecycle, working-graph, and Review contracts awaiting architecture disposition
-Date: 2026-09-04
+Status: accepted product flow, information architecture, Sources, Review, and Graph direction; profile, source-lifecycle, working-graph, Review, and focused-query contracts awaiting architecture disposition
+Date: 2026-09-06
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as distinct project profiles
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
 
@@ -680,6 +680,36 @@ workflow:
 | Draft or output | Artifact revision, snapshot, evidence/provenance state, and unresolved validation warnings |
 | Future external adapter | Actor, Project, command/query identity, capability, idempotency, and explicit result object |
 
+## Graph relationship task contract
+
+[DB10](PETRA-UX-DESIGN-BRIEF.md#db10--graph-and-relationship-work) specifies the
+relationship inspection used by `UX-FLOW-07`–`12`, `UX-FLOW-15`, and
+`UX-FLOW-16`. Contextual entry preserves the exact originating question, object,
+snapshot, selection, and return. Direct Graph entry begins from a selected object,
+recent/saved question, or validated bounded natural-language interpretation.
+
+Depth means the context needed to answer that question. Named expansion reveals
+recorded relationships; Scope exposes exact types, directions, layers, time,
+limits, and omissions. New investigation, validation, or assessment uses the
+existing bounded Work preview. Known contrary/qualifying or profile-equivalent
+constraining material remains visible in initial summaries. Group counts, partial
+queries, and unavailable paths cannot establish evidence sufficiency or absence.
+
+Current, Working changes, and Historical are semantic layers; projection is
+separate representation freshness. Selection opens exact Details, path inspection
+reaches the same source reader, and correction uses DB09's candidate/Review path.
+Dedicated before/after comparison names exact positions and supplied differences.
+Historical inspection is non-editing and provides Return to current. Recorded
+dependencies remain distinct from assessed consequences.
+
+Graph/text/layout changes preserve task identity, scope, and selection. Ten-state
+graph history, reset, local saved questions, and route return change presentation
+only. An applied change with a lagging projection remains applied; an authoritative
+non-graph route is distinct from a text table over stale graph data. `DB10-P01`–`P08`
+define the full paths and the DB10 state matrix supplies their recovery branches.
+`UX-REQ-013` records the missing focused-query composition; post-freeze
+`UX-FX24`/`UX-FX25` will exercise parity and adverse states.
+
 ## State and recovery coverage
 
 | Condition | What the Project author must understand | Required recovery or next action |
@@ -763,8 +793,8 @@ The flow review accepts these directions:
 6. **M1 Hypothesis boundary:** M1 may demonstrate provisional, read-oriented Hypothesis context, while lifecycle, standing, alternatives, posture, and obligations remain owned by M3 contracts.
 7. **Imported-document boundary:** a permitted existing document may seed an immutable artifact lineage; Petra creates candidate and promoted revisions without overwriting the imported source.
 
-Two semantic definitions and five runtime shapes remain architecture work
-rather than open product scope:
+The following semantic definitions and runtime compositions remain architecture
+work rather than open product scope:
 
 - the versioned Project-profile binding and registry shape, including how shared surfaces resolve typed domain objects and vocabulary;
 - the controlled-writing ontology, predicates, validators, revision command, and destination policy needed to support protected-source-to-new-revision work without weakening its source-protection rules;
@@ -776,12 +806,15 @@ rather than open product scope:
 - a Project-source association plus governed Project removal and local-copy
   deletion/retention lifecycle;
 - durable, profile-valid, non-authoritative working candidates and graph
-  relationships derived from bounded interaction; and
+  relationships derived from bounded interaction;
 - a snapshot-consistent, profile-neutral Review-session read and command
-  composition over existing ChangeSet and Approval authority.
+  composition over existing ChangeSet and Approval authority; and
+- a bounded profile-resolved relationship query with exact paths/layers,
+  honest omissions, finite expansion, and supported comparison/time positions.
 
-`UX-REQ-004` through `UX-REQ-012` carry the profile, lineage, thread-context,
+`UX-REQ-004` through `UX-REQ-013` carry the profile, lineage, thread-context,
 governed-reversal, semantic-location, source-view, source-lifecycle,
-working-candidate, and Review-session needs to the implementation track.
+working-candidate, Review-session, and focused relationship-query needs to the
+implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.

@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue the design brief at `DB10`, graph and relationship work. `DB04` through `DB09` are accepted. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Continue the design brief at `DB11`, durable Work and orchestration. `DB04` through `DB09` are accepted; DB10's direction is accepted and its full specification and paper audit are complete. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -82,7 +82,9 @@ AG-UI remains behind `PetraInteractionClient` and Petra-specific hooks. Feature 
 
 ## Current conversation
 
-`DB10` is in progress. The following direction is accepted:
+`DB10` is specified and paper-audited. The user accepted its semantic-depth and
+expansion model on 2026-09-06 after the synthetic H4 evidence example
+(`UX1.5-DISC03`). The following direction is accepted:
 
 - the Graph is an optional, task-bounded relationship workspace rather than a
   corpus-wide explorer or graph-entry form;
@@ -106,40 +108,62 @@ AG-UI remains behind `PetraInteractionClient` and Petra-specific hooks. Feature 
   translucent overlapping state;
 - 2D and textual parity remain primary, Cytoscape.js remains the 2D candidate,
   and Reagraph remains optional only when a named third dimension improves
-  comprehension.
+  comprehension;
+- depth means the relationship context needed to answer the question. Named
+  profile-valid actions lead; Scope exposes exact types, directions, hop limits,
+  layers, snapshot, time, and omissions;
+- contrary and qualifying material remains visible in initial summaries; counts
+  distinguish units, overlap, grouping/filtering, partial results, and unknowns;
+- expansion reveals recorded relationships and preserves focus, selection, and
+  snapshot. New research, validation, or assessment uses bounded Work;
+- selection opens exact Details; paths retain every relationship's meaning,
+  origin, basis, layer, and limitations. Dependency links do not establish
+  assessed consequences.
 
-Continue by deciding the semantic-depth and expansion model. The current
-recommendation, not yet accepted, is:
+DB10 now specifies selection/path inspection, task layouts and dedicated
+comparison, density/grouping, direct correction through DB09, temporal behavior,
+ten-state view history, local saved questions, adverse states, responsive/textual
+parity, language, backend needs, acceptance criteria, and the paper audit. The
+earlier DB06 ghosted-reversal wording and roadmap's renderer-authority wording
+were aligned with the accepted direction.
 
-> Treat depth as the amount of relationship context needed to answer the current
-> question, not primarily as a hop count. Let Petra derive the smallest useful
-> focus, predicates, snapshot, temporal position, and boundary; lead with named
-> expansion actions such as **Show contrary evidence**, **Trace sources**, and
-> **Show downstream effects**; disclose hidden counts and summarized groups; and
-> place exact relationship types and hop limits in optional inspectable controls.
-> Selection opens Details, view manipulation remains non-authoritative, and the
-> textual peer exposes the same paths, scope, omissions, and expansion actions.
+`DB10-P01`–`P08` are the interaction paths and `DB10-A01`–`A04` the paper
+findings. `UX-REQ-013` requests the missing bounded relationship-view query;
+architecture owns its disposition. `UX-FX24`/`UX-FX25` specify post-freeze paired
+and adverse conformance scenarios. No fixture, query, renderer, backend contract,
+or product surface was implemented. Paper completion is not runtime validation.
 
-Do not record this semantic-depth recommendation as accepted unless the user
-explicitly agrees. After depth, complete selection/path inspection, layouts and
-comparison, density/grouping, direct-correction boundaries, temporal behavior,
-adverse states, accessibility, language, backend needs, and the DB10 paper audit.
+DB11's opening discussion now records a pending recommendation: lead with a
+task overview and meaningful stages, with exact role/tool/validator activity
+expandable beneath each stage and a full execution/dependency view available
+for complex diagnosis. The invented passage/requirements example makes the
+choice concrete. This recommendation is not accepted; await the user's direction
+before closing that choice. The accepted DB06/DB10 Work boundaries still apply.
+Then specify
+plans, roles and validators, progress, required input, steering, cost, detachment,
+reconnect, cancellation, results, retry, adverse states, and the paper audit.
 
 ## Latest repository checkpoint
 
-- `design/m1-ux` is synchronized with `origin/design/m1-ux` at merge commit
-  `81c3786`.
+- This conversation resumed on `design/m1-ux` at `230fadd`, the DB10 discussion
+  checkpoint. The DB10 specification closure is recorded by the commit containing
+  this handoff; inspect Git status/log for the current local and remote position.
+- The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
-- The complete repository verification passed: 599 always-on tests and seven
-  expected service skips.
-- `UX-REQ-011` and `UX-REQ-012` remain proposed design requirements; the merge
-  did not silently implement or close them.
+- Verification at that preceding merge passed 599 always-on tests with seven
+  expected service skips. It is historical evidence, not a test run for this
+  documentation-only closure.
+- Documentation checks for the closure covered table/fence structure, new local
+  links, path/audit and decision/request/fixture definitions, acceptance status,
+  five-file design-only scope, and `git diff --check`.
+- `UX-REQ-011`, `UX-REQ-012`, and new `UX-REQ-013` remain proposed runtime
+  requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
-Do not implement a Graph fixture after this discussion. Complete the full graph
-and relationship-work specification, then continue through `DB11`–`DB18`.
+Do not implement a Graph fixture after this discussion. Continue the full
+product-design specification through `DB11`–`DB18`.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.

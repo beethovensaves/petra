@@ -1,7 +1,7 @@
 # Petra Design Implementation Roadmap
 
-Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10 next
-Last updated: 2026-09-04
+Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10 specified and paper-audited; DB11 discussion started
+Last updated: 2026-09-06
 Scope: deliver Petra's M1 experience module by module while implementation continues, without creating a second authority for architecture or feature completion
 
 Companion documents:
@@ -688,35 +688,43 @@ The raster reference is a composition and visual-language source, not a screen s
 
 | ID | Question | Accepted direction | Why it matters | Affected work | Revisit trigger |
 | --- | --- | --- | --- | --- | --- |
-| `UX1.5-DISC01` | What should graph depth mean, when is 3D justified, and which renderer candidates should Petra evaluate? | Keep 2D authoritative and primary. Define every view by active object, scientific task, hop depth, edge allowlist, snapshot, and projection position. Drive expansion through meaningful actions such as **Show contrary evidence** and **Trace exact sources**, preserve the mental map, and provide back, forward, home, pin, collapse, and reset. Support task-specific Provenance, Neighborhood, Disagreement, Comparison, Impact, and Time layouts with semantic zoom and restrained selected-path motion plus a reduced-motion alternative. Allow literal 3D only when the z-axis represents a named scientific dimension, testing shows a comprehension benefit, full 2D and textual parity exists, and selection plus camera state can be reset, bookmarked, and shared accessibly. Feed a renderer-neutral `FocusedGraphViewModel` into Cytoscape.js as the primary 2D candidate, textual-path and evidence-matrix peer views, and Reagraph as the optional 3D candidate. Do not evaluate yFiles in this slice. No renderer may query Neo4j directly or own authority, permissions, or mutation. Compare candidates on a frozen fixture before adding a dependency. | A graph should look compelling because it exposes scientific structure, not because the camera is novel. Depth is first a scientific and query-scope concept. The adapter boundary avoids renderer lock-in, and textual parity keeps graph evidence understandable and accessible. | `UX1.5-W01`–`UX1.5-W12`, `UX1.5-AC01`–`UX1.5-AC06`, `M1.3`, `M1.5`, `M1.6`, `M1.7`, graph scene and focused-view contracts | Revisit if Cytoscape.js fails density, layout, stability, or accessibility budgets; Reagraph cannot provide 3D parity; a comprehension study demonstrates a necessary 3D benefit; a real fixture requires another renderer; or an engine pressures the client toward direct projection coupling. |
+| `UX1.5-DISC01` | What should graph depth mean, when is 3D justified, and which renderer candidates should Petra evaluate? | Keep 2D primary, with full textual parity and command/event authority outside the renderer. Define every view by active object, scientific task, hop depth, edge allowlist, snapshot, and projection position. Drive expansion through meaningful actions such as **Show contrary evidence** and **Trace exact sources**, preserve the mental map, and provide back, forward, home, pin, collapse, and reset. Support task-specific Provenance, Neighborhood, Disagreement, Comparison, Impact, and Time layouts with semantic zoom and restrained selected-path motion plus a reduced-motion alternative. Allow literal 3D only when the z-axis represents a named scientific dimension, testing shows a comprehension benefit, full 2D and textual parity exists, and selection plus camera state can be reset, bookmarked, and shared accessibly. Feed a renderer-neutral `FocusedGraphViewModel` into Cytoscape.js as the primary 2D candidate, textual-path and evidence-matrix peer views, and Reagraph as the optional 3D candidate. Do not evaluate yFiles in this slice. No renderer may query Neo4j directly or own authority, permissions, or mutation. Compare candidates on a frozen fixture before adding a dependency. | A graph should look compelling because it exposes scientific structure, not because the camera is novel. Depth is first a scientific and query-scope concept. The adapter boundary avoids renderer lock-in, and textual parity keeps graph evidence understandable and accessible. | `UX1.5-W01`–`UX1.5-W12`, `UX1.5-AC01`–`UX1.5-AC06`, `M1.3`, `M1.5`, `M1.6`, `M1.7`, graph scene and focused-view contracts | Revisit if Cytoscape.js fails density, layout, stability, or accessibility budgets; Reagraph cannot provide 3D parity; a comprehension study demonstrates a necessary 3D benefit; a real fixture requires another renderer; or an engine pressures the client toward direct projection coupling. |
 | `UX1.5-DISC02` | How should an author enter a graph task and distinguish authoritative, working, historical, and projected state? | Never open an unrestricted corpus hairball. Contextual entry opens the exact relationship question with origin, selected object, task, snapshot, and return path intact. Direct Graph entry begins from a recent or saved relationship question, a selected object, or natural language that a named model role translates into an inspectable bounded view. Use three semantic layers: **Current** for the projection of current authoritative Project state and the default view; **Working changes** for relevant durable non-authoritative candidate structure, included on contextual entry and counted when hidden; and **Historical** as an explicit non-editing mode with **Return to current**. Treat projection as view freshness rather than a fourth layer, and state when an authoritative change has applied but its graph representation is catching up. Use a dedicated before/after comparison rather than overlapping translucent states. Expose identical layer, scope, freshness, omission, and return meaning in the textual peer. | Authors need relationship inspection without learning graph storage or mistaking model structure, history, or a delayed projection for current authority. Task-preserving entry and explicit layers reduce disorientation while keeping the graph optional and inspectable. | `DB10`; `UX1.5-W01`, `W02`, `W05`–`W09`, `W11`; `UX1.5-AC02`–`AC04`; `UX-REQ-007`, `UX-REQ-011` | Revisit if task testing shows that contextual entry hides necessary scope, working structure overwhelms the current answer, authors mistake projection freshness for semantic status, or a profile requires a materially different temporal comparison. |
+| `UX1.5-DISC03` | What should depth and expansion mean for the author? | Accepted 2026-09-06 after the synthetic H4 evidence example: define depth by the relationship context needed to answer the current question. Lead with profile-valid named actions, expose exact types and hop limits in Scope, retain contrary/qualifying summaries, and distinguish grouped, filtered, capped, partial, and unknown results. Expansion reveals recorded relationships at the same layer/snapshot boundary; new research or assessment uses bounded Work. Selection opens exact Details; text exposes the same paths and actions. | Authors can request useful context while inspecting the boundary and avoiding false absence, lost orientation, or hidden research/authority effects. | `DB10`; `UX1.5-W01`–`W12`; `UX1.5-AC01`–`AC10`; `UX-REQ-013`; `UX-FX24`/`UX-FX25` | Revisit if task testing shows misunderstood scope, concealed contrary material, unreliable omission counts, lost orientation, profile-invalid actions, or expansion mistaken for new Work or mutation. |
 
-### Open discussion
+### DB10 specification checkpoint
 
-The next choice is the semantic-depth and expansion model. The recommendation is
-to define depth as the relationship context needed to answer the current question,
-let Petra derive the smallest useful object/predicate/snapshot boundary, lead with
-profile-valid expansion actions, disclose hidden counts and summarized groups, and
-keep exact relationship types and hop limits in optional inspectable controls. This
-recommendation is **not accepted yet** and must not be folded into
-`UX1.5-DISC01` or the DB10 acceptance record without explicit user agreement.
+The user accepted `UX1.5-DISC03` on 2026-09-06 after the concrete synthetic
+H4 evidence example. DB10 now specifies entry and layers, semantic depth and
+expansion, selection and exact paths, task layouts and dedicated comparison,
+density and omissions, correction, time, view history and saved questions,
+responsive/textual parity, adverse states, terminology, and the paper audit.
+`DB10-P01`–`P08` and `DB10-A01`–`A04` record path and audit coverage.
+
+`UX-REQ-013` requests the missing bounded relationship-view query composition;
+its runtime shape remains proposed. `UX-FX24` and `UX-FX25` specify the paired
+and adverse conformance scenarios to implement after freeze. The specification
+gate is covered; this module remains `in_progress` because no new frontend,
+live contract, performance, accessibility, or participant evidence is claimed.
+DB11 now has a pending task-and-stage presentation recommendation in the brief;
+it awaits user direction. `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ### Work
 
 | ID | Status | Design specification | Why Petra needs it |
 | --- | --- | --- | --- |
-| `UX1.5-W01` | `in_progress` | Define initial graph tasks: inspect evidence, trace provenance, compare alternatives, inspect contradiction, review a change, and explain a generated statement. | A graph view should answer a question rather than expose the whole corpus. |
-| `UX1.5-W02` | `in_progress` | Bound each view by active object, task, depth, edge allowlist, snapshot, and projection position. | Focus and latency need explicit graph scope. |
-| `UX1.5-W03` | `in_progress` | Define node treatments for Question, Hypothesis, Claim, Assertion, Work, WorkVersion, SourceSpan, Experiment, Result, and DraftSpan. | Scientific objects should not appear as generic graph database records. |
+| `UX1.5-W01` | `in_progress` | Specify profile-valid evidence/basis, provenance, comparison, disagreement, impact, and time tasks with contextual or direct bounded entry in DB10. | A graph view should answer the author's question rather than expose the whole corpus. |
+| `UX1.5-W02` | `in_progress` | Specify question-led depth, inspectable exact relationship types and limits, layer/snapshot identity, named expansion, omissions, and query consistency through DB10 and `UX-REQ-013`. | Useful context and honest completeness require an explicit scope. |
+| `UX1.5-W03` | `in_progress` | Specify profile-resolved object labels, exact revision/layer identity, recognizable descriptors, selection, and Details; scientific and writing types keep distinct meanings. | Objects should remain recognizable without becoming generic graph records or semantic aliases. |
 | `UX1.5-W04` | `in_progress` | Define edge line, label, direction, origin, trust, and review treatments for support, contradiction, qualification, failed replication, citation, and derivation. | Relation semantics cannot depend on color or proximity alone. |
-| `UX1.5-W05` | `planned` | Distinguish source-reported, proposed, trusted, inferred, superseded, and stale-projection paths. | A visible edge must reveal why it exists and how much authority it has. |
+| `UX1.5-W05` | `in_progress` | Specify Current, Working changes, Historical, and separate projection freshness, with origin, inference, lifecycle, exact base, and per-path authority preserved. | A visible edge must reveal why it exists and how much authority it has. |
 | `UX1.5-W06` | `in_progress` | Synchronize graph selection with the Brief, evidence view, source inspector, assistant, and route. | The graph is one representation of stable objects, not a separate explorer. |
 | `UX1.5-W07` | `in_progress` | Design a path inspector with edge rationale, source spans, scope compatibility, snapshot, and projection freshness. | Users need to inspect the meaning behind a path. |
 | `UX1.5-W08` | `in_progress` | Provide a textual path, evidence matrix, or timeline whenever it explains the relationship more clearly or accessibly. | Node-link graphics are not always the best scientific representation. |
-| `UX1.5-W09` | `in_progress` | Design progressive expansion, filters, grouping, saved views, and a clear return to the active object. | Larger reused corpora must remain navigable. |
-| `UX1.5-W10` | `planned` | Make drag, relink, split, narrow, and relation changes produce typed draft commands and visible previews. | Direct graph manipulation cannot mutate Neo4j or trusted state directly. |
-| `UX1.5-W11` | `planned` | Design current, loading, partial, empty, disconnected, stale, and projection-rebuilding states without layout collapse. | Graph failures and lag need honest recovery. |
-| `UX1.5-W12` | `in_progress` | Establish density and performance budgets based on real fixtures before choosing rendering optimizations. | A fast graph must preserve labels, selection, semantics, and accessibility. |
+| `UX1.5-W09` | `in_progress` | Specify named expansion, filtering, honest grouping/counts, local saved exact views, ten-state history, and distinct focus/reset/return controls. | Larger reused corpora must remain navigable without losing scope or identity. |
+| `UX1.5-W10` | `in_progress` | Keep ordinary drag presentation-only; explicit relink, split, scope, and relationship corrections produce working revisions or exact Review previews with non-drag parity. | Direct correction must share the existing typed authority path. |
+| `UX1.5-W11` | `in_progress` | Specify every DB10 read, working, historical, comparison, projection, offline, correction, and terminal state with a bounded recovery and preserved orientation. | Graph failures and lag need honest recovery. |
+| `UX1.5-W12` | `in_progress` | Specify finite query limits and readable selection; measure density, layout stability, and performance budgets on post-freeze synthetic `UX-FX25` before rendering optimization. | A fast graph must preserve labels, selection, semantics, and accessibility; paper design cannot establish measured thresholds. |
 
 ### Acceptance
 
@@ -728,10 +736,15 @@ recommendation is **not accepted yet** and must not be folded into
 | `UX1.5-AC04` | The same provenance question can be answered through an accessible textual representation. |
 | `UX1.5-AC05` | Direct graph edits create previews and use the same command path as other review actions. |
 | `UX1.5-AC06` | Expanding, filtering, streaming, or projection refresh does not lose the active selection unexpectedly. |
+| `UX1.5-AC07` | Named expansion reveals recorded context within an inspectable scope; new research or assessment uses a bounded Work preview. |
+| `UX1.5-AC08` | Counts, groups, cycles, omissions, partial reads, and missing/restricted paths never imply invented links, completeness, or absence. |
+| `UX1.5-AC09` | Dedicated comparison and time inspection expose exact positions and supplied differences, preserve unknown dates, and distinguish dependency from assessed consequence. |
+| `UX1.5-AC10` | Graph controls, saved questions, and ten-state history change presentation only; correction, Work, and Revert retain their canonical consequences and recovery. |
 
 ### Completion evidence
 
-- `UX1.5-EV01`: task-bounded graph fixture set;
+- `UX1.5-EV00`: DB10 specification, terminology, paths, state matrix, paper audit, and `UX-REQ-013` contract trace (recorded 2026-09-06);
+- `UX1.5-EV01`: post-freeze task-bounded graph fixture set including `UX-FX24` and `UX-FX25`;
 - `UX1.5-EV02`: relation-identification and provenance-comprehension review;
 - `UX1.5-EV03`: graph/text parity and keyboard-path evidence;
 - `UX1.5-EV04`: dense, stale, disconnected, and projection-rebuild performance record.
@@ -914,6 +927,8 @@ The fixture gallery reuses stable objects across modules. It should remain small
 | `UX-FX21` | Paired synthetic Sources and exact readers | Scientific and controlled-writing Projects reuse the same collection, registration, immutable revision, rights, inspection-capability, reader, exact-location, Petra-context, provenance, navigation, and accessibility mechanics while presenting different typed source identities, roles, limitations, and downstream uses |
 | `UX-FX22` | Synthetic source lifecycle and recovery | Reuse, duplicate and ambiguous identity, identity-only and preview content, partial and failed processing, exact and unresolved locations, normalized differences, unsupported format, a newer revision with affected dependents, offline and unavailable content, Project removal, eligible local-copy deletion with receipt, and retention-blocked deletion remain honest and recoverable |
 | `UX-FX23` | Paired conversational working graph and Review | Two invented Project profiles turn bounded natural conversation into durable non-authoritative candidates, relationships, exact origin and basis, optional graph/text inspection, exception-led Review, conversational correction, exact Changes to apply, atomic and independent-batch outcomes, stale refresh, projection lag, and governed Revert without contextual demo material |
+| `UX-FX24` | Paired bounded relationship questions | Two invented profiles exercise question-led scope, exact multi-step paths, contrary or constraining material, working layers, dependencies versus impact, dedicated comparison, direct correction, bounded new Work, textual parity, and exact return |
+| `UX-FX25` | Dense, temporal, and adverse graph exploration | High-degree/cyclic paths, overlapping groups and honest counts, query limits and late responses, historical/unknown dates, stale working base, incomplete comparison, projection lag/blocking, missing/restricted targets, renderer/offline recovery, local saved views, ten-state history, and responsive/accessibility variants |
 
 Post-freeze fixtures use Petra's canonical IDs and runtime shapes. When a runtime contract is not yet available, a fixture declares its provisional schema and associated `UX-REQ` item. They use synthetic content and remain independent of contextual demo assets and directories. Existing pre-freeze shell and graph fixtures remain exploratory comparison evidence; they do not satisfy the neutral reference-UX gate until reviewed or rebuilt against the frozen brief.
 
@@ -973,6 +988,7 @@ A local component calculation is allowed for presentation-only state such as pan
 | `UX-REQ-010` | `proposed`; architecture and retention decision required | Project-source association plus governed removal and local-copy deletion lifecycle | `M1.2`, `M1.5`, `M1.7`, later retention policy | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-011` | `proposed`; architecture decision required | Durable, profile-valid, non-authoritative working candidates and graph relationships derived from bounded interactions with exact origin, basis, validation, and revision lineage | `M1.1`, `M1.3`, `M1.5`, `M1.6`, `M1.7`, later profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-012` | `proposed` | Snapshot-consistent, profile-neutral Review-session query and missing correction, basis-change, separation, deferment, and member-outcome command composition | `M1.5`, `M1.7`, later profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
+| `UX-REQ-013` | `proposed` | Bounded profile-resolved relationship query with exact layers/paths, scope and omissions, finite expansion, supplied comparison/impact facts, and temporal capabilities | `M1.3`, `M1.5`, `M1.6`, `M1.7`, later profile/temporal contracts | `reports/UX-BACKEND-HANDOFF.md` |
 
 The implementation track owns each request's disposition. A post-freeze synthetic fixture may
 use the proposed shape, but no module may claim `G-CONTRACT` until the request
@@ -1069,9 +1085,9 @@ only after the full reference UX stands independently.
 Backend implementation of already accepted architecture may continue. The
 design track should now:
 
-1. carry accepted `DB04`–`DB09` through `UX-REQ-001`–`UX-REQ-012` without implementing a product surface;
-2. specify `DB10`, graph and relationship work, as the next discussion-first section;
-3. specify Work, composition, settings, design-system, language, accessibility, and recovery behavior through `DB11`–`DB17`;
+1. carry the accepted direction and specifications through `DB10` into `UX-REQ-001`–`UX-REQ-013` without implementing a product surface;
+2. discuss and specify `DB11`, durable Work and orchestration, using DB06 and DB10's existing Work boundaries;
+3. specify composition, settings, design-system, language, accessibility, and recovery behavior through `DB12`–`DB17`;
 4. maintain the `UX-REQ` register and request architecture dispositions without allowing available backend shapes to dictate the UX;
 5. assemble the complete screen inventory, responsive blueprints, state matrix, flow map, and acceptance plan in `DB18`;
 6. review the entire brief and explicitly record `UX-DESIGN-FREEZE-01`;
