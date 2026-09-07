@@ -72,6 +72,87 @@ contexts are not. The design therefore specifies profile extension points,
 semantic responsibilities, and invariant controls before either real context is
 connected.
 
+## Project lines of inquiry
+
+**Clarification accepted on 2026-09-06 as `UX1.6-DISC04`:** the parallel branches
+the author follows are primarily lines of inquiry in the Project's reasoning.
+They can concern hypotheses, but also definitions, methods, criteria, uncertain
+assumptions, source disagreements, interpretation, design alternatives, or other
+profile-valid open questions. They are not limited to Hypotheses or to branches
+in an execution plan. This clarifies the scope of the advisory-order direction
+in `UX1.6-DISC03`; its author-control and authority boundaries remain intact.
+
+A line of inquiry names what the author is trying to understand or resolve, why
+it matters to the Project, its current basis and uncertainty, related questions,
+and useful next investigation. A Hypothesis may anchor a line; the interface does
+not require every line to be phrased as a falsifiable proposition. A profile may
+represent the role through an existing question, Hypothesis, interpretation,
+design question, or linked set of typed objects where their semantics fit.
+**Line of inquiry** is a product role here, not a mandated universal schema or a
+new wrapper required around every Hypothesis. `UX-REQ-016` requests its canonical
+profile mapping and cross-surface read/linkage boundary.
+
+| Concept | Meaning and duration | Relationship to the others |
+| --- | --- | --- |
+| Project | The author's overall purpose and governed body of work | Contains or references multiple lines of inquiry that can advance in parallel |
+| Line of inquiry | An ongoing question or direction of investigation with exact basis, uncertainty, and history | May involve one or more Hypotheses or other profile objects, conversations, outputs, and zero or many Work tasks over time |
+| Work task | A bounded authorized execution with exact inputs, limits, outputs, and operational outcome | Addresses part of one or more inquiries; finishing it does not by itself resolve them |
+| Stage or execution branch | A declared unit or path inside a registered workflow | Describes how particular Work proceeds, not the complete structure of the Project's reasoning |
+
+Parallel inquiry does not require simultaneous model or worker execution. A line
+remains recognizable when no Work is running, after a task completes, and while
+the author attends elsewhere. Shared sources, assumptions, findings, and Work
+retain one identity across lines. An inquiry hierarchy may group and relate
+questions, but cross-links and shared basis prevent it from being treated as a
+strict tree of isolated tasks. Unresolved questions can inform one another without
+either being a mandatory prerequisite for all useful progress on the other.
+
+For example, **Which criteria should guide this comparison?** and **What
+alternatives are worth comparing?** can proceed together. A named model role may
+recommend clarifying criteria first to make comparison more consistent. The author
+may instead explore alternatives to discover which criteria matter. The response
+acknowledges that choice, labels the comparison exploratory, and records what it
+suggests about the criteria. It does not mark the inquiry blocked merely because
+the recommended reasoning order changed. A separate inquiry might test a specific
+Hypothesis; another might examine whether a measurement method is appropriate.
+
+An inquiry recommendation explains expected relevance to the Project's current
+purpose, unresolved questions, basis, potential information gain or rework, known
+limits, and uncertainty. It is not a scheduler order or a universal priority score.
+The author's selected inquiry is respected without repeated nudges or a claim of
+Project harm merely because another line was recommended. Actual eligibility and
+prerequisites are checked for a concrete requested operation; a reasoning
+relationship or provisional interpretation alone cannot make all inquiry into
+another question impossible.
+
+Where an unresolved inquiry limits another conclusion, explain the specific
+limitation and its basis. For example, unresolved comparison criteria may leave
+a ranking provisional while exploration of the alternatives remains useful.
+Respecting the author's chosen order does not erase uncertainty or turn a
+conditional finding into a settled one.
+
+Opening or focusing an inquiry is navigation/context selection, not an instruction
+to start Work, reschedule running tasks, accept findings, or replace the Project's
+governing objective. Explicit requests can answer from current basis, continue
+bounded conversation, or enter the existing Work preview/start/steering path.
+Creating or revising meaningful inquiry structure follows registered profile and
+DB09 working-candidate/Review rules; a model cannot silently convert an inferred
+inquiry relationship or resolution into authoritative Project meaning.
+
+Inquiry summaries distinguish what is currently understood, what remains open,
+what is provisional or contested, and the actual operational status of linked
+Work. A successful search or validator run can leave its inquiry unresolved;
+cancelled Work does not abandon the inquiry. Unsupported profile meaning,
+unavailable basis, stale summaries, and missing linkage have explicit limitations.
+The UI never derives inquiry resolution from Work completion percentages.
+
+This clarification uses existing Brief, Project-map, Details, Petra, Graph, Work,
+Review, and History places; it does not add a mandatory inquiry dashboard or a
+seventh primary Project destination. DB07 orients to the lines of inquiry, DB10
+inspects their relationships, and DB11 manages the bounded Work undertaken for
+them. The canonical mapping and persistence remain proposed until architecture
+disposition; no product or backend implementation is authorized by this section.
+
 ## Required design-brief contents
 
 Each section must be accepted at specification depth before the product-design
@@ -399,7 +480,7 @@ renderer fails.
 ### Backend and persistence needs
 
 The flow architecture depends on the existing and proposed requirements
-`UX-REQ-001` through `UX-REQ-015`. Individual destination data remains owned by
+`UX-REQ-001` through `UX-REQ-016`. Individual destination data remains owned by
 its module contract. The navigation context, browser history, return target,
 focus target, unsent input, disclosures, and graph exploration trail are client
 presentation state. Project/profile identity, snapshots, typed objects, Work,
@@ -815,6 +896,17 @@ A profile may omit an irrelevant semantic role, but it cannot redefine
 **Review changes**, **Start work**, **Cancel work**, **Apply changes**, **Revert
 change**, snapshot identity, or authority. Unknown and unsupported
 profiles fail closed instead of falling back to generic cards.
+
+The accepted Project-lines-of-inquiry clarification applies to this hierarchy.
+**Current state** can summarize the selected and related inquiry lines, their
+current understanding, unresolved questions, and shared basis; **Next steps**
+can recommend an inquiry direction with valid alternatives. The Project map and
+exact Details preserve access to other lines without making every inquiry an
+expanded card or active Work row. Project purpose and selected inquiry remain
+recognizable as different context. Selecting an inquiry does not rewrite the
+governing objective or schedule Work. An inquiry with no active Work still exists,
+and completed Work need not resolve its question. `UX-REQ-016` supplies the missing
+mapping/linkage; `UX-REQ-002` composes these facts into the existing Brief roles.
 
 ### Attention and consequence ordering
 
@@ -2018,6 +2110,15 @@ then return to the origin, correct a working candidate, open Review, or start
 bounded Work for an unresolved question. Merely displaying a network or finding
 a connection is not evidence that the relationship question has been answered.
 
+Graph may also inspect the relationships among selected Project lines of inquiry:
+shared basis, assumptions, alternative interpretations, open questions, and any
+profile-valid dependencies. The entry stays bounded to the named relationship
+question. An inquiry line is not automatically a Hypothesis node or a Work branch;
+linked Work and its execution prerequisites remain separately inspectable.
+Changing inquiry focus or expanding those relationships neither schedules Work
+nor makes a provisional reasoning dependency a runtime constraint. The same
+meaning and exact inquiry references appear in the textual peer under UX-REQ-016.
+
 ### Shared roles and profile-owned meaning
 
 | Role | Shared responsibility | Profile-owned meaning |
@@ -2614,6 +2715,13 @@ remain enforceable. The paper audit is complete; runtime contract disposition,
 implementation, and participant validation remain separate gates. This does not
 record `UX-DESIGN-FREEZE-01`.
 
+`UX1.6-DISC04` clarifies that the author's primary branches are parallel Project
+lines of inquiry, which may concern Hypotheses or other questions and can span
+multiple Work tasks. DB11 manages their associated execution; it does not define
+inquiry identity or progress through a task tree. The shared Project inquiry
+section, DB07, and DB10 provide the corresponding orientation and relationship
+boundary. Operational branch scheduling below remains the narrower Work behavior.
+
 DB06 already establishes durable Work, bounded action previews, accountable
 roles, distinct interrupts, observable activity, cost, cancellation, and exact
 result routing. Those accepted boundaries are not reopened here.
@@ -2861,6 +2969,12 @@ Its smallest viable response must map existing operations before adding new ones
 No generic Pause, checkpoint-resume capability, recursive cancellation, or spend
 increase is claimed from fields in a WorkUnit or a graph of its dependencies.
 
+`UX-REQ-016` supplies the distinct Project inquiry mapping, basis/status and
+recommendation context, and exact links to zero or many Work tasks. UX-REQ-014
+can consume those references in task detail; UX-REQ-015 remains an operational
+transition request. Neither replaces an inquiry with a WorkUnit or derives its
+resolution from execution outcomes.
+
 The client owns local filters, selection, disclosure, panel layout, unsent input,
 and return context. Runtime contracts own task membership, plan/stage meaning,
 progress, eligibility, required input, resource accounting, results, and control
@@ -2941,12 +3055,21 @@ existing Work continues or stops, and preserves prior history and incurred cost.
 
 ### Dependency hierarchy and contextual branch recommendations
 
-The author can inspect the task's stages, branches, and shared prerequisites and
-receive a contextual recommendation about which branch to resolve next. A branch
-is a named part of a registered task or dependency structure, not an independent
-authority layer. A hierarchy is a readable presentation: shared prerequisites and
-cross-branch links retain one identity and do not become duplicate work because
-they appear under several parents.
+The author's primary hierarchy concerns Project lines of inquiry, as clarified in
+`UX1.6-DISC04`: ongoing directions of reasoning that can span several tasks and
+need not be Hypotheses. Work detail identifies which inquiry or inquiries its
+exact task addresses and offers a return to their basis and open questions.
+Inquiry context remains available when there are no tasks or all linked tasks
+have finished. One Work result can inform several lines without being duplicated
+or declaring all of them resolved.
+
+Within a Work task, the author can also inspect execution stages, branches, and
+shared prerequisites. In the operational rules below, **execution branch** means
+a named part of a registered workflow. Its scheduling priority is separate from
+the Project-level recommendation about which inquiry would be useful to explore.
+Shared prerequisites retain one identity and do not become duplicate work because
+they appear under several parents. The existing source-version A/B/C/D example
+illustrates this narrower execution case, not the definition of inquiry.
 
 The interface distinguishes three facts:
 
@@ -2987,6 +3110,14 @@ scope follows DB06's bounded action path. Choosing an eligible branch cannot
 bypass its actual prerequisite, but it can select independent preparatory work
 that has its own valid operation and clear completion condition.
 
+These are execution controls. **Explore this inquiry** instead opens its current
+basis and bounded conversation context. It may produce a useful answer without
+starting Work. If new investigation is needed, the exact action binds the inquiry
+and its open question through DB06; linked results return to that inquiry with
+their actual scope, uncertainty, and Review status. Merely choosing an inquiry
+does not reprioritize, cancel, or launch its associated tasks. An explicit request
+to execute or steer still follows the accepted direct-instruction boundary.
+
 The accepted choice stays effective for its task/plan scope until the author
 changes it or material new facts require re-evaluation. The former recommendation
 can remain inspectable without repeated prompts, automatic priority resets, or
@@ -3003,6 +3134,7 @@ identity, observation revision, control consequence, and exact outcome.
 | State | Visible meaning | Required path |
 | --- | --- | --- |
 | No Work | No task in the selected Project/filter; distinguish empty Project from no matching rows | Clear filters, return to origin, or open a profile-valid SuggestedAction; no artificial task |
+| Inquiry has no active Work or linked Work is complete | Inquiry identity, current understanding, and unresolved questions remain distinct from its task list | Return to inquiry context, reason from existing basis, or prepare bounded new Work; no automatic resolution or abandonment |
 | Preparing action/plan | Objective and readiness are being resolved; nothing claims to be running | Inspect available context, adjust unsubmitted input, defer, or stop the response |
 | Action ready or stale | Exact objective, input, output, scope, cost/limits, and control consequences, or changed prerequisites | Start the authorized exact action, revise it, regenerate stale input, or return |
 | Requested/queued | Durable task received and waiting, with known prerequisites/resource condition | Inspect, leave running where applicable, direct another eligible branch, or use supported cancellation |
@@ -3048,6 +3180,7 @@ stale, failed, interrupted, offline, and recovery branches for every path.
 | `DB11-P08` Retry, resume, or start again | Runtime eligibility for unchanged retry, exact compatible checkpoint, or deliberate fresh execution | Show retained/reused inputs and outputs, limits and effects; record new attempt or linked execution according to the operation | Failed history and original source survive; incompatible or exhausted paths offer revised input or stop; no hidden continuation |
 | `DB11-P09` Inspect and use result | Available permitted exact output from successful, partial, failed, or cancelled Work | Show origin, scope, usability, validation, and limitations; route to answer/source/Composition/Review as appropriate | Return to result/stage and origin; applying a candidate uses separate DB09 command and projection outcome |
 | `DB11-P10` Inspect execution history | Plan change, attempt, checkpoint, command, input response, or result lineage selected | Show exact prior and current records, responsible actor/role, and operational versus domain effects; read only | Resolve current explicitly for new instructions; return to selected event/task without rewinding work |
+| `DB11-P11` Explore inquiry and use Work | A Project inquiry is selected with exact question/basis context; explicit execution request only when Work is needed | Inspect or discuss existing basis without scheduling; bind any bounded task to its inquiry references; return outputs with exact scope, uncertainty, and Review status | Preserve inquiry focus and related lines across task/source/Graph inspection; cancelled or completed Work does not silently abandon or resolve the inquiry |
 
 Routine expansion, inspection, filtering, branch selection for viewing, and
 navigation require no confirmation. A clear authorized Work instruction also
@@ -3065,6 +3198,7 @@ terms; post-freeze evidence must verify comprehension and accessible rendering.
 | Canonical meaning | User-facing term / allowed short form | Must not imply | Surfaces and owning boundary |
 | --- | --- | --- | --- |
 | Durable bounded task | **Work**, with the recognizable objective as title | Conversation thread, one model call, or accepted domain truth | Work/Brief/Petra; WorkUnit and DB06 |
+| Project reasoning direction | **Line of inquiry**, **Explore this inquiry**, or a registered profile-specific name | Necessarily a Hypothesis, WorkUnit, conversation branch, or execution prerequisite | Brief/Project map/Details/Graph/Petra/Work context; DISC04 and UX-REQ-016 |
 | Observable workflow stage | Profile-valid stage name, **Show activity**, **Show dependencies** | Private reasoning, invented task membership, or a mandatory serial order | Task detail/activity; registered workflow and UX-REQ-014 |
 | Actual prerequisite | **Requires [input]**, **Waiting for [stage]** | A model preference or a global Project failure | Task/stage/dependency view; canonical workflow/control rule |
 | Advisory ordering | **Recommended next**, with reason | Required order, granted authority, or a risk warning for another valid choice | Task/branch/Petra; contextual recommendation and DISC03 |
@@ -3107,9 +3241,10 @@ Exact identifiers and diagnostic records remain available through inspection.
 | Error recovery | Exact command reconciliation, retained attempts, supported checkpoints, partial-output policy, stale-plan resolution, and cancellation races preserve honest outcomes |
 | Help and documentation | Contextual explanations distinguish required/recommended order, checkpoint/pause, retry/resume/new execution, operational success, and domain acceptance |
 
-The paper audit walks `DB11-P01`–`P10`, the state matrix, the narrowed passage
-check, and the A/B/C/D dependency example in both profile roles. It checks the
-specified reading order and textual control equivalents against the accepted
+The paper audit walks `DB11-P01`–`P11`, the state matrix, the narrowed passage
+check, the A/B/C/D execution example, and the parallel criteria/alternatives
+inquiries in both profile roles. It checks the specified reading order and
+textual control equivalents against the accepted
 authority and interaction contracts. It does not claim executed fixtures,
 measured accessibility/performance, or observed participant comprehension.
 
@@ -3121,6 +3256,7 @@ measured accessibility/performance, or observed participant comprehension.
 | `DB11-A04` Missing composed Work view | Existing operational records do not supply complete stage membership, attention/input/result summaries, advice, or accounting coverage | Major | Needs contract: UX-REQ-014, implementation architecture; provisional synthetic read provider only after freeze; G-CONTRACT remains open |
 | `DB11-A05` Missing generic steering and transition composition | Immutable manifests, narrow retry/cancel APIs, and dependency IDs do not implement safe generic plan changes, shared-branch scheduling, or resume | Major | Needs contract: UX-REQ-015, implementation architecture; explicit unsupported control boundaries until disposition; no claimed live command |
 | `DB11-A06` Stage/dependency comprehension unmeasured | A paper hierarchy cannot establish whether users understand concurrent work, shared prerequisites, advisory order, and terminal outcomes | Moderate | Needs researcher validation: design owner, UX-FX26/UX-FX27 after freeze; any severe misunderstanding blocks G-VALIDATION |
+| `DB11-A07` Inquiry conflated with execution branch | The earlier hierarchy described branches within registered tasks; the user clarified parallel Project lines of inquiry beyond Hypotheses | Major | Fixed in shared inquiry model, DB07/DB10/DB11, flow and roadmap wording; UX-REQ-016 records canonical mapping/linkage needs; paper path P11 and UX-FX28 check zero/many/shared tasks and unresolved inquiry after Work completion |
 
 Acceptance fails if the author could reasonably believe that a recommended branch
 is compulsory, another eligible priority jeopardizes the Project merely by being
@@ -3129,8 +3265,10 @@ changes execution, selecting a branch cancels all others, clear authorized steer
 needs repeated assent, chat grants new authority, a stage change edits consumed
 inputs retroactively, a checkpoint guarantees pause/resume, terminal means success,
 validation findings mean execution failure, retained diagnostics are a usable
-result, cancellation erased/refunded/reverted work, replay reruns it, or a narrowed
-task's success proves that the original larger objective is complete.
+result, cancellation erased/refunded/reverted work, replay reruns it, a narrowed
+task's success proves that the original larger objective is complete, every inquiry
+must be a Hypothesis, a WorkUnit defines the inquiry's lifetime, or reasoning order
+alone establishes an execution prerequisite.
 
 ### Acceptance criteria and post-freeze conformance evidence
 
@@ -3165,14 +3303,19 @@ implementation and validation must demonstrate them after design freeze:
 13. every listed empty, dense, limited, running, blocked, awaiting-input, stale,
     failed, partial, offline, cancelled, and successful state has bounded recovery;
 14. keyboard, screen-reader, textual dependency, touch, resized-panel, high-zoom,
-    reduced-motion, and forced-colors paths preserve the complete task; and
+    reduced-motion, and forced-colors paths preserve the complete task;
 15. runtime gaps and paper findings have explicit owners/gates, while no product
-    surface or command is implemented before UX-DESIGN-FREEZE-01.
+    surface or command is implemented before UX-DESIGN-FREEZE-01; and
+16. inquiry identity, basis, open questions, and advisory priority survive across
+    zero, many, or shared Work tasks; hypotheses are optional inquiry anchors,
+    selecting an inquiry does not schedule execution, and task completion does
+    not silently resolve the inquiry.
 
 | Scenario | Post-freeze evidence required |
 | --- | --- |
 | `UX-FX26` Paired Work task and stage inspection | Independently invented scientific and writing tasks show declared stages, concurrent/dependent activity, exact attempts, required input, progress and resource coverage, valid partial outputs, terminal success/failure, checkpoint/cancellation distinctions, reconnect/replay, and full responsive/textual/accessibility parity across entry points. |
 | `UX-FX27` Contextual branch choice and Work steering | A real prerequisite feeds two stages while another branch is eligible; the author chooses the non-recommended branch without a warning or extra approval. Then exercise changed recommendation basis, preserved priority, shared dependencies, clear scope narrowing, exact new input, validated reuse and reruns, a genuine authorization/ambiguity question, active atomic/checkpoint boundaries, stale/partial/failed steering, cancellation/completion races, exhausted retry, unsupported resume, deliberate fresh execution, and result scope/return. Pair profile-specific meaning with the same control grammar. |
+| `UX-FX28` Parallel Project lines of inquiry | Invent criteria, alternatives, method/interpretation, and optional Hypothesis-centered inquiries in two profiles. Explore alternatives before clarifying criteria without a false prerequisite; retain an inquiry with no active tasks, one with completed Work but open questions, multiple tasks over time, and one shared result informing several inquiries. Preserve basis, uncertainty, cross-links, advisory preference, exact Work/Review return, and graph/text/navigation parity without forcing a Hypothesis or WorkUnit schema onto every line. |
 
 These are named paper scenarios, not existing fixtures or processed real-world
 data. They must be independently invented and cannot derive from contextual demo

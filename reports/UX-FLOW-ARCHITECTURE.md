@@ -1,6 +1,6 @@
 # Petra user-flow architecture
 
-Status: accepted product flow, information architecture, Sources, Review, Graph, and Work direction; related runtime read and command compositions awaiting architecture disposition
+Status: accepted product flow, information architecture, Sources, Review, Graph, Work, and Project-inquiry direction; related runtime mappings and compositions awaiting architecture disposition
 Date: 2026-09-06
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as distinct project profiles
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
@@ -116,6 +116,26 @@ separate governed decision.
 11. **Progressive disclosure reduces noise without hiding consequence.** Scope, cost, authority, warnings, and recovery appear when they affect the decision.
 12. **Every material path has an accessible equivalent.** Graph-only, color-only, hover-only, drag-only, and stream-order-only understanding is insufficient.
 13. **Natural conversation supplies working structure.** A named model role may turn bounded interaction into durable non-authoritative candidates, relationships, basis, provenance, uncertainty, and validation inputs without requiring graph entry; Petra presents and governs those records but does not author or approve them.
+
+## Parallel Project lines of inquiry
+
+The author's parallel branches are Project lines of inquiry: directions of
+investigation that may concern Hypotheses, criteria, methods, interpretations,
+source disagreements, or other profile-valid questions. The
+[shared inquiry model](PETRA-UX-DESIGN-BRIEF.md#project-lines-of-inquiry) records
+`UX1.6-DISC04`; `UX-REQ-016` requests its canonical profile mapping and exact
+links. It does not mandate a new universal object type.
+
+Brief and the Project map retain the inquiry context; Details and optional Graph
+inspect basis and relationships; Petra supports bounded discussion; Work carries
+out explicitly requested tasks. A line can have zero or many tasks over time,
+and one result can inform several lines. Completing or cancelling a task does
+not automatically resolve or abandon the inquiry it serves.
+
+Selecting an inquiry does not schedule Work or replace the Project objective.
+Petra may recommend clarifying comparison criteria first while the author chooses
+to explore alternatives to discover useful criteria. That choice remains valid;
+contextual reasoning advice does not create an operational prerequisite.
 
 ## Core governed-work loop
 
@@ -529,6 +549,12 @@ status, or an automatic priority reset. Viewing a branch does not schedule it.
 `UX-REQ-015` records exact operational plan/priority transitions, validated reuse,
 shared dependencies, and recovery needs; it remains a proposed runtime contract.
 
+Those execution branches are narrower than the Project lines of inquiry clarified
+in `UX1.6-DISC04`. `UX-REQ-016` links each task and result to the inquiries it
+serves without making their lifetime, resolution, or reasoning priority a Work
+lifecycle property. Exploring an inquiry can remain a read or conversation;
+new Work requires the corresponding explicit action.
+
 ### `UX-FLOW-12` — propose, preview, apply, and reverse a change
 
 - **Goal:** change research state deliberately with inspectable impact and recoverable history.
@@ -831,11 +857,13 @@ work rather than open product scope:
   activity, required input, result, resource coverage, and control eligibility; and
 - direct authorized Work steering and task-scoped branch priority, with exact
   plan/input lineage, validated reuse, active-stage/scheduling transitions, and
-  operational recovery composition.
+  operational recovery composition; and
+- profile-valid Project inquiry mapping, basis and advisory reasoning context,
+  with exact zero/many/shared Work and result links across existing surfaces.
 
-`UX-REQ-004` through `UX-REQ-015` carry the profile, lineage, thread-context,
+`UX-REQ-004` through `UX-REQ-016` carry the profile, lineage, thread-context,
 governed-reversal, semantic-location, source-view, source-lifecycle,
-working-candidate, Review-session, focused relationship-query, Work-read, and
-Work-steering needs to the implementation track.
+working-candidate, Review-session, focused relationship-query, Work-read,
+Work-steering, and Project-inquiry needs to the implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.

@@ -27,10 +27,10 @@ The implementation track may continue already accepted backend work. It should
 not add a demo adapter, corpus path, profile-specific shortcut,
 imported-document promotion behavior, or new shared schema from the future demo contexts
 while the product brief is open. It should review `UX-REQ-004` through
-`UX-REQ-015` as general architecture needs and return a disposition without
+`UX-REQ-016` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
-`UX-REQ-015` follow the accepted Petra interaction, navigation, Sources,
-Review, Graph, and Work direction; they do not authorize a frontend implementation before the
+`UX-REQ-016` follow the accepted Petra interaction, navigation, Sources,
+Review, Graph, Work, and Project-inquiry direction; they do not authorize a frontend implementation before the
 design freeze.
 
 ## Accepted UX changes with no backend semantic impact
@@ -774,6 +774,12 @@ between shell context and task content more important.
   waiting successors, and shared dependency identity. A model preference or
   inferred domain dependency cannot turn an eligible branch into blocked Work.
   Reopening the view does not silently reset the author's chosen priority.
+- **Inquiry linkage clarification (`UX1.6-DISC04`):** consume exact inquiry
+  references/context from `UX-REQ-016` where a task addresses a Project line of
+  inquiry. An inquiry can outlive this task, have no active Work, or share results
+  with other lines. The Work view owns execution presentation; its stage tree,
+  terminal status, and priority do not define inquiry identity, resolution, or
+  the author's Project-level reasoning order.
 - **Composition and identity:** use the primary canonical WorkUnit identity and
   registered workflow records. If a workflow composes several WorkUnits, return
   their exact membership, dependencies, shared consumers, and control ownership
@@ -818,6 +824,12 @@ between shell context and task content more important.
 
 ### `UX-REQ-015` — Work steering, branch priority, and execution-plan transition
 
+- **Scope clarification (`UX1.6-DISC04`):** this request governs operational
+  Work branches only. The author's primary parallel lines of inquiry are
+  Project-level reasoning contexts, may concern Hypotheses or other open
+  questions, and can span zero or many tasks. Their representation and advisory
+  priority are requested in `UX-REQ-016`; selecting an inquiry does not invoke
+  this scheduling command. Existing direct execution instructions still do.
 - **Originating design work:** DB11 and accepted `UX1.6-DISC03` (2026-09-06),
   including the user's distinction between contextual branch advice and actual
   prerequisite constraints; `DB11-P03`–`P08`, `UX-FLOW-11`, and `UX-FLOW-16`.
@@ -920,6 +932,96 @@ between shell context and task content more important.
 - **Owner and status:** product architecture and implementation track; UX
   direction accepted, canonical command/composition shape `proposed`.
 
+### `UX-REQ-016` — Project lines of inquiry and exact Work linkage
+
+- **Originating design work:** the user's clarification accepted on 2026-09-06
+  as `UX1.6-DISC04`; the shared Project inquiry model and DB07/DB10/DB11;
+  `DB11-P11`, `UX-FLOW-02`, `UX-FLOW-07`–`11`, and `UX-FLOW-16`.
+- **Named design scenario and post-freeze fixture need:** `UX-FX28`, parallel
+  invented criteria, alternatives, method/interpretation, and optional
+  Hypothesis-centered inquiries. The author explores alternatives before fixing
+  criteria; one line has no active Work, another has completed tasks but unresolved
+  questions, and a shared result informs several lines. Pair two profiles without
+  aliasing every question to a Hypothesis or WorkUnit.
+- **Implementation links:** `M1.1` Project/domain identity, `M1.2` durable
+  records, `M1.3` typed relationships, `M1.5` working/Review boundaries,
+  `M1.6` bounded context and recommendations, `M1.7` cross-surface reads,
+  and later registered profile/domain contracts where required.
+- **Project-author task and failure:** maintain and explore several meaningful
+  directions of inquiry, understand their shared basis and open questions, and
+  choose where to reason next independently of whether a worker is running.
+  Without this boundary, the UI would force questions into Hypotheses, lose an
+  inquiry when Work ends, treat a successful task as a resolved question, or turn
+  recommended reasoning order into a scheduler constraint.
+- **Existing contract check:** PETRA.md describes subquestions, concepts,
+  mechanisms, explanations, and search strategies; D009's research map includes
+  ResearchQuestions and subquestions separately from Hypotheses. PETRA_GRAPH_MODEL.md
+  describes ResearchQuestion meaning and provisional/deferred states. The current
+  canonical Project schema supplies Project identity and private scope; WorkUnit
+  supplies bounded execution. These do not by themselves establish the complete
+  profile-resolved inquiry role, cross-surface read composition, recommendation
+  context, and zero/many/shared Work linkage. Architecture should first map the
+  role onto existing domain records rather than add a universal new object type.
+- **Requested semantic mapping:** register how each supported profile represents
+  a line of inquiry through a question, Hypothesis, other valid domain object, or
+  linked set where its semantics fit. Preserve stable identity/revision and
+  recognizable inquiry purpose, original/revised framing, relationship to the
+  Project purpose, basis, uncertainty, open questions, history, and any supplied
+  resolution/assessment meaning. Do not require every line to be a falsifiable
+  proposition or a new wrapper around an existing Hypothesis. Final profile
+  ontology and persistence require architecture disposition.
+- **Requested read/linkage behavior:** provide exact inquiry references, profile
+  meaning, current understanding and limitations, shared/cross-linked basis and
+  related questions, recommendation basis/producer/freshness, and authorized
+  destinations. Link zero or many conversations, Work tasks over time, results,
+  candidates, and decisions. Preserve one identity for shared Work/basis rather
+  than duplicating it in each inquiry. State whether a result merely addresses
+  the question, provides admissible basis, or carries a separate accepted finding;
+  execution provenance alone cannot establish evidentiary support.
+- **Recommendation behavior:** explain why a line could be useful to explore next
+  in the current Project context, including its uncertain reasoning dependencies,
+  likely learning value, rework, and known limits where supported. Keep authored
+  preference, model/rule advice, inquiry meaning, and actual operational
+  prerequisites distinct. Choosing another line does not create a failed/risky
+  Project state or automatically start/cancel/reprioritize linked Work. A valid
+  exploratory order can help discover the criteria or assumptions that an earlier
+  recommendation suggested resolving first.
+  Where an unresolved inquiry limits another conclusion, preserve the specific
+  limitation and basis without treating all exploration as blocked. Respecting
+  chosen order does not remove uncertainty or make a provisional ranking settled.
+- **Authority and persistence:** inquiry framing, relationships, assessments, and
+  resolutions use registered profile-valid working and authoritative records
+  under `UX-REQ-004`/`UX-REQ-011`/DB09. Navigation focus and presentation preference
+  remain distinct from durable semantic changes and operational scheduling. A
+  model can produce candidate inquiry structure but cannot silently promote it.
+  Do not derive inquiry resolution, abandonment, or confidence from Work progress,
+  terminal success, cancellation, or mere artifact existence. Preserve references
+  and history across focus changes, disconnected delivery, and task completion.
+- **Surface composition:** feed existing Brief/Project-map/Details/Petra/Graph
+  roles and exact Work context; no new primary destination or mandatory dashboard.
+  Opening/focusing an inquiry resolves context and permits bounded reasoning from
+  existing basis. New execution uses `UX-REQ-003`/`UX-REQ-015` only when directed;
+  results return through `UX-REQ-014` to their inquiry without automatic resolution.
+  Unsupported profiles, stale basis, unavailable/restricted members, and missing
+  mappings have honest scoped failure and safe navigation.
+- **Smallest viable response:** map one supported inquiry role to a suitable
+  existing domain representation with exact Project identity, basis/open-question
+  read composition, and explicit Work/result links. Compose the existing Brief
+  and Details roles; use existing graph relationships where meaning matches.
+  Identify missing profile schemas, durable semantic/priority records, or new
+  command mappings explicitly; do not relabel a WorkUnit as the fallback inquiry.
+- **Provisional post-freeze boundary:** a synthetic profile/query adapter may
+  declare its inquiry mapping and exact links under `UX-REQ-016`/`UX-FX28`.
+  It must label provisional contract assumptions outside the product frame and
+  may not calculate domain meaning or approval in feature components. No schema,
+  interface, demo corpus, or persistence change is implemented by this request.
+- **Dependencies:** `UX-REQ-002` Brief composition, `UX-REQ-004` profile semantics,
+  `UX-REQ-006` conversation/context linkage, `UX-REQ-008` destinations,
+  `UX-REQ-011`/`UX-REQ-012` working meaning and Review, `UX-REQ-013` bounded graph
+  inspection, and `UX-REQ-014`/`UX-REQ-015` distinct operational Work boundaries.
+- **Owner and status:** product architecture and implementation track; Project
+  inquiry meaning accepted, canonical mapping/read/linkage shape `proposed`.
+
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
 integration requests are written.
@@ -942,6 +1044,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Durable task state and explicit cancellation | WorkUnit and worker manifests from `M1.1`, persistence in `M1.2`, interaction in `M1.7` |
 | Project Work collection, task stages, input/result summaries, and reconciled activity | Proposed `UX-REQ-014`; existing WorkUnit, manifests, cancellation, and interaction records retain operational authority |
 | Direct Work steering, contextual branch priority, validated reuse, and safe plan transition | Proposed `UX-REQ-015`; existing immutable inputs, operational commands, dependency rules, and cancellation retain their boundaries |
+| Project lines of inquiry beyond Hypotheses, with exact basis and zero/many/shared Work links | Proposed `UX-REQ-016`; profile-owned reasoning contexts remain distinct from Work execution and its lifecycle |
 | Current/cached/new evidence boundary | ContextPacket and EvidencePacket from `M1.1`, retrieval path in `M1.6` |
 | Assistant stream, interrupt, reconnect, and replay | PetraInteractionRun and AG-UI adapter boundary from `M1.0`/`M1.1`, product hooks in `M1.7` |
 | Projection freshness | GraphProjectionRecord and ProjectionCheckpoint from `M1.1`, delivery in `M1.3`/`M1.5` |
@@ -958,14 +1061,18 @@ lifecycles merely because the profile uses different nouns.
 The authored-project, imported-document, Project-thread, exact turn-context,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
 conversational-working-graph, profile-neutral Review, bounded relationship-view,
-Work-presentation, and Work steering/branch-priority questions are no
+Work-presentation, Work steering/branch-priority, and Project inquiry questions are no
 longer candidate design ideas; their accepted UX requirements are `UX-REQ-004`
-through `UX-REQ-015`. Their backend shapes remain proposed until the required
+through `UX-REQ-016`. Their backend shapes remain proposed until the required
 architecture, contract, and retention dispositions.
 
 DB11's accepted direct-steering and advisory branch-order behavior is recorded in
 `UX-REQ-015`. `UX-REQ-014` supplies its read composition; neither request claims
 that the generic operational transition is implemented.
+
+The subsequent accepted inquiry clarification is `UX-REQ-016`. It places the
+author's parallel reasoning lines at Project level and limits `UX-REQ-015` to
+the execution behavior of concrete Work tasks undertaken for those inquiries.
 
 ### Cross-device preference synchronization
 
@@ -987,5 +1094,5 @@ The design track will not claim live integration or `G-CONTRACT` for the shell,
 Brief, SuggestedAction, Project-profile, imported-document, Project-thread,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
 conversational-working-graph, profile-neutral Review, bounded relationship-view,
-composed Work-presentation, or generic Work-steering flows until the
+composed Work-presentation, generic Work-steering, or Project inquiry flows until the
 applicable requests have an explicit disposition.

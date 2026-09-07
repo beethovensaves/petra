@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue the design brief at `DB12`, Composition and revision. `DB04` through `DB09` are accepted; DB10 and DB11 have accepted direction, complete specifications, and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Carry the latest Project-inquiry clarification below into the continuing discussion. `DB04` through `DB09` are accepted; DB10 and DB11 have accepted direction, complete specifications, and paper audits. DB12, Composition and revision, is next after the current clarification. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -161,19 +161,43 @@ material plan change is superseded by this direction. Do not revive that blanket
 confirmation rule. Recommendations remain advisory even when prominently placed;
 a model preference or inferred domain dependency cannot create a runtime gate.
 
+The user clarified the intended branches as **parallel Project lines of inquiry**
+on 2026-09-06 (`UX1.6-DISC04`), going beyond Hypotheses while allowing a
+Hypothesis to anchor a line. This corrects the earlier emphasis on execution
+branches; those Work control rules remain valid within their narrower scope.
+
+- A line concerns what the author is trying to understand: criteria, methods,
+  alternatives, interpretation, source disagreement, or another profile-valid
+  question. It has recognizable purpose, basis, uncertainty, and history.
+- Lines can share sources, assumptions, findings, and tasks. A line may have zero
+  or many Work tasks over time, and a result can inform several lines. A completed
+  or cancelled task does not silently resolve or abandon its inquiry.
+- Petra recommends which inquiry could be useful next in the current Project
+  context. Exploring alternatives before clarifying criteria can itself reveal
+  useful criteria; the recommendation must allow that valid choice without
+  warning or repeated nudges.
+- Selecting an inquiry opens its basis and conversation context. It does not
+  schedule Work, cancel other tasks, accept findings, or replace the governing
+  Project objective. Explicit execution requests retain DB06/DB11 semantics.
+- Existing Brief, Project map, Details, Petra, Graph, Work, Review, and History
+  carry the context. **Line of inquiry** is a product role whose canonical
+  profile mapping remains proposed, not a mandated new universal schema.
+
 DB11 now includes full task/stage and dependency hierarchy, direct steering,
 progress/input/resource/result meaning, lifecycle/recovery states, responsive and
-textual parity, language, ten interaction paths (`DB11-P01`–`P10`), six paper
-findings (`DB11-A01`–`A06`), acceptance criteria, and post-freeze scenarios
-`UX-FX26`/`UX-FX27`. `UX-REQ-014` is the proposed Work read composition;
+textual parity, inquiry context, language, eleven interaction paths
+(`DB11-P01`–`P11`), seven paper findings (`DB11-A01`–`A07`), acceptance criteria,
+and post-freeze scenarios `UX-FX26`–`UX-FX28`.
+`UX-REQ-014` is the proposed Work read composition;
 `UX-REQ-015` is the proposed operational steering/branch-priority transition.
+`UX-REQ-016` requests profile-valid inquiry mapping and exact Work/result links.
 Current WorkUnit, manifests, retry/cancellation, and interaction records remain
 the foundation. Checkpointed does not mean paused/resumable, terminal completed
 may encode failure, and generic Pause/resume/cascade operations are not invented.
 
 DB11 closes at `G-SPEC`; contract, implementation, integration, and participant
-validation remain separate. Continue at DB12 with Composition and revision's
-material choices, using the accepted source protection, bounded Work, exact
+validation remain separate. Carry the inquiry clarification into DB12 with
+Composition and revision's material choices, using the accepted source protection, bounded Work, exact
 candidate/Review, output provenance, and immutable lineage boundaries. Do not
 record a new DB12 recommendation as accepted before the user's direction. The
 author can still refine DB11 before the explicit whole-product freeze.
@@ -182,9 +206,10 @@ author can still refine DB11 before the explicit whole-product freeze.
 
 - This conversation resumed on `design/m1-ux` at `230fadd`; DB10's specification
   closure and DB11 opening discussion were saved at `5cd707b`; DB11 presentation
-  and the then-pending steering choice were saved at `6fa8f91`. The current
-  checkpoint records accepted steering/branch advice and the DB11 specification
-  closure; inspect Git status/log for local and remote position.
+  and the then-pending steering choice were saved at `6fa8f91`; accepted steering
+  and the DB11 specification closure were saved at `a6f6901`. The current
+  checkpoint clarifies parallel Project inquiries beyond Hypotheses and their
+  distinction from Work execution; inspect Git status/log for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
@@ -194,7 +219,10 @@ author can still refine DB11 before the explicit whole-product freeze.
 - Documentation checks at the DB10 closure covered table/fence structure, new local
   links, path/audit and decision/request/fixture definitions, acceptance status,
   five-file design-only scope, and `git diff --check`.
-- `UX-REQ-011` through `UX-REQ-015` remain proposed runtime
+- The inquiry clarification passed documentation structure/link checks, unique
+  decision/request/scenario definitions, DB10/DB11 path and audit coverage,
+  proposed-runtime/freeze status, five-file scope, and `git diff --check`.
+- `UX-REQ-011` through `UX-REQ-016` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
