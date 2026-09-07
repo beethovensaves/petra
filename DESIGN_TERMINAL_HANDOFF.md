@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Resume DB12 from its accepted document-first direction and pending unresolved-findings export decision below. `DB04` through `DB09` are accepted; DB10 and DB11 have complete specifications and paper audits. Finish DB12 before DB13. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Continue DB13, Settings and personal control, from the opening recommendation below. `DB04` through `DB09` are accepted; DB10–DB12 have complete specifications and paper audits. DB12's working-copy export direction is accepted. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -204,31 +204,60 @@ as `UX1.7-DISC01`: the document is primary; Petra works in explicit passage,
 section, or whole-artifact context; sources, related inquiries, findings, and
 revision comparisons open when needed. Author edits and source ancestry survive.
 
-DB12 now has a partial specification covering collection/detail entry, responsive
-layout, planning and generation, direct editing, proposal comparison, save state,
-exact assessment/basis, imported ancestry, rendering, recovery, language, and
-accessibility. `DB12-P01`–`P09` are draft paths; `DB12-A01`–`A05` are initial
-findings. `UX-FX29`/`UX-FX30` describe post-freeze scenarios. Neither the final
-paper audit nor DB12's `G-SPEC` is complete.
+The user then accepted marked working-copy export with unresolved findings on
+2026-09-07 as `UX1.7-DISC02` and directed the design work to continue. Record
+this as accepted; do not ask for the same export decision again.
+
+- The copy binds exact chosen working/saved/historical content and selected
+  scope. Unsaved capture requires a supported exact operation and cannot claim
+  a durable Project save without acknowledgment. Newer edits remain separate.
+- Relevant findings, limitations, and unknown assessment coverage travel with
+  copied/downloaded content or a delivered bundle. Structured formats retain
+  valid syntax; in-app notifications alone do not satisfy status carriage.
+- Clear authorized export does not need another confirmation because checks
+  remain open. Actual access, integrity, included content, format, and supported
+  status-carriage requirements still apply.
+- Export neither promotes the document nor changes support-reuse rules.
+  Source/inquiry references do not imply inclusion of all source bytes, private
+  conversation, or excluded context.
+- Report exact generated members and observable delivery. Download initiation
+  does not prove a saved file; clipboard acknowledgment does not prove a paste.
+  Retry retains exact outputs, partial outcomes remain visible, and cancellation
+  cannot recall bytes already delivered.
+
+DB12 now specifies collection/detail entry, responsive/dense layout, planning,
+continuous authoring, exact proposal and assessment binding, source/inquiry
+context, protected ancestry, rendering, working-copy export, recovery, language,
+and accessibility. Eleven paths (`DB12-P01`–`P11`) and seven paper findings
+(`DB12-A01`–`A07`) cover the specification. `UX-FX29`–`UX-FX31` describe
+post-freeze scenarios. DB12 closes at `G-SPEC`; runtime, integration, performance,
+accessibility, and participant validation remain separate gates.
 
 The contract audit found that the existing DraftRevisionEngine requires current
 provenance and exact non-empty span replacements. It does not implement general
 blank/structural authoring or successive editing while support is stale.
 `UX-REQ-017` requests document workspace reads; `UX-REQ-018` requests durable
 working-copy edits, exact saves, proposal reconciliation, and assessment binding.
-Both runtime shapes remain proposed. Do not weaken the scientific reuse rules
-or claim an editor is implemented because these design needs are recorded.
+`UX-REQ-019` requests exact export capture, scoped status, eligibility, output
+composition, and delivery/recovery. All three runtime shapes remain proposed.
+Existing renderer citation warnings and internal artifact registration are not
+the complete working-copy export contract. Do not weaken scientific reuse rules
+or claim an editor/export path is implemented from these design records.
 
-**Pending decision:** should unresolved validation findings allow a marked
-working-copy export, or must applicable checks pass before any export? The
-recommendation is to allow a working copy with exact revision and preserved
-limitations under existing access rules; promotion keeps its registered checks.
-Example: an exploratory comparison has unresolved criteria and a citation link
-made stale by an edit. Export should not silently certify it, strip its known
-limitations, or substitute an older passing revision. This recommendation has
-been presented for discussion, not accepted. Resolve it, then finish DB12's
-export contract trace, state/path coverage, copy, paper audit, and acceptance
-before advancing to DB13. Keep all work as design specification.
+**Next discussion: DB13, Settings and personal control.** The opening
+recommendation leads with Appearance, Layout, Editor, and Accessibility personal
+preferences, with a clearly labelled Project controls section and technical
+detail disclosed where relevant. The chosen Project and effective policy remain
+clear; active constraints and action-unavailability reasons stay at the point
+of use. This organization is proposed, not a new accepted decision.
+
+For example, text size and Show model details affect local presentation.
+Allowing a model service, changing a Work budget, or revising Review policy
+affects a named Project through its supported control path. Resetting Appearance
+cannot reset permissions or cancel Work. The local/governed boundary and global
+Settings place are already accepted; do not reopen them as new choices.
+After direction on advanced-control presentation, finish DB13's inventory,
+scope/defaults, persistence/reset, transitions, recovery, language, and audit.
 
 ## Latest repository checkpoint
 
@@ -236,9 +265,10 @@ before advancing to DB13. Keep all work as design specification.
   closure and DB11 opening discussion were saved at `5cd707b`; DB11 presentation
   and the then-pending steering choice were saved at `6fa8f91`; accepted steering
   and the DB11 specification closure were saved at `a6f6901`; parallel Project
-  inquiries were clarified at `8290251`. The current checkpoint records DB12's
-  accepted document-first direction, partial specification, and pending export
-  choice; inspect Git status/log for local and remote position.
+  inquiries were clarified at `8290251`; DB12's document-first direction and
+  then-pending export choice were saved at `38fb39c`. The current checkpoint
+  records accepted working-copy export, completed DB12 specification/paper audit,
+  and the DB13 opening discussion; inspect Git status/log for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
@@ -251,13 +281,17 @@ before advancing to DB13. Keep all work as design specification.
 - The inquiry clarification passed documentation structure/link checks, unique
   decision/request/scenario definitions, DB10/DB11 path and audit coverage,
   proposed-runtime/freeze status, five-file scope, and `git diff --check`.
-- `UX-REQ-011` through `UX-REQ-018` remain proposed runtime
+- DB12 closure passed Markdown/link checks, unique decision/request/scenario
+  records, DB10–DB12 path/audit coverage, acceptance/date/status consistency,
+  five-file design-only scope, and `git diff --check`. DB13 remains a proposal
+  and no runtime or participant evidence is claimed from these checks.
+- `UX-REQ-011` through `UX-REQ-019` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
-Do not implement a Graph or Composition fixture after this discussion. Finish
-DB12's pending decision and specification, then continue through `DB13`–`DB18`.
+Do not implement a Graph, Composition, or Settings fixture after this discussion.
+Continue the product-design specification through `DB13`–`DB18`.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.

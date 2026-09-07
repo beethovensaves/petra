@@ -1,7 +1,7 @@
 # Petra user-flow architecture
 
-Status: accepted product flow, information architecture, Sources, Review, Graph, Work, Project-inquiry, and document-first Composition direction; DB12 export decision pending; related runtime mappings awaiting architecture disposition
-Date: 2026-09-06
+Status: accepted product flow through document-first Composition and working-copy export; DB13 settings discussion open; related runtime mappings awaiting architecture disposition
+Date: 2026-09-07
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as distinct project profiles
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
 
@@ -610,11 +610,15 @@ UX-REQ-018 requests the missing continuous-authoring and exact reconciliation
 boundary. Existing exact-span revision commands are narrower than this UX.
 
 The sequence above describes a scientific composition path, not a requirement
-to stop after every edit until validation passes. DB12's unresolved-findings
-export policy remains pending: the proposed marked working-copy export would
-preserve limitations and exact identity under existing access rules. No new
-export permission or unconditional validation gate is accepted by this note.
-Finish that decision and DB12's paper audit before moving to DB13.
+to stop after every edit until validation passes. DB12's accepted `UX1.7-DISC02`
+allows working-copy export with unresolved findings under actual access and
+format rules. Exact captured content, relevant limitations, and assessment
+coverage travel with the copy. Scope selection, unsaved capture, later edits,
+clipboard/status carriage, partial outputs, and uncertain delivery preserve exact
+identity and observable outcomes. Export does not confer approval, change support
+reuse, or imply public publication. UX-REQ-019 requests the missing runtime
+composition. DB12's specification and paper audit are complete; runtime evidence
+remains separate.
 
 ### `UX-FLOW-16` — inspect history and recover from change or failure
 
@@ -635,6 +639,13 @@ Finish that decision and DB12's paper audit before moving to DB13.
 - **Branches:** preference storage failure, forced colors, text zoom/reflow, reduced motion, unavailable capability, expired grant, mode-policy mismatch, or policy audit stop.
 - **Authority:** presentation changes are local; ReviewPolicy and CapabilityGrant changes are versioned server-side operations.
 - **Horizon:** presentation in M1; governance expands in M2/M3.
+
+[DB13](PETRA-UX-DESIGN-BRIEF.md#db13--settings-and-personal-control) opens the
+next discussion. It proposes personal-preference groups first, with explicitly
+scoped Project controls and technical detail disclosed where relevant. The
+organization is not yet accepted; the local/governed distinction above remains
+accepted. Showing model details changes presentation, while model-service access,
+budget, or review-policy changes retain their supported Project control paths.
 
 ### `UX-FLOW-18` — reuse, share, and connect selected work
 
@@ -885,12 +896,14 @@ work rather than open product scope:
   findings and revision context, and source/inquiry return paths; and
 - durable continuous document authoring, save acknowledgment, exact proposal
   reconciliation, and assessment binding without changing existing reuse or
-  promotion authority. Unresolved-findings export policy is still a design choice.
+  promotion authority; and
+- exact working-copy export capture, scoped limitations/status carriage,
+  operation eligibility, format/bundle composition, and observable delivery.
 
-`UX-REQ-004` through `UX-REQ-018` carry the profile, lineage, thread-context,
+`UX-REQ-004` through `UX-REQ-019` carry the profile, lineage, thread-context,
 governed-reversal, semantic-location, source-view, source-lifecycle,
 working-candidate, Review-session, focused relationship-query, Work-read,
-Work-steering, Project-inquiry, Composition-view, and continuous-authoring needs
-to the implementation track.
+Work-steering, Project-inquiry, Composition-view, continuous-authoring, and
+working-copy-export needs to the implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.

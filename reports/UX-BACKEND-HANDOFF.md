@@ -1,7 +1,7 @@
 # UX-to-implementation requirements handoff
 
 Status: proposed requests awaiting implementation-track review
-Date: 2026-09-06
+Date: 2026-09-07
 Source: [Petra user-flow architecture](UX-FLOW-ARCHITECTURE.md)
 Design-freeze source: [Petra UX design brief](PETRA-UX-DESIGN-BRIEF.md)
 
@@ -27,11 +27,11 @@ The implementation track may continue already accepted backend work. It should
 not add a demo adapter, corpus path, profile-specific shortcut,
 imported-document promotion behavior, or new shared schema from the future demo contexts
 while the product brief is open. It should review `UX-REQ-004` through
-`UX-REQ-018` as general architecture needs and return a disposition without
+`UX-REQ-019` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
-`UX-REQ-018` follow the accepted Petra interaction, navigation, Sources,
+`UX-REQ-019` follow the accepted Petra interaction, navigation, Sources,
 Review, Graph, Work, Project-inquiry, and document-first Composition direction;
-DB12's unresolved-findings export choice remains pending. These requests do not authorize a frontend implementation before the
+DB12's working-copy export direction is accepted. These requests do not authorize a frontend implementation before the
 design freeze.
 
 ## Accepted UX changes with no backend semantic impact
@@ -1026,7 +1026,7 @@ between shell context and task content more important.
 ### `UX-REQ-017` — Composition workspace and exact document context
 
 - **Originating design work:** DB12; document-first direction accepted as
-  `UX1.7-DISC01` on 2026-09-06; `DB12-P01`–`P09`;
+  `UX1.7-DISC01` on 2026-09-06; `DB12-P01`–`P11`;
   `UX-FLOW-14`–`16` and `UX-PATH-04`.
 - **Named post-freeze scenario:** `UX-FX29`, paired document-first composition
   and revision; `UX-FX30`, exact revision and adverse-state inspection.
@@ -1063,9 +1063,9 @@ between shell context and task content more important.
 - **Status and eligibility:** distinguish actual save acknowledgment, local-only
   retention capability, Work execution, validation execution/coverage/findings,
   source/provenance freshness, profile approval, and rendering. Return
-  operation-specific capabilities and reasons. The unresolved-findings export
-  decision is pending; this request does not grant export eligibility or settle
-  that policy through a presentation field.
+  operation-specific capabilities and reasons. Consume the accepted working-copy
+  export policy through UX-REQ-019; this read request cannot grant eligibility
+  through a presentation field.
 - **Authority and persistence:** this is a composed read boundary over existing
   and explicitly proposed records. UI selection, disclosure, layout, and unsent
   instructions remain presentation state. Runtime records own origin, support,
@@ -1082,7 +1082,7 @@ between shell context and task content more important.
   UX-REQ-012 Review, UX-REQ-014/015 Work, UX-REQ-016 inquiries, and
   UX-REQ-018 working-copy commands.
 - **Owner and status:** architecture and implementation track; accepted workspace
-  direction, runtime read composition `proposed`; export policy remains open.
+  direction, runtime read composition `proposed`; export mapping is UX-REQ-019.
 
 ### `UX-REQ-018` — Continuous document editing and exact revision reconciliation
 
@@ -1155,8 +1155,98 @@ between shell context and task content more important.
   Work, UX-REQ-016 inquiry links, UX-REQ-017 document read composition.
 - **Owner and status:** architecture and implementation track; normal authoring
   requirement specified from the accepted workspace direction, runtime
-  representation and command composition `proposed`. Export treatment is
-  separately pending and is not authorized by saving a working copy.
+  representation and command composition `proposed`. Accepted export behavior
+  is mapped separately in UX-REQ-019; a save alone does not invoke export.
+
+### `UX-REQ-019` — Working-copy export, status carriage, and delivery
+
+- **Originating design work:** DB12 and accepted `UX1.7-DISC02` (2026-09-07);
+  `DB12-P09`–`P11`; `UX-FLOW-14`–`16` and `UX-FLOW-18`.
+- **Named post-freeze scenario:** `UX-FX31`, an exploratory comparison with
+  unsettled criteria and a stale citation, paired with a manuscript continuity
+  finding. Include unchecked/failed/unknown coverage, selected-scope export,
+  unsaved capture, later edits, clipboard/structured formats, incomplete status
+  delivery, individual format failure, and cancellation after bytes are delivered.
+- **Implementation links:** `M1.1` exact identities and controls, `M1.2`
+  artifact/persistence, `M1.7` interaction and delivery composition,
+  `M1.8` rendering/export, and later profile/destination contracts.
+- **Author task and failure:** take an unfinished document outside Petra to
+  continue work while keeping its exact content and known limitations. A blanket
+  validation gate obstructs that authorized use; dropping status, changing the
+  chosen revision, or claiming delivery without evidence misrepresents the copy.
+- **Existing contract check:** D012 permits scoped artifacts and explicit
+  external actions without making rendering scientific authority. RenderedArtifact
+  binds an exact DraftArtifact, CitationBundle, renderer, output Artifact, warnings,
+  and semantic content hash. DeterministicCompositionRenderer exposes requested
+  Markdown/LaTeX/BibTeX formats; its recorded warnings are composed from citations.
+  CompositionArtifactPublisher registers generated bytes and artifact records
+  internally, rather than proving public publication or user receipt.
+  DraftSupportAssessment controls exact support reuse and is not an export policy.
+  These records do not by themselves supply a general working-copy capture,
+  complete scoped validation/inquiry status, required-report composition,
+  destination eligibility, or browser/clipboard delivery reconciliation.
+- **Requested exact capture:** bind the explicitly chosen document/working
+  revision and hash, selected scope and locator, profile, applicable source and
+  citation references, and assessment/coverage position. Capture unsaved working
+  content only through a supported exact operation under UX-REQ-018; do not call
+  it durably saved unless acknowledged. If unavailable, preserve edits and
+  expose the required save/capture step. Never substitute a last-saved,
+  last-passing, latest, or historical revision without the corresponding intent.
+- **Requested status composition:** include readable working-copy identity,
+  relevant unresolved findings, not-checked/stale/failed-to-run distinctions,
+  assessed revision/scope, unknown coverage, and permitted detailed report links.
+  Resolve applicability for selected passages and shared limitations on the
+  runtime side. Unknown scope cannot be turned into an empty findings list.
+  A broader report is allowed only when its scope is explicitly labelled.
+- **Requested representation:** carry the status with the returned bytes or a
+  delivered bundle whose required members and relationship are explicit. Clipboard
+  output includes status in its supported text representation. Structured formats
+  retain valid syntax and do not insert status as false citation metadata or
+  source data. Unsupported status carriage offers a supported copy/download
+  alternative. The delivery guarantee does not claim immutable control over files
+  after the author edits them elsewhere.
+- **Eligibility and authority:** unresolved domain checks alone do not block
+  working-copy export. Check actual actor/Project access, requested inclusions,
+  destination, integrity, format, and status carriage for the operation. Do not
+  embed all cited bytes, private conversations, or excluded context implicitly.
+  Source unavailability may limit verification without preventing a permitted
+  draft-only export. A restricted requested inclusion has its own reason and
+  possible explicitly narrower alternative. Export neither promotes a document
+  nor changes approved Project state or the existing support-reuse assessment.
+- **Instruction behavior:** direct and Petra-mediated requests converge on the
+  exact operation. A sufficiently clear authorized instruction needs no repeated
+  approval just because findings remain open. Resolve consequential ambiguity
+  or new authority explicitly; do not infer a public delivery destination from
+  a local copy/download request.
+- **Requested outcomes and recovery:** bind generated files and required reports
+  to exact capture, format/options, status, and operation identity. Report each
+  member/format outcome and observed delivery stage: prepared output, clipboard
+  acknowledgment, browser download initiation, or confirmed external receipt only
+  where supported. Keep failed/partial results and retry delivery without new
+  prose. Reconnect reconciles prior effects; cancellation cannot recall delivered
+  bytes. Newer edits and assessments do not mutate an existing output receipt.
+- **Authority and persistence:** architecture determines the smallest export
+  record/manifest and event composition over existing artifact storage. Preserve
+  original sources, prior outputs, and exact provenance. The client renders
+  runtime-supplied eligibility, scope, and status; it cannot override a reuse
+  gate locally or invent the export policy from renderer success.
+- **Smallest viable response:** map one supported exact working revision to a
+  permitted textual copy/download carrying an in-document status note and exact
+  identity, with observable outcome and preserved source/basis references.
+  Add a composed manifest/status record only where existing records are
+  insufficient. Keep richer formats, bundles, and external destinations explicit
+  capabilities rather than prerequisites for the simplest author workflow.
+- **Provisional boundary:** after freeze, a synthetic adapter may exercise exact
+  captures, scoped findings, status-bearing representations, eligibility, and
+  delivery outcomes under UX-FX31. No current renderer, gateway, backend contract,
+  or browser export is changed by this specification.
+- **Dependencies:** UX-REQ-004/005 profile and ancestry/promotion, UX-REQ-009/010
+  source access/lifecycle, UX-REQ-012 Review, UX-REQ-014/015 Work controls,
+  UX-REQ-016 inquiry context, UX-REQ-017 document reads, and UX-REQ-018 working
+  revisions. Existing rights, capability, artifact, citation, and support
+  assessment contracts retain their boundaries.
+- **Owner and status:** product architecture and implementation track; working-copy
+  export UX accepted, runtime mapping/command/read composition `proposed`.
 
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
@@ -1183,6 +1273,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Project lines of inquiry beyond Hypotheses, with exact basis and zero/many/shared Work links | Proposed `UX-REQ-016`; profile-owned reasoning contexts remain distinct from Work execution and its lifecycle |
 | Document-first Composition and exact contextual reads | Proposed `UX-REQ-017`; existing scientific composition aggregates are the foundation, with profile/ancestry mappings still required |
 | Continuous working-copy edits, exact saves, late-proposal reconciliation, and assessment binding | Proposed `UX-REQ-018`; current exact-span revision and reuse contracts remain intact until architecture disposition |
+| Exact working-copy export with scoped limitations and observable delivery | Proposed `UX-REQ-019`; rendering/storage, support reuse, profile promotion, and external delivery retain distinct boundaries |
 | Current/cached/new evidence boundary | ContextPacket and EvidencePacket from `M1.1`, retrieval path in `M1.6` |
 | Assistant stream, interrupt, reconnect, and replay | PetraInteractionRun and AG-UI adapter boundary from `M1.0`/`M1.1`, product hooks in `M1.7` |
 | Projection freshness | GraphProjectionRecord and ProjectionCheckpoint from `M1.1`, delivery in `M1.3`/`M1.5` |
@@ -1194,7 +1285,7 @@ and outputs attached to these mechanics. They should not duplicate Work,
 interaction, proposal, review, approval, cancellation, provenance, or history
 lifecycles merely because the profile uses different nouns.
 
-## Requirement status after DB11
+## Requirement status after DB12
 
 The authored-project, imported-document, Project-thread, exact turn-context,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
@@ -1212,11 +1303,13 @@ The subsequent accepted inquiry clarification is `UX-REQ-016`. It places the
 author's parallel reasoning lines at Project level and limits `UX-REQ-015` to
 the execution behavior of concrete Work tasks undertaken for those inquiries.
 
-DB12's document-first direction is accepted as `UX1.7-DISC01`. `UX-REQ-017`
-and `UX-REQ-018` record the corresponding workspace and authoring gaps. The
-export treatment of unresolved findings is still a product decision; DB12 has
-not closed its specification gate. No working-copy save or renderer record
-implicitly settles export or promotion eligibility.
+DB12's document-first and working-copy export directions are accepted as
+`UX1.7-DISC01`/`DISC02`. `UX-REQ-017`–`UX-REQ-019` record workspace, authoring,
+and export gaps. DB12 closes its specification gate with paper paths/audit and
+post-freeze scenarios; none of these runtime mappings is implemented or closed.
+Saving, support assessment, profile promotion, rendering, and delivery retain
+their separate outcomes and authority. DB13's settings presentation is the next
+discussion; no new Project policy is inferred from a personal preference.
 
 ### Cross-device preference synchronization
 
@@ -1239,5 +1332,5 @@ Brief, SuggestedAction, Project-profile, imported-document, Project-thread,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
 conversational-working-graph, profile-neutral Review, bounded relationship-view,
 composed Work-presentation, generic Work-steering, Project inquiry, or Composition
-workspace/authoring flows until the
+workspace/authoring/export flows until the
 applicable requests have an explicit disposition.

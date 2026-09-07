@@ -1,6 +1,6 @@
 # Petra Design Implementation Roadmap
 
-Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10–DB11 specified and paper-audited; DB12 document-first direction accepted, export decision pending
+Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10–DB12 specified and paper-audited; DB13 settings discussion open
 Last updated: 2026-09-06
 Scope: deliver Petra's M1 experience module by module while implementation continues, without creating a second authority for architecture or feature completion
 
@@ -707,7 +707,7 @@ and adverse conformance scenarios to implement after freeze. The specification
 gate is covered; this module remains `in_progress` because no new frontend,
 live contract, performance, accessibility, or participant evidence is claimed.
 DB11's task-and-stage presentation, direct steering, and advisory branch order
-are accepted and specified; DB12 has accepted document-first direction and a pending export choice. `UX-DESIGN-FREEZE-01` remains unaccepted.
+are accepted and specified; DB12 also has complete specification and paper-audit coverage. DB13 is open for discussion. `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ### Work
 
@@ -790,8 +790,8 @@ responsive/textual parity, inquiry context, language, paths, and the paper audit
 
 DB11 closes at `G-SPEC`; the Work/interaction module remains `in_progress`
 because runtime, fixture, integration, and participant evidence are separate.
-Continue DB12 from its accepted document-first direction and pending export
-choice. `UX-DESIGN-FREEZE-01` remains unaccepted; no new product implementation is authorized.
+DB12 is also specified and paper-audited; continue the DB13 settings discussion.
+`UX-DESIGN-FREEZE-01` remains unaccepted; no new product implementation is authorized.
 
 ### Work
 
@@ -856,26 +856,27 @@ choice. `UX-DESIGN-FREEZE-01` remains unaccepted; no new product implementation 
 | ID | Question | Accepted direction | Why it matters | Affected work | Revisit trigger |
 | --- | --- | --- | --- | --- | --- |
 | `UX1.7-DISC01` | What should the composition workspace center on? | Accepted 2026-09-06: the document is primary. Petra acts in explicit passage, section, or whole-artifact context; sources, related inquiries, validation findings, and revision comparisons open when needed. Preserve author edits, exact basis, uncertainty, and imported ancestry through drafting and revision. | Writing needs continuity and inspectable assistance; producing prose must not silently resolve an inquiry or overwrite manual work. | `DB12`; `UX1.7-W01`–`W14`; `UX-REQ-017`/`018`; `UX-FX29`/`UX-FX30` | Revisit if scope or selection is lost, assistance obscures the document, edits are overwritten, profile meaning is forced into scientific fields, or ordinary writing is interrupted by validation. |
+| `UX1.7-DISC02` | Can an author export unfinished work while validation findings remain unresolved? | Accepted 2026-09-07: allow a clearly marked working copy with exact chosen content, relevant limitations, and assessment coverage under existing access rules. Capture selected/unsaved scope explicitly; preserve status in copied/downloaded bytes or a delivered bundle; do not substitute older passing content or certify later edits. Clear authorized export needs no duplicate approval. Profile promotion and support reuse keep their separate rules; delivery reports only observed outcomes. | Authors can continue unfinished work elsewhere while its meaning, uncertainty, and identity remain legible. | `DB12`; `UX1.7-W10`–`W15`; `UX-REQ-019`; `UX-FX31` | Revisit if recipients mistake output for approved work, status is lost, selected-scope coverage is misleading, later edits change output, actual delivery is overstated, or an access/format constraint is bypassed. |
 
-### DB12 specification checkpoint and pending decision
+### DB12 specification checkpoint
 
-DB12 now specifies document-first collection/detail and responsive behavior,
-contextual entry, planning, direct editing, proposal comparison, exact source and
-inquiry context, save/assessment distinctions, imported ancestry, rendering,
-adverse states, and draft interaction paths `DB12-P01`–`P09`. Initial findings
-`DB12-A01`–`A05` include the existing revision engine's inability to support
-continuous general editing while provenance is stale. `UX-REQ-017` and
-`UX-REQ-018` request workspace reads and a durable authoring boundary; their
-runtime shapes remain proposed. `UX-FX29`/`UX-FX30` are post-freeze scenarios.
+DB12 specifies document-first entry and responsive/dense behavior, planning,
+continuous authoring, exact proposal/assessment binding, source and inquiry
+context, protected ancestry, revision history, rendering, and accepted
+working-copy export. Output captures exact chosen content and carries relevant
+limitations; ordinary authorized export needs no repeated approval. Partial,
+failed, stale, selected-scope, unsaved, and uncertain-delivery paths retain honest
+outcomes and recovery. `DB12-P01`–`P11` and `DB12-A01`–`A07` record complete
+paper path/audit coverage. `UX-REQ-017`–`UX-REQ-019` remain proposed workspace,
+authoring, and export mappings; `UX-FX29`–`UX-FX31` are post-freeze scenarios.
 
-The export treatment of unresolved findings remains pending. The recommendation
-is an explicitly marked working-copy export that preserves exact revision and
-limitations under existing access rules. The alternative requires applicable
-checks to pass before any export. Neither a working-copy save nor artifact
-rendering grants promotion or export eligibility by itself. This recommendation
-is not an accepted discussion record. Complete its consequences, final path/state
-coverage, language, paper audit, and acceptance before closing DB12 or moving to
-DB13. `UX-DESIGN-FREEZE-01` remains unaccepted.
+DB12 closes at `G-SPEC`. Contract, implementation, integration, accessibility,
+performance, and participant evidence remain separate, so this module remains
+`in_progress`. Continue DB13's opening discussion: personal-preference groups
+first, with clearly scoped Project controls and disclosed technical detail.
+That presentation is proposed, not a new accepted decision. Existing local
+preferences and governed-policy boundaries remain accepted.
+`UX-DESIGN-FREEZE-01` remains unaccepted.
 
 The scientific tasks below retain D012's exact evidence and citation meaning.
 DB12's shared authoring controls also require explicit profile mappings for
@@ -899,7 +900,7 @@ controlled writing; a manuscript cannot inherit scientific semantics by relabeli
 | `UX1.7-W12` | `in_progress` | Provide a textual provenance report suitable for external review. | Explainability should survive outside Petra's graph visualization. |
 | `UX1.7-W13` | `in_progress` | Specify continuous blank and structural authoring, durable save acknowledgment, stale assessment handling, exact late-proposal reconciliation, and revision restoration. | Authors must retain progress without support checks becoming a prerequisite for each edit or late output replacing their text. |
 | `UX1.7-W14` | `in_progress` | Compose document-first collection/detail, contextual Petra, source/inquiry links, findings, comparison, and responsive/accessibility return paths. | The same artifact and selected scope must remain recognizable across surfaces and profiles. |
-| `UX1.7-W15` | `in_progress` | Resolve the export treatment of unresolved findings and specify exact output identity, limitation carriage, action eligibility, copy/download, and bounded recovery. | Export must neither imply validation nor acquire an unaccepted blanket gate; the policy choice is pending. |
+| `UX1.7-W15` | `in_progress` | Specify accepted working-copy export with exact capture, selected-scope limitations, format/status carriage, operation eligibility, observable copy/download outcomes, and bounded recovery. | Authors can continue unfinished work elsewhere without losing uncertainty or confusing export, support reuse, and profile approval. |
 
 ### Acceptance
 
@@ -915,17 +916,22 @@ controlled writing; a manuscript cannot inherit scientific semantics by relabeli
 | `UX1.7-AC08` | Continuous editing and acknowledged saves remain possible while checks are stale without claiming current support, approval, or reuse eligibility. |
 | `UX1.7-AC09` | Model and validator results bind exact submitted revisions; late results cannot overwrite later edits or certify newer content. |
 | `UX1.7-AC10` | Inquiry context and imported ancestry survive revisions; draft completion does not resolve inquiries or replace protected source bytes. |
+| `UX1.7-AC11` | Unresolved checks alone do not block a supported working-copy export; exact content, relevant limitations, and assessment scope travel with the copy under actual access and format rules. |
+| `UX1.7-AC12` | Selected or unsaved scope uses exact capture and runtime finding applicability; newer edits, last-passing fallback, and unknown coverage cannot silently alter or certify output. |
+| `UX1.7-AC13` | Clipboard, structured formats, and bundles preserve required status without corrupting content or metadata; omitted private context remains excluded. |
+| `UX1.7-AC14` | Output preparation, clipboard acknowledgment, download initiation, and confirmed receipt remain distinct; partial failure/retry/cancellation preserves actual delivered effects. |
 
-The final unresolved-findings export criterion awaits the pending decision;
-this table does not yet establish a closed DB12 acceptance gate.
+These criteria close the DB12 specification gate; runtime and participant
+verification remain pending against UX-FX29–31 and the proposed contracts.
 
 ### Completion evidence
 
-- `UX1.7-EV00`: DB12 partial specification, accepted DISC01, pending export decision, draft paths/findings, and UX-REQ-017/018 trace; no completed paper audit or runtime evidence claimed;
+- `UX1.7-EV00`: complete DB12 specification and paper audit, accepted DISC01/02, eleven paths/seven findings, and UX-REQ-017–019 trace; runtime evidence remains pending;
 - `UX1.7-EV01`: DraftSpan-to-SourceSpan provenance trace;
 - `UX1.7-EV02`: renderer and citation parity fixtures;
 - `UX1.7-EV03`: human-edit, stale-provenance, and revalidation recording;
-- `UX1.7-EV04`: Felicity force-preservation results.
+- `UX1.7-EV04`: Felicity force-preservation results;
+- `UX1.7-EV05`: working-copy status/selected-scope/capture and clipboard/download/bundle delivery scenarios, including recipient comprehension and partial-outcome recovery.
 
 ## `UX1.8` — integrated design hardening and M1 closure
 
@@ -1012,7 +1018,8 @@ The fixture gallery reuses stable objects across modules. It should remain small
 | `UX-FX27` | Contextual branch choice and Work steering | A real prerequisite feeds two stages while another branch is eligible; valid non-recommended choice preserves priority without warnings. Pair changed advice, shared dependencies, direct authorized scope/input changes, validated reuse/reruns, actual authorization/ambiguity, atomic/checkpoint limits, stale/failed/partial transitions, cancellation races, retry/resume limits, deliberate fresh execution, and exact result scope across profiles. |
 | `UX-FX28` | Parallel Project lines of inquiry | Invent criteria, alternatives, method/interpretation, and optional Hypothesis inquiries across two profiles. Explore alternatives before criteria without a false gate; preserve zero/many/shared tasks and results, an open inquiry after Work completion, exact basis and uncertainty, advisory preference, Work/Review return, and graph/text/navigation parity. |
 | `UX-FX29` | Paired document-first Composition | Invent a scientific comparison drawing on unresolved inquiry lines and a controlled-writing revision with protected source ancestry. Exercise collection/contextual entry, document scope, plan, contextual Petra/basis/findings, exact proposal comparison, source/inquiry return, and responsive/textual accessibility. |
-| `UX-FX30` | Continuous authoring and exact revision recovery | Blank and structural edits, successive saves while checks are stale, late model and validation results, source changes, partial/failed Work, conflicting or disconnected saves, historical comparison, and render failure preserve text, exact identities, origin, and honest status. Unresolved-findings export assertions await the pending policy decision. |
+| `UX-FX30` | Continuous authoring and exact revision recovery | Blank and structural edits, successive saves while checks are stale, late model and validation results, source changes, partial/failed Work, conflicting or disconnected saves, historical comparison, and render failure preserve text, exact identities, origin, and honest status. |
+| `UX-FX31` | Working-copy export and delivery | Pair unresolved criteria/stale citation and manuscript continuity findings; exercise unchecked/failed/unknown coverage, selected scope, unsaved capture, newer edits, historical choice, clipboard and structured-format status, required-report failure, restricted/excluded inclusions, partial multi-format results, delivery uncertainty, retry, and cancellation after delivery. |
 
 Post-freeze fixtures use Petra's canonical IDs and runtime shapes. When a runtime contract is not yet available, a fixture declares its provisional schema and associated `UX-REQ` item. They use synthetic content and remain independent of contextual demo assets and directories. Existing pre-freeze shell and graph fixtures remain exploratory comparison evidence; they do not satisfy the neutral reference-UX gate until reviewed or rebuilt against the frozen brief.
 
@@ -1078,6 +1085,7 @@ A local component calculation is allowed for presentation-only state such as pan
 | `UX-REQ-016` | `proposed`; profile mapping required | Project lines of inquiry beyond Hypotheses, shared basis/open questions, contextual advisory order, and exact zero/many/shared Work and result links across existing surfaces | `M1.1`, `M1.2`, `M1.3`, `M1.5`, `M1.6`, `M1.7`, later profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-017` | `proposed` | Profile-resolved Composition collection/document reads with exact selection, inquiry/basis, save/assessment, revision comparison, output capabilities, and return context | `M1.1`, `M1.2`, `M1.7`, `M1.8`, later profile/authoring contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-018` | `proposed`; authoring boundary required | Continuous blank/structural working-copy edits, durable save acknowledgment, exact proposal reconciliation, and assessment binding without bypassing existing draft reuse or promotion rules | `M1.1`, `M1.2`, `M1.7`, `M1.8`, later profile/authoring contracts | `reports/UX-BACKEND-HANDOFF.md` |
+| `UX-REQ-019` | `proposed` | Exact working-copy export capture, scoped limitation/status carriage, operation eligibility, format/bundle composition, and observable delivery/recovery | `M1.1`, `M1.2`, `M1.7`, `M1.8`, later profile/destination contracts | `reports/UX-BACKEND-HANDOFF.md` |
 
 The implementation track owns each request's disposition. A post-freeze synthetic fixture may
 use the proposed shape, but no module may claim `G-CONTRACT` until the request
@@ -1174,9 +1182,9 @@ only after the full reference UX stands independently.
 Backend implementation of already accepted architecture may continue. The
 design track should now:
 
-1. carry accepted direction through DB11 and the accepted DB12 document-first behavior into `UX-REQ-001`–`UX-REQ-018` without implementing a product surface;
-2. resolve DB12's pending unresolved-findings export choice, then finish its specification and paper audit using the accepted source, Work, Review, provenance, and lineage boundaries;
-3. specify settings, design-system, language, accessibility, and recovery behavior through `DB13`–`DB17`;
+1. carry accepted specifications through DB12 into `UX-REQ-001`–`UX-REQ-019` without implementing a product surface;
+2. discuss and specify DB13's personal preferences and clearly scoped Project controls, retaining existing local-presentation and governed-operation boundaries;
+3. complete design-system, language, accessibility, and recovery behavior through `DB14`–`DB17`;
 4. maintain the `UX-REQ` register and request architecture dispositions without allowing available backend shapes to dictate the UX;
 5. assemble the complete screen inventory, responsive blueprints, state matrix, flow map, and acceptance plan in `DB18`;
 6. review the entire brief and explicitly record `UX-DESIGN-FREEZE-01`;
