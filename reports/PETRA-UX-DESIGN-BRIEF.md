@@ -173,8 +173,8 @@ interaction contract has not yet been designed.
 | `DB10` | Graph and relationship work | Task entry, query scope, layouts, depth, selection, temporal state, impact, textual parity, and optional 3D boundary | specified; direction accepted; paper audit complete |
 | `DB11` | Durable Work and orchestration | Plans, agents and validators, progress, input, steering, cost, detachment, reconnect, cancellation, result, and retry | specified; direction accepted; paper audit complete |
 | `DB12` | Composition and revision | Artifact planning, editing, provenance, validation, citations where applicable, imported ancestry, promotion, rendering, and export | specified; document-first and working-copy export direction accepted; paper audit complete |
-| `DB13` | Settings and personal control | Appearance, theme, layout, panel resizing, editor, accessibility, privacy, model visibility, and local preference rules | discussion open; inherited settings boundaries accepted; advanced-control presentation proposed |
-| `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | partial |
+| `DB13` | Settings and personal control | Appearance, theme, layout, panel resizing, editor, accessibility, privacy, model visibility, and local preference rules | specified; personal-preferences-first organization accepted; paper audit complete |
+| `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | discussion open; accepted foundation inventoried; profile-variation decision pending |
 | `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | protocol accepted; full ledgers pending |
 | `DB16` | Accessibility specification | Keyboard, focus, zoom/reflow, screen reader, motion, non-color meaning, graph alternative, touch, panel resize, and streamed updates | partial |
 | `DB17` | Failure, recovery, and history | Offline, stale, conflict, partial, failed, blocked, unsupported, replay, lost-connection, and non-destructive recovery paths | discussion draft |
@@ -480,7 +480,7 @@ renderer fails.
 ### Backend and persistence needs
 
 The flow architecture depends on the existing and proposed requirements
-`UX-REQ-001` through `UX-REQ-019`. Individual destination data remains owned by
+`UX-REQ-001` through `UX-REQ-020`. Individual destination data remains owned by
 its module contract. The navigation context, browser history, return target,
 focus target, unsent input, disclosures, and graph exploration trail are client
 presentation state. Project/profile identity, snapshots, typed objects, Work,
@@ -3860,10 +3860,12 @@ using the accepted local-presentation and governed-operation boundaries.
 
 ## DB13 — Settings and personal control
 
-**Status:** opening discussion after DB12 specification closure. Existing local
-presentation and governed-operation boundaries remain accepted. The proposed
-organization of advanced controls below is not yet an accepted new decision.
-No settings surface, preference store, or policy command is implemented here.
+**Status:** personal preferences first, with clearly scoped and discoverable
+Project controls, accepted on 2026-09-07 as `UX1.1-DISC06`. DB13 is complete at
+specification depth with a paper audit. Runtime contract, implementation,
+integration, and participant validation remain separate gates. No Settings
+surface, preference store, or policy command is implemented, and
+`UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ### Author task and inherited boundaries
 
@@ -3884,7 +3886,7 @@ budget, or retarget a running task. Action-specific scope and depth remain on
 the corresponding Work request. A personal default cannot override a registered
 profile, Project policy, or operating-system accessibility constraint.
 
-### Opening recommendation — personal preferences first
+### Personal preferences first
 
 Settings should lead with the four personal-preference groups. Changes with
 purely local presentation effects apply immediately and have scoped reset or
@@ -3893,8 +3895,7 @@ Project and exposes its effective permissions, model/Work policies, budget,
 and review controls where those operations exist. More technical configuration
 is disclosed within its relevant group instead of filling the default page.
 
-The open choice is how prominently advanced Project controls belong in the
-default settings experience. The recommendation keeps them deliberately reachable
+Project controls remain deliberately reachable
 while preserving relevant effective limits and unavailable-action reasons at
 the point of use. It does not hide access or execution consequences behind an
 “advanced” switch. With no selected Project, the interface cannot imply that
@@ -3906,11 +3907,378 @@ changing a Work budget affects a named Project and follows its supported exact
 control path, stating effective timing and scope. Resetting Appearance cannot
 reset those permissions, alter the budget, or cancel Work.
 
-After direction on this organization, complete the setting inventory, defaults
-and overrides, persistence scope, reset behavior, policy transitions, model
-visibility, accessibility conflicts, empty/unsupported/failure states, responsive
-paths, backend trace, language, and paper audit. Do not claim DB13 closure or
-record a proposed choice as accepted before the author's direction.
+The complete inventory and behavior follow.
+
+### Settings information architecture
+
+Settings is a global place with a stable page title and a concise persistence
+statement. Its primary navigation leads with **Appearance**, **Layout**,
+**Editor**, and **Accessibility**, followed by **Project controls**. The selected
+group becomes the main form; it is not rendered as a dashboard of simultaneous
+cards. The page preserves the originating Project and return target.
+
+| Group | Personal controls and defaults | Scope and boundary |
+| --- | --- | --- |
+| Appearance | **System**, **Petra Stone**, **Petra Graphite**, and **High Contrast** themes; supplied syntax colors follow the effective theme | On this device; forced-colors mode overrides the rendered palette while retaining the chosen theme for later |
+| Layout | Available Focus, Review, Graph, and profile-valid layout presets; default secondary-panel posture; saved panel sizes and pinning | On this device and responsive capability; layout does not open domain objects, start Work, or grant a feature |
+| Editor | Line wrapping and supported code-like editor presentation, including JetBrains Mono and ligatures off by default; language-specific behavior comes from the registered editor/profile | On this device; prose, code, query, JSON, and LaTeX surfaces retain their correct semantic roles |
+| Accessibility | Text scale within supported app controls, reduced visual motion, pause visual streaming, focus and announcement preferences that remain safe, and the explicit High Contrast route | On this device; browser zoom, platform settings, forced colors, and reduced-motion requirements remain effective constraints |
+| Project controls | Effective privacy/data access, capability, model/routing, Work budget, and Review policy; technical details and history on demand | Exact named Project and versioned runtime records; editable only through a supported governed operation |
+
+Comfortable spacing remains the default for reading and forms, while navigation
+and metadata use their accepted compact treatment. DB14 owns component density;
+DB13 does not add a global density switch. A layout preset composes presentation
+values and explains the surfaces it affects. **Collaborate** appears only when a
+registered consuming capability makes the preset meaningful; a layout name cannot
+imply multi-user access.
+
+The page uses visible group navigation rather than an initially empty search box.
+Direct contextual links can open the exact preference or Project control and
+retain a reliable return. If the inventory later becomes too large to scan,
+task evidence can trigger settings search without changing this grouping model.
+
+### Effective values, defaults, and overrides
+
+Each control exposes the effective value and its origin where the distinction
+matters: Petra default, personal preference on this device, responsive adaptation,
+platform accessibility setting, or versioned Project rule. Stored preference and
+current effective presentation may differ. For example, Petra retains **Graphite**
+while forced colors determines the current palette, and it retains wide-screen
+panel sizes while a narrow viewport presents sequential routes.
+
+Platform accessibility constraints take precedence over a preference that would
+reduce access. Petra can apply more contrast or less motion than the system asks
+for; it cannot offer a setting that suppresses visible focus, required semantic
+structure, non-color meaning, or essential status. Browser text zoom remains
+supported independently of Petra's optional text-size preference.
+
+Project rules can constrain an operation, but they do not rewrite personal theme,
+layout, or editor choices. Personal preferences cannot weaken profile validation,
+privacy, source rights, ReviewPolicy, CapabilityGrant, RoutingPolicy, budget, or
+retention. The interface shows both facts when they interact rather than inventing
+one undifferentiated “effective settings” layer.
+
+### Apply, reset, persistence, and recovery
+
+Personal presentation changes apply immediately. A visible acknowledgment names
+their scope, and the current page demonstrates their effect without moving focus
+or losing form position. Theme and layout changes preserve the current Project,
+route, selection, unsent Petra/document text, active Work access, and scroll where
+the layout permits. Motion changes do not restart animations or streams.
+
+Personal settings are local to the device for the current product boundary.
+**Saved on this device** is used only after local persistence succeeds. If storage
+is unavailable, the change can remain active for the session with **Applied for
+this session; could not save on this device** and a retry. Petra does not imply
+account synchronization, backup, or transfer to another browser. Corrupt or
+unsupported stored values fall back to safe defaults, identify the affected
+group, and offer a scoped reset without discarding unrelated valid preferences.
+
+Individual controls and each group provide **Reset**. **Reset all personal
+settings** applies the known personal defaults with an exact acknowledgment and
+a session-scoped **Undo reset** where the prior values remain available. The
+explicit reset action needs no additional confirmation because it is local and
+recoverable. It never changes Project controls, clears Project content, removes
+sources, closes active Work, deletes drafts, or resets the operating system.
+
+If another tab changes a stored personal preference and the runtime reports the
+change, Petra applies the newer value without overwriting input or moving focus
+and announces the relevant group once. A user may set a new value again. DB13
+does not prescribe distributed preference conflict resolution or claim reliable
+cross-tab synchronization where the storage capability cannot supply it.
+
+### Layout and editor behavior
+
+Panel resizing works through pointer, touch, and keyboard under the DB04 separator
+contract. The current value and reset are available from Settings; direct resizing
+and Settings update the same local preference. Minimum task space and responsive
+reflow can constrain the effective size without rewriting the saved wide-layout
+value. A preset changes only its declared layout values. Applying **Focus** does
+not dismiss required attention, cancel Work, or erase pinned-state history; it
+changes how available context is presented.
+
+Editor preferences apply to registered editable surfaces. CodeMirror remains the
+post-freeze candidate for code-like LaTeX, JSON, query, and code editing after the
+accepted dependency check. A visual preference cannot change serialization,
+indentation semantics owned by a format, line-ending requirements, exact quotes,
+or saved content. Composition prose retains its document-first reading typography
+unless its registered semantic format needs the code-like editor.
+
+Changing a preference while editing preserves the buffer, selection, composition
+state, input-method text, undo history where supported, and exact save status.
+If an editor cannot apply a setting safely during composition, retain the requested
+value, explain when it becomes effective, and preserve the current edit. Do not
+reload the route or silently normalize content.
+
+### Project controls, privacy, and model visibility
+
+Entry from a Project binds **Project controls** to that exact Project. Direct
+global entry asks the author to select a Project for inspection; personal groups
+remain usable without one. The control header names the Project, profile, policy
+revision/freshness, and author capability. Choosing a Project in this settings
+context changes the inspection/edit target, not the shell's active Project or a
+running task. Navigation back to the Project is explicit.
+
+The default view summarizes effective rules and consequences in familiar terms.
+Technical detail discloses exact policy, grant, certification, provider/deployment,
+budget-profile, validator, and revision identifiers where the runtime supplies
+them. A local **Show technical model details** preference changes this disclosure
+default. It cannot hide the accountable model role, origin, fallback, limitation,
+or material provider/egress consequence required to understand current Work.
+
+| Project-control area | Leading meaning | Governed behavior |
+| --- | --- | --- |
+| Privacy and data access | Private Project scope, enabled evidence namespaces, permitted source/data use, egress or destination limits, and known retention rules | Inspect exact effective basis; change only through a supported typed operation, never a local toggle |
+| Capabilities | What the author and services may currently read, propose, execute, approve, export, or administer, including expiry and scope | Expired/missing grants explain the unavailable action and the supported request/access path |
+| Models and routing | Registered roles, currently eligible/certified routes, provider/egress implications, fallback behavior, and supplied policy status | Project routing selects only already permitted and certified options; a preference cannot grant a provider or lower the validation floor |
+| Work budgets | Supplied Project/workflow/period limits, measurement basis, current coverage, reservations, and unknown values | Change through an exact budget-policy operation; per-action scope/depth and concrete cost remain on Work |
+| Review and change | Current review mode/policy summary, scope, gates, approving actor, start/expiry/pause/supersession, and history | Preview exact before/after effect and apply prospectively through the registered policy path |
+
+Petra has no global “best model” or one quality score. Settings cannot offer an
+ambient provider picker that bypasses role certification, task scope, privacy,
+budget, or RoutingPolicy. A permitted preference may influence a registered
+selection objective only when the runtime contract defines its exact scope and
+fallback behavior. It does not retarget an already submitted model call.
+
+A Project-control edit uses the owning typed command rather than a generic
+**Save settings** mutation. The preview names exact old/new values, Project,
+actor authority, affected workflow/data scope, start time, expiry where supplied,
+and expected effect on running and future Work. Clear form submission is the
+authorizing action; an extra confirmation is reserved for a distinct unresolved
+consequence or additional authority requirement. Success records the new revision
+and history route. Failure preserves the form and current effective policy.
+
+Policy changes are prospective unless their contract explicitly supplies a safe
+transition. Work and model calls retain the policy, capability, and budget
+references they actually used. Settings cannot silently cancel, reroute, re-review,
+or relabel existing records. If a policy changed elsewhere, refresh and compare
+before resubmission; do not overwrite the newer revision.
+
+Current contracts provide Project private visibility and enabled evidence
+namespaces, exact capability references on commands and Work, model certifications
+and request budgets, while accepted D005/D007 decisions define ReviewPolicy and
+RoutingPolicy semantics. They do not supply one composed Project-controls read or
+a universal settings command. `UX-REQ-020` requests exact composition and mapping
+to existing or future typed operations. The UI remains read-only for any control
+without a supported command.
+
+### Responsive and accessibility behavior
+
+Wide screens use compact group navigation and one main settings form. Project
+control detail can open as the one secondary contextual surface. Narrow and
+high-zoom layouts use a full-width group list and group route with **Back to
+Settings**; labels, current values, scope, reset, unavailable reasons, and Project
+identity remain complete. A dense policy table becomes an ordered definition list
+or labelled rows, not a clipped horizontal-only view.
+
+Settings groups use headings, fieldsets, descriptions, and native control
+semantics. Theme swatches include names and selected state. Resizable demonstrations
+have keyboard equivalents. Toggle labels describe the positive effect; unavailable
+controls remain discoverable with their reason and required capability. Dynamic
+previews, storage failures, policy updates, and reset acknowledgments announce one
+concise change without taking focus. System-forced contrast and reduced motion
+remain truthful even when the retained preference differs.
+
+### Ordinary and adverse states
+
+| State | Visible meaning and available action | Preservation and recovery |
+| --- | --- | --- |
+| Personal settings ready | Effective value, device scope, reset availability, and any system override | Apply immediately; preserve current task and input |
+| First use / no saved preference | Petra or System default is active | Set a preference or leave the default; no warning state |
+| Platform override | Forced colors, reduced motion, zoom, or viewport adaptation determines effective presentation | Retain the compatible preference and explain current effect |
+| Local storage unavailable | Preference can apply only for the current session | Preserve session value; retry storage without claiming device persistence |
+| Invalid or unsupported stored value | Safe default replaces only the affected value | Inspect affected group and reset it; preserve other valid settings |
+| Reset applied | Exact personal group/all values returned to defaults | Undo during the supported session; Project state and content remain untouched |
+| No Project selected | Personal settings remain usable; Project controls have no target | Select an exact Project for inspection without changing active workspace |
+| Project controls loading/current/cached/stale/failed | Exact Project and available policy position/limitations | Preserve the last trustworthy read; refresh or follow a safe return; no edit from stale unknown state |
+| Read-only or missing capability | Effective control visible with actor/scope reason | Inspect history or use the supported access/request path; no fake toggle |
+| Unsupported profile/control | Registered meaning or typed operation unavailable | State the limitation and retain safe navigation; no generic fallback mutation |
+| Prospective change ready | Exact diff, authority, effective timing, and affected future/running work known | Submit typed operation or revise/defer; no generic save-all |
+| Project control conflict | Expected revision differs from current policy | Preserve proposed values, compare/refresh, and deliberately resubmit if still valid |
+| Project control partially applied or delivery uncertain | Per-operation actual outcome and current effective revision | Reconcile before retry; do not claim the entire Settings form succeeded |
+| Expired grant / unavailable route / budget exhausted | Current constraint and affected operations named | Inspect basis, request supported access/change, revise Work, or stop; presentation settings remain usable |
+
+### Interaction paths
+
+| Path | Entry and action | Result and recovery |
+| --- | --- | --- |
+| `DB13-P01` Open personal Settings | Enter globally or return from a contextual link; inspect group and persistence scope | Stable Settings route with personal groups first; preserve origin and return |
+| `DB13-P02` Change appearance | Select theme or supported appearance value; observe effective/system state | Immediate accessible presentation and device-save acknowledgment; storage failure retains session value |
+| `DB13-P03` Apply layout or resize | Select an available preset or change a panel size via Settings/direct separator | Same local preference, preserved task/input, responsive constraints explained; reset available |
+| `DB13-P04` Change editor behavior | Update supported code-like editor presentation while a clean or active edit exists | Buffer/selection/save state preserved; delayed applicability stated; no content normalization |
+| `DB13-P05` Change accessibility preference | Reduce motion, pause visual streaming, change supported text/focus/announcement behavior, or choose High Contrast | Effective system/app relationship remains explicit; essential access cannot be disabled |
+| `DB13-P06` Reset personal settings | Reset one control/group or all personal settings; inspect exact acknowledgment and optional session Undo | Personal defaults restored without changing Project control/content/Work; failed persistence stays explicit |
+| `DB13-P07` Inspect Project controls | Enter from Project or select an inspection target; read effective privacy, capabilities, model/Work, budget, and Review controls | Exact Project/revision and technical detail on demand; no selected target does not block personal settings |
+| `DB13-P08` Change supported Project control | Open owning control, inspect exact before/after scope/effective timing, submit typed operation | New revision/history or exact failure; running records retain actual bindings unless contract says otherwise |
+| `DB13-P09` Resolve stale/conflicting policy | A control changes elsewhere before submission or current read becomes stale | Preserve intended values; refresh/compare and submit against exact current revision; no overwrite |
+| `DB13-P10` Inspect or request unavailable capability | Open unavailable action reason, grant/route/budget basis, expiry, and available request/change path | No local bypass; return to Settings or original action with exact context |
+| `DB13-P11` Recover preference failure | Reopen after invalid storage, another-tab change, or session-only application | Safe effective values, bounded reset/retry, preserved form/input, and honest persistence status |
+
+### Language and paper audit
+
+Use **On this device**, **Applied for this session**, **Saved on this device**,
+**Set by your system**, **Reset [group]**, **Reset all personal settings**, and
+**Undo reset** for personal state. Use **Project controls for [Project]**,
+**Effective policy**, **Applies to future work**, **View policy details**,
+**Request access**, and exact registered action labels for governed state.
+
+Avoid **Account settings** without an account scope, **Private** as a promise about
+every provider or export, **Preferred model** when routing remains policy-bound,
+**Unlimited**, **Safe**, or **Default** without its basis, and a generic **Save
+settings** that combines local preferences with Project commands. **Show technical
+model details** affects disclosure only; model role and output origin remain visible.
+
+The paper audit walks `DB13-P01`–`P11`, the state matrix, a forced-colors and
+narrow-layout transition, an editor with unsaved text, failed device persistence,
+and a Project policy conflict with active Work. It checks the accepted distinction
+between presentation and authority and does not claim executed fixtures,
+accessibility measurements, live policy commands, or participant comprehension.
+
+| Heuristic | Paper-design check |
+| --- | --- |
+| Visibility of status | Effective value, retained value, system override, device persistence, Project revision, and operation result stay distinct |
+| Match to author task | Settings uses appearance, layout, editor, access, model, budget, and review language before technical IDs |
+| User control | Immediate personal changes have scoped reset/recovery; Project changes show exact effect and history |
+| Consistency | Direct resize/theme controls and Settings use the same preference; governed controls use owning commands |
+| Error prevention | Scope and origin prevent a personal preference from becoming permission or a stale policy from overwriting current state |
+| Recognition | Personal groups lead, Project identity stays visible, and technical details remain available in context |
+| Efficiency | Preferences apply without confirmation; clear Project submission is not followed by a duplicate assent step |
+| Minimal design | One group leads; technical records and policy detail stay disclosed rather than becoming a control wall |
+| Recovery | Safe defaults, session-only status, reset/undo, exact policy conflicts, and reconciliation preserve work |
+| Help and language | Persistence, system overrides, prospective policy, unavailable actions, and model disclosure use distinct terms |
+
+| Finding | Consequence | Severity | Disposition and verification |
+| --- | --- | --- | --- |
+| `DB13-A01` Personal and Project settings conflated | Theme/reset could appear to change privacy, permission, budget, or active Work | Major | Fixed in IA, scope labels, separate apply/reset behavior, and paths P01/P06–P08; verify with UX-FX32 |
+| `DB13-A02` Stored and effective presentation conflated | Forced colors or responsive layout could look like a lost preference | Moderate | Fixed with origin/effective value and retained preference; UX-FX32/33 after freeze |
+| `DB13-A03` Device save overstated | Session-only or failed browser persistence could appear synchronized or durable | Major | Fixed in persistence copy and P02/P11; post-freeze storage failures in UX-FX33 |
+| `DB13-A04` Model display becomes routing authority | “Preferred model” could bypass certification, egress, capability, or budget | Major | Fixed with disclosure-only preference and typed Project routing; runtime UX-REQ-020, UX-FX32/33 |
+| `DB13-A05` Generic policy editor lacks runtime composition | Current contracts reference grants/budgets/certifications but do not supply complete effective controls or commands | Major | Needs contract: architecture/implementation, UX-REQ-020; unsupported controls read-only; G-CONTRACT remains open |
+| `DB13-A06` Reset or layout loses active work | A local preference action could destroy input, selection, editor state, or obscure required attention | Major | Fixed in apply/reset/preset rules and P02–P06; verify with UX-FX33 after freeze |
+| `DB13-A07` Accessible settings behavior unmeasured | Visual previews, separators, overrides, and dynamic policy updates may remain hard to operate or interpret | Moderate | Needs post-freeze accessibility/participant evidence in UX-FX32/33; severe access, authority, or lost-work failure blocks G-VALIDATION |
+
+Acceptance fails if an author could believe a theme grants access, a layout preset
+starts or cancels Work, an editor setting changes saved content, a hidden model ID
+means anonymous origin, a preferred provider bypasses policy, device storage means
+account sync, forced colors erased the retained theme, reset personal settings
+changes Project policy, a policy change applies retroactively without saying so,
+or an unavailable control can be enabled through client state.
+
+### Acceptance criteria and post-freeze evidence
+
+DB13 is complete at specification depth. Implementation and validation must
+demonstrate these behaviors after freeze:
+
+1. Settings leads with Appearance, Layout, Editor, and Accessibility, while
+   Project controls are clearly labelled, discoverable, and bound to one Project;
+2. personal controls show effective value, origin/override, device persistence,
+   and reset behavior without changing domain or operational authority;
+3. System, Stone, Graphite, High Contrast, forced colors, reduced motion, zoom,
+   focus, and non-color meaning retain the accepted accessibility contract;
+4. layout presets and panel resizing preserve route, selection, unsent input,
+   active Work access, responsive adaptation, and exact preference scope;
+5. editor preferences preserve content, buffer, selection, input method, undo,
+   save status, and format/profile semantics;
+6. failed/unavailable/corrupt local storage yields honest session/default state,
+   bounded retry/reset, and no synchronization claim;
+7. group/all reset affects personal preferences only and offers supported local
+   recovery without deleting Project content or cancelling Work;
+8. Project-control entry preserves exact Project/profile/policy identity and does
+   not silently change the active workspace or infer a target;
+9. privacy, capability, model/routing, Work-budget, and Review controls expose
+   effective scope, limitations, history, and typed operation availability;
+10. model detail preference cannot obscure accountable role, output origin,
+    fallback, or material provider/egress consequence, and cannot route Work;
+11. supported Project edits preview exact before/after, scope, authority, and
+    effective timing and preserve running-record bindings and stale conflicts;
+12. unsupported or unauthorized controls remain inspectable and explain the
+    exact reason and supported request/return path without a generic toggle;
+13. direct and Settings presentation controls resolve one preference, while
+    contextual and Settings Project controls resolve one canonical policy path;
+14. narrow, high-zoom, keyboard, touch, screen-reader, forced-colors, reduced-motion,
+    and dynamic-update paths preserve labels, values, scope, actions, and focus; and
+15. runtime gaps and audit findings have owners and follow-up evidence, with no
+    product implementation or claimed validation before design freeze.
+
+| Scenario | Required post-freeze evidence |
+| --- | --- |
+| `UX-FX32` Personal preferences and Project controls | Pair two profiles and two Projects. Exercise all personal groups, theme/system overrides, presets/resizing, editor/model-detail disclosure, exact Project switch, read-only and editable controls, prospective policy change, and responsive/accessibility parity without changing task authority |
+| `UX-FX33` Settings adverse states and recovery | Storage unavailable/corrupt/session-only, forced colors/reduced motion, narrow layout, unsaved editor text, another-tab preference update where observable, missing Project, stale/failed control read, expired grant, unavailable route, unknown budget, policy conflict, partial/uncertain command outcome, reset and recovery preserve work and exact scope |
+
+These are independently invented post-freeze scenarios. They do not use contextual
+demo data or user assets. Paper closure does not establish local storage behavior,
+live control contracts, accessibility, performance, or observed comprehension.
+
+### Backend needs and next section
+
+Personal theme, layout, panel, editor, accessibility, and model-detail disclosure
+remain local presentation state; no backend request is created for M1 account
+sync. `UX-REQ-020` requests a snapshot-consistent, exact Project-controls read and
+typed transition mapping. It must map existing Project visibility/namespaces,
+capability references, certifications, per-request budgets, and accepted policy
+semantics before proposing new records or commands.
+
+DB13 closes at `G-SPEC`; `G-CONTRACT`, implementation/integration, and participant
+validation remain separate. Continue to DB14, Design system, by consolidating
+the already accepted visual, component, density, state, motion, responsive, and
+data-visualization rules into the full system specification.
+`UX-DESIGN-FREEZE-01` remains unaccepted.
+
+## DB14 — Design system
+
+**Status:** opening discussion after DB13 specification closure. The accepted
+Primer/Octicons/Pajamas reference roles, Petra-owned components, brand, themes,
+typography, elevation, border, density, state, accessibility, and graph rules
+remain in force. The profile-variation recommendation below is proposed and is
+not yet an accepted new decision. No design-system implementation is authorized.
+
+### Author task and inherited foundation
+
+The design system must make Petra recognizable and comfortable across long-form
+reading, dense review, relationship inspection, Work, Composition, and Settings
+while preserving the same interaction and authority meanings in every Project
+profile. It supplies reusable visual and interaction roles; it does not define
+profile ontology or calculate domain state.
+
+The accepted foundation already provides blue for interaction/focus/current
+selection, Petra amber for brand and bounded review/proposal emphasis, Inter for
+interface text, Bebas Neue for the wordmark only, and JetBrains Mono for code and
+identifiers. System, Petra Stone, Petra Graphite, High Contrast, and forced-colors
+behavior are accepted. Octicons supplies the shared icon language. Primer guides
+component roles and tokens; Pajamas guides application structure without becoming
+a runtime dependency. One structural divider separates adjacent panes, and no
+more than three elevation planes appear at once.
+
+Comfortable density belongs to reading and forms; compact density belongs to
+navigation and metadata. There is no global density switch. Shared controls retain
+visible focus, hover, selected, unavailable, busy, error, and reduced-motion
+behavior. Color, shape, text, and structure redundantly express material state.
+DB10's 2D graph and textual parity remain primary; graph color or position never
+carries the only meaning.
+
+### Opening recommendation — one Petra visual grammar
+
+Profiles should share Petra's themes, interaction colors, typography, component
+behavior, spacing, elevation, motion, and authority cues. A registered profile
+can supply typed object/relation categories, accurate terminology, restrained
+icons or glyphs, and semantic visualization encodings where its objects require
+them. It should not receive a profile-wide accent palette or reskin that changes
+the meaning of selection, action, proposal, warning, or approval.
+
+For example, a scientific evidence relation and a manuscript continuity relation
+can use different registered labels, line patterns, icons, and textual equivalents.
+Both still use Petra blue for the current selection and the same warning/error
+grammar. Entering the writing profile does not turn every action purple or make
+an amber object look approved. The Project profile remains clear through its name,
+objects, tasks, and vocabulary rather than a decorative theme.
+
+The open decision is whether this shared grammar is strict enough. My recommendation
+allows bounded profile encodings only where they communicate typed meaning and
+pass the same accessibility and collision checks; decorative profile branding
+does not enter the product system. After direction, complete the token inventory,
+components, icons, visualization grammar, responsive/motion rules, language and
+code examples, adverse states, backend/profile registry trace, and paper audit
+before advancing to DB15.
 
 ## `UX-DESIGN-FREEZE-01`
 
@@ -3974,10 +4342,10 @@ or default behavior.
 
 The next work remains specification, not demo production:
 
-1. carry accepted specifications through `DB12` into their recorded backend dispositions without implementing a product surface;
-2. discuss DB13's personal-preferences-first organization and advanced Project controls;
-3. finish `DB13`, Settings and personal control, through its complete specification and paper audit;
-4. close the design system, language, accessibility, failure, and recovery specifications in `DB14`–`DB17`;
+1. carry accepted specifications through `DB13` into their recorded backend dispositions without implementing a product surface;
+2. discuss DB14's shared Petra grammar and bounded profile semantic encodings;
+3. finish `DB14`, Design system, through its complete specification and paper audit;
+4. close language, accessibility, failure, and recovery specifications in `DB15`–`DB17`;
 5. assemble the complete screen, state, flow, and backend blueprint in `DB18`;
 6. review and explicitly record `UX-DESIGN-FREEZE-01`;
 7. begin the neutral reference-UX implementation;

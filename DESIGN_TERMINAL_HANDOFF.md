@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue DB13, Settings and personal control, from the opening recommendation below. `DB04` through `DB09` are accepted; DB10–DB12 have complete specifications and paper audits. DB12's working-copy export direction is accepted. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Continue DB14, Design system, from the profile-variation recommendation below. `DB04` through `DB09` are accepted; DB10–DB13 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -244,20 +244,40 @@ Existing renderer citation warnings and internal artifact registration are not
 the complete working-copy export contract. Do not weaken scientific reuse rules
 or claim an editor/export path is implemented from these design records.
 
-**Next discussion: DB13, Settings and personal control.** The opening
-recommendation leads with Appearance, Layout, Editor, and Accessibility personal
-preferences, with a clearly labelled Project controls section and technical
-detail disclosed where relevant. The chosen Project and effective policy remain
-clear; active constraints and action-unavailability reasons stay at the point
-of use. This organization is proposed, not a new accepted decision.
+The user accepted DB13's personal-preferences-first organization on 2026-09-07
+as `UX1.1-DISC06`: Appearance, Layout, Editor, and Accessibility lead; Project
+controls remain clearly labelled and discoverable with technical detail on demand.
 
-For example, text size and Show model details affect local presentation.
-Allowing a model service, changing a Work budget, or revising Review policy
-affects a named Project through its supported control path. Resetting Appearance
-cannot reset permissions or cancel Work. The local/governed boundary and global
-Settings place are already accepted; do not reopen them as new choices.
-After direction on advanced-control presentation, finish DB13's inventory,
-scope/defaults, persistence/reset, transitions, recovery, language, and audit.
+- Personal preferences apply on this device with effective-value/system-override,
+  session-only/storage-failure, group/all reset, and scoped recovery behavior.
+  They cannot change Project meaning, policy, permissions, routing, or Work.
+- Project controls bind one exact Project and summarize effective privacy/data,
+  capability, model/routing, budget, and Review rules. A Settings selector changes
+  the inspection target, not the active workspace or running Work.
+- Show technical model details changes disclosure only. Accountable role, origin,
+  fallback, and material provider/egress consequences remain visible. Petra has
+  no ambient preferred-model picker or global model score.
+- Editable Project controls use their owning typed operations with exact
+  before/after scope, authority, prospective timing, stale/conflict recovery, and
+  History. There is no generic settings mutation; unsupported controls are read-only.
+- Theme/layout/editor/accessibility changes and resets preserve selection, unsent
+  input, drafts, active Work access, and platform accessibility requirements.
+
+DB13 contains eleven interaction paths (`DB13-P01`–`P11`) and seven findings
+(`DB13-A01`–`A07`) with complete paper coverage. `UX-FX32`/`UX-FX33` are
+post-freeze scenarios. `UX-REQ-020` requests effective Project-control reads and
+typed transition mapping; it remains proposed. DB13 closes at `G-SPEC`; no live
+policy, local-storage, accessibility, or participant evidence is claimed.
+
+**Next discussion: DB14, Design system.** The opening recommendation keeps one
+Petra visual grammar across profiles. Themes, interaction colors, typography,
+components, spacing, state/authority cues, and motion remain shared. Registered
+profiles may supply restrained object/relation icons, glyphs, line patterns, and
+other semantic encodings where meaning requires them. A profile-wide decorative
+palette or reskin cannot change the meaning of selection, warning, proposal, or
+approval. This recommendation is proposed, not accepted. After direction,
+complete the design-system inventory, examples, adverse states, profile registry
+trace, and paper audit before DB15.
 
 ## Latest repository checkpoint
 
@@ -266,9 +286,10 @@ scope/defaults, persistence/reset, transitions, recovery, language, and audit.
   and the then-pending steering choice were saved at `6fa8f91`; accepted steering
   and the DB11 specification closure were saved at `a6f6901`; parallel Project
   inquiries were clarified at `8290251`; DB12's document-first direction and
-  then-pending export choice were saved at `38fb39c`. The current checkpoint
-  records accepted working-copy export, completed DB12 specification/paper audit,
-  and the DB13 opening discussion; inspect Git status/log for local and remote position.
+  then-pending export choice were saved at `38fb39c`; completed DB12 and the DB13
+  opening discussion were saved at `4faa54f`. The current checkpoint records
+  accepted/completed DB13 and opens DB14's profile-variation discussion; inspect
+  Git status/log for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
@@ -283,15 +304,18 @@ scope/defaults, persistence/reset, transitions, recovery, language, and audit.
   proposed-runtime/freeze status, five-file scope, and `git diff --check`.
 - DB12 closure passed Markdown/link checks, unique decision/request/scenario
   records, DB10–DB12 path/audit coverage, acceptance/date/status consistency,
-  five-file design-only scope, and `git diff --check`. DB13 remains a proposal
-  and no runtime or participant evidence is claimed from these checks.
-- `UX-REQ-011` through `UX-REQ-019` remain proposed runtime
+  five-file design-only scope, and `git diff --check`.
+- DB13 closure checks cover Markdown structure and links, unique decision/request/
+  scenario definitions, DB10–DB13 path/audit sequences, acceptance/status and
+  freeze boundaries, five-file design-only scope, and `git diff --check`. No
+  runtime, local-storage, accessibility, or participant evidence is claimed.
+- `UX-REQ-011` through `UX-REQ-020` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
-Do not implement a Graph, Composition, or Settings fixture after this discussion.
-Continue the product-design specification through `DB13`–`DB18`.
+Do not implement a Graph, Composition, Settings, or design-system fixture after
+this discussion. Continue the product-design specification through `DB14`–`DB18`.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.

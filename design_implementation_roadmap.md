@@ -1,6 +1,6 @@
 # Petra Design Implementation Roadmap
 
-Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10–DB12 specified and paper-audited; DB13 settings discussion open
+Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10–DB13 specified and paper-audited; DB14 next
 Last updated: 2026-09-06
 Scope: deliver Petra's M1 experience module by module while implementation continues, without creating a second authority for architecture or feature completion
 
@@ -408,6 +408,24 @@ The raster reference is a composition and visual-language source, not a screen s
 | `UX1.1-DISC03` | What must change for the accepted systems to produce a cohesive, finished application rather than a themed version of the provisional shell? | Rebuild the shared primitive layer before recomposing the shell. Use Primer primitives as the token reference and Octicons as the icon language, while retaining Petra-owned React components and profile-owned domain semantics; use Pajamas as a structural and navigation reference rather than a runtime dependency. Use blue for interaction, focus, and current selection; reserve Petra amber for brand and bounded review/proposal emphasis instead of every action. Keep Inter but replace the current hierarchy with named text roles, sentence case, standard weights, and deliberate measure; keep Bebas Neue wordmark-only. Define one elevation model with app base, chrome, primary work surface, and temporary overlay, with no more than three simultaneous planes. Remove fixture metadata and unavailable future modules from product chrome, open Details contextually, and collapse Petra by default. Review the primitive gallery before applying the system to the shell. Do not adopt the complete Primer React package until a React 19 compatibility and bundle spike passes. | The second calibration changed layout and themes but retained legacy borders, buttons, type hierarchy, and overlapping surface roles. A system-first rebuild prevents another accumulation of local CSS and makes the accepted visual direction scalable across modules. | `UX1.0-W03`–`UX1.0-W06`, `UX1.0-W11`, `UX1.1-W01`–`UX1.1-W12`, primitive gallery, shell fixture, dependency spike | Revisit if blue weakens Petra's identity, the reduced plane count hides material context, Octicons cannot express required profile states, the compatibility spike supports a lower-cost Primer React adoption, or task testing requires a different default panel posture. |
 | `UX1.1-DISC04` | How will Petra ensure that terminology is domain-accurate and approachable, and that every interaction path preserves user control? | Treat UX writing and interaction integrity as module acceptance work rather than final polish. For every module and Project profile, maintain a terminology ledger with canonical object, user-facing term, definition, prohibited conflations, source authority, and profile owner. Document each material path from entry state through feedback, commit point, result, cancellation or reversal, adverse states, recovery, focus behavior, and preserved work. Audit labels, descriptions, actions, statuses, confirmations, empty states, errors, and assistant language against D006, the active profile and command contracts, accessibility requirements, and Nielsen's ten usability heuristics. Separate product language from fixture and developer evidence. Record findings by consequence, assign a disposition, and block validation for unresolved issues that can cause unsupported trust, accidental mutation, lost work, provenance confusion, or loss of control. Heuristic review complements rather than replaces task testing with project authors. | Friendly wording can still be functionally false, and a polished control can still lead to an opaque or irreversible outcome. A shared control vocabulary plus profile-owned domain vocabulary keeps terms stable across direct and conversational paths, exposes authority and consequences, and makes usability review repeatable rather than subjective. | `UX1.0-W11`, `UX1.0-W13`, `UX1.1-W01`–`UX1.1-W15`, all module `G-SPEC` and `G-VALIDATION` gates, `UX-EV03`, `UX-EV05`, `UX-EV08` | Revisit if a profile's terminology differs materially from the ledger, a domain-specific heuristic is needed, the protocol creates documentation without finding interaction defects, or live contracts reveal a different action or recovery boundary. |
 | `UX1.1-DISC05` | Which places are first-class in Petra, and how must navigation, deep links, contextual surfaces, History, and task completion preserve meaning without restoring the crowded multi-panel shell? | Use **Projects** and **Settings** as global places. Within a Project, keep **Brief**, **Sources**, **Review**, **Graph**, **Work**, and **Composition** as stable first-class places, with registered profile tools in a separate group. Keep **Details** and **Petra** contextual and allow one expanded secondary surface by default. Make **History** a full, deep-linkable route reached deliberately from decisions, selected objects, Review, changed items, and Revert rather than a permanent primary tab. Carry Project, profile, current focus, authoritative snapshot, projection state, selected typed references, comparison state, linked thread/Work, origin, return position, unsent input, and focus through material transitions. Browser history restores application places; Graph Back/Forward restores its independent ten-step exploration trail. Deep links use opaque identities and resolve exact, current, historical, replaced, unsupported, and unauthorized targets through registered semantic place roles without leaking data or substituting ambient selection. Brief is the safe Project fallback. | Stable places make radically different profiles feel like one product, while task-specific activation and exact return state prevent navigation from turning into either a module dump or an authority-changing side effect. Keeping History reachable but non-primary preserves recovery without crowding everyday work. | `DB04`, `DB05`; `UX1.1-W01`–`W15`; `UX1.8-W02`–`W06`; all module entry/return paths; `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-008`; `UX-FX19` | Revisit if authors cannot discover History, Review or Work do not justify first-class placement, Composition proves too narrow or broad across accepted profiles, one-secondary behavior blocks a material task, or semantic resolution cannot preserve exact identity without a different routing contract. |
+| `UX1.1-DISC06` | How should Settings organize personal preferences and advanced Project controls? | Accepted 2026-09-07: lead with Appearance, Layout, Editor, and Accessibility preferences that apply locally and have scoped reset/recovery. Keep **Project controls** clearly labelled and discoverable, bound to one exact Project, with effective privacy/data, capability, model/routing, budget, and Review rules plus technical detail on demand. Personal model-detail display cannot route Work or hide accountable origin. Project changes use their owning typed, prospective control paths; personal reset cannot change policy or cancel Work. | Authors need comfortable personal control without mistaking device presentation for permission, privacy, automation, or Project authority. | `DB13`; `UX1.1-W16`–`W18`; `UX-REQ-020`; `UX-FX32`/`UX-FX33` | Revisit if personal groups hide Project controls, advanced detail overwhelms ordinary settings, an effective value's origin is unclear, reset loses work, or a display preference changes operational behavior. |
+
+### DB13 specification checkpoint
+
+DB13 specifies personal-preferences-first information architecture, effective
+values and platform overrides, device persistence and session-only failure,
+group/all reset, layout/editor preservation, privacy and model visibility,
+exact Project-control inspection and prospective transitions, responsive and
+accessible behavior, language, eleven paths, and seven audit findings.
+`DB13-P01`–`P11` and `DB13-A01`–`A07` record paper coverage.
+`UX-REQ-020` requests the missing effective Project-control read and typed
+transition mapping; it remains proposed and does not create a universal settings
+command. `UX-FX32`/`UX-FX33` are post-freeze conformance scenarios.
+
+DB13 closes at `G-SPEC`; runtime, accessibility, integration, and participant
+evidence remain separate. Continue DB14 by consolidating the accepted visual,
+component, density, state, motion, responsive, and visualization rules.
+`UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ### Contract request
 
@@ -460,6 +478,9 @@ The raster reference is a composition and visual-language source, not a screen s
 | `UX1.1-W13` | `in_progress` | Create and apply the shell terminology ledger across context, navigation, selection, Details, assistant, settings, status, and recovery language, distinguishing shared control terms from profile-owned domain terms. | Stable terms must preserve their owning contract's meaning without exposing architecture or fixture jargon. |
 | `UX1.1-W14` | `in_progress` | Document and audit every shell interaction path, including entry conditions, feedback, focus, persistence, commit boundaries, cancellation or reversal, adverse states, and recovery. | Project authors need predictable control when panes, routes, selections, settings, and background work change. |
 | `UX1.1-W15` | `planned` | After design freeze, exercise the same shell components with paired synthetic scientific and controlled-writing conformance scenarios, including profile switching at Project boundaries and unsupported-profile failure. | Profile adaptation must be structural and typed rather than a science UI with substituted labels, and it must stand without demo data. |
+| `UX1.1-W16` | `in_progress` | Specify Appearance, Layout, Editor, and Accessibility preferences with exact effective value/origin, device persistence, platform overrides, reset, and failure recovery. | Personal control should be immediate and recoverable without implying account sync or changing Project meaning. |
+| `UX1.1-W17` | `in_progress` | Specify Project-control discovery and exact privacy, capability, model/routing, budget, and Review summaries with technical detail on demand. | Authors need to understand effective constraints without a wall of implementation records or a local authority bypass. |
+| `UX1.1-W18` | `in_progress` | Map editable Project controls to their owning typed prospective transitions, exact conflict/outcome recovery, and active-Work effects; complete DB13 paths and audit. | Settings cannot invent a generic mutation or silently rewrite the bindings of existing Work. |
 
 ### Acceptance
 
@@ -474,6 +495,12 @@ The raster reference is a composition and visual-language source, not a screen s
 | `UX1.1-AC07` | Every user-facing shell term has one documented meaning consistent with the shared control contract or owning Project profile; fixture and implementation language does not appear in product chrome. |
 | `UX1.1-AC08` | Every material shell path passes the interaction-control and Nielsen heuristic audit with no unresolved issue that could cause unsupported trust, accidental mutation, lost work, provenance confusion, or loss of control. |
 | `UX1.1-AC09` | Paired profile fixtures retain the same shell control meanings and accessibility while presenting distinct domain objects, relations, validators, and vocabulary. |
+| `UX1.1-AC10` | Personal preference and Project-control scopes, effective origins, persistence, resets, and consequences remain distinguishable throughout Settings. |
+| `UX1.1-AC11` | Theme, layout, editor, accessibility, and model-detail presentation changes preserve active task state and cannot change authority or routing. |
+| `UX1.1-AC12` | Platform accessibility constraints and responsive adaptations can override effective presentation without appearing to erase the retained compatible preference. |
+| `UX1.1-AC13` | Device persistence failures and invalid values recover safely without an account-sync claim or loss of unrelated settings, content, or input. |
+| `UX1.1-AC14` | Project controls bind one exact Project/policy revision and map only to supported typed prospective operations with honest stale/conflict/partial outcomes. |
+| `UX1.1-AC15` | Missing capability, expired grant, unavailable route, unknown budget, unsupported profile, and read-only policy remain inspectable with exact reasons and safe return/request paths. |
 
 ### Completion evidence
 
@@ -483,6 +510,8 @@ The raster reference is a composition and visual-language source, not a screen s
 - `UX1.1-EV04`: [placeholder and implied-capability audit](reports/UX1.1-SHELL-SLICE.md#ux11-ev04--capability-and-authority-audit).
 - `UX1.1-EV05`: [terminology ledger and D006 interface-copy baseline](reports/UX1.1-WRITING-INTERACTION-AUDIT.md#initial-terminology-ledger);
 - `UX1.1-EV06`: [shell path registry, Nielsen heuristic findings, and dispositions](reports/UX1.1-WRITING-INTERACTION-AUDIT.md); recovery traces remain required before validation.
+- `UX1.1-EV07`: DB13 complete specification, paths/state/language and paper-audit record, accepted DISC06, and UX-REQ-020 trace; runtime validation remains pending;
+- `UX1.1-EV08`: paired personal/Project Settings and adverse persistence/policy scenario evidence after freeze.
 
 ## `UX1.2` — profile-resolved Project Brief and orientation
 
@@ -707,7 +736,9 @@ and adverse conformance scenarios to implement after freeze. The specification
 gate is covered; this module remains `in_progress` because no new frontend,
 live contract, performance, accessibility, or participant evidence is claimed.
 DB11's task-and-stage presentation, direct steering, and advisory branch order
-are accepted and specified; DB12 also has complete specification and paper-audit coverage. DB13 is open for discussion. `UX-DESIGN-FREEZE-01` remains unaccepted.
+are accepted and specified; DB12 and DB13 also have complete specifications and
+paper-audit coverage. DB14 is open for discussion.
+`UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ### Work
 
@@ -790,7 +821,8 @@ responsive/textual parity, inquiry context, language, paths, and the paper audit
 
 DB11 closes at `G-SPEC`; the Work/interaction module remains `in_progress`
 because runtime, fixture, integration, and participant evidence are separate.
-DB12 is also specified and paper-audited; continue the DB13 settings discussion.
+DB12 and DB13 are also specified and paper-audited; continue DB14's design-system
+profile-variation discussion.
 `UX-DESIGN-FREEZE-01` remains unaccepted; no new product implementation is authorized.
 
 ### Work
@@ -872,10 +904,9 @@ authoring, and export mappings; `UX-FX29`–`UX-FX31` are post-freeze scenarios.
 
 DB12 closes at `G-SPEC`. Contract, implementation, integration, accessibility,
 performance, and participant evidence remain separate, so this module remains
-`in_progress`. Continue DB13's opening discussion: personal-preference groups
-first, with clearly scoped Project controls and disclosed technical detail.
-That presentation is proposed, not a new accepted decision. Existing local
-preferences and governed-policy boundaries remain accepted.
+`in_progress`. DB13's personal-preferences-first Settings organization is accepted
+and specified. Continue DB14's proposed shared Petra visual grammar and bounded
+profile semantic-encoding discussion.
 `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 The scientific tasks below retain D012's exact evidence and citation meaning.
@@ -1020,6 +1051,8 @@ The fixture gallery reuses stable objects across modules. It should remain small
 | `UX-FX29` | Paired document-first Composition | Invent a scientific comparison drawing on unresolved inquiry lines and a controlled-writing revision with protected source ancestry. Exercise collection/contextual entry, document scope, plan, contextual Petra/basis/findings, exact proposal comparison, source/inquiry return, and responsive/textual accessibility. |
 | `UX-FX30` | Continuous authoring and exact revision recovery | Blank and structural edits, successive saves while checks are stale, late model and validation results, source changes, partial/failed Work, conflicting or disconnected saves, historical comparison, and render failure preserve text, exact identities, origin, and honest status. |
 | `UX-FX31` | Working-copy export and delivery | Pair unresolved criteria/stale citation and manuscript continuity findings; exercise unchecked/failed/unknown coverage, selected scope, unsaved capture, newer edits, historical choice, clipboard and structured-format status, required-report failure, restricted/excluded inclusions, partial multi-format results, delivery uncertainty, retry, and cancellation after delivery. |
+| `UX-FX32` | Personal preferences and Project controls | Pair two profiles and Projects; exercise Appearance, Layout, Editor, Accessibility, system overrides, presets/resizing, model-detail disclosure, exact control target, read-only/editable rules, prospective policy change, and responsive/accessibility parity without changing task authority. |
+| `UX-FX33` | Settings adverse states and recovery | Storage unavailable/corrupt/session-only, forced colors/reduced motion, narrow layout, unsaved editor text, observable cross-tab update, missing Project, stale/failed control read, expired grant, unavailable route, unknown budget, policy conflict, partial/uncertain outcome, reset and recovery preserve work and exact scope. |
 
 Post-freeze fixtures use Petra's canonical IDs and runtime shapes. When a runtime contract is not yet available, a fixture declares its provisional schema and associated `UX-REQ` item. They use synthetic content and remain independent of contextual demo assets and directories. Existing pre-freeze shell and graph fixtures remain exploratory comparison evidence; they do not satisfy the neutral reference-UX gate until reviewed or rebuilt against the frozen brief.
 
@@ -1086,6 +1119,7 @@ A local component calculation is allowed for presentation-only state such as pan
 | `UX-REQ-017` | `proposed` | Profile-resolved Composition collection/document reads with exact selection, inquiry/basis, save/assessment, revision comparison, output capabilities, and return context | `M1.1`, `M1.2`, `M1.7`, `M1.8`, later profile/authoring contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-018` | `proposed`; authoring boundary required | Continuous blank/structural working-copy edits, durable save acknowledgment, exact proposal reconciliation, and assessment binding without bypassing existing draft reuse or promotion rules | `M1.1`, `M1.2`, `M1.7`, `M1.8`, later profile/authoring contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-019` | `proposed` | Exact working-copy export capture, scoped limitation/status carriage, operation eligibility, format/bundle composition, and observable delivery/recovery | `M1.1`, `M1.2`, `M1.7`, `M1.8`, later profile/destination contracts | `reports/UX-BACKEND-HANDOFF.md` |
+| `UX-REQ-020` | `proposed` | Snapshot-consistent effective Project controls with exact privacy/data, capability, model/routing, budget, and Review scope plus mapping to owning typed prospective transitions and conflict/outcome recovery | `M1.1`, `M1.2`, `M1.5`, `M1.6`, `M1.7`, later governance/profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
 
 The implementation track owns each request's disposition. A post-freeze synthetic fixture may
 use the proposed shape, but no module may claim `G-CONTRACT` until the request
@@ -1182,9 +1216,9 @@ only after the full reference UX stands independently.
 Backend implementation of already accepted architecture may continue. The
 design track should now:
 
-1. carry accepted specifications through DB12 into `UX-REQ-001`–`UX-REQ-019` without implementing a product surface;
-2. discuss and specify DB13's personal preferences and clearly scoped Project controls, retaining existing local-presentation and governed-operation boundaries;
-3. complete design-system, language, accessibility, and recovery behavior through `DB14`–`DB17`;
+1. carry accepted specifications through DB13 into `UX-REQ-001`–`UX-REQ-020` without implementing a product surface;
+2. discuss and specify DB14's complete design-system consolidation from the already accepted visual foundation and module needs;
+3. complete language, accessibility, and recovery behavior through `DB15`–`DB17`;
 4. maintain the `UX-REQ` register and request architecture dispositions without allowing available backend shapes to dictate the UX;
 5. assemble the complete screen inventory, responsive blueprints, state matrix, flow map, and acceptance plan in `DB18`;
 6. review the entire brief and explicitly record `UX-DESIGN-FREEZE-01`;

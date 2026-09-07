@@ -1,6 +1,6 @@
 # Petra user-flow architecture
 
-Status: accepted product flow through document-first Composition and working-copy export; DB13 settings discussion open; related runtime mappings awaiting architecture disposition
+Status: accepted product flow through Settings; DB14 design-system discussion open; related runtime mappings awaiting architecture disposition
 Date: 2026-09-07
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as distinct project profiles
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
@@ -640,12 +640,16 @@ remains separate.
 - **Authority:** presentation changes are local; ReviewPolicy and CapabilityGrant changes are versioned server-side operations.
 - **Horizon:** presentation in M1; governance expands in M2/M3.
 
-[DB13](PETRA-UX-DESIGN-BRIEF.md#db13--settings-and-personal-control) opens the
-next discussion. It proposes personal-preference groups first, with explicitly
-scoped Project controls and technical detail disclosed where relevant. The
-organization is not yet accepted; the local/governed distinction above remains
-accepted. Showing model details changes presentation, while model-service access,
-budget, or review-policy changes retain their supported Project control paths.
+[DB13](PETRA-UX-DESIGN-BRIEF.md#db13--settings-and-personal-control) accepts
+personal-preference groups first, with explicitly scoped Project controls and
+technical detail disclosed where relevant (`UX1.1-DISC06`). Presentation changes
+apply locally with scoped reset and honest device/session persistence. Showing
+model details cannot route Work or obscure accountable origin. Project privacy,
+capability, model/routing, budget, and Review changes bind one exact Project and
+use their owning prospective typed operations. They retain active-Work bindings,
+stale/conflict recovery, and History. `UX-REQ-020` requests the missing effective
+Project-control read and transition mapping; it does not create a universal
+settings command. DB13's specification and paper audit are complete.
 
 ### `UX-FLOW-18` — reuse, share, and connect selected work
 
@@ -898,12 +902,14 @@ work rather than open product scope:
   reconciliation, and assessment binding without changing existing reuse or
   promotion authority; and
 - exact working-copy export capture, scoped limitations/status carriage,
-  operation eligibility, format/bundle composition, and observable delivery.
+  operation eligibility, format/bundle composition, and observable delivery; and
+- a snapshot-consistent effective Project-control read and mapping to existing
+  typed privacy, capability, routing, budget, and Review transitions.
 
-`UX-REQ-004` through `UX-REQ-019` carry the profile, lineage, thread-context,
+`UX-REQ-004` through `UX-REQ-020` carry the profile, lineage, thread-context,
 governed-reversal, semantic-location, source-view, source-lifecycle,
 working-candidate, Review-session, focused relationship-query, Work-read,
 Work-steering, Project-inquiry, Composition-view, continuous-authoring, and
-working-copy-export needs to the implementation track.
+working-copy-export, and Project-control Settings needs to the implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.

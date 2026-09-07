@@ -27,11 +27,11 @@ The implementation track may continue already accepted backend work. It should
 not add a demo adapter, corpus path, profile-specific shortcut,
 imported-document promotion behavior, or new shared schema from the future demo contexts
 while the product brief is open. It should review `UX-REQ-004` through
-`UX-REQ-019` as general architecture needs and return a disposition without
+`UX-REQ-020` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
-`UX-REQ-019` follow the accepted Petra interaction, navigation, Sources,
-Review, Graph, Work, Project-inquiry, and document-first Composition direction;
-DB12's working-copy export direction is accepted. These requests do not authorize a frontend implementation before the
+`UX-REQ-020` follow the accepted Petra interaction, navigation, Sources,
+Review, Graph, Work, Project-inquiry, Composition, and Settings direction.
+These requests do not authorize a frontend implementation before the
 design freeze.
 
 ## Accepted UX changes with no backend semantic impact
@@ -1248,6 +1248,96 @@ between shell context and task content more important.
 - **Owner and status:** product architecture and implementation track; working-copy
   export UX accepted, runtime mapping/command/read composition `proposed`.
 
+### `UX-REQ-020` — Effective Project controls and typed policy transitions
+
+- **Originating design work:** DB13 and accepted `UX1.1-DISC06` (2026-09-07);
+  `DB13-P07`–`P10` and `UX-FLOW-17`.
+- **Named post-freeze scenarios:** `UX-FX32`, paired personal preferences and
+  Project controls; `UX-FX33`, stale, unavailable, conflicted, and partially
+  reconciled control states.
+- **Implementation links:** `M1.1` identity/capability/control references,
+  `M1.2` durable policy records where supplied, `M1.5` Review policy,
+  `M1.6` model routing and budgets, `M1.7` composed Settings reads/commands,
+  and later governance/profile contracts.
+- **Author task and failure:** understand the privacy, capability, model/Work,
+  budget, and Review rules effective for one Project and change a supported rule
+  through its owning operation. Without a composed boundary, Settings would
+  present stale fragments, invent a universal toggle, apply a personal preference
+  as authority, or obscure which Work a change affects.
+- **Existing contract check:** PetraProject supplies exact private visibility and
+  enabled evidence namespaces. Command envelopes, WorkUnits, interaction runs,
+  and model requests reference capabilities and budget profiles or carry bounded
+  budgets. ModelRoleCertification and the gateway retain exact eligible deployment
+  context. D005 defines versioned ReviewPolicy semantics and D007 defines
+  RoutingPolicy, certification, egress, and multi-dimensional budgets. The
+  generated contract inventory does not currently expose one canonical
+  CapabilityGrant/ReviewPolicy/RoutingPolicy/BudgetProfile Settings composition
+  or a generic policy command. Existing references cannot be reverse-engineered
+  into editable rules by the client.
+- **Requested read composition:** resolve one exact Project/profile and return
+  effective privacy/data-access, capability, model/routing, Work-budget, and
+  Review-policy sections. Each material value names its registered meaning,
+  current revision/state, origin or policy owner, scope, effective/start/expiry
+  position where supplied, freshness, limitations, history destination, and
+  whether an exact typed operation exists for this actor. Return unavailable,
+  expired, inherited, unknown, unsupported, and conflicting states rather than
+  normalizing them into enabled/disabled.
+- **Project selection and context:** contextual entry binds the originating
+  Project. Direct global entry requires an explicit inspection target. A local
+  Settings Project selector does not silently switch the active workspace,
+  retarget Work, or alter ambient command context. Reads fail closed for missing,
+  unauthorized, or unsupported Project/profile identity.
+- **Model and budget behavior:** expose accountable role, route eligibility and
+  certification basis, material provider/egress/fallback consequences, and exact
+  supplied budget scope/measurement. Petra has no global model score or ambient
+  provider preference. Local technical-detail disclosure does not invoke this
+  contract or hide material origin. A routing change may choose only among
+  permitted certified routes and cannot grant capability, raise egress, change
+  ReviewPolicy, or lower validation requirements. Per-action scope, depth, and
+  cost remain visible on the concrete Work request.
+- **Requested transition mapping:** map each editable control to its owning typed,
+  idempotent command and expected current revision. Return an exact before/after
+  plan with Project, affected workflow/data/object scope, actor authority,
+  effective time, expiry/pause where relevant, and effects on active and future
+  Work. Do not create one universal `SetProjectSetting` operation merely for
+  screen convenience. A form submission authorizes the exact shown operation;
+  ask again only for unresolved consequential meaning or additional authority.
+- **Prospective and active-work behavior:** policy changes apply prospectively
+  unless the owning contract explicitly supplies a safe cutover. Preserve the
+  policy, grant, routing, and budget references that existing Work/model calls
+  actually used. Return affected active tasks and their real unchanged,
+  checkpoint, completion, cancellation, or transition behavior. Settings cannot
+  silently reroute, cancel, re-review, reclassify, or relabel prior records.
+- **Conflict and recovery:** reject or replan a stale expected revision without
+  discarding the author's proposed values. Compose per-operation outcomes and
+  current effective state after partial, failed, duplicated, disconnected, or
+  uncertain delivery. Reconcile before retry. A change in one policy must not be
+  reported as success for unrelated controls in the same visual group.
+- **Authority and persistence:** Project controls are canonical versioned state
+  under their owning decisions and commands. The Settings surface owns
+  disclosure, selection of an inspection target, and unsent form state only.
+  Personal theme/layout/editor/accessibility/model-detail preferences remain
+  device-local and cannot be written through this requirement. Project changes
+  retain actor, command, approval where required, event, revision, and History.
+- **Smallest viable response:** first compose read-only effective values from
+  existing Project and registered control records, with exact unsupported fields.
+  Enable only an already accepted typed transition and expose its result/history.
+  Add the smallest missing query or record mapping needed for that path; do not
+  invent all policy schemas or a universal editor to make the Settings page look
+  complete.
+- **Provisional boundary:** after freeze, synthetic read/command adapters may
+  represent exact Project controls and outcomes under UX-FX32/33, declaring
+  unsupported operations. They cannot accept arbitrary client settings or
+  calculate permissions/routing locally. No contract, policy, or frontend
+  implementation is created by this request.
+- **Dependencies:** UX-REQ-001 shell context, UX-REQ-004 profile binding,
+  UX-REQ-008 semantic destinations, UX-REQ-014/015 Work reads/transitions, and
+  the accepted capability, Review, model-gateway, budget, rights/privacy,
+  history, and command boundaries.
+- **Owner and status:** product architecture and implementation track; Settings
+  scope and presentation accepted, effective-control read/typed transitions
+  `proposed`.
+
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
 integration requests are written.
@@ -1274,6 +1364,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Document-first Composition and exact contextual reads | Proposed `UX-REQ-017`; existing scientific composition aggregates are the foundation, with profile/ancestry mappings still required |
 | Continuous working-copy edits, exact saves, late-proposal reconciliation, and assessment binding | Proposed `UX-REQ-018`; current exact-span revision and reuse contracts remain intact until architecture disposition |
 | Exact working-copy export with scoped limitations and observable delivery | Proposed `UX-REQ-019`; rendering/storage, support reuse, profile promotion, and external delivery retain distinct boundaries |
+| Effective Project controls and typed policy transitions in Settings | Proposed `UX-REQ-020`; personal preferences remain local while Project privacy, capability, routing, budget, and Review controls retain their owning authority |
 | Current/cached/new evidence boundary | ContextPacket and EvidencePacket from `M1.1`, retrieval path in `M1.6` |
 | Assistant stream, interrupt, reconnect, and replay | PetraInteractionRun and AG-UI adapter boundary from `M1.0`/`M1.1`, product hooks in `M1.7` |
 | Projection freshness | GraphProjectionRecord and ProjectionCheckpoint from `M1.1`, delivery in `M1.3`/`M1.5` |
@@ -1285,7 +1376,7 @@ and outputs attached to these mechanics. They should not duplicate Work,
 interaction, proposal, review, approval, cancellation, provenance, or history
 lifecycles merely because the profile uses different nouns.
 
-## Requirement status after DB12
+## Requirement status after DB13
 
 The authored-project, imported-document, Project-thread, exact turn-context,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
@@ -1308,8 +1399,17 @@ DB12's document-first and working-copy export directions are accepted as
 and export gaps. DB12 closes its specification gate with paper paths/audit and
 post-freeze scenarios; none of these runtime mappings is implemented or closed.
 Saving, support assessment, profile promotion, rendering, and delivery retain
-their separate outcomes and authority. DB13's settings presentation is the next
-discussion; no new Project policy is inferred from a personal preference.
+their separate outcomes and authority. No new Project policy is inferred from
+a personal preference.
+
+DB13's personal-preferences-first organization and discoverable, exactly scoped
+Project controls are accepted as `UX1.1-DISC06`. `UX-REQ-020` requests the
+missing effective-control read and typed transition mapping; it does not propose
+a universal settings command. Appearance, layout, editor, accessibility, and
+technical-detail disclosure remain device-local presentation state. Privacy,
+capability, routing, budget, and Review controls retain their exact Project,
+policy, actor, revision, and prospective-effect boundaries. DB13 closes at
+`G-SPEC`; runtime and participant evidence remain pending. DB14 is next.
 
 ### Cross-device preference synchronization
 
@@ -1332,5 +1432,5 @@ Brief, SuggestedAction, Project-profile, imported-document, Project-thread,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
 conversational-working-graph, profile-neutral Review, bounded relationship-view,
 composed Work-presentation, generic Work-steering, Project inquiry, or Composition
-workspace/authoring/export flows until the
+workspace/authoring/export or Project-control Settings flows until the
 applicable requests have an explicit disposition.
