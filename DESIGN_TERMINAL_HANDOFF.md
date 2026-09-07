@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue DB15, UX language system, from the shared-voice recommendation below. `DB04` through `DB09` are accepted; DB10–DB14 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Continue DB15, UX language system, from the communication-contract recommendation below. `DB04` through `DB09` are accepted; DB10–DB14 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -296,12 +296,24 @@ DB14 closes at `G-SPEC`; no design-system implementation, final-token contrast,
 profile-registry, accessibility, performance, visual-regression, or participant
 evidence is claimed.
 
-**Next discussion: DB15, UX language system.** The opening recommendation keeps
-one Petra voice across profiles: direct, calm, specific about basis and limits,
-and explicit about status, consequence, and next action. Profiles own accurate
-domain nouns, relationships, validators, action objects, and role names; they do
-not create different assistant personalities or rename shared authority and
-recovery language. Response depth adapts to task and consequence.
+The user clarified on 2026-09-07 that scientific research and controlled writing
+are minimum conformance examples, not an exhaustive profile catalogue. Petra may
+admit many other versioned taxonomies when their objectives, objects, relations,
+basis, validators, tools, task families, outputs, terminology, and supported
+places map honestly to Petra's governed Work, Review, approval, provenance,
+revision, recovery, and History contracts. A profile may omit inapplicable domain
+flows. It cannot redefine permission or authority through taxonomy. This sharpens
+`UX1.0-DISC05`, DB14, UX-FX34, and `UX-REQ-004`; it does not reopen DB14's shared
+visual grammar.
+
+**Next discussion: DB15, UX language system.** The refined recommendation keeps
+one Petra communication contract across profiles: direct, calm, specific about
+basis and limits, and explicit about status, consequence, authority, and next
+action. Profiles own accurate domain nouns, relationships, validators, action
+objects, role names, units, and discipline-appropriate discourse conventions.
+They may shape response structure where their work requires it; they do not create
+decorative assistant personalities or rename shared authority and recovery
+language. Response depth and challenge adapt to task, user context, and consequence.
 
 For example, the scientific profile can say **Resolve the measurement criterion
 first; it affects two downstream comparisons. You can explore alternatives now,
@@ -309,8 +321,10 @@ but the comparison will remain provisional.** A writing profile can say **Resolv
 the continuity constraint first; it affects two downstream revisions. You can
 explore scene options now, but the revision will remain provisional.** The
 recommendation, basis, author choice, and consequence use one Petra structure;
-the profile supplies the correct concepts. This DB15 boundary is proposed, not
-accepted.
+the profile supplies the correct concepts. These are two examples among many;
+an admitted profile may use an unrelated taxonomy and response structure while
+retaining the same candor and authority obligations. This DB15 boundary is
+proposed, not accepted.
 
 ## Latest repository checkpoint
 
@@ -322,7 +336,7 @@ accepted.
   then-pending export choice were saved at `38fb39c`; completed DB12 and the DB13
   opening discussion were saved at `4faa54f`; completed DB13 and the DB14 opening
   discussion were saved at `02c7383`. The current checkpoint records accepted/
-  completed DB14 and opens DB15's shared-voice discussion; inspect Git status/log
+  completed DB14 and opens DB15's communication-contract discussion; inspect Git status/log
   for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc

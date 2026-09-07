@@ -147,12 +147,20 @@ between shell context and task content more important.
   `DB14-P05`, `DB14-P06`, `DB14-P11`, `UX-PATH-02`, and `UX-PATH-04`.
 - **Named fixture need:** `UX-FX15`, paired synthetic scientific-research and
   controlled-writing Projects that expose the same kernel while resolving
-  different typed domain meaning; `UX-FX34`, shared visual grammar with bounded
+  different typed domain meaning; `UX-FX34`, those profiles plus at least one
+  unrelated invented taxonomy exercising shared visual grammar and bounded
   profile object/relation encodings; and `UX-FX35`, forced-color, missing,
-  colliding, and replaced-encoding recovery. No fixture is derived from a future
-  demo corpus.
+  colliding, and replaced-encoding recovery. The named profiles are minimum
+  conformance examples rather than an exhaustive registry. No fixture is derived
+  from a future demo corpus.
 - **Implementation links:** accepted `M1.1-W02` and `M1.1-W13`; `M1.2-W01`; `M1.7-W01`–`W12`; later controlled-writing domain contracts. The existing `petra.project@1.0.0` schema must not be edited in place.
-- **Project-author task and failure:** open either a scientific or complex controlled-writing Project and see the right concepts, relationships, validation tools, and language without entering a different product or losing Petra's controls. Without a server-owned profile boundary, shared components will hard-code science, clients will invent semantic aliases, or narrative constraints will be stored as scientific Claims.
+- **Project-author task and failure:** open a Project under any admitted profile,
+  including but not limited to scientific research or complex controlled writing,
+  and see the right concepts, relationships, validation tools, and language
+  without entering a different product or losing Petra's controls. Without a
+  server-owned profile boundary, shared components will hard-code one taxonomy,
+  clients will invent semantic aliases, or unrelated domain meaning will be
+  stored under false object types.
 - **Requested contract behavior:** every Project resolves one immutable, versioned profile binding and one registered profile manifest. The manifest names:
   - stable profile identity and version;
   - registered domain schema, object-kind, relationship, command, event, validator, and output references;
@@ -166,6 +174,15 @@ between shell context and task content more important.
   - the profile-specific Brief payload schema;
   - compatibility, replacement, and unsupported-version behavior.
 - **Shared-kernel rule:** Project, Artifact, source revision, WorkUnit, candidate/proposal, ChangeSet, review/approval, capability, provenance, projection, event, interaction, cancellation, promotion, and history mechanics retain the same authority meanings. A profile adds typed domain meaning; it cannot inject executable client code, create a second command envelope, or bypass policy and approval.
+- **Profile-admission rule:** admission is based on semantic and functional
+  compatibility, not a discipline allowlist. A profile defines its versioned
+  objectives, object/relation schemas, governing basis or sources, validators,
+  tools, task families, outputs, terminology, and supported places; maps every
+  applicable operation back to the shared Work, proposal/Review, approval,
+  provenance, revision, recovery, and History contracts; and declares omitted
+  flows and compatibility behavior. A profile that requires different permission,
+  approval, provenance, cancellation, or history meaning needs an architecture
+  change rather than a manifest alias.
 - **Presentation-descriptor rule:** Petra owns themes, tokens, components,
   selection/focus, action, proposal/review, warning, approval, error, density,
   layout, motion, accessibility, and fallback rendering. A profile descriptor

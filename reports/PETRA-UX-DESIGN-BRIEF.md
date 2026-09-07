@@ -67,10 +67,22 @@ It does not derive from:
 - an existing frontend component or backend payload;
 - a demo deadline or presentation narrative.
 
-The two requested Project profiles are product requirements. Their exact demo
-contexts are not. The design therefore specifies profile extension points,
-semantic responsibilities, and invariant controls before either real context is
-connected.
+Scientific research and complex controlled writing are the first two required
+Project-profile conformance examples. They are not Petra's profile catalogue or
+an exhaustive classification of Projects. Their exact demo contexts are not
+product requirements. Petra may admit many other versioned profiles and
+taxonomies when they fit its governed knowledge-work purpose and functions.
+
+An admitted profile must define its typed objectives, objects, relationships,
+sources or governing basis, validators, task families, tools, outputs, terminology,
+and supported places well enough to map its applicable work into Petra's shared
+Work, candidate/proposal, Review, approval, provenance, revision, recovery, and
+History contracts. It may omit a domain flow that does not apply and add a
+registered profile flow that returns through the shared kernel. It cannot redefine
+permissions, approval, authority, provenance, cancellation, or history through a
+taxonomy or label. Unknown and incompatible profiles fail safely. Profile
+admission therefore tests semantic and functional compatibility with Petra; it
+does not require membership in a closed list of disciplines.
 
 ## Project lines of inquiry
 
@@ -175,7 +187,7 @@ interaction contract has not yet been designed.
 | `DB12` | Composition and revision | Artifact planning, editing, provenance, validation, citations where applicable, imported ancestry, promotion, rendering, and export | specified; document-first and working-copy export direction accepted; paper audit complete |
 | `DB13` | Settings and personal control | Appearance, theme, layout, panel resizing, editor, accessibility, privacy, model visibility, and local preference rules | specified; personal-preferences-first organization accepted; paper audit complete |
 | `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | specified; shared Petra grammar and bounded profile semantic encodings accepted; paper audit complete |
-| `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | discussion open; protocol accepted; shared-voice and profile-lexicon decision pending |
+| `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | discussion open; protocol accepted; communication-contract and profile-discourse decision pending |
 | `DB16` | Accessibility specification | Keyboard, focus, zoom/reflow, screen reader, motion, non-color meaning, graph alternative, touch, panel resize, and streamed updates | partial |
 | `DB17` | Failure, recovery, and history | Offline, stale, conflict, partial, failed, blocked, unsupported, replay, lost-connection, and non-destructive recovery paths | discussion draft |
 | `DB18` | Product blueprint and acceptance | Complete screen inventory, responsive blueprints, state matrix, end-to-end path map, backend request ledger, and design acceptance evidence | not designed |
@@ -4583,7 +4595,8 @@ disagreement. DB15 owns the complete vocabulary and voice system.
 
 ### Paper interaction and heuristic audit
 
-The paper audit walks `DB14-P01`–`P11` across both required profile classes,
+The paper audit walks `DB14-P01`–`P11` across the two required conformance
+profiles and an abstract third profile with an unrelated invented taxonomy,
 all four themes, forced colors, reduced motion, wide/narrow/high-zoom layouts,
 dense collections, multiple simultaneous state dimensions, graph/text parity,
 overlays, and missing/colliding semantic descriptors. It checks the accepted
@@ -4660,7 +4673,7 @@ demonstrate these behaviors after freeze:
 
 | Scenario | Required post-freeze evidence |
 | --- | --- |
-| `UX-FX34` Shared grammar across profiles | Pair invented scientific and controlled-writing Projects across Brief, Sources, Review, Graph, Work, Composition, and Settings. Change typed objects, relations, labels, validators, icons/glyphs, line patterns, legends, and optional semantic tones while selection, actions, authority, warnings, approval, errors, focus, density, and recovery remain Petra-wide. Include relation-versus-outcome separation and unknown/replaced descriptors. |
+| `UX-FX34` Shared grammar across profiles | Use invented scientific, controlled-writing, and at least one unrelated third-profile Project across Brief, Sources, Review, Graph, Work, Composition, and Settings. Change typed objectives, objects, relations, labels, validators, task families, icons/glyphs, line patterns, legends, and optional semantic tones while selection, actions, authority, warnings, approval, errors, focus, density, and recovery remain Petra-wide. Include profile admission, omitted/inapplicable flows, relation-versus-outcome separation, and unknown/replaced descriptors. |
 | `UX-FX35` Design-system stress and recovery | Exercise all themes, forced colors, reduced motion, 200% text, narrow/high-zoom/touch/keyboard conditions, dense lists/tables/graphs, overlays, busy/live updates, invalid/unavailable/stale/conflicted/failed/partial states, icon failure, encoding collision, theme-storage failure, and component migration without lost input, selection, focus, meaning, or page-level overflow. |
 
 These scenarios are independently invented and begin only after design freeze.
@@ -4686,9 +4699,9 @@ the accepted D006 language contract and module writing/audit rules.
 
 **Status:** opening discussion after DB14 specification closure. D006's reference,
 descriptor, scientific-force, uncertainty, and assistant-language rules and the
-accepted writing/interaction audit protocol remain in force. The shared-voice and
-profile-lexicon recommendation below is proposed and is not yet accepted. No
-language-system implementation is authorized.
+accepted writing/interaction audit protocol remain in force. The shared
+communication-contract and profile-lexicon recommendation below is proposed and
+is not yet accepted. No language-system implementation is authorized.
 
 ### Author task and inherited boundary
 
@@ -4696,7 +4709,7 @@ The author must understand what Petra knows, recommends, requests, changes, and
 cannot do without translating system jargon or guessing whether a domain term,
 operational status, proposal, or authoritative outcome is intended. The same
 meaning must survive direct controls, Petra responses, Work, Review, errors,
-history, and accessible alternatives.
+history, and accessible alternatives under any admitted profile.
 
 Shared control and authority language belongs to Petra. Exact object, relation,
 validator, source, output, and author-role language belongs to the registered
@@ -4705,14 +4718,16 @@ explicit uncertainty, inspectable basis, and distinct suggestion, question,
 status, and command speech acts. DB15 must turn those rules and the existing
 module ledgers into one complete product vocabulary and response system.
 
-### Opening recommendation — one Petra voice, profile-owned lexicon
+### Opening recommendation — one communication contract, profile-owned discourse
 
-The opening recommendation is one Petra voice across profiles: direct, calm,
-specific about basis and limitations, and explicit about status, consequence,
-and next action. Profiles own domain nouns, relationships, validators, role names,
-and accurate action objects; they do not create different assistant personalities
-or rename shared authority and recovery language. Response depth adapts to task
-and consequence rather than to a decorative profile persona.
+The refined recommendation is one Petra communication contract across an
+open-ended profile system. Petra remains direct, calm, specific about basis and
+limitations, and explicit about status, consequence, authority, and next action.
+Profiles own domain nouns, relationships, validators, role names, accurate action
+objects, units, and discipline-appropriate reasoning or document conventions.
+They may shape response structure where the domain requires it; they do not
+create decorative assistant personalities or rename shared authority and recovery
+language. Response depth and challenge adapt to task, user context, and consequence.
 
 For example, the scientific profile might say: **Resolve the measurement criterion
 first; it affects two downstream comparisons. You can explore alternatives now,
@@ -4720,8 +4735,11 @@ but the comparison will remain provisional.** A writing profile might say:
 **Resolve the continuity constraint first; it affects two downstream revisions.
 You can explore scene options now, but the revision will remain provisional.**
 The recommendation, reason, author choice, and consequence use one Petra structure;
-the profile supplies the correct concepts. Whether this shared voice/profile-
-lexicon boundary is accepted remains the DB15 decision. After direction, complete
+the profile supplies the correct concepts. These are two examples among many;
+another admitted profile may use an entirely different taxonomy and discourse
+structure while retaining the same candor, status, authority, and recovery
+obligations. Whether this shared communication-contract/profile-discourse boundary
+is accepted remains the DB15 decision. After direction, complete
 the shared vocabulary, profile slots, response anatomy and depth, labels, statuses,
 confirmations, errors, prohibited conflations, responsive/accessibility language,
 paths, adverse states, backend trace, and paper audit before DB16.
@@ -4789,7 +4807,7 @@ or default behavior.
 The next work remains specification, not demo production:
 
 1. carry accepted specifications through `DB14` into their recorded backend dispositions without implementing a product surface;
-2. discuss DB15's shared Petra voice and profile-owned terminology boundary;
+2. discuss DB15's shared Petra communication contract and profile-owned terminology/discourse boundary;
 3. finish `DB15`, UX language system, through its complete specification and paper audit;
 4. close accessibility, failure, and recovery specifications in `DB16`–`DB17`;
 5. assemble the complete screen, state, flow, and backend blueprint in `DB18`;

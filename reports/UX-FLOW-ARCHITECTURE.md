@@ -2,7 +2,7 @@
 
 Status: accepted product flow through Settings and cross-flow design system through DB14; DB15 language-system discussion open; related runtime mappings awaiting architecture disposition
 Date: 2026-09-07
-Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as distinct project profiles
+Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as initial required examples in an extensible Project-profile system
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
 
 ## Purpose
@@ -92,6 +92,14 @@ may receive profile-owned nouns, descriptors, and available surface roles, but
 only registered profile contracts may supply them. The browser cannot turn a
 Hypothesis into a story beat by replacing text. `UX-REQ-004` records the
 required runtime boundary.
+
+Scientific research and controlled writing are minimum conformance profiles,
+not a closed product taxonomy. Another profile may define unrelated objectives,
+objects, relationships, validators, tools, task families, outputs, and discourse
+conventions when its applicable work maps honestly to Petra's invariant loop. It
+may omit an inapplicable domain flow and add registered flows that return through
+the shared kernel. A taxonomy cannot redefine permission, approval, authority,
+provenance, cancellation, recovery, or History.
 
 The model adapts through that same profile boundary. Every material assistant
 or worker request binds the Project profile, its domain schemas, the allowed
@@ -876,7 +884,7 @@ contract, and revisit process.
 The flow review accepts these directions:
 
 1. **Use-agnostic core:** Petra's Project, Artifact, Work, proposal, review, ChangeSet, provenance, capability, projection, event, and history mechanics do not assume science or controlled writing.
-2. **Profile-owned meaning:** scientific research and complex controlled writing use separate typed ontologies and terminology, not aliases over one domain schema.
+2. **Profile-owned meaning:** every admitted profile uses its own typed ontology and terminology rather than aliases over another domain schema; scientific research and complex controlled writing are the first two conformance examples, not the complete catalogue.
 3. **Invariant controls:** inspect, ask, start Work, interrupt, validate, preview, approve, correct, reject, defer, promote, cancel, and revert keep the same interaction and authority meanings across profiles.
 4. **Secondary-panel policy:** one expanded secondary task panel is the default; additional panels require explicit pinning and sufficient space.
 5. **Attention ordering:** material consequence, blocked progress, required review, and stale dependent output take precedence over recency; Petra does not manufacture a universal urgency score.
