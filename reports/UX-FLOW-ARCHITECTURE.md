@@ -1,6 +1,6 @@
 # Petra user-flow architecture
 
-Status: accepted product flow, information architecture, Sources, Review, Graph, Work, and Project-inquiry direction; related runtime mappings and compositions awaiting architecture disposition
+Status: accepted product flow, information architecture, Sources, Review, Graph, Work, Project-inquiry, and document-first Composition direction; DB12 export decision pending; related runtime mappings awaiting architecture disposition
 Date: 2026-09-06
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as distinct project profiles
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
@@ -578,7 +578,7 @@ new Work requires the corresponding explicit action.
 ### `UX-FLOW-14` — request and compose a research artifact
 
 - **Goal:** produce useful writing or another bounded artifact without losing evidence, origin, audience, or scientific force.
-- **Entry:** Brief, selected objects, EvidencePacket, assistant request, Draft workspace, or follow-on from completed Work.
+- **Entry:** Brief, selected objects or inquiry, EvidencePacket, assistant request, Composition workspace, or follow-on from completed Work.
 - **Path:** state objective, audience, subject, scope, format, and inference policy -> select snapshot -> compile EvidencePacket with contrary evidence and omissions -> inspect or accept CompositionPlan -> generate DraftArtifact -> validate material DraftSpans -> inspect provenance and citations.
 - **Completion:** an immutable DraftArtifact revision is grounded, explicitly inferential, researcher-supplied, or visibly unsupported at every material span.
 - **Branches:** insufficient evidence, disputed basis, abstract-only support, long-form plan review, model failure, validation failure, or unsupported requested force.
@@ -594,6 +594,27 @@ new Work requires the corresponding explicit action.
 - **Branches:** edit changes force, citation no longer supports text, evidence was reversed, renderer failure, missing metadata, merge conflict, or deliberate unsupported author statement.
 - **Authority:** human edits retain human origin and do not overwrite generated history.
 - **Horizon:** M1 first revision and render; later format and integration expansion.
+
+[DB12](PETRA-UX-DESIGN-BRIEF.md#db12--composition-and-revision) supplies the
+accepted document-first presentation for these flows (`UX1.7-DISC01`). The
+document is primary; contextual Petra binds an exact passage, section, or whole
+artifact, and source/inquiry context, findings, and comparison open when needed.
+The existing scientific flow retains D012 semantics; controlled writing requires
+its own registered profile meaning and imported ancestry under UX-REQ-004/005.
+
+Writing and saving working progress remain distinct from validation, promotion,
+rendering, and export. Authors can continue editing while checks are stale;
+late model or validator results stay bound to the submitted revision and cannot
+overwrite or certify later edits. UX-REQ-017 requests the composed document view;
+UX-REQ-018 requests the missing continuous-authoring and exact reconciliation
+boundary. Existing exact-span revision commands are narrower than this UX.
+
+The sequence above describes a scientific composition path, not a requirement
+to stop after every edit until validation passes. DB12's unresolved-findings
+export policy remains pending: the proposed marked working-copy export would
+preserve limitations and exact identity under existing access rules. No new
+export permission or unconditional validation gate is accepted by this note.
+Finish that decision and DB12's paper audit before moving to DB13.
 
 ### `UX-FLOW-16` — inspect history and recover from change or failure
 
@@ -859,11 +880,17 @@ work rather than open product scope:
   plan/input lineage, validated reuse, active-stage/scheduling transitions, and
   operational recovery composition; and
 - profile-valid Project inquiry mapping, basis and advisory reasoning context,
-  with exact zero/many/shared Work and result links across existing surfaces.
+  with exact zero/many/shared Work and result links across existing surfaces;
+- profile-resolved Composition collection/document reads, exact selected scope,
+  findings and revision context, and source/inquiry return paths; and
+- durable continuous document authoring, save acknowledgment, exact proposal
+  reconciliation, and assessment binding without changing existing reuse or
+  promotion authority. Unresolved-findings export policy is still a design choice.
 
-`UX-REQ-004` through `UX-REQ-016` carry the profile, lineage, thread-context,
+`UX-REQ-004` through `UX-REQ-018` carry the profile, lineage, thread-context,
 governed-reversal, semantic-location, source-view, source-lifecycle,
 working-candidate, Review-session, focused relationship-query, Work-read,
-Work-steering, and Project-inquiry needs to the implementation track.
+Work-steering, Project-inquiry, Composition-view, and continuous-authoring needs
+to the implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.

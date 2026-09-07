@@ -172,7 +172,7 @@ interaction contract has not yet been designed.
 | `DB09` | Basis, candidates, and review | Ambient structuring, comparison, validation, exception handling, exact change preview, correction, approval, rejection, deferment, conflict, and Revert | accepted |
 | `DB10` | Graph and relationship work | Task entry, query scope, layouts, depth, selection, temporal state, impact, textual parity, and optional 3D boundary | specified; direction accepted; paper audit complete |
 | `DB11` | Durable Work and orchestration | Plans, agents and validators, progress, input, steering, cost, detachment, reconnect, cancellation, result, and retry | specified; direction accepted; paper audit complete |
-| `DB12` | Composition and revision | Artifact planning, editing, provenance, validation, citations where applicable, imported ancestry, promotion, rendering, and export | not designed |
+| `DB12` | Composition and revision | Artifact planning, editing, provenance, validation, citations where applicable, imported ancestry, promotion, rendering, and export | document-first direction accepted; specification in progress; unresolved-findings export decision pending |
 | `DB13` | Settings and personal control | Appearance, theme, layout, panel resizing, editor, accessibility, privacy, model visibility, and local preference rules | partial |
 | `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | partial |
 | `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | protocol accepted; full ledgers pending |
@@ -480,7 +480,7 @@ renderer fails.
 ### Backend and persistence needs
 
 The flow architecture depends on the existing and proposed requirements
-`UX-REQ-001` through `UX-REQ-016`. Individual destination data remains owned by
+`UX-REQ-001` through `UX-REQ-018`. Individual destination data remains owned by
 its module contract. The navigation context, browser history, return target,
 focus target, unsent input, disclosures, and graph exploration trail are client
 presentation state. Project/profile identity, snapshots, typed objects, Work,
@@ -3321,8 +3321,345 @@ These are named paper scenarios, not existing fixtures or processed real-world
 data. They must be independently invented and cannot derive from contextual demo
 material or user assets. The full Work/interaction module remains in progress at
 runtime gates despite DB11's specification closure. DB12, Composition and
-revision, is the next discussion-first section; the author can still refine this
-design before the explicit whole-product freeze.
+revision, now has accepted document-first direction and a pending export choice;
+the author can still refine this design before the explicit whole-product freeze.
+
+## DB12 — Composition and revision
+
+**Status:** document-first workspace direction accepted on 2026-09-06 as
+`UX1.7-DISC01`. This section specifies the accepted presentation and inherited
+author-control boundaries. The export treatment of unresolved validation findings
+is a pending material decision below; DB12 does not yet close at `G-SPEC`.
+No product surface, editor, renderer, fixture, or backend contract is implemented.
+
+### Author task and product role
+
+The author develops an artifact from a purpose, existing material, and one or
+more lines of inquiry, then revises it without losing manual work, provenance,
+uncertainty, or source ancestry. Composition owns the document workspace. Petra
+assists in the context of the selected passage, section, or whole artifact.
+Sources, related inquiries, validation findings, and revision comparisons are
+available alongside the document when needed.
+
+A document can be a bounded passage, outline, table, report, or a longer artifact
+supported by its profile. This design does not turn every inquiry into a document
+section or require inquiry resolution before drafting. Several inquiries can
+inform one section; one inquiry can inform several artifacts. The selected
+document scope and its inquiry context are explicit and independently inspectable.
+
+The scientific profile uses evidence, scientific force, source-version citations,
+and research artifacts. Controlled writing uses its registered manuscript,
+creative constraints, continuity, voice, and revision rules. Shared controls
+preserve identity, source protection, authorship, exact revisions, Work, Review,
+and recovery. Scientific support classifications and citation requirements cannot
+be imposed on every sentence of a creative manuscript.
+
+### Information hierarchy and entry
+
+| Place | Leading information and actions | Context preserved |
+| --- | --- | --- |
+| Composition collection | Recognizable artifact purpose/title, selected or latest available revision, draft or promoted status where supported, outstanding findings, and last meaningful activity; resume or create | Project/profile, origin, filters, and selected artifact; recency alone does not imply readiness |
+| Document header | Artifact title and purpose, current revision or working-copy state, save acknowledgment, validation coverage, and relevant actions | Exact revision, author/model origin, imported ancestry where applicable, and return target |
+| Primary document | Readable editable content with caret/selection, optional outline, and restrained markers for material findings | Working text, selection, scroll, and document structure |
+| Contextual Petra | Instruction plus explicit passage/section/document scope, included basis and inquiry references, exclusions, and task outcome | Exact submitted content revision and scope; later selection changes do not retarget active Work |
+| Contextual Details | Exact selected statement, source/inference/author origin, basis, limitations, citation meaning, and links to related inquiry or source | Document location and a reliable return after inspecting an exact source |
+| Validation or comparison | Findings ordered by consequence, affected passage, reason and available remedy; exact before/after content and meaning changes | Working text and active selection; inspecting a finding does not accept a revision |
+| Revision and output inspection | Exact selected prior revision, ancestry, producer, assessment, renderer/format, and recorded output | Explicit historical or current position, with return to the working document |
+
+Contextual entry from Brief, an inquiry, Work result, Sources, Review, or Petra
+opens the exact artifact/revision and passage when one exists. If no artifact
+exists, entry carries a bounded composition intent instead of pretending a
+document is already saved. A Work result opens its actual output even when a
+newer document revision exists; it must not silently replace the current draft.
+
+Direct entry lists available documents and offers a profile-valid new document
+or use of an existing permitted source. A blank working document is an authoring
+state; it must not fabricate Claims, evidence, a successful CompositionPlan, or a
+canonical DraftArtifact with impossible empty-span fields. The author can write
+manually and add basis later. `UX-REQ-018` records the required working-copy
+boundary where existing contracts cannot yet express it.
+
+### Document-first responsive blueprint
+
+The document receives the primary reading and editing area. A compact title,
+revision/save status, findings summary, and relevant actions precede it. An
+outline can be disclosed for navigation; it does not compete with the document
+as a second primary task. Whole-document controls and selected-text actions have
+different scope labels. No ribbon full of unavailable formats or future tools
+is required.
+
+On a wide viewport, one contextual secondary panel is expanded by default:
+Petra, Details/basis, or findings. A second panel requires explicit pinning and
+sufficient space under DB04. Replacing the secondary panel preserves Petra's
+unsent instruction and the document's selection and scroll. A pending instruction
+retains its stated context until explicitly changed; it does not follow every
+caret movement.
+
+Comparison temporarily becomes the primary task. It names the exact base and
+proposed revisions and shows aligned passages when useful and space permits.
+A sequential textual comparison supplies the same additions, removals, changed
+meaning, findings, and actions. Returning from comparison restores the document
+position rather than opening a new unrelated workspace.
+
+At narrow widths or high zoom, document, Petra, source inspection, findings, and
+comparison use full-width contextual routes with explicit return. Essential
+scope, save status, and unresolved findings remain available without simultaneous
+panels. Text reflows; wide tables or profile-specific structures retain labelled,
+keyboard-accessible local scrolling or a supplied equivalent.
+
+### Planning and initial composition
+
+A request carries purpose, audience, output scope, selected basis, relevant
+inquiries, snapshot, language, format, and applicable profile constraints.
+Petra may resolve already available context and asks only for omissions that
+materially affect the output's meaning or usefulness. The author need not fill
+every contract field manually.
+
+Short, bounded composition can retain an implicit plan that remains inspectable.
+Consequential or long-form composition exposes a readable plan before or alongside
+the draft, as D012 allows. The plan states section purpose, intended statements or
+profile-specific moves, basis, unresolved questions, exclusions, and limitations.
+An inquiry hierarchy does not automatically become the outline. Requesting a
+different order or structure follows the accepted direct-steering boundary.
+
+New generation is bounded Work under DB06/DB11. Scope and resource consequences
+remain visible. Partial generated content has an explicit partial status; Work
+success does not establish support, settle an inquiry, or promote a document.
+The existing working text and author edits survive failed or cancelled generation.
+
+For example, the author requests a comparison drawing on the alternatives and
+criteria inquiries. Petra may produce an exploratory comparison while criteria
+remain unsettled. The corresponding passage names that limitation and offers a
+route back to the inquiry. Producing fluent prose does not turn the provisional
+ranking into an accepted finding.
+
+### Direct editing, Petra revisions, and save meaning
+
+Direct author editing changes the working copy without approval for each
+keystroke. Saving work and validating its meaning are distinct outcomes. The UI
+distinguishes unsaved changes, saving, saved to the Project, retained only on this
+device where supported, save failed, and conflicting base. It must not call a
+local recovery buffer a durable Project save or promise offline retention without
+the corresponding capability.
+
+Authors can continue writing while support or other profile checks are pending,
+stale, or failed. Existing findings stay attached to their assessed revision;
+the new working copy does not inherit a passing assessment by appearance.
+Continuing to edit does not grant reuse, promotion, or export eligibility.
+`UX-REQ-018` requests the missing durable editing and exact assessment boundary.
+
+A named model role produces proposed wording with exact origin and input scope.
+Comparison preserves the author's version and makes substantive changes,
+qualifications, omissions, and citation effects inspectable. A request to generate
+a proposal does not authorize overwriting later manual edits. A sufficiently
+explicit instruction to use an exact inspected proposal can authorize its draft
+transition without another confirmation; it cannot bypass profile promotion
+requirements. Combining selected changes creates a new exact candidate whose
+basis and affected validation must be checked; “accept selected” cannot reuse an
+assessment for a different whole revision.
+
+While Work runs, the author may edit elsewhere or in the same passage. Results
+remain bound to the submitted base. If the target changed, show the conflict and
+both versions, retain the result, and offer explicit reconciliation or fresh
+bounded Work. The UI never places text into the current caret simply because the
+original selection no longer resolves. Composition, Petra, and Work refer to the
+same proposal/task identities.
+
+The existing revision engine accepts exact non-empty span replacements and
+requires a non-failed draft with current provenance. It does not yet provide a
+general editor for repeated edits while stale, inserting/deleting sections,
+reordering content, blank authoring, or merging late model output. These are
+explicit runtime gaps, not reasons to interrupt normal writing with mandatory
+revalidation after each edit.
+
+Local editing undo affects the working buffer. Saved revision history and
+registered restoration retain immutable prior records. Neither mechanism
+reverses an applied Project ChangeSet or restores overwritten source bytes;
+governed Revert remains DB09/History. A previous document revision opens read-only
+unless a supported action explicitly creates a new working descendant.
+
+### Provenance, citations, and validation
+
+Selecting a material passage exposes its exact basis: source report, named
+model inference, author statement/judgment, structural language, or explicitly
+unsupported meaning as defined by the active profile. Origin, support, validation,
+and approval remain separate. A citation's presence or a validator's success does
+not by itself establish that the statement is supported.
+
+The scientific profile preserves exact WorkVersions, source locators, quoted
+wording, processing depth, contrary or qualifying basis, and canonical citation
+metadata. Missing metadata stays missing with a useful explanation; formatting
+does not invent an author, date, or identifier. The controlled-writing profile
+exposes its registered constraint and source relationships without requiring a
+scientific citation on narrative prose.
+
+Findings name the affected text, assessed revision, producer, reason, consequence,
+and available action. Relevant uncertainty remains readable in the document;
+additional diagnostic detail opens on demand. Unknown coverage is not “no issues.”
+The interface distinguishes not checked, checking, stale, check failed to run,
+and a completed check that found a substantive issue. A failed validator service
+does not prove that the passage is wrong.
+
+Editing a mapped statement marks the affected provenance and citation links stale
+according to runtime assessment. Exact old source relationships remain available
+as history; they are not silently reassigned to new wording. Structural edits
+must remap exact locations and identifiers under the runtime contract. The
+browser cannot infer unchanged support from similar text.
+
+Revalidation applies to an exact saved revision and scope, with known coverage
+and limits. A late result stays attached to that revision and cannot mark later
+edits checked. Choosing a newer Project snapshot is explicit and preserves the
+previous basis and any resulting comparison. Scope narrowing or using only part
+of an artifact requires matching assessment coverage; an omitted problematic
+passage cannot make an unrelated whole-document assessment applicable.
+
+Language improvement preserves meaning, origin, claim force, scope, quotations,
+measurements, and citation meaning under D006. For example, a revision from
+“is associated with” to “causes” needs a substantive support check, even if the
+sentence reads more smoothly. A writing-profile check uses its own constraints
+and authority rules.
+
+### Imported ancestry, promotion, rendering, and export
+
+An existing permitted source opens in the source reader and remains immutable.
+Composition creates a separate working descendant with exact imported ancestry.
+Unsupported import/conversion does not silently normalize, truncate, or replace
+the source; show the available representation, fidelity limits, and safe route.
+`UX-REQ-005` remains the proposed imported-lineage/promotion boundary.
+
+Saving a draft, using suggested text, passing validation, creating an approved
+profile revision, rendering a format, and exporting bytes are separate actions.
+An authoritative manuscript revision or domain change follows the registered
+profile command and DB09 exact Review path. A scientific DraftArtifact remains
+an artifact rather than an authoritative Claim. Creating an output never closes
+its contributing inquiries automatically.
+
+Rendering binds one exact content revision, citation bundle where applicable,
+renderer/options, and any supplied assessment. Formats are capability-driven.
+The current deterministic renderer implements Markdown, LaTeX, and BibTeX;
+PDF, DOCX, rich layout, and other renderers are not claimed from those contracts.
+A bibliography-only output names that scope. Format changes preserve semantic
+content and expose escaping, losses, unsupported structure, or render warnings.
+
+The output action names the exact artifact/revision, format, included material,
+destination type, and applicable access/destination eligibility. Download or copy
+does not publish the Project or replace its protected source. External delivery
+is a separate explicit action under supported destination policy. A renderer's
+internal artifact-registration operation must not be labelled public publication.
+
+**Pending decision — unresolved findings at export:** the recommendation is to
+allow an explicitly marked working copy when an author chooses to export a draft
+with unresolved checks, while preserving its exact revision and limitations in
+the exported representation or inseparable explanatory material. This must not
+present stale or failed support as validated, bypass existing access rules, or
+silently substitute a last-passing revision. Required validation for a governed
+promotion remains enforceable.
+
+The alternative is to require applicable checks to pass before any export.
+This avoids a second output status but prevents an author from taking unfinished
+work outside Petra for continued work. The decision affects export labels,
+findings summaries, warning carriage, and operation eligibility. It is not yet
+accepted. The current render and artifact-publication classes do not by themselves
+settle the complete user-facing export policy; architecture must map the selected
+behavior before live integration.
+
+Concrete case: a comparison draft has an unresolved criterion and one citation
+mapping became stale after an edit. The recommended behavior lets the author
+request a working-copy export that identifies both limitations. It does not offer
+the document as checked or approved. A malformed artifact, unavailable source
+content, or prohibited destination still requires its own honest failure path.
+
+### Ordinary and adverse states
+
+| State | Visible meaning and action | Preservation and recovery |
+| --- | --- | --- |
+| No documents / no matching documents | Distinguish an empty collection from active filters; create or clear filters | Preserve Project and composition intent; no invented document |
+| Blank working copy | Authoring has begun but no generated or validated content exists | Retain text through supported save/recovery; add basis later |
+| Unsaved / saving / saved / locally retained | Name the actual persistence boundary and acknowledged revision | Retry exact saves; retain unsent text; do not hide failed persistence |
+| Preparing / generating / partial output | Bounded scope, linked Work, actual status, and partial-result limits | Existing document remains available; stop response and cancel Work retain distinct effects |
+| Proposed revision | Exact base, proposed wording, producer, and meaning/basis changes | Inspect, revise, use the supported exact candidate, or retain the current text |
+| Later manual edits / stale proposal | Generated proposal addresses an older base | Preserve both versions; reconcile or regenerate explicitly |
+| Findings pending, stale, or substantive failure | Identify coverage, affected passage/revision, and consequence | Continue working; remedy or run a bounded check; no automatic passing status |
+| Validation unavailable or failed to execute | No reliable assessment for the requested scope | Retain draft and prior exact assessments; retry when supported |
+| Source changed, restricted, or unavailable | Exact basis and what can currently be inspected | Preserve references; offer permitted historical/current inspection without substitution |
+| Historical / promoted revision | Exact immutable position and profile status | Inspect; return to current or create a permitted new descendant |
+| Save conflict / offline / reconnect | Actual base, acknowledgment, and local retention capability | Preserve both texts and reconcile by exact identity; replay does not duplicate a save or acceptance |
+| Render or export failure | Failed format/destination and any completed output with exact revision | Preserve draft and successful outputs; retry the failed operation without regenerating prose |
+| Export with unresolved findings | Policy decision pending; no assertion of implemented eligibility | Keep limitations and exact revision visible; do not silently certify, strip findings, or substitute output |
+
+### Interaction paths
+
+Every path preserves Project/profile, exact artifact and revision, inquiry/basis
+context, current selection, unsent instruction, origin, and return where relevant.
+Authority-changing steps use their existing registered commands.
+
+| Path | Entry and steps | Result and recovery |
+| --- | --- | --- |
+| `DB12-P01` Resume document | Open exact contextual output or collection item; inspect revision, save state, and findings | Resume working copy or inspect historical output; unavailable targets preserve a safe return |
+| `DB12-P02` Plan and draft | Frame purpose/scope/basis; inspect the appropriate plan; start bounded Work; inspect output and limitations | Exact draft and source/inquiry links; failure retains existing text and any permitted partial result |
+| `DB12-P03` Write and save | Type, insert/delete/reorganize supported structure, save working progress, inspect acknowledgment | Durable working progress without falsely current support; failed/conflicting saves retain recoverable text |
+| `DB12-P04` Request and use revision | Select scope; submit explicit instruction; inspect exact proposal comparison; use authorized exact content | New working revision with origin and affected checks; late output cannot overwrite intervening edits |
+| `DB12-P05` Inspect basis | Select statement or finding; inspect exact source, inference, author input, citation, or related inquiry | Return to the same document passage; missing/stale/unsupported basis stays explicit |
+| `DB12-P06` Validate and remedy | Request checks on an exact revision/scope; inspect coverage and findings; edit or choose an available remedy | Assessment remains tied to its actual subject; writing can continue while it is pending |
+| `DB12-P07` Revise an imported document | Inspect immutable source and import capability; create separate descendant; compare and validate; route any promotion through Review | Source and ancestry survive; conversion limits and failed promotion cannot overwrite it |
+| `DB12-P08` Compare or restore history | Select exact revisions; inspect textual or aligned comparison; return or create a supported new descendant | Prior history and origin retained; working-buffer undo remains distinct from governed Revert |
+| `DB12-P09` Render and export | Select exact revision/format/scope; inspect output and operation eligibility; copy/download through supported action | Exact revision and limitations retained; unresolved-findings branch awaits the pending decision |
+
+### Language, accessibility, and verification boundary
+
+Use **Saved to Project** only after durable acknowledgment. **Checking** names
+active validation; **Needs checking** or **Changed since check** names its actual
+scope. **Working copy**, **Suggested revision**, **Compare revisions**, **Use this
+revision**, and **Download** each name their distinct effects. **Approved** is
+reserved for the applicable profile decision; **Published** cannot label a local
+save or download. Final unresolved-export copy follows the pending decision.
+
+Document editing, text selection actions, outline navigation, findings, source
+inspection, comparison, and output controls have keyboard and screen-reader
+equivalents. Hover/color/drag cannot be the only route to a finding or revision.
+Preserve composition and input-method text during background updates. Announce
+save failures, command outcomes, and meaningful validation changes without
+reading every keystroke or streamed token. Findings expose text locations and
+return focus; comparison supplies additions and removals as text. Document order
+and focus survive responsive transitions, text scaling, and panel changes.
+
+The paper review checks the current paths and state definitions; it is not a
+completed DB12 audit or participant/runtime evidence while export remains open.
+
+| Finding | Consequence | Disposition |
+| --- | --- | --- |
+| `DB12-A01` Document obscured by tool surfaces | Writing loses scope, selection, and continuity when Petra or provenance becomes the primary workspace | Specified: document-first layout, one contextual panel by default, exact narrow-route return; verify with UX-FX29 |
+| `DB12-A02` Existing edit engine requires current provenance | Repeated writing could be blocked by stale support; blank and structural edits are not represented by exact non-empty span replacement | Needs contract: UX-REQ-018; preserve continuous authoring as a separate working-copy capability; verify with UX-FX30 |
+| `DB12-A03` Late results can overwrite or certify newer text | Manual edits or current validation meaning could be lost | Specified: exact base/result binding, conflict preservation, no automatic assessment carry-forward; read/command gaps UX-REQ-017/018 |
+| `DB12-A04` Scientific composition is mistaken for universal profile support | Creative constraints, imported ancestry, or general document editing could be falsely claimed | Needs contracts: UX-REQ-004/005/017/018; existing D012 scientific semantics remain intact |
+| `DB12-A05` Unresolved findings lack an accepted export treatment | Download could silently certify unfinished work or unnecessarily prevent its continued use | Pending user decision and architecture mapping; no closed acceptance or implemented export policy claimed |
+
+Provisional acceptance requires document-first scope and responsive parity;
+preserved author edits and exact saves; inquiry/source continuity; exact proposal
+and assessment binding; profile-valid provenance; immutable imported ancestry;
+separate draft, validation, promotion, and rendering meaning; bounded failure and
+recovery; and an accepted export policy with exact output identity. Full DB12
+acceptance and its paper audit follow disposition of the pending choice.
+
+`UX-FX29` specifies paired document-first composition scenarios, including
+scientific comparison from open inquiries and revision of an invented manuscript.
+`UX-FX30` specifies repeated and structural edits while checks are stale, late
+model/validator results, save conflicts, source changes, and render failure.
+These are post-freeze synthetic scenario requirements; no fixture is created.
+
+### Backend needs and next decision
+
+`UX-REQ-017` requests the profile-resolved Composition collection/document read
+composition and exact cross-surface context. `UX-REQ-018` requests the working
+draft, continuous save/edit, proposal reconciliation, and exact assessment
+boundary missing from the narrower existing scientific revision engine.
+`UX-REQ-004`, `UX-REQ-005`, `UX-REQ-006`, `UX-REQ-011`–`UX-REQ-016`
+retain profile, ancestry, conversation, Review, inquiry, Graph, and Work ownership.
+
+Finish the unresolved-findings export decision, then complete DB12's export
+contract trace, language, path/state coverage, paper audit, and acceptance before
+advancing to DB13. The accepted document-first direction does not record
+`UX-DESIGN-FREEZE-01`.
 
 ## `UX-DESIGN-FREEZE-01`
 
@@ -3387,7 +3724,7 @@ or default behavior.
 The next work remains specification, not demo production:
 
 1. carry the accepted direction and specifications through `DB11` into their recorded backend dispositions without implementing a product surface;
-2. discuss and specify `DB12`, Composition and revision, as the next section;
+2. finish `DB12`, Composition and revision, from the accepted document-first direction and pending unresolved-findings export decision;
 3. design `DB13`, settings and personal control, through the discussion-first loop;
 4. close the design system, language, accessibility, failure, and recovery specifications in `DB14`–`DB17`;
 5. assemble the complete screen, state, flow, and backend blueprint in `DB18`;

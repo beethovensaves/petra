@@ -27,10 +27,11 @@ The implementation track may continue already accepted backend work. It should
 not add a demo adapter, corpus path, profile-specific shortcut,
 imported-document promotion behavior, or new shared schema from the future demo contexts
 while the product brief is open. It should review `UX-REQ-004` through
-`UX-REQ-016` as general architecture needs and return a disposition without
+`UX-REQ-018` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
-`UX-REQ-016` follow the accepted Petra interaction, navigation, Sources,
-Review, Graph, Work, and Project-inquiry direction; they do not authorize a frontend implementation before the
+`UX-REQ-018` follow the accepted Petra interaction, navigation, Sources,
+Review, Graph, Work, Project-inquiry, and document-first Composition direction;
+DB12's unresolved-findings export choice remains pending. These requests do not authorize a frontend implementation before the
 design freeze.
 
 ## Accepted UX changes with no backend semantic impact
@@ -1022,6 +1023,141 @@ between shell context and task content more important.
 - **Owner and status:** product architecture and implementation track; Project
   inquiry meaning accepted, canonical mapping/read/linkage shape `proposed`.
 
+### `UX-REQ-017` — Composition workspace and exact document context
+
+- **Originating design work:** DB12; document-first direction accepted as
+  `UX1.7-DISC01` on 2026-09-06; `DB12-P01`–`P09`;
+  `UX-FLOW-14`–`16` and `UX-PATH-04`.
+- **Named post-freeze scenario:** `UX-FX29`, paired document-first composition
+  and revision; `UX-FX30`, exact revision and adverse-state inspection.
+- **Implementation links:** `M1.1` identity, `M1.2` persistence,
+  `M1.7` interaction/read composition, `M1.8` composition/rendering, and
+  later profile/authoring contracts.
+- **Author task and failure:** resume a document, write with contextual Petra,
+  inspect passage basis and findings, compare exact revisions, and reach a
+  supported output without losing text or inquiry context. Independent artifact,
+  Work, citation, and validation records do not provide a coherent document view.
+- **Existing contract check:** D012 and CompositionRequest/CompositionPlan,
+  DraftArtifact/DraftSpan, ProvenanceMap, CitationBundle, DraftSupportAssessment,
+  and RenderedArtifact provide a scientific composition foundation with exact
+  identities. Composition aggregates and artifact repositories retain related
+  records. The deterministic renderer supports Markdown, LaTeX, and BibTeX.
+  These do not establish a profile-neutral document collection/editor view,
+  imported ancestry, complete working-copy state, or general format support.
+  Scientific subject references and force/origin values cannot simply be
+  relabelled as controlled-writing meaning.
+- **Requested read behavior:** compose Project/profile identity, recognizable
+  document purpose/title, exact selected revision, working-copy/save
+  acknowledgment where available, origin/ancestry, content/structure capability,
+  linked inquiry and Work context, scoped findings and assessed revision,
+  citations and source access where applicable, available comparison positions,
+  revision history, and safe destinations. Separate document revision,
+  Project snapshot, model-input revision, assessment revision, and output
+  revision rather than returning one ambiguous “current” field.
+- **Selection and context:** resolve passage/section/document scope with exact
+  content identity and locators, including the contract's Unicode-code-point
+  span semantics where applicable. Preserve origin/return across Details,
+  Sources, Petra, Work, Review, and inquiry context. Missing or changed locators
+  produce a scoped failure; they cannot silently select nearby text or the
+  author's new caret position.
+- **Status and eligibility:** distinguish actual save acknowledgment, local-only
+  retention capability, Work execution, validation execution/coverage/findings,
+  source/provenance freshness, profile approval, and rendering. Return
+  operation-specific capabilities and reasons. The unresolved-findings export
+  decision is pending; this request does not grant export eligibility or settle
+  that policy through a presentation field.
+- **Authority and persistence:** this is a composed read boundary over existing
+  and explicitly proposed records. UI selection, disclosure, layout, and unsent
+  instructions remain presentation state. Runtime records own origin, support,
+  assessment, save identity, profile promotion, and output eligibility.
+- **Smallest viable response:** compose existing scientific aggregates with
+  exact context, findings, and format capabilities; explicitly map the
+  working-copy and profile gaps through UX-REQ-018/004/005. Do not present an
+  unavailable controlled-writing operation as a working scientific alias.
+- **Provisional boundary:** after freeze, a synthetic profile/query adapter may
+  expose these facts with its request and assumptions recorded outside product
+  copy. No editor, new renderer, frontend fixture, or live endpoint is added here.
+- **Dependencies:** UX-REQ-004 profile roles, UX-REQ-005 ancestry/promotion,
+  UX-REQ-006 turn context, UX-REQ-008 destinations, UX-REQ-009 exact sources,
+  UX-REQ-012 Review, UX-REQ-014/015 Work, UX-REQ-016 inquiries, and
+  UX-REQ-018 working-copy commands.
+- **Owner and status:** architecture and implementation track; accepted workspace
+  direction, runtime read composition `proposed`; export policy remains open.
+
+### `UX-REQ-018` — Continuous document editing and exact revision reconciliation
+
+- **Originating design work:** DB12 direct editing, proposal comparison, save
+  meaning, and recovery under accepted `UX1.7-DISC01`;
+  `DB12-P03`, `P04`, `P06`, and `P08`.
+- **Named post-freeze scenario:** `UX-FX30`: successive and structural edits
+  while validation is stale; a model proposal and a validator result arrive
+  after further edits; a save conflicts or disconnects. Pair an invented
+  scientific passage and controlled-writing document without aliasing semantics.
+- **Implementation links:** `M1.1` exact command/domain identity,
+  `M1.2` persistence, `M1.7` interaction, `M1.8` draft revisions and
+  support assessment, later profile/authoring contracts.
+- **Author task and failure:** write continuously, retain progress, use inspected
+  suggestions, and correct findings without revalidating after every edit or
+  losing intervening changes. Save state must be honest even when the document
+  has no basis yet or its latest support assessment is stale.
+- **Existing contract check:** `packages/core/src/draft-revision.ts` accepts
+  exact non-empty replacements of existing DraftSpans and rejects a stale/failed
+  base or non-current provenance. Its result creates a new composition revision
+  and a support assessment. DraftArtifact requires composition/evidence context
+  and non-empty span membership; the current request requires scientific subject
+  references. DraftSupportAssessment binds exact draft/map/citation references
+  and controls reuse without becoming scientific evidence. This does not supply
+  blank or general structural authoring, repeated editing before revalidation,
+  durable working-copy save composition, or reconciliation of later model output.
+- **Requested working-copy behavior:** define the smallest durable,
+  non-authoritative authoring representation with exact Project/profile,
+  document lineage, working revision/content identity, author origin, and save
+  acknowledgment. Allow text insertion/deletion, supported restructuring, and
+  successive edits while checks are pending/stale/failed. Distinguish an empty
+  working document from a registered composed DraftArtifact. Do not invent
+  evidence, dummy subject objects, or a passing assessment to satisfy a schema.
+- **Requested save and conflict behavior:** commands name exact expected base
+  and operation identity, acknowledge the durable revision, and reconcile
+  duplicate delivery. Concurrent or disconnected edits preserve both available
+  contents and report actual saved effects. Specify local recovery only where a
+  supported storage capability exists; a browser buffer cannot claim a Project
+  save. UX specifies preservation, not a new collaborative editing algorithm.
+- **Requested suggestion transition:** bind every model proposal to exact input
+  revision, passage/section/document scope, and producer. Using inspected
+  changes records exact accepted content, retained human text, and origin.
+  If the base changed, preserve the result and report conflict; no last-writer
+  replacement or implicit application to a new selection. Selecting a subset or
+  combining suggestions creates a distinct result with new assessment needs.
+- **Requested assessment boundary:** saving working progress does not mark
+  provenance current, pass validation, permit reuse, or promote a document.
+  Explicit checks bind exact content, source snapshot, profile/validator
+  revisions, and coverage. Results for an older revision remain historical.
+  Runtime mapping determines which unchanged support can be retained; the
+  client cannot infer support from text similarity or carry green status forward.
+  Map how a working revision becomes a registered composed revision without
+  weakening the existing support-assessment or scientific reuse invariants.
+- **Authority and persistence:** direct author edits and explicit use of exact
+  suggested content retain author/model origin and immutable saved lineage.
+  Registered profile promotion or Project mutation still uses its own command
+  and Review boundary. Working-buffer undo, a new descendant of prior content,
+  and governed Revert remain separate. Imported source bytes remain protected.
+- **Smallest viable response:** first map existing draft/artifact persistence
+  and commands; add an explicit working-copy boundary where necessary. Support
+  exact durable saves, continued editing, and reconciliation before claiming a
+  general editor. Architecture owns representation and batching; the UX does
+  not require one domain event per keystroke or a particular editor library.
+- **Provisional boundary:** a post-freeze synthetic command adapter can model
+  acknowledged saves, stale assessments, conflicts, and late results under
+  UX-FX30. It must not bypass the current revision engine and claim equivalent
+  runtime semantics. No contract or persistence code changes in this request.
+- **Dependencies:** UX-REQ-004/005 profile and ancestry, UX-REQ-006 context,
+  UX-REQ-011/012 working/Review meaning where applicable, UX-REQ-014/015
+  Work, UX-REQ-016 inquiry links, UX-REQ-017 document read composition.
+- **Owner and status:** architecture and implementation track; normal authoring
+  requirement specified from the accepted workspace direction, runtime
+  representation and command composition `proposed`. Export treatment is
+  separately pending and is not authorized by saving a working copy.
+
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
 integration requests are written.
@@ -1045,6 +1181,8 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Project Work collection, task stages, input/result summaries, and reconciled activity | Proposed `UX-REQ-014`; existing WorkUnit, manifests, cancellation, and interaction records retain operational authority |
 | Direct Work steering, contextual branch priority, validated reuse, and safe plan transition | Proposed `UX-REQ-015`; existing immutable inputs, operational commands, dependency rules, and cancellation retain their boundaries |
 | Project lines of inquiry beyond Hypotheses, with exact basis and zero/many/shared Work links | Proposed `UX-REQ-016`; profile-owned reasoning contexts remain distinct from Work execution and its lifecycle |
+| Document-first Composition and exact contextual reads | Proposed `UX-REQ-017`; existing scientific composition aggregates are the foundation, with profile/ancestry mappings still required |
+| Continuous working-copy edits, exact saves, late-proposal reconciliation, and assessment binding | Proposed `UX-REQ-018`; current exact-span revision and reuse contracts remain intact until architecture disposition |
 | Current/cached/new evidence boundary | ContextPacket and EvidencePacket from `M1.1`, retrieval path in `M1.6` |
 | Assistant stream, interrupt, reconnect, and replay | PetraInteractionRun and AG-UI adapter boundary from `M1.0`/`M1.1`, product hooks in `M1.7` |
 | Projection freshness | GraphProjectionRecord and ProjectionCheckpoint from `M1.1`, delivery in `M1.3`/`M1.5` |
@@ -1074,6 +1212,12 @@ The subsequent accepted inquiry clarification is `UX-REQ-016`. It places the
 author's parallel reasoning lines at Project level and limits `UX-REQ-015` to
 the execution behavior of concrete Work tasks undertaken for those inquiries.
 
+DB12's document-first direction is accepted as `UX1.7-DISC01`. `UX-REQ-017`
+and `UX-REQ-018` record the corresponding workspace and authoring gaps. The
+export treatment of unresolved findings is still a product decision; DB12 has
+not closed its specification gate. No working-copy save or renderer record
+implicitly settles export or promotion eligibility.
+
 ### Cross-device preference synchronization
 
 The current layout and accessibility preferences are local presentation state.
@@ -1094,5 +1238,6 @@ The design track will not claim live integration or `G-CONTRACT` for the shell,
 Brief, SuggestedAction, Project-profile, imported-document, Project-thread,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
 conversational-working-graph, profile-neutral Review, bounded relationship-view,
-composed Work-presentation, generic Work-steering, or Project inquiry flows until the
+composed Work-presentation, generic Work-steering, Project inquiry, or Composition
+workspace/authoring flows until the
 applicable requests have an explicit disposition.

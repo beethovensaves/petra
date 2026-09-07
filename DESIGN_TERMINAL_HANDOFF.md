@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Carry the latest Project-inquiry clarification below into the continuing discussion. `DB04` through `DB09` are accepted; DB10 and DB11 have accepted direction, complete specifications, and paper audits. DB12, Composition and revision, is next after the current clarification. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Resume DB12 from its accepted document-first direction and pending unresolved-findings export decision below. `DB04` through `DB09` are accepted; DB10 and DB11 have complete specifications and paper audits. Finish DB12 before DB13. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -196,20 +196,49 @@ the foundation. Checkpointed does not mean paused/resumable, terminal completed
 may encode failure, and generic Pause/resume/cascade operations are not invented.
 
 DB11 closes at `G-SPEC`; contract, implementation, integration, and participant
-validation remain separate. Carry the inquiry clarification into DB12 with
-Composition and revision's material choices, using the accepted source protection, bounded Work, exact
-candidate/Review, output provenance, and immutable lineage boundaries. Do not
-record a new DB12 recommendation as accepted before the user's direction. The
-author can still refine DB11 before the explicit whole-product freeze.
+validation remain separate. The author can still refine the design before the
+explicit whole-product freeze.
+
+The user accepted DB12's **document-first Composition workspace** on 2026-09-06
+as `UX1.7-DISC01`: the document is primary; Petra works in explicit passage,
+section, or whole-artifact context; sources, related inquiries, findings, and
+revision comparisons open when needed. Author edits and source ancestry survive.
+
+DB12 now has a partial specification covering collection/detail entry, responsive
+layout, planning and generation, direct editing, proposal comparison, save state,
+exact assessment/basis, imported ancestry, rendering, recovery, language, and
+accessibility. `DB12-P01`–`P09` are draft paths; `DB12-A01`–`A05` are initial
+findings. `UX-FX29`/`UX-FX30` describe post-freeze scenarios. Neither the final
+paper audit nor DB12's `G-SPEC` is complete.
+
+The contract audit found that the existing DraftRevisionEngine requires current
+provenance and exact non-empty span replacements. It does not implement general
+blank/structural authoring or successive editing while support is stale.
+`UX-REQ-017` requests document workspace reads; `UX-REQ-018` requests durable
+working-copy edits, exact saves, proposal reconciliation, and assessment binding.
+Both runtime shapes remain proposed. Do not weaken the scientific reuse rules
+or claim an editor is implemented because these design needs are recorded.
+
+**Pending decision:** should unresolved validation findings allow a marked
+working-copy export, or must applicable checks pass before any export? The
+recommendation is to allow a working copy with exact revision and preserved
+limitations under existing access rules; promotion keeps its registered checks.
+Example: an exploratory comparison has unresolved criteria and a citation link
+made stale by an edit. Export should not silently certify it, strip its known
+limitations, or substitute an older passing revision. This recommendation has
+been presented for discussion, not accepted. Resolve it, then finish DB12's
+export contract trace, state/path coverage, copy, paper audit, and acceptance
+before advancing to DB13. Keep all work as design specification.
 
 ## Latest repository checkpoint
 
 - This conversation resumed on `design/m1-ux` at `230fadd`; DB10's specification
   closure and DB11 opening discussion were saved at `5cd707b`; DB11 presentation
   and the then-pending steering choice were saved at `6fa8f91`; accepted steering
-  and the DB11 specification closure were saved at `a6f6901`. The current
-  checkpoint clarifies parallel Project inquiries beyond Hypotheses and their
-  distinction from Work execution; inspect Git status/log for local and remote position.
+  and the DB11 specification closure were saved at `a6f6901`; parallel Project
+  inquiries were clarified at `8290251`. The current checkpoint records DB12's
+  accepted document-first direction, partial specification, and pending export
+  choice; inspect Git status/log for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
@@ -222,13 +251,13 @@ author can still refine DB11 before the explicit whole-product freeze.
 - The inquiry clarification passed documentation structure/link checks, unique
   decision/request/scenario definitions, DB10/DB11 path and audit coverage,
   proposed-runtime/freeze status, five-file scope, and `git diff --check`.
-- `UX-REQ-011` through `UX-REQ-016` remain proposed runtime
+- `UX-REQ-011` through `UX-REQ-018` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
-Do not implement a Graph fixture after this discussion. Continue the full
-product-design specification through `DB12`–`DB18`.
+Do not implement a Graph or Composition fixture after this discussion. Finish
+DB12's pending decision and specification, then continue through `DB13`–`DB18`.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.

@@ -1,6 +1,6 @@
 # Petra Design Implementation Roadmap
 
-Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10–DB11 specified and paper-audited; DB12 next
+Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10–DB11 specified and paper-audited; DB12 document-first direction accepted, export decision pending
 Last updated: 2026-09-06
 Scope: deliver Petra's M1 experience module by module while implementation continues, without creating a second authority for architecture or feature completion
 
@@ -707,7 +707,7 @@ and adverse conformance scenarios to implement after freeze. The specification
 gate is covered; this module remains `in_progress` because no new frontend,
 live contract, performance, accessibility, or participant evidence is claimed.
 DB11's task-and-stage presentation, direct steering, and advisory branch order
-are accepted and specified; DB12 is next. `UX-DESIGN-FREEZE-01` remains unaccepted.
+are accepted and specified; DB12 has accepted document-first direction and a pending export choice. `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ### Work
 
@@ -790,8 +790,8 @@ responsive/textual parity, inquiry context, language, paths, and the paper audit
 
 DB11 closes at `G-SPEC`; the Work/interaction module remains `in_progress`
 because runtime, fixture, integration, and participant evidence are separate.
-Continue at DB12, Composition and revision. `UX-DESIGN-FREEZE-01` remains
-unaccepted; no new product implementation is authorized.
+Continue DB12 from its accepted document-first direction and pending export
+choice. `UX-DESIGN-FREEZE-01` remains unaccepted; no new product implementation is authorized.
 
 ### Work
 
@@ -845,28 +845,61 @@ unaccepted; no new product implementation is authorized.
 
 ## `UX1.7` — DraftArtifacts, provenance, and citations
 
-- **Status:** `planned`
-- **Builds:** the first usable scientific writing and export experience.
-- **Why:** Petra should help researchers compose sections, citations, BibTeX, and LaTeX without publishing wholesale or losing the origin and force of each statement.
+- **Status:** `in_progress`
+- **Builds:** document-first Composition and revision, with scientific artifacts as the existing contract foundation and controlled-writing semantics supplied by registered profiles.
+- **Why:** Authors need to write, inspect basis, use Petra revisions, and preserve their work across checks and output operations without losing origin, uncertainty, or source ancestry.
 - **Depends on:** `UX1.1`, `UX1.2`, `UX1.3`, `UX1.6`.
 - **Implementation link:** `M1.8`.
+
+### Discussion record
+
+| ID | Question | Accepted direction | Why it matters | Affected work | Revisit trigger |
+| --- | --- | --- | --- | --- | --- |
+| `UX1.7-DISC01` | What should the composition workspace center on? | Accepted 2026-09-06: the document is primary. Petra acts in explicit passage, section, or whole-artifact context; sources, related inquiries, validation findings, and revision comparisons open when needed. Preserve author edits, exact basis, uncertainty, and imported ancestry through drafting and revision. | Writing needs continuity and inspectable assistance; producing prose must not silently resolve an inquiry or overwrite manual work. | `DB12`; `UX1.7-W01`–`W14`; `UX-REQ-017`/`018`; `UX-FX29`/`UX-FX30` | Revisit if scope or selection is lost, assistance obscures the document, edits are overwritten, profile meaning is forced into scientific fields, or ordinary writing is interrupted by validation. |
+
+### DB12 specification checkpoint and pending decision
+
+DB12 now specifies document-first collection/detail and responsive behavior,
+contextual entry, planning, direct editing, proposal comparison, exact source and
+inquiry context, save/assessment distinctions, imported ancestry, rendering,
+adverse states, and draft interaction paths `DB12-P01`–`P09`. Initial findings
+`DB12-A01`–`A05` include the existing revision engine's inability to support
+continuous general editing while provenance is stale. `UX-REQ-017` and
+`UX-REQ-018` request workspace reads and a durable authoring boundary; their
+runtime shapes remain proposed. `UX-FX29`/`UX-FX30` are post-freeze scenarios.
+
+The export treatment of unresolved findings remains pending. The recommendation
+is an explicitly marked working-copy export that preserves exact revision and
+limitations under existing access rules. The alternative requires applicable
+checks to pass before any export. Neither a working-copy save nor artifact
+rendering grants promotion or export eligibility by itself. This recommendation
+is not an accepted discussion record. Complete its consequences, final path/state
+coverage, language, paper audit, and acceptance before closing DB12 or moving to
+DB13. `UX-DESIGN-FREEZE-01` remains unaccepted.
+
+The scientific tasks below retain D012's exact evidence and citation meaning.
+DB12's shared authoring controls also require explicit profile mappings for
+controlled writing; a manuscript cannot inherit scientific semantics by relabeling.
 
 ### Work
 
 | ID | Status | Design specification | Why Petra needs it |
 | --- | --- | --- | --- |
-| `UX1.7-W01` | `planned` | Design the CompositionRequest around purpose, audience, scope, snapshot, and requested format. | Drafting needs an explicit bounded request. |
-| `UX1.7-W02` | `planned` | Show an inspectable CompositionPlan and its EvidencePacket assignment. | Researchers should see how evidence is intended to support the prose. |
-| `UX1.7-W03` | `planned` | Map material DraftSpans to evidence, source, inference, researcher language, or explicit unsupported origin. | Provenance must operate at the statement level. |
-| `UX1.7-W04` | `planned` | Provide inline inspection of source force, scope, version, and citation from the draft. | Writing should not require leaving the composition context to verify support. |
-| `UX1.7-W05` | `planned` | Design immutable revision history, comparison, edit origin, stale provenance, and revalidation. | Human editing can change scientific meaning and support. |
-| `UX1.7-W06` | `planned` | Render Markdown and LaTeX from one scientific content revision. | Formats must not diverge in claim meaning. |
-| `UX1.7-W07` | `planned` | Generate, inspect, and copy BibTeX and canonical citations for exact WorkVersions. | Citation convenience must preserve source identity. |
-| `UX1.7-W08` | `planned` | Apply Felicity editing while showing any claim-force, scope, origin, or citation validation failure. | Clearer prose cannot silently strengthen the science. |
-| `UX1.7-W09` | `planned` | Design unsupported, disputed, abstract-only, superseded, and stale-snapshot DraftSpan warnings. | Draft quality should reflect the evidence boundary. |
-| `UX1.7-W10` | `planned` | Design copy, download, and future-adapter actions as scoped artifact operations. | Petra supports researchers' workflows without pretending to publish a paper. |
-| `UX1.7-W11` | `planned` | Preserve manual edits and selection through generation, validation, and renderer failures. | A failed operation must not destroy researcher work. |
-| `UX1.7-W12` | `planned` | Provide a textual provenance report suitable for external review. | Explainability should survive outside Petra's graph visualization. |
+| `UX1.7-W01` | `in_progress` | Design the CompositionRequest around purpose, audience, scope, snapshot, and requested format. | Drafting needs an explicit bounded request. |
+| `UX1.7-W02` | `in_progress` | Show an inspectable CompositionPlan and its EvidencePacket assignment. | Researchers should see how evidence is intended to support the prose. |
+| `UX1.7-W03` | `in_progress` | Map material DraftSpans to evidence, source, inference, researcher language, or explicit unsupported origin. | Provenance must operate at the statement level. |
+| `UX1.7-W04` | `in_progress` | Provide inline inspection of source force, scope, version, and citation from the draft. | Writing should not require leaving the composition context to verify support. |
+| `UX1.7-W05` | `in_progress` | Design immutable revision history, comparison, edit origin, stale provenance, and revalidation. | Human editing can change scientific meaning and support. |
+| `UX1.7-W06` | `in_progress` | Render Markdown and LaTeX from one scientific content revision. | Formats must not diverge in claim meaning. |
+| `UX1.7-W07` | `in_progress` | Generate, inspect, and copy BibTeX and canonical citations for exact WorkVersions. | Citation convenience must preserve source identity. |
+| `UX1.7-W08` | `in_progress` | Apply Felicity editing while showing any claim-force, scope, origin, or citation validation failure. | Clearer prose cannot silently strengthen the science. |
+| `UX1.7-W09` | `in_progress` | Design unsupported, disputed, abstract-only, superseded, and stale-snapshot DraftSpan warnings. | Draft quality should reflect the evidence boundary. |
+| `UX1.7-W10` | `in_progress` | Design copy, download, and future-adapter actions as scoped artifact operations. | Petra supports researchers' workflows without pretending to publish a paper. |
+| `UX1.7-W11` | `in_progress` | Preserve manual edits and selection through generation, validation, and renderer failures. | A failed operation must not destroy researcher work. |
+| `UX1.7-W12` | `in_progress` | Provide a textual provenance report suitable for external review. | Explainability should survive outside Petra's graph visualization. |
+| `UX1.7-W13` | `in_progress` | Specify continuous blank and structural authoring, durable save acknowledgment, stale assessment handling, exact late-proposal reconciliation, and revision restoration. | Authors must retain progress without support checks becoming a prerequisite for each edit or late output replacing their text. |
+| `UX1.7-W14` | `in_progress` | Compose document-first collection/detail, contextual Petra, source/inquiry links, findings, comparison, and responsive/accessibility return paths. | The same artifact and selected scope must remain recognizable across surfaces and profiles. |
+| `UX1.7-W15` | `in_progress` | Resolve the export treatment of unresolved findings and specify exact output identity, limitation carriage, action eligibility, copy/download, and bounded recovery. | Export must neither imply validation nor acquire an unaccepted blanket gate; the policy choice is pending. |
 
 ### Acceptance
 
@@ -878,9 +911,17 @@ unaccepted; no new product implementation is authorized.
 | `UX1.7-AC04` | Felicity changes cannot pass when they alter validated force, scope, origin, or citation meaning. |
 | `UX1.7-AC05` | Export failure preserves the DraftArtifact and gives a bounded recovery action. |
 | `UX1.7-AC06` | The experience offers scoped composition assistance, not an unsupported wholesale-publication workflow. |
+| `UX1.7-AC07` | Document scope, working text, selection, and unsent instructions survive contextual panels and narrow routes; profile-specific meaning remains explicit. |
+| `UX1.7-AC08` | Continuous editing and acknowledged saves remain possible while checks are stale without claiming current support, approval, or reuse eligibility. |
+| `UX1.7-AC09` | Model and validator results bind exact submitted revisions; late results cannot overwrite later edits or certify newer content. |
+| `UX1.7-AC10` | Inquiry context and imported ancestry survive revisions; draft completion does not resolve inquiries or replace protected source bytes. |
+
+The final unresolved-findings export criterion awaits the pending decision;
+this table does not yet establish a closed DB12 acceptance gate.
 
 ### Completion evidence
 
+- `UX1.7-EV00`: DB12 partial specification, accepted DISC01, pending export decision, draft paths/findings, and UX-REQ-017/018 trace; no completed paper audit or runtime evidence claimed;
 - `UX1.7-EV01`: DraftSpan-to-SourceSpan provenance trace;
 - `UX1.7-EV02`: renderer and citation parity fixtures;
 - `UX1.7-EV03`: human-edit, stale-provenance, and revalidation recording;
@@ -970,6 +1011,8 @@ The fixture gallery reuses stable objects across modules. It should remain small
 | `UX-FX26` | Paired Work task and stage inspection | Invented scientific and writing tasks expose objective, declared stages and concurrent/dependent activity, exact role/tool/validator attempts, required input, progress units, resource coverage, permitted partial outputs, success/failure, checkpoint/cancellation distinctions, reconnect/replay, and responsive/textual parity across task entry points |
 | `UX-FX27` | Contextual branch choice and Work steering | A real prerequisite feeds two stages while another branch is eligible; valid non-recommended choice preserves priority without warnings. Pair changed advice, shared dependencies, direct authorized scope/input changes, validated reuse/reruns, actual authorization/ambiguity, atomic/checkpoint limits, stale/failed/partial transitions, cancellation races, retry/resume limits, deliberate fresh execution, and exact result scope across profiles. |
 | `UX-FX28` | Parallel Project lines of inquiry | Invent criteria, alternatives, method/interpretation, and optional Hypothesis inquiries across two profiles. Explore alternatives before criteria without a false gate; preserve zero/many/shared tasks and results, an open inquiry after Work completion, exact basis and uncertainty, advisory preference, Work/Review return, and graph/text/navigation parity. |
+| `UX-FX29` | Paired document-first Composition | Invent a scientific comparison drawing on unresolved inquiry lines and a controlled-writing revision with protected source ancestry. Exercise collection/contextual entry, document scope, plan, contextual Petra/basis/findings, exact proposal comparison, source/inquiry return, and responsive/textual accessibility. |
+| `UX-FX30` | Continuous authoring and exact revision recovery | Blank and structural edits, successive saves while checks are stale, late model and validation results, source changes, partial/failed Work, conflicting or disconnected saves, historical comparison, and render failure preserve text, exact identities, origin, and honest status. Unresolved-findings export assertions await the pending policy decision. |
 
 Post-freeze fixtures use Petra's canonical IDs and runtime shapes. When a runtime contract is not yet available, a fixture declares its provisional schema and associated `UX-REQ` item. They use synthetic content and remain independent of contextual demo assets and directories. Existing pre-freeze shell and graph fixtures remain exploratory comparison evidence; they do not satisfy the neutral reference-UX gate until reviewed or rebuilt against the frozen brief.
 
@@ -1033,6 +1076,8 @@ A local component calculation is allowed for presentation-only state such as pan
 | `UX-REQ-014` | `proposed` | Project Work collection and task/stage read composition with exact identity/activity, required input, outcomes, resource coverage, control eligibility, and safe destinations | `M1.1`, `M1.2`, `M1.6`, `M1.7`, later orchestration/profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-015` | `proposed` | Direct Work steering, task-scoped branch priority, validated reuse, exact plan/input lineage, safe active-stage and successor transition, and recovery command composition | `M1.1`, `M1.2`, `M1.6`, `M1.7`, later orchestration/profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-016` | `proposed`; profile mapping required | Project lines of inquiry beyond Hypotheses, shared basis/open questions, contextual advisory order, and exact zero/many/shared Work and result links across existing surfaces | `M1.1`, `M1.2`, `M1.3`, `M1.5`, `M1.6`, `M1.7`, later profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
+| `UX-REQ-017` | `proposed` | Profile-resolved Composition collection/document reads with exact selection, inquiry/basis, save/assessment, revision comparison, output capabilities, and return context | `M1.1`, `M1.2`, `M1.7`, `M1.8`, later profile/authoring contracts | `reports/UX-BACKEND-HANDOFF.md` |
+| `UX-REQ-018` | `proposed`; authoring boundary required | Continuous blank/structural working-copy edits, durable save acknowledgment, exact proposal reconciliation, and assessment binding without bypassing existing draft reuse or promotion rules | `M1.1`, `M1.2`, `M1.7`, `M1.8`, later profile/authoring contracts | `reports/UX-BACKEND-HANDOFF.md` |
 
 The implementation track owns each request's disposition. A post-freeze synthetic fixture may
 use the proposed shape, but no module may claim `G-CONTRACT` until the request
@@ -1129,8 +1174,8 @@ only after the full reference UX stands independently.
 Backend implementation of already accepted architecture may continue. The
 design track should now:
 
-1. carry the accepted direction and specifications through `DB11`, including the Project inquiry clarification, into `UX-REQ-001`–`UX-REQ-016` without implementing a product surface;
-2. discuss and specify `DB12`, Composition and revision, using the accepted source, Work, Review, provenance, and lineage boundaries;
+1. carry accepted direction through DB11 and the accepted DB12 document-first behavior into `UX-REQ-001`–`UX-REQ-018` without implementing a product surface;
+2. resolve DB12's pending unresolved-findings export choice, then finish its specification and paper audit using the accepted source, Work, Review, provenance, and lineage boundaries;
 3. specify settings, design-system, language, accessibility, and recovery behavior through `DB13`–`DB17`;
 4. maintain the `UX-REQ` register and request architecture dispositions without allowing available backend shapes to dictate the UX;
 5. assemble the complete screen inventory, responsive blueprints, state matrix, flow map, and acceptance plan in `DB18`;
