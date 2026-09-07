@@ -27,11 +27,11 @@ The implementation track may continue already accepted backend work. It should
 not add a demo adapter, corpus path, profile-specific shortcut,
 imported-document promotion behavior, or new shared schema from the future demo contexts
 while the product brief is open. It should review `UX-REQ-004` through
-`UX-REQ-021` as general architecture needs and return a disposition without
+`UX-REQ-022` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
-`UX-REQ-021` follow the accepted Petra interaction, navigation, Sources,
-Review, Graph, Work, Project-inquiry, Composition, Settings, and language-system
-direction.
+`UX-REQ-022` follow the accepted Petra interaction, navigation, Sources,
+Review, Graph, Work, Project-inquiry, Composition, Settings, language-system,
+and accessibility directions.
 These requests do not authorize a frontend implementation before the
 design freeze.
 
@@ -219,8 +219,8 @@ between shell context and task content more important.
 
 ### `UX-REQ-006` — durable Project threads and exact per-turn context
 
-- **Originating design work:** accepted `DB06` and `UX1.6-DISC01`;
-  `UX-FLOW-10`, `UX-FLOW-11`, and `UX-FLOW-16`.
+- **Originating design work:** accepted `DB06`, `UX1.6-DISC01`, and DB16's
+  `UX1.0-DISC09`; `UX-FLOW-10`, `UX-FLOW-11`, and `UX-FLOW-16`.
 - **Named fixture need:** `UX-FX17`, a synthetic Project thread that answers
   from a bounded current basis, links one WorkUnit and proposal, survives
   collapse and reconnect, becomes stale after an unrelated Project change, and
@@ -241,7 +241,8 @@ between shell context and task content more important.
   attention state. Each material turn exposes its exact input identity,
   snapshot, included and excluded context, coverage or omission status,
   capability/privacy/budget/review-policy boundary, applicable profile control
-  revisions, response status, and created outputs.
+  revisions, response status, created outputs, and any exact non-authoritative
+  presentation-context reference used to explain the author's current view.
 - **Requested command behavior:** create a task-linked thread, append one turn
   against its exact context, branch from a named turn, and resolve stale-thread
   continuation as **Continue from original snapshot**, **Compare with current**,
@@ -662,9 +663,10 @@ between shell context and task content more important.
 
 ### `UX-REQ-013` — bounded, profile-resolved relationship-view query
 
-- **Originating design work:** DB10 and accepted `UX1.5-DISC02`–`DISC03`;
-  `UX1.5-W01`–`W12`; `DB10-P01`–`P08`; `UX-FLOW-07`–`12`,
-  `UX-FLOW-15`, and `UX-FLOW-16`.
+- **Originating design work:** DB10 and accepted `UX1.5-DISC02`–`DISC03`,
+  sharpened by DB16's `UX1.0-DISC09`; `UX1.5-W01`–`W12`;
+  `DB10-P01`–`P08`, `DB16-P02`–`P03`; `UX-FLOW-07`–`12`, `UX-FLOW-15`,
+  and `UX-FLOW-16`.
 - **Named design scenario and post-freeze fixture need:** `UX-FX24` pairs an
   invented scientific evidence question with a controlled-writing requirements
   question. Each traces exact recorded paths, shows non-authoritative Working
@@ -672,7 +674,8 @@ between shell context and task content more important.
   dense/cyclic results, grouped and unknown counts, limited queries, late
   responses, stale bases, lagging projections, historical comparison, and
   missing/restricted endpoints. These are paper scenarios until freeze and use
-  no contextual demo data or user assets.
+  no contextual demo data or user assets. `UX-FX40` binds the same semantic
+  result to current visual/text scenes and model explanations after freeze.
 - **Implementation links:** `M1.3` graph projection and reads, `M1.5`
   relationship/candidate/ChangeSet authority, `M1.6` bounded context and model
   interpretation, `M1.7` workbench query integration, and later profile/temporal
@@ -740,6 +743,12 @@ between shell context and task content more important.
   freshness. Every continuation rechecks authorization without leaking hidden
   names, counts, or connections. Direct corrections still use DB09's canonical
   candidate/Review commands; new investigation uses DB06's Work path.
+- **Accessible/model-scene boundary:** this result supplies the complete
+  renderer-neutral graph meaning and semantic peer. `UX-REQ-022` may bind a
+  current client-owned layout, visibility, grouping, focus/selection, legend,
+  viewport, and permitted capture to the exact result so Petra can explain what
+  the author sees. Visual position and pixels cannot fill a missing semantic
+  relationship, scope, omission, authority, or basis field.
 - **Smallest viable response:** first map a bounded current scientific
   relationship/source-path read onto existing assertion, source, and projection
   records, with exact scope, honest completeness, safe failure, and a textual
@@ -1385,9 +1394,11 @@ between shell context and task content more important.
 ### `UX-REQ-021` — Profile-resolved communication plan and language-validation receipt
 
 - **Originating design work:** DB15 and accepted `UX1.0-DISC08` (2026-09-07),
-  `DB15-P01`–`P11`, D006, `UX-FLOW-02`, `UX-FLOW-10`–`12`, and `UX-FLOW-16`.
+  sharpened by DB16's `UX1.0-DISC09` and `DB16-P03`; `DB15-P01`–`P11`, D006,
+  `UX-FLOW-02`, `UX-FLOW-10`–`12`, and `UX-FLOW-16`.
 - **Named post-freeze scenarios:** `UX-FX36`, extensible-profile communication
-  conformance; and `UX-FX37`, language, reference, and recovery stress.
+  conformance; `UX-FX37`, language, reference, and recovery stress; and
+  `UX-FX40`, semantic-versus-visual explanation of the current graph.
 - **Implementation links:** `M1.6` bounded model context and synthesis, `M1.7`
   interaction/delivery and application reads/actions, `M1.8` composition and
   rendering, plus `UX-REQ-004` and later profile communication contracts.
@@ -1424,6 +1435,13 @@ between shell context and task content more important.
   and operational status. Profile extensions map to these families through
   `UX-REQ-004`; they cannot replace their force, attribution, authority, or
   recovery obligations.
+- **Presentation-explanation behavior:** when a response explains a current
+  visual or accessible presentation, bind the applicable `UX-REQ-022` context
+  and state whether each material statement rests on canonical semantics,
+  registered presentation state, or optional image observation. Preserve scene
+  omissions, freshness, mismatch, capability, and privacy limits. Visual
+  proximity, color, size, motion, or emphasis cannot silently become domain
+  force, priority, causality, or authority.
 - **Reference and historical behavior:** resolve user-facing references through
   the exact profile terminology/reference registry while retaining canonical
   identity. Carry first/later-reference or equivalent rules, ambiguity fallback,
@@ -1472,10 +1490,110 @@ between shell context and task content more important.
   profile terminology/discourse registry, `UX-REQ-006` thread/turn context,
   `UX-REQ-008` semantic destinations, `UX-REQ-011`/`012` candidate and Review
   authority, `UX-REQ-014`/`015` Work state/actions, existing response, Felicity,
-  command/event, model-gateway, and AG-UI adapter boundaries.
+  command/event, model-gateway, and AG-UI adapter boundaries; current visual
+  explanations additionally depend on `UX-REQ-022`.
 - **Owner and status:** product architecture and implementation track; DB15 UX
   language direction accepted, communication-plan and validation-receipt shape
   `proposed`.
+
+### `UX-REQ-022` — Model-readable presentation context and semantic-peer binding
+
+- **Originating design work:** DB16 and accepted `UX1.0-DISC09` (2026-09-07),
+  especially `DB16-P02`, `DB16-P03`, and `DB16-P12`; D013's Petra-owned AG-UI
+  adapter and non-authoritative state boundary.
+- **Named post-freeze scenarios:** `UX-FX38`, task/outcome equivalence;
+  `UX-FX39`, accessibility and generated-interface pressure; and `UX-FX40`,
+  model explanation of the current visible graph.
+- **Implementation links:** `M1.3` graph result/projection identity, `M1.6`
+  bounded model context and explanation, `M1.7` workbench presentation and
+  interaction state, plus `UX-REQ-006`, `UX-REQ-013`, and `UX-REQ-021`.
+- **Author task and failure:** ask Petra what the current graph or another
+  complex presentation shows and receive an accurate explanation of both its
+  semantic content and visible organization. Without an exact binding, the
+  model could describe a stale layout, infer domain meaning from color or
+  proximity, overlook filtered/restricted members, or interpret an unrelated
+  screenshot while presenting the answer as current graph fact.
+- **Existing contract check:** D013 permits disposable/reconstructable selected-
+  object, active-panel, focused-path, partial-rendering, and interaction state
+  behind `PetraInteractionClient`. The interaction feature manifest supports
+  state projection, snapshots/deltas, messages, and registered non-authoritative
+  custom events. Proposed `UX-REQ-013` supplies renderer-neutral graph meaning
+  and the semantic peer while assigning layout and selection to the client.
+  ContextPacket and `UX-REQ-006` bind bounded model input and turn context.
+  None currently binds one exact author-visible scene and optional capture to
+  its semantic result, accessible peer, model call, and validated explanation.
+- **Requested presentation identity:** create or compose a versioned bounded
+  presentation-context record with stable identity/revision/hash, Project,
+  profile and terminology/descriptor versions, authoritative snapshot and graph
+  projection position, route/surface, source view/query/result, semantic-peer
+  reference, renderer/layout version, producing client/session, and captured-at
+  time. The record is immutable once used by a model call or historical turn.
+- **Requested scene content:** include the author-visible question and scope;
+  layers and limits; visible ordered object and relationship references; exact
+  profile labels and legend mappings; selection/focus/pin/expansion/collapse;
+  groups, filters, comparisons, emphasis, hidden counts, partial coverage, and
+  material omissions; layout family, meaningful order, rendered positions or
+  regions, clusters, overlap/crossings, and viewport clipping that are actually
+  present; and available Details, source, expansion, Work, Review, History, and
+  return actions. Scene fields describe presentation only and link back to the
+  canonical semantic records that establish meaning.
+- **Accessible-peer binding:** identify the complete task-equivalent outline,
+  path table, relationship summary, legend, and actions generated from the same
+  semantic result. Record parity-validation status and material discrepancies.
+  An inaccessible hidden DOM mirror or unvalidated prose summary does not count
+  as the peer and is not sent as authoritative context.
+- **Optional visual capture:** where a permitted vision-capable route materially
+  improves explanation, bind an exact image/render Artifact reference, byte hash,
+  dimensions/scale, viewport, theme, capture revision/time, source application,
+  and privacy/redaction/rights/egress disposition. Capture excludes unrelated
+  panels, unsent input, restricted objects/counts, and secrets. A model cannot
+  request broader screen capture merely for convenience.
+- **Model-context behavior:** compile only the smallest scene needed for the
+  author's question and bind it to the model call, role/certification, capability,
+  provider/egress, cost/budget, prompt, communication, and validator revisions.
+  A semantic-only model receives the scene and peer without a false image claim.
+  A vision-capable model may additionally inspect the bound capture. The response
+  plan under `UX-REQ-021` labels graph semantics, registered visual-state facts,
+  and image observations distinctly.
+- **Validation and mismatch behavior:** verify Project/profile/snapshot/query,
+  scene, peer, capture, and model-call bindings before release. Reject or limit
+  stale, mixed-revision, incomplete, unauthorized, unregistered-renderer, or
+  mismatched context. If scene and capture differ, retain the canonical semantic
+  explanation, name the unavailable current-layout explanation, and refresh only
+  with the author's existing permitted context. Do not repair mismatch by
+  guessing from pixels.
+- **AG-UI behavior:** carry a registered Petra context reference or bounded
+  snapshot/delta through the adapter; feature components and models do not parse
+  raw protocol events as semantics. Replay deduplicates the context and model
+  request, and a connection abort cannot mutate the graph or cancel Work. A
+  custom event remains versioned, allowlisted, and `authority_effect: none`.
+- **Authority and persistence:** presentation context records what the author
+  could see at one moment. It cannot create or alter graph facts, profile meaning,
+  selection authority, permissions, Work, Review, or commands. The runtime owns
+  canonical semantic/query identity and access; the client supplies validated
+  presentation state; the interaction/model boundary owns context use and receipt.
+  Retention follows thread/model-trace, privacy, redaction, and audit policy and
+  does not require keeping every transient scene or screenshot indefinitely.
+- **Recovery and unavailable behavior:** when exact current context cannot be
+  composed, Petra offers a semantic explanation of the bound graph result, asks
+  the author to refresh/share the current registered view where necessary, or
+  states that it cannot explain the current visual arrangement. Existing task,
+  selection, input, and return state remain available. The product does not fall
+  back to an ambient route, old screenshot, or unrestricted screen inspection.
+- **Smallest viable response:** extend one current `UX-REQ-013` scientific graph
+  result with an additive non-authoritative scene record for layout, visible
+  membership, selection, grouping, legend, viewport, and semantic-peer identity;
+  bind that record to one `UX-REQ-006` turn and `UX-REQ-021` explanation. Begin
+  with semantic-only explanation and add a permitted capture only where a named
+  visual question requires it. Do not edit accepted graph, ContextPacket, AG-UI,
+  or grounded-response schemas in place or claim general screen understanding.
+- **Dependencies:** `UX-REQ-004` profile terminology/descriptors, `UX-REQ-006`
+  turn context, `UX-REQ-008` destinations, `UX-REQ-013` semantic graph result,
+  `UX-REQ-021` communication/validation, D007 model routing/privacy/egress,
+  D013 AG-UI containment, and existing Artifact/access/redaction boundaries.
+- **Owner and status:** product architecture and implementation track; DB16
+  task-equivalence and current-graph explanation direction accepted,
+  presentation-context/peer/capture binding shape `proposed`.
 
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
@@ -1506,6 +1624,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Effective Project controls and typed policy transitions in Settings | Proposed `UX-REQ-020`; personal preferences remain local while Project privacy, capability, routing, budget, and Review controls retain their owning authority |
 | Profile-resolved object and relation visual semantics | Existing proposed `UX-REQ-004`, sharpened by DB14; the manifest may name bounded semantic descriptor references while Petra owns shared tokens, components, state/authority cues, accessibility, and safe fallback |
 | Profile-resolved communication plan, action linkage, and language validation | Proposed `UX-REQ-021`; existing scientific synthesis, grounded-response, Felicity revision, command/event, and AG-UI records remain inputs while profile terminology/discourse is resolved through `UX-REQ-004` |
+| Model-readable current presentation and semantic-peer binding | Proposed `UX-REQ-022`; bind exact graph/view semantics, current client-owned scene, complete accessible peer, optional permitted capture, model context, and explanation without making pixels or AG-UI state authoritative |
 | Current/cached/new evidence boundary | ContextPacket and EvidencePacket from `M1.1`, retrieval path in `M1.6` |
 | Assistant stream, interrupt, reconnect, and replay | PetraInteractionRun and AG-UI adapter boundary from `M1.0`/`M1.1`, product hooks in `M1.7` |
 | Projection freshness | GraphProjectionRecord and ProjectionCheckpoint from `M1.1`, delivery in `M1.3`/`M1.5` |
@@ -1517,7 +1636,7 @@ and outputs attached to these mechanics. They should not duplicate Work,
 interaction, proposal, review, approval, cancellation, provenance, or history
 lifecycles merely because the profile uses different nouns.
 
-## Requirement status after DB15
+## Requirement status after DB16
 
 The authored-project, imported-document, Project-thread, exact turn-context,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
@@ -1569,7 +1688,19 @@ and validation receipt. Existing scientific model-synthesist output,
 grounded-response bytes, Felicity revision records, command/event authority, and
 AG-UI delivery retain their current meanings. DB15 closes at `G-SPEC`; contract,
 implementation, model, localization, accessibility, and participant evidence
-remain pending. DB16's task/outcome-equivalence accessibility boundary is next.
+remain pending.
+
+DB16's task/outcome-equivalence direction and model-readable current-graph
+requirement are accepted as `UX1.0-DISC09`. Native semantics, keyboard/focus,
+reflow, targets, non-color meaning, motion, live announcements, and most peer
+presentation behavior remain frontend responsibilities over canonical view and
+command contracts. `UX-REQ-022` requests the missing exact binding among a
+semantic result, author-visible presentation scene, complete accessible peer,
+optional permitted capture, model call, and validated explanation. It sharpens
+`UX-REQ-006`, `UX-REQ-013`, and `UX-REQ-021` without making AG-UI state or pixels
+authoritative. DB16 closes at `G-SPEC`; implementation, browser/AT, model,
+performance, legal, and participant evidence remain pending. DB17's state-
+reconciliation and recovery boundary is next.
 
 ### Cross-device preference synchronization
 

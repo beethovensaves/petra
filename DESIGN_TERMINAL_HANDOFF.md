@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue DB16, Accessibility specification, from the task/outcome-equivalence recommendation below. `DB04` through `DB09` are accepted; DB10–DB15 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Continue DB17, Failure, recovery, and history, from the reconciliation recommendation below. `DB04` through `DB09` are accepted; DB10–DB16 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -355,15 +355,56 @@ not as a complete profile-neutral communication contract. DB15 closes at
 `G-SPEC`; no language implementation, model/localization/accessibility evidence,
 or participant validation is claimed.
 
-**Next discussion: DB16, Accessibility specification.** The recommendation is
-task and outcome equivalence with modality-appropriate peer presentations. A
-visual graph can use spatial nodes and edges while its keyboard and screen-reader
-peer uses a scoped relationship outline, path table, legend, and exact actions.
-Both must expose the same scope, omissions, layers, selection, relationships,
-sources, expansion, Details, Work, Review, History, and return context. The text
-peer remains fully operable but need not imitate two-dimensional dragging. Apply
-the same rule to timelines, progress, diffs, editors, resizable panes, streaming,
-and responsive recomposition. This DB16 boundary is proposed, not accepted.
+The user accepted DB16's task-and-outcome-equivalence boundary on 2026-09-07 as
+`UX1.0-DISC09` and added that Petra's language model must be able to understand
+and explain the graph the author currently sees.
+
+- Every visual, textual, keyboard, screen-reader, touch, magnified/reflowed,
+  reduced-motion, forced-color, and generated presentation preserves the same
+  objective, material meaning, state, controls, consequence/authority, recovery,
+  result, and practical efficiency through a modality-appropriate sequence.
+- A graph peer is a complete relationship workspace with scope, layers, paths,
+  omissions, selection, Details, expansion, sources, Work, Review, History, and
+  return. It cannot become a read-only summary or require exhaustive serial
+  traversal for an ordinary visual task.
+- Landmarks, headings, native/tested component semantics, stable names, keyboard
+  operation, predictable unobscured focus, non-color meaning, 200% text, 400%
+  zoom/320 CSS-pixel-equivalent reflow, target/spacing rules, non-drag controls,
+  reduced motion, bounded live announcements, and form/editor recovery apply
+  across every material surface.
+- AG-UI snapshots, deltas, messages, and registered custom events carry
+  synchronized interaction state. Petra owns the semantic scene, accessible
+  structure, task peers, validation, actions, and authority; protocol support
+  alone does not close accessibility.
+- When asked what the current graph shows, Petra receives the exact semantic
+  graph result plus a versioned bounded scene containing visible objects and
+  relationships, layout, grouping, selection, layers, legend, hidden counts,
+  viewport omissions, and the semantic peer. A permitted image may supplement
+  the scene for an eligible vision-capable model.
+- Petra distinguishes canonical graph meaning, registered presentation facts,
+  and optional image observation. Pixels, proximity, size, color, motion, or
+  visual emphasis cannot independently establish domain force, causality,
+  priority, success, or authority. Mismatch produces a semantic fallback and an
+  explicit limitation.
+
+DB16 contains twelve interaction paths (`DB16-P01`–`P12`) and eight findings
+(`DB16-A01`–`A08`) with complete paper coverage. `UX-FX38`–`UX-FX40` are
+post-freeze scenarios. DB16 sharpens `UX-REQ-006`, `UX-REQ-013`, and
+`UX-REQ-021`; proposed `UX-REQ-022` records the missing binding among semantic
+result, visible scene, accessible peer, optional permitted capture, model input,
+and validated explanation. DB16 closes at `G-SPEC`; no accessibility or model-
+context implementation, browser/AT result, participant evidence, performance
+claim, or legal conformance is recorded.
+
+**Next discussion: DB17, Failure, recovery, and history.** The recommendation is
+to reconcile canonical state before offering recovery, then state what happened,
+what may have changed, what was preserved, and which exact recovery is safe.
+For example, after a connection loss during **Apply 3 changes**, Petra checks
+command/event receipts before offering anything: all applied, none applied, or
+mixed independent outcomes each produce different next actions. Retry cannot risk
+applying a change twice. **Retry**, **Resume**, **Start again**, **Restore local
+work**, **Reconcile**, **Revert change**, and presentation **Undo** retain distinct
+meanings and History effects. This DB17 boundary is proposed, not accepted.
 
 ## Latest repository checkpoint
 
@@ -376,9 +417,10 @@ and responsive recomposition. This DB16 boundary is proposed, not accepted.
   opening discussion were saved at `4faa54f`; completed DB13 and the DB14 opening
   discussion were saved at `02c7383`; completed DB14 and the DB15 opening
   discussion were saved at `8cf31da`; the extensible-profile clarification and
-  refined DB15 recommendation were saved at `df31fb3`. The current working
-  checkpoint records accepted/completed DB15 and opens DB16's accessibility
-  discussion; inspect Git status/log for local and remote position.
+  refined DB15 recommendation were saved at `df31fb3`; completed DB15 and the
+  DB16 opening discussion were saved at `9d5f94c`. The current working checkpoint
+  records accepted/completed DB16 and opens DB17's recovery discussion; inspect
+  Git status/log for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
@@ -407,14 +449,19 @@ and responsive recomposition. This DB16 boundary is proposed, not accepted.
   acceptance/status and freeze boundaries, five-file design-only scope, and
   `git diff --check`. No runtime, model, localization, accessibility, or
   participant validation is claimed.
-- `UX-REQ-011` through `UX-REQ-021` remain proposed runtime
+- DB16 closure checks cover Markdown structure and links, unique decision/request/
+  scenario definitions, DB10–DB16 path/audit sequences, UX-REQ-006/013/021/022
+  trace, accepted-versus-proposed status and freeze boundaries, five-file design-
+  only scope, and `git diff --check`. No implementation, browser/AT, model,
+  performance, participant, or legal validation is claimed.
+- `UX-REQ-011` through `UX-REQ-022` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
-Do not implement a Graph, Composition, Settings, design-system, language, or
-accessibility fixture after this discussion. Continue the product-design
-specification through `DB16`–`DB18`.
+Do not implement a Graph, Composition, Settings, design-system, language,
+accessibility, or recovery fixture after this discussion. Continue the product-
+design specification through `DB17`–`DB18`.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.

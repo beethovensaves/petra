@@ -1,6 +1,6 @@
 # Petra user-flow architecture
 
-Status: accepted product flow, design system, and language system through DB15; DB16 accessibility discussion open; related runtime mappings awaiting architecture disposition
+Status: accepted product flow, design system, language system, and accessibility through DB16; DB17 recovery discussion open; related runtime mappings awaiting architecture disposition
 Date: 2026-09-07
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as initial required examples in an extensible Project-profile system
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
@@ -521,14 +521,26 @@ Papers, or narrative validation mandatory universal modules.
 - **Authority:** standing is a derived, snapshot-bound assessment; transitions and obligations require their own commands.
 - **Horizon:** M2 landscape coverage and M3 assessments.
 
-### `UX-FLOW-10` — ask Petra about current research state
+### `UX-FLOW-10` — ask Petra about current Project state or presentation
 
-- **Goal:** obtain a concise, grounded explanation without navigating every source or launching hidden work.
-- **Entry:** assistant dock, selected-object action, contextual question, or SuggestedAction explanation.
-- **Path:** compose question with explicit selected context -> answer from stable identity, current graph, or valid cache -> distinguish source report, synthesis, inference, uncertainty, and recommendation -> expose evidence paths -> offer a deeper action only when useful.
+- **Goal:** obtain a concise, grounded explanation of the current Project object,
+  basis, graph, or visible presentation without navigating every source or
+  launching hidden work.
+- **Entry:** assistant dock, selected-object action, **Explain this view**,
+  contextual question, or SuggestedAction explanation.
+- **Path:** compose the question with exact selected context and, where requested,
+  the bound semantic result/current presentation scene -> answer from stable
+  identity, current graph, or valid cache -> distinguish source report,
+  synthesis, inference, visual observation, uncertainty, and recommendation ->
+  expose evidence paths and presentation omissions -> offer a deeper action only
+  when useful.
 - **Completion:** the question is answered, abstained from, or converted into a clearly bounded next action.
-- **Branches:** ambiguous referent, insufficient evidence, stale snapshot, selected object changed, answer available without a model, cached result, model failure, or prohibited source access.
-- **Authority:** assistant text is not trusted graph state.
+- **Branches:** ambiguous referent, insufficient evidence, stale snapshot,
+  selected object or visual scene changed, semantic/visual mismatch, eligible
+  vision input unavailable, answer available without a model, cached result,
+  model failure, or prohibited source/scene access.
+- **Authority:** assistant text, presentation state, and pixels are not trusted
+  graph state.
 - **Horizon:** M1 grounded response and provenance fast path.
 
 ### `UX-FLOW-11` — preview, start, and manage durable Work
@@ -682,6 +694,20 @@ rename shared consequences or turn a recommendation into a prerequisite. DB15
 sharpens the profile registry in `UX-REQ-004` and requests the missing typed
 statement-level communication plan and language-validation receipt in
 `UX-REQ-021`. Its specification and paper audit are complete.
+
+[DB16](PETRA-UX-DESIGN-BRIEF.md#db16--accessibility-specification) accepts task
+and outcome equivalence with modality-appropriate peer presentations
+(`UX1.0-DISC09`). Every complex visual or generated surface preserves its
+objective, material meaning, state, controls, consequence/authority, recovery,
+result, and practical efficiency through keyboard, screen-reader, touch,
+magnified/reflowed, reduced-motion, forced-color, and other applicable paths.
+The author can also ask Petra what the current graph shows. Petra receives the
+exact semantic graph result and a versioned bounded scene describing the visible
+layout, members, selection, grouping, legend, and omissions; a permitted image
+may supplement that scene. `UX-REQ-022` requests the missing result/scene/peer/
+capture/model/explanation binding. AG-UI transports synchronized state while
+Petra owns semantics, accessibility, validation, actions, and authority. DB16's
+specification and paper audit are complete.
 
 ### `UX-FLOW-18` — reuse, share, and connect selected work
 
@@ -943,13 +969,18 @@ work rather than open product scope:
 - a profile-resolved statement-level communication plan with generalized speech
   acts, exact origin/basis/reference and recommendation/action links, bound
   terminology/renderer/validator versions, progressive state, and a safe
-  language-validation and repair receipt under `UX-REQ-021`.
+  language-validation and repair receipt under `UX-REQ-021`; and
+- a versioned, bounded model-readable presentation context linking the exact
+  semantic graph/view result, author-visible scene, complete accessible peer,
+  optional permitted capture, model input, and validated explanation under
+  `UX-REQ-022`.
 
-`UX-REQ-004` through `UX-REQ-021` carry the profile, lineage, thread-context,
+`UX-REQ-004` through `UX-REQ-022` carry the profile, lineage, thread-context,
 governed-reversal, semantic-location, source-view, source-lifecycle,
 working-candidate, Review-session, focused relationship-query, Work-read,
 Work-steering, Project-inquiry, Composition-view, continuous-authoring, and
 working-copy-export, Project-control Settings, bounded profile-semantic display,
-and profile-resolved communication needs to the implementation track.
+profile-resolved communication, and model-readable presentation-context needs to
+the implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.

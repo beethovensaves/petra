@@ -188,8 +188,8 @@ interaction contract has not yet been designed.
 | `DB13` | Settings and personal control | Appearance, theme, layout, panel resizing, editor, accessibility, privacy, model visibility, and local preference rules | specified; personal-preferences-first organization accepted; paper audit complete |
 | `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | specified; shared Petra grammar and bounded profile semantic encodings accepted; paper audit complete |
 | `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | specified; shared communication contract and profile-owned discourse accepted; paper audit complete |
-| `DB16` | Accessibility specification | Keyboard, focus, zoom/reflow, screen reader, motion, non-color meaning, graph alternative, touch, panel resize, and streamed updates | discussion open; inherited cross-module foundation accepted; task/outcome-equivalence decision pending |
-| `DB17` | Failure, recovery, and history | Offline, stale, conflict, partial, failed, blocked, unsupported, replay, lost-connection, and non-destructive recovery paths | discussion draft |
+| `DB16` | Accessibility specification | Keyboard, focus, zoom/reflow, screen reader, motion, non-color meaning, graph alternative, touch, panel resize, and streamed updates | specified; task/outcome equivalence and model-readable graph context accepted; paper audit complete |
+| `DB17` | Failure, recovery, and history | Offline, stale, conflict, partial, failed, blocked, unsupported, replay, lost-connection, and non-destructive recovery paths | discussion open; reconciliation/preserved-state recommendation pending |
 | `DB18` | Product blueprint and acceptance | Complete screen inventory, responsive blueprints, state matrix, end-to-end path map, backend request ledger, and design acceptance evidence | not designed |
 
 ## Required specification for every module
@@ -492,7 +492,7 @@ renderer fails.
 ### Backend and persistence needs
 
 The flow architecture depends on the existing and proposed requirements
-`UX-REQ-001` through `UX-REQ-021`. Individual destination data remains owned by
+`UX-REQ-001` through `UX-REQ-022`. Individual destination data remains owned by
 its module contract. The navigation context, browser history, return target,
 focus target, unsent input, disclosures, and graph exploration trail are client
 presentation state. Project/profile identity, snapshots, typed objects, Work,
@@ -5220,11 +5220,14 @@ streamed-update behavior.
 
 ## DB16 — Accessibility specification
 
-**Status:** opening discussion after DB15 specification closure. The accepted
-cross-module keyboard, focus, text scaling, reflow, screen-reader, non-color,
-reduced-motion, touch, separator, graph/text-parity, and streamed-update rules
-remain in force. The equivalence recommendation below is proposed and is not yet
-accepted. No accessibility implementation is authorized.
+**Status:** task and outcome equivalence with modality-appropriate peer
+presentations accepted on 2026-09-07 as `UX1.0-DISC09`. The user additionally
+requires Petra's language model to receive and explain the graph presentation the
+author is actually seeing. DB16 is complete at specification depth with a paper
+audit. Implementation, assistive-technology, model, cross-browser, performance,
+and participant validation remain separate gates. No accessibility or model-
+context implementation is authorized, and `UX-DESIGN-FREEZE-01` remains
+unaccepted.
 
 ### Author task and inherited boundary
 
@@ -5235,23 +5238,519 @@ preserves object identity, basis, action, consequence, authority, status, recove
 and result; it does not require every modality to reproduce the same geometry or
 interaction sequence.
 
-### Opening recommendation — task and outcome equivalence
+### Accepted equivalence and model-understanding boundary
 
-The recommendation is to specify accessibility by task and outcome equivalence,
-with modality-appropriate peer presentations. A graph canvas, for example, may
-use spatial nodes and edges for visual inspection while its keyboard and screen-
-reader peer uses a scoped relationship outline, path table, legend, and exact
-actions. Both expose the same query scope, omissions, layers, current selection,
-typed relationships, source/provenance paths, expansion, Details, Work, Review,
-history, and return context. The textual experience does not need to imitate
-two-dimensional dragging, and it cannot become a read-only summary.
+Every material visual presentation has a modality-appropriate peer that supports
+the same author objective, material information, controls, authority boundary,
+recovery, and result with reasonable efficiency. A graph canvas may use spatial
+nodes and edges while its keyboard and screen-reader peer uses a scoped
+relationship summary, outline, path table, legend, and exact actions. Both expose
+the same query scope, omissions, layers, current selection, typed relationships,
+source/provenance paths, expansion, Details, Work, Review, History, and return
+context. The textual peer remains a complete workspace and may use a more useful
+sequence than two-dimensional navigation.
 
-This principle would apply to graphs, timelines, progress, diffs, editors,
-resizable panes, streaming, and responsive recomposition: presentation can differ,
-while material information, control, authority, and recovery remain equivalent.
-Whether this task/outcome-equivalence boundary is accepted remains the DB16
-decision. After direction, complete the accessibility requirements, component and
-surface mappings, paths, adverse states, evidence plan, and paper audit before DB17.
+Petra also understands the presentation the author currently sees. When asked
+**What does this graph show?**, the active model receives a bound, model-readable
+scene containing the exact graph query/result identity, Project/profile and
+snapshot, visible objects and relationships, layout, grouping, selection, layers,
+legend encodings, collapsed or hidden content, counts, viewport omissions, and
+the semantic text peer. A permitted captured render may supplement this scene for
+a vision-capable model. The structured graph result remains the source for object
+and relationship meaning; pixels can support statements about visible position,
+density, clustering, overlap, and emphasis only when the capture and scene are
+current and consistent.
+
+For example, the visual graph can highlight that **Measurement criterion A**
+affects **Comparison B** and **Comparison C**, with one qualifying relationship
+near the selected path. Petra can explain that same visible organization, name
+the selection and limitation, and offer **Explain relationship**, **Open source**,
+or **Explore another inquiry**. The accessible peer exposes those relationships
+and actions directly. Changing representation preserves the query, selection,
+scope, and return context.
+
+AG-UI state snapshots, deltas, messages, and registered custom events may carry
+the synchronized presentation context through Petra's accepted adapter. Every
+interface or generative presentation delivered through that boundary inherits
+this accessibility contract. AG-UI remains transport and synchronization; Petra
+owns the semantic scene, accessible structure, actions, validation, and authority.
+This boundary is accepted as `UX1.0-DISC09`.
+
+### Standards and conformance baseline
+
+The reference UX targets [WCAG 2.2 Level AA](https://www.w3.org/TR/WCAG22/) as
+its minimum web conformance baseline and uses native HTML semantics first. Custom
+widgets follow the applicable [WAI-ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/)
+keyboard and semantic pattern, with implementation and assistive-technology tests
+required because ARIA alone does not supply behavior. Petra records the tested
+browser, operating system, input method, assistive technology and version,
+viewport, theme, language, and fixture for every conformance claim.
+
+WCAG conformance is one gate rather than the complete Petra outcome. A surface
+can satisfy a technical checkpoint and still fail DB16 if its peer hides material
+basis, takes far more effort for an ordinary task, loses current selection, makes
+Work or Review read-only, or produces a different authority or recovery outcome.
+Legal or procurement requirements may add stricter gates without weakening this
+product contract.
+
+### Equivalence contract
+
+| Dimension | Required equivalence | Permitted presentation adaptation |
+| --- | --- | --- |
+| Objective | Same named author task and completion condition | Different entry explanation or ordering suited to the modality |
+| Meaning | Same objects, relationships, basis, provenance, scope, omissions, limitations, uncertainty, profile terms, and versions | Summary, outline, table, spatial view, progressive disclosure, or another accurate structure |
+| State | Same current/historical/working layer, selection, freshness, Work, Review, connection, and content state | Different announcement, marker, grouping, or disclosure behavior |
+| Control | Same material navigation, inspection, expansion, edit, Work, Review, cancellation, retry, defer, reversal, and return actions | Native control or modality-appropriate action sequence rather than gesture imitation |
+| Consequence and authority | Same exact target, preview, commit point, actor/authority, result, History, and preserved state | Different confirmation layout or amount of visible technical detail |
+| Recovery | Same safe outcome after stale, invalid, failed, partial, offline, or uncertain state | Different guidance order and focus restoration suited to the presentation |
+| Efficiency | A practical route that does not require exhaustive serial traversal for a task completed directly elsewhere | Helpful summaries, landmarks, filters, jump actions, and remembered position |
+| Model explanation | Same current scene identity and semantic facts available to Petra, with visual observations bound to the exact scene/capture | Text-only semantic explanation or additional spatial explanation from a compatible visual input |
+
+Presentation-only geometry may differ. If position, order, grouping, or movement
+has domain or authority meaning, it becomes material information and receives a
+programmatic description plus an exact non-drag action. A peer never gains fewer
+permissions merely because it is textual, narrow, keyboard-driven, spoken, or
+generated through an interaction protocol.
+
+### Accessibility ownership
+
+| Owner | Owns | Boundary |
+| --- | --- | --- |
+| Petra design system | Semantic component roles, focus treatment, non-color state grammar, target and spacing rules, motion behavior, reflow, and accessible-name patterns | Cannot leave accessibility to individual profile themes or model-generated markup |
+| Product surface | Landmarks, headings, reading/action order, task peer, focus transitions, selection, announcements, errors, and return | Cannot expose a visually complete task through an inaccessible summary |
+| Project profile | Exact object/relation terminology, text alternatives, reference and pronunciation guidance, units, and domain meaning | Cannot redefine standard control roles, keyboard behavior, authority, or shared status language |
+| Runtime/view contract | Exact identity, content, relationships, scope, omissions, state, capabilities, actions, and outcomes used by all peers | Cannot infer visual geometry or user focus unless a presentation-context record supplies it |
+| Petra interaction adapter | Synchronized state, messages, activity, interrupts, replay, and registered non-authoritative presentation events | Protocol availability does not establish semantic accessibility or command authority |
+| Model and communication validator | Explain the bound semantic scene, distinguish grounded meaning from visual observation, and return DB15-valid language | Cannot infer hidden content, treat pixels as domain authority, operate an unregistered action, or emit arbitrary executable UI |
+| Author | Choose presentation and input method, set supported preferences, request explanation, navigate, act, and recover | A chosen accessibility preference cannot change Project meaning or permissions |
+
+### Semantic structure and orientation
+
+Each route has a descriptive page title, one task heading, stable landmarks, and
+a meaningful reading order independent of CSS position. Repeated chrome offers
+skip paths to Project context, primary task, active contextual surface, and status
+where applicable. Headings describe the current Project object or task; landmarks
+and accessible names distinguish repeated navigation, Details, Petra, Work,
+Review, graph/text result, editor, and History regions.
+
+Changing route announces the new task and moves focus to its heading or the exact
+requested object. Opening a modal moves focus inside and returns it to the invoking
+control or a stable successor. Opening a nonmodal contextual surface moves focus
+only when the author's action requested that surface. Closing returns to the
+invoker and preserves selection, input, scroll or reading position, and task state.
+Automatic updates do not move focus.
+
+Current place, keyboard focus, selected object, graph focus, text cursor, checked
+item, expanded state, and authoritative state remain separate. Focus never applies,
+selects, checks, expands, navigates, or starts Work merely by arriving. Selection
+follows focus only in a conventional control where the exact effect is local,
+expected, and announced.
+
+### Keyboard, voice, switch, and focus behavior
+
+All functionality is operable through the keyboard without pointer movement,
+path gestures, or timing-dependent chords. `Tab` and `Shift+Tab` move between
+components; standard arrows, Home/End, Page keys, Enter, Space, and Escape operate
+the applicable native or ARIA pattern within a component. Positive `tabindex`
+does not reorder the page. Custom shortcuts are optional accelerators, visible in
+context and Settings, remappable or disableable where conflicts are possible, and
+never the only path.
+
+Voice, switch, keyboard-emulation, eye-gaze, and other input methods can resolve
+controls through stable accessible names and roles. Visible action text and
+accessible names share the same leading words. Repeated controls include the
+object or scope needed for a unique command, such as **Open details for Comparison
+B**. A glyph-only control requires an exact name and visible explanation on focus
+or request; authority actions keep visible outcome text.
+
+| Transition | Required focus result |
+| --- | --- |
+| Route or deep link | Exact target when resolved; otherwise page task heading and explicit limitation |
+| Open Details/Petra/Work context | Requested heading or first unresolved decision; preserve origin for return |
+| Open dialog | Dialog heading or first required field; focus remains within the active modal until dismissal |
+| Close/cancel presentation | Invoking control or nearest stable successor, with the underlying task unchanged |
+| Submit local edit or command | Stay with the affected object/control while status is reported; move only when the task requires a new decision |
+| Delete/remove visible item | Next logical item, previous item, or collection heading; announce exact result and preserved state |
+| Refresh/reconcile | Retain object and control where identity survives; explain replacement/conflict before a deliberate move |
+| Stream/update collection | Keep current focus and reading position; announce a bounded status or available-new-content notice |
+| Switch graph/text peer | Same query and selected object/path when representable; peer heading when the exact selection is unavailable |
+
+Focus is visibly unobscured by sticky chrome, panels, Petra, notices, or overlays.
+Narrow and zoomed layouts make persistent side content static, dismissible, or a
+separate route before it covers the focused control. Focus indicators retain a
+shape/boundary and sufficient contrast in every theme and forced-colors mode.
+
+### Complex-view peer presentations
+
+| Visual or spatial presentation | Required peer and material behavior |
+| --- | --- |
+| Graph/network | Scoped relationship summary, outline or tree where hierarchy is real, exact path table, legend, object/relationship Details, layer and omission controls, expansion, source paths, Work/Review actions, History, and return |
+| Timeline | Ordered event/change list with exact time dimension, unknown-time group, actor/origin, state, comparison, and event Details; scrubbing has step/select controls |
+| Work progress/dependency view | Task and stage outline/table with lifecycle, dependency, required input, measured/estimated resource coverage, activity, result, controls, and live status |
+| Before/after diff | Linear and side-by-side choices with additions, removals, replacements, moved content, unchanged context on demand, findings, exact revisions, and decision actions |
+| Chart/metric display | Text summary plus data table or structured values with units, series, axes, sample/coverage, uncertainty, thresholds, and source; visual trend language remains calibrated |
+| Dense table/grid | Native table where static; accessible grid only when cell interaction requires it, with headers, sorting/filtering state, row actions, selection count, and compact alternative at narrow widths |
+| Editor/composition | Document headings/regions, label and instruction associations, selection/cursor context, finding navigation, source/provenance links, revision state, keyboard editing, and exact save/export status |
+| Resizable/multipane workspace | Keyboard-operable separators plus named size/state; presets, reset, and single-surface routes preserve every panel's task and return context |
+| Generated or streamed UI | Stable semantic container, heading, ordered content, labeled controls, progressive status, preserved focus, complete final state, and an ordinary non-generated recovery path |
+
+A peer may lead with a concise explanation so sequential navigation does not
+require reading every object. It discloses count units, grouping, filters, hidden
+or restricted content, partial coverage, and the command that produced a change.
+The author can move between representations without launching new Work or changing
+authority.
+
+### Model-readable graph and presentation context
+
+Petra's explanation context is a versioned, bounded projection of the current
+presentation rather than a raw DOM dump or an unbound screenshot. It contains:
+
+- Project, profile, terminology/descriptor, snapshot, projection, query/result,
+  route, surface, and presentation-context identities;
+- the author-visible question, effective scope, layers, relationship allowlist,
+  traversal/result limits, partial coverage, and material omissions;
+- ordered visible objects and relationships with exact semantic references,
+  profile labels, origin/basis/limitations, and current/historical/working state;
+- selected, focused, pinned, expanded, collapsed, grouped, filtered, compared,
+  emphasized, and hidden-with-count members;
+- layout family, meaningful ordering, rendered positions or spatial regions,
+  clusters, crossings/overlap, viewport/clipping, legend encodings, and other
+  visual facts that are actually present;
+- the complete semantic text peer and available Details, source, expansion,
+  Work, Review, History, and return actions;
+- scene producer/version, captured-at time, content hash, freshness, supported
+  explanation capability, privacy/redaction disposition, and optional permitted
+  image/capture reference.
+
+The scene contains only the bounded presentation needed for the author's request.
+It excludes inaccessible hidden DOM, unrelated panels, unsent private input,
+restricted object names/counts, raw protocol events, and arbitrary screen capture.
+The current scene and optional image bind to the same graph result and presentation
+revision. If they differ, Petra uses the semantic result for graph meaning, names
+the visual-context mismatch, and avoids claims about the current layout until it
+refreshes or the author chooses the semantic explanation alone.
+
+Petra can explain purpose, scope, prominent visible paths/groups, the selected
+item, why an encoding appears, relevant omissions, and available actions. It
+distinguishes **the graph records**, **the current visual arrangement emphasizes**,
+and **the image appears to show** when those bases differ. Visual proximity,
+centrality, size, color, order, or motion does not become evidentiary support,
+importance, causal influence, priority, success, or authority unless an exact
+registered semantic field establishes that meaning.
+
+The model may request the current registered scene or a permitted image through
+the interaction boundary. Capability, provider/egress, rights, privacy, latency,
+and cost rules remain visible. If no eligible model can consume the visual input,
+Petra explains the graph from the semantic scene and states that it did not inspect
+the rendered image. A model cannot demand a screenshot when the structured scene
+fully answers the question or capture would broaden disclosure.
+
+### Visual perception, color, contrast, and text
+
+All text, controls, focus, selection, boundaries, icons, graph relations, syntax,
+and state indicators use named design-system roles with post-freeze measured
+contrast evidence. Color never carries the only distinction. Labels, patterns,
+shapes, line styles/direction, position in a named structure, and text alternatives
+preserve meaning in monochrome and forced-colors modes. User-agent forced colors
+may replace the palette while keeping current/selected/focused/invalid/disabled
+and relationship distinctions.
+
+Text can scale to 200% without clipping or lost action, and the product reflows at
+400% zoom to the equivalent of a 320 CSS-pixel-wide viewport. Ordinary reading and
+controls use one-dimensional scrolling. A graph, source image, wide comparison,
+data table, or editor region may retain bounded two-dimensional scrolling where
+its use requires it, while task context, instructions, status, actions, and the
+complete peer reflow outside that region. Page-level horizontal scrolling cannot
+become the only route to an action.
+
+Text uses selectable real characters where content is textual, respects operating-
+system and browser font/spacing preferences, and does not place material copy
+inside images. Truncation exposes the complete value programmatically and through
+ordinary inspection. Enlarged text, long profile terms, source-language text, and
+user spacing changes preserve labels, values, errors, references, and action
+consequences.
+
+### Pointer, touch, dragging, and resize
+
+Every authored pointer target is at least 24 by 24 CSS pixels or has the spacing
+or equivalent-control treatment permitted by WCAG 2.2; primary and repeated touch
+actions aim for a larger 44 by 44 CSS-pixel target. Dense inline source links may
+use the inline-text exception while an equivalent row/object action remains
+available. Targets do not overlap at narrow widths, under zoom, or while controls
+stream into place.
+
+Dragging, swiping, pinching, hovering, precise path movement, multi-pointer input,
+and long press are never the only action. Graph pan/zoom, node positioning, list
+reordering, selection ranges, timeline scrubbing, split-pane resizing, and drag-
+and-drop inputs have visible single-pointer and keyboard controls. If dragging
+changes only presentation, its alternative changes the same local state. If it
+changes content or authority, the alternative uses the same exact preview and
+command.
+
+Hover content also appears on keyboard focus, remains inspectable, and is
+dismissible and persistent while needed. Material instructions, provenance,
+limits, or actions never exist only in a tooltip. Touch use cannot depend on
+hover, and coarse-pointer layouts preserve task context and outcome labels.
+
+### Motion, time, sound, and cognitive load
+
+Reduced-motion preference removes decorative animation, parallax, animated graph
+repositioning, auto-scrolling, pulsing, and nonessential transitions. Meaningful
+change uses immediate state replacement, restrained highlight, or a textual status.
+Progress never relies on motion. Flashing and rapid visual changes remain outside
+the system.
+
+Authors can pause, stop, hide, or control nonessential moving or automatically
+updating presentation. No ordinary task has a short interaction time limit.
+Authentication, security, scarce external resources, or expiring authorization
+states name the limit, preserve input where permitted, warn before expiry when
+possible, and expose a supported extension/recovery path. A model or Work timeout
+is an operational outcome and cannot silently discard the author's input.
+
+Sound is supplemental. Any alert, speech, or audio explanation has synchronized
+text and a non-audio control path; volume and playback use platform-compatible
+controls. Petra does not auto-play spoken responses. Clear headings, short initial
+summaries, consistent controls, explicit steps, contextual definitions, preserved
+input, and reversible local choices reduce memory and attention demands without
+hiding material caveats.
+
+### Streaming, status, and live updates
+
+Dynamic content uses the DB15 status dimensions and announces only meaningful
+changes. Polite status covers load completion, saved local state, background Work
+updates, projection catch-up, and available new content. Assertive interruption is
+reserved for a failure or decision requiring immediate attention. New content
+does not take focus merely to be announced.
+
+Model text is announced by validated semantic segment or user-requested sentence,
+not token by token. Activity streams summarize meaningful stage changes and
+provide an inspectable log. Repeated counts, progress ticks, cursor motion, graph
+layout changes, and decorative animation stay silent. The author can stop response
+delivery without cancelling Work and can review received content without the live
+region repeatedly restarting.
+
+When a collection, graph, Review, or diff changes, Petra reports what changed and
+offers **Show updates** while preserving the current reading position. A required
+input or stale action is placed in the task order and announced once. Reconnect
+and replay deduplicate announcements as well as commands.
+
+### Forms, editors, validation, and recovery
+
+Every input has a persistent label, purpose, format, current value, required or
+optional state, and instructions before the error it prevents. Related choices
+use a fieldset/group and a clear legend. Placeholder text never replaces a label.
+Autocomplete and platform input semantics are used where they fit without exposing
+private Project data to an unintended service.
+
+Validation identifies the exact field, problem, preserved input, expected format
+or constraint, and correction path in text. An error summary links to each invalid
+field; focus moves to the summary only after a submitted multi-field operation
+needs correction. Inline findings remain associated with their field or editor
+range. Spelling, grammar, scientific validation, profile findings, and command
+errors retain different force.
+
+Editors expose document and finding structure without turning every character
+change into a live announcement. Keyboard and assistive-technology editing retains
+cursor/selection, composition input, undo/redo, unsaved state, late-result conflict,
+and exact save acknowledgment. Failed navigation or presentation changes preserve
+input and offer the same task in a simpler peer when possible.
+
+### Responsive and assistive presentation states
+
+| Condition | Required behavior |
+| --- | --- |
+| Wide/default | Primary task and at most one expanded contextual surface maintain logical reading/focus order; visual and peer representations are both reachable |
+| Compact | Secondary context moves to disclosure without changing task order, names, selection, or commands |
+| Narrow/high zoom | One task surface at a time; context, status, action, and return stay adjacent; text peer may lead for spatial views |
+| Screen reader | Landmarks/headings orient; names, roles, values, descriptions, relationships, position/count, state, and changes are programmatically available |
+| Keyboard/switch/voice | Every action uses a stable named control and predictable focus; shortcuts are optional and conflicts avoidable |
+| Touch/coarse pointer | Targets and spacing grow, hover dependencies disappear, drag has tap/select controls, and fixed surfaces do not cover the task |
+| Magnification | Focus stays visible; overlays and tooltips do not cover target/context; pan is bounded inside genuine 2D regions |
+| Reduced motion | State changes remain understandable through immediate layout and text without movement or flashing |
+| Forced colors/monochrome | Native/system colors, boundaries, labels, patterns, and text keep all interaction and domain distinctions |
+| Speech output or audio unavailable | Complete visible/programmatic text and controls remain; no task depends on sound |
+| Unsupported assistive combination | Name the affected feature and tested limitation, preserve work, and provide a safe peer/return rather than a false conformance claim |
+
+Accessibility preferences remain device-local under DB13 unless a later account-
+sync decision is accepted. System preferences take effect without restarting Work
+and preserve Project state, selection, input, and focus. A stored preference that
+cannot apply reports the effective fallback; it does not disable the underlying
+accessible path.
+
+### Interaction-path specification
+
+| Path | Entry and action | Required result, return, and focus |
+| --- | --- | --- |
+| `DB16-P01` Orient and navigate | Enter Projects, a Project place, contextual surface, deep link, or History using screen reader, keyboard, voice, switch, touch, or magnification | Page title, landmarks, task heading, Project/profile/snapshot, current place, status, and skip/return paths agree; focus reaches the exact target or explicit fallback |
+| `DB16-P02` Inspect a graph | Open a bounded relationship question and traverse its visual canvas or semantic peer | Both representations expose identical scope, layers, paths, relations, omissions, selection, Details, expansion, sources, Work/Review, History, and return; switching preserves context |
+| `DB16-P03` Ask Petra about the visible graph | Select or arrange a graph, then ask what it shows or why an item appears emphasized | Petra binds the exact semantic result and current presentation scene, explains visible organization and graph meaning with distinct bases, names omissions/limits, and offers valid actions |
+| `DB16-P04` Follow live response and Work | Receive model text, activity, progress, input request, disconnect/replay, and terminal result | Bounded announcements preserve focus and distinguish response, Work, connection, authority, and result; Stop response and Cancel work remain separate |
+| `DB16-P05` Review and apply | Inspect a candidate/diff, navigate findings, correct input, and apply/reject/defer through non-pointer paths | Linear and visual comparisons match exact revisions and decisions; focus, error summary, command status, individual outcomes, History, and return remain correct |
+| `DB16-P06` Compose and edit | Navigate document structure, select content, invoke Petra, review a proposal, save, validate, and export | Cursor/selection, scope, unsaved content, findings, source links, revision, output status, undo, and recovery survive assistive and responsive changes |
+| `DB16-P07` Manipulate without dragging | Pan/zoom/position graph, reorder supported content, scrub time, resize panes, or add a source | Single-pointer and keyboard controls perform the same supported local or governed effect with exact feedback and no precision gesture requirement |
+| `DB16-P08` Reflow and enlarge | Use 200% text, 400% zoom/320 CSS-pixel equivalent, long profile terms, translated text, and magnification | Task content and controls reflow without page-level two-dimensional reading; bounded genuine 2D regions retain complete peers and do not obscure focus |
+| `DB16-P09` Change perception settings | Enter forced colors, monochrome, reduced motion, High Contrast, larger pointer, coarse pointer, or no audio | Every state and relation retains non-color/non-motion text or structure; preferences apply without lost task state |
+| `DB16-P10` Resolve forms and errors | Submit empty, invalid, stale, conflicted, failed, partial, or uncertain input/action | Exact labels, summary, field association, preserved input/state, consequence, retry safety, and recovery are perceivable and operable without forced focus churn |
+| `DB16-P11` Open and close layers | Use menus, tooltips, dialogs, drawers, Details, Petra, and unavailable actions | Names/roles/states and dismissal work across inputs; focus is unobscured, trapped only by a true modal, and restored to the invoker or stable successor |
+| `DB16-P12` Recover from unsupported or failed accessibility | Encounter failed semantic peer, stale scene, unsupported assistive combination, icon/font/theme failure, or model visual mismatch | Preserve the primary task and work, name the limitation and tested boundary, use a safe semantic or native fallback, and retain an exact return/retry path |
+
+All paths run through scientific, controlled-writing, and an unrelated admitted
+profile where the feature applies. Omitted profile functions remain honestly
+absent; accessibility does not fabricate a universal domain workflow.
+
+### Paper interaction and heuristic audit
+
+The paper audit walks `DB16-P01`–`P12` across visual, keyboard, screen-reader,
+voice/switch-equivalent, touch/coarse-pointer, magnified, reflowed, forced-color,
+reduced-motion, no-audio, narrow, streamed, disconnected, invalid, failed, and
+unsupported states. It compares graph, timeline, Work, diff, table, editor, pane,
+and generated-interface peers and checks Petra's bound scene explanation. It does
+not claim rendered conformance, final-token contrast, browser/AT compatibility,
+model visual accuracy, participant efficiency, or legal compliance.
+
+| Heuristic | Paper-design check |
+| --- | --- |
+| Visibility of status | Programmatic status and bounded announcements expose task, response, Work, connection, authority, save/output, and recovery without moving focus |
+| Match to author task | Peers preserve the same objective, domain meaning, consequence, and useful sequence rather than narrating visual coordinates |
+| User control | Input choice, presentation switch, stop/cancel, dismissal, settings, correction, deferment, reversal, and safe return remain operable |
+| Consistency | Native/APG patterns, shared action names, focus rules, semantic peers, and model explanation bindings survive module and profile changes |
+| Error prevention | Exact labels, non-drag controls, unobscured focus, semantic graph facts, action previews, and scene validation prevent accidental or invented effects |
+| Recognition | Landmarks, headings, full references, position/count, summaries, legends, instructions, and preserved state reduce memory and spatial reconstruction |
+| Efficiency | Skip paths, peer summaries, composite navigation, filters, jump actions, and stable focus avoid exhaustive serial traversal |
+| Minimal design | Initial task content and meaningful updates lead; diagnostics, full logs, and exhaustive graph members remain available on demand |
+| Recovery | Input, selection, focus, task identity, semantic peer, exact outcomes, replay deduplication, and safe fallbacks survive failures |
+| Help and language | Control purpose, interaction instructions, unavailable reasons, terminology, limitations, tested support, and model explanation basis appear in context |
+
+| Finding | Consequence | Severity | Disposition and verification |
+| --- | --- | --- | --- |
+| `DB16-A01` Text alternative becomes a read-only summary | Authors using a screen reader cannot inspect, expand, start Work, Review, or recover | Critical | Fixed by task/control/outcome equivalence and complex-view peers; UX-FX38 |
+| `DB16-A02` Pixel-identical parity forces inefficient serial use | A formally complete alternative becomes practically unusable | Critical | Fixed by modality-appropriate sequence and efficiency requirement; participant task evidence in UX-FX38 |
+| `DB16-A03` AG-UI or generated UI is assumed accessible by transport | Streamed/custom content may lack stable structure, names, keyboard behavior, or recovery | Critical | Fixed by Petra-owned semantic containers and peer contract; AG-UI/AT evidence in UX-FX39 |
+| `DB16-A04` Model explains an unbound screenshot or guesses from layout | Petra may invent graph meaning, omit hidden scope, or describe stale visual state | Critical | Needs contract: UX-REQ-022; semantic/result and scene/capture binding tested in UX-FX40 |
+| `DB16-A05` Selection, focus, and authority collapse | Keyboard arrival or representation switch could select, apply, or retarget a task | Critical | Fixed by distinct states and transition matrix; cross-module evidence in UX-FX38/39 |
+| `DB16-A06` Reflow, overlay, or streaming obscures task/focus | Magnified or assistive use loses control, reading position, or input | Critical | Fixed by reflow, focus, overlay, and live-update rules; UX-FX39 |
+| `DB16-A07` Drag, hover, color, motion, sound, or precision is the only path | Material information or action becomes unavailable to common input/perception modes | Critical | Fixed by redundant semantics and non-gesture controls; UX-FX38/39 |
+| `DB16-A08` Technical conformance substitutes for observed usability | A path may pass automated checks while remaining slow, confusing, or incomplete | Major | G-VALIDATION requires AT and participant task outcome/efficiency evidence; UX-FX38–40 |
+
+Acceptance fails if an assistive presentation omits a material object, relation,
+limitation, action, or outcome; requires exhaustive traversal for an ordinary
+task; lets focus apply authority; loses selection/input on representation change;
+announces tokens or every progress tick; relies on drag, hover, color, motion,
+sound, or pointer precision; obscures focused content; makes generated UI a
+keyboard trap; exposes restricted scene data to a model; treats visual proximity
+as domain meaning; or lets Petra describe a stale/unbound graph as current.
+
+### Acceptance criteria and post-freeze evidence
+
+DB16 is complete at specification depth. Implementation and validation must
+demonstrate these behaviors after freeze:
+
+1. every material surface meets WCAG 2.2 Level AA and applicable native/APG
+   semantics in the recorded supported environment;
+2. each graph, timeline, progress/dependency view, diff, chart, dense table,
+   editor, pane workspace, and generated interface has a complete task peer;
+3. visual and peer presentations preserve objective, meaning, state, control,
+   consequence/authority, recovery, result, and practical task efficiency;
+4. representation changes preserve exact Project/profile/snapshot/query,
+   selection, input, Work/Review, History, and return context;
+5. landmarks, headings, names, roles, values, descriptions, relationships,
+   position/count, state, and changes are programmatically available;
+6. every action works through keyboard, and voice/switch/keyboard-emulation can
+   address stable controls without timing-dependent input;
+7. focus remains visible, predictable, distinct from selection/authority,
+   unobscured by overlays, and restored after routes, dialogs, updates, errors,
+   removals, and presentation changes;
+8. text scaling, 400% zoom/320 CSS-pixel-equivalent reflow, long terms, and user
+   spacing preserve content, actions, status, and bounded 2D peers;
+9. targets meet the accepted size/spacing rules, and every drag, gesture, hover,
+   resize, range, reorder, and drop operation has single-pointer and keyboard paths;
+10. forced colors, monochrome, reduced motion, magnification, coarse pointer, and
+    absent audio preserve all state, domain meaning, and controls;
+11. forms/editors preserve label, instruction, cursor/selection, input, error
+    association, undo, save/revision, proposal conflict, and recovery behavior;
+12. streaming and dynamic changes announce bounded semantic statuses without
+    stealing focus, repeating replay, or conflating response, Work, authority,
+    connection, save, output, and delivery;
+13. AG-UI-delivered and generated presentations resolve through Petra semantic
+    structures, controls, peers, validation, and ordinary fallback paths;
+14. Petra can explain the exact current graph semantics and visible arrangement
+    from a versioned, bounded presentation context linked to the semantic peer;
+15. optional image understanding is capability/privacy/rights bound, identifies
+    visual inference, and cannot override canonical object/relation meaning;
+16. stale, mismatched, partial, unsupported, or failed scene/accessibility state
+    preserves the task and produces a safe semantic fallback or exact limitation;
+17. all three profile examples retain their own terminology and applicable tasks
+    without changing shared accessibility, action, or authority semantics; and
+18. automated, browser, input, assistive-technology, model, participant task,
+    performance, and regression evidence remain explicit post-freeze gates.
+
+| Scenario | Required post-freeze evidence |
+| --- | --- |
+| `UX-FX38` Task and outcome equivalence | Use scientific, controlled-writing, and unrelated third-profile Projects across orientation, Sources, Graph, Work, Review, Composition, Settings, and History. Complete the same named tasks through visual/pointer and keyboard/screen-reader peers, comparing material information/actions/outcomes, focus/selection/return, errors/recovery, command identity, task time, navigation steps, and observed confusion. |
+| `UX-FX39` Accessibility pressure and generated-interface recovery | Exercise keyboard, voice/switch-equivalent input, touch/coarse pointer, 200% text, 400% zoom/320 CSS-pixel equivalent, magnification, forced colors, monochrome, reduced motion, no audio, long/translated terms, drag/hover alternatives, overlays, tooltips, dialogs, editors, panes, streaming, reconnect/replay, invalid/stale/partial/failed state, unsupported AT combination, and AG-UI-generated content without lost task, focus, input, meaning, or duplicate effect. |
+| `UX-FX40` Model explanation of the visible graph | Use the same bounded graph under visual/text peers, layouts, selections, groups, filters, layers, expansion, viewport clipping, hidden counts, stale scene, delayed projection, mismatched capture, restricted members, semantic-only model, and eligible vision model. Verify that Petra explains graph facts and current visual organization from their exact bases, names omissions/mismatch/capability, preserves privacy, and never infers authority or domain force from pixels. |
+
+These scenarios are independently invented and begin only after design freeze.
+Existing primitive, shell, graph, design-system, AG-UI, and language fixtures are
+calibration or contract evidence. They do not prove DB16 task equivalence,
+assistive-technology compatibility, model scene understanding, participant
+efficiency, performance, or legal conformance.
+
+### Backend needs and next section
+
+Native structure, component semantics, focus, reflow, target size, non-color
+meaning, motion, and most representation switching are frontend responsibilities
+over exact existing/proposed view contracts. DB16 sharpens `UX-REQ-006` so a
+material turn binds the presentation context it used, `UX-REQ-013` so graph
+results remain the semantic source and complete peer, and `UX-REQ-021` so Petra's
+explanation states its semantic versus visual basis and validates references,
+force, limitations, and actions.
+
+D013 and the current interaction feature manifest support AG-UI state projection,
+snapshots/deltas, messages, custom events, replay, and a non-authoritative adapter
+boundary. `UX-REQ-013` proposes renderer-neutral semantic graph records while the
+client owns layout and selection. No current accepted contract binds that semantic
+result to an exact author-visible scene, accessible peer, optional permitted
+capture, model input, and resulting explanation. `UX-REQ-022` requests this
+missing presentation-context composition without making pixels authoritative or
+placing DOM/ARIA implementation inside a backend contract.
+
+DB16 closes at `G-SPEC`; `G-CONTRACT`, implementation/integration, browser/AT,
+model, performance, legal, and participant validation remain separate. Continue
+to DB17, Failure, recovery, and history.
+`UX-DESIGN-FREEZE-01` remains unaccepted.
+
+## DB17 — Failure, recovery, and history
+
+**Status:** opening discussion after DB16 specification closure. Accepted module
+failure, preserved-state, cancellation, retry/resume, conflict, reversal, and
+additive-History rules remain in force. The reconciliation recommendation below
+is proposed and is not yet accepted. No recovery implementation is authorized.
+
+### Opening recommendation — reconcile state before offering recovery
+
+The recommendation is for every failure path to start from canonical state
+reconciliation, then show what happened, what may have changed, what was
+preserved, and which exact recovery is safe. Recovery returns the author to the
+same task and object when possible. **Retry**, **Resume**, **Start again**,
+**Restore local work**, **Reconcile**, **Revert change**, and presentation **Undo**
+keep distinct meanings and History effects.
+
+For example, if the connection drops after **Apply 3 changes**, Petra first checks
+the command and event receipts. If all three changes applied, it reports the
+observed revisions and catches the projection up. If none applied, it preserves
+the reviewed ChangeSets and offers the same idempotent submission when still
+eligible. If independent members have mixed outcomes, it shows each result and
+offers recovery only for unresolved eligible members. A generic retry button
+cannot risk applying a change twice.
+
+This principle would govern offline use, stale reads, conflicts, failed or partial
+Work, interrupted streams, uncertain delivery, invalid model output, unavailable
+capability, local-storage failure, projection lag, and historical recovery.
+Whether this reconcile/preserve/return boundary is accepted remains the DB17
+decision. After direction, complete the recovery taxonomy, cross-module state
+matrix, interaction paths, backend audit, evidence plan, and paper audit before
+DB18.
 
 ## `UX-DESIGN-FREEZE-01`
 
@@ -5315,11 +5814,10 @@ or default behavior.
 
 The next work remains specification, not demo production:
 
-1. carry accepted specifications through `DB15` into their recorded backend dispositions without implementing a product surface;
-2. discuss DB16's task/outcome-equivalence accessibility boundary;
-3. finish `DB16`, Accessibility specification, through its complete specification and paper audit;
-4. close failure, recovery, and history behavior in `DB17`;
-5. assemble the complete screen, state, flow, and backend blueprint in `DB18`;
-6. review and explicitly record `UX-DESIGN-FREEZE-01`;
-7. begin the neutral reference-UX implementation;
-8. begin contextual demo integrations only after the reference UX stands independently.
+1. carry accepted specifications through `DB16` into their recorded backend dispositions without implementing a product surface;
+2. discuss DB17's reconcile-state, preserve-work, and exact-return recovery boundary;
+3. finish `DB17`, Failure, recovery, and history, through its complete specification and paper audit while retaining DB16's task/outcome equivalence and model-readable presentation context;
+4. assemble the complete screen, state, flow, and backend blueprint in `DB18`;
+5. review and explicitly record `UX-DESIGN-FREEZE-01`;
+6. begin the neutral reference-UX implementation;
+7. begin contextual demo integrations only after the reference UX stands independently.
