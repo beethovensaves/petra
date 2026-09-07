@@ -27,10 +27,11 @@ The implementation track may continue already accepted backend work. It should
 not add a demo adapter, corpus path, profile-specific shortcut,
 imported-document promotion behavior, or new shared schema from the future demo contexts
 while the product brief is open. It should review `UX-REQ-004` through
-`UX-REQ-020` as general architecture needs and return a disposition without
+`UX-REQ-021` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
-`UX-REQ-020` follow the accepted Petra interaction, navigation, Sources,
-Review, Graph, Work, Project-inquiry, Composition, and Settings direction.
+`UX-REQ-021` follow the accepted Petra interaction, navigation, Sources,
+Review, Graph, Work, Project-inquiry, Composition, Settings, and language-system
+direction.
 These requests do not authorize a frontend implementation before the
 design freeze.
 
@@ -142,9 +143,10 @@ between shell context and task content more important.
 
 ### `UX-REQ-004` — versioned Project profile and domain-semantic boundary
 
-- **Originating design work:** accepted `UX1.0-DISC05` and DB14's accepted
-  `UX1.0-DISC07`; use-agnostic kernel section of `UX-FLOW-ARCHITECTURE.md`;
-  `DB14-P05`, `DB14-P06`, `DB14-P11`, `UX-PATH-02`, and `UX-PATH-04`.
+- **Originating design work:** accepted `UX1.0-DISC05`, DB14's accepted
+  `UX1.0-DISC07`, and DB15's accepted `UX1.0-DISC08`; use-agnostic kernel
+  section of `UX-FLOW-ARCHITECTURE.md`; `DB14-P05`, `DB14-P06`, `DB14-P11`,
+  `DB15-P01`, `DB15-P10`, `UX-PATH-02`, and `UX-PATH-04`.
 - **Named fixture need:** `UX-FX15`, paired synthetic scientific-research and
   controlled-writing Projects that expose the same kernel while resolving
   different typed domain meaning; `UX-FX34`, those profiles plus at least one
@@ -166,6 +168,10 @@ between shell context and task content more important.
   - registered domain schema, object-kind, relationship, command, event, validator, and output references;
   - registered model-context, prompt, tool, and role references applicable to the profile;
   - semantic surface roles and their user-facing terminology;
+  - versioned terminology and discourse entries: semantic owner, primary and
+    allowed grammatical forms, definition, pronunciation guidance where needed,
+    reference grammar, relation/force terms, prohibited conflations, discourse
+    conventions, locale coverage, replacement/deprecation, and exact fallback;
   - optional bounded semantic presentation descriptors for registered object and
     relation kinds: semantic key, generic family, approved glyph, finite
     line/shape pattern, optional profile-semantic tone role, exact text
@@ -1376,6 +1382,101 @@ between shell context and task content more important.
   scope and presentation accepted, effective-control read/typed transitions
   `proposed`.
 
+### `UX-REQ-021` — Profile-resolved communication plan and language-validation receipt
+
+- **Originating design work:** DB15 and accepted `UX1.0-DISC08` (2026-09-07),
+  `DB15-P01`–`P11`, D006, `UX-FLOW-02`, `UX-FLOW-10`–`12`, and `UX-FLOW-16`.
+- **Named post-freeze scenarios:** `UX-FX36`, extensible-profile communication
+  conformance; and `UX-FX37`, language, reference, and recovery stress.
+- **Implementation links:** `M1.6` bounded model context and synthesis, `M1.7`
+  interaction/delivery and application reads/actions, `M1.8` composition and
+  rendering, plus `UX-REQ-004` and later profile communication contracts.
+- **Author task and failure:** receive a response whose statements, references,
+  rationale, limitations, recommendations, proposed actions, and reported
+  outcomes retain their exact meaning across Project profiles, models, modules,
+  streaming, history, and accessible presentation. Without a runtime-owned plan,
+  a model or client could drop attribution, apply scientific force terms to an
+  unrelated profile, turn advice into a prerequisite, present a proposal as an
+  applied result, or release fluent but invalid text as grounded communication.
+- **Existing contract check:** `petra.model-synthesist-output@1.0.0` supplies the
+  scientific `source_report`, `petra_synthesis`, and `unresolved_inference`
+  result. `petra.grounded-response@1.0.0` binds exact response bytes to artifact,
+  dependency, execution, interaction, cache, and terminal context. Felicity
+  revision records bind a language contract and prohibit silent force changes.
+  AG-UI carries delivery through the accepted adapter boundary. Together these
+  are valuable inputs, but they do not supply one profile-neutral,
+  statement-level plan with generalized communicative acts, terminology and
+  reference versions, action links, or validation and repair outcome.
+- **Requested communication identity:** resolve the exact Project, profile,
+  authoritative snapshot, thread, turn, and response identity. Bind the Petra
+  communication contract plus applicable terminology, reference, discourse,
+  prompt, response-schema, renderer, and validator versions. Historical reads
+  retain the versions needed to interpret their original content and may expose
+  a current replacement without rewriting the record.
+- **Requested ordered plan:** return ordered material segments. Each segment
+  names its shared communicative family and optional registered profile subtype,
+  text or exact content reference, origin/actor, canonical object references,
+  basis/dependencies, conditions, limitations and uncertainty, presentation
+  depth, and any linked recommendation, suggested action, candidate, ChangeSet,
+  command, or observed event. The shared families include attributed report,
+  inference, recorded author judgment, Petra assessment, recommendation,
+  clarifying question, action proposal, action report, uncertainty/limitation,
+  and operational status. Profile extensions map to these families through
+  `UX-REQ-004`; they cannot replace their force, attribution, authority, or
+  recovery obligations.
+- **Reference and historical behavior:** resolve user-facing references through
+  the exact profile terminology/reference registry while retaining canonical
+  identity. Carry first/later-reference or equivalent rules, ambiguity fallback,
+  descriptor revision/replacement, source language, and locale coverage where
+  applicable. Current and historical rendering cannot invent an ordinal, infer
+  a label from a machine key, borrow another profile's taxonomy, or silently
+  alter quoted/source bytes.
+- **Action fidelity:** a recommendation or action proposal links to the exact
+  eligible action revision and its real prerequisites, scope, consequences, and
+  authority path. An action report links to the observed command/event/receipt
+  and actual effect. Prose cannot create permission, invoke a command, approve a
+  candidate, or claim completion independently of those records.
+- **Validation and repair receipt:** return `passed`, `repaired`, or `blocked`
+  status for the applicable communication/profile contract, with material
+  findings and exact repair provenance. Repair may resolve registered terms,
+  references, structure, or supported formatting without silently changing
+  origin, force, basis, uncertainty, action, scope, or outcome. When no safe
+  realization can validate, preserve validated segments and return an exact
+  limited or failed result rather than ordinary fluent prose.
+- **Progressive and fallback behavior:** expose segment availability and final,
+  partial, invalid, repaired, limited, failed, and stopped-delivery state. A
+  streamed segment does not become grounded merely because bytes arrived. Model
+  fallback may change provider or eligible realization method while retaining
+  the bound profile and communication meaning; incompatible fallback stops or
+  reports its limitation.
+- **Feedback boundary:** wording, reference/context, domain-meaning, and
+  action-scope corrections retain distinct paths. Language feedback may produce
+  a revised realization or audit record but cannot mutate Project authority or
+  become training consent. Domain correction and action changes use their owning
+  candidate/Review or action-preview contracts.
+- **Authority and persistence:** this is a communication read/artifact and
+  validation receipt around canonical domain, Work, action, and event records,
+  not a new mutation authority. The server/runtime owns plan identity, bindings,
+  action links, validation state, and historical interpretation; the client owns
+  presentation disclosure and local reading state. AG-UI transports progressive
+  delivery but does not define speech-act semantics or validation.
+- **Smallest viable response:** add an additive communication-plan view or
+  artifact around the existing scientific model-synthesist and grounded-response
+  records, mapping their current speech acts into the generalized families and
+  returning honest unsupported fields. Do not edit accepted schemas in place or
+  claim arbitrary-profile coverage from scientific-only fields. Add the smallest
+  terminology/reference and validation receipt necessary for one bounded answer
+  and one linked recommendation/action report, then assign remaining profile,
+  locale, repair, or renderer work to named milestones.
+- **Dependencies:** `UX-REQ-003` exact action preview/invocation, `UX-REQ-004`
+  profile terminology/discourse registry, `UX-REQ-006` thread/turn context,
+  `UX-REQ-008` semantic destinations, `UX-REQ-011`/`012` candidate and Review
+  authority, `UX-REQ-014`/`015` Work state/actions, existing response, Felicity,
+  command/event, model-gateway, and AG-UI adapter boundaries.
+- **Owner and status:** product architecture and implementation track; DB15 UX
+  language direction accepted, communication-plan and validation-receipt shape
+  `proposed`.
+
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
 integration requests are written.
@@ -1404,6 +1505,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Exact working-copy export with scoped limitations and observable delivery | Proposed `UX-REQ-019`; rendering/storage, support reuse, profile promotion, and external delivery retain distinct boundaries |
 | Effective Project controls and typed policy transitions in Settings | Proposed `UX-REQ-020`; personal preferences remain local while Project privacy, capability, routing, budget, and Review controls retain their owning authority |
 | Profile-resolved object and relation visual semantics | Existing proposed `UX-REQ-004`, sharpened by DB14; the manifest may name bounded semantic descriptor references while Petra owns shared tokens, components, state/authority cues, accessibility, and safe fallback |
+| Profile-resolved communication plan, action linkage, and language validation | Proposed `UX-REQ-021`; existing scientific synthesis, grounded-response, Felicity revision, command/event, and AG-UI records remain inputs while profile terminology/discourse is resolved through `UX-REQ-004` |
 | Current/cached/new evidence boundary | ContextPacket and EvidencePacket from `M1.1`, retrieval path in `M1.6` |
 | Assistant stream, interrupt, reconnect, and replay | PetraInteractionRun and AG-UI adapter boundary from `M1.0`/`M1.1`, product hooks in `M1.7` |
 | Projection freshness | GraphProjectionRecord and ProjectionCheckpoint from `M1.1`, delivery in `M1.3`/`M1.5` |
@@ -1415,7 +1517,7 @@ and outputs attached to these mechanics. They should not duplicate Work,
 interaction, proposal, review, approval, cancellation, provenance, or history
 lifecycles merely because the profile uses different nouns.
 
-## Requirement status after DB14
+## Requirement status after DB15
 
 The authored-project, imported-document, Project-thread, exact turn-context,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
@@ -1457,7 +1559,17 @@ exact labels, approved references, version/replacement behavior, and generic
 fallback. Petra retains themes, tokens, components, interaction and authority
 cues, rendering, and accessibility. DB14 closes at `G-SPEC`; profile-manifest,
 implementation, accessibility, visual-regression, and participant evidence
-remain pending. DB15 is next.
+remain pending.
+
+DB15's one-communication-contract/profile-owned-discourse direction is accepted
+as `UX1.0-DISC08`. It sharpens `UX-REQ-004` with terminology, reference,
+relation/force, discourse, locale, replacement, and fallback metadata and creates
+`UX-REQ-021` for the missing profile-neutral statement-level communication plan
+and validation receipt. Existing scientific model-synthesist output,
+grounded-response bytes, Felicity revision records, command/event authority, and
+AG-UI delivery retain their current meanings. DB15 closes at `G-SPEC`; contract,
+implementation, model, localization, accessibility, and participant evidence
+remain pending. DB16's task/outcome-equivalence accessibility boundary is next.
 
 ### Cross-device preference synchronization
 

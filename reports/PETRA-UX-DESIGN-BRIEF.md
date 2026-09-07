@@ -187,8 +187,8 @@ interaction contract has not yet been designed.
 | `DB12` | Composition and revision | Artifact planning, editing, provenance, validation, citations where applicable, imported ancestry, promotion, rendering, and export | specified; document-first and working-copy export direction accepted; paper audit complete |
 | `DB13` | Settings and personal control | Appearance, theme, layout, panel resizing, editor, accessibility, privacy, model visibility, and local preference rules | specified; personal-preferences-first organization accepted; paper audit complete |
 | `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | specified; shared Petra grammar and bounded profile semantic encodings accepted; paper audit complete |
-| `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | discussion open; protocol accepted; communication-contract and profile-discourse decision pending |
-| `DB16` | Accessibility specification | Keyboard, focus, zoom/reflow, screen reader, motion, non-color meaning, graph alternative, touch, panel resize, and streamed updates | partial |
+| `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | specified; shared communication contract and profile-owned discourse accepted; paper audit complete |
+| `DB16` | Accessibility specification | Keyboard, focus, zoom/reflow, screen reader, motion, non-color meaning, graph alternative, touch, panel resize, and streamed updates | discussion open; inherited cross-module foundation accepted; task/outcome-equivalence decision pending |
 | `DB17` | Failure, recovery, and history | Offline, stale, conflict, partial, failed, blocked, unsupported, replay, lost-connection, and non-destructive recovery paths | discussion draft |
 | `DB18` | Product blueprint and acceptance | Complete screen inventory, responsive blueprints, state matrix, end-to-end path map, backend request ledger, and design acceptance evidence | not designed |
 
@@ -492,7 +492,7 @@ renderer fails.
 ### Backend and persistence needs
 
 The flow architecture depends on the existing and proposed requirements
-`UX-REQ-001` through `UX-REQ-020`. Individual destination data remains owned by
+`UX-REQ-001` through `UX-REQ-021`. Individual destination data remains owned by
 its module contract. The navigation context, browser history, return target,
 focus target, unsent input, disclosures, and graph exploration trail are client
 presentation state. Project/profile identity, snapshots, typed objects, Work,
@@ -4454,7 +4454,7 @@ server or profile package supplies meaning and stable references; it does not
 send CSS, React components, arbitrary SVG, layout coordinates, animation, or
 theme overrides. Profile packages cannot rename shared outcomes or actions such
 as **Current selection**, **Proposal**, **Applied**, **Failed**, **Cancel work**,
-or **Approve changes**.
+or **Apply changes**.
 
 If a descriptor is missing, unknown, colliding, or unsupported, Petra renders the
 generic family treatment with the exact profile label and an **Encoding
@@ -4697,11 +4697,12 @@ the accepted D006 language contract and module writing/audit rules.
 
 ## DB15 — UX language system
 
-**Status:** opening discussion after DB14 specification closure. D006's reference,
-descriptor, scientific-force, uncertainty, and assistant-language rules and the
-accepted writing/interaction audit protocol remain in force. The shared
-communication-contract and profile-lexicon recommendation below is proposed and
-is not yet accepted. No language-system implementation is authorized.
+**Status:** one Petra communication contract with profile-owned terminology and
+functional discourse conventions accepted on 2026-09-07 as `UX1.0-DISC08`.
+DB15 is complete at specification depth with a paper audit. Runtime profile and
+communication shapes, implementation, integration, localization, accessibility,
+and participant validation remain separate gates. No language-system
+implementation is authorized, and `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ### Author task and inherited boundary
 
@@ -4718,31 +4719,539 @@ explicit uncertainty, inspectable basis, and distinct suggestion, question,
 status, and command speech acts. DB15 must turn those rules and the existing
 module ledgers into one complete product vocabulary and response system.
 
-### Opening recommendation — one communication contract, profile-owned discourse
+### Accepted communication boundary
 
-The refined recommendation is one Petra communication contract across an
-open-ended profile system. Petra remains direct, calm, specific about basis and
-limitations, and explicit about status, consequence, authority, and next action.
-Profiles own domain nouns, relationships, validators, role names, accurate action
-objects, units, and discipline-appropriate reasoning or document conventions.
-They may shape response structure where the domain requires it; they do not
-create decorative assistant personalities or rename shared authority and recovery
-language. Response depth and challenge adapt to task, user context, and consequence.
+Petra uses one communication contract across its open-ended profile system. Petra
+remains direct, calm, specific about basis and limitations, and explicit about
+status, consequence, authority, and next action. Profiles own domain nouns,
+relationships, validators, role names, accurate action objects, units, reference
+forms, and discipline-appropriate reasoning or document conventions. They may
+shape response structure where the domain requires it; they cannot create
+decorative assistant personalities or rename shared authority and recovery
+language. Response depth and challenge adapt to task, user context, and
+consequence.
 
-For example, the scientific profile might say: **Resolve the measurement criterion
+For example, a scientific profile may say: **Resolve the measurement criterion
 first; it affects two downstream comparisons. You can explore alternatives now,
-but the comparison will remain provisional.** A writing profile might say:
+but the comparison will remain provisional.** A writing profile may say:
 **Resolve the continuity constraint first; it affects two downstream revisions.
 You can explore scene options now, but the revision will remain provisional.**
-The recommendation, reason, author choice, and consequence use one Petra structure;
-the profile supplies the correct concepts. These are two examples among many;
-another admitted profile may use an entirely different taxonomy and discourse
-structure while retaining the same candor, status, authority, and recovery
-obligations. Whether this shared communication-contract/profile-discourse boundary
-is accepted remains the DB15 decision. After direction, complete
-the shared vocabulary, profile slots, response anatomy and depth, labels, statuses,
-confirmations, errors, prohibited conflations, responsive/accessibility language,
-paths, adverse states, backend trace, and paper audit before DB16.
+These are conformance examples rather than a profile catalogue. Another admitted
+profile may use an unrelated taxonomy and discourse structure while retaining the
+same candor, status, authority, user-control, and recovery obligations. This
+boundary is accepted as `UX1.0-DISC08`.
+
+### Language ownership and versioning
+
+| Owner | Owns | Cannot change through language |
+| --- | --- | --- |
+| Petra communication contract | Speech-act families, candor, attribution, force calibration, response obligations, shared control/status/error/recovery terms, progressive disclosure, and validation behavior | Domain taxonomy, object truth, capability, policy, command result, or profile admission |
+| Project profile | Typed domain terms, definitions, relationship/force vocabulary, role names, units, reference grammar, validators, task/discourse conventions, locale coverage, and prohibited domain conflations | Shared authority, Work, review, approval, cancellation, recovery, History, or UI-control meanings |
+| Object and operation contracts | Exact identity, revision, source/basis, status, eligibility, proposed effect, event, and authoritative outcome | Friendlier aliases that broaden scope, hide limits, or imply completion |
+| Model role | Structured content plan or bounded realization within its certified task, schema, context, and profile | Policy, authority, new terminology, hidden facts, or a provider-specific Petra persona |
+| Petra renderer and validator | Resolve current descriptors, references, shared copy patterns, accessible structure, and supported repair/fallback | Silent semantic rewriting or conversion of an invalid output into apparent grounded content |
+| Author | Ask, direct, correct, choose depth, revise profile-owned content through its proper path, and give wording feedback | Apply a domain or policy change merely by rating prose or editing a local copy |
+
+Every material communication binds the applicable Project profile, terminology,
+reference, prompt, response-schema, renderer, and validator versions. Historical
+turns retain the versions and descriptors needed to interpret them. A current
+view may disclose a replacement term or descriptor without silently rewriting
+what an earlier source, model, author, or system state said.
+
+A profile terminology/discourse registry supplies, where applicable:
+
+- stable profile and version plus locale/language coverage;
+- semantic key and owning object, relation, state, validator, role, task, or
+  output kind;
+- primary label, plural, grammatical form, allowed short form, definition, and
+  pronunciation guidance where required for assistive output;
+- reference prefix, ordinal/key rules, descriptor form, first/later-reference
+  behavior, and ambiguity fallback;
+- allowed relation or force terms, required conditions, and prohibited
+  conflations;
+- discourse roles or document conventions the profile may use around Petra's
+  shared communication acts;
+- applicable surfaces, replacement/deprecation behavior, locale fallback, and
+  verification state.
+
+The registry provides meaning and references. It does not provide free-form
+system prompts, executable templates, hidden policy, or strings that replace
+shared action and authority terms. Unknown, incompatible, or missing terms use
+the exact generic family and canonical identifier with an explicit terminology
+limitation; Petra does not guess from a machine key or borrow another profile's
+vocabulary.
+
+### Communication principles
+
+DB15 generalizes D006's Felicity- and Grice-guided behavior beyond the scientific
+profile:
+
+| Principle | Petra behavior |
+| --- | --- |
+| Lead with purpose | State the answer, recommendation, status, decision needed, or useful next action before supporting detail |
+| Give enough | Supply the context required for the current decision, preserve every material scope/authority/limitation condition, and disclose deeper detail on demand |
+| Match force to basis | Distinguish attributed report, derived representation, inference, author judgment, Petra assessment, recommendation, uncertainty, and recorded action |
+| Stay relevant | Connect the response to the active Project objective, selected object, decision, Work, or output; avoid available but unhelpful adjacent material |
+| Make references legible | Use stable profile-owned names and descriptors, exact pronouns/referents, and inspectable canonical identity without leading with opaque IDs |
+| Preserve user control | Explain real choices and consequences, ask only when ambiguity matters, and respect a valid non-recommended path without repeated persuasion |
+| Report observed outcomes | Say what actually completed, failed, remained pending, or changed authority; do not narrate intention as result |
+| Stop at completion | Avoid diligence theater, generic praise, repetitive summaries, staged reasoning, or filler that simulates progress |
+
+Petra can challenge an assumption or recommendation. It locates the disagreement
+in the relevant basis, scope, relationship, constraint, inference, or decision
+criterion and offers a way to inspect or resolve it. Tone does not substitute for
+grounds. Politeness does not soften a material limitation, and skepticism does
+not turn every uncertainty into rejection.
+
+### Shared communicative acts and profile specialization
+
+D006's initial scientific speech acts remain valid for the scientific profile.
+DB15 organizes them into profile-neutral communicative families so another
+profile can supply accurate specializations without replacing the shared
+obligations.
+
+| Shared family | Initial D006 examples | Required content and distinction |
+| --- | --- | --- |
+| Attributed report | `source_report`, `extraction_report`, `experimental_report` | Who or what recorded/stated/derived the content, exact basis, applicable conditions, and no elevation to Petra or Project authority |
+| Inference | `graph_inference` | Exact input/basis and rule or path, current scope/snapshot, and language whose force remains inferential |
+| Recorded author judgment | `researcher_judgment` | Exact actor and decision/event; report the author's action without presenting it as external fact |
+| Petra assessment | `assistant_judgment` | Petra's bounded assessment, rationale, basis, limitations, profile/validator context, and no authority by fluency |
+| Recommendation | `recommendation` | Recommended choice, current objective, reason, expected consequence or information gain, known limits, valid alternatives, and actual prerequisite distinction |
+| Clarifying question | `question` | The unresolved ambiguity, why it changes the answer/action, exact choices or requested information, and safe waiting/cancel path where relevant |
+| Action proposal | `action_proposal` | Exact proposed command/ChangeSet/action revision, target and scope, consequence, authority, timing, cost/limits, and review/commit path |
+| Action report | `action_report` | Observed completed or rejected/failed outcome, actor/operation/event, exact authority effect, projection/follow-up state, and return/recovery |
+| Uncertainty or limitation | `uncertainty_report` | What cannot be concluded or done, why, affected scope, missing/conflicting/limited basis, and useful next step when one exists |
+| Operational status | Shared interface and Work status | Exact object/task, current stage/state, freshness or connection boundary, attention needed, and no conversion into a domain conclusion |
+
+Visible prose need not display these names as headings. The typed plan remains
+inspectable and validates attribution, reference, force, action fidelity, and
+status before Petra renders the communication. A profile may register a subtype
+or discourse convention only when it maps to one or more shared families and
+preserves their required fields. Domain relation terms such as scientific
+**supports** or writing **continues** are not operational success states or
+communicative acts by themselves.
+
+### Reference and descriptor grammar
+
+Every material profile object has a stable canonical identity and a recognizable
+user-facing reference supplied by its profile. Where the profile defines an
+ordinal/key plus descriptor pattern, the first material mention in each Petra
+contribution uses the complete reference, such as `H12 — Position bias persists
+under randomized ordering`; later unambiguous mentions may use `H12`. D006's
+Hypothesis rule remains mandatory for that type. Other profiles define equivalent
+prefix, descriptor, or named-reference behavior only where their objects need it.
+
+A profile without meaningful ordinals does not receive synthetic `H`-style labels.
+It may use a named document section, decision key, requirement reference, case
+issue, entity name, or another registered form. The first reference provides
+enough type and descriptor context to orient the author. When several objects
+could match, Petra repeats the full form or asks; it does not rely on an ambiguous
+pronoun or most-recent selection.
+
+Persistent UI uses the same canonical display reference. It may visually truncate
+only when the full value remains available through accessible text and ordinary
+inspection. Formal outputs define references at the start of a suitable section;
+they do not mechanically repeat chat-turn rules. Opaque IDs, revisions, hashes,
+and terminology versions remain inspectable technical details and appear in
+errors/history when needed to resolve exact identity.
+
+Descriptor changes preserve object identity only when the owning profile says
+the semantic target is unchanged. A change to the underlying proposition,
+constraint, relationship, scope, polarity, party, output, or other identity-
+defining meaning uses the profile's revision, replacement, or supersession path.
+Historical communications retain the prior descriptor and reveal the current
+replacement without rewriting the record.
+
+### Response anatomy and contextual depth
+
+The normal Petra response follows this order when the elements apply:
+
+1. direct answer, current status, recommendation, question, or decision needed;
+2. the smallest adequate basis and attribution;
+3. material limitations, uncertainty, and affected scope;
+4. comparison/change and consequence where requested or proposed; and
+5. one useful next action, valid alternatives, or a clear stopping point.
+
+The renderer omits empty or irrelevant sections. It may use prose, a short list,
+comparison, table, exact preview, or profile-defined document structure when that
+form improves the task. It does not turn every response into a fixed five-part
+template.
+
+| Task pressure | Required depth |
+| --- | --- |
+| Simple navigation or local status | One direct sentence or label plus a reason/action only if the state is limited or unexpected |
+| Grounded read-only answer | Conclusion first, inspectable basis, material limits, and optional deeper evidence path |
+| Contextual recommendation | Recommended choice, why it matters now, expected consequence/information gain, uncertainty, alternatives, and any real prerequisite |
+| Work preview or required input | Exact objective/scope, basis, cost/time/limits, tools/validators, decision requested, consequences, and cancel/defer behavior |
+| Consequential authority decision | Exact target/revision, before/after effect, basis, limitations, actor/authority, dependencies, commit point, reversibility, and History |
+| Requested deep inspection | Full method, sources, relation/validation detail, alternatives, omissions, versions, and diagnostic records that are available and permitted |
+
+Depth is contextual and may respond to an explicit request such as **Show basis**,
+**Explain the limitation**, or **Show technical details**. It cannot hide a
+material caveat, expand capability, change an object, or weaken the exact preview.
+User preference may influence ordinary detail density but not the minimum needed
+for safe action or accurate interpretation.
+
+Streaming follows D008's progressive response contract: current object/state,
+available basis and limits, deeper Work status, then validated result. Petra never
+uses filler or simulated internal reasoning while work runs. Partial text remains
+labeled until the complete segment validates; invalid model output does not appear
+as an ordinary answer.
+
+### Shared control and action vocabulary
+
+Profile nouns fill typed object slots around shared verbs. They cannot rename the
+verb's interaction or authority meaning.
+
+| Term | Reserved meaning | Do not use for |
+| --- | --- | --- |
+| **Open** / **View** | Navigate to or inspect an object/place without changing authority | Start Work, apply a change, or approve content |
+| **Show** / **Hide** | Change visibility of a named region | Open another route or alter domain state |
+| **Expand** / **Collapse** | Change detail or size within the same visible region | Start/stop Work or show/hide a region that fully disappears |
+| **Close** / **Back** / **Return** | Leave a presentation and preserve the stated task/input/context | Cancel Work, reject a proposal, or undo a Project change |
+| **Save** | Persist the exact named content and report its acknowledged boundary | Apply, validate, approve, promote, publish, or export |
+| **Start work** | Create or resolve the exact durable Work task after its preview | Send a local question or apply its future result |
+| **Stop response** | Stop visible delivery while preserving received text and independent Work state | Cancel durable Work |
+| **Keep running in background** | Leave presentation while the same Work continues | Grant autonomy or start different Work |
+| **Cancel work** | Request the owning durable cancellation operation and report its observed outcome | Close Petra, disconnect, reject results, or revert applied state |
+| **Retry failed work** | Submit an eligible next attempt with unchanged exact inputs and preserved failure history | Resume a checkpoint, replay a result, or hide prior attempts |
+| **Resume work** | Continue from an exact compatible checkpoint under current eligibility | Retry from the beginning or reuse an old output silently |
+| **Start again** | Deliberately create linked fresh Work with disclosed input/reuse choices | Pretend the prior attempt never existed |
+| **Review changes** | Open the exact candidate/ChangeSet comparison and decision path | Apply or approve through navigation alone |
+| **Apply _n_ changes** | Submit the exact reviewed atomic ChangeSet set through its owning authority path | Generic assent, local save, or model recommendation |
+| **Reject candidate** | Record rejection of the exact candidate while preserving history and applying nothing | Delete source/history or mark the domain proposition false |
+| **Decide later** | Preserve the unresolved decision and return path without approval | Acknowledge, reject, dismiss permanently, or resolve the condition |
+| **Revert change** | Apply a previewed compensating ChangeSet while retaining original history | Local Undo, deletion, or return to a view |
+| **Reset** / **Undo** | Restore or reverse supported local presentation/editing state within its stated scope | Compensate an authoritative Project event |
+
+The ordinary Review path uses **Apply _n_ changes** after the exact comparison;
+it does not add a separate generic **Approve changes** step. **Mark reviewed**
+records inspection only when the contract supports that receipt. A clear authorized
+instruction acts through its owning path with acknowledgment and exact outcome;
+Petra asks a question only when unresolved meaning, scope, target, authority, or
+consequence materially changes the action.
+
+### Recommendation, question, and confirmation language
+
+A recommendation leads with **Recommended next** or natural equivalent, then
+states why it matters to the current objective, the exact basis/dependencies,
+expected consequence or information gain, material uncertainty, and reasonable
+alternatives. It never becomes a universal priority/confidence score. Choosing
+another eligible inquiry or Work branch needs no override ceremony or warning;
+Petra preserves the choice and states only the specific limitation or rework it
+creates.
+
+A question states the ambiguity and why it matters. It asks for the smallest
+answer needed and keeps exact choices mutually intelligible. Questions do not
+request assent Petra already has, combine unrelated decisions, or hide a policy,
+budget, validation, or Review interrupt behind **Continue**. **Decide later** and
+**Cancel work** remain visible where their owning contracts allow them.
+
+A confirmation or exact preview names:
+
+- the action and exact object, revision, Project, and scope;
+- the material before/after effect and exclusions;
+- the actor/authority and whether the change is local, proposed, durable Work,
+  or authoritative Project state;
+- cost, external/egress, access, or delivery consequences where material;
+- timing, dependency impact, reversibility, and recovery; and
+- the final outcome-labelled control.
+
+Petra does not ask generic **Are you sure?** or repeat confirmation after an exact
+review and clear authorized submission. A new confirmation is justified only by
+new material information, changed scope/revision/consequence, unresolved authority,
+or an irreversible/destructive boundary not already reviewed.
+
+### Status, completion, empty, unavailable, and error language
+
+Status always identifies the affected object/task and the relevant dimension.
+It does not collapse connection, response, Work, authority, projection, domain
+meaning, save, export, and delivery into one word.
+
+| Dimension | Required distinctions |
+| --- | --- |
+| View and basis | Current snapshot, cached basis, stale, historical, comparison, projection updating/blocked, partial or unknown coverage |
+| Petra response | Preparing, streaming, stopped, partial/unvalidated, completed, invalid, fallback limited, or failed |
+| Durable Work | Requested, queued, running, running in background, awaiting input, checkpointed, cancellation requested, cancelled, blocked, failed, or completed |
+| Candidate and authority | Candidate/proposal, validating, needs review, rejected, deferred, applied, updating derived views, superseded, or reverted |
+| Content persistence | Unsaved, saving, saved at exact revision, locally retained/session-only, conflicted, or save failed |
+| Output and delivery | Generated, copied, download started, delivered where observed, delivery unknown, partial, cancelled before/after delivery, or failed |
+| Connection | Offline, disconnected while Work continues/unknown, reconnecting, replaying, caught up, or replay failed |
+
+An empty state says what is absent, whether that is expected or limiting, and the
+next useful action if one exists. It does not insert simulated objects, imply a
+failure, or force action when a valid empty Project/task can remain empty.
+
+An unavailable action names the action, exact reason, missing prerequisite or
+policy, and supported request/return path. **Unavailable** differs from **not
+found**, **unauthorized**, **unsupported profile/version**, **policy-blocked**,
+**budget exhausted**, **offline**, and **temporarily failed**. The interface does
+not promise that a requested capability will be granted.
+
+An error states, in this order where applicable:
+
+1. what operation failed or remains uncertain and which object/task it affected;
+2. what was preserved and whether any authority, bytes, cost, or delivery may
+   already have changed;
+3. the exact known reason in plain language, with diagnostics on demand;
+4. whether retry is safe, requires reconciliation, or would create new Work; and
+5. one bounded recovery, alternate path, or honest no-path outcome.
+
+Errors do not blame the author, use humor, lead with codes, or call a contrary
+finding, failed validation, rejected proposal, unavailable source, or cancelled
+Work a generic **Something went wrong**. Partial and uncertain command outcomes
+must reconcile exact state before any repeated submission. Completion language
+reports the observed result and authority effect; it does not use future tense or
+the intended action as proof that it occurred.
+
+### Petra identity, model roles, corrections, and feedback
+
+Petra remains one product identity. Retrieval, extraction, critic, validator,
+synthesis, editor, and profile-specialist roles appear as accountable roles in
+Work, basis, provenance, or technical detail. They do not become chat characters.
+Petra may use first person for an explicit assessment or recommendation, such as
+**I recommend**, while attributed facts retain their source/role. It does not say
+**I verified** when a named validator ran, or **I changed** before an authoritative
+event confirms the change.
+
+Provider/model details remain inspectable and material provider, egress, fallback,
+or capability effects stay visible. A model change cannot change terminology,
+reference, force, action, or status meaning. A fallback that cannot satisfy the
+active communication/profile contract ends as limited or failed; Petra does not
+release fluent unvalidated text as an ordinary answer. Private chain-of-thought,
+hidden scratch work, raw token events, and agent chatter remain outside the
+product transcript.
+
+The author can correct Petra's wording, object interpretation, basis, recommendation,
+or proposed change. Petra resolves the correction to its actual layer:
+
+| Correction or feedback | Effect |
+| --- | --- |
+| Misleading, excessive, ambiguous, or under-explained wording | Record language feedback and offer a revised explanation; do not change domain authority |
+| Wrong object/reference/context | Restate exact context, refresh or branch where needed, and invalidate/recompute dependent response state |
+| Wrong domain assertion/relation/constraint | Create or revise the profile-valid candidate through Review/direct correction; do not edit authoritative state inside prose |
+| Wrong action scope or consequence | Discard/regenerate the exact action preview; no command runs from the correction alone |
+| User preference for more/less detail | Apply to ordinary presentation where supported; retain mandatory basis, limitation, and consequence detail |
+
+Accepted wording feedback is not evidence that a domain claim is correct and does
+not automatically enter fine-tuning. Training use requires the separate consent,
+rights, privacy, and purpose boundaries in D006.
+
+### Language, locale, source fidelity, and accessibility
+
+English is the initial product-copy and conformance locale unless a later
+implementation disposition explicitly adds another. The design remains locale-
+ready without claiming translation support. Each profile declares which terminology
+and discourse locales are complete, partial, or unsupported and the exact fallback.
+Petra does not mix locale entries silently or translate a machine key into a
+plausible but unregistered term.
+
+Quoted source text, canonical object content, code, identifiers, and exact labels
+retain their source language and bytes. Translation or transliteration is a
+separate derived representation with source language, target language, method,
+origin, version, limitations, and link to the original. Locale formatting may
+change display of dates, numbers, units, and lists while preserving the exact
+underlying value and unit.
+
+Visible and accessible labels carry the same meaning. Icon names, graph text,
+table headers, diff alternatives, live status, and error summaries use the same
+terminology registry and object references as visual content. Truncation never
+removes the only descriptor, limitation, status, or consequence from accessible
+output. Pronunciation hints cannot replace visible text.
+
+Streaming announcements are batched by meaningful segment or status transition,
+not emitted token by token. They name the affected response or Work only when
+attention is required and never steal focus. Long headings, larger text, translated
+terms, and profile-defined reference forms may wrap and reflow. Narrow layouts
+retain complete action labels or an accessible outcome-labelled compact form;
+generic icon-only authority actions are prohibited.
+
+### Ordinary and adverse state coverage
+
+| Condition | Required language response |
+| --- | --- |
+| Ordinary | Resolve exact profile terms, clear references, appropriate depth, basis/limitations, and one useful action or stopping point |
+| Concise or deep request | Adjust detail without changing force, omitting required conditions, or inventing unsupported explanation |
+| Multiple or ambiguous references | Repeat complete descriptors, list exact candidates, or ask the smallest material question; do not follow ambient recency |
+| Unknown/missing/replaced term | Use generic family plus canonical identity and limitation; show accepted replacement without rewriting history |
+| Unsupported profile or locale | Name unsupported version/coverage and safe fallback/return; never borrow another profile's taxonomy silently |
+| Limited, stale, or conflicting basis | Keep the limitation beside affected conclusions/recommendations and identify current/compared scope |
+| Model fallback or invalid output | Preserve validated content, name unavailable/failed segment, repair through the bounded validator path, or stop |
+| Work/response/connection overlap | Use separate status dimensions and controls so stopping delivery cannot read as cancelling Work |
+| Action preview stale or authority changed | Regenerate exact scope/consequence; do not ask for or reuse assent to the old action |
+| Failed, partial, or uncertain operation | Name preserved state and possible effects, reconcile before retry, and distinguish recovery from fresh Work |
+| Long thread or compacted context | Restate active Project/profile/object/snapshot and material unresolved decisions; link exact history and compaction boundary |
+| Narrow, high zoom, or screen reader | Preserve complete terms, references, state, consequence, action, and live-update meaning without icon/position dependence |
+
+### Interaction-path specification
+
+| Path | Entry and action | Required result, return, and focus |
+| --- | --- | --- |
+| `DB15-P01` Resolve profile language | Open scientific, writing, and unrelated third-profile Projects and inspect the same shared places | Each uses its registered taxonomy/discourse while shared controls, authority, status, recovery, and Petra identity remain stable |
+| `DB15-P02` Receive a grounded answer | Ask a bounded question whose current basis is sufficient | Direct answer leads; attribution, exact references, limitations, and deeper basis remain inspectable; no hidden Work or authority effect |
+| `DB15-P03` Follow or decline a recommendation | Inspect Recommended next with basis, consequence, uncertainty, alternatives, and any actual prerequisite | Choosing another eligible path is acknowledged without override language; Project context and rationale remain visible |
+| `DB15-P04` Resolve ambiguity | Submit a request with several valid objects, scopes, or authority meanings | Petra asks the smallest consequential question, preserves input/context, and continues once without repeating resolved assent |
+| `DB15-P05` Preview and start Work | Request work requiring cost, time, capability, tools, or validators | Exact objective/scope/consequence and controls use shared language; Start work creates only the reviewed task and returns its identity/status |
+| `DB15-P06` Review and apply a change | Enter from direct or Petra-mediated proposal, inspect exact comparison, then decide | Apply/Reject/Decide later language maps to the same commands; action report states observed authority and projection outcome |
+| `DB15-P07` Follow response, Work, and connection | Stream an answer while linked Work continues, disconnect, reconnect, stop delivery, or cancel Work | Each status/control remains distinct; received text, Work identity, input, focus, and replay boundary survive |
+| `DB15-P08` Recover from failure | Encounter unavailable, invalid, stale, failed, partial, or uncertain read/command/delivery | Message names affected state, preservation/effect, reason, retry safety, and exact recovery or no-path result |
+| `DB15-P09` Correct Petra | Flag wording, object context, domain meaning, or action scope | Feedback routes to language revision, context refresh, profile Review, or action regeneration without unintended authority |
+| `DB15-P10` Change model/profile term/locale | Replace a model, open historical content after terminology change, or request unsupported language | Communication meaning and original record persist; current replacement/fallback and coverage limitation are explicit |
+| `DB15-P11` Use accessible/compact language | Traverse long references, live status, actions, errors, graph/diff text, narrow layout, high zoom, and screen reader | Complete meaning, labels, focus, and action consequence survive reflow/truncation; announcements remain bounded |
+
+Every path binds the exact Project/profile/terminology version and owning object,
+Work, action, proposal, command, event, and history where applicable. Visible
+wording cannot serve as a second command or authority path.
+
+### Paper interaction and heuristic audit
+
+The paper audit walks `DB15-P01`–`P11` through the two initial profiles and an
+unrelated invented third taxonomy, concise/deep answers, references, recommendations,
+clarification, Work, Review, streaming/reconnect, corrections, model replacement,
+terminology change, unsupported locale, failure/uncertainty, long threads, and
+accessible/narrow output. It checks D006 and the accepted audit protocol without
+claiming a runtime terminology registry, speech-act response contract, rendered
+copy, model behavior, localization, assistive-technology results, or participant
+comprehension.
+
+| Heuristic | Paper-design check |
+| --- | --- |
+| Visibility of status | Response, Work, connection, authority, projection, save, export, and delivery states name their affected object and remain distinct |
+| Match to author task | Profile terms/discourse fit the admitted taxonomy while shared language describes Petra's actual controls and consequences |
+| User control | Clear instructions act once; questions target material ambiguity; alternatives, stop/cancel/defer/reject/revert, correction, and return remain exact |
+| Consistency | One communication contract and control vocabulary survive module, profile, model, direct/Petra, visual/accessibility, and historical contexts |
+| Error prevention | Reference resolution, calibrated force, exact previews, prohibited conflations, and validation block misleading action or authority language |
+| Recognition | Full first references, visible context, adjacent limitations, outcome labels, and on-demand diagnostics reduce recall and jargon burden |
+| Efficiency | Contextual depth, concise status, profile discourse forms, and progressive disclosure avoid both filler and compulsory technical detail |
+| Minimal design | One useful answer/decision/action leads; speech-act metadata, role detail, diagnostics, and history remain inspectable rather than repeated |
+| Recovery | Error anatomy, preserved state, retry safety, terminology fallback, model repair, and exact History support bounded recovery |
+| Help and language | Definitions, terminology limits, basis, action rationale, prerequisites, reference expansion, and locale coverage appear where needed |
+
+| Finding | Consequence | Severity | Disposition and verification |
+| --- | --- | --- | --- |
+| `DB15-A01` Scientific D006 terms become Petra's universal taxonomy | Other profiles would receive false objects, roles, force, or reference grammar | Critical | Fixed by shared communicative families and profile-owned specialization; multi-profile evidence in UX-FX36 |
+| `DB15-A02` One voice becomes a fixed script or persona | Profile discourse becomes inaccurate, responses become repetitive, and anthropomorphic trust grows | Major | Fixed by communication obligations plus profile/task realization freedom; participant/model evidence in UX-FX36 |
+| `DB15-A03` Shared controls and status drift across modules | Close/cancel, stop/cancel work, save/apply, recommendation/prerequisite, or completed/applied can cause wrong action | Critical | Fixed by reserved vocabulary and status matrices; cross-module evidence in UX-FX36/37 |
+| `DB15-A04` Current runtime lacks a profile-neutral speech-act communication plan | Client prose or scientific-only synthesis could hide origin, reference, action, or validation meaning | Critical | Needs contract: UX-REQ-021; existing artifacts remain inputs, not a complete communication view; G-CONTRACT open |
+| `DB15-A05` Profile terminology/discourse has no complete registry shape | Browser maps, missing locales, or changed labels could invent meaning or rewrite history | Critical | Needs contract: sharpen UX-REQ-004 with language fields/version/fallback; generic limitation remains safe |
+| `DB15-A06` Confirmation and error copy omit exact consequence or preserved state | Authors may repeat uncertain commands, assume changes applied, or lose recovery context | Critical | Fixed in preview/error anatomy and P04–P08; adverse execution evidence in UX-FX37 |
+| `DB15-A07` Long, translated, streamed, and assistive output is unvalidated | Terms, references, limits, and actions may truncate, overwhelm, or announce incorrectly | Major | Needs post-freeze accessibility/localization/participant evidence in UX-FX37; unresolved loss blocks G-VALIDATION |
+
+Acceptance fails if a profile silently borrows scientific terms, a model changes
+Petra's action meaning, a recommendation reads as a prerequisite, a source report
+loses attribution, a proposal reads as applied, Work completion reads as approval,
+**Close** reads as cancellation, **Stop response** reads as **Cancel work**, a
+generic confirmation follows an exact review, an uncertain command is retried
+before reconciliation, a terminology update rewrites history, or an accessible
+alternative omits the visible limitation or consequence.
+
+### Acceptance criteria and post-freeze evidence
+
+DB15 is complete at specification depth. Implementation and validation must
+demonstrate these behaviors after freeze:
+
+1. Petra's candor, attribution, force, status, authority, user-control, action,
+   and recovery obligations remain consistent across every admitted profile;
+2. profiles can supply unrelated typed terminology, reference grammar, force
+   vocabulary, units, roles, task/discourse conventions, and locale coverage
+   without renaming shared controls or authority;
+3. every material term has stable semantic identity, definition, allowed form,
+   prohibited conflations, owner, version, surface, replacement, and fallback;
+4. D006 scientific speech acts map to shared communicative families while other
+   profiles can register accurate specializations with the same required basis;
+5. every material Petra response preserves typed act, origin, references, basis,
+   limitations, recommendation/action links, terminology versions, and validation;
+6. the first/later reference grammar or profile equivalent preserves recognition,
+   exact identity, ambiguity handling, descriptor history, and accessible expansion;
+7. response order and depth serve the current task without filler, fixed scripts,
+   hidden caveats, exposed chain-of-thought, or compulsory technical detail;
+8. shared navigation, presentation, Work, Review, save/export, History, reset,
+   retry/resume, cancellation, and reversal verbs retain their exact meanings;
+9. recommendations distinguish advice from eligibility/prerequisite and preserve
+   valid author choice without repeated persuasion or universal scoring;
+10. clarification and confirmation occur only at the exact material ambiguity or
+    changed consequence and do not duplicate reviewed authorization;
+11. status, empty, unavailable, completion, and error messages name affected
+    scope, actual state/effect, preserved work, reason, retry safety, and recovery;
+12. model/role/provider changes preserve Petra language and fail or limit safely
+    when response/profile validation cannot be satisfied;
+13. wording feedback, context correction, domain correction, and action-scope
+    correction route to their proper non-authoritative or governed paths;
+14. locale/source-language behavior, long terms, narrow/high-zoom reflow, live
+    announcements, and visual/text alternatives preserve identical meaning; and
+15. contract, implementation, model, localization, accessibility, cross-module,
+    and participant evidence remain explicit post-freeze gates.
+
+| Scenario | Required post-freeze evidence |
+| --- | --- |
+| `UX-FX36` Extensible-profile communication conformance | Use invented scientific, controlled-writing, and at least one unrelated third profile with materially different taxonomy, references, force terms, units, roles, validators, task/discourse conventions, and outputs. Run grounded answers, recommendations, clarifications, Work, Review, action reports, corrections, and history through two eligible conversational models while Petra's shared acts, controls, authority, status, candor, and recovery remain stable. |
+| `UX-FX37` Language, reference, and recovery stress | Exercise ambiguous/multiple/replaced references, terminology version change, missing term, unsupported/partial locale, long labels, source language and derived translation, limited/stale/conflicting basis, invalid/fallback model output, simultaneous response/Work/connection state, stale action, uncertain command, failed/partial delivery, long compacted thread, narrow/high-zoom/screen-reader/live-region behavior, and wording-versus-domain correction without lost meaning or duplicate effect. |
+
+These scenarios are independently invented and begin only after design freeze.
+Existing scientific model-output, grounded-response, Felicity revision, shell-copy,
+and writing-audit records remain useful inputs. They do not prove the generalized
+profile terminology registry, communication plan, renderer/validator, model
+portability, localization, accessible realization, or participant comprehension.
+
+### Backend needs and next section
+
+DB15 sharpens `UX-REQ-004` so the profile manifest resolves versioned terminology,
+reference, relation/force, discourse, locale coverage, replacement, and fallback
+metadata for any admitted profile. This remains semantic configuration, not
+free-form executable prompting or shared-control override.
+
+The runtime audit found that `petra.model-synthesist-output@1.0.0` provides a
+bounded scientific synthesis with `source_report`, `petra_synthesis`, and
+`unresolved_inference`; `petra.grounded-response@1.0.0` binds exact response bytes
+to dependencies and execution; Felicity revision records bind a language contract
+while prohibiting force changes; and AG-UI carries interaction delivery. None is
+a complete profile-neutral, statement-level communication plan with generalized
+speech acts, profile/terminology/reference versions, recommendation/action links,
+render/validation outcome, and safe repair/fallback. `UX-REQ-021` requests that
+missing composition without replacing those existing contracts or granting
+authority to prose.
+
+DB15 closes at `G-SPEC`; `G-CONTRACT`, implementation/integration, model,
+localization, accessibility, and participant validation remain separate. Continue
+to DB16, Accessibility specification, by consolidating task-equivalent keyboard,
+focus, zoom/reflow, screen-reader, motion, non-color, graph, touch, resize, and
+streamed-update behavior.
+`UX-DESIGN-FREEZE-01` remains unaccepted.
+
+## DB16 — Accessibility specification
+
+**Status:** opening discussion after DB15 specification closure. The accepted
+cross-module keyboard, focus, text scaling, reflow, screen-reader, non-color,
+reduced-motion, touch, separator, graph/text-parity, and streamed-update rules
+remain in force. The equivalence recommendation below is proposed and is not yet
+accepted. No accessibility implementation is authorized.
+
+### Author task and inherited boundary
+
+An author must be able to understand and complete the same material Petra task
+when vision, hearing, movement, attention, reading, pointer precision, viewport,
+or assistive technology changes how the interface is presented. Equivalent access
+preserves object identity, basis, action, consequence, authority, status, recovery,
+and result; it does not require every modality to reproduce the same geometry or
+interaction sequence.
+
+### Opening recommendation — task and outcome equivalence
+
+The recommendation is to specify accessibility by task and outcome equivalence,
+with modality-appropriate peer presentations. A graph canvas, for example, may
+use spatial nodes and edges for visual inspection while its keyboard and screen-
+reader peer uses a scoped relationship outline, path table, legend, and exact
+actions. Both expose the same query scope, omissions, layers, current selection,
+typed relationships, source/provenance paths, expansion, Details, Work, Review,
+history, and return context. The textual experience does not need to imitate
+two-dimensional dragging, and it cannot become a read-only summary.
+
+This principle would apply to graphs, timelines, progress, diffs, editors,
+resizable panes, streaming, and responsive recomposition: presentation can differ,
+while material information, control, authority, and recovery remain equivalent.
+Whether this task/outcome-equivalence boundary is accepted remains the DB16
+decision. After direction, complete the accessibility requirements, component and
+surface mappings, paths, adverse states, evidence plan, and paper audit before DB17.
 
 ## `UX-DESIGN-FREEZE-01`
 
@@ -4806,10 +5315,10 @@ or default behavior.
 
 The next work remains specification, not demo production:
 
-1. carry accepted specifications through `DB14` into their recorded backend dispositions without implementing a product surface;
-2. discuss DB15's shared Petra communication contract and profile-owned terminology/discourse boundary;
-3. finish `DB15`, UX language system, through its complete specification and paper audit;
-4. close accessibility, failure, and recovery specifications in `DB16`–`DB17`;
+1. carry accepted specifications through `DB15` into their recorded backend dispositions without implementing a product surface;
+2. discuss DB16's task/outcome-equivalence accessibility boundary;
+3. finish `DB16`, Accessibility specification, through its complete specification and paper audit;
+4. close failure, recovery, and history behavior in `DB17`;
 5. assemble the complete screen, state, flow, and backend blueprint in `DB18`;
 6. review and explicitly record `UX-DESIGN-FREEZE-01`;
 7. begin the neutral reference-UX implementation;

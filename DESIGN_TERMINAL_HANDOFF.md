@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue DB15, UX language system, from the communication-contract recommendation below. `DB04` through `DB09` are accepted; DB10–DB14 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Continue DB16, Accessibility specification, from the task/outcome-equivalence recommendation below. `DB04` through `DB09` are accepted; DB10–DB15 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -306,25 +306,64 @@ flows. It cannot redefine permission or authority through taxonomy. This sharpen
 `UX1.0-DISC05`, DB14, UX-FX34, and `UX-REQ-004`; it does not reopen DB14's shared
 visual grammar.
 
-**Next discussion: DB15, UX language system.** The refined recommendation keeps
-one Petra communication contract across profiles: direct, calm, specific about
-basis and limits, and explicit about status, consequence, authority, and next
-action. Profiles own accurate domain nouns, relationships, validators, action
-objects, role names, units, and discipline-appropriate discourse conventions.
-They may shape response structure where their work requires it; they do not create
-decorative assistant personalities or rename shared authority and recovery
-language. Response depth and challenge adapt to task, user context, and consequence.
+The user accepted DB15's one-communication-contract/profile-owned-discourse
+boundary on 2026-09-07 as `UX1.0-DISC08`.
 
-For example, the scientific profile can say **Resolve the measurement criterion
-first; it affects two downstream comparisons. You can explore alternatives now,
-but the comparison will remain provisional.** A writing profile can say **Resolve
-the continuity constraint first; it affects two downstream revisions. You can
-explore scene options now, but the revision will remain provisional.** The
-recommendation, basis, author choice, and consequence use one Petra structure;
-the profile supplies the correct concepts. These are two examples among many;
-an admitted profile may use an unrelated taxonomy and response structure while
-retaining the same candor and authority obligations. This DB15 boundary is
-proposed, not accepted.
+- Petra owns candor, attribution, force calibration, contextual depth, shared
+  communicative acts, action/control terms, status, authority, confirmation,
+  error, correction, and recovery obligations.
+- A versioned Project profile owns accurate domain terms, reference grammar,
+  relation/force vocabulary, units, roles, validators, action objects, locale
+  coverage, and functional reasoning or document conventions. It may shape the
+  response form for its work but cannot create a decorative assistant persona or
+  rename a shared consequence.
+- Scientific and controlled-writing profiles are minimum conformance examples.
+  At least one unrelated third taxonomy tests extensibility; profile admission
+  remains based on fit with Petra's shared governed-work functions.
+- Contextual recommendations identify the useful branch, current objective,
+  basis/dependencies, expected information gain or rework, limits, and eligible
+  alternatives. Another valid line of inquiry remains a legitimate choice without
+  override ceremony, warning language, or repeated persuasion. Real execution or
+  conclusion prerequisites remain explicit.
+- D006's scientific speech acts map to profile-neutral families: attributed
+  report, inference, recorded author judgment, Petra assessment, recommendation,
+  clarifying question, action proposal, action report, uncertainty/limitation,
+  and operational status. Profile subtypes cannot weaken origin, force, basis,
+  action, or authority fields.
+- Shared verbs distinguish Open/View, Show/Hide, Expand/Collapse, Close/Back/
+  Return, Save, Start work, Stop response, Cancel work, retry/resume/start again,
+  Review changes, Apply changes, Reject candidate, Decide later, Revert change,
+  and local Reset/Undo.
+- Response, Work, connection, candidate/authority, content persistence, and
+  output/delivery statuses remain separate. Confirmations and errors name exact
+  consequence, observed effect, preserved state, retry safety, and recovery.
+- Petra remains one product identity; model and validator roles are inspectable
+  without becoming chat characters. Wording feedback, context correction, domain
+  correction, and action-scope correction route to their actual layers.
+- English is the initial conformance locale. Source language and bytes remain
+  intact; translation is a separate derived and provenanced representation.
+  Accessible, narrow, and streamed output preserves the same material language.
+
+DB15 contains eleven interaction paths (`DB15-P01`–`P11`) and seven findings
+(`DB15-A01`–`A07`) with complete paper coverage. `UX-FX36`/`UX-FX37` are
+post-freeze scenarios. DB15 sharpens `UX-REQ-004` with a versioned terminology/
+discourse registry and creates proposed `UX-REQ-021` for a profile-resolved
+statement-level communication plan and language-validation receipt. The runtime
+audit treats scientific model-synthesist output, grounded-response bytes,
+Felicity revision records, command/event authority, and AG-UI delivery as inputs,
+not as a complete profile-neutral communication contract. DB15 closes at
+`G-SPEC`; no language implementation, model/localization/accessibility evidence,
+or participant validation is claimed.
+
+**Next discussion: DB16, Accessibility specification.** The recommendation is
+task and outcome equivalence with modality-appropriate peer presentations. A
+visual graph can use spatial nodes and edges while its keyboard and screen-reader
+peer uses a scoped relationship outline, path table, legend, and exact actions.
+Both must expose the same scope, omissions, layers, selection, relationships,
+sources, expansion, Details, Work, Review, History, and return context. The text
+peer remains fully operable but need not imitate two-dimensional dragging. Apply
+the same rule to timelines, progress, diffs, editors, resizable panes, streaming,
+and responsive recomposition. This DB16 boundary is proposed, not accepted.
 
 ## Latest repository checkpoint
 
@@ -335,9 +374,11 @@ proposed, not accepted.
   inquiries were clarified at `8290251`; DB12's document-first direction and
   then-pending export choice were saved at `38fb39c`; completed DB12 and the DB13
   opening discussion were saved at `4faa54f`; completed DB13 and the DB14 opening
-  discussion were saved at `02c7383`. The current checkpoint records accepted/
-  completed DB14 and opens DB15's communication-contract discussion; inspect Git status/log
-  for local and remote position.
+  discussion were saved at `02c7383`; completed DB14 and the DB15 opening
+  discussion were saved at `8cf31da`; the extensible-profile clarification and
+  refined DB15 recommendation were saved at `df31fb3`. The current working
+  checkpoint records accepted/completed DB15 and opens DB16's accessibility
+  discussion; inspect Git status/log for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
@@ -361,14 +402,19 @@ proposed, not accepted.
   definitions, DB10–DB14 path/audit sequences, UX-REQ-004 trace, acceptance/status
   and freeze boundaries, five-file design-only scope, and `git diff --check`. No
   implementation or runtime validation is claimed.
-- `UX-REQ-011` through `UX-REQ-020` remain proposed runtime
+- DB15 closure checks cover Markdown structure and links, unique decision/request/
+  scenario definitions, DB10–DB15 path/audit sequences, UX-REQ-004/021 trace,
+  acceptance/status and freeze boundaries, five-file design-only scope, and
+  `git diff --check`. No runtime, model, localization, accessibility, or
+  participant validation is claimed.
+- `UX-REQ-011` through `UX-REQ-021` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
-Do not implement a Graph, Composition, Settings, design-system, or language fixture
-after this discussion. Continue the product-design specification through
-`DB15`–`DB18`.
+Do not implement a Graph, Composition, Settings, design-system, language, or
+accessibility fixture after this discussion. Continue the product-design
+specification through `DB16`–`DB18`.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.
