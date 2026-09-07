@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue the design brief at `DB11`, durable Work and orchestration. `DB04` through `DB09` are accepted; DB10's direction is accepted and its full specification and paper audit are complete. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Continue the design brief at `DB12`, Composition and revision. `DB04` through `DB09` are accepted; DB10 and DB11 have accepted direction, complete specifications, and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -134,41 +134,57 @@ and adverse conformance scenarios. No fixture, query, renderer, backend contract
 or product surface was implemented. Paper completion is not runtime validation.
 
 The user accepted DB11's task overview and meaningful-stage presentation on
-2026-09-06 as `UX1.6-DISC02`. Exact role/tool/validator activity expands beneath
-its stage and a full execution/dependency view remains available for diagnosis.
-The invented passage/requirements example records that direction.
+2026-09-06 as `UX1.6-DISC02`. The subsequent discussion accepted direct steering
+and contextual branch advice as `UX1.6-DISC03`:
 
-DB11 now specifies the task/stage identity and authority boundary, collection and
-detail hierarchy, responsive/accessibility behavior, progress and input meanings,
-resource/output inspection, and the existing control/recovery boundaries.
-`UX-REQ-014` requests the missing Work collection/detail read composition;
-`UX-FX26` names the post-freeze paired presentation scenario. Current WorkUnit,
-manifest, retry, cancellation, and interaction records remain the foundation.
-Checkpointed does not mean paused/resumable, terminal completed may encode
-failure, and cancellation cannot invent an unsupported stop or cascade.
+- a clear instruction acts through the supported operational command within
+  existing authority and limits, with a visible acknowledgment of interpreted
+  scope, affected stages, reuse, and effective timing;
+- ask again only for unresolved consequential meaning or additional authority,
+  not merely because a clear instruction changes the plan;
+- actual prerequisites and control constraints remain distinct from contextual
+  **Recommended next** advice. The recommendation explains its benefit using
+  the current objective, dependency paths, known limits, and material uncertainty;
+- another eligible branch may be chosen without an override ceremony, warning
+  status, repeated nudges, or an automatic reset to the recommended order. A
+  valid alternate choice need not harm the overall Project;
+- viewing a branch does not schedule it. **Work on this next** records task-scoped
+  priority without implicitly cancelling other work or changing global policy;
+- preserve shared dependency identity, exact consumed inputs and prior results;
+  validate reuse and state what happens to affected running stages at supported
+  instruction, cancellation, checkpoint, or atomic completion boundaries; and
+- narrowed-task completion names its actual scope, while Work success, usable
+  output, and domain application remain separate.
 
-The next decision, asked in this conversation and still pending, is material
-steering and plan revision. The recommendation is to revise affected remaining
-stages, preserve earlier records, and reuse only validated compatible outputs.
-Material changes preview scope, inputs, affected stages, active-stage stop or
-checkpoint boundary, cost/limits, and expected output. Ordinary supported
-clarification stays within the existing authorized scope. The alternative is to
-restart the whole task when execution scope changes. The passage example narrows
-a running requirements check to continuity only. Do not mark this recommendation
-accepted without the user's response.
+The earlier pending rule requiring another preview/confirmation for every
+material plan change is superseded by this direction. Do not revive that blanket
+confirmation rule. Recommendations remain advisory even when prominently placed;
+a model preference or inferred domain dependency cannot create a runtime gate.
 
-After that decision, finish DB11's complete lifecycle/state matrix, exact
-steering/cancellation/retry paths, language ledger, backend command gaps,
-acceptance/conformance criteria, and paper audit before advancing to DB12.
-DB11 is not yet complete at `G-SPEC`; the current checkpoint closes its
-presentation choice only. The accepted DB06/DB10 Work boundaries still apply.
+DB11 now includes full task/stage and dependency hierarchy, direct steering,
+progress/input/resource/result meaning, lifecycle/recovery states, responsive and
+textual parity, language, ten interaction paths (`DB11-P01`–`P10`), six paper
+findings (`DB11-A01`–`A06`), acceptance criteria, and post-freeze scenarios
+`UX-FX26`/`UX-FX27`. `UX-REQ-014` is the proposed Work read composition;
+`UX-REQ-015` is the proposed operational steering/branch-priority transition.
+Current WorkUnit, manifests, retry/cancellation, and interaction records remain
+the foundation. Checkpointed does not mean paused/resumable, terminal completed
+may encode failure, and generic Pause/resume/cascade operations are not invented.
+
+DB11 closes at `G-SPEC`; contract, implementation, integration, and participant
+validation remain separate. Continue at DB12 with Composition and revision's
+material choices, using the accepted source protection, bounded Work, exact
+candidate/Review, output provenance, and immutable lineage boundaries. Do not
+record a new DB12 recommendation as accepted before the user's direction. The
+author can still refine DB11 before the explicit whole-product freeze.
 
 ## Latest repository checkpoint
 
 - This conversation resumed on `design/m1-ux` at `230fadd`; DB10's specification
-  closure and DB11 opening discussion were saved at `5cd707b`. The current
-  checkpoint records accepted DB11 presentation and pending steering; inspect
-  Git status/log for the current local and remote position.
+  closure and DB11 opening discussion were saved at `5cd707b`; DB11 presentation
+  and the then-pending steering choice were saved at `6fa8f91`. The current
+  checkpoint records accepted steering/branch advice and the DB11 specification
+  closure; inspect Git status/log for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
@@ -178,13 +194,13 @@ presentation choice only. The accepted DB06/DB10 Work boundaries still apply.
 - Documentation checks at the DB10 closure covered table/fence structure, new local
   links, path/audit and decision/request/fixture definitions, acceptance status,
   five-file design-only scope, and `git diff --check`.
-- `UX-REQ-011` through `UX-REQ-014` remain proposed runtime
+- `UX-REQ-011` through `UX-REQ-015` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
 Do not implement a Graph fixture after this discussion. Continue the full
-product-design specification through `DB11`–`DB18`.
+product-design specification through `DB12`–`DB18`.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.

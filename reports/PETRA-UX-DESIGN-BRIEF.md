@@ -90,7 +90,7 @@ interaction contract has not yet been designed.
 | `DB08` | Sources and exact inspection | Registration, rights, versions, inspection capability, processing, source reading, exact locations, limitations, and provenance | accepted |
 | `DB09` | Basis, candidates, and review | Ambient structuring, comparison, validation, exception handling, exact change preview, correction, approval, rejection, deferment, conflict, and Revert | accepted |
 | `DB10` | Graph and relationship work | Task entry, query scope, layouts, depth, selection, temporal state, impact, textual parity, and optional 3D boundary | specified; direction accepted; paper audit complete |
-| `DB11` | Durable Work and orchestration | Plans, agents and validators, progress, input, steering, cost, detachment, reconnect, cancellation, result, and retry | in progress; task/stage presentation accepted; steering decision pending |
+| `DB11` | Durable Work and orchestration | Plans, agents and validators, progress, input, steering, cost, detachment, reconnect, cancellation, result, and retry | specified; direction accepted; paper audit complete |
 | `DB12` | Composition and revision | Artifact planning, editing, provenance, validation, citations where applicable, imported ancestry, promotion, rendering, and export | not designed |
 | `DB13` | Settings and personal control | Appearance, theme, layout, panel resizing, editor, accessibility, privacy, model visibility, and local preference rules | partial |
 | `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | partial |
@@ -399,7 +399,7 @@ renderer fails.
 ### Backend and persistence needs
 
 The flow architecture depends on the existing and proposed requirements
-`UX-REQ-001` through `UX-REQ-013`. Individual destination data remains owned by
+`UX-REQ-001` through `UX-REQ-015`. Individual destination data remains owned by
 its module contract. The navigation context, browser history, return target,
 focus target, unsent input, disclosures, and graph exploration trail are client
 presentation state. Project/profile identity, snapshots, typed objects, Work,
@@ -2606,10 +2606,13 @@ DB10 can now hand off to the DB11 discussion without starting Graph implementati
 
 ## `DB11` — durable Work and orchestration
 
-**Status:** in progress. The user accepted the task overview and meaningful-stage
-presentation on 2026-09-06 as `UX1.6-DISC02`. Steering and material changes to
-execution are the next consequential choice; the recommendation below remains
-pending until the user gives direction.
+**Status:** specified. The user accepted the task overview and meaningful-stage
+presentation on 2026-09-06 as `UX1.6-DISC02`, then accepted direct steering within
+authorized limits and contextual branch recommendations as `UX1.6-DISC03`.
+Recommended order is advisory; actual prerequisites and authority boundaries
+remain enforceable. The paper audit is complete; runtime contract disposition,
+implementation, and participant validation remain separate gates. This does not
+record `UX-DESIGN-FREEZE-01`.
 
 DB06 already establishes durable Work, bounded action previews, accountable
 roles, distinct interrupts, observable activity, cost, cancellation, and exact
@@ -2633,6 +2636,12 @@ overview. The author can inspect the exact requirement, accountable validator,
 input revision, and partial findings from that stage. Supporting runs remain
 inspectable without requiring an execution diagram to follow ordinary progress.
 Stages describe observable work and do not claim access to private model reasoning.
+
+The management task completes when the author understands the exact current or
+terminal outcome, any remaining input or limitation, the available control and
+result paths, and how to return to the originating work. Execution may continue
+in the background, wait for input, or be terminal; leaving the management surface
+does not change that operational state.
 
 ### Shared roles, identity, and authority
 
@@ -2779,11 +2788,12 @@ and whether values are estimates or measurements. Counts, tokens, or a model's
 language cannot manufacture a price or guaranteed finish time.
 
 Budget pressure and resource exhaustion name the affected boundary and available
-response. A new permission or increased spend cannot be inferred from continued
-conversation. Existing approved retries and limits remain inspectable. Exact
-budget-change and remaining-work steering behavior belongs to the pending
-decision below; the interface cannot invent a control merely because a numeric
-field could be edited.
+response. Continued conversation cannot silently grant a new capability or expand
+an authorized spending limit. Existing approved retries and limits remain
+inspectable. A clear steering instruction inside those limits follows the
+acknowledged operational command path below; additional authorization is requested
+only for a real unresolved boundary. A numeric display does not imply an editable
+budget or a currently implemented command.
 
 Outputs are exact immutable references with producer, task/stage/attempt, input
 basis, creation time, status, validation, and limitations. A partial output can be
@@ -2839,9 +2849,17 @@ These records do not establish the complete Project Work collection and task/sta
 read composition required by the accepted presentation: stable stage membership,
 declared dependency structure, attention/input and result summaries, observation
 freshness, reconciled resource use, and safe semantic destinations.
-`UX-REQ-014` requests that read boundary using existing canonical records. It
-does not add a lifecycle or declare generic plan editing, resume, pause, cascaded
-cancellation, or budget commands to be implemented.
+`UX-REQ-014` requests that read boundary using existing canonical records,
+including the distinction between actual prerequisites, contextual advice, and
+the author's selected branch order. It does not add an operational lifecycle.
+
+`UX-REQ-015` records the missing generic steering/plan-revision and branch-priority
+command composition: exact interpretation, authorized direct instruction,
+validated reuse, active-stage transition boundaries, shared dependencies,
+idempotent outcomes, and the available retry/resume/cancellation mappings.
+Its smallest viable response must map existing operations before adding new ones.
+No generic Pause, checkpoint-resume capability, recursive cancellation, or spend
+increase is claimed from fields in a WorkUnit or a graph of its dependencies.
 
 The client owns local filters, selection, disclosure, panel layout, unsent input,
 and return context. Runtime contracts own task membership, plan/stage meaning,
@@ -2850,43 +2868,318 @@ outcomes. `UX-REQ-003` remains the start/preview boundary; `UX-REQ-004` supplies
 registered profile vocabulary; `UX-REQ-006` supplies thread/context linkage;
 `UX-REQ-008` supplies safe destinations; and DB09 governs result Review.
 
-### Pending steering and material plan-change decision
+### Accepted direct steering and plan revision
 
-The recommendation is to revise affected remaining stages while retaining exact
-completed records and reusing only compatible outputs. An ordinary clarification
-inside the existing authorized scope can be acknowledged through a supported
-steering operation. A change to execution scope, required inputs, affected stages,
-cost authorization, or expected output gets a concrete revised-plan preview.
-The runtime validates the change; an instruction in chat does not edit an immutable
-input manifest or alter an in-flight worker by implication.
+A clear instruction can change the task's execution scope, order, inputs, or
+expected output within the author's existing authority and limits. The supported
+operational command acknowledges the interpreted change, affected stages, reuse,
+and when it takes effect. It does not ask the author to approve the same clear
+instruction again merely because it creates a new plan revision. A question about
+possible work, tentative suggestion, ambiguous reference, or quoted source text
+does not itself instruct a change.
 
-The preview would identify:
+The system asks when the instruction leaves a consequential ambiguity or would
+require authorization not already given: an uncertain target revision, a new
+capability, spending beyond the authorized limit, or an additional consequence
+the instruction does not clearly authorize. It presents the exact unresolved
+choice and its effects. Material facts remain visible even when no extra
+confirmation is needed. Reviewing a suggested change is different from directing
+one: an unrequested model recommendation never becomes an execution instruction.
 
-- which completed results remain usable for the revised task and why;
-- which stages or outputs need replacement, revalidation, or another attempt;
-- which running stages can accept a supported instruction, must finish, or can
-  stop only at their declared cancellation/checkpoint boundary;
-- when the revised plan takes effect and which successors may proceed;
-- the remaining scope, expected result, estimated/measured cost, and limits; and
-- what remains unchanged if the revision is rejected, stale, or fails to apply.
+Direct controls and explicit conversational steering resolve to the same
+authenticated, revision-bound operation. The application records the actual
+instruction, producing interpretation when applicable, exact task/plan/input
+references, operational effect, and outcome. The instruction does not edit an
+immutable input manifest or a running worker's consumed context by implication.
+It cannot approve a domain ChangeSet or bypass DB09's separate commitment path.
 
-For example, while **Check this passage against its requirements** is running,
-the author asks to check continuity requirements only. Compatible requirement
-collection and dependency outputs could be reused; affected validation would
-follow a revised input/plan at a supported boundary. Earlier findings remain
-attributed to their original scope. If the author instead changes the passage
-revision, the runtime may find that more stages must rerun. Reuse is a validated
-property of exact inputs and dependencies, not a browser optimization.
+Revise affected work and retain exact earlier records. Reuse requires compatible
+input revisions, dependency results, validation and resource policies; it is a
+runtime decision with an inspectable basis. Changed inputs may require new
+manifests, replacement WorkUnits, validation, or a new attempt according to the
+canonical workflow. The task view retains lineage across those records rather
+than overwriting the old plan or fabricating a client-only continuation identity.
 
-The alternative is to restart the entire task whenever execution scope changes.
-That simplifies the transition but may repeat compatible work and cost. The
-recommendation to revise affected stages is **pending user direction**. Its
-generic plan-change/steering command shape is also unresolved and must receive
-an explicit backend handoff if the direction is accepted.
+The acknowledgment or unresolved-choice preview identifies:
 
-DB11 remains open. After this choice, finish the complete lifecycle/state matrix,
-steering/cancellation/retry paths, language ledger, backend command gaps, acceptance
-criteria, neutral conformance scenarios, and paper audit before advancing to DB12.
+- the interpreted instruction and revised objective, scope, or order;
+- compatible outputs to reuse and affected stages to replace or rerun;
+- what happens to each affected running stage at its supported instruction,
+  checkpoint, cancellation, or atomic completion boundary;
+- the effective revision and point at which successor scheduling changes;
+- remaining outputs, exclusions, known time/cost effects, and authorized limits;
+- any independent/shared work that continues; and
+- the recorded outcome or precise pending/failed transition and recovery.
+
+Preparing a recommendation or asking about alternatives does not change the
+active plan. A submitted instruction shows **Updating work** until its canonical
+outcome is known. The runtime orders the transition against ongoing execution so
+superseded successors cannot start under an apparently updated plan. An active
+atomic stage may need to finish; a required checkpoint may be unavailable. The
+view states that boundary and the effective timing rather than claiming an
+immediate change. If the runtime cannot support the requested transition, it
+offers the available bounded stop, completion, or new-task path without silently
+running a different instruction.
+
+A stale or failed steering operation reports which effects, if any, were recorded
+and what remains active. It re-resolves status before retry or another plan change.
+One exact idempotent command is not resubmitted as a new instruction after a lost
+connection. Dependent command sequences report per-operation outcomes rather than
+claiming atomicity that their contracts do not supply. An unresolved instruction
+does not silently consume authorization for new work.
+
+In the invented passage example, **Check continuity only** narrows the running
+requirements check. Compatible collection/dependency work is reused, affected
+validation follows the revised input at a supported boundary, and earlier findings
+retain their original scope. The acknowledgment names the omitted checks. The
+eventual result says **Continuity check completed** and identifies unchecked or
+partly checked requirements; it does not claim the original full check succeeded.
+**Use the latest passage instead** requires resolution of an exact revision and
+reuse assessment; it asks only if a consequential choice or authorization remains
+unresolved. **Start again** deliberately requests fresh execution, names whether
+existing Work continues or stops, and preserves prior history and incurred cost.
+
+### Dependency hierarchy and contextual branch recommendations
+
+The author can inspect the task's stages, branches, and shared prerequisites and
+receive a contextual recommendation about which branch to resolve next. A branch
+is a named part of a registered task or dependency structure, not an independent
+authority layer. A hierarchy is a readable presentation: shared prerequisites and
+cross-branch links retain one identity and do not become duplicate work because
+they appear under several parents.
+
+The interface distinguishes three facts:
+
+| Meaning | User-facing treatment | Effect of author choice |
+| --- | --- | --- |
+| Actual prerequisite | **Requires [input/stage]** or **Waiting for [dependency]**, with the owning workflow or control rule and exact missing condition | The dependent operation cannot execute until the real prerequisite is satisfied; offer eligible preparation, independent work, or the prerequisite task |
+| Contextual recommendation | **Recommended next**, followed by a concise reason tied to the current objective, known dependencies, uncertainty, likely rework, or resource limits | Advisory; another eligible branch can be chosen without an override ceremony or negative status |
+| Other eligible branch | Its purpose, readiness, known consequence, and **Work on this next** | Honor the explicit instruction within existing authority and limits, acknowledging scheduling effects |
+
+Project relationships and model assessments may inform advice. They do not
+automatically become execution prerequisites. An inferred dependency remains
+attributed and uncertain until its applicable canonical validation/authority
+boundary is satisfied. A model's preference, a lower ranking, or a domain
+disagreement is not a capability denial or a blocked WorkUnit.
+
+Recommendation basis identifies the actual producer or rule, current objective,
+input/plan snapshot, relevant dependency paths, reason, and material uncertainty.
+It may explain **This supplies an input for two waiting checks**, **This can reduce
+rework on the current objective**, or **This independent branch fits the remaining
+budget** when the available records support that claim. No universal priority
+score or invented Project-risk rating substitutes for that explanation. A stale
+or unsupported recommendation is labeled or absent; eligible work remains usable.
+
+For an invented task, resolving source version A is a prerequisite for checks B
+and C, while a wording pass D is independent and authorized. The recommendation
+can read **Resolve the source version first; two checks need it**. If the author
+chooses D, the acknowledgment reads **I'll work on the wording pass next. The two
+checks still await the source version.** This is a valid alternate order and may
+have no detrimental effect on the overall Project. The interface does not add an
+**At risk**, **Blocked**, or failure state merely because the recommendation was
+not followed. If a real consequence exists, it names the affected output or task
+and supporting reason rather than warning vaguely about the Project.
+
+**Open branch** inspects; **Work on this next** directs eligible scheduling. The
+latter is not a request to cancel every other branch, serialize all concurrent
+work, or change Project-wide policy. A new task outside the existing authorized
+scope follows DB06's bounded action path. Choosing an eligible branch cannot
+bypass its actual prerequisite, but it can select independent preparatory work
+that has its own valid operation and clear completion condition.
+
+The accepted choice stays effective for its task/plan scope until the author
+changes it or material new facts require re-evaluation. The former recommendation
+can remain inspectable without repeated prompts, automatic priority resets, or
+warning styling. A new recommendation explains what changed and does not itself
+reschedule work. Selecting another branch or changing priority grants no additional
+capability, budget, domain approval, or cancellation authority.
+
+### Required state and recovery matrix
+
+The matrix applies to Project collection, task detail, expanded stages, dependency
+inspection, and contextual summaries. Each representation preserves the same
+identity, observation revision, control consequence, and exact outcome.
+
+| State | Visible meaning | Required path |
+| --- | --- | --- |
+| No Work | No task in the selected Project/filter; distinguish empty Project from no matching rows | Clear filters, return to origin, or open a profile-valid SuggestedAction; no artificial task |
+| Preparing action/plan | Objective and readiness are being resolved; nothing claims to be running | Inspect available context, adjust unsubmitted input, defer, or stop the response |
+| Action ready or stale | Exact objective, input, output, scope, cost/limits, and control consequences, or changed prerequisites | Start the authorized exact action, revise it, regenerate stale input, or return |
+| Requested/queued | Durable task received and waiting, with known prerequisites/resource condition | Inspect, leave running where applicable, direct another eligible branch, or use supported cancellation |
+| Running | Actual active stages and attempts with observable progress and known limits | Inspect activity/basis, steer, detach, or cancel at the declared boundary |
+| Dense/concurrent/dependent | Several stages, tasks, or shared prerequisites; grouped counts and actual simultaneous states | Filter or expand, inspect the full dependency list/graph, and select without changing execution |
+| Recommended branch differs from selected branch | Reason for advice and the author's valid selected priority remain distinct | Continue chosen eligible work; inspect or revisit advice deliberately; no override warning or failed state |
+| Actual dependency blocked | Exact unmet prerequisite and affected successors; independent stages retain their own state | Inspect/resolve the prerequisite, run eligible preparation or another branch, or cancel applicable work |
+| Awaiting clarification/capability/budget/judgment | Exact request, affected scope, permitted responses, and what continues or waits | Respond once, inspect basis, decide later where supported, or cancel; new authority uses its owning command |
+| Awaiting Review decision | Work produced a candidate or encountered a real Review boundary; execution and review outcomes remain separate | Open exact Review, correct, reject, defer, or apply through DB09; selection/chat alone is not approval |
+| Steering pending or applied | Interpreted instruction, affected scope, transition timing, and recorded outcome | Inspect acknowledgment, wait for the declared boundary, or continue unaffected work; no optimistic claim of application |
+| Steering ambiguous/unauthorized/stale | Exact unresolved target/consequence/limit or changed revision | Resolve the named issue or refresh the proposal; retain the active plan and report any already recorded effects |
+| Steering partly effected/failed | Per-operation outcomes and actual remaining active plan are known or explicitly unresolved | Reconcile command/task status, then use eligible exact retry or prepare a new revision; no hidden rollback claim |
+| Checkpoint recorded | Exact retained checkpoint and input/attempt basis | Inspect or use an explicitly supported resume/cancel operation; do not infer paused state |
+| Cancellation pending or unavailable | Receipt-backed pending state or actual checkpoint/atomic/shared-control limitation | Await a supported boundary, inspect outcome, choose the available stop/completion path, or return; no invented queued cancellation |
+| Cancellation raced with completion | Actual canonical terminal outcome, outputs, and cost; request acknowledgment alone is not cancellation | Inspect the outcome or remaining independent work; do not submit a duplicate command |
+| Disconnected/reconnecting/replaying | Last known task revision, observation age, and connection state; Work may continue | Reconnect and replay idempotently, open durable Work, or inspect permitted cached facts |
+| Offline/stale view | Cached permitted task/output data and age; current control eligibility unknown | Inspect read-only, preserve unsent instructions, reconnect/re-resolve before commands |
+| Partial output | Exact available outputs and retention policy, missing/failed stages, and usability limits | Inspect permitted results, retry eligible failed work, revise scope, or stop; never promote diagnostics into a result |
+| Worker/model/validation/resource/timeout failure | Actual failure, attempt, retained outputs, incurred usage, and retry eligibility | Retry unchanged eligible input, resume a valid checkpoint if supported, revise input/start follow-on work, or return |
+| Model/worker substitution | Actual accountable role/provider/version and any change to eligibility, capability, limits, or output validity | Inspect substitution; proceed only under supported routing and existing authorization or resolve a real new boundary |
+| Completed successfully | Exact expected outputs and limitations; separate domain finding and Review status | Open answer, source/result, Composition, or Review and return to origin |
+| Cancelled | Exact stopped scope and terminal receipt, retained output/diagnostics, incurred cost, and continuing shared/independent work | Inspect, start a deliberate follow-on task, or return; applied changes remain separate |
+| Superseded plan/input/output | Newer exact revision/lineage and whether old work remains useful, running, or historical | Inspect either permitted revision, resolve current explicitly, or use validated reuse; no silent substitution |
+| Missing/restricted/unsupported task or workflow | Permitted identity and limitation only; no fabricated plan or control | Open a permitted parent/Project, resolve access or supported workflow, or return to Brief |
+| Read/command error | Affected request, preserved input/view, actual or unresolved effects, and valid recovery | Retry a bounded read or reconcile exact command outcome before any new submission |
+
+### Interaction and path register
+
+Every path retains Project/profile, objective, exact task/stage/input/output,
+origin and return focus, applicable Work/InteractionRun/command revisions, and
+permitted unsent input. The state matrix supplies the ordinary, dense, partial,
+stale, failed, interrupted, offline, and recovery branches for every path.
+
+| Path | Trigger and preconditions | Feedback, commit, and completion | Exit, preservation, and focus |
+| --- | --- | --- | --- |
+| `DB11-P01` Preview and start | Direct action or explicit task request; exact ready scope and valid authorization under DB06 | Show bounded action, invoke once, and resolve durable Work; start changes operational state only | Defer unsubmitted action, correct stale scope, or open running task; retain origin and submitted identity |
+| `DB11-P02` Open and inspect Work | Collection/contextual/deep link to an authorized task | Resolve exact task and stage, then inspect plan, activity, dependencies, inputs, outputs, and cost; read only | Return to invoking item/focus; missing/stale/unsupported resolution follows DB04 |
+| `DB11-P03` Choose a branch | Inspect recommendation and eligible alternatives; explicit **Work on this next** or conversational instruction | Acknowledge chosen branch and scheduling effects through the operational path; valid non-recommended order is accepted without another confirmation | Inspect other branches without steering; maintain chosen priority and exact prior/updated plan history |
+| `DB11-P04` Clarify or steer | Clear directive to an exact task within current authority, or an instruction with an unresolved material boundary | Validate interpretation and reuse, issue supported command, expose effective revision/timing; ask only for the unresolved consequence/authorization | Preserve unsent input or reported active plan; reconcile stale/failed/partial transitions before retry; announcements do not steal focus |
+| `DB11-P05` Resolve required input | Exact pending clarification, capability, budget, validation, or Review request | Display question/consequences and resolve once through its canonical adapter; Review authority remains DB09-owned | Inspect basis and return, decide later where valid, or cancel applicable Work; focus returns to request outcome/stage |
+| `DB11-P06` Detach and reconnect | Leave route, collapse Petra, switch Project, lose stream, or choose reconnect | Preserve durable execution; re-resolve status and replay from a known position without starting another task | Open durable Work independently; retain input/selection/scroll; unresolved status remains explicit |
+| `DB11-P07` Cancel Work | Explicit cancellation of eligible exact task/branch scope | State active boundary and consequences, submit idempotently, then show canonical pending/terminal outcome and any continuing work | Leave after request without changing its meaning; race/failure resolves from receipts; cancellation does not Revert domain state |
+| `DB11-P08` Retry, resume, or start again | Runtime eligibility for unchanged retry, exact compatible checkpoint, or deliberate fresh execution | Show retained/reused inputs and outputs, limits and effects; record new attempt or linked execution according to the operation | Failed history and original source survive; incompatible or exhausted paths offer revised input or stop; no hidden continuation |
+| `DB11-P09` Inspect and use result | Available permitted exact output from successful, partial, failed, or cancelled Work | Show origin, scope, usability, validation, and limitations; route to answer/source/Composition/Review as appropriate | Return to result/stage and origin; applying a candidate uses separate DB09 command and projection outcome |
+| `DB11-P10` Inspect execution history | Plan change, attempt, checkpoint, command, input response, or result lineage selected | Show exact prior and current records, responsible actor/role, and operational versus domain effects; read only | Resolve current explicitly for new instructions; return to selected event/task without rewinding work |
+
+Routine expansion, inspection, filtering, branch selection for viewing, and
+navigation require no confirmation. A clear authorized Work instruction also
+does not acquire a second approval step solely because it was conversational.
+Actual new permission, consequential ambiguity, and authoritative domain change
+keep their existing exact decision boundaries.
+
+### Language ledger and status copy
+
+The following labels use DB04/DB06/DB09, canonical operational records, and
+`UX1.6-DISC02`–`DISC03`. Profile-owned stage, requirement, finding, and result
+names require registered meaning under `UX-REQ-004`. These are paper-specified
+terms; post-freeze evidence must verify comprehension and accessible rendering.
+
+| Canonical meaning | User-facing term / allowed short form | Must not imply | Surfaces and owning boundary |
+| --- | --- | --- | --- |
+| Durable bounded task | **Work**, with the recognizable objective as title | Conversation thread, one model call, or accepted domain truth | Work/Brief/Petra; WorkUnit and DB06 |
+| Observable workflow stage | Profile-valid stage name, **Show activity**, **Show dependencies** | Private reasoning, invented task membership, or a mandatory serial order | Task detail/activity; registered workflow and UX-REQ-014 |
+| Actual prerequisite | **Requires [input]**, **Waiting for [stage]** | A model preference or a global Project failure | Task/stage/dependency view; canonical workflow/control rule |
+| Advisory ordering | **Recommended next**, with reason | Required order, granted authority, or a risk warning for another valid choice | Task/branch/Petra; contextual recommendation and DISC03 |
+| Execution direction | **Work on this next**, explicit task instruction | Merely opening a branch, cancelling all others, or accepting a result | Task/branch/Petra; UX-REQ-015 operational command |
+| Steering transition | **Updating work**, then a concrete acknowledgment of recorded scope/order/timing | Immediate worker interruption, new permission, or success before the command resolves | Task/Petra; canonical command outcome |
+| Required response | **Needs your input**, with the specific question and consequence | Generic approval or proof that every stage has stopped | Task/request/Petra; exact input adapter |
+| Retained execution position | **Checkpoint available** when actually recorded | **Paused**, **Resumable**, or a guaranteed restart point | Task/history; checkpoint and eligibility records |
+| Operational cancellation | **Cancel work**, **Cancellation requested** only when recorded, **Cancelled** after terminal outcome | Stop response, deletion, refund, or Revert | Task/Petra/status; WorkUnit cancellation |
+| Recovery | **Retry failed work**, **Resume work**, **Start again** | Identical input semantics, silent output reuse, or erased attempts | Task/failure/checkpoint; registered recovery operation |
+| Terminal success/failure | **[Task] completed**, **[Stage] failed**, precise cancelled/partial outcome | All terminal states succeeded, validation findings are execution errors, or results applied | Task/result/Petra; terminal manifest and Review |
+| Retained partial content | **Partial result**, **Diagnostics**, **Unavailable output**, as applicable | Complete or reusable result merely because text is visible | Result/activity; exact output and retention policy |
+
+Ordinary acknowledgment can say **I'll check continuity only. The collected
+requirements are reusable; other checks will remain incomplete.** If the active
+stage must finish, add that fact and the effective point supplied by the runtime.
+A valid alternate priority says **I'll work on [branch] next** with any relevant
+waiting dependency. It does not say **Override recommendation**, **Proceed at
+risk**, or **Are you sure?** merely because another branch was recommended.
+
+Errors state the actual effect and recovery: **The instruction could not be
+applied because the task changed. The current plan is [revision/description].**
+An unresolved result says **The connection ended before the outcome was confirmed**
+and offers **Check work status**. A request to exceed an authorized limit names
+the additional amount/scope when known and its decision boundary. Unknown prices,
+durations, effects, and restricted details are not filled in to make copy fluent.
+Exact identifiers and diagnostic records remain available through inspection.
+
+### Nielsen and dangerous-misunderstanding paper audit
+
+| Heuristic | DB11 resolution |
+| --- | --- |
+| Visibility of system status | Execution, input/dependency, delivery, output usability, Review, and pending operational changes are separately identifiable |
+| Match with the real world | Objective and meaningful stages lead; branch advice explains its local purpose in profile vocabulary |
+| User control and freedom | Clear authorized instructions steer directly; eligible alternate branches, detach, exact cancellation, recovery, and return remain available |
+| Consistency and standards | Work, Brief, Graph, Sources, Composition, and Petra resolve the same tasks, commands, requests, and outputs |
+| Error prevention | Real prerequisites and authority boundaries remain enforceable; recommendations do not become gates; reuse and plan cutover are runtime-validated |
+| Recognition rather than recall | Current stage, chosen branch, recommendation reason, pending input, output scope, limits, and return origin remain visible |
+| Flexibility and efficiency | Compatible work can be reused, stages expose detail on demand, clear steering avoids duplicate confirmation, and the full dependency view remains available |
+| Aesthetic and minimalist design | One task/decision leads with compact stage summaries; tools, attempts, raw diagnostics, and technical identity stay inspectable |
+| Error recovery | Exact command reconciliation, retained attempts, supported checkpoints, partial-output policy, stale-plan resolution, and cancellation races preserve honest outcomes |
+| Help and documentation | Contextual explanations distinguish required/recommended order, checkpoint/pause, retry/resume/new execution, operational success, and domain acceptance |
+
+The paper audit walks `DB11-P01`–`P10`, the state matrix, the narrowed passage
+check, and the A/B/C/D dependency example in both profile roles. It checks the
+specified reading order and textual control equivalents against the accepted
+authority and interaction contracts. It does not claim executed fixtures,
+measured accessibility/performance, or observed participant comprehension.
+
+| Finding | Location/evidence and consequence | Severity | Disposition, owner/gate, and verification |
+| --- | --- | --- | --- |
+| `DB11-A01` Recommendation could become a false gate | Branch ordering and dependency presentation could label an eligible alternate choice blocked or risky | Major | Fixed in specification: actual prerequisites, advice, and eligible alternatives are distinct; chosen priority persists; paper paths P03/P04 checked; participant verification remains in UX-FX27 |
+| `DB11-A02` Repeated approval for clear steering | Earlier pending proposal asked for a preview on every material plan change, even when the instruction already authorized it | Moderate | Fixed by accepted DISC03: acknowledge clear supported direction within limits; ask only for unresolved meaning/consequence/authority; paper instruction examples checked |
+| `DB11-A03` Terminal/checkpoint status conflation | Canonical completed can mean failure; checkpointed does not supply generic pause/resume | Major | Fixed in state/copy mapping using WorkUnit and WorkUnitRegistry; post-freeze UX-FX26 must exercise both distinctions |
+| `DB11-A04` Missing composed Work view | Existing operational records do not supply complete stage membership, attention/input/result summaries, advice, or accounting coverage | Major | Needs contract: UX-REQ-014, implementation architecture; provisional synthetic read provider only after freeze; G-CONTRACT remains open |
+| `DB11-A05` Missing generic steering and transition composition | Immutable manifests, narrow retry/cancel APIs, and dependency IDs do not implement safe generic plan changes, shared-branch scheduling, or resume | Major | Needs contract: UX-REQ-015, implementation architecture; explicit unsupported control boundaries until disposition; no claimed live command |
+| `DB11-A06` Stage/dependency comprehension unmeasured | A paper hierarchy cannot establish whether users understand concurrent work, shared prerequisites, advisory order, and terminal outcomes | Moderate | Needs researcher validation: design owner, UX-FX26/UX-FX27 after freeze; any severe misunderstanding blocks G-VALIDATION |
+
+Acceptance fails if the author could reasonably believe that a recommended branch
+is compulsory, another eligible priority jeopardizes the Project merely by being
+different, a model-inferred dependency is a runtime prerequisite, opening a branch
+changes execution, selecting a branch cancels all others, clear authorized steering
+needs repeated assent, chat grants new authority, a stage change edits consumed
+inputs retroactively, a checkpoint guarantees pause/resume, terminal means success,
+validation findings mean execution failure, retained diagnostics are a usable
+result, cancellation erased/refunded/reverted work, replay reruns it, or a narrowed
+task's success proves that the original larger objective is complete.
+
+### Acceptance criteria and post-freeze conformance evidence
+
+DB11 is complete at specification depth with the following defined behaviors;
+implementation and validation must demonstrate them after design freeze:
+
+1. one canonical task identity supports collection/detail, contextual summaries,
+   exact stage/activity/dependency inspection, and preserved origin/return;
+2. the accepted task-and-stage hierarchy adapts to scientific and writing work,
+   including concurrency and shared prerequisites, without a second lifecycle;
+3. execution, input/dependency, delivery, output usability, and Review outcomes
+   remain distinct in ordinary and adverse states;
+4. contextual recommendations expose reason, basis, producer, and freshness,
+   while actual prerequisites and other eligible branches remain distinguishable;
+5. an explicit choice of another eligible branch is honored within current
+   authorization, without warning styling, override ceremony, or priority reset;
+6. clear authorized instructions use the supported operational command directly,
+   with visible interpretation/effects and no duplicate confirmation; unresolved
+   ambiguity, additional authority, and domain application keep exact decisions;
+7. plan revisions preserve input/attempt/output history, validate reuse, and state
+   effective scheduling and active-stage stop/checkpoint/completion boundaries;
+8. partial or failed command transitions and stale instructions reveal actual
+   effects and reconcile state before retry, with idempotent command identity;
+9. input requests retain their type, scope, exact identity, safe waiting behavior,
+   and single canonical response across Work and Petra;
+10. progress, time, cost, limits, retries, shared usage, and unknown measurements
+    remain honest and do not manufacture completion percentages or estimates;
+11. detach, stop response, reconnect/replay, checkpoint, cancel, retry, resume,
+    Start again, working restoration, and governed Revert retain distinct effects;
+12. results retain exact origin/scope/validation/retention and route to the correct
+    source, answer, Composition, or Review outcome without automatic approval;
+13. every listed empty, dense, limited, running, blocked, awaiting-input, stale,
+    failed, partial, offline, cancelled, and successful state has bounded recovery;
+14. keyboard, screen-reader, textual dependency, touch, resized-panel, high-zoom,
+    reduced-motion, and forced-colors paths preserve the complete task; and
+15. runtime gaps and paper findings have explicit owners/gates, while no product
+    surface or command is implemented before UX-DESIGN-FREEZE-01.
+
+| Scenario | Post-freeze evidence required |
+| --- | --- |
+| `UX-FX26` Paired Work task and stage inspection | Independently invented scientific and writing tasks show declared stages, concurrent/dependent activity, exact attempts, required input, progress and resource coverage, valid partial outputs, terminal success/failure, checkpoint/cancellation distinctions, reconnect/replay, and full responsive/textual/accessibility parity across entry points. |
+| `UX-FX27` Contextual branch choice and Work steering | A real prerequisite feeds two stages while another branch is eligible; the author chooses the non-recommended branch without a warning or extra approval. Then exercise changed recommendation basis, preserved priority, shared dependencies, clear scope narrowing, exact new input, validated reuse and reruns, a genuine authorization/ambiguity question, active atomic/checkpoint boundaries, stale/partial/failed steering, cancellation/completion races, exhausted retry, unsupported resume, deliberate fresh execution, and result scope/return. Pair profile-specific meaning with the same control grammar. |
+
+These are named paper scenarios, not existing fixtures or processed real-world
+data. They must be independently invented and cannot derive from contextual demo
+material or user assets. The full Work/interaction module remains in progress at
+runtime gates despite DB11's specification closure. DB12, Composition and
+revision, is the next discussion-first section; the author can still refine this
+design before the explicit whole-product freeze.
 
 ## `UX-DESIGN-FREEZE-01`
 
@@ -2950,9 +3243,9 @@ or default behavior.
 
 The next work remains specification, not demo production:
 
-1. carry the accepted direction and specifications through `DB10` into their recorded backend dispositions without implementing a product surface;
-2. discuss and specify `DB11`, durable Work and orchestration, as the next section;
-3. design `DB12`–`DB13` module by module through the discussion-first loop;
+1. carry the accepted direction and specifications through `DB11` into their recorded backend dispositions without implementing a product surface;
+2. discuss and specify `DB12`, Composition and revision, as the next section;
+3. design `DB13`, settings and personal control, through the discussion-first loop;
 4. close the design system, language, accessibility, failure, and recovery specifications in `DB14`–`DB17`;
 5. assemble the complete screen, state, flow, and backend blueprint in `DB18`;
 6. review and explicitly record `UX-DESIGN-FREEZE-01`;

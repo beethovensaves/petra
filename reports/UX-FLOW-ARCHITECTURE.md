@@ -1,6 +1,6 @@
 # Petra user-flow architecture
 
-Status: accepted product flow, information architecture, Sources, Review, Graph, and Work-presentation direction; related runtime compositions awaiting architecture disposition; DB11 steering remains under discussion
+Status: accepted product flow, information architecture, Sources, Review, Graph, and Work direction; related runtime read and command compositions awaiting architecture disposition
 Date: 2026-09-06
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as distinct project profiles
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
@@ -520,9 +520,14 @@ role/tool/validator activity and the full dependency structure available for
 inspection. Work, Brief, Petra, and contextual entry resolve the same canonical
 task and input request. Execution lifecycle, input/dependency condition,
 connection/replay, output usability, and Review outcome remain distinct.
-`UX-REQ-014` records the missing read composition. Material steering and revised
-execution-plan consequences remain pending DB11 discussion; this presentation
-record does not accept a new command lifecycle.
+`UX-REQ-014` records the missing read composition. The accepted DB11 control
+direction lets clear authorized instructions steer Work directly with a visible
+acknowledgment; unresolved consequential meaning or additional authority requires
+a specific question. Actual prerequisites remain distinct from contextual branch
+advice. Another eligible branch can be chosen without override ceremony, warning
+status, or an automatic priority reset. Viewing a branch does not schedule it.
+`UX-REQ-015` records exact operational plan/priority transitions, validated reuse,
+shared dependencies, and recovery needs; it remains a proposed runtime contract.
 
 ### `UX-FLOW-12` — propose, preview, apply, and reverse a change
 
@@ -823,11 +828,14 @@ work rather than open product scope:
 - a bounded profile-resolved relationship query with exact paths/layers,
   honest omissions, finite expansion, and supported comparison/time positions; and
 - a Project Work collection and task/stage read composition with canonical
-  activity, required input, result, resource coverage, and control eligibility.
+  activity, required input, result, resource coverage, and control eligibility; and
+- direct authorized Work steering and task-scoped branch priority, with exact
+  plan/input lineage, validated reuse, active-stage/scheduling transitions, and
+  operational recovery composition.
 
-`UX-REQ-004` through `UX-REQ-014` carry the profile, lineage, thread-context,
+`UX-REQ-004` through `UX-REQ-015` carry the profile, lineage, thread-context,
 governed-reversal, semantic-location, source-view, source-lifecycle,
-working-candidate, Review-session, focused relationship-query, and Work-read needs to the
-implementation track.
+working-candidate, Review-session, focused relationship-query, Work-read, and
+Work-steering needs to the implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.
