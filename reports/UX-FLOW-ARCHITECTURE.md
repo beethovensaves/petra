@@ -1,6 +1,6 @@
 # Petra user-flow architecture
 
-Status: accepted product flow through Settings; DB14 design-system discussion open; related runtime mappings awaiting architecture disposition
+Status: accepted product flow through Settings and cross-flow design system through DB14; DB15 language-system discussion open; related runtime mappings awaiting architecture disposition
 Date: 2026-09-07
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as distinct project profiles
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
@@ -651,6 +651,18 @@ stale/conflict recovery, and History. `UX-REQ-020` requests the missing effectiv
 Project-control read and transition mapping; it does not create a universal
 settings command. DB13's specification and paper audit are complete.
 
+[DB14](PETRA-UX-DESIGN-BRIEF.md#db14--design-system) accepts one Petra-wide
+visual grammar (`UX1.0-DISC07`). Themes, typography, density, components,
+interaction and authority cues, responsive behavior, motion, accessibility, and
+safe fallback remain shared. A profile may supply registered object/relation
+labels, glyphs, finite line/shape patterns, optional semantic tone roles, legends,
+and text alternatives; it cannot supply a reskin, raw styling, executable assets,
+or override selection, focus, warning, approval, error, and action meanings.
+Domain relations remain separate from positive/negative operational outcomes.
+This cross-flow rule applies to every entry, return, state, and recovery path.
+`UX-REQ-004` carries the bounded descriptor and version/fallback mapping; DB14
+creates no new backend requirement. Its specification and paper audit are complete.
+
 ### `UX-FLOW-18` — reuse, share, and connect selected work
 
 - **Goal:** reuse canonical sources across Projects and move selected artifacts into legitimate external workflows without publishing the whole Project.
@@ -904,12 +916,16 @@ work rather than open product scope:
 - exact working-copy export capture, scoped limitations/status carriage,
   operation eligibility, format/bundle composition, and observable delivery; and
 - a snapshot-consistent effective Project-control read and mapping to existing
-  typed privacy, capability, routing, budget, and Review transitions.
+  typed privacy, capability, routing, budget, and Review transitions; and
+- profile-manifest semantic presentation descriptors with approved references,
+  version/replacement behavior, and exact generic fallback under `UX-REQ-004`,
+  while Petra retains all shared rendering and interaction meanings.
 
 `UX-REQ-004` through `UX-REQ-020` carry the profile, lineage, thread-context,
 governed-reversal, semantic-location, source-view, source-lifecycle,
 working-candidate, Review-session, focused relationship-query, Work-read,
 Work-steering, Project-inquiry, Composition-view, continuous-authoring, and
-working-copy-export, and Project-control Settings needs to the implementation track.
+working-copy-export, Project-control Settings, and bounded profile-semantic display
+needs to the implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.

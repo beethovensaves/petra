@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue DB14, Design system, from the profile-variation recommendation below. `DB04` through `DB09` are accepted; DB10–DB13 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Continue DB15, UX language system, from the shared-voice recommendation below. `DB04` through `DB09` are accepted; DB10–DB14 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -269,15 +269,48 @@ post-freeze scenarios. `UX-REQ-020` requests effective Project-control reads and
 typed transition mapping; it remains proposed. DB13 closes at `G-SPEC`; no live
 policy, local-storage, accessibility, or participant evidence is claimed.
 
-**Next discussion: DB14, Design system.** The opening recommendation keeps one
-Petra visual grammar across profiles. Themes, interaction colors, typography,
-components, spacing, state/authority cues, and motion remain shared. Registered
-profiles may supply restrained object/relation icons, glyphs, line patterns, and
-other semantic encodings where meaning requires them. A profile-wide decorative
-palette or reskin cannot change the meaning of selection, warning, proposal, or
-approval. This recommendation is proposed, not accepted. After direction,
-complete the design-system inventory, examples, adverse states, profile registry
-trace, and paper audit before DB15.
+The user accepted DB14's one-Petra-grammar direction on 2026-09-07 as
+`UX1.0-DISC07`.
+
+- System, Stone, Graphite, High Contrast, forced colors, typography, density,
+  components, motion, responsive behavior, and interaction/authority cues remain
+  Petra-wide. A Project profile is not a theme or reskin.
+- Blue remains interaction, focus, and current selection. Petra amber remains
+  brand and bounded proposal/review attention. Operational outcome, authority,
+  freshness, origin, limitation, and profile relation meaning stay separate.
+- Registered profiles may supply exact object/relation labels, audited glyph
+  references, finite line/shape patterns, optional profile-semantic tone roles,
+  legends, and text alternatives. They cannot supply raw colors, CSS, layout,
+  motion, arbitrary assets/code, or shared control/state overrides.
+- **Supports** and **Contradicts**, like profile-valid continuity or dependency
+  relations, do not inherit Petra's success and error meanings. Selection and
+  approval remain independently visible.
+- Missing, colliding, replaced, or unsupported descriptors fall back to an exact
+  profile label and generic family without hiding content or failing the Project.
+
+DB14 contains eleven interaction paths (`DB14-P01`–`P11`) and seven findings
+(`DB14-A01`–`A07`) with complete paper coverage. `UX-FX34`/`UX-FX35` are
+post-freeze scenarios. DB14 creates no new backend request; it sharpens proposed
+`UX-REQ-004` with versioned bounded presentation descriptors and safe fallback.
+DB14 closes at `G-SPEC`; no design-system implementation, final-token contrast,
+profile-registry, accessibility, performance, visual-regression, or participant
+evidence is claimed.
+
+**Next discussion: DB15, UX language system.** The opening recommendation keeps
+one Petra voice across profiles: direct, calm, specific about basis and limits,
+and explicit about status, consequence, and next action. Profiles own accurate
+domain nouns, relationships, validators, action objects, and role names; they do
+not create different assistant personalities or rename shared authority and
+recovery language. Response depth adapts to task and consequence.
+
+For example, the scientific profile can say **Resolve the measurement criterion
+first; it affects two downstream comparisons. You can explore alternatives now,
+but the comparison will remain provisional.** A writing profile can say **Resolve
+the continuity constraint first; it affects two downstream revisions. You can
+explore scene options now, but the revision will remain provisional.** The
+recommendation, basis, author choice, and consequence use one Petra structure;
+the profile supplies the correct concepts. This DB15 boundary is proposed, not
+accepted.
 
 ## Latest repository checkpoint
 
@@ -287,9 +320,10 @@ trace, and paper audit before DB15.
   and the DB11 specification closure were saved at `a6f6901`; parallel Project
   inquiries were clarified at `8290251`; DB12's document-first direction and
   then-pending export choice were saved at `38fb39c`; completed DB12 and the DB13
-  opening discussion were saved at `4faa54f`. The current checkpoint records
-  accepted/completed DB13 and opens DB14's profile-variation discussion; inspect
-  Git status/log for local and remote position.
+  opening discussion were saved at `4faa54f`; completed DB13 and the DB14 opening
+  discussion were saved at `02c7383`. The current checkpoint records accepted/
+  completed DB14 and opens DB15's shared-voice discussion; inspect Git status/log
+  for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
@@ -309,13 +343,18 @@ trace, and paper audit before DB15.
   scenario definitions, DB10–DB13 path/audit sequences, acceptance/status and
   freeze boundaries, five-file design-only scope, and `git diff --check`. No
   runtime, local-storage, accessibility, or participant evidence is claimed.
+- DB14 closure checks cover Markdown structure and links, unique decision/scenario
+  definitions, DB10–DB14 path/audit sequences, UX-REQ-004 trace, acceptance/status
+  and freeze boundaries, five-file design-only scope, and `git diff --check`. No
+  implementation or runtime validation is claimed.
 - `UX-REQ-011` through `UX-REQ-020` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
-Do not implement a Graph, Composition, Settings, or design-system fixture after
-this discussion. Continue the product-design specification through `DB14`–`DB18`.
+Do not implement a Graph, Composition, Settings, design-system, or language fixture
+after this discussion. Continue the product-design specification through
+`DB15`–`DB18`.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.

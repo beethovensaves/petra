@@ -174,8 +174,8 @@ interaction contract has not yet been designed.
 | `DB11` | Durable Work and orchestration | Plans, agents and validators, progress, input, steering, cost, detachment, reconnect, cancellation, result, and retry | specified; direction accepted; paper audit complete |
 | `DB12` | Composition and revision | Artifact planning, editing, provenance, validation, citations where applicable, imported ancestry, promotion, rendering, and export | specified; document-first and working-copy export direction accepted; paper audit complete |
 | `DB13` | Settings and personal control | Appearance, theme, layout, panel resizing, editor, accessibility, privacy, model visibility, and local preference rules | specified; personal-preferences-first organization accepted; paper audit complete |
-| `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | discussion open; accepted foundation inventoried; profile-variation decision pending |
-| `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | protocol accepted; full ledgers pending |
+| `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | specified; shared Petra grammar and bounded profile semantic encodings accepted; paper audit complete |
+| `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | discussion open; protocol accepted; shared-voice and profile-lexicon decision pending |
 | `DB16` | Accessibility specification | Keyboard, focus, zoom/reflow, screen reader, motion, non-color meaning, graph alternative, touch, panel resize, and streamed updates | partial |
 | `DB17` | Failure, recovery, and history | Offline, stale, conflict, partial, failed, blocked, unsupported, replay, lost-connection, and non-destructive recovery paths | discussion draft |
 | `DB18` | Product blueprint and acceptance | Complete screen inventory, responsive blueprints, state matrix, end-to-end path map, backend request ledger, and design acceptance evidence | not designed |
@@ -4226,11 +4226,12 @@ data-visualization rules into the full system specification.
 
 ## DB14 — Design system
 
-**Status:** opening discussion after DB13 specification closure. The accepted
-Primer/Octicons/Pajamas reference roles, Petra-owned components, brand, themes,
-typography, elevation, border, density, state, accessibility, and graph rules
-remain in force. The profile-variation recommendation below is proposed and is
-not yet an accepted new decision. No design-system implementation is authorized.
+**Status:** one shared Petra visual grammar with bounded profile semantic
+encodings accepted on 2026-09-07 as `UX1.0-DISC07`. DB14 is complete at
+specification depth with a paper audit. Runtime profile-manifest disposition,
+implementation, integration, and participant validation remain separate gates.
+No design-system implementation is authorized, and `UX-DESIGN-FREEZE-01`
+remains unaccepted.
 
 ### Author task and inherited foundation
 
@@ -4256,29 +4257,474 @@ behavior. Color, shape, text, and structure redundantly express material state.
 DB10's 2D graph and textual parity remain primary; graph color or position never
 carries the only meaning.
 
-### Opening recommendation — one Petra visual grammar
+### Accepted system boundary — one Petra visual grammar
 
-Profiles should share Petra's themes, interaction colors, typography, component
-behavior, spacing, elevation, motion, and authority cues. A registered profile
-can supply typed object/relation categories, accurate terminology, restrained
-icons or glyphs, and semantic visualization encodings where its objects require
-them. It should not receive a profile-wide accent palette or reskin that changes
-the meaning of selection, action, proposal, warning, or approval.
+Profiles share Petra's themes, interaction colors, typography, component
+behavior, spacing, elevation, motion, density, and authority cues. A registered
+profile may supply typed object and relation categories, accurate terminology,
+restrained icons or glyphs, and semantic visualization encodings where those
+objects require them. It cannot supply a profile-wide accent palette or reskin,
+or change the meaning of selection, action, proposal, warning, approval, failure,
+or focus.
 
 For example, a scientific evidence relation and a manuscript continuity relation
-can use different registered labels, line patterns, icons, and textual equivalents.
-Both still use Petra blue for the current selection and the same warning/error
-grammar. Entering the writing profile does not turn every action purple or make
-an amber object look approved. The Project profile remains clear through its name,
-objects, tasks, and vocabulary rather than a decorative theme.
+may use different registered labels, line patterns, icons, and textual equivalents.
+Both still use Petra blue for the current selection and the same warning and error
+grammar. Entering a writing profile does not turn every action purple or make an
+amber object look approved. The Project profile is clear through its name, typed
+objects, tasks, relationships, validators, and vocabulary.
 
-The open decision is whether this shared grammar is strict enough. My recommendation
-allows bounded profile encodings only where they communicate typed meaning and
-pass the same accessibility and collision checks; decorative profile branding
-does not enter the product system. After direction, complete the token inventory,
-components, icons, visualization grammar, responsive/motion rules, language and
-code examples, adverse states, backend/profile registry trace, and paper audit
-before advancing to DB15.
+Profile encodings must communicate typed meaning, survive the same accessibility
+and collision checks as shared components, and have an honest textual fallback.
+Decorative profile branding is outside the product system. This boundary is
+accepted as `UX1.0-DISC07`.
+
+### System layers and ownership
+
+Petra's design system has five layers. A higher layer may compose a lower layer;
+it cannot redefine its meanings.
+
+| Layer | Owns | Does not own |
+| --- | --- | --- |
+| Foundations | Theme, color roles, typography, spacing, sizing, shape, borders, elevation, motion, and density tokens | Domain objects, policy, authority, or arbitrary component values |
+| Primitives | Buttons, links, fields, text areas, tabs, disclosures, menus, tooltips, dialogs, notices, empty states, progress, and separators | Product routing, command consequences, or profile vocabulary |
+| Shared patterns | Project context, object reference, state marker, provenance, limitation, unavailable action, comparison, activity, history, and recovery grammar | Scientific standing, manuscript validity, or inferred eligibility |
+| Workspace components | Shell, Brief blocks, collection/list, Details, reader, Review, Graph, Work, Composition, Settings, timeline, editor, and diff structures | New authority or a second object schema |
+| Profile semantics | Registered object/relation labels, icons or glyphs, allowed line patterns, legend entries, validators, and surface-role terminology | Themes, CSS, executable code, shared status terms, control behavior, or authority cues |
+
+Primer remains a reference for token roles and interaction behavior. Octicons is
+the shared product icon language. Pajamas remains a structural reference for
+application chrome and panels. Petra-owned components expose the accepted system
+through stable properties and view models; none of these references becomes an
+independent product authority or requires wholesale library adoption.
+
+### Token architecture and themes
+
+Production UI resolves through named semantic roles. Components do not consume
+raw palette values, reconstruct opacity meaning, or bind domain state directly
+to a color. Palette foundations are implementation inputs; surface, text, border,
+focus, action, state, data, syntax, spacing, and motion roles are the component
+contract. Compatibility aliases in the existing shell remain migration debt and
+cannot be used by new reference-UX components.
+
+| Token family | Required roles and rules |
+| --- | --- |
+| Surface | App base, chrome, primary work, inset, overlay, hover, pressed, selection, inverse, sticky, and scrim; adjacent surfaces use contrast or one divider rather than nested frames |
+| Text | Primary, secondary, tertiary, inverse, link, disabled, code, and on-state text; tertiary text must still pass its applicable contrast requirement |
+| Border and focus | Subtle, default, strong, inverse, selected, and focus roles; focus remains visible against every adjacent theme surface |
+| Action | Primary, quiet, destructive, unavailable, busy, and selected/current roles; destructive styling is reserved for an actual destructive consequence |
+| State | Neutral, information, attention, positive operational outcome, danger/error, proposal/review, freshness, authority, origin, and limitation roles; every material state also has text and structure |
+| Data and relation | Shared selection/current-path roles plus a small audited set of profile semantic tone, shape, and line-pattern references; a relation never inherits success or failure meaning from its color |
+| Syntax | Background, foreground, keyword, function, string, property, number, comment, and operator roles shared by static code and supported editors |
+| Space and size | One spacing scale, compact and comfortable control/row roles, readable measure, minimum target, graph hit area, and responsive gap roles |
+| Shape and plane | Restrained radii, thin/strong rules, app/chrome/work/overlay planes, and focus/raised/overlay shadows; decorative cards and pills are exceptional |
+| Motion | Fast feedback, disclosure, overlay, progress, and graph-transition roles with zero/reduced alternatives and no motion-only meaning |
+
+The theme choices remain **System**, **Petra Stone**, **Petra Graphite**, and
+**High Contrast**, with platform forced-colors behavior taking precedence.
+System follows the compatible platform light/dark preference while preserving
+the retained user choice. A profile is never a theme. Theme changes preserve
+selection, scroll/reading position, editor input, open context, and active Work.
+
+Shared color meaning is intentionally narrow:
+
+| Visual role | Meaning |
+| --- | --- |
+| Blue | Interactive action, link, visible focus, current selection, and current graph path; selection also uses border, structure, or text |
+| Petra amber | Brand and bounded proposal/review attention; it does not mean approved, generally active, or profile identity |
+| Red/danger | Operational error, destructive consequence, or blocking danger; a contrary domain relation is not an error |
+| Green/positive | Successful operational result where a positive outcome is meaningful; a supporting domain relation is not automatically success |
+| Neutral and information tones | Description, origin, freshness, limitation, and non-judgmental system information, with explicit dimension labels |
+| Profile semantic tones | Optional registered distinctions between typed object or relation categories; drawn from an audited role set and always paired with label plus shape, pattern, icon, or structure |
+
+This corrects a material ambiguity in the historical foundation fixture: relation
+types such as **Supports** and **Contradicts** may retain distinguishable patterns,
+but they do not borrow Petra's positive and danger meanings. Scientific evidence,
+narrative continuity, source limitations, operational outcomes, and authority are
+separate dimensions even when they appear in one row or graph.
+
+### Typography, density, borders, and elevation
+
+The exact black rock remains Petra's mark. Uppercase Bebas Neue remains exclusive
+to the PETRA wordmark. Inter supplies page title, section title, body, label,
+table, control, and long-form reading roles. JetBrains Mono, with ligatures off by
+default, is limited to identifiers, revisions, hashes, metrics, provenance, query,
+code, and other content where character identity matters. Product headings use
+sentence case and ordinary weights; visual hierarchy does not depend on all caps,
+letter spacing, or tiny text.
+
+Body and long-form content use deliberate readable measure. Dense metadata may
+wrap, disclose, or truncate only when the full value remains reachable. Canonical
+identifiers may break or scroll within their own field but cannot force whole-page
+overflow. Text zoom and platform font substitution may increase component height;
+fixed-height clipping is not allowed.
+
+Comfortable density serves reading, authoring, dialogs, forms, and decisions.
+Compact density serves navigation, metadata, collection rows, graph legends, and
+high-volume inspection. Components choose density from their task role; Petra has
+no global density switch. Compact controls still preserve target and focus
+requirements, and touch/coarse-pointer presentation may increase the effective
+target without changing information meaning.
+
+One structural divider separates adjacent panes. Internal groups use whitespace,
+type, alignment, and occasional rules before a container border. A surface may
+use the app base, chrome, primary work plane, or temporary overlay, with no more
+than three visible elevation planes at once. Popovers, menus, tooltips, and dialogs
+use the overlay plane; selected rows and ordinary groups do not create new planes.
+Pills are reserved for compact values that are genuinely atomic, not every status,
+filter, reference, or action.
+
+### Component inventory and composition rules
+
+| Family | Required shared behavior |
+| --- | --- |
+| Actions | Primary, secondary, quiet, icon, destructive, split/multi-option where justified, busy, and unavailable controls; labels name outcomes and exact unavailable reasons remain reachable |
+| Input | Text field, text area, select/combobox, checkbox, radio, search, query/code editor, and parameter group; label, hint, error, units, retained input, and submission status stay adjacent |
+| Navigation | Link, tabs, breadcrumb/return, primary destination, contextual disclosure, menu, and pagination/finite expansion; current place and keyboard order remain explicit |
+| Disclosure and overlay | Accordion/disclosure, tooltip, popover, menu, dialog, drawer, and narrow-layout sheet; trigger state, dismissal, outside interaction, Escape, initial focus, and focus restoration are specified |
+| State and feedback | State marker, notice, inline error, empty state, skeleton/loading region, progress/activity, unavailable reason, limitation, freshness, authority, origin, and operation receipt; dimensions do not collapse into one badge |
+| Data and objects | Collection/list, table, definition list, tree, object reference, source location, timeline, graph, legend, comparison/diff, citation/provenance path, and history entry; identity and textual alternatives persist |
+| Workspace | Context bar, pane/split view, Details, Petra dock/sidecar/focus workspace, reader, Review set, Work plan/stages, Composition editor/preview, and Settings group; route, selection, input, and active Work survive recomposition |
+| Brand | Mark, wordmark, compact/horizontal/stacked lockup, and reversed treatment; the compact application header omits the tagline and avoids duplicate decorative marks |
+
+A component receives an explicit state and typed content from its owning view
+model. It may calculate presentation-only concerns such as clipping, column count,
+or panel placement. It cannot infer authority, evidence standing, readiness,
+relation type, source depth, policy, or mutation consequence from a label, icon,
+color, position, or missing field.
+
+Shared patterns retain one anatomy across direct and Petra-mediated entry. An
+action includes its label, scope where needed, status, and accessible description;
+a consequential action also receives exact preview/authority/recovery data from
+its owning command path. The assistant may point to or invoke that same pattern;
+it does not receive a visually privileged control with weaker consequences.
+
+### Interaction and component states
+
+| State | Required behavior |
+| --- | --- |
+| Rest | Stable label, purpose, value, and target; no implied capability from decoration |
+| Hover | Optional pointer reinforcement without revealing the only label, reason, or action |
+| Focus visible | High-contrast visible ring or inset marker that survives theme, forced colors, scroll, and adjacent selected state |
+| Pressed/active | Immediate bounded feedback distinct from durable selected, applied, or completed state |
+| Current/selected | Text or semantic state plus structure and blue selection treatment; selection never means authority or approval |
+| Busy | Original objective remains identifiable, duplicate submission is prevented, progress is textual/announced, and cancellation follows the owning operation |
+| Unavailable | Remains discoverable when the reason or prerequisite matters; exposes `aria-disabled` or an equivalent explained state and a supported next action where one exists |
+| Read-only | Value, origin, scope, and reason remain inspectable without imitating an editable control |
+| Invalid | Error is associated with the exact input, preserves the entered value, identifies correction, and moves or summarizes focus only after an attempted submit when needed |
+| Stale/conflicted | Current and attempted revisions, affected scope, preserved input, and refresh/compare/regenerate path remain visible |
+| Failed/partial/uncertain | Separates the failed operation from retained Project state and safe partial results; retry cannot duplicate an uncertain prior effect |
+
+Native disabled behavior is appropriate for a transient duplicate-submit guard
+when a nearby live status names the operation. A durable missing prerequisite or
+policy block cannot disappear from keyboard and screen-reader discovery behind an
+unnamed disabled control. Busy indicators, skeletons, and streamed content reserve
+enough space to avoid disruptive layout shifts and never take focus automatically.
+
+### Registered profile semantic encodings
+
+The profile manifest extension described by `UX-REQ-004` may resolve a bounded
+semantic presentation descriptor for a registered object or relation kind:
+
+| Descriptor | Requirement |
+| --- | --- |
+| Semantic key | Stable, profile-versioned reference to the owning object/relation kind; never derived from display text |
+| Label and description | Singular/plural or directional language supplied by the profile terminology contract |
+| Generic family | Object, relation, constraint, source, output, finding, or another accepted shared display family used for fallback composition |
+| Glyph reference | Optional identifier from an audited Petra/profile glyph registry; no arbitrary markup, remote asset, emoji-only meaning, or executable icon payload |
+| Line/shape reference | Optional value from Petra's finite pattern and shape vocabulary, including direction where applicable |
+| Tone role | Optional profile-semantic role from the audited token set; never a raw color and never a reserved action, authority, warning, error, approval, or focus role |
+| Text alternative and legend order | Required meaning independent of graphics plus stable ordering within the relevant visualization |
+| Compatibility | Profile and descriptor version, replacement mapping, and unsupported behavior |
+
+The client maps registered references to Petra-owned tokens and components. The
+server or profile package supplies meaning and stable references; it does not
+send CSS, React components, arbitrary SVG, layout coordinates, animation, or
+theme overrides. Profile packages cannot rename shared outcomes or actions such
+as **Current selection**, **Proposal**, **Applied**, **Failed**, **Cancel work**,
+or **Approve changes**.
+
+If a descriptor is missing, unknown, colliding, or unsupported, Petra renders the
+generic family treatment with the exact profile label and an **Encoding
+unavailable** explanation where the missing distinction matters. It does not
+guess from the semantic key, reuse a conflicting color, hide the object, or fail
+the whole Project. A profile version change does not restyle historical records
+as if their original meaning changed; exact history retains the applicable
+profile/descriptor version and current views may disclose an accepted replacement.
+
+### Icons, graphs, timelines, and other data views
+
+Octicons cover shared actions, navigation, disclosure, files, history, warnings,
+and generic system objects. Icon-only controls require an accessible name and a
+visible tooltip on keyboard focus and hover. Decorative icons are hidden from
+assistive technology. The same icon does not represent materially different
+actions in one context, and a profile glyph does not replace a control icon.
+
+Profile visualizations encode meaning in this order:
+
+1. exact text label and direction or structural position;
+2. shape, glyph, or line pattern from the accepted registry;
+3. optional audited semantic tone;
+4. proximity or grouping with explicit boundaries and counts.
+
+Graph nodes and edges expose their exact typed labels through a legend and the
+textual relationship view. Current selection and current path use shared blue
+structure without overwriting the underlying object/relation encoding. Hover,
+dim, highlight, grouping, and layout position are presentation aids. They cannot
+be the only carriers of type, authority, confidence, freshness, impact, or time.
+Support, contradiction, continuity, dependency, citation, derivation, and other
+profile relations are descriptive meanings rather than positive/negative UI
+outcomes.
+
+Timelines preserve event order, exact date/time/unknown-time language, actor,
+origin, and authority through text. Progress views use declared stages and units;
+they do not turn uncertain work into a decorative percentage. Comparisons and
+diffs pair additions, removals, moves, conflicts, and unchanged context with
+labels or patterns, not red/green alone. Charts, when a profile supplies them,
+include axis/measure/unit/source meaning, a textual or tabular equivalent, and
+the same limitation/provenance grammar as other evidence.
+
+### Motion, responsive behavior, and accessibility
+
+Motion explains local continuity: disclosure opening, overlay placement, focus
+movement, bounded progress, and graph layout change. It remains short, interruptible,
+and nonessential. Petra does not use parallax, ambient graph motion, celebratory
+animation for scientific or writing outcomes, or continuous movement to signal
+running Work. Reduced motion removes transforms and spatial interpolation while
+preserving the final state and textual progress. A layout change initiated by a
+stream, projection, or profile update does not move focus or auto-pan the graph.
+
+Wide layouts may show the main workspace with one contextual secondary surface.
+Compact layouts reduce columns and move secondary context to disclosure or a
+drawer. Narrow and high-zoom layouts use one reading/action column with context,
+main task, Details, and Petra in the accepted order. Recomposition preserves route,
+exact selection, reading position where possible, unsent input, editor selection,
+open decision, and access to active Work. No material action becomes hover-only,
+drag-only, or absent at a breakpoint.
+
+Tables preserve headers and cell relationships; when horizontal comparison cannot
+reflow safely, the table uses a bounded scroll region or an equivalent labeled
+record layout without page-level overflow. Pane separators work by pointer, touch,
+and keyboard and expose current/minimum/maximum position. Graphs, timelines,
+progress, diff, color, icons, and motion all have textual equivalents. Live status
+announcements are concise and throttled; ordinary token/theme changes are not
+announced repeatedly. Forced colors retain native system roles, focus, selection,
+borders, patterns, and exact labels rather than forcing Petra palette values.
+
+### Ordinary and adverse state coverage
+
+| Condition | Required system response |
+| --- | --- |
+| Ordinary | Shared hierarchy, controls, exact state dimensions, and profile semantics compose without local styling |
+| Empty | Names the absent content and useful next step without decorative placeholder data |
+| Dense | Preserves scan order, group labels, selection, target size, and readable disclosure without badge/card proliferation |
+| Loading or running | Holds layout, names the object or objective, distinguishes fetch from durable Work, and exposes permitted cancellation/recovery |
+| Limited or unavailable | Shows exact limitation/reason and prerequisite using shared state grammar rather than faded content alone |
+| Stale, conflicted, or projection-lagged | Preserves current/attempted identity and uses the owning comparison/recovery pattern |
+| Failed, partial, or uncertain | Keeps input and safe content, separates operation status from domain meaning, and avoids duplicate retry effects |
+| Unknown profile descriptor | Uses generic family, exact label, accessible text, and registry/version detail; no guessed visual meaning |
+| Encoding collision | Falls back for the conflicting distinction, identifies the affected legend entries, and retains full textual parity |
+| Theme or preference failure | Uses safe/system values, preserves retained preference where possible, and follows DB13 persistence/reset behavior |
+| Forced colors or reduced motion | Uses platform colors and static structure while retaining selection, state, relationship, and progress meaning |
+| Narrow, high zoom, touch, or keyboard-only | Recomposes without losing any material action, label, focus target, input, selection, or Work access |
+
+### Interaction-path specification
+
+| Path | Entry and action | Required result, return, and focus |
+| --- | --- | --- |
+| `DB14-P01` Orient across Petra places | Move from Brief to Sources, Review, Graph, Work, Composition, or Settings | Shared chrome, hierarchy, state meanings, current place, and Project/profile context persist while task density adapts |
+| `DB14-P02` Change theme | Choose System, Stone, Graphite, or High Contrast, then encounter a platform override | Effective/stored value stays clear; focus, selection, reading position, editor input, and active Work remain intact |
+| `DB14-P03` Operate a shared control | Traverse rest, hover where present, focus, press, busy, unavailable, invalid, and result states | Label and objective remain stable; reason/status is accessible; duplicate action and focus theft are prevented |
+| `DB14-P04` Interpret combined state | Inspect one object with authority, freshness, origin, limitation, relation, and Work status | Dimensions remain separately named and do not collapse into one color, badge, or score |
+| `DB14-P05` Read profile semantics | Compare registered scientific and controlled-writing object/relation encodings | Typed labels and bounded glyph/pattern/tone distinctions differ; shared selection, warning, approval, and action meanings do not |
+| `DB14-P06` Use graph and textual parity | Select and follow a typed relationship, inspect its legend entry, then switch to the text path | Exact objects, direction, relation, limitation, and current path match; focus and return context survive |
+| `DB14-P07` Work under density pressure | Inspect a long collection, metadata, state, and actions at comfortable/compact densities | Scan order and full detail access survive without nested cards, tiny text, or a global density switch |
+| `DB14-P08` Recompose responsively | Move the same task through wide, compact, narrow, high-zoom, touch, and keyboard-only conditions | Same material actions and meanings remain; panes/drawers restore exact selection, input, scroll context, and focus |
+| `DB14-P09` Use overlay and disclosure | Open tooltip, menu, popover, drawer, and consequential dialog, then dismiss or complete | Trigger state, initial focus, Escape/outside behavior, modal boundary, and focus restoration follow the component contract |
+| `DB14-P10` Follow updates with less motion | Observe loading, streaming, progress, graph change, and completion with ordinary and reduced motion | Layout remains stable; status is textual and bounded; no focus/auto-pan change or animation-only meaning occurs |
+| `DB14-P11` Recover an encoding or theme failure | Open a Project with missing/colliding descriptor, unavailable icon, corrupt preference, or forced-color override | Generic treatment and exact label preserve use; affected distinction and safe recovery are explicit; the Project remains operable |
+
+All paths preserve canonical Project/profile/object identity and use the owning
+module's command, authority, history, and recovery behavior. A visual transition
+never becomes a commit point.
+
+### Normative examples and language boundary
+
+The following illustrative view data expresses the separation; it is not an
+accepted runtime schema:
+
+```text
+shared_state:
+  dimension: current_selection
+  label: Current selection
+
+profile_semantics:
+  semantic_key: relation.evidence.supports
+  label: Supports
+  glyph_ref: relation-supports
+  line_pattern_ref: relation-solid
+  tone_role: profile-relation-a
+  text_alternative: Claim A supports Hypothesis B
+```
+
+The selection receives Petra's blue current-state treatment. The **Supports**
+relation receives its profile label and registered pattern. Removing the hue,
+icon, or graph still leaves **Current selection** and the complete relationship
+understandable. A controlled-writing profile may replace the second block with
+**Continues**, a different registered line pattern, and its own exact text while
+retaining the same shared selection treatment.
+
+Component language names the control or state before visual appearance: **Open
+details**, **Current selection**, **Proposal**, **Work failed**, **Unavailable —
+full text required**, **Graph encoding unavailable**, and **Use textual view**.
+It avoids **green item**, **red link**, **special profile theme**, **inactive**
+without a reason, **success** for scientific support, and **error** for domain
+disagreement. DB15 owns the complete vocabulary and voice system.
+
+### Paper interaction and heuristic audit
+
+The paper audit walks `DB14-P01`–`P11` across both required profile classes,
+all four themes, forced colors, reduced motion, wide/narrow/high-zoom layouts,
+dense collections, multiple simultaneous state dimensions, graph/text parity,
+overlays, and missing/colliding semantic descriptors. It checks the accepted
+shared-grammar boundary and does not claim rendered implementation, measured
+contrast for final tokens, assistive-technology results, cross-browser behavior,
+performance, or participant comprehension.
+
+| Heuristic | Paper-design check |
+| --- | --- |
+| Visibility of status | Current place, selection, busy/result, authority, freshness, limitation, and profile meaning retain distinct labels and treatments |
+| Match to author task | Density, component, and data-view choices follow reading, comparison, review, authoring, and relationship tasks |
+| User control | Theme, disclosure, overlays, text alternatives, cancellation, and recovery preserve input, focus, selection, and exact return |
+| Consistency | Shared controls and authority cues behave identically across modules and profiles; profile differences map to registered meaning |
+| Error prevention | Reserved roles, typed descriptors, collision checks, previews, and unavailable explanations prevent decoration from changing consequences |
+| Recognition | Named text/type/state roles, legends, labels, and familiar components avoid reliance on memory, color, or icon recognition |
+| Efficiency | Compact and comfortable densities fit their tasks; direct and Petra-mediated actions reuse one component/command path |
+| Minimal design | Border, plane, card, pill, logo, badge, and simultaneous-secondary limits preserve an editorial workspace hierarchy |
+| Recovery | Generic descriptor fallback, safe themes, preserved inputs, exact conflict state, and text parity keep the task operable |
+| Help and language | Exact unavailable reasons, legends, accessible names, limitations, and DB15-owned vocabulary explain unfamiliar meaning in context |
+
+| Finding | Consequence | Severity | Disposition and verification |
+| --- | --- | --- | --- |
+| `DB14-A01` Raw values or compatibility aliases leak into components | Themes and state meanings drift by module | Major | Fixed in token ownership and layer rules; migration and visual regression required in UX-FX34/35 |
+| `DB14-A02` Profile reskin changes shared cues | Selection, proposal, warning, or approval could mean different things by Project | Critical | Fixed by accepted DISC07 and reserved roles; paired-profile verification in UX-FX34 |
+| `DB14-A03` Domain relation borrows outcome color | Contradiction may look like failure and support like approval or truth | Critical | Fixed by separate profile-relation and operational roles; graph/list/text verification in UX-FX34 |
+| `DB14-A04` Color, icon, position, or motion carries the only meaning | Users may miss type, state, direction, limitation, or change | Critical | Fixed by label/pattern/structure/text parity rules; forced-color, screen-reader, and reduced-motion evidence in UX-FX35 |
+| `DB14-A05` Borders, cards, badges, pills, or planes proliferate | Dense work becomes a fragmented dashboard and material hierarchy disappears | Major | Fixed by border/plane/density budgets; dense cross-module fixture in UX-FX35 |
+| `DB14-A06` Reflow or live updates lose focus and task state | Narrow, zoomed, streamed, or reduced-motion use can interrupt work | Critical | Fixed in responsive/motion/component states and P02/P08–P10; implementation evidence in UX-FX35 |
+| `DB14-A07` Profile encoding has no governed registry boundary | Client labels, arbitrary assets, or guessed styling could invent domain meaning | Critical | Needs contract: extend UX-REQ-004 manifest disposition; safe generic fallback is specified; G-CONTRACT remains open |
+
+Acceptance fails if changing Project profile changes a control's consequence,
+blue/amber/red/green means incompatible shared states, a supporting relation looks
+approved, a contradiction looks failed, a raw profile color overrides focus, an
+unknown descriptor hides content, a graph legend differs from its textual path,
+theme or reflow loses input/selection, a disabled action hides its prerequisite,
+or a streamed update moves focus or becomes authoritative through animation.
+
+### Acceptance criteria and post-freeze evidence
+
+DB14 is complete at specification depth. Implementation and validation must
+demonstrate these behaviors after freeze:
+
+1. all production component values resolve through named Petra foundation and
+   semantic roles, with raw palette and compatibility aliases outside new code;
+2. System, Stone, Graphite, High Contrast, forced colors, and reduced motion
+   preserve shared interaction, focus, state, and accessibility meanings;
+3. blue interaction/selection, amber brand/proposal-review attention, operational
+   outcome, authority, freshness, origin, limitation, and profile relation roles
+   remain distinct and never rely on color alone;
+4. Bebas Neue, Inter, and JetBrains Mono remain within their accepted roles, and
+   text wrapping/scaling cannot clip labels, values, or material state;
+5. comfortable and compact densities follow task roles without a global switch
+   and retain readable text, reachable detail, and supported target size;
+6. one-divider and three-plane limits produce a clear workspace hierarchy across
+   every primary and contextual Petra surface;
+7. each shared component implements its complete rest, focus, selected, busy,
+   unavailable, invalid, stale/conflict, failed/partial, and recovery behavior;
+8. direct and Petra-mediated interactions compose the same shared patterns and
+   owning commands without a visually privileged authority path;
+9. profile object/relation differences resolve from versioned semantic keys,
+   exact terminology, and bounded audited glyph/pattern/tone references;
+10. profile descriptors cannot supply code, CSS, raw colors, remote assets,
+    themes, animation, shared-state renames, or authority/control overrides;
+11. missing, colliding, replaced, or unsupported profile encodings fall back to
+    exact labels and generic families without hiding objects or blocking Projects;
+12. graphs, timelines, progress, charts, and diffs preserve exact textual or
+    tabular parity, origin/limitations, and non-color meaning;
+13. wide, compact, narrow, high-zoom, touch, keyboard-only, streamed, and reduced-
+    motion paths preserve all material actions, input, selection, return, and focus;
+14. ordinary, empty, dense, loading, limited, stale, conflicted, failed, partial,
+    uncertain, profile-error, theme-error, and recovery states use the same system;
+15. design-system migration, contract, accessibility, performance, visual
+    regression, and participant evidence remain explicit post-freeze gates.
+
+| Scenario | Required post-freeze evidence |
+| --- | --- |
+| `UX-FX34` Shared grammar across profiles | Pair invented scientific and controlled-writing Projects across Brief, Sources, Review, Graph, Work, Composition, and Settings. Change typed objects, relations, labels, validators, icons/glyphs, line patterns, legends, and optional semantic tones while selection, actions, authority, warnings, approval, errors, focus, density, and recovery remain Petra-wide. Include relation-versus-outcome separation and unknown/replaced descriptors. |
+| `UX-FX35` Design-system stress and recovery | Exercise all themes, forced colors, reduced motion, 200% text, narrow/high-zoom/touch/keyboard conditions, dense lists/tables/graphs, overlays, busy/live updates, invalid/unavailable/stale/conflicted/failed/partial states, icon failure, encoding collision, theme-storage failure, and component migration without lost input, selection, focus, meaning, or page-level overflow. |
+
+These scenarios are independently invented and begin only after design freeze.
+Historical foundation and shell fixtures remain calibration evidence; they do not
+close DB14 implementation, profile-registry, accessibility, performance, visual
+regression, or participant-validation gates.
+
+### Backend needs and next section
+
+DB14 creates no new backend requirement. It sharpens `UX-REQ-004`: a versioned
+profile manifest may name bounded semantic presentation descriptors for its typed
+objects and relations, including exact terminology and approved glyph, pattern,
+tone-role, text-alternative, legend-order, replacement, and fallback references.
+Petra owns their rendering. A manifest cannot deliver arbitrary assets, style,
+layout, motion, executable code, or shared control/state overrides.
+
+DB14 closes at `G-SPEC`; `G-CONTRACT`, implementation/integration, and participant
+validation remain separate. Continue to DB15, UX language system, by consolidating
+the accepted D006 language contract and module writing/audit rules.
+`UX-DESIGN-FREEZE-01` remains unaccepted.
+
+## DB15 — UX language system
+
+**Status:** opening discussion after DB14 specification closure. D006's reference,
+descriptor, scientific-force, uncertainty, and assistant-language rules and the
+accepted writing/interaction audit protocol remain in force. The shared-voice and
+profile-lexicon recommendation below is proposed and is not yet accepted. No
+language-system implementation is authorized.
+
+### Author task and inherited boundary
+
+The author must understand what Petra knows, recommends, requests, changes, and
+cannot do without translating system jargon or guessing whether a domain term,
+operational status, proposal, or authoritative outcome is intended. The same
+meaning must survive direct controls, Petra responses, Work, Review, errors,
+history, and accessible alternatives.
+
+Shared control and authority language belongs to Petra. Exact object, relation,
+validator, source, output, and author-role language belongs to the registered
+Project profile. D006 already requires clear references, calibrated force,
+explicit uncertainty, inspectable basis, and distinct suggestion, question,
+status, and command speech acts. DB15 must turn those rules and the existing
+module ledgers into one complete product vocabulary and response system.
+
+### Opening recommendation — one Petra voice, profile-owned lexicon
+
+The opening recommendation is one Petra voice across profiles: direct, calm,
+specific about basis and limitations, and explicit about status, consequence,
+and next action. Profiles own domain nouns, relationships, validators, role names,
+and accurate action objects; they do not create different assistant personalities
+or rename shared authority and recovery language. Response depth adapts to task
+and consequence rather than to a decorative profile persona.
+
+For example, the scientific profile might say: **Resolve the measurement criterion
+first; it affects two downstream comparisons. You can explore alternatives now,
+but the comparison will remain provisional.** A writing profile might say:
+**Resolve the continuity constraint first; it affects two downstream revisions.
+You can explore scene options now, but the revision will remain provisional.**
+The recommendation, reason, author choice, and consequence use one Petra structure;
+the profile supplies the correct concepts. Whether this shared voice/profile-
+lexicon boundary is accepted remains the DB15 decision. After direction, complete
+the shared vocabulary, profile slots, response anatomy and depth, labels, statuses,
+confirmations, errors, prohibited conflations, responsive/accessibility language,
+paths, adverse states, backend trace, and paper audit before DB16.
 
 ## `UX-DESIGN-FREEZE-01`
 
@@ -4342,10 +4788,10 @@ or default behavior.
 
 The next work remains specification, not demo production:
 
-1. carry accepted specifications through `DB13` into their recorded backend dispositions without implementing a product surface;
-2. discuss DB14's shared Petra grammar and bounded profile semantic encodings;
-3. finish `DB14`, Design system, through its complete specification and paper audit;
-4. close language, accessibility, failure, and recovery specifications in `DB15`–`DB17`;
+1. carry accepted specifications through `DB14` into their recorded backend dispositions without implementing a product surface;
+2. discuss DB15's shared Petra voice and profile-owned terminology boundary;
+3. finish `DB15`, UX language system, through its complete specification and paper audit;
+4. close accessibility, failure, and recovery specifications in `DB16`–`DB17`;
 5. assemble the complete screen, state, flow, and backend blueprint in `DB18`;
 6. review and explicitly record `UX-DESIGN-FREEZE-01`;
 7. begin the neutral reference-UX implementation;

@@ -142,8 +142,15 @@ between shell context and task content more important.
 
 ### `UX-REQ-004` — versioned Project profile and domain-semantic boundary
 
-- **Originating design work:** accepted `UX1.0-DISC05`; use-agnostic kernel section of `UX-FLOW-ARCHITECTURE.md`; `UX-PATH-02` and `UX-PATH-04`.
-- **Named fixture need:** `UX-FX15`, paired synthetic scientific-research and controlled-writing Projects that expose the same shell, Work, proposal, review, provenance, approval, cancellation, promotion, and history mechanics while resolving different typed domain objects, relationships, validators, and vocabulary. Neither fixture is derived from a future demo corpus.
+- **Originating design work:** accepted `UX1.0-DISC05` and DB14's accepted
+  `UX1.0-DISC07`; use-agnostic kernel section of `UX-FLOW-ARCHITECTURE.md`;
+  `DB14-P05`, `DB14-P06`, `DB14-P11`, `UX-PATH-02`, and `UX-PATH-04`.
+- **Named fixture need:** `UX-FX15`, paired synthetic scientific-research and
+  controlled-writing Projects that expose the same kernel while resolving
+  different typed domain meaning; `UX-FX34`, shared visual grammar with bounded
+  profile object/relation encodings; and `UX-FX35`, forced-color, missing,
+  colliding, and replaced-encoding recovery. No fixture is derived from a future
+  demo corpus.
 - **Implementation links:** accepted `M1.1-W02` and `M1.1-W13`; `M1.2-W01`; `M1.7-W01`–`W12`; later controlled-writing domain contracts. The existing `petra.project@1.0.0` schema must not be edited in place.
 - **Project-author task and failure:** open either a scientific or complex controlled-writing Project and see the right concepts, relationships, validation tools, and language without entering a different product or losing Petra's controls. Without a server-owned profile boundary, shared components will hard-code science, clients will invent semantic aliases, or narrative constraints will be stored as scientific Claims.
 - **Requested contract behavior:** every Project resolves one immutable, versioned profile binding and one registered profile manifest. The manifest names:
@@ -151,13 +158,27 @@ between shell context and task content more important.
   - registered domain schema, object-kind, relationship, command, event, validator, and output references;
   - registered model-context, prompt, tool, and role references applicable to the profile;
   - semantic surface roles and their user-facing terminology;
+  - optional bounded semantic presentation descriptors for registered object and
+    relation kinds: semantic key, generic family, approved glyph, finite
+    line/shape pattern, optional profile-semantic tone role, exact text
+    alternative, legend order, and compatibility/replacement behavior;
   - supported task families, views, and profile tools;
   - the profile-specific Brief payload schema;
   - compatibility, replacement, and unsupported-version behavior.
 - **Shared-kernel rule:** Project, Artifact, source revision, WorkUnit, candidate/proposal, ChangeSet, review/approval, capability, provenance, projection, event, interaction, cancellation, promotion, and history mechanics retain the same authority meanings. A profile adds typed domain meaning; it cannot inject executable client code, create a second command envelope, or bypass policy and approval.
+- **Presentation-descriptor rule:** Petra owns themes, tokens, components,
+  selection/focus, action, proposal/review, warning, approval, error, density,
+  layout, motion, accessibility, and fallback rendering. A profile descriptor
+  cannot supply CSS, layout coordinates, raw colors, animation, arbitrary or
+  remote assets, executable markup, shared-state renames, or control/authority
+  overrides. The client maps registered references to an audited Petra glyph,
+  pattern, shape, and tone-role registry. Missing, unknown, colliding, replaced,
+  or unsupported references fall back to the exact profile label and generic
+  family without hiding the object or failing the Project. Historical meaning
+  retains its applicable profile/descriptor version.
 - **Model-adaptation rule:** every material assistant interaction and Work input binds the Project profile and applicable schema, terminology/prompt, tool, role, and validator revisions. The model gateway may route a provider according to D007, but returned objects must validate against the active profile before entering its ordinary proposal and review path. Profile selection cannot grant a capability, broaden tool access, or authorize an output.
 - **Authority and persistence:** the profile binding is authoritative Project state, not a theme or local setting. Creation and any permitted migration use typed, idempotent commands and additive events. Reads fail closed for unknown or unsupported profiles. Profile and terminology versions are retained on material outputs and decisions where interpretation depends on them.
-- **Smallest viable response:** preserve `petra.project@1.0.0`; propose either an additive versioned profile-binding record or a new compatible Project schema version; register the scientific profile; expose its reference through shell and Brief views; and define the contract extension point against which the controlled-writing fixture can be built pending its ontology. Do not claim controlled-writing integration from a vocabulary-only manifest.
+- **Smallest viable response:** preserve `petra.project@1.0.0`; propose either an additive versioned profile-binding record or a new compatible Project schema version; register the scientific profile; expose its reference through shell and Brief views; define the contract extension point against which the controlled-writing fixture can be built pending its ontology; and return exact terminology plus generic-family fallback before specialized glyph/pattern references. Do not claim controlled-writing integration from a vocabulary-only or decorative-style manifest.
 - **Decision dependency:** the accepted decisions and implementation roadmap currently describe a scientific research workbench. This UX direction requires an explicit architecture amendment or new decision before backend contracts change.
 - **Owner and status:** product architecture and implementation track; UX requirement accepted, runtime shape `proposed`.
 
@@ -1365,6 +1386,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Continuous working-copy edits, exact saves, late-proposal reconciliation, and assessment binding | Proposed `UX-REQ-018`; current exact-span revision and reuse contracts remain intact until architecture disposition |
 | Exact working-copy export with scoped limitations and observable delivery | Proposed `UX-REQ-019`; rendering/storage, support reuse, profile promotion, and external delivery retain distinct boundaries |
 | Effective Project controls and typed policy transitions in Settings | Proposed `UX-REQ-020`; personal preferences remain local while Project privacy, capability, routing, budget, and Review controls retain their owning authority |
+| Profile-resolved object and relation visual semantics | Existing proposed `UX-REQ-004`, sharpened by DB14; the manifest may name bounded semantic descriptor references while Petra owns shared tokens, components, state/authority cues, accessibility, and safe fallback |
 | Current/cached/new evidence boundary | ContextPacket and EvidencePacket from `M1.1`, retrieval path in `M1.6` |
 | Assistant stream, interrupt, reconnect, and replay | PetraInteractionRun and AG-UI adapter boundary from `M1.0`/`M1.1`, product hooks in `M1.7` |
 | Projection freshness | GraphProjectionRecord and ProjectionCheckpoint from `M1.1`, delivery in `M1.3`/`M1.5` |
@@ -1376,7 +1398,7 @@ and outputs attached to these mechanics. They should not duplicate Work,
 interaction, proposal, review, approval, cancellation, provenance, or history
 lifecycles merely because the profile uses different nouns.
 
-## Requirement status after DB13
+## Requirement status after DB14
 
 The authored-project, imported-document, Project-thread, exact turn-context,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
@@ -1409,7 +1431,16 @@ a universal settings command. Appearance, layout, editor, accessibility, and
 technical-detail disclosure remain device-local presentation state. Privacy,
 capability, routing, budget, and Review controls retain their exact Project,
 policy, actor, revision, and prospective-effect boundaries. DB13 closes at
-`G-SPEC`; runtime and participant evidence remain pending. DB14 is next.
+`G-SPEC`; runtime and participant evidence remain pending.
+
+DB14's one-Petra-grammar direction is accepted as `UX1.0-DISC07`. It creates no
+new backend requirement. `UX-REQ-004` now explicitly includes bounded semantic
+presentation descriptors for registered profile object and relation kinds, with
+exact labels, approved references, version/replacement behavior, and generic
+fallback. Petra retains themes, tokens, components, interaction and authority
+cues, rendering, and accessibility. DB14 closes at `G-SPEC`; profile-manifest,
+implementation, accessibility, visual-regression, and participant evidence
+remain pending. DB15 is next.
 
 ### Cross-device preference synchronization
 
