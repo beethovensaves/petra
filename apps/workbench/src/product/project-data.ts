@@ -3,6 +3,7 @@ import type {
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
+  PetraProjectShellViewV11,
   PetraProjectSourceView,
   ProjectDefinitionTerm,
 } from "@petra/contracts";
@@ -38,11 +39,13 @@ const apiToken = (): string => {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const shellView = (value: unknown): PetraProjectShellView => {
+type ProjectShellView = PetraProjectShellView | PetraProjectShellViewV11;
+
+const shellView = (value: unknown): ProjectShellView => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-shell-view" ||
-    value.schema_version !== "1.0.0" ||
+    (value.schema_version !== "1.0.0" && value.schema_version !== "1.1.0") ||
     typeof value.project_id !== "string" ||
     !isRecord(value.content) ||
     typeof value.content_hash !== "string" ||
@@ -53,7 +56,7 @@ const shellView = (value: unknown): PetraProjectShellView => {
       502,
     );
   }
-  return value as unknown as PetraProjectShellView;
+  return value as unknown as ProjectShellView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -175,14 +178,14 @@ const fallbackTerm = (
 };
 
 const termFor = (
-  view: PetraProjectShellView,
+  view: ProjectShellView,
   family: "focus" | "finding" | "reference",
 ): ProjectDefinitionTerm =>
   view.content.definition.terms.find(
     (term) => term.generic_family === family,
   ) ?? fallbackTerm(family);
 
-const profileFrom = (view: PetraProjectShellView): ProjectProfile => {
+const profileFrom = (view: ProjectShellView): ProjectProfile => {
   const focus = termFor(view, "focus");
   const finding = termFor(view, "finding");
   const reference = termFor(view, "reference");
@@ -203,7 +206,7 @@ const profileFrom = (view: PetraProjectShellView): ProjectProfile => {
   };
 };
 
-const attentionFrom = (view: PetraProjectShellView): AttentionItem[] => {
+const attentionFrom = (view: ProjectShellView): AttentionItem[] => {
   const places = new Set(view.content.definition.supported_places);
   return view.content.attention.map((item) => ({
     id: item.attention_id,
@@ -221,7 +224,7 @@ const attentionFrom = (view: PetraProjectShellView): AttentionItem[] => {
 };
 
 export const projectRecordFromShellView = (
-  view: PetraProjectShellView,
+  view: ProjectShellView,
 ): ProjectRecord => {
   const profile = profileFrom(view);
   const objective = view.content.current_objective;
@@ -271,6 +274,58 @@ export const projectRecordFromShellView = (
     attention: attentionFrom(view),
     recentDecisions: [],
     sources: [],
+    ...(view.schema_version === "1.0.0"
+      ? {}
+      : {
+          placeSummaries: view.content.place_summaries.map((place) => ({
+            role: place.role,
+            coverage: place.coverage,
+            label: place.label,
+            summary: place.summary,
+            ...(!("item_count" in place) || place.item_count === undefined
+              ? {}
+              : { itemCount: place.item_count }),
+            attentionCount: place.attention_count,
+            ...(place.limitation === undefined
+              ? {}
+              : { limitation: place.limitation }),
+          })),
+          ...(view.content.selection === undefined
+            ? {}
+            : {
+                selection: {
+                  state: view.content.selection.resolution.state,
+                  semanticKey:
+                    view.content.selection.resolution.requested_ref
+                      .semantic_key,
+                  objectId:
+                    view.content.selection.resolution.requested_ref.object_id,
+                  ...(view.content.selection.resolution.requested_ref
+                    .revision === undefined
+                    ? {}
+                    : {
+                        requestedRevision:
+                          view.content.selection.resolution.requested_ref
+                            .revision,
+                      }),
+                  ...("resolved_ref" in view.content.selection.resolution
+                    ? {
+                        resolvedRevision:
+                          view.content.selection.resolution.resolved_ref
+                            .revision,
+                        recordHash:
+                          view.content.selection.resolution.resolved_ref
+                            .record_hash,
+                        label:
+                          view.content.selection.resolution.descriptor.label,
+                        summary:
+                          view.content.selection.resolution.descriptor.summary,
+                      }
+                    : {}),
+                  destination: view.content.selection.primary_destination.role,
+                },
+              }),
+        }),
   };
 };
 
@@ -493,14 +548,82 @@ export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
 
 export const loadProjectRecord = async ({
   params,
+  request,
 }: LoaderFunctionArgs): Promise<ProjectRecord> => {
   if (params.projectId === undefined || params.projectId.length === 0) {
     throw new ProjectDataError("A Project ID is required.", 400);
   }
+  const requestUrl = new URL(request.url);
+  const incoming = requestUrl.searchParams;
+  const semanticKey = incoming.get("semanticKey");
+  const objectPathSegment =
+    semanticKey === "petra.project-source"
+      ? "sources"
+      : semanticKey === "petra.work-unit"
+        ? "work"
+        : semanticKey === "petra.draft-artifact"
+          ? "composition"
+          : undefined;
+  const pathParts = requestUrl.pathname.split("/").filter(Boolean);
+  const objectPathIndex =
+    objectPathSegment === undefined
+      ? -1
+      : pathParts.lastIndexOf(objectPathSegment);
+  const pathObjectId =
+    objectPathIndex < 0 ? undefined : pathParts[objectPathIndex + 1];
+  const selected =
+    incoming.get("selected") ??
+    params.sourceId ??
+    params.workId ??
+    params.artifactId ??
+    pathObjectId ??
+    null;
+  const revision = incoming.get("revision");
+  const recordHash = incoming.get("recordHash");
+  const hasExactSelection =
+    semanticKey !== null &&
+    selected !== null &&
+    revision !== null &&
+    recordHash !== null;
+  const hasExactSelectionMetadata =
+    semanticKey !== null || revision !== null || recordHash !== null;
+  if (hasExactSelectionMetadata && !hasExactSelection) {
+    throw new ProjectDataError(
+      "An exact Project selection requires semantic key, object identity, revision, and record hash together.",
+      400,
+    );
+  }
+  const query = new URLSearchParams();
+  if (hasExactSelection) {
+    query.set("semanticKey", semanticKey);
+    query.set("objectId", selected);
+    query.set("revision", revision);
+    query.set("taskIntent", "inspect");
+  }
+  const suffix = query.size === 0 ? "" : `?${query}`;
   const value = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell`,
+    `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell${suffix}`,
   );
-  return projectRecordFromShellView(shellView(value));
+  const view = shellView(value);
+  if (hasExactSelection) {
+    if (
+      view.schema_version !== "1.1.0" ||
+      view.content.selection === undefined ||
+      !("resolved_ref" in view.content.selection.resolution) ||
+      view.content.selection.resolution.resolved_ref.semantic_key !==
+        semanticKey ||
+      view.content.selection.resolution.resolved_ref.object_id !== selected ||
+      view.content.selection.resolution.resolved_ref.revision !==
+        Number(revision) ||
+      view.content.selection.resolution.resolved_ref.record_hash !== recordHash
+    ) {
+      throw new ProjectDataError(
+        "Petra could not reproduce the exact selected object in the Project shell snapshot.",
+        502,
+      );
+    }
+  }
+  return projectRecordFromShellView(view);
 };
 
 const requiredRouteIdentity = (

@@ -1,8 +1,9 @@
 # UX runtime architecture disposition and implementation sequence
 
 Status: implementation-track review complete; M1.9 cumulative trace, four live
-presentation reads, interface recovery gate, and the initial semantic-location
-slice passed; broader neutral runtime work remains open
+presentation reads, interface recovery gate, initial semantic-location slice,
+and expanded Project-shell context passed; broader neutral runtime work remains
+open
 Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
@@ -38,7 +39,8 @@ repeatable-read Project shell queries, the first explicitly scientific
 ProjectSource binding and exact source reader, durable ReviewSession identity
 plus an authorized scientific Review collection/detail view, an authorized
 current scientific relationship/provenance view guarded across PostgreSQL and
-Neo4j, and the first Project-scoped semantic object locator.
+Neo4j, the first Project-scoped semantic object locator, and shell 1.1 place
+summaries plus optional exact selection.
 
 This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-008`, `UX-REQ-009`,
 `UX-REQ-010`, `UX-REQ-012`, and `UX-REQ-013` without changing the frozen
@@ -295,7 +297,7 @@ explicitly records later implementation progress:
 
 | Request | Current capability | Missing work and disposition | Sequence |
 | --- | --- | --- | --- |
-| `UX-REQ-001` | **Partial, advanced after baseline.** `ProjectShellView` now composes exact ProjectDefinition, focused Objective, authority position, projection freshness, and attention under repeatable-read isolation. | Add optional selection and broader place summaries without assembling authority in React. | Wave 1 |
+| `UX-REQ-001` | **Partial, advanced after baseline.** `ProjectShellView` 1.1 now composes exact ProjectDefinition, focused Objective, authority position, projection freshness, attention, ProjectDefinition-supported place summaries, and optional exact semantic selection under one repeatable-read transaction. The client verifies a complete route identity/hash tuple and does not persist selection. | Add exact attention-Work references, complete Review posture, active Work context, selection/Details behavior across applicable frozen surfaces, paired-profile evidence, and the remaining accessibility/recovery validation. | Wave 1, then integration validation |
 | `UX-REQ-002` | **Partial.** EvidencePacket, GroundedResponse, Work, review, graph, and composition records can supply a scientific Brief. | Add a bounded `ProjectBriefView` composition with exact basis, comparison, attention, recent decisions, and SuggestedAction references. Resolve sections through ProjectDefinition roles; keep summaries read-only. | Wave 4 |
 | `UX-REQ-003` | **Partial.** WorkUnit lifecycle, interaction replay, interrupts, cancellation, capability references, and bounded budgets exist. | Add immutable SuggestedAction revisions, readiness/query composition, exact invocation commands, stale regeneration, and result references. Direct and conversational invocation share the command. | Wave 3 |
 | `UX-REQ-004` | **Partial, adapted and advanced after baseline.** ProjectDefinition and Objective contracts, immutable PostgreSQL authority, current binding, terminology, supported places, and optional template-seed origin now exist without requiring a profile catalogue. | Add full extension, presentation, compatibility, component-resolution, impact-review, and migration behavior while preserving Project-specific definitions. | Wave 1 |
@@ -439,12 +441,11 @@ through `UX-REQ-023` conformance.
 ## Immediate next implementation task
 
 Treat the completed M1.9 cumulative result, four live presentation reads,
-interface recovery gate, and initial semantic locator as the safety point.
-Continue Wave 1 with optional Project-shell selection and broader place
-summaries, then the read-only effective-control composition from `UX-REQ-020`.
-Do not broaden the M1 closeout into unimplemented working/historical graphs,
-general Work/Brief/History reads, managed folders, archives, or multi-user
-behavior.
+interface recovery gate, initial semantic locator, and expanded Project-shell
+context as the safety point. Continue Wave 1 with the read-only effective-control
+composition from `UX-REQ-020`. Do not broaden the M1 closeout into unimplemented
+working/historical graphs, general Work/Brief/History reads, managed folders,
+archives, or multi-user behavior.
 
 ## Verification status
 
@@ -452,5 +453,5 @@ The original disposition was based on read-only inspection of the frozen
 handoff, neutral reference implementation, accepted decisions, runtime schemas,
 repositories, server routes, M1.9 reports, and roadmap state. The status refresh
 records the verified cumulative trace, four additive live presentation reads,
-and initial semantic-location slice. It does not claim full neutral-product
-conformance.
+initial semantic-location slice, and Project-shell 1.1 context expansion. It does
+not claim full neutral-product conformance.

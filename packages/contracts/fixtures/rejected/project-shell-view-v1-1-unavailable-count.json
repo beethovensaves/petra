@@ -1,0 +1,74 @@
+{
+  "schema_name": "petra.project-shell-view",
+  "schema_version": "1.1.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "project": {
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "revision": 1,
+      "name": "Competing explanations",
+      "status": "active",
+      "updated_at": "2026-08-28T18:00:00.000Z"
+    },
+    "definition": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "definition_family": "petra.scientific-evidence",
+      "label": "Scientific evidence inquiry",
+      "description": "A scientific definition.",
+      "kernel_compatibility": "petra.project-kernel@1.0.0",
+      "terms": [
+        {
+          "semantic_key": "scientific.question",
+          "singular": "Question",
+          "plural": "Questions",
+          "definition": "A focus.",
+          "generic_family": "focus"
+        },
+        {
+          "semantic_key": "scientific.claim",
+          "singular": "Claim",
+          "plural": "Claims",
+          "definition": "A finding.",
+          "generic_family": "finding"
+        },
+        {
+          "semantic_key": "scientific.source",
+          "singular": "Source",
+          "plural": "Sources",
+          "definition": "A reference.",
+          "generic_family": "reference"
+        }
+      ],
+      "supported_places": ["brief", "profile_tool"]
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 3
+    },
+    "projection": {
+      "state": "unavailable",
+      "label": "Projection unavailable",
+      "detail": "No graph checkpoint is registered.",
+      "represented_event_position": 0,
+      "observed_event_position": 0,
+      "pending_records": 0
+    },
+    "attention": [],
+    "place_summaries": [
+      {
+        "role": "profile_tool",
+        "coverage": "unavailable",
+        "label": "Profile tool",
+        "summary": "No registered runtime summary adapter is available.",
+        "item_count": 12,
+        "attention_count": 0,
+        "limitation": "Unavailable summaries cannot disclose or invent an object count."
+      }
+    ]
+  },
+  "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "read_at": "2026-09-08T18:00:00.000Z"
+}

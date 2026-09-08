@@ -32,6 +32,7 @@ import type {
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
+import { PostgresProjectShellViewReader } from "../src/project-shell-view-reader.js";
 import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
 import { PostgresProjectSourceViewReader } from "../src/project-source-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
@@ -82,6 +83,7 @@ describePostgres("PostgreSQL Document authority repository", () => {
   const projectSources = new PostgresProjectSourceAuthorityRepository(pool);
   const sourceViews = new PostgresProjectSourceViewReader(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
+  const shellViews = new PostgresProjectShellViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -341,6 +343,32 @@ describePostgres("PostgreSQL Document authority repository", () => {
     expect(location?.content.resolution.state).toBe("current");
     expect(location?.content.primary_destination.role).toBe("sources");
     expect(location?.content.primary_destination).not.toHaveProperty("path");
+    const shell = await shellViews.getProjectShellView(project.project_id, {
+      object_ref: {
+        semantic_key: "petra.project-source",
+        object_id: projectSource.project_source_id,
+      },
+      task_intent: "inspect",
+    });
+    expect(shell?.schema_version).toBe("1.1.0");
+    if (shell?.schema_version !== "1.1.0") {
+      throw new Error("Expected the Project shell 1.1 view.");
+    }
+    expect(shell.content.selection?.resolution.state).toBe("current");
+    expect(shell.content.selection?.primary_destination.role).toBe("sources");
+    expect(shell.content.place_summaries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          role: "sources",
+          coverage: "complete",
+          item_count: 1,
+        }),
+        expect.objectContaining({
+          role: "history",
+          coverage: "partial",
+        }),
+      ]),
+    );
     expect(
       await sourceViews.listProjectSourceViews(project.project_id),
     ).toHaveLength(1);

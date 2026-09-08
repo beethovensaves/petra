@@ -513,36 +513,64 @@ export class PostgresProjectObjectLocationViewReader implements ProjectObjectLoc
     request: ProjectObjectLocationRequest,
   ): Promise<PetraProjectObjectLocationView | undefined> {
     this.#assertRequest(request);
-    return this.#readTransaction(async (client, readAt) => {
-      const definition = await this.#projectDefinition(
-        client,
-        request.project_id,
-      );
-      if (definition === undefined) return undefined;
-      const authority = await this.#authorityPosition(
-        client,
-        request.project_id,
-      );
-      const projection = this.#projectionSummary(
-        await this.#projectionCheckpoint(client, request.project_id),
-      );
-      const adapter = this.#adapters.get(request.object_ref.semantic_key);
+    return this.#readTransaction((client, readAt) =>
+      this.locateProjectObjectInSnapshot(client, request, readAt),
+    );
+  }
 
-      let content: ProjectObjectLocationContent;
-      if (
-        adapter === undefined ||
-        !this.#registrationSupported(definition, adapter)
-      ) {
-        content = this.#unavailableContent(
-          request,
-          definition,
-          "unsupported",
-          "OBJECT_KIND_UNSUPPORTED",
-          "This Project definition does not register the requested object kind.",
-          authority,
-          projection,
-        );
-      } else if (!adapter.idPattern.test(request.object_ref.object_id)) {
+  /**
+   * Composes a semantic location inside an existing PostgreSQL transaction.
+   * Callers own transaction isolation, commit, rollback, and timestamp identity.
+   */
+  async locateProjectObjectInSnapshot(
+    client: PoolClient,
+    request: ProjectObjectLocationRequest,
+    readAt: string,
+  ): Promise<PetraProjectObjectLocationView | undefined> {
+    this.#assertRequest(request);
+    const definition = await this.#projectDefinition(
+      client,
+      request.project_id,
+    );
+    if (definition === undefined) return undefined;
+    const authority = await this.#authorityPosition(client, request.project_id);
+    const projection = this.#projectionSummary(
+      await this.#projectionCheckpoint(client, request.project_id),
+    );
+    const adapter = this.#adapters.get(request.object_ref.semantic_key);
+
+    let content: ProjectObjectLocationContent;
+    if (
+      adapter === undefined ||
+      !this.#registrationSupported(definition, adapter)
+    ) {
+      content = this.#unavailableContent(
+        request,
+        definition,
+        "unsupported",
+        "OBJECT_KIND_UNSUPPORTED",
+        "This Project definition does not register the requested object kind.",
+        authority,
+        projection,
+      );
+    } else if (!adapter.idPattern.test(request.object_ref.object_id)) {
+      content = this.#unavailableContent(
+        request,
+        definition,
+        "missing",
+        "OBJECT_UNAVAILABLE",
+        "The requested object or exact revision is unavailable in this Project.",
+        authority,
+        projection,
+      );
+    } else {
+      const located = await adapter.locate(
+        client,
+        request.project_id,
+        request.object_ref.object_id,
+        request.object_ref.revision,
+      );
+      if (located === undefined || located.selected === undefined) {
         content = this.#unavailableContent(
           request,
           definition,
@@ -553,51 +581,29 @@ export class PostgresProjectObjectLocationViewReader implements ProjectObjectLoc
           projection,
         );
       } else {
-        const located = await adapter.locate(
-          client,
-          request.project_id,
-          request.object_ref.object_id,
-          request.object_ref.revision,
+        this.#assertStored(adapter, located.current);
+        this.#assertStored(adapter, located.selected);
+        content = this.#resolvedContent(
+          request,
+          definition,
+          adapter,
+          { ...located, selected: located.selected },
+          authority,
+          projection,
         );
-        if (located === undefined || located.selected === undefined) {
-          content = this.#unavailableContent(
-            request,
-            definition,
-            "missing",
-            "OBJECT_UNAVAILABLE",
-            "The requested object or exact revision is unavailable in this Project.",
-            authority,
-            projection,
-          );
-        } else {
-          this.#assertStored(adapter, located.current);
-          this.#assertStored(adapter, located.selected);
-          content = this.#resolvedContent(
-            request,
-            definition,
-            adapter,
-            { ...located, selected: located.selected },
-            authority,
-            projection,
-          );
-        }
       }
+    }
 
-      const view: PetraProjectObjectLocationView = {
-        schema_name: "petra.project-object-location-view",
-        schema_version: "1.0.0",
-        project_id: request.project_id,
-        content,
-        content_hash: canonicalHash(content),
-        read_at: readAt,
-      };
-      this.#contracts.assertValid(
-        "project-object-location-view",
-        "1.0.0",
-        view,
-      );
-      return view;
-    });
+    const view: PetraProjectObjectLocationView = {
+      schema_name: "petra.project-object-location-view",
+      schema_version: "1.0.0",
+      project_id: request.project_id,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: readAt,
+    };
+    this.#contracts.assertValid("project-object-location-view", "1.0.0", view);
+    return view;
   }
 
   #resolvedContent(

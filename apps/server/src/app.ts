@@ -185,6 +185,16 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   const maxBodyBytes = options.maxBodyBytes ?? 64 * 1024;
   const activeStreams = new Set<AbortController>();
   const contracts = new PetraContractRegistry();
+  const assertProjectShellView = (
+    view: Awaited<
+      ReturnType<
+        NonNullable<PetraAppOptions["projectShellViews"]>["getProjectShellView"]
+      >
+    >,
+  ): void => {
+    if (view === undefined) return;
+    contracts.assertValid("project-shell-view", view.schema_version, view);
+  };
 
   const interactionStreamResponse = (parameters: {
     runId: string;
@@ -362,7 +372,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     try {
       const projects = await options.projectShellViews.listProjectShellViews();
       for (const project of projects) {
-        contracts.assertValid("project-shell-view", "1.0.0", project);
+        assertProjectShellView(project);
       }
       return context.json({
         projects,
@@ -389,8 +399,74 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       );
     }
     try {
+      const parameters = new URL(context.req.url).searchParams;
+      const allowed = new Set([
+        "semanticKey",
+        "objectId",
+        "revision",
+        "taskIntent",
+      ]);
+      const unknown = [...parameters.keys()].filter((key) => !allowed.has(key));
+      if (unknown.length > 0) {
+        throw new InteractionInputError(
+          "Project shell selection contains unregistered query parameters.",
+          [...new Set(unknown)],
+        );
+      }
+      for (const key of allowed) {
+        if (parameters.getAll(key).length > 1) {
+          throw new InteractionInputError(
+            `Project shell selection parameter ${key} must appear once.`,
+          );
+        }
+      }
+      const hasSelection = [...parameters.keys()].length > 0;
+      const semanticKey = parameters.get("semanticKey");
+      const objectId = parameters.get("objectId");
+      const taskIntent = parameters.get("taskIntent");
+      const revisionValue = parameters.get("revision");
+      if (
+        hasSelection &&
+        (semanticKey === null ||
+          !SEMANTIC_KEY_PATTERN.test(semanticKey) ||
+          objectId === null ||
+          !PETRA_ID_PATTERN.test(objectId) ||
+          taskIntent === null ||
+          !LOCATION_INTENTS.includes(
+            taskIntent as (typeof LOCATION_INTENTS)[number],
+          ))
+      ) {
+        throw new InteractionInputError(
+          "Project shell selection requires a registered semanticKey, opaque Petra objectId, and taskIntent.",
+        );
+      }
+      const parsedRevision =
+        revisionValue === null ? undefined : Number(revisionValue);
+      if (
+        parsedRevision !== undefined &&
+        (!Number.isSafeInteger(parsedRevision) || parsedRevision < 1)
+      ) {
+        throw new InteractionInputError(
+          "Project shell selection revision must be a positive safe integer.",
+        );
+      }
       const view = await options.projectShellViews.getProjectShellView(
         context.req.param("projectId"),
+        hasSelection &&
+          semanticKey !== null &&
+          objectId !== null &&
+          taskIntent !== null
+          ? {
+              object_ref: {
+                semantic_key: semanticKey,
+                object_id: objectId,
+                ...(parsedRevision === undefined
+                  ? {}
+                  : { revision: parsedRevision }),
+              },
+              task_intent: taskIntent as (typeof LOCATION_INTENTS)[number],
+            }
+          : undefined,
       );
       if (view === undefined) {
         return jsonError(
@@ -400,16 +476,19 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           "The requested Project does not exist in the local authority store.",
         );
       }
-      contracts.assertValid("project-shell-view", "1.0.0", view);
+      assertProjectShellView(view);
       return context.json(view);
     } catch (error) {
       return jsonError(
         context,
-        503,
-        "PROJECT_SHELL_READ_FAILED",
+        error instanceof InteractionInputError ? 422 : 503,
+        error instanceof InteractionInputError
+          ? "PROJECT_SHELL_SELECTION_INVALID"
+          : "PROJECT_SHELL_READ_FAILED",
         error instanceof Error
           ? error.message
           : "The Project shell view is unavailable.",
+        error instanceof InteractionInputError ? error.issues : undefined,
       );
     }
   });

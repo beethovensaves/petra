@@ -1,0 +1,272 @@
+{
+  "schema_name": "petra.project-shell-view",
+  "schema_version": "1.1.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "project": {
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "revision": 1,
+      "name": "Competing explanations",
+      "description": "A bounded project for comparing scientific hypotheses.",
+      "status": "active",
+      "updated_at": "2026-08-28T18:00:00.000Z"
+    },
+    "definition": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "definition_family": "petra.scientific-evidence",
+      "label": "Scientific evidence inquiry",
+      "description": "Organizes research questions, claims, relationships, literature, review, and provenance without changing Petra's shared authority rules.",
+      "kernel_compatibility": "petra.project-kernel@1.0.0",
+      "terms": [
+        {
+          "semantic_key": "scientific.research-question",
+          "singular": "Research question",
+          "plural": "Research questions",
+          "definition": "A bounded question the Project is trying to answer.",
+          "generic_family": "focus"
+        },
+        {
+          "semantic_key": "scientific.claim",
+          "singular": "Claim",
+          "plural": "Claims",
+          "definition": "A proposition with explicit scope, basis, and authority state.",
+          "generic_family": "finding"
+        },
+        {
+          "semantic_key": "scientific.literature",
+          "singular": "Source",
+          "plural": "Sources",
+          "definition": "A versioned and rights-governed basis available to the Project.",
+          "generic_family": "reference"
+        }
+      ],
+      "supported_places": [
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings"
+      ]
+    },
+    "current_objective": {
+      "objective_id": "objective_01K4C000000000000000000005",
+      "revision": 1,
+      "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+      "objective_kind": "scientific.research-question",
+      "statement": "Determine which claims in the selected source are supported by exact inspectable passages.",
+      "status": "active"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 3
+    },
+    "projection": {
+      "state": "catching_up",
+      "label": "Projection catching up",
+      "detail": "The authority ledger is at event 3; the graph safely represents event 0 while one record remains pending.",
+      "checkpoint_ref": {
+        "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+        "revision": 1,
+        "content_hash": "sha256:e0a79ef876ef41017f24486b80122e0eefcbc6ff21677370ea1e5143558b06d9"
+      },
+      "represented_event_position": 0,
+      "observed_event_position": 3,
+      "pending_records": 1
+    },
+    "attention": [
+      {
+        "attention_id": "attention_01K4C000000000000000000008",
+        "attention_kind": "projection_catching_up",
+        "title": "Graph projection is catching up",
+        "summary": "The authoritative Project state is current, while the graph has one pending projection record.",
+        "consequence": "Graph relationships may omit the latest accepted authority event until projection catches up.",
+        "recommendation": "Continue in Brief or Review, or wait for the graph projection to catch up."
+      }
+    ],
+    "place_summaries": [
+      {
+        "role": "brief",
+        "coverage": "complete",
+        "label": "Brief",
+        "summary": "The current Project, definition, objective, and attention state are available.",
+        "item_count": 1,
+        "attention_count": 1
+      },
+      {
+        "role": "sources",
+        "coverage": "complete",
+        "label": "Sources",
+        "summary": "One Project source is currently registered.",
+        "item_count": 1,
+        "attention_count": 0
+      },
+      {
+        "role": "review",
+        "coverage": "complete",
+        "label": "Review",
+        "summary": "One Review session is open.",
+        "item_count": 1,
+        "attention_count": 1
+      },
+      {
+        "role": "graph",
+        "coverage": "complete",
+        "label": "Graph",
+        "summary": "The graph projection is catching up with one pending record.",
+        "attention_count": 1
+      },
+      {
+        "role": "work",
+        "coverage": "complete",
+        "label": "Work",
+        "summary": "Two Work units are registered; one needs attention.",
+        "item_count": 2,
+        "attention_count": 1
+      },
+      {
+        "role": "petra",
+        "coverage": "partial",
+        "label": "Petra",
+        "summary": "Three interaction runs are retained.",
+        "item_count": 3,
+        "attention_count": 0,
+        "limitation": "Durable Project threads and branch context are not implemented."
+      },
+      {
+        "role": "composition",
+        "coverage": "partial",
+        "label": "Composition",
+        "summary": "One DraftArtifact is registered.",
+        "item_count": 1,
+        "attention_count": 0,
+        "limitation": "The count covers DraftArtifacts, not a profile-neutral document collection."
+      },
+      {
+        "role": "history",
+        "coverage": "partial",
+        "label": "History",
+        "summary": "Five Project domain events are retained.",
+        "item_count": 5,
+        "attention_count": 0,
+        "limitation": "A composed causal Project History read is not implemented."
+      },
+      {
+        "role": "settings",
+        "coverage": "partial",
+        "label": "Settings",
+        "summary": "The effective ProjectDefinition is available.",
+        "attention_count": 0,
+        "limitation": "Effective privacy, capability, routing, budget, and Review controls are not yet composed."
+      }
+    ],
+    "selection": {
+      "request": {
+        "object_ref": {
+          "semantic_key": "petra.project-source",
+          "object_id": "project_source_01K4C000000000000000000007"
+        },
+        "task_intent": "inspect"
+      },
+      "definition_ref": {
+        "project_definition_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+        "definition_family": "petra.scientific-evidence"
+      },
+      "resolution": {
+        "state": "current",
+        "requested_ref": {
+          "semantic_key": "petra.project-source",
+          "object_id": "project_source_01K4C000000000000000000007"
+        },
+        "resolved_ref": {
+          "semantic_key": "petra.project-source",
+          "object_id": "project_source_01K4C000000000000000000007",
+          "revision": 1,
+          "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c"
+        },
+        "current_ref": {
+          "semantic_key": "petra.project-source",
+          "object_id": "project_source_01K4C000000000000000000007",
+          "revision": 1,
+          "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c"
+        },
+        "descriptor": {
+          "semantic_key": "petra.project-source",
+          "generic_family": "reference",
+          "label": "Source",
+          "summary": "scientific.literature · active Project source",
+          "lifecycle_state": "active"
+        },
+        "replacement_chain": []
+      },
+      "primary_destination": {
+        "role": "sources",
+        "purpose": "Inspect the exact Project source revision.",
+        "target_ref": {
+          "semantic_key": "petra.project-source",
+          "object_id": "project_source_01K4C000000000000000000007",
+          "revision": 1,
+          "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c"
+        }
+      },
+      "alternate_destinations": [
+        {
+          "role": "graph",
+          "purpose": "Trace relationships grounded in this source.",
+          "target_ref": {
+            "semantic_key": "petra.project-source",
+            "object_id": "project_source_01K4C000000000000000000007",
+            "revision": 1,
+            "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c"
+          }
+        },
+        {
+          "role": "history",
+          "purpose": "Inspect retained Project history for this source.",
+          "target_ref": {
+            "semantic_key": "petra.project-source",
+            "object_id": "project_source_01K4C000000000000000000007",
+            "revision": 1,
+            "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c"
+          }
+        }
+      ],
+      "fallback_destination": {
+        "role": "brief",
+        "purpose": "Return to the current Project orientation."
+      },
+      "context": {
+        "details_allowed": true,
+        "petra_allowed": true
+      },
+      "authority": {
+        "isolation": "repeatable_read",
+        "event_position": 3,
+        "stream_revision": 3
+      },
+      "projection": {
+        "state": "catching_up",
+        "label": "Projection catching up",
+        "detail": "The authority ledger is at event 3; the graph safely represents event 0 while one record remains pending.",
+        "checkpoint_ref": {
+          "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+          "revision": 1,
+          "content_hash": "sha256:e0a79ef876ef41017f24486b80122e0eefcbc6ff21677370ea1e5143558b06d9"
+        },
+        "represented_event_position": 0,
+        "observed_event_position": 3,
+        "pending_records": 1
+      }
+    }
+  },
+  "content_hash": "sha256:b7302604cc9222056bb1fb8ab4f5c72b0685e3608d763069964ef8b006aa30a4",
+  "read_at": "2026-09-08T18:00:00.000Z"
+}

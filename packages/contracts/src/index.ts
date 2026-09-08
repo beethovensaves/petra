@@ -45,6 +45,13 @@ export type {
   ShellContent as ProjectShellContent,
 } from "./generated/project-shell-view.js";
 export type {
+  AvailablePlaceSummary as ProjectShellAvailablePlaceSummary,
+  PetraProjectShellViewV11,
+  PlaceSummary as ProjectShellPlaceSummary,
+  ShellContent as ProjectShellContentV11,
+  UnavailablePlaceSummary as ProjectShellUnavailablePlaceSummary,
+} from "./generated/project-shell-view-v1-1.js";
+export type {
   ArtifactManifestRef as ProjectSourceArtifactManifestRef,
   AuthorRef as ProjectSourceAuthorRef,
   DefinitionRef as ProjectSourceDefinitionRef,

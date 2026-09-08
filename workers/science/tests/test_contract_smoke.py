@@ -1067,6 +1067,69 @@ class PetraProjectObjectLocationView(PetraModel):
     read_at: str
 
 
+class ProjectShellAvailablePlaceSummary(PetraModel):
+    role: Literal[
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings",
+        "profile_tool",
+    ]
+    coverage: Literal["complete", "partial"]
+    label: str
+    summary: str
+    item_count: int | None = None
+    attention_count: int
+    limitation: str | None = None
+
+
+class ProjectShellUnavailablePlaceSummary(PetraModel):
+    role: Literal[
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings",
+        "profile_tool",
+    ]
+    coverage: Literal["unavailable"]
+    label: str
+    summary: str
+    attention_count: Literal[0]
+    limitation: str
+
+
+class ProjectShellContentV110(PetraModel):
+    project: ProjectShellProjectSummary
+    definition: ProjectShellDefinitionSummary
+    current_objective: ProjectShellObjectiveSummary | None = None
+    authority: ProjectShellAuthorityPosition
+    projection: ProjectShellProjectionSummary
+    attention: list[ProjectShellAttentionItem]
+    place_summaries: list[
+        ProjectShellAvailablePlaceSummary | ProjectShellUnavailablePlaceSummary
+    ]
+    selection: ProjectObjectLocationContent | None = None
+
+
+class PetraProjectShellViewV110(PetraModel):
+    schema_name: Literal["petra.project-shell-view"]
+    schema_version: Literal["1.1.0"]
+    project_id: str
+    content: ProjectShellContentV110
+    content_hash: str
+    read_at: str
+
+
 class PetraAuthor(PetraModel):
     schema_name: Literal["petra.author"]
     schema_version: Literal["1.0.0"]
@@ -4853,6 +4916,7 @@ PYDANTIC_MODELS.update(
         ): PetraSynthesistRoleCertification,
         ("model-request", "1.1.0"): PetraSynthesistModelRequest,
         ("model-call", "1.1.0"): PetraSynthesistModelCall,
+        ("project-shell-view", "1.1.0"): PetraProjectShellViewV110,
     }
 )
 

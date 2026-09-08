@@ -80,6 +80,32 @@ export type ProjectRecord = {
   attention: AttentionItem[];
   recentDecisions: string[];
   sources: SourceRecord[];
+  placeSummaries?: Array<{
+    role: ProjectPlace;
+    coverage: "complete" | "partial" | "unavailable";
+    label: string;
+    summary: string;
+    itemCount?: number;
+    attentionCount: number;
+    limitation?: string;
+  }>;
+  selection?: {
+    state:
+      | "current"
+      | "historical"
+      | "superseded"
+      | "missing"
+      | "unauthorized"
+      | "unsupported";
+    semanticKey: string;
+    objectId: string;
+    requestedRevision?: number;
+    resolvedRevision?: number;
+    recordHash?: string;
+    label?: string;
+    summary?: string;
+    destination: ProjectPlace;
+  };
 };
 
 export type EngineState = {
@@ -96,6 +122,7 @@ export type ProjectPlace =
   | "petra"
   | "composition"
   | "history"
+  | "settings"
   | "profile_tool";
 
 export type ReviewStatus = "needs_decision" | "waiting" | "completed";

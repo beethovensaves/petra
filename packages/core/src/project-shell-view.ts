@@ -1,4 +1,16 @@
-import type { PetraProjectShellView } from "@petra/contracts";
+import type {
+  PetraProjectShellView,
+  PetraProjectShellViewV11,
+} from "@petra/contracts";
+
+import type { ProjectObjectLocationRequest } from "./project-object-location-view.js";
+
+export type ProjectShellView = PetraProjectShellView | PetraProjectShellViewV11;
+
+export type ProjectShellSelectionRequest = Omit<
+  ProjectObjectLocationRequest,
+  "project_id"
+>;
 
 /**
  * Authorized read composition for the Project list and shared Project shell.
@@ -6,8 +18,9 @@ import type { PetraProjectShellView } from "@petra/contracts";
  * snapshot; clients must not join independent records into Project meaning.
  */
 export interface ProjectShellViewReader {
-  listProjectShellViews(): Promise<PetraProjectShellView[]>;
+  listProjectShellViews(): Promise<ProjectShellView[]>;
   getProjectShellView(
     projectId: string,
-  ): Promise<PetraProjectShellView | undefined>;
+    selection?: ProjectShellSelectionRequest,
+  ): Promise<ProjectShellView | undefined>;
 }

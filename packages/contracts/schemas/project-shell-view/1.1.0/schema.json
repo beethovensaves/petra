@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-shell-view/1.1.0/schema.json",
+  "title": "PetraProjectShellViewV11",
+  "description": "A read-only, snapshot-consistent Project shell composition with honest place summaries and optional exact semantic selection.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-shell-view" },
+    "schema_version": { "const": "1.1.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ShellContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "AvailablePlaceSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "coverage", "label", "summary", "attention_count"],
+      "properties": {
+        "role": {
+          "$ref": "../../project-object-location-view/1.0.0/schema.json#/$defs/PlaceRole"
+        },
+        "coverage": { "enum": ["complete", "partial"] },
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "item_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "attention_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "limitation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    },
+    "UnavailablePlaceSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "coverage",
+        "label",
+        "summary",
+        "attention_count",
+        "limitation"
+      ],
+      "properties": {
+        "role": {
+          "$ref": "../../project-object-location-view/1.0.0/schema.json#/$defs/PlaceRole"
+        },
+        "coverage": { "const": "unavailable" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "attention_count": { "const": 0 },
+        "limitation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    },
+    "PlaceSummary": {
+      "oneOf": [
+        { "$ref": "#/$defs/AvailablePlaceSummary" },
+        { "$ref": "#/$defs/UnavailablePlaceSummary" }
+      ]
+    },
+    "ShellContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "definition",
+        "authority",
+        "projection",
+        "attention",
+        "place_summaries"
+      ],
+      "properties": {
+        "project": {
+          "$ref": "../1.0.0/schema.json#/$defs/ProjectSummary"
+        },
+        "definition": {
+          "$ref": "../1.0.0/schema.json#/$defs/DefinitionSummary"
+        },
+        "current_objective": {
+          "$ref": "../1.0.0/schema.json#/$defs/ObjectiveSummary"
+        },
+        "authority": {
+          "$ref": "../1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "projection": {
+          "$ref": "../1.0.0/schema.json#/$defs/ProjectionSummary"
+        },
+        "attention": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "../1.0.0/schema.json#/$defs/AttentionItem"
+          }
+        },
+        "place_summaries": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/PlaceSummary" }
+        },
+        "selection": {
+          "$ref": "../../project-object-location-view/1.0.0/schema.json#/$defs/LocationContent"
+        }
+      }
+    }
+  }
+}

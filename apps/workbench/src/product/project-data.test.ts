@@ -5,6 +5,7 @@ import type {
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
+  PetraProjectShellViewV11,
   PetraProjectSourceView,
 } from "@petra/contracts";
 import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
@@ -13,6 +14,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
+  loadProjectRecord,
   projectRecordFromShellView,
   reviewSessionFromView,
   sourceRecordFromView,
@@ -28,6 +30,16 @@ const view = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectShellView;
+
+const shellV11View = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-shell-view-v1-1.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectShellViewV11;
 
 const sourceView = JSON.parse(
   readFileSync(
@@ -124,6 +136,86 @@ describe("Project shell workbench adapter", () => {
     expect(project.projection.state).toBe("unavailable");
     expect(project.sources).toEqual([]);
     expect(project.recentDecisions).toEqual([]);
+  });
+
+  it("retains honest place coverage and exact semantic selection from shell 1.1", () => {
+    const before = structuredClone(shellV11View);
+    const project = projectRecordFromShellView(shellV11View);
+
+    expect(project.placeSummaries).toHaveLength(9);
+    expect(project.placeSummaries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          role: "work",
+          coverage: "complete",
+          itemCount: 2,
+          attentionCount: 1,
+        }),
+        expect.objectContaining({
+          role: "history",
+          coverage: "partial",
+          limitation:
+            "A composed causal Project History read is not implemented.",
+        }),
+      ]),
+    );
+    expect(project.selection).toEqual(
+      expect.objectContaining({
+        state: "current",
+        semanticKey: "petra.project-source",
+        objectId: "project_source_01K4C000000000000000000007",
+        resolvedRevision: 1,
+        destination: "sources",
+      }),
+    );
+    expect(shellV11View).toEqual(before);
+  });
+
+  it("requests and verifies an exact route selection in the shell snapshot", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      new Response(JSON.stringify(shellV11View), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      "http://petra.test/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources/project_source_01K4C000000000000000000007?semanticKey=petra.project-source&revision=1&recordHash=sha256%3Afa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c",
+    );
+    const args: LoaderFunctionArgs = {
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId",
+      params: {
+        projectId: "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      },
+      context: new RouterContextProvider(),
+    };
+
+    const project = await loadProjectRecord(args);
+
+    expect(project.selection?.recordHash).toBe(
+      "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c",
+    );
+    const requestPath = fetch.mock.calls[0]?.[0];
+    expect(typeof requestPath).toBe("string");
+    if (typeof requestPath !== "string") {
+      throw new TypeError("Expected the shell loader to request a URL string.");
+    }
+    expect(requestPath).toContain(
+      "/shell?semanticKey=petra.project-source&objectId=project_source_01K4C000000000000000000007&revision=1&taskIntent=inspect",
+    );
+
+    const incompleteUrl = new URL(url);
+    incompleteUrl.searchParams.delete("recordHash");
+    await expect(
+      loadProjectRecord({
+        ...args,
+        request: new Request(incompleteUrl),
+        url: incompleteUrl,
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(fetch).toHaveBeenCalledOnce();
   });
 
   it("maps one exact ProjectSource authority chain into the frozen source surfaces", () => {

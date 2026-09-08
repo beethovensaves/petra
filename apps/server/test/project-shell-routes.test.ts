@@ -5,12 +5,14 @@ import type {
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
+  PetraProjectShellViewV11,
   PetraProjectSourceView,
 } from "@petra/contracts";
 import type {
   ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
+  ProjectShellSelectionRequest,
   ProjectShellViewReader,
   ProjectSourceViewReader,
 } from "@petra/core";
@@ -29,6 +31,16 @@ const fixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectShellView;
+
+const shellV11Fixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-shell-view-v1-1.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectShellViewV11;
 
 const sourceFixture = JSON.parse(
   readFileSync(
@@ -153,6 +165,49 @@ describe("authorized Project shell query routes", () => {
     );
     expect(detail.status).toBe(200);
     await expect(detail.json()).resolves.toEqual(fixture);
+  });
+
+  it("composes an exact optional selection into the 1.1 shell view", async () => {
+    let observedSelection: ProjectShellSelectionRequest | undefined;
+    const v11Reader: ProjectShellViewReader = {
+      listProjectShellViews: () =>
+        Promise.resolve([structuredClone(shellV11Fixture)]),
+      getProjectShellView: (projectId, selection) => {
+        observedSelection = selection;
+        return Promise.resolve(
+          projectId === shellV11Fixture.project_id
+            ? structuredClone(shellV11Fixture)
+            : undefined,
+        );
+      },
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectShellViews: v11Reader,
+    });
+    const response = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${shellV11Fixture.project_id}/shell?semanticKey=petra.project-source&objectId=project_source_01K4C000000000000000000007&revision=1&taskIntent=inspect`,
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    expect(observedSelection).toEqual({
+      object_ref: {
+        semantic_key: "petra.project-source",
+        object_id: "project_source_01K4C000000000000000000007",
+        revision: 1,
+      },
+      task_intent: "inspect",
+    });
+    await expect(response.json()).resolves.toEqual(shellV11Fixture);
+
+    const invalid = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${shellV11Fixture.project_id}/shell?semanticKey=petra.project-source`,
+      ),
+    );
+    expect(invalid.status).toBe(422);
   });
 
   it("does not substitute another Project and preserves the API auth boundary", async () => {

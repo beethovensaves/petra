@@ -1359,7 +1359,7 @@ A local component calculation is allowed for presentation-only state such as pan
 
 | Request | Status | Need | Implementation link | Full record |
 | --- | --- | --- | --- | --- |
-| `UX-REQ-001` | `proposed` | Snapshot-consistent `ProjectShellView` | `M1.7` | `UX1.1` in this roadmap |
+| `UX-REQ-001` | `partial`; shell 1.1 context and exact-selection slice passed | Snapshot-consistent `ProjectShellView` | `M1.7` | `reports/UX-REQ-001-SHELL-CONTEXT.md` |
 | `UX-REQ-002` | `proposed` | Task-oriented, profile-resolved, snapshot-consistent `ProjectBriefView` | `M1.6`, `M1.7`, later `M2`/`M3` extensions | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-003` | `proposed` | Versioned `SuggestedActionView` with preview and typed invocation | `M1.6`, `M1.7`, later `M2`/`M3` extensions | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-004` | `proposed`; architecture decision required | Versioned Project-profile binding, typed domain registry, adaptive vocabulary/view boundary, and bounded semantic presentation descriptors with safe fallback | `M1.1`, `M1.2`, `M1.7`, later controlled-writing contracts | `reports/UX-BACKEND-HANDOFF.md` |

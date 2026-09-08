@@ -4,15 +4,22 @@ import type {
   PetraProject,
   PetraProjectDefinition,
   PetraProjectObjective,
-  PetraProjectShellView,
+  PetraProjectShellViewV11,
   PetraProjectionCheckpoint,
-  ProjectShellContent,
+  ProjectShellContentV11,
+  ProjectShellPlaceSummary,
   ProjectShellProjectionSummary,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import { derivePetraId, type ProjectShellViewReader } from "@petra/core";
+import {
+  derivePetraId,
+  type ProjectShellSelectionRequest,
+  type ProjectShellViewReader,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
+
+import { PostgresProjectObjectLocationViewReader } from "./project-object-location-view-reader.js";
 
 export type PostgresProjectShellViewErrorCode =
   "PROJECT_SHELL_DEFINITION_MISSING" | "PROJECT_SHELL_STORED_RECORD_CORRUPT";
@@ -43,6 +50,19 @@ interface PayloadRow {
   payload: unknown;
 }
 
+interface PlaceCountRow {
+  source_count: string;
+  review_count: string;
+  review_attention_count: string;
+  work_count: string;
+  work_attention_count: string;
+  interaction_count: string;
+  interaction_attention_count: string;
+  draft_count: string;
+  draft_attention_count: string;
+  history_count: string;
+}
+
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
 
@@ -51,16 +71,25 @@ const clone = <Value>(value: Value): Value => structuredClone(value);
 export class PostgresProjectShellViewReader implements ProjectShellViewReader {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
+  readonly #objectLocations: PostgresProjectObjectLocationViewReader;
 
-  constructor(pool: Pool, contracts = new PetraContractRegistry()) {
+  constructor(
+    pool: Pool,
+    contracts = new PetraContractRegistry(),
+    objectLocations = new PostgresProjectObjectLocationViewReader(
+      pool,
+      contracts,
+    ),
+  ) {
     this.#pool = pool;
     this.#contracts = contracts;
+    this.#objectLocations = objectLocations;
   }
 
-  async listProjectShellViews(): Promise<PetraProjectShellView[]> {
+  async listProjectShellViews(): Promise<PetraProjectShellViewV11[]> {
     return this.#readTransaction(async (client, readAt) => {
       const rows = await this.#selectShellRows(client);
-      const views: PetraProjectShellView[] = [];
+      const views: PetraProjectShellViewV11[] = [];
       for (const row of rows) {
         views.push(await this.#compose(client, row, readAt));
       }
@@ -70,13 +99,14 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
 
   async getProjectShellView(
     projectId: string,
-  ): Promise<PetraProjectShellView | undefined> {
+    selection?: ProjectShellSelectionRequest,
+  ): Promise<PetraProjectShellViewV11 | undefined> {
     return this.#readTransaction(async (client, readAt) => {
       const rows = await this.#selectShellRows(client, projectId);
       const row = rows[0];
       return row === undefined
         ? undefined
-        : await this.#compose(client, row, readAt);
+        : await this.#compose(client, row, readAt, selection);
     });
   }
 
@@ -117,7 +147,8 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     client: PoolClient,
     row: ShellRow,
     readAt: string,
-  ): Promise<PetraProjectShellView> {
+    selection?: ProjectShellSelectionRequest,
+  ): Promise<PetraProjectShellViewV11> {
     const project = this.#project(row.project_payload);
     if (row.definition_payload === null) {
       throw new PostgresProjectShellViewError(
@@ -148,7 +179,29 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     );
     const projection = this.#projectionSummary(checkpoint);
     const attention = this.#projectionAttention(project.project_id, projection);
-    const content: ProjectShellContent = {
+    const placeSummaries = await this.#placeSummaries(
+      client,
+      project.project_id,
+      definition,
+      objective,
+      projection,
+      attention.length,
+    );
+    const selected =
+      selection === undefined
+        ? undefined
+        : await this.#objectLocations.locateProjectObjectInSnapshot(
+            client,
+            { project_id: project.project_id, ...selection },
+            readAt,
+          );
+    if (selection !== undefined && selected === undefined) {
+      throw new PostgresProjectShellViewError(
+        "PROJECT_SHELL_STORED_RECORD_CORRUPT",
+        "The selected object resolver could not reproduce the current Project.",
+      );
+    }
+    const content: ProjectShellContentV11 = {
       project: {
         project_id: project.project_id,
         revision: project.revision,
@@ -185,23 +238,232 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
       authority,
       projection,
       attention,
+      place_summaries: placeSummaries,
+      ...(selected === undefined ? {} : { selection: selected.content }),
     };
-    const view: PetraProjectShellView = {
+    const view: PetraProjectShellViewV11 = {
       schema_name: "petra.project-shell-view",
-      schema_version: "1.0.0",
+      schema_version: "1.1.0",
       project_id: project.project_id,
       content,
       content_hash: canonicalHash(content),
       read_at: readAt,
     };
-    this.#contracts.assertValid("project-shell-view", "1.0.0", view);
+    this.#contracts.assertValid("project-shell-view", "1.1.0", view);
     return view;
+  }
+
+  async #placeSummaries(
+    client: PoolClient,
+    projectId: string,
+    definition: PetraProjectDefinition,
+    objective: PetraProjectObjective | undefined,
+    projection: ProjectShellProjectionSummary,
+    shellAttentionCount: number,
+  ): Promise<ProjectShellContentV11["place_summaries"]> {
+    const result = await client.query<PlaceCountRow>(
+      `SELECT
+         (SELECT count(*) FROM petra.project_sources
+           WHERE project_id = $1)::text AS source_count,
+         (SELECT count(*) FROM petra.review_sessions
+           WHERE project_id = $1)::text AS review_count,
+         (SELECT count(*)
+            FROM petra.review_sessions AS head
+            JOIN petra.review_session_revisions AS revision
+              ON revision.review_session_id = head.review_session_id
+             AND revision.revision = head.current_revision
+           WHERE head.project_id = $1
+             AND revision.lifecycle = 'open')::text AS review_attention_count,
+         (SELECT count(*) FROM petra.work_units
+           WHERE project_id = $1)::text AS work_count,
+         (SELECT count(*)
+            FROM petra.work_units AS head
+            JOIN petra.work_unit_revisions AS revision
+              ON revision.work_unit_id = head.work_unit_id
+             AND revision.revision = head.current_revision
+           WHERE head.project_id = $1
+             AND revision.state IN ('queued', 'running'))::text
+           AS work_attention_count,
+         (SELECT count(*) FROM petra.interaction_runs
+           WHERE project_id = $1)::text AS interaction_count,
+         (SELECT count(*)
+            FROM petra.interaction_runs AS head
+            JOIN petra.interaction_run_revisions AS revision
+              ON revision.interaction_run_id = head.interaction_run_id
+             AND revision.revision = head.current_revision
+           WHERE head.project_id = $1
+             AND revision.lifecycle_state IN ('running', 'awaiting_interrupt'))::text
+           AS interaction_attention_count,
+         (SELECT count(*) FROM petra.draft_artifacts
+           WHERE project_id = $1)::text AS draft_count,
+         (SELECT count(*)
+            FROM petra.draft_artifacts AS head
+            JOIN petra.draft_artifact_revisions AS revision
+              ON revision.draft_artifact_id = head.draft_artifact_id
+             AND revision.revision = head.current_revision
+           WHERE head.project_id = $1
+             AND revision.validation_state IN ('failed', 'stale'))::text
+           AS draft_attention_count,
+         (SELECT count(*) FROM petra.domain_events
+           WHERE project_id = $1)::text AS history_count`,
+      [projectId],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw new PostgresProjectShellViewError(
+        "PROJECT_SHELL_STORED_RECORD_CORRUPT",
+        "The Project place summary query returned no result.",
+      );
+    }
+    const count = (value: string, label: string): number => {
+      const parsed = Number(value);
+      if (!Number.isSafeInteger(parsed) || parsed < 0) {
+        throw new PostgresProjectShellViewError(
+          "PROJECT_SHELL_STORED_RECORD_CORRUPT",
+          `The ${label} count is outside Petra's safe range.`,
+        );
+      }
+      return parsed;
+    };
+    const counts = {
+      sources: count(row.source_count, "Project source"),
+      reviews: count(row.review_count, "Review session"),
+      reviewAttention: count(row.review_attention_count, "open Review session"),
+      work: count(row.work_count, "WorkUnit"),
+      workAttention: count(row.work_attention_count, "active WorkUnit"),
+      interactions: count(row.interaction_count, "interaction run"),
+      interactionAttention: count(
+        row.interaction_attention_count,
+        "active interaction run",
+      ),
+      drafts: count(row.draft_count, "DraftArtifact"),
+      draftAttention: count(
+        row.draft_attention_count,
+        "DraftArtifact needing validation",
+      ),
+      history: count(row.history_count, "Project domain event"),
+    };
+    const phrase = (amount: number, singular: string, plural: string): string =>
+      `${amount} ${amount === 1 ? singular : plural}`;
+    const sourceLabel =
+      definition.content.terms.find(
+        (candidate) => candidate.generic_family === "reference",
+      )?.plural ?? "Sources";
+    const summaries: Record<
+      PetraProjectDefinition["content"]["supported_places"][number],
+      () => ProjectShellPlaceSummary
+    > = {
+      brief: () => ({
+        role: "brief",
+        coverage: "complete",
+        label: "Brief",
+        summary:
+          objective === undefined
+            ? "The Project has no current Objective."
+            : "The current Project, definition, Objective, and attention state are available.",
+        item_count: objective === undefined ? 0 : 1,
+        attention_count: shellAttentionCount,
+      }),
+      sources: () => ({
+        role: "sources",
+        coverage: "complete",
+        label: sourceLabel,
+        summary: `${phrase(counts.sources, "Project source is", "Project sources are")} currently registered.`,
+        item_count: counts.sources,
+        attention_count: 0,
+      }),
+      review: () => ({
+        role: "review",
+        coverage: "complete",
+        label: "Review",
+        summary: `${phrase(counts.reviews, "Review session is", "Review sessions are")} registered; ${phrase(counts.reviewAttention, "is", "are")} open.`,
+        item_count: counts.reviews,
+        attention_count: counts.reviewAttention,
+      }),
+      graph: () =>
+        projection.state === "unavailable"
+          ? {
+              role: "graph",
+              coverage: "unavailable",
+              label: "Graph",
+              summary: "No authority-graph checkpoint is registered.",
+              attention_count: 0,
+              limitation:
+                "Authoritative Project records remain available outside the graph projection.",
+            }
+          : {
+              role: "graph",
+              coverage: "complete",
+              label: "Graph",
+              summary: projection.detail,
+              attention_count: projection.state === "current" ? 0 : 1,
+            },
+      work: () => ({
+        role: "work",
+        coverage: "complete",
+        label: "Work",
+        summary: `${phrase(counts.work, "WorkUnit is", "WorkUnits are")} registered; ${phrase(counts.workAttention, "is", "are")} active.`,
+        item_count: counts.work,
+        attention_count: counts.workAttention,
+      }),
+      petra: () => ({
+        role: "petra",
+        coverage: "partial",
+        label: "Petra",
+        summary: `${phrase(counts.interactions, "interaction run is", "interaction runs are")} retained.`,
+        item_count: counts.interactions,
+        attention_count: counts.interactionAttention,
+        limitation:
+          "Durable Project threads and branch context are not implemented.",
+      }),
+      composition: () => ({
+        role: "composition",
+        coverage: "partial",
+        label: "Composition",
+        summary: `${phrase(counts.drafts, "DraftArtifact is", "DraftArtifacts are")} registered.`,
+        item_count: counts.drafts,
+        attention_count: counts.draftAttention,
+        limitation:
+          "The count covers DraftArtifacts, not a ProjectDefinition-neutral document collection.",
+      }),
+      history: () => ({
+        role: "history",
+        coverage: "partial",
+        label: "History",
+        summary: `${phrase(counts.history, "Project domain event is", "Project domain events are")} retained.`,
+        item_count: counts.history,
+        attention_count: 0,
+        limitation:
+          "A composed causal Project History read is not implemented.",
+      }),
+      settings: () => ({
+        role: "settings",
+        coverage: "partial",
+        label: "Settings",
+        summary: "The effective ProjectDefinition is available.",
+        attention_count: 0,
+        limitation:
+          "Effective privacy, capability, routing, budget, and Review controls are not yet composed.",
+      }),
+      profile_tool: () => ({
+        role: "profile_tool",
+        coverage: "unavailable",
+        label: "Profile tool",
+        summary: "No registered profile-tool summary adapter is available.",
+        attention_count: 0,
+        limitation:
+          "Profile tools require an extension-registered read adapter before the shell can summarize them.",
+      }),
+    };
+    return definition.content.supported_places.map((place) =>
+      summaries[place](),
+    ) as ProjectShellContentV11["place_summaries"];
   }
 
   async #authorityPosition(
     client: PoolClient,
     projectId: string,
-  ): Promise<ProjectShellContent["authority"]> {
+  ): Promise<ProjectShellContentV11["authority"]> {
     const result = await client.query<AuthorityRow>(
       `SELECT authority.event_position,
               stream.current_stream_revision AS stream_revision
@@ -306,7 +568,7 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
   #projectionAttention(
     projectId: string,
     projection: ProjectShellProjectionSummary,
-  ): ProjectShellContent["attention"] {
+  ): ProjectShellContentV11["attention"] {
     if (projection.state === "current" || projection.state === "unavailable") {
       return [];
     }
