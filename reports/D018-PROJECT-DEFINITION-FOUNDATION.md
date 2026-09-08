@@ -75,8 +75,8 @@ Definition component resolution, definition-change impact Review, material Work
 binding, general working candidates, managed Project folders, `.petra`
 checkpoints, restoration, and derived-Project creation remain open.
 
-The next M1.9 step is the minimum authorized `ProjectShellView` and live server
-read adapter needed to replace frozen workbench fixture imports for the existing
-scientific evidence path. It must preserve the frozen presentation while
-keeping ProjectDefinition interpretation, freshness, provenance, and recovery
-state out of React components.
+The first authorized `ProjectShellView` and live server adapter are now recorded
+in [the M1.9 Project shell integration report](M1.9-PROJECT-SHELL-INTEGRATION.md).
+The next M1.9 cut adds scientific source and Review reads while keeping
+ProjectDefinition interpretation, freshness, provenance, and recovery state out
+of React components.

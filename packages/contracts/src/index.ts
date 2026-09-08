@@ -33,6 +33,17 @@ export type {
   ObjectiveRef as ProjectObjectiveRef,
   PetraProjectObjective,
 } from "./generated/project-objective.js";
+export type {
+  AttentionItem as ProjectShellAttentionItem,
+  AuthorityPosition as ProjectShellAuthorityPosition,
+  DefinitionSummary as ProjectShellDefinitionSummary,
+  ExactRef as ProjectShellExactRef,
+  ObjectiveSummary as ProjectShellObjectiveSummary,
+  PetraProjectShellView,
+  ProjectSummary as ProjectShellProjectSummary,
+  ProjectionSummary as ProjectShellProjectionSummary,
+  ShellContent as ProjectShellContent,
+} from "./generated/project-shell-view.js";
 export type { AuthorCredit, PetraWork } from "./generated/work.js";
 export type {
   MetadataSource,

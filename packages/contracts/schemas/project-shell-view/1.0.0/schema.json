@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-shell-view/1.0.0/schema.json",
+  "title": "PetraProjectShellView",
+  "description": "A read-only, snapshot-consistent Project shell composition resolved through one exact ProjectDefinition.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-shell-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ShellContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ExactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "content_hash"],
+      "properties": {
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ProjectSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "revision", "name", "status", "updated_at"],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "status": { "enum": ["active", "archived"] },
+        "updated_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "DefinitionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_id",
+        "revision",
+        "content_hash",
+        "definition_family",
+        "label",
+        "description",
+        "kernel_compatibility",
+        "terms",
+        "supported_places"
+      ],
+      "properties": {
+        "project_definition_id": {
+          "type": "string",
+          "pattern": "^project_definition_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "definition_family": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]{2,127}$"
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "kernel_compatibility": { "const": "petra.project-kernel@1.0.0" },
+        "terms": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 1000,
+          "items": {
+            "$ref": "../../project-definition/1.0.0/schema.json#/$defs/Term"
+          }
+        },
+        "supported_places": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "brief",
+              "sources",
+              "review",
+              "graph",
+              "work",
+              "petra",
+              "composition",
+              "history",
+              "settings",
+              "profile_tool"
+            ]
+          }
+        }
+      }
+    },
+    "ObjectiveSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective_id",
+        "revision",
+        "content_hash",
+        "objective_kind",
+        "statement",
+        "status"
+      ],
+      "properties": {
+        "objective_id": {
+          "type": "string",
+          "pattern": "^objective_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "objective_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "status": {
+          "enum": ["active", "satisfied", "superseded", "abandoned"]
+        }
+      }
+    },
+    "AuthorityPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isolation", "event_position", "stream_revision"],
+      "properties": {
+        "isolation": { "const": "repeatable_read" },
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "ProjectionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "label",
+        "detail",
+        "represented_event_position",
+        "observed_event_position",
+        "pending_records"
+      ],
+      "properties": {
+        "state": {
+          "enum": ["current", "catching_up", "blocked", "unavailable"]
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "checkpoint_ref": { "$ref": "#/$defs/ExactRef" },
+        "represented_event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "observed_event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "pending_records": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "failure_code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "const": "current" } } },
+          "then": {
+            "required": ["checkpoint_ref"],
+            "properties": {
+              "checkpoint_ref": {},
+              "pending_records": { "const": 0 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "state": { "const": "catching_up" } } },
+          "then": {
+            "required": ["checkpoint_ref"],
+            "properties": {
+              "checkpoint_ref": {},
+              "pending_records": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "state": { "const": "blocked" } } },
+          "then": {
+            "required": ["checkpoint_ref", "failure_code"],
+            "properties": {
+              "checkpoint_ref": {},
+              "failure_code": {},
+              "pending_records": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "state": { "const": "unavailable" } } },
+          "then": {
+            "properties": {
+              "checkpoint_ref": false,
+              "failure_code": false,
+              "pending_records": { "const": 0 }
+            }
+          }
+        }
+      ]
+    },
+    "AttentionItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attention_id",
+        "attention_kind",
+        "title",
+        "summary",
+        "consequence",
+        "recommendation"
+      ],
+      "properties": {
+        "attention_id": {
+          "type": "string",
+          "pattern": "^attention_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "attention_kind": {
+          "enum": ["projection_catching_up", "projection_blocked"]
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "consequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "recommendation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    },
+    "ShellContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "definition",
+        "authority",
+        "projection",
+        "attention"
+      ],
+      "properties": {
+        "project": { "$ref": "#/$defs/ProjectSummary" },
+        "definition": { "$ref": "#/$defs/DefinitionSummary" },
+        "current_objective": { "$ref": "#/$defs/ObjectiveSummary" },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" },
+        "projection": { "$ref": "#/$defs/ProjectionSummary" },
+        "attention": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/AttentionItem" }
+        }
+      }
+    }
+  }
+}

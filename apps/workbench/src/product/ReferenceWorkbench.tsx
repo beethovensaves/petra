@@ -16,7 +16,6 @@ import {
   REFERENCE_PROJECTS,
   getProjectGraph,
   getProjectProfileTool,
-  getReferenceProject,
   getReferenceReview,
   getReferenceSource,
 } from "./fixtures.js";
@@ -242,7 +241,9 @@ export const ProjectsSurface = ({
   );
 };
 
-export const ProjectsRoute = (): React.JSX.Element => <ProjectsSurface />;
+export const ProjectsRoute = (): React.JSX.Element => (
+  <ProjectsSurface projects={useLoaderData<ProjectRecord[]>()} />
+);
 
 type ProjectOutletContext = { project: ProjectRecord };
 
@@ -271,8 +272,7 @@ const placeFromPath = (pathname: string): ProjectPlace =>
                   : "brief";
 
 export const ProjectShell = (): React.JSX.Element => {
-  const { projectId } = useParams();
-  const project = getReferenceProject(projectId);
+  const project = useLoaderData<ProjectRecord>();
   const location = useLocation();
   const projectNav = useRef<HTMLElement>(null);
   const currentPlace = placeFromPath(location.pathname);
@@ -282,23 +282,6 @@ export const ProjectShell = (): React.JSX.Element => {
       ?.querySelector<HTMLElement>('a[aria-current="page"]')
       ?.scrollIntoView({ block: "nearest", inline: "center" });
   }, [currentPlace]);
-
-  if (project === undefined) {
-    return (
-      <main className="reference-route-error" id="reference-main">
-        <PetraMark />
-        <p className="reference-eyebrow">Project unavailable</p>
-        <h1>This Project cannot be opened</h1>
-        <p>
-          The address does not resolve to an available local Project. Petra did
-          not substitute another Project.
-        </p>
-        <Link className="reference-text-link" to="/">
-          Return to Projects
-        </Link>
-      </main>
-    );
-  }
 
   return (
     <div className="reference-project-shell">

@@ -15,12 +15,14 @@ import {
   parseAgUiReviewResponse,
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
+import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   DurableReviewInterruptError,
   PetraInteractionRuntime,
   derivePetraId,
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
+  type ProjectShellViewReader,
 } from "@petra/core";
 
 interface Variables {
@@ -39,6 +41,7 @@ export interface PetraAppOptions {
   publicDir?: string;
   codexProvider?: CodexSubscriptionProviderPort;
   codexWorkspaceRoot?: string;
+  projectShellViews?: ProjectShellViewReader;
 }
 
 export interface PetraApp {
@@ -163,6 +166,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   const authToken = options.authToken ?? "petra-local-development";
   const maxBodyBytes = options.maxBodyBytes ?? 64 * 1024;
   const activeStreams = new Set<AbortController>();
+  const contracts = new PetraContractRegistry();
 
   const interactionStreamResponse = (parameters: {
     runId: string;
@@ -327,6 +331,70 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       },
     }),
   );
+
+  app.get("/api/queries/projects", async (context) => {
+    if (options.projectShellViews === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_SHELL_UNAVAILABLE",
+        "The authorized Project shell read boundary is not configured.",
+      );
+    }
+    try {
+      const projects = await options.projectShellViews.listProjectShellViews();
+      for (const project of projects) {
+        contracts.assertValid("project-shell-view", "1.0.0", project);
+      }
+      return context.json({
+        projects,
+      });
+    } catch (error) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_SHELL_READ_FAILED",
+        error instanceof Error
+          ? error.message
+          : "The Project shell collection is unavailable.",
+      );
+    }
+  });
+
+  app.get("/api/queries/projects/:projectId/shell", async (context) => {
+    if (options.projectShellViews === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_SHELL_UNAVAILABLE",
+        "The authorized Project shell read boundary is not configured.",
+      );
+    }
+    try {
+      const view = await options.projectShellViews.getProjectShellView(
+        context.req.param("projectId"),
+      );
+      if (view === undefined) {
+        return jsonError(
+          context,
+          404,
+          "PROJECT_NOT_FOUND",
+          "The requested Project does not exist in the local authority store.",
+        );
+      }
+      contracts.assertValid("project-shell-view", "1.0.0", view);
+      return context.json(view);
+    } catch (error) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_SHELL_READ_FAILED",
+        error instanceof Error
+          ? error.message
+          : "The Project shell view is unavailable.",
+      );
+    }
+  });
 
   app.get("/api/providers/codex/account", async (context) => {
     if (options.codexProvider === undefined) {

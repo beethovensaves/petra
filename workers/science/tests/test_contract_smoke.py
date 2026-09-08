@@ -232,6 +232,99 @@ class PetraProjectObjective(PetraModel):
     updated_at: str
 
 
+class ProjectShellProjectSummary(PetraModel):
+    project_id: str
+    revision: int
+    name: str
+    description: str | None = None
+    status: Literal["active", "archived"]
+    updated_at: str
+
+
+class ProjectShellDefinitionSummary(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    definition_family: str
+    label: str
+    description: str
+    kernel_compatibility: Literal["petra.project-kernel@1.0.0"]
+    terms: list[ProjectDefinitionTerm]
+    supported_places: list[
+        Literal[
+            "brief",
+            "sources",
+            "review",
+            "graph",
+            "work",
+            "petra",
+            "composition",
+            "history",
+            "settings",
+            "profile_tool",
+        ]
+    ]
+
+
+class ProjectShellObjectiveSummary(PetraModel):
+    objective_id: str
+    revision: int
+    content_hash: str
+    objective_kind: str
+    statement: str
+    status: Literal["active", "satisfied", "superseded", "abandoned"]
+
+
+class ProjectShellAuthorityPosition(PetraModel):
+    isolation: Literal["repeatable_read"]
+    event_position: int
+    stream_revision: int
+
+
+class ProjectShellExactRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectShellProjectionSummary(PetraModel):
+    state: Literal["current", "catching_up", "blocked", "unavailable"]
+    label: str
+    detail: str
+    checkpoint_ref: ProjectShellExactRef | None = None
+    represented_event_position: int
+    observed_event_position: int
+    pending_records: int
+    failure_code: str | None = None
+
+
+class ProjectShellAttentionItem(PetraModel):
+    attention_id: str
+    attention_kind: Literal["projection_catching_up", "projection_blocked"]
+    title: str
+    summary: str
+    consequence: str
+    recommendation: str
+
+
+class ProjectShellContent(PetraModel):
+    project: ProjectShellProjectSummary
+    definition: ProjectShellDefinitionSummary
+    current_objective: ProjectShellObjectiveSummary | None = None
+    authority: ProjectShellAuthorityPosition
+    projection: ProjectShellProjectionSummary
+    attention: list[ProjectShellAttentionItem]
+
+
+class PetraProjectShellView(PetraModel):
+    schema_name: Literal["petra.project-shell-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: ProjectShellContent
+    content_hash: str
+    read_at: str
+
+
 class PetraAuthor(PetraModel):
     schema_name: Literal["petra.author"]
     schema_version: Literal["1.0.0"]
@@ -3946,6 +4039,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project": PetraProject,
     "project-definition": PetraProjectDefinition,
     "project-objective": PetraProjectObjective,
+    "project-shell-view": PetraProjectShellView,
     "author": PetraAuthor,
     "work": PetraWork,
     "work-version": PetraWorkVersion,

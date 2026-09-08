@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.32.0",
+  "registry_version": "1.33.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -65,6 +65,17 @@
       "canonical_sha256": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-objective.ts"
+    },
+    {
+      "name": "project-shell-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-shell-view/1.0.0/schema.json",
+      "path": "schemas/project-shell-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-definition-resolved-shell-read",
+      "canonical_sha256": "sha256:b96d956d1a89d63965000bcb7cea7ea33d4e4cf6d44554c5acccbb37ac4b2cc4",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-shell-view.ts"
     },
     {
       "name": "author",

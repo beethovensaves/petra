@@ -31,6 +31,10 @@ import {
   SettingsRoute,
 } from "./product/RemainingSurfaces.js";
 import type { EngineState } from "./product/model.js";
+import {
+  loadProjectCollection,
+  loadProjectRecord,
+} from "./product/project-data.js";
 
 const loadHealth = async (): Promise<EngineState> => {
   try {
@@ -49,9 +53,14 @@ export const router = createBrowserRouter([
     element: <ProductFrame />,
     errorElement: <RouteError />,
     children: [
-      { index: true, element: <ProjectsRoute /> },
+      {
+        index: true,
+        loader: loadProjectCollection,
+        element: <ProjectsRoute />,
+      },
       {
         path: "projects/:projectId",
+        loader: loadProjectRecord,
         element: <ProjectShell />,
         children: [
           { index: true, element: <Navigate to="brief" replace /> },

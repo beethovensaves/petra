@@ -16,6 +16,8 @@ import type {
   PostgresProjectDefinitionErrorCode,
 } from "../src/project-definition-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import type { PostgresProjectShellViewError } from "../src/project-shell-view-reader.js";
+import { PostgresProjectShellViewReader } from "../src/project-shell-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 
 const { Pool } = pg;
@@ -346,5 +348,67 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
     expect(
       await repository.getCurrentObjectiveFocus(project.project_id),
     ).toBeUndefined();
+  });
+
+  it("composes list and detail shell reads from one exact repeatable-read snapshot", async () => {
+    const { actor, project } = await registerScope();
+    const definition = readFixture<PetraProjectDefinition>(
+      "project-definition-scientific",
+    );
+    const objective = readFixture<PetraProjectObjective>("project-objective");
+    await repository.registerDefinitionRevision(definition);
+    await repository.registerObjectiveRevision(objective);
+    await repository.setCurrentObjectiveFocus({
+      project_id: project.project_id,
+      objective_ref: {
+        objective_id: objective.objective_id,
+        revision: objective.revision,
+        content_hash: objective.content_hash,
+      },
+      changed_by: actor,
+      changed_at: "2026-09-08T14:50:00.000Z",
+    });
+
+    const reader = new PostgresProjectShellViewReader(pool);
+    const view = await reader.getProjectShellView(project.project_id);
+    if (view === undefined) throw new Error("Expected a Project shell view.");
+    expect(view.schema_name).toBe("petra.project-shell-view");
+    expect(view.project_id).toBe(project.project_id);
+    expect(view.content.project.revision).toBe(project.revision);
+    expect(view.content.definition.project_definition_id).toBe(
+      definition.project_definition_id,
+    );
+    expect(view.content.definition.revision).toBe(definition.revision);
+    expect(view.content.definition.content_hash).toBe(definition.content_hash);
+    expect(view.content.current_objective?.objective_id).toBe(
+      objective.objective_id,
+    );
+    expect(view.content.current_objective?.revision).toBe(objective.revision);
+    expect(view.content.current_objective?.content_hash).toBe(
+      objective.content_hash,
+    );
+    expect(view.content.authority.isolation).toBe("repeatable_read");
+    expect(view.content.projection.state).toBe("unavailable");
+    const views = await reader.listProjectShellViews();
+    expect(views).toHaveLength(1);
+    expect(views[0]?.project_id).toBe(project.project_id);
+
+    view.content.project.name = "caller mutation";
+    expect(
+      (await reader.getProjectShellView(project.project_id))?.content.project
+        .name,
+    ).toBe(project.name);
+  });
+
+  it("refuses to interpret a Project that has no ProjectDefinition", async () => {
+    const { project } = await registerScope();
+    const reader = new PostgresProjectShellViewReader(pool);
+    await expect(
+      reader.getProjectShellView(project.project_id),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<PostgresProjectShellViewError>>({
+        code: "PROJECT_SHELL_DEFINITION_MISSING",
+      }),
+    );
   });
 });

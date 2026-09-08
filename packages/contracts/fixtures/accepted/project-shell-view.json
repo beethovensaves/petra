@@ -1,0 +1,96 @@
+{
+  "schema_name": "petra.project-shell-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "project": {
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "revision": 1,
+      "name": "Competing explanations",
+      "description": "A bounded project for comparing scientific hypotheses.",
+      "status": "active",
+      "updated_at": "2026-08-28T18:00:00.000Z"
+    },
+    "definition": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "definition_family": "petra.scientific-evidence",
+      "label": "Scientific evidence inquiry",
+      "description": "Organizes research questions, claims, relationships, literature, review, and provenance without changing Petra's shared authority rules.",
+      "kernel_compatibility": "petra.project-kernel@1.0.0",
+      "terms": [
+        {
+          "semantic_key": "scientific.research-question",
+          "singular": "Research question",
+          "plural": "Research questions",
+          "definition": "A bounded question the Project is trying to answer.",
+          "generic_family": "focus"
+        },
+        {
+          "semantic_key": "scientific.claim",
+          "singular": "Claim",
+          "plural": "Claims",
+          "definition": "A proposition with explicit scope, basis, and authority state.",
+          "generic_family": "finding"
+        },
+        {
+          "semantic_key": "scientific.literature",
+          "singular": "Source",
+          "plural": "Sources",
+          "definition": "A versioned and rights-governed basis available to the Project.",
+          "generic_family": "reference"
+        }
+      ],
+      "supported_places": [
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings"
+      ]
+    },
+    "current_objective": {
+      "objective_id": "objective_01K4C000000000000000000005",
+      "revision": 1,
+      "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+      "objective_kind": "scientific.research-question",
+      "statement": "Determine which claims in the selected source are supported by exact inspectable passages.",
+      "status": "active"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 3
+    },
+    "projection": {
+      "state": "catching_up",
+      "label": "Projection catching up",
+      "detail": "The authority ledger is at event 3; the graph safely represents event 0 while one record remains pending.",
+      "checkpoint_ref": {
+        "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+        "revision": 1,
+        "content_hash": "sha256:e0a79ef876ef41017f24486b80122e0eefcbc6ff21677370ea1e5143558b06d9"
+      },
+      "represented_event_position": 0,
+      "observed_event_position": 3,
+      "pending_records": 1
+    },
+    "attention": [
+      {
+        "attention_id": "attention_01K4C000000000000000000008",
+        "attention_kind": "projection_catching_up",
+        "title": "Graph projection is catching up",
+        "summary": "The authoritative Project state is current, while the graph has one pending projection record.",
+        "consequence": "Graph relationships may omit the latest accepted authority event until projection catches up.",
+        "recommendation": "Continue in Brief or Review, or wait for the graph projection to catch up."
+      }
+    ]
+  },
+  "content_hash": "sha256:9d03d382e74890c2448a3e755a0e324a2c17a385341e0640b6a1e688285ea7d8",
+  "read_at": "2026-09-08T15:00:00.000Z"
+}

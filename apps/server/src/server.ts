@@ -15,6 +15,7 @@ import {
 
 import { createPetraApp, type PetraAppOptions } from "./app.js";
 import type { GroundedSynthesisPersistence } from "./grounded-synthesis-persistence.js";
+import type { ProjectShellPersistence } from "./project-shell-persistence.js";
 import {
   createM1GroundedSynthesisRuntime,
   type M1GroundedSynthesisOptions,
@@ -39,6 +40,7 @@ export interface PetraServerOptions extends PetraAppOptions {
   >;
   groundedSynthesisTerminal?: GroundedSynthesisTerminalPort;
   groundedSynthesisPersistence?: GroundedSynthesisPersistence;
+  projectShellPersistence?: ProjectShellPersistence;
 }
 
 export const startPetraServer = async (
@@ -156,6 +158,11 @@ export const startPetraServer = async (
       ...(runtime === undefined ? {} : { runtime }),
       ...(codexProvider === undefined ? {} : { codexProvider }),
       ...(codexWorkspaceRoot === undefined ? {} : { codexWorkspaceRoot }),
+      ...(options.projectShellViews !== undefined
+        ? { projectShellViews: options.projectShellViews }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : { projectShellViews: options.projectShellPersistence.views }),
     });
     server = serve({
       fetch: petra.app.fetch,
@@ -179,6 +186,7 @@ export const startPetraServer = async (
     await Promise.all([
       ownedCodexProvider?.close(),
       options.groundedSynthesisPersistence?.close?.(),
+      options.projectShellPersistence?.close(),
     ]);
     throw error;
   }
@@ -205,6 +213,7 @@ export const startPetraServer = async (
         await Promise.all([
           ownedCodexProvider?.close(),
           options.groundedSynthesisPersistence?.close?.(),
+          options.projectShellPersistence?.close(),
         ]);
       }
     })();

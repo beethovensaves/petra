@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@petra/adapters": "0.0.0",
+    "@petra/contracts": "0.0.0",
     "@primer/octicons-react": "^19.33.0",
     "@primer/primitives": "^11.10.0",
     "cytoscape": "^3.34.2",

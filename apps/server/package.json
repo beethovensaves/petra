@@ -19,6 +19,7 @@
     "@ag-ui/core": "0.0.59",
     "@hono/node-server": "2.1.1",
     "@petra/adapters": "0.0.0",
+    "@petra/contracts": "0.0.0",
     "@petra/core": "0.0.0",
     "@petra/postgres": "0.0.0",
     "@petra/s3": "0.0.0",
@@ -28,7 +29,6 @@
     "pg": "8.16.3"
   },
   "devDependencies": {
-    "@petra/contracts": "0.0.0",
     "@types/pg": "8.15.5"
   }
 }
