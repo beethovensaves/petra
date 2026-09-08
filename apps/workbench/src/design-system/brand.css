@@ -1,0 +1,99 @@
+.petra-mark {
+  width: var(--petra-mark-size, 2rem);
+  height: auto;
+  display: block;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.petra-mark[data-tone="on_dark"] {
+  filter: invert(1);
+}
+
+[data-petra-theme="graphite"] .petra-mark[data-tone="on_light"] {
+  filter: invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-petra-theme="system"] .petra-mark[data-tone="on_light"] {
+    filter: invert(1);
+  }
+}
+
+.petra-wordmark {
+  color: inherit;
+  font-family: var(--petra-font-wordmark);
+  font-size: 1em;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  line-height: 0.82;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.petra-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34em;
+  width: fit-content;
+  color: var(--petra-text-primary);
+  font-size: 1.875rem;
+}
+
+.petra-lockup[data-tone="on_dark"] {
+  color: var(--petra-text-inverse);
+}
+
+.petra-lockup[data-variant="compact"] .petra-mark {
+  width: 1em;
+}
+
+.petra-lockup__copy {
+  display: grid;
+  gap: var(--petra-space-2);
+  align-items: start;
+}
+
+.petra-lockup__tagline {
+  color: var(--petra-text-secondary);
+  font-family: var(--petra-font-ui);
+  font-size: var(--petra-font-size-body);
+  font-weight: var(--petra-weight-regular);
+  letter-spacing: 0;
+  line-height: var(--petra-line-height-tight);
+  white-space: nowrap;
+}
+
+.petra-lockup[data-tone="on_dark"] .petra-lockup__tagline {
+  color: var(--petra-text-inverse);
+}
+
+.petra-lockup[data-variant="horizontal"] {
+  --petra-mark-size: 1.05em;
+  gap: 0.42em;
+  font-size: clamp(4rem, 8vw, 7rem);
+}
+
+.petra-lockup[data-variant="horizontal"] .petra-lockup__tagline {
+  font-size: clamp(0.875rem, 1.4vw, 1.25rem);
+}
+
+.petra-lockup[data-variant="stacked"] {
+  --petra-mark-size: 1.15em;
+  align-items: center;
+  flex-direction: column;
+  gap: var(--petra-space-3);
+  font-size: clamp(3.5rem, 7vw, 6rem);
+  text-align: center;
+}
+
+.petra-lockup[data-variant="stacked"] .petra-lockup__copy {
+  justify-items: center;
+}
+
+.petra-lockup[data-variant="stacked"] .petra-lockup__tagline {
+  max-width: 15rem;
+  font-size: var(--petra-font-size-body-large);
+  white-space: normal;
+}
