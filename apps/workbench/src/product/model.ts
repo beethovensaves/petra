@@ -87,7 +87,8 @@ export type EngineState = {
   accepting: boolean;
 };
 
-export type ProjectPlace = "brief" | "sources" | "review" | "graph";
+export type ProjectPlace =
+  "brief" | "sources" | "review" | "graph" | "work" | "petra";
 
 export type ReviewStatus = "needs_decision" | "waiting" | "completed";
 export type ValidationState = "passed" | "needs_judgment" | "blocked";
@@ -182,6 +183,121 @@ export type GraphQuestion = {
   };
   nodes: GraphNodeRecord[];
   edges: GraphEdgeRecord[];
+};
+
+export type WorkExecutionState =
+  | "queued"
+  | "running"
+  | "awaiting_input"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+export type WorkStageState =
+  | "not_started"
+  | "ready"
+  | "running"
+  | "awaiting_input"
+  | "completed"
+  | "failed"
+  | "skipped";
+
+export type InquiryBranch = {
+  id: string;
+  projectId: string;
+  label: string;
+  kind: string;
+  state: string;
+  summary: string;
+  dependency: string;
+  consequence: string;
+  workIds: string[];
+  recommended: boolean;
+  rationale?: string;
+};
+
+export type WorkStage = {
+  id: string;
+  label: string;
+  purpose: string;
+  state: WorkStageState;
+  stateLabel: string;
+  prerequisites: string[];
+  accountableRole: string;
+  input: string;
+  output: string;
+  activity: string[];
+};
+
+export type WorkUnit = {
+  id: string;
+  projectId: string;
+  objective: string;
+  expectedOutcome: string;
+  origin: string;
+  execution: WorkExecutionState;
+  executionLabel: string;
+  observedAt: string;
+  revision: string;
+  currentStageId: string;
+  branchIds: string[];
+  elapsed: string;
+  estimate: string;
+  resourceUse: string;
+  authorizedLimit: string;
+  cancellation: string;
+  requiredInput?: {
+    id: string;
+    kind: string;
+    question: string;
+    responsible: string;
+    consequence: string;
+    responses: string[];
+  };
+  stages: WorkStage[];
+  results: Array<{
+    id: string;
+    label: string;
+    status: string;
+    validation: string;
+    limitation: string;
+    destination?: string;
+  }>;
+  reviewState: string;
+};
+
+export type WorkProjectView = {
+  projectId: string;
+  branches: InquiryBranch[];
+  units: WorkUnit[];
+};
+
+export type PetraReference = {
+  label: string;
+  kind: string;
+  destination: string;
+};
+
+export type PetraMessage = {
+  id: string;
+  speaker: string;
+  origin: string;
+  force: "author_instruction" | "explanation_only" | "work_update";
+  forceLabel: string;
+  content: string;
+  references: PetraReference[];
+};
+
+export type PetraThread = {
+  id: string;
+  projectId: string;
+  title: string;
+  task: string;
+  snapshot: string;
+  context: string[];
+  omissions: string[];
+  activeWorkId?: string;
+  messages: PetraMessage[];
 };
 
 export const SOURCE_EXTENT_ORDER: SourceExtent[] = [

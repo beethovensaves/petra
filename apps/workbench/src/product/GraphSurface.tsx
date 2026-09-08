@@ -179,12 +179,20 @@ export const GraphSurface = ({
         </div>
         <div className="graph-recommendation__actions">
           {layer === "working" ? (
-            <Link
-              className="reference-text-link"
-              to={`/projects/${project.id}/review/review-service-link`}
-            >
-              Open candidate Review
-            </Link>
+            <>
+              <Link
+                className="reference-text-link"
+                to={`/projects/${project.id}/review/review-service-link`}
+              >
+                Open candidate Review
+              </Link>
+              <Link
+                className="reference-text-link"
+                to={`/projects/${project.id}/work/work-process-maintenance`}
+              >
+                Open related Work
+              </Link>
+            </>
           ) : (
             <PetraButton
               variant="secondary"

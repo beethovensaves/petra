@@ -257,7 +257,11 @@ const placeFromPath = (pathname: string): ProjectPlace =>
       ? "review"
       : pathname.includes("/graph")
         ? "graph"
-        : "brief";
+        : pathname.includes("/work")
+          ? "work"
+          : pathname.includes("/petra")
+            ? "petra"
+            : "brief";
 
 export const ProjectShell = (): React.JSX.Element => {
   const { projectId } = useParams();
@@ -310,6 +314,9 @@ export const ProjectShell = (): React.JSX.Element => {
             <small>{project.snapshot.asOf}</small>
           </span>
           <ProjectionLabel project={project} />
+          <Link className="reference-context-action" to="petra">
+            Ask Petra
+          </Link>
         </div>
       </div>
 
@@ -323,6 +330,7 @@ export const ProjectShell = (): React.JSX.Element => {
             </NavLink>
             <NavLink to="review">Review</NavLink>
             <NavLink to="graph">Graph</NavLink>
+            <NavLink to="work">Work</NavLink>
           </nav>
           <details className="reference-profile-details">
             <summary>Profile terms</summary>
@@ -476,12 +484,20 @@ export const BriefSurface = ({ project }: { project: ProjectRecord }) => (
                 </dl>
                 <div className="reference-attention__actions">
                   {item.sourceId === undefined ? null : (
-                    <Link
-                      className="reference-primary-link"
-                      to={`/projects/${project.id}/sources/${item.sourceId}?from=brief`}
-                    >
-                      Inspect source and limitation
-                    </Link>
+                    <>
+                      <Link
+                        className="reference-primary-link"
+                        to={`/projects/${project.id}/sources/${item.sourceId}?from=brief`}
+                      >
+                        Inspect source and limitation
+                      </Link>
+                      <Link
+                        className="reference-text-link"
+                        to={`/projects/${project.id}/work/work-process-maintenance#required-input`}
+                      >
+                        Open related Work
+                      </Link>
+                    </>
                   )}
                   <details>
                     <summary>Other valid next steps</summary>

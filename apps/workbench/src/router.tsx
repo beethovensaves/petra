@@ -18,6 +18,11 @@ import {
   ReviewCollectionRoute,
   ReviewSessionRoute,
 } from "./product/ReviewSurface.js";
+import {
+  PetraRoute,
+  WorkCollectionRoute,
+  WorkDetailRoute,
+} from "./product/WorkPetraSurface.js";
 import type { EngineState } from "./product/model.js";
 
 const loadHealth = async (): Promise<EngineState> => {
@@ -49,6 +54,9 @@ export const router = createBrowserRouter([
           { path: "review", element: <ReviewCollectionRoute /> },
           { path: "review/:reviewId", element: <ReviewSessionRoute /> },
           { path: "graph", element: <GraphRoute /> },
+          { path: "work", element: <WorkCollectionRoute /> },
+          { path: "work/:workId", element: <WorkDetailRoute /> },
+          { path: "petra", element: <PetraRoute /> },
         ],
       },
     ],

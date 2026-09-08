@@ -1,9 +1,11 @@
 import type {
   GraphQuestion,
+  PetraThread,
   ProjectProfile,
   ProjectRecord,
   ReviewSession,
   SourceRecord,
+  WorkProjectView,
 } from "./model.js";
 
 const inquiryProfile: ProjectProfile = {
@@ -507,3 +509,337 @@ export const REFERENCE_GRAPHS: GraphQuestion[] = [
 
 export const getProjectGraph = (projectId: string): GraphQuestion | undefined =>
   REFERENCE_GRAPHS.find((graph) => graph.projectId === projectId);
+
+export const REFERENCE_WORK: WorkProjectView[] = [
+  {
+    projectId: "inlet-cycle",
+    branches: [
+      {
+        id: "branch-service-event",
+        projectId: "inlet-cycle",
+        label: "Actuator service event",
+        kind: "Explanation path",
+        state: "Blocked by source depth",
+        summary:
+          "Tests whether a service event changed the closing interval through a traceable timing relationship.",
+        dependency: "A permitted, inspectable actuator maintenance note",
+        consequence:
+          "Two downstream questions remain qualified until this dependency is resolved.",
+        workIds: ["work-process-maintenance", "work-compare-timing"],
+        recommended: true,
+        rationale:
+          "This is the earliest unresolved dependency shared by two questions, and one source action can clarify both.",
+      },
+      {
+        id: "branch-control-adjustment",
+        projectId: "inlet-cycle",
+        label: "Control adjustment",
+        kind: "Explanation path",
+        state: "Active comparison",
+        summary:
+          "Checks whether the accepted adjustment and the observed interval align within the declared tolerance.",
+        dependency: "Observation entry 21 and threshold row 9",
+        consequence:
+          "This branch can proceed independently while source permission is unresolved.",
+        workIds: ["work-compare-adjustment"],
+        recommended: false,
+      },
+      {
+        id: "branch-observation-quality",
+        projectId: "inlet-cycle",
+        label: "Observation comparability",
+        kind: "Quality path",
+        state: "Ready to inspect",
+        summary:
+          "Examines whether compared entries share the same operating window and measurement boundary.",
+        dependency: "Complete observation entries 18–24",
+        consequence:
+          "It may qualify both explanation paths without selecting either one.",
+        workIds: [],
+        recommended: false,
+      },
+    ],
+    units: [
+      {
+        id: "work-process-maintenance",
+        projectId: "inlet-cycle",
+        objective: "Establish inspectable maintenance-note coverage",
+        expectedOutcome:
+          "A permitted processed copy, or an exact finding that processing cannot proceed.",
+        origin: "Brief recommendation · attention-source-depth",
+        execution: "awaiting_input",
+        executionLabel: "Awaiting input",
+        observedAt: "2026-09-07 14:20",
+        revision: "Work revision 4",
+        currentStageId: "stage-permission",
+        branchIds: ["branch-service-event"],
+        elapsed: "8 minutes observed",
+        estimate: "Unknown until a permitted copy is selected",
+        resourceUse: "No model or processing use recorded",
+        authorizedLimit: "Existing local-source capability only",
+        cancellation:
+          "Cancellation is unavailable while the input request is open; deciding later leaves the task waiting.",
+        requiredInput: {
+          id: "input-maintenance-copy",
+          kind: "Capability and source choice",
+          question: "Which permitted local copy may Petra process?",
+          responsible: "Project author",
+          consequence:
+            "Without a permitted copy, Petra can retain identity but cannot inspect or cite the note's content.",
+          responses: [
+            "Choose a permitted local copy",
+            "Continue another inquiry branch",
+            "Decide later and leave this Work waiting",
+          ],
+        },
+        stages: [
+          {
+            id: "stage-identify",
+            label: "Confirm identity",
+            purpose: "Bind the exact source identity and revision.",
+            state: "completed",
+            stateLabel: "Completed",
+            prerequisites: [],
+            accountableRole: "Source registrar",
+            input: "Identity record IR-228",
+            output: "Actuator maintenance note · Revision 1",
+            activity: [
+              "14:12 · Matched the source title and revision to IR-228.",
+              "14:13 · Recorded identity-only coverage.",
+            ],
+          },
+          {
+            id: "stage-permission",
+            label: "Resolve permitted copy",
+            purpose:
+              "Identify a local copy and permission sufficient for processing.",
+            state: "awaiting_input",
+            stateLabel: "Awaiting input",
+            prerequisites: ["Confirm identity"],
+            accountableRole: "Project author",
+            input: "Open input request input-maintenance-copy",
+            output: "No copy selected",
+            activity: [
+              "14:20 · Requested an exact permitted-copy choice from the Project author.",
+            ],
+          },
+          {
+            id: "stage-process",
+            label: "Process selected copy",
+            purpose:
+              "Create an inspectable representation with exact locations.",
+            state: "not_started",
+            stateLabel: "Not started",
+            prerequisites: ["Resolve permitted copy"],
+            accountableRole: "Source processor",
+            input: "No permitted copy available",
+            output: "No representation",
+            activity: [],
+          },
+          {
+            id: "stage-validate",
+            label: "Validate coverage",
+            purpose: "Declare processing extent, rights, and usable locations.",
+            state: "not_started",
+            stateLabel: "Not started",
+            prerequisites: ["Process selected copy"],
+            accountableRole: "Coverage validator",
+            input: "No processed representation",
+            output: "No coverage finding",
+            activity: [],
+          },
+        ],
+        results: [],
+        reviewState: "No candidate or Review decision produced",
+      },
+      {
+        id: "work-compare-adjustment",
+        projectId: "inlet-cycle",
+        objective: "Compare control adjustment timing with observations",
+        expectedOutcome:
+          "A bounded comparison finding with exact observation and threshold basis.",
+        origin: "Control-adjustment inquiry path",
+        execution: "running",
+        executionLabel: "Running",
+        observedAt: "2026-09-07 14:22",
+        revision: "Work revision 7",
+        currentStageId: "stage-align",
+        branchIds: ["branch-control-adjustment"],
+        elapsed: "3 minutes 18 seconds measured",
+        estimate: "No finish-time estimate supplied",
+        resourceUse: "2 source reads measured · cost not supplied",
+        authorizedLimit: "Up to 6 source reads",
+        cancellation:
+          "Cancellable after the current source read completes; retained partial output is diagnostic only.",
+        stages: [
+          {
+            id: "stage-gather",
+            label: "Gather exact inputs",
+            purpose: "Resolve the observation and threshold revisions.",
+            state: "completed",
+            stateLabel: "Completed",
+            prerequisites: [],
+            accountableRole: "Comparison worker",
+            input: "Observation log Revision 3; threshold table Revision 6",
+            output: "Two exact input references",
+            activity: ["14:19 · Resolved entry 21 and threshold row 9."],
+          },
+          {
+            id: "stage-align",
+            label: "Align operating windows",
+            purpose:
+              "Check that the time and tolerance scopes can be compared.",
+            state: "running",
+            stateLabel: "Running",
+            prerequisites: ["Gather exact inputs"],
+            accountableRole: "Comparison worker",
+            input: "Two exact input references",
+            output: "Alignment pending",
+            activity: [
+              "14:21 · Matched the declared evening-cycle interval.",
+              "14:22 · Checking the remaining tolerance boundary.",
+            ],
+          },
+          {
+            id: "stage-evaluate",
+            label: "Evaluate difference",
+            purpose: "Produce the bounded comparison finding.",
+            state: "ready",
+            stateLabel: "Ready after dependency",
+            prerequisites: ["Align operating windows"],
+            accountableRole: "Comparison validator",
+            input: "Aligned operating window",
+            output: "No finding yet",
+            activity: [],
+          },
+        ],
+        results: [],
+        reviewState: "No candidate or Review decision produced",
+      },
+      {
+        id: "work-compare-timing",
+        projectId: "inlet-cycle",
+        objective: "Compare service timing with interval change",
+        expectedOutcome:
+          "A timing finding grounded in the maintenance note and observation log.",
+        origin: "Service-event inquiry path",
+        execution: "queued",
+        executionLabel: "Blocked by dependency",
+        observedAt: "2026-09-07 14:20",
+        revision: "Work revision 2",
+        currentStageId: "stage-wait-source",
+        branchIds: ["branch-service-event"],
+        elapsed: "Not started",
+        estimate: "Unknown until source coverage resolves",
+        resourceUse: "No use recorded",
+        authorizedLimit: "Inherited from the existing inquiry task",
+        cancellation:
+          "May be cancelled before execution starts; no output would be retained.",
+        stages: [
+          {
+            id: "stage-wait-source",
+            label: "Wait for source coverage",
+            purpose:
+              "Require inspectable maintenance-note content before comparison.",
+            state: "not_started",
+            stateLabel: "Dependency blocked",
+            prerequisites: ["work-process-maintenance usable result"],
+            accountableRole: "Timing analyst",
+            input: "Maintenance note identity only",
+            output: "No comparison",
+            activity: [],
+          },
+        ],
+        results: [],
+        reviewState: "No candidate or Review decision produced",
+      },
+    ],
+  },
+];
+
+export const getProjectWork = (
+  projectId: string,
+): WorkProjectView | undefined =>
+  REFERENCE_WORK.find((work) => work.projectId === projectId);
+
+export const getReferenceWorkUnit = (
+  projectId: string,
+  workId: string | undefined,
+) => getProjectWork(projectId)?.units.find((work) => work.id === workId);
+
+export const REFERENCE_PETRA_THREADS: PetraThread[] = [
+  {
+    id: "thread-inlet-brief",
+    projectId: "inlet-cycle",
+    title: "Closing-interval inquiry",
+    task: "Understand which inquiry branch to resolve next",
+    snapshot: "Snapshot 18",
+    context: [
+      "Active inquiry: What explains the shorter closing interval?",
+      "Selected recommendation: resolve the service-event branch first",
+      "Working candidate: candidate-service-link revision 2",
+      "Projection: Graph safely represents Snapshot 17 while Snapshot 18 is authoritative",
+    ],
+    omissions: [
+      "Maintenance-note content is unavailable",
+      "No unbounded Project sources or private file paths are included",
+      "No authority to apply or reject a candidate is included",
+    ],
+    activeWorkId: "work-process-maintenance",
+    messages: [
+      {
+        id: "message-author-1",
+        speaker: "Project author",
+        origin: "Author instruction",
+        force: "author_instruction",
+        forceLabel: "Direction within current scope",
+        content:
+          "Explain why Petra recommends the service-event branch, and whether choosing the adjustment branch would harm the Project.",
+        references: [],
+      },
+      {
+        id: "message-petra-1",
+        speaker: "Petra inquiry guide",
+        origin: "Model response grounded in the disclosed context",
+        force: "explanation_only",
+        forceLabel: "Explanation only · no state changed",
+        content:
+          "The service-event branch comes first because its unprocessed maintenance note is the earliest unresolved dependency shared by two downstream questions. Resolving it could clarify both questions with one source action. You can continue the control-adjustment branch instead: it has independent basis and can progress without changing, rejecting, or weakening the service-event branch.",
+        references: [
+          {
+            label: "Branch recommendation",
+            kind: "Graph question",
+            destination: "/projects/inlet-cycle/graph?layer=working",
+          },
+          {
+            label: "Source-coverage task",
+            kind: "Work task",
+            destination: "/projects/inlet-cycle/work/work-process-maintenance",
+          },
+        ],
+      },
+      {
+        id: "message-work-1",
+        speaker: "Source-coverage task",
+        origin: "Canonical Work update",
+        force: "work_update",
+        forceLabel: "Work update · awaiting input",
+        content:
+          "Identity is confirmed. The task needs the Project author to choose a permitted local copy before processing can begin.",
+        references: [
+          {
+            label: "Open required input",
+            kind: "Work task",
+            destination:
+              "/projects/inlet-cycle/work/work-process-maintenance#required-input",
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const getProjectPetraThread = (
+  projectId: string,
+): PetraThread | undefined =>
+  REFERENCE_PETRA_THREADS.find((thread) => thread.projectId === projectId);

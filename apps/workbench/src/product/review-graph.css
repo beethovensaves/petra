@@ -460,6 +460,8 @@
 }
 
 .graph-recommendation__actions {
+  display: grid;
+  gap: var(--petra-space-2);
   justify-self: end;
 }
 
