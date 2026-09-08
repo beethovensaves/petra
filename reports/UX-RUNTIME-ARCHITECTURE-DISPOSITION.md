@@ -1,7 +1,8 @@
 # UX runtime architecture disposition and implementation sequence
 
-Status: implementation-track review complete; runtime work remains open
-Date: 2026-09-07
+Status: implementation-track review complete; cumulative backend trace passed;
+runtime integration remains open
+Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
 Design handoff reviewed: `ced8d81`
@@ -35,9 +36,9 @@ missing, and the order in which to implement it.
 - The design worktree contains a complete initial presentation of the fourteen
   DB18 surface packets. It is still fixture-backed except for the existing
   health read and must not be described as live product integration.
-- Backend `M1.9-W01` and `M1.9-W02` are complete. `M1.9-W03`, the cumulative
-  clean-start trace, is in progress. `M1.9-W04`, frontend integration and final
-  recovery assertions, is planned.
+- Backend `M1.9-W01`, `M1.9-W02`, and `M1.9-W03` are complete. The cumulative
+  clean-start trace passed all fifteen steps. `M1.9-W04`, frontend integration
+  and final recovery assertions, remains planned.
 - M1.9 closes the existing scientific evidence spine. It does not, by itself,
   close all 23 neutral-product runtime requests.
 - Contextual Prosody, Sentinel, or other real-project integrations remain gated
@@ -77,8 +78,9 @@ missing, and the order in which to implement it.
   Sources, History, Settings, or neutral relationship-view API.
 - [The M1.9 gate matrix](M1.9-BACKEND-GATE-MATRIX.md) and
   [recovery exercise](M1.9-RECOVERY-EXERCISE.md) establish component and
-  operational-recovery evidence while leaving the cumulative demonstration and
-  frontend integration open.
+  operational-recovery evidence. The
+  [cumulative demonstration](M1.9-CUMULATIVE-DEMONSTRATION.md) now establishes
+  the identity-preserving backend trace; frontend integration remains open.
 
 ## Accepted architecture boundary
 
@@ -287,10 +289,10 @@ Status terms in this table describe the backend at `344cf77`:
 
 ### Wave 0 — preserve and close the current M1 baseline
 
-Complete `M1.9-W03` first against the existing `344cf77` backend. The cumulative
-script and result manifest should exercise `M1.9-DEMO-01` through `DEMO-15` as
-one identity-preserving clean-start trace. This establishes a regression baseline
-before new schemas or migrations are introduced.
+`M1.9-W03` is complete against the existing `344cf77` backend. The cumulative
+script and result manifest exercise `M1.9-DEMO-01` through `DEMO-15` as one
+identity-preserving clean-start trace. This is the regression baseline before
+new schemas or migrations are introduced.
 
 Do not broaden W03 to claim the frozen neutral UX. It proves the existing M1
 scientific evidence spine.
@@ -401,14 +403,15 @@ It must not relabel M1's scientific proof as full `UX-REQ-001` through
 
 ## Immediate next implementation task
 
-Build and verify `M1.9-W03` on the unchanged M1 baseline. Its result manifest is
-the safety point for all subsequent architecture and reference-UX integration
-work. After W03 passes, record the ProjectDefinition architecture decision and
-begin Wave 1.
+Treat the passing `M1.9-W03` result manifest as the safety point for subsequent
+architecture and reference-UX integration work. Next, record the
+ProjectDefinition architecture decision and begin Wave 1 while planning the
+minimum live contracts needed for `M1.9-W04`.
 
 ## Verification status
 
-This disposition is based on read-only inspection of the frozen handoff, the
-neutral reference implementation, accepted decisions, runtime schemas,
-repositories, server routes, M1.9 reports, and roadmap state. It changes no
-runtime contract or product code and claims no new test evidence.
+The original disposition was based on read-only inspection of the frozen
+handoff, neutral reference implementation, accepted decisions, runtime schemas,
+repositories, server routes, M1.9 reports, and roadmap state. This status refresh
+adds only the verified W03 evidence; it changes no runtime contract and claims
+no frontend integration.

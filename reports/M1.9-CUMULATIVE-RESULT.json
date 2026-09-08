@@ -1,0 +1,181 @@
+{
+  "schema_name": "petra.m1-cumulative-demonstration-result",
+  "schema_version": "1.0.0",
+  "milestone": "M1.9-W03",
+  "status": "pass",
+  "runtime": {
+    "node": "24.20.0",
+    "parser": {
+      "adapter": {
+        "name": "petra-docling-adapter",
+        "version": "1.0.0"
+      },
+      "engine": {
+        "name": "docling",
+        "version": "2.121.0"
+      },
+      "configuration_hash": "sha256:c6d15e0ec9b1ba1c028b6a7753abe3756508e985d9f7841fcd1da234c2f1afb8",
+      "component_models": [
+        {
+          "name": "docling-layout-heron",
+          "version": "8f39ad3c0b4c58e9c2d2c84a38465abf757272d8"
+        },
+        {
+          "name": "tableformer-accurate",
+          "version": "v2.3.0@fc0f2d45e2218ea24bce5045f58a389aed16dc23"
+        }
+      ],
+      "network_activity_count": 0
+    },
+    "services": {
+      "postgresql": "18.6",
+      "s3_compatible": "SeaweedFS 4.41",
+      "neo4j": "2026.07.1"
+    }
+  },
+  "clean_start": true,
+  "demonstrations": [
+    {
+      "id": "M1.9-DEMO-01",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-02",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-03",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-04",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-05",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-06",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-07",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-08",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-09",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-10",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-11",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-12",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-13",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-14",
+      "status": "pass"
+    },
+    {
+      "id": "M1.9-DEMO-15",
+      "status": "pass"
+    }
+  ],
+  "identity_chain": {
+    "project_id": "project_01K45F0000000000000000000A",
+    "work_id": "work_01K45F00000000000000000002",
+    "work_version_id": "work_version_01K45F00000000000000000003",
+    "source_artifact_id": "artifact_01K45F00000000000000000004",
+    "source_artifact_hash": "sha256:cdddd9f4808f7e3e1f013139c3915ef4d7cdccb008fa947ef5f72b4c7b6ffde7",
+    "parser_artifact_id": "artifact_2TVV7V5NKD5KWMFQN790X1G5NY",
+    "parsed_document_id": "parsed_document_41RDWYAN1YM1TQX6744PBSDNJC",
+    "parsed_blocks": 116,
+    "source_spans": 116,
+    "primary_claim_id": "claim_6VEC7J0R8NV7DYYF6SF161NKHG",
+    "primary_assertion_id": "assertion_1ASN8R2V1ZYN47X9ANNT64HGD8",
+    "qualification_claim_id": "claim_721B682C6H1GPWAY4TR8DSMDWK",
+    "context_packet_id": "context_packet_7S9BVSB8ZHT0QPJHQQ401YRSK1",
+    "evidence_packet_id": "evidence_packet_7PT35VHCZH2YM1VX3F1B28G51A",
+    "grounded_response_id": "grounded_response_1EZ47D95DK4NX34QHPGFBAT9QR",
+    "draft_artifact_id": "draft_artifact_1DS2Y0306M76VFAB15KCNRHTDK"
+  },
+  "evidence_admission": {
+    "admitted": 2,
+    "rejected": 1,
+    "negative_control_error": "SOURCE_SPAN_NOT_IN_BUNDLE",
+    "remote_model_calls": 0
+  },
+  "authority_history": {
+    "domain_events": 9,
+    "event_types": [
+      "change_set.submitted",
+      "approval.recorded",
+      "change_set.applied",
+      "change_set.submitted",
+      "approval.recorded",
+      "change_set.reverted",
+      "change_set.submitted",
+      "approval.recorded",
+      "change_set.applied"
+    ],
+    "graph_outboxes": 3,
+    "primary_revisions_retained": [
+      1,
+      2,
+      3
+    ],
+    "primary_current_zone": "quarantine",
+    "qualification_current_zone": "trusted",
+    "replay_through_stream_revision": 6,
+    "rebuilt_graph_receipts": 2,
+    "final_projection_state": "current"
+  },
+  "composition": {
+    "selected_evidence_count": 3,
+    "material_draft_spans": 2,
+    "citation_count": 1,
+    "rendered_formats": [
+      "markdown",
+      "latex",
+      "bibtex"
+    ],
+    "invalidated_revision": 2
+  },
+  "interaction": {
+    "review_interrupt_id": "interaction_interrupt_4B29F7QZNJNHBZK28T3Q5797MP",
+    "reconnect_event_count": 5,
+    "first_resolution_replayed": false,
+    "duplicate_resolution_replayed": true,
+    "aborted_delivery_count": 1,
+    "aborted_run_status": "completed",
+    "explicit_cancellation_status": "cancelled"
+  },
+  "authority_boundary": {
+    "postgresql_is_scientific_authority": true,
+    "s3_is_artifact_byte_authority": true,
+    "neo4j_is_rebuildable_projection": true,
+    "interaction_state_is_not_scientific_authority": true,
+    "deterministic_composition_is_not_model_quality_evidence": true
+  },
+  "design_freeze": {
+    "baseline_commit": "655d094",
+    "frontend_completion_claimed": false,
+    "remaining_work_item": "M1.9-W04"
+  },
+  "completed_at": "2026-09-08T12:31:00.000Z"
+}
