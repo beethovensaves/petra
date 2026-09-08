@@ -1,6 +1,6 @@
 # Petra Design Implementation Roadmap
 
-Status: `UX-DESIGN-FREEZE-01` accepted against baseline `655d094`; Phase 2 neutral reference UX authorized
+Status: `UX-DESIGN-FREEZE-01` accepted against baseline `655d094`; initial Phase 2 neutral reference packet set implemented through `bfdcecf`
 Last updated: 2026-09-07
 Scope: deliver Petra's M1 experience module by module while implementation continues, without creating a second authority for architecture or feature completion
 
@@ -273,7 +273,7 @@ A polished prototype is not integrated. Integrated code is not validated. A modu
 | `UX1.4` | `in_progress` | Conversation-derived working graph, basis and provenance, profile-resolved comparison, exception-led Review, exact change preview, decision, recovery, and reversal | Natural interaction needs quiet structuring and visible, reversible authority boundaries | `M1.5`, `M1.6`, `M1.7` |
 | `UX1.5` | `in_progress` | Focused graph, evidence paths, edge semantics, projection state, and textual equivalents | The graph must explain and control work rather than decorate it | `M1.3`, `M1.5`, `M1.6`, `M1.7` |
 | `UX1.6` | `in_progress` | Petra interaction system, contextual answers, SuggestedActions, durable Work, review, reconnect, branching, and governed reversal | Project authors need fast collaboration and recoverable exploration without surrendering domain authority | `M1.5`, `M1.6`, `M1.7` |
-| `UX1.7` | `planned` | DraftArtifact, provenance, revision, citations, BibTeX, and LaTeX | Scientific writing should be useful immediately and remain inspectable | `M1.8` |
+| `UX1.7` | `in_progress` | DraftArtifact, provenance, revision, citations, BibTeX, and LaTeX | Scientific writing should be useful immediately and remain inspectable | `M1.8` |
 | `UX1.8` | `in_progress` | Whole-product information architecture, flow coherence, accessibility, responsiveness, recovery, and visual hardening | The modules count only when they behave as one dependable workbench | `M1.9` |
 
 ## Design principles
@@ -1179,6 +1179,31 @@ Later evidence changes the baseline only through the affected decision's revisit
 trigger and a stated generalized product failure. Contextual integrations remain
 Phase 3 work after the neutral product stands independently.
 
+### Phase 2 implementation checkpoint
+
+The first production-candidate presentation of all fourteen DB18 packets is
+implemented in `apps/workbench/` against invented, profile-resolved fixtures:
+
+| Commit | Packet coverage | Material evidence |
+| --- | --- | --- |
+| `1893eed` | Projects, Project shell, Brief, Sources, Details | Three synthetic profiles; exact source return; identity-only content refusal; responsive shell |
+| `66971e9` | Review, Graph | Exact candidate/current/basis/consequence presentation; Current, Working changes, and Historical layers; shared-data canvas, textual peer, and semantic scene |
+| `9aae040` | Work, Petra | Canonical task references; visible command boundaries; parallel inquiries mapped independently to zero/many Work tasks; advisory dependency-aware recommendation |
+| `bfdcecf` | Composition, registered profile tools, History, Settings, transient action/feedback | Exact revision comparison and provenance; local/durable/delivery distinctions; causal effects and additive reversal preview; personal/governed settings boundary; narrow active-nav visibility |
+
+The checkpoint has 60 passing workbench tests, a passing workbench typecheck,
+targeted ESLint and Prettier checks, a successful production Vite build, and
+manual wide/500-CSS-pixel visual review. The fixtures do not use contextual demo
+data or the two untracked user assets.
+
+This records packet coverage and limited `G-PROTOTYPE` evidence. It does not
+close any module: the full synthetic state/flow matrix, keyboard and assistive-
+technology runs, model scene-explanation validation, visual regression,
+performance, clean-start, privacy/security, recovery, and participant evidence
+remain open. `UX-REQ-001`–`023` also remain proposed, so `G-CONTRACT` and
+`G-INTEGRATION` are open. Where a command boundary is unavailable, the frontend
+explains the missing capability and cannot fabricate success or authority.
+
 ### Work
 
 | ID | Status | Design specification | Why Petra needs it |
@@ -1458,8 +1483,8 @@ design track should now:
 2. obtain architecture dispositions for `UX-REQ-001`–`UX-REQ-023` while keeping
    unavailable runtime facts explicit and preventing backend convenience from
    redefining the frozen UX;
-3. implement the complete neutral reference UX in the DB18 packet sequence
-   against synthetic `UX-FX01`–`UX-FX46` conformance scenarios;
+3. broaden the implemented fourteen-packet neutral reference presentation across
+   the complete synthetic `UX-FX01`–`UX-FX46` state and flow matrix;
 4. validate every packet, flow, end-to-end trace, responsive/assistive peer,
    language role, adverse state, recovery path, and no-demo clean start through
    the five evidence gates; and

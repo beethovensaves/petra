@@ -472,10 +472,43 @@ non-blocking deferrals, and the open runtime/evidence gates. It authorizes Phase
 neutral reference-UX work and does not authorize contextual integrations, accept
 proposed runtime shapes, or claim implementation/validation evidence.
 
-**Next work: Phase 2 neutral reference UX.** Follow the DB18 packet sequence,
-start with shared primitives/frame/routing and the Projects -> shell -> Brief ->
-Sources/Details vertical path, and use synthetic `UX-FX` scenarios. Record a
-generalized product failure and revisit trigger before changing frozen behavior.
+**Next work: Phase 2 evidence and contract alignment.** The first production-
+candidate presentation of all fourteen DB18 packets now exists. Expand its
+synthetic state matrix, run the named interaction/accessibility/clean-start
+evidence, and obtain architecture dispositions for `UX-REQ-001`–`023` before
+claiming `G-CONTRACT`, `G-INTEGRATION`, or `G-VALIDATION`. Record a generalized
+product failure and revisit trigger before changing frozen behavior.
+
+### Phase 2 reference-UX checkpoint
+
+The neutral reference frontend was built after the freeze in four coherent
+commits:
+
+- `1893eed` supplies Projects, the profile-resolved Project shell, Brief,
+  Sources, exact source reading, and Details;
+- `66971e9` supplies Review and the focused Graph, including Current, Working
+  changes, and Historical layers plus a textual peer and model-readable semantic
+  scene derived from the same fixture data as the canvas;
+- `9aae040` supplies Work and Petra, including parallel lines of inquiry that
+  remain distinct from Work stages and may map to zero, one, or many tasks, with
+  contextual advisory branch order and exact canonical references; and
+- `bfdcecf` supplies Composition, registered profile tools, causal History,
+  personal versus governed Settings, and subordinate action previews. It also
+  keeps the active Project destination visible in narrow horizontal navigation.
+
+The three invented profiles exercise evidence inquiry, controlled publication,
+and decision analysis. They are conformance examples, not an exhaustive Petra
+taxonomy. The frontend does not read either untracked user asset or depend on a
+contextual demo path.
+
+This checkpoint passes 60 workbench tests, workbench TypeScript checking,
+targeted ESLint and Prettier checks, a production Vite build, `git diff --check`,
+and manual review at 1440 CSS pixels and Chrome's 500-CSS-pixel narrow minimum.
+That is implementation and limited visual evidence. It is not browser/assistive-
+technology, participant, performance, privacy/security, disaster-recovery,
+contract, live-integration, or full `UX-FX01`–`UX-FX46` validation evidence.
+Unavailable commands remain visibly unavailable rather than manufacturing
+authority in the client.
 
 ## Latest repository checkpoint
 
@@ -492,9 +525,10 @@ generalized product failure and revisit trigger before changing frozen behavior.
   DB16 opening discussion were saved at `9d5f94c`; completed DB16 and the DB17
   opening discussion were saved at `823b0b5`; completed DB17 and the DB18
   opening discussion were saved at `fd21213`; completed DB18 and the freeze
-  decision were opened at `655d094`. The current working checkpoint records
-  accepted `UX-DESIGN-FREEZE-01` and opens Phase 2 neutral reference-UX work;
-  inspect Git status/log for local and remote position.
+  decision were opened at `655d094`; freeze acceptance was recorded at
+  `ced8d81`. The current checkpoint implements the initial fourteen-packet
+  neutral reference presentation through `bfdcecf`; inspect Git status/log for
+  local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
@@ -545,13 +579,19 @@ generalized product failure and revisit trigger before changing frozen behavior.
   date, explicit deferrals, later evidence gates, change-control rule, neutral
   Phase 2 authorization, and continued Phase 3 demo boundary. It changes no
   product behavior or runtime requirement.
+- Phase 2 packet presentation is recorded by `1893eed`, `66971e9`, `9aae040`,
+  and `bfdcecf`. Its fixtures are synthetic, its unsupported commands are
+  explicitly unavailable, and its limited automated/manual checks do not close
+  the remaining evidence gates.
 - `UX-REQ-001` through `UX-REQ-023` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
-Implement the complete neutral reference UX against synthetic conformance
-scenarios and the frozen baseline. Do not use or create contextual demo adapters,
-fixtures, content, paths, or workflow assumptions until the neutral product
-stands independently.
+Continue the neutral reference UX against synthetic conformance scenarios and
+the frozen baseline: broaden adverse-state coverage, verify complete interaction
+and accessibility equivalence, and replace fixture boundaries only with accepted
+runtime contracts. Do not use or create contextual demo adapters, fixtures,
+content, paths, or workflow assumptions until the neutral product stands
+independently.
