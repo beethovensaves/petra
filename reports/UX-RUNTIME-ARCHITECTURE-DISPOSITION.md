@@ -1,9 +1,9 @@
 # UX runtime architecture disposition and implementation sequence
 
-Status: implementation-track review complete; M1.9 cumulative trace, five live
+Status: implementation-track review complete; M1.9 cumulative trace, six live
 presentation reads, interface recovery gate, semantic-location foundation,
 expanded Project-shell context, initial Project Work read, and durable Project
-thread foundation passed; broader neutral runtime work remains open
+thread read passed; broader neutral runtime work remains open
 Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
@@ -46,7 +46,9 @@ worker-manifest authority, including bounded pagination, attention, resources,
 outputs, disabled operations, and honest coverage. A separate durable
 ProjectThread aggregate now preserves exact completed-turn context, execution,
 Work, result, response, definition, retention, revision, and branch bindings
-without overloading InteractionRun.
+without overloading InteractionRun. Its bounded collection/detail view,
+authenticated routes, and frozen Petra workspace are live without transcript
+fixture fallback; unavailable bytes and commands remain explicit.
 
 This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-006`, `UX-REQ-008`, `UX-REQ-009`,
 `UX-REQ-010`, `UX-REQ-012`, `UX-REQ-013`, and `UX-REQ-014` without changing the
@@ -64,9 +66,9 @@ require later slices.
   complete at specification depth.
 - The frozen workbench contains the initial presentation of all fourteen DB18
   surface packets. Project shell, scientific source, scientific Review, bounded
-  current Graph, and Project Work now use live authenticated reads. Remaining product
-  places are still fixture-backed or explicitly unavailable and must not be
-  described as live.
+  current Graph, Project Work, and the Petra workspace now use live authenticated
+  reads. Remaining product places are still fixture-backed or explicitly
+  unavailable and must not be described as live.
 - Backend `M1.9-W01` through `M1.9-W04` are complete. The cumulative clean-start
   trace passed all fifteen steps. Shell, scientific source, scientific Review,
   and bounded current Graph reads pass, and the interface recovery gate covers
@@ -93,7 +95,8 @@ require later slices.
   connection attempts. The additive
   [`ProjectThreadAuthorityRepository`](../packages/core/src/project-thread.ts)
   now preserves product-thread identity, immutable completed turns, and exact
-  branch origin separately; reads and lifecycle commands remain open.
+  branch origin separately. Its Project-scoped collection/detail reader is live;
+  lifecycle and continuation commands remain open.
 - [`ChangeControlAuthorityRepository`](../packages/core/src/change-control-authority-repository.ts)
   owns exact ChangeSet, approval, domain-event, and outbox reads. The existing
   scientific reversal and Review implementation is in
@@ -117,8 +120,9 @@ require later slices.
   assessments, but not a general continuous working-document contract.
 - [`app.ts`](../apps/server/src/app.ts) authenticates `/api/*` and now exposes
   Project shell, scientific source, scientific Review, bounded current
-  relationship, and Project Work reads in addition to provider and interaction paths. Brief,
-  History, Settings, and the remaining neutral-product queries are not live.
+  relationship, Project Work, and Project thread reads in addition to provider
+  and interaction paths. Brief, History, and the remaining neutral-product
+  queries are not live.
 - [The M1.9 gate matrix](M1.9-BACKEND-GATE-MATRIX.md) and
   [recovery exercise](M1.9-RECOVERY-EXERCISE.md) establish component and
   operational-recovery evidence. The
@@ -311,7 +315,7 @@ explicitly records later implementation progress:
 | `UX-REQ-003` | **Partial.** WorkUnit lifecycle, interaction replay, interrupts, cancellation, capability references, and bounded budgets exist. | Add immutable SuggestedAction revisions, readiness/query composition, exact invocation commands, stale regeneration, and result references. Direct and conversational invocation share the command. | Wave 3 |
 | `UX-REQ-004` | **Partial, adapted and advanced after baseline.** ProjectDefinition and Objective contracts, immutable PostgreSQL authority, current binding, terminology, supported places, and optional template-seed origin now exist without requiring a profile catalogue. Paired scientific and controlled-writing Projects are independently project-authored and pass the same shell, control, and client-mapping paths. | Add full extension, presentation, compatibility, component-resolution, impact-review, and migration behavior while preserving Project-specific definitions. | Wave 1 foundation complete; extensions in later waves |
 | `UX-REQ-005` | **Partial.** Artifact/Manifest, document, DraftArtifact, provenance, support assessment, and additive draft revision preserve exact scientific ancestry. | Add an explicit imported-lineage root and reviewed promotion command for existing documents or projects. Import never endorses extracted meaning or overwrites the source. | Wave 5 |
-| `UX-REQ-006` | **Partial, advanced after baseline.** `petra.project-thread@1.0.0`, V022, and `ProjectThreadAuthorityRepository` now provide durable Project-owned thread identity, immutable completed turns, exact definition/input/context/snapshot/execution/Work/result/Artifact/authority bindings, contiguous revisions, retained branch origin and continuation mode, and hash-only prompt limitations where legacy input bytes do not exist. InteractionRun remains execution and delivery state rather than the product thread. | Add Project thread collection/detail reads, authenticated routes, frozen Petra-workspace integration, create/append/branch/archive/reopen commands, stale-snapshot preflight and execution, new-turn prompt retention, compaction, proposal/decision and PresentationContext linkage, and archive reconstruction. | Wave 2 foundation passed; read integration next |
+| `UX-REQ-006` | **Partial, advanced after baseline.** `petra.project-thread@1.0.0`, V022, and `ProjectThreadAuthorityRepository` provide durable Project-owned thread identity, immutable completed turns, exact definition/input/context/snapshot/execution/Work/result/Artifact/authority bindings, contiguous revisions, retained branch origin and continuation mode, and hash-only prompt limitations where legacy input bytes do not exist. `petra.project-thread-view@1.0.0`, authenticated routes, and the frozen Petra workspace now expose bounded exact collection/detail reads without fixture transcript fallback. InteractionRun remains execution and delivery state rather than the product thread. | Add create/append/branch/archive/reopen commands, stale-snapshot preflight and execution, retained transcript bytes for new turns, compaction, proposal/decision and PresentationContext linkage, and archive reconstruction. | Wave 2 read integration passed; commands and richer retention remain |
 | `UX-REQ-007` | **Partial.** Domain events and one evidence-pair compensating reversal exist; prior draft revisions remain readable. | Add authorized causal History queries, ten-step quick windows, computed dependency impact, generic eligible compensation previews, exact return, and durable presentation-history boundaries. Do not add a second ledger or erase events. | Wave 3 |
 | `UX-REQ-008` | **Partial, advanced after baseline.** `petra.project-object-location-view@1.0.0` and its Project-scoped PostgreSQL reader resolve exact current or retained historical ProjectSource, Assertion, ChangeSet, WorkUnit, and DraftArtifact identities to ProjectDefinition-permitted semantic place roles. The frozen client alone maps roles to routes. | Add authoritative replacement/supersession chains, parent fallback, retained Project-snapshot selection, extension-registered profile tools, actor-specific object authorization if required, and full applicable `UX-FX19` evidence. | Wave 1, then type-specific later slices |
 | `UX-REQ-009` | **Partial, advanced after baseline.** The scientific ProjectSource specialization and authorized collection/detail view now bind exact role, identity, copy, rights, parsed coverage, preview spans, downstream use, and authority position. The paired definition proof establishes neutral reference terminology but not a controlled-writing source adapter. | Add non-scholarly source specializations, linked Work/results, broader limitations, intake, and source-adapter conformance. | Wave 2 |
@@ -367,8 +371,8 @@ closed instead of borrowing another definition's behavior.
 
 Implement durable ProjectThread/turn records, ProjectSourceLink, Project Work
 collection queries, and ProjectDefinition-valid inquiry mapping. The initial
-Project Work collection/detail read and ProjectThread authority foundation are
-complete; thread read integration and inquiry mapping are next. This establishes
+Project Work collection/detail read and ProjectThread authority and read
+integration are complete; inquiry mapping is next. This establishes
 `UX-REQ-006`, `UX-REQ-009`, the first half of `UX-REQ-010`, `UX-REQ-014`, and
 `UX-REQ-016` before feature surfaces depend on them.
 
@@ -455,25 +459,25 @@ through `UX-REQ-023` conformance.
 ## Immediate next implementation task
 
 Treat the completed M1.9 cumulative result, Wave 1 neutral read foundation, the
-passed Project Work collection/detail slice, and the durable ProjectThread
-authority foundation as the safety point. Continue Wave 2 with a Project thread
-collection/detail read and frozen Petra-workspace integration, then add
+passed Project Work collection/detail slice, and the live ProjectThread
+authority/read/workspace slice as the safety point. Continue Wave 2 with
 ProjectDefinition-valid inquiry mapping and explicit zero/many/shared Work
-links. Do not reopen the frozen presentation, invent a second interaction or
-Work lifecycle, derive inquiry resolution from Work completion, or turn either
-conformance example into a mandatory template.
+links. Do not reopen the frozen presentation, invent a universal Inquiry type or
+a second Work lifecycle, derive inquiry resolution from Work completion, or turn
+either conformance example into a mandatory template.
 
 ## Verification status
 
 The original disposition was based on read-only inspection of the frozen
 handoff, neutral reference implementation, accepted decisions, runtime schemas,
 repositories, server routes, M1.9 reports, and roadmap state. The status refresh
-records the verified cumulative trace, five additive live presentation reads,
+records the verified cumulative trace, six additive live presentation reads,
 initial semantic-location slice, Project-shell 1.1 context expansion, the first
 read-only effective Project controls composition, and paired project-authored
 scientific/controlled-writing conformance across the neutral reads. It does not
 claim profile-specific object adapters or full neutral-product conformance. The
 first Wave 2 Project Work read is live end to end; its stage, input-request,
 inquiry/Review, output-usability, and command limitations remain explicit. The
-ProjectThread foundation is durable through PostgreSQL V022, while its product
-read, route, frozen-surface integration, and lifecycle commands remain open.
+ProjectThread foundation is durable through PostgreSQL V022 and its exact read,
+route, and frozen-surface integration are live; lifecycle commands, retained
+transcript bytes, and continuation execution remain open.

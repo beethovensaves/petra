@@ -81,6 +81,7 @@ import {
   PostgresProjectThreadAuthorityRepository,
   type PostgresProjectThreadError,
 } from "../src/project-thread-authority-repository.js";
+import { PostgresProjectThreadViewReader } from "../src/project-thread-view-reader.js";
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import {
@@ -1081,6 +1082,47 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       branch,
       archived,
     ]);
+
+    const views = new PostgresProjectThreadViewReader(pool);
+    const collection = await views.listProjectThreadView(root.project_id, {
+      limit: 1,
+      lifecycle: "open",
+    });
+    expect(collection?.content.view_kind).toBe("collection");
+    if (collection?.content.view_kind !== "collection") {
+      throw new Error("Expected a Project thread collection view.");
+    }
+    expect(collection.content.threads).toHaveLength(1);
+    expect(collection.content.threads[0]?.title).toBe(branch.content.title);
+    expect(collection.content.threads[0]?.turn_count).toBe(0);
+    expect(collection.content.threads[0]?.latest_turn.state).toBe(
+      "unavailable",
+    );
+    const detail = await views.getProjectThreadView(
+      root.project_id,
+      archived.project_thread_id,
+    );
+    expect(detail?.content.view_kind).toBe("detail");
+    if (detail?.content.view_kind !== "detail") {
+      throw new Error("Expected a Project thread detail view.");
+    }
+    expect(detail.content.summary.lifecycle).toBe("archived");
+    expect(detail.content.turns[0]?.input_representation.state).toBe(
+      "hash_only",
+    );
+    expect(detail.content.turns[0]?.response_representation.state).toBe(
+      "metadata_only",
+    );
+    expect(detail.content.turns[0]?.work_destination).toEqual({
+      role: "work",
+      work_unit_ref: root.content.turns[0]!.execution.work_unit_ref,
+    });
+    expect(
+      await views.getProjectThreadView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        archived.project_thread_id,
+      ),
+    ).toBeUndefined();
 
     const changed = structuredClone(archived);
     changed.content.turns[0]!.input.input_hash =

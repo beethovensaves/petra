@@ -28,6 +28,8 @@ import {
   type ProjectReviewViewReader,
   type ProjectShellViewReader,
   type ProjectSourceViewReader,
+  type ProjectThreadLifecycleFilter,
+  type ProjectThreadViewReader,
   type ProjectWorkStateFilter,
   type ProjectWorkViewReader,
 } from "@petra/core";
@@ -55,6 +57,7 @@ export interface PetraAppOptions {
   projectRelationshipViews?: ProjectRelationshipViewReader;
   projectObjectLocations?: ProjectObjectLocationViewReader;
   projectWorkViews?: ProjectWorkViewReader;
+  projectThreadViews?: ProjectThreadViewReader;
 }
 
 export interface PetraApp {
@@ -66,6 +69,7 @@ export interface PetraApp {
 const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$/;
 const PETRA_ID_PATTERN = /^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const WORK_UNIT_ID_PATTERN = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const PROJECT_THREAD_ID_PATTERN = /^project_thread_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const SEMANTIC_KEY_PATTERN = /^[a-z][a-z0-9._/-]{1,199}$/u;
 const LOCATION_INTENTS = [
   "orient",
@@ -82,6 +86,10 @@ const PROJECT_WORK_STATES: readonly ProjectWorkStateFilter[] = [
   "checkpointed",
   "completed",
   "cancelled",
+];
+const PROJECT_THREAD_LIFECYCLES: readonly ProjectThreadLifecycleFilter[] = [
+  "open",
+  "archived",
 ];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -550,6 +558,164 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The effective Project controls view is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get("/api/queries/projects/:projectId/threads", async (context) => {
+    if (options.projectThreadViews === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_THREADS_UNAVAILABLE",
+        "The authorized Project thread read boundary is not configured.",
+      );
+    }
+    try {
+      const parameters = new URL(context.req.url).searchParams;
+      const allowed = new Set(["limit", "cursor", "lifecycle"]);
+      const unknown = [...parameters.keys()].filter((key) => !allowed.has(key));
+      if (unknown.length > 0) {
+        throw new InteractionInputError(
+          "Project thread collection contains unregistered query parameters.",
+          [...new Set(unknown)],
+        );
+      }
+      for (const key of allowed) {
+        if (parameters.getAll(key).length > 1) {
+          throw new InteractionInputError(
+            `Project thread collection parameter ${key} must appear once.`,
+          );
+        }
+      }
+      const limitValue = parameters.get("limit");
+      const limit = limitValue === null ? undefined : Number(limitValue);
+      if (
+        limit !== undefined &&
+        (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+      ) {
+        throw new InteractionInputError(
+          "Project thread collection limit must be an integer from 1 through 100.",
+        );
+      }
+      const cursorValue = parameters.get("cursor");
+      const cursor = cursorValue === null ? undefined : cursorValue;
+      if (cursor !== undefined && !/^offset:[0-9]{1,9}$/u.test(cursor)) {
+        throw new InteractionInputError(
+          "Project thread collection cursor is invalid.",
+        );
+      }
+      const lifecycle = optionalEnum(
+        Object.fromEntries(parameters.entries()),
+        "lifecycle",
+        PROJECT_THREAD_LIFECYCLES,
+      );
+      const projectId = context.req.param("projectId");
+      const view = await options.projectThreadViews.listProjectThreadView(
+        projectId,
+        {
+          ...(limit === undefined ? {} : { limit }),
+          ...(cursor === undefined ? {} : { cursor }),
+          ...(lifecycle === undefined ? {} : { lifecycle }),
+        },
+      );
+      if (view === undefined) {
+        return jsonError(
+          context,
+          404,
+          "PROJECT_NOT_FOUND",
+          "The requested Project does not exist in the local authority store.",
+        );
+      }
+      contracts.assertValid("project-thread-view", "1.0.0", view);
+      if (
+        view.project_id !== projectId ||
+        view.content.view_kind !== "collection" ||
+        view.content.query.limit !== (limit ?? 50) ||
+        view.content.query.cursor !== cursor ||
+        view.content.query.lifecycle !== lifecycle
+      ) {
+        throw new Error(
+          "The Project thread reader returned a different Project or query.",
+        );
+      }
+      return context.json(view);
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof InteractionInputError ? 422 : 503,
+        error instanceof InteractionInputError
+          ? "PROJECT_THREAD_QUERY_INVALID"
+          : "PROJECT_THREAD_READ_FAILED",
+        error instanceof Error
+          ? error.message
+          : "The Project thread collection is unavailable.",
+        error instanceof InteractionInputError ? error.issues : undefined,
+      );
+    }
+  });
+
+  app.get(
+    "/api/queries/projects/:projectId/threads/:projectThreadId",
+    async (context) => {
+      if (options.projectThreadViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_THREADS_UNAVAILABLE",
+          "The authorized Project thread read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Exact Project thread detail does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectThreadId = context.req.param("projectThreadId");
+        if (!PROJECT_THREAD_ID_PATTERN.test(projectThreadId)) {
+          throw new InteractionInputError(
+            "Project thread detail requires a canonical ProjectThread identity.",
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const view = await options.projectThreadViews.getProjectThreadView(
+          projectId,
+          projectThreadId,
+        );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_THREAD_NOT_FOUND",
+            "The requested ProjectThread is not bound to this Project.",
+          );
+        }
+        contracts.assertValid("project-thread-view", "1.0.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.content.view_kind !== "detail" ||
+          view.content.summary.thread_ref.project_thread_id !== projectThreadId
+        ) {
+          throw new Error(
+            "The Project thread detail reader returned a different Project or thread.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_THREAD_TARGET_INVALID"
+            : "PROJECT_THREAD_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project thread detail is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

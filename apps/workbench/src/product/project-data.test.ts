@@ -11,6 +11,7 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectSourceView,
+  PetraProjectThreadView,
   PetraProjectWorkView,
 } from "@petra/contracts";
 import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
@@ -19,11 +20,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
+  loadProjectPetraThread,
   loadProjectRecord,
   loadProjectSettings,
   loadProjectWorkCollection,
   loadProjectWorkDetail,
   projectRecordFromShellView,
+  petraThreadFromView,
   reviewSessionFromView,
   sourceRecordFromView,
   semanticDestinationPath,
@@ -150,6 +153,26 @@ const workDetailView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectWorkView;
+
+const threadCollectionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-thread-view-collection.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectThreadView;
+
+const threadDetailView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-thread-view-detail.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectThreadView;
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -554,6 +577,76 @@ describe("Project shell workbench adapter", () => {
     expect(fetch.mock.calls.map((call) => call[0])).toEqual([
       `/api/queries/projects/${projectId}/work?limit=50`,
       `/api/queries/projects/${projectId}/work/${workUnitId}`,
+    ]);
+  });
+
+  it("maps and loads one exact live Project thread without inventing message bytes", async () => {
+    if (
+      threadCollectionView.content.view_kind !== "collection" ||
+      threadDetailView.content.view_kind !== "detail"
+    ) {
+      throw new Error(
+        "Expected Project thread collection and detail fixtures.",
+      );
+    }
+    const before = structuredClone(threadDetailView);
+    const thread = petraThreadFromView(threadDetailView);
+    expect(thread).toEqual(
+      expect.objectContaining({
+        id: "project_thread_01K4C000000000000000000101",
+        snapshot: "Authority event 3 · snapshot revision 1",
+        activeWorkId: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        activeWorkTitle: "Linked Work",
+      }),
+    );
+    expect(thread.context).toContain("3 included Project records");
+    expect(thread.omissions).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("exact input bytes are unavailable"),
+        expect.stringContaining("review-policy capture"),
+      ]),
+    );
+    expect(thread.messages).toHaveLength(2);
+    expect(thread.messages[0]?.force).toBe("author_instruction");
+    expect(thread.messages[0]?.content).toContain(
+      "exact input bytes are unavailable",
+    );
+    expect(thread.messages[1]?.force).toBe("explanation_only");
+    expect(thread.messages[1]?.content).toContain("metadata-only Project read");
+    expect(thread.messages[1]?.references[0]?.destination).toContain(
+      "/work/work_unit_",
+    );
+    expect(threadDetailView).toEqual(before);
+
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      return Promise.resolve(
+        Response.json(
+          path.includes("/threads/project_thread_")
+            ? threadDetailView
+            : threadCollectionView,
+        ),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const projectId = threadCollectionView.project_id;
+    const url = new URL(`http://petra.test/projects/${projectId}/petra`);
+    const loaded = await loadProjectPetraThread({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/petra",
+      params: { projectId },
+      context: new RouterContextProvider(),
+    });
+    expect(loaded).toEqual(thread);
+    expect(fetch.mock.calls.map((call) => call[0])).toEqual([
+      `/api/queries/projects/${projectId}/threads?limit=1&lifecycle=open`,
+      `/api/queries/projects/${projectId}/threads/${thread.id}`,
     ]);
   });
 

@@ -1,3 +1,9 @@
+import { readFileSync } from "node:fs";
+
+import type {
+  PetraProjectShellView,
+  PetraProjectThreadView,
+} from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
@@ -13,6 +19,10 @@ import {
   WorkCollectionSurface,
   WorkDetailSurface,
 } from "./WorkPetraSurface.js";
+import {
+  petraThreadFromView,
+  projectRecordFromShellView,
+} from "./project-data.js";
 
 const render = (node: React.ReactNode): string =>
   renderToStaticMarkup(<MemoryRouter>{node}</MemoryRouter>);
@@ -119,6 +129,42 @@ describe("reference Work and Petra packets", () => {
     expect(markup).toContain("No prompt will be sent");
     expect(markup).toContain('aria-disabled="true"');
     expect(markup).toContain("only the Work input adapter can resolve it");
+  });
+
+  it("renders a live exact thread while disclosing unavailable message bytes", () => {
+    const shellView = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../../../packages/contracts/fixtures/accepted/project-shell-view.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as PetraProjectShellView;
+    const threadView = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../../../packages/contracts/fixtures/accepted/project-thread-view-detail.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as PetraProjectThreadView;
+    const liveProject = projectRecordFromShellView(shellView);
+    const liveThread = petraThreadFromView(threadView);
+    const markup = render(
+      <PetraSurface project={liveProject} thread={liveThread} />,
+    );
+
+    expect(markup).toContain("Selected study result");
+    expect(markup).toContain("Authority event 3 · snapshot revision 1");
+    expect(markup).toContain("3 included Project records");
+    expect(markup).toContain("exact input bytes are unavailable");
+    expect(markup).toContain("metadata-only Project read");
+    expect(markup).toContain("Linked Work");
+    expect(markup).toContain("Open linked Work");
+    expect(markup).toContain("No prompt will be sent");
+    expect(markup).not.toContain("measurable improvement on its evaluation");
   });
 
   it("does not fabricate Work or Petra context for another profile", () => {

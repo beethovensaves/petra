@@ -34,6 +34,7 @@ import type { EngineState } from "./product/model.js";
 import {
   loadProjectCollection,
   loadProjectObjectLocationRedirect,
+  loadProjectPetraThread,
   loadProjectRelationshipView,
   loadProjectRecord,
   loadProjectReviewCollection,
@@ -113,7 +114,11 @@ export const router = createBrowserRouter([
             loader: loadProjectWorkDetail,
             element: <WorkDetailRoute />,
           },
-          { path: "petra", element: <PetraRoute /> },
+          {
+            path: "petra",
+            loader: loadProjectPetraThread,
+            element: <PetraRoute />,
+          },
           { path: "composition", element: <CompositionCollectionRoute /> },
           {
             path: "composition/:artifactId",

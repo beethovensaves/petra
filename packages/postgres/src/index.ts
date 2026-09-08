@@ -12,6 +12,7 @@ export * from "./project-definition-authority-repository.js";
 export * from "./project-effective-controls-view-reader.js";
 export * from "./project-work-view-reader.js";
 export * from "./project-thread-authority-repository.js";
+export * from "./project-thread-view-reader.js";
 export * from "./project-shell-view-reader.js";
 export * from "./project-source-authority-repository.js";
 export * from "./project-source-view-reader.js";

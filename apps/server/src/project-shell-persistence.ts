@@ -5,6 +5,7 @@ import {
   PostgresProjectReviewViewReader,
   PostgresProjectShellViewReader,
   PostgresProjectSourceViewReader,
+  PostgresProjectThreadViewReader,
   PostgresProjectWorkViewReader,
 } from "@petra/postgres";
 import { Neo4jAuthorityGraphStore } from "@petra/neo4j";
@@ -18,6 +19,7 @@ import type {
   ProjectReviewViewReader,
   ProjectShellViewReader,
   ProjectSourceViewReader,
+  ProjectThreadViewReader,
   ProjectWorkViewReader,
 } from "@petra/core";
 
@@ -31,6 +33,7 @@ export interface ProjectShellPersistence {
   readonly relationshipViews?: ProjectRelationshipViewReader;
   readonly objectLocations: ProjectObjectLocationViewReader;
   readonly workViews: ProjectWorkViewReader;
+  readonly threadViews: ProjectThreadViewReader;
   readonly close: () => Promise<void>;
 }
 
@@ -127,11 +130,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
 
   try {
     const schema = await pool.query<{ ready: boolean }>(
-      "SELECT to_regclass('petra.review_session_revisions') IS NOT NULL AS ready",
+      "SELECT to_regclass('petra.project_thread_revisions') IS NOT NULL AS ready",
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but V021 has not created petra.review_session_revisions.",
+        "PostgreSQL is reachable, but V022 has not created petra.project_thread_revisions.",
       );
     }
     const neo4jConfigured = [
@@ -167,6 +170,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         reviewViews: new PostgresProjectReviewViewReader(pool),
         objectLocations: new PostgresProjectObjectLocationViewReader(pool),
         workViews: new PostgresProjectWorkViewReader(pool),
+        threadViews: new PostgresProjectThreadViewReader(pool),
         relationshipViews: new PostgresProjectRelationshipViewReader(
           pool,
           graph,
@@ -191,6 +195,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     reviewViews: new PostgresProjectReviewViewReader(pool),
     objectLocations: new PostgresProjectObjectLocationViewReader(pool),
     workViews: new PostgresProjectWorkViewReader(pool),
+    threadViews: new PostgresProjectThreadViewReader(pool),
     close,
   };
 };

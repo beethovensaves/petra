@@ -7,7 +7,6 @@ import {
   PetraButtonGroup,
   PetraTextArea,
 } from "../design-system/primitives.js";
-import { getProjectPetraThread } from "./fixtures.js";
 import type {
   InquiryBranch,
   PetraThread,
@@ -772,18 +771,23 @@ export const PetraSurface = ({
             aria-labelledby="petra-task-context-title"
           >
             <p className="reference-panel-kicker">Active task context</p>
-            <h2 id="petra-task-context-title">Source coverage Work</h2>
+            <h2 id="petra-task-context-title">
+              {thread.activeWorkTitle ?? "Source coverage Work"}
+            </h2>
             <p>
-              The Work task is awaiting an exact permitted-copy choice. The
-              thread can explain this state; only the Work input adapter can
-              resolve it.
+              {thread.activeWorkSummary ??
+                "The Work task is awaiting an exact permitted-copy choice. The thread can explain this state; only the Work input adapter can resolve it."}
             </p>
             {thread.activeWorkId === undefined ? null : (
               <Link
                 className="reference-primary-link"
-                to={`/projects/${project.id}/work/${thread.activeWorkId}#required-input`}
+                to={`/projects/${project.id}/work/${thread.activeWorkId}${
+                  thread.activeWorkLinkLabel === undefined
+                    ? "#required-input"
+                    : ""
+                }`}
               >
-                Open required input
+                {thread.activeWorkLinkLabel ?? "Open required input"}
               </Link>
             )}
             <dl>
@@ -811,10 +815,6 @@ export const PetraSurface = ({
 
 export const PetraRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  return (
-    <PetraSurface
-      project={project}
-      thread={getProjectPetraThread(project.id)}
-    />
-  );
+  const thread = useLoaderData<PetraThread | undefined>();
+  return <PetraSurface project={project} thread={thread} />;
 };

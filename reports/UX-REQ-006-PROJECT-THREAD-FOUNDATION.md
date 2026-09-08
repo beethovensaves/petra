@@ -1,6 +1,6 @@
 # UX-REQ-006 Project thread foundation
 
-Status: durable identity and completed-turn authority bindings passed; read/API/UI and lifecycle commands remain open
+Status: durable identity, completed-turn authority bindings, and read/API/UI passed; lifecycle commands remain open
 Date: 2026-09-08
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -67,22 +67,21 @@ successful Work state, and GroundedResponse context, snapshot, run, Work, and
 Artifact references must all agree. Cross-Project reads return no record.
 
 The disposable PostgreSQL 18.6 suite applies V001 through V022 and passes all
-97 cases. Contract generation and validation pass 328 TypeScript cases; strict
+97 cases. Contract generation and validation pass 331 TypeScript cases; strict
 Python/Pydantic validation and RFC 8785 content-hash parity pass with the new
-fixture included. The complete repository gate passes with 658 always-on tests
+fixtures included. The complete repository gate passes with 662 always-on tests
 and seven expected service-dependent skips, together with generated-contract
 and fixture checks, the retrieval-floor check, formatting, lint, TypeScript and
 Python type checks, and the production workbench build.
 
+The additive read boundary and its frozen-workspace integration are recorded in
+[the Project thread read report](UX-REQ-006-PROJECT-THREAD-READ.md).
+
 ## Remaining UX-REQ-006 work
 
-This foundation does not yet expose product thread reads or commands. Remaining
-work includes:
+The Project thread is now readable through authenticated product routes and the
+frozen Petra workspace. Remaining work includes:
 
-- a Project-scoped collection/detail read that resolves titles, tasks, branch
-  lineage, turns, coverage, and honest capability limitations;
-- authenticated server routes and frozen Petra-workspace integration, without
-  fixture fallback or visual redesign;
 - create, append-turn, branch, archive, and reopen commands with optimistic
   concurrency and authorization;
 - stale-snapshot continuation preflight and execution for all three recorded
@@ -91,6 +90,6 @@ work includes:
   proposal/decision linkage, and PresentationContext linkage; and
 - Project-lifetime retention and later `.petra` checkpoint reconstruction.
 
-The immediate next slice is the read boundary and frozen workspace integration.
-Command behavior should follow only after the read can present exact retained
-state and unavailable capabilities truthfully.
+The read can now present exact retained state and unavailable capabilities
+truthfully. Wave 2 proceeds with ProjectDefinition-valid inquiry mapping before
+the later command and continuation slices build on this boundary.

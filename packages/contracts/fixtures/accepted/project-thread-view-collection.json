@@ -1,0 +1,77 @@
+{
+  "schema_name": "petra.project-thread-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "view_kind": "collection",
+    "project_definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "definition_family": "petra.scientific-evidence"
+    },
+    "query": {
+      "limit": 50
+    },
+    "threads": [
+      {
+        "thread_ref": {
+          "project_thread_id": "project_thread_01K4C000000000000000000101",
+          "revision": 1,
+          "content_hash": "sha256:89627a7de4b1a7a071a5bc087e9fd77728b7df4018184957ab77c38a4de7b752",
+          "record_hash": "sha256:39fa9939ee299c66896f299ca2b955452317e0f3805bba01c6bcdb87080b38fd"
+        },
+        "project_definition_ref": {
+          "project_definition_id": "project_definition_01K4C000000000000000000001",
+          "revision": 1,
+          "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+          "definition_family": "petra.scientific-evidence"
+        },
+        "title": "Selected study result",
+        "task": "Explain what the selected study reports and bound the answer to recorded evidence.",
+        "lifecycle": "open",
+        "origin": {
+          "origin_kind": "root"
+        },
+        "turn_count": 1,
+        "latest_turn": {
+          "state": "available",
+          "project_turn_id": "project_turn_01K4C000000000000000000102",
+          "sequence": 1,
+          "snapshot_ref": {
+            "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+            "snapshot_revision": 1,
+            "event_position": 3,
+            "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "force": "explanation_only",
+          "recorded_at": "2026-09-04T02:00:01.000Z"
+        },
+        "retention": {
+          "state": "retained",
+          "limitation": "Material turn bindings are durable; the originating prompt is represented by its exact hash because no prompt artifact was retained."
+        },
+        "updated_at": "2026-09-04T02:00:01.000Z"
+      }
+    ],
+    "page": {
+      "returned_count": 1,
+      "total_count": 1,
+      "has_more": false
+    },
+    "operations": [
+      {
+        "operation": "create",
+        "state": "unavailable",
+        "reason": "ProjectThread creation has no registered command in this read-only slice."
+      }
+    ],
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 42,
+      "stream_revision": 8
+    }
+  },
+  "content_hash": "sha256:f9d73104a4aaefdbe498320fed29767a51a76f91ef2a539610b20372a9af5c57",
+  "read_at": "2026-09-08T17:30:00.000Z"
+}

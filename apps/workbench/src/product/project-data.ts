@@ -6,6 +6,7 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectSourceView,
+  PetraProjectThreadView,
   PetraProjectWorkView,
   ProjectDefinitionTerm,
   ProjectWorkDetailContent,
@@ -18,6 +19,7 @@ import type {
   GraphQuestion,
   ProjectProfile,
   ProjectRecord,
+  PetraThread,
   ReviewSession,
   SourceRecord,
   WorkExecutionState,
@@ -178,6 +180,26 @@ const projectWorkView = (value: unknown): PetraProjectWorkView => {
     );
   }
   return value as unknown as PetraProjectWorkView;
+};
+
+const projectThreadView = (value: unknown): PetraProjectThreadView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-thread-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    (value.content.view_kind !== "collection" &&
+      value.content.view_kind !== "detail") ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project thread view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectThreadView;
 };
 
 const requestJson = async (path: string): Promise<unknown> => {
@@ -1059,6 +1081,151 @@ export const loadProjectWorkDetail = async ({
     throw new ProjectDataError("Petra returned no exact Work task.", 502);
   }
   return { work, unit };
+};
+
+export const petraThreadFromView = (
+  view: PetraProjectThreadView,
+): PetraThread => {
+  if (view.content.view_kind !== "detail") {
+    throw new ProjectDataError(
+      "A Petra thread requires an exact Project thread detail view.",
+      502,
+    );
+  }
+  const { summary, turns } = view.content;
+  if (summary.turn_count !== turns.length) {
+    throw new ProjectDataError(
+      "Petra returned a thread whose turn count does not match its detail.",
+      502,
+    );
+  }
+  const latest = turns.at(-1);
+  const context = latest?.turn.context;
+  const omitted = [
+    ...(context === undefined
+      ? ["No material turn has compiled Project context."]
+      : [
+          `${context.omission_count} omission${context.omission_count === 1 ? "" : "s"} recorded by the exact context packet.`,
+        ]),
+    ...(latest === undefined
+      ? []
+      : [
+          latest.input_representation.reason,
+          latest.turn.authority_context.review_policy.reason,
+          latest.turn.presentation_context.reason,
+        ]),
+  ];
+  const messages = turns.flatMap((entry) => {
+    const turn = entry.turn;
+    const force = turn.response.force;
+    return [
+      {
+        id: `${turn.project_turn_id}:input`,
+        speaker: "Project author",
+        origin:
+          entry.input_representation.state === "hash_only"
+            ? "Author instruction retained by exact hash"
+            : "Author instruction retained as exact Artifact metadata",
+        force: "author_instruction" as const,
+        forceLabel: "Recorded direction · no new state changed",
+        content: entry.input_representation.reason,
+        references: [],
+      },
+      {
+        id: `${turn.project_turn_id}:response`,
+        speaker: "Petra",
+        origin: `Recorded ${turn.response.result_record_ref.schema_name} response`,
+        force,
+        forceLabel:
+          force === "explanation_only"
+            ? "Explanation only · no state changed"
+            : force === "work_update"
+              ? "Work update · no domain authority changed"
+              : "Proposal · Review still required",
+        content: entry.response_representation.reason,
+        references: [
+          {
+            label: "Open linked Work",
+            kind: "Work task",
+            destination: `/projects/${view.project_id}/work/${entry.work_destination.work_unit_ref.work_unit_id}`,
+          },
+        ],
+      },
+    ];
+  });
+  return {
+    id: summary.thread_ref.project_thread_id,
+    projectId: view.project_id,
+    title: summary.title,
+    task: summary.task,
+    snapshot:
+      context === undefined
+        ? "No material-turn snapshot"
+        : `Authority event ${context.snapshot_ref.event_position} · snapshot revision ${context.snapshot_ref.snapshot_revision}`,
+    context:
+      context === undefined
+        ? []
+        : [
+            `Exact context: ${context.context_record_ref.record_id} revision ${context.context_record_ref.revision}`,
+            `${context.included_object_count} included Project record${context.included_object_count === 1 ? "" : "s"}`,
+            `Coverage (${context.coverage_state.replaceAll("_", " ")}): ${context.coverage_statement}`,
+            `Project definition: ${summary.project_definition_ref.definition_family} revision ${summary.project_definition_ref.revision}`,
+          ],
+    omissions: [...new Set(omitted)],
+    ...(latest === undefined
+      ? {}
+      : {
+          activeWorkId: latest.work_destination.work_unit_ref.work_unit_id,
+          activeWorkTitle: "Linked Work",
+          activeWorkSummary:
+            "This turn retains the exact successful WorkUnit revision. Opening it shows operational evidence; it does not apply or promote the response.",
+          activeWorkLinkLabel: "Open linked Work",
+        }),
+    messages,
+  };
+};
+
+export const loadProjectPetraThread = async ({
+  params,
+}: LoaderFunctionArgs): Promise<PetraThread | undefined> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const collectionValue = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/threads?limit=1&lifecycle=open`,
+  );
+  const collection = projectThreadView(collectionValue);
+  if (
+    collection.project_id !== projectId ||
+    collection.content.view_kind !== "collection"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a thread collection for a different Project or view kind.",
+      502,
+    );
+  }
+  const selected = collection.content.threads[0];
+  if (selected === undefined) return undefined;
+  const threadId = selected.thread_ref.project_thread_id;
+  const detailValue = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/threads/${encodeURIComponent(threadId)}`,
+  );
+  const detail = projectThreadView(detailValue);
+  if (
+    detail.project_id !== projectId ||
+    detail.content.view_kind !== "detail" ||
+    detail.content.summary.thread_ref.project_thread_id !== threadId ||
+    detail.content.summary.thread_ref.revision !==
+      selected.thread_ref.revision ||
+    detail.content.summary.thread_ref.content_hash !==
+      selected.thread_ref.content_hash ||
+    detail.content.summary.thread_ref.record_hash !==
+      selected.thread_ref.record_hash
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a different Project thread identity or revision.",
+      502,
+    );
+  }
+  return petraThreadFromView(detail);
 };
 
 export const loadProjectRelationshipView = async ({

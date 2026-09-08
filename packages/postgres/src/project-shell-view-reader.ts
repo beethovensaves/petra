@@ -56,8 +56,7 @@ interface PlaceCountRow {
   review_attention_count: string;
   work_count: string;
   work_attention_count: string;
-  interaction_count: string;
-  interaction_attention_count: string;
+  thread_count: string;
   draft_count: string;
   draft_attention_count: string;
   history_count: string;
@@ -284,16 +283,8 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
            WHERE head.project_id = $1
              AND revision.state IN ('queued', 'running'))::text
            AS work_attention_count,
-         (SELECT count(*) FROM petra.interaction_runs
-           WHERE project_id = $1)::text AS interaction_count,
-         (SELECT count(*)
-            FROM petra.interaction_runs AS head
-            JOIN petra.interaction_run_revisions AS revision
-              ON revision.interaction_run_id = head.interaction_run_id
-             AND revision.revision = head.current_revision
-           WHERE head.project_id = $1
-             AND revision.lifecycle_state IN ('running', 'awaiting_interrupt'))::text
-           AS interaction_attention_count,
+         (SELECT count(*) FROM petra.project_threads
+           WHERE project_id = $1)::text AS thread_count,
          (SELECT count(*) FROM petra.draft_artifacts
            WHERE project_id = $1)::text AS draft_count,
          (SELECT count(*)
@@ -331,11 +322,7 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
       reviewAttention: count(row.review_attention_count, "open Review session"),
       work: count(row.work_count, "WorkUnit"),
       workAttention: count(row.work_attention_count, "active WorkUnit"),
-      interactions: count(row.interaction_count, "interaction run"),
-      interactionAttention: count(
-        row.interaction_attention_count,
-        "active interaction run",
-      ),
+      threads: count(row.thread_count, "Project thread"),
       drafts: count(row.draft_count, "DraftArtifact"),
       draftAttention: count(
         row.draft_attention_count,
@@ -408,13 +395,11 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
       }),
       petra: () => ({
         role: "petra",
-        coverage: "partial",
+        coverage: "complete",
         label: "Petra",
-        summary: `${phrase(counts.interactions, "interaction run is", "interaction runs are")} retained.`,
-        item_count: counts.interactions,
-        attention_count: counts.interactionAttention,
-        limitation:
-          "Durable Project threads and branch context are not implemented.",
+        summary: `${phrase(counts.threads, "Project thread is", "Project threads are")} retained.`,
+        item_count: counts.threads,
+        attention_count: 0,
       }),
       composition: () => ({
         role: "composition",

@@ -333,7 +333,7 @@ export type PetraMessage = {
   id: string;
   speaker: string;
   origin: string;
-  force: "author_instruction" | "explanation_only" | "work_update";
+  force: "author_instruction" | "explanation_only" | "work_update" | "proposal";
   forceLabel: string;
   content: string;
   references: PetraReference[];
@@ -348,6 +348,9 @@ export type PetraThread = {
   context: string[];
   omissions: string[];
   activeWorkId?: string;
+  activeWorkTitle?: string;
+  activeWorkSummary?: string;
+  activeWorkLinkLabel?: string;
   messages: PetraMessage[];
 };
 

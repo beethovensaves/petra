@@ -8,6 +8,7 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectSourceView,
+  PetraProjectThreadView,
   PetraProjectWorkView,
 } from "@petra/contracts";
 import type {
@@ -18,6 +19,7 @@ import type {
   ProjectShellSelectionRequest,
   ProjectShellViewReader,
   ProjectSourceViewReader,
+  ProjectThreadViewReader,
   ProjectWorkViewReader,
 } from "@petra/core";
 import { describe, expect, it } from "vitest";
@@ -116,6 +118,26 @@ const workDetailFixture = JSON.parse(
   ),
 ) as PetraProjectWorkView;
 
+const threadCollectionFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-thread-view-collection.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectThreadView;
+
+const threadDetailFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-thread-view-detail.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectThreadView;
+
 const reader: ProjectShellViewReader = {
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
@@ -199,6 +221,27 @@ const workReader: ProjectWorkViewReader = {
       projectId === workDetailFixture.project_id &&
         workUnitId === expectedWorkUnitId
         ? structuredClone(workDetailFixture)
+        : undefined,
+    );
+  },
+};
+
+const threadReader: ProjectThreadViewReader = {
+  listProjectThreadView: (projectId) =>
+    Promise.resolve(
+      projectId === threadCollectionFixture.project_id
+        ? structuredClone(threadCollectionFixture)
+        : undefined,
+    ),
+  getProjectThreadView: (projectId, projectThreadId) => {
+    const expectedThreadId =
+      threadDetailFixture.content.view_kind === "detail"
+        ? threadDetailFixture.content.summary.thread_ref.project_thread_id
+        : undefined;
+    return Promise.resolve(
+      projectId === threadDetailFixture.project_id &&
+        projectThreadId === expectedThreadId
+        ? structuredClone(threadDetailFixture)
         : undefined,
     );
   },
@@ -451,6 +494,75 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(crossProjectBody.error.code).toBe("PROJECT_WORK_NOT_FOUND");
+  });
+
+  it("returns bounded Project threads and exact metadata-only turn detail", async () => {
+    if (
+      threadCollectionFixture.content.view_kind !== "collection" ||
+      threadDetailFixture.content.view_kind !== "detail"
+    ) {
+      throw new Error(
+        "Expected collection and detail Project thread fixtures.",
+      );
+    }
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectThreadViews: threadReader,
+    });
+    const collection = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${threadCollectionFixture.project_id}/threads?limit=50`,
+      ),
+    );
+    expect(collection.status).toBe(200);
+    await expect(collection.json()).resolves.toEqual(threadCollectionFixture);
+
+    const threadId =
+      threadDetailFixture.content.summary.thread_ref.project_thread_id;
+    const detail = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${threadDetailFixture.project_id}/threads/${threadId}`,
+      ),
+    );
+    expect(detail.status).toBe(200);
+    const detailBody = (await detail.json()) as PetraProjectThreadView;
+    expect(detailBody).toEqual(threadDetailFixture);
+    if (detailBody.content.view_kind !== "detail") {
+      throw new Error("Expected Project thread detail response.");
+    }
+    expect(detailBody.content.turns[0]?.input_representation.state).toBe(
+      "hash_only",
+    );
+    expect(detailBody.content.turns[0]?.response_representation.state).toBe(
+      "metadata_only",
+    );
+    expect(
+      detailBody.content.operations.every(
+        (operation) => operation.state === "unavailable",
+      ),
+    ).toBe(true);
+
+    const malformed = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${threadDetailFixture.project_id}/threads?limit=0&sort=recent`,
+      ),
+    );
+    expect(malformed.status).toBe(422);
+    const malformedBody = JSON.parse(await malformed.text()) as {
+      error: { code: string };
+    };
+    expect(malformedBody.error.code).toBe("PROJECT_THREAD_QUERY_INVALID");
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/threads/${threadId}`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    const crossProjectBody = JSON.parse(await crossProject.text()) as {
+      error: { code: string };
+    };
+    expect(crossProjectBody.error.code).toBe("PROJECT_THREAD_NOT_FOUND");
   });
 
   it("returns only Review sessions authorized for the exact Project", async () => {

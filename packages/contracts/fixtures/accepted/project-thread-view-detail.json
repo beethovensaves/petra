@@ -1,0 +1,201 @@
+{
+  "schema_name": "petra.project-thread-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "view_kind": "detail",
+    "summary": {
+      "thread_ref": {
+        "project_thread_id": "project_thread_01K4C000000000000000000101",
+        "revision": 1,
+        "content_hash": "sha256:89627a7de4b1a7a071a5bc087e9fd77728b7df4018184957ab77c38a4de7b752",
+        "record_hash": "sha256:39fa9939ee299c66896f299ca2b955452317e0f3805bba01c6bcdb87080b38fd"
+      },
+      "project_definition_ref": {
+        "project_definition_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+        "definition_family": "petra.scientific-evidence"
+      },
+      "title": "Selected study result",
+      "task": "Explain what the selected study reports and bound the answer to recorded evidence.",
+      "lifecycle": "open",
+      "origin": {
+        "origin_kind": "root"
+      },
+      "turn_count": 1,
+      "latest_turn": {
+        "state": "available",
+        "project_turn_id": "project_turn_01K4C000000000000000000102",
+        "sequence": 1,
+        "snapshot_ref": {
+          "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+          "snapshot_revision": 1,
+          "event_position": 3,
+          "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "force": "explanation_only",
+        "recorded_at": "2026-09-04T02:00:01.000Z"
+      },
+      "retention": {
+        "state": "retained",
+        "limitation": "Material turn bindings are durable; the originating prompt is represented by its exact hash because no prompt artifact was retained."
+      },
+      "updated_at": "2026-09-04T02:00:01.000Z"
+    },
+    "turns": [
+      {
+        "turn": {
+          "project_turn_id": "project_turn_01K4C000000000000000000102",
+          "sequence": 1,
+          "project_definition_ref": {
+            "project_definition_id": "project_definition_01K4C000000000000000000001",
+            "revision": 1,
+            "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+            "definition_family": "petra.scientific-evidence"
+          },
+          "input": {
+            "retention_state": "hash_only",
+            "input_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "source_message_id": "user-message-m1-fixture",
+            "limitation": "The accepted fixture predates retained prompt artifacts; exact input bytes are unavailable."
+          },
+          "context": {
+            "context_record_ref": {
+              "schema_name": "petra.context-packet",
+              "schema_version": "1.0.0",
+              "record_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+              "revision": 1,
+              "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df"
+            },
+            "snapshot_ref": {
+              "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+              "snapshot_revision": 1,
+              "event_position": 3,
+              "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "included_object_count": 3,
+            "omission_count": 1,
+            "coverage_state": "bounded",
+            "coverage_statement": "Coverage is limited to the selected Claim and its recorded source path."
+          },
+          "execution": {
+            "interaction_run_ref": {
+              "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+              "revision": 2,
+              "content_hash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+            },
+            "work_unit_ref": {
+              "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+              "revision": 4,
+              "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+            }
+          },
+          "authority_context": {
+            "actor": {
+              "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+              "actor_kind": "human"
+            },
+            "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FDF",
+            "privacy_profile_ref": {
+              "record_id": "privacy_profile_01ARZ3NDEKTSV4RRFFQ69G5FDG",
+              "revision": 1,
+              "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            },
+            "budget_profile_ref": {
+              "record_id": "budget_profile_01ARZ3NDEKTSV4RRFFQ69G5FDH",
+              "revision": 1,
+              "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+            },
+            "review_policy": {
+              "state": "unavailable",
+              "reason": "The originating InteractionRun predates exact review-policy capture."
+            }
+          },
+          "response": {
+            "state": "completed",
+            "result_record_ref": {
+              "schema_name": "petra.grounded-response",
+              "schema_version": "1.0.0",
+              "record_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+              "revision": 1,
+              "content_hash": "sha256:a510a2fd1eb89fadcfc9008b4d55f4f0e8983dffef10793e77dbabd0a3256f6d"
+            },
+            "response_artifact_ref": {
+              "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+              "content_hash": "sha256:a3e333de83c3db20f94853d7e125356afd6ef02991687e47803f64a0e6eb3758",
+              "byte_size": 143,
+              "media_type": "text/markdown; charset=utf-8"
+            },
+            "force": "explanation_only",
+            "authority_effect": "none"
+          },
+          "compaction": {
+            "state": "unmodified"
+          },
+          "proposal_decision_linkage": {
+            "state": "unavailable",
+            "reason": "No proposal or decision was produced by this explanatory turn."
+          },
+          "presentation_context": {
+            "state": "unavailable",
+            "reason": "Presentation-state capture is outside this foundation contract."
+          },
+          "recorded_at": "2026-09-04T02:00:01.000Z"
+        },
+        "input_representation": {
+          "state": "hash_only",
+          "reason": "The accepted fixture predates retained prompt artifacts; exact input bytes are unavailable.",
+          "input_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "response_representation": {
+          "state": "metadata_only",
+          "reason": "The exact response Artifact is retained, but its bytes are not exposed by this metadata-only Project read.",
+          "artifact_ref": {
+            "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+            "content_hash": "sha256:a3e333de83c3db20f94853d7e125356afd6ef02991687e47803f64a0e6eb3758",
+            "byte_size": 143,
+            "media_type": "text/markdown; charset=utf-8"
+          }
+        },
+        "work_destination": {
+          "role": "work",
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+            "revision": 4,
+            "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+          }
+        }
+      }
+    ],
+    "operations": [
+      {
+        "operation": "append_turn",
+        "state": "unavailable",
+        "reason": "Appending a turn has no registered command in this read-only slice."
+      },
+      {
+        "operation": "branch",
+        "state": "unavailable",
+        "reason": "Branch creation has no registered command in this read-only slice."
+      },
+      {
+        "operation": "archive",
+        "state": "unavailable",
+        "reason": "Archiving has no registered command in this read-only slice."
+      },
+      {
+        "operation": "reopen",
+        "state": "unavailable",
+        "reason": "Reopening has no registered command in this read-only slice."
+      }
+    ],
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 42,
+      "stream_revision": 8
+    }
+  },
+  "content_hash": "sha256:38920a5033dc2b0386bfafe0aa0c558cdce09e1f8c8064759faa2a63dc93d386",
+  "read_at": "2026-09-08T17:30:00.000Z"
+}

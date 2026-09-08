@@ -3267,6 +3267,114 @@ class PetraProjectThread(PetraModel):
     updated_at: str
 
 
+class ProjectThreadViewThreadRef(PetraModel):
+    project_thread_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+class ProjectThreadViewLatestTurn(PetraModel):
+    state: Literal["available"]
+    project_turn_id: str
+    sequence: int
+    snapshot_ref: ProjectThreadSnapshotRef
+    force: Literal["explanation_only", "work_update", "proposal"]
+    recorded_at: str
+
+
+class ProjectThreadViewSummary(PetraModel):
+    thread_ref: ProjectThreadViewThreadRef
+    project_definition_ref: ProjectThreadDefinitionRef
+    title: str
+    task: str
+    lifecycle: Literal["open", "archived"]
+    origin: ProjectThreadRootOrigin | ProjectThreadBranchOrigin
+    turn_count: int
+    latest_turn: ProjectThreadViewLatestTurn | ProjectThreadUnavailable
+    retention: ProjectThreadRetention
+    updated_at: str
+
+
+class ProjectThreadViewOperation(PetraModel):
+    operation: Literal["create", "append_turn", "branch", "archive", "reopen"]
+    state: Literal["unavailable"]
+    reason: str
+
+
+class ProjectThreadViewQuery(PetraModel):
+    limit: int
+    cursor: str | None = None
+    lifecycle: Literal["open", "archived"] | None = None
+
+
+class ProjectThreadViewPage(PetraModel):
+    returned_count: int
+    total_count: int
+    has_more: bool
+    next_cursor: str | None = None
+
+
+class ProjectThreadViewAuthority(PetraModel):
+    isolation: Literal["repeatable_read"]
+    event_position: int
+    stream_revision: int
+
+
+class ProjectThreadViewCollection(PetraModel):
+    view_kind: Literal["collection"]
+    project_definition_ref: ProjectThreadDefinitionRef
+    query: ProjectThreadViewQuery
+    threads: list[ProjectThreadViewSummary]
+    page: ProjectThreadViewPage
+    operations: list[ProjectThreadViewOperation]
+    authority: ProjectThreadViewAuthority
+
+
+class ProjectThreadViewHashOnlyRepresentation(PetraModel):
+    state: Literal["hash_only"]
+    reason: str
+    input_hash: str
+
+
+class ProjectThreadViewMetadataRepresentation(PetraModel):
+    state: Literal["metadata_only"]
+    reason: str
+    artifact_ref: ProjectThreadExactArtifactRef
+
+
+class ProjectThreadViewWorkDestination(PetraModel):
+    role: Literal["work"]
+    work_unit_ref: ProjectThreadWorkUnitRef
+
+
+class ProjectThreadViewTurn(PetraModel):
+    turn: ProjectThreadTurn
+    input_representation: (
+        ProjectThreadViewHashOnlyRepresentation
+        | ProjectThreadViewMetadataRepresentation
+    )
+    response_representation: ProjectThreadViewMetadataRepresentation
+    work_destination: ProjectThreadViewWorkDestination
+
+
+class ProjectThreadViewDetail(PetraModel):
+    view_kind: Literal["detail"]
+    summary: ProjectThreadViewSummary
+    turns: list[ProjectThreadViewTurn]
+    operations: list[ProjectThreadViewOperation]
+    authority: ProjectThreadViewAuthority
+
+
+class PetraProjectThreadView(PetraModel):
+    schema_name: Literal["petra.project-thread-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: ProjectThreadViewCollection | ProjectThreadViewDetail
+    content_hash: str
+    read_at: str
+
+
 class WorkUnitInputManifestRef(PetraModel):
     worker_input_manifest_id: str
     content_hash: str
@@ -5426,6 +5534,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-object-location-view": PetraProjectObjectLocationView,
     "project-work-view": PetraProjectWorkView,
     "project-thread": PetraProjectThread,
+    "project-thread-view": PetraProjectThreadView,
     "author": PetraAuthor,
     "work": PetraWork,
     "work-version": PetraWorkVersion,
@@ -5585,6 +5694,8 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-work-view-collection.json", "content", "content_hash"),
         ("project-work-view-detail.json", "content", "content_hash"),
         ("project-thread.json", "content", "content_hash"),
+        ("project-thread-view-collection.json", "content", "content_hash"),
+        ("project-thread-view-detail.json", "content", "content_hash"),
     ]
     for filename, projection, hash_field in fixtures:
         value = read_json(f"fixtures/accepted/{filename}")

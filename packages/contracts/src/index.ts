@@ -94,6 +94,19 @@ export type {
   Turn as ProjectThreadTurn,
 } from "./generated/project-thread.js";
 export type {
+  AuthorityPosition as ProjectThreadViewAuthorityPosition,
+  CollectionContent as ProjectThreadViewCollectionContent,
+  CollectionQuery as ProjectThreadViewCollectionQuery,
+  DetailContent as ProjectThreadViewDetailContent,
+  LatestTurn as ProjectThreadViewLatestTurn,
+  OperationCapability as ProjectThreadViewOperationCapability,
+  Page as ProjectThreadViewPage,
+  PetraProjectThreadView,
+  ThreadRef as ProjectThreadViewThreadRef,
+  ThreadSummary as ProjectThreadViewThreadSummary,
+  TurnView as ProjectThreadViewTurn,
+} from "./generated/project-thread-view.js";
+export type {
   ArtifactManifestRef as ProjectSourceArtifactManifestRef,
   AuthorRef as ProjectSourceAuthorRef,
   DefinitionRef as ProjectSourceDefinitionRef,
