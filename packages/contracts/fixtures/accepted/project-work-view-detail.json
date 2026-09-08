@@ -1,0 +1,369 @@
+{
+  "schema_name": "petra.project-work-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "view_kind": "detail",
+    "project_definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "definition_family": "petra.scientific-evidence"
+    },
+    "summary": {
+      "work_unit_ref": {
+        "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        "revision": 4,
+        "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+        "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+      },
+      "task_label": "Work task",
+      "objective": "Parse the exact registered PDF into a candidate Petra ParsedDocument without mutating authority.",
+      "work_mode": "background",
+      "priority": "normal",
+      "workflow": {
+        "workflow_name": "petra.ingestion.parse",
+        "workflow_version": "1.0.0",
+        "task_family": "document_processing",
+        "task_name": "petra.document.parse",
+        "task_version": "1.0.0"
+      },
+      "execution": {
+        "state": "completed",
+        "terminal_outcome": "succeeded",
+        "attempt": 1,
+        "requested_at": "2026-08-29T14:00:00.000Z",
+        "queued_at": "2026-08-29T14:00:01.000Z",
+        "started_at": "2026-08-29T14:00:02.000Z",
+        "finished_at": "2026-08-29T14:00:05.000Z",
+        "updated_at": "2026-08-29T14:00:05.000Z"
+      },
+      "attention": {
+        "state": "settled",
+        "reason_code": "completed",
+        "reason": "The WorkUnit completed operationally; result authority is separate."
+      },
+      "elapsed": {
+        "state": "measured",
+        "milliseconds": 3000,
+        "basis": "start_to_terminal"
+      },
+      "resource_coverage": "measured",
+      "reported_output_count": 1,
+      "stage_plan": {
+        "state": "unavailable",
+        "reason": "No registered workflow stage plan is available for this task."
+      },
+      "destination": {
+        "role": "work",
+        "target_ref": {
+          "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4,
+          "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+          "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+        }
+      }
+    },
+    "specification": {
+      "input_manifest_ref": {
+        "record_id": "worker_input_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+        "revision": 1,
+        "content_hash": "sha256:43057052df0f0067186c2a1a0daa8b0827823487141265996ed2deb0fdb7d3e7",
+        "record_hash": "sha256:cdcf17160e37337e0a92b53edd79c458dbf05985795d1fde73c8410bef85861e"
+      },
+      "task": {
+        "task_family": "document_processing",
+        "task_name": "petra.document.parse",
+        "task_version": "1.0.0"
+      },
+      "worker": {
+        "executor_kind": "python_worker",
+        "worker_name": "petra.science",
+        "worker_version": "0.0.0",
+        "runtime_name": "python",
+        "runtime_version": "3.13.7",
+        "entrypoint": "petra_science.parse"
+      },
+      "inputs": [
+        {
+          "binding_kind": "artifact",
+          "name": "source_pdf",
+          "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+          "content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+          "byte_size": 21
+        }
+      ],
+      "expected_outputs": [
+        {
+          "output_name": "parsed_document",
+          "output_role": "proposal",
+          "required": true,
+          "media_type": "application/json",
+          "max_bytes": 50000000,
+          "contract": {
+            "schema_name": "petra.parsed-document",
+            "schema_version": "1.0.0",
+            "schema_hash": "sha256:7919ed260b6df95efe004aa90f584ed42cab842d0e4980a9fdf0b2958ebfba29"
+          }
+        },
+        {
+          "output_name": "worker_log",
+          "output_role": "log",
+          "required": false,
+          "media_type": "text/plain",
+          "max_bytes": 1000000
+        }
+      ],
+      "network_policy": {
+        "network_mode": "blocked"
+      },
+      "partial_result_policy": "retain_diagnostics",
+      "cache_mode": "reuse_exact",
+      "cancellation_policy": "cancellable",
+      "checkpoint_policy": "disabled"
+    },
+    "dependencies": [],
+    "stage_plan": {
+      "state": "unavailable",
+      "reason": "This workflow has no registered stage-plan record; Petra does not reconstruct stages from execution prose."
+    },
+    "resources": {
+      "limits": {
+        "max_wall_time_ms": 600000,
+        "max_output_bytes": 51000000,
+        "max_attempts": 2,
+        "max_parallelism": 1,
+        "max_cpu_time_ms": 1200000,
+        "max_memory_bytes": 4294967296,
+        "max_storage_bytes": 10737418240
+      },
+      "usage": {
+        "state": "measured",
+        "output_manifest_ref": {
+          "record_id": "worker_output_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC4",
+          "revision": 1,
+          "content_hash": "sha256:5f9c81ae2ed811c77a5166d2a672ddde2243501542a8be66586b63f512458abb",
+          "record_hash": "sha256:9e3dc06cbebfeca6bbbe15a4fd22aa15668113d6ae2334e7c929d1570a6a614a"
+        },
+        "resource_usage": {
+          "wall_time_ms": 3000,
+          "cpu_time_ms": 5100,
+          "peak_memory_bytes": 805306368,
+          "input_bytes": 21,
+          "output_bytes": 40218,
+          "network_bytes": 0
+        }
+      }
+    },
+    "outputs": [
+      {
+        "declaration": {
+          "output_name": "parsed_document",
+          "output_role": "proposal",
+          "required": true,
+          "media_type": "application/json",
+          "max_bytes": 50000000,
+          "contract": {
+            "schema_name": "petra.parsed-document",
+            "schema_version": "1.0.0",
+            "schema_hash": "sha256:7919ed260b6df95efe004aa90f584ed42cab842d0e4980a9fdf0b2958ebfba29"
+          }
+        },
+        "report_state": "reported",
+        "produced_output": {
+          "output_name": "parsed_document",
+          "output_role": "proposal",
+          "output_handle": "output:parsed-document-json",
+          "content_hash": "sha256:6b2fa76c316e066aa3e3156ef026f140f4a45f4bf7f3127c766115b462ad16d8",
+          "byte_size": 40218,
+          "media_type": "application/json",
+          "contract": {
+            "schema_name": "petra.parsed-document",
+            "schema_version": "1.0.0",
+            "schema_hash": "sha256:7919ed260b6df95efe004aa90f584ed42cab842d0e4980a9fdf0b2958ebfba29"
+          }
+        },
+        "availability": {
+          "state": "staged_handle_only",
+          "limitation": "The worker reported an immutable staged handle; this view does not infer Project-level registration, validation, or usability."
+        }
+      },
+      {
+        "declaration": {
+          "output_name": "worker_log",
+          "output_role": "log",
+          "required": false,
+          "media_type": "text/plain",
+          "max_bytes": 1000000
+        },
+        "report_state": "not_reported",
+        "availability": {
+          "state": "unavailable",
+          "limitation": "No current WorkerOutputManifest reports this declared slot."
+        }
+      }
+    ],
+    "controls": [
+      {
+        "control_name": "cancel",
+        "policy_state": "not_applicable",
+        "operation_state": "unavailable",
+        "reason": "The WorkUnit is already terminal.",
+        "consequence": "No cancellation is executed or implied by opening this Work view."
+      },
+      {
+        "control_name": "retry",
+        "policy_state": "not_applicable",
+        "operation_state": "unavailable",
+        "reason": "Retry applies only after a retryable operational failure.",
+        "consequence": "No new attempt is queued by reading or acknowledging this task."
+      },
+      {
+        "control_name": "resume",
+        "policy_state": "not_applicable",
+        "operation_state": "unavailable",
+        "reason": "No registered checkpoint-resume operation or compatibility assessment exists.",
+        "consequence": "A checkpoint is not presented as paused or resumable Work."
+      }
+    ],
+    "inquiry_linkage": {
+      "state": "unavailable",
+      "reason": "No ProjectDefinition-valid inquiry mapping is registered for this WorkUnit."
+    },
+    "review": {
+      "state": "unavailable",
+      "reason": "No profile-neutral Review linkage is registered for this WorkUnit."
+    },
+    "semantic_location": {
+      "request": {
+        "object_ref": {
+          "semantic_key": "petra.work-unit",
+          "object_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4
+        },
+        "task_intent": "continue_work"
+      },
+      "definition_ref": {
+        "project_definition_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+        "definition_family": "petra.scientific-evidence"
+      },
+      "resolution": {
+        "state": "current",
+        "requested_ref": {
+          "semantic_key": "petra.work-unit",
+          "object_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4
+        },
+        "resolved_ref": {
+          "semantic_key": "petra.work-unit",
+          "object_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4,
+          "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+        },
+        "current_ref": {
+          "semantic_key": "petra.work-unit",
+          "object_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4,
+          "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+        },
+        "descriptor": {
+          "semantic_key": "petra.work-unit",
+          "generic_family": "task",
+          "label": "petra.ingestion.parse",
+          "summary": "Parse the exact registered PDF into a candidate Petra ParsedDocument without mutating authority.",
+          "lifecycle_state": "completed"
+        },
+        "replacement_chain": []
+      },
+      "primary_destination": {
+        "role": "work",
+        "purpose": "Inspect or continue the exact bounded Work revision.",
+        "target_ref": {
+          "semantic_key": "petra.work-unit",
+          "object_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4,
+          "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+        }
+      },
+      "alternate_destinations": [
+        {
+          "role": "history",
+          "purpose": "Inspect retained Project history for this Work.",
+          "target_ref": {
+            "semantic_key": "petra.work-unit",
+            "object_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+            "revision": 4,
+            "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+          }
+        }
+      ],
+      "fallback_destination": {
+        "role": "brief",
+        "purpose": "Return to the current Project orientation."
+      },
+      "context": {
+        "details_allowed": true,
+        "petra_allowed": true
+      },
+      "authority": {
+        "isolation": "repeatable_read",
+        "event_position": 42,
+        "stream_revision": 8
+      },
+      "projection": {
+        "state": "unavailable",
+        "label": "Projection unavailable",
+        "detail": "No authority-graph checkpoint is registered for this Project. Authoritative Project records remain available.",
+        "represented_event_position": 0,
+        "observed_event_position": 0,
+        "pending_records": 0
+      }
+    },
+    "coverage": [
+      { "area": "identity", "state": "complete" },
+      { "area": "execution", "state": "complete" },
+      { "area": "inputs", "state": "complete" },
+      { "area": "dependencies", "state": "complete" },
+      {
+        "area": "stages",
+        "state": "unavailable",
+        "limitation": "No registered workflow stage plan exists."
+      },
+      { "area": "resources", "state": "complete" },
+      {
+        "area": "outputs",
+        "state": "partial",
+        "limitation": "Worker output handles are reported, but their Project-level usability and destination are not inferred."
+      },
+      {
+        "area": "controls",
+        "state": "partial",
+        "limitation": "Policy eligibility is visible, but no actor-authorized Work command is exposed by this read."
+      },
+      {
+        "area": "inquiries",
+        "state": "unavailable",
+        "limitation": "Project inquiry mapping is not implemented."
+      },
+      {
+        "area": "review",
+        "state": "unavailable",
+        "limitation": "Profile-neutral Work-to-Review linkage is not implemented."
+      },
+      {
+        "area": "recovery",
+        "state": "partial",
+        "limitation": "Current attempt, policies, limits, and retained manifests are visible; cross-module reconciliation is not implemented."
+      }
+    ],
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 42,
+      "stream_revision": 8
+    }
+  },
+  "content_hash": "sha256:c0e9dfbad76cdb0927efdff32d6057552f17afd9577bc382f7f41bb23cf1de68",
+  "read_at": "2026-09-08T16:00:00.000Z"
+}

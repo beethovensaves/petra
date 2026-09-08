@@ -1,9 +1,9 @@
 # UX runtime architecture disposition and implementation sequence
 
-Status: implementation-track review complete; M1.9 cumulative trace, four live
-presentation reads, interface recovery gate, initial semantic-location slice,
-and expanded Project-shell context passed; broader neutral runtime work remains
-open
+Status: implementation-track review complete; M1.9 cumulative trace, five live
+presentation reads, interface recovery gate, semantic-location foundation,
+expanded Project-shell context, and initial Project Work read passed; broader
+neutral runtime work remains open
 Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
@@ -40,11 +40,14 @@ ProjectSource binding and exact source reader, durable ReviewSession identity
 plus an authorized scientific Review collection/detail view, an authorized
 current scientific relationship/provenance view guarded across PostgreSQL and
 Neo4j, the first Project-scoped semantic object locator, and shell 1.1 place
-summaries plus optional exact selection.
+summaries plus optional exact selection. It now also provides the first
+Project-scoped Work collection/detail read over existing WorkUnit and
+worker-manifest authority, including bounded pagination, attention, resources,
+outputs, disabled operations, and honest coverage.
 
 This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-008`, `UX-REQ-009`,
-`UX-REQ-010`, `UX-REQ-012`, and `UX-REQ-013` without changing the frozen
-presentation. It does not close those neutral-product requirements: additional source
+`UX-REQ-010`, `UX-REQ-012`, `UX-REQ-013`, and `UX-REQ-014` without changing the
+frozen presentation. It does not close those neutral-product requirements: additional source
 specializations and lifecycle commands, general working candidates,
 multi-profile Review renderers, Review deferral/reopen and batch commands,
 working and historical relationship layers, comparison and continuation,
@@ -57,8 +60,8 @@ require later slices.
 - The design brief is frozen at `UX-DESIGN-FREEZE-01`; DB01 through DB18 are
   complete at specification depth.
 - The frozen workbench contains the initial presentation of all fourteen DB18
-  surface packets. Project shell, scientific source, scientific Review, and the
-  bounded current Graph now use live authenticated reads. Remaining product
+  surface packets. Project shell, scientific source, scientific Review, bounded
+  current Graph, and Project Work now use live authenticated reads. Remaining product
   places are still fixture-backed or explicitly unavailable and must not be
   described as live.
 - Backend `M1.9-W01` through `M1.9-W04` are complete. The cumulative clean-start
@@ -107,8 +110,8 @@ require later slices.
   composition repositories provide additive scientific draft revisions and
   assessments, but not a general continuous working-document contract.
 - [`app.ts`](../apps/server/src/app.ts) authenticates `/api/*` and now exposes
-  Project shell, scientific source, scientific Review, and bounded current
-  relationship-view reads in addition to provider and interaction paths. Brief,
+  Project shell, scientific source, scientific Review, bounded current
+  relationship, and Project Work reads in addition to provider and interaction paths. Brief,
   History, Settings, and the remaining neutral-product queries are not live.
 - [The M1.9 gate matrix](M1.9-BACKEND-GATE-MATRIX.md) and
   [recovery exercise](M1.9-RECOVERY-EXERCISE.md) establish component and
@@ -310,7 +313,7 @@ explicitly records later implementation progress:
 | `UX-REQ-011` | **Partial.** Claim/Assertion quarantine and DraftArtifact revisions prove proposal-before-authority in scientific paths. | Add ProjectDefinition-valid WorkingCandidate and working-relationship records for arbitrary domain objects, with exact turn/task/model/tool origin and validation state. Project them as the live working graph layer. | Wave 4 |
 | `UX-REQ-012` | **Partial, advanced after baseline.** EvidenceReviewBatch, accept/reject/correct plans, durable review interrupts, ChangeSets, approvals, and independent batch outcomes exist. V021 now adds durable profile-neutral ReviewSession identity plus a snapshot-consistent scientific Claim–`ASSERTS` read over exact ProjectDefinition semantics, ProjectSource basis, validation, ChangeSets, and Approvals. | Add other profile renderers, general working candidates, defer/reopen and material-basis commands, preflight, dependency grouping, multi-member presentation, per-member recovery, and permitted batch apply. Retain existing ChangeSet authority. | Wave 4 |
 | `UX-REQ-013` | **Partial, advanced after baseline.** `petra.project-relationship-view@1.0.0` and its authorized reader now return one bounded current scientific `ASSERTS` provenance path with ProjectDefinition terminology, exact PostgreSQL records and graph checkpoint, omissions, source destinations, and a textual peer. The frozen Graph consumes it without fixture fallback. | Add general task and endpoint selection, other registered relationship types, working and historical membership, retained-position reconstruction, comparison, expansion and continuation cursors, and temporal paths. Preserve renderer-neutral semantics and never infer authority from layout. | Wave 3 |
-| `UX-REQ-014` | **Partial.** WorkUnit and manifest repositories preserve exact specs, attempts, outputs, failure, cancellation, and checkpoints. | Add Project-scoped Work collection/detail queries, definition-resolved stages, dependency and inquiry links, attention, resource accounting coverage, outputs, controls, and recovery. Do not invent a new lifecycle. | Wave 2 |
+| `UX-REQ-014` | **Partial, advanced after baseline.** `petra.project-work-view@1.0.0` now composes bounded Project Work collection and exact detail reads from current WorkUnit and worker-manifest authority under repeatable-read isolation. It provides exact identities, lifecycle and attention, pagination/filtering, dependencies, inputs, declared limits, measured-use coverage, output reporting, semantic Work destination, and policy assessments. The frozen Work routes consume it without synthetic stages, inquiry branches, usable outputs, or commands. | Add registered definition-resolved stage plans, durable input requests, inquiry and Review linkage, Project-level output registration/validation/destination, actor-authorized retry and supported resume, richer recovery, visual filters, and the remaining validation gates. Do not infer authority or inquiry resolution from operational success. | Wave 2 read foundation passed; orchestration and linkage remain |
 | `UX-REQ-015` | **Partial.** Explicit cancellation is authorized and durable; immutable Work inputs prevent silent rebinding. | Add typed steering, task-priority, and execution-plan transition commands with declared cutover, reuse/revalidation, shared-consumer analysis, and receipts. Do not imply generic pause/resume or cancel shared Work automatically. | Wave 3 |
 | `UX-REQ-016` | **Missing neutral mapping.** Scientific Project and conceptual ResearchQuestion foundations exist, while WorkUnit remains operational. | Register how a ProjectDefinition represents lines of inquiry through its own valid object types or linked set. Add zero/many/shared Work and result links without mandating a universal Inquiry wrapper or deriving resolution from Work completion. | Wave 2 |
 | `UX-REQ-017` | **Partial.** CompositionRequest/Plan, DraftArtifact/Span, ProvenanceMap, CitationBundle, assessments, renders, and persistence provide an exact scientific composition aggregate. | Add ProjectDefinition-resolved document collection/context reads, recognizable purpose, current and historical revision positions, ancestry, Work/inquiry links, findings, capabilities, and safe destinations. | Wave 5 |
@@ -357,7 +360,9 @@ closed instead of borrowing another definition's behavior.
 ### Wave 2 — durable Project records and read spine
 
 Implement durable ProjectThread/turn records, ProjectSourceLink, Project Work
-collection queries, and ProjectDefinition-valid inquiry mapping. This establishes
+collection queries, and ProjectDefinition-valid inquiry mapping. The initial
+Project Work collection/detail read is complete; durable thread context and
+inquiry mapping are next. This establishes
 `UX-REQ-006`, `UX-REQ-009`, the first half of `UX-REQ-010`, `UX-REQ-014`, and
 `UX-REQ-016` before feature surfaces depend on them.
 
@@ -443,21 +448,23 @@ through `UX-REQ-023` conformance.
 
 ## Immediate next implementation task
 
-Treat the completed M1.9 cumulative result and Wave 1 neutral read foundation as
-the safety point. Begin Wave 2 with a Project-scoped Work collection/detail read
-over the existing WorkUnit authority, including exact identity, lifecycle,
-attention, resource-accounting coverage, outputs, controls, and honest recovery
-limits. Then add durable Project threads and ProjectDefinition-valid inquiry
-mapping. Do not reopen the frozen presentation, invent a new Work lifecycle, or
-turn either conformance example into a mandatory template.
+Treat the completed M1.9 cumulative result, Wave 1 neutral read foundation, and
+the passed Project Work collection/detail slice as the safety point. Continue
+Wave 2 with durable Project threads and exact per-turn context, then add
+ProjectDefinition-valid inquiry mapping and explicit zero/many/shared Work
+links. Do not reopen the frozen presentation, invent a second interaction or
+Work lifecycle, derive inquiry resolution from Work completion, or turn either
+conformance example into a mandatory template.
 
 ## Verification status
 
 The original disposition was based on read-only inspection of the frozen
 handoff, neutral reference implementation, accepted decisions, runtime schemas,
 repositories, server routes, M1.9 reports, and roadmap state. The status refresh
-records the verified cumulative trace, four additive live presentation reads,
+records the verified cumulative trace, five additive live presentation reads,
 initial semantic-location slice, Project-shell 1.1 context expansion, the first
 read-only effective Project controls composition, and paired project-authored
 scientific/controlled-writing conformance across the neutral reads. It does not
-claim profile-specific object adapters or full neutral-product conformance.
+claim profile-specific object adapters or full neutral-product conformance. The
+first Wave 2 Project Work read is live end to end; its stage, input-request,
+inquiry/Review, output-usability, and command limitations remain explicit.

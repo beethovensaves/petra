@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useLoaderData } from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
 import {
@@ -7,11 +7,7 @@ import {
   PetraButtonGroup,
   PetraTextArea,
 } from "../design-system/primitives.js";
-import {
-  getProjectPetraThread,
-  getProjectWork,
-  getReferenceWorkUnit,
-} from "./fixtures.js";
+import { getProjectPetraThread } from "./fixtures.js";
 import type {
   InquiryBranch,
   PetraThread,
@@ -20,6 +16,7 @@ import type {
   WorkStage,
   WorkUnit,
 } from "./model.js";
+import type { ProjectWorkDetailData } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 
 const WorkState = ({ unit }: { unit: WorkUnit }) => (
@@ -142,6 +139,16 @@ export const WorkCollectionSurface = ({
     ["completed", "cancelled"].includes(unit.execution),
   );
   const recommendedBranch = work?.branches.find((branch) => branch.recommended);
+  const nextPage =
+    work?.page?.hasMore === true && work.page.nextCursor !== undefined
+      ? new URLSearchParams({
+          limit: String(work.query?.limit ?? 50),
+          cursor: work.page.nextCursor,
+          ...(work.query?.state === undefined
+            ? {}
+            : { state: work.query.state }),
+        })
+      : undefined;
 
   return (
     <main className="reference-surface" id="reference-main">
@@ -230,7 +237,10 @@ export const WorkCollectionSurface = ({
                 <p className="reference-panel-kicker">Operational records</p>
                 <h2 id="work-units-title">Work tasks</h2>
               </div>
-              <span>{units.length}</span>
+              <span>
+                {units.length}
+                {work?.page === undefined ? "" : ` of ${work.page.totalCount}`}
+              </span>
             </header>
             <WorkGroup
               label="Needs attention"
@@ -239,6 +249,11 @@ export const WorkCollectionSurface = ({
             />
             <WorkGroup label="Active" units={active} project={project} />
             <WorkGroup label="Completed" units={terminal} project={project} />
+            {nextPage === undefined ? null : (
+              <Link className="reference-text-link" to={`?${nextPage}`}>
+                Next Work page
+              </Link>
+            )}
           </section>
         </>
       )}
@@ -297,12 +312,8 @@ const WorkGroup = ({
 
 export const WorkCollectionRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  return (
-    <WorkCollectionSurface
-      project={project}
-      work={getProjectWork(project.id)}
-    />
-  );
+  const work = useLoaderData<WorkProjectView>();
+  return <WorkCollectionSurface project={project} work={work} />;
 };
 
 export const WorkDetailSurface = ({
@@ -417,6 +428,20 @@ export const WorkDetailSurface = ({
           </div>
           <span>{unit.stages.length}</span>
         </header>
+        {unit.inputs === undefined ? null : (
+          <p>Exact inputs: {unit.inputs.join("; ")}</p>
+        )}
+        {unit.dependencies === undefined ? null : (
+          <p>
+            Dependencies:{" "}
+            {unit.dependencies.length === 0
+              ? "No WorkUnit dependencies are declared."
+              : unit.dependencies.join("; ")}
+          </p>
+        )}
+        {unit.stagePlanLimitation === undefined ? null : (
+          <p>{unit.stagePlanLimitation}</p>
+        )}
         <ol>
           {unit.stages.map((stage, index) => (
             <li
@@ -523,8 +548,8 @@ export const WorkDetailSurface = ({
             ))}
           </ul>
           <p>
-            Work completion can supply a result to these paths. It does not
-            resolve the inquiry or apply a candidate by itself.
+            {unit.inquiryLimitation ??
+              "Work completion can supply a result to these paths. It does not resolve the inquiry or apply a candidate by itself."}
           </p>
         </section>
       </div>
@@ -602,30 +627,7 @@ export const WorkDetailSurface = ({
 
 export const WorkDetailRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const { workId } = useParams();
-  const work = getProjectWork(project.id);
-  const unit = getReferenceWorkUnit(project.id, workId);
-
-  if (work === undefined || unit === undefined) {
-    return (
-      <main className="reference-route-error" id="reference-main">
-        <PetraMark />
-        <p className="reference-eyebrow">Work unavailable</p>
-        <h1>This Work task cannot be opened</h1>
-        <p>
-          The identity does not resolve inside {project.title}. Petra did not
-          substitute another task or infer one from the current inquiry.
-        </p>
-        <Link
-          className="reference-text-link"
-          to={`/projects/${project.id}/work`}
-        >
-          Return to Work
-        </Link>
-      </main>
-    );
-  }
-
+  const { work, unit } = useLoaderData<ProjectWorkDetailData>();
   return <WorkDetailSurface project={project} unit={unit} work={work} />;
 };
 

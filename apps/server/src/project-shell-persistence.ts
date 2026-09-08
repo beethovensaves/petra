@@ -5,6 +5,7 @@ import {
   PostgresProjectReviewViewReader,
   PostgresProjectShellViewReader,
   PostgresProjectSourceViewReader,
+  PostgresProjectWorkViewReader,
 } from "@petra/postgres";
 import { Neo4jAuthorityGraphStore } from "@petra/neo4j";
 import neo4j, { type Driver } from "neo4j-driver";
@@ -17,6 +18,7 @@ import type {
   ProjectReviewViewReader,
   ProjectShellViewReader,
   ProjectSourceViewReader,
+  ProjectWorkViewReader,
 } from "@petra/core";
 
 const { Pool } = pg;
@@ -28,6 +30,7 @@ export interface ProjectShellPersistence {
   readonly reviewViews: ProjectReviewViewReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
   readonly objectLocations: ProjectObjectLocationViewReader;
+  readonly workViews: ProjectWorkViewReader;
   readonly close: () => Promise<void>;
 }
 
@@ -163,6 +166,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         sourceViews: new PostgresProjectSourceViewReader(pool),
         reviewViews: new PostgresProjectReviewViewReader(pool),
         objectLocations: new PostgresProjectObjectLocationViewReader(pool),
+        workViews: new PostgresProjectWorkViewReader(pool),
         relationshipViews: new PostgresProjectRelationshipViewReader(
           pool,
           graph,
@@ -186,6 +190,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     sourceViews: new PostgresProjectSourceViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),
     objectLocations: new PostgresProjectObjectLocationViewReader(pool),
+    workViews: new PostgresProjectWorkViewReader(pool),
     close,
   };
 };

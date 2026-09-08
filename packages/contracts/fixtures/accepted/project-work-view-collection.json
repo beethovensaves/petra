@@ -1,0 +1,85 @@
+{
+  "schema_name": "petra.project-work-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "view_kind": "collection",
+    "project_definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "definition_family": "petra.scientific-evidence"
+    },
+    "query": {
+      "limit": 50
+    },
+    "tasks": [
+      {
+        "work_unit_ref": {
+          "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4,
+          "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+          "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+        },
+        "task_label": "Work task",
+        "objective": "Parse the exact registered PDF into a candidate Petra ParsedDocument without mutating authority.",
+        "work_mode": "background",
+        "priority": "normal",
+        "workflow": {
+          "workflow_name": "petra.ingestion.parse",
+          "workflow_version": "1.0.0",
+          "task_family": "document_processing",
+          "task_name": "petra.document.parse",
+          "task_version": "1.0.0"
+        },
+        "execution": {
+          "state": "completed",
+          "terminal_outcome": "succeeded",
+          "attempt": 1,
+          "requested_at": "2026-08-29T14:00:00.000Z",
+          "queued_at": "2026-08-29T14:00:01.000Z",
+          "started_at": "2026-08-29T14:00:02.000Z",
+          "finished_at": "2026-08-29T14:00:05.000Z",
+          "updated_at": "2026-08-29T14:00:05.000Z"
+        },
+        "attention": {
+          "state": "settled",
+          "reason_code": "completed",
+          "reason": "The WorkUnit completed operationally; result authority is separate."
+        },
+        "elapsed": {
+          "state": "measured",
+          "milliseconds": 3000,
+          "basis": "start_to_terminal"
+        },
+        "resource_coverage": "measured",
+        "reported_output_count": 1,
+        "stage_plan": {
+          "state": "unavailable",
+          "reason": "No registered workflow stage plan is available for this task."
+        },
+        "destination": {
+          "role": "work",
+          "target_ref": {
+            "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+            "revision": 4,
+            "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+            "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+          }
+        }
+      }
+    ],
+    "page": {
+      "returned_count": 1,
+      "total_count": 1,
+      "has_more": false
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 42,
+      "stream_revision": 8
+    }
+  },
+  "content_hash": "sha256:81b068e9b9ab1d52c1771a0713da2721e70bf53c12200736144d1eb11e3ebbdb",
+  "read_at": "2026-09-08T16:00:00.000Z"
+}

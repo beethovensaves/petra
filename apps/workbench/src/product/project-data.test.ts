@@ -11,6 +11,7 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectSourceView,
+  PetraProjectWorkView,
 } from "@petra/contracts";
 import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -20,10 +21,14 @@ import {
   loadProjectObjectLocationRedirect,
   loadProjectRecord,
   loadProjectSettings,
+  loadProjectWorkCollection,
+  loadProjectWorkDetail,
   projectRecordFromShellView,
   reviewSessionFromView,
   sourceRecordFromView,
   semanticDestinationPath,
+  workProjectFromView,
+  workUnitFromView,
 } from "./project-data.js";
 
 const view = JSON.parse(
@@ -125,6 +130,26 @@ const locationView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectObjectLocationView;
+
+const workCollectionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-view-collection.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkView;
+
+const workDetailView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-view-detail.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkView;
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -446,6 +471,90 @@ describe("Project shell workbench adapter", () => {
       graph.nodes.find((node) => node.kind === "Source Span")?.sourceId,
     ).toBe("project_source_01K4C000000000000000000007");
     expect(relationshipView).toEqual(before);
+  });
+
+  it("maps bounded Work collection and detail without inventing stages, inquiry links, or usable outputs", () => {
+    const collectionBefore = structuredClone(workCollectionView);
+    const collection = workProjectFromView(workCollectionView);
+    expect(collection.projectId).toBe(workCollectionView.project_id);
+    expect(collection.branches).toEqual([]);
+    expect(collection.units).toHaveLength(1);
+    expect(collection.units[0]).toEqual(
+      expect.objectContaining({
+        id: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        execution: "completed",
+        executionLabel: "Completed operationally",
+        stages: [],
+        results: [],
+      }),
+    );
+    expect(workCollectionView).toEqual(collectionBefore);
+
+    const detailBefore = structuredClone(workDetailView);
+    const detail = workUnitFromView(workDetailView);
+    expect(detail.inputs?.[0]).toContain("artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1");
+    expect(detail.dependencies).toEqual([]);
+    expect(detail.stagePlanLimitation).toContain("does not reconstruct stages");
+    expect(detail.inquiryLimitation).toContain("inquiry mapping");
+    expect(detail.reviewState).toContain("Review linkage");
+    expect(detail.results[0]).toEqual(
+      expect.objectContaining({
+        status: "Worker reported",
+        validation: "Project usability unavailable",
+      }),
+    );
+    expect(detail.results[0]?.limitation).toContain("does not infer");
+    expect(workDetailView).toEqual(detailBefore);
+  });
+
+  it("loads exact Project Work identities from the authorized read routes", async () => {
+    if (workDetailView.content.view_kind !== "detail") {
+      throw new Error("Expected the Work detail fixture.");
+    }
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      return Promise.resolve(
+        Response.json(
+          path.includes("/work/") ? workDetailView : workCollectionView,
+        ),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const projectId = workCollectionView.project_id;
+    const workUnitId =
+      workDetailView.content.summary.work_unit_ref.work_unit_id;
+    const collectionUrl = new URL(
+      `http://petra.test/projects/${projectId}/work`,
+    );
+    const collection = await loadProjectWorkCollection({
+      request: new Request(collectionUrl),
+      url: collectionUrl,
+      pattern: "/projects/:projectId/work",
+      params: { projectId },
+      context: new RouterContextProvider(),
+    });
+    expect(collection.units[0]?.id).toBe(workUnitId);
+
+    const detailUrl = new URL(
+      `http://petra.test/projects/${projectId}/work/${workUnitId}`,
+    );
+    const detail = await loadProjectWorkDetail({
+      request: new Request(detailUrl),
+      url: detailUrl,
+      pattern: "/projects/:projectId/work/:workId",
+      params: { projectId, workId: workUnitId },
+      context: new RouterContextProvider(),
+    });
+    expect(detail.unit.id).toBe(workUnitId);
+    expect(fetch.mock.calls.map((call) => call[0])).toEqual([
+      `/api/queries/projects/${projectId}/work?limit=50`,
+      `/api/queries/projects/${projectId}/work/${workUnitId}`,
+    ]);
   });
 
   it("maps semantic roles to client routes while retaining exact identity", () => {

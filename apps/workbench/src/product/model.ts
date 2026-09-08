@@ -275,7 +275,7 @@ export type WorkUnit = {
   executionLabel: string;
   observedAt: string;
   revision: string;
-  currentStageId: string;
+  currentStageId?: string;
   branchIds: string[];
   elapsed: string;
   estimate: string;
@@ -291,6 +291,10 @@ export type WorkUnit = {
     responses: string[];
   };
   stages: WorkStage[];
+  inputs?: string[];
+  dependencies?: string[];
+  stagePlanLimitation?: string;
+  inquiryLimitation?: string;
   results: Array<{
     id: string;
     label: string;
@@ -306,6 +310,17 @@ export type WorkProjectView = {
   projectId: string;
   branches: InquiryBranch[];
   units: WorkUnit[];
+  query?: {
+    limit: number;
+    cursor?: string;
+    state?: string;
+  };
+  page?: {
+    totalCount: number;
+    hasMore: boolean;
+    nextCursor?: string;
+  };
+  readAt?: string;
 };
 
 export type PetraReference = {

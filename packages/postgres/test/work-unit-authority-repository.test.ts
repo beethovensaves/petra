@@ -24,6 +24,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
+import { PostgresProjectWorkViewReader } from "../src/project-work-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
@@ -67,6 +68,7 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
+  const workViews = new PostgresProjectWorkViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -225,6 +227,58 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
       ),
     ).toEqual(successfulOutput());
 
+    const collection = await workViews.listProjectWorkView(
+      completed.project_id,
+    );
+    expect(collection?.content.view_kind).toBe("collection");
+    if (collection?.content.view_kind !== "collection") {
+      throw new Error("Expected the authorized Project Work collection.");
+    }
+    expect(collection.content.tasks).toHaveLength(1);
+    const collectionTask = collection.content.tasks[0];
+    if (collectionTask === undefined) {
+      throw new Error("Expected the completed Work task.");
+    }
+    expect(collectionTask.work_unit_ref.work_unit_id).toBe(
+      completed.work_unit_id,
+    );
+    expect(collectionTask.work_unit_ref.revision).toBe(completed.revision);
+    expect(collectionTask.execution.state).toBe("completed");
+    expect(collectionTask.execution.terminal_outcome).toBe("succeeded");
+    expect(collectionTask.resource_coverage).toBe("measured");
+    expect(collectionTask.reported_output_count).toBe(1);
+    expect(collection.content.page).toEqual({
+      returned_count: 1,
+      total_count: 1,
+      has_more: false,
+    });
+
+    const detail = await workViews.getProjectWorkView(
+      completed.project_id,
+      completed.work_unit_id,
+    );
+    expect(detail?.content.view_kind).toBe("detail");
+    if (detail?.content.view_kind !== "detail") {
+      throw new Error("Expected the authorized exact Project Work detail.");
+    }
+    expect(detail.content.specification.input_manifest_ref.record_id).toBe(
+      input.inputManifest.worker_input_manifest_id,
+    );
+    expect(detail.content.resources.usage.state).toBe("measured");
+    expect(detail.content.outputs[0]?.availability.state).toBe(
+      "staged_handle_only",
+    );
+    expect(detail.content.stage_plan.state).toBe("unavailable");
+    expect(
+      detail.content.controls.every(
+        (control) => control.operation_state === "unavailable",
+      ),
+    ).toBe(true);
+    expect(detail.content.semantic_location.resolution.state).toBe("current");
+    expect(detail.content.semantic_location.primary_destination.role).toBe(
+      "work",
+    );
+
     const typed = await pool.query<{
       binding_kind: string;
       artifact_id: string;
@@ -248,6 +302,61 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
       state: "completed",
       terminal_outcome: "succeeded",
     });
+  });
+
+  it("reports requested Work honestly with bounded filtering and unavailable runtime evidence", async () => {
+    const input = registration();
+    await workUnits.register(input);
+
+    const collection = await workViews.listProjectWorkView(
+      input.workUnit.project_id,
+      { limit: 1, state: "requested" },
+    );
+    expect(collection?.content.view_kind).toBe("collection");
+    if (collection?.content.view_kind !== "collection") {
+      throw new Error("Expected a filtered Project Work collection.");
+    }
+    expect(collection.content.query).toEqual({
+      limit: 1,
+      state: "requested",
+    });
+    expect(collection.content.tasks[0]?.attention.state).toBe(
+      "needs_attention",
+    );
+    expect(collection.content.tasks[0]?.elapsed.state).toBe("unavailable");
+    expect(collection.content.tasks[0]?.resource_coverage).toBe("limits_only");
+
+    const detail = await workViews.getProjectWorkView(
+      input.workUnit.project_id,
+      input.workUnit.work_unit_id,
+    );
+    if (detail?.content.view_kind !== "detail") {
+      throw new Error("Expected requested Work detail.");
+    }
+    expect(detail.content.resources.usage.state).toBe("unavailable");
+    expect(
+      detail.content.outputs.every(
+        (output) => output.report_state === "not_reported",
+      ),
+    ).toBe(true);
+    expect(detail.content.controls).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          control_name: "cancel",
+          policy_state: "permitted",
+          operation_state: "unavailable",
+        }),
+      ]),
+    );
+    expect(detail.content.inquiry_linkage.state).toBe("unavailable");
+    expect(detail.content.review.state).toBe("unavailable");
+
+    expect(
+      await workViews.getProjectWorkView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        input.workUnit.work_unit_id,
+      ),
+    ).toBeUndefined();
   });
 
   it("preserves retryable validation failure and reuses the exact input for attempt two", async () => {

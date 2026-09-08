@@ -2835,6 +2835,250 @@ class PetraWorkerOutputManifest(PetraModel):
     reported_at: str
 
 
+ProjectWorkExecutionState = Literal[
+    "requested", "queued", "running", "checkpointed", "completed", "cancelled"
+]
+ProjectWorkTerminalOutcome = Literal[
+    "succeeded",
+    "worker_failed",
+    "validation_failed",
+    "resource_exhausted",
+    "timed_out",
+    "cancelled",
+]
+
+
+class ProjectWorkDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    definition_family: str
+
+
+class ProjectWorkUnitRef(PetraModel):
+    work_unit_id: str
+    revision: int
+    spec_hash: str
+    record_hash: str
+
+
+class ProjectWorkContentRecordRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+class ProjectWorkAuthority(PetraModel):
+    isolation: Literal["repeatable_read"]
+    event_position: int
+    stream_revision: int
+
+
+class ProjectWorkWorkflow(PetraModel):
+    workflow_name: str
+    workflow_version: str
+    task_family: Literal[
+        "ingestion",
+        "document_processing",
+        "scientific_extraction",
+        "retrieval",
+        "reasoning",
+        "scientific_computation",
+        "experiment_execution",
+        "projection",
+        "maintenance",
+    ]
+    task_name: str
+    task_version: str
+
+
+class ProjectWorkExecution(PetraModel):
+    state: ProjectWorkExecutionState
+    terminal_outcome: ProjectWorkTerminalOutcome | None = None
+    attempt: int
+    requested_at: str
+    queued_at: str | None = None
+    started_at: str | None = None
+    finished_at: str | None = None
+    updated_at: str
+    failure: WorkerFailure | None = None
+
+
+class ProjectWorkAttention(PetraModel):
+    state: Literal["needs_attention", "active", "settled"]
+    reason_code: Literal[
+        "requested",
+        "queued",
+        "running",
+        "retryable_failure",
+        "terminal_failure",
+        "completed",
+        "cancelled",
+    ]
+    reason: str
+
+
+class ProjectWorkMeasuredElapsed(PetraModel):
+    state: Literal["measured"]
+    milliseconds: int
+    basis: Literal["start_to_observation", "start_to_terminal"]
+
+
+class ProjectWorkUnavailable(PetraModel):
+    state: Literal["unavailable"]
+    reason: str
+
+
+class ProjectWorkDestination(PetraModel):
+    role: Literal["work"]
+    target_ref: ProjectWorkUnitRef
+
+
+class ProjectWorkTaskSummary(PetraModel):
+    work_unit_ref: ProjectWorkUnitRef
+    task_label: str
+    objective: str
+    work_mode: Literal["interactive", "foreground", "background", "batch"]
+    priority: Literal["user_blocking", "user_visible", "normal", "opportunistic"]
+    workflow: ProjectWorkWorkflow
+    execution: ProjectWorkExecution
+    attention: ProjectWorkAttention
+    elapsed: ProjectWorkMeasuredElapsed | ProjectWorkUnavailable
+    resource_coverage: Literal["limits_only", "measured"]
+    reported_output_count: int
+    stage_plan: ProjectWorkUnavailable
+    destination: ProjectWorkDestination
+
+
+class ProjectWorkCollectionQuery(PetraModel):
+    limit: int
+    cursor: str | None = None
+    state: ProjectWorkExecutionState | None = None
+
+
+class ProjectWorkPage(PetraModel):
+    returned_count: int
+    total_count: int
+    has_more: bool
+    next_cursor: str | None = None
+
+
+class ProjectWorkCollection(PetraModel):
+    view_kind: Literal["collection"]
+    project_definition_ref: ProjectWorkDefinitionRef
+    query: ProjectWorkCollectionQuery
+    tasks: list[ProjectWorkTaskSummary]
+    page: ProjectWorkPage
+    authority: ProjectWorkAuthority
+
+
+class ProjectWorkDependency(PetraModel):
+    work_unit_ref: ProjectWorkUnitRef
+    state: ProjectWorkExecutionState
+    terminal_outcome: ProjectWorkTerminalOutcome | None = None
+
+
+class ProjectWorkSpecification(PetraModel):
+    input_manifest_ref: ProjectWorkContentRecordRef
+    task: WorkerTaskDescriptor
+    worker: WorkerDescriptor
+    inputs: list[WorkerArtifactInput | WorkerRecordInput]
+    expected_outputs: list[WorkerExpectedOutput]
+    network_policy: BlockedWorkerNetwork | AllowlistedWorkerNetwork
+    partial_result_policy: Literal["discard", "retain_declared", "retain_diagnostics"]
+    cache_mode: Literal["reuse_exact", "refresh", "disabled"]
+    cancellation_policy: Literal["cancellable", "checkpoint_then_cancel", "atomic"]
+    checkpoint_policy: Literal["disabled", "latest_valid", "all_valid"]
+    deadline_at: str | None = None
+
+
+class ProjectWorkMeasuredUsage(PetraModel):
+    state: Literal["measured"]
+    output_manifest_ref: ProjectWorkContentRecordRef
+    resource_usage: WorkerResourceUsage
+
+
+class ProjectWorkResources(PetraModel):
+    limits: WorkerResourceLimits
+    usage: ProjectWorkMeasuredUsage | ProjectWorkUnavailable
+
+
+class ProjectWorkStagedAvailability(PetraModel):
+    state: Literal["staged_handle_only"]
+    limitation: str
+
+
+class ProjectWorkUnavailableAvailability(PetraModel):
+    state: Literal["unavailable"]
+    limitation: str
+
+
+class ProjectWorkReportedOutput(PetraModel):
+    declaration: WorkerExpectedOutput
+    report_state: Literal["reported"]
+    produced_output: WorkerProducedOutput
+    availability: ProjectWorkStagedAvailability
+
+
+class ProjectWorkUnreportedOutput(PetraModel):
+    declaration: WorkerExpectedOutput
+    report_state: Literal["not_reported"]
+    availability: ProjectWorkUnavailableAvailability
+
+
+class ProjectWorkControl(PetraModel):
+    control_name: Literal["cancel", "retry", "resume"]
+    policy_state: Literal["permitted", "forbidden", "not_applicable", "unresolved"]
+    operation_state: Literal["unavailable"]
+    reason: str
+    consequence: str
+
+
+class ProjectWorkCoverage(PetraModel):
+    area: Literal[
+        "identity",
+        "execution",
+        "inputs",
+        "dependencies",
+        "stages",
+        "resources",
+        "outputs",
+        "controls",
+        "inquiries",
+        "review",
+        "recovery",
+    ]
+    state: Literal["complete", "partial", "unavailable"]
+    limitation: str | None = None
+
+
+class ProjectWorkDetail(PetraModel):
+    view_kind: Literal["detail"]
+    project_definition_ref: ProjectWorkDefinitionRef
+    summary: ProjectWorkTaskSummary
+    specification: ProjectWorkSpecification
+    dependencies: list[ProjectWorkDependency]
+    stage_plan: ProjectWorkUnavailable
+    resources: ProjectWorkResources
+    outputs: list[ProjectWorkReportedOutput | ProjectWorkUnreportedOutput]
+    controls: list[ProjectWorkControl]
+    inquiry_linkage: ProjectWorkUnavailable
+    review: ProjectWorkUnavailable
+    semantic_location: ProjectObjectLocationContent
+    coverage: list[ProjectWorkCoverage]
+    authority: ProjectWorkAuthority
+
+
+class PetraProjectWorkView(PetraModel):
+    schema_name: Literal["petra.project-work-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: ProjectWorkCollection | ProjectWorkDetail
+    content_hash: str
+    read_at: str
+
+
 class WorkUnitInputManifestRef(PetraModel):
     worker_input_manifest_id: str
     content_hash: str
@@ -4992,6 +5236,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-review-view": PetraProjectReviewView,
     "project-relationship-view": PetraProjectRelationshipView,
     "project-object-location-view": PetraProjectObjectLocationView,
+    "project-work-view": PetraProjectWorkView,
     "author": PetraAuthor,
     "work": PetraWork,
     "work-version": PetraWorkVersion,
@@ -5148,6 +5393,8 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("model-request.json", "content", "content_hash"),
         ("model-call.json", "content", "content_hash"),
         ("project-effective-controls-view.json", "content", "content_hash"),
+        ("project-work-view-collection.json", "content", "content_hash"),
+        ("project-work-view-detail.json", "content", "content_hash"),
     ]
     for filename, projection, hash_field in fixtures:
         value = read_json(f"fixtures/accepted/{filename}")

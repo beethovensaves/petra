@@ -6,7 +6,10 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectSourceView,
+  PetraProjectWorkView,
   ProjectDefinitionTerm,
+  ProjectWorkDetailContent,
+  ProjectWorkTaskSummary,
 } from "@petra/contracts";
 import { redirect, type LoaderFunctionArgs } from "react-router";
 
@@ -17,6 +20,9 @@ import type {
   ProjectRecord,
   ReviewSession,
   SourceRecord,
+  WorkExecutionState,
+  WorkProjectView,
+  WorkUnit,
 } from "./model.js";
 
 const DEVELOPMENT_TOKEN = "petra-local-development";
@@ -152,6 +158,26 @@ const objectLocationView = (value: unknown): PetraProjectObjectLocationView => {
     );
   }
   return value as unknown as PetraProjectObjectLocationView;
+};
+
+const projectWorkView = (value: unknown): PetraProjectWorkView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-work-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    (value.content.view_kind !== "collection" &&
+      value.content.view_kind !== "detail") ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project Work view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectWorkView;
 };
 
 const requestJson = async (path: string): Promise<unknown> => {
@@ -355,6 +381,179 @@ const titleCase = (value: string): string =>
     .split("_")
     .map((part) => `${part.slice(0, 1).toLocaleUpperCase()}${part.slice(1)}`)
     .join(" ");
+
+const durationLabel = (milliseconds: number): string => {
+  if (milliseconds < 1000) return `${milliseconds} ms`;
+  const seconds = milliseconds / 1000;
+  if (seconds < 60) return `${Number(seconds.toFixed(1))} s`;
+  const minutes = seconds / 60;
+  if (minutes < 60) return `${Number(minutes.toFixed(1))} min`;
+  return `${Number((minutes / 60).toFixed(1))} h`;
+};
+
+const bytesLabel = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  const kibibytes = bytes / 1024;
+  if (kibibytes < 1024) return `${Number(kibibytes.toFixed(1))} KiB`;
+  return `${Number((kibibytes / 1024).toFixed(1))} MiB`;
+};
+
+const executionFrom = (
+  summary: ProjectWorkTaskSummary,
+): { state: WorkExecutionState; label: string } => {
+  const { execution } = summary;
+  if (execution.state === "requested") {
+    return { state: "queued", label: "Requested · awaiting dispatch" };
+  }
+  if (execution.state === "queued") {
+    return { state: "queued", label: "Queued" };
+  }
+  if (execution.state === "running") {
+    return { state: "running", label: "Running" };
+  }
+  if (execution.state === "checkpointed") {
+    return {
+      state: "running",
+      label: "Checkpoint recorded · resume unavailable",
+    };
+  }
+  if (execution.state === "cancelled") {
+    return { state: "cancelled", label: "Cancelled" };
+  }
+  if (execution.terminal_outcome === "succeeded") {
+    return { state: "completed", label: "Completed operationally" };
+  }
+  return {
+    state: "failed",
+    label: titleCase(execution.terminal_outcome ?? "terminal failure"),
+  };
+};
+
+const exactInputLabel = (
+  input: ProjectWorkDetailContent["specification"]["inputs"][number],
+): string =>
+  input.binding_kind === "artifact"
+    ? `${input.name}: ${input.artifact_id} · ${input.content_hash.slice(0, 18)}… · ${bytesLabel(input.byte_size)}`
+    : `${input.name}: ${input.record_id} r${input.record_revision} · ${input.snapshot_hash.slice(0, 18)}…`;
+
+export const workUnitFromView = (
+  view: PetraProjectWorkView,
+  collectionSummary?: ProjectWorkTaskSummary,
+): WorkUnit => {
+  const detail = view.content.view_kind === "detail" ? view.content : undefined;
+  const summary =
+    collectionSummary ??
+    (view.content.view_kind === "collection"
+      ? view.content.tasks[0]
+      : view.content.summary);
+  if (summary === undefined) {
+    throw new ProjectDataError(
+      "Petra returned an empty Work collection where one Work task was required.",
+      502,
+    );
+  }
+  const execution = executionFrom(summary);
+  const resourceUse =
+    detail === undefined
+      ? summary.resource_coverage === "measured"
+        ? "Measured use is available in exact Work detail."
+        : "Only authorized limits are available in exact Work detail."
+      : detail.resources.usage.state === "unavailable"
+        ? detail.resources.usage.reason
+        : `${durationLabel(detail.resources.usage.resource_usage.wall_time_ms)} wall · ${durationLabel(detail.resources.usage.resource_usage.cpu_time_ms)} CPU · ${bytesLabel(detail.resources.usage.resource_usage.output_bytes)} output`;
+  const authorizedLimit =
+    detail === undefined
+      ? "Available in exact Work detail."
+      : `${durationLabel(detail.resources.limits.max_wall_time_ms)} wall · ${bytesLabel(detail.resources.limits.max_output_bytes)} output · ${detail.resources.limits.max_attempts} ${detail.resources.limits.max_attempts === 1 ? "attempt" : "attempts"}`;
+  const cancellation = detail?.controls.find(
+    (control) => control.control_name === "cancel",
+  );
+  const outputs =
+    detail?.outputs.map((output) => ({
+      id:
+        output.report_state === "reported"
+          ? output.produced_output.output_handle
+          : `declared:${output.declaration.output_name}`,
+      label: `${titleCase(output.declaration.output_name)} · ${output.declaration.output_role}`,
+      status:
+        output.report_state === "reported" ? "Worker reported" : "Not reported",
+      validation: "Project usability unavailable",
+      limitation: output.availability.limitation,
+    })) ?? [];
+  return {
+    id: summary.work_unit_ref.work_unit_id,
+    projectId: view.project_id,
+    objective: summary.objective,
+    expectedOutcome:
+      detail === undefined
+        ? `${summary.reported_output_count} worker ${summary.reported_output_count === 1 ? "output" : "outputs"} reported; Project-level usability is not inferred.`
+        : `${detail.specification.expected_outputs.length} declared output ${detail.specification.expected_outputs.length === 1 ? "slot" : "slots"}; worker reporting remains separate from Project usability.`,
+    origin: `${summary.workflow.workflow_name} ${summary.workflow.workflow_version} · ${summary.task_label}`,
+    execution: execution.state,
+    executionLabel: execution.label,
+    observedAt: view.read_at,
+    revision: `Work revision ${summary.work_unit_ref.revision}`,
+    branchIds: [],
+    elapsed:
+      summary.elapsed.state === "measured"
+        ? `${durationLabel(summary.elapsed.milliseconds)} · ${summary.elapsed.basis.replaceAll("_", " ")}`
+        : summary.elapsed.reason,
+    estimate:
+      detail === undefined
+        ? "Unavailable in the bounded collection read."
+        : "No execution estimate is registered; the authorized wall limit is shown separately.",
+    resourceUse,
+    authorizedLimit,
+    cancellation:
+      cancellation === undefined
+        ? "Cancellation policy is available only in exact Work detail."
+        : `${cancellation.reason} ${cancellation.consequence}`,
+    stages: [],
+    ...(detail === undefined
+      ? {}
+      : {
+          inputs: detail.specification.inputs.map(exactInputLabel),
+          dependencies: detail.dependencies.map(
+            (dependency) =>
+              `${dependency.work_unit_ref.work_unit_id} r${dependency.work_unit_ref.revision} · ${dependency.state}${dependency.terminal_outcome === undefined ? "" : ` · ${dependency.terminal_outcome}`}`,
+          ),
+          stagePlanLimitation: detail.stage_plan.reason,
+          inquiryLimitation: detail.inquiry_linkage.reason,
+        }),
+    results: outputs,
+    reviewState:
+      detail === undefined
+        ? "Review linkage is available only in exact Work detail."
+        : detail.review.reason,
+  };
+};
+
+export const workProjectFromView = (
+  view: PetraProjectWorkView,
+): WorkProjectView => {
+  const content = view.content;
+  return {
+    projectId: view.project_id,
+    branches: [],
+    units:
+      content.view_kind === "collection"
+        ? content.tasks.map((summary) => workUnitFromView(view, summary))
+        : [workUnitFromView(view)],
+    readAt: view.read_at,
+    ...(content.view_kind === "detail"
+      ? {}
+      : {
+          query: { ...content.query },
+          page: {
+            totalCount: content.page.total_count,
+            hasMore: content.page.has_more,
+            ...(content.page.next_cursor === undefined
+              ? {}
+              : { nextCursor: content.page.next_cursor }),
+          },
+        }),
+  };
+};
 
 export const sourceRecordFromView = (
   view: PetraProjectSourceView,
@@ -794,6 +993,72 @@ export const loadProjectReviewSession = async ({
     );
   }
   return reviewSessionFromView(view);
+};
+
+export const loadProjectWorkCollection = async ({
+  params,
+  request,
+}: LoaderFunctionArgs): Promise<WorkProjectView> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const incoming = new URL(request.url).searchParams;
+  const allowed = new Set(["limit", "cursor", "state"]);
+  if ([...incoming.keys()].some((key) => !allowed.has(key))) {
+    throw new ProjectDataError(
+      "The Work collection URL contains unsupported filters.",
+      400,
+    );
+  }
+  const query = new URLSearchParams();
+  for (const key of ["limit", "cursor", "state"]) {
+    for (const value of incoming.getAll(key)) query.append(key, value);
+  }
+  if (!query.has("limit")) query.set("limit", "50");
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/work?${query}`,
+  );
+  const view = projectWorkView(value);
+  if (
+    view.project_id !== projectId ||
+    view.content.view_kind !== "collection"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a Work collection for a different Project or view kind.",
+      502,
+    );
+  }
+  return workProjectFromView(view);
+};
+
+export interface ProjectWorkDetailData {
+  work: WorkProjectView;
+  unit: WorkUnit;
+}
+
+export const loadProjectWorkDetail = async ({
+  params,
+}: LoaderFunctionArgs): Promise<ProjectWorkDetailData> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const workUnitId = requiredRouteIdentity(params.workId, "A WorkUnit ID");
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
+  );
+  const view = projectWorkView(value);
+  if (
+    view.project_id !== projectId ||
+    view.content.view_kind !== "detail" ||
+    view.content.summary.work_unit_ref.work_unit_id !== workUnitId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a different Project Work identity.",
+      502,
+    );
+  }
+  const work = workProjectFromView(view);
+  const unit = work.units[0];
+  if (unit === undefined) {
+    throw new ProjectDataError("Petra returned no exact Work task.", 502);
+  }
+  return { work, unit };
 };
 
 export const loadProjectRelationshipView = async ({

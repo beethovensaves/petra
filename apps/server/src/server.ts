@@ -201,6 +201,11 @@ export const startPetraServer = async (
               projectObjectLocations:
                 options.projectShellPersistence.objectLocations,
             }),
+      ...(options.projectWorkViews !== undefined
+        ? { projectWorkViews: options.projectWorkViews }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : { projectWorkViews: options.projectShellPersistence.workViews }),
     });
     server = serve({
       fetch: petra.app.fetch,

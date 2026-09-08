@@ -8,6 +8,7 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectSourceView,
+  PetraProjectWorkView,
 } from "@petra/contracts";
 import type {
   ProjectEffectiveControlsViewReader,
@@ -17,6 +18,7 @@ import type {
   ProjectShellSelectionRequest,
   ProjectShellViewReader,
   ProjectSourceViewReader,
+  ProjectWorkViewReader,
 } from "@petra/core";
 import { describe, expect, it } from "vitest";
 
@@ -94,6 +96,26 @@ const locationFixture = JSON.parse(
   ),
 ) as PetraProjectObjectLocationView;
 
+const workCollectionFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-work-view-collection.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkView;
+
+const workDetailFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-work-view-detail.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkView;
+
 const reader: ProjectShellViewReader = {
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
@@ -159,6 +181,27 @@ const locationReader: ProjectObjectLocationViewReader = {
         ? structuredClone(locationFixture)
         : undefined,
     ),
+};
+
+const workReader: ProjectWorkViewReader = {
+  listProjectWorkView: (projectId) =>
+    Promise.resolve(
+      projectId === workCollectionFixture.project_id
+        ? structuredClone(workCollectionFixture)
+        : undefined,
+    ),
+  getProjectWorkView: (projectId, workUnitId) => {
+    const expectedWorkUnitId =
+      workDetailFixture.content.view_kind === "detail"
+        ? workDetailFixture.content.summary.work_unit_ref.work_unit_id
+        : undefined;
+    return Promise.resolve(
+      projectId === workDetailFixture.project_id &&
+        workUnitId === expectedWorkUnitId
+        ? structuredClone(workDetailFixture)
+        : undefined,
+    );
+  },
 };
 
 const authorized = (path: string): Request =>
@@ -344,6 +387,70 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(body.error.code).toBe("PROJECT_SOURCE_NOT_FOUND");
+  });
+
+  it("returns bounded Work collection and exact detail without promoting output authority", async () => {
+    if (
+      workCollectionFixture.content.view_kind !== "collection" ||
+      workDetailFixture.content.view_kind !== "detail"
+    ) {
+      throw new Error("Expected collection and detail Work fixtures.");
+    }
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectWorkViews: workReader,
+    });
+    const collection = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${workCollectionFixture.project_id}/work?limit=50`,
+      ),
+    );
+    expect(collection.status).toBe(200);
+    await expect(collection.json()).resolves.toEqual(workCollectionFixture);
+
+    const workUnitId =
+      workDetailFixture.content.summary.work_unit_ref.work_unit_id;
+    const detail = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${workDetailFixture.project_id}/work/${workUnitId}`,
+      ),
+    );
+    expect(detail.status).toBe(200);
+    const detailBody = (await detail.json()) as PetraProjectWorkView;
+    expect(detailBody).toEqual(workDetailFixture);
+    if (detailBody.content.view_kind !== "detail") {
+      throw new Error("Expected Work detail response.");
+    }
+    expect(detailBody.content.outputs[0]?.availability.state).toBe(
+      "staged_handle_only",
+    );
+    expect(
+      detailBody.content.controls.every(
+        (control) => control.operation_state === "unavailable",
+      ),
+    ).toBe(true);
+
+    const malformed = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${workDetailFixture.project_id}/work?limit=0&sort=urgency`,
+      ),
+    );
+    expect(malformed.status).toBe(422);
+    const malformedBody = JSON.parse(await malformed.text()) as {
+      error: { code: string };
+    };
+    expect(malformedBody.error.code).toBe("PROJECT_WORK_QUERY_INVALID");
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/work/${workUnitId}`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    const crossProjectBody = JSON.parse(await crossProject.text()) as {
+      error: { code: string };
+    };
+    expect(crossProjectBody.error.code).toBe("PROJECT_WORK_NOT_FOUND");
   });
 
   it("returns only Review sessions authorized for the exact Project", async () => {

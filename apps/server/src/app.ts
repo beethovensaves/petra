@@ -28,6 +28,8 @@ import {
   type ProjectReviewViewReader,
   type ProjectShellViewReader,
   type ProjectSourceViewReader,
+  type ProjectWorkStateFilter,
+  type ProjectWorkViewReader,
 } from "@petra/core";
 
 interface Variables {
@@ -52,6 +54,7 @@ export interface PetraAppOptions {
   projectReviewViews?: ProjectReviewViewReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
   projectObjectLocations?: ProjectObjectLocationViewReader;
+  projectWorkViews?: ProjectWorkViewReader;
 }
 
 export interface PetraApp {
@@ -62,6 +65,7 @@ export interface PetraApp {
 
 const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$/;
 const PETRA_ID_PATTERN = /^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const WORK_UNIT_ID_PATTERN = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const SEMANTIC_KEY_PATTERN = /^[a-z][a-z0-9._/-]{1,199}$/u;
 const LOCATION_INTENTS = [
   "orient",
@@ -71,6 +75,14 @@ const LOCATION_INTENTS = [
   "continue_work",
   "view_history",
 ] as const;
+const PROJECT_WORK_STATES: readonly ProjectWorkStateFilter[] = [
+  "requested",
+  "queued",
+  "running",
+  "checkpointed",
+  "completed",
+  "cancelled",
+];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -538,6 +550,164 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The effective Project controls view is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get("/api/queries/projects/:projectId/work", async (context) => {
+    if (options.projectWorkViews === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_WORK_UNAVAILABLE",
+        "The authorized Project Work read boundary is not configured.",
+      );
+    }
+    try {
+      const parameters = new URL(context.req.url).searchParams;
+      const allowed = new Set(["limit", "cursor", "state"]);
+      const unknown = [...parameters.keys()].filter((key) => !allowed.has(key));
+      if (unknown.length > 0) {
+        throw new InteractionInputError(
+          "Project Work collection contains unregistered query parameters.",
+          [...new Set(unknown)],
+        );
+      }
+      for (const key of allowed) {
+        if (parameters.getAll(key).length > 1) {
+          throw new InteractionInputError(
+            `Project Work collection parameter ${key} must appear once.`,
+          );
+        }
+      }
+      const limitValue = parameters.get("limit");
+      const limit = limitValue === null ? undefined : Number(limitValue);
+      if (
+        limit !== undefined &&
+        (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+      ) {
+        throw new InteractionInputError(
+          "Project Work collection limit must be an integer from 1 through 100.",
+        );
+      }
+      const cursorValue = parameters.get("cursor");
+      const cursor = cursorValue === null ? undefined : cursorValue;
+      if (cursor !== undefined && !/^offset:[0-9]{1,9}$/u.test(cursor)) {
+        throw new InteractionInputError(
+          "Project Work collection cursor is invalid.",
+        );
+      }
+      const state = optionalEnum(
+        Object.fromEntries(parameters.entries()),
+        "state",
+        PROJECT_WORK_STATES,
+      );
+      const projectId = context.req.param("projectId");
+      const view = await options.projectWorkViews.listProjectWorkView(
+        projectId,
+        {
+          ...(limit === undefined ? {} : { limit }),
+          ...(cursor === undefined ? {} : { cursor }),
+          ...(state === undefined ? {} : { state }),
+        },
+      );
+      if (view === undefined) {
+        return jsonError(
+          context,
+          404,
+          "PROJECT_NOT_FOUND",
+          "The requested Project does not exist in the local authority store.",
+        );
+      }
+      contracts.assertValid("project-work-view", "1.0.0", view);
+      if (
+        view.project_id !== projectId ||
+        view.content.view_kind !== "collection" ||
+        view.content.query.limit !== (limit ?? 50) ||
+        view.content.query.cursor !== cursor ||
+        view.content.query.state !== state
+      ) {
+        throw new Error(
+          "The Project Work collection reader returned a different Project or query.",
+        );
+      }
+      return context.json(view);
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof InteractionInputError ? 422 : 503,
+        error instanceof InteractionInputError
+          ? "PROJECT_WORK_QUERY_INVALID"
+          : "PROJECT_WORK_READ_FAILED",
+        error instanceof Error
+          ? error.message
+          : "The Project Work collection is unavailable.",
+        error instanceof InteractionInputError ? error.issues : undefined,
+      );
+    }
+  });
+
+  app.get(
+    "/api/queries/projects/:projectId/work/:workUnitId",
+    async (context) => {
+      if (options.projectWorkViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_WORK_UNAVAILABLE",
+          "The authorized Project Work read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Exact Project Work detail does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const workUnitId = context.req.param("workUnitId");
+        if (!WORK_UNIT_ID_PATTERN.test(workUnitId)) {
+          throw new InteractionInputError(
+            "Project Work detail requires a canonical WorkUnit identity.",
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const view = await options.projectWorkViews.getProjectWorkView(
+          projectId,
+          workUnitId,
+        );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_WORK_NOT_FOUND",
+            "The requested WorkUnit is not bound to this Project.",
+          );
+        }
+        contracts.assertValid("project-work-view", "1.0.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.content.view_kind !== "detail" ||
+          view.content.summary.work_unit_ref.work_unit_id !== workUnitId
+        ) {
+          throw new Error(
+            "The Project Work detail reader returned a different Project or WorkUnit.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_WORK_TARGET_INVALID"
+            : "PROJECT_WORK_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project Work detail is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

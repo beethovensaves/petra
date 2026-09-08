@@ -41,6 +41,8 @@ import {
   loadProjectSettings,
   loadProjectSourceCollection,
   loadProjectSourceRecord,
+  loadProjectWorkCollection,
+  loadProjectWorkDetail,
 } from "./product/project-data.js";
 
 const loadHealth = async (): Promise<EngineState> => {
@@ -101,8 +103,16 @@ export const router = createBrowserRouter([
             loader: loadProjectRelationshipView,
             element: <GraphRoute />,
           },
-          { path: "work", element: <WorkCollectionRoute /> },
-          { path: "work/:workId", element: <WorkDetailRoute /> },
+          {
+            path: "work",
+            loader: loadProjectWorkCollection,
+            element: <WorkCollectionRoute />,
+          },
+          {
+            path: "work/:workId",
+            loader: loadProjectWorkDetail,
+            element: <WorkDetailRoute />,
+          },
           { path: "petra", element: <PetraRoute /> },
           { path: "composition", element: <CompositionCollectionRoute /> },
           {
