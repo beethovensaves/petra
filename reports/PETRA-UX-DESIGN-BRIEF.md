@@ -1,6 +1,6 @@
 # Petra UX design brief
 
-Status: in progress; product design must freeze before reference-UX implementation or contextual demos
+Status: frozen at `UX-DESIGN-FREEZE-01`; neutral reference-UX implementation authorized; contextual demos remain gated
 Date: 2026-09-07
 Authority: design specification subordinate to `PETRA.md`, accepted decisions, runtime contracts, and coordinated architecture amendments
 
@@ -190,7 +190,7 @@ interaction contract has not yet been designed.
 | `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | specified; shared communication contract and profile-owned discourse accepted; paper audit complete |
 | `DB16` | Accessibility specification | Keyboard, focus, zoom/reflow, screen reader, motion, non-color meaning, graph alternative, touch, panel resize, and streamed updates | specified; task/outcome equivalence and model-readable graph context accepted; paper audit complete |
 | `DB17` | Failure, recovery, and history | Offline, stale, conflict, partial, failed, blocked, unsupported, replay, lost-connection, and non-destructive recovery paths | specified; canonical reconciliation, preserved-state, and exact-return direction accepted; paper audit complete |
-| `DB18` | Product blueprint and acceptance | Complete screen inventory, responsive blueprints, state matrix, end-to-end path map, backend request ledger, and design acceptance evidence | specified; traceable implementation-packet direction accepted; paper audit complete; design-freeze decision pending |
+| `DB18` | Product blueprint and acceptance | Complete screen inventory, responsive blueprints, state matrix, end-to-end path map, backend request ledger, and design acceptance evidence | specified and accepted; traceable implementation packet paper-audited; included in `UX-DESIGN-FREEZE-01` |
 
 ## Required specification for every module
 
@@ -3343,7 +3343,8 @@ refine this design before the explicit whole-product freeze.
 2026-09-07 as `UX1.7-DISC02`. DB12 is complete at specification depth with a paper audit.
 Runtime contract, implementation, integration, and participant validation remain
 separate gates. No product surface, editor, renderer, fixture, or backend contract
-is implemented, and `UX-DESIGN-FREEZE-01` remains unaccepted.
+was implemented by this module closure; it did not itself record the later
+`UX-DESIGN-FREEZE-01`.
 
 ### Author task and product role
 
@@ -3868,7 +3869,7 @@ retain profile, ancestry, conversation, Review, inquiry, Graph, and Work ownersh
 DB12 closes at `G-SPEC`; `G-CONTRACT`, implementation/integration, and participant
 validation remain separate. Continue to DB13, Settings and personal control,
 using the accepted local-presentation and governed-operation boundaries.
-`UX-DESIGN-FREEZE-01` remains unaccepted.
+This module closure did not itself record the later product-design freeze.
 
 ## DB13 — Settings and personal control
 
@@ -3876,8 +3877,8 @@ using the accepted local-presentation and governed-operation boundaries.
 Project controls, accepted on 2026-09-07 as `UX1.1-DISC06`. DB13 is complete at
 specification depth with a paper audit. Runtime contract, implementation,
 integration, and participant validation remain separate gates. No Settings
-surface, preference store, or policy command is implemented, and
-`UX-DESIGN-FREEZE-01` remains unaccepted.
+surface, preference store, or policy command was implemented by this module
+closure; it did not itself record the later product-design freeze.
 
 ### Author task and inherited boundaries
 
@@ -4234,7 +4235,7 @@ DB13 closes at `G-SPEC`; `G-CONTRACT`, implementation/integration, and participa
 validation remain separate. Continue to DB14, Design system, by consolidating
 the already accepted visual, component, density, state, motion, responsive, and
 data-visualization rules into the full system specification.
-`UX-DESIGN-FREEZE-01` remains unaccepted.
+This module closure did not itself record the later product-design freeze.
 
 ## DB14 — Design system
 
@@ -4242,8 +4243,8 @@ data-visualization rules into the full system specification.
 encodings accepted on 2026-09-07 as `UX1.0-DISC07`. DB14 is complete at
 specification depth with a paper audit. Runtime profile-manifest disposition,
 implementation, integration, and participant validation remain separate gates.
-No design-system implementation is authorized, and `UX-DESIGN-FREEZE-01`
-remains unaccepted.
+This module closure implements no design system and did not itself record the
+later product-design freeze.
 
 ### Author task and inherited foundation
 
@@ -4693,7 +4694,7 @@ layout, motion, executable code, or shared control/state overrides.
 DB14 closes at `G-SPEC`; `G-CONTRACT`, implementation/integration, and participant
 validation remain separate. Continue to DB15, UX language system, by consolidating
 the accepted D006 language contract and module writing/audit rules.
-`UX-DESIGN-FREEZE-01` remains unaccepted.
+This module closure did not itself record the later product-design freeze.
 
 ## DB15 — UX language system
 
@@ -4702,7 +4703,8 @@ functional discourse conventions accepted on 2026-09-07 as `UX1.0-DISC08`.
 DB15 is complete at specification depth with a paper audit. Runtime profile and
 communication shapes, implementation, integration, localization, accessibility,
 and participant validation remain separate gates. No language-system
-implementation is authorized, and `UX-DESIGN-FREEZE-01` remains unaccepted.
+implementation was created by this module closure; it did not itself record the
+later product-design freeze.
 
 ### Author task and inherited boundary
 
@@ -5216,7 +5218,7 @@ localization, accessibility, and participant validation remain separate. Continu
 to DB16, Accessibility specification, by consolidating task-equivalent keyboard,
 focus, zoom/reflow, screen-reader, motion, non-color, graph, touch, resize, and
 streamed-update behavior.
-`UX-DESIGN-FREEZE-01` remains unaccepted.
+This module closure did not itself record the later product-design freeze.
 
 ## DB16 — Accessibility specification
 
@@ -5226,8 +5228,8 @@ requires Petra's language model to receive and explain the graph presentation th
 author is actually seeing. DB16 is complete at specification depth with a paper
 audit. Implementation, assistive-technology, model, cross-browser, performance,
 and participant validation remain separate gates. No accessibility or model-
-context implementation is authorized, and `UX-DESIGN-FREEZE-01` remains
-unaccepted.
+context implementation was created by this module closure; it did not itself
+record the later product-design freeze.
 
 ### Author task and inherited boundary
 
@@ -5718,7 +5720,7 @@ placing DOM/ARIA implementation inside a backend contract.
 DB16 closes at `G-SPEC`; `G-CONTRACT`, implementation/integration, browser/AT,
 model, performance, legal, and participant validation remain separate. DB17
 carries these boundaries into failure, recovery, and History below.
-`UX-DESIGN-FREEZE-01` remains unaccepted.
+This module closure did not itself record the later product-design freeze.
 
 ## DB17 — Failure, recovery, and history
 
@@ -5727,8 +5729,8 @@ state, and exact task return accepted on 2026-09-07 as `UX1.0-DISC10`. DB17 is
 complete at specification depth with a paper audit. Runtime contract,
 implementation, integration, service-level disaster recovery, accessibility,
 performance, security, and participant validation remain separate gates. No
-recovery interface, command, fixture, or History implementation is authorized,
-and `UX-DESIGN-FREEZE-01` remains unaccepted.
+recovery interface, command, fixture, or History implementation was created by
+this module closure; it did not itself record the later product-design freeze.
 
 ### Author task and completion condition
 
@@ -6275,14 +6277,15 @@ DB17 closes at `G-SPEC`; contract, implementation/integration, offline/browser,
 race, disaster-recovery, accessibility, performance, security, and participant
 validation remain separate. DB18 carries these boundaries into the complete
 product blueprint below.
-`UX-DESIGN-FREEZE-01` remains unaccepted.
+This module closure did not itself record the later product-design freeze.
 
 ## DB18 — Product blueprint and acceptance
 
 **Status:** the traceable implementation-packet direction was accepted on
 2026-09-07 as `UX1.8-DISC02`. This section is specified and paper-audited at
-`G-SPEC`. It records no reference-UX implementation, runtime-contract
-disposition, integration evidence, or design freeze.
+`G-SPEC` and is included in the later `UX-DESIGN-FREEZE-01` record below. It
+records no reference-UX implementation, runtime-contract disposition, or
+integration evidence.
 
 ### Author task and completion condition
 
@@ -6773,12 +6776,16 @@ be represented as completed features.
 No paper contradiction remains open at critical severity. Prototype, contract,
 integration, browser/assistive-technology, model, localization, performance,
 security/privacy, disaster-recovery, regression, clean-start, and participant
-evidence remain later gates. `UX-DESIGN-FREEZE-01` therefore becomes the next
-explicit decision; it is not recorded by DB18 completion itself.
+evidence remain later gates. At DB18 closure, these findings satisfied the paper
+preconditions for the separate freeze decision recorded below.
 
 ## `UX-DESIGN-FREEZE-01`
 
-The product design may freeze only when:
+**Status:** accepted by the user on 2026-09-07. The frozen product-design
+baseline is commit `655d094`, containing DB01–DB18 before this administrative
+record. Phase 2 neutral reference-UX work is authorized from that baseline.
+
+The freeze review required:
 
 - all `DB01`–`DB18` sections are accepted or carry an explicit, non-blocking deferral;
 - every surface and material interaction has a blueprint and state contract;
@@ -6790,11 +6797,26 @@ The product design may freeze only when:
 - no demo name, path, content, or workflow convention appears in a product acceptance criterion;
 - the user explicitly accepts the complete brief as the baseline for implementation.
 
+Every condition is satisfied at specification depth. The acceptance covers the
+fourteen DB18 surface packets, all 18 flow families, the four end-to-end paths,
+the 23-request runtime ledger, and the explicit non-blocking deferrals
+`UX-D01` and `UX-D03`–`UX-D08`; `UX-D02` remains superseded.
+
+The freeze does not accept a proposed runtime shape or claim `G-PROTOTYPE`,
+`G-CONTRACT`, `G-INTEGRATION`, or `G-VALIDATION`. It authorizes the neutral
+reference UX and synthetic conformance work needed to pursue those gates.
+Contextual scientific, controlled-writing, and later profile integrations remain
+Phase 3 work after the neutral product stands independently.
+
 Freezing the brief does not make it immutable. Later evidence can reopen a
-decision through its recorded revisit trigger. It prevents a demo from changing
-the product silently.
+decision through its recorded revisit trigger and a stated generalized product
+failure. The frozen baseline remains identifiable when a later accepted revision
+changes it; no demo may change the product silently.
 
 ## Phase 2 — neutral Petra reference UX
+
+**Status:** authorized by `UX-DESIGN-FREEZE-01`; no implementation or validation
+evidence is recorded in this freeze update.
 
 After the design freeze, the design worktree implements the entire accepted UX
 against synthetic conformance scenarios created from the product contracts.
@@ -6836,15 +6858,13 @@ or default behavior.
 
 ## Design sequence from this point
 
-The next action remains a design decision:
+The next work is Phase 2 neutral product implementation:
 
-1. review the complete DB01–DB18 brief and request the user's explicit
-   `UX-DESIGN-FREEZE-01` acceptance;
-2. if accepted, record the freeze and route later findings through their named
-   revisit triggers and generalized product-failure process;
-3. obtain `UX-REQ-001`–`023` dispositions and implement the complete neutral
+1. use commit `655d094` as the frozen design baseline and route later findings
+   through their named revisit triggers and generalized product-failure process;
+2. obtain `UX-REQ-001`–`023` dispositions and implement the complete neutral
    reference UX against synthetic `UX-FX01`–`UX-FX46` scenarios;
-4. complete prototype, contract, integration, and validation evidence for every
+3. complete prototype, contract, integration, and validation evidence for every
    applicable packet, flow, responsive/assistive peer, and recovery path; and
-5. begin contextual integrations only after the reference UX stands
+4. begin contextual integrations only after the reference UX stands
    independently.

@@ -21,9 +21,9 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Review the completed DB01–DB18 product brief and continue from the pending
-   `UX-DESIGN-FREEZE-01` decision below. Do not resume production-surface
-   implementation or create a contextual demo before that explicit freeze.
+5. Use commit `655d094` as the frozen DB01–DB18 product-design baseline and
+   begin the Phase 2 neutral reference UX through the DB18 packet sequence.
+   Use synthetic conformance content only; contextual demos remain Phase 3.
 
 ## Working posture
 
@@ -466,10 +466,16 @@ DB18 closes at `G-SPEC`. Prototype, contract, integration, browser/AT, model,
 localization, performance, privacy/security, disaster-recovery, regression,
 clean-start, and participant evidence remain later gates.
 
-**Next decision: `UX-DESIGN-FREEZE-01`.** Record it only after the user explicitly
-accepts DB01–DB18 as the product implementation baseline, including the listed
-deferrals and open runtime/evidence gates. Until then, keep the work at design-
-specification depth.
+The user accepted `UX-DESIGN-FREEZE-01` on 2026-09-07 against exact product-
+design baseline commit `655d094`. The acceptance includes DB01–DB18, the listed
+non-blocking deferrals, and the open runtime/evidence gates. It authorizes Phase 2
+neutral reference-UX work and does not authorize contextual integrations, accept
+proposed runtime shapes, or claim implementation/validation evidence.
+
+**Next work: Phase 2 neutral reference UX.** Follow the DB18 packet sequence,
+start with shared primitives/frame/routing and the Projects -> shell -> Brief ->
+Sources/Details vertical path, and use synthetic `UX-FX` scenarios. Record a
+generalized product failure and revisit trigger before changing frozen behavior.
 
 ## Latest repository checkpoint
 
@@ -485,9 +491,10 @@ specification depth.
   refined DB15 recommendation were saved at `df31fb3`; completed DB15 and the
   DB16 opening discussion were saved at `9d5f94c`; completed DB16 and the DB17
   opening discussion were saved at `823b0b5`; completed DB17 and the DB18
-  opening discussion were saved at `fd21213`. The current working checkpoint
-  records accepted/completed DB18 and opens the design-freeze decision; inspect
-  Git status/log for local and remote position.
+  opening discussion were saved at `fd21213`; completed DB18 and the freeze
+  decision were opened at `655d094`. The current working checkpoint records
+  accepted `UX-DESIGN-FREEZE-01` and opens Phase 2 neutral reference-UX work;
+  inspect Git status/log for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
   conflicts.
@@ -534,13 +541,17 @@ specification depth.
   five-file design-only scope, and `git diff --check`. No prototype, runtime,
   integration, browser/AT, model, performance, privacy/security, recovery,
   clean-start, or participant validation is claimed.
+- The freeze record identifies exact baseline `655d094`, the user acceptance
+  date, explicit deferrals, later evidence gates, change-control rule, neutral
+  Phase 2 authorization, and continued Phase 3 demo boundary. It changes no
+  product behavior or runtime requirement.
 - `UX-REQ-001` through `UX-REQ-023` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
-Do not implement a Graph, Composition, Settings, design-system, language,
-accessibility, recovery, or whole-product fixture before the pending freeze.
-Product implementation resumes only after the user accepts
-`UX-DESIGN-FREEZE-01`.
+Implement the complete neutral reference UX against synthetic conformance
+scenarios and the frozen baseline. Do not use or create contextual demo adapters,
+fixtures, content, paths, or workflow assumptions until the neutral product
+stands independently.

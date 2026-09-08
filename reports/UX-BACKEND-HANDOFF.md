@@ -4,6 +4,7 @@ Status: proposed requests awaiting implementation-track review
 Date: 2026-09-07
 Source: [Petra user-flow architecture](UX-FLOW-ARCHITECTURE.md)
 Design-freeze source: [Petra UX design brief](PETRA-UX-DESIGN-BRIEF.md)
+Design freeze: `UX-DESIGN-FREEZE-01` accepted against baseline `655d094`
 
 ## Purpose
 
@@ -17,23 +18,25 @@ brief and neutral conformance scenarios. Prosody and Sentinel are later
 integration contexts; their paths, names, file structures, workflow labels,
 and incidental data shapes must not enter shared contracts.
 
-Fixture references in this register describe synthetic scenarios to implement
-after `UX-DESIGN-FREEZE-01`. They document why a contract is needed; they do not
-authorize reference-UX or demo implementation during product-brief work.
+Fixture references in this register describe synthetic Phase 2 scenarios now
+authorized by `UX-DESIGN-FREEZE-01`. They document why a contract is needed and
+do not authorize contextual demo implementation or claim that a proposed runtime
+shape has been accepted.
 
 ## Immediate coordination notice
 
-The implementation track may continue already accepted backend work. It should
-not add a demo adapter, corpus path, profile-specific shortcut,
-imported-document promotion behavior, or new shared schema from the future demo contexts
-while the product brief is open. It should review `UX-REQ-004` through
+The product-design baseline is frozen at `655d094`. The implementation track may
+continue accepted backend work and support the neutral reference UX. It must not
+add a demo adapter, corpus path, profile-specific shortcut, imported-document
+promotion behavior, or new shared schema from future demo contexts. It should
+review `UX-REQ-004` through
 `UX-REQ-023` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
 `UX-REQ-023` follow the accepted Petra interaction, navigation, Sources,
 Review, Graph, Work, Project-inquiry, Composition, Settings, language-system,
-accessibility, recovery, and product-blueprint directions.
-These requests do not authorize a frontend implementation before the
-design freeze.
+accessibility, recovery, and product-blueprint directions. Their proposed status
+does not establish `G-CONTRACT`; Phase 2 may expose an explicit unavailable state
+or use the recorded provisional synthetic boundary until disposition.
 
 ## Accepted UX changes with no backend semantic impact
 
@@ -1933,8 +1936,9 @@ DB18's traceable implementation-packet direction is accepted as
 `UX1.8-DISC02`. It maps every accepted surface and flow to
 `UX-REQ-001`–`023`, finds no additional backend need, and keeps every unresolved
 runtime shape visible as a contract or implementation gate. DB18 closes at
-`G-SPEC`; the pending design-freeze decision does not accept a runtime request
-or claim integration evidence.
+`G-SPEC`. The user accepted `UX-DESIGN-FREEZE-01` on 2026-09-07 against
+baseline `655d094`; that phase transition does not accept a runtime request or
+claim integration evidence.
 
 ### Cross-device preference synchronization
 

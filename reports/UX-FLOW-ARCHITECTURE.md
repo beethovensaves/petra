@@ -1,6 +1,6 @@
 # Petra user-flow architecture
 
-Status: accepted product flow and cross-product blueprint through DB18; design freeze pending; related runtime mappings awaiting architecture disposition
+Status: frozen at `UX-DESIGN-FREEZE-01` against baseline `655d094`; Phase 2 neutral reference UX authorized; runtime mappings awaiting architecture disposition
 Date: 2026-09-07
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as initial required examples in an extensible Project-profile system
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
@@ -383,7 +383,9 @@ implementation dependencies rather than missing UX decisions.
 `UX-FX44` later exercises every packet and applicable flow across three invented
 profiles; `UX-FX45` exercises all four named end-to-end paths; `UX-FX46` removes
 contracts and profile capabilities in turn and proves safe degradation plus a
-clean start with contextual demos absent. These begin only after design freeze.
+clean start with contextual demos absent. `UX-DESIGN-FREEZE-01` was accepted on
+2026-09-07 against baseline `655d094`; these Phase 2 scenarios are now
+authorized but have not been implemented or run.
 
 ## Complete flow catalogue
 
