@@ -1,7 +1,13 @@
 import { readFileSync } from "node:fs";
 
-import type { PetraProjectShellView } from "@petra/contracts";
-import type { ProjectShellViewReader } from "@petra/core";
+import type {
+  PetraProjectShellView,
+  PetraProjectSourceView,
+} from "@petra/contracts";
+import type {
+  ProjectShellViewReader,
+  ProjectSourceViewReader,
+} from "@petra/core";
 import { describe, expect, it } from "vitest";
 
 import { createPetraApp } from "../src/app.js";
@@ -18,11 +24,37 @@ const fixture = JSON.parse(
   ),
 ) as PetraProjectShellView;
 
+const sourceFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-source-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectSourceView;
+
 const reader: ProjectShellViewReader = {
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
     Promise.resolve(
       projectId === fixture.project_id ? structuredClone(fixture) : undefined,
+    ),
+};
+
+const sourceReader: ProjectSourceViewReader = {
+  listProjectSourceViews: (projectId) =>
+    Promise.resolve(
+      projectId === sourceFixture.project_id
+        ? [structuredClone(sourceFixture)]
+        : [],
+    ),
+  getProjectSourceView: (projectId, sourceId) =>
+    Promise.resolve(
+      projectId === sourceFixture.project_id &&
+        sourceId === sourceFixture.project_source_id
+        ? structuredClone(sourceFixture)
+        : undefined,
     ),
 };
 
@@ -104,5 +136,38 @@ describe("authorized Project shell query routes", () => {
     expect(unavailableBody.error.message).toBe(
       "repeatable-read snapshot unavailable",
     );
+  });
+
+  it("returns only sources authorized for the exact Project", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectSourceViews: sourceReader,
+    });
+    const collection = await petra.app.request(
+      authorized(`/api/queries/projects/${sourceFixture.project_id}/sources`),
+    );
+    expect(collection.status).toBe(200);
+    await expect(collection.json()).resolves.toEqual({
+      sources: [sourceFixture],
+    });
+
+    const detail = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${sourceFixture.project_id}/sources/${sourceFixture.project_source_id}`,
+      ),
+    );
+    expect(detail.status).toBe(200);
+    await expect(detail.json()).resolves.toEqual(sourceFixture);
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/sources/${sourceFixture.project_source_id}`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    const body = JSON.parse(await crossProject.text()) as {
+      error: { code: string };
+    };
+    expect(body.error.code).toBe("PROJECT_SOURCE_NOT_FOUND");
   });
 });

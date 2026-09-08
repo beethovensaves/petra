@@ -7,6 +7,9 @@ import type {
   PetraArtifactManifest,
   PetraAuthor,
   PetraParsedDocument,
+  PetraProject,
+  PetraProjectDefinition,
+  PetraProjectSource,
   PetraRightsDecision,
   PetraSourceSpan,
   PetraStructuralBlock,
@@ -17,6 +20,7 @@ import type {
   PersistDocumentBundleInput,
   PersistVerifiedArtifactInput,
 } from "@petra/core";
+import { canonicalize } from "json-canonicalize";
 import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -26,6 +30,9 @@ import type {
   PostgresDocumentAuthorityErrorCode,
 } from "../src/document-authority-repository.js";
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
+import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
+import { PostgresProjectSourceViewReader } from "../src/project-source-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { availableArtifactStore } from "./artifact-store-fixture.js";
@@ -49,6 +56,9 @@ const readFixture = <Value>(name: string): Value =>
 const sha256 = (bytes: Uint8Array): string =>
   `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 
+const canonicalHash = (value: unknown): string =>
+  `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
+
 const expectDocumentCode = async (
   operation: () => Promise<unknown>,
   code: PostgresDocumentAuthorityErrorCode,
@@ -67,6 +77,9 @@ describePostgres("PostgreSQL Document authority repository", () => {
     availableArtifactStore,
   );
   const documents = new PostgresDocumentAuthorityRepository(pool);
+  const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
+  const projectSources = new PostgresProjectSourceAuthorityRepository(pool);
+  const sourceViews = new PostgresProjectSourceViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -267,6 +280,73 @@ describePostgres("PostgreSQL Document authority repository", () => {
       (await documents.getDocumentBundle(input.document.parsed_document_id))
         ?.document.quality_state,
     ).toBe("complete");
+  });
+
+  it("binds and reads the exact source chain only inside its Project", async () => {
+    const acquired = await registerArtifactChain();
+    const project = readFixture<PetraProject>("project");
+    const definition = readFixture<PetraProjectDefinition>(
+      "project-definition-scientific",
+    );
+    await scopes.registerProjectRevision(project);
+    await definitions.registerDefinitionRevision(definition);
+
+    const bundle = documentBundle(acquired.manifest.artifact_manifest_id);
+    await documents.registerDocumentBundle(bundle);
+    const projectSource = readFixture<PetraProjectSource>("project-source");
+    projectSource.content.artifact_manifest_ref.record_hash = canonicalHash(
+      acquired.manifest,
+    );
+    projectSource.content_hash = canonicalHash(projectSource.content);
+    await projectSources.registerProjectSourceRevision(projectSource);
+    await projectSources.registerProjectSourceRevision(
+      structuredClone(projectSource),
+    );
+
+    const view = await sourceViews.getProjectSourceView(
+      project.project_id,
+      projectSource.project_source_id,
+    );
+    if (view === undefined) throw new Error("Expected Project source view.");
+    expect(view.project_id).toBe(project.project_id);
+    expect(view.project_source_id).toBe(projectSource.project_source_id);
+    expect(view.content.binding.source_role).toBe("scientific.literature");
+    expect(view.content.binding.project_definition_ref).toEqual({
+      record_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+    });
+    expect(view.content.identity.title).toBe(
+      "A testable account of competing explanations",
+    );
+    expect(view.content.copy.manifest_ref.record_id).toBe(
+      acquired.manifest.artifact_manifest_id,
+    );
+    expect(view.content.rights.permissions.parse).toBe(true);
+    expect(view.content.representation.extent).toBe("complete");
+    expect(view.content.representation.preview?.text).toBe(
+      "The study reports a measurable improvement.",
+    );
+    expect(view.content.authority.isolation).toBe("repeatable_read");
+    expect(
+      await sourceViews.listProjectSourceViews(project.project_id),
+    ).toHaveLength(1);
+    expect(
+      await sourceViews.getProjectSourceView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        projectSource.project_source_id,
+      ),
+    ).toBeUndefined();
+
+    const wrongRole = structuredClone(projectSource);
+    wrongRole.revision = 2;
+    wrongRole.content.source_role = "scientific.unregistered";
+    wrongRole.content_hash = canonicalHash(wrongRole.content);
+    await expect(
+      projectSources.registerProjectSourceRevision(wrongRole),
+    ).rejects.toEqual(
+      expect.objectContaining({ code: "PROJECT_SOURCE_RELATION_INVALID" }),
+    );
   });
 
   it("rejects incomplete and internally misaligned bundles atomically", async () => {

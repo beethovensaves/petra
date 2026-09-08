@@ -7,7 +7,7 @@ from typing import Any, Literal
 
 import rfc8785
 from jsonschema import Draft202012Validator, FormatChecker
-from pydantic import BaseModel, ConfigDict, RootModel, model_validator
+from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 from referencing import Registry, Resource
 
 PETRA_ROOT = Path(__file__).resolve().parents[3]
@@ -321,6 +321,236 @@ class PetraProjectShellView(PetraModel):
     schema_version: Literal["1.0.0"]
     project_id: str
     content: ProjectShellContent
+    content_hash: str
+    read_at: str
+
+
+class ProjectSourceDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectSourceWorkRef(PetraModel):
+    work_id: str
+    revision: int
+    record_hash: str
+
+
+class ProjectSourceWorkVersionRef(PetraModel):
+    work_version_id: str
+    revision: int
+    record_hash: str
+
+
+class ProjectSourceAuthorRef(PetraModel):
+    author_id: str
+    revision: int
+    record_hash: str
+
+
+class ProjectSourceManifestRef(PetraModel):
+    artifact_manifest_id: str
+    revision: Literal[1]
+    record_hash: str
+
+
+class ProjectSourceContent(PetraModel):
+    binding_kind: Literal["scientific_work_version"]
+    project_definition_ref: ProjectSourceDefinitionRef
+    source_role: str
+    work_ref: ProjectSourceWorkRef
+    work_version_ref: ProjectSourceWorkVersionRef
+    author_refs: list[ProjectSourceAuthorRef]
+    artifact_manifest_ref: ProjectSourceManifestRef
+    status: Literal["active", "excluded"]
+
+
+class PetraProjectSource(PetraModel):
+    schema_name: Literal["petra.project-source"]
+    schema_version: Literal["1.0.0"]
+    project_source_id: str
+    revision: int
+    project_id: str
+    content: ProjectSourceContent
+    content_hash: str
+    added_by: ActorRef
+    added_at: str
+
+
+class ProjectSourceViewExactRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectSourceViewBinding(PetraModel):
+    binding_kind: Literal["scientific_work_version"]
+    revision: int
+    content_hash: str
+    project_definition_ref: ProjectSourceViewExactRef
+    source_role: str
+    source_role_label: str
+    status: Literal["active", "excluded"]
+    added_at: str
+
+
+class ProjectSourceViewPublishedDate(PetraModel):
+    precision: Literal["year", "month", "day"]
+    value: str
+
+
+class ProjectSourceViewCreator(PetraModel):
+    author_ref: ProjectSourceViewExactRef
+    display_name: str
+    author_kind: Literal["person", "organization", "consortium"]
+    identity_status: Literal["resolved", "provisional", "disputed"]
+
+
+class ProjectSourceViewIdentity(PetraModel):
+    work_ref: ProjectSourceViewExactRef
+    title: str
+    work_kind: Literal[
+        "journal_article",
+        "conference_paper",
+        "preprint",
+        "thesis",
+        "book",
+        "chapter",
+        "other",
+    ]
+    identity_status: Literal["resolved", "provisional", "disputed"]
+    work_version_ref: ProjectSourceViewExactRef
+    version_label: str
+    publication_status: Literal[
+        "preprint",
+        "peer_reviewed",
+        "accepted",
+        "corrected",
+        "retracted",
+        "unknown",
+    ]
+    published_date: ProjectSourceViewPublishedDate | None = None
+    creators: list[ProjectSourceViewCreator]
+
+
+class ProjectSourceViewCopy(PetraModel):
+    manifest_ref: ProjectSourceViewExactRef
+    artifact_ref: ProjectSourceViewExactRef
+    artifact_kind: Literal[
+        "pdf",
+        "html",
+        "structured_text",
+        "dataset",
+        "code",
+        "environment_lock",
+        "run_output",
+        "image",
+        "export",
+    ]
+    media_type: str
+    byte_size: int
+    origin_kind: Literal["acquired", "user_supplied", "generated"]
+    source_location: str
+    original_filename: str | None = None
+    availability: Literal["available"]
+    integrity_status: Literal["verified", "verified_with_warnings"]
+    recorded_at: str
+
+
+class ProjectSourceViewPermissions(PetraModel):
+    store_raw_bytes: bool
+    parse: bool
+    index: bool
+    embed: bool
+    send_selected_text_remotely: bool
+    quote_publicly: bool
+    redistribute_artifact: bool
+
+
+class ProjectSourceViewRights(PetraModel):
+    rights_ref: ProjectSourceViewExactRef
+    license_status: Literal["known", "unknown", "restricted"]
+    license_label: str
+    access_basis: Literal[
+        "open_license",
+        "public_repository",
+        "subscription",
+        "user_supplied",
+        "permission",
+        "unknown",
+    ]
+    decision_status: Literal[
+        "verified", "inferred", "unknown", "conflicting", "restricted"
+    ]
+    permissions: ProjectSourceViewPermissions
+    conditions: list[
+        Literal[
+            "attribution", "notice", "noncommercial", "share_alike", "no_derivatives"
+        ]
+    ]
+    policy_version: str
+
+
+class ProjectSourceViewPreview(PetraModel):
+    span_ref: ProjectSourceViewExactRef
+    structural_block_ref: ProjectSourceViewExactRef
+    heading: str
+    locator: str
+    text: str
+    verification_status: Literal[
+        "exact_text_and_geometry",
+        "normalized",
+        "visual_only",
+        "manual_alignment",
+        "unresolved",
+    ]
+
+
+class ProjectSourceViewRepresentation(PetraModel):
+    extent: Literal["identity_only", "partial", "complete", "restricted"]
+    extent_label: str
+    document_ref: ProjectSourceViewExactRef | None = None
+    source_format: (
+        Literal["pdf", "html", "xml", "json", "plain_text", "code", "image", "other"]
+        | None
+    ) = None
+    document_language: str | None = None
+    quality_state: Literal["complete", "partial", "needs_ocr", "failed"] | None = None
+    page_count: int
+    block_count: int
+    source_span_count: int
+    preview: ProjectSourceViewPreview | None = None
+
+
+class ProjectSourceViewDownstreamUse(PetraModel):
+    claim_count: int
+    assertion_count: int
+
+
+class ProjectSourceViewContent(PetraModel):
+    model_config = ConfigDict(
+        strict=True,
+        extra="forbid",
+        frozen=True,
+        serialize_by_alias=True,
+    )
+
+    binding: ProjectSourceViewBinding
+    identity: ProjectSourceViewIdentity
+    copy_value: ProjectSourceViewCopy = Field(alias="copy")
+    rights: ProjectSourceViewRights
+    representation: ProjectSourceViewRepresentation
+    downstream_use: ProjectSourceViewDownstreamUse
+    authority: ProjectShellAuthorityPosition
+
+
+class PetraProjectSourceView(PetraModel):
+    schema_name: Literal["petra.project-source-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    project_source_id: str
+    content: ProjectSourceViewContent
     content_hash: str
     read_at: str
 
@@ -4040,6 +4270,8 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-definition": PetraProjectDefinition,
     "project-objective": PetraProjectObjective,
     "project-shell-view": PetraProjectShellView,
+    "project-source": PetraProjectSource,
+    "project-source-view": PetraProjectSourceView,
     "author": PetraAuthor,
     "work": PetraWork,
     "work-version": PetraWorkVersion,

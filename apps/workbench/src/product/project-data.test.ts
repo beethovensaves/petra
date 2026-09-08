@@ -1,9 +1,15 @@
 import { readFileSync } from "node:fs";
 
-import type { PetraProjectShellView } from "@petra/contracts";
+import type {
+  PetraProjectShellView,
+  PetraProjectSourceView,
+} from "@petra/contracts";
 import { describe, expect, it } from "vitest";
 
-import { projectRecordFromShellView } from "./project-data.js";
+import {
+  projectRecordFromShellView,
+  sourceRecordFromView,
+} from "./project-data.js";
 
 const view = JSON.parse(
   readFileSync(
@@ -14,6 +20,16 @@ const view = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectShellView;
+
+const sourceView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-source-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectSourceView;
 
 describe("Project shell workbench adapter", () => {
   it("maps exact definition terminology and projection attention without mutating the view", () => {
@@ -66,5 +82,24 @@ describe("Project shell workbench adapter", () => {
     expect(project.projection.state).toBe("unavailable");
     expect(project.sources).toEqual([]);
     expect(project.recentDecisions).toEqual([]);
+  });
+
+  it("maps one exact ProjectSource authority chain into the frozen source surfaces", () => {
+    const before = structuredClone(sourceView);
+    const source = sourceRecordFromView(sourceView);
+
+    expect(source.id).toBe("project_source_01K4C000000000000000000007");
+    expect(source.title).toBe("A testable account of competing explanations");
+    expect(source.creator).toBe("Ada Researcher");
+    expect(source.extent).toBe("complete");
+    expect(source.rights).toBe("CC-BY-4.0 · verified");
+    expect(source.excerpt).toEqual(
+      expect.objectContaining({
+        heading: "Results / Paragraph 1",
+        locator: "Page 1 · Results / Paragraph 1",
+        text: "The study reports a measurable improvement.",
+      }),
+    );
+    expect(sourceView).toEqual(before);
   });
 });

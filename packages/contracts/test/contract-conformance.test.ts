@@ -210,6 +210,16 @@ describe("Petra canonical contract registry", () => {
       hashField: "content_hash",
     },
     {
+      path: "../fixtures/accepted/project-source.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
+      path: "../fixtures/accepted/project-source-view.json",
+      projection: "content",
+      hashField: "content_hash",
+    },
+    {
       path: "../fixtures/accepted/worker-input-manifest.json",
       projection: "content",
       hashField: "content_hash",

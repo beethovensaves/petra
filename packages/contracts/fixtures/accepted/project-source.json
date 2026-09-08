@@ -1,0 +1,45 @@
+{
+  "schema_name": "petra.project-source",
+  "schema_version": "1.0.0",
+  "project_source_id": "project_source_01K4C000000000000000000007",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "binding_kind": "scientific_work_version",
+    "project_definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+    },
+    "source_role": "scientific.literature",
+    "work_ref": {
+      "work_id": "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+      "revision": 1,
+      "record_hash": "sha256:617df314092d3bc433c21ad70790e0d02e8b88e2341f7988eb75df376ef4e923"
+    },
+    "work_version_ref": {
+      "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+      "revision": 1,
+      "record_hash": "sha256:dba5ca5f392635236e74d317bf2b7443e70c9e991fe85d11f18e5ccaf163f965"
+    },
+    "author_refs": [
+      {
+        "author_id": "author_01ARZ3NDEKTSV4RRFFQ69G5FAY",
+        "revision": 1,
+        "record_hash": "sha256:3395daa2ca66fbdf22218eb6284afbfb632a48319ad62ce1cecc4ca667f61363"
+      }
+    ],
+    "artifact_manifest_ref": {
+      "artifact_manifest_id": "artifact_manifest_01ARZ3NDEKTSV4RRFFQ69G5FB2",
+      "revision": 1,
+      "record_hash": "sha256:ca96cf837e75855d9674162b6df72d1986a43dc4c26879bb703acd6b54a59ac8"
+    },
+    "status": "active"
+  },
+  "content_hash": "sha256:c6e1c7abe0e2c29f7dc0454d1c6d6ab10526fd3f82612299053b1aa88d5fc4db",
+  "added_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "added_at": "2026-09-08T15:00:00.000Z"
+}

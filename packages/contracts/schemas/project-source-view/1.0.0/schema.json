@@ -1,0 +1,451 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-view/1.0.0/schema.json",
+  "title": "PetraProjectSourceView",
+  "description": "A read-only, snapshot-consistent source composition from the M1 scholarly ProjectSource binding and its authority chain.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "project_source_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "project_source_id": {
+      "type": "string",
+      "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "content": { "$ref": "#/$defs/SourceViewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "ExactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "content_hash"],
+      "properties": {
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "BindingSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding_kind",
+        "revision",
+        "content_hash",
+        "project_definition_ref",
+        "source_role",
+        "source_role_label",
+        "status",
+        "added_at"
+      ],
+      "properties": {
+        "binding_kind": { "const": "scientific_work_version" },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "project_definition_ref": { "$ref": "#/$defs/ExactRef" },
+        "source_role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "source_role_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "status": { "enum": ["active", "excluded"] },
+        "added_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "CreatorSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "author_ref",
+        "display_name",
+        "author_kind",
+        "identity_status"
+      ],
+      "properties": {
+        "author_ref": { "$ref": "#/$defs/ExactRef" },
+        "display_name": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "author_kind": { "enum": ["person", "organization", "consortium"] },
+        "identity_status": { "enum": ["resolved", "provisional", "disputed"] }
+      }
+    },
+    "PublishedDate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["precision", "value"],
+      "properties": {
+        "precision": { "enum": ["year", "month", "day"] },
+        "value": { "type": "string", "minLength": 4, "maxLength": 10 }
+      }
+    },
+    "IdentitySummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "work_ref",
+        "title",
+        "work_kind",
+        "identity_status",
+        "work_version_ref",
+        "version_label",
+        "publication_status",
+        "creators"
+      ],
+      "properties": {
+        "work_ref": { "$ref": "#/$defs/ExactRef" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "work_kind": {
+          "enum": [
+            "journal_article",
+            "conference_paper",
+            "preprint",
+            "thesis",
+            "book",
+            "chapter",
+            "other"
+          ]
+        },
+        "identity_status": { "enum": ["resolved", "provisional", "disputed"] },
+        "work_version_ref": { "$ref": "#/$defs/ExactRef" },
+        "version_label": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "publication_status": {
+          "enum": [
+            "preprint",
+            "peer_reviewed",
+            "accepted",
+            "corrected",
+            "retracted",
+            "unknown"
+          ]
+        },
+        "published_date": { "$ref": "#/$defs/PublishedDate" },
+        "creators": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/CreatorSummary" }
+        }
+      }
+    },
+    "CopySummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifest_ref",
+        "artifact_ref",
+        "artifact_kind",
+        "media_type",
+        "byte_size",
+        "origin_kind",
+        "source_location",
+        "availability",
+        "integrity_status",
+        "recorded_at"
+      ],
+      "properties": {
+        "manifest_ref": { "$ref": "#/$defs/ExactRef" },
+        "artifact_ref": { "$ref": "#/$defs/ExactRef" },
+        "artifact_kind": {
+          "enum": [
+            "pdf",
+            "html",
+            "structured_text",
+            "dataset",
+            "code",
+            "environment_lock",
+            "run_output",
+            "image",
+            "export"
+          ]
+        },
+        "media_type": { "type": "string", "minLength": 3, "maxLength": 300 },
+        "byte_size": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "origin_kind": { "enum": ["acquired", "user_supplied", "generated"] },
+        "source_location": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "original_filename": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "availability": { "const": "available" },
+        "integrity_status": { "enum": ["verified", "verified_with_warnings"] },
+        "recorded_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "Permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "store_raw_bytes",
+        "parse",
+        "index",
+        "embed",
+        "send_selected_text_remotely",
+        "quote_publicly",
+        "redistribute_artifact"
+      ],
+      "properties": {
+        "store_raw_bytes": { "type": "boolean" },
+        "parse": { "type": "boolean" },
+        "index": { "type": "boolean" },
+        "embed": { "type": "boolean" },
+        "send_selected_text_remotely": { "type": "boolean" },
+        "quote_publicly": { "type": "boolean" },
+        "redistribute_artifact": { "type": "boolean" }
+      }
+    },
+    "RightsSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rights_ref",
+        "license_status",
+        "license_label",
+        "access_basis",
+        "decision_status",
+        "permissions",
+        "conditions",
+        "policy_version"
+      ],
+      "properties": {
+        "rights_ref": { "$ref": "#/$defs/ExactRef" },
+        "license_status": { "enum": ["known", "unknown", "restricted"] },
+        "license_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "access_basis": {
+          "enum": [
+            "open_license",
+            "public_repository",
+            "subscription",
+            "user_supplied",
+            "permission",
+            "unknown"
+          ]
+        },
+        "decision_status": {
+          "enum": [
+            "verified",
+            "inferred",
+            "unknown",
+            "conflicting",
+            "restricted"
+          ]
+        },
+        "permissions": { "$ref": "#/$defs/Permissions" },
+        "conditions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "attribution",
+              "notice",
+              "noncommercial",
+              "share_alike",
+              "no_derivatives"
+            ]
+          }
+        },
+        "policy_version": { "type": "string", "minLength": 1, "maxLength": 100 }
+      }
+    },
+    "Preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "span_ref",
+        "structural_block_ref",
+        "heading",
+        "locator",
+        "text",
+        "verification_status"
+      ],
+      "properties": {
+        "span_ref": { "$ref": "#/$defs/ExactRef" },
+        "structural_block_ref": { "$ref": "#/$defs/ExactRef" },
+        "heading": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "locator": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "text": { "type": "string", "minLength": 1, "maxLength": 100000 },
+        "verification_status": {
+          "enum": [
+            "exact_text_and_geometry",
+            "normalized",
+            "visual_only",
+            "manual_alignment",
+            "unresolved"
+          ]
+        }
+      }
+    },
+    "RepresentationSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "extent",
+        "extent_label",
+        "page_count",
+        "block_count",
+        "source_span_count"
+      ],
+      "properties": {
+        "extent": {
+          "enum": ["identity_only", "partial", "complete", "restricted"]
+        },
+        "extent_label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "document_ref": { "$ref": "#/$defs/ExactRef" },
+        "source_format": {
+          "enum": [
+            "pdf",
+            "html",
+            "xml",
+            "json",
+            "plain_text",
+            "code",
+            "image",
+            "other"
+          ]
+        },
+        "document_language": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "quality_state": {
+          "enum": ["complete", "partial", "needs_ocr", "failed"]
+        },
+        "page_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "block_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "source_span_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "preview": { "$ref": "#/$defs/Preview" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "extent": { "enum": ["partial", "complete"] } }
+          },
+          "then": {
+            "required": ["document_ref", "source_format", "quality_state"],
+            "properties": {
+              "document_ref": {},
+              "source_format": {},
+              "quality_state": {}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "extent": { "enum": ["identity_only", "restricted"] }
+            }
+          },
+          "then": {
+            "properties": {
+              "document_ref": false,
+              "source_format": false,
+              "document_language": false,
+              "quality_state": false,
+              "preview": false,
+              "page_count": { "const": 0 },
+              "block_count": { "const": 0 },
+              "source_span_count": { "const": 0 }
+            }
+          }
+        }
+      ]
+    },
+    "DownstreamUse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_count", "assertion_count"],
+      "properties": {
+        "claim_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "assertion_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "SourceViewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding",
+        "identity",
+        "copy",
+        "rights",
+        "representation",
+        "downstream_use",
+        "authority"
+      ],
+      "properties": {
+        "binding": { "$ref": "#/$defs/BindingSummary" },
+        "identity": { "$ref": "#/$defs/IdentitySummary" },
+        "copy": { "$ref": "#/$defs/CopySummary" },
+        "rights": { "$ref": "#/$defs/RightsSummary" },
+        "representation": { "$ref": "#/$defs/RepresentationSummary" },
+        "downstream_use": { "$ref": "#/$defs/DownstreamUse" },
+        "authority": {
+          "$ref": "../../project-shell-view/1.0.0/schema.json#/$defs/AuthorityPosition"
+        }
+      }
+    }
+  }
+}

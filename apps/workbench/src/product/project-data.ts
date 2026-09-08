@@ -1,10 +1,16 @@
 import type {
   PetraProjectShellView,
+  PetraProjectSourceView,
   ProjectDefinitionTerm,
 } from "@petra/contracts";
 import type { LoaderFunctionArgs } from "react-router";
 
-import type { AttentionItem, ProjectProfile, ProjectRecord } from "./model.js";
+import type {
+  AttentionItem,
+  ProjectProfile,
+  ProjectRecord,
+  SourceRecord,
+} from "./model.js";
 
 const DEVELOPMENT_TOKEN = "petra-local-development";
 const TOKEN_STORAGE_KEY = "petra.auth.token";
@@ -43,6 +49,25 @@ const shellView = (value: unknown): PetraProjectShellView => {
     );
   }
   return value as unknown as PetraProjectShellView;
+};
+
+const sourceView = (value: unknown): PetraProjectSourceView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-source-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.project_source_id !== "string" ||
+    !isRecord(value.content) ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project source view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectSourceView;
 };
 
 const requestJson = async (path: string): Promise<unknown> => {
@@ -189,6 +214,60 @@ export const projectRecordFromShellView = (
   };
 };
 
+const titleCase = (value: string): string =>
+  value
+    .split("_")
+    .map((part) => `${part.slice(0, 1).toLocaleUpperCase()}${part.slice(1)}`)
+    .join(" ");
+
+export const sourceRecordFromView = (
+  view: PetraProjectSourceView,
+): SourceRecord => {
+  const { binding, identity, copy, rights, representation, downstream_use } =
+    view.content;
+  const linkedRecords =
+    downstream_use.claim_count + downstream_use.assertion_count;
+  const limitation =
+    representation.extent === "restricted"
+      ? "The exact copy is retained, but its RightsDecision does not permit parsing."
+      : representation.extent === "identity_only"
+        ? "Petra has verified the exact copy and its rights, but no parsed representation is registered."
+        : representation.extent === "partial"
+          ? `The selected ParsedDocument reports ${representation.quality_state?.replace("_", " ") ?? "partial"} quality.`
+          : undefined;
+  return {
+    id: view.project_source_id,
+    title: identity.title,
+    kind: titleCase(identity.work_kind),
+    role: `${binding.source_role_label}${binding.status === "excluded" ? " · Excluded" : ""}`,
+    creator: identity.creators
+      .map((creator) => creator.display_name)
+      .join(", "),
+    revision: `${identity.version_label} · source r${binding.revision}`,
+    copy: `${copy.artifact_kind.toLocaleUpperCase()} · ${copy.byte_size.toLocaleString()} bytes · ${copy.artifact_ref.content_hash.slice(0, 18)}…`,
+    location: copy.source_location,
+    addedAt: binding.added_at,
+    extent: representation.extent,
+    extentLabel: representation.extent_label,
+    rights: `${rights.license_label} · ${rights.decision_status.replace("_", " ")}`,
+    downstreamUse:
+      linkedRecords === 0
+        ? "No Claims or Assertions currently cite this exact parsed copy."
+        : `${downstream_use.claim_count} Claims and ${downstream_use.assertion_count} Assertions cite this exact parsed copy.`,
+    ...(limitation === undefined ? {} : { limitation }),
+    ...(representation.preview === undefined
+      ? {}
+      : {
+          excerpt: {
+            heading: representation.preview.heading,
+            locator: representation.preview.locator,
+            text: representation.preview.text,
+            context: `Exact ${representation.preview.verification_status.replaceAll("_", " ")} span ${representation.preview.span_ref.record_id}; read with authority event ${view.content.authority.event_position}.`,
+          },
+        }),
+  };
+};
+
 export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
   const value = await requestJson("/api/queries/projects");
   if (!isRecord(value) || !Array.isArray(value.projects)) {
@@ -212,4 +291,57 @@ export const loadProjectRecord = async ({
     `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell`,
   );
   return projectRecordFromShellView(shellView(value));
+};
+
+const requiredRouteIdentity = (
+  value: string | undefined,
+  label: string,
+): string => {
+  if (value === undefined || value.length === 0) {
+    throw new ProjectDataError(`${label} is required.`, 400);
+  }
+  return value;
+};
+
+export const loadProjectSourceCollection = async ({
+  params,
+}: LoaderFunctionArgs): Promise<SourceRecord[]> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/sources`,
+  );
+  if (!isRecord(value) || !Array.isArray(value.sources)) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project source collection.",
+      502,
+    );
+  }
+  return value.sources.map((source) => {
+    const view = sourceView(source);
+    if (view.project_id !== projectId) {
+      throw new ProjectDataError(
+        "Petra returned a source from another Project.",
+        502,
+      );
+    }
+    return sourceRecordFromView(view);
+  });
+};
+
+export const loadProjectSourceRecord = async ({
+  params,
+}: LoaderFunctionArgs): Promise<SourceRecord> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const sourceId = requiredRouteIdentity(params.sourceId, "A ProjectSource ID");
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/sources/${encodeURIComponent(sourceId)}`,
+  );
+  const view = sourceView(value);
+  if (view.project_id !== projectId || view.project_source_id !== sourceId) {
+    throw new ProjectDataError(
+      "Petra returned a different Project source identity.",
+      502,
+    );
+  }
+  return sourceRecordFromView(view);
 };

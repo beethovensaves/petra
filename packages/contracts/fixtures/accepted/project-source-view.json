@@ -1,0 +1,139 @@
+{
+  "schema_name": "petra.project-source-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_source_id": "project_source_01K4C000000000000000000007",
+  "content": {
+    "binding": {
+      "binding_kind": "scientific_work_version",
+      "revision": 1,
+      "content_hash": "sha256:c6e1c7abe0e2c29f7dc0454d1c6d6ab10526fd3f82612299053b1aa88d5fc4db",
+      "project_definition_ref": {
+        "record_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+      },
+      "source_role": "scientific.literature",
+      "source_role_label": "Source",
+      "status": "active",
+      "added_at": "2026-09-08T15:00:00.000Z"
+    },
+    "identity": {
+      "work_ref": {
+        "record_id": "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+        "revision": 1,
+        "content_hash": "sha256:617df314092d3bc433c21ad70790e0d02e8b88e2341f7988eb75df376ef4e923"
+      },
+      "title": "A testable account of competing explanations",
+      "work_kind": "journal_article",
+      "identity_status": "provisional",
+      "work_version_ref": {
+        "record_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+        "revision": 1,
+        "content_hash": "sha256:dba5ca5f392635236e74d317bf2b7443e70c9e991fe85d11f18e5ccaf163f965"
+      },
+      "version_label": "Version of record",
+      "publication_status": "peer_reviewed",
+      "published_date": {
+        "precision": "month",
+        "value": "2025-06"
+      },
+      "creators": [
+        {
+          "author_ref": {
+            "record_id": "author_01ARZ3NDEKTSV4RRFFQ69G5FAY",
+            "revision": 1,
+            "content_hash": "sha256:3395daa2ca66fbdf22218eb6284afbfb632a48319ad62ce1cecc4ca667f61363"
+          },
+          "display_name": "Ada Researcher",
+          "author_kind": "person",
+          "identity_status": "provisional"
+        }
+      ]
+    },
+    "copy": {
+      "manifest_ref": {
+        "record_id": "artifact_manifest_01ARZ3NDEKTSV4RRFFQ69G5FB2",
+        "revision": 1,
+        "content_hash": "sha256:ca96cf837e75855d9674162b6df72d1986a43dc4c26879bb703acd6b54a59ac8"
+      },
+      "artifact_ref": {
+        "record_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+        "revision": 1,
+        "content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e"
+      },
+      "artifact_kind": "pdf",
+      "media_type": "application/pdf",
+      "byte_size": 21,
+      "origin_kind": "acquired",
+      "source_location": "https://aclanthology.org/2025.example.pdf",
+      "availability": "available",
+      "integrity_status": "verified",
+      "recorded_at": "2026-08-28T18:10:00.000Z"
+    },
+    "rights": {
+      "rights_ref": {
+        "record_id": "rights_decision_01ARZ3NDEKTSV4RRFFQ69G5FB3",
+        "revision": 1,
+        "content_hash": "sha256:c2cfe76ea4d2cbd396ff0a4bf6c312a97aac7768ef6378db5ec1ac405aaf45b1"
+      },
+      "license_status": "known",
+      "license_label": "CC-BY-4.0",
+      "access_basis": "open_license",
+      "decision_status": "verified",
+      "permissions": {
+        "store_raw_bytes": true,
+        "parse": true,
+        "index": true,
+        "embed": true,
+        "send_selected_text_remotely": false,
+        "quote_publicly": true,
+        "redistribute_artifact": true
+      },
+      "conditions": ["attribution", "notice"],
+      "policy_version": "petra-rights/1.0.0"
+    },
+    "representation": {
+      "extent": "complete",
+      "extent_label": "Complete parsed representation",
+      "document_ref": {
+        "record_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+        "revision": 1,
+        "content_hash": "sha256:fa43619755a2970b72ec5f0525b93214f144dd1eae021c2fb72bdb0b922c6916"
+      },
+      "source_format": "pdf",
+      "document_language": "en",
+      "quality_state": "complete",
+      "page_count": 1,
+      "block_count": 1,
+      "source_span_count": 1,
+      "preview": {
+        "span_ref": {
+          "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          "revision": 1,
+          "content_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+        },
+        "structural_block_ref": {
+          "record_id": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+          "revision": 1,
+          "content_hash": "sha256:ebe209cea9bce2f79ccc5d485470eb76592699d8a1f8b6f490b481e208a39716"
+        },
+        "heading": "Results / Paragraph 1",
+        "locator": "Page 1 · Results / Paragraph 1",
+        "text": "The study reports a measurable improvement.",
+        "verification_status": "exact_text_and_geometry"
+      }
+    },
+    "downstream_use": {
+      "claim_count": 0,
+      "assertion_count": 0
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 0,
+      "stream_revision": 0
+    }
+  },
+  "content_hash": "sha256:d1266f7608efcad57964b887acc683b72ec5f55b5ec67e671d96cadc486e7793",
+  "read_at": "2026-09-08T15:01:00.000Z"
+}

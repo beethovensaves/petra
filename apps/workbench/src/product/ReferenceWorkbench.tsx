@@ -6,7 +6,6 @@ import {
   useLoaderData,
   useLocation,
   useOutletContext,
-  useParams,
   useSearchParams,
 } from "react-router";
 
@@ -17,7 +16,6 @@ import {
   getProjectGraph,
   getProjectProfileTool,
   getReferenceReview,
-  getReferenceSource,
 } from "./fixtures.js";
 import type {
   EngineState,
@@ -662,9 +660,11 @@ export const SourcesSurface = ({ project }: { project: ProjectRecord }) => {
   );
 };
 
-export const SourcesRoute = (): React.JSX.Element => (
-  <SourcesSurface project={useProjectRecord()} />
-);
+export const SourcesRoute = (): React.JSX.Element => {
+  const project = useProjectRecord();
+  const sources = useLoaderData<SourceRecord[]>();
+  return <SourcesSurface project={{ ...project, sources }} />;
+};
 
 const SourceDetails = ({ source }: { source: SourceRecord }) => (
   <aside className="reference-details" aria-labelledby="source-details-title">
@@ -819,9 +819,8 @@ export const SourceReaderSurface = ({
 
 export const SourceReaderRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const { sourceId } = useParams();
+  const source = useLoaderData<SourceRecord>();
   const [searchParams] = useSearchParams();
-  const source = getReferenceSource(project, sourceId);
   const returnOrigin = searchParams.get("from");
   const returnReview = getReferenceReview(
     project.id,
@@ -859,26 +858,6 @@ export const SourceReaderRoute = (): React.JSX.Element => {
               label: "Return to Review",
             }
           : undefined;
-
-  if (source === undefined) {
-    return (
-      <main className="reference-route-error" id="reference-main">
-        <PetraMark />
-        <p className="reference-eyebrow">Source unavailable</p>
-        <h1>This source cannot be opened</h1>
-        <p>
-          The address does not resolve inside {project.title}. Petra did not
-          show a similarly named source or content from another Project.
-        </p>
-        <Link
-          className="reference-text-link"
-          to={`/projects/${project.id}/sources`}
-        >
-          Return to {project.profile.terms.referencePlural}
-        </Link>
-      </main>
-    );
-  }
 
   return (
     <SourceReaderSurface

@@ -44,6 +44,29 @@ export type {
   ProjectionSummary as ProjectShellProjectionSummary,
   ShellContent as ProjectShellContent,
 } from "./generated/project-shell-view.js";
+export type {
+  ArtifactManifestRef as ProjectSourceArtifactManifestRef,
+  AuthorRef as ProjectSourceAuthorRef,
+  DefinitionRef as ProjectSourceDefinitionRef,
+  PetraProjectSource,
+  ProjectSourceContent,
+  WorkRef as ProjectSourceWorkRef,
+  WorkVersionRef as ProjectSourceWorkVersionRef,
+} from "./generated/project-source.js";
+export type {
+  AuthorityPosition as ProjectSourceAuthorityPosition,
+  BindingSummary as ProjectSourceBindingSummary,
+  CopySummary as ProjectSourceCopySummary,
+  CreatorSummary as ProjectSourceCreatorSummary,
+  DownstreamUse as ProjectSourceDownstreamUse,
+  ExactRef as ProjectSourceExactRef,
+  IdentitySummary as ProjectSourceIdentitySummary,
+  PetraProjectSourceView,
+  Preview as ProjectSourcePreview,
+  RepresentationSummary as ProjectSourceRepresentationSummary,
+  RightsSummary as ProjectSourceRightsSummary,
+  SourceViewContent as ProjectSourceViewContent,
+} from "./generated/project-source-view.js";
 export type { AuthorCredit, PetraWork } from "./generated/work.js";
 export type {
   MetadataSource,

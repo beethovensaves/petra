@@ -23,6 +23,7 @@ import {
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
   type ProjectShellViewReader,
+  type ProjectSourceViewReader,
 } from "@petra/core";
 
 interface Variables {
@@ -42,6 +43,7 @@ export interface PetraAppOptions {
   codexProvider?: CodexSubscriptionProviderPort;
   codexWorkspaceRoot?: string;
   projectShellViews?: ProjectShellViewReader;
+  projectSourceViews?: ProjectSourceViewReader;
 }
 
 export interface PetraApp {
@@ -395,6 +397,74 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       );
     }
   });
+
+  app.get("/api/queries/projects/:projectId/sources", async (context) => {
+    if (options.projectSourceViews === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_SOURCES_UNAVAILABLE",
+        "The authorized Project source read boundary is not configured.",
+      );
+    }
+    try {
+      const sources = await options.projectSourceViews.listProjectSourceViews(
+        context.req.param("projectId"),
+      );
+      for (const source of sources) {
+        contracts.assertValid("project-source-view", "1.0.0", source);
+      }
+      return context.json({ sources });
+    } catch (error) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_SOURCES_READ_FAILED",
+        error instanceof Error
+          ? error.message
+          : "The Project source collection is unavailable.",
+      );
+    }
+  });
+
+  app.get(
+    "/api/queries/projects/:projectId/sources/:projectSourceId",
+    async (context) => {
+      if (options.projectSourceViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCES_UNAVAILABLE",
+          "The authorized Project source read boundary is not configured.",
+        );
+      }
+      try {
+        const source = await options.projectSourceViews.getProjectSourceView(
+          context.req.param("projectId"),
+          context.req.param("projectSourceId"),
+        );
+        if (source === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_SOURCE_NOT_FOUND",
+            "The requested source is not bound to this Project.",
+          );
+        }
+        contracts.assertValid("project-source-view", "1.0.0", source);
+        return context.json(source);
+      } catch (error) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project source view is unavailable.",
+        );
+      }
+    },
+  );
 
   app.get("/api/providers/codex/account", async (context) => {
     if (options.codexProvider === undefined) {

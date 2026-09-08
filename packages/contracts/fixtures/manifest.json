@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.13.0",
+  "fixture_manifest_version": "1.15.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -28,6 +28,14 @@
     {
       "schema": "project-shell-view",
       "path": "fixtures/accepted/project-shell-view.json"
+    },
+    {
+      "schema": "project-source",
+      "path": "fixtures/accepted/project-source.json"
+    },
+    {
+      "schema": "project-source-view",
+      "path": "fixtures/accepted/project-source-view.json"
     },
     {
       "schema": "author",
@@ -355,6 +363,10 @@
     {
       "schema": "project-shell-view",
       "path": "fixtures/rejected/project-shell-view-current-with-pending.json"
+    },
+    {
+      "schema": "project-source-view",
+      "path": "fixtures/rejected/project-source-view-wrong-id-kind.json"
     },
     {
       "schema": "author",

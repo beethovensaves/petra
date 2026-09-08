@@ -34,6 +34,8 @@ import type { EngineState } from "./product/model.js";
 import {
   loadProjectCollection,
   loadProjectRecord,
+  loadProjectSourceCollection,
+  loadProjectSourceRecord,
 } from "./product/project-data.js";
 
 const loadHealth = async (): Promise<EngineState> => {
@@ -65,8 +67,16 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="brief" replace /> },
           { path: "brief", element: <BriefRoute /> },
-          { path: "sources", element: <SourcesRoute /> },
-          { path: "sources/:sourceId", element: <SourceReaderRoute /> },
+          {
+            path: "sources",
+            loader: loadProjectSourceCollection,
+            element: <SourcesRoute />,
+          },
+          {
+            path: "sources/:sourceId",
+            loader: loadProjectSourceRecord,
+            element: <SourceReaderRoute />,
+          },
           { path: "review", element: <ReviewCollectionRoute /> },
           { path: "review/:reviewId", element: <ReviewSessionRoute /> },
           { path: "graph", element: <GraphRoute /> },
