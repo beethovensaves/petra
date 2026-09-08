@@ -21,7 +21,7 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue DB17, Failure, recovery, and history, from the reconciliation recommendation below. `DB04` through `DB09` are accepted; DB10–DB16 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Continue DB18, Product blueprint and acceptance, from the implementation-packet recommendation below. `DB04` through `DB09` are accepted; DB10–DB17 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
 
 ## Working posture
 
@@ -396,15 +396,55 @@ and validated explanation. DB16 closes at `G-SPEC`; no accessibility or model-
 context implementation, browser/AT result, participant evidence, performance
 claim, or legal conformance is recorded.
 
-**Next discussion: DB17, Failure, recovery, and history.** The recommendation is
-to reconcile canonical state before offering recovery, then state what happened,
-what may have changed, what was preserved, and which exact recovery is safe.
-For example, after a connection loss during **Apply 3 changes**, Petra checks
-command/event receipts before offering anything: all applied, none applied, or
-mixed independent outcomes each produce different next actions. Retry cannot risk
-applying a change twice. **Retry**, **Resume**, **Start again**, **Restore local
-work**, **Reconcile**, **Revert change**, and presentation **Undo** retain distinct
-meanings and History effects. This DB17 boundary is proposed, not accepted.
+The user accepted DB17's canonical-reconciliation, preserved-state, and exact-
+return boundary on 2026-09-07 as `UX1.0-DISC10`.
+
+- Recovery first identifies the attempted task/object/input and reconciles the
+  records that own its effect. It classifies the outcome as confirmed no effect,
+  confirmed effect, in progress, mixed across independent members, unknown, or
+  unavailable to verify.
+- Petra then names durable, local-only, partial, unavailable, and confirmed-lost
+  state; offers only current registered actions; records any chosen effect; and
+  returns to the exact task/object/input/selection/focus or names the fallback.
+- **Check status**, **Refresh**, **Reconnect**, **Replay response**, **Retry**,
+  **Resume work**, **Start again**, **Restore local work**, **Reconcile**,
+  **Regenerate preview**, **Revalidate**, **Retry delivery**, local **Undo** and
+  view Back/Forward/Reset, **Revert change**, and **Return to current** keep
+  separate identities, costs, authority, and History effects.
+- Exact redelivery reuses owning idempotency where supported. A Review batch
+  exposes each independently atomic ChangeSet; replay never restarts Work;
+  projection repair never repeats Apply; output redelivery never silently
+  regenerates; local restoration never claims a Project save; Revert appends
+  compensating records without erasing the original.
+- Safe automatic recovery is bounded to transport reconnect/replay, projection/
+  outbox repair, client presentation restoration, and already authorized Work
+  retry policy. Offline Petra does not queue invisible authoritative commands.
+- History is a full, authorized, deep-linkable route presenting readable causal
+  episodes and exact actions/effects. The recent-ten changes window is only quick
+  access. Where no cross-system total order is verified, Petra preserves
+  causation and source ordering without inventing precision.
+- Everyday recovery does not claim that browser state, a projection rebuild, or
+  History is a backup. Operational restore remains a separate verified process;
+  confirmed irrecoverable loss is stated honestly.
+
+DB17 contains thirteen paths (`DB17-P01`–`P13`) and ten findings
+(`DB17-A01`–`A10`) with complete paper coverage. `UX-FX41`–`UX-FX43` are
+post-freeze scenarios. DB17 sharpens `UX-REQ-007`, `UX-REQ-014`,
+`UX-REQ-015`, `UX-REQ-018`, and `UX-REQ-019`; proposed `UX-REQ-023` records
+the missing cross-module recovery assessment and registered-action composition.
+DB17 closes at `G-SPEC`; no recovery implementation, offline/browser, race,
+disaster-recovery, accessibility, performance, security, or participant evidence
+is claimed.
+
+**Next discussion: DB18, Product blueprint and acceptance.** The recommendation
+is to assemble one traceable implementation packet organized by author task and
+canonical surface: complete inventory, responsive compositions, state matrix,
+transitions/returns, component roles, contract dependencies, profile slots, copy,
+accessibility, recovery, and post-freeze evidence. For example, one Graph entry
+would connect its direct/contextual routes, wide/narrow/assistive layouts, three
+semantic layers, model-readable scene, Work/Review actions, projection failure,
+History, return, and `UX-REQ-013`/`022`/`023` dependencies. This DB18 format is
+proposed and not accepted.
 
 ## Latest repository checkpoint
 
@@ -418,8 +458,9 @@ meanings and History effects. This DB17 boundary is proposed, not accepted.
   discussion were saved at `02c7383`; completed DB14 and the DB15 opening
   discussion were saved at `8cf31da`; the extensible-profile clarification and
   refined DB15 recommendation were saved at `df31fb3`; completed DB15 and the
-  DB16 opening discussion were saved at `9d5f94c`. The current working checkpoint
-  records accepted/completed DB16 and opens DB17's recovery discussion; inspect
+  DB16 opening discussion were saved at `9d5f94c`; completed DB16 and the DB17
+  opening discussion were saved at `823b0b5`. The current working checkpoint
+  records accepted/completed DB17 and opens DB18's blueprint discussion; inspect
   Git status/log for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
@@ -454,7 +495,13 @@ meanings and History effects. This DB17 boundary is proposed, not accepted.
   trace, accepted-versus-proposed status and freeze boundaries, five-file design-
   only scope, and `git diff --check`. No implementation, browser/AT, model,
   performance, participant, or legal validation is claimed.
-- `UX-REQ-011` through `UX-REQ-022` remain proposed runtime
+- DB17 closure checks cover Markdown structure and links, unique decision/request/
+  scenario definitions, DB10–DB17 path/audit sequences, UX-REQ-007/014/015/018/
+  019/023 trace, accepted-versus-proposed status and freeze boundaries, five-file
+  design-only scope, and `git diff --check`. No runtime, offline/browser, race,
+  disaster-recovery, accessibility, performance, security, or participant
+  validation is claimed.
+- `UX-REQ-011` through `UX-REQ-023` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
@@ -462,6 +509,6 @@ meanings and History effects. This DB17 boundary is proposed, not accepted.
 
 Do not implement a Graph, Composition, Settings, design-system, language,
 accessibility, or recovery fixture after this discussion. Continue the product-
-design specification through `DB17`–`DB18`.
+design specification through `DB18`.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.

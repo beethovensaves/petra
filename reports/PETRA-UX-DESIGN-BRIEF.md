@@ -189,8 +189,8 @@ interaction contract has not yet been designed.
 | `DB14` | Design system | Brand, color, type, syntax, spacing, controls, icons, motion, density, responsive behavior, and data visualization grammar | specified; shared Petra grammar and bounded profile semantic encodings accepted; paper audit complete |
 | `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | specified; shared communication contract and profile-owned discourse accepted; paper audit complete |
 | `DB16` | Accessibility specification | Keyboard, focus, zoom/reflow, screen reader, motion, non-color meaning, graph alternative, touch, panel resize, and streamed updates | specified; task/outcome equivalence and model-readable graph context accepted; paper audit complete |
-| `DB17` | Failure, recovery, and history | Offline, stale, conflict, partial, failed, blocked, unsupported, replay, lost-connection, and non-destructive recovery paths | discussion open; reconciliation/preserved-state recommendation pending |
-| `DB18` | Product blueprint and acceptance | Complete screen inventory, responsive blueprints, state matrix, end-to-end path map, backend request ledger, and design acceptance evidence | not designed |
+| `DB17` | Failure, recovery, and history | Offline, stale, conflict, partial, failed, blocked, unsupported, replay, lost-connection, and non-destructive recovery paths | specified; canonical reconciliation, preserved-state, and exact-return direction accepted; paper audit complete |
+| `DB18` | Product blueprint and acceptance | Complete screen inventory, responsive blueprints, state matrix, end-to-end path map, backend request ledger, and design acceptance evidence | discussion open; implementation-packet recommendation pending |
 
 ## Required specification for every module
 
@@ -492,7 +492,7 @@ renderer fails.
 ### Backend and persistence needs
 
 The flow architecture depends on the existing and proposed requirements
-`UX-REQ-001` through `UX-REQ-022`. Individual destination data remains owned by
+`UX-REQ-001` through `UX-REQ-023`. Individual destination data remains owned by
 its module contract. The navigation context, browser history, return target,
 focus target, unsent input, disclosures, and graph exploration trail are client
 presentation state. Project/profile identity, snapshots, typed objects, Work,
@@ -5716,41 +5716,595 @@ missing presentation-context composition without making pixels authoritative or
 placing DOM/ARIA implementation inside a backend contract.
 
 DB16 closes at `G-SPEC`; `G-CONTRACT`, implementation/integration, browser/AT,
-model, performance, legal, and participant validation remain separate. Continue
-to DB17, Failure, recovery, and history.
+model, performance, legal, and participant validation remain separate. DB17
+carries these boundaries into failure, recovery, and History below.
 `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ## DB17 — Failure, recovery, and history
 
-**Status:** opening discussion after DB16 specification closure. Accepted module
-failure, preserved-state, cancellation, retry/resume, conflict, reversal, and
-additive-History rules remain in force. The reconciliation recommendation below
-is proposed and is not yet accepted. No recovery implementation is authorized.
+**Status:** canonical-state reconciliation before recovery, explicit preserved
+state, and exact task return accepted on 2026-09-07 as `UX1.0-DISC10`. DB17 is
+complete at specification depth with a paper audit. Runtime contract,
+implementation, integration, service-level disaster recovery, accessibility,
+performance, security, and participant validation remain separate gates. No
+recovery interface, command, fixture, or History implementation is authorized,
+and `UX-DESIGN-FREEZE-01` remains unaccepted.
 
-### Opening recommendation — reconcile state before offering recovery
+### Author task and completion condition
 
-The recommendation is for every failure path to start from canonical state
-reconciliation, then show what happened, what may have changed, what was
-preserved, and which exact recovery is safe. Recovery returns the author to the
-same task and object when possible. **Retry**, **Resume**, **Start again**,
-**Restore local work**, **Reconcile**, **Revert change**, and presentation **Undo**
-keep distinct meanings and History effects.
+An author must be able to tell what happened after a failure or interruption,
+protect useful work, choose a safe next action, and return to the same task and
+object without reconstructing state from logs. Recovery is complete when Petra
+has reconciled the records that own the effect; exposed what is confirmed,
+pending, mixed, unknown, preserved, lost, or unavailable; performed only the
+chosen eligible action; recorded its outcome; and restored an exact or explicitly
+explained fallback context.
 
-For example, if the connection drops after **Apply 3 changes**, Petra first checks
-the command and event receipts. If all three changes applied, it reports the
-observed revisions and catches the projection up. If none applied, it preserves
-the reviewed ChangeSets and offers the same idempotent submission when still
-eligible. If independent members have mixed outcomes, it shows each result and
-offers recovery only for unresolved eligible members. A generic retry button
-cannot risk applying a change twice.
+Recovery does not promise that every operation can continue or every transient
+input can be recovered. It promises an honest boundary, no duplicate authority,
+the strongest retained state actually available, and a useful route forward.
 
-This principle would govern offline use, stale reads, conflicts, failed or partial
-Work, interrupted streams, uncertain delivery, invalid model output, unavailable
-capability, local-storage failure, projection lag, and historical recovery.
-Whether this reconcile/preserve/return boundary is accepted remains the DB17
-decision. After direction, complete the recovery taxonomy, cross-module state
-matrix, interaction paths, backend audit, evidence plan, and paper audit before
-DB18.
+### Accepted reconciliation boundary
+
+Every material failure path begins with canonical state reconciliation before
+Petra offers an action that could repeat, replace, or compensate an operation.
+The interface answers these questions in order:
+
+1. **What was attempted?** Name the task, object, exact input or revision, actor,
+   operation, and last known client observation.
+2. **What is now known?** Read the owning command, event, Work, interaction,
+   persistence, projection, output, delivery, or policy records and state their
+   coverage and freshness.
+3. **What changed?** Classify the effect as confirmed none, confirmed effect,
+   still in progress, mixed across independent members, unknown, or unavailable
+   to verify.
+4. **What remains?** Name durable work, local-only input, partial output,
+   approvals, proposals, prior revisions, history, and return context that
+   survived, plus anything confirmed lost.
+5. **What is safe now?** Expose only registered actions whose identity,
+   eligibility, consequences, cost, authority, and History effect are current.
+
+For example, if the connection drops after **Apply 3 changes**, Petra checks the
+three exact ChangeSets, commands, and event receipts. If all applied, it reports
+their resulting revisions and lets derived views catch up. If none applied, it
+may redeliver the same idempotent command for each still-eligible member. If the
+independent members have mixed outcomes, it lists each result and offers recovery
+only for unresolved eligible members. One ChangeSet remains atomic; a mixed
+batch means different ChangeSets reached different outcomes, not that one atomic
+change was half applied.
+
+Likewise, after a browser crash during editing, Petra can say **Draft restored on
+this device. It has not been saved to the Project.** It then compares the
+restored local base with the current durable revision before save. Restoration
+does not silently overwrite newer work or claim that local bytes were durable.
+
+### Recovery invariants
+
+- A view, toast, model statement, AG-UI event, cached response, or projection
+  never establishes the outcome of an authoritative or durable operation.
+- Reconciliation is a read/composition step. It cannot mutate, approve, retry,
+  cancel, reverse, save, publish, or delete by itself.
+- Exact redelivery reuses the original operation identity where its contract
+  supports idempotency. Conflicting reuse fails closed.
+- Independent member outcomes remain independent. A group summary never hides
+  a stale, failed, applied, cancelled, or unknown member.
+- Preserved content keeps its actual durability: local, session-only, durable
+  draft, immutable artifact, Work output, candidate, applied state, or History.
+- Recovery retains the attempted operation and failure. It appends a new action
+  and outcome where a durable change occurs; it never edits history into a
+  cleaner story.
+- Returning to a task restores the exact object, revision/snapshot, selection,
+  input, focus, scroll/reading position, and origin where they still resolve.
+  Every fallback names what could not be restored.
+- Privacy and current authorization are rechecked during recovery. Prior access
+  does not grant continued disclosure or permission.
+- A profile supplies accurate object, relationship, validation, and workflow
+  meaning. It cannot redefine **Retry**, **Resume**, **Start again**,
+  **Reconcile**, **Undo**, **Revert**, authority, or History.
+
+### Recovery ownership and authority
+
+| Owner or record | Supplies | Cannot establish |
+| --- | --- | --- |
+| PostgreSQL command/event authority | Exact command receipt, base/result revisions, per-ChangeSet effect, actor/capability, idempotency, conflict, compensation, and ordered domain history | What the browser last rendered or whether a projection already caught up |
+| Work and workflow authority | Task/attempt lifecycle, immutable inputs, dependencies, retry/cancellation/checkpoint policy, retained outputs, resource use, and operational outcome | Domain acceptance, usable output without validation, or generic resume support |
+| Interaction/delivery records | Thread/run identity, persisted logical events, replay checkpoint, connection attempt, delivered suffix, and observed delivery outcome | Re-executed Work, domain authority, or cancellation from disconnect |
+| Projection and outbox records | Authoritative source position, derived-view position, lag/failure, replay/rebuild progress, and current read eligibility | A new domain fact or permission to repeat its producing command |
+| Draft/artifact/output records | Exact saved revisions, provenance/assessment state, immutable bytes, output identity, and publication/delivery receipts | Recovery of unsaved client content or proof that a download reached the author's filesystem |
+| Client recovery state | Unsent input, local draft, view history, selection, focus, layout, and last observed identifiers | Durable save, command outcome, server permission, or authoritative current state |
+| Profile contracts | Domain-specific failure meaning, validation, object names, eligible workflow actions, and exact return destinations | Shared recovery verb meanings or a new authority path |
+| Petra model | Explain the reconciled state, summarize member outcomes, compare choices, and propose a registered action | Guess an effect, fabricate a receipt, turn advice into eligibility, or execute an unregistered recovery |
+
+### Failure and interruption taxonomy
+
+| Failure family | Required facts | Safe default and recovery boundary |
+| --- | --- | --- |
+| Presentation or navigation | Failed render, missing selection, invalid route, closed surface, stale layout, or unsupported peer; canonical task may remain intact | Preserve local context, resolve the exact object, use a native/text peer or stable parent, and keep presentation Back/Forward/Reset separate from domain action |
+| Read, cache, or freshness | Query identity, requested snapshot, observed source, cache age, missing coverage, timeout, or stale result | Keep the last labeled result when safe; Refresh or compare exact snapshots; do not submit a write to repair a read |
+| Connection, stream, or response delivery | Run/connection identity, durable event position, received suffix, Work observation, and whether response generation completed | Reconnect/replay persisted content; open durable Work independently; a delivery abort never cancels or restarts Work |
+| Durable Work | Task, plan/input revision, attempt, lifecycle, failure class, retained outputs, checkpoint, retry/cancel policy, dependencies, and usage | Check status, use retained valid output, Retry under the exact policy, Resume only from a verified checkpoint, or Start again deliberately |
+| Required input or blocked work | Exact request, owner, reason, consequence, waiting behavior, expiry, and alternatives | Answer once through its owning adapter, defer where valid, change authorized scope, or cancel eligible Work; no generic Continue |
+| Command, Review, or authority | Proposal/ChangeSet, approval, command/idempotency identity, expected revisions, actor/capability, per-member receipt, and projection effect | Reconcile before redelivery; refresh a conflict; regenerate an exact preview; correct, defer, reject, or use governed Revert through the owning command |
+| Projection or derived index | Authoritative revision, projection checkpoint, lag/failure, affected views/actions, and rebuild/replay status | Keep the committed outcome, use an authoritative textual route, and catch up idempotently; never repeat the domain command to refresh a projection |
+| Local edit or save | Durable base, local edit identity/hash when available, storage scope, last save receipt, newer server revision, and recoverable bytes | Restore as visibly unsaved, compare base/local/current, save a new eligible revision, retain separately, or export locally; never silently overwrite |
+| Render, export, or external delivery | Exact source revision, generated member/byte identities, destination, eligibility, delivery observation, partial members, and irreversible disclosure | Retry missing publication linkage or delivery of the same output where safe; regenerate only as a distinct action; report delivery unknown honestly |
+| Source, artifact, capability, or access | Identity, availability, integrity, rights, authorization, expiry, affected dependents, and permitted fallback | Reauthorize, reacquire/restore a permitted copy, use metadata/preview, revise scope, or stop; no existence leak or silent substitute |
+| Service, storage, or integrity incident | Affected boundary, last verified epoch/receipt, read/write posture, preserved durable records, recovery operator status, and verification limits | Fail writes closed when outcomes cannot be established, provide read-only/local work where safe, reconcile after service recovery, and avoid claiming backup restoration from UI state |
+
+A profile-specific validator finding, disputed conclusion, or unsupported claim is
+not automatically a system failure. An operationally successful task may produce
+an unusable or rejected result. A task can fail while retaining a valid partial
+artifact. These dimensions remain separately visible.
+
+### Effect reconciliation states
+
+| Effect state | Meaning | Permitted next behavior |
+| --- | --- | --- |
+| **No effect confirmed** | The owning boundary proves no mutation, durable start, save, publication, or delivery occurred | Offer the same eligible operation, revised input, alternate path, or return |
+| **Effect confirmed** | Exact resulting identity/revision/receipt exists | Show the result and downstream freshness; offer follow-on or governed compensation rather than repeating the effect |
+| **In progress** | An accepted operation has durable identity and has not reached a terminal outcome | Observe, detach, reconnect, provide required input, or cancel where eligible; do not start a duplicate |
+| **Mixed outcomes** | Independent members have exact different outcomes | Show each member; recover unresolved members only; derive the aggregate summary from member state |
+| **Outcome unknown** | Available records cannot yet prove whether the operation took effect | Keep the task pending, Check status/reconcile, block unsafe repetition, and state the verification limit |
+| **Unavailable to verify** | The owning service or required record is inaccessible, corrupt, or outside retained history | Preserve local and known durable context, name the limit, provide an operational/support path where one exists, and do not imply success or failure |
+
+The interface may say **Failed** only with the failed boundary and known effect.
+For example, **Graph update failed; all three changes are applied** is materially
+different from **Apply outcome not confirmed**. A stale client observation is
+not converted to **No effect** merely because the result is absent on screen.
+
+### Recovery action vocabulary
+
+| Action | Exact meaning | History and authority effect |
+| --- | --- | --- |
+| **Check status** | Read and reconcile the owning records for the same operation or task | Read-only; may update presentation freshness |
+| **Refresh** | Repeat a read against an explicit current or named snapshot | Read-only; preserves the prior labeled result when useful |
+| **Reconnect** | Establish another delivery connection for the same durable interaction or Work | No new Work, command, approval, or domain event |
+| **Replay response** | Redeliver persisted logical interaction events after an exact checkpoint | Presentation/delivery receipt only; no model or Work execution |
+| **Retry** / **Retry failed work** | Repeat the same intended operation with the same semantic inputs under its owning idempotency or attempt policy | May return the prior receipt or create a numbered attempt; never hides earlier attempts or adds scope |
+| **Resume work** | Continue from a verified compatible checkpoint with exact retained inputs and remaining plan | Uses a registered resume transition; unavailable when checkpoint semantics or compatibility are absent |
+| **Start again** | Begin deliberate fresh linked execution with stated inputs, reuse, cost, and relationship to prior Work | New attempt/task identity as required; prior Work and usage remain in History |
+| **Restore local work** | Reopen recoverable client-held input or edits in visibly unsaved state | Local presentation state until an exact save/export succeeds |
+| **Reconcile** | Compare base, local, current, receipts, or independent outcomes and establish current choices | Read/composition only; later save, correction, or command is separate |
+| **Regenerate preview** | Build a current proposal/action/reversal preview after stale inputs | Creates a new preview/revision; does not apply it |
+| **Revalidate** | Assess the exact current content or result against the applicable validator/basis | New assessment/result; does not rewrite the assessed revision |
+| **Retry delivery** | Deliver the exact already generated output/member again to the same or explicitly selected destination | New delivery attempt/receipt; no silent regeneration or approval |
+| **Undo** / **Redo** | Change supported unsent editing or local presentation state | No Project command or authoritative History event until saved/applied |
+| **Back/Forward/Reset view** | Restore or reset client navigation/presentation state | No Project mutation and no cancellation |
+| **Revert change** | Preview and apply a compensating typed ChangeSet for an eligible applied change | New approval/command/events as required; original history remains |
+| **Return to current** | Leave an exact historical presentation for current resolved state | Navigation/read only; no forward or compensating command |
+
+Labels become more specific when their object matters: **Retry graph update**,
+**Retry export delivery**, or **Restore local draft**. Petra does not use a bare
+**Try again** when several boundaries could have failed. An unavailable recovery
+remains discoverable with its reason and prerequisite when that helps the author;
+the interface does not offer a control that it cannot map to an owning operation.
+
+### Automatic and deliberate recovery
+
+Petra may automatically reconnect transport, replay undelivered presentation
+events, retry idempotent projection/outbox processing, restore safe client
+presentation state, and perform attempts already authorized by an exact Work
+retry policy. Automatic behavior exposes its current state, attempt/limit, and
+final outcome and cannot broaden data, capability, cost, scope, or authority.
+
+An already submitted exact command may be safely redelivered under its accepted
+idempotency contract. A new command, changed input, new Work, Start again,
+Revert, broader disclosure, additional cost/capability, conflict resolution, or
+overwrite decision remains deliberate. Clear authorized recovery does not gain
+an extra confirmation merely because it follows a failure; the existing action,
+Review, cost, and authority boundaries still apply.
+
+Offline Petra never accumulates invisible authoritative commands. It may preserve
+input, permit safe local presentation/editing, and show previously available
+content with its exact age and limits. On reconnect, it reconciles current access,
+revisions, commands, Work, and retained local changes before offering submission.
+A future registered offline command queue would require a separate explicit
+ordering, conflict, disclosure, and cancellation contract.
+
+### Information hierarchy and surface behavior
+
+A material failure appears first beside the affected task, object, field, or
+action. A transient toast may announce it but cannot be the only record of
+unknown effect, lost work, required input, failed save, partial output, or
+recovery. The persistent recovery summary orders:
+
+1. task/object and concise current state;
+2. confirmed, pending, mixed, or unknown effect;
+3. preserved and lost content;
+4. the safest primary action and its consequence;
+5. valid alternatives and unavailable reasons;
+6. current revision/snapshot, freshness, and last reconciliation time; and
+7. **Details** or **History** for member outcomes, receipts, diagnostics, and
+   causal records.
+
+One failure does not force a global error page while other Project tasks remain
+safe. Project-level or service-wide interruption uses a persistent banner/notice
+with affected functions, safe available work, and status. The Brief and Work
+attention areas link unresolved recovery without duplicating its state. Petra may
+explain or guide the same recovery summary; it does not create a parallel error
+state in conversation.
+
+When several failures share one cause, the Project notice summarizes the cause
+and affected count while each task retains its exact outcome. When several causes
+affect one task, the task leads with the action-blocking boundary and preserves
+the others under Details. Severity follows consequence and recoverability rather
+than technical exception class.
+
+### Cross-module recovery matrix
+
+| Surface or object | Preserved state | Primary recovery and exact return |
+| --- | --- | --- |
+| Projects/Brief | Project choice, profile, snapshot, inquiry/task focus, permitted last result | Refresh exact summary or use labeled cached state; return to the same attention item or explicit current replacement |
+| Sources/reader | Source identity/revision, location, surrounding context, Project role, local-copy status | Reauthorize, reacquire permitted bytes, retry processing/read, or use metadata/preview; return to the exact selector or honest nearest context |
+| Graph/Details | Query/result, layers, selection/path, graph view history, textual peer, snapshot and projection position | Refresh/read authoritative state, catch up projection, use Back/Forward/Reset, or resolve replacement; return to selected object/path |
+| Petra/thread | Submitted and unsent turns, bound context, received persisted segments, linked Work and decision | Reconnect/replay, retry a response deliberately, choose current/original context, or open Work; return to turn/composer focus |
+| Work | Task/plan/input, attempts, activity, checkpoints, outputs, usage, required input, cancellation receipt | Check status, answer once, reconnect, retry, resume when verified, start again, or cancel where eligible; return to task/stage/result |
+| Review/change | Candidate, exact source/basis, batch manifest, decision, ChangeSet, approval, command/member outcomes | Refresh conflict, regenerate preview, correct/reject/defer, exact redelivery, or governed Revert; return to member and batch position |
+| Composition | Durable revision, local unsaved content, selection, proposal/assessment basis, citations and ancestry | Restore local unsaved work, compare base/local/current, save new revision, revalidate, retry rendering/export, or retain a separate copy; return to cursor/finding |
+| Settings | Last effective value, unsaved control input, owning Project, policy revision, local storage result | Re-read effective state, retry local persistence, reset scoped preference, or regenerate typed Project-control preview; return to exact control |
+| History | Selected event/change/attempt, filters, comparison endpoints, recovery chain | Re-resolve current eligibility, inspect causal records, preview Revert, or Return to current; preserve selected event and reading position |
+
+### Local work, stale bases, and conflicts
+
+Client restoration records the local item's type, Project/object, base revision,
+last local update, content identity or hash where safe, storage scope, and whether
+the recovery survived only in memory, session storage, or durable local storage.
+The visible label remains **Unsaved** until the owning durable save acknowledges
+the exact content. If local storage failed or content cannot be reconstructed,
+Petra states the confirmed loss and retains any last durable revision.
+
+When current durable state advanced, Petra preserves base, local, and current as
+separate positions. A three-way comparison names local changes, current changes,
+overlap/conflict, unsupported merge regions, provenance/assessment consequences,
+and each permitted outcome. An author may retain the local copy, save a separate
+eligible revision, deliberately replace a supported target, revise manually, or
+discard local changes. No choice is preselected when it could lose either side.
+
+A stale candidate, action, policy, or reversal preview is regenerated against
+current state and requires the ordinary exact decision where applicable. Previous
+approval does not transfer to a materially changed hash or manifest. A conflict
+never resolves through visual last-write-wins, a model rewrite, or a route refresh.
+
+### Connection, response, and Work recovery
+
+Connection status remains separate from Work and response status. Leaving a
+route, closing Petra, aborting a delivery, losing a browser connection, or
+restarting the client does not cancel Work. Reconnection uses the exact thread,
+run, connection, and checkpoint identities; replay emits persisted content once
+and identifies gaps or unavailable progress. It does not repeat retrieval, model
+execution, a tool, a Review response, or a command.
+
+If active execution cannot resume after a service crash, Petra reports the
+canonical task and attempt state rather than labelling it **Resuming**. A
+registered lease/scheduler may later mark the attempt failed, restart it under
+policy, or expose a verified checkpoint. **Resume work** appears only for the
+last case. Visible partial model text remains partial and unvalidated unless its
+accepted terminal record establishes otherwise.
+
+Cancellation is complete only after its durable command/receipt and terminal
+Work state reconcile. **Cancellation requested** does not promise provider stop,
+deleted output, refund, or domain reversal. If completion wins the race, Petra
+shows completed Work and its result separately from the cancellation attempt. A
+lost cancellation response uses the same command identity and checks its receipt.
+
+### Command, batch, projection, and output recovery
+
+An authoritative command stays **Applying** or **Outcome unknown** until its
+owning record resolves. Client timeout cannot label it failed. Exact retry uses
+the original command/idempotency identity when permitted. A different payload
+requires a different preview and command. An authorization or revision change
+can make the original operation ineligible even when no effect was confirmed.
+
+Review batches group independently atomic ChangeSets. The summary gives counts
+for applied, rejected, deferred, conflicted, failed, pending, and unknown members,
+and every member remains inspectable. A recovery selection includes only eligible
+unresolved members and produces its own exact manifest; it cannot resubmit applied
+members or transfer an earlier approval to changed content.
+
+When authority committed but a graph, search, vector, or other projection lags,
+the change is **Applied—updating views**. Petra links the authoritative object or
+text result, reports the affected derived functions, and catches up from the
+ordered event/outbox position. Projection recovery never repeats Apply or Revert.
+Actions requiring a falsely current projection stay unavailable with their reason.
+
+Rendering, storage publication, and delivery remain separate outcomes. An exact
+retry may finish a missing durable link for already stored bytes or redeliver the
+same output. **Regenerate** creates a new output identity and may require new Work,
+cost, validation, and comparison. Browser download initiation and clipboard write
+acknowledgment report only what the client can observe. External delivery remains
+unknown when Petra has no destination receipt, even if bytes left Petra.
+
+### History architecture
+
+History is a full, deep-linkable Project route reached from an object, task,
+thread, source, Review, Composition revision, changed item, recovery summary, or
+**Recent changes**. It is not a permanent primary Project tab and does not replace
+the Work activity log, document revision list, conversation transcript, or graph
+view history. Those focused histories link into the relevant Project event chain.
+
+The default History view is an accessible newest-first event/change list grouped
+into recognizable causal episodes such as one Work task, Review batch, save,
+export, policy change, recovery, or reversal. It exposes filters for object/task,
+profile event family, actor/origin, outcome, authority effect, and time. Each row
+shows:
+
+- user-facing action/event and affected object or task;
+- exact current or historical identity/revision/snapshot;
+- actor or accountable role, origin, and recorded time/order;
+- requested effect, observed outcome, and authority boundary;
+- related Work, candidate, approval, command/receipt, output/delivery, projection,
+  and recovery references that the author may access;
+- supersedes, compensates, retries, resumes, branches-from, restores, or
+  revalidates relationships; and
+- current recovery/reversal eligibility, reason, consequence, and destination.
+
+Selecting an item opens a readable event detail and, where meaningful, exact
+before/after comparison. Technical IDs, hashes, raw payloads, correlation chains,
+and diagnostics are available on demand. History does not narrate raw token,
+layout, hover, selection, or retry-loop noise as Project events. Client view
+history stays local, while durable local saves or preference failures appear only
+in their own scoped history unless they produce a Project record.
+
+History preserves the record and language versions that applied at the time and
+may show current profile terminology as a clearly marked aid. Reversal, redaction,
+retention, and correction append their own record; they do not rewrite the prior
+event. Where independent systems provide no verified total order, Petra preserves
+causation and each source's ordering/timestamps and avoids inventing a single
+precise sequence.
+
+The **Recent changes** quick window retains DB06's ten most recent eligible
+author-visible Project changes. Ten is a presentation limit, not retention. Full
+History includes permitted ineligible, failed, superseded, and compensated events
+needed to explain current state. Historical views name their position and provide
+**Return to current**; acting on current state re-resolves permissions, revisions,
+and eligibility.
+
+### Privacy, unavailable history, and service recovery
+
+History and recovery disclose only records the current actor may inspect.
+Unauthorized or later-restricted members do not reveal names, counts, existence,
+relationships, or prior values beyond the permitted aggregate statement. An
+expired capability may identify the affected function without reproducing
+restricted content. Redacted records retain the minimum lawful continuity needed
+to explain that a change or restriction occurred.
+
+If an authoritative store, Artifact bytes, or recovery record is unavailable or
+fails integrity verification, Petra marks the affected functions read-only or
+unavailable and states the last verified boundary. The everyday interface does
+not claim that browser state, projection rebuild, or Project History is a backup.
+Operational restore may use verified database, object, migration, and projection
+rebuild procedures; after restoration, Petra reconciles exact identities,
+revisions, artifacts, outbox positions, and derived views before reopening writes.
+
+Confirmed irrecoverable loss is stated directly with its scope and last durable
+state. Petra retains any valid provenance and incident/recovery record permitted
+by policy. It never manufactures reconstructed content through a model and calls
+it restored work.
+
+### Petra explanation and recovery language
+
+Recovery language follows DB15's error anatomy: affected task and operation;
+known effect; preserved or lost state; cause or limitation at useful depth; retry
+safety; and one bounded next action. It leads with author consequences and keeps
+codes, stack traces, provider messages, and internal protocol terms under
+**Technical details**.
+
+Examples include:
+
+- **All 3 changes were applied. The Graph is still updating.**
+- **2 changes were applied; 1 was not. Review the unresolved change before retrying.**
+- **The apply outcome has not been confirmed. Check status before submitting again.**
+- **Work failed after producing one retained output. Inspect the output or retry the failed stage.**
+- **Your draft was restored on this device and is unsaved. Compare it with the current Project revision.**
+- **The export was generated. Delivery could not be confirmed. Retry delivery uses the same file.**
+
+**Something went wrong**, **Retry** without an object, **Recovered** without a
+verified state, **Undo** for an applied change, **Resume** without a checkpoint,
+and **No changes** based only on a stale screen are prohibited. Petra may explain
+the reconciliation evidence or compare eligible options, but direct controls and
+conversation resolve to the same recovery identities and actions.
+
+### Responsive and accessible recovery behavior
+
+| Condition | Required behavior |
+| --- | --- |
+| Wide | Inline recovery remains beside the task; History uses list plus one event detail/comparison and at most one contextual surface |
+| Compact/narrow | State, effect, preserved work, primary action, alternatives, and History link form one ordered column; returning restores the affected control/focus |
+| Screen reader/keyboard/voice | Summary heading receives focus only after a submitted action needs intervention; member counts, outcomes, current selection, actions, unavailable reasons, and return are programmatically available |
+| Streaming/replay | Announce one meaningful failure, reconciliation result, or available update; preserve reading position and deduplicate replay announcements |
+| High zoom/magnification | The affected object and action remain adjacent, focus is unobscured, tables become lists where needed, and comparison retains a linear peer |
+| Forced colors/reduced motion/no audio | Text, boundaries, icons, and immediate state replacement carry effect and severity without color, motion, or sound alone |
+| Offline or service outage | Persistent status names affected functions and last known basis; safe local/read-only paths remain usable without hidden command queuing |
+| Dense/mixed batch | Summary counts identify units and unknowns; grouping/filtering never removes individual outcomes or the selected recovery manifest |
+
+Automatic focus movement is reserved for a blocking result of the author's
+submitted action. Background failure appears in the task's attention state and a
+bounded status announcement; it does not interrupt unrelated editing. Focus stays
+on **Check status** while a reconciliation updates, then the result is announced
+and the newly eligible action follows in reading order.
+
+### Interaction-path specification
+
+| Path | Entry and action | Required result, return, and focus |
+| --- | --- | --- |
+| `DB17-P01` Reconcile uncertain command | Lose delivery during Apply, save, policy transition, cancellation, or another typed command, then reopen the task | Check exact command/event/receipt and expected revisions; classify effect before showing any repeat action; return to the affected object/control |
+| `DB17-P02` Recover a mixed batch | Apply independently atomic members with applied, conflicted, failed, pending, or unknown outcomes | Show per-member results and derived counts; form recovery only from eligible unresolved members; preserve batch position and approvals only where still exact |
+| `DB17-P03` Reconnect and replay | Lose a stream, close Petra, restart the client, or return from another Project | Reconnect to the same run/Work, replay persisted content after the checkpoint once, expose gaps, and restore turn/composer/task context without starting or cancelling Work |
+| `DB17-P04` Retry, resume, or start again | Open failed/interrupted Work with an unchanged eligible retry, verified checkpoint, or need for fresh execution | Present the exact operation, retained/reused inputs and outputs, limits, cost, and prior attempts; perform only the chosen registered path and return to the task/stage |
+| `DB17-P05` Resolve cancellation race | Cancel eligible Work while completion or failure may occur and delivery is lost | Reconcile cancellation receipt and terminal Work state; report the winner and retained outputs; never claim reversal, refund, or deleted results |
+| `DB17-P06` Restore local work | Reopen after browser crash, save failure, local-storage failure, or newer server revision | Label recovered content and durability, compare base/local/current, preserve both sides, and save/export/discard only by explicit eligible action; return to cursor/finding |
+| `DB17-P07` Resolve stale or conflicted state | Use a stale action, candidate, revision, policy, source, or reversal preview | Preserve the attempted input, show current change and impact, regenerate/compare/revise through the owner, and require a current exact decision where authority applies |
+| `DB17-P08` Recover a lagging projection | Apply/revert succeeds while Graph/search/vector view is delayed or failed | Show authoritative result and projection position separately, provide a usable authoritative/text path, catch up idempotently, and never repeat the domain command |
+| `DB17-P09` Recover output or delivery | Rendering, byte publication, download, clipboard, or external delivery fails, is partial, or is uncertain | Identify exact generated members and observable delivery; retry the same output separately from regenerate; preserve source revision and return to output |
+| `DB17-P10` Recover source/access/capability | Encounter missing/corrupt bytes, expired permission, offline remote source, unsupported renderer, or denied capability | Reveal only permitted identity/limitation, preserve task input, offer reauthorization/reacquisition/fallback/revised scope, and return to the exact source/task |
+| `DB17-P11` Inspect History and return | Enter from an object, task, thread, recovery, Recent changes, or deep link; filter and select an episode | Show exact actor/origin/order/effect/outcome/links and current eligibility; comparison is read-only; Return to current restores a resolved current target and origin |
+| `DB17-P12` Revert an applied change | Select an eligible recent/historical change or contiguous supported set | Re-resolve eligibility, preview every compensation and downstream effect, apply the exact typed plan, append history, report projection state, and return to current result |
+| `DB17-P13` Withstand service/integrity failure | Authoritative or object storage is unavailable, restored, or fails verification during read/write | Fail unsafe writes closed, preserve local work, state last verified boundary, reconcile after operational recovery, and reopen only verified functions without claiming browser/History backup |
+
+All paths run through scientific, controlled-writing, and an unrelated admitted
+profile where the underlying function applies. Profile differences alter object,
+validator, workflow, and failure meaning; the reconciliation and action semantics
+remain shared.
+
+### Paper interaction and heuristic audit
+
+The paper audit walks `DB17-P01`–`P13` from inline failure, Petra, Work, Review,
+Composition, Graph, Sources, Settings, History, deep links, reconnect, browser
+restart, offline, and restored-service entry. It covers no-effect, complete,
+in-progress, mixed, unknown, and unavailable verification states; local/durable
+preservation; unchanged retry, verified resume, fresh execution, cancellation
+races, projection lag, stale conflicts, delivery uncertainty, and governed
+reversal. It does not claim runtime reconciliation, disaster recovery,
+cross-browser storage, accessibility, performance, security, or participant
+comprehension.
+
+| Heuristic | Paper-design check |
+| --- | --- |
+| Visibility of status | Task, attempted operation, effect knowledge, preserved/lost state, freshness, recovery progress, and exact outcome lead |
+| Match to author task | Recovery returns to the affected object and uses domain-valid terms while shared verbs keep stable consequences |
+| User control | Check, refresh, reconnect, retry, resume, start again, restore, reconcile, revalidate, redeliver, undo, revert, and return remain distinct |
+| Consistency | Direct and Petra-mediated recovery use the same records/actions across modules, profiles, viewports, and input modes |
+| Error prevention | Reconciliation, exact identity, current eligibility, per-member outcomes, and no preselected destructive conflict choice prevent duplicate or lost work |
+| Recognition | Persistent summaries, preserved input, causal episodes, explicit comparisons, and return context remove the need to reconstruct logs |
+| Efficiency | Safe automatic delivery/projection repair and concise member summaries reduce work while exact detail and alternatives remain available |
+| Minimal design | One blocking boundary and primary recovery lead; technical records, related failures, and complete History remain on demand |
+| Recovery | The design preserves durability labels, attempts, outputs, approvals, history, privacy, and exact return through every adverse state |
+| Help and language | Action labels state their object and effect; unavailable reasons, retry safety, data loss, and technical detail are accessible in context |
+
+| Finding | Consequence | Severity | Disposition and verification |
+| --- | --- | --- | --- |
+| `DB17-A01` Generic Retry appears before effect is known | An applied command, save, cancellation, or external delivery could be duplicated | Critical | Fixed by reconciliation-first effect states and P01/P02/P05/P09; UX-FX42 |
+| `DB17-A02` Retry, Resume, and Start again collapse | Petra could invent checkpoint support, reuse stale inputs, hide attempts, or add unacknowledged cost | Critical | Fixed by action vocabulary and Work boundary; UX-FX41/42 |
+| `DB17-A03` Local restoration looks durably saved | Recovered browser content could overwrite a newer revision or be lost again | Critical | Fixed by durability labels and base/local/current comparison; UX-FX41/43 |
+| `DB17-A04` Batch summary hides independent outcomes | Applied members may repeat or conflicted members may inherit invalid approval | Critical | Fixed by atomic-member manifests and mixed-outcome recovery; UX-FX42 |
+| `DB17-A05` Projection failure is treated as failed authority | Authors may repeat Apply/Revert or distrust a valid committed change | Critical | Fixed by authority/projection separation and P08; UX-FX41/42 |
+| `DB17-A06` Reconnect, replay, stop, and cancel share an outcome | Delivery recovery could restart/cancel Work or duplicate a response/decision | Critical | Fixed by interaction identities, receipts, and P03/P05; UX-FX42 |
+| `DB17-A07` History becomes destructive undo or an invented total order | Prior decisions could appear erased or causal claims could exceed the records | Critical | Fixed by additive causal episodes, compensation, and source-order limits; UX-FX43 |
+| `DB17-A08` Recovery leaks restricted historical state | Errors, counts, replacements, or prior values could disclose inaccessible Project content | Critical | Fixed by current authorization and redacted continuity; UX-FX42/43 |
+| `DB17-A09` Existing records have no complete recovery composition | The client/model could infer effect, eligibility, preservation, or return from mismatched records | Critical | Needs contract: `UX-REQ-023`; runtime disposition and UX-FX41–43 |
+| `DB17-A10` Paper rules substitute for observed recovery | Authors may still misread durability, action effects, mixed outcomes, or History | Major | G-VALIDATION requires participant, accessibility, timing, interruption, and destructive-error evidence; UX-FX41–43 |
+
+Acceptance fails if the interface repeats a material operation before reconciling
+its effect; calls an unresolved timeout failed or no-effect; labels local work
+saved; hides mixed members; retries an applied member; resumes without a verified
+checkpoint; restarts Work during replay; treats disconnect as cancellation;
+repeats Apply to repair a projection; calls regeneration redelivery; presents
+History as deletion or exact total order without evidence; transfers approval to
+changed content; leaks a restricted object through recovery; lets a model invent
+eligibility; or returns to an ambient selection without naming the fallback.
+
+### Acceptance criteria and post-freeze evidence
+
+DB17 is complete at specification depth. Implementation and validation must
+demonstrate these behaviors after freeze:
+
+1. every material failure identifies its task/object, attempted operation, exact
+   basis, effect knowledge, preserved/lost state, freshness, and safe next action;
+2. canonical command, event, Work, interaction, persistence, projection, output,
+   delivery, and policy records establish outcomes within their own authority;
+3. reconciliation occurs before any action that could repeat, replace, save,
+   publish, cancel, compensate, or broaden an operation;
+4. confirmed no-effect, confirmed effect, in-progress, mixed, unknown, and
+   unavailable-to-verify states remain distinguishable without color;
+5. Retry, Resume, Start again, Restore local work, Reconcile, Revalidate, Retry
+   delivery, Undo, view Back/Forward/Reset, Revert, and Return to current retain
+   the specified identities, costs, and History effects;
+6. automatic reconnect/replay, projection repair, client restoration, and policy-
+   authorized attempt behavior cannot broaden scope, capability, cost, or authority;
+7. offline and service-failure states preserve input and safe local/read-only work
+   without hidden command queues or false claims about current durable state;
+8. reconnect/replay deduplicates content and decisions, never creates or cancels
+   Work, and restores the exact turn/task context or states the gap;
+9. Work retry, verified checkpoint resume, fresh execution, retained partial
+   output, required input, resource use, and cancellation race outcomes remain exact;
+10. independent batch members expose individual outcomes and form a new recovery
+    manifest from eligible unresolved members only;
+11. projection lag/failure preserves committed authority, supplies a safe current
+    route, and never repeats the producing domain command;
+12. local draft recovery preserves durability labels and base/local/current until
+    an explicit current save, separate revision, export, or discard outcome;
+13. output recovery separates rendering, byte publication, delivery observation,
+    redelivery, regeneration, cancellation, and irreversible prior disclosure;
+14. History provides authorized causal episodes, exact event/action facts,
+    comparison, recovery relationships, current eligibility, and additive reversal
+    without truncating retention to the recent-ten quick window;
+15. recovery, History, errors, redactions, and fallbacks disclose no unauthorized
+    object identity, count, prior value, relationship, or content;
+16. inline, Project-level, Petra, Details, Work, and History presentations resolve
+    the same recovery state and registered actions without competing ownership;
+17. responsive and assistive paths preserve task/outcome equivalence, focus,
+    announcements, member inspection, action consequence, and exact return; and
+18. runtime, browser/storage, offline, race, disaster-recovery, accessibility,
+    performance, security, and participant evidence remain explicit post-freeze gates.
+
+| Scenario | Required post-freeze evidence |
+| --- | --- |
+| `UX-FX41` Cross-module preservation and exact return | In scientific, controlled-writing, and unrelated third-profile Projects, interrupt Project/Brief reads, source inspection, Graph/Details, Petra, Work, Review, Composition, Settings, export, and History. Exercise recoverable and lost local input, cached/stale state, retained partial output, exact task/object/selection/focus return, profile terminology, narrow/high-zoom, keyboard/screen-reader, and direct/Petra paths without changed authority. |
+| `UX-FX42` Uncertain, mixed, offline, and race recovery | Drop delivery before and after command receipt; apply a batch with applied/conflicted/failed/pending/unknown members; reuse conflicting idempotency input; disconnect/replay; race completion with cancellation; fail projection after commit; exhaust retry; present invalid checkpoint resume; expire access/capability; enter and leave offline/service outage. Verify reconciliation, no duplicate effect, no leakage, accurate attempt/cost, and safe unavailable states. |
+| `UX-FX43` Local conflict, History, delivery, and reversal | Restore a local draft against unchanged and newer durable bases; fail local storage and save; regenerate/revalidate; generate multi-member output with publication and delivery uncertainty; retry exact delivery separately from regeneration; inspect filtered object/task/Project histories, terminology-version change, restricted/redacted members, causal-order ambiguity, recent-ten/full-history boundary, single and supported multi-step compensation, ineligible Revert, projection catch-up, and Return to current. |
+
+These scenarios are independently invented and start only after design freeze.
+Existing cancellation, replay, reversal, composition, publication, projection,
+and infrastructure-recovery evidence establishes component mechanisms. It does
+not prove the DB17 author-facing composition, cross-module return, browser/local
+recovery, accessibility, privacy, performance, or participant comprehension.
+
+### Backend needs and next section
+
+Existing command envelopes and events provide idempotency and exact effects;
+M1.5 provides independently atomic ChangeSets, Review outcomes, compensating
+reversal, and projection separation; M1.7 provides durable Work cancellation,
+interaction replay, connection delivery receipts, and exact retry; M1.8 provides
+atomic composition, additive revision, rendered Artifact identity, and interrupted
+publication recovery; M1.9 proves infrastructure backup/restore and graph rebuild
+under a consistent capture. These remain separate sources with different
+authority and do not themselves compose the author's recovery decision.
+
+DB17 sharpens `UX-REQ-007` to supply full authorized Project History and causal
+recovery relationships alongside Recent changes and reversal eligibility;
+`UX-REQ-014`/`015` to expose reconciled Work attempts, controls, transition and
+cancellation outcomes; `UX-REQ-018` to bind local/base/current editing recovery;
+and `UX-REQ-019` to distinguish publication, delivery retry, and regeneration.
+No accepted contract currently composes an attempted cross-module operation,
+authoritative observations, effect classification, preserved-state inventory,
+per-member outcomes, eligible owning actions, History consequence, and exact
+return. Proposed `UX-REQ-023` requests that recovery assessment without creating
+a universal recovery command or a second event ledger.
+
+DB17 closes at `G-SPEC`; contract, implementation/integration, offline/browser,
+race, disaster-recovery, accessibility, performance, security, and participant
+validation remain separate. Continue to DB18, Product blueprint and acceptance.
+`UX-DESIGN-FREEZE-01` remains unaccepted.
+
+## DB18 — Product blueprint and acceptance
+
+**Status:** opening discussion after DB17 specification closure. The
+implementation-packet recommendation below is proposed and not yet accepted. No
+reference-UX implementation or design freeze is authorized.
+
+### Opening recommendation — one traceable implementation packet
+
+The recommendation is for DB18 to assemble the accepted design into one
+implementation-ready packet organized by author task and canonical surface. It
+would include the complete screen/surface inventory, responsive blueprints,
+shared and surface-specific state matrix, transition and return map, component
+roles, exact view/query/command/event dependencies, profile extension slots,
+copy and accessibility obligations, recovery paths, and post-freeze evidence
+for every material route. It would reference the detailed DB sections rather
+than restating or weakening them.
+
+For example, the Graph blueprint would bind contextual and direct entry to the
+same relationship task; show wide, narrow, high-zoom, keyboard, and semantic-peer
+compositions; map Current/Working changes/Historical, selection, presentation
+scene, Work/Review actions, projection lag, recovery, History, and return; and
+name `UX-REQ-013`, `UX-REQ-022`, and `UX-REQ-023` as proposed dependencies. An
+implementer could build and test that surface without consulting a demo corpus or
+guessing whether a visual control changes authority.
+
+DB18 would close only when every accepted flow and adverse state maps through
+that packet, every remaining contract gap has an owner, and the freeze review can
+identify contradictions or omissions explicitly. Whether this traceable packet
+is the accepted DB18 consolidation format remains the next decision.
 
 ## `UX-DESIGN-FREEZE-01`
 
@@ -5814,10 +6368,9 @@ or default behavior.
 
 The next work remains specification, not demo production:
 
-1. carry accepted specifications through `DB16` into their recorded backend dispositions without implementing a product surface;
-2. discuss DB17's reconcile-state, preserve-work, and exact-return recovery boundary;
-3. finish `DB17`, Failure, recovery, and history, through its complete specification and paper audit while retaining DB16's task/outcome equivalence and model-readable presentation context;
-4. assemble the complete screen, state, flow, and backend blueprint in `DB18`;
-5. review and explicitly record `UX-DESIGN-FREEZE-01`;
-6. begin the neutral reference-UX implementation;
-7. begin contextual demo integrations only after the reference UX stands independently.
+1. carry accepted specifications through `DB17` into their recorded backend dispositions without implementing a product surface;
+2. discuss DB18's traceable implementation-packet consolidation format;
+3. assemble the complete screen inventory, responsive blueprints, state matrices, flow/return map, backend ledger, and acceptance plan in `DB18`;
+4. review and explicitly record `UX-DESIGN-FREEZE-01`;
+5. begin the neutral reference-UX implementation;
+6. begin contextual demo integrations only after the reference UX stands independently.

@@ -1,6 +1,6 @@
 # Petra user-flow architecture
 
-Status: accepted product flow, design system, language system, and accessibility through DB16; DB17 recovery discussion open; related runtime mappings awaiting architecture disposition
+Status: accepted product flow, design system, language system, accessibility, and recovery through DB17; DB18 product-blueprint discussion open; related runtime mappings awaiting architecture disposition
 Date: 2026-09-07
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as initial required examples in an extensible Project-profile system
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
@@ -644,11 +644,45 @@ remains separate.
 
 - **Goal:** understand what happened, restore useful work, and correct state without erasing evidence of the failure.
 - **Entry:** History, stale object, failed Work, dropped stream, changed source, invalidated draft, projection failure, or explicit comparison.
-- **Path:** identify event, actor, revision, snapshot, and affected objects -> compare states -> use graph Back/Forward for a non-authoritative exploration mistake, or choose retry, resume, reconnect, regenerate preview, revalidate, branch, or governed Revert for durable state -> confirm recovered authoritative and derived state.
-- **Completion:** the researcher can explain the current state and the recovery action; no command, result, or approval is duplicated.
-- **Branches:** unavailable prior artifact, corrupt cache, out-of-order interaction event, failed projection rebuild, stale ChangeSet, or dependency cascade.
-- **Authority:** the graph retains ten local view snapshots without changing domain state. Recent changes exposes ten eligible changes for quick access, and **Revert change** uses the same typed compensating command and additive event paths as ordinary work; full history is not truncated.
+- **Path:** identify task/object, attempted operation, input/revision and last
+  observation -> reconcile the owning command, event, Work, interaction,
+  persistence, projection, output, delivery, or policy records -> classify effect
+  as confirmed no effect, confirmed effect, in progress, mixed, unknown, or
+  unavailable to verify -> expose
+  preserved/lost state and individual member outcomes -> offer only current
+  registered actions -> record the selected outcome -> return to the exact task,
+  object, selection, input, and focus or name the fallback.
+- **Completion:** the author can explain the current state, preservation, and
+  recovery action; no command, Work, result, delivery, approval, or authority
+  effect is duplicated or silently lost.
+- **Branches:** local-only draft, unavailable prior artifact, corrupt cache,
+  offline/service outage, out-of-order or missing interaction event, cancellation
+  race, failed projection rebuild, stale ChangeSet, mixed Review/export members,
+  unknown external delivery, expired access, or dependency cascade.
+- **Authority:** every outcome comes from its owning record. Reconciliation and
+  History are read/composition; actions delegate to existing typed operations.
+  Graph view history remains local, **Recent changes** exposes ten eligible
+  changes for quick access, and **Revert change** appends a compensating command
+  and events. Full History is authorized and not truncated by the quick window.
 - **Horizon:** M1 hardening and every later module.
+
+[DB17](PETRA-UX-DESIGN-BRIEF.md#db17--failure-recovery-and-history) accepts
+canonical reconciliation before recovery with explicit preserved state and exact
+task return (`UX1.0-DISC10`). **Check status**, **Refresh**, **Reconnect**,
+**Replay response**, **Retry**, **Resume work**, **Start again**, **Restore local
+work**, **Reconcile**, **Regenerate preview**, **Revalidate**, **Retry delivery**,
+presentation **Undo/Back/Forward/Reset**, **Revert change**, and **Return to
+current** retain separate consequences and History effects.
+
+History presents permitted causal episodes and exact event/action facts while
+retaining source order when no cross-system total order is verified. Independent
+batch members remain inspectable; local work keeps its actual durability; replay
+does not rerun Work; projection repair does not repeat Apply; redelivery does not
+regenerate output; and compensation does not erase the original event.
+`UX-REQ-007` is sharpened for full Project History, while `UX-REQ-023` requests
+the missing recovery assessment that composes owning records into effect,
+preservation, member outcomes, eligible actions, History consequence, and exact
+return. DB17's specification and paper audit are complete.
 
 ### `UX-FLOW-17` — configure presentation, accessibility, governance, and capability
 
@@ -973,14 +1007,18 @@ work rather than open product scope:
 - a versioned, bounded model-readable presentation context linking the exact
   semantic graph/view result, author-visible scene, complete accessible peer,
   optional permitted capture, model input, and validated explanation under
-  `UX-REQ-022`.
+  `UX-REQ-022`; and
+- a canonical cross-module recovery assessment composing exact source records
+  into effect knowledge, preserved/lost state, independent-member outcomes,
+  registered owning actions, History consequence, and exact return under
+  `UX-REQ-023`.
 
-`UX-REQ-004` through `UX-REQ-022` carry the profile, lineage, thread-context,
+`UX-REQ-004` through `UX-REQ-023` carry the profile, lineage, thread-context,
 governed-reversal, semantic-location, source-view, source-lifecycle,
 working-candidate, Review-session, focused relationship-query, Work-read,
 Work-steering, Project-inquiry, Composition-view, continuous-authoring, and
 working-copy-export, Project-control Settings, bounded profile-semantic display,
-profile-resolved communication, and model-readable presentation-context needs to
-the implementation track.
+profile-resolved communication, model-readable presentation-context, authorized
+History, and recovery-assessment needs to the implementation track.
 No profile, surface, assistant, worker, graph projection, or external adapter can
 silently become the source of trusted state.

@@ -27,11 +27,11 @@ The implementation track may continue already accepted backend work. It should
 not add a demo adapter, corpus path, profile-specific shortcut,
 imported-document promotion behavior, or new shared schema from the future demo contexts
 while the product brief is open. It should review `UX-REQ-004` through
-`UX-REQ-022` as general architecture needs and return a disposition without
+`UX-REQ-023` as general architecture needs and return a disposition without
 using either contextual project as the contract fixture. `UX-REQ-006` through
-`UX-REQ-022` follow the accepted Petra interaction, navigation, Sources,
+`UX-REQ-023` follow the accepted Petra interaction, navigation, Sources,
 Review, Graph, Work, Project-inquiry, Composition, Settings, language-system,
-and accessibility directions.
+accessibility, and recovery directions.
 These requests do not authorize a frontend implementation before the
 design freeze.
 
@@ -264,24 +264,27 @@ between shell context and task content more important.
 - **Owner and status:** product architecture and implementation track; UX
   requirement accepted, runtime shape `proposed`.
 
-### `UX-REQ-007` — bounded graph history and governed Project reversal
+### `UX-REQ-007` — presentation history, Project History, and governed reversal
 
-- **Originating design work:** accepted `DB06` and `UX1.6-DISC01`;
-  `UX1.4-W05`, `UX1.4-W11`, `UX1.5`, `UX1.6-W15`, `UX-FLOW-12`, and
-  `UX-FLOW-16`.
+- **Originating design work:** accepted `DB06`, `UX1.6-DISC01`, DB17, and
+  `UX1.0-DISC10`; `UX1.4-W05`, `UX1.4-W11`, `UX1.5`, `UX1.6-W15`,
+  `DB17-P11`–`P12`, `UX-FLOW-12`, and `UX-FLOW-16`.
 - **Named fixture need:** `UX-FX18`, a synthetic Project with more than ten
   applied changes, an independent ten-state graph exploration trail, one safe
   single-step reversal, one contiguous multi-step compensation preview, one
-  dependency-conflicted change, and one ineligible change. It contains no
-  contextual demo material.
+  dependency-conflicted change, and one ineligible change. `UX-FX43` adds
+  object/task/Project causal episodes, recovery relationships, restricted
+  members, terminology change, ambiguous cross-system order, and exact return.
+  Both use synthetic content and no contextual demo material.
 - **Implementation links:** `M1.3` graph projection, `M1.5` commands,
   ChangeSets, approvals, events, and projection status, and `M1.7` workbench
   integration.
-- **Project-author task and failure:** back out of an unhelpful graph exploration
-  or reverse a wrong Project path without believing that a visualization action
-  mutates authority or that Revert erases an earlier decision. The current M1
-  command envelope exposes submit, approve, and apply behavior but does not yet
-  establish the complete reversal-planning and eligibility boundary required by
+- **Project-author task and failure:** back out of an unhelpful graph exploration,
+  understand the causal Project record, or reverse a wrong Project path without
+  believing that navigation mutates authority, that History is one editable log,
+  or that Revert erases an earlier decision. Existing events and receipts retain
+  exact facts but do not yet establish the complete authorized History,
+  reversal-planning, eligibility, filtering, and return boundary required by
   this UX.
 - **Graph-view behavior:** the client owns the ten most recent meaningful view
   snapshots for task scope, depth, expansion, filters, layout, viewport,
@@ -291,8 +294,16 @@ between shell context and task content more important.
 - **Requested read shape:** return the ten most recent eligible author-visible
   Project changes in **Recent changes**, ordered newest first, with stable command,
   actor, time, target, summary, current eligibility, ineligibility reason,
-  dependency-impact summary, and full-history link. Ten limits the quick window,
-  not authoritative event retention.
+  dependency-impact summary, and full-history link. Also compose the complete
+  permitted History route as readable causal episodes grouped by object/task and
+  action/recovery chain. Each entry supplies exact identity/revision/snapshot,
+  profile/event family, actor/origin, recorded time and verified ordering,
+  requested and observed effect, authority boundary, related Work/candidate/
+  approval/command/receipt/output/delivery/projection references, supersession or
+  compensation links, current eligibility, and semantic destination. Filters and
+  counts cannot reveal unauthorized members. When no verified total order exists
+  across record families, preserve causation and source order without inventing
+  precision. Ten limits the quick window, not authoritative retention.
 - **Requested preview and command behavior:** preview a compensating
   `ChangeSet` for one eligible change or an ordered compensation plan for a
   contiguous recent set. Bind the plan to the exact current authoritative
@@ -305,19 +316,29 @@ between shell context and task content more important.
 - **History rule:** reversal appends a new command, approval where required,
   compensating events, provenance, and projection status. It never deletes or
   edits the original event. Redo is a newly previewed forward `ChangeSet`, not a
-  hidden restoration of prior state. Immutable source revisions remain
-  immutable.
+  hidden restoration of prior state. Retry, resume, branch, restoration,
+  revalidation, redelivery, conflict, restriction/redaction, and recovery expose
+  their exact relationships where durable records exist. Historical profile
+  language remains interpretable without rewriting the recorded meaning.
+  Immutable source revisions remain immutable.
 - **Projection behavior:** graph and textual views may compare the current and
   proposed compensated states, but PostgreSQL command/event authority decides
   eligibility and result. A historical graph is marked as historical and has a
   visible **Return to current** path.
+- **Privacy and return behavior:** authorize every History read at request time;
+  restricted entries disclose no hidden name, count, value, relation, or prior
+  permission. Resolve selected current/historical objects through `UX-REQ-008`.
+  Historical presentations remain read-only and retain a visible **Return to
+  current** path with an explicit fallback if the target changed or is unavailable.
 - **Smallest viable response:** identify whether the planned M1.5 Revert path
   already supplies single-step eligibility, impact preview, compensation, and
-  idempotency. Record the additive query/command/event work needed for any gap;
-  multi-step compensation may be deferred to a named milestone if single-step
-  behavior and the ten-item read window remain extensible.
+  idempotency, then compose one authorized object/task episode and the recent-ten
+  Project window from existing immutable records. Record additive query/command/
+  event work needed for gaps; broader filters and multi-step compensation may be
+  assigned to named milestones if the first read remains extensible and does not
+  misrepresent incomplete History.
 - **Owner and status:** product architecture and implementation track; UX
-  requirement accepted, runtime shape `proposed`.
+  History/reversal direction accepted, runtime shape `proposed`.
 
 ### `UX-REQ-008` — semantic object location and safe deep-link resolution
 
@@ -774,9 +795,10 @@ between shell context and task content more important.
 
 ### `UX-REQ-014` — Project Work collection and task/stage read composition
 
-- **Originating design work:** DB11's accepted presentation and branch-choice direction,
-  `UX1.6-DISC02`–`DISC03` (2026-09-06), DB06's Work/interrupt/result boundaries, and
-  `UX-FLOW-11`; `UX1.6-W08`–`W11` and `W15`.
+- **Originating design work:** DB11's accepted presentation and branch-choice
+  direction, `UX1.6-DISC02`–`DISC03` (2026-09-06), sharpened by DB17's accepted
+  `UX1.0-DISC10`; DB06's Work/interrupt/result boundaries; `DB17-P03`–`P05`;
+  `UX-FLOW-11` and `UX-FLOW-16`; `UX1.6-W08`–`W11` and `W15`.
 - **Named design scenario and post-freeze fixture need:** `UX-FX26`, paired
   invented scientific and controlled-writing tasks with meaningful stages,
   concurrent or blocked activity, exact role/tool/validator attempts, required
@@ -820,6 +842,13 @@ between shell context and task content more important.
   consequences; semantic destinations; and observation/replay freshness.
   Every aggregate identifies its input records and coverage. An unavailable
   stage plan is explicit rather than reconstructed from model prose.
+- **Reconciled recovery fields:** expose the exact current attempt and terminal
+  state; retained, reusable, diagnostic-only, missing, or unavailable outputs;
+  verified checkpoint and compatibility; retry/cancellation policy and remaining
+  attempts; cancellation command/receipt and race outcome; interaction replay
+  position; measured/unknown usage; and registered control eligibility with the
+  record and time that established it. This Work composition is an input to
+  `UX-REQ-023`; it does not derive a cross-module recovery outcome itself.
 - **Recommendation and branch behavior:** distinguish actual workflow/control
   prerequisites from contextual advice and other eligible work. Supply the
   recommendation's producer/rule, objective, exact basis and observation/plan
@@ -885,8 +914,9 @@ between shell context and task content more important.
   priority are requested in `UX-REQ-016`; selecting an inquiry does not invoke
   this scheduling command. Existing direct execution instructions still do.
 - **Originating design work:** DB11 and accepted `UX1.6-DISC03` (2026-09-06),
-  including the user's distinction between contextual branch advice and actual
-  prerequisite constraints; `DB11-P03`–`P08`, `UX-FLOW-11`, and `UX-FLOW-16`.
+  sharpened by DB17's accepted `UX1.0-DISC10`, including the distinction between
+  contextual branch advice and actual prerequisite constraints;
+  `DB11-P03`–`P08`, `DB17-P03`–`P05`, `UX-FLOW-11`, and `UX-FLOW-16`.
 - **Named design scenario and post-freeze fixture need:** `UX-FX27` uses an
   invented task whose source-version prerequisite A feeds checks B/C while
   branch D is independent. The author chooses D despite advice to resolve A,
@@ -954,7 +984,9 @@ between shell context and task content more important.
   checkpoint and input/context. Map cancellation to existing capability, policy,
   revision, and receipt rules; distinguish requested cancellation from actual
   terminal outcome and actual completion winning a race. Retention follows exact
-  manifest policy and does not turn diagnostics into reusable output.
+  manifest policy and does not turn diagnostics into reusable output. Expose the
+  owning records and current eligibility to `UX-REQ-023`; recovery composition
+  cannot invoke this transition or invent a missing resume/checkpoint operation.
 - **Acknowledgment/read response:** supply the interpreted instruction, effective
   plan/priority revision, affected and reused work, transition timing, continuing
   branches, scope/output change, cost/limits and unknowns, real unresolved choice,
@@ -1140,8 +1172,8 @@ between shell context and task content more important.
 ### `UX-REQ-018` — Continuous document editing and exact revision reconciliation
 
 - **Originating design work:** DB12 direct editing, proposal comparison, save
-  meaning, and recovery under accepted `UX1.7-DISC01`;
-  `DB12-P03`, `P04`, `P06`, and `P08`.
+  meaning, and recovery under accepted `UX1.7-DISC01`, sharpened by DB17's
+  accepted `UX1.0-DISC10`; `DB12-P03`, `P04`, `P06`, `P08`, and `DB17-P06`.
 - **Named post-freeze scenario:** `UX-FX30`: successive and structural edits
   while validation is stale; a model proposal and a validator result arrive
   after further edits; a save conflicts or disconnects. Pair an invented
@@ -1172,9 +1204,14 @@ between shell context and task content more important.
 - **Requested save and conflict behavior:** commands name exact expected base
   and operation identity, acknowledge the durable revision, and reconcile
   duplicate delivery. Concurrent or disconnected edits preserve both available
-  contents and report actual saved effects. Specify local recovery only where a
-  supported storage capability exists; a browser buffer cannot claim a Project
-  save. UX specifies preservation, not a new collaborative editing algorithm.
+  contents and report actual saved effects. Local recovery, when a supported
+  storage capability exists, identifies Project/document, exact base, local
+  revision/hash and timestamp, storage scope, and available bytes. Preserve
+  base/local/current as distinct comparison positions when durable state advanced;
+  no loss-bearing choice is preselected. A browser buffer cannot claim a Project
+  save. Expose the resulting preservation/conflict facts and owning save actions
+  to `UX-REQ-023`. UX specifies preservation, not a new collaborative editing
+  algorithm.
 - **Requested suggestion transition:** bind every model proposal to exact input
   revision, passage/section/document scope, and producer. Using inspected
   changes records exact accepted content, retained human text, and origin.
@@ -1213,8 +1250,9 @@ between shell context and task content more important.
 
 ### `UX-REQ-019` — Working-copy export, status carriage, and delivery
 
-- **Originating design work:** DB12 and accepted `UX1.7-DISC02` (2026-09-07);
-  `DB12-P09`–`P11`; `UX-FLOW-14`–`16` and `UX-FLOW-18`.
+- **Originating design work:** DB12 and accepted `UX1.7-DISC02` (2026-09-07),
+  sharpened by DB17's accepted `UX1.0-DISC10`; `DB12-P09`–`P11`, `DB17-P09`;
+  `UX-FLOW-14`–`16` and `UX-FLOW-18`.
 - **Named post-freeze scenario:** `UX-FX31`, an exploratory comparison with
   unsettled criteria and a stale citation, paired with a manuscript continuity
   finding. Include unchecked/failed/unknown coverage, selected-scope export,
@@ -1275,9 +1313,13 @@ between shell context and task content more important.
   to exact capture, format/options, status, and operation identity. Report each
   member/format outcome and observed delivery stage: prepared output, clipboard
   acknowledgment, browser download initiation, or confirmed external receipt only
-  where supported. Keep failed/partial results and retry delivery without new
-  prose. Reconnect reconciles prior effects; cancellation cannot recall delivered
-  bytes. Newer edits and assessments do not mutate an existing output receipt.
+  where supported. Keep failed/partial results and retry delivery of exact
+  retained members without regeneration. Treat **Regenerate** as a separate
+  output operation with its own identity, possible Work/cost, validation, and
+  History. Reconnect reconciles prior effects; cancellation cannot recall
+  delivered bytes. Newer edits and assessments do not mutate an existing output
+  receipt. Expose member outcomes, delivery knowledge, and owning actions to
+  `UX-REQ-023` without upgrading client observation into external receipt.
 - **Authority and persistence:** architecture determines the smallest export
   record/manifest and event composition over existing artifact storage. Preserve
   original sources, prior outputs, and exact provenance. The client renders
@@ -1595,6 +1637,153 @@ between shell context and task content more important.
   task-equivalence and current-graph explanation direction accepted,
   presentation-context/peer/capture binding shape `proposed`.
 
+### `UX-REQ-023` — Canonical recovery assessment and exact-action composition
+
+- **Originating design work:** DB17 and accepted `UX1.0-DISC10` (2026-09-07),
+  especially `DB17-P01`–`P10` and `DB17-P13`; `UX-FLOW-11`, `UX-FLOW-12`,
+  `UX-FLOW-15`, and `UX-FLOW-16`.
+- **Named post-freeze scenarios:** `UX-FX41`, cross-module preservation and
+  exact return; `UX-FX42`, uncertain/mixed/offline/race recovery; and `UX-FX43`,
+  local conflict, History, delivery, and reversal.
+- **Implementation links:** `M1.1` command/event/Work/artifact foundations,
+  `M1.2` durable authority and persistence, `M1.3` projection status, `M1.5`
+  Review/commands/reversal, `M1.7` cancellation/interaction replay, `M1.8`
+  composition/revision/publication, `M1.9` infrastructure recovery, and
+  `UX-REQ-006`–`022` where their records participate.
+- **Author task and failure:** after an interrupted read, response, Work task,
+  save, Review action, command, projection, export, policy change, or service
+  failure, determine what actually happened and act safely without reconstructing
+  mismatched records or repeating an effect. Existing mechanisms establish their
+  own outcomes but no accepted product contract composes effect knowledge,
+  preserved state, member outcomes, eligible owning actions, and exact return.
+- **Existing contract check:** command envelopes/events carry stable command and
+  idempotency identity; independently atomic ChangeSets and compensating reversal
+  retain exact effects; WorkUnit/manifests and cancellation receipts retain
+  operational lifecycle; InteractionRun/events/connections retain replay and
+  delivery; projection checkpoints/outbox retain derived freshness; composition,
+  DraftArtifact, support-assessment, RenderedArtifact, ArtifactStore, and
+  delivery records retain content and publication stages. `UX-REQ-007`, `014`,
+  `015`, `018`, and `019` request the applicable author-facing reads/actions.
+  None of these is a universal failure ledger, and no client or model may infer
+  one from display state.
+- **Requested assessment identity:** accept authenticated actor/Project, one
+  recovery subject and task/origin context, the attempted operation/action/input
+  identity when available, expected revisions/snapshot, last known client
+  observation, locally retained-state declaration with integrity/storage scope,
+  and requested recovery purpose. Return a versioned, immutable assessment with
+  stable ID/hash, reconciliation time, producer/rules version, observation cutoff,
+  source-record references, coverage, freshness, and privacy/redaction outcome.
+- **Recovery subjects:** support registered typed references to a route/read,
+  interaction run/connection, Work task/attempt/input request, candidate/Review
+  batch/ChangeSet/command, projection, document/local edit/save, artifact/render/
+  export/delivery, source/access/capability, policy transition, or service/integrity
+  incident. New profile types map through registered subject and action roles;
+  they do not create an arbitrary stringly typed recovery API.
+- **Requested effect classification:** derive exactly one top-level state from
+  source records: `no_effect_confirmed`, `effect_confirmed`, `in_progress`,
+  `mixed_outcomes`, `outcome_unknown`, or `unavailable_to_verify`. Include the
+  meaning and applicable boundary, exact resulting identities/revisions/receipts,
+  pending observations, and verification limitations. A timeout, absent projection,
+  old browser state, or model statement cannot establish no effect. Mixed outcome
+  requires independently atomic members and a complete or explicitly partial
+  per-member accounting.
+- **Requested preservation inventory:** identify durable task/input/output,
+  candidate/approval, saved revision, immutable artifact, prior authoritative
+  state, recoverable local/session-only input, partial usable or diagnostic-only
+  result, view/selection/focus/return context, unavailable content, and confirmed
+  loss. Every item carries identity, revision/hash where applicable, durability,
+  accessibility/privacy disposition, validation/usability state, and the record
+  or client assertion establishing it. Client-held state remains non-authoritative
+  until an owning save/export acknowledges exact content.
+- **Requested member outcomes:** for a Review batch, multi-format export, staged
+  task, or other registered composite, return each independent member's exact
+  applied/completed/failed/conflicted/cancelled/pending/unknown/delivery state,
+  authority effect, retained result, recovery eligibility, and reason. Aggregate
+  counts state their unit, coverage, overlap/grouping, and unknowns and are derived
+  from members. A single atomic ChangeSet cannot be represented as partly applied.
+- **Requested action composition:** return zero or more registered action
+  descriptors with shared semantic roles such as check status, refresh,
+  reconnect, replay response, retry, resume, start again, restore local work,
+  reconcile, regenerate preview, revalidate, retry delivery, Revert, or return.
+  Each descriptor names the owning query/command/adapter, exact target and
+  expected revision, input/reuse behavior, idempotency or new-attempt identity,
+  eligibility basis/time, consequence, authority and History effect, cost/limit,
+  required input/authorization/confirmation, and success/failure destination.
+  The assessment cannot execute the action, synthesize a generic command, or
+  treat a model recommendation as eligibility.
+- **Ordering and primary-action behavior:** select a suggested primary action
+  only from current eligible descriptors using a versioned product rule and
+  explain why it is safest for the author's task. Reading/checking status precedes
+  any unsafe repetition while effect is unknown. Another eligible action remains
+  available without override language. New facts, access, or revisions invalidate
+  the affected descriptor and require reassessment.
+- **Local conflict behavior:** accept client-held content only with its explicit
+  Project/object/base, local identity/hash, time, and storage scope. Compose
+  base/local/current comparison facts from `UX-REQ-018` without declaring the
+  local copy saved. Preserve both available sides; saving separately, updating
+  current, exporting, or discarding remains an owning action with current
+  eligibility. Do not implement a collaborative merge algorithm in this record.
+- **Connection and Work behavior:** correlate interaction delivery with the
+  exact durable Work observation. Reconnect/replay descriptors reuse the run and
+  checkpoint and have no Work or authority effect. Retry/resume/start-again and
+  cancellation descriptors come only from `UX-REQ-014`/`015` and accepted Work
+  commands. Cancellation requested, provider interruption, terminal Work, retained
+  output, and completion-winning races remain separately observable.
+- **Command/projection behavior:** correlate command/idempotency, receipt/event,
+  target revision, approval/manifest, and projection checkpoint. Exact command
+  redelivery can be eligible only under its owning idempotency contract. A
+  committed effect with lagging projection offers projection catch-up or an
+  authoritative read; it never offers the producing domain command as repair.
+- **Output/delivery behavior:** distinguish generation/render, byte storage,
+  Artifact/publication linkage, browser/clipboard observation, and confirmed
+  external receipt. A delivery retry references exact retained output; regeneration
+  is a distinct action and identity. Partial members and prior irreversible
+  disclosure remain visible after cancellation or failure.
+- **History and receipt behavior:** link the assessment and any chosen action/
+  outcome to the permitted causal episode under `UX-REQ-007`. Reconciliation
+  reads do not create domain history, though an operational assessment/incident
+  receipt may be retained according to policy. Any save, retry attempt, resume,
+  fresh Work, revalidation, delivery, conflict resolution, or compensation uses
+  its existing additive record. Do not introduce a second canonical event ledger.
+- **Privacy, access, and integrity:** authorize every source record and resulting
+  descriptor at assessment and invocation time. Restricted objects, member counts,
+  prior values, and relations remain undisclosed. If a source is unavailable,
+  corrupt, mixed-revision, or outside retention, return `outcome_unknown` or
+  `unavailable_to_verify` with the safe limitation. A model cannot fill gaps or
+  transform reconstructed content into a recovery fact.
+- **Return behavior:** supply exact origin route/surface, task/object, current or
+  historical identity, selection/range, scroll/reading/focus anchor, linked
+  thread/Work, and safe semantic destination. Resolve it through `UX-REQ-008` at
+  use time. When the exact target is unavailable, return the permitted replacement,
+  stable parent, or Brief with a machine-readable and user-facing reason; never
+  fall back to ambient selection.
+- **AG-UI and model behavior:** the Petra interaction adapter may carry the
+  assessment/reference, progressive reconciliation status, and selected registered
+  action. Replay cannot invoke it again. `UX-REQ-021` lets the model explain
+  exact facts and alternatives; the model receives no raw secrets or capability
+  authority and cannot construct executable UI/actions outside the allowlist.
+- **Smallest viable response:** compose one lost-delivery Apply example across
+  an exact ChangeSet command/event and projection checkpoint, plus one failed
+  Work/replay example and one local-save conflict. Return effect, preservation,
+  eligible existing actions, and exact return without adding a universal mutation
+  endpoint. Expand subject families only as their owning reads and commands can
+  supply truthful state.
+- **Provisional post-freeze boundary:** a synthetic application provider may
+  produce versioned recovery assessments and registered action descriptors for
+  `UX-FX41`–`43`. It must label unavailable runtime fields and delegate every
+  action to a named synthetic owning adapter. Feature components and models
+  cannot calculate authority or fabricate receipts. This request creates no
+  schema, command, fixture, backend implementation, or product surface.
+- **Dependencies:** `UX-REQ-004` profile semantics, `UX-REQ-006` interaction
+  context, `UX-REQ-007` History/reversal, `UX-REQ-008` destinations,
+  `UX-REQ-009`/`010` source state, `UX-REQ-012` Review, `UX-REQ-014`/`015` Work,
+  `UX-REQ-017`–`019` Composition/edit/export, `UX-REQ-020` Project controls,
+  `UX-REQ-021` language/validation, existing command/event/capability/artifact/
+  projection/replay/cancellation contracts, and operational restore evidence.
+- **Owner and status:** product architecture and implementation track; DB17
+  reconciliation/preservation/return direction accepted, recovery-assessment
+  and action-composition shape `proposed`.
+
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
 integration requests are written.
@@ -1610,7 +1799,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Proposal, correction, exact preview, Apply, conflict, and Revert | ChangeSet, Approval, ReviewBatch, and additive event path in `M1.5` |
 | Durable conversation-derived working candidates and relationships | Proposed `UX-REQ-011`; existing bounded model records and evidence candidates remain inputs, not a generic working graph contract |
 | Profile-neutral Review session, comparison, deferment, separation, and member recovery | Proposed `UX-REQ-012`; current M1.5 evidence review remains the scientific contract foundation |
-| Recent reversible-change query and compensation plan | Proposed `UX-REQ-007`; graph exploration history remains client presentation state |
+| Presentation history, authorized Project History, and compensation plan | Proposed `UX-REQ-007`; graph exploration history remains client presentation state while durable causal episodes come from owning records |
 | Semantic object location, replacement, and safe fallback | Proposed `UX-REQ-008`; the client retains route and layout ownership |
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
 | Project-source membership, governed removal, and local-copy retention/deletion | Proposed `UX-REQ-010`; Project linking and content-addressed storage remain separate lifecycles |
@@ -1625,6 +1814,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Profile-resolved object and relation visual semantics | Existing proposed `UX-REQ-004`, sharpened by DB14; the manifest may name bounded semantic descriptor references while Petra owns shared tokens, components, state/authority cues, accessibility, and safe fallback |
 | Profile-resolved communication plan, action linkage, and language validation | Proposed `UX-REQ-021`; existing scientific synthesis, grounded-response, Felicity revision, command/event, and AG-UI records remain inputs while profile terminology/discourse is resolved through `UX-REQ-004` |
 | Model-readable current presentation and semantic-peer binding | Proposed `UX-REQ-022`; bind exact graph/view semantics, current client-owned scene, complete accessible peer, optional permitted capture, model context, and explanation without making pixels or AG-UI state authoritative |
+| Canonical cross-module recovery assessment and exact eligible actions | Proposed `UX-REQ-023`; compose owning records into effect, preservation, member outcomes, registered recovery choices, History consequence, and exact return without creating a universal recovery command or second ledger |
 | Current/cached/new evidence boundary | ContextPacket and EvidencePacket from `M1.1`, retrieval path in `M1.6` |
 | Assistant stream, interrupt, reconnect, and replay | PetraInteractionRun and AG-UI adapter boundary from `M1.0`/`M1.1`, product hooks in `M1.7` |
 | Projection freshness | GraphProjectionRecord and ProjectionCheckpoint from `M1.1`, delivery in `M1.3`/`M1.5` |
@@ -1636,7 +1826,7 @@ and outputs attached to these mechanics. They should not duplicate Work,
 interaction, proposal, review, approval, cancellation, provenance, or history
 lifecycles merely because the profile uses different nouns.
 
-## Requirement status after DB16
+## Requirement status after DB17
 
 The authored-project, imported-document, Project-thread, exact turn-context,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
@@ -1699,8 +1889,22 @@ semantic result, author-visible presentation scene, complete accessible peer,
 optional permitted capture, model call, and validated explanation. It sharpens
 `UX-REQ-006`, `UX-REQ-013`, and `UX-REQ-021` without making AG-UI state or pixels
 authoritative. DB16 closes at `G-SPEC`; implementation, browser/AT, model,
-performance, legal, and participant evidence remain pending. DB17's state-
-reconciliation and recovery boundary is next.
+performance, legal, and participant evidence remain pending. DB17 carries those
+accessibility and presentation-context boundaries into recovery below.
+
+DB17's canonical-reconciliation, preserved-state, and exact-return direction is
+accepted as `UX1.0-DISC10`. Existing idempotent command, atomic ChangeSet,
+reversal, Work/cancellation, interaction replay/delivery, projection, composition,
+revision, publication, and infrastructure-recovery records retain their own
+authority. DB17 sharpens `UX-REQ-007`, `UX-REQ-014`, `UX-REQ-015`,
+`UX-REQ-018`, and `UX-REQ-019`. Proposed `UX-REQ-023` requests the missing
+cross-module assessment that composes exact source observations into effect
+knowledge, preserved/lost state, independent-member outcomes, currently eligible
+owning actions, History consequence, and safe return. It creates no universal
+recovery command or alternate ledger. DB17 closes at `G-SPEC`; runtime,
+offline/browser, race, disaster-recovery, accessibility, performance, security,
+and participant evidence remain pending. DB18's product-blueprint consolidation
+discussion is next.
 
 ### Cross-device preference synchronization
 
