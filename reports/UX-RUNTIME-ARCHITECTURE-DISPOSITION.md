@@ -3,7 +3,8 @@
 Status: implementation-track review complete; M1.9 cumulative trace, six live
 presentation reads, interface recovery gate, semantic-location foundation,
 expanded Project-shell context, initial Project Work read, and durable Project
-thread read passed; broader neutral runtime work remains open
+thread read plus initial Project inquiry authority passed; broader neutral
+runtime work remains open
 Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
@@ -49,6 +50,10 @@ Work, result, response, definition, retention, revision, and branch bindings
 without overloading InteractionRun. Its bounded collection/detail view,
 authenticated routes, and frozen Petra workspace are live without transcript
 fixture fallback; unavailable bytes and commands remain explicit.
+The initial Project inquiry authority now maps a definition-registered
+scientific Objective kind to the product inquiry role without creating another
+domain identity, and preserves exact zero/many/shared Work and addressing-result
+links independently of Objective status.
 
 This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-006`, `UX-REQ-008`, `UX-REQ-009`,
 `UX-REQ-010`, `UX-REQ-012`, `UX-REQ-013`, and `UX-REQ-014` without changing the
@@ -325,7 +330,7 @@ explicitly records later implementation progress:
 | `UX-REQ-013` | **Partial, advanced after baseline.** `petra.project-relationship-view@1.0.0` and its authorized reader now return one bounded current scientific `ASSERTS` provenance path with ProjectDefinition terminology, exact PostgreSQL records and graph checkpoint, omissions, source destinations, and a textual peer. The frozen Graph consumes it without fixture fallback. | Add general task and endpoint selection, other registered relationship types, working and historical membership, retained-position reconstruction, comparison, expansion and continuation cursors, and temporal paths. Preserve renderer-neutral semantics and never infer authority from layout. | Wave 3 |
 | `UX-REQ-014` | **Partial, advanced after baseline.** `petra.project-work-view@1.0.0` now composes bounded Project Work collection and exact detail reads from current WorkUnit and worker-manifest authority under repeatable-read isolation. It provides exact identities, lifecycle and attention, pagination/filtering, dependencies, inputs, declared limits, measured-use coverage, output reporting, semantic Work destination, and policy assessments. The frozen Work routes consume it without synthetic stages, inquiry branches, usable outputs, or commands. | Add registered definition-resolved stage plans, durable input requests, inquiry and Review linkage, Project-level output registration/validation/destination, actor-authorized retry and supported resume, richer recovery, visual filters, and the remaining validation gates. Do not infer authority or inquiry resolution from operational success. | Wave 2 read foundation passed; orchestration and linkage remain |
 | `UX-REQ-015` | **Partial.** Explicit cancellation is authorized and durable; immutable Work inputs prevent silent rebinding. | Add typed steering, task-priority, and execution-plan transition commands with declared cutover, reuse/revalidation, shared-consumer analysis, and receipts. Do not imply generic pause/resume or cancel shared Work automatically. | Wave 3 |
-| `UX-REQ-016` | **Missing neutral mapping.** Scientific Project and conceptual ResearchQuestion foundations exist, while WorkUnit remains operational. | Register how a ProjectDefinition represents lines of inquiry through its own valid object types or linked set. Add zero/many/shared Work and result links without mandating a universal Inquiry wrapper or deriving resolution from Work completion. | Wave 2 |
+| `UX-REQ-016` | **Partial, advanced after baseline.** `petra.project-inquiry-role@1.0.0`, `petra.project-inquiry-link@1.0.0`, V023, and `ProjectInquiryAuthorityRepository` map the scientific definition's registered Research-question Objective kind to the product inquiry role without a universal Inquiry identity. Immutable exact links support zero/many/shared Work and GroundedResponse addressing results while leaving authored Objective status independent from Work completion. | Add inquiry collection/detail and Work-linkage reads, other ProjectDefinition-valid record/linked-set adapters, stronger basis/finding authority adapters, cross-surface composition, recommendations, and governed semantic commands. | Wave 2 authority foundation passed; read integration next |
 | `UX-REQ-017` | **Partial.** CompositionRequest/Plan, DraftArtifact/Span, ProvenanceMap, CitationBundle, assessments, renders, and persistence provide an exact scientific composition aggregate. | Add ProjectDefinition-resolved document collection/context reads, recognizable purpose, current and historical revision positions, ancestry, Work/inquiry links, findings, capabilities, and safe destinations. | Wave 5 |
 | `UX-REQ-018` | **Partial.** DraftRevisionEngine creates exact non-empty span replacements and additive support assessments. | Add a durable working-document boundary for blank, structural, and successive authoring; exact save acknowledgments; late suggestion/check reconciliation; and working-to-registered promotion. External filesystem editing remains excluded. | Wave 5 |
 | `UX-REQ-019` | **Partial.** Deterministic rendering, Artifact publication, warnings, and support assessments preserve exact generated scientific outputs. | Add exact working-copy capture, scoped findings/coverage, status-bearing representation, ExportManifest and delivery receipts, partial-format recovery, and destination eligibility. Export does not promote or certify content. | Wave 5 |
@@ -372,7 +377,8 @@ closed instead of borrowing another definition's behavior.
 Implement durable ProjectThread/turn records, ProjectSourceLink, Project Work
 collection queries, and ProjectDefinition-valid inquiry mapping. The initial
 Project Work collection/detail read and ProjectThread authority and read
-integration are complete; inquiry mapping is next. This establishes
+integration are complete. The inquiry mapping and exact linkage foundation is
+also complete; inquiry and Work read composition is next. This establishes
 `UX-REQ-006`, `UX-REQ-009`, the first half of `UX-REQ-010`, `UX-REQ-014`, and
 `UX-REQ-016` before feature surfaces depend on them.
 
@@ -460,10 +466,11 @@ through `UX-REQ-023` conformance.
 
 Treat the completed M1.9 cumulative result, Wave 1 neutral read foundation, the
 passed Project Work collection/detail slice, and the live ProjectThread
-authority/read/workspace slice as the safety point. Continue Wave 2 with
-ProjectDefinition-valid inquiry mapping and explicit zero/many/shared Work
-links. Do not reopen the frozen presentation, invent a universal Inquiry type or
-a second Work lifecycle, derive inquiry resolution from Work completion, or turn
+authority/read/workspace slice as the safety point. Continue Wave 2 from the
+ProjectDefinition-valid inquiry mapping and explicit zero/many/shared Work-link
+foundation with a bounded inquiry collection/detail read and exact Work linkage.
+Do not reopen the frozen presentation, invent a universal Inquiry type or a
+second Work lifecycle, derive inquiry resolution from Work completion, or turn
 either conformance example into a mandatory template.
 
 ## Verification status
@@ -481,3 +488,7 @@ inquiry/Review, output-usability, and command limitations remain explicit. The
 ProjectThread foundation is durable through PostgreSQL V022 and its exact read,
 route, and frozen-surface integration are live; lifecycle commands, retained
 transcript bytes, and continuation execution remain open.
+The Project inquiry authority is durable through PostgreSQL V023 and proves
+zero, many, and shared Work links plus non-authoritative GroundedResponse
+bearing; composed inquiry/Work reads and additional definition-valid adapters
+remain open.

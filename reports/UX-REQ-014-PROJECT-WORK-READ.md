@@ -112,6 +112,6 @@ This slice does not close all of `UX-REQ-014`. Remaining work includes:
 - Project-shell active-Work composition beyond the existing summary count and
   exact Work destination.
 
-The next Wave 2 dependency is durable Project threads and exact per-turn context,
-followed by ProjectDefinition-valid inquiry mapping. Neither should derive
-inquiry resolution from Work completion.
+Durable Project threads and the ProjectDefinition-valid inquiry-mapping
+foundation are now complete. Exact inquiry composition into this Work read is
+next; it must not derive inquiry resolution from Work completion.

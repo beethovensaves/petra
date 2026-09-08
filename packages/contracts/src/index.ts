@@ -34,6 +34,22 @@ export type {
   PetraProjectObjective,
 } from "./generated/project-objective.js";
 export type {
+  ObjectiveRepresentation as ProjectInquiryObjectiveRepresentation,
+  PetraProjectInquiryRole,
+  RoleContent as ProjectInquiryRoleContent,
+} from "./generated/project-inquiry-role.js";
+export type {
+  InquiryAnchor as ProjectInquiryAnchor,
+  InquiryRoleRef as ProjectInquiryRoleRef,
+  LinkContent as ProjectInquiryLinkContent,
+  ObjectiveRef as ProjectInquiryObjectiveRef,
+  PetraProjectInquiryLink,
+  ResultTarget as ProjectInquiryResultTarget,
+  TypedRecordRef as ProjectInquiryTypedRecordRef,
+  WorkTarget as ProjectInquiryWorkTarget,
+  WorkUnitRef as ProjectInquiryWorkUnitRef,
+} from "./generated/project-inquiry-link.js";
+export type {
   AttentionItem as ProjectShellAttentionItem,
   AuthorityPosition as ProjectShellAuthorityPosition,
   DefinitionSummary as ProjectShellDefinitionSummary,

@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.24.0",
+  "fixture_manifest_version": "1.25.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -36,6 +36,18 @@
     {
       "schema": "project-objective",
       "path": "fixtures/accepted/project-objective-controlled-writing.json"
+    },
+    {
+      "schema": "project-inquiry-role",
+      "path": "fixtures/accepted/project-inquiry-role.json"
+    },
+    {
+      "schema": "project-inquiry-link",
+      "path": "fixtures/accepted/project-inquiry-work-link.json"
+    },
+    {
+      "schema": "project-inquiry-link",
+      "path": "fixtures/accepted/project-inquiry-result-link.json"
     },
     {
       "schema": "project-shell-view",

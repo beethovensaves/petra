@@ -77,6 +77,7 @@ with 662 always-on tests and seven expected service-dependent skips.
   linkage; and
 - Project-lifetime retention and later `.petra` checkpoint reconstruction.
 
-The next Wave 2 dependency is ProjectDefinition-valid inquiry mapping with
-explicit zero, many, and shared Work links. Thread commands can then consume
-that neutral linkage without deriving inquiry resolution from Work completion.
+The ProjectDefinition-valid inquiry-mapping foundation now supplies explicit
+zero, many, and shared Work links. Its composed inquiry and Work reads are next;
+thread commands can later consume that neutral linkage without deriving inquiry
+resolution from Work completion.

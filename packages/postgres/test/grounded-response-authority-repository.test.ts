@@ -18,6 +18,9 @@ import type {
   PetraInteractionRun,
   PetraProject,
   PetraProjectDefinition,
+  PetraProjectInquiryLink,
+  PetraProjectInquiryRole,
+  PetraProjectObjective,
   PetraProjectThread,
   PetraParsedDocument,
   PetraRightsDecision,
@@ -77,6 +80,11 @@ import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-r
 import { PostgresGroundedResponseAuthorityRepository } from "../src/grounded-response-authority-repository.js";
 import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import {
+  PostgresProjectInquiryAuthorityRepository,
+  type PostgresProjectInquiryError,
+  projectInquiryRoleRef,
+} from "../src/project-inquiry-authority-repository.js";
 import {
   PostgresProjectThreadAuthorityRepository,
   type PostgresProjectThreadError,
@@ -159,6 +167,15 @@ const expectProjectThreadCode = async (
 ): Promise<void> => {
   await expect(operation()).rejects.toEqual(
     expect.objectContaining<Partial<PostgresProjectThreadError>>({ code }),
+  );
+};
+
+const expectProjectInquiryCode = async (
+  operation: () => Promise<unknown>,
+  code: PostgresProjectInquiryError["code"],
+): Promise<void> => {
+  await expect(operation()).rejects.toEqual(
+    expect.objectContaining<Partial<PostgresProjectInquiryError>>({ code }),
   );
 };
 
@@ -1013,6 +1030,209 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       context_packet_id: stored.content.context_packet_ref.context_packet_id,
       model_request_id: stored.content.execution_ref.model_request_id,
     });
+  });
+
+  it("maps an existing Objective as inquiry and preserves zero, many, and shared Work links", async () => {
+    const terminal = await persistTerminal();
+    const response = await new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      terminal.packets,
+    ).register(terminal.input);
+    const objective = readFixture<PetraProjectObjective>("project-objective");
+    await definitions.registerObjectiveRevision(objective);
+
+    const inquiries = new PostgresProjectInquiryAuthorityRepository(pool);
+    const role = readFixture<PetraProjectInquiryRole>("project-inquiry-role");
+    expect(await inquiries.registerProjectInquiryRoleRevision(role)).toEqual(
+      role,
+    );
+    expect(
+      await inquiries.registerProjectInquiryRoleRevision(structuredClone(role)),
+    ).toEqual(role);
+    expect(
+      await inquiries.getProjectInquiryRole(
+        role.project_id,
+        role.project_inquiry_role_id,
+      ),
+    ).toEqual(role);
+    expect(await inquiries.listProjectInquiryRoles(role.project_id)).toEqual([
+      role,
+    ]);
+
+    const inquiryAnchor = (value: PetraProjectObjective) => ({
+      anchor_kind: "project_objective" as const,
+      semantic_key: value.content.objective_kind,
+      objective_ref: {
+        objective_id: value.objective_id,
+        revision: value.revision,
+        content_hash: value.content_hash,
+        record_hash: canonicalHash(value),
+      },
+    });
+    const workLink = readFixture<PetraProjectInquiryLink>(
+      "project-inquiry-work-link",
+    );
+    workLink.content.inquiry_role_ref = projectInquiryRoleRef(role);
+    workLink.content.inquiry_anchor = inquiryAnchor(objective);
+    if (workLink.content.target.target_kind !== "work") {
+      throw new Error("Expected a Work inquiry-link fixture.");
+    }
+    workLink.content.target.work_unit_ref = {
+      work_unit_id: terminal.input.workUnit.work_unit_id,
+      revision: terminal.input.workUnit.revision,
+      spec_hash: terminal.input.workUnit.spec_hash,
+      record_hash: canonicalHash(terminal.input.workUnit),
+    };
+    workLink.content_hash = canonicalHash(workLink.content);
+    expect(await inquiries.registerProjectInquiryLink(workLink)).toEqual(
+      workLink,
+    );
+
+    const evidence = terminal.packets.getEvidencePacket(
+      response.content.evidence_packet_ref.evidence_packet_id,
+    );
+    if (evidence === undefined) {
+      throw new Error("Expected the exact EvidencePacket for follow-up Work.");
+    }
+    const followUp = makeWork(
+      terminal.input.modelRequest,
+      structuredClone(evidence) as PetraEvidencePacket,
+    );
+    followUp.workUnit.work_unit_id = "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FD8";
+    followUp.inputManifest.worker_input_manifest_id =
+      "worker_input_manifest_01ARZ3NDEKTSV4RRFFQ69G5FD9";
+    followUp.inputManifest.work_unit_id = followUp.workUnit.work_unit_id;
+    followUp.workUnit.spec.input_manifest_ref = {
+      worker_input_manifest_id: followUp.inputManifest.worker_input_manifest_id,
+      content_hash: followUp.inputManifest.content_hash,
+    };
+    followUp.workUnit.spec.idempotency_key =
+      "work:project-inquiry-follow-up:01ARZ3NDEKTSV4RRFFQ69G5FD8";
+    followUp.workUnit.spec_hash = canonicalHash(followUp.workUnit.spec);
+    const followUpWork = await workUnits.register({
+      workUnit: followUp.workUnit,
+      inputManifest: followUp.inputManifest,
+    });
+    const secondWorkLink = structuredClone(workLink);
+    secondWorkLink.project_inquiry_link_id =
+      "project_inquiry_link_01K4F000000000000000000004";
+    secondWorkLink.created_at = "2026-09-08T18:34:00.000Z";
+    if (secondWorkLink.content.target.target_kind !== "work") {
+      throw new Error("Expected a Work inquiry link.");
+    }
+    secondWorkLink.content.target.work_unit_ref = {
+      work_unit_id: followUpWork.work_unit_id,
+      revision: followUpWork.revision,
+      spec_hash: followUpWork.spec_hash,
+      record_hash: canonicalHash(followUpWork),
+    };
+    secondWorkLink.content_hash = canonicalHash(secondWorkLink.content);
+    expect(await inquiries.registerProjectInquiryLink(secondWorkLink)).toEqual(
+      secondWorkLink,
+    );
+
+    const resultLink = readFixture<PetraProjectInquiryLink>(
+      "project-inquiry-result-link",
+    );
+    resultLink.content.inquiry_role_ref = projectInquiryRoleRef(role);
+    resultLink.content.inquiry_anchor = inquiryAnchor(objective);
+    if (resultLink.content.target.target_kind !== "result") {
+      throw new Error("Expected a result inquiry-link fixture.");
+    }
+    resultLink.content.target.result_ref = {
+      schema_name: response.schema_name,
+      schema_version: response.schema_version,
+      record_id: response.grounded_response_id,
+      revision: response.revision,
+      content_hash: response.content_hash,
+      record_hash: canonicalHash(response),
+    };
+    resultLink.content.target.produced_by_work_ref = {
+      work_unit_id: terminal.input.workUnit.work_unit_id,
+      revision: terminal.input.workUnit.revision,
+      spec_hash: terminal.input.workUnit.spec_hash,
+      record_hash: canonicalHash(terminal.input.workUnit),
+    };
+    resultLink.content_hash = canonicalHash(resultLink.content);
+    expect(await inquiries.registerProjectInquiryLink(resultLink)).toEqual(
+      resultLink,
+    );
+
+    const sharedObjective = structuredClone(objective);
+    sharedObjective.objective_id = "objective_01K4C000000000000000000006";
+    sharedObjective.content.statement =
+      "Determine which limitations remain after inspecting the selected source.";
+    sharedObjective.content_hash = canonicalHash(sharedObjective.content);
+    sharedObjective.created_at = "2026-09-08T18:35:00.000Z";
+    sharedObjective.updated_at = sharedObjective.created_at;
+    await definitions.registerObjectiveRevision(sharedObjective);
+    const sharedLink = structuredClone(workLink);
+    sharedLink.project_inquiry_link_id =
+      "project_inquiry_link_01K4F000000000000000000005";
+    sharedLink.content.inquiry_anchor = inquiryAnchor(sharedObjective);
+    sharedLink.content_hash = canonicalHash(sharedLink.content);
+    sharedLink.created_at = "2026-09-08T18:36:00.000Z";
+    expect(await inquiries.registerProjectInquiryLink(sharedLink)).toEqual(
+      sharedLink,
+    );
+
+    const zeroWorkObjective = structuredClone(objective);
+    zeroWorkObjective.objective_id = "objective_01K4C000000000000000000007";
+    zeroWorkObjective.content.statement =
+      "Clarify whether another source is needed before scheduling Work.";
+    zeroWorkObjective.content_hash = canonicalHash(zeroWorkObjective.content);
+    zeroWorkObjective.created_at = "2026-09-08T18:37:00.000Z";
+    zeroWorkObjective.updated_at = zeroWorkObjective.created_at;
+    await definitions.registerObjectiveRevision(zeroWorkObjective);
+
+    expect(
+      await inquiries.listProjectInquiryLinks(
+        objective.project_id,
+        objective.objective_id,
+      ),
+    ).toEqual([workLink, resultLink, secondWorkLink]);
+    expect(
+      await inquiries.listProjectInquiryLinks(
+        zeroWorkObjective.project_id,
+        zeroWorkObjective.objective_id,
+      ),
+    ).toEqual([]);
+    expect(
+      await inquiries.listProjectInquiryLinksForWork(
+        objective.project_id,
+        terminal.input.workUnit.work_unit_id,
+      ),
+    ).toEqual([workLink, resultLink, sharedLink]);
+    expect(
+      await inquiries.getProjectInquiryLink(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        workLink.project_inquiry_link_id,
+      ),
+    ).toBeUndefined();
+    expect(
+      (await definitions.getObjective(objective.objective_id))?.content.status,
+    ).toBe("active");
+
+    const overclaim = structuredClone(resultLink);
+    overclaim.project_inquiry_link_id =
+      "project_inquiry_link_01K4F000000000000000000006";
+    if (overclaim.content.target.target_kind !== "result") {
+      throw new Error("Expected a result inquiry link.");
+    }
+    overclaim.content.target.bearing = "accepted_finding";
+    overclaim.content_hash = canonicalHash(overclaim.content);
+    await expectProjectInquiryCode(
+      () => inquiries.registerProjectInquiryLink(overclaim),
+      "PROJECT_INQUIRY_TARGET_UNSUPPORTED",
+    );
+
+    await expect(
+      pool.query(
+        `DELETE FROM petra.project_inquiry_links
+          WHERE project_inquiry_link_id = $1`,
+        [workLink.project_inquiry_link_id],
+      ),
+    ).rejects.toBeTruthy();
   });
 
   it("persists immutable Project threads, revisions, and exact branch origins", async () => {

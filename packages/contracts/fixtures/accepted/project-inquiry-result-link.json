@@ -1,0 +1,53 @@
+{
+  "schema_name": "petra.project-inquiry-link",
+  "schema_version": "1.0.0",
+  "project_inquiry_link_id": "project_inquiry_link_01K4F000000000000000000003",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "project_definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+    },
+    "inquiry_role_ref": {
+      "project_inquiry_role_id": "project_inquiry_role_01K4F000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:c06af809e24e019f39053c5c399fc4af7bcd6143d2b9d961e8d94501ed383291",
+      "record_hash": "sha256:bc8602a6ae57ff9037ccb82e76288fa86aa722f5a658603da1d417eb89d6cb5f"
+    },
+    "inquiry_anchor": {
+      "anchor_kind": "project_objective",
+      "semantic_key": "scientific.research-question",
+      "objective_ref": {
+        "objective_id": "objective_01K4C000000000000000000005",
+        "revision": 1,
+        "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+        "record_hash": "sha256:38d1df70ad42ee22d959cafe6a431f4662dbcf7cc8caf18d8a07dc2077e61b8c"
+      }
+    },
+    "target": {
+      "target_kind": "result",
+      "bearing": "addresses",
+      "result_ref": {
+        "schema_name": "petra.grounded-response",
+        "schema_version": "1.0.0",
+        "record_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+        "revision": 1,
+        "content_hash": "sha256:a510a2fd1eb89fadcfc9008b4d55f4f0e8983dffef10793e77dbabd0a3256f6d",
+        "record_hash": "sha256:2f63c2e8c7885581bfc1e25fbc894edf46e0861a46bc9e082ce161027f44d696"
+      },
+      "produced_by_work_ref": {
+        "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        "revision": 4,
+        "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+        "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+      }
+    }
+  },
+  "content_hash": "sha256:dba4d871c409e4b89dffece5629ec35dfbbb25e87f19d4942110499c0ef57724",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-08T18:32:00.000Z"
+}

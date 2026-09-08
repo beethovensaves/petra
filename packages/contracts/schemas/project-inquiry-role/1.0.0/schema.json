@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-inquiry-role/1.0.0/schema.json",
+  "title": "PetraProjectInquiryRole",
+  "description": "A versioned ProjectDefinition-owned mapping from Petra's line-of-inquiry product role to an existing domain record. It does not create a universal Inquiry identity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_inquiry_role_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-inquiry-role" },
+    "schema_version": { "const": "1.0.0" },
+    "project_inquiry_role_id": {
+      "type": "string",
+      "pattern": "^project_inquiry_role_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": { "$ref": "../../common/1.0.0/schema.json#/$defs/Revision" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "content": { "$ref": "#/$defs/RoleContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_by": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+    "created_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" },
+    "updated_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "DefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_definition_id", "revision", "content_hash"],
+      "properties": {
+        "project_definition_id": {
+          "type": "string",
+          "pattern": "^project_definition_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "RegistrationContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "content_hash"],
+      "properties": {
+        "name": { "const": "petra.project-objective" },
+        "version": { "const": "1.0.0" },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ObjectiveRepresentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "representation_kind",
+        "registration_kind",
+        "objective_kind",
+        "contract"
+      ],
+      "properties": {
+        "representation_kind": { "const": "project_objective" },
+        "registration_kind": { "const": "objective_schema" },
+        "objective_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "contract": { "$ref": "#/$defs/RegistrationContract" }
+      }
+    },
+    "RoleContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_ref",
+        "role_semantic_key",
+        "representation",
+        "status"
+      ],
+      "properties": {
+        "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+        "role_semantic_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "representation": { "$ref": "#/$defs/ObjectiveRepresentation" },
+        "status": { "enum": ["active", "superseded"] }
+      }
+    }
+  }
+}

@@ -3079,6 +3079,112 @@ class PetraProjectWorkView(PetraModel):
     read_at: str
 
 
+class ProjectInquiryDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectInquiryRegistrationContract(PetraModel):
+    name: Literal["petra.project-objective"]
+    version: Literal["1.0.0"]
+    content_hash: str
+
+
+class ProjectInquiryObjectiveRepresentation(PetraModel):
+    representation_kind: Literal["project_objective"]
+    registration_kind: Literal["objective_schema"]
+    objective_kind: str
+    contract: ProjectInquiryRegistrationContract
+
+
+class ProjectInquiryRoleContent(PetraModel):
+    project_definition_ref: ProjectInquiryDefinitionRef
+    role_semantic_key: str
+    representation: ProjectInquiryObjectiveRepresentation
+    status: Literal["active", "superseded"]
+
+
+class PetraProjectInquiryRole(PetraModel):
+    schema_name: Literal["petra.project-inquiry-role"]
+    schema_version: Literal["1.0.0"]
+    project_inquiry_role_id: str
+    revision: int
+    project_id: str
+    content: ProjectInquiryRoleContent
+    content_hash: str
+    created_by: ActorRef
+    created_at: str
+    updated_at: str
+
+
+class ProjectInquiryRoleRef(PetraModel):
+    project_inquiry_role_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+class ProjectInquiryObjectiveRef(PetraModel):
+    objective_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+class ProjectInquiryAnchor(PetraModel):
+    anchor_kind: Literal["project_objective"]
+    semantic_key: str
+    objective_ref: ProjectInquiryObjectiveRef
+
+
+class ProjectInquiryWorkUnitRef(PetraModel):
+    work_unit_id: str
+    revision: int
+    spec_hash: str
+    record_hash: str
+
+
+class ProjectInquiryTypedRecordRef(PetraModel):
+    schema_name: str
+    schema_version: str
+    record_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+class ProjectInquiryWorkTarget(PetraModel):
+    target_kind: Literal["work"]
+    relationship: Literal["addresses"]
+    work_unit_ref: ProjectInquiryWorkUnitRef
+
+
+class ProjectInquiryResultTarget(PetraModel):
+    target_kind: Literal["result"]
+    bearing: Literal["addresses", "admissible_basis", "accepted_finding"]
+    result_ref: ProjectInquiryTypedRecordRef
+    produced_by_work_ref: ProjectInquiryWorkUnitRef | None = None
+
+
+class ProjectInquiryLinkContent(PetraModel):
+    project_definition_ref: ProjectInquiryDefinitionRef
+    inquiry_role_ref: ProjectInquiryRoleRef
+    inquiry_anchor: ProjectInquiryAnchor
+    target: ProjectInquiryWorkTarget | ProjectInquiryResultTarget
+
+
+class PetraProjectInquiryLink(PetraModel):
+    schema_name: Literal["petra.project-inquiry-link"]
+    schema_version: Literal["1.0.0"]
+    project_inquiry_link_id: str
+    project_id: str
+    content: ProjectInquiryLinkContent
+    content_hash: str
+    created_by: ActorRef
+    created_at: str
+
+
 class ProjectThreadDefinitionRef(PetraModel):
     project_definition_id: str
     revision: int
@@ -5533,6 +5639,8 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-relationship-view": PetraProjectRelationshipView,
     "project-object-location-view": PetraProjectObjectLocationView,
     "project-work-view": PetraProjectWorkView,
+    "project-inquiry-role": PetraProjectInquiryRole,
+    "project-inquiry-link": PetraProjectInquiryLink,
     "project-thread": PetraProjectThread,
     "project-thread-view": PetraProjectThreadView,
     "author": PetraAuthor,
@@ -5693,6 +5801,9 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-effective-controls-view.json", "content", "content_hash"),
         ("project-work-view-collection.json", "content", "content_hash"),
         ("project-work-view-detail.json", "content", "content_hash"),
+        ("project-inquiry-role.json", "content", "content_hash"),
+        ("project-inquiry-work-link.json", "content", "content_hash"),
+        ("project-inquiry-result-link.json", "content", "content_hash"),
         ("project-thread.json", "content", "content_hash"),
         ("project-thread-view-collection.json", "content", "content_hash"),
         ("project-thread-view-detail.json", "content", "content_hash"),

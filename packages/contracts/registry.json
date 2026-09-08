@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.44.0",
+  "registry_version": "1.46.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -65,6 +65,28 @@
       "canonical_sha256": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-objective.ts"
+    },
+    {
+      "name": "project-inquiry-role",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-inquiry-role/1.0.0/schema.json",
+      "path": "schemas/project-inquiry-role/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-definition-owned-inquiry-role-mapping",
+      "canonical_sha256": "sha256:4651d3556081f98c54341601620ca2883536e2b50ecb9416c582c7ef14fb93cc",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-inquiry-role.ts"
+    },
+    {
+      "name": "project-inquiry-link",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-inquiry-link/1.0.0/schema.json",
+      "path": "schemas/project-inquiry-link/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-inquiry-work-and-result-linkage",
+      "canonical_sha256": "sha256:52aacccc881406b113596b087b9b81b7727d47b49aefde50d14794eaa59a6248",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-inquiry-link.ts"
     },
     {
       "name": "project-shell-view",

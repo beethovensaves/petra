@@ -1,0 +1,33 @@
+{
+  "schema_name": "petra.project-inquiry-role",
+  "schema_version": "1.0.0",
+  "project_inquiry_role_id": "project_inquiry_role_01K4F000000000000000000001",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "project_definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+    },
+    "role_semantic_key": "scientific.research-question",
+    "representation": {
+      "representation_kind": "project_objective",
+      "registration_kind": "objective_schema",
+      "objective_kind": "scientific.research-question",
+      "contract": {
+        "name": "petra.project-objective",
+        "version": "1.0.0",
+        "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "status": "active"
+  },
+  "content_hash": "sha256:c06af809e24e019f39053c5c399fc4af7bcd6143d2b9d961e8d94501ed383291",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-08T18:30:00.000Z",
+  "updated_at": "2026-09-08T18:30:00.000Z"
+}
