@@ -107,6 +107,131 @@ class PetraProject(PetraModel):
     updated_at: str
 
 
+class ProjectAuthoredDefinitionOrigin(PetraModel):
+    origin_kind: Literal["project_authored"]
+
+
+class TemplateSeedDefinitionOrigin(PetraModel):
+    origin_kind: Literal["template_seed"]
+    template_id: str
+    template_version: str
+    template_hash: str
+
+
+class ProjectDefinitionContractRef(PetraModel):
+    name: str
+    version: str
+    content_hash: str
+
+
+class ProjectDefinitionRegistration(PetraModel):
+    registration_kind: Literal[
+        "objective_schema",
+        "object_schema",
+        "relationship_schema",
+        "source_role",
+        "workflow",
+        "validator",
+        "output",
+        "terminology",
+        "presentation_descriptor",
+        "model_context",
+        "prompt",
+        "tool",
+        "model_role",
+        "extension",
+    ]
+    semantic_key: str
+    contract: ProjectDefinitionContractRef
+
+
+class ProjectDefinitionTerm(PetraModel):
+    semantic_key: str
+    singular: str
+    plural: str
+    definition: str
+    generic_family: Literal[
+        "focus",
+        "finding",
+        "reference",
+        "relationship",
+        "task",
+        "output",
+        "other",
+    ]
+
+
+class ProjectDefinitionContent(PetraModel):
+    label: str
+    description: str
+    kernel_compatibility: Literal["petra.project-kernel@1.0.0"]
+    registrations: list[ProjectDefinitionRegistration]
+    terms: list[ProjectDefinitionTerm]
+    supported_places: list[
+        Literal[
+            "brief",
+            "sources",
+            "review",
+            "graph",
+            "work",
+            "petra",
+            "composition",
+            "history",
+            "settings",
+            "profile_tool",
+        ]
+    ]
+    omitted_flows: list[str]
+
+
+class PetraProjectDefinition(PetraModel):
+    schema_name: Literal["petra.project-definition"]
+    schema_version: Literal["1.0.0"]
+    project_definition_id: str
+    revision: int
+    project_id: str
+    definition_family: str
+    origin: ProjectAuthoredDefinitionOrigin | TemplateSeedDefinitionOrigin
+    content: ProjectDefinitionContent
+    content_hash: str
+    created_by: ActorRef
+    created_at: str
+
+
+class ProjectObjectiveRef(PetraModel):
+    objective_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectObjectiveContent(PetraModel):
+    objective_kind: str
+    statement: str
+    status: Literal["active", "satisfied", "superseded", "abandoned"]
+    parent_ref: ProjectObjectiveRef | None = None
+    dependency_refs: list[ProjectObjectiveRef]
+
+
+class PetraProjectObjective(PetraModel):
+    schema_name: Literal["petra.project-objective"]
+    schema_version: Literal["1.0.0"]
+    objective_id: str
+    revision: int
+    project_id: str
+    project_definition_ref: ProjectDefinitionRef
+    content: ProjectObjectiveContent
+    content_hash: str
+    created_by: ActorRef
+    created_at: str
+    updated_at: str
+
+
 class PetraAuthor(PetraModel):
     schema_name: Literal["petra.author"]
     schema_version: Literal["1.0.0"]
@@ -3819,6 +3944,8 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
     "project": PetraProject,
+    "project-definition": PetraProjectDefinition,
+    "project-objective": PetraProjectObjective,
     "author": PetraAuthor,
     "work": PetraWork,
     "work-version": PetraWorkVersion,

@@ -1,0 +1,57 @@
+{
+  "schema_name": "petra.project-definition",
+  "schema_version": "1.0.0",
+  "project_definition_id": "project_definition_01K4C000000000000000000006",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "definition_family": "example.unsafe-presentation",
+  "origin": { "origin_kind": "project_authored" },
+  "content": {
+    "label": "Unsafe presentation",
+    "description": "Attempts to smuggle executable presentation behavior into a definition.",
+    "kernel_compatibility": "petra.project-kernel@1.0.0",
+    "registrations": [
+      {
+        "registration_kind": "presentation_descriptor",
+        "semantic_key": "unsafe.widget",
+        "contract": {
+          "name": "example.widget",
+          "version": "1.0.0",
+          "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "javascript": "alert('authority')"
+      }
+    ],
+    "terms": [
+      {
+        "semantic_key": "unsafe.focus",
+        "singular": "Focus",
+        "plural": "Foci",
+        "definition": "Unsafe focus.",
+        "generic_family": "focus"
+      },
+      {
+        "semantic_key": "unsafe.finding",
+        "singular": "Finding",
+        "plural": "Findings",
+        "definition": "Unsafe finding.",
+        "generic_family": "finding"
+      },
+      {
+        "semantic_key": "unsafe.reference",
+        "singular": "Reference",
+        "plural": "References",
+        "definition": "Unsafe reference.",
+        "generic_family": "reference"
+      }
+    ],
+    "supported_places": ["brief"],
+    "omitted_flows": []
+  },
+  "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-08T14:15:00.000Z"
+}

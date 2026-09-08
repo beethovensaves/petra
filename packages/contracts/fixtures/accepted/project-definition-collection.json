@@ -1,0 +1,89 @@
+{
+  "schema_name": "petra.project-definition",
+  "schema_version": "1.0.0",
+  "project_definition_id": "project_definition_01K4C000000000000000000002",
+  "revision": 1,
+  "project_id": "project_01K4C000000000000000000003",
+  "definition_family": "example.collection-curation",
+  "origin": {
+    "origin_kind": "template_seed",
+    "template_id": "project_template_01K4C000000000000000000004",
+    "template_version": "2.1.0",
+    "template_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  },
+  "content": {
+    "label": "Collection curation",
+    "description": "Organizes collection goals, items, placement relationships, records, checks, and catalog outputs through Petra's shared controls.",
+    "kernel_compatibility": "petra.project-kernel@1.0.0",
+    "registrations": [
+      {
+        "registration_kind": "objective_schema",
+        "semantic_key": "collection.curatorial-goal",
+        "contract": {
+          "name": "petra.project-objective",
+          "version": "1.0.0",
+          "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      {
+        "registration_kind": "object_schema",
+        "semantic_key": "collection.item",
+        "contract": {
+          "name": "example.collection-item",
+          "version": "1.2.0",
+          "content_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      {
+        "registration_kind": "validator",
+        "semantic_key": "collection.provenance-check",
+        "contract": {
+          "name": "example.collection-provenance-check",
+          "version": "1.0.0",
+          "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      }
+    ],
+    "terms": [
+      {
+        "semantic_key": "collection.curatorial-goal",
+        "singular": "Curatorial goal",
+        "plural": "Curatorial goals",
+        "definition": "A bounded purpose for organizing the collection.",
+        "generic_family": "focus"
+      },
+      {
+        "semantic_key": "collection.item",
+        "singular": "Item",
+        "plural": "Items",
+        "definition": "One identified member considered for the collection.",
+        "generic_family": "finding"
+      },
+      {
+        "semantic_key": "collection.record",
+        "singular": "Record",
+        "plural": "Records",
+        "definition": "An exact source record used to establish an item's identity or history.",
+        "generic_family": "reference"
+      }
+    ],
+    "supported_places": [
+      "brief",
+      "sources",
+      "review",
+      "graph",
+      "work",
+      "petra",
+      "history",
+      "settings",
+      "profile_tool"
+    ],
+    "omitted_flows": ["Composition"]
+  },
+  "content_hash": "sha256:5f22f1d72dcc43b7b8a269b37348f98850df22cfc517bd906d8a270b663e1f66",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-08T14:05:00.000Z"
+}

@@ -36,6 +36,7 @@ export * from "./interaction-history.js";
 export * from "./model-evidence-extraction.js";
 export * from "./model-execution-repository.js";
 export * from "./model-gateway.js";
+export * from "./project-definition-authority-repository.js";
 export * from "./interaction-record-registry.js";
 export * from "./interaction-authority-repository.js";
 export * from "./research-scope-repository.js";

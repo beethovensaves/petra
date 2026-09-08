@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-definition/1.0.0/schema.json",
+  "title": "PetraProjectDefinition",
+  "description": "An immutable Project-owned semantic definition revision. Reusable templates may seed it but never remain a mutable dependency.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_definition_id",
+    "revision",
+    "project_id",
+    "definition_family",
+    "origin",
+    "content",
+    "content_hash",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-definition" },
+    "schema_version": { "const": "1.0.0" },
+    "project_definition_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^project_definition_" }
+      ]
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "definition_family": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9.-]{2,127}$"
+    },
+    "origin": { "$ref": "#/$defs/DefinitionOrigin" },
+    "content": { "$ref": "#/$defs/DefinitionContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "NamedVersionHash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "content_hash"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "version": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "DefinitionOrigin": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["origin_kind"],
+          "properties": { "origin_kind": { "const": "project_authored" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "origin_kind",
+            "template_id",
+            "template_version",
+            "template_hash"
+          ],
+          "properties": {
+            "origin_kind": { "const": "template_seed" },
+            "template_id": {
+              "allOf": [
+                { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+                { "type": "string", "pattern": "^project_template_" }
+              ]
+            },
+            "template_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "template_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        }
+      ]
+    },
+    "Registration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["registration_kind", "semantic_key", "contract"],
+      "properties": {
+        "registration_kind": {
+          "enum": [
+            "objective_schema",
+            "object_schema",
+            "relationship_schema",
+            "source_role",
+            "workflow",
+            "validator",
+            "output",
+            "terminology",
+            "presentation_descriptor",
+            "model_context",
+            "prompt",
+            "tool",
+            "model_role",
+            "extension"
+          ]
+        },
+        "semantic_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "contract": { "$ref": "#/$defs/NamedVersionHash" }
+      }
+    },
+    "Term": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_key",
+        "singular",
+        "plural",
+        "definition",
+        "generic_family"
+      ],
+      "properties": {
+        "semantic_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "singular": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "plural": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "definition": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "generic_family": {
+          "enum": [
+            "focus",
+            "finding",
+            "reference",
+            "relationship",
+            "task",
+            "output",
+            "other"
+          ]
+        }
+      }
+    },
+    "DefinitionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "description",
+        "kernel_compatibility",
+        "registrations",
+        "terms",
+        "supported_places",
+        "omitted_flows"
+      ],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "kernel_compatibility": { "const": "petra.project-kernel@1.0.0" },
+        "registrations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/Registration" }
+        },
+        "terms": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/Term" }
+        },
+        "supported_places": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "brief",
+              "sources",
+              "review",
+              "graph",
+              "work",
+              "petra",
+              "composition",
+              "history",
+              "settings",
+              "profile_tool"
+            ]
+          }
+        },
+        "omitted_flows": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        }
+      }
+    }
+  }
+}

@@ -134,11 +134,7 @@
       "change_set.applied"
     ],
     "graph_outboxes": 3,
-    "primary_revisions_retained": [
-      1,
-      2,
-      3
-    ],
+    "primary_revisions_retained": [1, 2, 3],
     "primary_current_zone": "quarantine",
     "qualification_current_zone": "trusted",
     "replay_through_stream_revision": 6,
@@ -149,11 +145,7 @@
     "selected_evidence_count": 3,
     "material_draft_spans": 2,
     "citation_count": 1,
-    "rendered_formats": [
-      "markdown",
-      "latex",
-      "bibtex"
-    ],
+    "rendered_formats": ["markdown", "latex", "bibtex"],
     "invalidated_revision": 2
   },
   "interaction": {

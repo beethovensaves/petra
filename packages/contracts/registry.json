@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.31.0",
+  "registry_version": "1.32.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -43,6 +43,28 @@
       "canonical_sha256": "sha256:3117468ce634a48b5111c8e64e63533dc74a14799d10b08fdda61b86a88f4e62",
       "generate_typescript": true,
       "typescript_path": "src/generated/project.ts"
+    },
+    {
+      "name": "project-definition",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-definition/1.0.0/schema.json",
+      "path": "schemas/project-definition/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-project-owned-definition",
+      "canonical_sha256": "sha256:cf9899ff987f7bd8edfcdfd4e5cde4e43afeda62966d876525731915d4d65dc1",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-definition.ts"
+    },
+    {
+      "name": "project-objective",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-objective/1.0.0/schema.json",
+      "path": "schemas/project-objective/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-definition-bound-objective",
+      "canonical_sha256": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-objective.ts"
     },
     {
       "name": "author",

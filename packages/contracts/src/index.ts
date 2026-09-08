@@ -20,6 +20,19 @@ export type {
   WorkVersionSubject,
 } from "./generated/external-identifier.js";
 export type { ActorRef, PetraProject } from "./generated/project.js";
+export type {
+  DefinitionContent as ProjectDefinitionContent,
+  DefinitionOrigin as ProjectDefinitionOrigin,
+  NamedVersionHash as ProjectDefinitionContractRef,
+  PetraProjectDefinition,
+  Registration as ProjectDefinitionRegistration,
+  Term as ProjectDefinitionTerm,
+} from "./generated/project-definition.js";
+export type {
+  ObjectiveContent as ProjectObjectiveContent,
+  ObjectiveRef as ProjectObjectiveRef,
+  PetraProjectObjective,
+} from "./generated/project-objective.js";
 export type { AuthorCredit, PetraWork } from "./generated/work.js";
 export type {
   MetadataSource,
