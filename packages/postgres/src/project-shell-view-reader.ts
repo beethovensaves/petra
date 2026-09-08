@@ -440,10 +440,11 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
         role: "settings",
         coverage: "partial",
         label: "Settings",
-        summary: "The effective ProjectDefinition is available.",
+        summary:
+          "Project privacy, evidence namespaces, and the effective ProjectDefinition are available.",
         attention_count: 0,
         limitation:
-          "Effective privacy, capability, routing, budget, and Review controls are not yet composed.",
+          "Capability, routing, budget, and ReviewPolicy registries are not implemented; their effective values remain explicitly unsupported.",
       }),
       profile_tool: () => ({
         role: "profile_tool",

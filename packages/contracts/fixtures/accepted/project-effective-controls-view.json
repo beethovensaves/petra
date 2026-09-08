@@ -1,0 +1,192 @@
+{
+  "schema_name": "petra.project-effective-controls-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "project_ref": {
+      "record_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "revision": 1,
+      "record_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "project_definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 42,
+      "stream_revision": 8
+    },
+    "sections": {
+      "privacy": {
+        "state": "effective",
+        "label": "Privacy and data access",
+        "summary": "Private visibility and the enabled evidence namespaces come from Project revision 1.",
+        "owner_kind": "project",
+        "scope": {
+          "scope_kind": "project",
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+        },
+        "freshness": {
+          "state": "current",
+          "observed_at": "2026-09-08T15:00:00.000Z"
+        },
+        "values": [
+          {
+            "key": "petra.project.visibility",
+            "label": "Visibility",
+            "meaning": "Who can discover or enter this Project through Petra's current Project authority.",
+            "state": "effective",
+            "value": "private",
+            "origin": {
+              "owner_kind": "project",
+              "record_ref": {
+                "record_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+                "revision": 1,
+                "record_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            },
+            "effective_from": "2026-08-28T18:00:00.000Z",
+            "operation": {
+              "state": "unsupported",
+              "reason": "No accepted typed Project-visibility transition is registered."
+            }
+          },
+          {
+            "key": "petra.project.enabled-evidence-namespaces",
+            "label": "Enabled evidence namespaces",
+            "meaning": "The evidence families that this Project revision permits Petra to register.",
+            "state": "effective",
+            "value": ["scholarly", "personal"],
+            "origin": {
+              "owner_kind": "project",
+              "record_ref": {
+                "record_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+                "revision": 1,
+                "record_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            },
+            "effective_from": "2026-08-28T18:00:00.000Z",
+            "operation": {
+              "state": "unsupported",
+              "reason": "No accepted typed evidence-namespace transition is registered."
+            }
+          }
+        ],
+        "history": {
+          "state": "retained",
+          "record_ref": {
+            "record_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+            "revision": 1,
+            "record_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "limitation": "Project revisions are retained, but the composed causal History destination is not implemented."
+        },
+        "operation": {
+          "state": "unsupported",
+          "reason": "Privacy values are read-only until their owning typed Project transitions are accepted."
+        }
+      },
+      "capability": {
+        "state": "unsupported",
+        "label": "Capabilities",
+        "summary": "Runtime records can reference capability grants, but Petra has no canonical CapabilityGrant registry to resolve an effective Project grant.",
+        "owner_kind": "capability_authority",
+        "scope": {
+          "scope_kind": "project",
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+        },
+        "freshness": {
+          "state": "current",
+          "observed_at": "2026-09-08T15:00:00.000Z",
+          "limitation": "Reference identifiers are not treated as grant definitions."
+        },
+        "values": [],
+        "history": {
+          "state": "unavailable",
+          "limitation": "CapabilityGrant history is unavailable because no owning registry is implemented."
+        },
+        "operation": {
+          "state": "unsupported",
+          "reason": "No accepted typed capability transition is registered."
+        }
+      },
+      "model_routing": {
+        "state": "unsupported",
+        "label": "Model routing",
+        "summary": "Model requests preserve routing and certification references, but no Project-effective RoutingPolicy record is registered.",
+        "owner_kind": "routing_policy",
+        "scope": {
+          "scope_kind": "project",
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+        },
+        "freshness": {
+          "state": "current",
+          "observed_at": "2026-09-08T15:00:00.000Z",
+          "limitation": "Prior request references cannot be promoted into a current Project routing preference."
+        },
+        "values": [],
+        "history": {
+          "state": "unavailable",
+          "limitation": "RoutingPolicy history is unavailable because no owning Project policy registry is implemented."
+        },
+        "operation": {
+          "state": "unsupported",
+          "reason": "No accepted typed Project routing transition is registered."
+        }
+      },
+      "work_budget": {
+        "state": "unsupported",
+        "label": "Work budgets",
+        "summary": "Concrete Work and model requests retain bounded limits, but no Project-effective BudgetProfile record is registered.",
+        "owner_kind": "budget_profile",
+        "scope": {
+          "scope_kind": "project",
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+        },
+        "freshness": {
+          "state": "current",
+          "observed_at": "2026-09-08T15:00:00.000Z",
+          "limitation": "Per-action limits remain on their concrete Work or model request."
+        },
+        "values": [],
+        "history": {
+          "state": "unavailable",
+          "limitation": "BudgetProfile history is unavailable because no owning registry is implemented."
+        },
+        "operation": {
+          "state": "unsupported",
+          "reason": "No accepted typed Project budget transition is registered."
+        }
+      },
+      "review_policy": {
+        "state": "unsupported",
+        "label": "Review policy",
+        "summary": "Review sessions retain decisions and context, but they do not define one effective Project ReviewPolicy.",
+        "owner_kind": "review_policy",
+        "scope": {
+          "scope_kind": "project",
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+        },
+        "freshness": {
+          "state": "current",
+          "observed_at": "2026-09-08T15:00:00.000Z",
+          "limitation": "Review session state is not interpreted as policy."
+        },
+        "values": [],
+        "history": {
+          "state": "unavailable",
+          "limitation": "ReviewPolicy history is unavailable because no owning registry is implemented."
+        },
+        "operation": {
+          "state": "unsupported",
+          "reason": "No accepted typed Project ReviewPolicy transition is registered."
+        }
+      }
+    }
+  },
+  "content_hash": "sha256:23b360bf178b9c10bc8272d9e6cdf39bd12439e27a6261e66fbf6e4719311e49",
+  "read_at": "2026-09-08T15:00:00.000Z"
+}

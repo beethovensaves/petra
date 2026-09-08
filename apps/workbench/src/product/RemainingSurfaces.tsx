@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
+import { Link, useLoaderData, useParams } from "react-router";
+
+import type { PetraProjectEffectiveControlsView } from "@petra/contracts";
 
 import { PetraMark } from "../design-system/brand.js";
 import {
@@ -14,7 +16,6 @@ import {
   getProjectHistory,
   getProjectProfileTool,
   getReferenceArtifact,
-  getReferenceProject,
 } from "./fixtures.js";
 import type {
   CompositionArtifact,
@@ -22,6 +23,7 @@ import type {
   ProfileToolTask,
   ProjectRecord,
 } from "./model.js";
+import type { ProjectSettingsData } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 
 export const CompositionCollectionSurface = ({
@@ -622,11 +624,25 @@ type ThemeChoice = "system" | "stone" | "graphite" | "contrast";
 
 export const SettingsSurface = ({
   selectedProject,
+  controls,
 }: {
   selectedProject?: ProjectRecord | undefined;
+  controls?: PetraProjectEffectiveControlsView | undefined;
 }): React.JSX.Element => {
   const [theme, setTheme] = useState<ThemeChoice>("system");
   const [density, setDensity] = useState("comfortable");
+  const displayValue = (value: string | boolean | number | string[]): string =>
+    Array.isArray(value) ? value.join(", ") : String(value);
+  const sections =
+    controls === undefined
+      ? []
+      : [
+          controls.content.sections.privacy,
+          controls.content.sections.capability,
+          controls.content.sections.model_routing,
+          controls.content.sections.work_budget,
+          controls.content.sections.review_policy,
+        ];
 
   return (
     <main
@@ -766,20 +782,53 @@ export const SettingsSurface = ({
                   </dd>
                 </div>
                 <div>
-                  <dt>Effective origin</dt>
-                  <dd>Project profile manifest</dd>
+                  <dt>Profile origin</dt>
+                  <dd>
+                    ProjectDefinition revision {selectedProject.profile.version}
+                  </dd>
                 </div>
-                <div>
-                  <dt>Source processing</dt>
-                  <dd>Existing local-source capability only</dd>
-                </div>
+                {controls === undefined ? (
+                  <div>
+                    <dt>Project controls</dt>
+                    <dd>The effective-control read is unavailable.</dd>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <dt>Effective snapshot</dt>
+                      <dd>
+                        Authority event{" "}
+                        {controls.content.authority.event_position}
+                        {" · "}Project revision{" "}
+                        {controls.content.project_ref.revision}
+                      </dd>
+                    </div>
+                    {sections.map((section) => (
+                      <div key={section.label}>
+                        <dt>{section.label}</dt>
+                        <dd>
+                          {section.state.replaceAll("_", " ")}
+                          {section.values.length === 0
+                            ? ` · ${section.summary}`
+                            : ` · ${section.values
+                                .map(
+                                  (value) =>
+                                    `${value.label}: ${displayValue(value.value)}`,
+                                )
+                                .join("; ")}`}
+                        </dd>
+                      </div>
+                    ))}
+                  </>
+                )}
               </dl>
               <p
                 id="project-setting-boundary"
                 className="settings-command-boundary"
               >
                 Project controls require exact prospective effect, capability,
-                and History recording. No Project setting command is connected.
+                and History recording. No typed Project control operation is
+                connected.
               </p>
               <PetraButton
                 aria-disabled="true"
@@ -796,13 +845,9 @@ export const SettingsSurface = ({
 };
 
 export const SettingsRoute = (): React.JSX.Element => {
-  const [searchParams] = useSearchParams();
+  const { selectedProject, controls } = useLoaderData<ProjectSettingsData>();
   return (
-    <SettingsSurface
-      selectedProject={getReferenceProject(
-        searchParams.get("project") ?? undefined,
-      )}
-    />
+    <SettingsSurface selectedProject={selectedProject} controls={controls} />
   );
 };
 

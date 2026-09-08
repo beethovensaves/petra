@@ -89,6 +89,28 @@ describe("Petra runtime contract registry", () => {
     }
   });
 
+  it("forbids a universal Project settings command", () => {
+    const registry = new PetraContractRegistry();
+    const controls = readJson<{
+      content: {
+        sections: {
+          privacy: { operation: unknown };
+        };
+      };
+    }>("fixtures/accepted/project-effective-controls-view.json");
+    controls.content.sections.privacy.operation = {
+      state: "available",
+      command_name: "SetProjectSetting",
+      schema_name: "project-setting",
+      schema_version: "1.0.0",
+      expected_revision: 1,
+    };
+
+    expect(
+      registry.isValid("project-effective-controls-view", "1.0.0", controls),
+    ).toBe(false);
+  });
+
   it("accepts only registered formats and locally registered reference targets", () => {
     const id = "https://petra.local/schemas/profile-test/1.0.0/schema.json";
     const base = {

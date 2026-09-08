@@ -52,6 +52,14 @@ export type {
   UnavailablePlaceSummary as ProjectShellUnavailablePlaceSummary,
 } from "./generated/project-shell-view-v1-1.js";
 export type {
+  AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
+  ControlSection as ProjectEffectiveControlSection,
+  ControlSections as ProjectEffectiveControlSections,
+  EffectiveControlsContent as ProjectEffectiveControlsContent,
+  MaterialValue as ProjectEffectiveControlValue,
+  PetraProjectEffectiveControlsView,
+} from "./generated/project-effective-controls-view.js";
+export type {
   ArtifactManifestRef as ProjectSourceArtifactManifestRef,
   AuthorRef as ProjectSourceAuthorRef,
   DefinitionRef as ProjectSourceDefinitionRef,

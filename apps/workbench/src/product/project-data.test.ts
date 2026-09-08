@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProjectEffectiveControlsView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
@@ -15,6 +16,7 @@ import {
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
   loadProjectRecord,
+  loadProjectSettings,
   projectRecordFromShellView,
   reviewSessionFromView,
   sourceRecordFromView,
@@ -50,6 +52,16 @@ const sourceView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectSourceView;
+
+const controlsView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-effective-controls-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectEffectiveControlsView;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -216,6 +228,52 @@ describe("Project shell workbench adapter", () => {
       }),
     ).rejects.toMatchObject({ status: 400 });
     expect(fetch).toHaveBeenCalledOnce();
+  });
+
+  it("loads Settings from one exact Project and definition snapshot", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      return Promise.resolve(
+        Response.json(
+          path.endsWith("/effective-controls") ? controlsView : shellV11View,
+        ),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.test/settings?project=${controlsView.project_id}`,
+    );
+    const data = await loadProjectSettings({
+      request: new Request(url),
+      url,
+      pattern: "/settings",
+      params: {},
+      context: new RouterContextProvider(),
+    });
+
+    expect(data.selectedProject?.id).toBe(controlsView.project_id);
+    expect(data.controls?.content.sections.privacy.state).toBe("effective");
+    expect(data.controls?.content.sections.capability.state).toBe(
+      "unsupported",
+    );
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    const noTarget = new URL("http://petra.test/settings");
+    await expect(
+      loadProjectSettings({
+        request: new Request(noTarget),
+        url: noTarget,
+        pattern: "/settings",
+        params: {},
+        context: new RouterContextProvider(),
+      }),
+    ).resolves.toEqual({});
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it("maps one exact ProjectSource authority chain into the frozen source surfaces", () => {

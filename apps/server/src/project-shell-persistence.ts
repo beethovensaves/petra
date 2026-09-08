@@ -1,4 +1,5 @@
 import {
+  PostgresProjectEffectiveControlsViewReader,
   PostgresProjectObjectLocationViewReader,
   PostgresProjectRelationshipViewReader,
   PostgresProjectReviewViewReader,
@@ -10,6 +11,7 @@ import neo4j, { type Driver } from "neo4j-driver";
 import pg from "pg";
 
 import type {
+  ProjectEffectiveControlsViewReader,
   ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
@@ -21,6 +23,7 @@ const { Pool } = pg;
 
 export interface ProjectShellPersistence {
   readonly views: ProjectShellViewReader;
+  readonly effectiveControls: ProjectEffectiveControlsViewReader;
   readonly sourceViews: ProjectSourceViewReader;
   readonly reviewViews: ProjectReviewViewReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
@@ -156,6 +159,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
       await graph.prepare();
       return {
         views: new PostgresProjectShellViewReader(pool),
+        effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
         sourceViews: new PostgresProjectSourceViewReader(pool),
         reviewViews: new PostgresProjectReviewViewReader(pool),
         objectLocations: new PostgresProjectObjectLocationViewReader(pool),
@@ -178,6 +182,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
 
   return {
     views: new PostgresProjectShellViewReader(pool),
+    effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
     sourceViews: new PostgresProjectSourceViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),
     objectLocations: new PostgresProjectObjectLocationViewReader(pool),

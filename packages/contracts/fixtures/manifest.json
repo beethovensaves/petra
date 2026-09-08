@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.19.0",
+  "fixture_manifest_version": "1.20.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -33,6 +33,10 @@
       "schema": "project-shell-view",
       "version": "1.1.0",
       "path": "fixtures/accepted/project-shell-view-v1-1.json"
+    },
+    {
+      "schema": "project-effective-controls-view",
+      "path": "fixtures/accepted/project-effective-controls-view.json"
     },
     {
       "schema": "project-source",
@@ -389,6 +393,10 @@
       "schema": "project-shell-view",
       "version": "1.1.0",
       "path": "fixtures/rejected/project-shell-view-v1-1-unavailable-count.json"
+    },
+    {
+      "schema": "project-effective-controls-view",
+      "path": "fixtures/rejected/project-effective-controls-view-universal-operation.json"
     },
     {
       "schema": "project-source-view",

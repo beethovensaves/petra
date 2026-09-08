@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProjectEffectiveControlsView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
@@ -9,6 +10,7 @@ import type {
   PetraProjectSourceView,
 } from "@petra/contracts";
 import type {
+  ProjectEffectiveControlsViewReader,
   ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
@@ -51,6 +53,16 @@ const sourceFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectSourceView;
+
+const controlsFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-effective-controls-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectEffectiveControlsView;
 
 const reviewFixture = JSON.parse(
   readFileSync(
@@ -102,6 +114,15 @@ const sourceReader: ProjectSourceViewReader = {
       projectId === sourceFixture.project_id &&
         sourceId === sourceFixture.project_source_id
         ? structuredClone(sourceFixture)
+        : undefined,
+    ),
+};
+
+const controlsReader: ProjectEffectiveControlsViewReader = {
+  getProjectEffectiveControlsView: (projectId) =>
+    Promise.resolve(
+      projectId === controlsFixture.project_id
+        ? structuredClone(controlsFixture)
         : undefined,
     ),
 };
@@ -208,6 +229,35 @@ describe("authorized Project shell query routes", () => {
       ),
     );
     expect(invalid.status).toBe(422);
+  });
+
+  it("returns exact read-only effective controls and rejects client overrides", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectEffectiveControls: controlsReader,
+    });
+    const response = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${controlsFixture.project_id}/effective-controls`,
+      ),
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(controlsFixture);
+
+    const override = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${controlsFixture.project_id}/effective-controls?profile=personal`,
+      ),
+    );
+    expect(override.status).toBe(422);
+    const overrideBody = JSON.parse(await override.text()) as unknown;
+    expect(isRecord(overrideBody)).toBe(true);
+    if (!isRecord(overrideBody) || !isRecord(overrideBody.error)) {
+      throw new Error("Expected Petra's structured invalid-target error.");
+    }
+    expect(overrideBody.error.code).toBe(
+      "PROJECT_EFFECTIVE_CONTROLS_TARGET_INVALID",
+    );
   });
 
   it("does not substitute another Project and preserves the API auth boundary", async () => {

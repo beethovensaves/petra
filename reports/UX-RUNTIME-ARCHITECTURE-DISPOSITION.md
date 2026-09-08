@@ -316,7 +316,7 @@ explicitly records later implementation progress:
 | `UX-REQ-017` | **Partial.** CompositionRequest/Plan, DraftArtifact/Span, ProvenanceMap, CitationBundle, assessments, renders, and persistence provide an exact scientific composition aggregate. | Add ProjectDefinition-resolved document collection/context reads, recognizable purpose, current and historical revision positions, ancestry, Work/inquiry links, findings, capabilities, and safe destinations. | Wave 5 |
 | `UX-REQ-018` | **Partial.** DraftRevisionEngine creates exact non-empty span replacements and additive support assessments. | Add a durable working-document boundary for blank, structural, and successive authoring; exact save acknowledgments; late suggestion/check reconciliation; and working-to-registered promotion. External filesystem editing remains excluded. | Wave 5 |
 | `UX-REQ-019` | **Partial.** Deterministic rendering, Artifact publication, warnings, and support assessments preserve exact generated scientific outputs. | Add exact working-copy capture, scoped findings/coverage, status-bearing representation, ExportManifest and delivery receipts, partial-format recovery, and destination eligibility. Export does not promote or certify content. | Wave 5 |
-| `UX-REQ-020` | **Partial.** Project privacy, enabled namespaces, ReviewPolicy decisions, routing/certification, capability references, and budget bindings exist in separate contracts. | Add a composed effective-control read and a registry that maps editable controls to their existing typed operations. Add missing policy records only as required; never add a universal `SetProjectSetting`. Personal preferences remain local. | Waves 1 and 3 |
+| `UX-REQ-020` | **Partial, advanced after baseline.** `petra.project-effective-controls-view@1.0.0` now composes exact Project privacy and enabled namespaces with the current ProjectDefinition and authority position under repeatable-read isolation. Capability, routing, budget, and ReviewPolicy sections remain explicitly unsupported instead of interpreting execution references as effective policy. The authenticated client verifies the Project and definition snapshot before presentation. | Add owning policy/grant records only where required, actor authority, inheritance/expiry/conflict states, active-Work impact, History destinations, and a registry mapping each genuinely editable value to its typed operation. Never add a universal `SetProjectSetting`; personal preferences remain local. | Wave 1 read complete; transitions in Wave 3 |
 | `UX-REQ-021` | **Partial.** Scientific synthesist output, GroundedResponse, Felicity records, command receipts, and AG-UI delivery preserve important communication boundaries. | Add a ProjectDefinition-resolved CommunicationPlan with statement-level origin, force, basis, limitation, action/event links, terminology versions, and a validation/repair receipt. It is not mutation authority. | Wave 4 |
 | `UX-REQ-022` | **Missing composite contract.** AG-UI can carry non-authoritative client state; graph and ContextPacket foundations exist separately. | Add a bounded PresentationContext record linking exact semantic result, visible scene, complete accessible peer, optional permitted capture, model input, and validated explanation. Pixels and layout never establish domain meaning. | Wave 6 |
 | `UX-REQ-023` | **Partial foundations only.** Commands, events, ChangeSets, Work, interaction replay, projection checkpoints, artifacts, composition, and M1.9 recovery each record their own outcomes. | Add a read-only RecoveryAssessment that reconciles owning records into effect, preservation, member outcomes, eligible registered actions, and exact return. It cannot execute a generic recovery command or become another event ledger. | Wave 6 |
@@ -441,9 +441,11 @@ through `UX-REQ-023` conformance.
 ## Immediate next implementation task
 
 Treat the completed M1.9 cumulative result, four live presentation reads,
-interface recovery gate, initial semantic locator, and expanded Project-shell
-context as the safety point. Continue Wave 1 with the read-only effective-control
-composition from `UX-REQ-020`. Do not broaden the M1 closeout into unimplemented
+interface recovery gate, initial semantic locator, expanded Project-shell
+context, and read-only effective-control composition as the safety point. Finish
+Wave 1 with paired scientific and controlled-writing ProjectDefinition
+conformance across those neutral reads. Do not turn either profile into a
+mandatory template or broaden the M1 closeout into unimplemented
 working/historical graphs, general Work/Brief/History reads, managed folders,
 archives, or multi-user behavior.
 
@@ -453,5 +455,6 @@ The original disposition was based on read-only inspection of the frozen
 handoff, neutral reference implementation, accepted decisions, runtime schemas,
 repositories, server routes, M1.9 reports, and roadmap state. The status refresh
 records the verified cumulative trace, four additive live presentation reads,
-initial semantic-location slice, and Project-shell 1.1 context expansion. It does
-not claim full neutral-product conformance.
+initial semantic-location slice, Project-shell 1.1 context expansion, and the
+first read-only effective Project controls composition. It does not claim full
+neutral-product conformance.

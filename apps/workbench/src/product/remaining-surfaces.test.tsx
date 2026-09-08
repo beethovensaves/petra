@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+
+import type { PetraProjectEffectiveControlsView } from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
@@ -19,6 +22,16 @@ import {
 
 const render = (node: React.ReactNode): string =>
   renderToStaticMarkup(<MemoryRouter>{node}</MemoryRouter>);
+
+const controls = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-effective-controls-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectEffectiveControlsView;
 
 describe("remaining neutral reference packets", () => {
   const writingProject = getReferenceProject("field-guide");
@@ -136,7 +149,9 @@ describe("remaining neutral reference packets", () => {
   });
 
   it("separates personal Settings from governed Project controls", () => {
-    const markup = render(<SettingsSurface selectedProject={inquiryProject} />);
+    const markup = render(
+      <SettingsSurface selectedProject={inquiryProject} controls={controls} />,
+    );
 
     expect(markup).toContain("Personal presentation choices remain separate");
     expect(markup).toContain("Petra Stone");
@@ -144,7 +159,10 @@ describe("remaining neutral reference packets", () => {
     expect(markup).toContain("High Contrast");
     expect(markup).toContain("These choices reset when this page reloads");
     expect(markup).toContain("Governed Project scope");
-    expect(markup).toContain("No Project setting command is connected");
+    expect(markup).toContain("Visibility: private");
+    expect(markup).toContain("scholarly, personal");
+    expect(markup).toContain("Runtime records can reference capability grants");
+    expect(markup).toContain("No typed Project control operation is connected");
   });
 
   it("uses a profile-owned tool inside Petra's shared task and recovery grammar", () => {

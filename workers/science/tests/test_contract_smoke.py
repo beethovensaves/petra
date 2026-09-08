@@ -1130,6 +1130,146 @@ class PetraProjectShellViewV110(PetraModel):
     read_at: str
 
 
+ProjectControlState = Literal[
+    "effective",
+    "inherited",
+    "expired",
+    "observed_only",
+    "unavailable",
+    "unknown",
+    "unsupported",
+    "conflicting",
+]
+
+
+class ProjectControlExactRecordRef(PetraModel):
+    record_id: str
+    revision: int
+    record_hash: str
+
+
+class ProjectControlDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+class ProjectControlAuthority(PetraModel):
+    isolation: Literal["repeatable_read"]
+    event_position: int
+    stream_revision: int
+
+
+class ProjectControlScope(PetraModel):
+    scope_kind: Literal["project"]
+    project_id: str
+
+
+class ProjectControlFreshness(PetraModel):
+    state: Literal["current", "stale", "unknown"]
+    observed_at: str
+    limitation: str | None = None
+
+
+class ProjectControlUnsupportedOperation(PetraModel):
+    state: Literal["unsupported"]
+    reason: str
+
+
+class ProjectControlAvailableOperation(PetraModel):
+    state: Literal["available"]
+    command_name: str
+    schema_name: str
+    schema_version: str
+    expected_revision: int
+
+
+ProjectControlOperation = (
+    ProjectControlUnsupportedOperation | ProjectControlAvailableOperation
+)
+
+
+class ProjectControlRetainedHistory(PetraModel):
+    state: Literal["retained"]
+    record_ref: ProjectControlExactRecordRef
+    limitation: str
+
+
+class ProjectControlUnavailableHistory(PetraModel):
+    state: Literal["unavailable"]
+    limitation: str
+
+
+ProjectControlHistory = ProjectControlRetainedHistory | ProjectControlUnavailableHistory
+
+
+class ProjectControlOrigin(PetraModel):
+    owner_kind: Literal[
+        "project",
+        "capability_authority",
+        "routing_policy",
+        "budget_profile",
+        "review_policy",
+    ]
+    record_ref: ProjectControlExactRecordRef
+
+
+class ProjectControlMaterialValue(PetraModel):
+    key: str
+    label: str
+    meaning: str
+    state: ProjectControlState
+    value: str | bool | int | list[str]
+    origin: ProjectControlOrigin
+    effective_from: str | None = None
+    expires_at: str | None = None
+    limitation: str | None = None
+    operation: ProjectControlOperation
+
+
+class ProjectControlSection(PetraModel):
+    state: ProjectControlState
+    label: str
+    summary: str
+    owner_kind: Literal[
+        "project",
+        "capability_authority",
+        "routing_policy",
+        "budget_profile",
+        "review_policy",
+    ]
+    scope: ProjectControlScope
+    freshness: ProjectControlFreshness
+    values: list[ProjectControlMaterialValue]
+    history: ProjectControlHistory
+    operation: ProjectControlOperation
+
+
+class ProjectControlSections(PetraModel):
+    privacy: ProjectControlSection
+    capability: ProjectControlSection
+    model_routing: ProjectControlSection
+    work_budget: ProjectControlSection
+    review_policy: ProjectControlSection
+
+
+class ProjectEffectiveControlsContent(PetraModel):
+    project_ref: ProjectControlExactRecordRef
+    project_definition_ref: ProjectControlDefinitionRef
+    authority: ProjectControlAuthority
+    sections: ProjectControlSections
+
+
+class PetraProjectEffectiveControlsView(PetraModel):
+    schema_name: Literal["petra.project-effective-controls-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: ProjectEffectiveControlsContent
+    content_hash: str
+    read_at: str
+
+
 class PetraAuthor(PetraModel):
     schema_name: Literal["petra.author"]
     schema_version: Literal["1.0.0"]
@@ -4845,6 +4985,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-definition": PetraProjectDefinition,
     "project-objective": PetraProjectObjective,
     "project-shell-view": PetraProjectShellView,
+    "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-view": PetraProjectSourceView,
     "review-session": PetraReviewSession,
@@ -5006,6 +5147,7 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("interaction-replay-record.json", "content", "content_hash"),
         ("model-request.json", "content", "content_hash"),
         ("model-call.json", "content", "content_hash"),
+        ("project-effective-controls-view.json", "content", "content_hash"),
     ]
     for filename, projection, hash_field in fixtures:
         value = read_json(f"fixtures/accepted/{filename}")

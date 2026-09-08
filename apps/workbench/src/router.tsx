@@ -38,6 +38,7 @@ import {
   loadProjectRecord,
   loadProjectReviewCollection,
   loadProjectReviewSession,
+  loadProjectSettings,
   loadProjectSourceCollection,
   loadProjectSourceRecord,
 } from "./product/project-data.js";
@@ -113,7 +114,11 @@ export const router = createBrowserRouter([
           { path: "tools/:toolId", element: <ProfileToolRoute /> },
         ],
       },
-      { path: "settings", element: <SettingsRoute /> },
+      {
+        path: "settings",
+        loader: loadProjectSettings,
+        element: <SettingsRoute />,
+      },
     ],
   },
   {

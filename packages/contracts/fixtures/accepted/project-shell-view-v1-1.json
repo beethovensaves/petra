@@ -161,9 +161,9 @@
         "role": "settings",
         "coverage": "partial",
         "label": "Settings",
-        "summary": "The effective ProjectDefinition is available.",
+        "summary": "Project privacy, evidence namespaces, and the effective ProjectDefinition are available.",
         "attention_count": 0,
-        "limitation": "Effective privacy, capability, routing, budget, and Review controls are not yet composed."
+        "limitation": "Capability, routing, budget, and ReviewPolicy registries are not implemented; their effective values remain explicitly unsupported."
       }
     ],
     "selection": {
@@ -267,6 +267,6 @@
       }
     }
   },
-  "content_hash": "sha256:b7302604cc9222056bb1fb8ab4f5c72b0685e3608d763069964ef8b006aa30a4",
+  "content_hash": "sha256:69530bba9bc4f1168be753bfa6c790edb9cada919e5535db9824c2cc89df525e",
   "read_at": "2026-09-08T18:00:00.000Z"
 }

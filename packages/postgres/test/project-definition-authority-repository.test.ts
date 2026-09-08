@@ -16,6 +16,8 @@ import type {
   PostgresProjectDefinitionErrorCode,
 } from "../src/project-definition-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import type { PostgresProjectEffectiveControlsViewError } from "../src/project-effective-controls-view-reader.js";
+import { PostgresProjectEffectiveControlsViewReader } from "../src/project-effective-controls-view-reader.js";
 import type { PostgresProjectShellViewError } from "../src/project-shell-view-reader.js";
 import { PostgresProjectShellViewReader } from "../src/project-shell-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
@@ -412,6 +414,46 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
     expect(views).toHaveLength(1);
     expect(views[0]?.project_id).toBe(project.project_id);
 
+    const controlsReader = new PostgresProjectEffectiveControlsViewReader(pool);
+    const controls = await controlsReader.getProjectEffectiveControlsView(
+      project.project_id,
+    );
+    if (controls === undefined) {
+      throw new Error("Expected effective Project controls.");
+    }
+    expect(controls.content.authority.isolation).toBe("repeatable_read");
+    expect(controls.content.project_ref).toEqual(
+      expect.objectContaining({
+        record_id: project.project_id,
+        revision: project.revision,
+      }),
+    );
+    expect(controls.content.project_definition_ref).toEqual(
+      expect.objectContaining({
+        project_definition_id: definition.project_definition_id,
+        revision: definition.revision,
+        content_hash: definition.content_hash,
+      }),
+    );
+    expect(controls.content.sections.privacy.values).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "petra.project.visibility",
+          state: "effective",
+          value: "private",
+        }),
+        expect.objectContaining({
+          key: "petra.project.enabled-evidence-namespaces",
+          state: "effective",
+          value: project.enabled_evidence_namespaces,
+        }),
+      ]),
+    );
+    expect(controls.content.sections.capability.state).toBe("unsupported");
+    expect(controls.content.sections.model_routing.state).toBe("unsupported");
+    expect(controls.content.sections.work_budget.state).toBe("unsupported");
+    expect(controls.content.sections.review_policy.state).toBe("unsupported");
+
     view.content.project.name = "caller mutation";
     expect(
       (await reader.getProjectShellView(project.project_id))?.content.project
@@ -427,6 +469,16 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
     ).rejects.toEqual(
       expect.objectContaining<Partial<PostgresProjectShellViewError>>({
         code: "PROJECT_SHELL_DEFINITION_MISSING",
+      }),
+    );
+    const controlsReader = new PostgresProjectEffectiveControlsViewReader(pool);
+    await expect(
+      controlsReader.getProjectEffectiveControlsView(project.project_id),
+    ).rejects.toEqual(
+      expect.objectContaining<
+        Partial<PostgresProjectEffectiveControlsViewError>
+      >({
+        code: "PROJECT_EFFECTIVE_CONTROLS_DEFINITION_MISSING",
       }),
     );
   });

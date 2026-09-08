@@ -22,6 +22,7 @@ import {
   derivePetraId,
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
+  type ProjectEffectiveControlsViewReader,
   type ProjectObjectLocationViewReader,
   type ProjectRelationshipViewReader,
   type ProjectReviewViewReader,
@@ -46,6 +47,7 @@ export interface PetraAppOptions {
   codexProvider?: CodexSubscriptionProviderPort;
   codexWorkspaceRoot?: string;
   projectShellViews?: ProjectShellViewReader;
+  projectEffectiveControls?: ProjectEffectiveControlsViewReader;
   projectSourceViews?: ProjectSourceViewReader;
   projectReviewViews?: ProjectReviewViewReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
@@ -492,6 +494,55 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       );
     }
   });
+
+  app.get(
+    "/api/queries/projects/:projectId/effective-controls",
+    async (context) => {
+      if (options.projectEffectiveControls === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_EFFECTIVE_CONTROLS_UNAVAILABLE",
+          "The authorized effective Project controls read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Effective Project controls do not accept client-supplied policy or profile overrides.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const view =
+          await options.projectEffectiveControls.getProjectEffectiveControlsView(
+            context.req.param("projectId"),
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_NOT_FOUND",
+            "The requested Project does not exist in the local authority store.",
+          );
+        }
+        contracts.assertValid("project-effective-controls-view", "1.0.0", view);
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_EFFECTIVE_CONTROLS_TARGET_INVALID"
+            : "PROJECT_EFFECTIVE_CONTROLS_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The effective Project controls view is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
 
   app.get("/api/queries/projects/:projectId/sources", async (context) => {
     if (options.projectSourceViews === undefined) {

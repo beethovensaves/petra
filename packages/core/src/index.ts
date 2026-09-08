@@ -37,6 +37,7 @@ export * from "./model-evidence-extraction.js";
 export * from "./model-execution-repository.js";
 export * from "./model-gateway.js";
 export * from "./project-definition-authority-repository.js";
+export * from "./project-effective-controls-view.js";
 export * from "./project-shell-view.js";
 export * from "./project-source-authority-repository.js";
 export * from "./project-source-view.js";

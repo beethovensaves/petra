@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.40.0",
+  "registry_version": "1.41.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -87,6 +87,17 @@
       "canonical_sha256": "sha256:859cf372c29e2ed06d7f4e0173a3f8955ba020ff7bb4a022be953d0e98038daf",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-shell-view-v1-1.ts"
+    },
+    {
+      "name": "project-effective-controls-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-effective-controls-view/1.0.0/schema.json",
+      "path": "schemas/project-effective-controls-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-effective-project-controls-composition",
+      "canonical_sha256": "sha256:d662e0085ea517901ef55760a7f118c66783012125f3a701b2197ea20beb4b9b",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-effective-controls-view.ts"
     },
     {
       "name": "project-source",

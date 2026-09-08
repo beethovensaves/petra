@@ -40,8 +40,9 @@ Partial coverage remains explicit:
   collection;
 - History counts retained Project domain events but does not claim a composed
   causal History read; and
-- Settings exposes the effective ProjectDefinition but does not claim composed
-  privacy, capability, routing, budget, or Review controls.
+- Settings exposes the effective ProjectDefinition plus Project privacy and
+  evidence namespaces; capability, routing, budget, and ReviewPolicy remain
+  explicitly unsupported until their owning registries exist.
 
 ## Optional exact selection
 
@@ -71,15 +72,15 @@ collection and detail reads; selection is simply absent when none was requested.
 
 The slice passes:
 
-- 316 TypeScript schema, registry, generation, hash, and fixture cases;
+- 320 TypeScript schema, registry, generation, hash, and fixture cases;
 - 11 strict Python/Pydantic contract-smoke cases;
 - 94 real PostgreSQL 18.6 repository cases after Flyway V001-V021;
-- 37 server cases, including exact optional selection and malformed-selection
+- 38 server cases, including exact optional selection and malformed-selection
   refusal; and
-- 76 workbench cases, including place-summary mapping, exact selection
+- 77 workbench cases, including place-summary mapping, exact selection
   propagation, returned-hash verification, and incomplete-tuple refusal.
 
-The complete repository gate passes with 644 always-on tests and seven expected
+The complete repository gate passes with 649 always-on tests and seven expected
 service-dependent skips, together with generated-contract/hash checks, the M1
 retrieval-floor check, formatting, lint, TypeScript/Python type checks, and the
 production workbench build.

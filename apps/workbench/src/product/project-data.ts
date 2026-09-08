@@ -1,4 +1,5 @@
 import type {
+  PetraProjectEffectiveControlsView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
@@ -57,6 +58,26 @@ const shellView = (value: unknown): ProjectShellView => {
     );
   }
   return value as unknown as ProjectShellView;
+};
+
+const effectiveControlsView = (
+  value: unknown,
+): PetraProjectEffectiveControlsView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-effective-controls-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid effective Project controls view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectEffectiveControlsView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -624,6 +645,53 @@ export const loadProjectRecord = async ({
     }
   }
   return projectRecordFromShellView(view);
+};
+
+export interface ProjectSettingsData {
+  selectedProject?: ProjectRecord;
+  controls?: PetraProjectEffectiveControlsView;
+}
+
+export const loadProjectSettings = async ({
+  request,
+}: LoaderFunctionArgs): Promise<ProjectSettingsData> => {
+  const target = new URL(request.url).searchParams.get("project");
+  if (target === null) return {};
+  if (target.length === 0) {
+    throw new ProjectDataError(
+      "A Settings Project target cannot be empty.",
+      400,
+    );
+  }
+  const encoded = encodeURIComponent(target);
+  const [projectValue, controlsValue] = await Promise.all([
+    requestJson(`/api/queries/projects/${encoded}/shell`),
+    requestJson(`/api/queries/projects/${encoded}/effective-controls`),
+  ]);
+  const projectView = shellView(projectValue);
+  const controls = effectiveControlsView(controlsValue);
+  if (
+    projectView.project_id !== target ||
+    controls.project_id !== target ||
+    controls.content.project_ref.record_id !== target ||
+    controls.content.project_ref.revision !==
+      projectView.content.project.revision ||
+    controls.content.project_definition_ref.project_definition_id !==
+      projectView.content.definition.project_definition_id ||
+    controls.content.project_definition_ref.revision !==
+      projectView.content.definition.revision ||
+    controls.content.project_definition_ref.content_hash !==
+      projectView.content.definition.content_hash
+  ) {
+    throw new ProjectDataError(
+      "Petra returned controls from a different Project or definition snapshot.",
+      502,
+    );
+  }
+  return {
+    selectedProject: projectRecordFromShellView(projectView),
+    controls,
+  };
 };
 
 const requiredRouteIdentity = (

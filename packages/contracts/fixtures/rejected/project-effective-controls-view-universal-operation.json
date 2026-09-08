@@ -1,0 +1,58 @@
+{
+  "schema_name": "petra.project-effective-controls-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "project_ref": {
+      "record_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "revision": 1,
+      "record_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "project_definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 42,
+      "stream_revision": 8
+    },
+    "sections": {
+      "privacy": {
+        "state": "effective",
+        "label": "Privacy",
+        "summary": "Incorrect universal control.",
+        "owner_kind": "project",
+        "scope": {
+          "scope_kind": "project",
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+        },
+        "freshness": {
+          "state": "current",
+          "observed_at": "2026-09-08T15:00:00.000Z"
+        },
+        "values": [],
+        "history": {
+          "state": "unavailable",
+          "limitation": "Unavailable."
+        },
+        "operation": {
+          "state": "available",
+          "command_name": "SetProjectSetting",
+          "schema_name": "project-setting",
+          "schema_version": "1.0.0",
+          "expected_revision": 1
+        },
+        "universal_toggle": true
+      },
+      "capability": {},
+      "model_routing": {},
+      "work_budget": {},
+      "review_policy": {}
+    }
+  },
+  "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "read_at": "2026-09-08T15:00:00.000Z"
+}
