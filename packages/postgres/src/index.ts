@@ -10,6 +10,7 @@ export * from "./interaction-authority-repository.js";
 export * from "./model-execution-repository.js";
 export * from "./project-definition-authority-repository.js";
 export * from "./project-inquiry-authority-repository.js";
+export * from "./project-inquiry-view-reader.js";
 export * from "./project-effective-controls-view-reader.js";
 export * from "./project-work-view-reader.js";
 export * from "./project-thread-authority-repository.js";

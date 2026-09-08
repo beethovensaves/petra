@@ -1,7 +1,29 @@
 import type {
   PetraProjectInquiryLink,
   PetraProjectInquiryRole,
+  PetraProjectInquiryView,
 } from "@petra/contracts";
+
+export type ProjectInquiryAuthoredStatus =
+  "active" | "satisfied" | "superseded" | "abandoned";
+
+export interface ProjectInquiryCollectionRequest {
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly authored_status?: ProjectInquiryAuthoredStatus;
+  readonly work_unit_id?: string;
+}
+
+export interface ProjectInquiryViewReader {
+  listProjectInquiryView(
+    projectId: string,
+    request?: ProjectInquiryCollectionRequest,
+  ): Promise<PetraProjectInquiryView | undefined>;
+  getProjectInquiryView(
+    projectId: string,
+    objectiveId: string,
+  ): Promise<PetraProjectInquiryView | undefined>;
+}
 
 /**
  * Definition-owned inquiry-role mappings and exact many-to-many links. The

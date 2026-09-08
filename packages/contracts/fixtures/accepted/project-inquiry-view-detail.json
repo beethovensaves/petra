@@ -1,0 +1,198 @@
+{
+  "schema_name": "petra.project-inquiry-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "view_kind": "detail",
+    "project_definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "definition_family": "petra.scientific-evidence"
+    },
+    "summary": {
+      "role": {
+        "role_ref": {
+          "project_inquiry_role_id": "project_inquiry_role_01K4F000000000000000000001",
+          "revision": 1,
+          "content_hash": "sha256:c06af809e24e019f39053c5c399fc4af7bcd6143d2b9d961e8d94501ed383291",
+          "record_hash": "sha256:bc8602a6ae57ff9037ccb82e76288fa86aa722f5a658603da1d417eb89d6cb5f"
+        },
+        "semantic_key": "scientific.research-question",
+        "singular": "Research question",
+        "plural": "Research questions",
+        "representation_kind": "project_objective"
+      },
+      "inquiry_anchor_ref": {
+        "objective_id": "objective_01K4C000000000000000000005",
+        "revision": 1,
+        "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+        "record_hash": "sha256:38d1df70ad42ee22d959cafe6a431f4662dbcf7cc8caf18d8a07dc2077e61b8c"
+      },
+      "original_framing": "Determine which claims in the selected source are supported by exact inspectable passages.",
+      "current_framing": "Determine which claims in the selected source are supported by exact inspectable passages.",
+      "authored_status": "active",
+      "resolution_boundary": "authored_status_only",
+      "dependency_count": 0,
+      "linked_work_count": 1,
+      "linked_result_count": 1,
+      "operational_work": { "active": 0, "completed": 1, "cancelled": 0 },
+      "destination": {
+        "role": "brief",
+        "objective_ref": {
+          "objective_id": "objective_01K4C000000000000000000005",
+          "revision": 1,
+          "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+          "record_hash": "sha256:38d1df70ad42ee22d959cafe6a431f4662dbcf7cc8caf18d8a07dc2077e61b8c"
+        }
+      },
+      "updated_at": "2026-09-08T14:10:00.000Z"
+    },
+    "framing_history": [
+      {
+        "objective_ref": {
+          "objective_id": "objective_01K4C000000000000000000005",
+          "revision": 1,
+          "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+          "record_hash": "sha256:38d1df70ad42ee22d959cafe6a431f4662dbcf7cc8caf18d8a07dc2077e61b8c"
+        },
+        "statement": "Determine which claims in the selected source are supported by exact inspectable passages.",
+        "authored_status": "active",
+        "updated_at": "2026-09-08T14:10:00.000Z"
+      }
+    ],
+    "related_inquiries": [],
+    "open_questions": {
+      "state": "available",
+      "items": [
+        "Determine which claims in the selected source are supported by exact inspectable passages."
+      ],
+      "basis": "authored_active_framing"
+    },
+    "current_understanding": {
+      "state": "unavailable",
+      "reason": "No registered inquiry-understanding assessment exists."
+    },
+    "basis": {
+      "state": "unavailable",
+      "reason": "Addressing results do not become admissible inquiry basis without a registered authority adapter."
+    },
+    "work_links": [
+      {
+        "link_ref": {
+          "project_inquiry_link_id": "project_inquiry_link_01K4F000000000000000000002",
+          "content_hash": "sha256:ebef0325a5581984a2615b267543bde9ba30bf9820bac40e62cb71b90f2e549f",
+          "record_hash": "sha256:7c97bbb742a44d9ab8fd30335bb4ae5d1b4bc617029eaed04cbacd0e4fb3a39c"
+        },
+        "relationship": "addresses",
+        "linked_work_ref": {
+          "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4,
+          "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+          "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+        },
+        "current_work": {
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+            "revision": 4,
+            "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+            "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+          },
+          "state": "completed",
+          "terminal_outcome": "succeeded",
+          "updated_at": "2026-09-03T18:31:04.000Z"
+        }
+      }
+    ],
+    "result_links": [
+      {
+        "link_ref": {
+          "project_inquiry_link_id": "project_inquiry_link_01K4F000000000000000000003",
+          "content_hash": "sha256:dba4d871c409e4b89dffece5629ec35dfbbb25e87f19d4942110499c0ef57724",
+          "record_hash": "sha256:19d6bff432decd79ec652892c3807cbe45c91b99871fb0e7c651984c60031690"
+        },
+        "bearing": "addresses",
+        "result_ref": {
+          "schema_name": "petra.grounded-response",
+          "schema_version": "1.0.0",
+          "record_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+          "revision": 1,
+          "content_hash": "sha256:a510a2fd1eb89fadcfc9008b4d55f4f0e8983dffef10793e77dbabd0a3256f6d",
+          "record_hash": "sha256:2f63c2e8c7885581bfc1e25fbc894edf46e0861a46bc9e082ce161027f44d696"
+        },
+        "produced_by_work_ref": {
+          "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4,
+          "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+          "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+        },
+        "authority_statement": "This GroundedResponse addresses the inquiry with no authority effect; it is not admissible basis or an accepted finding."
+      }
+    ],
+    "recommendation": {
+      "state": "unavailable",
+      "reason": "No registered recommendation record owns inquiry priority or reasoning advice."
+    },
+    "coverage": [
+      { "area": "identity", "state": "complete" },
+      { "area": "framing", "state": "complete" },
+      { "area": "relationships", "state": "complete" },
+      {
+        "area": "open_questions",
+        "state": "partial",
+        "limitation": "Only the authored active framing is available as an open question."
+      },
+      {
+        "area": "understanding",
+        "state": "unavailable",
+        "limitation": "No inquiry-understanding assessment is registered."
+      },
+      {
+        "area": "basis",
+        "state": "unavailable",
+        "limitation": "No admissible inquiry-basis adapter is registered."
+      },
+      { "area": "work", "state": "complete" },
+      { "area": "results", "state": "complete" },
+      {
+        "area": "recommendation",
+        "state": "unavailable",
+        "limitation": "No recommendation authority is registered."
+      },
+      {
+        "area": "commands",
+        "state": "unavailable",
+        "limitation": "This is a read-only slice."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "revise",
+        "state": "unavailable",
+        "reason": "Inquiry revision has no registered command in this slice."
+      },
+      {
+        "operation": "focus",
+        "state": "unavailable",
+        "reason": "Inquiry focus remains navigation-only in this slice."
+      },
+      {
+        "operation": "link_work",
+        "state": "unavailable",
+        "reason": "Work linkage has no registered command in this slice."
+      },
+      {
+        "operation": "unlink",
+        "state": "unavailable",
+        "reason": "Link retention disposition is not implemented."
+      }
+    ],
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 1
+    }
+  },
+  "content_hash": "sha256:808eef284b4e8abc23cb4ac8ceeb6128a2ad788cae00c3d11f376d5880080a65",
+  "read_at": "2026-09-08T18:45:00.000Z"
+}

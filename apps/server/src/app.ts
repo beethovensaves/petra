@@ -23,6 +23,8 @@ import {
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
   type ProjectEffectiveControlsViewReader,
+  type ProjectInquiryAuthoredStatus,
+  type ProjectInquiryViewReader,
   type ProjectObjectLocationViewReader,
   type ProjectRelationshipViewReader,
   type ProjectReviewViewReader,
@@ -58,6 +60,7 @@ export interface PetraAppOptions {
   projectObjectLocations?: ProjectObjectLocationViewReader;
   projectWorkViews?: ProjectWorkViewReader;
   projectThreadViews?: ProjectThreadViewReader;
+  projectInquiryViews?: ProjectInquiryViewReader;
 }
 
 export interface PetraApp {
@@ -70,6 +73,7 @@ const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$/;
 const PETRA_ID_PATTERN = /^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const WORK_UNIT_ID_PATTERN = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_THREAD_ID_PATTERN = /^project_thread_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const OBJECTIVE_ID_PATTERN = /^objective_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const SEMANTIC_KEY_PATTERN = /^[a-z][a-z0-9._/-]{1,199}$/u;
 const LOCATION_INTENTS = [
   "orient",
@@ -90,6 +94,12 @@ const PROJECT_WORK_STATES: readonly ProjectWorkStateFilter[] = [
 const PROJECT_THREAD_LIFECYCLES: readonly ProjectThreadLifecycleFilter[] = [
   "open",
   "archived",
+];
+const PROJECT_INQUIRY_STATUSES: readonly ProjectInquiryAuthoredStatus[] = [
+  "active",
+  "satisfied",
+  "superseded",
+  "abandoned",
 ];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -716,6 +726,180 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project thread detail is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get("/api/queries/projects/:projectId/inquiries", async (context) => {
+    if (options.projectInquiryViews === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_INQUIRIES_UNAVAILABLE",
+        "The authorized Project inquiry read boundary is not configured.",
+      );
+    }
+    try {
+      const parameters = new URL(context.req.url).searchParams;
+      const allowed = new Set([
+        "limit",
+        "cursor",
+        "authored_status",
+        "work_unit_id",
+      ]);
+      const unknown = [...parameters.keys()].filter((key) => !allowed.has(key));
+      if (unknown.length > 0) {
+        throw new InteractionInputError(
+          "Project inquiry collection contains unregistered query parameters.",
+          [...new Set(unknown)],
+        );
+      }
+      for (const key of allowed) {
+        if (parameters.getAll(key).length > 1) {
+          throw new InteractionInputError(
+            `Project inquiry collection parameter ${key} must appear once.`,
+          );
+        }
+      }
+      const limitValue = parameters.get("limit");
+      const limit = limitValue === null ? undefined : Number(limitValue);
+      if (
+        limit !== undefined &&
+        (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+      ) {
+        throw new InteractionInputError(
+          "Project inquiry collection limit must be an integer from 1 through 100.",
+        );
+      }
+      const cursorValue = parameters.get("cursor");
+      const cursor = cursorValue === null ? undefined : cursorValue;
+      if (cursor !== undefined && !/^offset:[0-9]{1,9}$/u.test(cursor)) {
+        throw new InteractionInputError(
+          "Project inquiry collection cursor is invalid.",
+        );
+      }
+      const authoredStatus = optionalEnum(
+        Object.fromEntries(parameters.entries()),
+        "authored_status",
+        PROJECT_INQUIRY_STATUSES,
+      );
+      const workUnitValue = parameters.get("work_unit_id");
+      const workUnitId = workUnitValue === null ? undefined : workUnitValue;
+      if (workUnitId !== undefined && !WORK_UNIT_ID_PATTERN.test(workUnitId)) {
+        throw new InteractionInputError(
+          "Project inquiry Work filter requires a canonical WorkUnit identity.",
+        );
+      }
+      const projectId = context.req.param("projectId");
+      const view = await options.projectInquiryViews.listProjectInquiryView(
+        projectId,
+        {
+          ...(limit === undefined ? {} : { limit }),
+          ...(cursor === undefined ? {} : { cursor }),
+          ...(authoredStatus === undefined
+            ? {}
+            : { authored_status: authoredStatus }),
+          ...(workUnitId === undefined ? {} : { work_unit_id: workUnitId }),
+        },
+      );
+      if (view === undefined) {
+        return jsonError(
+          context,
+          404,
+          "PROJECT_NOT_FOUND",
+          "The requested Project does not exist in the local authority store.",
+        );
+      }
+      contracts.assertValid("project-inquiry-view", "1.0.0", view);
+      if (
+        view.project_id !== projectId ||
+        view.content.view_kind !== "collection" ||
+        view.content.query.limit !== (limit ?? 50) ||
+        view.content.query.cursor !== cursor ||
+        view.content.query.authored_status !== authoredStatus ||
+        view.content.query.work_unit_id !== workUnitId
+      ) {
+        throw new Error(
+          "The Project inquiry reader returned a different Project or query.",
+        );
+      }
+      return context.json(view);
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof InteractionInputError ? 422 : 503,
+        error instanceof InteractionInputError
+          ? "PROJECT_INQUIRY_QUERY_INVALID"
+          : "PROJECT_INQUIRY_READ_FAILED",
+        error instanceof Error
+          ? error.message
+          : "The Project inquiry collection is unavailable.",
+        error instanceof InteractionInputError ? error.issues : undefined,
+      );
+    }
+  });
+
+  app.get(
+    "/api/queries/projects/:projectId/inquiries/:objectiveId",
+    async (context) => {
+      if (options.projectInquiryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_INQUIRIES_UNAVAILABLE",
+          "The authorized Project inquiry read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Exact Project inquiry detail does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const objectiveId = context.req.param("objectiveId");
+        if (!OBJECTIVE_ID_PATTERN.test(objectiveId)) {
+          throw new InteractionInputError(
+            "Project inquiry detail requires a canonical mapped Objective identity.",
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const view = await options.projectInquiryViews.getProjectInquiryView(
+          projectId,
+          objectiveId,
+        );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_INQUIRY_NOT_FOUND",
+            "The requested inquiry anchor is not mapped within this Project.",
+          );
+        }
+        contracts.assertValid("project-inquiry-view", "1.0.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.content.view_kind !== "detail" ||
+          view.content.summary.inquiry_anchor_ref.objective_id !== objectiveId
+        ) {
+          throw new Error(
+            "The Project inquiry detail reader returned a different Project or inquiry anchor.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_INQUIRY_TARGET_INVALID"
+            : "PROJECT_INQUIRY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project inquiry detail is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

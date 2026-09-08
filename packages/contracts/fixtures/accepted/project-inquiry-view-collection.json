@@ -1,0 +1,70 @@
+{
+  "schema_name": "petra.project-inquiry-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "view_kind": "collection",
+    "project_definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "definition_family": "petra.scientific-evidence"
+    },
+    "query": { "limit": 50 },
+    "inquiries": [
+      {
+        "role": {
+          "role_ref": {
+            "project_inquiry_role_id": "project_inquiry_role_01K4F000000000000000000001",
+            "revision": 1,
+            "content_hash": "sha256:c06af809e24e019f39053c5c399fc4af7bcd6143d2b9d961e8d94501ed383291",
+            "record_hash": "sha256:bc8602a6ae57ff9037ccb82e76288fa86aa722f5a658603da1d417eb89d6cb5f"
+          },
+          "semantic_key": "scientific.research-question",
+          "singular": "Research question",
+          "plural": "Research questions",
+          "representation_kind": "project_objective"
+        },
+        "inquiry_anchor_ref": {
+          "objective_id": "objective_01K4C000000000000000000005",
+          "revision": 1,
+          "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+          "record_hash": "sha256:38d1df70ad42ee22d959cafe6a431f4662dbcf7cc8caf18d8a07dc2077e61b8c"
+        },
+        "original_framing": "Determine which claims in the selected source are supported by exact inspectable passages.",
+        "current_framing": "Determine which claims in the selected source are supported by exact inspectable passages.",
+        "authored_status": "active",
+        "resolution_boundary": "authored_status_only",
+        "dependency_count": 0,
+        "linked_work_count": 1,
+        "linked_result_count": 1,
+        "operational_work": { "active": 0, "completed": 1, "cancelled": 0 },
+        "destination": {
+          "role": "brief",
+          "objective_ref": {
+            "objective_id": "objective_01K4C000000000000000000005",
+            "revision": 1,
+            "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+            "record_hash": "sha256:38d1df70ad42ee22d959cafe6a431f4662dbcf7cc8caf18d8a07dc2077e61b8c"
+          }
+        },
+        "updated_at": "2026-09-08T14:10:00.000Z"
+      }
+    ],
+    "page": { "returned_count": 1, "total_count": 1, "has_more": false },
+    "operations": [
+      {
+        "operation": "create",
+        "state": "unavailable",
+        "reason": "Creating inquiry structure has no registered command in this read-only slice."
+      }
+    ],
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 1
+    }
+  },
+  "content_hash": "sha256:489268003e30f77cec999ad4eb6dbf3715e7e0b2bec6df7cd65d9694288b7df1",
+  "read_at": "2026-09-08T18:45:00.000Z"
+}

@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProjectInquiryView,
   PetraProjectShellView,
   PetraProjectThreadView,
+  PetraProjectWorkView,
 } from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
@@ -22,6 +24,7 @@ import {
 import {
   petraThreadFromView,
   projectRecordFromShellView,
+  workProjectFromView,
 } from "./project-data.js";
 
 const render = (node: React.ReactNode): string =>
@@ -165,6 +168,50 @@ describe("reference Work and Petra packets", () => {
     expect(markup).toContain("Open linked Work");
     expect(markup).toContain("No prompt will be sent");
     expect(markup).not.toContain("measurable improvement on its evaluation");
+  });
+
+  it("renders live authored inquiry state beside exact operational Work", () => {
+    const shellView = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../../../packages/contracts/fixtures/accepted/project-shell-view.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as PetraProjectShellView;
+    const workView = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../../../packages/contracts/fixtures/accepted/project-work-view-collection.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as PetraProjectWorkView;
+    const inquiryView = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../../../packages/contracts/fixtures/accepted/project-inquiry-view-detail.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as PetraProjectInquiryView;
+    const liveProject = projectRecordFromShellView(shellView);
+    const liveWork = workProjectFromView(workView, [inquiryView]);
+    const markup = render(
+      <WorkCollectionSurface project={liveProject} work={liveWork} />,
+    );
+
+    expect(markup).toContain("Research question");
+    expect(markup).toContain("Active · authored");
+    expect(markup).toContain("1 linked Work task");
+    expect(markup).toContain("1 completed");
+    expect(markup).toContain(
+      "Operational state does not change the authored inquiry status",
+    );
+    expect(markup).not.toContain("Recommended inquiry path");
   });
 
   it("does not fabricate Work or Petra context for another profile", () => {

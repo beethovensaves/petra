@@ -1,0 +1,592 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-inquiry-view/1.0.0/schema.json",
+  "title": "PetraProjectInquiryView",
+  "description": "A read-only, snapshot-consistent collection or detail view over ProjectDefinition-mapped inquiry anchors and their exact Work/result links.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-inquiry-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "content": {
+      "oneOf": [
+        { "$ref": "#/$defs/CollectionContent" },
+        { "$ref": "#/$defs/DetailContent" }
+      ]
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "DefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_id",
+        "revision",
+        "content_hash",
+        "definition_family"
+      ],
+      "properties": {
+        "project_definition_id": {
+          "type": "string",
+          "pattern": "^project_definition_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "definition_family": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]{2,127}$"
+        }
+      }
+    },
+    "RoleRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_inquiry_role_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "project_inquiry_role_id": {
+          "type": "string",
+          "pattern": "^project_inquiry_role_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "RoleSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role_ref",
+        "semantic_key",
+        "singular",
+        "plural",
+        "representation_kind"
+      ],
+      "properties": {
+        "role_ref": { "$ref": "#/$defs/RoleRef" },
+        "semantic_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "singular": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "plural": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "representation_kind": { "const": "project_objective" }
+      }
+    },
+    "ObjectiveRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "revision", "content_hash", "record_hash"],
+      "properties": {
+        "objective_id": {
+          "type": "string",
+          "pattern": "^objective_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "objective_ref"],
+      "properties": {
+        "role": { "const": "brief" },
+        "objective_ref": { "$ref": "#/$defs/ObjectiveRef" }
+      }
+    },
+    "OperationalCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["active", "completed", "cancelled"],
+      "properties": {
+        "active": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "completed": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "cancelled": { "type": "integer", "minimum": 0, "maximum": 1000000 }
+      }
+    },
+    "InquirySummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "inquiry_anchor_ref",
+        "original_framing",
+        "current_framing",
+        "authored_status",
+        "resolution_boundary",
+        "dependency_count",
+        "linked_work_count",
+        "linked_result_count",
+        "operational_work",
+        "destination",
+        "updated_at"
+      ],
+      "properties": {
+        "role": { "$ref": "#/$defs/RoleSummary" },
+        "inquiry_anchor_ref": { "$ref": "#/$defs/ObjectiveRef" },
+        "original_framing": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "current_framing": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "authored_status": {
+          "enum": ["active", "satisfied", "superseded", "abandoned"]
+        },
+        "resolution_boundary": { "const": "authored_status_only" },
+        "parent_ref": { "$ref": "#/$defs/ObjectiveRef" },
+        "dependency_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "linked_work_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "linked_result_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "operational_work": { "$ref": "#/$defs/OperationalCounts" },
+        "destination": { "$ref": "#/$defs/Destination" },
+        "updated_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "CollectionQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["limit"],
+      "properties": {
+        "limit": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "cursor": { "type": "string", "pattern": "^offset:[0-9]{1,9}$" },
+        "authored_status": {
+          "enum": ["active", "satisfied", "superseded", "abandoned"]
+        },
+        "work_unit_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+        }
+      }
+    },
+    "Page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["returned_count", "total_count", "has_more"],
+      "properties": {
+        "returned_count": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "total_count": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "has_more": { "type": "boolean" },
+        "next_cursor": { "type": "string", "pattern": "^offset:[0-9]{1,9}$" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "has_more": { "const": true } } },
+          "then": {
+            "properties": {
+              "next_cursor": {
+                "type": "string",
+                "pattern": "^offset:[0-9]{1,9}$"
+              }
+            },
+            "required": ["next_cursor"]
+          },
+          "else": { "properties": { "next_cursor": false } }
+        }
+      ]
+    },
+    "Unavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "Operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "state", "reason"],
+      "properties": {
+        "operation": {
+          "enum": ["create", "revise", "focus", "link_work", "unlink"]
+        },
+        "state": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "AuthorityPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isolation", "event_position", "stream_revision"],
+      "properties": {
+        "isolation": { "const": "repeatable_read" },
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "CollectionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "project_definition_ref",
+        "query",
+        "inquiries",
+        "page",
+        "operations",
+        "authority"
+      ],
+      "properties": {
+        "view_kind": { "const": "collection" },
+        "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+        "query": { "$ref": "#/$defs/CollectionQuery" },
+        "inquiries": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/InquirySummary" }
+        },
+        "page": { "$ref": "#/$defs/Page" },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/Operation" }
+        },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" }
+      }
+    },
+    "FramingRevision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective_ref",
+        "statement",
+        "authored_status",
+        "updated_at"
+      ],
+      "properties": {
+        "objective_ref": { "$ref": "#/$defs/ObjectiveRef" },
+        "statement": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "authored_status": {
+          "enum": ["active", "satisfied", "superseded", "abandoned"]
+        },
+        "updated_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "RelatedInquiry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relationship",
+        "objective_ref",
+        "framing",
+        "authored_status"
+      ],
+      "properties": {
+        "relationship": { "enum": ["parent", "dependency"] },
+        "objective_ref": { "$ref": "#/$defs/ObjectiveRef" },
+        "framing": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "authored_status": {
+          "enum": ["active", "satisfied", "superseded", "abandoned"]
+        }
+      }
+    },
+    "OpenQuestion": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "items", "basis"],
+          "properties": {
+            "state": { "const": "available" },
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 100,
+              "items": { "type": "string", "minLength": 1, "maxLength": 4000 }
+            },
+            "basis": { "const": "authored_active_framing" }
+          }
+        },
+        { "$ref": "#/$defs/Unavailable" }
+      ]
+    },
+    "LinkRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_inquiry_link_id", "content_hash", "record_hash"],
+      "properties": {
+        "project_inquiry_link_id": {
+          "type": "string",
+          "pattern": "^project_inquiry_link_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "WorkUnitRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_unit_id", "revision", "spec_hash", "record_hash"],
+      "properties": {
+        "work_unit_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "spec_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "CurrentWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_unit_ref", "state", "updated_at"],
+      "properties": {
+        "work_unit_ref": { "$ref": "#/$defs/WorkUnitRef" },
+        "state": {
+          "enum": [
+            "requested",
+            "queued",
+            "running",
+            "checkpointed",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "terminal_outcome": {
+          "enum": [
+            "succeeded",
+            "worker_failed",
+            "validation_failed",
+            "resource_exhausted",
+            "timed_out",
+            "cancelled"
+          ]
+        },
+        "updated_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "WorkLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "link_ref",
+        "relationship",
+        "linked_work_ref",
+        "current_work"
+      ],
+      "properties": {
+        "link_ref": { "$ref": "#/$defs/LinkRef" },
+        "relationship": { "const": "addresses" },
+        "linked_work_ref": { "$ref": "#/$defs/WorkUnitRef" },
+        "current_work": { "$ref": "#/$defs/CurrentWork" }
+      }
+    },
+    "TypedRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "record_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_name": {
+          "type": "string",
+          "pattern": "^petra\\.[a-z][a-z0-9.-]{1,127}$"
+        },
+        "schema_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ResultLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["link_ref", "bearing", "result_ref", "authority_statement"],
+      "properties": {
+        "link_ref": { "$ref": "#/$defs/LinkRef" },
+        "bearing": {
+          "enum": ["addresses", "admissible_basis", "accepted_finding"]
+        },
+        "result_ref": { "$ref": "#/$defs/TypedRecordRef" },
+        "produced_by_work_ref": { "$ref": "#/$defs/WorkUnitRef" },
+        "authority_statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    },
+    "CoverageItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["area", "state"],
+      "properties": {
+        "area": {
+          "enum": [
+            "identity",
+            "framing",
+            "relationships",
+            "open_questions",
+            "understanding",
+            "basis",
+            "work",
+            "results",
+            "recommendation",
+            "commands"
+          ]
+        },
+        "state": { "enum": ["complete", "partial", "unavailable"] },
+        "limitation": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "DetailContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "project_definition_ref",
+        "summary",
+        "framing_history",
+        "related_inquiries",
+        "open_questions",
+        "current_understanding",
+        "basis",
+        "work_links",
+        "result_links",
+        "recommendation",
+        "coverage",
+        "operations",
+        "authority"
+      ],
+      "properties": {
+        "view_kind": { "const": "detail" },
+        "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+        "summary": { "$ref": "#/$defs/InquirySummary" },
+        "framing_history": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/FramingRevision" }
+        },
+        "related_inquiries": {
+          "type": "array",
+          "maxItems": 1001,
+          "items": { "$ref": "#/$defs/RelatedInquiry" }
+        },
+        "open_questions": { "$ref": "#/$defs/OpenQuestion" },
+        "current_understanding": { "$ref": "#/$defs/Unavailable" },
+        "basis": { "$ref": "#/$defs/Unavailable" },
+        "work_links": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/WorkLink" }
+        },
+        "result_links": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/ResultLink" }
+        },
+        "recommendation": { "$ref": "#/$defs/Unavailable" },
+        "coverage": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/CoverageItem" }
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/Operation" }
+        },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" }
+      }
+    }
+  }
+}

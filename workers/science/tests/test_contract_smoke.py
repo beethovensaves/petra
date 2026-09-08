@@ -3185,6 +3185,185 @@ class PetraProjectInquiryLink(PetraModel):
     created_at: str
 
 
+ProjectInquiryAuthoredStatus = Literal["active", "satisfied", "superseded", "abandoned"]
+
+
+class ProjectInquiryViewDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    definition_family: str
+
+
+class ProjectInquiryViewRoleSummary(PetraModel):
+    role_ref: ProjectInquiryRoleRef
+    semantic_key: str
+    singular: str
+    plural: str
+    representation_kind: Literal["project_objective"]
+
+
+class ProjectInquiryViewDestination(PetraModel):
+    role: Literal["brief"]
+    objective_ref: ProjectInquiryObjectiveRef
+
+
+class ProjectInquiryViewOperationalCounts(PetraModel):
+    active: int
+    completed: int
+    cancelled: int
+
+
+class ProjectInquiryViewSummary(PetraModel):
+    role: ProjectInquiryViewRoleSummary
+    inquiry_anchor_ref: ProjectInquiryObjectiveRef
+    original_framing: str
+    current_framing: str
+    authored_status: ProjectInquiryAuthoredStatus
+    resolution_boundary: Literal["authored_status_only"]
+    parent_ref: ProjectInquiryObjectiveRef | None = None
+    dependency_count: int
+    linked_work_count: int
+    linked_result_count: int
+    operational_work: ProjectInquiryViewOperationalCounts
+    destination: ProjectInquiryViewDestination
+    updated_at: str
+
+
+class ProjectInquiryViewCollectionQuery(PetraModel):
+    limit: int
+    cursor: str | None = None
+    authored_status: ProjectInquiryAuthoredStatus | None = None
+    work_unit_id: str | None = None
+
+
+class ProjectInquiryViewPage(PetraModel):
+    returned_count: int
+    total_count: int
+    has_more: bool
+    next_cursor: str | None = None
+
+
+class ProjectInquiryViewUnavailable(PetraModel):
+    state: Literal["unavailable"]
+    reason: str
+
+
+class ProjectInquiryViewOperation(PetraModel):
+    operation: Literal["create", "revise", "focus", "link_work", "unlink"]
+    state: Literal["unavailable"]
+    reason: str
+
+
+class ProjectInquiryViewAuthority(PetraModel):
+    isolation: Literal["repeatable_read"]
+    event_position: int
+    stream_revision: int
+
+
+class ProjectInquiryViewCollection(PetraModel):
+    view_kind: Literal["collection"]
+    project_definition_ref: ProjectInquiryViewDefinitionRef
+    query: ProjectInquiryViewCollectionQuery
+    inquiries: list[ProjectInquiryViewSummary]
+    page: ProjectInquiryViewPage
+    operations: list[ProjectInquiryViewOperation]
+    authority: ProjectInquiryViewAuthority
+
+
+class ProjectInquiryViewFramingRevision(PetraModel):
+    objective_ref: ProjectInquiryObjectiveRef
+    statement: str
+    authored_status: ProjectInquiryAuthoredStatus
+    updated_at: str
+
+
+class ProjectInquiryViewRelatedInquiry(PetraModel):
+    relationship: Literal["parent", "dependency"]
+    objective_ref: ProjectInquiryObjectiveRef
+    framing: str
+    authored_status: ProjectInquiryAuthoredStatus
+
+
+class ProjectInquiryViewOpenQuestion(PetraModel):
+    state: Literal["available"]
+    items: list[str]
+    basis: Literal["authored_active_framing"]
+
+
+class ProjectInquiryViewCurrentWork(PetraModel):
+    work_unit_ref: ProjectInquiryWorkUnitRef
+    state: Literal[
+        "requested", "queued", "running", "checkpointed", "completed", "cancelled"
+    ]
+    terminal_outcome: ProjectWorkTerminalOutcome | None = None
+    updated_at: str
+
+
+class ProjectInquiryViewLinkRef(PetraModel):
+    project_inquiry_link_id: str
+    content_hash: str
+    record_hash: str
+
+
+class ProjectInquiryViewWorkLink(PetraModel):
+    link_ref: ProjectInquiryViewLinkRef
+    relationship: Literal["addresses"]
+    linked_work_ref: ProjectInquiryWorkUnitRef
+    current_work: ProjectInquiryViewCurrentWork
+
+
+class ProjectInquiryViewResultLink(PetraModel):
+    link_ref: ProjectInquiryViewLinkRef
+    bearing: Literal["addresses", "admissible_basis", "accepted_finding"]
+    result_ref: ProjectInquiryTypedRecordRef
+    produced_by_work_ref: ProjectInquiryWorkUnitRef | None = None
+    authority_statement: str
+
+
+class ProjectInquiryViewCoverage(PetraModel):
+    area: Literal[
+        "identity",
+        "framing",
+        "relationships",
+        "open_questions",
+        "understanding",
+        "basis",
+        "work",
+        "results",
+        "recommendation",
+        "commands",
+    ]
+    state: Literal["complete", "partial", "unavailable"]
+    limitation: str | None = None
+
+
+class ProjectInquiryViewDetail(PetraModel):
+    view_kind: Literal["detail"]
+    project_definition_ref: ProjectInquiryViewDefinitionRef
+    summary: ProjectInquiryViewSummary
+    framing_history: list[ProjectInquiryViewFramingRevision]
+    related_inquiries: list[ProjectInquiryViewRelatedInquiry]
+    open_questions: ProjectInquiryViewOpenQuestion | ProjectInquiryViewUnavailable
+    current_understanding: ProjectInquiryViewUnavailable
+    basis: ProjectInquiryViewUnavailable
+    work_links: list[ProjectInquiryViewWorkLink]
+    result_links: list[ProjectInquiryViewResultLink]
+    recommendation: ProjectInquiryViewUnavailable
+    coverage: list[ProjectInquiryViewCoverage]
+    operations: list[ProjectInquiryViewOperation]
+    authority: ProjectInquiryViewAuthority
+
+
+class PetraProjectInquiryView(PetraModel):
+    schema_name: Literal["petra.project-inquiry-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: ProjectInquiryViewCollection | ProjectInquiryViewDetail
+    content_hash: str
+    read_at: str
+
+
 class ProjectThreadDefinitionRef(PetraModel):
     project_definition_id: str
     revision: int
@@ -5641,6 +5820,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-work-view": PetraProjectWorkView,
     "project-inquiry-role": PetraProjectInquiryRole,
     "project-inquiry-link": PetraProjectInquiryLink,
+    "project-inquiry-view": PetraProjectInquiryView,
     "project-thread": PetraProjectThread,
     "project-thread-view": PetraProjectThreadView,
     "author": PetraAuthor,
@@ -5804,6 +5984,8 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-inquiry-role.json", "content", "content_hash"),
         ("project-inquiry-work-link.json", "content", "content_hash"),
         ("project-inquiry-result-link.json", "content", "content_hash"),
+        ("project-inquiry-view-collection.json", "content", "content_hash"),
+        ("project-inquiry-view-detail.json", "content", "content_hash"),
         ("project-thread.json", "content", "content_hash"),
         ("project-thread-view-collection.json", "content", "content_hash"),
         ("project-thread-view-detail.json", "content", "content_hash"),

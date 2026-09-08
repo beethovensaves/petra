@@ -4,6 +4,7 @@ import type {
   PetraProject,
   PetraProjectDefinition,
   PetraProjectEffectiveControlsView,
+  PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
   PetraProjectRelationshipView,
@@ -153,6 +154,26 @@ const workDetailView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectWorkView;
+
+const inquiryCollectionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-inquiry-view-collection.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectInquiryView;
+
+const inquiryDetailView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-inquiry-view-detail.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectInquiryView;
 
 const threadCollectionView = JSON.parse(
   readFileSync(
@@ -530,6 +551,37 @@ describe("Project shell workbench adapter", () => {
     expect(workDetailView).toEqual(detailBefore);
   });
 
+  it("composes exact inquiry links into Work without deriving inquiry resolution", () => {
+    const before = structuredClone(inquiryDetailView);
+    const collection = workProjectFromView(workCollectionView, [
+      inquiryDetailView,
+    ]);
+    expect(collection.branches).toEqual([
+      expect.objectContaining({
+        id: "objective_01K4C000000000000000000005",
+        kind: "Research question",
+        state: "Active · authored",
+        workIds: ["work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"],
+        recommended: false,
+      }),
+    ]);
+    expect(collection.branches[0]?.consequence).toContain(
+      "1 exact Work link (0 active, 1 completed, 0 cancelled)",
+    );
+    expect(collection.branches[0]?.consequence).toContain(
+      "does not change the authored inquiry status",
+    );
+    expect(collection.units[0]?.branchIds).toEqual([
+      "objective_01K4C000000000000000000005",
+    ]);
+
+    const detail = workProjectFromView(workDetailView, [inquiryDetailView]);
+    expect(detail.units[0]?.inquiryLimitation).toContain(
+      "Work completion does not resolve an inquiry",
+    );
+    expect(inquiryDetailView).toEqual(before);
+  });
+
   it("loads exact Project Work identities from the authorized read routes", async () => {
     if (workDetailView.content.view_kind !== "detail") {
       throw new Error("Expected the Work detail fixture.");
@@ -541,6 +593,20 @@ describe("Project shell workbench adapter", () => {
           : input instanceof URL
             ? input.href
             : input.url;
+      if (path.includes("/inquiries/")) {
+        return Promise.resolve(Response.json(inquiryDetailView));
+      }
+      if (path.includes("/inquiries?")) {
+        const inquiryCollection = structuredClone(inquiryCollectionView);
+        if (
+          inquiryCollection.content.view_kind === "collection" &&
+          path.includes("work_unit_id=")
+        ) {
+          inquiryCollection.content.query.work_unit_id =
+            "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2";
+        }
+        return Promise.resolve(Response.json(inquiryCollection));
+      }
       return Promise.resolve(
         Response.json(
           path.includes("/work/") ? workDetailView : workCollectionView,
@@ -562,6 +628,9 @@ describe("Project shell workbench adapter", () => {
       context: new RouterContextProvider(),
     });
     expect(collection.units[0]?.id).toBe(workUnitId);
+    expect(collection.branches[0]?.id).toBe(
+      "objective_01K4C000000000000000000005",
+    );
 
     const detailUrl = new URL(
       `http://petra.test/projects/${projectId}/work/${workUnitId}`,
@@ -574,9 +643,15 @@ describe("Project shell workbench adapter", () => {
       context: new RouterContextProvider(),
     });
     expect(detail.unit.id).toBe(workUnitId);
+    expect(detail.unit.branchIds).toEqual([
+      "objective_01K4C000000000000000000005",
+    ]);
     expect(fetch.mock.calls.map((call) => call[0])).toEqual([
       `/api/queries/projects/${projectId}/work?limit=50`,
+      `/api/queries/projects/${projectId}/inquiries?limit=100`,
+      `/api/queries/projects/${projectId}/inquiries/objective_01K4C000000000000000000005`,
       `/api/queries/projects/${projectId}/work/${workUnitId}`,
+      `/api/queries/projects/${projectId}/inquiries?limit=100&work_unit_id=${workUnitId}`,
     ]);
   });
 

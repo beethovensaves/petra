@@ -50,6 +50,23 @@ export type {
   WorkUnitRef as ProjectInquiryWorkUnitRef,
 } from "./generated/project-inquiry-link.js";
 export type {
+  AuthorityPosition as ProjectInquiryViewAuthorityPosition,
+  CollectionContent as ProjectInquiryViewCollectionContent,
+  CollectionQuery as ProjectInquiryViewCollectionQuery,
+  CoverageItem as ProjectInquiryViewCoverageItem,
+  CurrentWork as ProjectInquiryViewCurrentWork,
+  DetailContent as ProjectInquiryViewDetailContent,
+  FramingRevision as ProjectInquiryViewFramingRevision,
+  InquirySummary as ProjectInquiryViewSummary,
+  OpenQuestion as ProjectInquiryViewOpenQuestion,
+  Page as ProjectInquiryViewPage,
+  PetraProjectInquiryView,
+  RelatedInquiry as ProjectInquiryViewRelatedInquiry,
+  ResultLink as ProjectInquiryViewResultLink,
+  RoleSummary as ProjectInquiryViewRoleSummary,
+  WorkLink as ProjectInquiryViewWorkLink,
+} from "./generated/project-inquiry-view.js";
+export type {
   AttentionItem as ProjectShellAttentionItem,
   AuthorityPosition as ProjectShellAuthorityPosition,
   DefinitionSummary as ProjectShellDefinitionSummary,

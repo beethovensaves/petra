@@ -1,5 +1,6 @@
 import type {
   PetraProjectEffectiveControlsView,
+  PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
@@ -17,6 +18,7 @@ import { redirect, type LoaderFunctionArgs } from "react-router";
 import type {
   AttentionItem,
   GraphQuestion,
+  InquiryBranch,
   ProjectProfile,
   ProjectRecord,
   PetraThread,
@@ -180,6 +182,26 @@ const projectWorkView = (value: unknown): PetraProjectWorkView => {
     );
   }
   return value as unknown as PetraProjectWorkView;
+};
+
+const projectInquiryView = (value: unknown): PetraProjectInquiryView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-inquiry-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    (value.content.view_kind !== "collection" &&
+      value.content.view_kind !== "detail") ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project inquiry view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectInquiryView;
 };
 
 const projectThreadView = (value: unknown): PetraProjectThreadView => {
@@ -550,17 +572,88 @@ export const workUnitFromView = (
   };
 };
 
+export const inquiryBranchesFromViews = (
+  projectId: string,
+  views: readonly PetraProjectInquiryView[],
+): InquiryBranch[] => {
+  const branches = new Map<string, InquiryBranch>();
+  for (const view of views) {
+    if (view.project_id !== projectId) {
+      throw new ProjectDataError(
+        "Petra returned an inquiry path from another Project.",
+        502,
+      );
+    }
+    const summaries =
+      view.content.view_kind === "collection"
+        ? view.content.inquiries
+        : [view.content.summary];
+    for (const summary of summaries) {
+      const inquiryId = summary.inquiry_anchor_ref.objective_id;
+      const workIds =
+        view.content.view_kind === "detail"
+          ? view.content.work_links.map(
+              (link) => link.linked_work_ref.work_unit_id,
+            )
+          : view.content.query.work_unit_id === undefined
+            ? []
+            : [view.content.query.work_unit_id];
+      if (
+        view.content.view_kind === "detail" &&
+        (view.content.work_links.length !== summary.linked_work_count ||
+          view.content.result_links.length !== summary.linked_result_count)
+      ) {
+        throw new ProjectDataError(
+          "Petra returned inquiry detail whose exact links do not match its summary.",
+          502,
+        );
+      }
+      const operational = summary.operational_work;
+      const currentWork = `${operational.active} active, ${operational.completed} completed, ${operational.cancelled} cancelled`;
+      const parent = summary.parent_ref === undefined ? 0 : 1;
+      branches.set(inquiryId, {
+        id: inquiryId,
+        projectId,
+        label: summary.current_framing,
+        kind: summary.role.singular,
+        state: `${titleCase(summary.authored_status)} · authored`,
+        summary:
+          summary.original_framing === summary.current_framing
+            ? "The current authored framing is unchanged from its first registered revision."
+            : `Original framing: ${summary.original_framing}`,
+        dependency: `${parent} parent · ${summary.dependency_count} ${summary.dependency_count === 1 ? "dependency" : "dependencies"}`,
+        consequence: `${summary.linked_work_count} exact Work ${summary.linked_work_count === 1 ? "link" : "links"} (${currentWork}) · ${summary.linked_result_count} result ${summary.linked_result_count === 1 ? "link" : "links"}. Operational state does not change the authored inquiry status.`,
+        workIds: [...new Set(workIds)],
+        recommended: false,
+      });
+    }
+  }
+  return [...branches.values()];
+};
+
 export const workProjectFromView = (
   view: PetraProjectWorkView,
+  inquiryViews: readonly PetraProjectInquiryView[] = [],
 ): WorkProjectView => {
   const content = view.content;
+  const branches = inquiryBranchesFromViews(view.project_id, inquiryViews);
+  const units =
+    content.view_kind === "collection"
+      ? content.tasks.map((summary) => workUnitFromView(view, summary))
+      : [workUnitFromView(view)];
+  for (const unit of units) {
+    unit.branchIds = branches
+      .filter((branch) => branch.workIds.includes(unit.id))
+      .map((branch) => branch.id);
+    if (unit.branchIds.length > 0 && content.view_kind === "detail") {
+      unit.inquiryLimitation =
+        "Exact inquiry links are shown. Work completion does not resolve an inquiry or change its authored status.";
+    }
+  }
   return {
     projectId: view.project_id,
-    branches: [],
-    units:
-      content.view_kind === "collection"
-        ? content.tasks.map((summary) => workUnitFromView(view, summary))
-        : [workUnitFromView(view)],
+    branches,
+    units,
     readAt: view.read_at,
     ...(content.view_kind === "detail"
       ? {}
@@ -1035,20 +1128,49 @@ export const loadProjectWorkCollection = async ({
     for (const value of incoming.getAll(key)) query.append(key, value);
   }
   if (!query.has("limit")) query.set("limit", "50");
-  const value = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(projectId)}/work?${query}`,
-  );
+  const [value, inquiryCollectionValue] = await Promise.all([
+    requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/work?${query}`,
+    ),
+    requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries?limit=100`,
+    ),
+  ]);
   const view = projectWorkView(value);
+  const inquiryCollection = projectInquiryView(inquiryCollectionValue);
   if (
     view.project_id !== projectId ||
-    view.content.view_kind !== "collection"
+    view.content.view_kind !== "collection" ||
+    inquiryCollection.project_id !== projectId ||
+    inquiryCollection.content.view_kind !== "collection"
   ) {
     throw new ProjectDataError(
-      "Petra returned a Work collection for a different Project or view kind.",
+      "Petra returned Work or inquiries for a different Project or view kind.",
       502,
     );
   }
-  return workProjectFromView(view);
+  const inquiryDetails = await Promise.all(
+    inquiryCollection.content.inquiries.map(async (inquiry) => {
+      const objectiveId = inquiry.inquiry_anchor_ref.objective_id;
+      const detail = projectInquiryView(
+        await requestJson(
+          `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries/${encodeURIComponent(objectiveId)}`,
+        ),
+      );
+      if (
+        detail.project_id !== projectId ||
+        detail.content.view_kind !== "detail" ||
+        detail.content.summary.inquiry_anchor_ref.objective_id !== objectiveId
+      ) {
+        throw new ProjectDataError(
+          "Petra returned a different exact inquiry identity.",
+          502,
+        );
+      }
+      return detail;
+    }),
+  );
+  return workProjectFromView(view, inquiryDetails);
 };
 
 export interface ProjectWorkDetailData {
@@ -1061,21 +1183,30 @@ export const loadProjectWorkDetail = async ({
 }: LoaderFunctionArgs): Promise<ProjectWorkDetailData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const workUnitId = requiredRouteIdentity(params.workId, "A WorkUnit ID");
-  const value = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
-  );
+  const [value, inquiryValue] = await Promise.all([
+    requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
+    ),
+    requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries?limit=100&work_unit_id=${encodeURIComponent(workUnitId)}`,
+    ),
+  ]);
   const view = projectWorkView(value);
+  const inquiryView = projectInquiryView(inquiryValue);
   if (
     view.project_id !== projectId ||
     view.content.view_kind !== "detail" ||
-    view.content.summary.work_unit_ref.work_unit_id !== workUnitId
+    view.content.summary.work_unit_ref.work_unit_id !== workUnitId ||
+    inquiryView.project_id !== projectId ||
+    inquiryView.content.view_kind !== "collection" ||
+    inquiryView.content.query.work_unit_id !== workUnitId
   ) {
     throw new ProjectDataError(
-      "Petra returned a different Project Work identity.",
+      "Petra returned a different Project Work or inquiry-link identity.",
       502,
     );
   }
-  const work = workProjectFromView(view);
+  const work = workProjectFromView(view, [inquiryView]);
   const unit = work.units[0];
   if (unit === undefined) {
     throw new ProjectDataError("Petra returned no exact Work task.", 502);

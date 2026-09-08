@@ -96,23 +96,30 @@ const BranchCard = ({
       )}
       <div className="inquiry-branch__work">
         <strong>
-          {units.length === 0
+          {branch.workIds.length === 0
             ? "No operational Work linked"
-            : `${units.length} linked Work ${units.length === 1 ? "task" : "tasks"}`}
+            : `${branch.workIds.length} linked Work ${branch.workIds.length === 1 ? "task" : "tasks"}`}
         </strong>
-        {units.length === 0 ? (
+        {branch.workIds.length === 0 ? (
           <p>This inquiry path remains useful without a running task.</p>
+        ) : units.length === 0 ? (
+          <p>Linked Work is outside the current bounded Work page.</p>
         ) : (
-          <ul>
-            {units.map((unit) => (
-              <li key={unit.id}>
-                <Link to={`/projects/${project.id}/work/${unit.id}`}>
-                  {unit.objective}
-                </Link>
-                <WorkState unit={unit} />
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul>
+              {units.map((unit) => (
+                <li key={unit.id}>
+                  <Link to={`/projects/${project.id}/work/${unit.id}`}>
+                    {unit.objective}
+                  </Link>
+                  <WorkState unit={unit} />
+                </li>
+              ))}
+            </ul>
+            {units.length === branch.workIds.length ? null : (
+              <p>Additional linked Work is outside the current bounded page.</p>
+            )}
+          </>
         )}
       </div>
     </article>

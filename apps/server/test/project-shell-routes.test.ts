@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraProjectEffectiveControlsView,
+  PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
@@ -13,6 +14,7 @@ import type {
 } from "@petra/contracts";
 import type {
   ProjectEffectiveControlsViewReader,
+  ProjectInquiryViewReader,
   ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
@@ -138,6 +140,26 @@ const threadDetailFixture = JSON.parse(
   ),
 ) as PetraProjectThreadView;
 
+const inquiryCollectionFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-inquiry-view-collection.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectInquiryView;
+
+const inquiryDetailFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-inquiry-view-detail.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectInquiryView;
+
 const reader: ProjectShellViewReader = {
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
@@ -242,6 +264,27 @@ const threadReader: ProjectThreadViewReader = {
       projectId === threadDetailFixture.project_id &&
         projectThreadId === expectedThreadId
         ? structuredClone(threadDetailFixture)
+        : undefined,
+    );
+  },
+};
+
+const inquiryReader: ProjectInquiryViewReader = {
+  listProjectInquiryView: (projectId) =>
+    Promise.resolve(
+      projectId === inquiryCollectionFixture.project_id
+        ? structuredClone(inquiryCollectionFixture)
+        : undefined,
+    ),
+  getProjectInquiryView: (projectId, objectiveId) => {
+    const expectedObjectiveId =
+      inquiryDetailFixture.content.view_kind === "detail"
+        ? inquiryDetailFixture.content.summary.inquiry_anchor_ref.objective_id
+        : undefined;
+    return Promise.resolve(
+      projectId === inquiryDetailFixture.project_id &&
+        objectiveId === expectedObjectiveId
+        ? structuredClone(inquiryDetailFixture)
         : undefined,
     );
   },
@@ -563,6 +606,72 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(crossProjectBody.error.code).toBe("PROJECT_THREAD_NOT_FOUND");
+  });
+
+  it("returns mapped inquiries with exact Work/result authority boundaries", async () => {
+    if (
+      inquiryCollectionFixture.content.view_kind !== "collection" ||
+      inquiryDetailFixture.content.view_kind !== "detail"
+    ) {
+      throw new Error("Expected collection and detail inquiry fixtures.");
+    }
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectInquiryViews: inquiryReader,
+    });
+    const collection = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${inquiryCollectionFixture.project_id}/inquiries?limit=50`,
+      ),
+    );
+    expect(collection.status).toBe(200);
+    await expect(collection.json()).resolves.toEqual(inquiryCollectionFixture);
+
+    const objectiveId =
+      inquiryDetailFixture.content.summary.inquiry_anchor_ref.objective_id;
+    const detail = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${inquiryDetailFixture.project_id}/inquiries/${objectiveId}`,
+      ),
+    );
+    expect(detail.status).toBe(200);
+    const body = (await detail.json()) as PetraProjectInquiryView;
+    expect(body).toEqual(inquiryDetailFixture);
+    if (body.content.view_kind !== "detail") {
+      throw new Error("Expected inquiry detail response.");
+    }
+    expect(body.content.summary.resolution_boundary).toBe(
+      "authored_status_only",
+    );
+    expect(body.content.basis.state).toBe("unavailable");
+    expect(body.content.result_links[0]?.bearing).toBe("addresses");
+    expect(
+      body.content.operations.every(
+        (operation) => operation.state === "unavailable",
+      ),
+    ).toBe(true);
+
+    const malformed = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${inquiryDetailFixture.project_id}/inquiries?limit=0&authored_status=unknown&sort=recent`,
+      ),
+    );
+    expect(malformed.status).toBe(422);
+    const malformedBody = JSON.parse(await malformed.text()) as {
+      error: { code: string };
+    };
+    expect(malformedBody.error.code).toBe("PROJECT_INQUIRY_QUERY_INVALID");
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/inquiries/${objectiveId}`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    const crossProjectBody = JSON.parse(await crossProject.text()) as {
+      error: { code: string };
+    };
+    expect(crossProjectBody.error.code).toBe("PROJECT_INQUIRY_NOT_FOUND");
   });
 
   it("returns only Review sessions authorized for the exact Project", async () => {

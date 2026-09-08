@@ -1,6 +1,6 @@
 # UX-REQ-016 Project inquiry foundation
 
-Status: ProjectDefinition-owned inquiry-role mapping and exact Work/result linkage passed; composed reads and broader profile adapters remain open
+Status: ProjectDefinition-owned inquiry-role mapping and exact Work/result linkage passed; the subsequent live read is recorded separately and broader profile adapters remain open
 Date: 2026-09-08
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -72,12 +72,8 @@ expected service-dependent skips.
 
 ## Remaining UX-REQ-016 work
 
-- a bounded inquiry collection/detail view that composes original and current
-  framing, authored status, related Objective dependencies, open questions,
-  basis, limitations, exact Work/result links, and authority position;
-- Project Work read integration that exposes exact inquiry anchors without
-  changing Work lifecycle or inferring resolution;
-- frozen Brief, Details, Graph, Petra, and Work composition without adding a
+- frozen Brief, Details, Graph, Petra, Review, and profile-tool composition
+  without adding a
   new primary destination or changing the frozen layout;
 - additional ProjectDefinition-valid representation adapters, including
   non-Objective records and linked sets where their semantics require them;
@@ -88,6 +84,7 @@ expected service-dependent skips.
 - paired-profile `UX-FX28` evidence for criteria, alternatives,
   method/interpretation, and optional Hypothesis-centered inquiry roles.
 
-The immediate next slice is the exact collection/detail read and its Work
-linkage composition. That read must keep authored inquiry status, advisory
+The exact collection/detail read and frozen Work-linkage composition now pass in
+[`UX-REQ-016-PROJECT-INQUIRY-READ.md`](./UX-REQ-016-PROJECT-INQUIRY-READ.md).
+Subsequent slices must continue to keep authored inquiry status, advisory
 reasoning order, and operational Work state visibly separate.

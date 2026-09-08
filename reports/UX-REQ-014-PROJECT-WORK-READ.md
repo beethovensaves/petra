@@ -1,6 +1,6 @@
 # UX-REQ-014 Project Work read
 
-Status: first live collection/detail slice passed; broader orchestration remains partial
+Status: first live collection/detail slice and exact inquiry sidecar composition passed; broader orchestration remains partial
 Date: 2026-09-08
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -12,8 +12,10 @@ WorkUnit, WorkerInputManifest, WorkerOutputManifest, ProjectDefinition, and
 semantic-location authority. It does not introduce another Work lifecycle.
 
 The same view is available through the authenticated server and the frozen Work
-collection/detail routes. No CSS, layout system, or component hierarchy was
-redesigned.
+collection/detail routes. The subsequent `petra.project-inquiry-view@1.0.0`
+sidecar now supplies exact inquiry anchors and many-to-many Work links to those
+same frozen routes. No CSS, layout system, route structure, or component
+hierarchy was redesigned.
 
 ## Contract and authority boundary
 
@@ -41,7 +43,8 @@ The detail adds:
 - every declared output slot and its worker-reporting status;
 - cancel, retry, and resume policy assessments separated from operation
   availability;
-- explicit inquiry, Review, stage-plan, and coverage limitations; and
+- explicit Review, stage-plan, and coverage limitations, plus the Work view's
+  original inquiry-linkage limitation where the inquiry sidecar is absent; and
 - an exact semantic Work location composed inside the same database snapshot.
 
 PostgreSQL verifies every stored payload against its registered schema and
@@ -67,10 +70,20 @@ as awaiting author input because no durable input-request record exists.
 
 ## Frozen workbench integration
 
-The existing Work collection now consumes the live bounded read. Exact detail
-shows registered inputs, dependencies, stage-plan limitations, resource limits
-and measured use, declared output slots, Review/inquiry limitations, and the
-disabled command boundary. It creates no synthetic stage or inquiry branch.
+The existing Work collection now consumes the live bounded Work read together
+with bounded inquiry collection/detail reads. Its existing inquiry-path cards
+show exact authored framing, authored status, dependency coverage, Work/result
+link counts, current operational counts, and exact Work associations. Exact
+Work detail filters the inquiry read by the selected WorkUnit and shows every
+returned inquiry that task addresses. Operational completion never changes or
+resolves the authored inquiry status, and the browser does not synthesize a
+recommendation.
+
+Exact Work detail also shows registered inputs, dependencies, stage-plan
+limitations, resource limits and measured use, declared output slots, Review
+limitations, exact inquiry links when available, and the disabled command
+boundary. It creates no synthetic stage, inquiry identity, or inquiry
+resolution.
 
 Collection URLs may carry the contract's state, limit, and cursor query. The
 frozen surface preserves bounded paging with an exact next-page link when the
@@ -96,13 +109,18 @@ service-dependent skips, together with generated-contract/hash checks, the M1
 retrieval-floor check, formatting, lint, TypeScript/Python type checks, and the
 production workbench build. The complete workbench suite passes 80 cases.
 
+Those counts record the original Work-read increment. The subsequent inquiry
+sidecar and frozen Work integration are verified in
+[`UX-REQ-016-PROJECT-INQUIRY-READ.md`](./UX-REQ-016-PROJECT-INQUIRY-READ.md).
+
 ## Remaining UX-REQ-014 work
 
 This slice does not close all of `UX-REQ-014`. Remaining work includes:
 
 - a registered ProjectDefinition-resolved workflow stage-plan record;
 - durable input-request and response linkage;
-- ProjectDefinition-valid inquiry and profile-neutral Review linkage;
+- profile-neutral Review linkage and same-snapshot inquiry composition inside
+  the Work contract where a later consumer requires one atomic read;
 - Project-level output registration, validation, usability, and destination;
 - actor-authorized retry and supported resume operations;
 - richer attempt, checkpoint, partial-result, and cross-module recovery
@@ -112,6 +130,7 @@ This slice does not close all of `UX-REQ-014`. Remaining work includes:
 - Project-shell active-Work composition beyond the existing summary count and
   exact Work destination.
 
-Durable Project threads and the ProjectDefinition-valid inquiry-mapping
-foundation are now complete. Exact inquiry composition into this Work read is
-next; it must not derive inquiry resolution from Work completion.
+Durable Project threads, ProjectDefinition-valid inquiry mapping, and exact
+inquiry sidecar composition into the frozen Work routes now pass. Later
+orchestration must retain the same rule: Work completion cannot derive inquiry
+resolution.

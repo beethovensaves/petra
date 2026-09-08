@@ -86,6 +86,10 @@ import {
   projectInquiryRoleRef,
 } from "../src/project-inquiry-authority-repository.js";
 import {
+  PostgresProjectInquiryViewReader,
+  type PostgresProjectInquiryViewError,
+} from "../src/project-inquiry-view-reader.js";
+import {
   PostgresProjectThreadAuthorityRepository,
   type PostgresProjectThreadError,
 } from "../src/project-thread-authority-repository.js";
@@ -176,6 +180,15 @@ const expectProjectInquiryCode = async (
 ): Promise<void> => {
   await expect(operation()).rejects.toEqual(
     expect.objectContaining<Partial<PostgresProjectInquiryError>>({ code }),
+  );
+};
+
+const expectProjectInquiryViewCode = async (
+  operation: () => Promise<unknown>,
+  code: PostgresProjectInquiryViewError["code"],
+): Promise<void> => {
+  await expect(operation()).rejects.toEqual(
+    expect.objectContaining<Partial<PostgresProjectInquiryViewError>>({ code }),
   );
 };
 
@@ -1212,6 +1225,110 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     expect(
       (await definitions.getObjective(objective.objective_id))?.content.status,
     ).toBe("active");
+
+    const inquiryViews = new PostgresProjectInquiryViewReader(pool);
+    const collection = await inquiryViews.listProjectInquiryView(
+      objective.project_id,
+      { limit: 10, authored_status: "active" },
+    );
+    if (collection?.content.view_kind !== "collection") {
+      throw new Error("Expected the Project inquiry collection view.");
+    }
+    expect(collection.content.query).toEqual({
+      limit: 10,
+      authored_status: "active",
+    });
+    expect(collection.content.inquiries).toHaveLength(3);
+    const primarySummary = collection.content.inquiries.find(
+      (inquiry) =>
+        inquiry.inquiry_anchor_ref.objective_id === objective.objective_id,
+    );
+    const zeroWorkSummary = collection.content.inquiries.find(
+      (inquiry) =>
+        inquiry.inquiry_anchor_ref.objective_id ===
+        zeroWorkObjective.objective_id,
+    );
+    expect(primarySummary).toEqual(
+      expect.objectContaining({
+        original_framing: objective.content.statement,
+        current_framing: objective.content.statement,
+        authored_status: "active",
+        resolution_boundary: "authored_status_only",
+        linked_work_count: 2,
+        linked_result_count: 1,
+        operational_work: { active: 1, completed: 1, cancelled: 0 },
+      }),
+    );
+    expect(zeroWorkSummary).toEqual(
+      expect.objectContaining({
+        authored_status: "active",
+        linked_work_count: 0,
+        linked_result_count: 0,
+        operational_work: { active: 0, completed: 0, cancelled: 0 },
+      }),
+    );
+
+    const workFiltered = await inquiryViews.listProjectInquiryView(
+      objective.project_id,
+      {
+        limit: 10,
+        work_unit_id: terminal.input.workUnit.work_unit_id,
+      },
+    );
+    if (workFiltered?.content.view_kind !== "collection") {
+      throw new Error("Expected a Work-filtered inquiry collection view.");
+    }
+    expect(
+      workFiltered.content.inquiries.map(
+        (inquiry) => inquiry.inquiry_anchor_ref.objective_id,
+      ),
+    ).toEqual([sharedObjective.objective_id, objective.objective_id]);
+
+    const detail = await inquiryViews.getProjectInquiryView(
+      objective.project_id,
+      objective.objective_id,
+    );
+    if (detail?.content.view_kind !== "detail") {
+      throw new Error("Expected the Project inquiry detail view.");
+    }
+    expect(detail.content.framing_history).toHaveLength(1);
+    expect(detail.content.open_questions).toEqual({
+      state: "available",
+      items: [objective.content.statement],
+      basis: "authored_active_framing",
+    });
+    expect(detail.content.current_understanding.state).toBe("unavailable");
+    expect(detail.content.basis.state).toBe("unavailable");
+    expect(detail.content.recommendation.state).toBe("unavailable");
+    expect(
+      detail.content.work_links.map((link) => ({
+        linked_revision: link.linked_work_ref.revision,
+        current_revision: link.current_work.work_unit_ref.revision,
+        current_state: link.current_work.state,
+      })),
+    ).toEqual([
+      { linked_revision: 4, current_revision: 4, current_state: "completed" },
+      { linked_revision: 1, current_revision: 1, current_state: "requested" },
+    ]);
+    expect(detail.content.result_links).toHaveLength(1);
+    expect(detail.content.result_links[0]?.bearing).toBe("addresses");
+    expect(detail.content.result_links[0]?.authority_statement).toContain(
+      "does not supply admissible basis",
+    );
+    expect(detail.content.summary.authored_status).toBe("active");
+    expect(
+      await inquiryViews.getProjectInquiryView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        objective.objective_id,
+      ),
+    ).toBeUndefined();
+    await expectProjectInquiryViewCode(
+      () =>
+        inquiryViews.listProjectInquiryView(objective.project_id, {
+          limit: 0,
+        }),
+      "PROJECT_INQUIRY_VIEW_REQUEST_INVALID",
+    );
 
     const overclaim = structuredClone(resultLink);
     overclaim.project_inquiry_link_id =
