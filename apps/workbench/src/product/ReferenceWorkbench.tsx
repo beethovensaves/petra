@@ -14,7 +14,9 @@ import { PetraLockup, PetraMark } from "../design-system/brand.js";
 import { PetraButton, PetraTextField } from "../design-system/primitives.js";
 import {
   REFERENCE_PROJECTS,
+  getProjectGraph,
   getReferenceProject,
+  getReferenceReview,
   getReferenceSource,
 } from "./fixtures.js";
 import type {
@@ -243,13 +245,19 @@ export const ProjectsRoute = (): React.JSX.Element => <ProjectsSurface />;
 
 type ProjectOutletContext = { project: ProjectRecord };
 
-const useProject = (): ProjectRecord => {
+export const useProjectRecord = (): ProjectRecord => {
   const context = useOutletContext<ProjectOutletContext>();
   return context.project;
 };
 
 const placeFromPath = (pathname: string): ProjectPlace =>
-  pathname.includes("/sources") ? "sources" : "brief";
+  pathname.includes("/sources")
+    ? "sources"
+    : pathname.includes("/review")
+      ? "review"
+      : pathname.includes("/graph")
+        ? "graph"
+        : "brief";
 
 export const ProjectShell = (): React.JSX.Element => {
   const { projectId } = useParams();
@@ -313,6 +321,8 @@ export const ProjectShell = (): React.JSX.Element => {
             <NavLink to="sources">
               {project.profile.terms.referencePlural}
             </NavLink>
+            <NavLink to="review">Review</NavLink>
+            <NavLink to="graph">Graph</NavLink>
           </nav>
           <details className="reference-profile-details">
             <summary>Profile terms</summary>
@@ -510,7 +520,7 @@ export const BriefSurface = ({ project }: { project: ProjectRecord }) => (
 );
 
 export const BriefRoute = (): React.JSX.Element => (
-  <BriefSurface project={useProject()} />
+  <BriefSurface project={useProjectRecord()} />
 );
 
 const sourceSearchText = (source: SourceRecord): string =>
@@ -621,7 +631,7 @@ export const SourcesSurface = ({ project }: { project: ProjectRecord }) => {
 };
 
 export const SourcesRoute = (): React.JSX.Element => (
-  <SourcesSurface project={useProject()} />
+  <SourcesSurface project={useProjectRecord()} />
 );
 
 const SourceDetails = ({ source }: { source: SourceRecord }) => (
@@ -671,18 +681,15 @@ const SourceDetails = ({ source }: { source: SourceRecord }) => (
 export const SourceReaderSurface = ({
   project,
   source,
-  returnToBrief = false,
+  returnTo,
 }: {
   project: ProjectRecord;
   source: SourceRecord;
-  returnToBrief?: boolean;
+  returnTo?: { path: string; label: string } | undefined;
 }) => {
-  const returnPath = returnToBrief
-    ? `/projects/${project.id}/brief#attention-source-depth`
-    : `/projects/${project.id}/sources`;
-  const returnLabel = returnToBrief
-    ? "Return to Attention"
-    : `Return to ${project.profile.terms.referencePlural}`;
+  const returnPath = returnTo?.path ?? `/projects/${project.id}/sources`;
+  const returnLabel =
+    returnTo?.label ?? `Return to ${project.profile.terms.referencePlural}`;
 
   return (
     <main className="reference-reader" id="reference-main">
@@ -779,10 +786,47 @@ export const SourceReaderSurface = ({
 };
 
 export const SourceReaderRoute = (): React.JSX.Element => {
-  const project = useProject();
+  const project = useProjectRecord();
   const { sourceId } = useParams();
   const [searchParams] = useSearchParams();
   const source = getReferenceSource(project, sourceId);
+  const returnOrigin = searchParams.get("from");
+  const returnReview = getReferenceReview(
+    project.id,
+    searchParams.get("reviewId") ?? undefined,
+  );
+  const returnBasis = returnReview?.basis.find(
+    (basis) => basis.sourceId === source?.id,
+  );
+  const returnGraph = getProjectGraph(project.id);
+  const returnGraphNode = returnGraph?.nodes.find(
+    (node) => node.id === searchParams.get("graphNodeId"),
+  );
+  const requestedGraphLayer = searchParams.get("graphLayer");
+  const returnGraphLayer =
+    requestedGraphLayer === "working" || requestedGraphLayer === "historical"
+      ? requestedGraphLayer
+      : "current";
+  const returnTo =
+    returnOrigin === "brief"
+      ? {
+          path: `/projects/${project.id}/brief#attention-source-depth`,
+          label: "Return to Attention",
+        }
+      : returnOrigin === "graph" &&
+          returnGraphNode?.layers.includes(returnGraphLayer) === true
+        ? {
+            path: `/projects/${project.id}/graph?layer=${returnGraphLayer}&selected=${returnGraphNode.id}#graph-selection`,
+            label: "Return to Graph",
+          }
+        : returnOrigin === "review" &&
+            returnReview !== undefined &&
+            returnBasis !== undefined
+          ? {
+              path: `/projects/${project.id}/review/${returnReview.id}#basis-${returnBasis.id}`,
+              label: "Return to Review",
+            }
+          : undefined;
 
   if (source === undefined) {
     return (
@@ -808,7 +852,7 @@ export const SourceReaderRoute = (): React.JSX.Element => {
     <SourceReaderSurface
       project={project}
       source={source}
-      returnToBrief={searchParams.get("from") === "brief"}
+      returnTo={returnTo}
     />
   );
 };

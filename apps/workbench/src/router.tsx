@@ -13,6 +13,11 @@ import {
   SourceReaderRoute,
   SourcesRoute,
 } from "./product/ReferenceWorkbench.js";
+import { GraphRoute } from "./product/GraphSurface.js";
+import {
+  ReviewCollectionRoute,
+  ReviewSessionRoute,
+} from "./product/ReviewSurface.js";
 import type { EngineState } from "./product/model.js";
 
 const loadHealth = async (): Promise<EngineState> => {
@@ -41,6 +46,9 @@ export const router = createBrowserRouter([
           { path: "brief", element: <BriefRoute /> },
           { path: "sources", element: <SourcesRoute /> },
           { path: "sources/:sourceId", element: <SourceReaderRoute /> },
+          { path: "review", element: <ReviewCollectionRoute /> },
+          { path: "review/:reviewId", element: <ReviewSessionRoute /> },
+          { path: "graph", element: <GraphRoute /> },
         ],
       },
     ],

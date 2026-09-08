@@ -54,7 +54,11 @@ export const PetraButton = ({
   ...buttonProps
 }: PetraButtonProps): React.JSX.Element => {
   const noteId = useId();
-  const inactive = busy || unavailable !== undefined;
+  const inactive =
+    busy ||
+    unavailable !== undefined ||
+    buttonProps["aria-disabled"] === true ||
+    buttonProps["aria-disabled"] === "true";
   const describedBy = joinIds(
     buttonProps["aria-describedby"],
     unavailable === undefined ? undefined : noteId,

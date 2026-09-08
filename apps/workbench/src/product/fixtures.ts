@@ -1,4 +1,10 @@
-import type { ProjectProfile, ProjectRecord, SourceRecord } from "./model.js";
+import type {
+  GraphQuestion,
+  ProjectProfile,
+  ProjectRecord,
+  ReviewSession,
+  SourceRecord,
+} from "./model.js";
 
 const inquiryProfile: ProjectProfile = {
   id: "profile.inquiry",
@@ -269,3 +275,235 @@ export const getReferenceSource = (
   sourceId: string | undefined,
 ): SourceRecord | undefined =>
   project.sources.find((source) => source.id === sourceId);
+
+export const REFERENCE_REVIEWS: ReviewSession[] = [
+  {
+    id: "review-service-link",
+    projectId: "inlet-cycle",
+    title: "Service-event relationship",
+    objective:
+      "Decide whether the working relationship is ready to enter the accepted Project state.",
+    status: "needs_decision",
+    statusLabel: "Needs your decision",
+    responsible: "Project author",
+    snapshot: "Snapshot 18",
+    returnLabel: "Inlet cycle review",
+    candidate: {
+      id: "candidate-service-link",
+      revision: "Candidate revision 2",
+      kind: "Relationship candidate",
+      current: "No accepted relationship",
+      proposed:
+        "Actuator service event may explain the shortened closing interval.",
+      difference:
+        "Adds a qualifying explanation branch and links it to the maintenance note as its principal basis.",
+      origin: "Inquiry analyst",
+      originDetail:
+        "Created by synthetic Work task work-inquiry-014 from Snapshot 18 inputs.",
+    },
+    basis: [
+      {
+        id: "basis-maintenance-note",
+        label: "Actuator maintenance note",
+        relation: "Principal basis",
+        extent: "Identity only",
+        detail:
+          "Identity and revision are known; source content and permission are unresolved.",
+        sourceId: "src-maintenance-note",
+      },
+      {
+        id: "basis-observation-log",
+        label: "Inlet observation log · entry 21",
+        relation: "Qualifying observation",
+        extent: "Complete for declared scope",
+        detail:
+          "The observation records the changed interval but does not identify the cause.",
+        sourceId: "src-observation-log",
+      },
+    ],
+    validation: {
+      state: "blocked",
+      label: "Commitment blocked",
+      detail:
+        "The principal basis has no inspectable content and its use permission is unresolved.",
+      recovery:
+        "Process a permitted copy or change the candidate's principal basis, then refresh Review.",
+    },
+    consequences: [
+      "Create one accepted qualifying relationship.",
+      "Add the service-event branch to two downstream inquiry views.",
+      "Keep the control-adjustment branch accepted and unchanged.",
+      "Update relationship projections after the authoritative event commits.",
+    ],
+    changeSet: {
+      id: "changeset-service-link",
+      revision: "Preview revision 2",
+      atomicity: "One atomic ChangeSet · 1 proposed change",
+      changes: [
+        "Create: qualifying explanation relationship from service event to active inquiry.",
+      ],
+      protected: [
+        "No source content changes.",
+        "No accepted finding is replaced or removed.",
+        "No Work task is started or cancelled.",
+      ],
+    },
+  },
+];
+
+export const getProjectReviews = (projectId: string): ReviewSession[] =>
+  REFERENCE_REVIEWS.filter((review) => review.projectId === projectId);
+
+export const getReferenceReview = (
+  projectId: string,
+  reviewId: string | undefined,
+): ReviewSession | undefined =>
+  REFERENCE_REVIEWS.find(
+    (review) => review.projectId === projectId && review.id === reviewId,
+  );
+
+export const REFERENCE_GRAPHS: GraphQuestion[] = [
+  {
+    id: "graph-closing-interval",
+    projectId: "inlet-cycle",
+    question:
+      "What recorded branches could explain the shorter closing interval?",
+    focusNodeId: "node-inquiry",
+    scope:
+      "Immediate recorded explanations, their principal basis, and one downstream inquiry dependency.",
+    completeness:
+      "Complete for the declared depth in the represented snapshot; restricted content remains identified but unread.",
+    authoritativeSnapshot: "Snapshot 18",
+    representedSnapshot: "Snapshot 17",
+    historicalSnapshot: "Snapshot 14",
+    workingRevision: "Working revision 6 · based on Snapshot 18",
+    projectionState: "catching_up",
+    projectionDetail:
+      "The graph safely represents Snapshot 17. Snapshot 18 is authoritative and available through Brief and Review while this projection catches up.",
+    recommendation: {
+      branchNodeId: "node-service-event",
+      label: "Resolve the service-event branch first",
+      rationale:
+        "Its maintenance note is the earliest unresolved dependency shared by two downstream questions.",
+      consequence:
+        "Following another branch is valid and leaves this recommendation open; it does not damage accepted Project state.",
+    },
+    nodes: [
+      {
+        id: "node-inquiry",
+        label: "Shorter closing interval",
+        kind: "Inquiry",
+        summary: "The active question being answered by this bounded graph.",
+        basis: "Project focus at the represented or working position.",
+        layers: ["current", "working", "historical"],
+        position: { x: 50, y: 14 },
+      },
+      {
+        id: "node-control-adjustment",
+        label: "Control adjustment",
+        kind: "Explanation branch",
+        summary: "An accepted branch linked to the interval inquiry.",
+        basis: "Accepted Project relationship at Snapshot 17.",
+        layers: ["current", "working", "historical"],
+        position: { x: 24, y: 42 },
+      },
+      {
+        id: "node-observation",
+        label: "Observation entry 21",
+        kind: "Finding",
+        summary:
+          "Records the shorter interval in the current operating window.",
+        basis: "Inlet observation log · Revision 3 · entry 21.",
+        sourceId: "src-observation-log",
+        layers: ["current", "working"],
+        position: { x: 76, y: 42 },
+      },
+      {
+        id: "node-threshold",
+        label: "Review tolerance",
+        kind: "Constraint",
+        summary: "Defines the declared tolerance used in the comparison.",
+        basis: "Operating threshold table · Revision 6 · row 9.",
+        sourceId: "src-threshold-table",
+        layers: ["current", "working", "historical"],
+        position: { x: 18, y: 76 },
+      },
+      {
+        id: "node-service-event",
+        label: "Actuator service event",
+        kind: "Working explanation",
+        summary:
+          "A non-authoritative branch whose principal basis cannot yet be inspected.",
+        basis: "Working candidate revision 2; maintenance note identity only.",
+        sourceId: "src-maintenance-note",
+        layers: ["working"],
+        position: { x: 52, y: 68 },
+      },
+      {
+        id: "node-followup",
+        label: "Timing dependency",
+        kind: "Downstream inquiry",
+        summary: "A second inquiry that depends on resolving the event timing.",
+        basis: "Recorded dependency in Working revision 6.",
+        layers: ["working"],
+        position: { x: 82, y: 80 },
+      },
+    ],
+    edges: [
+      {
+        id: "edge-control-frames",
+        from: "node-control-adjustment",
+        to: "node-inquiry",
+        label: "may explain",
+        summary: "Accepted explanation branch.",
+        basis: "Accepted relationship at Snapshot 17.",
+        layers: ["current", "working", "historical"],
+        tone: "positive",
+      },
+      {
+        id: "edge-observation-qualifies",
+        from: "node-observation",
+        to: "node-inquiry",
+        label: "records",
+        summary:
+          "The observation records the interval change without assigning cause.",
+        basis: "Observation log · entry 21.",
+        layers: ["current", "working"],
+        tone: "neutral",
+      },
+      {
+        id: "edge-threshold-constrains",
+        from: "node-threshold",
+        to: "node-control-adjustment",
+        label: "constrains",
+        summary: "The tolerance constrains interpretation of the adjustment.",
+        basis: "Threshold table · row 9.",
+        layers: ["current", "working", "historical"],
+        tone: "caution",
+      },
+      {
+        id: "edge-service-qualifies",
+        from: "node-service-event",
+        to: "node-inquiry",
+        label: "may explain",
+        summary: "Working relationship awaiting inspectable principal basis.",
+        basis: "Candidate revision 2; validation blocked.",
+        layers: ["working"],
+        tone: "working",
+      },
+      {
+        id: "edge-followup-depends",
+        from: "node-followup",
+        to: "node-service-event",
+        label: "depends on",
+        summary: "The downstream timing inquiry shares this unresolved branch.",
+        basis: "Working revision 6 dependency record.",
+        layers: ["working"],
+        tone: "working",
+      },
+    ],
+  },
+];
+
+export const getProjectGraph = (projectId: string): GraphQuestion | undefined =>
+  REFERENCE_GRAPHS.find((graph) => graph.projectId === projectId);

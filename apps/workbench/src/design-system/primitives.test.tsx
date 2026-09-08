@@ -47,6 +47,21 @@ describe("Petra shared primitives", () => {
     expect(markup).toContain("Checking sources…");
   });
 
+  it("honors a shared externally described action boundary", () => {
+    const markup = renderToStaticMarkup(
+      <>
+        <p id="decision-boundary">The decision service is unavailable.</p>
+        <PetraButton aria-disabled="true" aria-describedby="decision-boundary">
+          Decide later
+        </PetraButton>
+      </>,
+    );
+
+    expect(markup).toContain('aria-disabled="true"');
+    expect(markup).toContain('aria-describedby="decision-boundary"');
+    expect(markup).not.toContain(" disabled");
+  });
+
   it("gives icon-only controls a required accessible name", () => {
     const markup = renderToStaticMarkup(
       <PetraIconButton label="Search evidence" icon={<span>icon</span>} />,

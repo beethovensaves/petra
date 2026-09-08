@@ -75,7 +75,10 @@ describe("neutral Petra reference workbench", () => {
       <SourceReaderSurface
         project={inletProject}
         source={source}
-        returnToBrief
+        returnTo={{
+          path: "/projects/inlet-cycle/brief#attention-source-depth",
+          label: "Return to Attention",
+        }}
       />,
     );
 
