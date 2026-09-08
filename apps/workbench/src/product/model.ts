@@ -88,7 +88,15 @@ export type EngineState = {
 };
 
 export type ProjectPlace =
-  "brief" | "sources" | "review" | "graph" | "work" | "petra";
+  | "brief"
+  | "sources"
+  | "review"
+  | "graph"
+  | "work"
+  | "petra"
+  | "composition"
+  | "history"
+  | "profile_tool";
 
 export type ReviewStatus = "needs_decision" | "waiting" | "completed";
 export type ValidationState = "passed" | "needs_judgment" | "blocked";
@@ -298,6 +306,72 @@ export type PetraThread = {
   omissions: string[];
   activeWorkId?: string;
   messages: PetraMessage[];
+};
+
+export type CompositionArtifact = {
+  id: string;
+  projectId: string;
+  title: string;
+  kind: string;
+  objective: string;
+  currentRevision: string;
+  workingRevision: string;
+  currentText: string;
+  workingText: string;
+  localPersistence: string;
+  structure: Array<{ id: string; heading: string; status: string }>;
+  provenance: Array<{ statement: string; basis: string; sourceId?: string }>;
+  validation: {
+    state: string;
+    summary: string;
+    findings: string[];
+    checkedRevision: string;
+  };
+  outputs: Array<{
+    id: string;
+    label: string;
+    status: string;
+    revision: string;
+    delivery: string;
+  }>;
+};
+
+export type HistoryEpisode = {
+  id: string;
+  projectId: string;
+  title: string;
+  summary: string;
+  actor: string;
+  recordedAt: string;
+  occurredAt: string;
+  action: string;
+  authorityEffect: string;
+  projectionEffect: string;
+  members: string[];
+  recovery: string;
+  revert: {
+    eligible: boolean;
+    label: string;
+    reason: string;
+    consequence: string;
+  };
+};
+
+export type ProfileToolTask = {
+  id: string;
+  projectId: string;
+  label: string;
+  profileLabel: string;
+  objective: string;
+  capability: string;
+  inputs: Array<{ label: string; value: string }>;
+  result?: {
+    status: string;
+    summary: string;
+    members: string[];
+    limitation: string;
+  };
+  returnLabel: string;
 };
 
 export const SOURCE_EXTENT_ORDER: SourceExtent[] = [

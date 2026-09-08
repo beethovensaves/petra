@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Link,
   NavLink,
@@ -15,6 +15,7 @@ import { PetraButton, PetraTextField } from "../design-system/primitives.js";
 import {
   REFERENCE_PROJECTS,
   getProjectGraph,
+  getProjectProfileTool,
   getReferenceProject,
   getReferenceReview,
   getReferenceSource,
@@ -259,14 +260,28 @@ const placeFromPath = (pathname: string): ProjectPlace =>
         ? "graph"
         : pathname.includes("/work")
           ? "work"
-          : pathname.includes("/petra")
-            ? "petra"
-            : "brief";
+          : pathname.includes("/composition")
+            ? "composition"
+            : pathname.includes("/history")
+              ? "history"
+              : pathname.includes("/tools/")
+                ? "profile_tool"
+                : pathname.includes("/petra")
+                  ? "petra"
+                  : "brief";
 
 export const ProjectShell = (): React.JSX.Element => {
   const { projectId } = useParams();
   const project = getReferenceProject(projectId);
   const location = useLocation();
+  const projectNav = useRef<HTMLElement>(null);
+  const currentPlace = placeFromPath(location.pathname);
+
+  useEffect(() => {
+    projectNav.current
+      ?.querySelector<HTMLElement>('a[aria-current="page"]')
+      ?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [currentPlace]);
 
   if (project === undefined) {
     return (
@@ -284,8 +299,6 @@ export const ProjectShell = (): React.JSX.Element => {
       </main>
     );
   }
-
-  const currentPlace = placeFromPath(location.pathname);
 
   return (
     <div className="reference-project-shell">
@@ -317,13 +330,19 @@ export const ProjectShell = (): React.JSX.Element => {
           <Link className="reference-context-action" to="petra">
             Ask Petra
           </Link>
+          <Link
+            className="reference-context-action"
+            to={`/settings?project=${project.id}`}
+          >
+            Settings
+          </Link>
         </div>
       </div>
 
       <div className="reference-project-layout">
         <aside className="reference-project-nav" id="project-navigation">
           <p className="reference-nav-label">Project</p>
-          <nav aria-label={`${project.title} places`}>
+          <nav ref={projectNav} aria-label={`${project.title} places`}>
             <NavLink to="brief">Brief</NavLink>
             <NavLink to="sources">
               {project.profile.terms.referencePlural}
@@ -331,6 +350,8 @@ export const ProjectShell = (): React.JSX.Element => {
             <NavLink to="review">Review</NavLink>
             <NavLink to="graph">Graph</NavLink>
             <NavLink to="work">Work</NavLink>
+            <NavLink to="composition">Composition</NavLink>
+            <NavLink to="history">History</NavLink>
           </nav>
           <details className="reference-profile-details">
             <summary>Profile terms</summary>
@@ -383,157 +404,169 @@ const SurfaceHeading = ({
   </header>
 );
 
-export const BriefSurface = ({ project }: { project: ProjectRecord }) => (
-  <main className="reference-surface" id="reference-main">
-    <SurfaceHeading
-      eyebrow="Brief · current Project"
-      title={project.title}
-      description={project.objective}
-      actions={<ProjectStateLabel project={project} />}
-    />
+export const BriefSurface = ({ project }: { project: ProjectRecord }) => {
+  const profileTool = getProjectProfileTool(project.id);
 
-    {project.projection.state === "current" ? null : (
-      <section
-        className="reference-notice"
-        aria-labelledby="projection-notice-title"
-      >
-        <span className="reference-notice__symbol" aria-hidden="true">
-          ↻
-        </span>
-        <div>
-          <h2 id="projection-notice-title">{project.projection.label}</h2>
-          <p>{project.projection.detail}</p>
-        </div>
-      </section>
-    )}
+  return (
+    <main className="reference-surface" id="reference-main">
+      <SurfaceHeading
+        eyebrow="Brief · current Project"
+        title={project.title}
+        description={project.objective}
+        actions={<ProjectStateLabel project={project} />}
+      />
 
-    <div className="reference-brief-grid">
-      <section
-        className="reference-panel reference-focus"
-        aria-labelledby="current-focus-title"
-      >
-        <div className="reference-panel__heading">
+      {project.projection.state === "current" ? null : (
+        <section
+          className="reference-notice"
+          aria-labelledby="projection-notice-title"
+        >
+          <span className="reference-notice__symbol" aria-hidden="true">
+            ↻
+          </span>
           <div>
-            <p className="reference-panel-kicker">{project.focus.label}</p>
-            <h2 id="current-focus-title">{project.focus.value}</h2>
+            <h2 id="projection-notice-title">{project.projection.label}</h2>
+            <p>{project.projection.detail}</p>
           </div>
-          <span>{project.snapshot.label}</span>
-        </div>
-        <p>{project.focus.summary}</p>
-        <div className="reference-baseline">
-          <strong>Change from baseline</strong>
-          <p>{project.baselineChange}</p>
-        </div>
-      </section>
+        </section>
+      )}
 
-      <aside
-        className="reference-panel reference-project-profile"
-        aria-labelledby="profile-title"
-      >
-        <p className="reference-panel-kicker">Profile</p>
-        <h2 id="profile-title">{project.profile.label}</h2>
-        <p>{project.profile.description}</p>
-        <span className="reference-contract-label">
-          {project.profile.compatibility}
-        </span>
-      </aside>
-    </div>
+      <div className="reference-brief-grid">
+        <section
+          className="reference-panel reference-focus"
+          aria-labelledby="current-focus-title"
+        >
+          <div className="reference-panel__heading">
+            <div>
+              <p className="reference-panel-kicker">{project.focus.label}</p>
+              <h2 id="current-focus-title">{project.focus.value}</h2>
+            </div>
+            <span>{project.snapshot.label}</span>
+          </div>
+          <p>{project.focus.summary}</p>
+          <div className="reference-baseline">
+            <strong>Change from baseline</strong>
+            <p>{project.baselineChange}</p>
+          </div>
+        </section>
 
-    <section className="reference-section" aria-labelledby="attention-title">
-      <div className="reference-section__heading">
-        <div>
-          <p className="reference-panel-kicker">Material status</p>
-          <h2 id="attention-title">Attention</h2>
-        </div>
-        <span>{project.attention.length}</span>
+        <aside
+          className="reference-panel reference-project-profile"
+          aria-labelledby="profile-title"
+        >
+          <p className="reference-panel-kicker">Profile</p>
+          <h2 id="profile-title">{project.profile.label}</h2>
+          <p>{project.profile.description}</p>
+          <span className="reference-contract-label">
+            {project.profile.compatibility}
+          </span>
+          {profileTool === undefined ? null : (
+            <Link
+              className="reference-text-link reference-profile-tool-link"
+              to={`/projects/${project.id}/tools/${profileTool.id}`}
+            >
+              Open {profileTool.label}
+            </Link>
+          )}
+        </aside>
       </div>
 
-      {project.attention.length === 0 ? (
-        <div className="reference-inline-empty">
-          <strong>No item needs attention</strong>
-          <p>Continue from the current focus or inspect its basis.</p>
+      <section className="reference-section" aria-labelledby="attention-title">
+        <div className="reference-section__heading">
+          <div>
+            <p className="reference-panel-kicker">Material status</p>
+            <h2 id="attention-title">Attention</h2>
+          </div>
+          <span>{project.attention.length}</span>
         </div>
-      ) : (
-        <ol className="reference-attention-list">
-          {project.attention.map((item) => (
-            <li key={item.id}>
-              <article
-                className="reference-attention"
-                id={item.id}
-                tabIndex={-1}
-              >
-                <div className="reference-attention__heading">
-                  <span aria-hidden="true">!</span>
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.summary}</p>
+
+        {project.attention.length === 0 ? (
+          <div className="reference-inline-empty">
+            <strong>No item needs attention</strong>
+            <p>Continue from the current focus or inspect its basis.</p>
+          </div>
+        ) : (
+          <ol className="reference-attention-list">
+            {project.attention.map((item) => (
+              <li key={item.id}>
+                <article
+                  className="reference-attention"
+                  id={item.id}
+                  tabIndex={-1}
+                >
+                  <div className="reference-attention__heading">
+                    <span aria-hidden="true">!</span>
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.summary}</p>
+                    </div>
                   </div>
-                </div>
-                <dl className="reference-consequence">
-                  <div>
-                    <dt>Why it matters</dt>
-                    <dd>{item.consequence}</dd>
+                  <dl className="reference-consequence">
+                    <div>
+                      <dt>Why it matters</dt>
+                      <dd>{item.consequence}</dd>
+                    </div>
+                    <div>
+                      <dt>Petra recommends</dt>
+                      <dd>
+                        <strong>{item.recommendation}</strong>
+                        <span>{item.rationale}</span>
+                      </dd>
+                    </div>
+                  </dl>
+                  <div className="reference-attention__actions">
+                    {item.sourceId === undefined ? null : (
+                      <>
+                        <Link
+                          className="reference-primary-link"
+                          to={`/projects/${project.id}/sources/${item.sourceId}?from=brief`}
+                        >
+                          Inspect source and limitation
+                        </Link>
+                        <Link
+                          className="reference-text-link"
+                          to={`/projects/${project.id}/work/work-process-maintenance#required-input`}
+                        >
+                          Open related Work
+                        </Link>
+                      </>
+                    )}
+                    <details>
+                      <summary>Other valid next steps</summary>
+                      <ul>
+                        {item.alternatives.map((alternative) => (
+                          <li key={alternative}>{alternative}</li>
+                        ))}
+                      </ul>
+                      <p>
+                        Choosing another branch does not change or dismiss this
+                        recommendation.
+                      </p>
+                    </details>
                   </div>
-                  <div>
-                    <dt>Petra recommends</dt>
-                    <dd>
-                      <strong>{item.recommendation}</strong>
-                      <span>{item.rationale}</span>
-                    </dd>
-                  </div>
-                </dl>
-                <div className="reference-attention__actions">
-                  {item.sourceId === undefined ? null : (
-                    <>
-                      <Link
-                        className="reference-primary-link"
-                        to={`/projects/${project.id}/sources/${item.sourceId}?from=brief`}
-                      >
-                        Inspect source and limitation
-                      </Link>
-                      <Link
-                        className="reference-text-link"
-                        to={`/projects/${project.id}/work/work-process-maintenance#required-input`}
-                      >
-                        Open related Work
-                      </Link>
-                    </>
-                  )}
-                  <details>
-                    <summary>Other valid next steps</summary>
-                    <ul>
-                      {item.alternatives.map((alternative) => (
-                        <li key={alternative}>{alternative}</li>
-                      ))}
-                    </ul>
-                    <p>
-                      Choosing another branch does not change or dismiss this
-                      recommendation.
-                    </p>
-                  </details>
-                </div>
-              </article>
-            </li>
+                </article>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+
+      <section className="reference-section" aria-labelledby="decisions-title">
+        <div className="reference-section__heading">
+          <div>
+            <p className="reference-panel-kicker">Recent change</p>
+            <h2 id="decisions-title">Recent decisions</h2>
+          </div>
+        </div>
+        <ol className="reference-decision-list">
+          {project.recentDecisions.map((decision) => (
+            <li key={decision}>{decision}</li>
           ))}
         </ol>
-      )}
-    </section>
-
-    <section className="reference-section" aria-labelledby="decisions-title">
-      <div className="reference-section__heading">
-        <div>
-          <p className="reference-panel-kicker">Recent change</p>
-          <h2 id="decisions-title">Recent decisions</h2>
-        </div>
-      </div>
-      <ol className="reference-decision-list">
-        {project.recentDecisions.map((decision) => (
-          <li key={decision}>{decision}</li>
-        ))}
-      </ol>
-    </section>
-  </main>
-);
+      </section>
+    </main>
+  );
+};
 
 export const BriefRoute = (): React.JSX.Element => (
   <BriefSurface project={useProjectRecord()} />

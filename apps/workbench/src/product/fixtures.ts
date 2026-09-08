@@ -1,6 +1,9 @@
 import type {
+  CompositionArtifact,
   GraphQuestion,
+  HistoryEpisode,
   PetraThread,
+  ProfileToolTask,
   ProjectProfile,
   ProjectRecord,
   ReviewSession,
@@ -843,3 +846,174 @@ export const getProjectPetraThread = (
   projectId: string,
 ): PetraThread | undefined =>
   REFERENCE_PETRA_THREADS.find((thread) => thread.projectId === projectId);
+
+export const REFERENCE_ARTIFACTS: CompositionArtifact[] = [
+  {
+    id: "artifact-emergency-sequence",
+    projectId: "field-guide",
+    title: "Emergency sequence revision",
+    kind: "Controlled guide section",
+    objective:
+      "Produce a traceable passage that preserves the approved emergency instruction.",
+    currentRevision: "Accepted revision 10",
+    workingRevision: "Working revision 12",
+    currentText:
+      "Before leaving the platform, close the inlet when conditions allow.",
+    workingText:
+      "Close the marked inlet before leaving the platform. Confirm the indicator is settled, then use the north exit.",
+    localPersistence: "Durably saved as Working revision 12",
+    structure: [
+      { id: "section-action", heading: "Required action", status: "Revised" },
+      { id: "section-check", heading: "Indicator check", status: "Added" },
+      { id: "section-exit", heading: "Exit instruction", status: "Added" },
+    ],
+    provenance: [
+      {
+        statement: "Close the marked inlet before leaving the platform.",
+        basis: "Approved emergency language · Revision 5 · Clause 2.4",
+        sourceId: "src-approved-language",
+      },
+      {
+        statement: "Confirm the indicator is settled.",
+        basis: "Author-authored working text; no governing reference linked",
+      },
+      {
+        statement: "Use the north exit.",
+        basis: "Author-authored working text; location reference unresolved",
+      },
+    ],
+    validation: {
+      state: "finding",
+      summary: "One governing check passed; two statements need basis review.",
+      findings: [
+        "Passed: the required action exactly matches Clause 2.4.",
+        "Needs review: the indicator check has no governing reference.",
+        "Needs review: the north-exit location is unresolved.",
+      ],
+      checkedRevision: "Working revision 12",
+    },
+    outputs: [
+      {
+        id: "output-preview-12",
+        label: "Accessible HTML preview",
+        status: "Prepared",
+        revision: "Working revision 12",
+        delivery: "Stored locally · not delivered",
+      },
+    ],
+  },
+];
+
+export const getProjectArtifacts = (projectId: string) =>
+  REFERENCE_ARTIFACTS.filter((artifact) => artifact.projectId === projectId);
+
+export const getReferenceArtifact = (
+  projectId: string,
+  artifactId: string | undefined,
+) =>
+  REFERENCE_ARTIFACTS.find(
+    (artifact) =>
+      artifact.projectId === projectId && artifact.id === artifactId,
+  );
+
+export const REFERENCE_HISTORY: HistoryEpisode[] = [
+  {
+    id: "episode-observation-accepted",
+    projectId: "inlet-cycle",
+    title: "Observation entry accepted",
+    summary:
+      "Entry 21 became accepted basis for the interval finding; the graph projection then began catching up.",
+    actor: "Project author",
+    recordedAt: "2026-09-07 14:18",
+    occurredAt: "2026-09-07 14:17",
+    action: "Applied ChangeSet changeset-observation-021 revision 1",
+    authorityEffect: "Created one accepted basis relationship at Snapshot 18.",
+    projectionEffect:
+      "Authoritative application succeeded; Graph still represents Snapshot 17.",
+    members: [
+      "Decision decision-observation-021 recorded",
+      "Basis relationship basis-observation-021 created",
+      "Project advanced from Snapshot 17 to Snapshot 18",
+      "Graph projection catch-up requested",
+    ],
+    recovery:
+      "The accepted event is retained. Projection retry cannot repeat the Apply command.",
+    revert: {
+      eligible: true,
+      label: "Prepare reversal",
+      reason:
+        "The applied relationship remains current and no protected dependent change blocks compensation.",
+      consequence:
+        "A reversal would remove the accepted basis relationship in a new ChangeSet while retaining this decision and event history.",
+    },
+  },
+  {
+    id: "episode-threshold-retained",
+    projectId: "inlet-cycle",
+    title: "Threshold interpretation retained",
+    summary:
+      "Review kept the control-adjustment branch open after comparing the declared tolerance.",
+    actor: "Project author",
+    recordedAt: "2026-09-06 16:42",
+    occurredAt: "2026-09-06 16:41",
+    action: "Recorded Review decision decision-threshold-006",
+    authorityEffect: "No accepted object or relationship changed.",
+    projectionEffect: "No projection update was required.",
+    members: [
+      "Review session review-threshold-006 completed",
+      "Candidate remained unapplied",
+      "Both inquiry paths remained open",
+    ],
+    recovery:
+      "No authoritative effect needs recovery. The completed Review remains inspectable.",
+    revert: {
+      eligible: false,
+      label: "Reversal unavailable",
+      reason: "The decision produced no authoritative change to compensate.",
+      consequence:
+        "Open a new Review if a later candidate should change the branch.",
+    },
+  },
+];
+
+export const getProjectHistory = (projectId: string) =>
+  REFERENCE_HISTORY.filter((episode) => episode.projectId === projectId);
+
+export const getHistoryEpisode = (
+  projectId: string,
+  episodeId: string | undefined,
+) =>
+  REFERENCE_HISTORY.find(
+    (episode) => episode.projectId === projectId && episode.id === episodeId,
+  );
+
+export const REFERENCE_PROFILE_TOOLS: ProfileToolTask[] = [
+  {
+    id: "tool-constraint-coverage",
+    projectId: "north-loop",
+    label: "Constraint coverage check",
+    profileLabel: "Decision analysis",
+    objective:
+      "Check whether every proposed service sequence addresses the required access constraints.",
+    capability: "profile.decision-analysis/constraint-coverage@1.0",
+    inputs: [
+      {
+        label: "Decision question",
+        value: "Which sequence preserves morning access?",
+      },
+      {
+        label: "Required constraint",
+        value: "Morning access remains available",
+      },
+      { label: "Alternatives", value: "No registered alternatives yet" },
+    ],
+    returnLabel: "North loop service plan Brief",
+  },
+];
+
+export const getProjectProfileTool = (projectId: string, toolId?: string) =>
+  REFERENCE_PROFILE_TOOLS.find(
+    (tool) =>
+      tool.projectId === projectId &&
+      (toolId === undefined || tool.id === toolId),
+  );

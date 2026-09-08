@@ -23,6 +23,13 @@ import {
   WorkCollectionRoute,
   WorkDetailRoute,
 } from "./product/WorkPetraSurface.js";
+import {
+  CompositionArtifactRoute,
+  CompositionCollectionRoute,
+  HistoryRoute,
+  ProfileToolRoute,
+  SettingsRoute,
+} from "./product/RemainingSurfaces.js";
 import type { EngineState } from "./product/model.js";
 
 const loadHealth = async (): Promise<EngineState> => {
@@ -57,8 +64,17 @@ export const router = createBrowserRouter([
           { path: "work", element: <WorkCollectionRoute /> },
           { path: "work/:workId", element: <WorkDetailRoute /> },
           { path: "petra", element: <PetraRoute /> },
+          { path: "composition", element: <CompositionCollectionRoute /> },
+          {
+            path: "composition/:artifactId",
+            element: <CompositionArtifactRoute />,
+          },
+          { path: "history", element: <HistoryRoute /> },
+          { path: "history/:episodeId", element: <HistoryRoute /> },
+          { path: "tools/:toolId", element: <ProfileToolRoute /> },
         ],
       },
+      { path: "settings", element: <SettingsRoute /> },
     ],
   },
   {
