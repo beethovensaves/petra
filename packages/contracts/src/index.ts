@@ -83,6 +83,17 @@ export type {
   WorkUnitRef as ProjectWorkUnitRef,
 } from "./generated/project-work-view.js";
 export type {
+  AuthorityContext as ProjectThreadAuthorityContext,
+  ContextBinding as ProjectThreadContextBinding,
+  DefinitionRef as ProjectThreadDefinitionRef,
+  ExactArtifactRef as ProjectThreadExactArtifactRef,
+  ExactTypedRecordRef as ProjectThreadExactTypedRecordRef,
+  PetraProjectThread,
+  ThreadContent as ProjectThreadContent,
+  ThreadOrigin as ProjectThreadOrigin,
+  Turn as ProjectThreadTurn,
+} from "./generated/project-thread.js";
+export type {
   ArtifactManifestRef as ProjectSourceArtifactManifestRef,
   AuthorRef as ProjectSourceAuthorRef,
   DefinitionRef as ProjectSourceDefinitionRef,

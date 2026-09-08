@@ -3079,6 +3079,194 @@ class PetraProjectWorkView(PetraModel):
     read_at: str
 
 
+class ProjectThreadDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    definition_family: str
+
+
+class ProjectThreadObjectiveRef(PetraModel):
+    objective_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectThreadRootLineage(PetraModel):
+    lineage_kind: Literal["root"]
+
+
+class ProjectThreadRevisionLineage(PetraModel):
+    lineage_kind: Literal["revision"]
+    parent_revision: int
+    parent_hash: str
+
+
+class ProjectThreadRevisionRef(PetraModel):
+    project_thread_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectThreadRootOrigin(PetraModel):
+    origin_kind: Literal["root"]
+
+
+class ProjectThreadBranchOrigin(PetraModel):
+    origin_kind: Literal["branch"]
+    parent_thread_ref: ProjectThreadRevisionRef
+    parent_turn_id: str
+    continuation_mode: Literal[
+        "original_snapshot", "current_snapshot", "compare_then_continue"
+    ]
+
+
+class ProjectThreadExactArtifactRef(PetraModel):
+    artifact_id: str
+    content_hash: str
+    byte_size: int
+    media_type: str
+
+
+class ProjectThreadExactRecordRef(PetraModel):
+    schema_name: str
+    schema_version: str
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectThreadHashOnlyInput(PetraModel):
+    retention_state: Literal["hash_only"]
+    input_hash: str
+    source_message_id: str
+    limitation: str
+
+
+class ProjectThreadRetainedInput(PetraModel):
+    retention_state: Literal["retained_artifact"]
+    input_hash: str
+    source_message_id: str
+    artifact_ref: ProjectThreadExactArtifactRef
+
+
+class ProjectThreadSnapshotRef(PetraModel):
+    snapshot_id: str
+    snapshot_revision: int
+    event_position: int
+    content_hash: str
+
+
+class ProjectThreadContext(PetraModel):
+    context_record_ref: ProjectThreadExactRecordRef
+    snapshot_ref: ProjectThreadSnapshotRef
+    included_object_count: int
+    omission_count: int
+    coverage_state: Literal["complete_for_recipe", "bounded", "partial", "unknown"]
+    coverage_statement: str
+
+
+class ProjectThreadInteractionRunRef(PetraModel):
+    interaction_run_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectThreadWorkUnitRef(PetraModel):
+    work_unit_id: str
+    revision: int
+    spec_hash: str
+
+
+class ProjectThreadExecution(PetraModel):
+    interaction_run_ref: ProjectThreadInteractionRunRef
+    work_unit_ref: ProjectThreadWorkUnitRef
+
+
+class ProjectThreadControlRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectThreadUnavailable(PetraModel):
+    state: Literal["unavailable"]
+    reason: str
+
+
+class ProjectThreadAuthorityContext(PetraModel):
+    actor: ActorRef
+    capability_grant_id: str
+    privacy_profile_ref: ProjectThreadControlRef
+    budget_profile_ref: ProjectThreadControlRef
+    review_policy: ProjectThreadUnavailable
+
+
+class ProjectThreadCompletedResponse(PetraModel):
+    state: Literal["completed"]
+    result_record_ref: ProjectThreadExactRecordRef
+    response_artifact_ref: ProjectThreadExactArtifactRef
+    force: Literal["explanation_only", "work_update", "proposal"]
+    authority_effect: Literal["none"]
+
+
+class ProjectThreadUnmodifiedCompaction(PetraModel):
+    state: Literal["unmodified"]
+
+
+class ProjectThreadCompactedContext(PetraModel):
+    state: Literal["compacted"]
+    summary_artifact_ref: ProjectThreadExactArtifactRef
+    covered_through_sequence: int
+    method_ref: ProjectThreadExactRecordRef
+
+
+class ProjectThreadTurn(PetraModel):
+    project_turn_id: str
+    sequence: int
+    previous_turn_id: str | None = None
+    project_definition_ref: ProjectThreadDefinitionRef
+    objective_ref: ProjectThreadObjectiveRef | None = None
+    input: ProjectThreadHashOnlyInput | ProjectThreadRetainedInput
+    context: ProjectThreadContext
+    execution: ProjectThreadExecution
+    authority_context: ProjectThreadAuthorityContext
+    response: ProjectThreadCompletedResponse
+    compaction: ProjectThreadUnmodifiedCompaction | ProjectThreadCompactedContext
+    proposal_decision_linkage: ProjectThreadUnavailable
+    presentation_context: ProjectThreadUnavailable
+    recorded_at: str
+
+
+class ProjectThreadRetention(PetraModel):
+    state: Literal["retained"]
+    limitation: str
+
+
+class ProjectThreadContent(PetraModel):
+    title: str
+    task: str
+    lifecycle: Literal["open", "archived"]
+    origin: ProjectThreadRootOrigin | ProjectThreadBranchOrigin
+    turns: list[ProjectThreadTurn]
+    retention: ProjectThreadRetention
+
+
+class PetraProjectThread(PetraModel):
+    schema_name: Literal["petra.project-thread"]
+    schema_version: Literal["1.0.0"]
+    project_thread_id: str
+    revision: int
+    project_id: str
+    project_definition_ref: ProjectThreadDefinitionRef
+    lineage: ProjectThreadRootLineage | ProjectThreadRevisionLineage
+    content: ProjectThreadContent
+    content_hash: str
+    created_by: ActorRef
+    created_at: str
+    updated_at: str
+
+
 class WorkUnitInputManifestRef(PetraModel):
     worker_input_manifest_id: str
     content_hash: str
@@ -5237,6 +5425,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-relationship-view": PetraProjectRelationshipView,
     "project-object-location-view": PetraProjectObjectLocationView,
     "project-work-view": PetraProjectWorkView,
+    "project-thread": PetraProjectThread,
     "author": PetraAuthor,
     "work": PetraWork,
     "work-version": PetraWorkVersion,
@@ -5395,6 +5584,7 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-effective-controls-view.json", "content", "content_hash"),
         ("project-work-view-collection.json", "content", "content_hash"),
         ("project-work-view-detail.json", "content", "content_hash"),
+        ("project-thread.json", "content", "content_hash"),
     ]
     for filename, projection, hash_field in fixtures:
         value = read_json(f"fixtures/accepted/{filename}")

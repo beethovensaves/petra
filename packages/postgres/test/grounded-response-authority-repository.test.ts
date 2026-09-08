@@ -18,6 +18,7 @@ import type {
   PetraInteractionRun,
   PetraProject,
   PetraProjectDefinition,
+  PetraProjectThread,
   PetraParsedDocument,
   PetraRightsDecision,
   PetraSourceSpan,
@@ -76,6 +77,10 @@ import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-r
 import { PostgresGroundedResponseAuthorityRepository } from "../src/grounded-response-authority-repository.js";
 import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import {
+  PostgresProjectThreadAuthorityRepository,
+  type PostgresProjectThreadError,
+} from "../src/project-thread-authority-repository.js";
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import {
@@ -144,6 +149,15 @@ const expectRenderedArtifactCode = async (
     expect.objectContaining<Partial<RenderedArtifactPersistenceError>>({
       code,
     }),
+  );
+};
+
+const expectProjectThreadCode = async (
+  operation: () => Promise<unknown>,
+  code: PostgresProjectThreadError["code"],
+): Promise<void> => {
+  await expect(operation()).rejects.toEqual(
+    expect.objectContaining<Partial<PostgresProjectThreadError>>({ code }),
   );
 };
 
@@ -724,6 +738,132 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     };
   };
 
+  const projectThread = (
+    terminal: Awaited<ReturnType<typeof persistTerminal>>,
+    response: PetraGroundedResponse,
+  ): PetraProjectThread => {
+    const definition = readFixture<PetraProjectDefinition>(
+      "project-definition-scientific",
+    );
+    const context = terminal.packets.getContextPacket(
+      response.content.context_packet_ref.context_packet_id,
+    );
+    if (context === undefined) {
+      throw new Error("Expected the exact ContextPacket for the Project turn.");
+    }
+    const run = terminal.input.interactionRun;
+    const content: PetraProjectThread["content"] = {
+      title: "Selected study result",
+      task: "Explain what the selected study reports and bound the answer to recorded evidence.",
+      lifecycle: "open",
+      origin: { origin_kind: "root" },
+      turns: [
+        {
+          project_turn_id: "project_turn_01K4C000000000000000000102",
+          sequence: 1,
+          project_definition_ref: {
+            project_definition_id: definition.project_definition_id,
+            revision: definition.revision,
+            content_hash: definition.content_hash,
+            definition_family: definition.definition_family,
+          },
+          input: {
+            retention_state: "hash_only",
+            input_hash: run.content.input.input_hash,
+            source_message_id: run.content.input.source_message_id,
+            limitation:
+              "The originating run predates retained prompt artifacts; exact input bytes are unavailable.",
+          },
+          context: {
+            context_record_ref: {
+              schema_name: "petra.context-packet",
+              schema_version: "1.0.0",
+              record_id: context.context_packet_id,
+              revision: context.revision,
+              content_hash: context.content_hash,
+            },
+            snapshot_ref: structuredClone(context.snapshot_ref),
+            included_object_count: context.content.included_objects.length,
+            omission_count: context.content.omissions.length,
+            coverage_state: context.content.coverage.state,
+            coverage_statement: context.content.coverage.statement,
+          },
+          execution: structuredClone(response.content.interaction_ref),
+          authority_context: {
+            actor: structuredClone(run.content.authority_context.actor),
+            capability_grant_id:
+              run.content.authority_context.capability_grant_id,
+            privacy_profile_ref: structuredClone(
+              run.content.authority_context.privacy_profile_ref,
+            ),
+            budget_profile_ref: structuredClone(
+              run.content.authority_context.budget_profile_ref,
+            ),
+            review_policy: {
+              state: "unavailable",
+              reason:
+                "The originating InteractionRun predates exact review-policy capture.",
+            },
+          },
+          response: {
+            state: "completed",
+            result_record_ref: {
+              schema_name: "petra.grounded-response",
+              schema_version: "1.0.0",
+              record_id: response.grounded_response_id,
+              revision: response.revision,
+              content_hash: response.content_hash,
+            },
+            response_artifact_ref: structuredClone(
+              response.content.response_artifact_ref,
+            ),
+            force: "explanation_only",
+            authority_effect: "none",
+          },
+          compaction: { state: "unmodified" },
+          proposal_decision_linkage: {
+            state: "unavailable",
+            reason:
+              "No proposal or decision was produced by this explanatory turn.",
+          },
+          presentation_context: {
+            state: "unavailable",
+            reason:
+              "Presentation-state capture is outside this foundation contract.",
+          },
+          recorded_at: "2026-09-03T18:31:08.000Z",
+        },
+      ],
+      retention: {
+        state: "retained",
+        limitation:
+          "Material turn bindings are durable; the prompt is represented by its exact hash because no prompt artifact was retained.",
+      },
+    };
+    return {
+      schema_name: "petra.project-thread",
+      schema_version: "1.0.0",
+      project_thread_id: "project_thread_01K4C000000000000000000101",
+      revision: 1,
+      project_id: response.project_id,
+      project_definition_ref: {
+        project_definition_id: definition.project_definition_id,
+        revision: definition.revision,
+        content_hash: definition.content_hash,
+        definition_family: definition.definition_family,
+      },
+      lineage: { lineage_kind: "root" },
+      content,
+      content_hash: canonicalHash(content),
+      created_by: {
+        actor_id: readFixture<PetraActor>("actor").actor_id,
+        actor_kind: "human",
+      },
+      created_at: "2026-09-03T18:31:08.000Z",
+      updated_at: "2026-09-03T18:31:08.000Z",
+    };
+  };
+
   const compileDurableComposition = async () => {
     const terminal = await persistTerminal();
     const groundedResponse =
@@ -872,6 +1012,95 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       context_packet_id: stored.content.context_packet_ref.context_packet_id,
       model_request_id: stored.content.execution_ref.model_request_id,
     });
+  });
+
+  it("persists immutable Project threads, revisions, and exact branch origins", async () => {
+    const terminal = await persistTerminal();
+    const response = await new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      terminal.packets,
+    ).register(terminal.input);
+    const repository = new PostgresProjectThreadAuthorityRepository(pool);
+    const root = projectThread(terminal, response);
+
+    expect(await repository.registerProjectThreadRevision(root)).toEqual(root);
+    expect(
+      await repository.registerProjectThreadRevision(structuredClone(root)),
+    ).toEqual(root);
+    expect(
+      await repository.getProjectThread(
+        root.project_id,
+        root.project_thread_id,
+      ),
+    ).toEqual(root);
+    expect(await repository.listProjectThreads(root.project_id)).toEqual([
+      root,
+    ]);
+    expect(
+      await repository.getProjectThread(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        root.project_thread_id,
+      ),
+    ).toBeUndefined();
+
+    const archived = structuredClone(root);
+    archived.revision = 2;
+    archived.lineage = {
+      lineage_kind: "revision",
+      parent_revision: root.revision,
+      parent_hash: root.content_hash,
+    };
+    archived.content.lifecycle = "archived";
+    archived.content_hash = canonicalHash(archived.content);
+    archived.updated_at = "2026-09-03T18:32:00.000Z";
+    expect(await repository.registerProjectThreadRevision(archived)).toEqual(
+      archived,
+    );
+
+    const branch = structuredClone(root);
+    branch.project_thread_id = "project_thread_01K4C000000000000000000103";
+    branch.content.origin = {
+      origin_kind: "branch",
+      parent_thread_ref: {
+        project_thread_id: archived.project_thread_id,
+        revision: archived.revision,
+        content_hash: archived.content_hash,
+      },
+      parent_turn_id: root.content.turns[0]!.project_turn_id,
+      continuation_mode: "compare_then_continue",
+    };
+    branch.content.title = "Alternative continuation";
+    branch.content.turns = [];
+    branch.content_hash = canonicalHash(branch.content);
+    branch.created_at = "2026-09-03T18:33:00.000Z";
+    branch.updated_at = branch.created_at;
+    expect(await repository.registerProjectThreadRevision(branch)).toEqual(
+      branch,
+    );
+    expect(await repository.listProjectThreads(root.project_id)).toEqual([
+      branch,
+      archived,
+    ]);
+
+    const changed = structuredClone(archived);
+    changed.content.turns[0]!.input.input_hash =
+      "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    changed.content_hash = canonicalHash(changed.content);
+    await expectProjectThreadCode(
+      () => repository.registerProjectThreadRevision(changed),
+      "PROJECT_THREAD_REVISION_CONFLICT",
+    );
+
+    try {
+      await pool.query(
+        `DELETE FROM petra.project_thread_turn_bindings
+          WHERE project_thread_id = $1`,
+        [root.project_thread_id],
+      );
+      throw new Error("Expected immutable Project turns to reject deletion.");
+    } catch (error: unknown) {
+      expect(error).toEqual(expect.objectContaining({ code: "55000" }));
+    }
   });
 
   it("persists immutable composition controls and rehydrates them after restart", async () => {
