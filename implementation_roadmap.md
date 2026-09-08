@@ -1,7 +1,7 @@
 # Petra Implementation Roadmap
 
-Status: M1.6 and M1.8 complete; M1.7's backend interaction contract is stable while its design stream continues
-Last updated: 2026-09-04
+Status: M1.6 and M1.8 complete; UX design frozen; M1.9 cumulative demonstration and frontend integration remain open
+Last updated: 2026-09-07
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
 Companion documents:
@@ -10,6 +10,7 @@ Companion documents:
 - [Logical graph and event model](PETRA_GRAPH_MODEL.md)
 - [Decision and milestone roadmap](ROADMAP.md)
 - [Design implementation roadmap](design_implementation_roadmap.md)
+- [UX runtime architecture disposition](reports/UX-RUNTIME-ARCHITECTURE-DISPOSITION.md)
 - [Accepted decisions](decisions/)
 
 ## Outcome
@@ -81,7 +82,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 | `M1.6` | `complete` | Bounded retrieval, ContextPacket, EvidencePacket, and streamed grounded response | The first LLM answer must be graph-guided, scoped, traceable, and carried by the production interaction protocol | `M1.5` | Retrieval and its frozen floor, immutable packet compilation, strict synthesist output, evidence validation, origin labels, certified managed-ChatGPT synthesis, PostgreSQL/S3 terminal persistence, exact replay and invalidation, durable execution-cache reuse, and grounded AG-UI ordering pass |
 | `M1.7` | `in_progress` | Research Brief, evidence view, focused graph, inspector, and Petra interaction client | Researchers need to understand and correct Petra without reading logs, raw tables, or protocol events | `M1.5`, `M1.6` | Cross-view identity, review flow, reconnect, honest async states |
 | `M1.8` | `complete` | DraftArtifact, ProvenanceMap, citations, BibTeX, and LaTeX | Petra must turn evidence into usable scientific writing without losing origin or force | `M1.6`, `M1.7` | CompositionRequest/Plan contract gate, span support, renderer parity, edit and Felicity revalidation |
-| `M1.9` | `planned` | Clean-start acceptance run, replay, recovery, and M1 closure | The parts count only when the complete evidence path survives failure and rebuild | `M1.0`–`M1.8` | Scripted demonstration and all required test groups |
+| `M1.9` | `in_progress` | Clean-start acceptance run, replay, recovery, and M1 closure | The parts count only when the complete evidence path survives failure and rebuild | `M1.0`–`M1.8` | Scripted demonstration and all required test groups |
 
 ## Later milestones at a glance
 
@@ -97,7 +98,7 @@ Completion is evidence-based. “Code exists” is not a completion status unles
 
 ### Current Petra state
 
-The `/petra` directory contains product, graph, roadmap, and D001–D017 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eighteen forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries, ordered tombstones, and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; a pinned offline Docling adapter producing stable geometry-backed SourceSpans through a proposal-only worker manifest; a portable evidence-proposal bundle plus independent TypeScript quarantine-admission boundary; provider-neutral policy-first extractor and synthesist gateways with exact role certifications and request/call records; active certified Qwen3.5 local extraction plus managed-subscription GPT-5.6 Terra extraction and synthesis; an opt-in Codex App Server provider with entitlement-derived model discovery; one immutable review projection and storage-neutral command planner/executor; a bounded, model-free lexical-to-graph retrieval recipe with exact revision checks and visible omissions plus a content-hashed Paper Trail comparison floor; deterministic ContextPacket and EvidencePacket compilation with provenance closure, rights dependency, budget, and coverage checks; a certified grounded interaction executor with visible AG-UI retrieval, packet, model, validation, persistence, response, and terminal events; a revisioned PostgreSQL GroundedResponse with exact dependency and invalidation semantics; durable synthesist execution rehydration; canonical content-addressed grounded-interaction history with process-restart replay and per-connection delivery receipts; an authorized idempotent WorkUnit-cancellation command ledger; immutable CompositionRequest and CompositionPlan controls with exact evidence, policy, force, and draft-binding invariants plus PostgreSQL persistence and restart replay; a deterministic grounded composition compiler producing Unicode-safe DraftSpans, exact provenance, and canonical citations with abstract-only force limits; an atomic durable composition aggregate with normalized dependency closure and restart recovery; bounded Felicity revision with exact post-rewrite preservation and atomic durable receipts; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.5, M1.6, and M1.8 are complete without a Platform API key. M1.7 is in progress: its backend now distinguishes explicit stop, disconnect, replay, and completion durably, while the object-centered workbench UX remains in the design stream.
+The `/petra` directory contains product, graph, roadmap, and D001–D017 decision documents; an npm workspace; a Python `uv` worker project; canonical schema fixtures; digest-pinned Compose services; the selected Flyway command profile; eighteen forward-only authority migrations; typed PostgreSQL repositories; a verified S3-compatible ArtifactStore; an exact Paper Trail retrieval fixture and TypeScript compatibility adapter; a PostgreSQL-authorized Neo4j projector with bounded graph queries, ordered tombstones, and rebuild; the exact CC BY 4.0 M1.4 calibration PDF and its contract-validated identity and rights records; a pinned offline Docling adapter producing stable geometry-backed SourceSpans through a proposal-only worker manifest; a portable evidence-proposal bundle plus independent TypeScript quarantine-admission boundary; provider-neutral policy-first extractor and synthesist gateways with exact role certifications and request/call records; active certified Qwen3.5 local extraction plus managed-subscription GPT-5.6 Terra extraction and synthesis; an opt-in Codex App Server provider with entitlement-derived model discovery; one immutable review projection and storage-neutral command planner/executor; a bounded, model-free lexical-to-graph retrieval recipe with exact revision checks and visible omissions plus a content-hashed Paper Trail comparison floor; deterministic ContextPacket and EvidencePacket compilation with provenance closure, rights dependency, budget, and coverage checks; a certified grounded interaction executor with visible AG-UI retrieval, packet, model, validation, persistence, response, and terminal events; a revisioned PostgreSQL GroundedResponse with exact dependency and invalidation semantics; durable synthesist execution rehydration; canonical content-addressed grounded-interaction history with process-restart replay and per-connection delivery receipts; an authorized idempotent WorkUnit-cancellation command ledger; immutable CompositionRequest and CompositionPlan controls with exact evidence, policy, force, and draft-binding invariants plus PostgreSQL persistence and restart replay; a deterministic grounded composition compiler producing Unicode-safe DraftSpans, exact provenance, and canonical citations with abstract-only force limits; an atomic durable composition aggregate with normalized dependency closure and restart recovery; bounded Felicity revision with exact post-rewrite preservation and atomic durable receipts; executable TypeScript, Python, migration, and real-service integration tests; and the Hono/React/AG-UI application shell. M1.5, M1.6, and M1.8 are complete without a Platform API key. M1.7 is in progress: its backend distinguishes explicit stop, disconnect, replay, and completion durably; the UX is frozen and its initial neutral reference implementation remains on the separate design branch awaiting live integration.
 
 The current development environment exposes:
 
@@ -825,7 +826,7 @@ The first graph view needs interaction and traceability, not visual polish. Rend
 
 ## M1.8 — first DraftArtifact and citations
 
-- **Status:** `in_progress`
+- **Status:** `complete`
 - **Builds:** snapshot-bound scientific prose, span-level provenance, canonical citations, BibTeX, LaTeX, and revision-aware editing.
 - **Why:** Petra must convert evidence into useful research writing without turning fluent language or formatted references into unsupported authority.
 - **Depends on:** `M1.6`, `M1.7`.
@@ -902,7 +903,7 @@ Support one researcher edit that:
 | `M1.9-W01` | `complete` | Compose the existing deterministic repository, PostgreSQL, ArtifactStore, Neo4j, Docling, and proposal-quarantine gates behind one ordered backend command with per-component failure attribution. | M1 evidence must be runnable as a coherent matrix rather than inferred from scattered commands. |
 | `M1.9-W02` | `complete` | Exercise PostgreSQL and ArtifactStore backup/restore, rebuild Neo4j from restored authority, and compare active identity plus immutable history. | Component persistence is insufficient until recovery preserves the same scientific state. |
 | `M1.9-W03` | `in_progress` | Run `M1.9-DEMO-01`–`M1.9-DEMO-15` as one clean-start cumulative trace with an inspectable result manifest. | Only one identity-preserving path can prove the implemented parts compose into Petra's M1 evidence spine. |
-| `M1.9-W04` | `planned` | Merge the completed M1.7 design contract, execute interface recovery assertions, and record the final closeout evidence. | M1 cannot close while user-facing async, provenance, and review states remain owned by an unintegrated design stream. |
+| `M1.9-W04` | `planned` | Merge the completed M1.7 design contract, execute interface recovery assertions, and record the final closeout evidence. | M1 cannot close while user-facing async, provenance, and review states remain confined to an unintegrated reference UX. |
 
 ### Implementation evidence
 

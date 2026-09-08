@@ -1,0 +1,414 @@
+# UX runtime architecture disposition and implementation sequence
+
+Status: implementation-track review complete; runtime work remains open
+Date: 2026-09-07
+Backend baseline: `main` at `344cf77`
+Frozen design baseline: `655d094`
+Design handoff reviewed: `ced8d81`
+Neutral reference checkpoint reviewed: `26b03ee`
+
+## Outcome
+
+The frozen UX is implementable without replacing Petra's existing M1 authority,
+artifact, graph-projection, Work, interaction, review, or composition contracts.
+Those contracts provide strong scientific foundations, but none of
+`UX-REQ-001` through `UX-REQ-023` is completely satisfied as a neutral product
+contract. The implementation should add Project-definition records, composed
+queries, and typed commands around the existing foundations rather than edit
+accepted schemas in place or let the client infer missing authority.
+
+The principal architecture adjustment is `UX-REQ-004`: Petra is governed by an
+explicit, immutable, versioned `ProjectDefinition`, which may be unique to one
+Project. A reusable profile or template may supply an optional origin or
+dependency, but Petra does not require Projects to belong to a predefined
+catalogue. The design's “profile-resolved” behavior is retained as
+Project-definition-resolved behavior.
+
+This review does not close `G-CONTRACT`, `G-INTEGRATION`, or `G-VALIDATION`.
+It records which existing capabilities may be reused, which runtime work is
+missing, and the order in which to implement it.
+
+## Baseline and gate boundary
+
+- The design brief is frozen at `UX-DESIGN-FREEZE-01`; DB01 through DB18 are
+  complete at specification depth.
+- The design worktree contains a complete initial presentation of the fourteen
+  DB18 surface packets. It is still fixture-backed except for the existing
+  health read and must not be described as live product integration.
+- Backend `M1.9-W01` and `M1.9-W02` are complete. `M1.9-W03`, the cumulative
+  clean-start trace, is in progress. `M1.9-W04`, frontend integration and final
+  recovery assertions, is planned.
+- M1.9 closes the existing scientific evidence spine. It does not, by itself,
+  close all 23 neutral-product runtime requests.
+- Contextual Prosody, Sentinel, or other real-project integrations remain gated
+  until the neutral product stands independently. Synthetic conformance data
+  may exercise accepted contracts after the freeze.
+
+## Implemented evidence anchors
+
+- [`petra.project@1.0.0`](../packages/contracts/schemas/project/1.0.0/schema.json)
+  defines private Project identity and revision but no ProjectDefinition,
+  objective, or reusable-profile binding.
+- [`ResearchScopeRepository`](../packages/core/src/research-scope-repository.ts)
+  registers and reads actors and individual Project revisions; it has no
+  authorized Project collection or composite shell query.
+- [`WorkUnitAuthorityRepository`](../packages/core/src/work-unit-authority-repository.ts)
+  preserves exact WorkUnit and manifest revisions, lifecycle, and cancellation;
+  it has no Project collection, stage view, or steering plan.
+- [`InteractionAuthorityRepository`](../packages/core/src/interaction-authority-repository.ts)
+  preserves individual interaction runs, events, interrupts, replay, and
+  connection attempts; it does not provide product threads or branches.
+- [`ChangeControlAuthorityRepository`](../packages/core/src/change-control-authority-repository.ts)
+  owns exact ChangeSet, approval, domain-event, and outbox reads. The existing
+  scientific reversal and Review implementation is in
+  [`evidence-review.ts`](../packages/core/src/evidence-review.ts).
+- [`AuthorityGraphStore`](../packages/core/src/graph-store.ts) exposes current
+  scientific graph objects, neighborhoods, provenance, evidence and citation
+  paths, and projection freshness. It is not the neutral temporal/comparison
+  query requested by `UX-REQ-013`.
+- [`ContextPacketRegistry`](../packages/core/src/context-packet-registry.ts)
+  validates a bounded scientific packet over Claim, Assertion, SourceSpan, and
+  WorkVersion records. It is not a generic Project-definition context registry.
+- [`DraftRevisionEngine`](../packages/core/src/draft-revision.ts) and the
+  composition repositories provide additive scientific draft revisions and
+  assessments, but not a general continuous working-document contract.
+- [`app.ts`](../apps/server/src/app.ts) authenticates `/api/*` and exposes the
+  existing provider and interaction paths; it has no Project shell, Brief,
+  Sources, History, Settings, or neutral relationship-view API.
+- [The M1.9 gate matrix](M1.9-BACKEND-GATE-MATRIX.md) and
+  [recovery exercise](M1.9-RECOVERY-EXERCISE.md) establish component and
+  operational-recovery evidence while leaving the cumulative demonstration and
+  frontend integration open.
+
+## Accepted architecture boundary
+
+### A01 — Project definitions are the semantic root
+
+Every Project binds an exact `ProjectDefinition` revision. The definition names
+its objective, object, relationship, source-role, workflow, validator, output,
+terminology, presentation-descriptor, and extension contracts. It can be unique.
+An optional reusable template or profile can seed it and remains recorded as
+origin; later template changes do not silently change existing Projects.
+
+Changing a definition creates a new reviewed revision with an impact assessment.
+A supported migration within the same definition family retains the prior
+interpretation. A change to a materially different family creates an explicitly
+linked derived Project rather than reinterpreting the existing Project in place.
+
+### A02 — Objectives and task context are revisioned
+
+Objectives are versioned graph objects. A Project can have several objectives,
+subobjectives, and dependencies. Every material WorkUnit, model call, candidate,
+and output binds the exact objective and ProjectDefinition revisions it used.
+Changing focus does not rebind existing Work.
+
+A task records one coherent snapshot of its relevant inputs, rules,
+capabilities, limits, and expected output. Relevant later changes trigger an
+impact explanation and explicit adoption or revalidation; unrelated changes do
+not invalidate the task. Current authority and target revisions are checked
+again before a material effect is applied.
+
+### A03 — One authoritative history supports several graph views
+
+PostgreSQL remains the authoritative ledger, immutable bytes remain in the
+ArtifactStore, and Neo4j remains a rebuildable graph read model. The default
+graph workspace is a focused, live projection of the latest working state.
+Current, working, historical, temporal, comparison, and Project-evolution views
+are derived from the same records; none is a second authority database.
+
+Every Project must support temporal visibility and reconstruction of retained
+recorded states. Domain time, such as publication time or story time, is a typed
+Project-definition dimension and is not substituted for recorded or valid time.
+
+### A04 — Conversation and graph interaction share one command path
+
+Users may work conversationally, through the graph UI, or through both. A
+conversational action appears in the graph, while a graph selection supplies
+exact context to conversation. Zoom, layout, selection, and focus are
+presentation state. Material changes use the same versioned preview, command,
+Review, receipt, and history records regardless of where the action began.
+
+### A05 — Working candidates never inherit authority
+
+Human, model, tool, import, and extension proposals enter a typed working layer
+with exact identity, revision, origin, basis, producer, and validation state.
+They may link to canonical objects but cannot inherit or mutate canonical
+authority. Successful execution means the operation completed; it does not mean
+the result was validated, accepted, or applied.
+
+Similarity may group candidates, show comparable decisions, and open an
+expedient batch Review. Similarity alone cannot carry validation or approval
+forward. A revised candidate is a retained new revision; material changes must
+run the applicable checks again.
+
+### A06 — Review respects dependency and atomicity boundaries
+
+Review sessions are durable and resumable. Users can accept, reject, revise, or
+defer candidates individually. A dependency-coupled set is applied atomically
+when partial application would be invalid. Genuinely independent members receive
+independent outcomes and receipts; failures and conflicts preserve their state
+for recovery.
+
+### A07 — Bounded autonomy remains explicit
+
+One authorized action may cover internal steps within its declared objective,
+material, tool, permission, cost, time, and result limits. Petra asks again only
+for unresolved consequential meaning or additional authority. If execution is
+interrupted or reaches a limit, Petra preserves exact partial results and may
+resume only from a supported durable checkpoint within the original authority.
+
+Every SuggestedAction binds the exact snapshot that produced it. A stale action
+must be regenerated or reassessed; Petra cannot silently execute a changed plan
+under the old authorization.
+
+### A08 — Quick recovery is bounded; material history is retained
+
+The current-version quick recovery window is ten user-visible atomic steps for
+each supported working-edit, graph-navigation, and applied-change history. An
+internal model or tool call is not a user step. Governed reversal appends a
+validated compensating ChangeSet, explains affected dependents, and preserves
+unrelated work and the original event.
+
+The ten-step limit does not limit retention. Material Project history remains
+inspectable for the Project lifetime and is preserved in archives, subject only
+to an explicit dependency-aware retention or deletion process.
+
+### A09 — Sources are Project-definition-resolved
+
+Petra's source kernel supplies exact identity, revision, origin, integrity,
+access, provenance, and relationships. A ProjectDefinition supplies source roles
+such as literature, tests, code, documents, observations, or any other admitted
+type. Project membership does not imply acceptance, evidentiary status, or
+automatic inclusion in model context. Projects are isolated by default.
+Cross-Project reuse is explicit and retains exact origin, revision, permitted
+scope, and receiving-Project review.
+
+### A10 — Folders and imports are managed explicitly
+
+Each Project has a Petra-managed, inspectable folder with a canonical,
+domain-neutral layout. The exact directory names remain an implementation detail;
+the initial layout should cover identity and manifests, definition, sources,
+working material, outputs, Work and interactions, history, graph exports, and
+extensions. The folder is not a second editable ledger.
+
+External folder editing is out of scope for this version. Unexpected changes are
+integrity mismatches, not automatically admitted revisions. Code, Markdown,
+documents, and folders enter through explicit import or re-import operations.
+GitHub is the only contemplated external synchronization channel, and any later
+integration must use an explicit snapshot/sync contract rather than filesystem
+watching.
+
+### A11 — `.petra` is an open, reconstructable Project checkpoint
+
+A `.petra` archive uses an application-specific extension over an open,
+documented, versioned, preferably ZIP-compatible container. It captures one
+coherent Project-scoped checkpoint, the complete Project identity taxonomy,
+definitions, retained history, artifacts, Work and interaction context, graph
+and lineage records, extensions, hashes, and declared dependencies or omissions.
+It never includes credentials or transfers authorization.
+
+Archives are self-contained by default when rights permit. A reference-only or
+incomplete archive must identify omissions and cannot claim complete
+reconstruction. Open/Restore preserves Project identity; Create Derived Project
+assigns a new identity with lineage to the source checkpoint. Existing identical,
+older, or divergent Project identities are recognized, inspected, compared, or
+explicitly branched—never silently duplicated or overwritten.
+
+### A12 — Model independence means observable-context preservation
+
+Petra records the observable inputs and outputs needed to understand Work across
+model changes: prompts, compiled context, exact source revisions, tool inputs and
+outputs, exposed provider/model/configuration identity, schemas, validators,
+extensions, limits, intermediate artifacts, checkpoints, receipts, and results.
+Restoration guarantees inspection of what Petra recorded. Re-execution with a
+changed or unavailable model creates a linked Work revision and does not claim
+bit-identical reproduction.
+
+### A13 — Current product scope is single-user
+
+Multi-user collaboration, invitations, shared editing, presence, and role
+management are outside this version. Actor identity remains required for
+authorization, provenance, auditability, and distinguishing the user from Petra,
+models, tools, and extensions.
+
+### A14 — Executable extensions are governed Project material
+
+ProjectDefinitions may combine declarative rules with versioned, validated
+executable extensions such as validators and tools. Each extension declares its
+inputs, outputs, permissions, resources, version, and evidence. Code authored by
+Petra or a model begins as a candidate, passes bounded tests and Review, and is
+activated explicitly; no definition, template, extension, or model grants itself
+authority.
+
+For technical Projects, Petra should preserve and streamline the path from
+literature and tests through interpretation, definition rules, implementation,
+test evidence, and validated use. The resulting implementation remains honest
+about what is executable, what is only specified, and what still requires human
+judgment.
+
+## UX request disposition
+
+Status terms in this table describe the backend at `344cf77`:
+
+- **partial** — one or more accepted foundations exist, but the requested
+  product contract does not;
+- **missing** — no corresponding product record/query/command exists, though
+  lower-level foundations may still be reusable;
+- **adapted** — accept the product behavior but replace the proposed runtime
+  shape with the architecture boundary above.
+
+| Request | Current capability | Missing work and disposition | Sequence |
+| --- | --- | --- | --- |
+| `UX-REQ-001` | **Partial.** `PetraProject`, WorkUnit, interaction, review, and projection records expose exact identities individually. | Add an authorized, snapshot-consistent `ProjectShellView` query over ProjectDefinition, objective, freshness, attention, and optional selection. Do not assemble it in React. | Wave 1 |
+| `UX-REQ-002` | **Partial.** EvidencePacket, GroundedResponse, Work, review, graph, and composition records can supply a scientific Brief. | Add a bounded `ProjectBriefView` composition with exact basis, comparison, attention, recent decisions, and SuggestedAction references. Resolve sections through ProjectDefinition roles; keep summaries read-only. | Wave 4 |
+| `UX-REQ-003` | **Partial.** WorkUnit lifecycle, interaction replay, interrupts, cancellation, capability references, and bounded budgets exist. | Add immutable SuggestedAction revisions, readiness/query composition, exact invocation commands, stale regeneration, and result references. Direct and conversational invocation share the command. | Wave 3 |
+| `UX-REQ-004` | **Missing neutral contract; adapted.** `petra.project@1.0.0` is private scientific scope with no profile or objective binding. | Preserve Project 1.0. Add ProjectDefinition and binding contracts instead of requiring a reusable profile category. Optional profile/template origins remain possible. Add validated extension, terminology, presentation, compatibility, and migration registries. | Wave 1 |
+| `UX-REQ-005` | **Partial.** Artifact/Manifest, document, DraftArtifact, provenance, support assessment, and additive draft revision preserve exact scientific ancestry. | Add an explicit imported-lineage root and reviewed promotion command for existing documents or projects. Import never endorses extracted meaning or overwrites the source. | Wave 5 |
+| `UX-REQ-006` | **Partial.** InteractionRun, event history, replay, delivery receipts, and ContextPacket preserve individual executions. | Add durable ProjectThread, branch/task linkage, turn records, exact included/excluded context, stale-snapshot choices, archive/reopen, and retention. InteractionRun remains execution/delivery state rather than the product thread. | Wave 2 |
+| `UX-REQ-007` | **Partial.** Domain events and one evidence-pair compensating reversal exist; prior draft revisions remain readable. | Add authorized causal History queries, ten-step quick windows, computed dependency impact, generic eligible compensation previews, exact return, and durable presentation-history boundaries. Do not add a second ledger or erase events. | Wave 3 |
+| `UX-REQ-008` | **Missing.** Individual repositories can resolve known IDs, but there is no authorized semantic destination registry. | Add a Project-scoped locator/query that resolves typed identity, current/historical revision, permitted destination, replacement, parent fallback, and failure reason. It does not own routes or layout. | Wave 1 |
+| `UX-REQ-009` | **Partial.** Artifact, rights, scholarly identity, WorkVersion, ParsedDocument, SourceSpan, and byte-read contracts exist. | Add ProjectSourceLink and an authorized source collection/detail query with role, membership, rights, processing, linked Work/results, limitations, and exact inspection. | Wave 2 |
+| `UX-REQ-010` | **Partial.** Content-addressed bytes, immutable manifests, rights decisions, and staging cleanup separate identity from storage. | Add typed Project-source association lifecycle, unlink/archive/tombstone semantics, dependency impact, availability, and retention disposition. Do not expose physical deletion until retention and dependent checks exist. | Wave 2, then Wave 5 |
+| `UX-REQ-011` | **Partial.** Claim/Assertion quarantine and DraftArtifact revisions prove proposal-before-authority in scientific paths. | Add ProjectDefinition-valid WorkingCandidate and working-relationship records for arbitrary domain objects, with exact turn/task/model/tool origin and validation state. Project them as the live working graph layer. | Wave 4 |
+| `UX-REQ-012` | **Partial.** EvidenceReviewBatch, accept/reject/correct plans, durable review interrupts, ChangeSets, approvals, and independent batch outcomes exist. | Add durable profile-neutral ReviewSession reads and commands for comparison, defer/reopen, material-basis changes, preflight, dependency grouping, per-member recovery, and permitted batch apply. Retain existing ChangeSet authority. | Wave 4 |
+| `UX-REQ-013` | **Partial.** `AuthorityGraphStore` supports current scientific objects, bounded neighborhoods, provenance, evidence and citation paths, and projection freshness. | Add an authorized renderer-neutral relationship query with ProjectDefinition types, exact snapshot, current/working/historical/temporal layers, finite traversal, comparisons, omissions, continuations, and textual peer. Historical state must be reconstructable from retained authority. | Wave 3 |
+| `UX-REQ-014` | **Partial.** WorkUnit and manifest repositories preserve exact specs, attempts, outputs, failure, cancellation, and checkpoints. | Add Project-scoped Work collection/detail queries, definition-resolved stages, dependency and inquiry links, attention, resource accounting coverage, outputs, controls, and recovery. Do not invent a new lifecycle. | Wave 2 |
+| `UX-REQ-015` | **Partial.** Explicit cancellation is authorized and durable; immutable Work inputs prevent silent rebinding. | Add typed steering, task-priority, and execution-plan transition commands with declared cutover, reuse/revalidation, shared-consumer analysis, and receipts. Do not imply generic pause/resume or cancel shared Work automatically. | Wave 3 |
+| `UX-REQ-016` | **Missing neutral mapping.** Scientific Project and conceptual ResearchQuestion foundations exist, while WorkUnit remains operational. | Register how a ProjectDefinition represents lines of inquiry through its own valid object types or linked set. Add zero/many/shared Work and result links without mandating a universal Inquiry wrapper or deriving resolution from Work completion. | Wave 2 |
+| `UX-REQ-017` | **Partial.** CompositionRequest/Plan, DraftArtifact/Span, ProvenanceMap, CitationBundle, assessments, renders, and persistence provide an exact scientific composition aggregate. | Add ProjectDefinition-resolved document collection/context reads, recognizable purpose, current and historical revision positions, ancestry, Work/inquiry links, findings, capabilities, and safe destinations. | Wave 5 |
+| `UX-REQ-018` | **Partial.** DraftRevisionEngine creates exact non-empty span replacements and additive support assessments. | Add a durable working-document boundary for blank, structural, and successive authoring; exact save acknowledgments; late suggestion/check reconciliation; and working-to-registered promotion. External filesystem editing remains excluded. | Wave 5 |
+| `UX-REQ-019` | **Partial.** Deterministic rendering, Artifact publication, warnings, and support assessments preserve exact generated scientific outputs. | Add exact working-copy capture, scoped findings/coverage, status-bearing representation, ExportManifest and delivery receipts, partial-format recovery, and destination eligibility. Export does not promote or certify content. | Wave 5 |
+| `UX-REQ-020` | **Partial.** Project privacy, enabled namespaces, ReviewPolicy decisions, routing/certification, capability references, and budget bindings exist in separate contracts. | Add a composed effective-control read and a registry that maps editable controls to their existing typed operations. Add missing policy records only as required; never add a universal `SetProjectSetting`. Personal preferences remain local. | Waves 1 and 3 |
+| `UX-REQ-021` | **Partial.** Scientific synthesist output, GroundedResponse, Felicity records, command receipts, and AG-UI delivery preserve important communication boundaries. | Add a ProjectDefinition-resolved CommunicationPlan with statement-level origin, force, basis, limitation, action/event links, terminology versions, and a validation/repair receipt. It is not mutation authority. | Wave 4 |
+| `UX-REQ-022` | **Missing composite contract.** AG-UI can carry non-authoritative client state; graph and ContextPacket foundations exist separately. | Add a bounded PresentationContext record linking exact semantic result, visible scene, complete accessible peer, optional permitted capture, model input, and validated explanation. Pixels and layout never establish domain meaning. | Wave 6 |
+| `UX-REQ-023` | **Partial foundations only.** Commands, events, ChangeSets, Work, interaction replay, projection checkpoints, artifacts, composition, and M1.9 recovery each record their own outcomes. | Add a read-only RecoveryAssessment that reconciles owning records into effect, preservation, member outcomes, eligible registered actions, and exact return. It cannot execute a generic recovery command or become another event ledger. | Wave 6 |
+
+## Implementation sequence
+
+### Wave 0 — preserve and close the current M1 baseline
+
+Complete `M1.9-W03` first against the existing `344cf77` backend. The cumulative
+script and result manifest should exercise `M1.9-DEMO-01` through `DEMO-15` as
+one identity-preserving clean-start trace. This establishes a regression baseline
+before new schemas or migrations are introduced.
+
+Do not broaden W03 to claim the frozen neutral UX. It proves the existing M1
+scientific evidence spine.
+
+### Wave 1 — Project definition and coherent query foundation
+
+1. Record an architecture decision for ProjectDefinition, optional reusable
+   origins, definition migration, executable-extension admission, Project folder,
+   and `.petra` packaging boundaries.
+2. Add ProjectDefinition, objective, and exact binding contracts additively;
+   preserve `petra.project@1.0.0`.
+3. Add repository and migration support with immutable revisions and exact
+   effective-definition resolution.
+4. Establish authenticated Project collection/read scope and one coherent query
+   snapshot boundary.
+5. Implement `UX-REQ-001`, `UX-REQ-008`, and the read-only portion of
+   `UX-REQ-020` on that foundation.
+
+Exit gate: a single-user client can open one Project, resolve its exact definition
+and objective, and navigate an authorized semantic identity without hard-coded
+scientific types or mixed snapshots.
+
+### Wave 2 — durable Project records and read spine
+
+Implement durable ProjectThread/turn records, ProjectSourceLink, Project Work
+collection queries, and ProjectDefinition-valid inquiry mapping. This establishes
+`UX-REQ-006`, `UX-REQ-009`, the first half of `UX-REQ-010`, `UX-REQ-014`, and
+`UX-REQ-016` before feature surfaces depend on them.
+
+Exit gate: shell, Sources, Work, Details, and conversation context can read exact
+authorized records and clearly report unsupported fields.
+
+### Wave 3 — graph, History, action, and operational control
+
+Implement the bounded relationship query, full retained temporal/causal History,
+ten-step quick recovery, SuggestedAction preview/invocation, dependency-aware
+reversal, Work steering, and typed Project-control transitions. This establishes
+`UX-REQ-003`, `UX-REQ-007`, `UX-REQ-013`, `UX-REQ-015`, and the command portion
+of `UX-REQ-020`.
+
+Exit gate: one exact action can start bounded Work, preserve interruption state,
+return a result, and expose its history and eligible recovery without client-side
+authority calculations.
+
+### Wave 4 — working candidates, Review, Brief, and communication
+
+Implement generic working-candidate records and projection, durable ReviewSession
+composition, ProjectBriefView, and the first CommunicationPlan/validation
+receipt. This establishes `UX-REQ-011`, `UX-REQ-012`, `UX-REQ-002`, and
+`UX-REQ-021` in that dependency order.
+
+Similarity-based batch suggestions remain advisory. Material application uses
+the existing ChangeSet/approval path, with dependency-coupled atomicity and
+independent member receipts.
+
+Exit gate: one model or human candidate can appear incrementally in the working
+graph, enter a resumable Review, apply through the authoritative path, and update
+the Brief and History without losing provenance.
+
+### Wave 5 — governed documents, imports, exports, and packages
+
+Implement imported lineage and promotion, the profile-neutral document read,
+durable working-document revisions, exact export/status/delivery records, source
+retention completion, managed Project folders, and `.petra` checkpoint packages.
+This establishes `UX-REQ-005` and `UX-REQ-017` through `UX-REQ-019` and
+completes `UX-REQ-010` retention behavior.
+
+Exit gate: Petra can explicitly import or create a document, preserve exact
+ancestry, edit and validate successive revisions, export an honestly marked
+working copy, and restore the same Project identity and retained history from a
+verified package.
+
+### Wave 6 — model-readable presentation and composed recovery
+
+Implement PresentationContext and semantic-peer binding, then RecoveryAssessment
+and exact registered-action composition. This establishes `UX-REQ-022` and
+`UX-REQ-023` only after their owning queries and commands can supply truthful
+state.
+
+Exit gate: Petra can explain the graph the user actually sees without inferring
+semantics from pixels, and can reconcile uncertain effects across a representative
+read, Work, Review/apply, save, projection, and delivery failure.
+
+### Wave 7 — replace neutral fixtures and close evidence gates
+
+Migrate each reference-UX packet from synthetic to live data as one explicit
+contract boundary. A packet or capability is either live end to end, synthetic
+and confined to conformance testing, or unavailable with its missing dependency
+named. Never mix live authority with silent fixture fallback.
+
+Run the named `UX-FX01` through `UX-FX46` evidence appropriate to each packet,
+including interaction, accessibility, clean-start, recovery, privacy, and
+performance gates. Contextual integrations begin only after the neutral product
+stands independently.
+
+## M1.9 closeout cut line
+
+`M1.9-W04` should integrate the frozen reference presentation with the existing
+M1 scientific vertical slice after the minimum live contracts needed by that
+slice are available. It must verify async state, exact source and graph identity,
+review/apply/reversal, grounded interaction replay, stream-abort versus Work
+cancellation, composition provenance, and recovery.
+
+M1 may close when its existing `M1.9-AC01` through `M1.9-AC04` pass. The closeout
+must state explicitly which neutral UX requests remain partial or unavailable.
+It must not relabel M1's scientific proof as full `UX-REQ-001` through
+`UX-REQ-023` conformance.
+
+## Immediate next implementation task
+
+Build and verify `M1.9-W03` on the unchanged M1 baseline. Its result manifest is
+the safety point for all subsequent architecture and reference-UX integration
+work. After W03 passes, record the ProjectDefinition architecture decision and
+begin Wave 1.
+
+## Verification status
+
+This disposition is based on read-only inspection of the frozen handoff, the
+neutral reference implementation, accepted decisions, runtime schemas,
+repositories, server routes, M1.9 reports, and roadmap state. It changes no
+runtime contract or product code and claims no new test evidence.
