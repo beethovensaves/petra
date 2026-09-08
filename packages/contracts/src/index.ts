@@ -114,6 +114,22 @@ export type {
   SourceDestination as ProjectRelationshipSourceDestination,
   ViewContent as ProjectRelationshipViewContent,
 } from "./generated/project-relationship-view.js";
+export type {
+  AuthorityPosition as ProjectObjectLocationAuthorityPosition,
+  DefinitionRef as ProjectObjectLocationDefinitionRef,
+  Destination as ProjectObjectDestination,
+  ExactObjectRef as ProjectObjectExactRef,
+  LocationContent as ProjectObjectLocationContent,
+  LocationContext as ProjectObjectLocationContext,
+  LocationRequest as ProjectObjectLocationRequestContent,
+  ObjectDescriptor as ProjectObjectDescriptor,
+  PetraProjectObjectLocationView,
+  PlaceRole as ProjectObjectPlaceRole,
+  ProjectionSummary as ProjectObjectLocationProjectionSummary,
+  RequestedObjectRef as ProjectObjectRequestedRef,
+  ResolvedLocation as ResolvedProjectObjectLocation,
+  UnavailableLocation as UnavailableProjectObjectLocation,
+} from "./generated/project-object-location-view.js";
 export type { AuthorCredit, PetraWork } from "./generated/work.js";
 export type {
   MetadataSource,

@@ -1,8 +1,8 @@
 # UX runtime architecture disposition and implementation sequence
 
 Status: implementation-track review complete; M1.9 cumulative trace, four live
-read slices, and interface recovery gate passed; broader neutral runtime work
-remains open
+presentation reads, interface recovery gate, and the initial semantic-location
+slice passed; broader neutral runtime work remains open
 Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
@@ -36,16 +36,17 @@ The disposition below was made against `344cf77`. Subsequent additive work now
 provides the ProjectDefinition and Objective authority root, authenticated
 repeatable-read Project shell queries, the first explicitly scientific
 ProjectSource binding and exact source reader, durable ReviewSession identity
-plus an authorized scientific Review collection/detail view, and an authorized
+plus an authorized scientific Review collection/detail view, an authorized
 current scientific relationship/provenance view guarded across PostgreSQL and
-Neo4j.
+Neo4j, and the first Project-scoped semantic object locator.
 
-This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-009`, `UX-REQ-010`,
-`UX-REQ-012`, and `UX-REQ-013` without changing the frozen presentation. It
-does not close those neutral-product requirements: additional source
+This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-008`, `UX-REQ-009`,
+`UX-REQ-010`, `UX-REQ-012`, and `UX-REQ-013` without changing the frozen
+presentation. It does not close those neutral-product requirements: additional source
 specializations and lifecycle commands, general working candidates,
 multi-profile Review renderers, Review deferral/reopen and batch commands,
 working and historical relationship layers, comparison and continuation,
+replacement and parent records, Project snapshot reconstruction, profile tools,
 managed folders, `.petra` checkpoints, and the remaining product queries still
 require later slices.
 
@@ -93,6 +94,10 @@ require later slices.
   ProjectDefinition-resolved provenance result. It does not implement the
   later temporal, comparison, working-layer, expansion, or continuation parts
   of `UX-REQ-013`.
+- [`ProjectObjectLocationViewReader`](../packages/core/src/project-object-location-view.ts)
+  now resolves five registered M1 object kinds to exact ProjectDefinition-valid
+  semantic place roles. The browser maps those roles to frozen routes; the read
+  contract owns no URL or layout.
 - [`ContextPacketRegistry`](../packages/core/src/context-packet-registry.ts)
   validates a bounded scientific packet over Claim, Assertion, SourceSpan, and
   WorkVersion records. It is not a generic Project-definition context registry.
@@ -297,7 +302,7 @@ explicitly records later implementation progress:
 | `UX-REQ-005` | **Partial.** Artifact/Manifest, document, DraftArtifact, provenance, support assessment, and additive draft revision preserve exact scientific ancestry. | Add an explicit imported-lineage root and reviewed promotion command for existing documents or projects. Import never endorses extracted meaning or overwrites the source. | Wave 5 |
 | `UX-REQ-006` | **Partial.** InteractionRun, event history, replay, delivery receipts, and ContextPacket preserve individual executions. | Add durable ProjectThread, branch/task linkage, turn records, exact included/excluded context, stale-snapshot choices, archive/reopen, and retention. InteractionRun remains execution/delivery state rather than the product thread. | Wave 2 |
 | `UX-REQ-007` | **Partial.** Domain events and one evidence-pair compensating reversal exist; prior draft revisions remain readable. | Add authorized causal History queries, ten-step quick windows, computed dependency impact, generic eligible compensation previews, exact return, and durable presentation-history boundaries. Do not add a second ledger or erase events. | Wave 3 |
-| `UX-REQ-008` | **Missing.** Individual repositories can resolve known IDs, but there is no authorized semantic destination registry. | Add a Project-scoped locator/query that resolves typed identity, current/historical revision, permitted destination, replacement, parent fallback, and failure reason. It does not own routes or layout. | Wave 1 |
+| `UX-REQ-008` | **Partial, advanced after baseline.** `petra.project-object-location-view@1.0.0` and its Project-scoped PostgreSQL reader resolve exact current or retained historical ProjectSource, Assertion, ChangeSet, WorkUnit, and DraftArtifact identities to ProjectDefinition-permitted semantic place roles. The frozen client alone maps roles to routes. | Add authoritative replacement/supersession chains, parent fallback, retained Project-snapshot selection, extension-registered profile tools, actor-specific object authorization if required, and full applicable `UX-FX19` evidence. | Wave 1, then type-specific later slices |
 | `UX-REQ-009` | **Partial, advanced after baseline.** The scientific ProjectSource specialization and authorized collection/detail view now bind exact role, identity, copy, rights, parsed coverage, preview spans, downstream use, and authority position. | Add non-scholarly source specializations, linked Work/results, broader limitations, intake, and paired-profile conformance. | Wave 2 |
 | `UX-REQ-010` | **Partial, advanced after baseline.** ProjectSource has stable Project-local identity and immutable active or excluded revisions over a retained copy. | Add unlink/archive/tombstone semantics, dependency impact, availability and retention disposition, and governed commands. Do not expose physical deletion until retention and dependent checks exist. | Wave 2, then Wave 5 |
 | `UX-REQ-011` | **Partial.** Claim/Assertion quarantine and DraftArtifact revisions prove proposal-before-authority in scientific paths. | Add ProjectDefinition-valid WorkingCandidate and working-relationship records for arbitrary domain objects, with exact turn/task/model/tool origin and validation state. Project them as the live working graph layer. | Wave 4 |
@@ -433,16 +438,19 @@ through `UX-REQ-023` conformance.
 
 ## Immediate next implementation task
 
-Treat the completed M1.9 cumulative result, four live read slices, and interface
-recovery gate as the safety point. The next neutral-product implementation
-sequence remains the request table above; do not broaden the M1 closeout into
-unimplemented working/historical graphs, general Work/Brief/History reads,
-managed folders, archives, or multi-user behavior.
+Treat the completed M1.9 cumulative result, four live presentation reads,
+interface recovery gate, and initial semantic locator as the safety point.
+Continue Wave 1 with optional Project-shell selection and broader place
+summaries, then the read-only effective-control composition from `UX-REQ-020`.
+Do not broaden the M1 closeout into unimplemented working/historical graphs,
+general Work/Brief/History reads, managed folders, archives, or multi-user
+behavior.
 
 ## Verification status
 
 The original disposition was based on read-only inspection of the frozen
 handoff, neutral reference implementation, accepted decisions, runtime schemas,
 repositories, server routes, M1.9 reports, and roadmap state. The status refresh
-records the verified cumulative trace and four additive live read slices. It
-does not claim full neutral-product conformance.
+records the verified cumulative trace, four additive live presentation reads,
+and initial semantic-location slice. It does not claim full neutral-product
+conformance.

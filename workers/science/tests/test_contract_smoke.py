@@ -954,6 +954,119 @@ class PetraProjectRelationshipView(PetraModel):
     read_at: str
 
 
+class ProjectObjectRequestedRef(PetraModel):
+    semantic_key: str
+    object_id: str
+    revision: int | None = None
+
+
+class ProjectObjectExactRef(PetraModel):
+    semantic_key: str
+    object_id: str
+    revision: int
+    record_hash: str
+
+
+class ProjectObjectLocationRequest(PetraModel):
+    object_ref: ProjectObjectRequestedRef
+    task_intent: Literal[
+        "orient",
+        "inspect",
+        "trace",
+        "review",
+        "continue_work",
+        "view_history",
+    ]
+
+
+class ProjectObjectLocationDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    definition_family: str
+
+
+class ProjectObjectDescriptor(PetraModel):
+    semantic_key: str
+    generic_family: Literal[
+        "focus",
+        "finding",
+        "reference",
+        "relationship",
+        "task",
+        "output",
+        "other",
+    ]
+    label: str
+    summary: str
+    lifecycle_state: str
+
+
+class ProjectObjectResolvedLocation(PetraModel):
+    state: Literal["current", "historical", "superseded"]
+    requested_ref: ProjectObjectRequestedRef
+    resolved_ref: ProjectObjectExactRef
+    current_ref: ProjectObjectExactRef
+    descriptor: ProjectObjectDescriptor
+    parent_ref: ProjectObjectExactRef | None = None
+    replacement_chain: list[ProjectObjectExactRef]
+
+
+class ProjectObjectLocationFailure(PetraModel):
+    code: str
+    message: str
+
+
+class ProjectObjectUnavailableLocation(PetraModel):
+    state: Literal["missing", "unauthorized", "unsupported"]
+    requested_ref: ProjectObjectRequestedRef
+    failure: ProjectObjectLocationFailure
+
+
+class ProjectObjectDestination(PetraModel):
+    role: Literal[
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings",
+        "profile_tool",
+    ]
+    purpose: str
+    target_ref: ProjectObjectExactRef | None = None
+    profile_tool_key: str | None = None
+
+
+class ProjectObjectLocationContext(PetraModel):
+    details_allowed: bool
+    petra_allowed: bool
+
+
+class ProjectObjectLocationContent(PetraModel):
+    request: ProjectObjectLocationRequest
+    definition_ref: ProjectObjectLocationDefinitionRef
+    resolution: ProjectObjectResolvedLocation | ProjectObjectUnavailableLocation
+    primary_destination: ProjectObjectDestination
+    alternate_destinations: list[ProjectObjectDestination]
+    fallback_destination: ProjectObjectDestination | None = None
+    context: ProjectObjectLocationContext
+    authority: ProjectShellAuthorityPosition
+    projection: ProjectShellProjectionSummary
+
+
+class PetraProjectObjectLocationView(PetraModel):
+    schema_name: Literal["petra.project-object-location-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: ProjectObjectLocationContent
+    content_hash: str
+    read_at: str
+
+
 class PetraAuthor(PetraModel):
     schema_name: Literal["petra.author"]
     schema_version: Literal["1.0.0"]
@@ -4674,6 +4787,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "review-session": PetraReviewSession,
     "project-review-view": PetraProjectReviewView,
     "project-relationship-view": PetraProjectRelationshipView,
+    "project-object-location-view": PetraProjectObjectLocationView,
     "author": PetraAuthor,
     "work": PetraWork,
     "work-version": PetraWorkVersion,

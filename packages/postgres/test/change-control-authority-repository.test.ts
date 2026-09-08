@@ -16,6 +16,7 @@ import type {
   PetraInteractionRun,
   PetraParsedDocument,
   PetraProject,
+  PetraProjectDefinition,
   PetraReviewInterruptResponse,
   PetraRightsDecision,
   PetraSourceSpan,
@@ -47,6 +48,8 @@ import { PostgresChangeControlAuthorityRepository } from "../src/change-control-
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
 import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
+import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
@@ -99,6 +102,8 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
   const evidence = new PostgresEvidenceAuthorityRepository(pool);
   const interactions = new PostgresInteractionAuthorityRepository(pool);
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
+  const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
+  const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -137,6 +142,9 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     await scopes.registerActor(readFixture<PetraActor>("actor"));
     await scopes.registerActor(modelActor());
     await scopes.registerProjectRevision(readFixture<PetraProject>("project"));
+    await definitions.registerDefinitionRevision(
+      readFixture<PetraProjectDefinition>("project-definition-scientific"),
+    );
     await identities.registerAuthorRevision(readFixture<PetraAuthor>("author"));
     await identities.registerWorkRevision(readFixture<PetraWork>("work"));
     await identities.registerWorkVersionRevision(
@@ -440,6 +448,26 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     expect((await evidence.getClaim(applied.claim_id, 1))?.authority.zone).toBe(
       "quarantine",
     );
+    const changeLocation = await objectLocations.locateProjectObject({
+      project_id: commands.submit.project_id,
+      object_ref: {
+        semantic_key: "petra.change-set",
+        object_id: applied.change_set_id,
+      },
+      task_intent: "review",
+    });
+    expect(changeLocation?.content.resolution.state).toBe("current");
+    expect(changeLocation?.content.primary_destination.role).toBe("review");
+    const assertionLocation = await objectLocations.locateProjectObject({
+      project_id: commands.submit.project_id,
+      object_ref: {
+        semantic_key: "scientific.assertion",
+        object_id: applied.assertion_id,
+      },
+      task_intent: "trace",
+    });
+    expect(assertionLocation?.content.resolution.state).toBe("current");
+    expect(assertionLocation?.content.primary_destination.role).toBe("graph");
 
     const events = await repository.getDomainEvents({
       projectId: commands.submit.project_id,

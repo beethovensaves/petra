@@ -17,6 +17,7 @@ import type {
   PetraInteractionFeatureManifest,
   PetraInteractionRun,
   PetraProject,
+  PetraProjectDefinition,
   PetraParsedDocument,
   PetraRightsDecision,
   PetraSourceSpan,
@@ -74,6 +75,8 @@ import { PostgresDocumentAuthorityRepository } from "../src/document-authority-r
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
 import { PostgresGroundedResponseAuthorityRepository } from "../src/grounded-response-authority-repository.js";
 import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
+import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import {
   PostgresRenderedArtifactAuthorityRepository,
@@ -448,6 +451,8 @@ describePostgres("PostgreSQL grounded-response authority", () => {
   const synthesist = new PostgresSynthesistExecutionRepository(pool);
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
   const interactions = new PostgresInteractionAuthorityRepository(pool);
+  const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
+  const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -464,6 +469,9 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     await scopes.registerActor(serviceActor());
     await scopes.registerActor(modelActor());
     await scopes.registerProjectRevision(readFixture<PetraProject>("project"));
+    await definitions.registerDefinitionRevision(
+      readFixture<PetraProjectDefinition>("project-definition-scientific"),
+    );
     await identities.registerAuthorRevision(readFixture<PetraAuthor>("author"));
     await identities.registerWorkRevision(readFixture<PetraWork>("work"));
     await identities.registerWorkVersionRevision(
@@ -1015,6 +1023,16 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       await restarted.getCurrent(compiled.draft.draft_artifact_id),
     ).toEqual(stored);
     expect(await restarted.register(structuredClone(compiled))).toEqual(stored);
+    const location = await objectLocations.locateProjectObject({
+      project_id: compiled.draft.project_id,
+      object_ref: {
+        semantic_key: "petra.draft-artifact",
+        object_id: compiled.draft.draft_artifact_id,
+      },
+      task_intent: "inspect",
+    });
+    expect(location?.content.resolution.state).toBe("current");
+    expect(location?.content.primary_destination.role).toBe("composition");
 
     const counts = await pool.query<{
       authors: string;

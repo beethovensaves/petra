@@ -7,6 +7,7 @@ import type {
   PetraArtifactManifest,
   PetraAuthor,
   PetraProject,
+  PetraProjectDefinition,
   PetraRightsDecision,
   PetraWorkerInputManifest,
   PetraWorkerOutputManifest,
@@ -21,6 +22,8 @@ import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
+import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
@@ -62,6 +65,8 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
     availableArtifactStore,
   );
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
+  const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
+  const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -72,6 +77,9 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
     await scopes.registerActor(readFixture<PetraActor>("actor"));
     await scopes.registerActor(serviceActor());
     await scopes.registerProjectRevision(readFixture<PetraProject>("project"));
+    await definitions.registerDefinitionRevision(
+      readFixture<PetraProjectDefinition>("project-definition-scientific"),
+    );
     await identities.registerAuthorRevision(readFixture<PetraAuthor>("author"));
     await identities.registerWorkRevision(readFixture<PetraWork>("work"));
     await identities.registerWorkVersionRevision(
@@ -171,6 +179,29 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
     );
     expect(await workUnits.register(input)).toEqual(completed);
     expect(await workUnits.complete(successfulOutput(), 3)).toEqual(completed);
+    const currentLocation = await objectLocations.locateProjectObject({
+      project_id: completed.project_id,
+      object_ref: {
+        semantic_key: "petra.work-unit",
+        object_id: completed.work_unit_id,
+      },
+      task_intent: "continue_work",
+    });
+    expect(currentLocation?.content.resolution.state).toBe("current");
+    expect(currentLocation?.content.primary_destination.role).toBe("work");
+    const historicalLocation = await objectLocations.locateProjectObject({
+      project_id: completed.project_id,
+      object_ref: {
+        semantic_key: "petra.work-unit",
+        object_id: completed.work_unit_id,
+        revision: 1,
+      },
+      task_intent: "inspect",
+    });
+    expect(historicalLocation?.content.resolution.state).toBe("historical");
+    expect(historicalLocation?.content.primary_destination.role).toBe(
+      "history",
+    );
     expect(
       (await workUnits.getWorkUnitRevision(input.workUnit.work_unit_id, 1))
         ?.status.state,

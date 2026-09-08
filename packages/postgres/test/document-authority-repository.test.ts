@@ -31,6 +31,7 @@ import type {
 } from "../src/document-authority-repository.js";
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
 import { PostgresProjectSourceViewReader } from "../src/project-source-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
@@ -80,6 +81,7 @@ describePostgres("PostgreSQL Document authority repository", () => {
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const projectSources = new PostgresProjectSourceAuthorityRepository(pool);
   const sourceViews = new PostgresProjectSourceViewReader(pool);
+  const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -328,6 +330,17 @@ describePostgres("PostgreSQL Document authority repository", () => {
       "The study reports a measurable improvement.",
     );
     expect(view.content.authority.isolation).toBe("repeatable_read");
+    const location = await objectLocations.locateProjectObject({
+      project_id: project.project_id,
+      object_ref: {
+        semantic_key: "petra.project-source",
+        object_id: projectSource.project_source_id,
+      },
+      task_intent: "inspect",
+    });
+    expect(location?.content.resolution.state).toBe("current");
+    expect(location?.content.primary_destination.role).toBe("sources");
+    expect(location?.content.primary_destination).not.toHaveProperty("path");
     expect(
       await sourceViews.listProjectSourceViews(project.project_id),
     ).toHaveLength(1);

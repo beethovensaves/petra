@@ -1,0 +1,107 @@
+{
+  "schema_name": "petra.project-object-location-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "request": {
+      "object_ref": {
+        "semantic_key": "petra.project-source",
+        "object_id": "project_source_01K4C000000000000000000007"
+      },
+      "task_intent": "inspect"
+    },
+    "definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "definition_family": "petra.scientific-evidence"
+    },
+    "resolution": {
+      "state": "current",
+      "requested_ref": {
+        "semantic_key": "petra.project-source",
+        "object_id": "project_source_01K4C000000000000000000007"
+      },
+      "resolved_ref": {
+        "semantic_key": "petra.project-source",
+        "object_id": "project_source_01K4C000000000000000000007",
+        "revision": 1,
+        "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c"
+      },
+      "current_ref": {
+        "semantic_key": "petra.project-source",
+        "object_id": "project_source_01K4C000000000000000000007",
+        "revision": 1,
+        "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c"
+      },
+      "descriptor": {
+        "semantic_key": "petra.project-source",
+        "generic_family": "reference",
+        "label": "Source",
+        "summary": "scientific.literature · active Project source",
+        "lifecycle_state": "active"
+      },
+      "replacement_chain": []
+    },
+    "primary_destination": {
+      "role": "sources",
+      "purpose": "Inspect the exact Project source revision.",
+      "target_ref": {
+        "semantic_key": "petra.project-source",
+        "object_id": "project_source_01K4C000000000000000000007",
+        "revision": 1,
+        "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c"
+      }
+    },
+    "alternate_destinations": [
+      {
+        "role": "graph",
+        "purpose": "Trace relationships grounded in this source.",
+        "target_ref": {
+          "semantic_key": "petra.project-source",
+          "object_id": "project_source_01K4C000000000000000000007",
+          "revision": 1,
+          "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c"
+        }
+      },
+      {
+        "role": "history",
+        "purpose": "Inspect retained Project history for this source.",
+        "target_ref": {
+          "semantic_key": "petra.project-source",
+          "object_id": "project_source_01K4C000000000000000000007",
+          "revision": 1,
+          "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c"
+        }
+      }
+    ],
+    "fallback_destination": {
+      "role": "brief",
+      "purpose": "Return to the current Project orientation."
+    },
+    "context": {
+      "details_allowed": true,
+      "petra_allowed": true
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 3
+    },
+    "projection": {
+      "state": "catching_up",
+      "label": "Projection catching up",
+      "detail": "The authority ledger is at event 3; the graph safely represents event 0 while one record remains pending.",
+      "checkpoint_ref": {
+        "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+        "revision": 1,
+        "content_hash": "sha256:e0a79ef876ef41017f24486b80122e0eefcbc6ff21677370ea1e5143558b06d9"
+      },
+      "represented_event_position": 0,
+      "observed_event_position": 3,
+      "pending_records": 1
+    }
+  },
+  "content_hash": "sha256:4e0876a9e5691f3523a35ea36073de5e152cba11ec74a5febc04fe5c811c0495",
+  "read_at": "2026-09-08T17:30:00.000Z"
+}

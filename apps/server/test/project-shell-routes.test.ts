@@ -1,12 +1,14 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectSourceView,
 } from "@petra/contracts";
 import type {
+  ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
   ProjectShellViewReader,
@@ -58,6 +60,16 @@ const relationshipFixture = JSON.parse(
   ),
 ) as PetraProjectRelationshipView;
 
+const locationFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-object-location-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectObjectLocationView;
+
 const reader: ProjectShellViewReader = {
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
@@ -103,6 +115,15 @@ const relationshipReader: ProjectRelationshipViewReader = {
     Promise.resolve(
       projectId === relationshipFixture.project_id
         ? structuredClone(relationshipFixture)
+        : undefined,
+    ),
+};
+
+const locationReader: ProjectObjectLocationViewReader = {
+  locateProjectObject: (request) =>
+    Promise.resolve(
+      request.project_id === locationFixture.project_id
+        ? structuredClone(locationFixture)
         : undefined,
     ),
 };
@@ -276,5 +297,49 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(body.error.code).toBe("PROJECT_RELATIONSHIP_NOT_FOUND");
+  });
+
+  it("returns semantic roles without client routes and validates bounded query input", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectObjectLocations: locationReader,
+    });
+    const parameters = new URLSearchParams({
+      semanticKey: "petra.project-source",
+      objectId: "project_source_01K4C000000000000000000007",
+      taskIntent: "inspect",
+    });
+    const current = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${locationFixture.project_id}/object-location?${parameters}`,
+      ),
+    );
+    expect(current.status).toBe(200);
+    const body = (await current.json()) as PetraProjectObjectLocationView;
+    expect(body).toEqual(locationFixture);
+    expect(body.content.primary_destination.role).toBe("sources");
+    expect(JSON.stringify(body)).not.toContain("/projects/");
+
+    const malformed = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${locationFixture.project_id}/object-location?${parameters}&ambientSelection=claim_01ARZ3NDEKTSV4RRFFQ69G5FBB`,
+      ),
+    );
+    expect(malformed.status).toBe(422);
+    const malformedBody = JSON.parse(await malformed.text()) as {
+      error: { code: string };
+    };
+    expect(malformedBody.error.code).toBe("PROJECT_OBJECT_LOCATION_INVALID");
+
+    const missingProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/object-location?${parameters}`,
+      ),
+    );
+    expect(missingProject.status).toBe(404);
+    const missingBody = JSON.parse(await missingProject.text()) as {
+      error: { code: string };
+    };
+    expect(missingBody.error.code).toBe("PROJECT_NOT_FOUND");
   });
 });

@@ -185,6 +185,14 @@ export const startPetraServer = async (
               projectRelationshipViews:
                 options.projectShellPersistence.relationshipViews,
             }),
+      ...(options.projectObjectLocations !== undefined
+        ? { projectObjectLocations: options.projectObjectLocations }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectObjectLocations:
+                options.projectShellPersistence.objectLocations,
+            }),
     });
     server = serve({
       fetch: petra.app.fetch,

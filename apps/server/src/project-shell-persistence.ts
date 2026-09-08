@@ -1,4 +1,5 @@
 import {
+  PostgresProjectObjectLocationViewReader,
   PostgresProjectRelationshipViewReader,
   PostgresProjectReviewViewReader,
   PostgresProjectShellViewReader,
@@ -9,6 +10,7 @@ import neo4j, { type Driver } from "neo4j-driver";
 import pg from "pg";
 
 import type {
+  ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
   ProjectShellViewReader,
@@ -22,6 +24,7 @@ export interface ProjectShellPersistence {
   readonly sourceViews: ProjectSourceViewReader;
   readonly reviewViews: ProjectReviewViewReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
+  readonly objectLocations: ProjectObjectLocationViewReader;
   readonly close: () => Promise<void>;
 }
 
@@ -155,6 +158,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         views: new PostgresProjectShellViewReader(pool),
         sourceViews: new PostgresProjectSourceViewReader(pool),
         reviewViews: new PostgresProjectReviewViewReader(pool),
+        objectLocations: new PostgresProjectObjectLocationViewReader(pool),
         relationshipViews: new PostgresProjectRelationshipViewReader(
           pool,
           graph,
@@ -176,6 +180,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     views: new PostgresProjectShellViewReader(pool),
     sourceViews: new PostgresProjectSourceViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),
+    objectLocations: new PostgresProjectObjectLocationViewReader(pool),
     close,
   };
 };

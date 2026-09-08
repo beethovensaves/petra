@@ -33,6 +33,7 @@ import {
 import type { EngineState } from "./product/model.js";
 import {
   loadProjectCollection,
+  loadProjectObjectLocationRedirect,
   loadProjectRelationshipView,
   loadProjectRecord,
   loadProjectReviewCollection,
@@ -70,6 +71,10 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="brief" replace /> },
           { path: "brief", element: <BriefRoute /> },
+          {
+            path: "locate",
+            loader: loadProjectObjectLocationRedirect,
+          },
           {
             path: "sources",
             loader: loadProjectSourceCollection,

@@ -1,18 +1,22 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectSourceView,
 } from "@petra/contracts";
-import { describe, expect, it } from "vitest";
+import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   graphQuestionFromView,
+  loadProjectObjectLocationRedirect,
   projectRecordFromShellView,
   reviewSessionFromView,
   sourceRecordFromView,
+  semanticDestinationPath,
 } from "./project-data.js";
 
 const view = JSON.parse(
@@ -54,6 +58,20 @@ const relationshipView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectRelationshipView;
+
+const locationView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-object-location-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectObjectLocationView;
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("Project shell workbench adapter", () => {
   it("maps exact definition terminology and projection attention without mutating the view", () => {
@@ -182,5 +200,81 @@ describe("Project shell workbench adapter", () => {
       graph.nodes.find((node) => node.kind === "Source Span")?.sourceId,
     ).toBe("project_source_01K4C000000000000000000007");
     expect(relationshipView).toEqual(before);
+  });
+
+  it("maps semantic roles to client routes while retaining exact identity", () => {
+    const currentPath = semanticDestinationPath(locationView);
+    expect(currentPath).toContain(
+      "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources/project_source_01K4C000000000000000000007",
+    );
+    expect(currentPath).toContain("semanticKey=petra.project-source");
+    expect(currentPath).toContain("revision=1");
+    expect(currentPath).toContain(
+      "recordHash=sha256%3Afa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c",
+    );
+
+    const historical = structuredClone(locationView);
+    historical.content.resolution.state = "historical";
+    historical.content.primary_destination =
+      historical.content.alternate_destinations[1]!;
+    expect(semanticDestinationPath(historical)).toContain(
+      "/history?selected=project_source_01K4C000000000000000000007",
+    );
+
+    const missing = structuredClone(locationView);
+    missing.content.resolution = {
+      state: "missing",
+      requested_ref: missing.content.request.object_ref,
+      failure: {
+        code: "OBJECT_UNAVAILABLE",
+        message: "The requested object is unavailable.",
+      },
+    };
+    missing.content.primary_destination = {
+      role: "brief",
+      purpose: "Return to the current Project orientation.",
+    };
+    expect(semanticDestinationPath(missing)).toBe(
+      "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+    );
+  });
+
+  it("resolves a deep link through the authorized semantic query without ambient selection", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      void input;
+      return Promise.resolve(Response.json(locationView));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      "http://petra.test/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/locate?semanticKey=petra.project-source&objectId=project_source_01K4C000000000000000000007&taskIntent=inspect",
+    );
+    const args: LoaderFunctionArgs = {
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/locate",
+      params: {
+        projectId: "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      },
+      context: new RouterContextProvider(),
+    };
+
+    const response = await loadProjectObjectLocationRedirect(args);
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe(
+      semanticDestinationPath(locationView),
+    );
+    expect(fetch).toHaveBeenCalledOnce();
+    const requestPath = fetch.mock.calls[0]?.[0];
+    expect(typeof requestPath).toBe("string");
+    if (typeof requestPath !== "string") {
+      throw new TypeError(
+        "Expected the location loader to request a URL string.",
+      );
+    }
+    expect(requestPath).toContain(
+      "/object-location?semanticKey=petra.project-source&objectId=project_source_01K4C000000000000000000007&taskIntent=inspect",
+    );
+    expect(requestPath).not.toContain("selected=");
   });
 });

@@ -1,11 +1,12 @@
 import type {
+  PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectSourceView,
   ProjectDefinitionTerm,
 } from "@petra/contracts";
-import type { LoaderFunctionArgs } from "react-router";
+import { redirect, type LoaderFunctionArgs } from "react-router";
 
 import type {
   AttentionItem,
@@ -109,6 +110,24 @@ const relationshipView = (value: unknown): PetraProjectRelationshipView => {
     );
   }
   return value as unknown as PetraProjectRelationshipView;
+};
+
+const objectLocationView = (value: unknown): PetraProjectObjectLocationView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-object-location-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid semantic destination.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectObjectLocationView;
 };
 
 const requestJson = async (path: string): Promise<unknown> => {
@@ -609,4 +628,91 @@ export const loadProjectRelationshipView = async ({
     );
   }
   return graphQuestionFromView(view);
+};
+
+const exactSelection = (
+  target: NonNullable<
+    PetraProjectObjectLocationView["content"]["primary_destination"]["target_ref"]
+  >,
+): URLSearchParams =>
+  new URLSearchParams({
+    selected: target.object_id,
+    semanticKey: target.semantic_key,
+    revision: String(target.revision),
+    recordHash: target.record_hash,
+  });
+
+export const semanticDestinationPath = (
+  view: PetraProjectObjectLocationView,
+): string => {
+  const projectRoot = `/projects/${encodeURIComponent(view.project_id)}`;
+  const destination = view.content.primary_destination;
+  const target = destination.target_ref;
+  if (destination.role === "brief") return `${projectRoot}/brief`;
+  if (destination.role === "settings") return "/settings";
+  if (destination.role === "petra") return `${projectRoot}/petra`;
+  if (destination.role === "profile_tool") {
+    if (destination.profile_tool_key === undefined) {
+      throw new ProjectDataError(
+        "Petra returned a profile-tool destination without a registered key.",
+        502,
+      );
+    }
+    return `${projectRoot}/tools/${encodeURIComponent(destination.profile_tool_key)}`;
+  }
+  if (target === undefined) {
+    throw new ProjectDataError(
+      `Petra returned ${destination.role} without an exact target.`,
+      502,
+    );
+  }
+  const selection = exactSelection(target);
+  if (destination.role === "sources") {
+    selection.delete("selected");
+    return `${projectRoot}/sources/${encodeURIComponent(target.object_id)}?${selection}`;
+  }
+  if (destination.role === "work") {
+    selection.delete("selected");
+    return `${projectRoot}/work/${encodeURIComponent(target.object_id)}?${selection}`;
+  }
+  if (destination.role === "composition") {
+    selection.delete("selected");
+    return `${projectRoot}/composition/${encodeURIComponent(target.object_id)}?${selection}`;
+  }
+  return `${projectRoot}/${destination.role}?${selection}`;
+};
+
+export const loadProjectObjectLocationRedirect = async ({
+  params,
+  request,
+}: LoaderFunctionArgs): Promise<Response> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const incoming = new URL(request.url).searchParams;
+  const query = new URLSearchParams();
+  for (const key of ["semanticKey", "objectId", "revision", "taskIntent"]) {
+    const values = incoming.getAll(key);
+    for (const value of values) query.append(key, value);
+  }
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/object-location?${query}`,
+  );
+  const view = objectLocationView(value);
+  const requestedSemanticKey = incoming.get("semanticKey");
+  const requestedObjectId = incoming.get("objectId");
+  const requestedRevision = incoming.get("revision");
+  const returnedRequest = view.content.request.object_ref;
+  if (
+    view.project_id !== projectId ||
+    returnedRequest.semantic_key !== requestedSemanticKey ||
+    returnedRequest.object_id !== requestedObjectId ||
+    (requestedRevision === null
+      ? returnedRequest.revision !== undefined
+      : returnedRequest.revision !== Number(requestedRevision))
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a semantic destination for a different identity.",
+      502,
+    );
+  }
+  return redirect(semanticDestinationPath(view));
 };

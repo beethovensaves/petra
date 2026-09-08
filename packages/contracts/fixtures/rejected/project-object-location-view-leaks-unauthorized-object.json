@@ -1,0 +1,62 @@
+{
+  "schema_name": "petra.project-object-location-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "request": {
+      "object_ref": {
+        "semantic_key": "scientific.assertion",
+        "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBE"
+      },
+      "task_intent": "trace"
+    },
+    "definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+      "definition_family": "petra.scientific-evidence"
+    },
+    "resolution": {
+      "state": "unauthorized",
+      "requested_ref": {
+        "semantic_key": "scientific.assertion",
+        "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBE"
+      },
+      "failure": {
+        "code": "OBJECT_UNAUTHORIZED",
+        "message": "The requested object is unavailable."
+      },
+      "descriptor": {
+        "semantic_key": "scientific.assertion",
+        "generic_family": "relationship",
+        "label": "Leaked relationship",
+        "summary": "This must not be disclosed.",
+        "lifecycle_state": "trusted"
+      }
+    },
+    "primary_destination": {
+      "role": "brief",
+      "purpose": "Return to the current Project orientation."
+    },
+    "alternate_destinations": [],
+    "context": {
+      "details_allowed": false,
+      "petra_allowed": false
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 3
+    },
+    "projection": {
+      "state": "unavailable",
+      "label": "Projection unavailable",
+      "detail": "No projection details may be disclosed for this object.",
+      "represented_event_position": 0,
+      "observed_event_position": 0,
+      "pending_records": 0
+    }
+  },
+  "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "read_at": "2026-09-08T17:30:00.000Z"
+}

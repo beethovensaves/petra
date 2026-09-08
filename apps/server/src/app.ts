@@ -22,6 +22,7 @@ import {
   derivePetraId,
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
+  type ProjectObjectLocationViewReader,
   type ProjectRelationshipViewReader,
   type ProjectReviewViewReader,
   type ProjectShellViewReader,
@@ -48,6 +49,7 @@ export interface PetraAppOptions {
   projectSourceViews?: ProjectSourceViewReader;
   projectReviewViews?: ProjectReviewViewReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
+  projectObjectLocations?: ProjectObjectLocationViewReader;
 }
 
 export interface PetraApp {
@@ -57,6 +59,16 @@ export interface PetraApp {
 }
 
 const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$/;
+const PETRA_ID_PATTERN = /^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const SEMANTIC_KEY_PATTERN = /^[a-z][a-z0-9._/-]{1,199}$/u;
+const LOCATION_INTENTS = [
+  "orient",
+  "inspect",
+  "trace",
+  "review",
+  "continue_work",
+  "view_history",
+] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -572,6 +584,106 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project relationship view is unavailable.",
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/object-location",
+    async (context) => {
+      if (options.projectObjectLocations === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_OBJECT_LOCATION_UNAVAILABLE",
+          "The authorized semantic destination boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const allowed = new Set([
+          "semanticKey",
+          "objectId",
+          "revision",
+          "taskIntent",
+        ]);
+        const unknown = [...parameters.keys()].filter(
+          (key) => !allowed.has(key),
+        );
+        if (unknown.length > 0) {
+          throw new InteractionInputError(
+            "Semantic location contains unregistered query parameters.",
+            [...new Set(unknown)],
+          );
+        }
+        for (const key of allowed) {
+          if (parameters.getAll(key).length > 1) {
+            throw new InteractionInputError(
+              `Semantic location parameter ${key} must appear once.`,
+            );
+          }
+        }
+        const semanticKey = parameters.get("semanticKey");
+        const objectId = parameters.get("objectId");
+        const taskIntent = parameters.get("taskIntent");
+        const revisionValue = parameters.get("revision");
+        if (
+          semanticKey === null ||
+          !SEMANTIC_KEY_PATTERN.test(semanticKey) ||
+          objectId === null ||
+          !PETRA_ID_PATTERN.test(objectId) ||
+          taskIntent === null ||
+          !LOCATION_INTENTS.includes(
+            taskIntent as (typeof LOCATION_INTENTS)[number],
+          )
+        ) {
+          throw new InteractionInputError(
+            "Semantic location requires a registered semanticKey, opaque Petra objectId, and taskIntent.",
+          );
+        }
+        const parsedRevision =
+          revisionValue === null ? undefined : Number(revisionValue);
+        if (
+          parsedRevision !== undefined &&
+          (!Number.isSafeInteger(parsedRevision) || parsedRevision < 1)
+        ) {
+          throw new InteractionInputError(
+            "Semantic location revision must be a positive safe integer.",
+          );
+        }
+        const view = await options.projectObjectLocations.locateProjectObject({
+          project_id: context.req.param("projectId"),
+          object_ref: {
+            semantic_key: semanticKey,
+            object_id: objectId,
+            ...(parsedRevision === undefined
+              ? {}
+              : { revision: parsedRevision }),
+          },
+          task_intent: taskIntent as (typeof LOCATION_INTENTS)[number],
+        });
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_NOT_FOUND",
+            "The requested Project is unavailable.",
+          );
+        }
+        contracts.assertValid("project-object-location-view", "1.0.0", view);
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_OBJECT_LOCATION_INVALID"
+            : "PROJECT_OBJECT_LOCATION_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The semantic destination is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
         );
       }
     },
