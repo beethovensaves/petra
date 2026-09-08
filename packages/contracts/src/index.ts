@@ -67,6 +67,35 @@ export type {
   RightsSummary as ProjectSourceRightsSummary,
   SourceViewContent as ProjectSourceViewContent,
 } from "./generated/project-source-view.js";
+export type {
+  CandidateBinding as ReviewSessionCandidateBinding,
+  DefinitionRef as ReviewSessionDefinitionRef,
+  ExactRecordRef as ReviewSessionExactRecordRef,
+  HumanActorRef as ReviewSessionHumanActorRef,
+  ObjectiveRef as ReviewSessionObjectiveRef,
+  Origin as ReviewSessionOrigin,
+  PetraReviewSession,
+  ProjectSnapshot as ReviewSessionProjectSnapshot,
+  ReturnContext as ReviewSessionReturnContext,
+  ReviewMember as ReviewSessionMember,
+  SessionContent as ReviewSessionContent,
+} from "./generated/review-session.js";
+export type {
+  AuthorityPosition as ProjectReviewAuthorityPosition,
+  BasisItem as ProjectReviewBasisItem,
+  CandidateSummary as ProjectReviewCandidateSummary,
+  ChangeSetSummary as ProjectReviewChangeSetSummary,
+  ExactRecordRef as ProjectReviewExactRecordRef,
+  ExactRef as ProjectReviewExactRef,
+  ObjectiveSummary as ProjectReviewObjectiveSummary,
+  OriginSummary as ProjectReviewOriginSummary,
+  PetraProjectReviewView,
+  ReviewMember as ProjectReviewMember,
+  ReviewViewContent as ProjectReviewViewContent,
+  ScientificEvidencePayload as ProjectReviewScientificEvidencePayload,
+  SessionSummary as ProjectReviewSessionSummary,
+  ValidationSummary as ProjectReviewValidationSummary,
+} from "./generated/project-review-view.js";
 export type { AuthorCredit, PetraWork } from "./generated/work.js";
 export type {
   MetadataSource,

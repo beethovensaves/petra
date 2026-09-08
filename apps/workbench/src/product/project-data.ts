@@ -1,4 +1,5 @@
 import type {
+  PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectSourceView,
   ProjectDefinitionTerm,
@@ -9,6 +10,7 @@ import type {
   AttentionItem,
   ProjectProfile,
   ProjectRecord,
+  ReviewSession,
   SourceRecord,
 } from "./model.js";
 
@@ -68,6 +70,25 @@ const sourceView = (value: unknown): PetraProjectSourceView => {
     );
   }
   return value as unknown as PetraProjectSourceView;
+};
+
+const reviewView = (value: unknown): PetraProjectReviewView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-review-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.review_session_id !== "string" ||
+    !isRecord(value.content) ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project Review view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectReviewView;
 };
 
 const requestJson = async (path: string): Promise<unknown> => {
@@ -268,6 +289,79 @@ export const sourceRecordFromView = (
   };
 };
 
+export const reviewSessionFromView = (
+  view: PetraProjectReviewView,
+): ReviewSession => {
+  if (view.content.members.length !== 1) {
+    throw new ProjectDataError(
+      "The current frozen M1 Review surface requires one exact member per session; Petra did not hide or merge additional members.",
+      502,
+    );
+  }
+  const member = view.content.members[0];
+  if (member === undefined) {
+    throw new ProjectDataError("The Review session has no member.", 502);
+  }
+  if (member.change_sets.length > 1) {
+    throw new ProjectDataError(
+      "The current frozen M1 Review surface requires one current ChangeSet per member; Petra did not hide earlier or competing ChangeSets.",
+      502,
+    );
+  }
+  const changeSet = member.change_sets[0];
+  return {
+    id: view.review_session_id,
+    projectId: view.project_id,
+    title: view.content.session.title,
+    objective: view.content.session.objective_summary,
+    status: view.content.session.status,
+    statusLabel: view.content.session.status_label,
+    responsible: view.content.session.responsible.display_name,
+    snapshot: `Authority event ${view.content.session.snapshot.event_position} · Project stream ${view.content.session.snapshot.stream_revision}${view.content.session.snapshot_state === "stale" ? " · stale" : ""}`,
+    returnLabel: view.content.session.return_context.label,
+    candidate: {
+      id: member.candidate.candidate_id,
+      revision: member.candidate.revision_label,
+      kind: member.candidate.kind_label,
+      current: member.candidate.current,
+      proposed: member.candidate.proposed,
+      difference: member.candidate.difference,
+      origin: member.candidate.origin_label,
+      originDetail: member.candidate.origin_detail,
+    },
+    basis: member.basis.map((basis) => ({
+      id: basis.basis_id,
+      label: basis.label,
+      relation: basis.relation,
+      extent: basis.extent,
+      detail: basis.detail,
+      ...(basis.project_source_id === undefined
+        ? {}
+        : { sourceId: basis.project_source_id }),
+    })),
+    validation: {
+      state: member.validation.state,
+      label: member.validation.label,
+      detail: member.validation.detail,
+      ...(member.validation.recovery === undefined
+        ? {}
+        : { recovery: member.validation.recovery }),
+    },
+    consequences: [...member.consequences],
+    ...(changeSet === undefined
+      ? {}
+      : {
+          changeSet: {
+            id: changeSet.change_set_ref.record_id,
+            revision: `Revision ${changeSet.change_set_ref.revision} · ${changeSet.state}`,
+            atomicity: changeSet.atomicity,
+            changes: [...changeSet.changes],
+            protected: [...changeSet.protected],
+          },
+        }),
+  };
+};
+
 export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
   const value = await requestJson("/api/queries/projects");
   if (!isRecord(value) || !Array.isArray(value.projects)) {
@@ -344,4 +438,53 @@ export const loadProjectSourceRecord = async ({
     );
   }
   return sourceRecordFromView(view);
+};
+
+export const loadProjectReviewCollection = async ({
+  params,
+}: LoaderFunctionArgs): Promise<ReviewSession[]> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/reviews`,
+  );
+  if (!isRecord(value) || !Array.isArray(value.reviews)) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project Review collection.",
+      502,
+    );
+  }
+  return value.reviews.map((review) => {
+    const view = reviewView(review);
+    if (view.project_id !== projectId) {
+      throw new ProjectDataError(
+        "Petra returned a Review session from another Project.",
+        502,
+      );
+    }
+    return reviewSessionFromView(view);
+  });
+};
+
+export const loadProjectReviewSession = async ({
+  params,
+}: LoaderFunctionArgs): Promise<ReviewSession> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const reviewSessionId = requiredRouteIdentity(
+    params.reviewId,
+    "A ReviewSession ID",
+  );
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/reviews/${encodeURIComponent(reviewSessionId)}`,
+  );
+  const view = reviewView(value);
+  if (
+    view.project_id !== projectId ||
+    view.review_session_id !== reviewSessionId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a different Project Review identity.",
+      502,
+    );
+  }
+  return reviewSessionFromView(view);
 };

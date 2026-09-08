@@ -1,0 +1,74 @@
+{
+  "schema_name": "petra.review-session",
+  "schema_version": "1.0.0",
+  "review_session_id": "review_session_01K4D000000000000000000001",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_definition_ref": {
+    "project_definition_id": "project_definition_01K4C000000000000000000001",
+    "revision": 1,
+    "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+  },
+  "content": {
+    "title": "Source-grounded Claim and relationship",
+    "objective_summary": "Decide whether the exact Claim and ASSERTS relationship may enter trusted Project state.",
+    "objective_ref": {
+      "objective_id": "objective_01K4C000000000000000000005",
+      "revision": 1,
+      "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+    },
+    "lifecycle": "open",
+    "responsible": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "human"
+    },
+    "snapshot": {
+      "event_position": 0,
+      "stream_revision": 0,
+      "captured_at": "2026-09-08T16:00:00.000Z"
+    },
+    "origin": {
+      "origin_kind": "evidence_extraction",
+      "record_refs": ["extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD"],
+      "summary": "Created from one source-grounded extraction that passed quarantine admission."
+    },
+    "return_context": {
+      "place": "sources",
+      "object_ref": "project_source_01K4C000000000000000000007",
+      "label": "A testable account of competing explanations"
+    },
+    "members": [
+      {
+        "review_member_id": "review_member_01K4D000000000000000000002",
+        "member_role": "ordinary",
+        "candidate_bindings": [
+          {
+            "semantic_key": "scientific.claim",
+            "binding_role": "candidate",
+            "record_ref": {
+              "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "revision": 1,
+              "record_hash": "sha256:037b05d18954bd81029717fb0ff00c9f21e14895db98e4c2dfb2691aaf501db3"
+            }
+          },
+          {
+            "semantic_key": "scientific.assertion",
+            "binding_role": "relationship",
+            "record_ref": {
+              "record_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "revision": 1,
+              "record_hash": "sha256:70ec8b8bc12777b67628ea35be16dcdaf6a071746fed64d3d1e8005c72c73d80"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "content_hash": "sha256:b8cfc1abaa83614ac1c7c65ba3a37f47bc4693306c92d7ba612644ec554fa0e3",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-08T16:00:00.000Z",
+  "updated_at": "2026-09-08T16:00:00.000Z"
+}

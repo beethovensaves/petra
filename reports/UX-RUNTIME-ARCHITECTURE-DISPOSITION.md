@@ -1,7 +1,7 @@
 # UX runtime architecture disposition and implementation sequence
 
 Status: implementation-track review complete; cumulative backend trace passed;
-runtime integration remains open
+live shell, source, and Review reads passed; remaining runtime integration open
 Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
@@ -29,6 +29,21 @@ This review does not close `G-CONTRACT`, `G-INTEGRATION`, or `G-VALIDATION`.
 It records which existing capabilities may be reused, which runtime work is
 missing, and the order in which to implement it.
 
+## Implementation progress after the reviewed baseline
+
+The disposition below was made against `344cf77`. Subsequent additive work now
+provides the ProjectDefinition and Objective authority root, authenticated
+repeatable-read Project shell queries, the first explicitly scientific
+ProjectSource binding and exact source reader, and durable ReviewSession
+identity plus an authorized scientific Review collection/detail view.
+
+This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-009`, `UX-REQ-010`, and
+`UX-REQ-012` without changing the frozen presentation. It does not close those
+neutral-product requirements: additional source specializations and lifecycle
+commands, general working candidates, multi-profile Review renderers, Review
+deferral/reopen and batch commands, managed folders, `.petra` checkpoints, and
+the remaining product queries still require later slices.
+
 ## Baseline and gate boundary
 
 - The design brief is frozen at `UX-DESIGN-FREEZE-01`; DB01 through DB18 are
@@ -37,8 +52,9 @@ missing, and the order in which to implement it.
   DB18 surface packets. It is still fixture-backed except for the existing
   health read and must not be described as live product integration.
 - Backend `M1.9-W01`, `M1.9-W02`, and `M1.9-W03` are complete. The cumulative
-  clean-start trace passed all fifteen steps. `M1.9-W04`, frontend integration
-  and final recovery assertions, remains planned.
+  clean-start trace passed all fifteen steps. `M1.9-W04` is in progress: shell,
+  scientific source, and scientific Review reads pass; the graph read and final
+  interface recovery assertions remain.
 - M1.9 closes the existing scientific evidence spine. It does not, by itself,
   close all 23 neutral-product runtime requests.
 - Contextual Prosody, Sentinel, or other real-project integrations remain gated
@@ -250,7 +266,8 @@ judgment.
 
 ## UX request disposition
 
-Status terms in this table describe the backend at `344cf77`:
+Status terms in this table describe the backend at `344cf77`, except where a row
+explicitly records later implementation progress:
 
 - **partial** — one or more accepted foundations exist, but the requested
   product contract does not;
@@ -261,18 +278,18 @@ Status terms in this table describe the backend at `344cf77`:
 
 | Request | Current capability | Missing work and disposition | Sequence |
 | --- | --- | --- | --- |
-| `UX-REQ-001` | **Partial.** `PetraProject`, WorkUnit, interaction, review, and projection records expose exact identities individually. | Add an authorized, snapshot-consistent `ProjectShellView` query over ProjectDefinition, objective, freshness, attention, and optional selection. Do not assemble it in React. | Wave 1 |
+| `UX-REQ-001` | **Partial, advanced after baseline.** `ProjectShellView` now composes exact ProjectDefinition, focused Objective, authority position, projection freshness, and attention under repeatable-read isolation. | Add optional selection and broader place summaries without assembling authority in React. | Wave 1 |
 | `UX-REQ-002` | **Partial.** EvidencePacket, GroundedResponse, Work, review, graph, and composition records can supply a scientific Brief. | Add a bounded `ProjectBriefView` composition with exact basis, comparison, attention, recent decisions, and SuggestedAction references. Resolve sections through ProjectDefinition roles; keep summaries read-only. | Wave 4 |
 | `UX-REQ-003` | **Partial.** WorkUnit lifecycle, interaction replay, interrupts, cancellation, capability references, and bounded budgets exist. | Add immutable SuggestedAction revisions, readiness/query composition, exact invocation commands, stale regeneration, and result references. Direct and conversational invocation share the command. | Wave 3 |
-| `UX-REQ-004` | **Missing neutral contract; adapted.** `petra.project@1.0.0` is private scientific scope with no profile or objective binding. | Preserve Project 1.0. Add ProjectDefinition and binding contracts instead of requiring a reusable profile category. Optional profile/template origins remain possible. Add validated extension, terminology, presentation, compatibility, and migration registries. | Wave 1 |
+| `UX-REQ-004` | **Partial, adapted and advanced after baseline.** ProjectDefinition and Objective contracts, immutable PostgreSQL authority, current binding, terminology, supported places, and optional template-seed origin now exist without requiring a profile catalogue. | Add full extension, presentation, compatibility, component-resolution, impact-review, and migration behavior while preserving Project-specific definitions. | Wave 1 |
 | `UX-REQ-005` | **Partial.** Artifact/Manifest, document, DraftArtifact, provenance, support assessment, and additive draft revision preserve exact scientific ancestry. | Add an explicit imported-lineage root and reviewed promotion command for existing documents or projects. Import never endorses extracted meaning or overwrites the source. | Wave 5 |
 | `UX-REQ-006` | **Partial.** InteractionRun, event history, replay, delivery receipts, and ContextPacket preserve individual executions. | Add durable ProjectThread, branch/task linkage, turn records, exact included/excluded context, stale-snapshot choices, archive/reopen, and retention. InteractionRun remains execution/delivery state rather than the product thread. | Wave 2 |
 | `UX-REQ-007` | **Partial.** Domain events and one evidence-pair compensating reversal exist; prior draft revisions remain readable. | Add authorized causal History queries, ten-step quick windows, computed dependency impact, generic eligible compensation previews, exact return, and durable presentation-history boundaries. Do not add a second ledger or erase events. | Wave 3 |
 | `UX-REQ-008` | **Missing.** Individual repositories can resolve known IDs, but there is no authorized semantic destination registry. | Add a Project-scoped locator/query that resolves typed identity, current/historical revision, permitted destination, replacement, parent fallback, and failure reason. It does not own routes or layout. | Wave 1 |
-| `UX-REQ-009` | **Partial.** Artifact, rights, scholarly identity, WorkVersion, ParsedDocument, SourceSpan, and byte-read contracts exist. | Add ProjectSourceLink and an authorized source collection/detail query with role, membership, rights, processing, linked Work/results, limitations, and exact inspection. | Wave 2 |
-| `UX-REQ-010` | **Partial.** Content-addressed bytes, immutable manifests, rights decisions, and staging cleanup separate identity from storage. | Add typed Project-source association lifecycle, unlink/archive/tombstone semantics, dependency impact, availability, and retention disposition. Do not expose physical deletion until retention and dependent checks exist. | Wave 2, then Wave 5 |
+| `UX-REQ-009` | **Partial, advanced after baseline.** The scientific ProjectSource specialization and authorized collection/detail view now bind exact role, identity, copy, rights, parsed coverage, preview spans, downstream use, and authority position. | Add non-scholarly source specializations, linked Work/results, broader limitations, intake, and paired-profile conformance. | Wave 2 |
+| `UX-REQ-010` | **Partial, advanced after baseline.** ProjectSource has stable Project-local identity and immutable active or excluded revisions over a retained copy. | Add unlink/archive/tombstone semantics, dependency impact, availability and retention disposition, and governed commands. Do not expose physical deletion until retention and dependent checks exist. | Wave 2, then Wave 5 |
 | `UX-REQ-011` | **Partial.** Claim/Assertion quarantine and DraftArtifact revisions prove proposal-before-authority in scientific paths. | Add ProjectDefinition-valid WorkingCandidate and working-relationship records for arbitrary domain objects, with exact turn/task/model/tool origin and validation state. Project them as the live working graph layer. | Wave 4 |
-| `UX-REQ-012` | **Partial.** EvidenceReviewBatch, accept/reject/correct plans, durable review interrupts, ChangeSets, approvals, and independent batch outcomes exist. | Add durable profile-neutral ReviewSession reads and commands for comparison, defer/reopen, material-basis changes, preflight, dependency grouping, per-member recovery, and permitted batch apply. Retain existing ChangeSet authority. | Wave 4 |
+| `UX-REQ-012` | **Partial, advanced after baseline.** EvidenceReviewBatch, accept/reject/correct plans, durable review interrupts, ChangeSets, approvals, and independent batch outcomes exist. V021 now adds durable profile-neutral ReviewSession identity plus a snapshot-consistent scientific Claim–`ASSERTS` read over exact ProjectDefinition semantics, ProjectSource basis, validation, ChangeSets, and Approvals. | Add other profile renderers, general working candidates, defer/reopen and material-basis commands, preflight, dependency grouping, multi-member presentation, per-member recovery, and permitted batch apply. Retain existing ChangeSet authority. | Wave 4 |
 | `UX-REQ-013` | **Partial.** `AuthorityGraphStore` supports current scientific objects, bounded neighborhoods, provenance, evidence and citation paths, and projection freshness. | Add an authorized renderer-neutral relationship query with ProjectDefinition types, exact snapshot, current/working/historical/temporal layers, finite traversal, comparisons, omissions, continuations, and textual peer. Historical state must be reconstructable from retained authority. | Wave 3 |
 | `UX-REQ-014` | **Partial.** WorkUnit and manifest repositories preserve exact specs, attempts, outputs, failure, cancellation, and checkpoints. | Add Project-scoped Work collection/detail queries, definition-resolved stages, dependency and inquiry links, attention, resource accounting coverage, outputs, controls, and recovery. Do not invent a new lifecycle. | Wave 2 |
 | `UX-REQ-015` | **Partial.** Explicit cancellation is authorized and durable; immutable Work inputs prevent silent rebinding. | Add typed steering, task-priority, and execution-plan transition commands with declared cutover, reuse/revalidation, shared-consumer analysis, and receipts. Do not imply generic pause/resume or cancel shared Work automatically. | Wave 3 |

@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.35.0",
+  "registry_version": "1.37.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -98,6 +98,28 @@
       "canonical_sha256": "sha256:996d4426d3aeba0a640347385696568d4ac50368c801d1aac8bf6f27b9c97ace",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-view.ts"
+    },
+    {
+      "name": "review-session",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-session/1.0.0/schema.json",
+      "path": "schemas/review-session/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-profile-neutral-review-context",
+      "canonical_sha256": "sha256:fa18f287bff79ab3d7d7f2e256507475a67227cf6a5c26f269b4d66001cb21a6",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-session.ts"
+    },
+    {
+      "name": "project-review-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-review-view/1.0.0/schema.json",
+      "path": "schemas/project-review-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-scientific-review-session-read",
+      "canonical_sha256": "sha256:414a9a9adc0b0130b96c911fcd049ff231a5ff15a8d1da0c2269204156dc1fcc",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-review-view.ts"
     },
     {
       "name": "author",

@@ -12,6 +12,8 @@ export * from "./project-definition-authority-repository.js";
 export * from "./project-shell-view-reader.js";
 export * from "./project-source-authority-repository.js";
 export * from "./project-source-view-reader.js";
+export * from "./review-session-authority-repository.js";
+export * from "./project-review-view-reader.js";
 export * from "./research-scope-repository.js";
 export * from "./rendered-artifact-authority-repository.js";
 export * from "./scholarly-identity-repository.js";

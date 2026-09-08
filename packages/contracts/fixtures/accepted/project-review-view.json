@@ -1,0 +1,149 @@
+{
+  "schema_name": "petra.project-review-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "review_session_id": "review_session_01K4D000000000000000000001",
+  "content": {
+    "session": {
+      "revision": 1,
+      "content_hash": "sha256:b8cfc1abaa83614ac1c7c65ba3a37f47bc4693306c92d7ba612644ec554fa0e3",
+      "title": "Source-grounded Claim and relationship",
+      "objective_summary": "Decide whether the exact Claim and ASSERTS relationship may enter trusted Project state.",
+      "objective": {
+        "objective_ref": {
+          "record_id": "objective_01K4C000000000000000000005",
+          "revision": 1,
+          "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+        },
+        "objective_kind": "scientific.research-question",
+        "statement": "Determine which claims in the selected source are supported by exact inspectable passages."
+      },
+      "status": "needs_decision",
+      "status_label": "Needs your decision",
+      "responsible": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "display_name": "Researcher"
+      },
+      "project_definition_ref": {
+        "record_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+      },
+      "project_definition_label": "Scientific evidence inquiry",
+      "snapshot": {
+        "event_position": 0,
+        "stream_revision": 0,
+        "captured_at": "2026-09-08T16:00:00.000Z"
+      },
+      "snapshot_state": "current",
+      "origin": {
+        "origin_kind": "evidence_extraction",
+        "record_refs": ["extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD"],
+        "label": "Model extraction",
+        "detail": "Created from one source-grounded extraction that passed quarantine admission."
+      },
+      "return_context": {
+        "place": "sources",
+        "object_ref": "project_source_01K4C000000000000000000007",
+        "label": "A testable account of competing explanations"
+      }
+    },
+    "members": [
+      {
+        "review_member_id": "review_member_01K4D000000000000000000002",
+        "member_role": "ordinary",
+        "outcome": "awaiting_decision",
+        "candidate": {
+          "candidate_id": "review_member_01K4D000000000000000000002",
+          "revision_label": "Claim revision 1 · Assertion revision 1",
+          "kind_label": "Claim and source relationship",
+          "current": "No accepted representation",
+          "proposed": "The study reports a measurable improvement.",
+          "difference": "Adds one source-grounded Claim and its ASSERTS relationship to trusted Project state if the exact ChangeSet is approved and applied.",
+          "origin_label": "Researcher",
+          "origin_detail": "Model extraction · extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FBD",
+          "profile_payload": {
+            "payload_kind": "scientific_evidence_pair",
+            "claim_ref": {
+              "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "revision": 1,
+              "record_hash": "sha256:037b05d18954bd81029717fb0ff00c9f21e14895db98e4c2dfb2691aaf501db3"
+            },
+            "assertion_ref": {
+              "record_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "revision": 1,
+              "record_hash": "sha256:70ec8b8bc12777b67628ea35be16dcdaf6a071746fed64d3d1e8005c72c73d80"
+            },
+            "claim_kind": "descriptive",
+            "assertion_predicate": "ASSERTS",
+            "scope_dimensions": [
+              "task",
+              "outcome",
+              "population",
+              "language",
+              "model_family",
+              "dataset",
+              "intervention_or_exposure",
+              "comparator",
+              "setting",
+              "temporal_boundary"
+            ]
+          }
+        },
+        "basis": [
+          {
+            "basis_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+            "label": "Results / Paragraph 1",
+            "relation": "Principal source basis",
+            "extent": "Full text · exact text and geometry",
+            "detail": "The study reports a measurable improvement.",
+            "project_source_id": "project_source_01K4C000000000000000000007",
+            "project_source_status": "active",
+            "source_span_ref": {
+              "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+              "revision": 1,
+              "record_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+            }
+          }
+        ],
+        "validation": {
+          "state": "passed",
+          "label": "Applicable checks passed",
+          "detail": "Two exact candidate validators passed. This does not approve the candidate or establish scientific truth."
+        },
+        "consequences": [
+          "Promote the exact Claim and ASSERTS relationship as one atomic authority change.",
+          "Retain the quarantine revisions and their source provenance.",
+          "Queue graph projection only after the authoritative event commits."
+        ],
+        "change_sets": [
+          {
+            "change_set_ref": {
+              "record_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+              "revision": 1,
+              "content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b"
+            },
+            "state": "submitted",
+            "atomicity": "One atomic ChangeSet · 2 operations",
+            "changes": [
+              "Promote Claim claim_01ARZ3NDEKTSV4RRFFQ69G5FBB revision 1.",
+              "Promote Assertion assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC revision 1."
+            ],
+            "protected": [
+              "Source bytes and ProjectSource membership remain unchanged.",
+              "The quarantine revisions and provenance remain retained."
+            ],
+            "impact_summary": "The Claim and its source-stated ASSERTS edge become admissible trusted representations; no scientific truth value is assigned."
+          }
+        ]
+      }
+    ],
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 0,
+      "stream_revision": 0
+    }
+  },
+  "content_hash": "sha256:d6f75f6d800cc71c72916182ed9856894f5a7ea0ececbd2c8e7ffc5b9f7c0280",
+  "read_at": "2026-09-08T16:01:00.000Z"
+}

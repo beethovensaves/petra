@@ -1,10 +1,12 @@
 import {
+  PostgresProjectReviewViewReader,
   PostgresProjectShellViewReader,
   PostgresProjectSourceViewReader,
 } from "@petra/postgres";
 import pg from "pg";
 
 import type {
+  ProjectReviewViewReader,
   ProjectShellViewReader,
   ProjectSourceViewReader,
 } from "@petra/core";
@@ -14,6 +16,7 @@ const { Pool } = pg;
 export interface ProjectShellPersistence {
   readonly views: ProjectShellViewReader;
   readonly sourceViews: ProjectSourceViewReader;
+  readonly reviewViews: ProjectReviewViewReader;
   readonly close: () => Promise<void>;
 }
 
@@ -78,11 +81,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
 
   try {
     const schema = await pool.query<{ ready: boolean }>(
-      "SELECT to_regclass('petra.project_source_revisions') IS NOT NULL AS ready",
+      "SELECT to_regclass('petra.review_session_revisions') IS NOT NULL AS ready",
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but V020 has not created petra.project_source_revisions.",
+        "PostgreSQL is reachable, but V021 has not created petra.review_session_revisions.",
       );
     }
   } catch (error) {
@@ -98,6 +101,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
   return {
     views: new PostgresProjectShellViewReader(pool),
     sourceViews: new PostgresProjectSourceViewReader(pool),
+    reviewViews: new PostgresProjectReviewViewReader(pool),
     close,
   };
 };

@@ -34,6 +34,8 @@ import type { EngineState } from "./product/model.js";
 import {
   loadProjectCollection,
   loadProjectRecord,
+  loadProjectReviewCollection,
+  loadProjectReviewSession,
   loadProjectSourceCollection,
   loadProjectSourceRecord,
 } from "./product/project-data.js";
@@ -77,8 +79,16 @@ export const router = createBrowserRouter([
             loader: loadProjectSourceRecord,
             element: <SourceReaderRoute />,
           },
-          { path: "review", element: <ReviewCollectionRoute /> },
-          { path: "review/:reviewId", element: <ReviewSessionRoute /> },
+          {
+            path: "review",
+            loader: loadProjectReviewCollection,
+            element: <ReviewCollectionRoute />,
+          },
+          {
+            path: "review/:reviewId",
+            loader: loadProjectReviewSession,
+            element: <ReviewSessionRoute />,
+          },
           { path: "graph", element: <GraphRoute /> },
           { path: "work", element: <WorkCollectionRoute /> },
           { path: "work/:workId", element: <WorkDetailRoute /> },

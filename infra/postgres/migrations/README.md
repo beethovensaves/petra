@@ -156,3 +156,27 @@ service identity, and complete canonical transformations. A shared immutable
 command ledger prevents one revision command from being reused across
 researcher edits, revalidation, and Felicity revision while remaining outside
 scientific evidence authority.
+
+`V019__project_definition_authority.sql` adds the immutable semantic root for a
+Project. A ProjectDefinition registers its objective, object, relationship,
+source-role, workflow, validator, output, terminology, presentation, context,
+prompt, tool, model-role, and extension contracts without requiring membership
+in a reusable profile catalogue. Project Objectives bind to an exact definition
+revision, and a guarded Project head selects the current definition and focused
+Objective without rewriting earlier meaning.
+
+`V020__project_source_authority.sql` adds stable ProjectSource identities over
+exact ProjectDefinition source roles, scholarly Work and WorkVersion revisions,
+ordered Authors, and one immutable ArtifactManifest copy. Additive revisions can
+mark a Project binding active or excluded without changing global source
+identity, deleting retained bytes, or making the client infer membership.
+
+`V021__review_session_authority.sql` adds stable, revisioned ReviewSession
+identity independently of ChangeSet identity. Each revision retains one exact
+ProjectDefinition, optional Objective, responsible human, authority snapshot,
+origin, return context, ordered members, and exact semantic candidate bindings.
+The first persistence resolver deliberately accepts the existing scientific
+Claim–`ASSERTS` pair only, verifies its registered ProjectDefinition semantics
+and ProjectSource basis, and leaves other profile payloads to additive authority
+resolvers. A ReviewSession may exist before any ChangeSet; it does not itself
+approve or apply domain authority.

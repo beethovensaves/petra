@@ -136,7 +136,7 @@ export type ReviewSession = {
     recovery?: string;
   };
   consequences: string[];
-  changeSet: {
+  changeSet?: {
     id: string;
     revision: string;
     atomicity: string;

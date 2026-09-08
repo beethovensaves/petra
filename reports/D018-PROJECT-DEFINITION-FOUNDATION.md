@@ -77,6 +77,6 @@ checkpoints, restoration, and derived-Project creation remain open.
 
 The first authorized `ProjectShellView` and live server adapter are now recorded
 in [the M1.9 Project shell integration report](M1.9-PROJECT-SHELL-INTEGRATION.md).
-The next M1.9 cut adds scientific source and Review reads while keeping
+The next M1.9 cuts add scientific source and Review reads while keeping
 ProjectDefinition interpretation, freshness, provenance, and recovery state out
 of React components.

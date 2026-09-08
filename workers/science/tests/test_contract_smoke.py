@@ -555,6 +555,246 @@ class PetraProjectSourceView(PetraModel):
     read_at: str
 
 
+class ReviewSessionHumanActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["human"]
+
+
+class ReviewSessionDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+
+
+class ReviewSessionObjectiveRef(PetraModel):
+    objective_id: str
+    revision: int
+    content_hash: str
+
+
+class ReviewSessionExactRecordRef(PetraModel):
+    record_id: str
+    revision: int
+    record_hash: str
+
+
+class ReviewSessionProjectSnapshot(PetraModel):
+    event_position: int
+    stream_revision: int
+    captured_at: str
+
+
+class ReviewSessionOrigin(PetraModel):
+    origin_kind: Literal[
+        "direct_edit",
+        "evidence_extraction",
+        "work_result",
+        "interaction",
+        "history_reversal",
+    ]
+    record_refs: list[str]
+    summary: str
+
+
+class ReviewSessionReturnContext(PetraModel):
+    place: Literal[
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "profile_tool",
+    ]
+    object_ref: str | None = None
+    label: str
+
+
+class ReviewSessionCandidateBinding(PetraModel):
+    semantic_key: str
+    binding_role: Literal["candidate", "relationship", "finding"]
+    record_ref: ReviewSessionExactRecordRef
+
+
+class ReviewSessionMember(PetraModel):
+    review_member_id: str
+    member_role: Literal["ordinary", "exception"]
+    candidate_bindings: list[ReviewSessionCandidateBinding]
+
+
+class ReviewSessionContent(PetraModel):
+    title: str
+    objective_summary: str
+    objective_ref: ReviewSessionObjectiveRef | None = None
+    lifecycle: Literal["open", "deferred", "completed"]
+    responsible: ReviewSessionHumanActorRef
+    snapshot: ReviewSessionProjectSnapshot
+    origin: ReviewSessionOrigin
+    return_context: ReviewSessionReturnContext
+    members: list[ReviewSessionMember]
+
+
+class PetraReviewSession(PetraModel):
+    schema_name: Literal["petra.review-session"]
+    schema_version: Literal["1.0.0"]
+    review_session_id: str
+    revision: int
+    project_id: str
+    project_definition_ref: ReviewSessionDefinitionRef
+    content: ReviewSessionContent
+    content_hash: str
+    created_by: ReviewSessionHumanActorRef
+    created_at: str
+    updated_at: str
+
+
+class ProjectReviewExactRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectReviewExactRecordRef(PetraModel):
+    record_id: str
+    revision: int
+    record_hash: str
+
+
+class ProjectReviewObjectiveSummary(PetraModel):
+    objective_ref: ProjectReviewExactRef
+    objective_kind: str
+    statement: str
+
+
+class ProjectReviewResponsible(PetraModel):
+    actor_id: str
+    display_name: str
+
+
+class ProjectReviewOriginSummary(PetraModel):
+    origin_kind: Literal[
+        "direct_edit",
+        "evidence_extraction",
+        "work_result",
+        "interaction",
+        "history_reversal",
+    ]
+    record_refs: list[str]
+    label: str
+    detail: str
+
+
+class ProjectReviewSessionSummary(PetraModel):
+    revision: int
+    content_hash: str
+    title: str
+    objective_summary: str
+    objective: ProjectReviewObjectiveSummary | None = None
+    status: Literal["needs_decision", "waiting", "completed"]
+    status_label: str
+    responsible: ProjectReviewResponsible
+    project_definition_ref: ProjectReviewExactRef
+    project_definition_label: str
+    snapshot: ReviewSessionProjectSnapshot
+    snapshot_state: Literal["current", "stale"]
+    origin: ProjectReviewOriginSummary
+    return_context: ReviewSessionReturnContext
+
+
+class ProjectReviewScientificEvidencePayload(PetraModel):
+    payload_kind: Literal["scientific_evidence_pair"]
+    claim_ref: ProjectReviewExactRecordRef
+    assertion_ref: ProjectReviewExactRecordRef
+    claim_kind: Literal[
+        "descriptive",
+        "comparative",
+        "causal",
+        "mechanistic",
+        "methodological",
+        "theoretical",
+        "measurement",
+    ]
+    assertion_predicate: Literal["ASSERTS"]
+    scope_dimensions: list[str]
+
+
+class ProjectReviewCandidateSummary(PetraModel):
+    candidate_id: str
+    revision_label: str
+    kind_label: str
+    current: str
+    proposed: str
+    difference: str
+    origin_label: str
+    origin_detail: str
+    profile_payload: ProjectReviewScientificEvidencePayload
+
+
+class ProjectReviewBasisItem(PetraModel):
+    basis_id: str
+    label: str
+    relation: str
+    extent: str
+    detail: str
+    project_source_id: str | None = None
+    project_source_status: Literal["active", "excluded"] | None = None
+    source_span_ref: ProjectReviewExactRecordRef | None = None
+
+
+class ProjectReviewValidationSummary(PetraModel):
+    state: Literal["passed", "needs_judgment", "blocked"]
+    label: str
+    detail: str
+    recovery: str | None = None
+
+
+class ProjectReviewChangeSetSummary(PetraModel):
+    change_set_ref: ProjectReviewExactRef
+    state: Literal["submitted", "approved", "rejected", "applied", "conflicted"]
+    atomicity: str
+    changes: list[str]
+    protected: list[str]
+    impact_summary: str
+    approval_ref: ProjectReviewExactRecordRef | None = None
+
+
+class ProjectReviewMember(PetraModel):
+    review_member_id: str
+    member_role: Literal["ordinary", "exception"]
+    outcome: Literal[
+        "awaiting_decision", "waiting", "applied", "rejected", "conflicted"
+    ]
+    candidate: ProjectReviewCandidateSummary
+    basis: list[ProjectReviewBasisItem]
+    validation: ProjectReviewValidationSummary
+    consequences: list[str]
+    change_sets: list[ProjectReviewChangeSetSummary]
+
+
+class ProjectReviewAuthorityPosition(PetraModel):
+    isolation: Literal["repeatable_read"]
+    event_position: int
+    stream_revision: int
+
+
+class ProjectReviewViewContent(PetraModel):
+    session: ProjectReviewSessionSummary
+    members: list[ProjectReviewMember]
+    authority: ProjectReviewAuthorityPosition
+
+
+class PetraProjectReviewView(PetraModel):
+    schema_name: Literal["petra.project-review-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    review_session_id: str
+    content: ProjectReviewViewContent
+    content_hash: str
+    read_at: str
+
+
 class PetraAuthor(PetraModel):
     schema_name: Literal["petra.author"]
     schema_version: Literal["1.0.0"]
@@ -4272,6 +4512,8 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-shell-view": PetraProjectShellView,
     "project-source": PetraProjectSource,
     "project-source-view": PetraProjectSourceView,
+    "review-session": PetraReviewSession,
+    "project-review-view": PetraProjectReviewView,
     "author": PetraAuthor,
     "work": PetraWork,
     "work-version": PetraWorkVersion,

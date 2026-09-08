@@ -1,8 +1,7 @@
-import { Link, useParams } from "react-router";
+import { Link, useLoaderData } from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
 import { PetraButton, PetraButtonGroup } from "../design-system/primitives.js";
-import { getProjectReviews, getReferenceReview } from "./fixtures.js";
 import type { ProjectRecord, ReviewSession } from "./model.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 
@@ -82,8 +81,11 @@ export const ReviewCollectionSurface = ({
                 {needsDecision.length} decision needs your attention
               </h2>
               <p>
-                Four other working candidates passed their applicable checks and
-                do not require a decision.
+                {waiting.length + completed.length} other Review{" "}
+                {waiting.length + completed.length === 1
+                  ? "session does"
+                  : "sessions do"}{" "}
+                not require an immediate decision.
               </p>
             </div>
           </section>
@@ -170,7 +172,7 @@ export const ReviewCollectionRoute = (): React.JSX.Element => {
   return (
     <ReviewCollectionSurface
       project={project}
-      reviews={getProjectReviews(project.id)}
+      reviews={useLoaderData<ReviewSession[]>()}
     />
   );
 };
@@ -332,34 +334,44 @@ export const ReviewSessionSurface = ({
           <p className="reference-panel-kicker">Commitment preview</p>
           <h2 id="review-changeset-title">Changes to apply</h2>
         </div>
-        <span>{review.changeSet.atomicity}</span>
+        <span>{review.changeSet?.atomicity ?? "No ChangeSet prepared"}</span>
       </header>
-      <dl>
-        <div>
-          <dt>ChangeSet</dt>
-          <dd>
-            <code>{review.changeSet.id}</code> · {review.changeSet.revision}
-          </dd>
-        </div>
-      </dl>
-      <div className="review-changeset__lists">
-        <section aria-labelledby="proposed-changes-title">
-          <h3 id="proposed-changes-title">Proposed change</h3>
-          <ul>
-            {review.changeSet.changes.map((change) => (
-              <li key={change}>{change}</li>
-            ))}
-          </ul>
-        </section>
-        <section aria-labelledby="protected-state-title">
-          <h3 id="protected-state-title">Unchanged and protected</h3>
-          <ul>
-            {review.changeSet.protected.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      </div>
+      {review.changeSet === undefined ? (
+        <p>
+          This durable Review session exists before commitment. Petra must
+          prepare and validate an exact ChangeSet before anything can be
+          applied.
+        </p>
+      ) : (
+        <>
+          <dl>
+            <div>
+              <dt>ChangeSet</dt>
+              <dd>
+                <code>{review.changeSet.id}</code> · {review.changeSet.revision}
+              </dd>
+            </div>
+          </dl>
+          <div className="review-changeset__lists">
+            <section aria-labelledby="proposed-changes-title">
+              <h3 id="proposed-changes-title">Proposed change</h3>
+              <ul>
+                {review.changeSet.changes.map((change) => (
+                  <li key={change}>{change}</li>
+                ))}
+              </ul>
+            </section>
+            <section aria-labelledby="protected-state-title">
+              <h3 id="protected-state-title">Unchanged and protected</h3>
+              <ul>
+                {review.changeSet.protected.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        </>
+      )}
     </section>
 
     <section
@@ -370,9 +382,11 @@ export const ReviewSessionSurface = ({
         <p className="reference-panel-kicker">Accountable boundary</p>
         <h2 id="review-decision-title">Decision</h2>
         <p id="review-decision-boundary">
-          Apply is blocked by the unresolved principal basis. Reject and Decide
-          later also remain unavailable until the Review command boundary is
-          connected; no local control can record authority.
+          {review.validation.state === "blocked"
+            ? `${review.validation.detail} `
+            : ""}
+          Apply, Reject, and Decide later remain unavailable until the Review
+          command boundary is connected; no local control can record authority.
         </p>
       </div>
       <PetraButtonGroup label="Review decision">
@@ -381,7 +395,9 @@ export const ReviewSessionSurface = ({
           aria-disabled="true"
           aria-describedby="review-decision-boundary"
         >
-          Apply 1 change
+          {review.changeSet === undefined
+            ? "Apply unavailable"
+            : `Apply ${review.changeSet.changes.length} changes`}
         </PetraButton>
         <PetraButton
           aria-disabled="true"
@@ -417,28 +433,6 @@ export const ReviewSessionSurface = ({
 
 export const ReviewSessionRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const { reviewId } = useParams();
-  const review = getReferenceReview(project.id, reviewId);
-
-  if (review === undefined) {
-    return (
-      <main className="reference-route-error" id="reference-main">
-        <PetraMark />
-        <p className="reference-eyebrow">Review unavailable</p>
-        <h1>This Review session cannot be opened</h1>
-        <p>
-          The identity does not resolve inside {project.title}. Petra did not
-          substitute another candidate or Project.
-        </p>
-        <Link
-          className="reference-text-link"
-          to={`/projects/${project.id}/review`}
-        >
-          Return to Review
-        </Link>
-      </main>
-    );
-  }
-
+  const review = useLoaderData<ReviewSession>();
   return <ReviewSessionSurface project={project} review={review} />;
 };

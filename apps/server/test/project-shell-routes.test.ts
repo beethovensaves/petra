@@ -1,10 +1,12 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectSourceView,
 } from "@petra/contracts";
 import type {
+  ProjectReviewViewReader,
   ProjectShellViewReader,
   ProjectSourceViewReader,
 } from "@petra/core";
@@ -34,6 +36,16 @@ const sourceFixture = JSON.parse(
   ),
 ) as PetraProjectSourceView;
 
+const reviewFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-review-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectReviewView;
+
 const reader: ProjectShellViewReader = {
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
@@ -54,6 +66,22 @@ const sourceReader: ProjectSourceViewReader = {
       projectId === sourceFixture.project_id &&
         sourceId === sourceFixture.project_source_id
         ? structuredClone(sourceFixture)
+        : undefined,
+    ),
+};
+
+const reviewReader: ProjectReviewViewReader = {
+  listProjectReviewViews: (projectId) =>
+    Promise.resolve(
+      projectId === reviewFixture.project_id
+        ? [structuredClone(reviewFixture)]
+        : [],
+    ),
+  getProjectReviewView: (projectId, reviewSessionId) =>
+    Promise.resolve(
+      projectId === reviewFixture.project_id &&
+        reviewSessionId === reviewFixture.review_session_id
+        ? structuredClone(reviewFixture)
         : undefined,
     ),
 };
@@ -169,5 +197,38 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(body.error.code).toBe("PROJECT_SOURCE_NOT_FOUND");
+  });
+
+  it("returns only Review sessions authorized for the exact Project", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectReviewViews: reviewReader,
+    });
+    const collection = await petra.app.request(
+      authorized(`/api/queries/projects/${reviewFixture.project_id}/reviews`),
+    );
+    expect(collection.status).toBe(200);
+    await expect(collection.json()).resolves.toEqual({
+      reviews: [reviewFixture],
+    });
+
+    const detail = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${reviewFixture.project_id}/reviews/${reviewFixture.review_session_id}`,
+      ),
+    );
+    expect(detail.status).toBe(200);
+    await expect(detail.json()).resolves.toEqual(reviewFixture);
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/reviews/${reviewFixture.review_session_id}`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    const body = JSON.parse(await crossProject.text()) as {
+      error: { code: string };
+    };
+    expect(body.error.code).toBe("PROJECT_REVIEW_NOT_FOUND");
   });
 });

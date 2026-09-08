@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-session/1.0.0/schema.json",
+  "title": "PetraReviewSession",
+  "description": "A durable, revisioned, profile-neutral decision context bound to one Project snapshot and exact profile-registered candidate records.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "review_session_id",
+    "revision",
+    "project_id",
+    "project_definition_ref",
+    "content",
+    "content_hash",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.review-session" },
+    "schema_version": { "const": "1.0.0" },
+    "review_session_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^review_session_" }
+      ]
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+    "content": { "$ref": "#/$defs/SessionContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_by": { "$ref": "#/$defs/HumanActorRef" },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "updated_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "HumanActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "human" }
+      }
+    },
+    "DefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_definition_id", "revision", "content_hash"],
+      "properties": {
+        "project_definition_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^project_definition_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ObjectiveRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "revision", "content_hash"],
+      "properties": {
+        "objective_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^objective_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ExactRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "record_hash"],
+      "properties": {
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ProjectSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_position", "stream_revision", "captured_at"],
+      "properties": {
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "captured_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "Origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin_kind", "record_refs", "summary"],
+      "properties": {
+        "origin_kind": {
+          "enum": [
+            "direct_edit",
+            "evidence_extraction",
+            "work_result",
+            "interaction",
+            "history_reversal"
+          ]
+        },
+        "record_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+          }
+        },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "ReturnContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place", "label"],
+      "properties": {
+        "place": {
+          "enum": [
+            "brief",
+            "sources",
+            "review",
+            "graph",
+            "work",
+            "petra",
+            "composition",
+            "history",
+            "profile_tool"
+          ]
+        },
+        "object_ref": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 240 }
+      }
+    },
+    "CandidateBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["semantic_key", "binding_role", "record_ref"],
+      "properties": {
+        "semantic_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "binding_role": {
+          "enum": ["candidate", "relationship", "finding"]
+        },
+        "record_ref": { "$ref": "#/$defs/ExactRecordRef" }
+      }
+    },
+    "ReviewMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["review_member_id", "member_role", "candidate_bindings"],
+      "properties": {
+        "review_member_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^review_member_" }
+          ]
+        },
+        "member_role": { "enum": ["ordinary", "exception"] },
+        "candidate_bindings": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/CandidateBinding" }
+        }
+      }
+    },
+    "SessionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "objective_summary",
+        "lifecycle",
+        "responsible",
+        "snapshot",
+        "origin",
+        "return_context",
+        "members"
+      ],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "objective_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "objective_ref": { "$ref": "#/$defs/ObjectiveRef" },
+        "lifecycle": { "enum": ["open", "deferred", "completed"] },
+        "responsible": { "$ref": "#/$defs/HumanActorRef" },
+        "snapshot": { "$ref": "#/$defs/ProjectSnapshot" },
+        "origin": { "$ref": "#/$defs/Origin" },
+        "return_context": { "$ref": "#/$defs/ReturnContext" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ReviewMember" }
+        }
+      }
+    }
+  }
+}

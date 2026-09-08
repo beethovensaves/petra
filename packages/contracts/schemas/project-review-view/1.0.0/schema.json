@@ -1,0 +1,455 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-review-view/1.0.0/schema.json",
+  "title": "PetraProjectReviewView",
+  "description": "A read-only, snapshot-consistent Review-session composition. Version 1.0 renders the existing scientific Claim-Assertion path inside shared Review roles.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "review_session_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-review-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "review_session_id": {
+      "type": "string",
+      "pattern": "^review_session_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "content": { "$ref": "#/$defs/ReviewViewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ExactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "content_hash"],
+      "properties": {
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ExactRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "record_hash"],
+      "properties": {
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "DefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "content_hash"],
+      "properties": {
+        "record_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^project_definition_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ObjectiveSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_ref", "objective_kind", "statement"],
+      "properties": {
+        "objective_ref": { "$ref": "#/$defs/ExactRef" },
+        "objective_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "statement": { "type": "string", "minLength": 1, "maxLength": 8000 }
+      }
+    },
+    "ProjectSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_position", "stream_revision", "captured_at"],
+      "properties": {
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "captured_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "OriginSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin_kind", "record_refs", "label", "detail"],
+      "properties": {
+        "origin_kind": {
+          "enum": [
+            "direct_edit",
+            "evidence_extraction",
+            "work_result",
+            "interaction",
+            "history_reversal"
+          ]
+        },
+        "record_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+          }
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "ReturnContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place", "label"],
+      "properties": {
+        "place": {
+          "enum": [
+            "brief",
+            "sources",
+            "review",
+            "graph",
+            "work",
+            "petra",
+            "composition",
+            "history",
+            "profile_tool"
+          ]
+        },
+        "object_ref": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 240 }
+      }
+    },
+    "SessionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "content_hash",
+        "title",
+        "objective_summary",
+        "status",
+        "status_label",
+        "responsible",
+        "project_definition_ref",
+        "project_definition_label",
+        "snapshot",
+        "snapshot_state",
+        "origin",
+        "return_context"
+      ],
+      "properties": {
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "objective_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "objective": { "$ref": "#/$defs/ObjectiveSummary" },
+        "status": { "enum": ["needs_decision", "waiting", "completed"] },
+        "status_label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "responsible": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["actor_id", "display_name"],
+          "properties": {
+            "actor_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+            },
+            "display_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            }
+          }
+        },
+        "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+        "project_definition_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "snapshot": { "$ref": "#/$defs/ProjectSnapshot" },
+        "snapshot_state": { "enum": ["current", "stale"] },
+        "origin": { "$ref": "#/$defs/OriginSummary" },
+        "return_context": { "$ref": "#/$defs/ReturnContext" }
+      }
+    },
+    "ScientificEvidencePayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payload_kind",
+        "claim_ref",
+        "assertion_ref",
+        "claim_kind",
+        "assertion_predicate",
+        "scope_dimensions"
+      ],
+      "properties": {
+        "payload_kind": { "const": "scientific_evidence_pair" },
+        "claim_ref": { "$ref": "#/$defs/ExactRecordRef" },
+        "assertion_ref": { "$ref": "#/$defs/ExactRecordRef" },
+        "claim_kind": {
+          "enum": [
+            "descriptive",
+            "comparative",
+            "causal",
+            "mechanistic",
+            "methodological",
+            "theoretical",
+            "measurement"
+          ]
+        },
+        "assertion_predicate": { "const": "ASSERTS" },
+        "scope_dimensions": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        }
+      }
+    },
+    "CandidateSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "revision_label",
+        "kind_label",
+        "current",
+        "proposed",
+        "difference",
+        "origin_label",
+        "origin_detail",
+        "profile_payload"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "kind_label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "current": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "proposed": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "difference": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "origin_label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "origin_detail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "profile_payload": { "$ref": "#/$defs/ScientificEvidencePayload" }
+      }
+    },
+    "BasisItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["basis_id", "label", "relation", "extent", "detail"],
+      "properties": {
+        "basis_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "relation": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "extent": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "project_source_status": { "enum": ["active", "excluded"] },
+        "source_span_ref": { "$ref": "#/$defs/ExactRecordRef" }
+      }
+    },
+    "ValidationSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "label", "detail"],
+      "properties": {
+        "state": { "enum": ["passed", "needs_judgment", "blocked"] },
+        "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "recovery": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "ChangeSetSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "change_set_ref",
+        "state",
+        "atomicity",
+        "changes",
+        "protected",
+        "impact_summary"
+      ],
+      "properties": {
+        "change_set_ref": { "$ref": "#/$defs/ExactRef" },
+        "state": {
+          "enum": ["submitted", "approved", "rejected", "applied", "conflicted"]
+        },
+        "atomicity": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "changes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        },
+        "protected": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        },
+        "impact_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "approval_ref": { "$ref": "#/$defs/ExactRecordRef" }
+      }
+    },
+    "ReviewMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_member_id",
+        "member_role",
+        "outcome",
+        "candidate",
+        "basis",
+        "validation",
+        "consequences",
+        "change_sets"
+      ],
+      "properties": {
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "member_role": { "enum": ["ordinary", "exception"] },
+        "outcome": {
+          "enum": [
+            "awaiting_decision",
+            "waiting",
+            "applied",
+            "rejected",
+            "conflicted"
+          ]
+        },
+        "candidate": { "$ref": "#/$defs/CandidateSummary" },
+        "basis": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/BasisItem" }
+        },
+        "validation": { "$ref": "#/$defs/ValidationSummary" },
+        "consequences": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        },
+        "change_sets": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ChangeSetSummary" }
+        }
+      }
+    },
+    "AuthorityPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isolation", "event_position", "stream_revision"],
+      "properties": {
+        "isolation": { "const": "repeatable_read" },
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "ReviewViewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session", "members", "authority"],
+      "properties": {
+        "session": { "$ref": "#/$defs/SessionSummary" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ReviewMember" }
+        },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" }
+      }
+    }
+  }
+}

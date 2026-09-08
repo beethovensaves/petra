@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectSourceView,
 } from "@petra/contracts";
@@ -8,6 +9,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   projectRecordFromShellView,
+  reviewSessionFromView,
   sourceRecordFromView,
 } from "./project-data.js";
 
@@ -30,6 +32,16 @@ const sourceView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectSourceView;
+
+const reviewView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-review-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectReviewView;
 
 describe("Project shell workbench adapter", () => {
   it("maps exact definition terminology and projection attention without mutating the view", () => {
@@ -101,5 +113,34 @@ describe("Project shell workbench adapter", () => {
       }),
     );
     expect(sourceView).toEqual(before);
+  });
+
+  it("maps one exact Review-session composition without treating validation as approval", () => {
+    const before = structuredClone(reviewView);
+    const review = reviewSessionFromView(reviewView);
+
+    expect(review.id).toBe("review_session_01K4D000000000000000000001");
+    expect(review.status).toBe("needs_decision");
+    expect(review.candidate.proposed).toBe(
+      "The study reports a measurable improvement.",
+    );
+    expect(review.validation).toEqual(
+      expect.objectContaining({
+        state: "passed",
+        label: "Applicable checks passed",
+      }),
+    );
+    expect(review.changeSet).toEqual(
+      expect.objectContaining({
+        id: "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+      }),
+    );
+    expect(review.changeSet?.changes.join(" ")).toContain(
+      "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+    );
+    expect(review.basis[0]?.sourceId).toBe(
+      "project_source_01K4C000000000000000000007",
+    );
+    expect(reviewView).toEqual(before);
   });
 });

@@ -35,7 +35,9 @@ describe("reference Review and Graph packets", () => {
     );
 
     expect(markup).toContain("1 decision needs your attention");
-    expect(markup).toContain("Four other working candidates passed");
+    expect(markup).toContain(
+      "0 other Review sessions do not require an immediate decision.",
+    );
     expect(markup).toContain("Counts represent decisions");
     expect(markup).toContain("Needs your decision");
     expect(markup).toContain("Waiting");

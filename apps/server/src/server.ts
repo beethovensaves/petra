@@ -170,6 +170,13 @@ export const startPetraServer = async (
           : {
               projectSourceViews: options.projectShellPersistence.sourceViews,
             }),
+      ...(options.projectReviewViews !== undefined
+        ? { projectReviewViews: options.projectReviewViews }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectReviewViews: options.projectShellPersistence.reviewViews,
+            }),
     });
     server = serve({
       fetch: petra.app.fetch,

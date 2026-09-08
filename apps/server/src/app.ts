@@ -22,6 +22,7 @@ import {
   derivePetraId,
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
+  type ProjectReviewViewReader,
   type ProjectShellViewReader,
   type ProjectSourceViewReader,
 } from "@petra/core";
@@ -44,6 +45,7 @@ export interface PetraAppOptions {
   codexWorkspaceRoot?: string;
   projectShellViews?: ProjectShellViewReader;
   projectSourceViews?: ProjectSourceViewReader;
+  projectReviewViews?: ProjectReviewViewReader;
 }
 
 export interface PetraApp {
@@ -461,6 +463,74 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project source view is unavailable.",
+        );
+      }
+    },
+  );
+
+  app.get("/api/queries/projects/:projectId/reviews", async (context) => {
+    if (options.projectReviewViews === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_REVIEWS_UNAVAILABLE",
+        "The authorized Project Review read boundary is not configured.",
+      );
+    }
+    try {
+      const reviews = await options.projectReviewViews.listProjectReviewViews(
+        context.req.param("projectId"),
+      );
+      for (const review of reviews) {
+        contracts.assertValid("project-review-view", "1.0.0", review);
+      }
+      return context.json({ reviews });
+    } catch (error) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_REVIEWS_READ_FAILED",
+        error instanceof Error
+          ? error.message
+          : "The Project Review collection is unavailable.",
+      );
+    }
+  });
+
+  app.get(
+    "/api/queries/projects/:projectId/reviews/:reviewSessionId",
+    async (context) => {
+      if (options.projectReviewViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_REVIEWS_UNAVAILABLE",
+          "The authorized Project Review read boundary is not configured.",
+        );
+      }
+      try {
+        const review = await options.projectReviewViews.getProjectReviewView(
+          context.req.param("projectId"),
+          context.req.param("reviewSessionId"),
+        );
+        if (review === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_REVIEW_NOT_FOUND",
+            "The requested Review session is not bound to this Project.",
+          );
+        }
+        contracts.assertValid("project-review-view", "1.0.0", review);
+        return context.json(review);
+      } catch (error) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_REVIEW_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project Review view is unavailable.",
         );
       }
     },
