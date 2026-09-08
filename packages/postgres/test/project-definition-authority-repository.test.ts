@@ -18,6 +18,7 @@ import type {
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
 import type { PostgresProjectEffectiveControlsViewError } from "../src/project-effective-controls-view-reader.js";
 import { PostgresProjectEffectiveControlsViewReader } from "../src/project-effective-controls-view-reader.js";
+import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import type { PostgresProjectShellViewError } from "../src/project-shell-view-reader.js";
 import { PostgresProjectShellViewReader } from "../src/project-shell-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
@@ -459,6 +460,187 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
       (await reader.getProjectShellView(project.project_id))?.content.project
         .name,
     ).toBe(project.name);
+  });
+
+  it("interprets scientific and controlled-writing Projects through their own project-authored definitions", async () => {
+    const { actor, project: scientificProject } = await registerScope();
+    const scientificDefinition = readFixture<PetraProjectDefinition>(
+      "project-definition-scientific",
+    );
+    const scientificObjective =
+      readFixture<PetraProjectObjective>("project-objective");
+    const writingProject = readFixture<PetraProject>(
+      "project-controlled-writing",
+    );
+    const writingDefinition = readFixture<PetraProjectDefinition>(
+      "project-definition-controlled-writing",
+    );
+    const writingObjective = readFixture<PetraProjectObjective>(
+      "project-objective-controlled-writing",
+    );
+
+    await scopes.registerProjectRevision(writingProject);
+    await repository.registerDefinitionRevision(scientificDefinition);
+    await repository.registerDefinitionRevision(writingDefinition);
+    await repository.registerObjectiveRevision(scientificObjective);
+    await repository.registerObjectiveRevision(writingObjective);
+    await repository.setCurrentObjectiveFocus({
+      project_id: scientificProject.project_id,
+      objective_ref: {
+        objective_id: scientificObjective.objective_id,
+        revision: scientificObjective.revision,
+        content_hash: scientificObjective.content_hash,
+      },
+      changed_by: actor,
+      changed_at: "2026-09-08T15:10:00.000Z",
+    });
+    await repository.setCurrentObjectiveFocus({
+      project_id: writingProject.project_id,
+      objective_ref: {
+        objective_id: writingObjective.objective_id,
+        revision: writingObjective.revision,
+        content_hash: writingObjective.content_hash,
+      },
+      changed_by: actor,
+      changed_at: "2026-09-08T15:11:00.000Z",
+    });
+
+    const shellReader = new PostgresProjectShellViewReader(pool);
+    const shells = await shellReader.listProjectShellViews();
+    expect(shells).toHaveLength(2);
+    const scientificShell = shells.find(
+      (candidate) => candidate.project_id === scientificProject.project_id,
+    );
+    const writingShell = shells.find(
+      (candidate) => candidate.project_id === writingProject.project_id,
+    );
+    if (scientificShell === undefined || writingShell === undefined) {
+      throw new Error("Expected both paired Project shell views.");
+    }
+    expect(scientificShell.content.definition).toEqual(
+      expect.objectContaining({
+        project_definition_id: scientificDefinition.project_definition_id,
+        definition_family: "petra.scientific-evidence",
+      }),
+    );
+    expect(scientificShell.content.current_objective?.objective_kind).toBe(
+      "scientific.research-question",
+    );
+    expect(
+      scientificShell.content.definition.terms.find(
+        (term) => term.generic_family === "reference",
+      )?.plural,
+    ).toBe("Sources");
+    expect(
+      scientificShell.content.place_summaries.find(
+        (place) => place.role === "sources",
+      )?.label,
+    ).toBe("Sources");
+
+    expect(writingShell.content.definition).toEqual(
+      expect.objectContaining({
+        project_definition_id: writingDefinition.project_definition_id,
+        definition_family: "petra.controlled-writing",
+        supported_places: scientificDefinition.content.supported_places,
+      }),
+    );
+    expect(writingShell.content.current_objective?.objective_kind).toBe(
+      "writing.document-purpose",
+    );
+    expect(
+      writingShell.content.definition.terms.find(
+        (term) => term.generic_family === "finding",
+      )?.plural,
+    ).toBe("Requirements");
+    expect(
+      writingShell.content.place_summaries.find(
+        (place) => place.role === "sources",
+      )?.label,
+    ).toBe("Authority sources");
+
+    const controlsReader = new PostgresProjectEffectiveControlsViewReader(pool);
+    const scientificControls =
+      await controlsReader.getProjectEffectiveControlsView(
+        scientificProject.project_id,
+      );
+    const writingControls =
+      await controlsReader.getProjectEffectiveControlsView(
+        writingProject.project_id,
+      );
+    if (scientificControls === undefined || writingControls === undefined) {
+      throw new Error("Expected both paired effective-controls views.");
+    }
+    expect(
+      scientificControls.content.sections.privacy.values.find(
+        (value) => value.key === "petra.project.enabled-evidence-namespaces",
+      )?.value,
+    ).toEqual(["scholarly", "personal"]);
+    expect(
+      writingControls.content.sections.privacy.values.find(
+        (value) => value.key === "petra.project.enabled-evidence-namespaces",
+      )?.value,
+    ).toEqual(["operational", "personal"]);
+    expect(
+      writingControls.content.project_definition_ref.project_definition_id,
+    ).toBe(writingDefinition.project_definition_id);
+    expect(writingControls.content.sections.model_routing.state).toBe(
+      scientificControls.content.sections.model_routing.state,
+    );
+    expect(writingControls.content.sections.review_policy.state).toBe(
+      scientificControls.content.sections.review_policy.state,
+    );
+
+    const locationReader = new PostgresProjectObjectLocationViewReader(pool);
+    const unsupportedWritingLocation = await locationReader.locateProjectObject(
+      {
+        project_id: writingProject.project_id,
+        object_ref: {
+          semantic_key: "writing.requirement",
+          object_id: "requirement_01K4E000000000000000000004",
+        },
+        task_intent: "inspect",
+      },
+    );
+    if (unsupportedWritingLocation === undefined) {
+      throw new Error("Expected a controlled-writing location result.");
+    }
+    expect(unsupportedWritingLocation.content.definition_ref).toEqual(
+      expect.objectContaining({
+        project_definition_id: writingDefinition.project_definition_id,
+        definition_family: "petra.controlled-writing",
+      }),
+    );
+    const writingResolution = unsupportedWritingLocation.content.resolution;
+    expect(writingResolution.state).toBe("unsupported");
+    if (writingResolution.state !== "unsupported") {
+      throw new Error("Expected an unsupported controlled-writing location.");
+    }
+    expect(writingResolution.failure.code).toBe("OBJECT_KIND_UNSUPPORTED");
+    expect(unsupportedWritingLocation.content.primary_destination.role).toBe(
+      "brief",
+    );
+    expect(unsupportedWritingLocation.content.context.details_allowed).toBe(
+      false,
+    );
+
+    const origins = await pool.query<{
+      definition_family: string;
+      origin_kind: string;
+    }>(
+      `SELECT definition_family, origin_kind
+         FROM petra.project_definition_revisions
+        ORDER BY definition_family`,
+    );
+    expect(origins.rows).toEqual([
+      {
+        definition_family: "petra.controlled-writing",
+        origin_kind: "project_authored",
+      },
+      {
+        definition_family: "petra.scientific-evidence",
+        origin_kind: "project_authored",
+      },
+    ]);
   });
 
   it("refuses to interpret a Project that has no ProjectDefinition", async () => {

@@ -1,6 +1,6 @@
 # UX-REQ-001 Project shell context
 
-Status: second live slice passed; broader `UX-REQ-001` remains partial
+Status: second live slice and paired-definition conformance passed; broader `UX-REQ-001` remains partial
 Date: 2026-09-08
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -85,6 +85,12 @@ service-dependent skips, together with generated-contract/hash checks, the M1
 retrieval-floor check, formatting, lint, TypeScript/Python type checks, and the
 production workbench build.
 
+The follow-on [paired ProjectDefinition conformance](UX-WAVE-1-PAIRED-DEFINITION-CONFORMANCE.md)
+proves that the same shell reader and workbench adapter resolve independently
+project-authored scientific and controlled-writing terminology without a profile
+catalogue or template dependency. The paired database suite passes 95 cases and
+the workbench suite passes 78 cases.
+
 ## Remaining UX-REQ-001 work
 
 This increment does not complete `UX-REQ-001`. Remaining work includes:
@@ -94,7 +100,5 @@ This increment does not complete `UX-REQ-001`. Remaining work includes:
 - active Work context and its observable resource/control state;
 - selection/Details behavior across every applicable frozen surface and return
   path;
-- paired synthetic scientific and controlled-writing ProjectDefinition evidence;
-  and
 - the applicable keyboard, responsive, accessibility, recovery, and participant
   validation gates.

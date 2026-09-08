@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.20.0",
+  "fixture_manifest_version": "1.21.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -14,8 +14,16 @@
       "path": "fixtures/accepted/project.json"
     },
     {
+      "schema": "project",
+      "path": "fixtures/accepted/project-controlled-writing.json"
+    },
+    {
       "schema": "project-definition",
       "path": "fixtures/accepted/project-definition-scientific.json"
+    },
+    {
+      "schema": "project-definition",
+      "path": "fixtures/accepted/project-definition-controlled-writing.json"
     },
     {
       "schema": "project-definition",
@@ -24,6 +32,10 @@
     {
       "schema": "project-objective",
       "path": "fixtures/accepted/project-objective.json"
+    },
+    {
+      "schema": "project-objective",
+      "path": "fixtures/accepted/project-objective-controlled-writing.json"
     },
     {
       "schema": "project-shell-view",

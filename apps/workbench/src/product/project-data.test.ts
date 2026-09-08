@@ -1,8 +1,11 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProject,
+  PetraProjectDefinition,
   PetraProjectEffectiveControlsView,
   PetraProjectObjectLocationView,
+  PetraProjectObjective,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
@@ -42,6 +45,36 @@ const shellV11View = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectShellViewV11;
+
+const controlledWritingProject = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-controlled-writing.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProject;
+
+const controlledWritingDefinition = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-definition-controlled-writing.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectDefinition;
+
+const controlledWritingObjective = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-objective-controlled-writing.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectObjective;
 
 const sourceView = JSON.parse(
   readFileSync(
@@ -125,6 +158,69 @@ describe("Project shell workbench adapter", () => {
     ]);
     expect(project.snapshot.label).toBe("Authority event 3");
     expect(view).toEqual(before);
+  });
+
+  it("maps a project-authored controlled-writing definition without scientific assumptions", () => {
+    const controlledWritingShell = structuredClone(shellV11View);
+    controlledWritingShell.project_id = controlledWritingProject.project_id;
+    controlledWritingShell.content.project = {
+      project_id: controlledWritingProject.project_id,
+      revision: controlledWritingProject.revision,
+      name: controlledWritingProject.name,
+      description:
+        controlledWritingProject.description ??
+        "A project-authored controlled-writing Project.",
+      status: controlledWritingProject.status,
+      updated_at: controlledWritingProject.updated_at,
+    };
+    controlledWritingShell.content.definition = {
+      project_definition_id: controlledWritingDefinition.project_definition_id,
+      revision: controlledWritingDefinition.revision,
+      content_hash: controlledWritingDefinition.content_hash,
+      definition_family: controlledWritingDefinition.definition_family,
+      label: controlledWritingDefinition.content.label,
+      description: controlledWritingDefinition.content.description,
+      kernel_compatibility:
+        controlledWritingDefinition.content.kernel_compatibility,
+      terms: controlledWritingDefinition.content.terms,
+      supported_places: controlledWritingDefinition.content.supported_places,
+    };
+    controlledWritingShell.content.current_objective = {
+      objective_id: controlledWritingObjective.objective_id,
+      revision: controlledWritingObjective.revision,
+      content_hash: controlledWritingObjective.content_hash,
+      objective_kind: controlledWritingObjective.content.objective_kind,
+      statement: controlledWritingObjective.content.statement,
+      status: controlledWritingObjective.content.status,
+    };
+    const sourceSummary = controlledWritingShell.content.place_summaries.find(
+      (place) => place.role === "sources",
+    );
+    if (sourceSummary === undefined) {
+      throw new Error("Expected a sources place summary.");
+    }
+    sourceSummary.label = "Authority sources";
+
+    const project = projectRecordFromShellView(controlledWritingShell);
+
+    expect(project.profile).toEqual(
+      expect.objectContaining({
+        id: controlledWritingDefinition.project_definition_id,
+        label: "Controlled writing",
+        terms: {
+          focus: "Document purpose",
+          focusPlural: "Document purposes",
+          finding: "Requirement",
+          findingPlural: "Requirements",
+          reference: "Authority source",
+          referencePlural: "Authority sources",
+        },
+      }),
+    );
+    expect(project.objective).toContain("controlled operating procedure");
+    expect(
+      project.placeSummaries?.find((place) => place.role === "sources")?.label,
+    ).toBe("Authority sources");
   });
 
   it("keeps a Project with no selected Objective explicit and usable", () => {

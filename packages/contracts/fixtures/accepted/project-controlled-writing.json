@@ -1,0 +1,17 @@
+{
+  "schema_name": "petra.project",
+  "schema_version": "1.0.0",
+  "project_id": "project_01K4E000000000000000000001",
+  "revision": 1,
+  "name": "Controlled operating procedure",
+  "description": "A controlled-writing project that retains authority-source, requirement, review, revision, and output provenance.",
+  "status": "active",
+  "visibility": "private",
+  "enabled_evidence_namespaces": ["operational", "personal"],
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-08T15:00:00.000Z",
+  "updated_at": "2026-09-08T15:00:00.000Z"
+}

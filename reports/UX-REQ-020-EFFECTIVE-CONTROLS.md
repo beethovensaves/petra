@@ -1,6 +1,6 @@
 # UX-REQ-020 effective Project controls
 
-Status: first read-only slice passed; broader `UX-REQ-020` remains partial
+Status: first read-only slice and paired-definition conformance passed; broader `UX-REQ-020` remains partial
 Date: 2026-09-08
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -72,6 +72,12 @@ service-dependent skips, together with generated-contract/hash checks, the M1
 retrieval-floor check, formatting, lint, TypeScript/Python type checks, and the
 production workbench build. The full workbench suite passes 77 cases.
 
+The follow-on [paired ProjectDefinition conformance](UX-WAVE-1-PAIRED-DEFINITION-CONFORMANCE.md)
+proves that the same control reader resolves each independently project-authored
+Project's own evidence namespaces and exact definition while preserving the
+same honest unsupported-policy boundary. The paired database suite passes 95
+cases and the workbench suite passes 78 cases.
+
 ## Remaining UX-REQ-020 work
 
 This increment does not complete `UX-REQ-020`. Remaining work includes:
@@ -83,7 +89,6 @@ This increment does not complete `UX-REQ-020`. Remaining work includes:
 - a registry that maps only genuinely editable values to existing or accepted
   typed, idempotent commands;
 - prospective and active-Work impact plus exact before/after plans;
-- causal History destinations and independent operation outcomes;
-- paired scientific and controlled-writing ProjectDefinition conformance; and
+- causal History destinations and independent operation outcomes; and
 - the applicable accessibility, responsive, recovery, and participant gates from
   `UX-FX32` and `UX-FX33`.
