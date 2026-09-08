@@ -1,6 +1,6 @@
 # Petra user-flow architecture
 
-Status: accepted product flow, design system, language system, accessibility, and recovery through DB17; DB18 product-blueprint discussion open; related runtime mappings awaiting architecture disposition
+Status: accepted product flow and cross-product blueprint through DB18; design freeze pending; related runtime mappings awaiting architecture disposition
 Date: 2026-09-07
 Primary scope: Petra's governed knowledge-work lifecycle, with scientific research and complex controlled writing as initial required examples in an extensible Project-profile system
 Demo boundary: the product flow architecture is completed and frozen before external scientific or writing contexts are integrated
@@ -354,6 +354,36 @@ domain object at each role.
 Not every profile enables every domain flow. Use-agnostic means the invariant
 mechanics do not assume one domain; it does not make Experiments, Hypotheses,
 Papers, or narrative validation mandatory universal modules.
+
+## DB18 product-blueprint coverage
+
+[DB18](PETRA-UX-DESIGN-BRIEF.md#db18--product-blueprint-and-acceptance)
+consolidates this flow architecture through the implementation-packet format
+accepted as `UX1.8-DISC02`. Fourteen packet entries cover every accepted product
+surface without changing their source-module contracts:
+
+| Packet group | Entries | Flow responsibility |
+| --- | --- | --- |
+| Global and shell | `DB18-SP01` Projects, `SP02` Project shell, `SP11` Settings | Establish/switch Project context, preserve orientation, configure personal presentation, and route governed controls through their owning transitions |
+| Primary Project work | `SP03` Brief, `SP04` Sources, `SP05` Review, `SP06` Graph, `SP07` Work, `SP08` Composition, `SP09` registered profile tool, `SP10` History | Carry every UX-FLOW-01–18 primary task from exact entry through authority/commit, terminal state, recovery, and return |
+| Context and feedback | `SP12` Details, `SP13` Petra, `SP14` transient action/feedback | Add exact selection, explanation, interaction, action, status, and recovery context without becoming a second domain or command authority |
+
+Every flow maps to one or more packet entries and names its commit point and
+exact return. Every packet names its ordered regions, responsive and assistive
+compositions, independent state dimensions, component ownership, profile slots,
+`UX-REQ` dependencies, and post-freeze evidence. Direct and Petra-mediated paths
+converge on the same identity and registered operation.
+
+The packet also closes DB01–DB03 at product-specification depth: accepted premise
+and non-goals; responsible-author, specialist, model, worker, policy, operator,
+adapter, and deferred-collaborator responsibility boundaries; and the versioned
+profile system. Proposed runtime profile and view compositions remain explicit
+implementation dependencies rather than missing UX decisions.
+
+`UX-FX44` later exercises every packet and applicable flow across three invented
+profiles; `UX-FX45` exercises all four named end-to-end paths; `UX-FX46` removes
+contracts and profile capabilities in turn and proves safe degradation plus a
+clean start with contextual demos absent. These begin only after design freeze.
 
 ## Complete flow catalogue
 
@@ -962,6 +992,7 @@ The flow review accepts these directions:
 5. **Attention ordering:** material consequence, blocked progress, required review, and stale dependent output take precedence over recency; Petra does not manufacture a universal urgency score.
 6. **M1 Hypothesis boundary:** M1 may demonstrate provisional, read-oriented Hypothesis context, while lifecycle, standing, alternatives, posture, and obligations remain owned by M3 contracts.
 7. **Imported-document boundary:** a permitted existing document may seed an immutable artifact lineage; Petra creates candidate and promoted revisions without overwriting the imported source.
+8. **Traceable product blueprint:** implementation follows the fourteen DB18 packet entries, each tied to its source specification, flows, independent states, contract dependencies, profile slots, recovery, return, and evidence gates; the packet is a design index rather than runtime authority.
 
 The following semantic definitions and runtime compositions remain architecture
 work rather than open product scope:

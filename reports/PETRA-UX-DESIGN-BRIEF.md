@@ -173,9 +173,9 @@ interaction contract has not yet been designed.
 
 | ID | Brief section | Required outcome | Current state |
 | --- | --- | --- | --- |
-| `DB01` | Product premise and non-goals | Use-agnostic purpose, authority boundary, local/private posture, explicit exclusions | accepted, pending architecture amendment for profiles |
-| `DB02` | Users, roles, and responsibility | Primary project author, profile-specific role language, specialist and agent roles, decision ownership | partial |
-| `DB03` | Project-profile system | Shared kernel, profile responsibilities, semantic adaptation, unsupported-profile behavior, model adaptation | accepted direction; runtime shape proposed |
+| `DB01` | Product premise and non-goals | Use-agnostic purpose, authority boundary, local/private posture, explicit exclusions | specified and accepted; runtime profile dependency isolated in `UX-REQ-004` |
+| `DB02` | Users, roles, and responsibility | Primary project author, profile-specific role language, specialist and agent roles, decision ownership | specified and accepted through the DB18 responsibility audit; public multi-user collaboration remains deferred |
+| `DB03` | Project-profile system | Shared kernel, profile responsibilities, semantic adaptation, unsupported-profile behavior, model adaptation | specified and accepted; runtime shape proposed in `UX-REQ-004` |
 | `DB04` | Information architecture | Project entry, shell, Brief, task surfaces, Details, Petra, Work, settings, navigation and deep-link rules | accepted |
 | `DB05` | Complete flow architecture | Entry, success, branch, adverse state, recovery, authority, and horizon for every material flow | accepted |
 | `DB06` | Petra interaction system | Dock, sidecar, focus workspace, composer, answers, context, Work, tools, interrupts, review, replay, failure, and history | accepted |
@@ -190,7 +190,7 @@ interaction contract has not yet been designed.
 | `DB15` | UX language system | Shared control vocabulary, profile-owned terms, response voice, action rationale, status, errors, confirmations, and prohibited conflations | specified; shared communication contract and profile-owned discourse accepted; paper audit complete |
 | `DB16` | Accessibility specification | Keyboard, focus, zoom/reflow, screen reader, motion, non-color meaning, graph alternative, touch, panel resize, and streamed updates | specified; task/outcome equivalence and model-readable graph context accepted; paper audit complete |
 | `DB17` | Failure, recovery, and history | Offline, stale, conflict, partial, failed, blocked, unsupported, replay, lost-connection, and non-destructive recovery paths | specified; canonical reconciliation, preserved-state, and exact-return direction accepted; paper audit complete |
-| `DB18` | Product blueprint and acceptance | Complete screen inventory, responsive blueprints, state matrix, end-to-end path map, backend request ledger, and design acceptance evidence | discussion open; implementation-packet recommendation pending |
+| `DB18` | Product blueprint and acceptance | Complete screen inventory, responsive blueprints, state matrix, end-to-end path map, backend request ledger, and design acceptance evidence | specified; traceable implementation-packet direction accepted; paper audit complete; design-freeze decision pending |
 
 ## Required specification for every module
 
@@ -6273,38 +6273,508 @@ a universal recovery command or a second event ledger.
 
 DB17 closes at `G-SPEC`; contract, implementation/integration, offline/browser,
 race, disaster-recovery, accessibility, performance, security, and participant
-validation remain separate. Continue to DB18, Product blueprint and acceptance.
+validation remain separate. DB18 carries these boundaries into the complete
+product blueprint below.
 `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ## DB18 — Product blueprint and acceptance
 
-**Status:** opening discussion after DB17 specification closure. The
-implementation-packet recommendation below is proposed and not yet accepted. No
-reference-UX implementation or design freeze is authorized.
+**Status:** the traceable implementation-packet direction was accepted on
+2026-09-07 as `UX1.8-DISC02`. This section is specified and paper-audited at
+`G-SPEC`. It records no reference-UX implementation, runtime-contract
+disposition, integration evidence, or design freeze.
 
-### Opening recommendation — one traceable implementation packet
+### Author task and completion condition
 
-The recommendation is for DB18 to assemble the accepted design into one
-implementation-ready packet organized by author task and canonical surface. It
-would include the complete screen/surface inventory, responsive blueprints,
-shared and surface-specific state matrix, transition and return map, component
-roles, exact view/query/command/event dependencies, profile extension slots,
-copy and accessibility obligations, recovery paths, and post-freeze evidence
-for every material route. It would reference the detailed DB sections rather
-than restating or weakening them.
+The responsible Project author needs one coherent Petra product rather than a
+set of locally correct modules. The implementation team needs to construct that
+product without reopening settled interaction decisions, inferring domain state
+from a screen, or inspecting a demo corpus to discover missing behavior.
 
-For example, the Graph blueprint would bind contextual and direct entry to the
-same relationship task; show wide, narrow, high-zoom, keyboard, and semantic-peer
-compositions; map Current/Working changes/Historical, selection, presentation
-scene, Work/Review actions, projection lag, recovery, History, and return; and
-name `UX-REQ-013`, `UX-REQ-022`, and `UX-REQ-023` as proposed dependencies. An
-implementer could build and test that surface without consulting a demo corpus or
-guessing whether a visual control changes authority.
+DB18 is complete when a trace from any admitted entry point identifies:
 
-DB18 would close only when every accepted flow and adverse state maps through
-that packet, every remaining contract gap has an owner, and the freeze review can
-identify contradictions or omissions explicitly. Whether this traceable packet
-is the accepted DB18 consolidation format remains the next decision.
+1. the author task, canonical surface, exact object and temporal position;
+2. the ordered information and controls for every responsive or assistive form;
+3. the applicable state dimensions, authority boundary, and commit point;
+4. the direct and Petra-mediated transition, adverse branch, recovery, and return;
+5. the owning runtime contracts or explicit proposed `UX-REQ` dependencies;
+6. the profile-owned semantic slots and shared Petra rules; and
+7. the post-freeze evidence required before the behavior may be called complete.
+
+The packet is an index over DB04–DB17 and the flow architecture. Those source
+sections remain normative when they provide more detail. A packet entry cannot
+weaken them, and a contradiction must be corrected in the source section rather
+than resolved by an implementer.
+
+### Accepted consolidation boundary
+
+One implementation packet is organized by author task and canonical surface.
+Each entry contains a stable surface ID, task and completion state, entry and
+return context, ordered regions, responsive and assistive compositions, shared
+and surface-specific states, interaction and authority boundaries, component
+roles, runtime dependencies, profile slots, language/accessibility/recovery
+obligations, and evidence gates. Links to the detailed specifications carry the
+full meaning; repetition here exists only to prove coverage.
+
+The packet is a design artifact. It does not become a runtime manifest, a route
+generator, a universal view model, or a new authority layer. Surface IDs organize
+implementation and evidence. Runtime identities continue to come from their
+owning Project, profile, Artifact, Work, interaction, candidate, ChangeSet,
+approval, event, projection, output, delivery, and policy contracts.
+
+### Foundational brief closure — DB01 through DB03
+
+DB01's use-agnostic premise, governed-work boundary, private/local posture, phase
+separation, and exclusions are already accepted in this brief. DB03's shared
+kernel, open-ended versioned profile system, safe unsupported behavior, and model
+adaptation boundary are also accepted. Their missing runtime profile binding is
+isolated in `UX-REQ-004`; it blocks conforming integration, not paper design.
+
+DB02 closes through the following responsibility audit. A profile supplies an
+accurate user-facing role name but cannot change the responsibility attached to
+the shared role.
+
+| Role | Product responsibility | Authority and limitation |
+| --- | --- | --- |
+| Responsible Project author | Frames the objective, chooses useful inquiry and Work, judges basis and consequences, and owns final Project decisions | Acts only within current identity, capability, policy, and exact revision; remains accountable when Petra recommends or prepares work |
+| Specialist or reviewer posture | Contributes domain inspection, critique, correction, validation, or advice in a named task context | Gains no implicit approval or Project-wide authority; any granted decision power is explicit in the owning policy |
+| Petra and named model role | Explains, asks, recommends, composes, challenges, or proposes from declared context and basis | Cannot create facts, permission, eligibility, approval, or authoritative Project state through language or generated UI |
+| Work executor, tool, or validator | Performs a bounded manifest step and returns exact activity, result, limit, or failure | Execution success and validation do not approve the domain meaning or apply a proposal |
+| Review or policy actor | Exercises a permitted approval, rejection, correction, deferment, policy, or compensation action | Authority is scoped to the exact actor, Project, object, revision, action, and effective policy |
+| Service operator | Maintains service health, retention, backup, restore, integrity, and incident records | Operational recovery cannot decide domain meaning, silently rewrite history, or use browser state as a backup |
+| External adapter or automation | Reads or invokes a selected registered operation for an authenticated actor | Uses the same capability, command, idempotency, Review, provenance, and receipt path as the product; receives no parallel authority |
+| Future collaborator or public reader | Remains outside the individual-workbench design until a later collaboration boundary is accepted | No shared editing, presence, public visibility, or permission behavior may be inferred from this brief |
+
+This closes DB02 at specification depth for the current individual workbench.
+`UX-D06` retains public multi-user collaboration as an explicit non-blocking
+deferral. A later collaboration design must preserve these responsibility and
+authority meanings.
+
+### Complete surface inventory
+
+The inventory distinguishes canonical places, persistent shell regions,
+contextual surfaces, and transient feedback. A profile may register a task tool
+only through the profile contract; it cannot add an ungoverned global place.
+
+| Packet | Surface and posture | Primary task and completion | Ordered information | Normative source and principal dependencies |
+| --- | --- | --- | --- | --- |
+| `DB18-SP01` | **Projects**, global main place | Create, locate, open, switch, or recover a Project; completes at an opened Brief or explicit unresolved condition | Product identity and privacy posture; recent/permitted Projects; profile choice and compatibility; create/import/reuse actions; unavailable and recovery state | DB01–DB05; `UX-FLOW-01`/`18`; `UX-REQ-004`, `005`, `008` |
+| `DB18-SP02` | **Project shell**, persistent context bar, navigation, and optional Project map | Preserve Project, profile, objective, snapshot, projection, attention Work, selection, and place orientation | Context bar; skip paths; compact Project navigation; task main; one contextual surface; status/announcement region | DB04–DB05, DB14, DB16; `UX-REQ-001`, `004`, `008`, `014` |
+| `DB18-SP03` | **Brief**, default Project main place | Understand current focus, material state and limitation, attention, change, relevant Work, and useful next step | Orientation; current focus; expanded highest-consequence attention; baseline comparison; profile state; Work; next steps; recent decisions | DB07, DB15–DB17; `UX-FLOW-01`–`03`, `08`–`09`; `UX-REQ-002`, `003`, `016`, `021`, `023` |
+| `DB18-SP04` | **Sources**, collection, registration, processing, and exact reader modes | Establish source identity/revision/copy/rights/capability, inspect exact content and location, and understand downstream use | Collection/task header; identity and Project role; content/rights/availability; representations and processing; native content; exact location and context; provenance/downstream use | DB08, DB16–DB17; `UX-FLOW-04`–`07`; `UX-REQ-009`, `010`, `014`, `023` |
+| `DB18-SP05` | **Review**, queue, session, comparison, and Changes to apply | Judge candidates, findings, conflicts, promotions, or compensation and record an exact decision | Task/authority header; exception-led queue; selected meaning and origin; basis; validation; comparison; impact; exact ChangeSet; member outcomes; decision actions | DB09, DB15–DB17; `UX-FLOW-06`, `08`, `12`, `15`, `17`; `UX-REQ-005`, `007`, `011`, `012`, `020`, `021`, `023` |
+| `DB18-SP06` | **Graph**, focused relationship main place | Answer a named relationship, path, provenance, dependency, comparison, impact, or temporal question and return with the answer | Question and endpoints; layer/time/snapshot/projection; bounded result; visual and semantic peer; selection/Details; scope and omissions; legend; view history; task actions and return | DB10, DB14–DB17; `UX-FLOW-07`–`12`, `15`–`16`; `UX-REQ-013`, `016`, `021`, `022`, `023` |
+| `DB18-SP07` | **Work**, collection and task-detail main place | Inspect, start, steer, answer, detach from, reconnect to, cancel, resume, retry, or conclude durable Work | Project Work summary; objective and status; recommended/eligible branches; meaningful stages; required input; activity; resources; outputs; limitations; controls; result destinations | DB06, DB11, DB15–DB17; `UX-FLOW-05`, `08`, `11`, `13`–`16`; `UX-REQ-003`, `006`, `014`, `015`, `016`, `021`, `023` |
+| `DB18-SP08` | **Composition**, collection, document, comparison, validation, and output modes | Plan, create, edit, save, validate, compare, render, export, or promote an exact governed artifact revision | Artifact/task context; document structure and editor; scoped Petra; findings and provenance; revision comparison; save/validation state; render/export/promotion controls; delivery receipts | DB12, DB15–DB17; `UX-FLOW-14`–`16`, `18`; `UX-REQ-005`, `017`–`019`, `021`, `023` |
+| `DB18-SP09` | **Profile tool**, registered Project main place | Complete a profile-valid task whose semantics do not fit a shared place | Shared Project/task/authority header; profile-defined typed inputs and results; shared Work/Review/History/recovery actions; exact return | DB03–DB05, DB14–DB17; `UX-FLOW-02`, `03`, `13`; `UX-REQ-004`, `008`, `021`, `023` plus registered owning contract |
+| `DB18-SP10` | **History**, deliberate Project main place | Understand a causal episode, exact action/effect/recovery, comparison, eligibility, or governed Revert and return to current work | Scope/filter; readable causal episodes; exact event/action facts; selected comparison; recovery relationships; eligibility and impact; Revert preview route; Return to current | DB04, DB09, DB17; `UX-FLOW-12`, `16`–`18`; `UX-REQ-007`, `008`, `023` |
+| `DB18-SP11` | **Settings**, global main place with exact Project-controls subsection | Adjust personal presentation or inspect/change a governed Project control without confusing the scopes | Appearance; Layout; Editor; Accessibility; persistence/reset; Project selector and controls; effective value/origin; prospective effect; technical detail; History/return | DB13–DB17; `UX-FLOW-17`; `UX-REQ-004`, `008`, `020`, `021`, `023` |
+| `DB18-SP12` | **Details**, contextual surface | Inspect exact identity, revision, status, source, provenance, scope, relationships, impact, actions, and history for the current selection | Selection identity; semantic summary; origin/basis; scope/status/limits; compact relationships; downstream impact; permitted actions; History; close/return | DB04, DB08–DB10, DB14–DB17; `UX-REQ-004`, `008`, `009`, `013`, `016`, `021`–`023` |
+| `DB18-SP13` | **Petra**, restrained dock, contextual sidecar, or focus route | Ask, understand, decide, direct, respond, or follow a result with exact context and no conversational authority shortcut | Thread/task identity; context disclosure; messages with origin/force/references; progress/interrupt; composer; action preview; Work/result links; limits; recovery and return | DB06, DB11, DB15–DB17; `UX-FLOW-10`–`11`; `UX-REQ-003`, `006`, `011`, `014`–`016`, `021`–`023` |
+| `DB18-SP14` | **Transient action and feedback surfaces**, subordinate to an owning place | Inspect a menu, tooltip, notice, confirmation, action preview, dialog, toast, progress, error, or recovery prompt and return focus safely | Owning task/object; reason and consequence; exact input/revision; primary and alternative actions; progress/result; preserved state; dismissal/return | DB04–DB17; owning query/command plus `UX-REQ-003`, `008`, `021`, `023` where applicable |
+
+Search and discovery live in Projects or Sources according to the object being
+found. Native source readers remain a mode of Sources; focused comparisons remain
+a mode of their owning Review, Graph, Composition, or History task. Login,
+account administration, billing, public collaboration, and external-adapter
+management have no accepted product surface in this brief.
+Subsequent DB18 tables abbreviate `DB18-SPnn` as `SPnn`.
+
+### Responsive and assistive shell blueprints
+
+Breakpoints are chosen during implementation from content pressure and tested
+capability rather than treated as semantic state. Every composition preserves
+the same task, object, status, action consequence, and return.
+
+| Composition | Region behavior | Contextual surfaces | Required equivalence |
+| --- | --- | --- | --- |
+| **Wide workbench** | Compact context bar and Project navigation frame one dominant main surface; the optional Project map may remain visible for object-oriented tasks | One expanded Details or Petra surface by default; a second requires explicit pinning and enough room | Main task keeps readable measure and minimum interaction space; pinning never hides status, commit controls, or return |
+| **Compact workbench** | Context bar stays concise; Project navigation and map use disclosure; main surface retains full task width | Details or Petra overlays or replaces the auxiliary region with explicit close/return | Selection, unsent input, active Work, comparison, and focus survive disclosure changes |
+| **Narrow or high-zoom route** | Context, task header, status, content, actions, and return form one vertical route; wide tables become semantic lists or controlled horizontal regions only when necessary | Details and Petra open as full-width subordinate routes | No squeezed multi-pane layout; Back returns to exact item/focus; primary actions remain near their consequence and errors |
+| **Keyboard, voice, or switch sequence** | Skip links reach context, navigation, main task, secondary task, status, and actions; headings and landmarks express hierarchy | Opening, closing, and streamed changes move or retain focus only by the DB16 rule | Every pointer action has a named operable control; focus never follows ambient selection or background updates |
+| **Screen-reader or semantic peer** | Page title and task heading establish Project/place; summaries lead to ordered members, details, actions, status, and return | Graphs, timelines, comparisons, progress, and other complex views expose complete task peers | The peer supports the same question and outcome, including selection, filtering, expansion, comparison, recovery, and action consequences |
+| **Touch or coarse pointer** | Targets and spacing meet the shared token rule; resize, drag, hover, and precision gestures have control alternatives | Sheets/dialogs retain visible task context and close action | No task requires dragging, hover, multi-pointer gestures, or color interpretation |
+
+Full-screen focus may enlarge Graph, a source reader, Petra, Work detail, Review
+comparison, or Composition. It remains the same semantic place and preserves the
+context bar or an equivalent route header, status, origin, and explicit return.
+
+### Canonical surface blueprint rules
+
+Every packet implements these ordered regions when applicable:
+
+1. **Orientation:** Project/profile, primary place, task/object, authoritative
+   snapshot or revision, projection or cache freshness, and historical state.
+2. **Task statement:** the question, decision, input, objective, selected scope,
+   or setting being handled and the condition that completes it.
+3. **Material status:** consequence-bearing limitation, required input, conflict,
+   Work state, validation state, or recovery assessment ahead of secondary data.
+4. **Primary content:** the smallest sufficient Brief, reader, comparison, graph,
+   task, document, history, or settings presentation.
+5. **Basis and detail:** exact origin, source, provenance, scope, members,
+   omissions, cost, policy, and technical detail progressively disclosed.
+6. **Actions:** current registered choices adjacent to the object and consequence;
+   the suggested primary remains explainable and alternatives remain available.
+7. **Completion and return:** exact result, authority/projection distinction,
+   preserved state, History effect, and route back to the origin or updated Brief.
+
+Projects without an active Project omit the Project context. Pure local settings
+name their device/session scope instead. A surface with no applicable action does
+not render decorative controls. A missing dependency renders a truthful
+unavailable state and its owner rather than fixture-derived data.
+
+### Shared state model
+
+Petra keeps independent state dimensions separate. A current authoritative object
+can have a stale projection, a running Work task, a local unsaved edit, and an
+expired external capability at the same time. The packet never flattens these
+facts into one health, confidence, completion, or success badge.
+
+| Dimension | Required values or distinctions | Owning source |
+| --- | --- | --- |
+| Authority | local presentation, draft/working, candidate/proposed, validated, approved, applied/current, superseded, reverted, historical | Owning object, candidate, Review, command, approval, and event records |
+| Temporal position | exact current revision/snapshot, explicit baseline, exact historical position, unknown or unavailable position | Project/object revisions and semantic route resolution |
+| Representation freshness | current, cached with basis, catching up, stale, blocked, unavailable | View/query metadata and projection checkpoint |
+| Content/capability extent | identity only, preview, partial, complete for declared scope, omitted, restricted, unsupported, unavailable | Source, result, rights, capability, and query coverage records |
+| Work execution | not started, queued, running, awaiting input, paused where supported, completed, failed, cancelled, blocked, unknown | WorkUnit, manifest, attempt, interaction, and cancellation records |
+| Validation/review | unchecked, checking, passed for declared checks, finding, mixed, stale, failed, unknown; unreviewed, under review, decision recorded, conflicted | Validator, assessment, Review session, ChangeSet, and decision records |
+| Connectivity/delivery | local, online, reconnecting, replaying, offline, service unavailable; prepared, stored, initiated, delivered where confirmed, failed, unknown | Connection, replay, service, artifact, and delivery receipts |
+| Local persistence | unsent memory, session only, recoverable local, saving, durably saved exact revision, conflicted, failed, confirmed lost | Client declaration plus owning save acknowledgment |
+| Recovery effect | no effect confirmed, effect confirmed, in progress, mixed outcomes, outcome unknown, unavailable to verify | `UX-REQ-023` composition over owning records |
+
+### Surface-specific state coverage
+
+| Surface packet | Empty or ordinary states | Dense, limited, or asynchronous states | Adverse and recovery states |
+| --- | --- | --- | --- |
+| `SP01` Projects | no Projects; recent/available Projects; create or open | many Projects; profile choice; import/reuse resolving | unavailable/missing Project; unsupported profile; failed create/open; safe fallback |
+| `SP02` Shell | current Project/place; no selection; selected object | long objective; several attention Work items; projection catch-up | stale shell read; replaced target; lost connection; preserved scoped drafts and route recovery |
+| `SP03` Brief | empty/early; ordinary focus; no attention; completed update | many attention items; partial profile state; active/newly completed Work; comparison | stale/failed/unauthorized read; missing basis/action; conflicting change; cached/offline Brief |
+| `SP04` Sources | no sources; linked source; exact reader | large collection; identity/preview/partial content; processing; rights limits; multiple representations | ambiguity/duplicate; corrupt/unsupported/unavailable copy; failed processing; unresolved location; removal/deletion recovery |
+| `SP05` Review | no pending review; single candidate; recorded decision | exception batch; long comparison; independent member outcomes; validation running | stale base; changed batch; invalid proposal; conflict; partial/mixed apply; unknown command; governed recovery |
+| `SP06` Graph | no eligible start; bounded ordinary result | dense/grouped/cyclic result; partial query; hidden/restricted members; comparison/historical; projection lag | late/failed query; missing endpoint; blocked projection; stale working layer; semantic-scene mismatch; textual fallback |
+| `SP07` Work | no Work; queued/running/completed task | concurrent/dependent stages; required input; resource limits; partial output; detached/replaying | denied/stale action; worker/model failure; invalid checkpoint; cancellation race; unknown delivery; retry/resume/start-again assessment |
+| `SP08` Composition | no artifact; blank/new document; current saved revision | long document; unsaved/local work; checks running/stale; findings; several outputs | late proposal; save conflict/failure; invalid provenance; render/export/delivery partial or unknown; restore/reconcile |
+| `SP09` Profile tool | unsupported/omitted tool; ordinary typed task/result | dense profile data; running Work/validation; profile-specific limitations | unknown/replaced profile contract; invalid result; failed tool; return through shared recovery |
+| `SP10` History | no permitted history; ordinary episode | long filtered history; causal branches; restricted/redacted members; no verified total order | unavailable source record; ineligible/failed Revert; stale comparison; exact current fallback |
+| `SP11` Settings | platform defaults; saved personal preference; read-only Project control | overrides; many controls; unknown budget; pending policy transition | storage failure/corruption; missing Project; expired grant; stale/conflicted/uncertain change; scoped reset/recovery |
+| `SP12` Details | no selection/closed; ordinary selected object | long provenance; many relationships/dependents; partial or historical object | selection replaced/missing/restricted; stale content; owning surface unavailable; close/return preserves task |
+| `SP13` Petra | new or resumed thread; grounded local answer | long/compacted thread; streaming; action preview; active Work/interrupt; multiple references | ambiguous/stale context; model/tool failure; disconnect/replay; invalid output; recovery assessment and exact return |
+| `SP14` Feedback | no transient surface; ordinary menu/help/confirmation | progressive status; long consequences; multi-member result | duplicate delivery; unknown effect; focus obstruction; failed dismissal/action; reconcile before retry |
+
+Every surface additionally covers loading without layout or focus instability,
+permission loss without disclosure, long and translated profile terms, forced
+colors, reduced motion, 200% text, 400% zoom/320 CSS-pixel-equivalent reflow,
+keyboard and non-pointer operation, and unsupported assistive combinations with a
+useful fallback.
+
+### Flow, commit, recovery, and return map
+
+| Flow | Entry and primary packet | Authority or commit point | Completion, recovery, and exact return |
+| --- | --- | --- | --- |
+| `UX-FLOW-01` create/open/resume | Projects -> Brief (`SP01` -> `SP03`) | Typed Project create/import/profile binding; opening is navigation | Current Brief or explicit missing/unsupported state; return to Projects when unresolved |
+| `UX-FLOW-02` frame objective | Brief, Petra, Review, or profile tool (`SP03`, `05`, `09`, `13`) | Apply exact objective/profile command after preview where required | Updated Brief focus, retained draft, deferment, or conflict with origin preserved |
+| `UX-FLOW-03` form/compare/revise propositions | Brief/Graph/Review (`SP03`, `05`, `06`) | Apply reviewed typed ChangeSet | Applied, branched, superseded, rejected, deferred, or returned to Brief |
+| `UX-FLOW-04` add/reuse/discover/select source | Projects/Sources (`SP01`, `04`) | Register exact Artifact and/or create Project-source link | Linked, rejected, deferred, rights-limited, or recovered in Sources |
+| `UX-FLOW-05` process/inspect source | Sources/Work (`SP04`, `07`) | Start bounded Work for processing; reading has no authority effect | Exact source context or retained failure; return to source item or origin |
+| `UX-FLOW-06` review source candidates | Review (`SP05`) | Apply each exact candidate ChangeSet; batches preserve member atomicity | Applied/corrected/rejected/deferred/conflicted and return to queue/source |
+| `UX-FLOW-07` inspect basis/provenance | Details/Sources, optionally Graph (`SP12`, `04`, `06`) | Read-only | Exact basis or precise no-path state; return to originating statement and focus |
+| `UX-FLOW-08` resolve disagreement/gap | Review/Graph (`SP05`, `06`) | Reviewed correction Apply, or explicit bounded Work start | Resolved/qualified/rejected/unresolved, Work, or updated Brief |
+| `UX-FLOW-09` inspect standing/frontier equivalent | Brief/Graph (`SP03`, `06`) | Read assessment; any transition uses its owning reviewed command | Supported snapshot-bound assessment and next action or explicit limitation |
+| `UX-FLOW-10` ask Petra | Petra from any origin (`SP13`) | Answer/navigation has no authority; action preview delegates to owning command | Answer, abstention, proposal, Work preview, or exact origin |
+| `UX-FLOW-11` start/manage Work | Work/Petra (`SP07`, `13`) | Exact start/steer/input/cancel commands; delivery and Work remain distinct | Completed/failed/cancelled/blocked task, result destination, or recovered origin |
+| `UX-FLOW-12` propose/apply/reverse | Review/History (`SP05`, `10`) | Apply exact ChangeSet; Revert applies an explicit compensation | Applied/rejected/deferred/conflicted/reverted; projection may catch up separately |
+| `UX-FLOW-13` run profile operation | Profile tool/Work (`SP09`, `07`) | Registered execution command and an approved immutable plan where the task requires one | Typed result/failure; interpretation remains a proposal; return to objective |
+| `UX-FLOW-14` request/compose output | Composition/Petra/Work (`SP08`, `13`, `07`) | Start bounded composition Work; generated artifact is not Project authority | Exact DraftArtifact/candidate, limitation, retained failure, or document context |
+| `UX-FLOW-15` revise/validate/render/export | Composition/Work/Review (`SP08`, `07`, `05`) | Exact save, promotion, render, and delivery operations remain separate | Saved/promoted revision, output/receipt, retained partial failure, or restored editor |
+| `UX-FLOW-16` history/recovery | History/owning failed surface (`SP10` plus origin) | Reconciliation reads; selected recovery delegates; Revert is additive command | Canonical effect and preserved state, chosen action result, exact origin/current |
+| `UX-FLOW-17` configure/control | Settings; Review/Petra for governed transition (`SP11`, `05`, `13`) | Personal presentation applies locally; Project control uses exact prospective command | Applied/reset local setting or approved/rejected/conflicted Project change and origin |
+| `UX-FLOW-18` reuse/share/connect | Projects/Sources/Composition/Review (`SP01`, `04`, `08`, `05`) | Explicit registered reuse/export/share command under capability | Exact reused object or receipt, proposal, failure, recovery, and origin |
+
+### Named end-to-end acceptance traces
+
+The four accepted end-to-end paths provide the first integrated build order:
+
+| Path | Packet trace | What the trace must prove |
+| --- | --- | --- |
+| `UX-PATH-01` resolve contradiction | `SP03` -> `SP05`/`06` -> `SP04`/`12` -> `SP13` -> `SP07` -> `SP05` -> `SP03` -> optional `SP08` | Relationship question, source basis, explanation, bounded Work, reviewed change, projection, return, and optional output retain one task and exact authority |
+| `UX-PATH-02` source to trusted assertion to grounded answer | `SP04` -> `SP07` -> `SP05` -> `SP06` -> `SP13` -> `SP08` -> `SP10` | Source identity/location, candidate, Apply, graph, answer, provenance, artifact, Revert, invalidation, and History agree |
+| `UX-PATH-03` rough question to program | `SP01` -> `SP03` -> `SP05`/`09` -> `SP04`/`07` -> `SP05`/`06` -> `SP03` | Rough input is preserved while objective, alternatives, basis, Work, and additive revisions become exact |
+| `UX-PATH-04` long-form revision | `SP01`/`04` -> `SP08` -> `SP07` -> `SP05` -> `SP08`/`10` | Immutable source ancestry, candidate plan/revision, role-separated findings, approval, promotion, and full history survive editing and recovery |
+
+Each trace is run in its applicable profile. The shared mechanics also run in at
+least one unrelated admitted profile under the conformance scenarios below.
+Profile-inapplicable domain steps may be omitted only when the manifest declares
+the omission and the remaining path still returns through the shared kernel.
+
+### Component and state ownership
+
+The names below are implementation roles, not required React component names.
+
+| Component role | Owns | Must receive; must never infer |
+| --- | --- | --- |
+| App frame and route resolver | Landmark order, primary/contextual composition, presentation route and return stack | Receives semantic destination and snapshot; never infers object type, replacement, permission, or authority from URL text |
+| Context bar and navigation | Compact orientation, place selection, projection notice, attention-Work entry | Receives `ProjectShellView`; never edits objective, calculates standing, or treats selected place as domain state |
+| Task header and origin control | Task/object/revision, origin, completion condition, Back/Return | Receives exact navigation context; never falls back to ambient selection silently |
+| Status and limitation presentation | Dimension-specific label, basis/time, scope, reason, and action | Receives owning status; never calculates a universal state from unrelated fields |
+| Semantic collection/list/table/tree | Ordering, disclosure, selection, keyboard pattern, textual relationships | Receives stable rows and ordering basis; never promotes, merges, ranks, or removes domain objects locally |
+| Complex-view presentation and peer | Graph/timeline/comparison layout plus equivalent semantic task surface | Receives exact result, scene, descriptors, and peer; pixels never establish domain or authority facts |
+| Details surface | Selected-object inspection and contextual actions | Receives registered object view and destinations; never becomes a second object store or generic menu |
+| Petra interaction surface | Thread rendering, context disclosure, composer, stream, interrupts, linked actions | Receives interaction/context/action records; never parses raw protocol into authority or creates executable controls from prose |
+| Work presentation | Task/stage/member status, resources, input, controls, results | Receives canonical Work composition; never derives completion, reuse, cancellation, or retry eligibility from progress text |
+| Review and comparison presentation | Exact candidates/revisions, basis, findings, impact, ChangeSets, decisions | Receives Review composition and owning commands; never applies on selection, validation, or comparison alone |
+| Editor and output presentation | Local selection/input, exact save request, findings, render/export options | Receives document/revision/output records; never claims unsaved text durable or delivery confirmed from download initiation |
+| History and recovery presentation | Causal episodes, comparison, assessments, eligible actions, current return | Receives authorized records and recovery composition; never rewrites the event record or retries before reconciliation |
+| Feedback, overlay, and live-status layer | Focus containment/return, bounded announcement, owning result summary | Receives exact task and consequence; never becomes the only durable record of completion or failure |
+
+### Profile extension slots
+
+Every admitted profile supplies versioned semantic content through
+`UX-REQ-004`. The implementation packet exposes these slots consistently:
+
+| Slot | Profile may supply | Petra retains |
+| --- | --- | --- |
+| Identity and role | Profile name; responsible-author term; specialist/validator posture labels | Responsibility, actor identity, capability, policy, approval, and accountability meanings |
+| Objectives and inquiries | Typed objective, open-question, proposition, constraint, and resolution roles | Brief orientation, selection, advisory recommendation, Work linkage, Review, and History behavior |
+| Objects and relationships | Registered kinds, predicates, direction, force, reference grammar, and definitions | Stable identity, provenance, selection, Details, Graph scope, correction, and authority rules |
+| Sources or governing basis | Source kinds, Project roles, exact-location schemes, limitations, admissibility vocabulary | Artifact identity/revision, rights, availability, processing, inspection, provenance, and retention boundaries |
+| Work and validation | Registered task families, stages, tools, model roles, validators, inputs, and output kinds | Preview, capability, cost, Work lifecycle, steering, interruption, cancellation, retry, and result authority |
+| Review and promotion | Candidate kinds, domain checks, permitted correction forms, destination objects | ChangeSet/approval, exact comparison, decision verbs, conflict, application, compensation, and additive history |
+| Communication | Terms, grammar, units, relationship/force language, discourse conventions, and locale coverage | Petra identity, communicative acts, candor, reference/origin, status/action meanings, validation, and recovery language |
+| Presentation semantics | Approved object glyph and finite relation pattern/shape/tone references plus text alternatives | Themes, tokens, components, layout, focus, interaction/authority colors, accessibility, rendering, and generic fallback |
+| Places and flows | Supported shared places, registered profile tools, applicable/omitted flows, and semantic destinations | Global/Project place hierarchy, navigation context, direct/Petra parity, commit/recovery/return, and safe unsupported behavior |
+
+Unknown, incompatible, or replaced profile data uses the exact label and generic
+semantic family when safe. Unsupported operations remain unavailable with the
+reason and required profile/contract version. A profile cannot inject routes,
+CSS, client code, arbitrary assets, prompts, commands, permissions, or a new
+history/approval lifecycle through these slots.
+
+### Language, accessibility, and recovery packet obligations
+
+Every surface entry carries the DB15 communication roles: exact reference,
+origin and basis, calibrated force and uncertainty, status dimension, consequence,
+action rationale, confirmation or result, and correction/recovery path. Shared
+control verbs retain their accepted meanings; profile terms fill only registered
+semantic slots. System, model, worker, validator, and human statements retain
+their accountable origin.
+
+Every entry also carries the DB16 equivalence contract. It specifies page and
+task names, landmarks/headings, keyboard and non-pointer operation, focus entry
+and return, responsive reading order, reflow, non-color meaning, target/drag
+alternatives, motion/time behavior, live announcements, form/editor errors, and
+the complete semantic peer for any complex visual presentation. Petra sees and
+explains the current Graph through the exact semantic result and bound visible
+scene under `UX-REQ-022`; a permitted image remains supplementary.
+
+Every adverse entry carries the DB17 sequence: attempted task and operation;
+canonical observations; one of six effect states; exact durable, local, partial,
+unavailable, or lost state; independent member outcomes; current registered
+actions with consequence; additive History effect; and exact return. Recovery
+never upgrades stale display, client inference, model prose, or a projection into
+authority.
+
+### Backend request ledger and implementation readiness
+
+DB18 creates no new backend request. The accepted product behavior is completely
+accounted for by existing contracts plus the 23 proposed requests below. A
+request's design need is accepted; its runtime shape remains subject to
+architecture disposition. A consuming packet can enter implementation after
+freeze against an explicit provisional adapter, but cannot claim `G-CONTRACT` or
+live integration until the disposition is recorded.
+
+| Request | Primary packet consumers | Design need carried into implementation |
+| --- | --- | --- |
+| `UX-REQ-001` | `SP02`, all Project places | Snapshot-consistent shell orientation |
+| `UX-REQ-002` | `SP03` | Profile-resolved task-oriented Brief |
+| `UX-REQ-003` | `SP03`, `SP07`, `SP13`, `SP14` | Versioned SuggestedAction preview and invocation |
+| `UX-REQ-004` | all Project packets | Versioned profile binding, semantics, terminology, tools, views, and safe fallback |
+| `UX-REQ-005` | `SP01`, `SP04`, `SP05`, `SP08`, `SP10` | Immutable imported ancestry and exact new-revision promotion |
+| `UX-REQ-006` | `SP07`, `SP13` | Durable Project threads and exact turn context |
+| `UX-REQ-007` | `SP05`, `SP06`, `SP10`, `SP12` | Presentation history, authorized Project History, and governed compensation |
+| `UX-REQ-008` | all routed packets | Semantic location, exact/historical/replaced resolution, and safe return |
+| `UX-REQ-009` | `SP04`, `SP12`, `SP13`, `SP08` | Project source collection and exact-inspection read |
+| `UX-REQ-010` | `SP04`, `SP05`, `SP10` | Project-source membership, removal, and local-copy lifecycle |
+| `UX-REQ-011` | `SP05`, `SP06`, `SP12`, `SP13` | Durable non-authoritative conversational candidates and relationships |
+| `UX-REQ-012` | `SP05`, `SP13` | Profile-neutral Review-session composition and commands |
+| `UX-REQ-013` | `SP06`, `SP12`, `SP13` | Bounded relationship result, paths, layers, comparison, and omissions |
+| `UX-REQ-014` | `SP02`, `SP03`, `SP07`, `SP13` | Project Work collection and exact task/stage read |
+| `UX-REQ-015` | `SP07`, `SP13` | Work steering, branch priority, reuse, and execution-plan transition |
+| `UX-REQ-016` | `SP03`, `SP06`, `SP07`, `SP09`, `SP12`, `SP13` | Project inquiry hierarchy, basis, advice, and Work/result linkage |
+| `UX-REQ-017` | `SP08`, `SP12`, `SP13` | Composition collection/document and exact contextual reads |
+| `UX-REQ-018` | `SP08`, `SP13`, `SP14` | Continuous editing, durable save, and revision reconciliation |
+| `UX-REQ-019` | `SP07`, `SP08`, `SP10`, `SP14` | Exact export capture, status carriage, output members, and delivery |
+| `UX-REQ-020` | `SP05`, `SP10`, `SP11`, `SP13` | Effective Project controls and typed prospective transitions |
+| `UX-REQ-021` | all communicative packets | Profile-resolved communication plan and language validation |
+| `UX-REQ-022` | `SP06`, `SP12`, `SP13` | Semantic result, visible scene, accessible peer, model, and explanation binding |
+| `UX-REQ-023` | all adverse/recovery packets | Canonical effect, preservation, member outcomes, eligible actions, History, and return composition |
+
+The architecture/implementation track may accept a request, replace it with a
+smaller compatible composition, map it to existing contracts, or defer a subset
+behind the specified unavailable state. Rejection without an equivalent safe path
+reopens the affected source decision. No packet asks the client or model to fill
+an authoritative contract gap.
+
+### Implementation sequence and evidence gates
+
+The packet supplies a dependency-aware build order after design freeze:
+
+1. shared tokens, primitives, app frame, semantic routing, context, status,
+   action, error, focus, and recovery roles;
+2. Projects, Project shell, Brief, Sources, and exact Details inspection;
+3. Review and Graph over the same identity, basis, comparison, and projection
+   contracts;
+4. Petra and Work over durable interaction, action, task, interrupt, replay, and
+   cancellation contracts;
+5. Composition, History, Settings, and registered profile tools;
+6. all four end-to-end paths, responsive/assistive peers, adverse recovery,
+   cross-profile conformance, and no-demo clean-start validation.
+
+This order follows shared dependencies and supplies useful vertical paths. It
+does not change milestone authority, enable an unavailable profile flow, or allow
+one completed surface to stand in for product integration.
+
+| Gate | DB18 position at closure | Evidence required later |
+| --- | --- | --- |
+| `G-SPEC` | Complete for DB01–DB18; explicit design-freeze decision pending | Brief sections, packet entries, paths, findings, criteria, and deferrals; the later freeze record authorizes the phase transition |
+| `G-PROTOTYPE` | Closed until design freeze | Production-candidate surfaces against synthetic `UX-FX` scenarios; exploratory pre-freeze code does not count |
+| `G-CONTRACT` | Open for proposed `UX-REQ-001`–`023` dispositions | Contract mappings, provisional boundaries, identity/authority traces, and passing contract tests |
+| `G-INTEGRATION` | Open | Production components consume Petra view models and owning commands across real application routes |
+| `G-VALIDATION` | Open | Visual, interaction, accessibility, language, performance, usability, regression, privacy, and recovery evidence |
+
+### Interaction-path specification
+
+| Path | Start | Required trace and completion |
+| --- | --- | --- |
+| `DB18-P01` Launch without a Project | Product entry | Projects states privacy and available actions; create/open resolves profile and arrives at Brief or an exact safe error |
+| `DB18-P02` Resume a Project | Recent Project, link, or notification | Shell and Brief agree on Project/profile/objective/snapshot/attention; selection and active Work resolve; author chooses a task |
+| `DB18-P03` Inspect source basis and return | Brief, Review, Graph, Petra, Work, or Composition statement | Sources opens exact identity/revision/copy/location/limitations; Details and provenance agree; return restores statement and focus |
+| `DB18-P04` Answer a relationship question | Direct Graph entry or contextual object/question | Bounded query, Current/Working/Historical, peer presentation, selection, scope, model scene, recovery, and return retain one task |
+| `DB18-P05` Ask and act through Petra | Any selected task context | Petra discloses exact context, answers or abstains, previews a registered action, delegates to Work/Review, and returns without a second authority path |
+| `DB18-P06` Manage Work | SuggestedAction, direct task action, Petra, or Work collection | Preview, start, stage/input, steering/advice, detach/reconnect/replay, cancel/race, result, resource, recovery, and destination use canonical task state |
+| `DB18-P07` Review and apply | Candidate, finding, Work result, promotion, or Revert | Exact comparison/basis/impact/ChangeSet, correction and member decisions, command effect, projection, History, and return remain distinguishable |
+| `DB18-P08` Compose and deliver | Brief, inquiry, selected objects, Petra, or Work result | Plan, edit, save, late-result reconciliation, provenance/validation, comparison, render, export, delivery, promotion, recovery, and return preserve exact revision |
+| `DB18-P09` Configure and return | Origin control or Settings | Local preference or exact Project control exposes scope/effect; reset or prospective command completes and returns with input/focus intact |
+| `DB18-P10` Inspect History and recover | Recent change, object, failure, or History entry | Causal episode, exact facts, comparison, eligible action/Revert, effect assessment, and Return to current preserve authorization and origin |
+| `DB18-P11` Switch Project mid-task | Any Project surface with selection, local input, thread, or active Work | Preserve or explain each Project-scoped state; open new Brief; prior Work continues unless explicitly cancelled; return resolves exact prior context |
+| `DB18-P12` Open a deep link | Current, historical, replaced, missing, unauthorized, malformed, or profile-tool target | Resolve semantic place without ambient substitution or leakage; provide exact current, History, parent, Brief, Projects, or external Back path |
+| `DB18-P13` Use a registered profile tool | Brief/object/action entry | Resolve profile semantics and capability, run typed task through shared Work/Review/History/recovery, and return to the objective |
+| `DB18-P14` Complete through assistive or constrained presentation | Any P01–P13 task | Narrow, high-zoom, keyboard, screen-reader, voice/switch-equivalent, touch, forced-color, and reduced-motion peers retain practical task and outcome equivalence |
+| `DB18-P15` Recover from cross-module interruption | Any read, input, command, Work, projection, output, or delivery interruption | Reconcile owning records, state effect/preservation/actions, act once, and restore the exact task or explicit fallback |
+| `DB18-P16` Run the product with unavailable contracts or profile data | Any packet dependency absent, unsupported, stale, or restricted | Render the specified limitation and safe available work; no fixture/model/client inference supplies missing authority; recovery or deferral remains explicit |
+
+### Paper interaction and heuristic audit
+
+The DB18 audit follows the complete packet from entry through cross-surface
+completion rather than re-scoring each module in isolation.
+
+| Heuristic or risk | Packet assessment |
+| --- | --- |
+| Visibility of system status | Orientation and dimensional state rules keep authority, freshness, Work, validation, connection, persistence, delivery, and recovery visible without a universal badge |
+| Match with the author's work | Stable task surfaces and profile slots use the active domain's objects, references, validators, and discourse while shared controls remain Petra-wide |
+| Control and freedom | Exact Back/Return, local view history, explicit cancellation, deferment, recovery, governed Revert, and eligible alternate inquiry choices preserve control |
+| Consistency and standards | Fourteen surface packets reuse one place, component, action, language, state, accessibility, and recovery grammar |
+| Error prevention | Commit points, exact revisions, action previews, effect reconciliation, unavailable states, and separate projection/delivery outcomes prevent accidental duplication or false success |
+| Recognition over recall | Task headers, context, source/basis links, named stages, legends, History episodes, and return anchors keep required identity and consequence present |
+| Flexibility and efficiency | Direct and Petra-mediated paths converge; focus modes, saved local presentation, keyboard paths, and contextual depth support different tasks without hidden shortcuts |
+| Minimal design | One dominant main surface, one contextual surface by default, task activation, exception-led Review, bounded Graph, and progressive detail avoid simultaneous-panel overload |
+| Error recovery | DB17's six effect states, preservation inventory, exact actions, additive History, and return contract apply to every packet |
+| Help and explanation | Contextual Petra, definitions, action rationale, profile terminology, exact basis, limitations, and model-readable scenes answer task-local questions |
+
+| Finding | Location/evidence and consequence | Severity | Disposition, owner/gate, and verification |
+| --- | --- | --- | --- |
+| `DB18-A01` A complete inventory can become a navigation dump | Fourteen packets could be rendered as equal permanent destinations | Critical | Fixed by task activation, stable place hierarchy, registered profile-tool group, and one-main/one-contextual rule; P01–P13 paper trace |
+| `DB18-A02` Consolidated text can drift from module contracts | Repeated detail could let implementation choose a weaker DB18 sentence | Critical | Fixed by normative-source precedence, explicit packet links, and correction-at-source rule; design owner reviews trace before build |
+| `DB18-A03` Surface completion can lose the cross-surface task | Local success may strand selection, input, Work, or provenance | Critical | Fixed by flow/commit/return matrix and P03–P12; UX-FX44/45 post-freeze |
+| `DB18-A04` Responsive change can alter meaning or available action | Panel collapse or visual-to-text conversion may remove scope, comparison, or control | Critical | Fixed by composition/equivalence rules and P14; browser/AT evidence in UX-FX44–46 remains required |
+| `DB18-A05` A shared status can collapse independent truths | Applied authority may be presented as failed because projection or delivery failed | Critical | Fixed by dimensional state model and surface matrix; contract and participant validation remain open |
+| `DB18-A06` Direct and Petra paths can diverge | Generated UI or prose could invoke different scope, command, or confirmation | Critical | Fixed by component ownership and flow map; `UX-REQ-003`, `006`, `021`–`023`; integration trace required |
+| `DB18-A07` Profile extension can become a reskin or authority fork | A manifest could inject controls, styling, commands, or misleading aliases | Critical | Fixed by bounded slots and safe fallback; `UX-REQ-004`; three-profile UX-FX44/46 validation |
+| `DB18-A08` Proposed contracts can be mistaken for implemented capability | A complete blueprint may hide absent runtime reads or commands | Critical | Fixed by 23-item ledger, explicit gate table, and unavailable-contract path P16; architecture owns dispositions |
+| `DB18-A09` Paper completion can be mistaken for product evidence | No integrated task, browser, AT, performance, security, or participant result exists yet | Critical | Fixed by five-gate separation and post-freeze evidence plan; freeze records specification only |
+| `DB18-A10` Foundational role and profile rows remained administratively open | DB01/03 runtime work and DB02 scope could appear to block or weaken the brief | Major | Fixed by the DB01–DB03 closure and responsibility audit; runtime profile and collaboration work remain explicitly gated/deferred |
+| `DB18-A11` A real demo can silently fill packet gaps | Convenient names, content, or workflows could become reference behavior | Critical | Fixed by no-demo packet derivation and clean-start validation in UX-FX46; any later change uses a generalized failure/revisit record |
+| `DB18-A12` Cross-product usability remains unobserved | A coherent paper trace may still be slow, confusing, or exhausting | Major | `G-VALIDATION` requires task, accessibility, language, performance, and participant evidence in UX-FX44–46; severe failures reopen the source decision |
+
+### Acceptance criteria and post-freeze evidence
+
+DB18 reaches specification completion only if:
+
+1. DB01–DB03 have explicit product-specification closure, responsibility, and
+   runtime/deferred boundaries;
+2. every accepted global, Project, contextual, and transient surface appears once
+   in the fourteen-entry inventory with a task, completion state, ordered regions,
+   normative source, and dependencies;
+3. search, reader, comparison, focus, and profile-tool modes remain assigned to an
+   owning place rather than becoming accidental global destinations;
+4. wide, compact, narrow/high-zoom, keyboard/voice/switch, screen-reader/semantic,
+   and touch compositions preserve task and outcome equivalence;
+5. every packet follows the orientation, task, material status, content, basis,
+   action, completion, and return hierarchy where applicable;
+6. authority, temporal position, representation freshness, content extent, Work,
+   validation/Review, connectivity/delivery, local persistence, and recovery
+   effect remain independent state dimensions;
+7. every surface names its empty, ordinary, dense/limited/asynchronous, adverse,
+   and recovery states without inventing missing authority;
+8. all 18 flow families identify entry, primary packet, commit/authority point,
+   terminal state, recovery, and exact return;
+9. all four named end-to-end paths map through canonical packets and preserve one
+   task, identity, snapshot/revision, provenance, authority, and return chain;
+10. direct and Petra-mediated actions invoke the same registered operation and
+    expose the same scope, consequence, result, and History effect;
+11. component roles state what presentation owns and which domain, action,
+    eligibility, completion, replacement, or recovery facts they may not infer;
+12. profile slots admit scientific, controlled-writing, and unrelated compatible
+    taxonomies without changing Petra's control, authority, visual, language,
+    accessibility, recovery, or History grammar;
+13. unknown/replaced profile data and omitted flows have a useful, exact, safe
+    fallback and no client-code, CSS, prompt, command, or permission injection;
+14. DB15 language roles, DB16 task/outcome equivalence, and DB17 reconciliation
+    sequence attach to every applicable packet and path;
+15. `UX-REQ-001`–`023` cover every missing runtime need and retain an owner,
+    proposed status, consumer, and safe pre-disposition boundary;
+16. no client, component, model, fixture, projection, or AG-UI message is assigned
+    a new source-of-truth role to close a contract gap;
+17. the implementation sequence preserves vertical task paths and does not treat
+    a completed screen as integrated product evidence;
+18. the paper audit has no unresolved critical specification defect; runtime and
+    observed-use risks remain attached to later gates;
+19. no contextual demo content, structure, terminology, route, or workflow is a
+    blueprint input or acceptance criterion;
+20. `G-SPEC` is distinguishable from prototype, contract, integration, and
+    validation evidence, and freeze does not claim those later gates; and
+21. the product-design freeze occurs only through the user's explicit acceptance
+    of the complete brief after this DB18 closure.
+
+| Scenario | Required post-freeze evidence |
+| --- | --- |
+| `UX-FX44` Complete packet and route conformance | Run all fourteen packets and every applicable UX-FLOW-01–18 entry/commit/terminal/return combination across invented scientific, controlled-writing, and unrelated compatible profiles. Cover wide, compact, narrow/high-zoom, keyboard/screen-reader, touch, long/translated terms, ordinary/dense/empty/limited/asynchronous/adverse states, exact identity, direct/Petra parity, and component ownership without demo inputs. |
+| `UX-FX45` Whole-product end-to-end acceptance | Run UX-PATH-01–04 from cold entry through source/basis, Graph/Details, Petra, Work, Review, Composition, History, Settings where relevant, interruption/recovery, and updated Brief. Record navigation/focus, authority/commit, provenance, projection, cost, cancellation, outputs, task time/steps, confusion, severe errors, and participant dispositions. |
+| `UX-FX46` Contract, profile, privacy, and clean-start degradation | Remove each proposed read/action family in turn; use unsupported/replaced profile versions, omitted flows, restricted objects, invalid deep links, stale/partial reads, offline/service failure, model/scene mismatch, and recovery uncertainty. Verify exact unavailable behavior and no leakage or fabricated authority, then start/build/operate the neutral product with every contextual demo directory and adapter absent. |
+
+These scenarios are independently invented and begin only after design freeze.
+They reuse narrower `UX-FX01`–`43` cases rather than replacing their exact module
+evidence. Existing pre-freeze screens, fixtures, screenshots, tests, and the
+historical 599-test backend run do not satisfy DB18 validation.
+
+### DB18 closure and freeze boundary
+
+DB18 closes at `G-SPEC` with sixteen interaction paths, twelve paper findings,
+21 acceptance criteria, and three integrated post-freeze scenarios. It creates
+no `UX-REQ-024`: the ledger is complete through `UX-REQ-023`, while architecture
+and implementation still own every runtime disposition.
+
+The complete brief now specifies DB01–DB18. `UX-D01` and `UX-D03`–`UX-D08` are
+the explicit non-blocking design deferrals; `UX-D02` remains superseded. Proposed
+runtime contracts, production artwork, mobile feature parity, public multi-user
+collaboration, generic whole-corpus graph exploration, optional generative-UI
+adoption, external adapter management, and the final experiment workbench cannot
+be represented as completed features.
+
+No paper contradiction remains open at critical severity. Prototype, contract,
+integration, browser/assistive-technology, model, localization, performance,
+security/privacy, disaster-recovery, regression, clean-start, and participant
+evidence remain later gates. `UX-DESIGN-FREEZE-01` therefore becomes the next
+explicit decision; it is not recorded by DB18 completion itself.
 
 ## `UX-DESIGN-FREEZE-01`
 
@@ -6366,11 +6836,15 @@ or default behavior.
 
 ## Design sequence from this point
 
-The next work remains specification, not demo production:
+The next action remains a design decision:
 
-1. carry accepted specifications through `DB17` into their recorded backend dispositions without implementing a product surface;
-2. discuss DB18's traceable implementation-packet consolidation format;
-3. assemble the complete screen inventory, responsive blueprints, state matrices, flow/return map, backend ledger, and acceptance plan in `DB18`;
-4. review and explicitly record `UX-DESIGN-FREEZE-01`;
-5. begin the neutral reference-UX implementation;
-6. begin contextual demo integrations only after the reference UX stands independently.
+1. review the complete DB01–DB18 brief and request the user's explicit
+   `UX-DESIGN-FREEZE-01` acceptance;
+2. if accepted, record the freeze and route later findings through their named
+   revisit triggers and generalized product-failure process;
+3. obtain `UX-REQ-001`–`023` dispositions and implement the complete neutral
+   reference UX against synthetic `UX-FX01`–`UX-FX46` scenarios;
+4. complete prototype, contract, integration, and validation evidence for every
+   applicable packet, flow, responsive/assistive peer, and recovery path; and
+5. begin contextual integrations only after the reference UX stands
+   independently.

@@ -21,7 +21,9 @@ Mission: complete and freeze Petra's entire use-agnostic UX design brief, then s
    - `decisions/D013-ag-ui-sdk-interaction-boundary.md`;
    - `petra_brand_inspiration/README.md` and its referenced assets;
    - the current `apps/workbench/` implementation.
-5. Continue DB18, Product blueprint and acceptance, from the implementation-packet recommendation below. `DB04` through `DB09` are accepted; DB10–DB17 have complete specifications and paper audits. Do not resume production-surface implementation or create a contextual demo before `UX-DESIGN-FREEZE-01`.
+5. Review the completed DB01–DB18 product brief and continue from the pending
+   `UX-DESIGN-FREEZE-01` decision below. Do not resume production-surface
+   implementation or create a contextual demo before that explicit freeze.
 
 ## Working posture
 
@@ -436,15 +438,38 @@ DB17 closes at `G-SPEC`; no recovery implementation, offline/browser, race,
 disaster-recovery, accessibility, performance, security, or participant evidence
 is claimed.
 
-**Next discussion: DB18, Product blueprint and acceptance.** The recommendation
-is to assemble one traceable implementation packet organized by author task and
-canonical surface: complete inventory, responsive compositions, state matrix,
-transitions/returns, component roles, contract dependencies, profile slots, copy,
-accessibility, recovery, and post-freeze evidence. For example, one Graph entry
-would connect its direct/contextual routes, wide/narrow/assistive layouts, three
-semantic layers, model-readable scene, Work/Review actions, projection failure,
-History, return, and `UX-REQ-013`/`022`/`023` dependencies. This DB18 format is
-proposed and not accepted.
+The user accepted DB18's traceable implementation-packet format on 2026-09-07 as
+`UX1.8-DISC02`.
+
+- Fourteen packet entries cover Projects, the Project shell, Brief, Sources,
+  Review, Graph, Work, Composition, registered profile tools, History, Settings,
+  Details, Petra, and transient action/feedback.
+- Each packet binds its author task, completion, source specification, ordered
+  regions, responsive/assistive forms, shared and surface states, flow and commit
+  point, recovery and return, component ownership, profile slots, dependencies,
+  and later evidence.
+- Six responsive/assistive compositions, nine independent state dimensions, all
+  18 flow families, and UX-PATH-01–04 form the cross-product map. Direct and Petra
+  variants use the same identities and registered operations.
+- The DB01–DB03 audit closes the accepted premise/non-goals, current individual-
+  workbench responsibilities, and profile system at specification depth.
+  `UX-REQ-004` remains a runtime dependency and public multi-user collaboration
+  remains deferred under `UX-D06`.
+- The complete `UX-REQ-001`–`023` ledger covers the packet. DB18 creates no
+  `UX-REQ-024`; clients, models, fixtures, projections, and AG-UI cannot fill
+  unresolved authoritative gaps.
+- DB18 contains sixteen interaction paths, twelve findings, 21 criteria, and
+  post-freeze `UX-FX44`–`UX-FX46` for complete-packet, whole-product, and safe-
+  degradation/clean-start evidence.
+
+DB18 closes at `G-SPEC`. Prototype, contract, integration, browser/AT, model,
+localization, performance, privacy/security, disaster-recovery, regression,
+clean-start, and participant evidence remain later gates.
+
+**Next decision: `UX-DESIGN-FREEZE-01`.** Record it only after the user explicitly
+accepts DB01–DB18 as the product implementation baseline, including the listed
+deferrals and open runtime/evidence gates. Until then, keep the work at design-
+specification depth.
 
 ## Latest repository checkpoint
 
@@ -459,8 +484,9 @@ proposed and not accepted.
   discussion were saved at `8cf31da`; the extensible-profile clarification and
   refined DB15 recommendation were saved at `df31fb3`; completed DB15 and the
   DB16 opening discussion were saved at `9d5f94c`; completed DB16 and the DB17
-  opening discussion were saved at `823b0b5`. The current working checkpoint
-  records accepted/completed DB17 and opens DB18's blueprint discussion; inspect
+  opening discussion were saved at `823b0b5`; completed DB17 and the DB18
+  opening discussion were saved at `fd21213`. The current working checkpoint
+  records accepted/completed DB18 and opens the design-freeze decision; inspect
   Git status/log for local and remote position.
 - The preceding synchronized merge was `81c3786`.
 - The merge consumes backend `main` at `344cf77` without workbench or design-doc
@@ -501,14 +527,20 @@ proposed and not accepted.
   design-only scope, and `git diff --check`. No runtime, offline/browser, race,
   disaster-recovery, accessibility, performance, security, or participant
   validation is claimed.
-- `UX-REQ-011` through `UX-REQ-023` remain proposed runtime
+- DB18 closure checks cover Markdown structure and links, unique DISC02/work/
+  acceptance/scenario definitions, DB10–DB18 path/audit sequences, fourteen
+  surface packets, all 18 flows and four end-to-end paths, complete UX-REQ-001–023
+  coverage, DB01–DB03 closure, accepted-versus-proposed status, freeze boundaries,
+  five-file design-only scope, and `git diff --check`. No prototype, runtime,
+  integration, browser/AT, model, performance, privacy/security, recovery,
+  clean-start, or participant validation is claimed.
+- `UX-REQ-001` through `UX-REQ-023` remain proposed runtime
   requirements; the design closure does not implement or close them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.
 
 Do not implement a Graph, Composition, Settings, design-system, language,
-accessibility, or recovery fixture after this discussion. Continue the product-
-design specification through `DB18`.
+accessibility, recovery, or whole-product fixture before the pending freeze.
 Product implementation resumes only after the user accepts
 `UX-DESIGN-FREEZE-01`.

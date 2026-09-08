@@ -1,6 +1,6 @@
 # Petra Design Implementation Roadmap
 
-Status: use-agnostic brief in progress; DB04–DB09 accepted; DB10–DB17 specified and paper-audited; DB18 next
+Status: DB01–DB18 specified; DB18 traceable product blueprint paper-audited; `UX-DESIGN-FREEZE-01` decision next
 Last updated: 2026-09-07
 Scope: deliver Petra's M1 experience module by module while implementation continues, without creating a second authority for architecture or feature completion
 
@@ -438,8 +438,8 @@ DB17 sharpens `UX-REQ-007`, `UX-REQ-014`, `UX-REQ-015`, `UX-REQ-018`, and
 `UX-REQ-019` and creates proposed `UX-REQ-023` for effect, preservation, member-
 outcome, eligible-action, History, and return composition. DB17 closes at
 `G-SPEC`; runtime, offline/browser, race, disaster-recovery, accessibility,
-performance, security, and participant evidence remain pending. Continue DB18's
-traceable product-blueprint discussion.
+performance, security, and participant evidence remain pending. DB18 carries
+these boundaries into the completed product blueprint; freeze review is next.
 `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ### Work
@@ -899,7 +899,8 @@ gate is covered; this module remains `in_progress` because no new frontend,
 live contract, performance, accessibility, or participant evidence is claimed.
 DB11's task-and-stage presentation, direct steering, and advisory branch order
 are accepted and specified; DB12–DB17 also have complete specifications and
-paper-audit coverage. DB18 is open for discussion.
+paper-audit coverage. DB18 now supplies the accepted cross-product packet;
+freeze review is next.
 `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 ### Work
@@ -983,8 +984,8 @@ responsive/textual parity, inquiry context, language, paths, and the paper audit
 
 DB11 closes at `G-SPEC`; the Work/interaction module remains `in_progress`
 because runtime, fixture, integration, and participant evidence are separate.
-DB12–DB17 are also specified and paper-audited; continue DB18's product-
-blueprint and acceptance discussion.
+DB12–DB18 are also specified and paper-audited; continue to the explicit
+product-design freeze decision.
 `UX-DESIGN-FREEZE-01` remains unaccepted; no new product implementation is authorized.
 
 ### Work
@@ -1069,8 +1070,8 @@ performance, and participant evidence remain separate, so this module remains
 `in_progress`. DB13's personal-preferences-first Settings organization, DB14's
 shared Petra visual grammar, DB15's communication contract, DB16's task-
 equivalent accessibility system, and DB17's reconciliation-first recovery
-system are accepted and specified. Continue DB18's product-blueprint and
-acceptance discussion.
+system are accepted and specified. DB18's cross-product blueprint is complete;
+continue to the explicit product-design freeze decision.
 `UX-DESIGN-FREEZE-01` remains unaccepted.
 
 The scientific tasks below retain D012's exact evidence and citation meaning.
@@ -1141,6 +1142,27 @@ verification remain pending against UX-FX29–31 and the proposed contracts.
 | ID | Question | Accepted direction | Why it matters | Affected work | Revisit trigger |
 | --- | --- | --- | --- | --- | --- |
 | `UX1.8-DISC01` | What complete flow and transition contract prevents Petra's modules from becoming disconnected destinations? | Use one governed authorial loop across the 18 accepted flow families: orient; select the decision, uncertainty, source, relationship, Work, or output; inspect the smallest adequate basis; answer, act, or preview bounded Work; inspect result, limitation, provenance, validation, and impact; apply, correct, reject, defer, branch, cancel, or reverse; distinguish authority, projection, and historical state; and return to the originating item or updated Brief. Every transition names its origin, semantic destination, optional contextual surface, preserved state, commit point, terminal outcome, recovery, and return. A Work result routes to Review for proposed authority, Composition for an output, its origin for a read-only answer, or Work for retained failure. Direct and Petra-mediated variants converge on the same identities and commands. Each profile maps typed meaning into this grammar without aliasing its ontology, and every material path has responsive and accessible parity. | A screen inventory cannot prove that a person can complete work. An explicit cross-module contract prevents lost context, duplicate governance, generic success states, and dead ends while making adverse-state and accessibility testing finite. | `DB05`; all `UX-FLOW-01`–`18` and `UX-PATH-01`–`04`; accepted surface-transition and flow-to-place matrices; `UX1.8-W02`–`W08`; `UX-REQ-001`–`UX-REQ-023` | Revisit if a material user goal lacks an entry or terminal state, a profile cannot map into the shared loop, task testing exposes a dead end or false return, or a required transition cannot preserve identity and authority through the accepted navigation context. |
+| `UX1.8-DISC02` | What format should consolidate the complete design into an implementation-ready product blueprint? | Accepted 2026-09-07: use one traceable implementation packet organized by author task and canonical surface. Fourteen entries cover Projects, the Project shell, Brief, Sources, Review, Graph, Work, Composition, registered profile tools, History, Settings, Details, Petra, and transient action/feedback. Each entry binds its source specification, ordered regions, responsive and assistive compositions, independent states, flow/commit/recovery/return, component ownership, `UX-REQ` dependencies, profile slots, language/accessibility/recovery rules, and later evidence. The packet indexes normative DB04–DB17 contracts and cannot weaken them or become runtime authority. | Implementers need a finite build and validation map without guessing across documents, while a second restatement of product semantics would create drift. Traceability makes missing contracts, adverse states, return paths, and evidence gates visible before code resumes. | `DB18`; `UX1.8-W13`–`W16`; `UX1.8-AC07`–`AC14`; `UX-FX44`–`UX-FX46`; `UX-REQ-001`–`UX-REQ-023`; `UX-DESIGN-FREEZE-01` | Revisit if a material surface or flow cannot fit one packet entry, an implementer must infer authority or recovery, source and packet requirements conflict, profile variation requires a control fork, or post-freeze traceability fails. |
+
+### DB18 specification checkpoint
+
+DB18 consolidates the accepted product into fourteen traceable surface packets,
+six responsive/assistive compositions, nine independent state dimensions, all
+18 flow families, and four named end-to-end traces. It specifies component and
+state ownership, profile extension slots, language/accessibility/recovery
+obligations, the full `UX-REQ-001`–`023` dependency ledger, a post-freeze build
+sequence, five evidence gates, sixteen paper interaction paths, twelve findings,
+21 acceptance criteria, and `UX-FX44`–`UX-FX46`.
+
+The cross-product audit closes DB01–DB03 at specification depth: DB01's premise
+and non-goals, DB02's responsible-author and supporting-role boundaries, and
+DB03's versioned profile system are accepted. `UX-REQ-004` remains the proposed
+runtime profile boundary, and public multi-user collaboration remains deferred
+under `UX-D06`. DB18 finds no need for `UX-REQ-024` and leaves every proposed
+runtime request and all prototype/contract/integration/validation evidence open.
+
+DB18 closes at `G-SPEC`. The complete brief is ready for the user's explicit
+`UX-DESIGN-FREEZE-01` decision; the freeze is not implied by this checkpoint.
 
 ### Work
 
@@ -1158,6 +1180,10 @@ verification remain pending against UX-FX29–31 and the proposed contracts.
 | `UX1.8-W10` | `planned` | Resolve all critical design debt and assign every remaining item to a later milestone or named trigger. | M1 should close with known limits rather than forgotten polish work. |
 | `UX1.8-W11` | `planned` | Replace demo copy and unlabeled preview content with contract-backed data or explicit fixtures. | A public demonstration must not imply evidence Petra has not processed. |
 | `UX1.8-W12` | `planned` | Record the final M1 design system, module decisions, exceptions, and evaluation evidence. | Future public and experiment work needs a durable design baseline. |
+| `UX1.8-W13` | `complete` | Inventory the fourteen canonical, persistent, contextual, and transient surface packets with tasks, completion, ordered information, source specifications, and dependencies. | Implementation needs complete surface coverage without promoting every mode or profile object into global navigation. |
+| `UX1.8-W14` | `complete` | Map responsive/assistive compositions, independent state dimensions, all 18 flow commit/recovery/return paths, four end-to-end traces, and component ownership. | Cross-surface identity, authority, state, and return must be assessable before implementation resumes. |
+| `UX1.8-W15` | `complete` | Map bounded profile slots and DB15–DB17 language, accessibility, model-readable presentation, and recovery obligations into every packet. | New profiles and modalities must preserve Petra's exact control and outcome meanings. |
+| `UX1.8-W16` | `complete` | Reconcile `UX-REQ-001`–`023`, close DB01–DB03 bookkeeping, complete the DB18 paper audit and evidence plan, and expose the design-freeze boundary. | A paper-complete product must show every runtime gap and later proof obligation without claiming they already pass. |
 
 ### Acceptance
 
@@ -1169,6 +1195,14 @@ verification remain pending against UX-FX29–31 and the proposed contracts.
 | `UX1.8-AC04` | Critical task evaluations reveal no unresolved issue that could cause unsupported trust, accidental mutation, lost work, or provenance confusion. |
 | `UX1.8-AC05` | Stable fixture routes pass visual-regression review at the supported viewport and text-scale matrix. |
 | `UX1.8-AC06` | The M1 design-debt register contains no unowned critical item. |
+| `UX1.8-AC07` | Every accepted product surface has one DB18 packet entry with its task, completion, hierarchy, responsive/assistive forms, source specification, and contract dependencies. |
+| `UX1.8-AC08` | Every UX-FLOW-01–18 family and UX-PATH-01–04 trace identifies its canonical packet, authority/commit point, terminal state, recovery, and exact return. |
+| `UX1.8-AC09` | Authority, time, representation, content extent, Work, validation/Review, connectivity/delivery, local persistence, and recovery effect remain independent state dimensions across surfaces. |
+| `UX1.8-AC10` | Direct and Petra-mediated paths use the same registered operations, while component and model roles cannot infer identity, eligibility, completion, authority, or recovery facts. |
+| `UX1.8-AC11` | Versioned profile slots support scientific, controlled-writing, and unrelated compatible taxonomies without changing Petra's control, visual, language, accessibility, recovery, or History grammar. |
+| `UX1.8-AC12` | DB15 language, DB16 task/outcome equivalence, and DB17 reconciliation obligations attach to every applicable packet, including unavailable and constrained presentations. |
+| `UX1.8-AC13` | `UX-REQ-001`–`023` account for every missing runtime dependency; no `UX-REQ-024`, client inference, model prose, fixture field, or projection is used to conceal a gap. |
+| `UX1.8-AC14` | DB01–DB18 reach `G-SPEC`, later evidence gates remain open, explicit deferrals remain visible, and only the user's separate acceptance records `UX-DESIGN-FREEZE-01`. |
 
 ### Completion evidence
 
@@ -1177,6 +1211,11 @@ verification remain pending against UX-FX29–31 and the proposed contracts.
 - `UX1.8-EV03`: adverse-state, latency, and recovery report;
 - `UX1.8-EV04`: task-evaluation findings and dispositions;
 - `UX1.8-EV05`: visual-regression baseline and final debt register.
+- `UX1.8-EV06`: DB18 traceable product blueprint with fourteen surface entries,
+  all flow and end-to-end mappings, state/component/profile ownership, request
+  ledger, sixteen paths, twelve findings, and accepted DISC02.
+- `UX1.8-EV07`: complete-packet, whole-product, and safe-degradation evidence
+  under `UX-FX44`–`UX-FX46` after design freeze.
 
 ## Required fixture scenarios
 
@@ -1227,6 +1266,9 @@ The fixture gallery reuses stable objects across modules. It should remain small
 | `UX-FX41` | Cross-module preservation and exact return | In scientific, controlled-writing, and unrelated third-profile Projects, interrupt Project/Brief reads, source inspection, Graph/Details, Petra, Work, Review, Composition, Settings, export, and History. Exercise recoverable and lost local input, cached/stale state, retained partial output, exact task/object/selection/focus return, profile terminology, narrow/high-zoom, keyboard/screen-reader, and direct/Petra paths without changed authority. |
 | `UX-FX42` | Uncertain, mixed, offline, and race recovery | Drop delivery before and after command receipt; apply a batch with applied/conflicted/failed/pending/unknown members; reuse conflicting idempotency input; disconnect/replay; race completion with cancellation; fail projection after commit; exhaust retry; present invalid checkpoint resume; expire access/capability; enter and leave offline/service outage. Verify reconciliation, no duplicate effect, no leakage, accurate attempt/cost, and safe unavailable states. |
 | `UX-FX43` | Local conflict, History, delivery, and reversal | Restore a local draft against unchanged and newer durable bases; fail local storage and save; regenerate/revalidate; generate multi-member output with publication and delivery uncertainty; retry exact delivery separately from regeneration; inspect filtered object/task/Project histories, terminology-version change, restricted/redacted members, causal-order ambiguity, recent-ten/full-history boundary, single and supported multi-step compensation, ineligible Revert, projection catch-up, and Return to current. |
+| `UX-FX44` | Complete packet and route conformance | Run all fourteen DB18 packets and every applicable UX-FLOW-01–18 entry/commit/terminal/return combination across invented scientific, controlled-writing, and unrelated compatible profiles. Cover wide, compact, narrow/high-zoom, keyboard/screen-reader, touch, long/translated terms, ordinary/dense/empty/limited/asynchronous/adverse states, exact identity, direct/Petra parity, and component ownership without demo inputs. |
+| `UX-FX45` | Whole-product end-to-end acceptance | Run UX-PATH-01–04 from cold entry through source/basis, Graph/Details, Petra, Work, Review, Composition, History, Settings where relevant, interruption/recovery, and updated Brief. Record navigation/focus, authority/commit, provenance, projection, cost, cancellation, outputs, task time/steps, confusion, severe errors, and participant dispositions. |
+| `UX-FX46` | Contract, profile, privacy, and clean-start degradation | Remove each proposed read/action family in turn; use unsupported/replaced profile versions, omitted flows, restricted objects, invalid deep links, stale/partial reads, offline/service failure, model/scene mismatch, and recovery uncertainty. Verify exact unavailable behavior and no leakage or fabricated authority, then start/build/operate the neutral product with every contextual demo directory and adapter absent. |
 
 Post-freeze fixtures use Petra's canonical IDs and runtime shapes. When a runtime contract is not yet available, a fixture declares its provisional schema and associated `UX-REQ` item. They use synthetic content and remain independent of contextual demo assets and directories. Existing pre-freeze shell and graph fixtures remain exploratory comparison evidence; they do not satisfy the neutral reference-UX gate until reviewed or rebuilt against the frozen brief.
 
@@ -1393,13 +1435,21 @@ only after the full reference UX stands independently.
 Backend implementation of already accepted architecture may continue. The
 design track should now:
 
-1. carry accepted specifications through DB17 into `UX-REQ-001`–`UX-REQ-023` without implementing a product surface;
-2. discuss DB18's traceable implementation-packet consolidation format;
-3. assemble the complete screen inventory, responsive blueprints, shared and surface state matrices, flow/return map, backend ledger, and acceptance plan in `DB18`;
-4. maintain the `UX-REQ` register and request architecture dispositions without allowing available backend shapes to dictate the UX;
-5. review the entire brief and explicitly record `UX-DESIGN-FREEZE-01`;
-6. implement the complete neutral reference UX against synthetic conformance scenarios and verify that it builds and operates without external demo directories;
-7. plan and produce the scientific and controlled-writing contextual integrations as separate efforts after the product baseline stands independently.
+1. review the complete DB01–DB18 brief and request the user's explicit
+   `UX-DESIGN-FREEZE-01` decision without implementing a product surface;
+2. if accepted, record the freeze and treat later changes through the named
+   revisit and generalized-failure process;
+3. obtain architecture dispositions for `UX-REQ-001`–`UX-REQ-023` while keeping
+   unavailable runtime facts explicit and preventing backend convenience from
+   redefining the frozen UX;
+4. implement the complete neutral reference UX in the DB18 packet sequence
+   against synthetic `UX-FX01`–`UX-FX46` conformance scenarios;
+5. validate every packet, flow, end-to-end trace, responsive/assistive peer,
+   language role, adverse state, recovery path, and no-demo clean start through
+   the five evidence gates; and
+6. plan and produce scientific, controlled-writing, and later profile
+   integrations as separate efforts after the product baseline stands
+   independently.
 
 This sequence turns the accepted visual, language, accessibility, and recovery
 systems into a task-complete product one flow at a time while keeping

@@ -31,7 +31,7 @@ while the product brief is open. It should review `UX-REQ-004` through
 using either contextual project as the contract fixture. `UX-REQ-006` through
 `UX-REQ-023` follow the accepted Petra interaction, navigation, Sources,
 Review, Graph, Work, Project-inquiry, Composition, Settings, language-system,
-accessibility, and recovery directions.
+accessibility, recovery, and product-blueprint directions.
 These requests do not authorize a frontend implementation before the
 design freeze.
 
@@ -1784,6 +1784,30 @@ between shell context and task content more important.
   reconciliation/preservation/return direction accepted, recovery-assessment
   and action-composition shape `proposed`.
 
+## DB18 request-ledger closure
+
+DB18's traceable implementation-packet format was accepted on 2026-09-07 as
+`UX1.8-DISC02`. Its fourteen surface entries, 18 flow families, and four named
+end-to-end paths consume the requests above without adding a backend concept.
+No `UX-REQ-024` is needed for the paper design.
+
+| Dependency group | Requests | Blueprint consumers and disposition rule |
+| --- | --- | --- |
+| Product context and action | `UX-REQ-001`–`004`, `008` | Projects, shell, Brief, routed places, SuggestedActions, profile meaning, and safe destinations; implementation exposes missing or unsupported state until each shape is accepted or mapped |
+| Lineage, interaction, and History | `UX-REQ-005`–`007` | Sources, Petra, Work, Review, Composition, History, and exact return; imported ancestry, thread context, causal history, and compensation retain separate authority |
+| Sources, working meaning, Review, and Graph | `UX-REQ-009`–`013` | Source collection/reader, Details, Petra, Review, and Graph; clients cannot infer exact inspection, candidate authority, Review eligibility, path completeness, or omissions |
+| Work and Project inquiry | `UX-REQ-014`–`016` | Shell attention, Brief, Petra, Work, Graph, and profile tools; lifecycle, advice, operational priority, and inquiry resolution remain distinct |
+| Composition, controls, and communication | `UX-REQ-017`–`021` | Composition, Settings, Review, Petra, output/delivery, and every authored statement; saving, validation, promotion, rendering, delivery, policy, and language validation retain exact identities |
+| Presentation understanding and recovery | `UX-REQ-022`–`023` | Graph/semantic peers, Petra explanation, and every adverse packet; the model receives bound semantic/scene context and recovery composes owning facts without creating authority |
+
+A post-freeze synthetic provider may implement an explicitly provisional shape
+for an unresolved request and label unavailable fields. No consuming surface may
+claim `G-CONTRACT` until architecture accepts the request, replaces it with an
+equivalent smaller composition, maps it to an existing contract, or records a
+safe deferral. Rejection without an equivalent safe path reopens the affected
+source specification instead of moving the missing fact into client or model
+logic.
+
 No request above authorizes a demo adapter, demo-specific schema, or corpus
 import. The neutral product contracts must be accepted before those separate
 integration requests are written.
@@ -1826,7 +1850,7 @@ and outputs attached to these mechanics. They should not duplicate Work,
 interaction, proposal, review, approval, cancellation, provenance, or history
 lifecycles merely because the profile uses different nouns.
 
-## Requirement status after DB17
+## Requirement status after DB18
 
 The authored-project, imported-document, Project-thread, exact turn-context,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
@@ -1903,8 +1927,14 @@ knowledge, preserved/lost state, independent-member outcomes, currently eligible
 owning actions, History consequence, and safe return. It creates no universal
 recovery command or alternate ledger. DB17 closes at `G-SPEC`; runtime,
 offline/browser, race, disaster-recovery, accessibility, performance, security,
-and participant evidence remain pending. DB18's product-blueprint consolidation
-discussion is next.
+and participant evidence remain pending.
+
+DB18's traceable implementation-packet direction is accepted as
+`UX1.8-DISC02`. It maps every accepted surface and flow to
+`UX-REQ-001`–`023`, finds no additional backend need, and keeps every unresolved
+runtime shape visible as a contract or implementation gate. DB18 closes at
+`G-SPEC`; the pending design-freeze decision does not accept a runtime request
+or claim integration evidence.
 
 ### Cross-device preference synchronization
 
@@ -1927,5 +1957,6 @@ Brief, SuggestedAction, Project-profile, imported-document, Project-thread,
 governed-reversal, semantic-location, Project-source-view, source-lifecycle,
 conversational-working-graph, profile-neutral Review, bounded relationship-view,
 composed Work-presentation, generic Work-steering, Project inquiry, or Composition
-workspace/authoring/export or Project-control Settings flows until the
-applicable requests have an explicit disposition.
+workspace/authoring/export, Project-control Settings, profile-resolved
+communication, model-readable presentation, or cross-module recovery flows until
+the applicable requests have an explicit disposition.
