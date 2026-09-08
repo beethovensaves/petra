@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectSourceView,
@@ -8,6 +9,7 @@ import type {
 import { describe, expect, it } from "vitest";
 
 import {
+  graphQuestionFromView,
   projectRecordFromShellView,
   reviewSessionFromView,
   sourceRecordFromView,
@@ -42,6 +44,16 @@ const reviewView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectReviewView;
+
+const relationshipView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-relationship-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectRelationshipView;
 
 describe("Project shell workbench adapter", () => {
   it("maps exact definition terminology and projection attention without mutating the view", () => {
@@ -142,5 +154,33 @@ describe("Project shell workbench adapter", () => {
       "project_source_01K4C000000000000000000007",
     );
     expect(reviewView).toEqual(before);
+  });
+
+  it("maps one bounded current provenance path without inventing unavailable graph layers", () => {
+    const before = structuredClone(relationshipView);
+    const graph = graphQuestionFromView(relationshipView);
+
+    expect(graph.focusNodeId).toBe("claim_01ARZ3NDEKTSV4RRFFQ69G5FBB");
+    expect(graph.nodes).toHaveLength(5);
+    expect(graph.edges).toHaveLength(4);
+    expect(graph.nodes.every((node) => node.layers.join() === "current")).toBe(
+      true,
+    );
+    expect(graph.layerAvailability).toEqual({
+      current: { available: true, label: "Current" },
+      working: {
+        available: false,
+        label: "Unavailable in the current M1 relationship view",
+      },
+      historical: {
+        available: false,
+        label: "Unavailable in the current M1 relationship view",
+      },
+    });
+    expect(graph.recommendation).toBeUndefined();
+    expect(
+      graph.nodes.find((node) => node.kind === "Source Span")?.sourceId,
+    ).toBe("project_source_01K4C000000000000000000007");
+    expect(relationshipView).toEqual(before);
   });
 });

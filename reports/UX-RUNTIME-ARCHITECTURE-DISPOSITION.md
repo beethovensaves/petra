@@ -1,7 +1,8 @@
 # UX runtime architecture disposition and implementation sequence
 
 Status: implementation-track review complete; cumulative backend trace passed;
-live shell, source, and Review reads passed; remaining runtime integration open
+live shell, source, Review, and current Graph reads passed; interface recovery
+assertions remain open
 Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
@@ -34,27 +35,33 @@ missing, and the order in which to implement it.
 The disposition below was made against `344cf77`. Subsequent additive work now
 provides the ProjectDefinition and Objective authority root, authenticated
 repeatable-read Project shell queries, the first explicitly scientific
-ProjectSource binding and exact source reader, and durable ReviewSession
-identity plus an authorized scientific Review collection/detail view.
+ProjectSource binding and exact source reader, durable ReviewSession identity
+plus an authorized scientific Review collection/detail view, and an authorized
+current scientific relationship/provenance view guarded across PostgreSQL and
+Neo4j.
 
-This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-009`, `UX-REQ-010`, and
-`UX-REQ-012` without changing the frozen presentation. It does not close those
-neutral-product requirements: additional source specializations and lifecycle
-commands, general working candidates, multi-profile Review renderers, Review
-deferral/reopen and batch commands, managed folders, `.petra` checkpoints, and
-the remaining product queries still require later slices.
+This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-009`, `UX-REQ-010`,
+`UX-REQ-012`, and `UX-REQ-013` without changing the frozen presentation. It
+does not close those neutral-product requirements: additional source
+specializations and lifecycle commands, general working candidates,
+multi-profile Review renderers, Review deferral/reopen and batch commands,
+working and historical relationship layers, comparison and continuation,
+managed folders, `.petra` checkpoints, and the remaining product queries still
+require later slices.
 
 ## Baseline and gate boundary
 
 - The design brief is frozen at `UX-DESIGN-FREEZE-01`; DB01 through DB18 are
   complete at specification depth.
-- The design worktree contains a complete initial presentation of the fourteen
-  DB18 surface packets. It is still fixture-backed except for the existing
-  health read and must not be described as live product integration.
+- The frozen workbench contains the initial presentation of all fourteen DB18
+  surface packets. Project shell, scientific source, scientific Review, and the
+  bounded current Graph now use live authenticated reads. Remaining product
+  places are still fixture-backed or explicitly unavailable and must not be
+  described as live.
 - Backend `M1.9-W01`, `M1.9-W02`, and `M1.9-W03` are complete. The cumulative
   clean-start trace passed all fifteen steps. `M1.9-W04` is in progress: shell,
-  scientific source, and scientific Review reads pass; the graph read and final
-  interface recovery assertions remain.
+  scientific source, scientific Review, and bounded current Graph reads pass;
+  the final interface recovery assertions remain.
 - M1.9 closes the existing scientific evidence spine. It does not, by itself,
   close all 23 neutral-product runtime requests.
 - Contextual Prosody, Sentinel, or other real-project integrations remain gated
@@ -80,18 +87,22 @@ the remaining product queries still require later slices.
   scientific reversal and Review implementation is in
   [`evidence-review.ts`](../packages/core/src/evidence-review.ts).
 - [`AuthorityGraphStore`](../packages/core/src/graph-store.ts) exposes current
-  scientific graph objects, neighborhoods, provenance, evidence and citation
-  paths, and projection freshness. It is not the neutral temporal/comparison
-  query requested by `UX-REQ-013`.
+  scientific graph objects, Project-scoped relationships, neighborhoods,
+  provenance, evidence and citation paths, and projection freshness. The
+  authorized `ProjectRelationshipViewReader` now composes one current
+  ProjectDefinition-resolved provenance result. It does not implement the
+  later temporal, comparison, working-layer, expansion, or continuation parts
+  of `UX-REQ-013`.
 - [`ContextPacketRegistry`](../packages/core/src/context-packet-registry.ts)
   validates a bounded scientific packet over Claim, Assertion, SourceSpan, and
   WorkVersion records. It is not a generic Project-definition context registry.
 - [`DraftRevisionEngine`](../packages/core/src/draft-revision.ts) and the
   composition repositories provide additive scientific draft revisions and
   assessments, but not a general continuous working-document contract.
-- [`app.ts`](../apps/server/src/app.ts) authenticates `/api/*` and exposes the
-  existing provider and interaction paths; it has no Project shell, Brief,
-  Sources, History, Settings, or neutral relationship-view API.
+- [`app.ts`](../apps/server/src/app.ts) authenticates `/api/*` and now exposes
+  Project shell, scientific source, scientific Review, and bounded current
+  relationship-view reads in addition to provider and interaction paths. Brief,
+  History, Settings, and the remaining neutral-product queries are not live.
 - [The M1.9 gate matrix](M1.9-BACKEND-GATE-MATRIX.md) and
   [recovery exercise](M1.9-RECOVERY-EXERCISE.md) establish component and
   operational-recovery evidence. The
@@ -290,7 +301,7 @@ explicitly records later implementation progress:
 | `UX-REQ-010` | **Partial, advanced after baseline.** ProjectSource has stable Project-local identity and immutable active or excluded revisions over a retained copy. | Add unlink/archive/tombstone semantics, dependency impact, availability and retention disposition, and governed commands. Do not expose physical deletion until retention and dependent checks exist. | Wave 2, then Wave 5 |
 | `UX-REQ-011` | **Partial.** Claim/Assertion quarantine and DraftArtifact revisions prove proposal-before-authority in scientific paths. | Add ProjectDefinition-valid WorkingCandidate and working-relationship records for arbitrary domain objects, with exact turn/task/model/tool origin and validation state. Project them as the live working graph layer. | Wave 4 |
 | `UX-REQ-012` | **Partial, advanced after baseline.** EvidenceReviewBatch, accept/reject/correct plans, durable review interrupts, ChangeSets, approvals, and independent batch outcomes exist. V021 now adds durable profile-neutral ReviewSession identity plus a snapshot-consistent scientific Claim–`ASSERTS` read over exact ProjectDefinition semantics, ProjectSource basis, validation, ChangeSets, and Approvals. | Add other profile renderers, general working candidates, defer/reopen and material-basis commands, preflight, dependency grouping, multi-member presentation, per-member recovery, and permitted batch apply. Retain existing ChangeSet authority. | Wave 4 |
-| `UX-REQ-013` | **Partial.** `AuthorityGraphStore` supports current scientific objects, bounded neighborhoods, provenance, evidence and citation paths, and projection freshness. | Add an authorized renderer-neutral relationship query with ProjectDefinition types, exact snapshot, current/working/historical/temporal layers, finite traversal, comparisons, omissions, continuations, and textual peer. Historical state must be reconstructable from retained authority. | Wave 3 |
+| `UX-REQ-013` | **Partial, advanced after baseline.** `petra.project-relationship-view@1.0.0` and its authorized reader now return one bounded current scientific `ASSERTS` provenance path with ProjectDefinition terminology, exact PostgreSQL records and graph checkpoint, omissions, source destinations, and a textual peer. The frozen Graph consumes it without fixture fallback. | Add general task and endpoint selection, other registered relationship types, working and historical membership, retained-position reconstruction, comparison, expansion and continuation cursors, and temporal paths. Preserve renderer-neutral semantics and never infer authority from layout. | Wave 3 |
 | `UX-REQ-014` | **Partial.** WorkUnit and manifest repositories preserve exact specs, attempts, outputs, failure, cancellation, and checkpoints. | Add Project-scoped Work collection/detail queries, definition-resolved stages, dependency and inquiry links, attention, resource accounting coverage, outputs, controls, and recovery. Do not invent a new lifecycle. | Wave 2 |
 | `UX-REQ-015` | **Partial.** Explicit cancellation is authorized and durable; immutable Work inputs prevent silent rebinding. | Add typed steering, task-priority, and execution-plan transition commands with declared cutover, reuse/revalidation, shared-consumer analysis, and receipts. Do not imply generic pause/resume or cancel shared Work automatically. | Wave 3 |
 | `UX-REQ-016` | **Missing neutral mapping.** Scientific Project and conceptual ResearchQuestion foundations exist, while WorkUnit remains operational. | Register how a ProjectDefinition represents lines of inquiry through its own valid object types or linked set. Add zero/many/shared Work and result links without mandating a universal Inquiry wrapper or deriving resolution from Work completion. | Wave 2 |
@@ -420,15 +431,16 @@ It must not relabel M1's scientific proof as full `UX-REQ-001` through
 
 ## Immediate next implementation task
 
-Treat the passing `M1.9-W03` result manifest as the safety point for subsequent
-architecture and reference-UX integration work. Next, record the
-ProjectDefinition architecture decision and begin Wave 1 while planning the
-minimum live contracts needed for `M1.9-W04`.
+Treat the passing `M1.9-W03` result manifest and the four live M1.9-W04 read
+slices as the safety point. Next, add the interface recovery assertions that
+exercise exact source and graph return, Review/reversal consequences,
+projection lag, interaction replay, stream abort, and Work cancellation through
+the frozen presentation.
 
 ## Verification status
 
 The original disposition was based on read-only inspection of the frozen
 handoff, neutral reference implementation, accepted decisions, runtime schemas,
-repositories, server routes, M1.9 reports, and roadmap state. This status refresh
-adds only the verified W03 evidence; it changes no runtime contract and claims
-no frontend integration.
+repositories, server routes, M1.9 reports, and roadmap state. The status refresh
+records the verified cumulative trace and four additive live read slices. It
+does not claim full neutral-product conformance.

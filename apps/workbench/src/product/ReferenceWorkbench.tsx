@@ -13,7 +13,6 @@ import { PetraLockup, PetraMark } from "../design-system/brand.js";
 import { PetraButton, PetraTextField } from "../design-system/primitives.js";
 import {
   REFERENCE_PROJECTS,
-  getProjectGraph,
   getProjectProfileTool,
   getReferenceReview,
 } from "./fixtures.js";
@@ -829,10 +828,7 @@ export const SourceReaderRoute = (): React.JSX.Element => {
   const returnBasis = returnReview?.basis.find(
     (basis) => basis.sourceId === source?.id,
   );
-  const returnGraph = getProjectGraph(project.id);
-  const returnGraphNode = returnGraph?.nodes.find(
-    (node) => node.id === searchParams.get("graphNodeId"),
-  );
+  const returnGraphNodeId = searchParams.get("graphNodeId");
   const requestedGraphLayer = searchParams.get("graphLayer");
   const returnGraphLayer =
     requestedGraphLayer === "working" || requestedGraphLayer === "historical"
@@ -845,9 +841,10 @@ export const SourceReaderRoute = (): React.JSX.Element => {
           label: "Return to Attention",
         }
       : returnOrigin === "graph" &&
-          returnGraphNode?.layers.includes(returnGraphLayer) === true
+          returnGraphNodeId !== null &&
+          returnGraphNodeId.length > 0
         ? {
-            path: `/projects/${project.id}/graph?layer=${returnGraphLayer}&selected=${returnGraphNode.id}#graph-selection`,
+            path: `/projects/${project.id}/graph?layer=${returnGraphLayer}&selected=${encodeURIComponent(returnGraphNodeId)}#graph-selection`,
             label: "Return to Graph",
           }
         : returnOrigin === "review" &&

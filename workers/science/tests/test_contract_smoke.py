@@ -795,6 +795,165 @@ class PetraProjectReviewView(PetraModel):
     read_at: str
 
 
+class ProjectRelationshipExactRef(PetraModel):
+    record_id: str
+    revision: int
+    record_hash: str
+
+
+class ProjectRelationshipGraphElementRef(PetraModel):
+    element_id: str
+    revision: int
+    record_hash: str
+
+
+class ProjectRelationshipDefinitionRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectRelationshipCheckpointRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class ProjectRelationshipQuery(PetraModel):
+    request_hash: str
+    query_kind: Literal["scientific_provenance_path"]
+    question: str
+    scope: str
+    focus_ref: ProjectRelationshipExactRef
+    objective_ref: ProjectRelationshipExactRef | None = None
+    requested_position: Literal["current_authority"]
+    maximum_depth: Literal[3]
+
+
+class ProjectRelationshipProfile(PetraModel):
+    project_definition_ref: ProjectRelationshipDefinitionRef
+    label: str
+    object_term: str
+    relationship_term: str
+    source_term: str
+
+
+class ProjectRelationshipCapabilities(PetraModel):
+    current: Literal["available"]
+    working: Literal["unavailable"]
+    historical: Literal["unavailable"]
+    comparison: Literal["unavailable"]
+    expansion: Literal["unavailable"]
+    continuation: Literal["unavailable"]
+    text_peer: Literal["available"]
+
+
+class ProjectRelationshipAuthorityPosition(PetraModel):
+    event_position: int
+    stream_revision: int
+
+
+class ProjectRelationshipProjectionPosition(PetraModel):
+    checkpoint_ref: ProjectRelationshipCheckpointRef
+    state: Literal["current", "catching_up", "blocked"]
+    represented_event_position: int
+    represented_stream_revision: int
+    represented_target_sequence: int
+    observed_event_position: int
+    observed_stream_revision: int
+    observed_target_sequence: int
+    pending_records: int
+    detail: str
+    failure_code: str | None = None
+
+
+class ProjectRelationshipPosition(PetraModel):
+    isolation: Literal["repeatable_read_with_projection_guard"]
+    authority: ProjectRelationshipAuthorityPosition
+    projection: ProjectRelationshipProjectionPosition
+
+
+class ProjectRelationshipSourceDestination(PetraModel):
+    project_source_id: str
+    status: Literal["active", "excluded"]
+    label: str
+
+
+class ProjectRelationshipNode(PetraModel):
+    node_ref: ProjectRelationshipExactRef
+    object_kind: Literal["work", "work_version", "claim", "source_span", "artifact"]
+    label: str
+    summary: str
+    basis: str
+    layer: Literal["current"]
+    lifecycle: Literal["represented"]
+    source_destination: ProjectRelationshipSourceDestination | None = None
+
+
+class ProjectRelationshipEdge(PetraModel):
+    relationship_ref: ProjectRelationshipGraphElementRef
+    predicate: Literal["VERSION_OF", "ASSERTS", "GROUNDED_IN", "LOCATED_IN"]
+    relation_class: Literal["structural", "provenance", "representation"]
+    source_id: str
+    target_id: str
+    direction: Literal["outgoing"]
+    label: str
+    summary: str
+    basis: str
+    layer: Literal["current"]
+    assertion_id: str | None = None
+
+
+class ProjectRelationshipPathStep(PetraModel):
+    position: int
+    from_node_id: str
+    relationship_id: str
+    to_node_id: str
+    repeated_member: bool
+
+
+class ProjectRelationshipPath(PetraModel):
+    path_kind: Literal["scientific_provenance"]
+    state: Literal["complete_for_selected_relationship"]
+    ordering_rationale: str
+    steps: list[ProjectRelationshipPathStep]
+
+
+class ProjectRelationshipCompleteness(PetraModel):
+    state: Literal["complete_for_selected_relationship"]
+    scope: str
+    returned_nodes: int
+    returned_relationships: int
+    known_path_nodes: int
+    known_path_relationships: int
+    filtered_members: Literal[0]
+    hidden_working_members: Literal[0]
+    traversal_limit: Literal[3]
+    omissions: list[str]
+
+
+class ProjectRelationshipViewContent(PetraModel):
+    query: ProjectRelationshipQuery
+    profile: ProjectRelationshipProfile
+    capabilities: ProjectRelationshipCapabilities
+    position: ProjectRelationshipPosition
+    layer: Literal["current"]
+    nodes: list[ProjectRelationshipNode]
+    relationships: list[ProjectRelationshipEdge]
+    path: ProjectRelationshipPath
+    completeness: ProjectRelationshipCompleteness
+    limitations: list[str]
+
+
+class PetraProjectRelationshipView(PetraModel):
+    schema_name: Literal["petra.project-relationship-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: ProjectRelationshipViewContent
+    content_hash: str
+    read_at: str
+
+
 class PetraAuthor(PetraModel):
     schema_name: Literal["petra.author"]
     schema_version: Literal["1.0.0"]
@@ -4514,6 +4673,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-source-view": PetraProjectSourceView,
     "review-session": PetraReviewSession,
     "project-review-view": PetraProjectReviewView,
+    "project-relationship-view": PetraProjectRelationshipView,
     "author": PetraAuthor,
     "work": PetraWork,
     "work-version": PetraWorkVersion,

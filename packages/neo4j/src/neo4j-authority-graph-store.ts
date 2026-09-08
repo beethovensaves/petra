@@ -13,6 +13,7 @@ import {
   type AuthorityGraphProvenancePath,
   type AuthorityGraphRelationClass,
   type AuthorityGraphRelationship,
+  type AuthorityGraphRelationshipQuery,
   type AuthorityGraphRelationshipRemoval,
   type AuthorityGraphStore,
   type GraphCommitReceipt,
@@ -676,6 +677,50 @@ export class Neo4jAuthorityGraphStore implements AuthorityGraphStore {
           node: asNodeView(recordGet(record, "other")),
         };
       });
+    } finally {
+      await session.close();
+    }
+  }
+
+  async getProjectRelationships(
+    projectId: string,
+    query: AuthorityGraphRelationshipQuery = {},
+  ): Promise<readonly AuthorityGraphObjectView[]> {
+    const limit = validateLimit(query.limit);
+    const predicates = query.predicates ?? [];
+    if (predicates.some((predicate) => !RELATION_TYPES.has(predicate))) {
+      throw error("GRAPH_QUERY_INVALID", "Unknown graph predicate filter.");
+    }
+    const session = this.#session();
+    try {
+      const result = await session.executeRead((transaction) =>
+        transaction.run(
+          `MATCH (source:PetraNode)-[relation]->(target:PetraNode)
+           WHERE type(relation) <> 'PROJECTS'
+             AND ($predicates = [] OR type(relation) IN $predicates)
+             AND EXISTS {
+               MATCH (:PetraNode:Project {petra_id: $projectId})-[:PROJECTS]->(source)
+             }
+             AND EXISTS {
+               MATCH (:PetraNode:Project {petra_id: $projectId})-[:PROJECTS]->(target)
+             }
+             AND (relation.project_id IS NULL OR relation.project_id = $projectId)
+           RETURN relation, source.petra_id AS source_id,
+                  target.petra_id AS target_id
+           ORDER BY coalesce(relation.target_sequence, 0) DESC,
+                    type(relation),
+                    coalesce(relation.assertion_id, relation.petra_edge_id)
+           LIMIT $limit`,
+          { projectId, predicates: [...predicates], limit: int(limit) },
+        ),
+      );
+      return result.records.map((record) =>
+        asRelationshipView(
+          recordGet(record, "relation"),
+          recordGet(record, "source_id"),
+          recordGet(record, "target_id"),
+        ),
+      );
     } finally {
       await session.close();
     }

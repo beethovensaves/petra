@@ -11,6 +11,9 @@ import type {
   PetraCommandEnvelope,
   PetraParsedDocument,
   PetraProject,
+  PetraProjectDefinition,
+  PetraProjectObjective,
+  PetraProjectSource,
   PetraProjectionCheckpoint,
   PetraRightsDecision,
   PetraSourceSpan,
@@ -39,6 +42,9 @@ import {
   PostgresDocumentAuthorityRepository,
   PostgresEvidenceAuthorityRepository,
   PostgresGraphProjectionAuthorityRepository,
+  PostgresProjectDefinitionAuthorityRepository,
+  PostgresProjectRelationshipViewReader,
+  PostgresProjectSourceAuthorityRepository,
   PostgresResearchScopeRepository,
   PostgresScholarlyIdentityRepository,
 } from "@petra/postgres";
@@ -299,6 +305,20 @@ describe("Neo4j graph query bounds", () => {
     ).rejects.toEqual(expect.objectContaining({ code: "GRAPH_QUERY_INVALID" }));
     await offlineDriver.close();
   });
+
+  it("rejects an invalid Project relationship predicate before opening a session", async () => {
+    const offlineDriver = neo4j.driver(
+      "bolt://127.0.0.1:1",
+      neo4j.auth.basic("neo4j", "not-used"),
+    );
+    const offline = new Neo4jAuthorityGraphStore({ driver: offlineDriver });
+    await expect(
+      offline.getProjectRelationships("project_01ARZ3NDEKTSV4RRFFQ69G5FAW", {
+        predicates: ["NOT_A_PREDICATE" as "ASSERTS"],
+      }),
+    ).rejects.toEqual(expect.objectContaining({ code: "GRAPH_QUERY_INVALID" }));
+    await offlineDriver.close();
+  });
 });
 
 describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
@@ -318,10 +338,16 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
   );
   const documents = new PostgresDocumentAuthorityRepository(pool);
   const evidence = new PostgresEvidenceAuthorityRepository(pool);
+  const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
+  const projectSources = new PostgresProjectSourceAuthorityRepository(pool);
   const projectionAuthority = new PostgresGraphProjectionAuthorityRepository(
     pool,
   );
   const graph = new Neo4jAuthorityGraphStore({ driver });
+  const relationshipViews = new PostgresProjectRelationshipViewReader(
+    pool,
+    graph,
+  );
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -343,6 +369,12 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
     await scopes.registerActor(modelActor());
     await scopes.registerActor(serviceActor());
     await scopes.registerProjectRevision(readFixture<PetraProject>("project"));
+    await definitions.registerDefinitionRevision(
+      readFixture<PetraProjectDefinition>("project-definition-scientific"),
+    );
+    await definitions.registerObjectiveRevision(
+      readFixture<PetraProjectObjective>("project-objective"),
+    );
     await identities.registerAuthorRevision(readFixture<PetraAuthor>("author"));
     await identities.registerWorkRevision(readFixture<PetraWork>("work"));
     await identities.registerWorkVersionRevision(
@@ -356,6 +388,12 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
     await documents.registerDocumentBundle(
       documentBundle(sourceArtifact.manifest.artifact_manifest_id),
     );
+    const projectSource = readFixture<PetraProjectSource>("project-source");
+    projectSource.content.artifact_manifest_ref.record_hash = hash(
+      sourceArtifact.manifest,
+    );
+    projectSource.content_hash = hash(projectSource.content);
+    await projectSources.registerProjectSourceRevision(projectSource);
     await evidence.proposeClaim(claimFixture());
     await evidence.proposeAssertion(assertionFixture());
 
@@ -474,6 +512,53 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
     expect(provenance?.artifacts).toHaveLength(1);
     expect(provenance?.sourceSpans[0]?.properties).not.toHaveProperty(
       "exact_text",
+    );
+    expect(
+      await graph.getProjectRelationships(event.project_id, {
+        predicates: ["ASSERTS"],
+        limit: 1,
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        id: appliedPayload.assertion.assertion_id,
+        kind: "ASSERTS",
+        projectId: event.project_id,
+      }),
+    ]);
+    expect(
+      await graph.getProjectRelationships(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+        { predicates: ["ASSERTS"], limit: 1 },
+      ),
+    ).toEqual([]);
+    const relationshipView = await relationshipViews.getProjectRelationshipView(
+      event.project_id,
+    );
+    expect(relationshipView?.project_id).toBe(event.project_id);
+    expect(relationshipView?.content.layer).toBe("current");
+    expect(relationshipView?.content.capabilities).toEqual({
+      current: "available",
+      working: "unavailable",
+      historical: "unavailable",
+      comparison: "unavailable",
+      expansion: "unavailable",
+      continuation: "unavailable",
+      text_peer: "available",
+    });
+    expect(relationshipView?.content.nodes).toHaveLength(5);
+    expect(relationshipView?.content.relationships).toHaveLength(4);
+    expect(relationshipView?.content.query.focus_ref.record_id).toBe(
+      appliedPayload.assertion.assertion_id,
+    );
+    expect(
+      relationshipView?.content.nodes.find(
+        (node) => node.object_kind === "source_span",
+      )?.source_destination,
+    ).toEqual(
+      expect.objectContaining({
+        project_source_id: projectSource.project_source_id,
+        status: "active",
+      }),
     );
     const neighborhood = await graph.getNeighborhood(
       event.project_id,

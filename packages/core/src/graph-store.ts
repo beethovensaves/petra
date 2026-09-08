@@ -104,6 +104,11 @@ export interface AuthorityGraphNeighborhoodQuery {
   limit?: number;
 }
 
+export interface AuthorityGraphRelationshipQuery {
+  predicates?: readonly AuthorityGraphPredicate[];
+  limit?: number;
+}
+
 export interface AuthorityGraphProvenancePath {
   assertion: AuthorityGraphObjectView;
   work: AuthorityGraphObjectView;
@@ -150,6 +155,10 @@ export interface AuthorityGraphStore {
     id: string,
     query?: AuthorityGraphNeighborhoodQuery,
   ): Promise<readonly AuthorityGraphNeighbor[]>;
+  getProjectRelationships(
+    projectId: string,
+    query?: AuthorityGraphRelationshipQuery,
+  ): Promise<readonly AuthorityGraphObjectView[]>;
   getProvenancePath(
     projectId: string,
     assertionId: string,

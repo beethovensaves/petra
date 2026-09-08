@@ -21,11 +21,13 @@
     "@petra/adapters": "0.0.0",
     "@petra/contracts": "0.0.0",
     "@petra/core": "0.0.0",
+    "@petra/neo4j": "0.0.0",
     "@petra/postgres": "0.0.0",
     "@petra/s3": "0.0.0",
     "@aws-sdk/client-s3": "3.1124.0",
     "hono": "4.13.5",
     "json-canonicalize": "3.0.0",
+    "neo4j-driver": "6.2.0",
     "pg": "8.16.3"
   },
   "devDependencies": {

@@ -103,6 +103,9 @@ class TestGraphStore implements AuthorityGraphStore {
   getEvidenceRelations(): Promise<readonly AuthorityGraphObjectView[]> {
     return Promise.resolve([]);
   }
+  getProjectRelationships(): Promise<readonly AuthorityGraphObjectView[]> {
+    return Promise.resolve([]);
+  }
   getCitationPath(): Promise<undefined> {
     return Promise.resolve(undefined);
   }

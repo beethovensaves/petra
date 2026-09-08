@@ -41,6 +41,7 @@ export * from "./project-shell-view.js";
 export * from "./project-source-authority-repository.js";
 export * from "./project-source-view.js";
 export * from "./review-session.js";
+export * from "./project-relationship-view.js";
 export * from "./interaction-record-registry.js";
 export * from "./interaction-authority-repository.js";
 export * from "./research-scope-repository.js";

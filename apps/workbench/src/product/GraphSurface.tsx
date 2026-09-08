@@ -1,9 +1,8 @@
 import { useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useLoaderData, useSearchParams } from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
 import { PetraButton, PetraButtonGroup } from "../design-system/primitives.js";
-import { getProjectGraph } from "./fixtures.js";
 import type {
   GraphEdgeRecord,
   GraphLayer,
@@ -30,6 +29,9 @@ const layerPositionLabel = (
   if (layer === "historical") return graph.historicalSnapshot;
   return graph.representedSnapshot;
 };
+
+const layerAvailable = (graph: GraphQuestion, layer: GraphLayer): boolean =>
+  graph.layerAvailability?.[layer].available ?? true;
 
 const nodePosition = (
   node: GraphNodeRecord,
@@ -83,7 +85,9 @@ export const GraphSurface = ({
   initialLayer?: GraphLayer;
   initialSelectedNodeId?: string | undefined;
 }): React.JSX.Element => {
-  const [layer, setLayer] = useState<GraphLayer>(initialLayer);
+  const [layer, setLayer] = useState<GraphLayer>(() =>
+    layerAvailable(graph, initialLayer) ? initialLayer : "current",
+  );
   const [viewMode, setViewMode] = useState<GraphViewMode>("graph");
   const [layout, setLayout] = useState<GraphLayout>("neighborhood");
   const [history, setHistory] = useState<string[]>([
@@ -128,6 +132,7 @@ export const GraphSurface = ({
   };
 
   const selectLayer = (nextLayer: GraphLayer): void => {
+    if (!layerAvailable(graph, nextLayer)) return;
     setLayer(nextLayer);
     const currentSelection = graph.nodes.find(
       (node) => node.id === selectedNodeId,
@@ -149,7 +154,7 @@ export const GraphSurface = ({
         <GraphStatus layer={layer} />
       </header>
 
-      {graph.projectionState === "catching_up" ? (
+      {graph.projectionState !== "current" ? (
         <section
           className="reference-notice"
           aria-labelledby="graph-freshness-title"
@@ -159,50 +164,56 @@ export const GraphSurface = ({
           </span>
           <div>
             <h2 id="graph-freshness-title">
-              Newer authoritative state available
+              {graph.projectionState === "catching_up"
+                ? "Newer authoritative state available"
+                : "Graph projection unavailable"}
             </h2>
             <p>{graph.projectionDetail}</p>
           </div>
         </section>
       ) : null}
 
-      <section
-        className="graph-recommendation"
-        aria-labelledby="graph-recommendation-title"
-      >
-        <span aria-hidden="true">↳</span>
-        <div>
-          <p className="reference-panel-kicker">Contextual recommendation</p>
-          <h2 id="graph-recommendation-title">{graph.recommendation.label}</h2>
-          <p>{graph.recommendation.rationale}</p>
-          <p>{graph.recommendation.consequence}</p>
-        </div>
-        <div className="graph-recommendation__actions">
-          {layer === "working" ? (
-            <>
-              <Link
-                className="reference-text-link"
-                to={`/projects/${project.id}/review/review-service-link`}
+      {graph.recommendation === undefined ? null : (
+        <section
+          className="graph-recommendation"
+          aria-labelledby="graph-recommendation-title"
+        >
+          <span aria-hidden="true">↳</span>
+          <div>
+            <p className="reference-panel-kicker">Contextual recommendation</p>
+            <h2 id="graph-recommendation-title">
+              {graph.recommendation.label}
+            </h2>
+            <p>{graph.recommendation.rationale}</p>
+            <p>{graph.recommendation.consequence}</p>
+          </div>
+          <div className="graph-recommendation__actions">
+            {layer === "working" ? (
+              <>
+                <Link
+                  className="reference-text-link"
+                  to={`/projects/${project.id}/review/review-service-link`}
+                >
+                  Open candidate Review
+                </Link>
+                <Link
+                  className="reference-text-link"
+                  to={`/projects/${project.id}/work/work-process-maintenance`}
+                >
+                  Open related Work
+                </Link>
+              </>
+            ) : (
+              <PetraButton
+                variant="secondary"
+                onClick={() => selectLayer("working")}
               >
-                Open candidate Review
-              </Link>
-              <Link
-                className="reference-text-link"
-                to={`/projects/${project.id}/work/work-process-maintenance`}
-              >
-                Open related Work
-              </Link>
-            </>
-          ) : (
-            <PetraButton
-              variant="secondary"
-              onClick={() => selectLayer("working")}
-            >
-              Show recommended branch
-            </PetraButton>
-          )}
-        </div>
-      </section>
+                Show recommended branch
+              </PetraButton>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="graph-task" aria-labelledby="graph-result-title">
         <header className="graph-task__header">
@@ -221,6 +232,17 @@ export const GraphSurface = ({
                 density="compact"
                 variant={layer === layerId ? "secondary" : "quiet"}
                 aria-pressed={layer === layerId}
+                aria-disabled={!layerAvailable(graph, layerId)}
+                aria-label={
+                  layerAvailable(graph, layerId)
+                    ? LAYER_LABELS[layerId]
+                    : `${LAYER_LABELS[layerId]}: ${graph.layerAvailability?.[layerId].label ?? "Unavailable"}`
+                }
+                title={
+                  layerAvailable(graph, layerId)
+                    ? undefined
+                    : graph.layerAvailability?.[layerId].label
+                }
                 onClick={() => selectLayer(layerId)}
               >
                 {LAYER_LABELS[layerId]}
@@ -456,7 +478,8 @@ export const GraphSurface = ({
                     Open exact source
                   </Link>
                 )}
-                {selectedNode.id === graph.recommendation.branchNodeId ? (
+                {graph.recommendation !== undefined &&
+                selectedNode.id === graph.recommendation.branchNodeId ? (
                   <Link
                     className="reference-text-link"
                     to={`/projects/${project.id}/review/review-service-link`}
@@ -509,18 +532,8 @@ export const GraphSurface = ({
 
 export const GraphRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const graph = getProjectGraph(project.id);
+  const graph = useLoaderData<GraphQuestion | undefined>();
   const [searchParams] = useSearchParams();
-  const requestedLayer = searchParams.get("layer");
-  const initialLayer: GraphLayer =
-    requestedLayer === "working" || requestedLayer === "historical"
-      ? requestedLayer
-      : "current";
-  const requestedNodeId = searchParams.get("selected");
-  const initialSelectedNodeId = graph?.nodes.find(
-    (node) => node.id === requestedNodeId && node.layers.includes(initialLayer),
-  )?.id;
-
   if (graph === undefined) {
     return (
       <main className="reference-surface" id="reference-main">
@@ -539,10 +552,11 @@ export const GraphRoute = (): React.JSX.Element => {
           aria-labelledby="graph-empty-title"
         >
           <PetraMark />
-          <h2 id="graph-empty-title">Choose a task before opening a graph</h2>
+          <h2 id="graph-empty-title">No supported current path is available</h2>
           <p>
-            {project.focus.value} has no registered Graph question in this
-            Project. Petra will not substitute a whole-Project network.
+            {project.focus.value} has no exact current relationship path that
+            this M1 graph reader can present. Petra did not substitute a
+            whole-Project network or fixture.
           </p>
           <Link
             className="reference-text-link"
@@ -554,6 +568,16 @@ export const GraphRoute = (): React.JSX.Element => {
       </main>
     );
   }
+  const requestedLayer = searchParams.get("layer");
+  const initialLayer: GraphLayer =
+    (requestedLayer === "working" || requestedLayer === "historical") &&
+    layerAvailable(graph, requestedLayer)
+      ? requestedLayer
+      : "current";
+  const requestedNodeId = searchParams.get("selected");
+  const initialSelectedNodeId = graph.nodes.find(
+    (node) => node.id === requestedNodeId && node.layers.includes(initialLayer),
+  )?.id;
 
   return (
     <GraphSurface

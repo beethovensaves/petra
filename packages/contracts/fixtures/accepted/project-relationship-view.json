@@ -1,0 +1,283 @@
+{
+  "schema_name": "petra.project-relationship-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "query": {
+      "request_hash": "sha256:738d74b573b2764c47267d3da67b6454fc2e1f2dd3687ebf4285a871c5786c54",
+      "query_kind": "scientific_provenance_path",
+      "question": "Determine which claims in the selected source are supported by exact inspectable passages.",
+      "scope": "One current Claim-ASSERTS relationship and its retained WorkVersion, Work, SourceSpan, and Artifact provenance path.",
+      "focus_ref": {
+        "record_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+        "revision": 2,
+        "record_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+      },
+      "objective_ref": {
+        "record_id": "objective_01K4C000000000000000000005",
+        "revision": 1,
+        "record_hash": "sha256:38d1df70ad42ee22d959cafe6a431f4662dbcf7cc8caf18d8a07dc2077e61b8c"
+      },
+      "requested_position": "current_authority",
+      "maximum_depth": 3
+    },
+    "profile": {
+      "project_definition_ref": {
+        "record_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+      },
+      "label": "Scientific evidence inquiry",
+      "object_term": "Claim",
+      "relationship_term": "Relationship",
+      "source_term": "Source"
+    },
+    "capabilities": {
+      "current": "available",
+      "working": "unavailable",
+      "historical": "unavailable",
+      "comparison": "unavailable",
+      "expansion": "unavailable",
+      "continuation": "unavailable",
+      "text_peer": "available"
+    },
+    "position": {
+      "isolation": "repeatable_read_with_projection_guard",
+      "authority": {
+        "event_position": 3,
+        "stream_revision": 3
+      },
+      "projection": {
+        "checkpoint_ref": {
+          "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+          "revision": 3,
+          "content_hash": "sha256:94fd6aa60a0b51b2d84308677e4d3d378781f5b8b545d888ad7af21c532c123b"
+        },
+        "state": "current",
+        "represented_event_position": 3,
+        "represented_stream_revision": 3,
+        "represented_target_sequence": 1,
+        "observed_event_position": 3,
+        "observed_stream_revision": 3,
+        "observed_target_sequence": 1,
+        "pending_records": 0,
+        "detail": "The graph represents Project stream revision 3 at authoritative event 3."
+      }
+    },
+    "layer": "current",
+    "nodes": [
+      {
+        "node_ref": {
+          "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 2,
+          "record_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+        },
+        "object_kind": "claim",
+        "label": "The study reports a measurable improvement.",
+        "summary": "A descriptive Claim retained in trusted scientific authority.",
+        "basis": "Full text; one exact source span; source-stated and human accepted.",
+        "layer": "current",
+        "lifecycle": "represented",
+        "source_destination": {
+          "project_source_id": "project_source_01K4C000000000000000000007",
+          "status": "active",
+          "label": "Open exact Source"
+        }
+      },
+      {
+        "node_ref": {
+          "record_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+          "revision": 1,
+          "record_hash": "sha256:dba5ca5f392635236e74d317bf2b7443e70c9e991fe85d11f18e5ccaf163f965"
+        },
+        "object_kind": "work_version",
+        "label": "Version of record",
+        "summary": "The peer-reviewed WorkVersion that asserts the selected Claim.",
+        "basis": "Exact WorkVersion revision 1 in the represented projection.",
+        "layer": "current",
+        "lifecycle": "represented",
+        "source_destination": {
+          "project_source_id": "project_source_01K4C000000000000000000007",
+          "status": "active",
+          "label": "Open exact Source"
+        }
+      },
+      {
+        "node_ref": {
+          "record_id": "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+          "revision": 1,
+          "record_hash": "sha256:617df314092d3bc433c21ad70790e0d02e8b88e2341f7988eb75df376ef4e923"
+        },
+        "object_kind": "work",
+        "label": "A testable account of competing explanations",
+        "summary": "The scholarly Work owning the represented version.",
+        "basis": "Exact Work revision 1 in the represented projection.",
+        "layer": "current",
+        "lifecycle": "represented",
+        "source_destination": {
+          "project_source_id": "project_source_01K4C000000000000000000007",
+          "status": "active",
+          "label": "Open exact Source"
+        }
+      },
+      {
+        "node_ref": {
+          "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          "revision": 1,
+          "record_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+        },
+        "object_kind": "source_span",
+        "label": "measurable improvement",
+        "summary": "Exact text and geometry verified on page 1 in Results / Paragraph 1.",
+        "basis": "SourceSpan revision 1 over the verified PDF bytes.",
+        "layer": "current",
+        "lifecycle": "represented",
+        "source_destination": {
+          "project_source_id": "project_source_01K4C000000000000000000007",
+          "status": "active",
+          "label": "Open exact Source"
+        }
+      },
+      {
+        "node_ref": {
+          "record_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+          "revision": 1,
+          "record_hash": "sha256:0506615fb88f7407f25a27ab2cbed631b1214db4bdbd82c6b3a163cfb84b214e"
+        },
+        "object_kind": "artifact",
+        "label": "Verified PDF copy",
+        "summary": "A 21-byte content-addressed PDF Artifact retained by Petra.",
+        "basis": "Artifact revision 1; byte identity sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e.",
+        "layer": "current",
+        "lifecycle": "represented",
+        "source_destination": {
+          "project_source_id": "project_source_01K4C000000000000000000007",
+          "status": "active",
+          "label": "Open exact Source"
+        }
+      }
+    ],
+    "relationships": [
+      {
+        "relationship_ref": {
+          "element_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "revision": 2,
+          "record_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+        },
+        "predicate": "ASSERTS",
+        "relation_class": "representation",
+        "source_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+        "target_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "direction": "outgoing",
+        "label": "asserts",
+        "summary": "The WorkVersion states this exact Claim.",
+        "basis": "Trusted source-stated Assertion revision 2 with human acceptance.",
+        "layer": "current",
+        "assertion_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC"
+      },
+      {
+        "relationship_ref": {
+          "element_id": "claim:claim_01ARZ3NDEKTSV4RRFFQ69G5FBB:grounded-in:source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          "revision": 2,
+          "record_hash": "sha256:0677c176b8ba499dc7d1014643ed94812ce15ef8c3e5ae1b6f40f0300fe2ce04"
+        },
+        "predicate": "GROUNDED_IN",
+        "relation_class": "provenance",
+        "source_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "target_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+        "direction": "outgoing",
+        "label": "grounded in",
+        "summary": "The Claim identifies this exact SourceSpan as its principal basis.",
+        "basis": "Claim revision 2 source basis.",
+        "layer": "current"
+      },
+      {
+        "relationship_ref": {
+          "element_id": "span:source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7:located-in:artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+          "revision": 1,
+          "record_hash": "sha256:2beea1f41e2f1e797a8929fbda005ddadb43fdfb9ffbaeece10dd850ade02263"
+        },
+        "predicate": "LOCATED_IN",
+        "relation_class": "structural",
+        "source_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+        "target_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+        "direction": "outgoing",
+        "label": "located in",
+        "summary": "The SourceSpan selects material from this exact Artifact.",
+        "basis": "SourceSpan revision 1 and its Artifact content hash.",
+        "layer": "current"
+      },
+      {
+        "relationship_ref": {
+          "element_id": "version:work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0:of:work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+          "revision": 1,
+          "record_hash": "sha256:3ff383ff4bda9ba94e0ac7a9eec36e5c71385641cc8943ac320efb774388ada8"
+        },
+        "predicate": "VERSION_OF",
+        "relation_class": "structural",
+        "source_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+        "target_id": "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+        "direction": "outgoing",
+        "label": "version of",
+        "summary": "The represented WorkVersion belongs to this Work identity.",
+        "basis": "WorkVersion revision 1.",
+        "layer": "current"
+      }
+    ],
+    "path": {
+      "path_kind": "scientific_provenance",
+      "state": "complete_for_selected_relationship",
+      "ordering_rationale": "The selected ASSERTS relationship is shown first, followed by Claim grounding, Artifact location, and Work identity context.",
+      "steps": [
+        {
+          "position": 1,
+          "from_node_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+          "relationship_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "to_node_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "repeated_member": false
+        },
+        {
+          "position": 2,
+          "from_node_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "relationship_id": "claim:claim_01ARZ3NDEKTSV4RRFFQ69G5FBB:grounded-in:source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          "to_node_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          "repeated_member": false
+        },
+        {
+          "position": 3,
+          "from_node_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          "relationship_id": "span:source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7:located-in:artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+          "to_node_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+          "repeated_member": false
+        },
+        {
+          "position": 4,
+          "from_node_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+          "relationship_id": "version:work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0:of:work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+          "to_node_id": "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+          "repeated_member": true
+        }
+      ]
+    },
+    "completeness": {
+      "state": "complete_for_selected_relationship",
+      "scope": "Complete for the selected ASSERTS relationship and its recorded provenance path; not a whole-Project graph.",
+      "returned_nodes": 5,
+      "returned_relationships": 4,
+      "known_path_nodes": 5,
+      "known_path_relationships": 4,
+      "filtered_members": 0,
+      "hidden_working_members": 0,
+      "traversal_limit": 3,
+      "omissions": [
+        "Working and historical layers, comparison, expansion, continuation, and whole-Project totals are unavailable in version 1.0."
+      ]
+    },
+    "limitations": [
+      "This current-only projection result does not reconstruct historical positions or include unapplied Review candidates.",
+      "Graph position and line length are client-owned presentation and carry no authority or scientific meaning."
+    ]
+  },
+  "content_hash": "sha256:b58b3e4ff38d396efee55c6415c2b63199e98f8cced19abf8114bc4321c399e0",
+  "read_at": "2026-09-08T17:00:00.000Z"
+}

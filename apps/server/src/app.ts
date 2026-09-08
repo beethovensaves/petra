@@ -22,6 +22,7 @@ import {
   derivePetraId,
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
+  type ProjectRelationshipViewReader,
   type ProjectReviewViewReader,
   type ProjectShellViewReader,
   type ProjectSourceViewReader,
@@ -46,6 +47,7 @@ export interface PetraAppOptions {
   projectShellViews?: ProjectShellViewReader;
   projectSourceViews?: ProjectSourceViewReader;
   projectReviewViews?: ProjectReviewViewReader;
+  projectRelationshipViews?: ProjectRelationshipViewReader;
 }
 
 export interface PetraApp {
@@ -531,6 +533,45 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project Review view is unavailable.",
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/relationship-view",
+    async (context) => {
+      if (options.projectRelationshipViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_RELATIONSHIPS_UNAVAILABLE",
+          "The authorized Project relationship read boundary is not configured.",
+        );
+      }
+      try {
+        const view =
+          await options.projectRelationshipViews.getProjectRelationshipView(
+            context.req.param("projectId"),
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_RELATIONSHIP_NOT_FOUND",
+            "No current supported relationship path is available for this Project.",
+          );
+        }
+        contracts.assertValid("project-relationship-view", "1.0.0", view);
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_RELATIONSHIP_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project relationship view is unavailable.",
         );
       }
     },

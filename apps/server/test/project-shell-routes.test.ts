@@ -1,11 +1,13 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectSourceView,
 } from "@petra/contracts";
 import type {
+  ProjectRelationshipViewReader,
   ProjectReviewViewReader,
   ProjectShellViewReader,
   ProjectSourceViewReader,
@@ -46,6 +48,16 @@ const reviewFixture = JSON.parse(
   ),
 ) as PetraProjectReviewView;
 
+const relationshipFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-relationship-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectRelationshipView;
+
 const reader: ProjectShellViewReader = {
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
@@ -82,6 +94,15 @@ const reviewReader: ProjectReviewViewReader = {
       projectId === reviewFixture.project_id &&
         reviewSessionId === reviewFixture.review_session_id
         ? structuredClone(reviewFixture)
+        : undefined,
+    ),
+};
+
+const relationshipReader: ProjectRelationshipViewReader = {
+  getProjectRelationshipView: (projectId) =>
+    Promise.resolve(
+      projectId === relationshipFixture.project_id
+        ? structuredClone(relationshipFixture)
         : undefined,
     ),
 };
@@ -230,5 +251,30 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(body.error.code).toBe("PROJECT_REVIEW_NOT_FOUND");
+  });
+
+  it("returns only the bounded relationship view authorized for the exact Project", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectRelationshipViews: relationshipReader,
+    });
+    const current = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${relationshipFixture.project_id}/relationship-view`,
+      ),
+    );
+    expect(current.status).toBe(200);
+    await expect(current.json()).resolves.toEqual(relationshipFixture);
+
+    const crossProject = await petra.app.request(
+      authorized(
+        "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/relationship-view",
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    const body = JSON.parse(await crossProject.text()) as {
+      error: { code: string };
+    };
+    expect(body.error.code).toBe("PROJECT_RELATIONSHIP_NOT_FOUND");
   });
 });

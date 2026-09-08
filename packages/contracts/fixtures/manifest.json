@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.16.0",
+  "fixture_manifest_version": "1.17.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -44,6 +44,10 @@
     {
       "schema": "project-review-view",
       "path": "fixtures/accepted/project-review-view.json"
+    },
+    {
+      "schema": "project-relationship-view",
+      "path": "fixtures/accepted/project-relationship-view.json"
     },
     {
       "schema": "author",
@@ -383,6 +387,10 @@
     {
       "schema": "project-review-view",
       "path": "fixtures/rejected/project-review-view-wrong-session-id.json"
+    },
+    {
+      "schema": "project-relationship-view",
+      "path": "fixtures/rejected/project-relationship-view-claims-history.json"
     },
     {
       "schema": "author",

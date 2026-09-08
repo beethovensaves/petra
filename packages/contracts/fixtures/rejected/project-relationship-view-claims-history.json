@@ -1,0 +1,27 @@
+{
+  "schema_name": "petra.project-relationship-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "query": {},
+    "profile": {},
+    "capabilities": {
+      "current": "available",
+      "working": "unavailable",
+      "historical": "available",
+      "comparison": "unavailable",
+      "expansion": "unavailable",
+      "continuation": "unavailable",
+      "text_peer": "available"
+    },
+    "position": {},
+    "layer": "historical",
+    "nodes": [],
+    "relationships": [],
+    "path": {},
+    "completeness": {},
+    "limitations": []
+  },
+  "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "read_at": "2026-09-08T17:00:00.000Z"
+}

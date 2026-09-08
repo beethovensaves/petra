@@ -96,6 +96,24 @@ export type {
   SessionSummary as ProjectReviewSessionSummary,
   ValidationSummary as ProjectReviewValidationSummary,
 } from "./generated/project-review-view.js";
+export type {
+  AuthorityPosition as ProjectRelationshipAuthorityPosition,
+  Capabilities as ProjectRelationshipCapabilities,
+  Completeness as ProjectRelationshipCompleteness,
+  ExactRef as ProjectRelationshipExactRef,
+  GraphElementRef as ProjectRelationshipGraphElementRef,
+  Node as ProjectRelationshipNode,
+  Path as ProjectRelationshipPath,
+  PathStep as ProjectRelationshipPathStep,
+  PetraProjectRelationshipView,
+  Position as ProjectRelationshipPosition,
+  Profile as ProjectRelationshipProfile,
+  ProjectionPosition as ProjectRelationshipProjectionPosition,
+  Query as ProjectRelationshipQuery,
+  Relationship as ProjectRelationship,
+  SourceDestination as ProjectRelationshipSourceDestination,
+  ViewContent as ProjectRelationshipViewContent,
+} from "./generated/project-relationship-view.js";
 export type { AuthorCredit, PetraWork } from "./generated/work.js";
 export type {
   MetadataSource,

@@ -33,6 +33,7 @@ import {
 import type { EngineState } from "./product/model.js";
 import {
   loadProjectCollection,
+  loadProjectRelationshipView,
   loadProjectRecord,
   loadProjectReviewCollection,
   loadProjectReviewSession,
@@ -89,7 +90,11 @@ export const router = createBrowserRouter([
             loader: loadProjectReviewSession,
             element: <ReviewSessionRoute />,
           },
-          { path: "graph", element: <GraphRoute /> },
+          {
+            path: "graph",
+            loader: loadProjectRelationshipView,
+            element: <GraphRoute />,
+          },
           { path: "work", element: <WorkCollectionRoute /> },
           { path: "work/:workId", element: <WorkDetailRoute /> },
           { path: "petra", element: <PetraRoute /> },

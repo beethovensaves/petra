@@ -9,6 +9,7 @@ import {
   getReferenceReview,
 } from "./fixtures.js";
 import { GraphSurface } from "./GraphSurface.js";
+import type { GraphQuestion } from "./model.js";
 import {
   ReviewCollectionSurface,
   ReviewSessionSurface,
@@ -122,5 +123,37 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain("Following another branch is valid");
     expect(markup).toContain("does not damage accepted Project state");
     expect(markup).toContain("Show recommended branch");
+  });
+
+  it("keeps unsupported working and historical layers visible but unavailable", () => {
+    const currentOnly: GraphQuestion = {
+      ...graph,
+      layerAvailability: {
+        current: { available: true, label: "Current" },
+        working: { available: false, label: "Working is not implemented" },
+        historical: {
+          available: false,
+          label: "History is not implemented",
+        },
+      },
+    };
+    delete currentOnly.recommendation;
+    const markup = render(
+      <GraphSurface
+        project={project}
+        graph={currentOnly}
+        initialLayer="working"
+      />,
+    );
+
+    expect(markup).toContain("Current at Snapshot 17 contains 4 objects");
+    expect(markup).toContain(
+      'aria-label="Working changes: Working is not implemented"',
+    );
+    expect(markup).toContain(
+      'aria-label="Historical: History is not implemented"',
+    );
+    expect(markup).not.toContain("Show recommended branch");
+    expect(markup).not.toContain("Timing dependency");
   });
 });

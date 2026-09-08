@@ -1,4 +1,5 @@
 import type {
+  PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectSourceView,
@@ -8,6 +9,7 @@ import type { LoaderFunctionArgs } from "react-router";
 
 import type {
   AttentionItem,
+  GraphQuestion,
   ProjectProfile,
   ProjectRecord,
   ReviewSession,
@@ -89,6 +91,24 @@ const reviewView = (value: unknown): PetraProjectReviewView => {
     );
   }
   return value as unknown as PetraProjectReviewView;
+};
+
+const relationshipView = (value: unknown): PetraProjectRelationshipView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-relationship-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project relationship view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectRelationshipView;
 };
 
 const requestJson = async (path: string): Promise<unknown> => {
@@ -362,6 +382,83 @@ export const reviewSessionFromView = (
   };
 };
 
+const graphPosition = (
+  kind: PetraProjectRelationshipView["content"]["nodes"][number]["object_kind"],
+  index: number,
+): { x: number; y: number } => {
+  const positions = {
+    work: { x: 18, y: 18 },
+    work_version: { x: 40, y: 26 },
+    claim: { x: 63, y: 43 },
+    source_span: { x: 55 + (index % 2) * 20, y: 67 },
+    artifact: { x: 30 + (index % 3) * 24, y: 87 },
+  } as const;
+  return positions[kind];
+};
+
+export const graphQuestionFromView = (
+  view: PetraProjectRelationshipView,
+): GraphQuestion => {
+  const assertion = view.content.relationships.find(
+    (relationship) => relationship.predicate === "ASSERTS",
+  );
+  if (
+    assertion === undefined ||
+    !view.content.nodes.some(
+      (node) => node.node_ref.record_id === assertion.target_id,
+    )
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a relationship view without its selected Claim node.",
+      502,
+    );
+  }
+  const { authority, projection } = view.content.position;
+  const unavailable = "Unavailable in the current M1 relationship view";
+  return {
+    id: view.content.query.request_hash,
+    projectId: view.project_id,
+    question: view.content.query.question,
+    focusNodeId: assertion.target_id,
+    scope: view.content.query.scope,
+    completeness: `${view.content.completeness.scope} ${view.content.completeness.omissions.join(" ")}`,
+    authoritativeSnapshot: `Authority event ${authority.event_position} · Project stream ${authority.stream_revision}`,
+    representedSnapshot: `Represented event ${projection.represented_event_position} · Project stream ${projection.represented_stream_revision} · graph target ${projection.represented_target_sequence}`,
+    historicalSnapshot: unavailable,
+    workingRevision: unavailable,
+    projectionState:
+      projection.state === "blocked" ? "unavailable" : projection.state,
+    projectionDetail: projection.detail,
+    layerAvailability: {
+      current: { available: true, label: "Current" },
+      working: { available: false, label: unavailable },
+      historical: { available: false, label: unavailable },
+    },
+    nodes: view.content.nodes.map((node, index) => ({
+      id: node.node_ref.record_id,
+      label: node.label,
+      kind: titleCase(node.object_kind),
+      summary: node.summary,
+      basis: node.basis,
+      ...(node.source_destination === undefined
+        ? {}
+        : { sourceId: node.source_destination.project_source_id }),
+      layers: ["current"],
+      position: graphPosition(node.object_kind, index),
+    })),
+    edges: view.content.relationships.map((relationship) => ({
+      id: relationship.relationship_ref.element_id,
+      from: relationship.source_id,
+      to: relationship.target_id,
+      label: relationship.label,
+      summary: relationship.summary,
+      basis: relationship.basis,
+      layers: ["current"],
+      tone: "neutral",
+    })),
+  };
+};
+
 export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
   const value = await requestJson("/api/queries/projects");
   if (!isRecord(value) || !Array.isArray(value.projects)) {
@@ -487,4 +584,29 @@ export const loadProjectReviewSession = async ({
     );
   }
   return reviewSessionFromView(view);
+};
+
+export const loadProjectRelationshipView = async ({
+  params,
+}: LoaderFunctionArgs): Promise<GraphQuestion | undefined> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  let value: unknown;
+  try {
+    value = await requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/relationship-view`,
+    );
+  } catch (error) {
+    if (error instanceof ProjectDataError && error.status === 404) {
+      return undefined;
+    }
+    throw error;
+  }
+  const view = relationshipView(value);
+  if (view.project_id !== projectId) {
+    throw new ProjectDataError(
+      "Petra returned a relationship view from another Project.",
+      502,
+    );
+  }
+  return graphQuestionFromView(view);
 };

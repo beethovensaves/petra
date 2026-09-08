@@ -183,7 +183,8 @@ export type GraphQuestion = {
   workingRevision: string;
   projectionState: ProjectionState;
   projectionDetail: string;
-  recommendation: {
+  layerAvailability?: Record<GraphLayer, { available: boolean; label: string }>;
+  recommendation?: {
     branchNodeId: string;
     label: string;
     rationale: string;
