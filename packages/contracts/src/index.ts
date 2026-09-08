@@ -149,6 +149,20 @@ export type {
   WorkVersionRef as ProjectSourceWorkVersionRef,
 } from "./generated/project-source.js";
 export type {
+  AuthorityPosition as ProjectSourceLifecycleAuthorityPosition,
+  ExactDependentRef as ProjectSourceLifecycleDependentRef,
+  Impact as ProjectSourceLifecycleImpact,
+  ImpactGroup as ProjectSourceLifecycleImpactGroup,
+  LifecycleContent as ProjectSourceLifecycleContent,
+  NotApplicableTransition as ProjectSourceLifecycleNotApplicableTransition,
+  Operation as ProjectSourceLifecycleOperation,
+  PetraProjectSourceLifecycleView,
+  PreviewTransition as ProjectSourceLifecyclePreviewTransition,
+  RetentionItem as ProjectSourceLifecycleRetentionItem,
+  SourceRef as ProjectSourceLifecycleSourceRef,
+  UnavailableTransition as ProjectSourceLifecycleUnavailableTransition,
+} from "./generated/project-source-lifecycle-view.js";
+export type {
   AuthorityPosition as ProjectSourceAuthorityPosition,
   BindingSummary as ProjectSourceBindingSummary,
   CopySummary as ProjectSourceCopySummary,

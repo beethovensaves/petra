@@ -29,6 +29,8 @@ import {
   type ProjectRelationshipViewReader,
   type ProjectReviewViewReader,
   type ProjectShellViewReader,
+  type ProjectSourceLifecycleAction,
+  type ProjectSourceLifecycleViewReader,
   type ProjectSourceViewReader,
   type ProjectThreadLifecycleFilter,
   type ProjectThreadViewReader,
@@ -55,6 +57,7 @@ export interface PetraAppOptions {
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
   projectSourceViews?: ProjectSourceViewReader;
+  projectSourceLifecycleViews?: ProjectSourceLifecycleViewReader;
   projectReviewViews?: ProjectReviewViewReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
   projectObjectLocations?: ProjectObjectLocationViewReader;
@@ -101,6 +104,8 @@ const PROJECT_INQUIRY_STATUSES: readonly ProjectInquiryAuthoredStatus[] = [
   "superseded",
   "abandoned",
 ];
+const PROJECT_SOURCE_LIFECYCLE_ACTIONS: readonly ProjectSourceLifecycleAction[] =
+  ["exclude_project_source", "restore_project_source", "delete_local_copy"];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1092,6 +1097,91 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       );
     }
   });
+
+  app.get(
+    "/api/queries/projects/:projectId/sources/:projectSourceId/lifecycle",
+    async (context) => {
+      if (options.projectSourceLifecycleViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_LIFECYCLE_UNAVAILABLE",
+          "The authorized Project source lifecycle preview boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const unknown = [...parameters.keys()].filter(
+          (key) => key !== "requested_action",
+        );
+        if (unknown.length > 0) {
+          throw new InteractionInputError(
+            "Project source lifecycle preview contains unregistered query parameters.",
+            [...new Set(unknown)],
+          );
+        }
+        if (parameters.getAll("requested_action").length !== 1) {
+          throw new InteractionInputError(
+            "Project source lifecycle requested_action must appear exactly once.",
+          );
+        }
+        const requestedAction = optionalEnum(
+          Object.fromEntries(parameters.entries()),
+          "requested_action",
+          PROJECT_SOURCE_LIFECYCLE_ACTIONS,
+        );
+        if (requestedAction === undefined) {
+          throw new InteractionInputError(
+            "Project source lifecycle requested_action is required.",
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (!/^project_source_[0-9A-HJKMNP-TV-Z]{26}$/u.test(projectSourceId)) {
+          throw new InteractionInputError(
+            "Project source lifecycle preview requires a canonical ProjectSource identity.",
+          );
+        }
+        const view =
+          await options.projectSourceLifecycleViews.getProjectSourceLifecycleView(
+            projectId,
+            projectSourceId,
+            requestedAction,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_SOURCE_NOT_FOUND",
+            "The requested source is not bound to this Project.",
+          );
+        }
+        contracts.assertValid("project-source-lifecycle-view", "1.0.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.project_source_id !== projectSourceId ||
+          view.content.requested_action !== requestedAction
+        ) {
+          throw new Error(
+            "The Project source lifecycle reader returned a different Project, source, or action.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_SOURCE_LIFECYCLE_QUERY_INVALID"
+            : "PROJECT_SOURCE_LIFECYCLE_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project source lifecycle preview is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
 
   app.get(
     "/api/queries/projects/:projectId/sources/:projectSourceId",

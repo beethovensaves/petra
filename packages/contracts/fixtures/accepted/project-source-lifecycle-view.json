@@ -1,0 +1,189 @@
+{
+  "schema_name": "petra.project-source-lifecycle-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_source_id": "project_source_01K4C000000000000000000007",
+  "content": {
+    "requested_action": "exclude_project_source",
+    "source_ref": {
+      "project_source_id": "project_source_01K4C000000000000000000007",
+      "revision": 1,
+      "content_hash": "sha256:c6e1c7abe0e2c29f7dc0454d1c6d6ab10526fd3f82612299053b1aa88d5fc4db",
+      "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c",
+      "status": "active"
+    },
+    "transition": {
+      "state": "preview_available",
+      "from_status": "active",
+      "to_status": "excluded",
+      "effect": "ordinary_new_use_disabled",
+      "reason": "Exclusion would end ordinary new Project use under this source binding while retaining its exact history and dependencies."
+    },
+    "impact": {
+      "scope": "registered_direct_and_scientific_downstream",
+      "groups": [
+        {
+          "group_kind": "parsed_documents",
+          "total_count": 1,
+          "returned_count": 1,
+          "coverage": "complete",
+          "refs": [
+            {
+              "record_kind": "parsed_document",
+              "record_id": "parsed_document_01ARZ3NDEKTSV4RRFFQ69G5FB5",
+              "revision": 1,
+              "record_hash": "sha256:fa43619755a2970b72ec5f0525b93214f144dd1eae021c2fb72bdb0b922c6916",
+              "posture": "current",
+              "effect": "retained"
+            }
+          ],
+          "effect": "retained"
+        },
+        {
+          "group_kind": "structural_blocks",
+          "total_count": 1,
+          "returned_count": 1,
+          "coverage": "complete",
+          "refs": [
+            {
+              "record_kind": "structural_block",
+              "record_id": "structural_block_01ARZ3NDEKTSV4RRFFQ69G5FB6",
+              "revision": 1,
+              "record_hash": "sha256:ebe209cea9bce2f79ccc5d485470eb76592699d8a1f8b6f490b481e208a39716",
+              "posture": "current",
+              "effect": "retained"
+            }
+          ],
+          "effect": "retained"
+        },
+        {
+          "group_kind": "source_spans",
+          "total_count": 1,
+          "returned_count": 1,
+          "coverage": "complete",
+          "refs": [
+            {
+              "record_kind": "source_span",
+              "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+              "revision": 1,
+              "record_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565",
+              "posture": "current",
+              "effect": "retained"
+            }
+          ],
+          "effect": "retained"
+        },
+        {
+          "group_kind": "claims",
+          "total_count": 1,
+          "returned_count": 1,
+          "coverage": "complete",
+          "refs": [
+            {
+              "record_kind": "claim",
+              "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "revision": 1,
+              "record_hash": "sha256:037b05d18954bd81029717fb0ff00c9f21e14895db98e4c2dfb2691aaf501db3",
+              "posture": "current_and_historical",
+              "effect": "retained"
+            }
+          ],
+          "effect": "retained"
+        },
+        {
+          "group_kind": "assertions",
+          "total_count": 1,
+          "returned_count": 1,
+          "coverage": "complete",
+          "refs": [
+            {
+              "record_kind": "assertion",
+              "record_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "revision": 1,
+              "record_hash": "sha256:70ec8b8bc12777b67628ea35be16dcdaf6a071746fed64d3d1e8005c72c73d80",
+              "posture": "current_and_historical",
+              "effect": "retained"
+            }
+          ],
+          "effect": "retained"
+        },
+        {
+          "group_kind": "active_work",
+          "total_count": 0,
+          "returned_count": 0,
+          "coverage": "complete",
+          "refs": [],
+          "effect": "retained"
+        },
+        {
+          "group_kind": "open_reviews",
+          "total_count": 0,
+          "returned_count": 0,
+          "coverage": "complete",
+          "refs": [],
+          "effect": "retained"
+        },
+        {
+          "group_kind": "grounded_responses",
+          "total_count": 0,
+          "returned_count": 0,
+          "coverage": "complete",
+          "refs": [],
+          "effect": "retained"
+        }
+      ],
+      "limitations": [
+        "The initial preview follows direct parsed representation, scientific Claim and Assertion grounding, direct Artifact Work inputs, open Review membership, and GroundedResponse dependencies.",
+        "It does not infer transitive profile-specific dependencies that lack a registered ProjectSource lifecycle adapter."
+      ]
+    },
+    "retention": [
+      {
+        "area": "project_source_history",
+        "state": "retained",
+        "reason": "Every immutable ProjectSource revision remains addressable."
+      },
+      {
+        "area": "canonical_identity",
+        "state": "retained",
+        "reason": "The canonical Work identity remains unchanged."
+      },
+      {
+        "area": "selected_work_version",
+        "state": "retained",
+        "reason": "The exact selected WorkVersion remains unchanged."
+      },
+      {
+        "area": "artifact_manifest",
+        "state": "retained",
+        "reason": "The exact ArtifactManifest and rights lineage remain unchanged."
+      },
+      {
+        "area": "local_artifact",
+        "state": "deletion_unavailable",
+        "reason": "No Artifact retention policy or local-copy deletion command is registered."
+      },
+      {
+        "area": "parsed_representation",
+        "state": "retained",
+        "reason": "ParsedDocument, StructuralBlock, and SourceSpan records remain unchanged."
+      },
+      {
+        "area": "provenance",
+        "state": "retained",
+        "reason": "Existing scientific provenance and downstream authority remain inspectable."
+      }
+    ],
+    "operation": {
+      "state": "unavailable",
+      "reason": "ProjectSource lifecycle commands and their Project event receipts are not registered in this read-only preview slice."
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 3
+    }
+  },
+  "content_hash": "sha256:375faaee34feb9e5b94e136ec726148608e5fa8e240bbd10922a018a0305dd70",
+  "read_at": "2026-09-08T23:30:00.000Z"
+}

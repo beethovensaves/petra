@@ -555,6 +555,120 @@ class PetraProjectSourceView(PetraModel):
     read_at: str
 
 
+class ProjectSourceLifecycleSourceRef(PetraModel):
+    project_source_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+    status: Literal["active", "excluded"]
+
+
+class ProjectSourceLifecycleExactDependentRef(PetraModel):
+    record_kind: Literal[
+        "parsed_document",
+        "structural_block",
+        "source_span",
+        "claim",
+        "assertion",
+        "work_unit",
+        "review_session",
+        "grounded_response",
+    ]
+    record_id: str
+    revision: int
+    record_hash: str
+    posture: Literal["current", "historical", "current_and_historical"]
+    effect: Literal["retained"]
+
+
+class ProjectSourceLifecycleImpactGroup(PetraModel):
+    group_kind: Literal[
+        "parsed_documents",
+        "structural_blocks",
+        "source_spans",
+        "claims",
+        "assertions",
+        "active_work",
+        "open_reviews",
+        "grounded_responses",
+    ]
+    total_count: int
+    returned_count: int
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectSourceLifecycleExactDependentRef]
+    effect: Literal["retained"]
+
+
+class ProjectSourceLifecycleImpact(PetraModel):
+    scope: Literal["registered_direct_and_scientific_downstream"]
+    groups: list[ProjectSourceLifecycleImpactGroup]
+    limitations: list[str]
+
+
+class ProjectSourceLifecyclePreviewTransition(PetraModel):
+    state: Literal["preview_available"]
+    from_status: Literal["active", "excluded"]
+    to_status: Literal["active", "excluded"]
+    effect: Literal["ordinary_new_use_disabled", "ordinary_new_use_restored"]
+    reason: str
+
+
+class ProjectSourceLifecycleNotApplicableTransition(PetraModel):
+    state: Literal["not_applicable"]
+    current_status: Literal["active", "excluded"]
+    reason: str
+
+
+class ProjectSourceLifecycleUnavailableTransition(PetraModel):
+    state: Literal["unavailable"]
+    reason: str
+
+
+class ProjectSourceLifecycleRetentionItem(PetraModel):
+    area: Literal[
+        "project_source_history",
+        "canonical_identity",
+        "selected_work_version",
+        "artifact_manifest",
+        "local_artifact",
+        "parsed_representation",
+        "provenance",
+    ]
+    state: Literal["retained", "deletion_unavailable"]
+    reason: str
+
+
+class ProjectSourceLifecycleOperation(PetraModel):
+    state: Literal["unavailable"]
+    reason: str
+
+
+class ProjectSourceLifecycleContent(PetraModel):
+    requested_action: Literal[
+        "exclude_project_source", "restore_project_source", "delete_local_copy"
+    ]
+    source_ref: ProjectSourceLifecycleSourceRef
+    transition: (
+        ProjectSourceLifecyclePreviewTransition
+        | ProjectSourceLifecycleNotApplicableTransition
+        | ProjectSourceLifecycleUnavailableTransition
+    )
+    impact: ProjectSourceLifecycleImpact
+    retention: list[ProjectSourceLifecycleRetentionItem]
+    operation: ProjectSourceLifecycleOperation
+    authority: ProjectShellAuthorityPosition
+
+
+class PetraProjectSourceLifecycleView(PetraModel):
+    schema_name: Literal["petra.project-source-lifecycle-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    project_source_id: str
+    content: ProjectSourceLifecycleContent
+    content_hash: str
+    read_at: str
+
+
 class ReviewSessionHumanActorRef(PetraModel):
     actor_id: str
     actor_kind: Literal["human"]
@@ -5813,6 +5927,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-view": PetraProjectSourceView,
+    "project-source-lifecycle-view": PetraProjectSourceLifecycleView,
     "review-session": PetraReviewSession,
     "project-review-view": PetraProjectReviewView,
     "project-relationship-view": PetraProjectRelationshipView,
@@ -5989,6 +6104,7 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-thread.json", "content", "content_hash"),
         ("project-thread-view-collection.json", "content", "content_hash"),
         ("project-thread-view-detail.json", "content", "content_hash"),
+        ("project-source-lifecycle-view.json", "content", "content_hash"),
     ]
     for filename, projection, hash_field in fixtures:
         value = read_json(f"fixtures/accepted/{filename}")

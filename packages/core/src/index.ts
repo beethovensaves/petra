@@ -43,6 +43,7 @@ export * from "./project-work-view.js";
 export * from "./project-thread.js";
 export * from "./project-shell-view.js";
 export * from "./project-source-authority-repository.js";
+export * from "./project-source-lifecycle.js";
 export * from "./project-source-view.js";
 export * from "./review-session.js";
 export * from "./project-relationship-view.js";

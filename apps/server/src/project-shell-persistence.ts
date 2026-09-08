@@ -5,6 +5,7 @@ import {
   PostgresProjectRelationshipViewReader,
   PostgresProjectReviewViewReader,
   PostgresProjectShellViewReader,
+  PostgresProjectSourceLifecycleViewReader,
   PostgresProjectSourceViewReader,
   PostgresProjectThreadViewReader,
   PostgresProjectWorkViewReader,
@@ -20,6 +21,7 @@ import type {
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
   ProjectShellViewReader,
+  ProjectSourceLifecycleViewReader,
   ProjectSourceViewReader,
   ProjectThreadViewReader,
   ProjectWorkViewReader,
@@ -31,6 +33,7 @@ export interface ProjectShellPersistence {
   readonly views: ProjectShellViewReader;
   readonly effectiveControls: ProjectEffectiveControlsViewReader;
   readonly sourceViews: ProjectSourceViewReader;
+  readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly reviewViews: ProjectReviewViewReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
   readonly objectLocations: ProjectObjectLocationViewReader;
@@ -170,6 +173,9 @@ export const createProjectShellPersistenceFromEnvironment = async (
         views: new PostgresProjectShellViewReader(pool),
         effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
         sourceViews: new PostgresProjectSourceViewReader(pool),
+        sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(
+          pool,
+        ),
         reviewViews: new PostgresProjectReviewViewReader(pool),
         objectLocations: new PostgresProjectObjectLocationViewReader(pool),
         workViews: new PostgresProjectWorkViewReader(pool),
@@ -196,6 +202,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     views: new PostgresProjectShellViewReader(pool),
     effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
     sourceViews: new PostgresProjectSourceViewReader(pool),
+    sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),
     objectLocations: new PostgresProjectObjectLocationViewReader(pool),
     workViews: new PostgresProjectWorkViewReader(pool),

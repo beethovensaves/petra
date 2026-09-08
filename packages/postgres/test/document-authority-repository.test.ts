@@ -34,6 +34,7 @@ import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-def
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresProjectShellViewReader } from "../src/project-shell-view-reader.js";
 import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
+import { PostgresProjectSourceLifecycleViewReader } from "../src/project-source-lifecycle-view-reader.js";
 import { PostgresProjectSourceViewReader } from "../src/project-source-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
@@ -81,6 +82,9 @@ describePostgres("PostgreSQL Document authority repository", () => {
   const documents = new PostgresDocumentAuthorityRepository(pool);
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const projectSources = new PostgresProjectSourceAuthorityRepository(pool);
+  const sourceLifecycleViews = new PostgresProjectSourceLifecycleViewReader(
+    pool,
+  );
   const sourceViews = new PostgresProjectSourceViewReader(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
   const shellViews = new PostgresProjectShellViewReader(pool);
@@ -379,8 +383,100 @@ describePostgres("PostgreSQL Document authority repository", () => {
       ),
     ).toBeUndefined();
 
+    const lifecycle = await sourceLifecycleViews.getProjectSourceLifecycleView(
+      project.project_id,
+      projectSource.project_source_id,
+      "exclude_project_source",
+    );
+    if (lifecycle === undefined) {
+      throw new Error("Expected Project source lifecycle preview.");
+    }
+    expect(lifecycle.content.transition).toEqual(
+      expect.objectContaining({
+        state: "preview_available",
+        from_status: "active",
+        to_status: "excluded",
+        effect: "ordinary_new_use_disabled",
+      }),
+    );
+    expect(
+      lifecycle.content.impact.groups.map((group) => [
+        group.group_kind,
+        group.total_count,
+      ]),
+    ).toEqual([
+      ["parsed_documents", 1],
+      ["structural_blocks", 1],
+      ["source_spans", 1],
+      ["claims", 0],
+      ["assertions", 0],
+      ["active_work", 0],
+      ["open_reviews", 0],
+      ["grounded_responses", 0],
+    ]);
+    expect(lifecycle.content.impact.groups[0]?.refs[0]).toEqual({
+      record_kind: "parsed_document",
+      record_id: bundle.document.parsed_document_id,
+      revision: 1,
+      record_hash: canonicalHash(bundle.document),
+      posture: "current",
+      effect: "retained",
+    });
+    expect(lifecycle.content.operation.state).toBe("unavailable");
+    expect(lifecycle.content.authority.isolation).toBe("repeatable_read");
+
+    const deletion = await sourceLifecycleViews.getProjectSourceLifecycleView(
+      project.project_id,
+      projectSource.project_source_id,
+      "delete_local_copy",
+    );
+    expect(deletion?.content.transition.state).toBe("unavailable");
+    expect(
+      deletion?.content.retention.find((item) => item.area === "local_artifact")
+        ?.state,
+    ).toBe("deletion_unavailable");
+    expect(
+      await sourceLifecycleViews.getProjectSourceLifecycleView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        projectSource.project_source_id,
+        "exclude_project_source",
+      ),
+    ).toBeUndefined();
+    await expect(
+      sourceLifecycleViews.getProjectSourceLifecycleView(
+        project.project_id,
+        projectSource.project_source_id,
+        "invalid_action" as "exclude_project_source",
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_LIFECYCLE_VIEW_REQUEST_INVALID",
+      }),
+    );
+
+    const excluded = structuredClone(projectSource);
+    excluded.revision = 2;
+    excluded.content.status = "excluded";
+    excluded.content_hash = canonicalHash(excluded.content);
+    excluded.added_at = "2026-09-08T23:45:00.000Z";
+    await projectSources.registerProjectSourceRevision(excluded);
+    const restore = await sourceLifecycleViews.getProjectSourceLifecycleView(
+      project.project_id,
+      projectSource.project_source_id,
+      "restore_project_source",
+    );
+    expect(restore?.content.source_ref.status).toBe("excluded");
+    expect(restore?.content.transition).toEqual(
+      expect.objectContaining({
+        state: "preview_available",
+        from_status: "excluded",
+        to_status: "active",
+        effect: "ordinary_new_use_restored",
+      }),
+    );
+
     const wrongRole = structuredClone(projectSource);
-    wrongRole.revision = 2;
+    wrongRole.revision = 3;
     wrongRole.content.source_role = "scientific.unregistered";
     wrongRole.content_hash = canonicalHash(wrongRole.content);
     await expect(

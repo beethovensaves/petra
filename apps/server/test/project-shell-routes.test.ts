@@ -8,6 +8,7 @@ import type {
   PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectShellViewV11,
+  PetraProjectSourceLifecycleView,
   PetraProjectSourceView,
   PetraProjectThreadView,
   PetraProjectWorkView,
@@ -20,6 +21,7 @@ import type {
   ProjectReviewViewReader,
   ProjectShellSelectionRequest,
   ProjectShellViewReader,
+  ProjectSourceLifecycleViewReader,
   ProjectSourceViewReader,
   ProjectThreadViewReader,
   ProjectWorkViewReader,
@@ -59,6 +61,16 @@ const sourceFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectSourceView;
+
+const sourceLifecycleFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-source-lifecycle-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectSourceLifecycleView;
 
 const controlsFixture = JSON.parse(
   readFileSync(
@@ -180,6 +192,17 @@ const sourceReader: ProjectSourceViewReader = {
       projectId === sourceFixture.project_id &&
         sourceId === sourceFixture.project_source_id
         ? structuredClone(sourceFixture)
+        : undefined,
+    ),
+};
+
+const sourceLifecycleReader: ProjectSourceLifecycleViewReader = {
+  getProjectSourceLifecycleView: (projectId, projectSourceId, action) =>
+    Promise.resolve(
+      projectId === sourceLifecycleFixture.project_id &&
+        projectSourceId === sourceLifecycleFixture.project_source_id &&
+        action === sourceLifecycleFixture.content.requested_action
+        ? structuredClone(sourceLifecycleFixture)
         : undefined,
     ),
 };
@@ -473,6 +496,48 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(body.error.code).toBe("PROJECT_SOURCE_NOT_FOUND");
+  });
+
+  it("returns the exact read-only source lifecycle preview", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectSourceLifecycleViews: sourceLifecycleReader,
+    });
+    const path = `/api/queries/projects/${sourceLifecycleFixture.project_id}/sources/${sourceLifecycleFixture.project_source_id}/lifecycle`;
+    const response = await petra.app.request(
+      authorized(`${path}?requested_action=exclude_project_source`),
+    );
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as PetraProjectSourceLifecycleView;
+    expect(body).toEqual(sourceLifecycleFixture);
+    expect(body.content.operation.state).toBe("unavailable");
+    expect(
+      body.content.retention.find((item) => item.area === "local_artifact")
+        ?.state,
+    ).toBe("deletion_unavailable");
+
+    for (const query of [
+      "",
+      "?requested_action=unknown",
+      "?requested_action=exclude_project_source&requested_action=restore_project_source",
+      "?requested_action=exclude_project_source&execute=true",
+    ]) {
+      const malformed = await petra.app.request(authorized(`${path}${query}`));
+      expect(malformed.status).toBe(422);
+      const malformedBody = (await malformed.json()) as {
+        error: { code: string };
+      };
+      expect(malformedBody.error.code).toBe(
+        "PROJECT_SOURCE_LIFECYCLE_QUERY_INVALID",
+      );
+    }
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/sources/${sourceLifecycleFixture.project_source_id}/lifecycle?requested_action=exclude_project_source`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
   });
 
   it("returns bounded Work collection and exact detail without promoting output authority", async () => {

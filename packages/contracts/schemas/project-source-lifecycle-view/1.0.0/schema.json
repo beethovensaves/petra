@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-lifecycle-view/1.0.0/schema.json",
+  "title": "PetraProjectSourceLifecycleView",
+  "description": "A read-only exact preview of Project-source membership and local-copy lifecycle impact. It never deletes retained authority or executes a transition.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "project_source_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-lifecycle-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "project_source_id": {
+      "type": "string",
+      "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "content": { "$ref": "#/$defs/LifecycleContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "SourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "enum": ["active", "excluded"] }
+      }
+    },
+    "ExactDependentRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_kind",
+        "record_id",
+        "revision",
+        "record_hash",
+        "posture",
+        "effect"
+      ],
+      "properties": {
+        "record_kind": {
+          "enum": [
+            "parsed_document",
+            "structural_block",
+            "source_span",
+            "claim",
+            "assertion",
+            "work_unit",
+            "review_session",
+            "grounded_response"
+          ]
+        },
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "posture": {
+          "enum": ["current", "historical", "current_and_historical"]
+        },
+        "effect": { "const": "retained" }
+      }
+    },
+    "ImpactGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_kind",
+        "total_count",
+        "returned_count",
+        "coverage",
+        "refs",
+        "effect"
+      ],
+      "properties": {
+        "group_kind": {
+          "enum": [
+            "parsed_documents",
+            "structural_blocks",
+            "source_spans",
+            "claims",
+            "assertions",
+            "active_work",
+            "open_reviews",
+            "grounded_responses"
+          ]
+        },
+        "total_count": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "returned_count": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "coverage": { "enum": ["complete", "truncated"] },
+        "refs": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ExactDependentRef" }
+        },
+        "effect": { "const": "retained" }
+      }
+    },
+    "Impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "groups", "limitations"],
+      "properties": {
+        "scope": { "const": "registered_direct_and_scientific_downstream" },
+        "groups": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/ImpactGroup" }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "PreviewTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "from_status", "to_status", "effect", "reason"],
+      "properties": {
+        "state": { "const": "preview_available" },
+        "from_status": { "enum": ["active", "excluded"] },
+        "to_status": { "enum": ["active", "excluded"] },
+        "effect": {
+          "enum": ["ordinary_new_use_disabled", "ordinary_new_use_restored"]
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "NotApplicableTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "current_status", "reason"],
+      "properties": {
+        "state": { "const": "not_applicable" },
+        "current_status": { "enum": ["active", "excluded"] },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "UnavailableTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "RetentionItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["area", "state", "reason"],
+      "properties": {
+        "area": {
+          "enum": [
+            "project_source_history",
+            "canonical_identity",
+            "selected_work_version",
+            "artifact_manifest",
+            "local_artifact",
+            "parsed_representation",
+            "provenance"
+          ]
+        },
+        "state": { "enum": ["retained", "deletion_unavailable"] },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "Operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "AuthorityPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isolation", "event_position", "stream_revision"],
+      "properties": {
+        "isolation": { "const": "repeatable_read" },
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "LifecycleContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested_action",
+        "source_ref",
+        "transition",
+        "impact",
+        "retention",
+        "operation",
+        "authority"
+      ],
+      "properties": {
+        "requested_action": {
+          "enum": [
+            "exclude_project_source",
+            "restore_project_source",
+            "delete_local_copy"
+          ]
+        },
+        "source_ref": { "$ref": "#/$defs/SourceRef" },
+        "transition": {
+          "oneOf": [
+            { "$ref": "#/$defs/PreviewTransition" },
+            { "$ref": "#/$defs/NotApplicableTransition" },
+            { "$ref": "#/$defs/UnavailableTransition" }
+          ]
+        },
+        "impact": { "$ref": "#/$defs/Impact" },
+        "retention": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "items": { "$ref": "#/$defs/RetentionItem" }
+        },
+        "operation": { "$ref": "#/$defs/Operation" },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" }
+      }
+    }
+  }
+}
