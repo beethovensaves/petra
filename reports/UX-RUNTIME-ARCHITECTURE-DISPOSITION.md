@@ -1,8 +1,8 @@
 # UX runtime architecture disposition and implementation sequence
 
-Status: implementation-track review complete; cumulative backend trace passed;
-live shell, source, Review, and current Graph reads passed; interface recovery
-assertions remain open
+Status: implementation-track review complete; M1.9 cumulative trace, four live
+read slices, and interface recovery gate passed; broader neutral runtime work
+remains open
 Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
@@ -58,10 +58,10 @@ require later slices.
   bounded current Graph now use live authenticated reads. Remaining product
   places are still fixture-backed or explicitly unavailable and must not be
   described as live.
-- Backend `M1.9-W01`, `M1.9-W02`, and `M1.9-W03` are complete. The cumulative
-  clean-start trace passed all fifteen steps. `M1.9-W04` is in progress: shell,
-  scientific source, scientific Review, and bounded current Graph reads pass;
-  the final interface recovery assertions remain.
+- Backend `M1.9-W01` through `M1.9-W04` are complete. The cumulative clean-start
+  trace passed all fifteen steps. Shell, scientific source, scientific Review,
+  and bounded current Graph reads pass, and the interface recovery gate covers
+  the relevant frozen presentation and existing AG-UI protocol paths.
 - M1.9 closes the existing scientific evidence spine. It does not, by itself,
   close all 23 neutral-product runtime requests.
 - Contextual Prosody, Sentinel, or other real-project integrations remain gated
@@ -106,8 +106,9 @@ require later slices.
 - [The M1.9 gate matrix](M1.9-BACKEND-GATE-MATRIX.md) and
   [recovery exercise](M1.9-RECOVERY-EXERCISE.md) establish component and
   operational-recovery evidence. The
-  [cumulative demonstration](M1.9-CUMULATIVE-DEMONSTRATION.md) now establishes
-  the identity-preserving backend trace; frontend integration remains open.
+  [cumulative demonstration](M1.9-CUMULATIVE-DEMONSTRATION.md) establishes the
+  identity-preserving backend trace. The scoped M1 frontend follow-through is
+  recorded in [M1.9 interface recovery](M1.9-INTERFACE-RECOVERY.md).
 
 ## Accepted architecture boundary
 
@@ -418,24 +419,25 @@ stands independently.
 
 ## M1.9 closeout cut line
 
-`M1.9-W04` should integrate the frozen reference presentation with the existing
-M1 scientific vertical slice after the minimum live contracts needed by that
-slice are available. It must verify async state, exact source and graph identity,
-review/apply/reversal, grounded interaction replay, stream-abort versus Work
-cancellation, composition provenance, and recovery.
+`M1.9-W04` integrates the frozen reference presentation with the existing M1
+scientific vertical slice through the minimum live contracts required by that
+slice. Its recorded recovery gate verifies asynchronous state, exact source and
+graph identity, stale Review prevention, reversal-aware graph absence,
+grounded interaction replay, stream abort versus Work cancellation, terminal
+persistence, and recovery.
 
-M1 may close when its existing `M1.9-AC01` through `M1.9-AC04` pass. The closeout
-must state explicitly which neutral UX requests remain partial or unavailable.
-It must not relabel M1's scientific proof as full `UX-REQ-001` through
-`UX-REQ-023` conformance.
+`M1.9-AC01` through `M1.9-AC04` pass for the scoped scientific evidence spine.
+The closeout explicitly retains the partial and unavailable neutral UX
+requests; it does not relabel M1's scientific proof as full `UX-REQ-001`
+through `UX-REQ-023` conformance.
 
 ## Immediate next implementation task
 
-Treat the passing `M1.9-W03` result manifest and the four live M1.9-W04 read
-slices as the safety point. Next, add the interface recovery assertions that
-exercise exact source and graph return, Review/reversal consequences,
-projection lag, interaction replay, stream abort, and Work cancellation through
-the frozen presentation.
+Treat the completed M1.9 cumulative result, four live read slices, and interface
+recovery gate as the safety point. The next neutral-product implementation
+sequence remains the request table above; do not broaden the M1 closeout into
+unimplemented working/historical graphs, general Work/Brief/History reads,
+managed folders, archives, or multi-user behavior.
 
 ## Verification status
 
