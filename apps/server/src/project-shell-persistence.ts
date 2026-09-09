@@ -1,4 +1,6 @@
 import {
+  PostgresCapabilityGrantCommandAuthorizer,
+  PostgresProjectSourceLifecycleAuthorityRepository,
   PostgresSingleUserCommandPrincipalResolver,
   PostgresProjectEffectiveControlsViewReader,
   PostgresProjectInquiryViewReader,
@@ -24,6 +26,7 @@ import type {
   ProjectReviewViewReader,
   ProjectShellViewReader,
   ProjectSourceLifecycleViewReader,
+  ProjectSourceLifecycleAuthorityRepository,
   ProjectSourceViewReader,
   ProjectThreadViewReader,
   ProjectWorkViewReader,
@@ -44,6 +47,7 @@ export interface ProjectShellPersistence {
   readonly threadViews: ProjectThreadViewReader;
   readonly inquiryViews: ProjectInquiryViewReader;
   readonly commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
+  readonly sourceLifecycleAuthority: ProjectSourceLifecycleAuthorityRepository;
   readonly close: () => Promise<void>;
 }
 
@@ -205,6 +209,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
                   actor_kind: "human",
                 }),
             }),
+        sourceLifecycleAuthority:
+          new PostgresProjectSourceLifecycleAuthorityRepository(
+            pool,
+            new PostgresCapabilityGrantCommandAuthorizer(),
+          ),
         relationshipViews: new PostgresProjectRelationshipViewReader(
           pool,
           graph,
@@ -241,6 +250,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
               actor_kind: "human",
             }),
         }),
+    sourceLifecycleAuthority:
+      new PostgresProjectSourceLifecycleAuthorityRepository(
+        pool,
+        new PostgresCapabilityGrantCommandAuthorizer(),
+      ),
     close,
   };
 };

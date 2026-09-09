@@ -57,6 +57,15 @@ const clone = <Value>(value: Value): Value => structuredClone(value);
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
 
+const commandFingerprint = (
+  envelope: ProjectSourceLifecycleCommandEnvelope,
+): string => {
+  const { correlation_id, submitted_at, ...governedCommand } = envelope;
+  void correlation_id;
+  void submitted_at;
+  return canonicalHash(governedCommand);
+};
+
 const ULID_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
 const encodeBase32 = (value: bigint, length: number): string => {
@@ -126,7 +135,7 @@ export class PostgresProjectSourceLifecycleAuthorityRepository implements Projec
         "The ProjectSource lifecycle boundary accepts only exclude or restore commands.",
       );
     }
-    const fingerprint = canonicalHash(envelope);
+    const fingerprint = commandFingerprint(envelope);
     const client = await this.#pool.connect();
     try {
       await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");

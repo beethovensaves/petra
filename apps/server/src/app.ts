@@ -19,7 +19,9 @@ import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   DurableReviewInterruptError,
   PetraInteractionRuntime,
+  ProjectSourceLifecycleAuthorityError,
   derivePetraId,
+  type AuthenticatedCommandPrincipalResolver,
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
   type ProjectEffectiveControlsViewReader,
@@ -30,6 +32,8 @@ import {
   type ProjectReviewViewReader,
   type ProjectShellViewReader,
   type ProjectSourceLifecycleAction,
+  type ProjectSourceLifecycleAuthorityRepository,
+  type ProjectSourceLifecycleCommandEnvelope,
   type ProjectSourceLifecycleViewReader,
   type ProjectSourceViewReader,
   type ProjectThreadLifecycleFilter,
@@ -58,6 +62,8 @@ export interface PetraAppOptions {
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
   projectSourceViews?: ProjectSourceViewReader;
   projectSourceLifecycleViews?: ProjectSourceLifecycleViewReader;
+  commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
+  projectSourceLifecycleAuthority?: ProjectSourceLifecycleAuthorityRepository;
   projectReviewViews?: ProjectReviewViewReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
   projectObjectLocations?: ProjectObjectLocationViewReader;
@@ -74,6 +80,11 @@ export interface PetraApp {
 
 const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$/;
 const PETRA_ID_PATTERN = /^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const PROJECT_ID_PATTERN = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const PROJECT_SOURCE_ID_PATTERN = /^project_source_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const COMMAND_ID_PATTERN = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const CONTENT_HASH_PATTERN = /^sha256:[0-9a-f]{64}$/u;
+const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$/u;
 const WORK_UNIT_ID_PATTERN = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_THREAD_ID_PATTERN = /^project_thread_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const OBJECTIVE_ID_PATTERN = /^objective_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -106,6 +117,10 @@ const PROJECT_INQUIRY_STATUSES: readonly ProjectInquiryAuthoredStatus[] = [
 ];
 const PROJECT_SOURCE_LIFECYCLE_ACTIONS: readonly ProjectSourceLifecycleAction[] =
   ["exclude_project_source", "restore_project_source", "delete_local_copy"];
+const PROJECT_SOURCE_LIFECYCLE_COMMAND_ACTIONS = [
+  "exclude_project_source",
+  "restore_project_source",
+] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1178,6 +1193,288 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             ? error.message
             : "The Project source lifecycle preview is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/sources/:projectSourceId/lifecycle",
+    async (context) => {
+      if (
+        options.commandPrincipalResolver === undefined ||
+        options.projectSourceLifecycleAuthority === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_LIFECYCLE_COMMAND_UNAVAILABLE",
+          "The authenticated Project source lifecycle command boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Project source lifecycle commands do not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "Project source lifecycle commands require a canonical Project identity.",
+          );
+        }
+        if (!PROJECT_SOURCE_ID_PATTERN.test(projectSourceId)) {
+          throw new InteractionInputError(
+            "Project source lifecycle commands require a canonical ProjectSource identity.",
+          );
+        }
+
+        const body = await readBoundedJson(context, maxBodyBytes);
+        if (!isRecord(body)) {
+          throw new InteractionInputError(
+            "The Project source lifecycle command must be an object.",
+          );
+        }
+        assertExactKeys(
+          body,
+          new Set([
+            "command_id",
+            "idempotency_key",
+            "requested_action",
+            "expected_source_ref",
+            "reason",
+          ]),
+          "Project source lifecycle command",
+        );
+        const commandId = requiredString(body, "command_id");
+        const idempotencyKey = requiredString(body, "idempotency_key");
+        const requestedAction = optionalEnum(
+          body,
+          "requested_action",
+          PROJECT_SOURCE_LIFECYCLE_COMMAND_ACTIONS,
+        );
+        const reason = requiredString(body, "reason");
+        if (!COMMAND_ID_PATTERN.test(commandId)) {
+          throw new InteractionInputError(
+            "command_id must be a canonical command-prefixed Petra ID.",
+          );
+        }
+        if (!IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) {
+          throw new InteractionInputError(
+            "idempotency_key must satisfy Petra's registered command key format.",
+          );
+        }
+        if (requestedAction === undefined) {
+          throw new InteractionInputError("requested_action is required.");
+        }
+        if (reason.length > 4_000) {
+          throw new InteractionInputError(
+            "reason must contain at most 4000 characters.",
+          );
+        }
+        const expectedSourceRef = body.expected_source_ref;
+        if (!isRecord(expectedSourceRef)) {
+          throw new InteractionInputError(
+            "expected_source_ref must be an exact ProjectSource reference.",
+          );
+        }
+        assertExactKeys(
+          expectedSourceRef,
+          new Set([
+            "project_source_id",
+            "revision",
+            "content_hash",
+            "record_hash",
+            "status",
+          ]),
+          "expected_source_ref",
+        );
+        const expectedProjectSourceId = requiredString(
+          expectedSourceRef,
+          "project_source_id",
+        );
+        const contentHash = requiredString(expectedSourceRef, "content_hash");
+        const recordHash = requiredString(expectedSourceRef, "record_hash");
+        const status = optionalEnum(expectedSourceRef, "status", [
+          "active",
+          "excluded",
+        ] as const);
+        const revision = expectedSourceRef.revision;
+        if (
+          expectedProjectSourceId !== projectSourceId ||
+          !PROJECT_SOURCE_ID_PATTERN.test(expectedProjectSourceId)
+        ) {
+          throw new InteractionInputError(
+            "expected_source_ref must name the ProjectSource in the route.",
+          );
+        }
+        if (!Number.isSafeInteger(revision) || Number(revision) < 1) {
+          throw new InteractionInputError(
+            "expected_source_ref revision must be a positive safe integer.",
+          );
+        }
+        if (
+          !CONTENT_HASH_PATTERN.test(contentHash) ||
+          !CONTENT_HASH_PATTERN.test(recordHash)
+        ) {
+          throw new InteractionInputError(
+            "expected_source_ref must contain canonical SHA-256 content and record hashes.",
+          );
+        }
+        const requiredStatus =
+          requestedAction === "exclude_project_source" ? "active" : "excluded";
+        if (status !== requiredStatus) {
+          throw new InteractionInputError(
+            `${requestedAction} requires expected_source_ref status ${requiredStatus}.`,
+          );
+        }
+        const commandName =
+          requestedAction === "exclude_project_source"
+            ? "ExcludeProjectSource"
+            : "RestoreProjectSource";
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName,
+          });
+        if (principal.state === "denied") {
+          if (principal.reason === "active_grant_not_found") {
+            return jsonError(
+              context,
+              403,
+              "PROJECT_SOURCE_LIFECYCLE_COMMAND_FORBIDDEN",
+              "The authenticated principal has no active grant for this Project command.",
+            );
+          }
+          return jsonError(
+            context,
+            503,
+            principal.reason === "actor_not_registered"
+              ? "AUTHENTICATED_ACTOR_UNAVAILABLE"
+              : "PROJECT_COMMAND_AUTHORITY_AMBIGUOUS",
+            principal.reason === "actor_not_registered"
+              ? "The configured authenticated Actor is not registered."
+              : "More than one active grant matches the authenticated Project command.",
+          );
+        }
+        const command =
+          requestedAction === "exclude_project_source"
+            ? {
+                command_name: "ExcludeProjectSource" as const,
+                expected_source_ref: {
+                  project_source_id: expectedProjectSourceId,
+                  revision: Number(revision),
+                  content_hash: contentHash,
+                  record_hash: recordHash,
+                  status: "active" as const,
+                },
+                reason,
+              }
+            : {
+                command_name: "RestoreProjectSource" as const,
+                expected_source_ref: {
+                  project_source_id: expectedProjectSourceId,
+                  revision: Number(revision),
+                  content_hash: contentHash,
+                  record_hash: recordHash,
+                  status: "excluded" as const,
+                },
+                reason,
+              };
+        const envelope: ProjectSourceLifecycleCommandEnvelope = {
+          schema_name: "petra.command-envelope",
+          schema_version: "1.2.0",
+          command_id: commandId,
+          idempotency_key: idempotencyKey,
+          project_id: projectId,
+          actor: principal.actor,
+          capability_grant_id: principal.capabilityGrantId,
+          correlation_id: derivePetraId(
+            "trace",
+            `${context.get("requestId")}:${randomUUID()}`,
+          ),
+          submitted_at: new Date().toISOString(),
+          command,
+        };
+        contracts.assertValid("command-envelope", "1.2.0", envelope);
+        const result =
+          await options.projectSourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
+            envelope,
+          );
+        contracts.assertValid(
+          "project-source-lifecycle-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid("project-source", "1.0.0", result.projectSource);
+        if (
+          result.receipt.project_id !== projectId ||
+          result.receipt.content.command_ref.command_id !== commandId ||
+          result.receipt.content.command_ref.idempotency_key !==
+            idempotencyKey ||
+          result.receipt.content.command_ref.command_name !== commandName ||
+          result.receipt.content.prior_source_ref.project_source_id !==
+            projectSourceId ||
+          result.receipt.content.prior_source_ref.revision !==
+            Number(revision) ||
+          result.receipt.content.prior_source_ref.content_hash !==
+            contentHash ||
+          result.receipt.content.prior_source_ref.record_hash !== recordHash ||
+          result.receipt.content.prior_source_ref.status !== status ||
+          result.receipt.content.resulting_source_ref.project_source_id !==
+            projectSourceId ||
+          result.projectSource.project_id !== projectId ||
+          result.projectSource.project_source_id !== projectSourceId ||
+          result.projectSource.revision !==
+            result.receipt.content.resulting_source_ref.revision ||
+          result.projectSource.content_hash !==
+            result.receipt.content.resulting_source_ref.content_hash ||
+          result.projectSource.content.status !==
+            result.receipt.content.resulting_source_ref.status ||
+          typeof result.applied !== "boolean"
+        ) {
+          throw new Error(
+            "The Project source lifecycle authority returned a different command, Project, source, or result.",
+          );
+        }
+        return context.json({
+          receipt: result.receipt,
+          project_source: result.projectSource,
+          applied: result.applied,
+        });
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            422,
+            "PROJECT_SOURCE_LIFECYCLE_COMMAND_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        if (error instanceof ProjectSourceLifecycleAuthorityError) {
+          const status =
+            error.code === "PROJECT_SOURCE_LIFECYCLE_COMMAND_NOT_AUTHORIZED"
+              ? 403
+              : error.code === "PROJECT_SOURCE_LIFECYCLE_SOURCE_NOT_FOUND"
+                ? 404
+                : error.code ===
+                    "PROJECT_SOURCE_LIFECYCLE_STORED_RECORD_CORRUPT"
+                  ? 503
+                  : 409;
+          return jsonError(context, status, error.code, error.message);
+        }
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_LIFECYCLE_COMMAND_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project source lifecycle command failed.",
         );
       }
     },

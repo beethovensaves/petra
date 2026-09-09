@@ -188,6 +188,26 @@ export const startPetraServer = async (
               projectSourceLifecycleViews:
                 options.projectShellPersistence.sourceLifecycleViews,
             }),
+      ...(options.commandPrincipalResolver !== undefined
+        ? { commandPrincipalResolver: options.commandPrincipalResolver }
+        : options.projectShellPersistence?.commandPrincipalResolver ===
+            undefined
+          ? {}
+          : {
+              commandPrincipalResolver:
+                options.projectShellPersistence.commandPrincipalResolver,
+            }),
+      ...(options.projectSourceLifecycleAuthority !== undefined
+        ? {
+            projectSourceLifecycleAuthority:
+              options.projectSourceLifecycleAuthority,
+          }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectSourceLifecycleAuthority:
+                options.projectShellPersistence.sourceLifecycleAuthority,
+            }),
       ...(options.projectReviewViews !== undefined
         ? { projectReviewViews: options.projectReviewViews }
         : options.projectShellPersistence === undefined

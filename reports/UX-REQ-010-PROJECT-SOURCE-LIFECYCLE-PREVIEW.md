@@ -1,6 +1,7 @@
 # UX-REQ-010 Project source lifecycle preview
 
-Status: exact read-only preview and governed backend exclude/restore authority passed; public mutation and physical deletion remain unavailable
+Status: exact read-only preview and authenticated governed exclude/restore API
+passed; frozen-interface integration and physical deletion remain unavailable
 Date: 2026-09-08
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -23,10 +24,11 @@ transition, bounded registered dependents, explicit retention outcomes, the
 operation boundary, and the repeatable-read Project authority position.
 
 This route remains a preview boundary, not a command. Exclude and restore now
-have registered backend commands, Project events, immutable receipts, and
-compensating recovery. They are not exposed through the public API because the
-current bearer-token boundary does not establish the Actor and capability grant
-required by the command envelope. Local-copy deletion remains unavailable.
+have registered backend commands, Project events, immutable receipts,
+compensating recovery, and a separate authenticated public execution endpoint.
+The execution path binds the bearer-authenticated local user to a configured
+canonical Actor and exactly one eligible Project-command grant; it never accepts
+either identity from request content. Local-copy deletion remains unavailable.
 
 ## Lifecycle meaning
 
@@ -91,25 +93,32 @@ final response contract, and checks that the reader returned the requested
 Project, source, and action. No execute flag or lifecycle mutation is accepted
 through this route.
 
+The separate `POST` lifecycle command route accepts only command and
+idempotency identities, requested action, exact expected source reference, and
+reason. It derives all authority and transport metadata server-side, validates
+the returned receipt and resulting ProjectSource, and preserves typed denial,
+conflict, missing-target, and corruption outcomes.
+
 ## Design-freeze behavior
 
-These slices add no CSS, route hierarchy, layout, or component changes to the
-frozen interface. There is not yet an approved source-lifecycle control slot,
-and the public mutation boundary still lacks Actor and capability binding. The
-live preview and backend authority can support a later frozen-design integration
-without redesigning the surface.
+These slices add no CSS, client route hierarchy, layout, or component changes to
+the frozen interface. There is not yet an approved source-lifecycle control
+slot. The live preview and authenticated command can support a later
+frozen-design integration without redesigning the surface. Until then, the
+preview contract continues to describe its own read-only operation boundary;
+it does not infer command availability for an Actor.
 
 ## Verification
 
 The focused increment passes:
 
-- 350 TypeScript contract, registry, generation, hash, and fixture cases;
+- 359 TypeScript contract, registry, generation, hash, and fixture cases;
 - strict TypeScript and Python type checks;
-- 98 real PostgreSQL 18.6 cases after Flyway V001 through V024; and
-- 42 server cases, including the authenticated exact lifecycle route and its
-  malformed-query and cross-Project failures.
+- 105 real PostgreSQL 18.6 cases after Flyway V001 through V026; and
+- 48 server cases, including authenticated preview and command routes, strict
+  identity exclusion, authority denial, and typed failure mapping.
 
-The complete repository gate passes with 683 always-on tests and seven expected
+The complete repository gate passes with 698 always-on tests and seven expected
 service-dependent skips, together with generated-contract/hash checks, the M1
 retrieval-floor check, formatting, lint, TypeScript/Python type checks, and the
 production workbench build.
@@ -126,8 +135,6 @@ restoration.
 This preview advances but does not close the requirement. Remaining work
 includes:
 
-- an Actor- and capability-bound public preflight and command route over the
-  implemented backend authority;
 - a governed creation and compensation command over the implemented immutable
   ProjectSource replacement/supersession lineage;
 - ProjectDefinition-valid lifecycle adapters for other source kinds;
@@ -136,7 +143,7 @@ includes:
 - an accepted retention policy before any physical local-copy deletion command
   can be designed or exposed.
 
-The immediate next backend decision is how an authenticated single-user request
-resolves its exact Actor and capability grant. Only then can the governed
-exclude/restore authority be exposed without inventing authorization in the
-route. Physical deletion remains outside that step.
+The next backend source-lifecycle slice is the governed creation and compensation
+path over replacement lineage. Frozen-interface preview, confirmation, receipt,
+and recovery integration remains separate. Physical deletion still requires an
+accepted retention policy.

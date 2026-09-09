@@ -558,6 +558,16 @@ describePostgres("PostgreSQL Document authority repository", () => {
     expect(replay.applied).toBe(false);
     expect(replay.receipt).toEqual(exclusion.receipt);
 
+    const redelivery = structuredClone(excludeCommand);
+    redelivery.correlation_id = "trace_01K4C000000000000000000036";
+    redelivery.submitted_at = "2026-09-09T00:05:00.000Z";
+    const redelivered =
+      await sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
+        redelivery,
+      );
+    expect(redelivered.applied).toBe(false);
+    expect(redelivered.receipt).toEqual(exclusion.receipt);
+
     const reusedIdempotency = structuredClone(excludeCommand);
     reusedIdempotency.command_id = "command_01K4C000000000000000000039";
     reusedIdempotency.command.reason = "Different command content.";

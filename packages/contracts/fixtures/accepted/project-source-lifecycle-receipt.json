@@ -9,7 +9,7 @@
       "command_id": "command_01K4C000000000000000000020",
       "idempotency_key": "project-source:007:exclude:v1",
       "command_name": "ExcludeProjectSource",
-      "command_fingerprint": "sha256:5fcd9984d88a1025748ec649dd58bb9e90a1d66f35381e294cb6941f6b00ec18"
+      "command_fingerprint": "sha256:666577fec2fc5c6ee04cc9836288c17b8042799252694428955540519d0fe289"
     },
     "prior_source_ref": {
       "project_source_id": "project_source_01K4C000000000000000000007",
@@ -55,6 +55,6 @@
       "effect": "ordinary_new_use_restored"
     }
   },
-  "content_hash": "sha256:aceb4a82fd5cc4aab70d3c9c48b9dcda5e4198a49f024ef28d1bba6c6d2f15f2",
+  "content_hash": "sha256:aebd8167e9b82b8399f344fd0fe00b4a07984039b26616233bcf127f578939e7",
   "recorded_at": "2026-09-09T00:00:00.000Z"
 }

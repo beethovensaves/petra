@@ -24,8 +24,8 @@
     "exclusion_receipt_ref": {
       "project_source_lifecycle_receipt_id": "project_source_lifecycle_receipt_01K4C000000000000000000023",
       "revision": 1,
-      "content_hash": "sha256:aceb4a82fd5cc4aab70d3c9c48b9dcda5e4198a49f024ef28d1bba6c6d2f15f2",
-      "record_hash": "sha256:f1de0f722e36ea40816aad879b0d19896476ffbc4dc628f491e376f4d4b4aaf9"
+      "content_hash": "sha256:aebd8167e9b82b8399f344fd0fe00b4a07984039b26616233bcf127f578939e7",
+      "record_hash": "sha256:530caacd67ef438d1b0a2417be1be7f03466bd98e4ed1694a34df815df229a71"
     },
     "rationale": "This fixture is rejected because an active source cannot be the superseded predecessor."
   },

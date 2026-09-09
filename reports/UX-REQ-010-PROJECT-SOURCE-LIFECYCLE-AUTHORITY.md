@@ -1,7 +1,8 @@
 # UX-REQ-010 Project source lifecycle authority
 
-Status: governed backend exclusion, restoration, receipt, and recovery passed;
-public command integration and physical deletion remain unavailable
+Status: governed backend and authenticated API exclusion, restoration, receipt,
+and recovery passed; frozen-interface integration and physical deletion remain
+unavailable
 Date: 2026-09-08
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -48,6 +49,12 @@ applying another transition. Reuse of a command identity or idempotency key for
 different content fails closed. Replay revalidates the immutable receipt, its
 stored command result, and the exact resulting source revision.
 
+The command fingerprint covers governed command identity and content, including
+the resolved Actor and grant, while excluding redelivery-specific correlation
+and submission metadata. The first accepted envelope remains stored. This lets
+the server assign fresh transport metadata after a lost response without
+turning an exact idempotent retry into a false content conflict.
+
 Recovery is an explicit inverse command, not deletion or rollback. An exclude
 receipt declares `RestoreProjectSource` against the exact excluded revision; a
 restore receipt declares `ExcludeProjectSource` against the exact restored
@@ -65,30 +72,40 @@ register and test an event adapter before adding that projection target.
 
 ## API and design-freeze boundary
 
-No public mutation route or frozen-interface control was added. Existing API
-authentication verifies a bearer token but does not bind a request to the exact
-Actor and capability grant demanded by the command. Supplying a server-selected
-placeholder would weaken the authority model. PostgreSQL command authorization
-can now resolve and lock durable grant state inside the command transaction, but
-the canonical grant registry and authenticated-principal binding do not yet
-exist. Public preflight and execution therefore remain unavailable until those
-authorities are defined.
+The authenticated execution endpoint is:
+
+`POST /api/commands/projects/:projectId/sources/:projectSourceId/lifecycle`
+
+Its strict body accepts only command identity, idempotency identity, requested
+exclude or restore action, the exact expected ProjectSource reference, and a
+reason. Project and ProjectSource come from the canonical route. The bearer
+token maps to `PETRA_LOCAL_ACTOR_ID`; PostgreSQL resolves exactly one eligible
+grant for that Actor, Project, and command. Actor, grant, Project, correlation,
+and submission fields are rejected if injected into the body. Missing authority
+denies execution, ambiguous authority fails closed, and the transactional
+authorizer revalidates the exact grant immediately before replay or mutation.
+
+The route returns the validated immutable receipt, exact resulting
+ProjectSource revision, and whether this delivery applied the transition or
+replayed its prior outcome. Invalid input is distinct from forbidden authority,
+missing sources, stale/conflicting commands, and stored-record corruption.
 
 The existing read-only lifecycle route remains the supported impact and
 retention preview. Physical local-copy deletion remains unavailable pending an
 accepted dependency-aware retention policy and a separate destructive command.
-No CSS, layout, route hierarchy, or component behavior changed.
+No CSS, layout, client route hierarchy, or component behavior changed; the
+frozen interface has not yet received a preview/confirmation control.
 
 ## Verification
 
 The increment passes:
 
-- 350 TypeScript contract, registry, generation, hash, and fixture cases;
+- 359 TypeScript contract, registry, generation, hash, and fixture cases;
 - strict TypeScript and Python type checks plus 25 Python cases;
-- 98 real PostgreSQL 18.6 integration cases after Flyway V001 through V024;
+- 105 real PostgreSQL 18.6 integration cases after Flyway V001 through V026;
   and
 - the repository-wide generation, retrieval-floor, formatting, lint, typecheck,
-  production-build, and test gate with 683 always-on cases and seven expected
+  production-build, and test gate with 698 always-on cases and seven expected
   service-dependent skips.
 
 The PostgreSQL proof covers authorization denial, exclusion, exact preservation,
@@ -96,10 +113,12 @@ receipt lookup, idempotent replay, command-identity and idempotency-key conflict
 stale expected state, compensating restoration, retained revision history,
 ordered Project events, and registered outbox delivery intent.
 
+The server proof additionally covers strict request fields, server-owned
+identity and metadata, exact exclude and restore resolution, missing and
+ambiguous grants, domain error mapping, and response alignment.
+
 ## Remaining work
 
-- define the single-user request-to-Actor and capability-grant authority;
-- expose exact preflight and execute routes without changing the frozen surface;
 - integrate preview, confirmation, receipt, and recovery into an approved
   frozen-interface slot;
 - add a governed creation and compensation command over the implemented exact
