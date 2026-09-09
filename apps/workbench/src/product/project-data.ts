@@ -1,4 +1,5 @@
 import type {
+  PetraProjectSource,
   PetraProjectEffectiveControlsView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -7,9 +8,11 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectSourceView,
+  PetraProjectSourceLifecycleReceipt,
   PetraProjectThreadView,
   PetraProjectWorkView,
   ProjectDefinitionTerm,
+  ProjectSourceLifecycleExactSourceRef,
   ProjectWorkDetailContent,
   ProjectWorkTaskSummary,
 } from "@petra/contracts";
@@ -224,9 +227,15 @@ const projectThreadView = (value: unknown): PetraProjectThreadView => {
   return value as unknown as PetraProjectThreadView;
 };
 
-const requestJson = async (path: string): Promise<unknown> => {
+const requestJson = async (
+  path: string,
+  init: RequestInit = {},
+): Promise<unknown> => {
+  const headers = new Headers(init.headers);
+  headers.set("authorization", `Bearer ${apiToken()}`);
   const response = await fetch(path, {
-    headers: { authorization: `Bearer ${apiToken()}` },
+    ...init,
+    headers,
   });
   if (!response.ok) {
     let message = `Petra could not read this Project (${response.status}).`;
@@ -245,6 +254,81 @@ const requestJson = async (path: string): Promise<unknown> => {
     throw new ProjectDataError(message, response.status);
   }
   return response.json() as Promise<unknown>;
+};
+
+export interface ProjectSourceLifecycleCommandInput {
+  readonly projectId: string;
+  readonly projectSourceId: string;
+  readonly commandId: string;
+  readonly idempotencyKey: string;
+  readonly requestedAction: "exclude_project_source" | "restore_project_source";
+  readonly expectedSourceRef: ProjectSourceLifecycleExactSourceRef;
+  readonly reason: string;
+}
+
+export interface ProjectSourceLifecycleCommandResponse {
+  readonly receipt: PetraProjectSourceLifecycleReceipt;
+  readonly projectSource: PetraProjectSource;
+  readonly applied: boolean;
+}
+
+const projectSourceLifecycleCommandResponse = (
+  value: unknown,
+  input: ProjectSourceLifecycleCommandInput,
+): ProjectSourceLifecycleCommandResponse => {
+  if (
+    !isRecord(value) ||
+    typeof value.applied !== "boolean" ||
+    !isRecord(value.receipt) ||
+    value.receipt.schema_name !== "petra.project-source-lifecycle-receipt" ||
+    value.receipt.schema_version !== "1.0.0" ||
+    value.receipt.project_id !== input.projectId ||
+    !isRecord(value.receipt.content) ||
+    !isRecord(value.receipt.content.command_ref) ||
+    value.receipt.content.command_ref.command_id !== input.commandId ||
+    value.receipt.content.command_ref.idempotency_key !==
+      input.idempotencyKey ||
+    value.receipt.content.command_ref.command_name !==
+      (input.requestedAction === "exclude_project_source"
+        ? "ExcludeProjectSource"
+        : "RestoreProjectSource") ||
+    !isRecord(value.receipt.content.prior_source_ref) ||
+    value.receipt.content.prior_source_ref.project_source_id !==
+      input.projectSourceId ||
+    value.receipt.content.prior_source_ref.revision !==
+      input.expectedSourceRef.revision ||
+    value.receipt.content.prior_source_ref.content_hash !==
+      input.expectedSourceRef.content_hash ||
+    value.receipt.content.prior_source_ref.record_hash !==
+      input.expectedSourceRef.record_hash ||
+    value.receipt.content.prior_source_ref.status !==
+      input.expectedSourceRef.status ||
+    !isRecord(value.receipt.content.resulting_source_ref) ||
+    value.receipt.content.resulting_source_ref.project_source_id !==
+      input.projectSourceId ||
+    !isRecord(value.project_source) ||
+    value.project_source.schema_name !== "petra.project-source" ||
+    value.project_source.schema_version !== "1.0.0" ||
+    value.project_source.project_id !== input.projectId ||
+    value.project_source.project_source_id !== input.projectSourceId ||
+    value.project_source.revision !==
+      value.receipt.content.resulting_source_ref.revision ||
+    value.project_source.content_hash !==
+      value.receipt.content.resulting_source_ref.content_hash ||
+    !isRecord(value.project_source.content) ||
+    value.project_source.content.status !==
+      value.receipt.content.resulting_source_ref.status
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project source lifecycle command result.",
+      502,
+    );
+  }
+  return {
+    receipt: value.receipt as unknown as PetraProjectSourceLifecycleReceipt,
+    projectSource: value.project_source as unknown as PetraProjectSource,
+    applied: value.applied,
+  };
 };
 
 const fallbackTerm = (
@@ -1059,6 +1143,38 @@ export const loadProjectSourceRecord = async ({
     );
   }
   return sourceRecordFromView(view);
+};
+
+export const executeProjectSourceLifecycleCommand = async (
+  input: ProjectSourceLifecycleCommandInput,
+): Promise<ProjectSourceLifecycleCommandResponse> => {
+  if (
+    input.expectedSourceRef.project_source_id !== input.projectSourceId ||
+    (input.requestedAction === "exclude_project_source" &&
+      input.expectedSourceRef.status !== "active") ||
+    (input.requestedAction === "restore_project_source" &&
+      input.expectedSourceRef.status !== "excluded")
+  ) {
+    throw new ProjectDataError(
+      "A Project source lifecycle command must use the route source's exact eligible state.",
+      400,
+    );
+  }
+  const value = await requestJson(
+    `/api/commands/projects/${encodeURIComponent(input.projectId)}/sources/${encodeURIComponent(input.projectSourceId)}/lifecycle`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        command_id: input.commandId,
+        idempotency_key: input.idempotencyKey,
+        requested_action: input.requestedAction,
+        expected_source_ref: input.expectedSourceRef,
+        reason: input.reason,
+      }),
+    },
+  );
+  return projectSourceLifecycleCommandResponse(value, input);
 };
 
 export const loadProjectReviewCollection = async ({

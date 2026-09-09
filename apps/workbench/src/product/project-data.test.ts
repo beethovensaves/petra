@@ -11,6 +11,8 @@ import type {
   PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectShellViewV11,
+  PetraProjectSource,
+  PetraProjectSourceLifecycleReceipt,
   PetraProjectSourceView,
   PetraProjectThreadView,
   PetraProjectWorkView,
@@ -19,6 +21,7 @@ import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  executeProjectSourceLifecycleCommand,
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
   loadProjectPetraThread,
@@ -94,6 +97,26 @@ const sourceView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectSourceView;
+
+const sourceRecord = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-source.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectSource;
+
+const sourceLifecycleReceipt = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-source-lifecycle-receipt.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectSourceLifecycleReceipt;
 
 const controlsView = JSON.parse(
   readFileSync(
@@ -424,7 +447,7 @@ describe("Project shell workbench adapter", () => {
     expect(data.selectedProject?.id).toBe(controlsView.project_id);
     expect(data.controls?.content.sections.privacy.state).toBe("effective");
     expect(data.controls?.content.sections.capability.state).toBe(
-      "unsupported",
+      "unavailable",
     );
     expect(fetch).toHaveBeenCalledTimes(2);
 
@@ -458,6 +481,113 @@ describe("Project shell workbench adapter", () => {
       }),
     );
     expect(sourceView).toEqual(before);
+  });
+
+  it("sends only exact lifecycle command input and verifies the resulting authority", async () => {
+    const resultingSource: PetraProjectSource = {
+      ...structuredClone(sourceRecord),
+      revision: sourceLifecycleReceipt.content.resulting_source_ref.revision,
+      content: {
+        ...structuredClone(sourceRecord.content),
+        status: sourceLifecycleReceipt.content.resulting_source_ref.status,
+      },
+      content_hash:
+        sourceLifecycleReceipt.content.resulting_source_ref.content_hash,
+      added_at: sourceLifecycleReceipt.recorded_at,
+    };
+    const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return Promise.resolve(
+        Response.json({
+          receipt: sourceLifecycleReceipt,
+          project_source: resultingSource,
+          applied: true,
+        }),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const input = {
+      projectId: sourceLifecycleReceipt.project_id,
+      projectSourceId: sourceRecord.project_source_id,
+      commandId: sourceLifecycleReceipt.content.command_ref.command_id,
+      idempotencyKey:
+        sourceLifecycleReceipt.content.command_ref.idempotency_key,
+      requestedAction: "exclude_project_source" as const,
+      expectedSourceRef: sourceLifecycleReceipt.content.prior_source_ref,
+      reason: "Exclude ordinary new use while retaining exact history.",
+    };
+
+    await expect(executeProjectSourceLifecycleCommand(input)).resolves.toEqual({
+      receipt: sourceLifecycleReceipt,
+      projectSource: resultingSource,
+      applied: true,
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [requestPath, requestInit] = fetch.mock.calls[0]!;
+    expect(requestPath).toBe(
+      `/api/commands/projects/${input.projectId}/sources/${input.projectSourceId}/lifecycle`,
+    );
+    expect(requestInit?.method).toBe("POST");
+    expect(new Headers(requestInit?.headers).get("authorization")).toBe(
+      "Bearer petra-local-development",
+    );
+    if (typeof requestInit?.body !== "string") {
+      throw new Error("Expected a JSON request body.");
+    }
+    const sent = JSON.parse(requestInit.body) as Record<string, unknown>;
+    expect(sent).toEqual({
+      command_id: input.commandId,
+      idempotency_key: input.idempotencyKey,
+      requested_action: input.requestedAction,
+      expected_source_ref: input.expectedSourceRef,
+      reason: input.reason,
+    });
+    expect(sent).not.toHaveProperty("actor");
+    expect(sent).not.toHaveProperty("capability_grant_id");
+    expect(sent).not.toHaveProperty("project_id");
+    expect(sent).not.toHaveProperty("submitted_at");
+  });
+
+  it("rejects ineligible source state and mismatched lifecycle authority", async () => {
+    const fetch = vi.fn(() => {
+      const mismatchedReceipt = structuredClone(sourceLifecycleReceipt);
+      mismatchedReceipt.content.prior_source_ref.revision += 1;
+      return Promise.resolve(
+        Response.json({
+          receipt: mismatchedReceipt,
+          project_source: sourceRecord,
+          applied: false,
+        }),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const base = {
+      projectId: sourceLifecycleReceipt.project_id,
+      projectSourceId: sourceRecord.project_source_id,
+      commandId: sourceLifecycleReceipt.content.command_ref.command_id,
+      idempotencyKey:
+        sourceLifecycleReceipt.content.command_ref.idempotency_key,
+      requestedAction: "exclude_project_source" as const,
+      expectedSourceRef: sourceLifecycleReceipt.content.prior_source_ref,
+      reason: "Exclude ordinary new use while retaining exact history.",
+    };
+
+    await expect(
+      executeProjectSourceLifecycleCommand({
+        ...base,
+        expectedSourceRef: {
+          ...base.expectedSourceRef,
+          status: "excluded",
+        },
+      }),
+    ).rejects.toThrow("exact eligible state");
+    expect(fetch).not.toHaveBeenCalled();
+
+    await expect(executeProjectSourceLifecycleCommand(base)).rejects.toThrow(
+      "invalid Project source lifecycle command result",
+    );
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it("maps one exact Review-session composition without treating validation as approval", () => {

@@ -101,7 +101,7 @@ The increment passes:
 - 105 real PostgreSQL 18.6 integration cases after a clean Flyway V001 through
   V026 migration; and
 - the complete generation, retrieval-floor, formatting, lint, typecheck,
-  production-build, and test gate with 698 always-on cases and seven expected
+  production-build, and test gate with 784 always-on cases and seven expected
   service-dependent skips.
 
 The database proof covers exact issuance and idempotency, identity immutability,

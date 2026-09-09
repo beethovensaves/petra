@@ -99,6 +99,9 @@ reason. It derives all authority and transport metadata server-side, validates
 the returned receipt and resulting ProjectSource, and preserves typed denial,
 conflict, missing-target, and corruption outcomes.
 
+The typed workbench client mirrors that exact body and validates the authoritative
+result without exposing a control or altering the frozen presentation.
+
 ## Design-freeze behavior
 
 These slices add no CSS, client route hierarchy, layout, or component changes to
@@ -117,8 +120,10 @@ The focused increment passes:
 - 105 real PostgreSQL 18.6 cases after Flyway V001 through V026; and
 - 48 server cases, including authenticated preview and command routes, strict
   identity exclusion, authority denial, and typed failure mapping.
+- 86 workbench cases, now included in the root verification gate, including
+  exact lifecycle payload and response-alignment coverage.
 
-The complete repository gate passes with 698 always-on tests and seven expected
+The complete repository gate passes with 784 always-on tests and seven expected
 service-dependent skips, together with generated-contract/hash checks, the M1
 retrieval-floor check, formatting, lint, TypeScript/Python type checks, and the
 production workbench build.

@@ -161,7 +161,9 @@ describe("remaining neutral reference packets", () => {
     expect(markup).toContain("Governed Project scope");
     expect(markup).toContain("Visibility: private");
     expect(markup).toContain("scholarly, personal");
-    expect(markup).toContain("Runtime records can reference capability grants");
+    expect(markup).toContain(
+      "The CapabilityGrant registry is available, but this Project has no registered command grant.",
+    );
     expect(markup).toContain("No typed Project control operation is connected");
   });
 

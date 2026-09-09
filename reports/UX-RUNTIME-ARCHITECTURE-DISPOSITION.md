@@ -500,13 +500,16 @@ passed Project Work and inquiry composition, the live ProjectThread
 authority/read/workspace slice, and the governed ProjectSource lifecycle plus
 replacement foundations as the safety point. The PostgreSQL transaction-aware
 authorization seam and canonical Project-command grant authority are now in
-place. Next bind the single-user authenticated API principal to an exact Actor
-and grant. Only then expose lifecycle preflight/execution and add
-governed replacement creation plus compensation without changing the frozen
-presentation. If that authority decision is deferred, continue with another
-read or persistence foundation rather than weakening command authorization.
-Physical deletion remains excluded. Do not infer external filesystem edits or
-turn either conformance example into a mandatory template.
+place. The single-user principal resolver and authenticated ProjectSource
+exclude/restore API now pass, and a typed workbench client reaches that boundary
+without changing the frozen presentation. Next define governed replacement
+creation and immutable compensation semantics before adding their command and
+grant vocabulary. In parallel, the design track may select an existing frozen
+slot for lifecycle preview, confirmation, receipt, and recovery; it must not
+invent client authority. If the replacement decision is deferred, continue
+with another read or persistence foundation. Physical deletion remains
+excluded. Do not infer external filesystem edits or turn either conformance
+example into a mandatory template.
 
 ## Verification status
 
@@ -549,6 +552,6 @@ inferring it from execution references. The server-configured single-user human
 principal now resolves exactly one eligible Project-command grant and fails
 closed on missing or ambiguous authority. The lifecycle command route is its
 first public use and still revalidates the grant transactionally.
-The current complete repository gate passes with 698 always-on tests and seven
+The current complete repository gate passes with 784 always-on tests and seven
 expected service-dependent skips; the real PostgreSQL suite passes 105 cases
 after a clean V001-through-V026 migration.

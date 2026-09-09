@@ -90,6 +90,13 @@ ProjectSource revision, and whether this delivery applied the transition or
 replayed its prior outcome. Invalid input is distinct from forbidden authority,
 missing sources, stale/conflicting commands, and stored-record corruption.
 
+The workbench now has a typed `executeProjectSourceLifecycleCommand` client
+boundary. It sends only those registered fields, applies the session bearer
+token, rejects an ineligible expected source state before delivery, and verifies
+the returned command, Project, source, prior reference, resulting revision, and
+status before making the result available to a surface. No component invokes it
+yet.
+
 The existing read-only lifecycle route remains the supported impact and
 retention preview. Physical local-copy deletion remains unavailable pending an
 accepted dependency-aware retention policy and a separate destructive command.
@@ -105,7 +112,7 @@ The increment passes:
 - 105 real PostgreSQL 18.6 integration cases after Flyway V001 through V026;
   and
 - the repository-wide generation, retrieval-floor, formatting, lint, typecheck,
-  production-build, and test gate with 698 always-on cases and seven expected
+  production-build, and test gate with 784 always-on cases and seven expected
   service-dependent skips.
 
 The PostgreSQL proof covers authorization denial, exclusion, exact preservation,
@@ -116,6 +123,8 @@ ordered Project events, and registered outbox delivery intent.
 The server proof additionally covers strict request fields, server-owned
 identity and metadata, exact exclude and restore resolution, missing and
 ambiguous grants, domain error mapping, and response alignment.
+The 86-case workbench suite now runs inside the root gate and covers strict
+client payload construction plus mismatched-result refusal.
 
 ## Remaining work
 
