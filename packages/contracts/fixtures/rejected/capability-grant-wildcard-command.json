@@ -1,0 +1,23 @@
+{
+  "schema_name": "petra.capability-grant",
+  "schema_version": "1.0.0",
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "grantee": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "content": {
+    "scope_kind": "project_commands",
+    "allowed_commands": ["*"],
+    "valid_from": "2026-09-08T00:00:00.000Z",
+    "reason": "A wildcard must never become ambient authority."
+  },
+  "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "issued_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "issued_at": "2026-09-08T00:00:00.000Z"
+}

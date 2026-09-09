@@ -3,6 +3,7 @@ export * from "./artifact-store.js";
 export * from "./agent-runtime-event.js";
 export * from "./authority-graph-projection.js";
 export * from "./authority-event-replay.js";
+export * from "./capability-grant-authority-repository.js";
 export * from "./change-control-authority-repository.js";
 export * from "./context-packet-registry.js";
 export * from "./context-packet-compiler.js";

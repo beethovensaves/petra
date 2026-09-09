@@ -90,6 +90,64 @@ class PetraActor(PetraModel):
     created_at: str
 
 
+class CapabilityGrantHumanActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["human"]
+
+
+class CapabilityGrantContent(PetraModel):
+    scope_kind: Literal["project_commands"]
+    allowed_commands: list[
+        Literal[
+            "SubmitChangeSet",
+            "RecordApproval",
+            "ApplyChangeSet",
+            "ExcludeProjectSource",
+            "RestoreProjectSource",
+        ]
+    ]
+    valid_from: str
+    expires_at: str | None = None
+    reason: str
+
+
+class PetraCapabilityGrant(PetraModel):
+    schema_name: Literal["petra.capability-grant"]
+    schema_version: Literal["1.0.0"]
+    capability_grant_id: str
+    revision: Literal[1]
+    project_id: str
+    grantee: ActorRef
+    content: CapabilityGrantContent
+    content_hash: str
+    issued_by: CapabilityGrantHumanActorRef
+    issued_at: str
+
+
+class CapabilityGrantRef(PetraModel):
+    capability_grant_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class CapabilityGrantRevocationContent(PetraModel):
+    reason: str
+
+
+class PetraCapabilityGrantRevocation(PetraModel):
+    schema_name: Literal["petra.capability-grant-revocation"]
+    schema_version: Literal["1.0.0"]
+    capability_grant_revocation_id: str
+    revision: Literal[1]
+    project_id: str
+    grant_ref: CapabilityGrantRef
+    content: CapabilityGrantRevocationContent
+    content_hash: str
+    revoked_by: CapabilityGrantHumanActorRef
+    revoked_at: str
+
+
 class PetraProject(PetraModel):
     schema_name: Literal["petra.project"]
     schema_version: Literal["1.0.0"]
@@ -6124,6 +6182,8 @@ class PetraGroundedResponse(PetraModel):
 PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
+    "capability-grant": PetraCapabilityGrant,
+    "capability-grant-revocation": PetraCapabilityGrantRevocation,
     "project": PetraProject,
     "project-definition": PetraProjectDefinition,
     "project-objective": PetraProjectObjective,

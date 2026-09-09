@@ -6,7 +6,8 @@ expanded Project-shell context, initial Project Work read, durable Project
 thread read, initial Project inquiry authority/read plus frozen Work
 composition, and governed ProjectSource exclusion/restoration authority passed;
 exact ProjectSource supersession/location also passed; broader neutral runtime
-work remains open; transaction-aware PostgreSQL command authorization passed
+work remains open; transactional authorization and canonical Project-command
+CapabilityGrant authority passed
 Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
@@ -73,14 +74,17 @@ returns that exact chain as `superseded`; replacement command and compensation
 semantics remain open.
 PostgreSQL command repositories now authorize inside their command transaction
 through an async-capable adapter supplied with the exact transactional client.
-This enables a durable grant lookup and lock without changing the synchronous
-core policy seam. It does not yet supply the CapabilityGrant registry or bind an
-authenticated request to an Actor and grant.
+V026 now supplies immutable Project-command grants, exact retained revocations,
+owner-only single-user issuance/revocation, transactional validity and scope
+enforcement, and live effective-controls composition without changing the
+synchronous core policy seam. The bearer token still does not bind an
+authenticated request to an exact Actor and grant.
 
 This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-006`, `UX-REQ-008`, `UX-REQ-009`,
-`UX-REQ-010`, `UX-REQ-012`, `UX-REQ-013`, `UX-REQ-014`, and `UX-REQ-016` without changing the
-frozen presentation. It does not close those neutral-product requirements: additional source
-specializations and lifecycle commands, general working candidates,
+`UX-REQ-010`, `UX-REQ-012`, `UX-REQ-013`, `UX-REQ-014`, `UX-REQ-016`, and
+`UX-REQ-020` without changing the frozen presentation. It does not close those
+neutral-product requirements: additional source specializations and lifecycle
+commands, general working candidates,
 multi-profile Review renderers, Review deferral/reopen and batch commands,
 working and historical relationship layers, comparison and continuation,
 replacement and parent records, Project snapshot reconstruction, profile tools,
@@ -356,7 +360,7 @@ explicitly records later implementation progress:
 | `UX-REQ-017` | **Partial.** CompositionRequest/Plan, DraftArtifact/Span, ProvenanceMap, CitationBundle, assessments, renders, and persistence provide an exact scientific composition aggregate. | Add ProjectDefinition-resolved document collection/context reads, recognizable purpose, current and historical revision positions, ancestry, Work/inquiry links, findings, capabilities, and safe destinations. | Wave 5 |
 | `UX-REQ-018` | **Partial.** DraftRevisionEngine creates exact non-empty span replacements and additive support assessments. | Add a durable working-document boundary for blank, structural, and successive authoring; exact save acknowledgments; late suggestion/check reconciliation; and working-to-registered promotion. External filesystem editing remains excluded. | Wave 5 |
 | `UX-REQ-019` | **Partial.** Deterministic rendering, Artifact publication, warnings, and support assessments preserve exact generated scientific outputs. | Add exact working-copy capture, scoped findings/coverage, status-bearing representation, ExportManifest and delivery receipts, partial-format recovery, and destination eligibility. Export does not promote or certify content. | Wave 5 |
-| `UX-REQ-020` | **Partial, advanced after baseline.** `petra.project-effective-controls-view@1.0.0` now composes exact Project privacy and enabled namespaces with the current ProjectDefinition and authority position under repeatable-read isolation. Capability, routing, budget, and ReviewPolicy sections remain explicitly unsupported instead of interpreting execution references as effective policy. The authenticated client verifies the Project and definition snapshot before presentation, and paired project-authored definitions prove Project-specific control resolution. | Add owning policy/grant records only where required, actor authority, inheritance/expiry/conflict states, active-Work impact, History destinations, and a registry mapping each genuinely editable value to its typed operation. Never add a universal `SetProjectSetting`; personal preferences remain local. | Wave 1 read complete; transitions in Wave 3 |
+| `UX-REQ-020` | **Partial, advanced after baseline.** `petra.project-effective-controls-view@1.0.0` composes exact Project privacy and enabled namespaces with the current ProjectDefinition and authority position under repeatable-read isolation. V026 adds immutable Project-command grants, retained revocations, exact Actor/Project/command/validity enforcement, and live effective/expired/revoked capability values. Routing, budget, and ReviewPolicy remain explicitly unsupported. The authenticated client verifies the Project and definition snapshot before presentation, and paired project-authored definitions prove Project-specific control resolution. | Bind the authenticated single-user principal; add other owning policy and capability-scope records only where required, inheritance/pause/conflict states, active-Work impact, History destinations, and a registry mapping each genuinely editable value to its typed operation. Never add a universal `SetProjectSetting`; personal preferences remain local. | Wave 1 read and command-grant authority passed; principal binding next; transitions in Wave 3 |
 | `UX-REQ-021` | **Partial.** Scientific synthesist output, GroundedResponse, Felicity records, command receipts, and AG-UI delivery preserve important communication boundaries. | Add a ProjectDefinition-resolved CommunicationPlan with statement-level origin, force, basis, limitation, action/event links, terminology versions, and a validation/repair receipt. It is not mutation authority. | Wave 4 |
 | `UX-REQ-022` | **Missing composite contract.** AG-UI can carry non-authoritative client state; graph and ContextPacket foundations exist separately. | Add a bounded PresentationContext record linking exact semantic result, visible scene, complete accessible peer, optional permitted capture, model input, and validated explanation. Pixels and layout never establish domain meaning. | Wave 6 |
 | `UX-REQ-023` | **Partial foundations only.** Commands, events, ChangeSets, Work, interaction replay, projection checkpoints, artifacts, composition, and M1.9 recovery each record their own outcomes. | Add a read-only RecoveryAssessment that reconciles owning records into effect, preservation, member outcomes, eligible registered actions, and exact return. It cannot execute a generic recovery command or become another event ledger. | Wave 6 |
@@ -494,9 +498,9 @@ Treat the completed M1.9 cumulative result, Wave 1 neutral read foundation, the
 passed Project Work and inquiry composition, the live ProjectThread
 authority/read/workspace slice, and the governed ProjectSource lifecycle plus
 replacement foundations as the safety point. The PostgreSQL transaction-aware
-authorization seam is now in place. Next define the canonical CapabilityGrant
-record and registry, then bind the single-user authenticated API principal to an
-exact Actor and grant. Only then expose lifecycle preflight/execution and add
+authorization seam and canonical Project-command grant authority are now in
+place. Next bind the single-user authenticated API principal to an exact Actor
+and grant. Only then expose lifecycle preflight/execution and add
 governed replacement creation plus compensation without changing the frozen
 presentation. If that authority decision is deferred, continue with another
 read or persistence foundation rather than weakening command authorization.
@@ -536,8 +540,10 @@ returns its validated replacement chain without client inference; command and
 relationship-compensation semantics remain open.
 Both PostgreSQL command authorities now await authorization after their
 deterministic locks and inside the transaction that owns replay or application.
-This provides the durable grant lookup/locking seam; the canonical grant and API
-principal binding remain open.
-The current complete repository gate passes with 686 always-on tests and seven
-expected service-dependent skips; the real PostgreSQL suite passes 99 cases
-after a clean V001-through-V025 migration.
+V026 adds immutable exact command grants and retained revocations, while its
+database-backed authorizer serializes revocation against in-flight authorized
+commands. The effective-controls read now reports this authority without
+inferring it from execution references. API principal binding remains open.
+The current complete repository gate passes with 692 always-on tests and seven
+expected service-dependent skips; the real PostgreSQL suite passes 103 cases
+after a clean V001-through-V026 migration.

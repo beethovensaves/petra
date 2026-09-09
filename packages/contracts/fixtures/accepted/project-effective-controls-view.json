@@ -90,9 +90,9 @@
         }
       },
       "capability": {
-        "state": "unsupported",
+        "state": "unavailable",
         "label": "Capabilities",
-        "summary": "Runtime records can reference capability grants, but Petra has no canonical CapabilityGrant registry to resolve an effective Project grant.",
+        "summary": "The CapabilityGrant registry is available, but this Project has no registered command grant.",
         "owner_kind": "capability_authority",
         "scope": {
           "scope_kind": "project",
@@ -101,16 +101,16 @@
         "freshness": {
           "state": "current",
           "observed_at": "2026-09-08T15:00:00.000Z",
-          "limitation": "Reference identifiers are not treated as grant definitions."
+          "limitation": "No immutable Project-scoped command grant is registered for this Project."
         },
         "values": [],
         "history": {
           "state": "unavailable",
-          "limitation": "CapabilityGrant history is unavailable because no owning registry is implemented."
+          "limitation": "No immutable Project-scoped command grant is registered for this Project."
         },
         "operation": {
           "state": "unsupported",
-          "reason": "No accepted typed capability transition is registered."
+          "reason": "Grant issuance and revocation are not exposed through public typed commands."
         }
       },
       "model_routing": {
@@ -187,6 +187,6 @@
       }
     }
   },
-  "content_hash": "sha256:23b360bf178b9c10bc8272d9e6cdf39bd12439e27a6261e66fbf6e4719311e49",
+  "content_hash": "sha256:bc2b50ef7465ae06d3273d749f4740369bc39019787d59c81ee12ff78f00baeb",
   "read_at": "2026-09-08T15:00:00.000Z"
 }

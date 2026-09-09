@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.53.0",
+  "registry_version": "1.55.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -32,6 +32,28 @@
       "canonical_sha256": "sha256:5a5fe469058913f8f314fb1e241d69eac0de3a1ad356c2e478c3fa37a882aaff",
       "generate_typescript": true,
       "typescript_path": "src/generated/actor.ts"
+    },
+    {
+      "name": "capability-grant",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.0.0/schema.json",
+      "path": "schemas/capability-grant/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-immutable-project-command-grant",
+      "canonical_sha256": "sha256:28391387cc3697a1e04585d5e6f9c6a602c32c2816378e57fbb7d4a87337e8d2",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant.ts"
+    },
+    {
+      "name": "capability-grant-revocation",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/capability-grant-revocation/1.0.0/schema.json",
+      "path": "schemas/capability-grant-revocation/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-immutable-capability-grant-revocation",
+      "canonical_sha256": "sha256:edec3e5f5b8d42607b3311daa12d4257a1b4a1f3bb01f5f809dcdb1c5d5bf00d",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-revocation.ts"
     },
     {
       "name": "project",

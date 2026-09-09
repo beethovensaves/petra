@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/capability-grant/1.0.0/schema.json",
+  "title": "PetraCapabilityGrant",
+  "description": "An immutable Project-scoped grant of exact registered Petra commands to one Actor. Permission changes require another grant identity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "capability_grant_id",
+    "revision",
+    "project_id",
+    "grantee",
+    "content",
+    "content_hash",
+    "issued_by",
+    "issued_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.capability-grant" },
+    "schema_version": { "const": "1.0.0" },
+    "capability_grant_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^capability_grant_" }
+      ]
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "grantee": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "content": { "$ref": "#/$defs/GrantContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "issued_by": { "$ref": "#/$defs/HumanActorRef" },
+    "issued_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "HumanActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "human" }
+      }
+    },
+    "GrantContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope_kind", "allowed_commands", "valid_from", "reason"],
+      "properties": {
+        "scope_kind": { "const": "project_commands" },
+        "allowed_commands": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "SubmitChangeSet",
+              "RecordApproval",
+              "ApplyChangeSet",
+              "ExcludeProjectSource",
+              "RestoreProjectSource"
+            ]
+          }
+        },
+        "valid_from": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "expires_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    }
+  }
+}

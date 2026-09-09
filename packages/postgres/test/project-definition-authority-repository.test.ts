@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraActor,
+  PetraCapabilityGrant,
   PetraProject,
   PetraProjectDefinition,
   PetraProjectObjective,
@@ -15,6 +16,7 @@ import type {
   PostgresProjectDefinitionError,
   PostgresProjectDefinitionErrorCode,
 } from "../src/project-definition-authority-repository.js";
+import { PostgresCapabilityGrantAuthorityRepository } from "../src/capability-grant-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
 import type { PostgresProjectEffectiveControlsViewError } from "../src/project-effective-controls-view-reader.js";
 import { PostgresProjectEffectiveControlsViewReader } from "../src/project-effective-controls-view-reader.js";
@@ -54,6 +56,7 @@ const expectCode = async (
 describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
   const pool = new Pool({ connectionString });
   const scopes = new PostgresResearchScopeRepository(pool);
+  const capabilityGrants = new PostgresCapabilityGrantAuthorityRepository(pool);
   const repository = new PostgresProjectDefinitionAuthorityRepository(pool);
 
   beforeAll(async () => {
@@ -359,8 +362,11 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
       "project-definition-scientific",
     );
     const objective = readFixture<PetraProjectObjective>("project-objective");
+    const capabilityGrant =
+      readFixture<PetraCapabilityGrant>("capability-grant");
     await repository.registerDefinitionRevision(definition);
     await repository.registerObjectiveRevision(objective);
+    await capabilityGrants.registerCapabilityGrant(capabilityGrant);
     await repository.setCurrentObjectiveFocus({
       project_id: project.project_id,
       objective_ref: {
@@ -450,7 +456,21 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
         }),
       ]),
     );
-    expect(controls.content.sections.capability.state).toBe("unsupported");
+    expect(controls.content.sections.capability.state).toBe("effective");
+    const capabilityValue = controls.content.sections.capability.values[0];
+    expect(controls.content.sections.capability.values).toHaveLength(1);
+    expect(capabilityValue?.state).toBe("effective");
+    expect(capabilityValue?.value).toEqual(
+      capabilityGrant.content.allowed_commands,
+    );
+    expect(capabilityValue?.origin.owner_kind).toBe("capability_authority");
+    expect(capabilityValue?.origin.record_ref.record_id).toBe(
+      capabilityGrant.capability_grant_id,
+    );
+    expect(capabilityValue?.origin.record_ref.revision).toBe(
+      capabilityGrant.revision,
+    );
+    expect(controls.content.sections.capability.history.state).toBe("retained");
     expect(controls.content.sections.model_routing.state).toBe("unsupported");
     expect(controls.content.sections.work_budget.state).toBe("unsupported");
     expect(controls.content.sections.review_policy.state).toBe("unsupported");
@@ -588,6 +608,12 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
     );
     expect(writingControls.content.sections.review_policy.state).toBe(
       scientificControls.content.sections.review_policy.state,
+    );
+    expect(scientificControls.content.sections.capability.state).toBe(
+      "unavailable",
+    );
+    expect(writingControls.content.sections.capability.state).toBe(
+      "unavailable",
     );
 
     const locationReader = new PostgresProjectObjectLocationViewReader(pool);

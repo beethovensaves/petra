@@ -1,0 +1,22 @@
+{
+  "schema_name": "petra.capability-grant-revocation",
+  "schema_version": "1.0.0",
+  "capability_grant_revocation_id": "capability_grant_revocation_01K4C000000000000000000050",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "grant_ref": {
+    "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+    "revision": 1,
+    "content_hash": "sha256:44b5ef68550649fb3693b157f6393019146d8c6f31460a03ee26c38f32416164",
+    "record_hash": "sha256:8c3b92f36355ca624a3560bf5199a2deaf330de41540d73364bdf5f563563395"
+  },
+  "content": {
+    "reason": "Replace this local command grant with a narrower immutable grant."
+  },
+  "content_hash": "sha256:a49851e5f8971d99510e4e98d776677514e34bb9ecd9e1e9c2261c424c7af7d3",
+  "revoked_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "revoked_at": "2026-09-08T12:00:00.000Z"
+}

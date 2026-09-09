@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.34.0",
+  "fixture_manifest_version": "1.36.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -8,6 +8,14 @@
     {
       "schema": "actor",
       "path": "fixtures/accepted/actor.json"
+    },
+    {
+      "schema": "capability-grant",
+      "path": "fixtures/accepted/capability-grant.json"
+    },
+    {
+      "schema": "capability-grant-revocation",
+      "path": "fixtures/accepted/capability-grant-revocation.json"
     },
     {
       "schema": "project",
@@ -439,6 +447,14 @@
     {
       "schema": "actor",
       "path": "fixtures/rejected/actor-invalid-id.json"
+    },
+    {
+      "schema": "capability-grant",
+      "path": "fixtures/rejected/capability-grant-wildcard-command.json"
+    },
+    {
+      "schema": "capability-grant-revocation",
+      "path": "fixtures/rejected/capability-grant-revocation-unpinned.json"
     },
     {
       "schema": "project",

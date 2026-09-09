@@ -1,4 +1,16 @@
 export type { PetraActor } from "./generated/actor.js";
+export type {
+  ActorRef as CapabilityGrantActorRef,
+  GrantContent as CapabilityGrantContent,
+  HumanActorRef as CapabilityGrantIssuerRef,
+  PetraCapabilityGrant,
+} from "./generated/capability-grant.js";
+export type {
+  GrantRef as CapabilityGrantRevocationGrantRef,
+  HumanActorRef as CapabilityGrantRevokerRef,
+  PetraCapabilityGrantRevocation,
+  RevocationContent as CapabilityGrantRevocationContent,
+} from "./generated/capability-grant-revocation.js";
 export type { PetraArtifact } from "./generated/artifact.js";
 export type {
   AcquiredOrigin,

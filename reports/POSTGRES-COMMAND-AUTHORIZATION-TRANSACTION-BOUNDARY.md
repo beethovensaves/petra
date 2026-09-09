@@ -1,7 +1,8 @@
 # PostgreSQL command authorization transaction boundary
 
 Status: transaction-aware asynchronous authorization seam passed; canonical
-CapabilityGrant registry and authenticated principal resolution remain open
+CapabilityGrant follow-on passed; authenticated principal resolution remains
+open
 Date: 2026-09-08
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -38,20 +39,18 @@ database query through the supplied client before allowing the command.
 
 ## Authority boundary
 
-This seam does not invent a grant, infer an Actor from a bearer token, or make
-public mutations safe by itself. Petra still needs:
+This seam does not infer an Actor from a bearer token or make public mutations
+safe by itself. The follow-on [CapabilityGrant authority](CAPABILITY-GRANT-AUTHORITY.md)
+now supplies the immutable command grant, retained revocation, durable registry,
+transactional authorizer, and issuance/denial/revocation ordering proof.
 
-- a canonical immutable CapabilityGrant contract and durable registry;
-- explicit grant scope, command, Project, Actor, validity, and revocation
-  semantics;
-- a single-user authenticated-principal resolver that selects an exact Actor
-  and grant without accepting either identity from untrusted request data; and
-- integration tests proving grant issuance, denial, revocation, transaction
-  ordering, and request binding.
+Petra still needs a single-user authenticated-principal resolver that selects
+an exact Actor and grant without accepting either identity from untrusted
+request data, plus request-binding integration tests.
 
-Until those records and bindings exist, the ProjectSource lifecycle and
-replacement command routes remain unavailable. No server route, CSS, layout,
-component, or other frozen presentation behavior changed.
+Until that request binding exists, the ProjectSource lifecycle and replacement
+command routes remain unavailable. No server route, CSS, layout, component, or
+other frozen presentation behavior changed.
 
 ## Verification
 

@@ -1,0 +1,19 @@
+{
+  "schema_name": "petra.capability-grant-revocation",
+  "schema_version": "1.0.0",
+  "capability_grant_revocation_id": "capability_grant_revocation_01K4C000000000000000000050",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "grant_ref": {
+    "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ"
+  },
+  "content": {
+    "reason": "An unpinned grant reference is not sufficient revocation provenance."
+  },
+  "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "revoked_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "revoked_at": "2026-09-08T12:00:00.000Z"
+}

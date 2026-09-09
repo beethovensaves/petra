@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 
 import type {
+  PetraCapabilityGrant,
+  PetraCapabilityGrantRevocation,
   PetraProject,
   PetraProjectDefinition,
   PetraProjectEffectiveControlsView,
@@ -40,6 +42,16 @@ interface ControlsRow {
 interface AuthorityRow {
   event_position: string;
   stream_revision: string | null;
+}
+
+interface CapabilityRow {
+  grant_record_hash: string;
+  grant_payload: unknown;
+  revocation_record_hash: string | null;
+  revocation_payload: unknown;
+  total_count: string;
+  effective_count: string;
+  revoked_count: string;
 }
 
 const canonicalHash = (value: unknown): string =>
@@ -156,6 +168,12 @@ export class PostgresProjectEffectiveControlsViewReader implements ProjectEffect
       reason:
         "Privacy values are read-only until their owning typed Project transitions are accepted.",
     };
+    const capability = await this.#capability(
+      client,
+      project.project_id,
+      scope,
+      readAt,
+    );
     const content: ProjectEffectiveControlsContent = {
       project_ref: projectRef,
       project_definition_ref: {
@@ -213,13 +231,7 @@ export class PostgresProjectEffectiveControlsViewReader implements ProjectEffect
           },
           operation: privacyOperation,
         },
-        capability: unsupported(
-          "capability_authority",
-          "Capabilities",
-          "Runtime records can reference capability grants, but Petra has no canonical CapabilityGrant registry to resolve an effective Project grant.",
-          "CapabilityGrant history is unavailable because no owning registry is implemented; reference identifiers are not treated as grant definitions.",
-          "No accepted typed capability transition is registered.",
-        ),
+        capability,
         model_routing: unsupported(
           "routing_policy",
           "Model routing",
@@ -257,6 +269,185 @@ export class PostgresProjectEffectiveControlsViewReader implements ProjectEffect
       view,
     );
     return view;
+  }
+
+  async #capability(
+    client: PoolClient,
+    projectId: string,
+    scope: { readonly scope_kind: "project"; readonly project_id: string },
+    readAt: string,
+  ): Promise<ProjectEffectiveControlSection> {
+    const result = await client.query<CapabilityRow>(
+      `SELECT grant_record.record_hash AS grant_record_hash,
+              grant_record.payload AS grant_payload,
+              revocation.record_hash AS revocation_record_hash,
+              revocation.payload AS revocation_payload,
+              count(*) OVER()::text AS total_count,
+              count(*) FILTER (
+                WHERE revocation.capability_grant_revocation_id IS NULL
+                  AND grant_record.valid_from <= CURRENT_TIMESTAMP
+                  AND (
+                    grant_record.expires_at IS NULL
+                    OR grant_record.expires_at > CURRENT_TIMESTAMP
+                  )
+              ) OVER()::text AS effective_count,
+              count(*) FILTER (
+                WHERE revocation.capability_grant_revocation_id IS NOT NULL
+              ) OVER()::text AS revoked_count
+         FROM petra.capability_grants AS grant_record
+         LEFT JOIN petra.capability_grant_revocations AS revocation
+           ON revocation.capability_grant_id =
+                grant_record.capability_grant_id
+        WHERE grant_record.project_id = $1
+        ORDER BY grant_record.issued_at DESC,
+                 grant_record.capability_grant_id ASC
+        LIMIT 100`,
+      [projectId],
+    );
+    if (result.rows.length === 0) {
+      const limitation =
+        "No immutable Project-scoped command grant is registered for this Project.";
+      return {
+        state: "unavailable",
+        label: "Capabilities",
+        summary:
+          "The CapabilityGrant registry is available, but this Project has no registered command grant.",
+        owner_kind: "capability_authority",
+        scope,
+        freshness: { state: "current", observed_at: readAt, limitation },
+        values: [],
+        history: { state: "unavailable", limitation },
+        operation: {
+          state: "unsupported",
+          reason:
+            "Grant issuance and revocation are not exposed through public typed commands.",
+        },
+      };
+    }
+
+    const countRow = result.rows[0];
+    if (countRow === undefined) {
+      throw new PostgresProjectEffectiveControlsViewError(
+        "PROJECT_EFFECTIVE_CONTROLS_STORED_RECORD_CORRUPT",
+        "The CapabilityGrant query lost its retained result.",
+      );
+    }
+    const retainedCount = this.#safePosition(
+      countRow.total_count,
+      "CapabilityGrant count",
+    );
+    const effectiveCount = this.#safePosition(
+      countRow.effective_count,
+      "effective CapabilityGrant count",
+    );
+    const revokedCount = this.#safePosition(
+      countRow.revoked_count,
+      "revoked CapabilityGrant count",
+    );
+    const observedAt = Date.parse(readAt);
+    const values: ProjectEffectiveControlSection["values"] = [];
+    for (const row of result.rows) {
+      const grant = this.#capabilityGrant(
+        row.grant_payload,
+        row.grant_record_hash,
+      );
+      if (grant.project_id !== projectId) {
+        throw new PostgresProjectEffectiveControlsViewError(
+          "PROJECT_EFFECTIVE_CONTROLS_STORED_RECORD_CORRUPT",
+          "A CapabilityGrant crossed the effective-control Project boundary.",
+        );
+      }
+      const revocation =
+        row.revocation_payload === null || row.revocation_record_hash === null
+          ? undefined
+          : this.#capabilityRevocation(
+              row.revocation_payload,
+              row.revocation_record_hash,
+              grant,
+              row.grant_record_hash,
+            );
+      const notYetValid = Date.parse(grant.content.valid_from) > observedAt;
+      const expired =
+        grant.content.expires_at !== undefined &&
+        Date.parse(grant.content.expires_at) <= observedAt;
+      const effective = revocation === undefined && !notYetValid && !expired;
+      values.push({
+        key: `petra.capability-grant.${grant.capability_grant_id.toLowerCase()}`,
+        label: `Commands granted to ${grant.grantee.actor_id}`,
+        meaning:
+          "The exact registered Petra commands this immutable grant permits for its named Actor and Project.",
+        state: effective
+          ? "effective"
+          : notYetValid && revocation === undefined
+            ? "observed_only"
+            : "expired",
+        value: clone(grant.content.allowed_commands),
+        origin: {
+          owner_kind: "capability_authority",
+          record_ref: {
+            record_id: grant.capability_grant_id,
+            revision: grant.revision,
+            record_hash: row.grant_record_hash,
+          },
+        },
+        effective_from: grant.content.valid_from,
+        ...(grant.content.expires_at === undefined
+          ? {}
+          : { expires_at: grant.content.expires_at }),
+        ...(revocation !== undefined
+          ? {
+              limitation: `Revoked by retained record ${revocation.capability_grant_revocation_id} at ${revocation.revoked_at}.`,
+            }
+          : notYetValid
+            ? { limitation: "This grant is not valid yet." }
+            : expired
+              ? { limitation: "This grant has expired." }
+              : {}),
+        operation: {
+          state: "unsupported",
+          reason:
+            "This immutable grant cannot be edited; public issuance and revocation commands are not registered.",
+        },
+      });
+    }
+
+    const latest = countRow;
+    const latestGrant = this.#capabilityGrant(
+      latest.grant_payload,
+      latest.grant_record_hash,
+    );
+    return {
+      state: effectiveCount > 0 ? "effective" : "expired",
+      label: "Capabilities",
+      summary: `${effectiveCount} effective Project command grant${effectiveCount === 1 ? "" : "s"}; ${revokedCount} revoked; ${retainedCount} retained total.`,
+      owner_kind: "capability_authority",
+      scope,
+      freshness: {
+        state: "current",
+        observed_at: readAt,
+        ...(retainedCount > values.length
+          ? {
+              limitation: `Showing the 100 most recently issued grants of ${retainedCount} retained records. Aggregate posture includes all retained grants.`,
+            }
+          : {}),
+      },
+      values,
+      history: {
+        state: "retained",
+        record_ref: {
+          record_id: latestGrant.capability_grant_id,
+          revision: latestGrant.revision,
+          record_hash: latest.grant_record_hash,
+        },
+        limitation:
+          "All grant and revocation records are retained; the composed causal History destination is not implemented.",
+      },
+      operation: {
+        state: "unsupported",
+        reason:
+          "Grant issuance and revocation are not exposed through public typed commands.",
+      },
+    };
   }
 
   async #authority(
@@ -315,6 +506,50 @@ export class PostgresProjectEffectiveControlsViewReader implements ProjectEffect
       );
     }
     return clone(definition);
+  }
+
+  #capabilityGrant(payload: unknown, recordHash: string): PetraCapabilityGrant {
+    this.#contracts.assertValid("capability-grant", "1.0.0", payload);
+    const grant = payload as PetraCapabilityGrant;
+    if (
+      grant.content_hash !== canonicalHash(grant.content) ||
+      recordHash !== canonicalHash(grant)
+    ) {
+      throw new PostgresProjectEffectiveControlsViewError(
+        "PROJECT_EFFECTIVE_CONTROLS_STORED_RECORD_CORRUPT",
+        "A retained CapabilityGrant hash is invalid.",
+      );
+    }
+    return clone(grant);
+  }
+
+  #capabilityRevocation(
+    payload: unknown,
+    recordHash: string,
+    grant: PetraCapabilityGrant,
+    grantRecordHash: string,
+  ): PetraCapabilityGrantRevocation {
+    this.#contracts.assertValid(
+      "capability-grant-revocation",
+      "1.0.0",
+      payload,
+    );
+    const revocation = payload as PetraCapabilityGrantRevocation;
+    if (
+      revocation.content_hash !== canonicalHash(revocation.content) ||
+      recordHash !== canonicalHash(revocation) ||
+      revocation.project_id !== grant.project_id ||
+      revocation.grant_ref.capability_grant_id !== grant.capability_grant_id ||
+      revocation.grant_ref.revision !== grant.revision ||
+      revocation.grant_ref.content_hash !== grant.content_hash ||
+      revocation.grant_ref.record_hash !== grantRecordHash
+    ) {
+      throw new PostgresProjectEffectiveControlsViewError(
+        "PROJECT_EFFECTIVE_CONTROLS_STORED_RECORD_CORRUPT",
+        "A retained CapabilityGrant revocation does not bind its exact grant.",
+      );
+    }
+    return clone(revocation);
   }
 
   async #readTransaction<Value>(

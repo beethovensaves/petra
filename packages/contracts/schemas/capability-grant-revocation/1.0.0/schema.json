@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/capability-grant-revocation/1.0.0/schema.json",
+  "title": "PetraCapabilityGrantRevocation",
+  "description": "An immutable revocation of one exact CapabilityGrant. Revocation is retained and cannot reactivate or rewrite the grant.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "capability_grant_revocation_id",
+    "revision",
+    "project_id",
+    "grant_ref",
+    "content",
+    "content_hash",
+    "revoked_by",
+    "revoked_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.capability-grant-revocation" },
+    "schema_version": { "const": "1.0.0" },
+    "capability_grant_revocation_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^capability_grant_revocation_" }
+      ]
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "grant_ref": { "$ref": "#/$defs/GrantRef" },
+    "content": { "$ref": "#/$defs/RevocationContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "revoked_by": { "$ref": "#/$defs/HumanActorRef" },
+    "revoked_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "GrantRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability_grant_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "capability_grant_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^capability_grant_" }
+          ]
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "HumanActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "human" }
+      }
+    },
+    "RevocationContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason"],
+      "properties": {
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    }
+  }
+}
