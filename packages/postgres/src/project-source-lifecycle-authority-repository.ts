@@ -13,7 +13,6 @@ import {
   createPetraId,
   derivePetraId,
   petraIdKind,
-  type CommandAuthorizer,
   type DomainRecordFactory,
   type ProjectSourceLifecycleAuthorityRepository,
   type ProjectSourceLifecycleCommandEnvelope,
@@ -21,6 +20,8 @@ import {
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
+
+import type { PostgresCommandAuthorizer } from "./command-authorizer.js";
 
 interface CommandExecutionRow {
   command_id: string;
@@ -96,13 +97,13 @@ const sourceRef = (
  */
 export class PostgresProjectSourceLifecycleAuthorityRepository implements ProjectSourceLifecycleAuthorityRepository {
   readonly #pool: Pool;
-  readonly #commandAuthorizer: CommandAuthorizer;
+  readonly #commandAuthorizer: PostgresCommandAuthorizer;
   readonly #domainRecordFactory: DomainRecordFactory;
   readonly #contracts: PetraContractRegistry;
 
   constructor(
     pool: Pool,
-    commandAuthorizer: CommandAuthorizer,
+    commandAuthorizer: PostgresCommandAuthorizer,
     domainRecordFactory: DomainRecordFactory = SYSTEM_DOMAIN_RECORD_FACTORY,
     contracts = new PetraContractRegistry(),
   ) {
@@ -125,25 +126,27 @@ export class PostgresProjectSourceLifecycleAuthorityRepository implements Projec
         "The ProjectSource lifecycle boundary accepts only exclude or restore commands.",
       );
     }
-    if (
-      !this.#commandAuthorizer.authorize({
-        actor: envelope.actor,
-        capabilityGrantId: envelope.capability_grant_id,
-        commandName: envelope.command.command_name,
-        projectId: envelope.project_id,
-      })
-    ) {
-      throw this.#error(
-        "PROJECT_SOURCE_LIFECYCLE_COMMAND_NOT_AUTHORIZED",
-        `Capability ${envelope.capability_grant_id} does not authorize ${envelope.command.command_name}.`,
-      );
-    }
-
     const fingerprint = canonicalHash(envelope);
     const client = await this.#pool.connect();
     try {
       await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
       await this.#lock(client, envelope);
+      if (
+        !(await this.#commandAuthorizer.authorize(
+          {
+            actor: envelope.actor,
+            capabilityGrantId: envelope.capability_grant_id,
+            commandName: envelope.command.command_name,
+            projectId: envelope.project_id,
+          },
+          client,
+        ))
+      ) {
+        throw this.#error(
+          "PROJECT_SOURCE_LIFECYCLE_COMMAND_NOT_AUTHORIZED",
+          `Capability ${envelope.capability_grant_id} does not authorize ${envelope.command.command_name}.`,
+        );
+      }
       const replay = await this.#replay(client, envelope, fingerprint);
       if (replay !== undefined) {
         await client.query("COMMIT");

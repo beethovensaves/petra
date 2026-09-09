@@ -396,7 +396,12 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
   ): PostgresChangeControlAuthorityRepository =>
     new PostgresChangeControlAuthorityRepository(
       pool,
-      { authorize: () => authorized },
+      {
+        authorize: async (_request, transaction) => {
+          await transaction.query("SELECT 1");
+          return authorized;
+        },
+      },
       factory,
     );
 

@@ -502,8 +502,16 @@ describePostgres("PostgreSQL Document authority repository", () => {
       projectSource.content_hash;
     excludeCommand.command.expected_source_ref.record_hash =
       canonicalHash(projectSource);
+    let authorizationObservedSerializableTransaction = false;
     const denied = new PostgresProjectSourceLifecycleAuthorityRepository(pool, {
-      authorize: () => false,
+      authorize: async (_request, transaction) => {
+        const isolation = await transaction.query<{
+          transaction_isolation: string;
+        }>("SHOW transaction_isolation");
+        authorizationObservedSerializableTransaction =
+          isolation.rows[0]?.transaction_isolation === "serializable";
+        return false;
+      },
     });
     await expect(
       denied.executeProjectSourceLifecycleCommand(
@@ -514,6 +522,7 @@ describePostgres("PostgreSQL Document authority repository", () => {
         code: "PROJECT_SOURCE_LIFECYCLE_COMMAND_NOT_AUTHORIZED",
       }),
     );
+    expect(authorizationObservedSerializableTransaction).toBe(true);
     const exclusion =
       await sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
         excludeCommand,

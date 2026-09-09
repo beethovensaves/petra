@@ -17,7 +17,6 @@ import type {
   ChangeControlCommandResult,
   ChangeControlErrorCode,
   ChangeSetDerivedState,
-  CommandAuthorizer,
   DomainEventQuery,
   DomainRecordFactory,
   OutboxQuery,
@@ -25,6 +24,7 @@ import type {
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
 
+import type { PostgresCommandAuthorizer } from "./command-authorizer.js";
 import { insertEvidenceRecordRevision } from "./evidence-record-persistence.js";
 
 type ChangeOperation<
@@ -155,13 +155,13 @@ const boundedLimit = (limit: number | undefined): number => {
 
 export class PostgresChangeControlAuthorityRepository implements ChangeControlAuthorityRepository {
   readonly #pool: Pool;
-  readonly #commandAuthorizer: CommandAuthorizer;
+  readonly #commandAuthorizer: PostgresCommandAuthorizer;
   readonly #domainRecordFactory: DomainRecordFactory;
   readonly #contracts: PetraContractRegistry;
 
   constructor(
     pool: Pool,
-    commandAuthorizer: CommandAuthorizer,
+    commandAuthorizer: PostgresCommandAuthorizer,
     domainRecordFactory: DomainRecordFactory = SYSTEM_DOMAIN_RECORD_FACTORY,
     contracts = new PetraContractRegistry(),
   ) {
@@ -179,20 +179,6 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       envelope.schema_version,
       envelope,
     );
-    if (
-      !this.#commandAuthorizer.authorize({
-        actor: envelope.actor,
-        capabilityGrantId: envelope.capability_grant_id,
-        commandName: envelope.command.command_name,
-        projectId: envelope.project_id,
-      })
-    ) {
-      throw new ChangeControlError(
-        "COMMAND_NOT_AUTHORIZED",
-        `Capability ${envelope.capability_grant_id} does not authorize ${envelope.command.command_name}.`,
-      );
-    }
-
     const fingerprint = canonicalHash(envelope);
     const client = await this.#pool.connect();
     let transactionOpen = false;
@@ -200,6 +186,22 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       await client.query("BEGIN");
       transactionOpen = true;
       await this.#lockCommandScope(client, envelope);
+      if (
+        !(await this.#commandAuthorizer.authorize(
+          {
+            actor: envelope.actor,
+            capabilityGrantId: envelope.capability_grant_id,
+            commandName: envelope.command.command_name,
+            projectId: envelope.project_id,
+          },
+          client,
+        ))
+      ) {
+        throw new ChangeControlError(
+          "COMMAND_NOT_AUTHORIZED",
+          `Capability ${envelope.capability_grant_id} does not authorize ${envelope.command.command_name}.`,
+        );
+      }
 
       const replay = await this.#findReplay(client, envelope, fingerprint);
       if (replay !== undefined) {

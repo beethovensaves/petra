@@ -1,4 +1,5 @@
 export * from "./artifact-authority-repository.js";
+export * from "./command-authorizer.js";
 export * from "./change-control-authority-repository.js";
 export * from "./composition-aggregate-repository.js";
 export * from "./composition-authority-repository.js";

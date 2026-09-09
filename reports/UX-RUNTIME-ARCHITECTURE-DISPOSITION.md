@@ -6,7 +6,7 @@ expanded Project-shell context, initial Project Work read, durable Project
 thread read, initial Project inquiry authority/read plus frozen Work
 composition, and governed ProjectSource exclusion/restoration authority passed;
 exact ProjectSource supersession/location also passed; broader neutral runtime
-work remains open
+work remains open; transaction-aware PostgreSQL command authorization passed
 Date: 2026-09-08
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
@@ -71,6 +71,11 @@ governed lifecycle path. PostgreSQL prevents ambiguous outgoing successors,
 cycles, and chains beyond 32 edges. The semantic object locator validates and
 returns that exact chain as `superseded`; replacement command and compensation
 semantics remain open.
+PostgreSQL command repositories now authorize inside their command transaction
+through an async-capable adapter supplied with the exact transactional client.
+This enables a durable grant lookup and lock without changing the synchronous
+core policy seam. It does not yet supply the CapabilityGrant registry or bind an
+authenticated request to an Actor and grant.
 
 This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-006`, `UX-REQ-008`, `UX-REQ-009`,
 `UX-REQ-010`, `UX-REQ-012`, `UX-REQ-013`, `UX-REQ-014`, and `UX-REQ-016` without changing the
@@ -488,14 +493,15 @@ through `UX-REQ-023` conformance.
 Treat the completed M1.9 cumulative result, Wave 1 neutral read foundation, the
 passed Project Work and inquiry composition, the live ProjectThread
 authority/read/workspace slice, and the governed ProjectSource lifecycle plus
-replacement foundations as the safety point. Next define how the single-user
-API resolves the exact Actor and capability grant required by commands. Then
-expose lifecycle preflight/execution and add governed replacement creation plus
-compensation without changing the frozen presentation. If that authority
-decision is deferred, continue with another read or persistence foundation
-rather than weakening command authorization. Physical deletion remains
-excluded. Do not infer external filesystem edits or turn either conformance
-example into a mandatory template.
+replacement foundations as the safety point. The PostgreSQL transaction-aware
+authorization seam is now in place. Next define the canonical CapabilityGrant
+record and registry, then bind the single-user authenticated API principal to an
+exact Actor and grant. Only then expose lifecycle preflight/execution and add
+governed replacement creation plus compensation without changing the frozen
+presentation. If that authority decision is deferred, continue with another
+read or persistence foundation rather than weakening command authorization.
+Physical deletion remains excluded. Do not infer external filesystem edits or
+turn either conformance example into a mandatory template.
 
 ## Verification status
 
@@ -528,6 +534,10 @@ V025 additionally retains exact, bounded, acyclic ProjectSource supersession
 lineage tied to the predecessor's exclusion receipt. The semantic locator now
 returns its validated replacement chain without client inference; command and
 relationship-compensation semantics remain open.
+Both PostgreSQL command authorities now await authorization after their
+deterministic locks and inside the transaction that owns replay or application.
+This provides the durable grant lookup/locking seam; the canonical grant and API
+principal binding remain open.
 The current complete repository gate passes with 686 always-on tests and seven
 expected service-dependent skips; the real PostgreSQL suite passes 99 cases
 after a clean V001-through-V025 migration.

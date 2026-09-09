@@ -68,8 +68,11 @@ register and test an event adapter before adding that projection target.
 No public mutation route or frozen-interface control was added. Existing API
 authentication verifies a bearer token but does not bind a request to the exact
 Actor and capability grant demanded by the command. Supplying a server-selected
-placeholder would weaken the authority model. Public preflight and execution
-therefore remain unavailable until that binding is defined.
+placeholder would weaken the authority model. PostgreSQL command authorization
+can now resolve and lock durable grant state inside the command transaction, but
+the canonical grant registry and authenticated-principal binding do not yet
+exist. Public preflight and execution therefore remain unavailable until those
+authorities are defined.
 
 The existing read-only lifecycle route remains the supported impact and
 retention preview. Physical local-copy deletion remains unavailable pending an
