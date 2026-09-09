@@ -1,4 +1,5 @@
 import {
+  PostgresSingleUserCommandPrincipalResolver,
   PostgresProjectEffectiveControlsViewReader,
   PostgresProjectInquiryViewReader,
   PostgresProjectObjectLocationViewReader,
@@ -15,6 +16,7 @@ import neo4j, { type Driver } from "neo4j-driver";
 import pg from "pg";
 
 import type {
+  AuthenticatedCommandPrincipalResolver,
   ProjectEffectiveControlsViewReader,
   ProjectInquiryViewReader,
   ProjectObjectLocationViewReader,
@@ -26,6 +28,7 @@ import type {
   ProjectThreadViewReader,
   ProjectWorkViewReader,
 } from "@petra/core";
+import { parsePetraId } from "@petra/core";
 
 const { Pool } = pg;
 
@@ -40,6 +43,7 @@ export interface ProjectShellPersistence {
   readonly workViews: ProjectWorkViewReader;
   readonly threadViews: ProjectThreadViewReader;
   readonly inquiryViews: ProjectInquiryViewReader;
+  readonly commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
   readonly close: () => Promise<void>;
 }
 
@@ -49,6 +53,7 @@ export interface ProjectShellPersistenceEnvironment {
   readonly PETRA_POSTGRES_USER?: string;
   readonly PETRA_POSTGRES_PASSWORD?: string;
   readonly PETRA_POSTGRES_DATABASE?: string;
+  readonly PETRA_LOCAL_ACTOR_ID?: string;
   readonly PETRA_NEO4J_URI?: string;
   readonly PETRA_NEO4J_HOST?: string;
   readonly PETRA_NEO4J_BOLT_HOST_PORT?: string;
@@ -116,6 +121,16 @@ const neo4jCredential = (
 export const createProjectShellPersistenceFromEnvironment = async (
   environment: ProjectShellPersistenceEnvironment = process.env,
 ): Promise<ProjectShellPersistence> => {
+  const configuredActorId = environment.PETRA_LOCAL_ACTOR_ID?.trim();
+  if (configuredActorId !== undefined && configuredActorId !== "") {
+    try {
+      parsePetraId(configuredActorId, "actor");
+    } catch {
+      throw new ProjectShellPersistenceConfigurationError(
+        "PETRA_LOCAL_ACTOR_ID must be a canonical actor-prefixed Petra ID.",
+      );
+    }
+  }
   const pool = new Pool({
     host: environment.PETRA_POSTGRES_HOST?.trim() || "127.0.0.1",
     port: port(environment.PETRA_POSTGRES_HOST_PORT),
@@ -136,11 +151,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
 
   try {
     const schema = await pool.query<{ ready: boolean }>(
-      "SELECT to_regclass('petra.project_inquiry_links') IS NOT NULL AS ready",
+      "SELECT to_regclass('petra.capability_grants') IS NOT NULL AS ready",
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but V023 has not created petra.project_inquiry_links.",
+        "PostgreSQL is reachable, but V026 has not created petra.capability_grants.",
       );
     }
     const neo4jConfigured = [
@@ -181,6 +196,15 @@ export const createProjectShellPersistenceFromEnvironment = async (
         workViews: new PostgresProjectWorkViewReader(pool),
         threadViews: new PostgresProjectThreadViewReader(pool),
         inquiryViews: new PostgresProjectInquiryViewReader(pool),
+        ...(configuredActorId === undefined || configuredActorId === ""
+          ? {}
+          : {
+              commandPrincipalResolver:
+                new PostgresSingleUserCommandPrincipalResolver(pool, {
+                  actor_id: configuredActorId,
+                  actor_kind: "human",
+                }),
+            }),
         relationshipViews: new PostgresProjectRelationshipViewReader(
           pool,
           graph,
@@ -208,6 +232,15 @@ export const createProjectShellPersistenceFromEnvironment = async (
     workViews: new PostgresProjectWorkViewReader(pool),
     threadViews: new PostgresProjectThreadViewReader(pool),
     inquiryViews: new PostgresProjectInquiryViewReader(pool),
+    ...(configuredActorId === undefined || configuredActorId === ""
+      ? {}
+      : {
+          commandPrincipalResolver:
+            new PostgresSingleUserCommandPrincipalResolver(pool, {
+              actor_id: configuredActorId,
+              actor_kind: "human",
+            }),
+        }),
     close,
   };
 };

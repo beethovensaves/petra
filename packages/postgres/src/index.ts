@@ -30,6 +30,7 @@ export * from "./project-object-location-view-reader.js";
 export * from "./research-scope-repository.js";
 export * from "./rendered-artifact-authority-repository.js";
 export * from "./scholarly-identity-repository.js";
+export * from "./single-user-command-principal-resolver.js";
 export * from "./synthesist-execution-repository.js";
 export * from "./work-unit-authority-repository.js";
 

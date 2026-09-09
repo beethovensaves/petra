@@ -1,8 +1,8 @@
 # CapabilityGrant authority
 
 Status: immutable Project-command grants, retained revocation, transactional
-authorization, and effective-controls composition passed; authenticated
-principal binding and public grant/lifecycle commands remain open
+authorization, effective-controls composition, and the single-user principal
+resolver passed; public grant/lifecycle commands remain open
 Date: 2026-09-08
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -71,13 +71,21 @@ This grant version covers registered Project commands only; remote-provider,
 tool, data-egress, cost, and other capability scopes still require their owning
 contracts.
 
-## API and design-freeze boundary
+## Authenticated principal and design-freeze boundary
 
-The bearer token still does not resolve an exact Actor and Project grant. Petra
-therefore does not yet expose ProjectSource lifecycle execution, grant issuance,
-or revocation routes. The next dependency is a single-user authenticated
-principal resolver whose server-owned binding cannot be overridden by request
-data.
+`PostgresSingleUserCommandPrincipalResolver` binds a server-configured canonical
+human Actor to exactly one active, unrevoked grant for the requested Project
+and exact command. Callers supply only the Project and command: they cannot
+select an Actor or grant. An absent registered Actor, no eligible grant, or two
+eligible grants fails closed. The owning command transaction must still
+revalidate the resolved exact grant, so expiry or revocation between resolution
+and execution cannot authorize a command.
+
+`PETRA_LOCAL_ACTOR_ID` is optional while the surface remains read-only. When it
+is set, Project-shell persistence validates the canonical Actor ID and makes the
+resolver available to the server. The next increment can now expose the typed
+ProjectSource lifecycle authority without trusting request-carried identity.
+Grant issuance and revocation remain internal and are not public routes.
 
 No CSS, layout, route hierarchy, component contract, or other frozen design
 behavior changed. The already-live effective-controls route returns the newly
@@ -89,10 +97,10 @@ The increment passes:
 
 - 359 TypeScript contract, registry, generation, hash, and fixture cases;
 - strict TypeScript and Python type checks plus 25 Python cases;
-- 103 real PostgreSQL 18.6 integration cases after a clean Flyway V001 through
+- 105 real PostgreSQL 18.6 integration cases after a clean Flyway V001 through
   V026 migration; and
 - the complete generation, retrieval-floor, formatting, lint, typecheck,
-  production-build, and test gate with 692 always-on cases and seven expected
+  production-build, and test gate with 693 always-on cases and seven expected
   service-dependent skips.
 
 The database proof covers exact issuance and idempotency, identity immutability,
@@ -103,8 +111,8 @@ after revocation, and effective-controls composition.
 
 ## Remaining work
 
-- bind the configured single-user bearer principal to one exact Actor and
-  Project grant without accepting either identity from the request body;
+- pass the server-resolved principal into the public ProjectSource lifecycle
+  command route and reject every request-carried identity field;
 - add typed issuance and revocation administration only when its event, receipt,
   and recovery semantics are accepted;
 - expose ProjectSource lifecycle preflight and execution through the resolved

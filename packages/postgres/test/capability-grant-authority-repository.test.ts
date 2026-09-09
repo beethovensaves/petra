@@ -20,6 +20,7 @@ import {
   PostgresCapabilityGrantCommandAuthorizer,
 } from "../src/capability-grant-authority-repository.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
+import { PostgresSingleUserCommandPrincipalResolver } from "../src/single-user-command-principal-resolver.js";
 
 const { Pool } = pg;
 const connectionString = process.env.PETRA_TEST_POSTGRES_URL;
@@ -176,6 +177,87 @@ describePostgres("PostgreSQL CapabilityGrant authority", () => {
         [grant.capability_grant_id],
       ),
     ).rejects.toThrow(/immutable/u);
+  });
+
+  it("resolves only one active grant for the configured local human", async () => {
+    const { actor, project } = await registerScope();
+    const resolver = new PostgresSingleUserCommandPrincipalResolver(pool, {
+      actor_id: actor.actor_id,
+      actor_kind: "human",
+    });
+    const request = {
+      projectId: project.project_id,
+      commandName: "ExcludeProjectSource" as const,
+    };
+
+    await expect(resolver.resolveCommandPrincipal(request)).resolves.toEqual({
+      state: "denied",
+      reason: "active_grant_not_found",
+    });
+
+    const grant = readFixture<PetraCapabilityGrant>("capability-grant");
+    await repository.registerCapabilityGrant(grant);
+    await expect(resolver.resolveCommandPrincipal(request)).resolves.toEqual({
+      state: "resolved",
+      actor: {
+        actor_id: actor.actor_id,
+        actor_kind: "human",
+      },
+      capabilityGrantId: grant.capability_grant_id,
+    });
+    await expect(
+      resolver.resolveCommandPrincipal({
+        ...request,
+        commandName: "ApplyChangeSet",
+      }),
+    ).resolves.toEqual({
+      state: "resolved",
+      actor: {
+        actor_id: actor.actor_id,
+        actor_kind: "human",
+      },
+      capabilityGrantId: grant.capability_grant_id,
+    });
+
+    const overlappingGrant = structuredClone(grant);
+    overlappingGrant.capability_grant_id =
+      "capability_grant_01K4C000000000000000000056";
+    await repository.registerCapabilityGrant(overlappingGrant);
+    await expect(resolver.resolveCommandPrincipal(request)).resolves.toEqual({
+      state: "denied",
+      reason: "active_grant_ambiguous",
+    });
+
+    const revocation = readFixture<PetraCapabilityGrantRevocation>(
+      "capability-grant-revocation",
+    );
+    await repository.registerCapabilityGrantRevocation(revocation);
+    await expect(resolver.resolveCommandPrincipal(request)).resolves.toEqual({
+      state: "resolved",
+      actor: {
+        actor_id: actor.actor_id,
+        actor_kind: "human",
+      },
+      capabilityGrantId: overlappingGrant.capability_grant_id,
+    });
+  });
+
+  it("does not resolve a configured human absent from canonical Actor authority", async () => {
+    const { project } = await registerScope();
+    const resolver = new PostgresSingleUserCommandPrincipalResolver(pool, {
+      actor_id: "actor_01K4C000000000000000000057",
+      actor_kind: "human",
+    });
+
+    await expect(
+      resolver.resolveCommandPrincipal({
+        projectId: project.project_id,
+        commandName: "ExcludeProjectSource",
+      }),
+    ).resolves.toEqual({
+      state: "denied",
+      reason: "actor_not_registered",
+    });
   });
 
   it("rejects invalid time, content rebinding, absent grantees, and non-owner issuers", async () => {
