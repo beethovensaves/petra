@@ -1,0 +1,38 @@
+{
+  "schema_name": "petra.project-source-replacement",
+  "schema_version": "1.0.0",
+  "project_source_replacement_id": "project_source_replacement_01K4C000000000000000000041",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "relationship": "supersedes",
+    "replacement_kind": "preferred_copy_changed",
+    "replaced_source_ref": {
+      "project_source_id": "project_source_01K4C000000000000000000007",
+      "revision": 2,
+      "content_hash": "sha256:97efe03df69d4d9cff66a78bd5b7929ecaba625d08086cbca3f6e4f26b8f566d",
+      "record_hash": "sha256:4296a13702655672092fa8d06f04d552e1715566b1ff541e75ea5bbce7f578e9",
+      "status": "excluded"
+    },
+    "replacement_source_ref": {
+      "project_source_id": "project_source_01K4C000000000000000000040",
+      "revision": 1,
+      "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "status": "active"
+    },
+    "exclusion_receipt_ref": {
+      "project_source_lifecycle_receipt_id": "project_source_lifecycle_receipt_01K4C000000000000000000023",
+      "revision": 1,
+      "content_hash": "sha256:aceb4a82fd5cc4aab70d3c9c48b9dcda5e4198a49f024ef28d1bba6c6d2f15f2",
+      "record_hash": "sha256:f1de0f722e36ea40816aad879b0d19896476ffbc4dc628f491e376f4d4b4aaf9"
+    },
+    "rationale": "Use the separately registered preferred copy without rebinding or erasing the retained source identity."
+  },
+  "content_hash": "sha256:b6a33f69e6e0da588534b500e5d73571fd129decd273a6f890be06db830d265e",
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "recorded_at": "2026-09-09T00:10:00.000Z"
+}

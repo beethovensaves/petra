@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-replacement/1.0.0/schema.json",
+  "title": "PetraProjectSourceReplacement",
+  "description": "An immutable Project-scoped lineage edge from one exact excluded ProjectSource revision to one exact active replacement revision. It records supersession without rebinding either source identity or deleting retained history.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_source_replacement_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "recorded_by",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-replacement" },
+    "schema_version": { "const": "1.0.0" },
+    "project_source_replacement_id": {
+      "type": "string",
+      "pattern": "^project_source_replacement_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ReplacementContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ExcludedSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "const": "excluded" }
+      }
+    },
+    "ActiveSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "const": "active" }
+      }
+    },
+    "ExclusionReceiptRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_lifecycle_receipt_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "project_source_lifecycle_receipt_id": {
+          "type": "string",
+          "pattern": "^project_source_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ReplacementContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relationship",
+        "replacement_kind",
+        "replaced_source_ref",
+        "replacement_source_ref",
+        "exclusion_receipt_ref",
+        "rationale"
+      ],
+      "properties": {
+        "relationship": { "const": "supersedes" },
+        "replacement_kind": {
+          "enum": [
+            "newer_source_version",
+            "identity_resolution",
+            "preferred_copy_changed",
+            "project_role_replacement"
+          ]
+        },
+        "replaced_source_ref": { "$ref": "#/$defs/ExcludedSourceRef" },
+        "replacement_source_ref": { "$ref": "#/$defs/ActiveSourceRef" },
+        "exclusion_receipt_ref": { "$ref": "#/$defs/ExclusionReceiptRef" },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    }
+  }
+}

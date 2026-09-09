@@ -7,6 +7,7 @@ import type {
   PetraProjectDefinition,
   PetraProjectObjectLocationView,
   PetraProjectSource,
+  PetraProjectSourceReplacement,
   PetraProjectionCheckpoint,
   PetraWorkUnit,
   ProjectObjectDescriptor,
@@ -77,6 +78,30 @@ interface StoredRevision {
 interface LocatedRecord {
   current: StoredRevision;
   selected?: StoredRevision;
+  replacementSteps?: ReplacementStep[];
+}
+
+interface ReplacementStep {
+  edge: StoredRow;
+  successorId: string;
+  successor: StoredRevision;
+}
+
+interface StoredRow {
+  payload: unknown;
+  recordHash: string;
+}
+
+interface ReplacementLookupRow {
+  edge_payload: unknown;
+  edge_record_hash: string;
+  replacement_project_source_id: string;
+  replacement_revision: string;
+  replacement_payload: unknown;
+  replacement_record_hash: string;
+  replacement_status: string;
+  depth: string;
+  is_cycle: boolean;
 }
 
 interface RequiredRegistration {
@@ -168,7 +193,77 @@ const projectSourceLookup = async (
     [projectId, objectId, revision ?? null],
   );
   const row = result.rows[0];
-  return row === undefined ? undefined : rowRecord(row);
+  if (row === undefined) return undefined;
+  const replacements = await client.query<ReplacementLookupRow>(
+    `WITH RECURSIVE chain AS (
+       SELECT edge.payload AS edge_payload,
+              edge.record_hash AS edge_record_hash,
+              edge.replacement_project_source_id,
+              edge.replacement_revision,
+              1::bigint AS depth,
+              ARRAY[
+                edge.replaced_project_source_id,
+                edge.replacement_project_source_id
+              ] AS path,
+              false AS is_cycle
+         FROM petra.project_source_replacements AS edge
+        WHERE edge.project_id = $1
+          AND edge.replaced_project_source_id = $2
+       UNION ALL
+       SELECT edge.payload, edge.record_hash,
+              edge.replacement_project_source_id,
+              edge.replacement_revision,
+              chain.depth + 1,
+              chain.path || edge.replacement_project_source_id,
+              edge.replacement_project_source_id = ANY(chain.path)
+         FROM chain
+         JOIN petra.project_source_replacements AS edge
+           ON edge.project_id = $1
+          AND edge.replaced_project_source_id =
+              chain.replacement_project_source_id
+        WHERE chain.depth < 33 AND NOT chain.is_cycle
+     )
+     SELECT chain.edge_payload, chain.edge_record_hash,
+            chain.replacement_project_source_id,
+            chain.replacement_revision::text,
+            revision.payload AS replacement_payload,
+            revision.record_hash AS replacement_record_hash,
+            revision.status AS replacement_status,
+            chain.depth::text, chain.is_cycle
+       FROM chain
+       JOIN petra.project_source_revisions AS revision
+         ON revision.project_source_id =
+              chain.replacement_project_source_id
+        AND revision.revision = chain.replacement_revision
+      ORDER BY chain.depth`,
+    [projectId, objectId],
+  );
+  if (
+    replacements.rows.some(
+      (replacement) => replacement.is_cycle || Number(replacement.depth) > 32,
+    )
+  ) {
+    throw new PostgresProjectObjectLocationViewError(
+      "PROJECT_OBJECT_LOCATION_STORED_RECORD_CORRUPT",
+      "ProjectSource replacement lineage is cyclic or exceeds 32 edges.",
+    );
+  }
+  return {
+    ...rowRecord(row),
+    replacementSteps: replacements.rows.map((replacement) => ({
+      edge: {
+        payload: replacement.edge_payload,
+        recordHash: replacement.edge_record_hash,
+      },
+      successorId: replacement.replacement_project_source_id,
+      successor: {
+        revision: Number(replacement.replacement_revision),
+        recordHash: replacement.replacement_record_hash,
+        payload: replacement.replacement_payload,
+        lifecycleState: replacement.replacement_status,
+      },
+    })),
+  };
 };
 
 const assertionLookup = async (
@@ -583,6 +678,10 @@ export class PostgresProjectObjectLocationViewReader implements ProjectObjectLoc
       } else {
         this.#assertStored(adapter, located.current);
         this.#assertStored(adapter, located.selected);
+        for (const replacement of located.replacementSteps ?? []) {
+          this.#assertReplacement(replacement.edge);
+          this.#assertStored(adapter, replacement.successor);
+        }
         content = this.#resolvedContent(
           request,
           definition,
@@ -625,9 +724,11 @@ export class PostgresProjectObjectLocationViewReader implements ProjectObjectLoc
       located.current,
     );
     const state =
-      located.selected.revision === located.current.revision
-        ? ("current" as const)
-        : ("historical" as const);
+      (located.replacementSteps?.length ?? 0) > 0
+        ? ("superseded" as const)
+        : located.selected.revision === located.current.revision
+          ? ("current" as const)
+          : ("historical" as const);
     const destinations = this.#destinations(
       adapter,
       definition,
@@ -646,7 +747,13 @@ export class PostgresProjectObjectLocationViewReader implements ProjectObjectLoc
         resolved_ref: resolvedRef,
         current_ref: currentRef,
         descriptor: adapter.descriptor(located.selected, definition),
-        replacement_chain: [],
+        replacement_chain: (located.replacementSteps ?? []).map((replacement) =>
+          this.#exactRef(
+            adapter.semanticKey,
+            replacement.successorId,
+            replacement.successor,
+          ),
+        ),
       },
       primary_destination: destinations[0],
       alternate_destinations: destinations.slice(
@@ -785,6 +892,23 @@ export class PostgresProjectObjectLocationViewReader implements ProjectObjectLoc
     if (canonicalHash(revision.payload) !== revision.recordHash) {
       throw this.#corrupt(
         `Stored ${adapter.schemaName} revision ${revision.revision} has an invalid record hash.`,
+      );
+    }
+  }
+
+  #assertReplacement(row: StoredRow): void {
+    this.#contracts.assertValid(
+      "project-source-replacement",
+      "1.0.0",
+      row.payload,
+    );
+    const replacement = row.payload as PetraProjectSourceReplacement;
+    if (
+      replacement.content_hash !== canonicalHash(replacement.content) ||
+      canonicalHash(replacement) !== row.recordHash
+    ) {
+      throw this.#corrupt(
+        "A ProjectSource replacement edge does not reproduce its canonical hashes.",
       );
     }
   }

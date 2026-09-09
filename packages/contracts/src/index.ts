@@ -149,6 +149,15 @@ export type {
   WorkVersionRef as ProjectSourceWorkVersionRef,
 } from "./generated/project-source.js";
 export type {
+  ActiveSourceRef as ProjectSourceReplacementActiveSourceRef,
+  ExcludedSourceRef as ProjectSourceReplacementExcludedSourceRef,
+  ExclusionReceiptRef as ProjectSourceReplacementExclusionReceiptRef,
+  PetraProjectSourceReplacement,
+  ReplacementContent as ProjectSourceReplacementContent,
+} from "./generated/project-source-replacement.js";
+export type ProjectSourceReplacementSourceRef =
+  ProjectSourceReplacementExcludedRef | ProjectSourceReplacementActiveRef;
+export type {
   AuthorityPosition as ProjectSourceLifecycleAuthorityPosition,
   ExactDependentRef as ProjectSourceLifecycleDependentRef,
   Impact as ProjectSourceLifecycleImpact,
@@ -705,6 +714,10 @@ import type { PetraDomainEventV120 } from "./generated/domain-event-v1-2.js";
 import type { PetraOutboxRecord } from "./generated/outbox-record.js";
 import type { PetraOutboxRecordV110 } from "./generated/outbox-record-v1-1.js";
 import type { PetraOutboxRecordV120 } from "./generated/outbox-record-v1-2.js";
+import type {
+  ActiveSourceRef as ProjectSourceReplacementActiveRef,
+  ExcludedSourceRef as ProjectSourceReplacementExcludedRef,
+} from "./generated/project-source-replacement.js";
 
 export type PetraChangeSetRecord = PetraChangeSet | PetraChangeSetV110;
 export type PetraCommandEnvelopeRecord =

@@ -378,6 +378,55 @@ class PetraProjectSource(PetraModel):
     added_at: str
 
 
+class ProjectSourceReplacementExcludedRef(PetraModel):
+    project_source_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+    status: Literal["excluded"]
+
+
+class ProjectSourceReplacementActiveRef(PetraModel):
+    project_source_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+    status: Literal["active"]
+
+
+class ProjectSourceReplacementExclusionReceiptRef(PetraModel):
+    project_source_lifecycle_receipt_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class ProjectSourceReplacementContent(PetraModel):
+    relationship: Literal["supersedes"]
+    replacement_kind: Literal[
+        "newer_source_version",
+        "identity_resolution",
+        "preferred_copy_changed",
+        "project_role_replacement",
+    ]
+    replaced_source_ref: ProjectSourceReplacementExcludedRef
+    replacement_source_ref: ProjectSourceReplacementActiveRef
+    exclusion_receipt_ref: ProjectSourceReplacementExclusionReceiptRef
+    rationale: str
+
+
+class PetraProjectSourceReplacement(PetraModel):
+    schema_name: Literal["petra.project-source-replacement"]
+    schema_version: Literal["1.0.0"]
+    project_source_replacement_id: str
+    revision: Literal[1]
+    project_id: str
+    content: ProjectSourceReplacementContent
+    content_hash: str
+    recorded_by: ActorRef
+    recorded_at: str
+
+
 class ProjectSourceViewExactRef(PetraModel):
     record_id: str
     revision: int
@@ -6081,6 +6130,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-shell-view": PetraProjectShellView,
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
+    "project-source-replacement": PetraProjectSourceReplacement,
     "project-source-view": PetraProjectSourceView,
     "project-source-lifecycle-view": PetraProjectSourceLifecycleView,
     "project-source-lifecycle-receipt": PetraProjectSourceLifecycleReceipt,
@@ -6265,6 +6315,7 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-thread-view-detail.json", "content", "content_hash"),
         ("project-source-lifecycle-view.json", "content", "content_hash"),
         ("project-source-lifecycle-receipt.json", "content", "content_hash"),
+        ("project-source-replacement.json", "content", "content_hash"),
     ]
     for filename, projection, hash_field in fixtures:
         value = read_json(f"fixtures/accepted/{filename}")

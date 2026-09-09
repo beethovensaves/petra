@@ -128,8 +128,8 @@ includes:
 
 - an Actor- and capability-bound public preflight and command route over the
   implemented backend authority;
-- explicit replacement and supersession relationships rather than rebinding a
-  stable ProjectSource identity;
+- a governed creation and compensation command over the implemented immutable
+  ProjectSource replacement/supersession lineage;
 - ProjectDefinition-valid lifecycle adapters for other source kinds;
 - broader registered dependency adapters and complete impact policy;
 - frozen-interface preview/confirmation integration after mutation exists; and

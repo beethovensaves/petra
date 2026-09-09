@@ -1,0 +1,38 @@
+{
+  "schema_name": "petra.project-source-replacement",
+  "schema_version": "1.0.0",
+  "project_source_replacement_id": "project_source_replacement_01K4C000000000000000000042",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "relationship": "supersedes",
+    "replacement_kind": "preferred_copy_changed",
+    "replaced_source_ref": {
+      "project_source_id": "project_source_01K4C000000000000000000007",
+      "revision": 1,
+      "content_hash": "sha256:c6e1c7abe0e2c29f7dc0454d1c6d6ab10526fd3f82612299053b1aa88d5fc4db",
+      "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c",
+      "status": "active"
+    },
+    "replacement_source_ref": {
+      "project_source_id": "project_source_01K4C000000000000000000040",
+      "revision": 1,
+      "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "status": "active"
+    },
+    "exclusion_receipt_ref": {
+      "project_source_lifecycle_receipt_id": "project_source_lifecycle_receipt_01K4C000000000000000000023",
+      "revision": 1,
+      "content_hash": "sha256:aceb4a82fd5cc4aab70d3c9c48b9dcda5e4198a49f024ef28d1bba6c6d2f15f2",
+      "record_hash": "sha256:f1de0f722e36ea40816aad879b0d19896476ffbc4dc628f491e376f4d4b4aaf9"
+    },
+    "rationale": "This fixture is rejected because an active source cannot be the superseded predecessor."
+  },
+  "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "recorded_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "recorded_at": "2026-09-09T00:10:00.000Z"
+}

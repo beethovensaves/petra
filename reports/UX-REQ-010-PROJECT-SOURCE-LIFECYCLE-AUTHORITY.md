@@ -99,6 +99,7 @@ ordered Project events, and registered outbox delivery intent.
 - expose exact preflight and execute routes without changing the frozen surface;
 - integrate preview, confirmation, receipt, and recovery into an approved
   frozen-interface slot;
-- add explicit replacement and supersession relations;
+- add a governed creation and compensation command over the implemented exact
+  ProjectSource replacement/supersession relation;
 - register other ProjectDefinition-valid source and dependency adapters; and
 - keep physical deletion unavailable until retention policy is accepted.

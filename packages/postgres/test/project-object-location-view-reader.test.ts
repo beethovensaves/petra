@@ -124,6 +124,9 @@ class LocationClient {
     if (text.includes("FROM petra.projection_checkpoints AS head")) {
       return result([]);
     }
+    if (text.includes("WITH RECURSIVE chain AS")) {
+      return result([]);
+    }
     const objectIdValue = values[1];
     const objectId = typeof objectIdValue === "string" ? objectIdValue : "";
     const member = stored.get(objectId);

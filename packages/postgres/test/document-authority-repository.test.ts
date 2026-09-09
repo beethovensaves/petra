@@ -10,6 +10,7 @@ import type {
   PetraProject,
   PetraProjectDefinition,
   PetraProjectSource,
+  PetraProjectSourceReplacement,
   PetraRightsDecision,
   PetraSourceSpan,
   PetraStructuralBlock,
@@ -37,6 +38,7 @@ import { PostgresProjectShellViewReader } from "../src/project-shell-view-reader
 import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
 import { PostgresProjectSourceLifecycleAuthorityRepository } from "../src/project-source-lifecycle-authority-repository.js";
 import { PostgresProjectSourceLifecycleViewReader } from "../src/project-source-lifecycle-view-reader.js";
+import { PostgresProjectSourceReplacementAuthorityRepository } from "../src/project-source-replacement-authority-repository.js";
 import { PostgresProjectSourceViewReader } from "../src/project-source-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
@@ -120,6 +122,8 @@ describePostgres("PostgreSQL Document authority repository", () => {
   const sourceLifecycleViews = new PostgresProjectSourceLifecycleViewReader(
     pool,
   );
+  const sourceReplacements =
+    new PostgresProjectSourceReplacementAuthorityRepository(pool);
   const sourceViews = new PostgresProjectSourceViewReader(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
   const shellViews = new PostgresProjectShellViewReader(pool);
@@ -661,6 +665,195 @@ describePostgres("PostgreSQL Document authority repository", () => {
       projectSources.registerProjectSourceRevision(wrongRole),
     ).rejects.toEqual(
       expect.objectContaining({ code: "PROJECT_SOURCE_RELATION_INVALID" }),
+    );
+  });
+
+  it("retains exact ProjectSource supersession and resolves its bounded successor chain", async () => {
+    const acquired = await registerArtifactChain();
+    const project = readFixture<PetraProject>("project");
+    const definition = readFixture<PetraProjectDefinition>(
+      "project-definition-scientific",
+    );
+    await scopes.registerProjectRevision(project);
+    await definitions.registerDefinitionRevision(definition);
+
+    const initial = readFixture<PetraProjectSource>("project-source");
+    initial.content.artifact_manifest_ref.record_hash = canonicalHash(
+      acquired.manifest,
+    );
+    initial.content_hash = canonicalHash(initial.content);
+    await projectSources.registerProjectSourceRevision(initial);
+    const excludeCommand = readFixture<ProjectSourceLifecycleCommandEnvelope>(
+      "command-exclude-project-source",
+    );
+    excludeCommand.command.expected_source_ref.content_hash =
+      initial.content_hash;
+    excludeCommand.command.expected_source_ref.record_hash =
+      canonicalHash(initial);
+    const exclusion =
+      await sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
+        excludeCommand,
+      );
+    const replaced = exclusion.projectSource;
+
+    const preferredManifest = structuredClone(acquired.manifest);
+    preferredManifest.artifact_manifest_id =
+      "artifact_manifest_01K4C000000000000000000043";
+    preferredManifest.rights_decision_id =
+      "rights_decision_01K4C000000000000000000044";
+    preferredManifest.recorded_at = "2026-09-09T00:08:00.000Z";
+    const preferredRights = structuredClone(acquired.rightsDecision);
+    preferredRights.rights_decision_id = preferredManifest.rights_decision_id;
+    preferredRights.artifact_manifest_id =
+      preferredManifest.artifact_manifest_id;
+    preferredRights.authorization_reference =
+      "petra-local-preferred-copy/1.0.0";
+    preferredRights.created_at = "2026-09-09T00:08:00.000Z";
+    const preferred = await artifacts.attachVerifiedManifest({
+      artifactId: acquired.artifact.artifact_id,
+      manifest: preferredManifest,
+      rightsDecision: preferredRights,
+    });
+
+    const successor = structuredClone(replaced);
+    successor.project_source_id = "project_source_01K4C000000000000000000040";
+    successor.revision = 1;
+    successor.content.artifact_manifest_ref = {
+      artifact_manifest_id: preferred.manifest.artifact_manifest_id,
+      revision: preferred.manifest.revision,
+      record_hash: canonicalHash(preferred.manifest),
+    };
+    successor.content.status = "active";
+    successor.content_hash = canonicalHash(successor.content);
+    successor.added_at = "2026-09-09T00:09:00.000Z";
+    await projectSources.registerProjectSourceRevision(successor);
+
+    const replacement = readFixture<PetraProjectSourceReplacement>(
+      "project-source-replacement",
+    );
+    replacement.content.replaced_source_ref = {
+      project_source_id: replaced.project_source_id,
+      revision: replaced.revision,
+      content_hash: replaced.content_hash,
+      record_hash: canonicalHash(replaced),
+      status: "excluded",
+    };
+    replacement.content.replacement_source_ref = {
+      project_source_id: successor.project_source_id,
+      revision: successor.revision,
+      content_hash: successor.content_hash,
+      record_hash: canonicalHash(successor),
+      status: "active",
+    };
+    replacement.content.exclusion_receipt_ref = {
+      project_source_lifecycle_receipt_id:
+        exclusion.receipt.project_source_lifecycle_receipt_id,
+      revision: exclusion.receipt.revision,
+      content_hash: exclusion.receipt.content_hash,
+      record_hash: canonicalHash(exclusion.receipt),
+    };
+    replacement.content_hash = canonicalHash(replacement.content);
+
+    const staleReceipt = structuredClone(replacement);
+    staleReceipt.project_source_replacement_id =
+      "project_source_replacement_01K4C000000000000000000046";
+    staleReceipt.content.exclusion_receipt_ref.record_hash =
+      "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+    staleReceipt.content_hash = canonicalHash(staleReceipt.content);
+    await expect(
+      sourceReplacements.registerProjectSourceReplacement(staleReceipt),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_REPLACEMENT_EXCLUSION_RECEIPT_STALE",
+      }),
+    );
+
+    expect(
+      await sourceReplacements.registerProjectSourceReplacement(replacement),
+    ).toEqual(replacement);
+    expect(
+      await sourceReplacements.registerProjectSourceReplacement(
+        structuredClone(replacement),
+      ),
+    ).toEqual(replacement);
+    expect(
+      await sourceReplacements.getProjectSourceReplacement(
+        project.project_id,
+        replacement.project_source_replacement_id,
+      ),
+    ).toEqual(replacement);
+    expect(
+      await sourceReplacements.getProjectSourceSuccessor(
+        project.project_id,
+        replaced.project_source_id,
+      ),
+    ).toEqual(replacement);
+    expect(
+      await sourceReplacements.listProjectSourceReplacementChain(
+        project.project_id,
+        replaced.project_source_id,
+      ),
+    ).toEqual([replacement]);
+
+    const location = await objectLocations.locateProjectObject({
+      project_id: project.project_id,
+      object_ref: {
+        semantic_key: "petra.project-source",
+        object_id: replaced.project_source_id,
+      },
+      task_intent: "inspect",
+    });
+    expect(location?.content.resolution).toEqual(
+      expect.objectContaining({
+        state: "superseded",
+        replacement_chain: [
+          {
+            semantic_key: "petra.project-source",
+            object_id: successor.project_source_id,
+            revision: successor.revision,
+            record_hash: canonicalHash(successor),
+          },
+        ],
+      }),
+    );
+    expect(location?.content.primary_destination.role).toBe("sources");
+    await expect(
+      pool.query(
+        `UPDATE petra.project_source_replacements
+            SET replacement_kind = 'identity_resolution'
+          WHERE project_source_replacement_id = $1`,
+        [replacement.project_source_replacement_id],
+      ),
+    ).rejects.toBeDefined();
+
+    const duplicate = structuredClone(replacement);
+    duplicate.project_source_replacement_id =
+      "project_source_replacement_01K4C000000000000000000042";
+    duplicate.content.rationale = "Attempt a second successor.";
+    duplicate.content_hash = canonicalHash(duplicate.content);
+    await expect(
+      sourceReplacements.registerProjectSourceReplacement(duplicate),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_REPLACEMENT_ALREADY_LINKED",
+      }),
+    );
+
+    const selfReplacement = structuredClone(replacement);
+    selfReplacement.project_source_replacement_id =
+      "project_source_replacement_01K4C000000000000000000045";
+    selfReplacement.content.replaced_source_ref = {
+      ...structuredClone(replacement.content.replacement_source_ref),
+      status: "excluded",
+    };
+    selfReplacement.content.replacement_source_ref = structuredClone(
+      replacement.content.replacement_source_ref,
+    );
+    selfReplacement.content_hash = canonicalHash(selfReplacement.content);
+    await expect(
+      sourceReplacements.registerProjectSourceReplacement(selfReplacement),
+    ).rejects.toEqual(
+      expect.objectContaining({ code: "PROJECT_SOURCE_REPLACEMENT_CYCLE" }),
     );
   });
 
