@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/outbox-record/1.2.0/schema.json",
+  "title": "PetraOutboxRecordV120",
+  "description": "An immutable ordered projection delivery carrying a version-1.2 Project authority event.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "outbox_id",
+    "outbox_position",
+    "target",
+    "target_sequence",
+    "partition_key",
+    "deduplication_key",
+    "enqueued_at",
+    "message"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.outbox-record" },
+    "schema_version": { "const": "1.2.0" },
+    "outbox_id": {
+      "$ref": "../../outbox-record/1.0.0/schema.json#/$defs/OutboxId"
+    },
+    "outbox_position": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "target": { "enum": ["neo4j_graph", "interface_authority"] },
+    "target_sequence": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "partition_key": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "deduplication_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "enqueued_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_kind", "event"],
+      "properties": {
+        "message_kind": { "const": "domain_event" },
+        "event": { "$ref": "../../domain-event/1.2.0/schema.json" }
+      }
+    }
+  }
+}

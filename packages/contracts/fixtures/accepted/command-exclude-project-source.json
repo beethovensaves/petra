@@ -1,0 +1,25 @@
+{
+  "schema_name": "petra.command-envelope",
+  "schema_version": "1.2.0",
+  "command_id": "command_01K4C000000000000000000020",
+  "idempotency_key": "project-source:007:exclude:v1",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+  "submitted_at": "2026-09-09T00:00:00.000Z",
+  "command": {
+    "command_name": "ExcludeProjectSource",
+    "expected_source_ref": {
+      "project_source_id": "project_source_01K4C000000000000000000007",
+      "revision": 1,
+      "content_hash": "sha256:c6e1c7abe0e2c29f7dc0454d1c6d6ab10526fd3f82612299053b1aa88d5fc4db",
+      "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c",
+      "status": "active"
+    },
+    "reason": "Stop ordinary new use of this source while preserving its exact history and provenance."
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/domain-event/1.2.0/schema.json",
+  "title": "PetraDomainEventV120",
+  "description": "An immutable Project-stream fact extended with governed ProjectSource status transitions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "event_id",
+    "event_position",
+    "stream_type",
+    "stream_id",
+    "stream_revision",
+    "project_id",
+    "actor",
+    "occurred_at",
+    "recorded_at",
+    "correlation_id",
+    "causation_id",
+    "command_id",
+    "idempotency_key",
+    "capability_grant_id",
+    "event"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.domain-event" },
+    "schema_version": { "const": "1.2.0" },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "event_position": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "stream_type": { "const": "project" },
+    "stream_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "stream_revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+    "occurred_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "correlation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+    },
+    "causation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "capability_grant_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+    },
+    "event": { "$ref": "#/$defs/Event" }
+  },
+  "$defs": {
+    "Event": {
+      "oneOf": [
+        {
+          "$ref": "../../domain-event/1.1.0/schema.json#/$defs/ChangeSetSubmitted"
+        },
+        {
+          "$ref": "../../domain-event/1.0.0/schema.json#/$defs/ApprovalRecorded"
+        },
+        {
+          "$ref": "../../domain-event/1.0.0/schema.json#/$defs/ChangeSetApplied"
+        },
+        {
+          "$ref": "../../domain-event/1.0.0/schema.json#/$defs/ChangeSetConflicted"
+        },
+        {
+          "$ref": "../../domain-event/1.1.0/schema.json#/$defs/ChangeSetReverted"
+        },
+        {
+          "$ref": "../../domain-event/1.1.0/schema.json#/$defs/ReversalConflicted"
+        },
+        { "$ref": "#/$defs/ProjectSourceExcluded" },
+        { "$ref": "#/$defs/ProjectSourceRestored" }
+      ]
+    },
+    "PriorProjectSourceRef": {
+      "$ref": "../../command-envelope/1.2.0/schema.json#/$defs/ExactProjectSourceRef"
+    },
+    "ProjectSourceTransitionPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prior_source_ref", "project_source"],
+      "properties": {
+        "prior_source_ref": { "$ref": "#/$defs/PriorProjectSourceRef" },
+        "project_source": {
+          "$ref": "../../project-source/1.0.0/schema.json"
+        }
+      }
+    },
+    "ProjectSourceExcluded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_type", "payload"],
+      "properties": {
+        "event_type": { "const": "project_source.excluded" },
+        "payload": { "$ref": "#/$defs/ProjectSourceTransitionPayload" }
+      }
+    },
+    "ProjectSourceRestored": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_type", "payload"],
+      "properties": {
+        "event_type": { "const": "project_source.restored" },
+        "payload": { "$ref": "#/$defs/ProjectSourceTransitionPayload" }
+      }
+    }
+  }
+}

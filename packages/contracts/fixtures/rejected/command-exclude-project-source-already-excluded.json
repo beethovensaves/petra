@@ -1,0 +1,25 @@
+{
+  "schema_name": "petra.command-envelope",
+  "schema_version": "1.2.0",
+  "command_id": "command_01K4C000000000000000000020",
+  "idempotency_key": "project-source:007:exclude:v1",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK",
+  "submitted_at": "2026-09-09T00:00:00.000Z",
+  "command": {
+    "command_name": "ExcludeProjectSource",
+    "expected_source_ref": {
+      "project_source_id": "project_source_01K4C000000000000000000007",
+      "revision": 2,
+      "content_hash": "sha256:97efe03df69d4d9cff66a78bd5b7929ecaba625d08086cbca3f6e4f26b8f566d",
+      "record_hash": "sha256:4296a13702655672092fa8d06f04d552e1715566b1ff541e75ea5bbce7f578e9",
+      "status": "excluded"
+    },
+    "reason": "An exclusion command cannot claim an already excluded source as its expected state."
+  }
+}

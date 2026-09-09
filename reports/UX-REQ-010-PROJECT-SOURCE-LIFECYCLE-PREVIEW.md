@@ -1,6 +1,6 @@
 # UX-REQ-010 Project source lifecycle preview
 
-Status: exact read-only impact and retention preview passed; governed mutation and physical deletion remain unavailable
+Status: exact read-only preview and governed backend exclude/restore authority passed; public mutation and physical deletion remain unavailable
 Date: 2026-09-08
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -22,9 +22,11 @@ identifies the exact current ProjectSource revision and hash, the requested
 transition, bounded registered dependents, explicit retention outcomes, the
 operation boundary, and the repeatable-read Project authority position.
 
-This is a preview boundary, not a command. Every operation remains marked
-unavailable until a typed lifecycle command and Project event receipt are
-registered.
+This route remains a preview boundary, not a command. Exclude and restore now
+have registered backend commands, Project events, immutable receipts, and
+compensating recovery. They are not exposed through the public API because the
+current bearer-token boundary does not establish the Actor and capability grant
+required by the command envelope. Local-copy deletion remains unavailable.
 
 ## Lifecycle meaning
 
@@ -91,38 +93,41 @@ through this route.
 
 ## Design-freeze behavior
 
-This slice adds no CSS, route hierarchy, layout, or component changes to the
+These slices add no CSS, route hierarchy, layout, or component changes to the
 frozen interface. There is not yet an approved source-lifecycle control slot,
-and presenting an unavailable control would imply interaction that the backend
-cannot execute. The live read boundary can support a later frozen-design
-integration once the typed command and recovery behavior exist.
+and the public mutation boundary still lacks Actor and capability binding. The
+live preview and backend authority can support a later frozen-design integration
+without redesigning the surface.
 
 ## Verification
 
 The focused increment passes:
 
-- 341 TypeScript contract, registry, generation, hash, and fixture cases;
+- 350 TypeScript contract, registry, generation, hash, and fixture cases;
 - strict TypeScript and Python type checks;
-- 98 real PostgreSQL 18.6 cases after Flyway V001 through V023; and
+- 98 real PostgreSQL 18.6 cases after Flyway V001 through V024; and
 - 42 server cases, including the authenticated exact lifecycle route and its
   malformed-query and cross-Project failures.
 
-The complete repository gate passes with 674 always-on tests and seven expected
+The complete repository gate passes with 683 always-on tests and seven expected
 service-dependent skips, together with generated-contract/hash checks, the M1
 retrieval-floor check, formatting, lint, TypeScript/Python type checks, and the
 production workbench build.
 
 The database proof covers exclusion and restoration previews, local-copy
 deletion refusal, exact parsed dependency references, retained outcomes,
-repeatable-read authority, invalid action rejection, and Project isolation.
+repeatable-read authority, invalid action rejection, Project isolation,
+authorization denial, exact expected-source enforcement, idempotent replay,
+identity-reuse conflicts, immutable events and receipts, and compensating
+restoration.
 
 ## Remaining UX-REQ-010 work
 
 This preview advances but does not close the requirement. Remaining work
 includes:
 
-- typed exclude and restore commands with authorization, preflight, idempotency,
-  Project events, receipts, and recovery;
+- an Actor- and capability-bound public preflight and command route over the
+  implemented backend authority;
 - explicit replacement and supersession relationships rather than rebinding a
   stable ProjectSource identity;
 - ProjectDefinition-valid lifecycle adapters for other source kinds;
@@ -131,5 +136,7 @@ includes:
 - an accepted retention policy before any physical local-copy deletion command
   can be designed or exposed.
 
-The immediate next backend step is the governed exclude/restore command and
-event boundary over this preview. Physical deletion remains outside that step.
+The immediate next backend decision is how an authenticated single-user request
+resolves its exact Actor and capability grant. Only then can the governed
+exclude/restore authority be exposed without inventing authorization in the
+route. Physical deletion remains outside that step.

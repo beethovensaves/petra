@@ -17,6 +17,7 @@ export * from "./project-thread-authority-repository.js";
 export * from "./project-thread-view-reader.js";
 export * from "./project-shell-view-reader.js";
 export * from "./project-source-authority-repository.js";
+export * from "./project-source-lifecycle-authority-repository.js";
 export * from "./project-source-lifecycle-view-reader.js";
 export * from "./project-source-view-reader.js";
 export * from "./review-session-authority-repository.js";

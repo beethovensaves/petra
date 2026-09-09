@@ -163,6 +163,15 @@ export type {
   UnavailableTransition as ProjectSourceLifecycleUnavailableTransition,
 } from "./generated/project-source-lifecycle-view.js";
 export type {
+  CommandRef as ProjectSourceLifecycleCommandRef,
+  EventRef as ProjectSourceLifecycleEventRef,
+  ExactProjectSourceRef as ProjectSourceLifecycleExactSourceRef,
+  PetraProjectSourceLifecycleReceipt,
+  Preservation as ProjectSourceLifecyclePreservation,
+  ReceiptContent as ProjectSourceLifecycleReceiptContent,
+  Recovery as ProjectSourceLifecycleRecovery,
+} from "./generated/project-source-lifecycle-receipt.js";
+export type {
   AuthorityPosition as ProjectSourceAuthorityPosition,
   BindingSummary as ProjectSourceBindingSummary,
   CopySummary as ProjectSourceCopySummary,
@@ -396,6 +405,13 @@ export type {
   PetraCommandEnvelopeV110,
 } from "./generated/command-envelope-v1-1.js";
 export type {
+  Command as PetraCommandV120,
+  ExactProjectSourceRef as CommandProjectSourceRef,
+  ExcludeProjectSource,
+  PetraCommandEnvelopeV120,
+  RestoreProjectSource,
+} from "./generated/command-envelope-v1-2.js";
+export type {
   ApprovalRecorded as ApprovalRecordedEvent,
   ChangeSetApplied as ChangeSetAppliedEvent,
   ChangeSetConflicted as ChangeSetConflictedEvent,
@@ -412,10 +428,18 @@ export type {
   ReversalConflictTarget,
 } from "./generated/domain-event-v1-1.js";
 export type {
+  Event as PetraEventV120,
+  PetraDomainEventV120,
+  ProjectSourceExcluded as ProjectSourceExcludedEvent,
+  ProjectSourceRestored as ProjectSourceRestoredEvent,
+  ProjectSourceTransitionPayload,
+} from "./generated/domain-event-v1-2.js";
+export type {
   DomainEventMessage,
   PetraOutboxRecord,
 } from "./generated/outbox-record.js";
 export type { PetraOutboxRecordV110 } from "./generated/outbox-record-v1-1.js";
+export type { PetraOutboxRecordV120 } from "./generated/outbox-record-v1-2.js";
 export type {
   ArtifactInputBinding as WorkerArtifactInputBinding,
   ContractRef as WorkerContractRef,
@@ -677,11 +701,15 @@ import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
 import type { PetraDomainEvent } from "./generated/domain-event.js";
 import type { PetraDomainEventV110 } from "./generated/domain-event-v1-1.js";
+import type { PetraDomainEventV120 } from "./generated/domain-event-v1-2.js";
 import type { PetraOutboxRecord } from "./generated/outbox-record.js";
 import type { PetraOutboxRecordV110 } from "./generated/outbox-record-v1-1.js";
+import type { PetraOutboxRecordV120 } from "./generated/outbox-record-v1-2.js";
 
 export type PetraChangeSetRecord = PetraChangeSet | PetraChangeSetV110;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
-export type PetraDomainEventRecord = PetraDomainEvent | PetraDomainEventV110;
-export type PetraOutboxRecordRecord = PetraOutboxRecord | PetraOutboxRecordV110;
+export type PetraDomainEventRecord =
+  PetraDomainEvent | PetraDomainEventV110 | PetraDomainEventV120;
+export type PetraOutboxRecordRecord =
+  PetraOutboxRecord | PetraOutboxRecordV110 | PetraOutboxRecordV120;

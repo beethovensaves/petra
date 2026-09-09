@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/command-envelope/1.2.0/schema.json",
+  "title": "PetraCommandEnvelopeV120",
+  "description": "The adapter-neutral command envelope extended with exact ProjectSource exclude and restore transitions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "correlation_id",
+    "submitted_at",
+    "command"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.command-envelope" },
+    "schema_version": { "const": "1.2.0" },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+    "capability_grant_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+    },
+    "correlation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+    },
+    "causation_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "command": { "$ref": "#/$defs/Command" }
+  },
+  "$defs": {
+    "Command": {
+      "oneOf": [
+        {
+          "$ref": "../../command-envelope/1.1.0/schema.json#/$defs/SubmitChangeSet"
+        },
+        {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/RecordApproval"
+        },
+        {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/ApplyChangeSet"
+        },
+        { "$ref": "#/$defs/ExcludeProjectSource" },
+        { "$ref": "#/$defs/RestoreProjectSource" }
+      ]
+    },
+    "ExactProjectSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "enum": ["active", "excluded"] }
+      }
+    },
+    "ExcludeProjectSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_name", "expected_source_ref", "reason"],
+      "properties": {
+        "command_name": { "const": "ExcludeProjectSource" },
+        "expected_source_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/ExactProjectSourceRef" },
+            {
+              "type": "object",
+              "properties": { "status": { "const": "active" } }
+            }
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "RestoreProjectSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_name", "expected_source_ref", "reason"],
+      "properties": {
+        "command_name": { "const": "RestoreProjectSource" },
+        "expected_source_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/ExactProjectSourceRef" },
+            {
+              "type": "object",
+              "properties": { "status": { "const": "excluded" } }
+            }
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    }
+  }
+}

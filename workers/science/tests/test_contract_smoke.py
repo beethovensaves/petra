@@ -2753,6 +2753,161 @@ class PetraOutboxRecordV110(PetraModel):
     message: DomainEventMessageV110
 
 
+class ProjectSourceCommandExactRef(PetraModel):
+    project_source_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+    status: Literal["active", "excluded"]
+
+
+class ExcludeProjectSourceCommand(PetraModel):
+    command_name: Literal["ExcludeProjectSource"]
+    expected_source_ref: ProjectSourceCommandExactRef
+    reason: str
+
+
+class RestoreProjectSourceCommand(PetraModel):
+    command_name: Literal["RestoreProjectSource"]
+    expected_source_ref: ProjectSourceCommandExactRef
+    reason: str
+
+
+class PetraCommandEnvelopeV120(PetraModel):
+    schema_name: Literal["petra.command-envelope"]
+    schema_version: Literal["1.2.0"]
+    command_id: str
+    idempotency_key: str
+    project_id: str
+    actor: ActorRef
+    capability_grant_id: str
+    correlation_id: str
+    causation_id: str | None = None
+    submitted_at: str
+    command: (
+        SubmitChangeSetV110
+        | RecordApproval
+        | ApplyChangeSet
+        | ExcludeProjectSourceCommand
+        | RestoreProjectSourceCommand
+    )
+
+
+class ProjectSourceTransitionPayload(PetraModel):
+    prior_source_ref: ProjectSourceCommandExactRef
+    project_source: PetraProjectSource
+
+
+class ProjectSourceExcludedEvent(PetraModel):
+    event_type: Literal["project_source.excluded"]
+    payload: ProjectSourceTransitionPayload
+
+
+class ProjectSourceRestoredEvent(PetraModel):
+    event_type: Literal["project_source.restored"]
+    payload: ProjectSourceTransitionPayload
+
+
+class PetraDomainEventV120(PetraModel):
+    schema_name: Literal["petra.domain-event"]
+    schema_version: Literal["1.2.0"]
+    event_id: str
+    event_position: int
+    stream_type: Literal["project"]
+    stream_id: str
+    stream_revision: int
+    project_id: str
+    actor: ActorRef
+    occurred_at: str
+    recorded_at: str
+    correlation_id: str
+    causation_id: str
+    command_id: str
+    idempotency_key: str
+    capability_grant_id: str
+    event: (
+        ChangeSetSubmittedEventV110
+        | ApprovalRecordedEvent
+        | ChangeSetAppliedEvent
+        | ChangeSetConflictedEvent
+        | ChangeSetRevertedEvent
+        | ReversalConflictedEvent
+        | ProjectSourceExcludedEvent
+        | ProjectSourceRestoredEvent
+    )
+
+
+class DomainEventMessageV120(PetraModel):
+    message_kind: Literal["domain_event"]
+    event: PetraDomainEventV120
+
+
+class PetraOutboxRecordV120(PetraModel):
+    schema_name: Literal["petra.outbox-record"]
+    schema_version: Literal["1.2.0"]
+    outbox_id: str
+    outbox_position: int
+    target: Literal["neo4j_graph", "interface_authority"]
+    target_sequence: int
+    partition_key: str
+    deduplication_key: str
+    enqueued_at: str
+    message: DomainEventMessageV120
+
+
+class ProjectSourceLifecycleReceiptCommandRef(PetraModel):
+    command_id: str
+    idempotency_key: str
+    command_name: Literal["ExcludeProjectSource", "RestoreProjectSource"]
+    command_fingerprint: str
+
+
+class ProjectSourceLifecycleReceiptEventRef(PetraModel):
+    event_id: str
+    event_position: int
+    stream_revision: int
+    event_type: Literal["project_source.excluded", "project_source.restored"]
+    record_hash: str
+
+
+class ProjectSourceLifecyclePreservation(PetraModel):
+    project_source_history: Literal["retained"]
+    canonical_identity: Literal["retained"]
+    selected_work_version: Literal["retained"]
+    artifact_manifest: Literal["retained"]
+    local_artifact: Literal["retained"]
+    parsed_representation: Literal["retained"]
+    provenance: Literal["retained"]
+
+
+class ProjectSourceLifecycleRecovery(PetraModel):
+    recovery_kind: Literal["compensating_status_transition"]
+    state: Literal["available"]
+    inverse_command_name: Literal["ExcludeProjectSource", "RestoreProjectSource"]
+    expected_source_ref: ProjectSourceCommandExactRef
+    effect: Literal["ordinary_new_use_disabled", "ordinary_new_use_restored"]
+
+
+class ProjectSourceLifecycleReceiptContent(PetraModel):
+    command_ref: ProjectSourceLifecycleReceiptCommandRef
+    prior_source_ref: ProjectSourceCommandExactRef
+    resulting_source_ref: ProjectSourceCommandExactRef
+    event_ref: ProjectSourceLifecycleReceiptEventRef
+    preservation: ProjectSourceLifecyclePreservation
+    recovery: ProjectSourceLifecycleRecovery
+
+
+class PetraProjectSourceLifecycleReceipt(PetraModel):
+    schema_name: Literal["petra.project-source-lifecycle-receipt"]
+    schema_version: Literal["1.0.0"]
+    project_source_lifecycle_receipt_id: str
+    revision: Literal[1]
+    project_id: str
+    content: ProjectSourceLifecycleReceiptContent
+    content_hash: str
+    recorded_at: str
+
+
 class WorkerTaskDescriptor(PetraModel):
     task_family: Literal[
         "ingestion",
@@ -5928,6 +6083,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-source": PetraProjectSource,
     "project-source-view": PetraProjectSourceView,
     "project-source-lifecycle-view": PetraProjectSourceLifecycleView,
+    "project-source-lifecycle-receipt": PetraProjectSourceLifecycleReceipt,
     "review-session": PetraReviewSession,
     "project-review-view": PetraProjectReviewView,
     "project-relationship-view": PetraProjectRelationshipView,
@@ -5997,6 +6153,9 @@ PYDANTIC_MODELS.update(
         ("command-envelope", "1.1.0"): PetraCommandEnvelopeV110,
         ("domain-event", "1.1.0"): PetraDomainEventV110,
         ("outbox-record", "1.1.0"): PetraOutboxRecordV110,
+        ("command-envelope", "1.2.0"): PetraCommandEnvelopeV120,
+        ("domain-event", "1.2.0"): PetraDomainEventV120,
+        ("outbox-record", "1.2.0"): PetraOutboxRecordV120,
         (
             "model-role-certification",
             "1.1.0",
@@ -6105,6 +6264,7 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-thread-view-collection.json", "content", "content_hash"),
         ("project-thread-view-detail.json", "content", "content_hash"),
         ("project-source-lifecycle-view.json", "content", "content_hash"),
+        ("project-source-lifecycle-receipt.json", "content", "content_hash"),
     ]
     for filename, projection, hash_field in fixtures:
         value = read_json(f"fixtures/accepted/{filename}")

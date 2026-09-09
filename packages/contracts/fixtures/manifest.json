@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.27.0",
+  "fixture_manifest_version": "1.32.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -101,6 +101,10 @@
     {
       "schema": "project-source-lifecycle-view",
       "path": "fixtures/accepted/project-source-lifecycle-view.json"
+    },
+    {
+      "schema": "project-source-lifecycle-receipt",
+      "path": "fixtures/accepted/project-source-lifecycle-receipt.json"
     },
     {
       "schema": "review-session",
@@ -244,6 +248,11 @@
       "path": "fixtures/accepted/command-submit-reversal.json"
     },
     {
+      "schema": "command-envelope",
+      "version": "1.2.0",
+      "path": "fixtures/accepted/command-exclude-project-source.json"
+    },
+    {
       "schema": "domain-event",
       "path": "fixtures/accepted/domain-event-change-set-submitted.json"
     },
@@ -260,8 +269,18 @@
       "path": "fixtures/accepted/domain-event-change-set-conflicted.json"
     },
     {
+      "schema": "domain-event",
+      "version": "1.2.0",
+      "path": "fixtures/accepted/domain-event-project-source-excluded.json"
+    },
+    {
       "schema": "outbox-record",
       "path": "fixtures/accepted/outbox-record.json"
+    },
+    {
+      "schema": "outbox-record",
+      "version": "1.2.0",
+      "path": "fixtures/accepted/outbox-project-source-excluded.json"
     },
     {
       "schema": "worker-input-manifest",
@@ -724,6 +743,11 @@
     {
       "schema": "work-unit-cancellation",
       "path": "fixtures/rejected/work-unit-cancellation-changes-science.json"
+    },
+    {
+      "schema": "command-envelope",
+      "version": "1.2.0",
+      "path": "fixtures/rejected/command-exclude-project-source-already-excluded.json"
     }
   ],
   "canonical": [

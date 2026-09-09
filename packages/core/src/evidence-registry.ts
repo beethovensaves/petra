@@ -148,7 +148,10 @@ export interface EvidenceProposalResolver extends EvidenceSourceResolver {
 export interface CommandAuthorizationRequest {
   readonly actor: PetraCommandEnvelopeRecord["actor"];
   readonly capabilityGrantId: string;
-  readonly commandName: PetraCommandRecord["command_name"];
+  readonly commandName:
+    | PetraCommandRecord["command_name"]
+    | "ExcludeProjectSource"
+    | "RestoreProjectSource";
   readonly projectId: string;
 }
 

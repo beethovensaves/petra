@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.48.0",
+  "registry_version": "1.52.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -197,6 +197,17 @@
       "canonical_sha256": "sha256:4b118dfe86c841b0c7b50e6d22a5688ef2977368d0b61cebfc9ba1ce5422db28",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-lifecycle-view.ts"
+    },
+    {
+      "name": "project-source-lifecycle-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-lifecycle-receipt/1.0.0/schema.json",
+      "path": "schemas/project-source-lifecycle-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-governed-project-source-status-transition",
+      "canonical_sha256": "sha256:3e2dd5670478473f371d86ec955cf1167e87ba673ef7cc4e5131d97bc6e44c08",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-lifecycle-receipt.ts"
     },
     {
       "name": "review-session",
@@ -550,6 +561,17 @@
       "typescript_path": "src/generated/command-envelope-v1-1.ts"
     },
     {
+      "name": "command-envelope",
+      "version": "1.2.0",
+      "$id": "https://petra.local/schemas/command-envelope/1.2.0/schema.json",
+      "path": "schemas/command-envelope/1.2.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-source-lifecycle-commands",
+      "canonical_sha256": "sha256:ca6b29ee00c8761fb0a6e68d1b21b9a9bc94ce942572b52c034d03ba90d3e745",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/command-envelope-v1-2.ts"
+    },
+    {
       "name": "domain-event",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/domain-event/1.0.0/schema.json",
@@ -572,6 +594,17 @@
       "typescript_path": "src/generated/domain-event-v1-1.ts"
     },
     {
+      "name": "domain-event",
+      "version": "1.2.0",
+      "$id": "https://petra.local/schemas/domain-event/1.2.0/schema.json",
+      "path": "schemas/domain-event/1.2.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-source-lifecycle-events",
+      "canonical_sha256": "sha256:fa11972170d5ebe2a73f72cc822ebd23cd2ba7a3ef113abeb2dcac83db6f31d4",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/domain-event-v1-2.ts"
+    },
+    {
       "name": "outbox-record",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/outbox-record/1.0.0/schema.json",
@@ -592,6 +625,17 @@
       "canonical_sha256": "sha256:1178c17f3edb542543da5bf5cda1a62cf6eb42a5dbb6aea4a85e34e4dc6c847f",
       "generate_typescript": true,
       "typescript_path": "src/generated/outbox-record-v1-1.ts"
+    },
+    {
+      "name": "outbox-record",
+      "version": "1.2.0",
+      "$id": "https://petra.local/schemas/outbox-record/1.2.0/schema.json",
+      "path": "schemas/outbox-record/1.2.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-source-lifecycle-events",
+      "canonical_sha256": "sha256:46a2f8627c28edb46df975957768985a84def14d78182c52daa58915fd4b3b0b",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/outbox-record-v1-2.ts"
     },
     {
       "name": "worker-input-manifest",

@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-lifecycle-receipt/1.0.0/schema.json",
+  "title": "PetraProjectSourceLifecycleReceipt",
+  "description": "An immutable receipt for one authorized ProjectSource exclude or restore command, its exact resulting revision, Project event, preservation boundary, and compensating recovery.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_source_lifecycle_receipt_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-lifecycle-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "project_source_lifecycle_receipt_id": {
+      "type": "string",
+      "pattern": "^project_source_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ReceiptContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ExactProjectSourceRef": {
+      "$ref": "../../command-envelope/1.2.0/schema.json#/$defs/ExactProjectSourceRef"
+    },
+    "CommandRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "idempotency_key",
+        "command_name",
+        "command_fingerprint"
+      ],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "idempotency_key": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+        },
+        "command_name": {
+          "enum": ["ExcludeProjectSource", "RestoreProjectSource"]
+        },
+        "command_fingerprint": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "EventRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_position",
+        "stream_revision",
+        "event_type",
+        "record_hash"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+        },
+        "event_position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "stream_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "event_type": {
+          "enum": ["project_source.excluded", "project_source.restored"]
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recovery_kind",
+        "state",
+        "inverse_command_name",
+        "expected_source_ref",
+        "effect"
+      ],
+      "properties": {
+        "recovery_kind": { "const": "compensating_status_transition" },
+        "state": { "const": "available" },
+        "inverse_command_name": {
+          "enum": ["ExcludeProjectSource", "RestoreProjectSource"]
+        },
+        "expected_source_ref": { "$ref": "#/$defs/ExactProjectSourceRef" },
+        "effect": {
+          "enum": ["ordinary_new_use_disabled", "ordinary_new_use_restored"]
+        }
+      }
+    },
+    "Preservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_history",
+        "canonical_identity",
+        "selected_work_version",
+        "artifact_manifest",
+        "local_artifact",
+        "parsed_representation",
+        "provenance"
+      ],
+      "properties": {
+        "project_source_history": { "const": "retained" },
+        "canonical_identity": { "const": "retained" },
+        "selected_work_version": { "const": "retained" },
+        "artifact_manifest": { "const": "retained" },
+        "local_artifact": { "const": "retained" },
+        "parsed_representation": { "const": "retained" },
+        "provenance": { "const": "retained" }
+      }
+    },
+    "ReceiptContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_ref",
+        "prior_source_ref",
+        "resulting_source_ref",
+        "event_ref",
+        "preservation",
+        "recovery"
+      ],
+      "properties": {
+        "command_ref": { "$ref": "#/$defs/CommandRef" },
+        "prior_source_ref": { "$ref": "#/$defs/ExactProjectSourceRef" },
+        "resulting_source_ref": {
+          "$ref": "#/$defs/ExactProjectSourceRef"
+        },
+        "event_ref": { "$ref": "#/$defs/EventRef" },
+        "preservation": { "$ref": "#/$defs/Preservation" },
+        "recovery": { "$ref": "#/$defs/Recovery" }
+      }
+    }
+  }
+}

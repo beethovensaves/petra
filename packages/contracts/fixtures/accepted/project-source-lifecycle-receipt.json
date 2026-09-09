@@ -1,0 +1,60 @@
+{
+  "schema_name": "petra.project-source-lifecycle-receipt",
+  "schema_version": "1.0.0",
+  "project_source_lifecycle_receipt_id": "project_source_lifecycle_receipt_01K4C000000000000000000023",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "command_ref": {
+      "command_id": "command_01K4C000000000000000000020",
+      "idempotency_key": "project-source:007:exclude:v1",
+      "command_name": "ExcludeProjectSource",
+      "command_fingerprint": "sha256:5fcd9984d88a1025748ec649dd58bb9e90a1d66f35381e294cb6941f6b00ec18"
+    },
+    "prior_source_ref": {
+      "project_source_id": "project_source_01K4C000000000000000000007",
+      "revision": 1,
+      "content_hash": "sha256:c6e1c7abe0e2c29f7dc0454d1c6d6ab10526fd3f82612299053b1aa88d5fc4db",
+      "record_hash": "sha256:fa6206f9dd4c3a574d7afb9df2c77a3b4522f18be88d7dca01143534590f7b5c",
+      "status": "active"
+    },
+    "resulting_source_ref": {
+      "project_source_id": "project_source_01K4C000000000000000000007",
+      "revision": 2,
+      "content_hash": "sha256:97efe03df69d4d9cff66a78bd5b7929ecaba625d08086cbca3f6e4f26b8f566d",
+      "record_hash": "sha256:4296a13702655672092fa8d06f04d552e1715566b1ff541e75ea5bbce7f578e9",
+      "status": "excluded"
+    },
+    "event_ref": {
+      "event_id": "event_01K4C000000000000000000021",
+      "event_position": 4,
+      "stream_revision": 4,
+      "event_type": "project_source.excluded",
+      "record_hash": "sha256:8f85c2623c389c4a33a0a4128ce78699efe34620e8f352fb2953dc174c040d71"
+    },
+    "preservation": {
+      "project_source_history": "retained",
+      "canonical_identity": "retained",
+      "selected_work_version": "retained",
+      "artifact_manifest": "retained",
+      "local_artifact": "retained",
+      "parsed_representation": "retained",
+      "provenance": "retained"
+    },
+    "recovery": {
+      "recovery_kind": "compensating_status_transition",
+      "state": "available",
+      "inverse_command_name": "RestoreProjectSource",
+      "expected_source_ref": {
+        "project_source_id": "project_source_01K4C000000000000000000007",
+        "revision": 2,
+        "content_hash": "sha256:97efe03df69d4d9cff66a78bd5b7929ecaba625d08086cbca3f6e4f26b8f566d",
+        "record_hash": "sha256:4296a13702655672092fa8d06f04d552e1715566b1ff541e75ea5bbce7f578e9",
+        "status": "excluded"
+      },
+      "effect": "ordinary_new_use_restored"
+    }
+  },
+  "content_hash": "sha256:aceb4a82fd5cc4aab70d3c9c48b9dcda5e4198a49f024ef28d1bba6c6d2f15f2",
+  "recorded_at": "2026-09-09T00:00:00.000Z"
+}

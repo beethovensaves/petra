@@ -19,6 +19,7 @@ import type {
 import type {
   PersistDocumentBundleInput,
   PersistVerifiedArtifactInput,
+  ProjectSourceLifecycleCommandEnvelope,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
@@ -34,6 +35,7 @@ import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-def
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresProjectShellViewReader } from "../src/project-shell-view-reader.js";
 import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
+import { PostgresProjectSourceLifecycleAuthorityRepository } from "../src/project-source-lifecycle-authority-repository.js";
 import { PostgresProjectSourceLifecycleViewReader } from "../src/project-source-lifecycle-view-reader.js";
 import { PostgresProjectSourceViewReader } from "../src/project-source-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
@@ -72,6 +74,16 @@ const expectDocumentCode = async (
 };
 
 describePostgres("PostgreSQL Document authority repository", () => {
+  let eventIndex = 0;
+  let outboxIndex = 0;
+  const eventIds = [
+    "event_01K4C000000000000000000031",
+    "event_01K4C000000000000000000034",
+  ];
+  const outboxIds = [
+    "outbox_01K4C000000000000000000032",
+    "outbox_01K4C000000000000000000033",
+  ];
   const pool = new Pool({ connectionString });
   const scopes = new PostgresResearchScopeRepository(pool);
   const identities = new PostgresScholarlyIdentityRepository(pool);
@@ -82,6 +94,29 @@ describePostgres("PostgreSQL Document authority repository", () => {
   const documents = new PostgresDocumentAuthorityRepository(pool);
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const projectSources = new PostgresProjectSourceAuthorityRepository(pool);
+  const sourceLifecycleAuthority =
+    new PostgresProjectSourceLifecycleAuthorityRepository(
+      pool,
+      {
+        authorize: (request) =>
+          request.actor.actor_kind === "human" &&
+          request.capabilityGrantId ===
+            "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ" &&
+          (request.commandName === "ExcludeProjectSource" ||
+            request.commandName === "RestoreProjectSource"),
+      },
+      {
+        nextId: (kind) => {
+          const id =
+            kind === "event"
+              ? eventIds[eventIndex++]
+              : outboxIds[outboxIndex++];
+          if (id === undefined) throw new Error(`Missing ${kind} test id.`);
+          return id;
+        },
+        now: () => "2026-09-09T00:05:00.000Z",
+      },
+    );
   const sourceLifecycleViews = new PostgresProjectSourceLifecycleViewReader(
     pool,
   );
@@ -94,6 +129,8 @@ describePostgres("PostgreSQL Document authority repository", () => {
   });
 
   beforeEach(async () => {
+    eventIndex = 0;
+    outboxIndex = 0;
     await pool.query(
       `TRUNCATE petra.artifacts,
                 petra.canonical_entities,
@@ -454,29 +491,170 @@ describePostgres("PostgreSQL Document authority repository", () => {
       }),
     );
 
-    const excluded = structuredClone(projectSource);
-    excluded.revision = 2;
-    excluded.content.status = "excluded";
-    excluded.content_hash = canonicalHash(excluded.content);
-    excluded.added_at = "2026-09-08T23:45:00.000Z";
-    await projectSources.registerProjectSourceRevision(excluded);
+    const excludeCommand = readFixture<ProjectSourceLifecycleCommandEnvelope>(
+      "command-exclude-project-source",
+    );
+    excludeCommand.command.expected_source_ref.content_hash =
+      projectSource.content_hash;
+    excludeCommand.command.expected_source_ref.record_hash =
+      canonicalHash(projectSource);
+    const denied = new PostgresProjectSourceLifecycleAuthorityRepository(pool, {
+      authorize: () => false,
+    });
+    await expect(
+      denied.executeProjectSourceLifecycleCommand(
+        structuredClone(excludeCommand),
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_LIFECYCLE_COMMAND_NOT_AUTHORIZED",
+      }),
+    );
+    const exclusion =
+      await sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
+        excludeCommand,
+      );
+    expect(exclusion.applied).toBe(true);
+    expect(exclusion.projectSource.revision).toBe(2);
+    expect(exclusion.projectSource.content.status).toBe("excluded");
+    expect(exclusion.receipt.content.preservation).toEqual({
+      project_source_history: "retained",
+      canonical_identity: "retained",
+      selected_work_version: "retained",
+      artifact_manifest: "retained",
+      local_artifact: "retained",
+      parsed_representation: "retained",
+      provenance: "retained",
+    });
+    expect(exclusion.receipt.content.recovery).toEqual(
+      expect.objectContaining({
+        state: "available",
+        inverse_command_name: "RestoreProjectSource",
+        expected_source_ref: exclusion.receipt.content.resulting_source_ref,
+      }),
+    );
+    expect(
+      await sourceLifecycleAuthority.getProjectSourceLifecycleReceipt(
+        excludeCommand.command_id,
+      ),
+    ).toEqual(exclusion.receipt);
+    const replay =
+      await sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
+        structuredClone(excludeCommand),
+      );
+    expect(replay.applied).toBe(false);
+    expect(replay.receipt).toEqual(exclusion.receipt);
+
+    const reusedIdempotency = structuredClone(excludeCommand);
+    reusedIdempotency.command_id = "command_01K4C000000000000000000039";
+    reusedIdempotency.command.reason = "Different command content.";
+    await expect(
+      sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
+        reusedIdempotency,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_LIFECYCLE_IDEMPOTENCY_KEY_REUSED",
+      }),
+    );
+    const reusedCommandId = structuredClone(excludeCommand);
+    reusedCommandId.idempotency_key = "project-source:007:exclude:other";
+    reusedCommandId.command.reason = "Different command content.";
+    await expect(
+      sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
+        reusedCommandId,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_LIFECYCLE_COMMAND_ID_REUSED",
+      }),
+    );
+
+    const stale = structuredClone(excludeCommand);
+    stale.command_id = "command_01K4C000000000000000000037";
+    stale.idempotency_key = "project-source:007:exclude:stale";
+    await expect(
+      sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(stale),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_LIFECYCLE_STALE_SOURCE",
+      }),
+    );
+
+    const restoreCommand: ProjectSourceLifecycleCommandEnvelope = {
+      ...structuredClone(excludeCommand),
+      command_id: "command_01K4C000000000000000000038",
+      idempotency_key: "project-source:007:restore:v1",
+      submitted_at: "2026-09-09T00:06:00.000Z",
+      command: {
+        command_name: "RestoreProjectSource",
+        expected_source_ref: structuredClone(
+          exclusion.receipt.content.resulting_source_ref,
+        ) as Extract<
+          ProjectSourceLifecycleCommandEnvelope["command"],
+          { command_name: "RestoreProjectSource" }
+        >["expected_source_ref"],
+        reason:
+          "Restore ordinary new use through the explicit compensating transition.",
+      },
+    };
+    const restoration =
+      await sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
+        restoreCommand,
+      );
+    expect(restoration.applied).toBe(true);
+    expect(restoration.projectSource.revision).toBe(3);
+    expect(restoration.projectSource.content.status).toBe("active");
+    expect(restoration.receipt.content.recovery.inverse_command_name).toBe(
+      "ExcludeProjectSource",
+    );
+    const durable = await pool.query<{ count: string }>(
+      `SELECT count(*)::text AS count
+         FROM petra.project_source_revisions
+        WHERE project_source_id = $1`,
+      [projectSource.project_source_id],
+    );
+    expect(durable.rows[0]?.count).toBe("3");
+    const events = await pool.query<{ event_type: string }>(
+      `SELECT event_type
+         FROM petra.domain_events
+        WHERE project_id = $1
+        ORDER BY stream_revision`,
+      [project.project_id],
+    );
+    expect(events.rows).toEqual([
+      { event_type: "project_source.excluded" },
+      { event_type: "project_source.restored" },
+    ]);
+    const outbox = await pool.query<{ target: string }>(
+      `SELECT target
+         FROM petra.outbox_records
+        WHERE partition_key = $1
+        ORDER BY outbox_position`,
+      [project.project_id],
+    );
+    expect(outbox.rows).toEqual([
+      { target: "interface_authority" },
+      { target: "interface_authority" },
+    ]);
+
     const restore = await sourceLifecycleViews.getProjectSourceLifecycleView(
       project.project_id,
       projectSource.project_source_id,
-      "restore_project_source",
+      "exclude_project_source",
     );
-    expect(restore?.content.source_ref.status).toBe("excluded");
+    expect(restore?.content.source_ref.status).toBe("active");
     expect(restore?.content.transition).toEqual(
       expect.objectContaining({
         state: "preview_available",
-        from_status: "excluded",
-        to_status: "active",
-        effect: "ordinary_new_use_restored",
+        from_status: "active",
+        to_status: "excluded",
+        effect: "ordinary_new_use_disabled",
       }),
     );
 
     const wrongRole = structuredClone(projectSource);
-    wrongRole.revision = 3;
+    wrongRole.revision = 4;
     wrongRole.content.source_role = "scientific.unregistered";
     wrongRole.content_hash = canonicalHash(wrongRole.content);
     await expect(
