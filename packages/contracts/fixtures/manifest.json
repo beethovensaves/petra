@@ -115,6 +115,10 @@
       "path": "fixtures/accepted/project-history-recovery-assessment-view.json"
     },
     {
+      "schema": "project-history-compensation-preview-view",
+      "path": "fixtures/accepted/project-history-compensation-preview-view.json"
+    },
+    {
       "schema": "project-effective-controls-view",
       "path": "fixtures/accepted/project-effective-controls-view.json"
     },
@@ -524,6 +528,10 @@
     {
       "schema": "project-history-recovery-assessment-view",
       "path": "fixtures/rejected/project-history-recovery-assessment-composes-preview.json"
+    },
+    {
+      "schema": "project-history-compensation-preview-view",
+      "path": "fixtures/rejected/project-history-compensation-preview-executes.json"
     },
     {
       "schema": "composition-request",

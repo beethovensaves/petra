@@ -1,6 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 import type {
+  PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactView,
   PetraProjectHistoryImpactViewV12,
@@ -24,6 +25,7 @@ import type {
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
+  ProjectHistoryRecoveryPreviewUnavailableError,
   ProjectHistoryViewRequestError,
   type ProjectHistoryRetainedCollectionRequest,
   type ProjectHistoryViewReader,
@@ -1835,6 +1837,233 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       );
       return structuredClone(view);
     });
+  }
+
+  async getProjectHistoryCompensationPreviewView(
+    projectId: string,
+    eventId: string,
+  ): Promise<PetraProjectHistoryCompensationPreviewView | undefined> {
+    const assessment = await this.getProjectHistoryRecoveryAssessmentView(
+      projectId,
+      eventId,
+    );
+    if (assessment === undefined) return undefined;
+    if (assessment.content.assessment.state !== "eligible_for_preview") {
+      throw new ProjectHistoryRecoveryPreviewUnavailableError(
+        `A compensation preview requires a currently eligible assessment; this assessment is ${assessment.content.assessment.state}.`,
+      );
+    }
+    const principal = assessment.content.command_authority.principal_state;
+    if (principal.state !== "configured") {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "An eligible recovery assessment has no configured command principal.",
+      );
+    }
+    const commandAuthority =
+      assessment.content.command_authority.required_commands;
+    if (commandAuthority.some(({ state }) => state !== "granted")) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "An eligible recovery assessment has an unavailable command grant.",
+      );
+    }
+    const claim = assessment.content.recovery_subject.current_targets.find(
+      ({ semantic_key }) => semantic_key === "scientific.claim",
+    );
+    const assertion = assessment.content.recovery_subject.current_targets.find(
+      ({ semantic_key }) => semantic_key === "scientific.assertion",
+    );
+    if (claim === undefined || assertion === undefined) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "An eligible recovery assessment has no exact Claim–Assertion pair.",
+      );
+    }
+    const nextClaimRevision = claim.revision + 1;
+    const nextAssertionRevision = assertion.revision + 1;
+    if (
+      !Number.isSafeInteger(nextClaimRevision) ||
+      !Number.isSafeInteger(nextAssertionRevision)
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The compensation result would exceed Petra's safe revision range.",
+      );
+    }
+    const issuedAt = assessment.read_at;
+    const issuedAtMilliseconds = Date.parse(issuedAt);
+    if (!Number.isFinite(issuedAtMilliseconds)) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The recovery assessment has an invalid authority timestamp.",
+      );
+    }
+    const validThrough = new Date(
+      issuedAtMilliseconds + 5 * 60 * 1000,
+    ).toISOString();
+    const operations: PetraProjectHistoryCompensationPreviewView["content"]["operation_preview"] =
+      [
+        {
+          operation_kind: "retract_claim",
+          target_id: claim.object_id,
+          base_revision: claim.revision,
+          current_record_hash: claim.record_hash,
+          before: { zone: "trusted", review_state: "human_accepted" },
+          after: { zone: "quarantine", review_state: "human_rejected" },
+        },
+        {
+          operation_kind: "retract_assertion",
+          target_id: assertion.object_id,
+          base_revision: assertion.revision,
+          current_record_hash: assertion.record_hash,
+          before: { zone: "trusted", review_state: "human_accepted" },
+          after: { zone: "quarantine", review_state: "human_rejected" },
+        },
+      ];
+    const commandSequence = commandAuthority.map((command, index) => {
+      if (command.state !== "granted") {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "An eligible recovery assessment lost its command grant.",
+        );
+      }
+      return {
+        position: (index + 1) as 1 | 2 | 3,
+        command_name: command.command_name,
+        actor: { ...principal.actor },
+        grant_ref: { ...command.grant_ref },
+        composition_state: "not_composed" as const,
+        authority_recheck: "required" as const,
+        prerequisite: [
+          "confirmed_preview_and_required_input",
+          "submitted_exact_change_set",
+          "approved_exact_change_set",
+        ][index] as
+          | "confirmed_preview_and_required_input"
+          | "submitted_exact_change_set"
+          | "approved_exact_change_set",
+      };
+    }) as PetraProjectHistoryCompensationPreviewView["content"]["command_sequence"];
+    const bindingHash = canonicalHash({
+      project_id: projectId,
+      event_id: eventId,
+      assessment_content_hash: assessment.content_hash,
+      assessment_authority: assessment.content.authority,
+      promotion_change_set:
+        assessment.content.recovery_subject.promotion_change_set,
+      targets: assessment.content.recovery_subject.current_targets,
+      command_grants: commandSequence.map(({ command_name, grant_ref }) => ({
+        command_name,
+        grant_ref,
+      })),
+      valid_through: validThrough,
+    });
+    const content: PetraProjectHistoryCompensationPreviewView["content"] = {
+      view_kind: "single_change_set_compensation_preview",
+      authorization_scope: "authenticated_project",
+      assessment_ref: {
+        schema_name: "petra.project-history-recovery-assessment-view",
+        schema_version: "1.0.0",
+        event_id: eventId,
+        content_hash: assessment.content_hash,
+        assessed_at: issuedAt,
+        assessment_state: "eligible_for_preview",
+        authority: { ...assessment.content.authority },
+      },
+      compensates_change_set: {
+        ...assessment.content.recovery_subject.promotion_change_set,
+      },
+      target_change_set_schema: {
+        schema_name: "petra.change-set",
+        schema_version: "1.1.0",
+        risk_tier: "R2",
+        origin: "direct_edit",
+      },
+      operation_preview: operations,
+      impact_basis: { ...assessment.content.causal_impact_basis },
+      result_preview: [
+        {
+          semantic_key: "scientific.claim",
+          object_id: claim.object_id,
+          prior_revision: claim.revision,
+          resulting_revision: nextClaimRevision,
+          resulting_authority: {
+            zone: "quarantine",
+            review_state: "human_rejected",
+          },
+        },
+        {
+          semantic_key: "scientific.assertion",
+          object_id: assertion.object_id,
+          prior_revision: assertion.revision,
+          resulting_revision: nextAssertionRevision,
+          resulting_authority: {
+            zone: "quarantine",
+            review_state: "human_rejected",
+          },
+        },
+      ],
+      preservation: {
+        prior_revisions: "retained",
+        promotion_and_approval: "retained",
+        selected_event: "retained",
+        dependent_records: "not_rewritten",
+        dependent_effects: "not_automatically_reversed",
+      },
+      required_user_input: [
+        "reason",
+        "approval_rationale",
+        "explicit_confirmation",
+      ],
+      change_set_composition: "deferred_until_confirmed_input",
+      command_sequence: commandSequence,
+      freshness: {
+        issued_at: issuedAt,
+        valid_through: validThrough,
+        binding_hash: bindingHash,
+        invalidation_causes: [
+          "expiry_reached",
+          "project_authority_advanced",
+          "promotion_state_changed",
+          "target_revision_or_record_changed",
+          "command_grant_changed",
+        ],
+      },
+      decision_boundary: {
+        preview: "read_only",
+        change_set: "not_created",
+        approval: "not_recorded",
+        commands: "not_composed_or_executed",
+        generic_undo: "not_available",
+        multi_step_compensation: "not_assessed",
+      },
+      omissions: [
+        "user_reason_not_supplied",
+        "approval_rationale_not_supplied",
+        "command_envelopes_not_composed",
+        "compensation_not_persisted",
+        "compensation_not_executed",
+        "dependent_effect_not_inferred_or_reversed",
+        "historical_project_definition_not_interpreted",
+      ],
+      graph_navigation_history: "client_local_separate",
+    };
+    const view: PetraProjectHistoryCompensationPreviewView = {
+      schema_name: "petra.project-history-compensation-preview-view",
+      schema_version: "1.0.0",
+      project_id: projectId,
+      event_id: eventId,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: issuedAt,
+    };
+    this.#contracts.assertValid(
+      "project-history-compensation-preview-view",
+      "1.0.0",
+      view,
+    );
+    return structuredClone(view);
   }
 
   #recoveryChangeSet(

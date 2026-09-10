@@ -195,6 +195,15 @@ export type {
   RecoverySubject as ProjectHistoryRecoverySubject,
 } from "./generated/project-history-recovery-assessment-view.js";
 export type {
+  AssessmentRef as ProjectHistoryCompensationPreviewAssessmentRef,
+  CommandStep as ProjectHistoryCompensationPreviewCommandStep,
+  Freshness as ProjectHistoryCompensationPreviewFreshness,
+  OperationPreview as ProjectHistoryCompensationOperationPreview,
+  PetraProjectHistoryCompensationPreviewView,
+  PreviewContent as ProjectHistoryCompensationPreviewContent,
+  ResultingTarget as ProjectHistoryCompensationResultingTarget,
+} from "./generated/project-history-compensation-preview-view.js";
+export type {
   AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
   ControlSection as ProjectEffectiveControlSection,
   ControlSections as ProjectEffectiveControlSections,

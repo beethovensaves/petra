@@ -243,6 +243,17 @@
       "typescript_path": "src/generated/project-history-recovery-assessment-view.ts"
     },
     {
+      "name": "project-history-compensation-preview-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-compensation-preview-view/1.0.0/schema.json",
+      "path": "schemas/project-history-compensation-preview-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-short-lived-read-only-single-change-set-compensation-preview",
+      "canonical_sha256": "sha256:c1065e93580a32c6976f8f5ffa2a72f94a981277b5706e20967dae55daef8c1c",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-compensation-preview-view.ts"
+    },
+    {
       "name": "project-effective-controls-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-effective-controls-view/1.0.0/schema.json",

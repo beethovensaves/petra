@@ -3,11 +3,12 @@
 Status: bounded Recent changes, exact event-selected causal episodes,
 snapshot-stable filtered retained Project-event traversal, and bounded direct
 dependency impact plus registered exact semantic-target adapters through
-ProjectSource and replacement authority plus exact read-only ChangeSet recovery
-assessment passed; revision-bound compensation preview remains open
+ProjectSource and replacement authority, exact read-only ChangeSet recovery
+assessment, and revision-bound compensation preview passed; confirmed command
+plan composition remains open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `7380a0b` plus this slice
+Implementation baseline: `9e90258` plus this slice
 
 ## Result
 
@@ -247,8 +248,30 @@ effect or safety claims. The contract fixes compensation preview to
 historical ProjectDefinition interpretation, event rewriting, and compensation
 creation remain absent.
 
-ProjectSource recovery continues to be computed rather than copied from an old
-receipt:
+`petra.project-history-compensation-preview-view@1.0.0` adds the authenticated
+read-only endpoint
+`GET /api/queries/projects/:projectId/history/events/:eventId/recovery/preview`.
+It is available only when a fresh assessment is still
+`eligible_for_preview`; blocked or already-compensated assessments return no
+substitute plan. The preview binds the exact Project, selected application
+event, assessment content hash and authority position, promotion ChangeSet,
+current Claim/Assertion revisions and record hashes, exact three command grants,
+and five-minute validity boundary into one canonical binding hash.
+
+The preview shows the exact ordered `retract_claim` and `retract_assertion`
+operations that a ChangeSet 1.1/R2/direct-edit compensation would require, plus
+the next Claim and Assertion revisions and their quarantine/human-rejected
+authority. It also shows the governed `SubmitChangeSet` → `RecordApproval` →
+`ApplyChangeSet` sequence, with the Actor, exact grant, prerequisite, and
+mandatory authority recheck for every step.
+
+The preview is not a ChangeSet, Approval, command envelope, or execution
+authority. User-authored reason, Approval rationale, and explicit confirmation
+remain required before command composition. Previous evidence revisions, the
+promotion and its Approval, the selected event, and dependent records remain
+retained; dependent effects are neither inferred nor automatically reversed.
+Expiry, any Project-authority advance, promotion-state change, target
+revision/hash change, or grant change invalidates the preview.
 
 ProjectSource recovery is computed rather than copied from an old receipt:
 
@@ -269,15 +292,15 @@ mutation boundaries and recheck current authority when invoked.
 ## Integrity and authorization
 
 Existing `/api/*` bearer authentication applies to Recent changes, retained
-event traversal, exact episode detail, exact dependency impact, and recovery
-assessment before a reader is called. The Recent route accepts no query
-parameters; the retained route accepts one bounded limit, one opaque cursor,
-and only the registered single-value exact filters; the episode, impact, and
-recovery routes accept only one canonical event identity. Each returns no
-substitute Project and validates its composed contract before responding. Typed
-workbench clients verify the contract family, normalized query, Project, and
-event identity while treating the cursor as opaque. No component, CSS, browser
-route, or frozen surface changed.
+event traversal, exact episode detail, exact dependency impact, recovery
+assessment, and compensation preview before a reader is called. The Recent
+route accepts no query parameters; the retained route accepts one bounded
+limit, one opaque cursor, and only the registered single-value exact filters.
+The episode, impact, recovery, and preview routes accept only one canonical
+event identity. Each returns no substitute Project and validates its composed
+contract before responding. Typed workbench clients verify the contract family,
+normalized query, Project, and event identity while treating the cursor as
+opaque. No component, CSS, browser route, or frozen surface changed.
 
 The PostgreSQL reader fails closed when it cannot reproduce:
 
@@ -306,23 +329,27 @@ The PostgreSQL reader fails closed when it cannot reproduce:
   identity; or
 - a recovery ChangeSet, applied Approval, current evidence head, active grant,
   or retained compensation event's exact Project, revision, content, record,
-  and causal binding.
+  and causal binding; or
+- a compensation preview's assessment, authority position, current target,
+  active grant, expiry, or canonical binding-hash input.
 
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2, and ChangeSet
-recovery-assessment responses.
+retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2, ChangeSet
+recovery-assessment, and compensation-preview responses.
 Rejected fixtures cover an altered quick limit, false global episode order,
 unsafe offset or query-unbound cursor reuse, a dependency read that claims a
 reversibility decision, and an unregistered semantic target that fabricates a
 registered adapter group, plus an invalid response that collapses retained
 replacement lineage and effective head state into one unsupported authority,
-or claims that a recovery assessment composed a compensation preview.
+claims that a recovery assessment composed a compensation preview, or turns a
+read-only preview into a created ChangeSet, recorded Approval, or executed
+command.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
 suite pass. The database proof starts from an empty PostgreSQL 18.6 instance,
-migrates V001 through V030, exercises all five reads over domain-event versions
+migrates V001 through V030, exercises all six reads over domain-event versions
 1.0, 1.1, 1.2, and 1.3, and proves cursor integrity, cross-Project rejection,
 stable membership after a concurrent append, keyset continuation without
 duplication, complete query/limit binding, exact filtered counts and zero-match
@@ -337,17 +364,18 @@ eligible, unavailable-principal blocked, and already-compensated states before
 and after one real compensating reversal, exact grant resolution, cross-Project
 non-disclosure, and both applied and reverted event selection. Active and
 retracted head states are distinguished from retained lineage without rewriting
-either.
+either. The preview proof verifies its exact operation/result sequence,
+five-minute authority binding, missing/ambiguous/already-compensated rejection,
+and unchanged ChangeSet, Approval, command, event, and evidence-revision counts.
 
 ## Next safe slice
 
-The next safe History boundary is a revision-bound, read-only compensation
-preview for an assessment that is still `eligible_for_preview`. It may compose
-the exact proposed ChangeSet 1.1 retraction pair and required approval/apply
-sequence from the assessed authority while persisting nothing, and must bind
-the assessment event, authority position, target revisions/hashes, exact active
-grants, causal-impact basis, and a short expiry or equivalent freshness check.
-Preview requests must fail closed when any bound authority changes. Execution,
-generic undo, reversal of a reversal, multiple compensations, multi-step
-planning, historical ProjectDefinition interpretation, and frozen-interface
-integration remain later boundaries.
+The next safe History boundary is confirmation-to-command-plan composition for
+one unexpired preview. It must accept exact user-authored reason and Approval
+rationale plus explicit confirmation, recompose and compare every preview
+binding against current authority, and return the deterministic ChangeSet 1.1,
+Approval, and apply command envelopes without submitting any of them. A stale,
+rebound, blocked, ambiguous, cross-Project, already-compensated, or expired
+preview must fail closed. Actual execution, generic undo, reversal of a reversal,
+multiple compensations, multi-step planning, historical ProjectDefinition
+interpretation, and frozen-interface integration remain later boundaries.

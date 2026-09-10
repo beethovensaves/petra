@@ -1,4 +1,5 @@
 import type {
+  PetraProjectHistoryCompensationPreviewView,
   CommandProjectSourceReplacementRef,
   PetraProjectSource,
   PetraProjectEffectiveControlsView,
@@ -542,6 +543,79 @@ const projectHistoryRecoveryAssessmentView = (
     );
   }
   return value as unknown as PetraProjectHistoryRecoveryAssessmentView;
+};
+
+const projectHistoryCompensationPreviewView = (
+  value: unknown,
+): PetraProjectHistoryCompensationPreviewView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-compensation-preview-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "single_change_set_compensation_preview" ||
+    value.content.authorization_scope !== "authenticated_project" ||
+    !isRecord(value.content.assessment_ref) ||
+    value.content.assessment_ref.assessment_state !== "eligible_for_preview" ||
+    !Array.isArray(value.content.operation_preview) ||
+    value.content.operation_preview.length !== 2 ||
+    !Array.isArray(value.content.result_preview) ||
+    value.content.result_preview.length !== 2 ||
+    value.content.change_set_composition !== "deferred_until_confirmed_input" ||
+    !Array.isArray(value.content.command_sequence) ||
+    value.content.command_sequence.length !== 3 ||
+    !isRecord(value.content.freshness) ||
+    typeof value.content.freshness.binding_hash !== "string" ||
+    !isRecord(value.content.decision_boundary) ||
+    value.content.decision_boundary.preview !== "read_only" ||
+    value.content.decision_boundary.change_set !== "not_created" ||
+    value.content.decision_boundary.approval !== "not_recorded" ||
+    value.content.decision_boundary.commands !== "not_composed_or_executed" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History compensation preview.",
+      502,
+    );
+  }
+  const operations = value.content.operation_preview;
+  const results = value.content.result_preview;
+  const commands = value.content.command_sequence;
+  if (
+    operations.some(
+      (operation, index) =>
+        !isRecord(operation) ||
+        operation.operation_kind !==
+          ["retract_claim", "retract_assertion"][index],
+    ) ||
+    results.some(
+      (result, index) =>
+        !isRecord(result) ||
+        result.semantic_key !==
+          ["scientific.claim", "scientific.assertion"][index] ||
+        typeof result.prior_revision !== "number" ||
+        result.resulting_revision !== result.prior_revision + 1,
+    ) ||
+    commands.some(
+      (command, index) =>
+        !isRecord(command) ||
+        command.position !== index + 1 ||
+        command.command_name !==
+          ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"][index],
+    ) ||
+    Date.parse(String(value.content.freshness.valid_through)) <=
+      Date.parse(String(value.content.freshness.issued_at))
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation preview with inconsistent revisions, operations, sequence, or freshness.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryCompensationPreviewView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -1828,6 +1902,28 @@ export const getProjectHistoryRecoveryAssessment = async (
   ) {
     throw new ProjectDataError(
       "Petra returned a recovery assessment from another Project or History event.",
+      502,
+    );
+  }
+  return view;
+};
+
+export const getProjectHistoryCompensationPreview = async (
+  projectId: string,
+  eventId: string,
+): Promise<PetraProjectHistoryCompensationPreviewView> => {
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}/recovery/preview`,
+  );
+  const view = projectHistoryCompensationPreviewView(value);
+  if (
+    view.project_id !== projectId ||
+    view.event_id !== eventId ||
+    view.content.assessment_ref.event_id !== eventId ||
+    view.content.impact_basis.source_event_id !== eventId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation preview from another Project or History event.",
       502,
     );
   }

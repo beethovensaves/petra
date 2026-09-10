@@ -1224,6 +1224,78 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       compensation_execution: "not_performed",
       multi_step_compensation: "not_assessed",
     });
+    const beforePreview = await pool.query<{
+      change_sets: string;
+      approvals: string;
+      commands: string;
+      events: string;
+      evidence_revisions: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.change_sets) AS change_sets,
+         (SELECT count(*)::text FROM petra.approvals) AS approvals,
+         (SELECT count(*)::text FROM petra.command_executions) AS commands,
+         (SELECT count(*)::text FROM petra.domain_events) AS events,
+         (SELECT count(*)::text FROM petra.evidence_entity_revisions)
+           AS evidence_revisions`,
+    );
+    const preview =
+      await authorizedHistoryViews.getProjectHistoryCompensationPreviewView(
+        commands.submit.project_id,
+        appliedEvent.event_id,
+      );
+    expect(preview?.content).toMatchObject({
+      compensates_change_set: {
+        change_set_id: promoted.change_set_id,
+        current_state: "applied",
+      },
+      operation_preview: [
+        {
+          operation_kind: "retract_claim",
+          target_id: promoted.claim_id,
+          base_revision: 2,
+        },
+        {
+          operation_kind: "retract_assertion",
+          target_id: promoted.assertion_id,
+          base_revision: 2,
+        },
+      ],
+      result_preview: [
+        { object_id: promoted.claim_id, resulting_revision: 3 },
+        { object_id: promoted.assertion_id, resulting_revision: 3 },
+      ],
+      change_set_composition: "deferred_until_confirmed_input",
+      decision_boundary: {
+        preview: "read_only",
+        change_set: "not_created",
+        approval: "not_recorded",
+        commands: "not_composed_or_executed",
+      },
+    });
+    expect(
+      Date.parse(preview?.content.freshness.valid_through ?? "") -
+        Date.parse(preview?.content.freshness.issued_at ?? ""),
+    ).toBe(300_000);
+    expect(preview?.content.freshness.binding_hash).toMatch(
+      /^sha256:[0-9a-f]{64}$/u,
+    );
+    const afterPreview = await pool.query<{
+      change_sets: string;
+      approvals: string;
+      commands: string;
+      events: string;
+      evidence_revisions: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.change_sets) AS change_sets,
+         (SELECT count(*)::text FROM petra.approvals) AS approvals,
+         (SELECT count(*)::text FROM petra.command_executions) AS commands,
+         (SELECT count(*)::text FROM petra.domain_events) AS events,
+         (SELECT count(*)::text FROM petra.evidence_entity_revisions)
+           AS evidence_revisions`,
+    );
+    expect(afterPreview.rows[0]).toEqual(beforePreview.rows[0]);
     const overlappingGrant =
       readFixture<PetraCapabilityGrantRecord>("capability-grant");
     overlappingGrant.capability_grant_id =
@@ -1248,6 +1320,14 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       "command_authority_ambiguous",
       "command_authority_ambiguous",
     ]);
+    await expect(
+      authorizedHistoryViews.getProjectHistoryCompensationPreviewView(
+        commands.submit.project_id,
+        appliedEvent.event_id,
+      ),
+    ).rejects.toMatchObject({
+      code: "PROJECT_HISTORY_RECOVERY_PREVIEW_UNAVAILABLE",
+    });
     await expect(
       authorizedHistoryViews.getProjectHistoryRecoveryAssessmentView(
         "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
@@ -1362,6 +1442,14 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         event_id: reversalEvent.event_id,
         event_type: "change_set.reverted",
       },
+    });
+    await expect(
+      authorizedHistoryViews.getProjectHistoryCompensationPreviewView(
+        commands.submit.project_id,
+        appliedEvent.event_id,
+      ),
+    ).rejects.toMatchObject({
+      code: "PROJECT_HISTORY_RECOVERY_PREVIEW_UNAVAILABLE",
     });
     const reversalAssessment =
       await authorizedHistoryViews.getProjectHistoryRecoveryAssessmentView(

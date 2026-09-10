@@ -2125,6 +2125,204 @@ class PetraProjectHistoryRecoveryAssessmentView(PetraModel):
     read_at: str
 
 
+class ProjectHistoryCompensationAssessmentRef(PetraModel):
+    schema_name: Literal["petra.project-history-recovery-assessment-view"]
+    schema_version: Literal["1.0.0"]
+    event_id: str
+    content_hash: str
+    assessed_at: str
+    assessment_state: Literal["eligible_for_preview"]
+    authority: ProjectHistoryImpactAuthority
+
+
+class ProjectHistoryCompensationTrustedState(PetraModel):
+    zone: Literal["trusted"]
+    review_state: Literal["human_accepted"]
+
+
+class ProjectHistoryCompensationRetractionState(PetraModel):
+    zone: Literal["quarantine"]
+    review_state: Literal["human_rejected"]
+
+
+class ProjectHistoryCompensationClaimOperation(PetraModel):
+    operation_kind: Literal["retract_claim"]
+    target_id: str
+    base_revision: int = Field(ge=1)
+    current_record_hash: str
+    before: ProjectHistoryCompensationTrustedState
+    after: ProjectHistoryCompensationRetractionState
+
+
+class ProjectHistoryCompensationAssertionOperation(PetraModel):
+    operation_kind: Literal["retract_assertion"]
+    target_id: str
+    base_revision: int = Field(ge=1)
+    current_record_hash: str
+    before: ProjectHistoryCompensationTrustedState
+    after: ProjectHistoryCompensationRetractionState
+
+
+class ProjectHistoryCompensationResult(PetraModel):
+    semantic_key: Literal["scientific.claim", "scientific.assertion"]
+    object_id: str
+    prior_revision: int = Field(ge=1)
+    resulting_revision: int = Field(ge=1)
+    resulting_authority: ProjectHistoryCompensationRetractionState
+
+
+class ProjectHistoryCompensationGrantRef(PetraModel):
+    capability_grant_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class ProjectHistoryCompensationCommandStep(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    actor: ActorRef
+    grant_ref: ProjectHistoryCompensationGrantRef
+    composition_state: Literal["not_composed"]
+    authority_recheck: Literal["required"]
+    prerequisite: Literal[
+        "confirmed_preview_and_required_input",
+        "submitted_exact_change_set",
+        "approved_exact_change_set",
+    ]
+
+
+class ProjectHistoryCompensationPreservation(PetraModel):
+    prior_revisions: Literal["retained"]
+    promotion_and_approval: Literal["retained"]
+    selected_event: Literal["retained"]
+    dependent_records: Literal["not_rewritten"]
+    dependent_effects: Literal["not_automatically_reversed"]
+
+
+class ProjectHistoryCompensationFreshness(PetraModel):
+    issued_at: str
+    valid_through: str
+    binding_hash: str
+    invalidation_causes: list[
+        Literal[
+            "expiry_reached",
+            "project_authority_advanced",
+            "promotion_state_changed",
+            "target_revision_or_record_changed",
+            "command_grant_changed",
+        ]
+    ] = Field(min_length=5, max_length=5)
+
+
+class ProjectHistoryCompensationTargetSchema(PetraModel):
+    schema_name: Literal["petra.change-set"]
+    schema_version: Literal["1.1.0"]
+    risk_tier: Literal["R2"]
+    origin: Literal["direct_edit"]
+
+
+class ProjectHistoryCompensationDecisionBoundary(PetraModel):
+    preview: Literal["read_only"]
+    change_set: Literal["not_created"]
+    approval: Literal["not_recorded"]
+    commands: Literal["not_composed_or_executed"]
+    generic_undo: Literal["not_available"]
+    multi_step_compensation: Literal["not_assessed"]
+
+
+class ProjectHistoryCompensationPreviewContent(PetraModel):
+    view_kind: Literal["single_change_set_compensation_preview"]
+    authorization_scope: Literal["authenticated_project"]
+    assessment_ref: ProjectHistoryCompensationAssessmentRef
+    compensates_change_set: ProjectHistoryRecoveryChangeSetRef
+    target_change_set_schema: ProjectHistoryCompensationTargetSchema
+    operation_preview: list[
+        ProjectHistoryCompensationClaimOperation
+        | ProjectHistoryCompensationAssertionOperation
+    ] = Field(min_length=2, max_length=2)
+    impact_basis: ProjectHistoryRecoveryCausalBasis
+    result_preview: list[ProjectHistoryCompensationResult] = Field(
+        min_length=2, max_length=2
+    )
+    preservation: ProjectHistoryCompensationPreservation
+    required_user_input: list[
+        Literal["reason", "approval_rationale", "explicit_confirmation"]
+    ] = Field(min_length=3, max_length=3)
+    change_set_composition: Literal["deferred_until_confirmed_input"]
+    command_sequence: list[ProjectHistoryCompensationCommandStep] = Field(
+        min_length=3, max_length=3
+    )
+    freshness: ProjectHistoryCompensationFreshness
+    decision_boundary: ProjectHistoryCompensationDecisionBoundary
+    omissions: list[
+        Literal[
+            "user_reason_not_supplied",
+            "approval_rationale_not_supplied",
+            "command_envelopes_not_composed",
+            "compensation_not_persisted",
+            "compensation_not_executed",
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted",
+        ]
+    ] = Field(min_length=7, max_length=7)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_preview(self) -> ProjectHistoryCompensationPreviewContent:
+        if [operation.operation_kind for operation in self.operation_preview] != [
+            "retract_claim",
+            "retract_assertion",
+        ]:
+            raise ValueError("compensation preview requires an ordered retraction pair")
+        if [result.semantic_key for result in self.result_preview] != [
+            "scientific.claim",
+            "scientific.assertion",
+        ] or any(
+            result.resulting_revision != result.prior_revision + 1
+            for result in self.result_preview
+        ):
+            raise ValueError("compensation preview must advance the exact target pair")
+        expected_steps = [
+            (1, "SubmitChangeSet", "confirmed_preview_and_required_input"),
+            (2, "RecordApproval", "submitted_exact_change_set"),
+            (3, "ApplyChangeSet", "approved_exact_change_set"),
+        ]
+        if [
+            (step.position, step.command_name, step.prerequisite)
+            for step in self.command_sequence
+        ] != expected_steps:
+            raise ValueError("compensation preview must preserve its command sequence")
+        if self.required_user_input != [
+            "reason",
+            "approval_rationale",
+            "explicit_confirmation",
+        ]:
+            raise ValueError("compensation preview must require exact human input")
+        expected_omissions = {
+            "user_reason_not_supplied",
+            "approval_rationale_not_supplied",
+            "command_envelopes_not_composed",
+            "compensation_not_persisted",
+            "compensation_not_executed",
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted",
+        }
+        if set(self.omissions) != expected_omissions:
+            raise ValueError("compensation preview must preserve exact omissions")
+        return self
+
+
+class PetraProjectHistoryCompensationPreviewView(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-preview-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryCompensationPreviewContent
+    content_hash: str
+    read_at: str
+
+
 class ProjectSourceDefinitionRef(PetraModel):
     project_definition_id: str
     revision: int
@@ -8110,6 +8308,9 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-history-impact-view": PetraProjectHistoryImpactView,
     "project-history-recovery-assessment-view": (
         PetraProjectHistoryRecoveryAssessmentView
+    ),
+    "project-history-compensation-preview-view": (
+        PetraProjectHistoryCompensationPreviewView
     ),
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,

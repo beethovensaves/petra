@@ -6,6 +6,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryImpactViewV12,
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
@@ -33,6 +34,7 @@ import {
   executeProjectSourceLifecycleCommand,
   getRecentProjectHistory,
   getProjectHistoryEpisode,
+  getProjectHistoryCompensationPreview,
   getProjectHistoryImpact,
   getProjectHistoryRecoveryAssessment,
   getRetainedProjectHistory,
@@ -232,6 +234,16 @@ const historyRecoveryView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryRecoveryAssessmentView;
+
+const historyCompensationPreviewView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-compensation-preview-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationPreviewView;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -745,6 +757,56 @@ describe("Project shell workbench adapter", () => {
       getProjectHistoryRecoveryAssessment(
         historyRecoveryView.project_id,
         historyRecoveryView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("reads a revision-bound preview without treating it as execution authority", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyCompensationPreviewView));
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await getProjectHistoryCompensationPreview(
+      historyCompensationPreviewView.project_id,
+      historyCompensationPreviewView.event_id,
+    );
+
+    expect(result).toEqual(historyCompensationPreviewView);
+    expect(
+      result.content.operation_preview.map(
+        ({ operation_kind }) => operation_kind,
+      ),
+    ).toEqual(["retract_claim", "retract_assertion"]);
+    expect(result.content.decision_boundary).toMatchObject({
+      preview: "read_only",
+      change_set: "not_created",
+      approval: "not_recorded",
+      commands: "not_composed_or_executed",
+    });
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${historyCompensationPreviewView.project_id}/history/events/${historyCompensationPreviewView.event_id}/recovery/preview`,
+    );
+
+    const staleShape = structuredClone(historyCompensationPreviewView);
+    staleShape.content.result_preview[0].resulting_revision =
+      staleShape.content.result_preview[0].prior_revision;
+    fetch.mockResolvedValueOnce(Response.json(staleShape));
+    await expect(
+      getProjectHistoryCompensationPreview(
+        historyCompensationPreviewView.project_id,
+        historyCompensationPreviewView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const wrongEvent = structuredClone(historyCompensationPreviewView);
+    wrongEvent.content.assessment_ref.event_id =
+      "event_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongEvent));
+    await expect(
+      getProjectHistoryCompensationPreview(
+        historyCompensationPreviewView.project_id,
+        historyCompensationPreviewView.event_id,
       ),
     ).rejects.toMatchObject({ status: 502 });
   });
