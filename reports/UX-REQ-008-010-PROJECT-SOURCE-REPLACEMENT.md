@@ -1,8 +1,8 @@
 # UX-REQ-008/010 ProjectSource replacement lineage
 
 Status: exact immutable ProjectSource supersession, command-granular retraction,
-effective-head integrity, and semantic-location traversal passed; governed
-creation/retraction commands and public integration remain open
+effective-head integrity, semantic-location traversal, and governed backend
+creation/retraction commands passed; public integration remains open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -47,6 +47,15 @@ The exclusion receipt is not decorative provenance. Its exact ID, revision,
 content hash, and record hash must resolve to an `ExcludeProjectSource` result
 whose resulting source reference exactly equals the predecessor reference.
 
+V030 adds the governed command boundary. Command-envelope, domain-event, and
+outbox contracts 1.3 plus CapabilityGrant 1.1 authorize exact replacement
+creation and retraction. One serializable PostgreSQL transaction now commits
+the command execution, immutable replacement or retraction, Project event,
+Neo4j and interface outbox intent, and immutable
+`petra.project-source-replacement-receipt@1.0.0`. Exact replay returns that
+receipt without repeating effects; changed command or idempotency reuse fails
+closed.
+
 ## Semantic location
 
 The existing `petra.project-object-location-view@1.0.0` contract already had a
@@ -63,17 +72,20 @@ equivalent semantics.
 
 ## Authority and recovery boundary
 
-This slice supplies the contracts, storage invariants, registration repository,
-compensation semantics, and current/historical read separation. It does not
-expose replacement or retraction through a public command route. Petra's
-single-user bearer principal and canonical Project-command grant authority now
-resolve the exact Actor and active grant needed by that later boundary.
+The backend command authority is complete through its transactional capability
+check, immutable event/outbox/receipt trail, exact replay, and strict recovery
+ordering. It does not yet expose replacement or retraction through a public
+command route. Petra's single-user bearer principal and canonical
+Project-command grant authority can resolve the exact Actor and active v1.1
+grant needed by that boundary.
 
 [D019](../decisions/D019-command-granular-project-source-replacement-retraction.md)
 fixes recovery at the command boundary: undoing replacement retracts only the
 effective relation. Restoring the excluded predecessor remains the next
 separately authorized `RestoreProjectSource` step. Neither action erases the
-replacement or retraction record.
+replacement or retraction record. The lifecycle authority now rejects a
+predecessor restore while its outgoing replacement remains active, making that
+two-command order enforceable rather than advisory.
 
 ## Design-freeze behavior
 
@@ -83,19 +95,23 @@ replacement affordance without requiring the client to infer domain authority.
 
 ## Verification
 
-The increment passes the complete generation, registry, fixture, formatting,
-lint, typecheck, production-build, and always-on test gate. It also passes 105
-real PostgreSQL 18.6 integration cases after Flyway V001 through V029.
+The increment passes contract generation and 373 contract cases, cross-language
+Pydantic parity, TypeScript build/typecheck, and the real PostgreSQL integration
+gate. The database suite passes 106 cases against PostgreSQL 18.6 after a clean
+Flyway V001 through V030 migration.
 
 The database proof additionally covers exact retraction replay, stale
 replacement-ref rejection, repeated-retraction refusal, immutable retraction
 storage, active-head integrity, retained excluded source state, removal from
-current semantic traversal, and a new successor after retraction.
+current semantic traversal, a new successor after retraction, authorized v1.1
+grant evaluation, atomic command/event/dual-outbox/receipt persistence, exact
+command replay, rejected unauthorized and rebound commands, and rejection of
+source restoration before relation retraction.
 
 ## Remaining work
 
-- add typed, authorized, idempotent replacement-creation and retraction
-  commands, events, receipts, outbox intent, and public routes;
+- expose the governed replacement-creation and retraction commands through the
+  authenticated public route and typed client;
 - extend replacement/parent semantics only through owning object adapters; and
 - integrate the existing location result into an approved frozen-interface
   control slot.

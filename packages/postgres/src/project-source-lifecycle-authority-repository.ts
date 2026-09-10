@@ -203,6 +203,23 @@ export class PostgresProjectSourceLifecycleAuthorityRepository implements Projec
           "The command transition does not apply to the current ProjectSource status.",
         );
       }
+      if (envelope.command.command_name === "RestoreProjectSource") {
+        const replacement = await client.query(
+          `SELECT 1
+             FROM petra.project_source_replacement_heads
+            WHERE project_id = $1
+              AND replaced_project_source_id = $2
+              AND state = 'active'
+            FOR UPDATE`,
+          [envelope.project_id, current.project_source_id],
+        );
+        if (replacement.rows[0] !== undefined) {
+          throw this.#error(
+            "PROJECT_SOURCE_LIFECYCLE_ACTIVE_REPLACEMENT",
+            "Retract the active ProjectSource replacement before restoring its excluded predecessor.",
+          );
+        }
+      }
 
       const next = clone(current);
       next.revision += 1;

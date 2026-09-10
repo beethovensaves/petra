@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-replacement-receipt/1.0.0/schema.json",
+  "title": "PetraProjectSourceReplacementReceipt",
+  "description": "An immutable receipt for one authorized ProjectSource replacement creation or command-granular retraction, its exact event, preservation boundary, and recovery disposition.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_source_replacement_receipt_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-replacement-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "project_source_replacement_receipt_id": {
+      "type": "string",
+      "pattern": "^project_source_relation_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ReceiptContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "CommandRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "idempotency_key",
+        "command_name",
+        "command_fingerprint"
+      ],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "idempotency_key": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+        },
+        "command_name": {
+          "enum": [
+            "CreateProjectSourceReplacement",
+            "RetractProjectSourceReplacement"
+          ]
+        },
+        "command_fingerprint": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "EventRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_position",
+        "stream_revision",
+        "event_type",
+        "record_hash"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+        },
+        "event_position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "stream_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "event_type": {
+          "enum": [
+            "project_source.replacement_created",
+            "project_source.replacement_retracted"
+          ]
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ExactReplacementRef": {
+      "$ref": "../../command-envelope/1.3.0/schema.json#/$defs/ExactReplacementRef"
+    },
+    "ExactRetractionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_replacement_retraction_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "project_source_replacement_retraction_id": {
+          "type": "string",
+          "pattern": "^project_source_retraction_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Preservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replacement_history",
+        "retraction_history",
+        "predecessor_source_history",
+        "successor_source_history",
+        "dependent_history",
+        "artifact_material"
+      ],
+      "properties": {
+        "replacement_history": { "const": "retained" },
+        "retraction_history": { "const": "retained" },
+        "predecessor_source_history": { "const": "retained" },
+        "successor_source_history": { "const": "retained" },
+        "dependent_history": { "const": "retained" },
+        "artifact_material": { "const": "retained" }
+      }
+    },
+    "CreatedResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effect", "replacement_ref"],
+      "properties": {
+        "effect": { "const": "replacement_activated" },
+        "replacement_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/ExactReplacementRef" },
+            {
+              "type": "object",
+              "properties": { "state": { "const": "active" } }
+            }
+          ]
+        }
+      }
+    },
+    "RetractedResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effect", "replacement_ref", "retraction_ref"],
+      "properties": {
+        "effect": { "const": "replacement_retracted" },
+        "replacement_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/ExactReplacementRef" },
+            {
+              "type": "object",
+              "properties": { "state": { "const": "retracted" } }
+            }
+          ]
+        },
+        "retraction_ref": { "$ref": "#/$defs/ExactRetractionRef" }
+      }
+    },
+    "CreateRecovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recovery_kind",
+        "state",
+        "inverse_command_name",
+        "expected_replacement_ref",
+        "effect"
+      ],
+      "properties": {
+        "recovery_kind": { "const": "compensating_relationship_retraction" },
+        "state": { "const": "available" },
+        "inverse_command_name": { "const": "RetractProjectSourceReplacement" },
+        "expected_replacement_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/ExactReplacementRef" },
+            {
+              "type": "object",
+              "properties": { "state": { "const": "active" } }
+            }
+          ]
+        },
+        "effect": { "const": "relationship_retracted_without_source_restore" }
+      }
+    },
+    "RetractionDisposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recovery_kind",
+        "source_status",
+        "separate_command_name",
+        "effect"
+      ],
+      "properties": {
+        "recovery_kind": { "const": "separate_source_status_transition" },
+        "source_status": { "const": "unchanged" },
+        "separate_command_name": { "const": "RestoreProjectSource" },
+        "effect": { "const": "relationship_inactive_predecessor_not_restored" }
+      }
+    },
+    "CreateReceiptContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_ref",
+        "event_ref",
+        "result",
+        "preservation",
+        "recovery"
+      ],
+      "properties": {
+        "command_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/CommandRef" },
+            {
+              "type": "object",
+              "properties": {
+                "command_name": { "const": "CreateProjectSourceReplacement" }
+              }
+            }
+          ]
+        },
+        "event_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/EventRef" },
+            {
+              "type": "object",
+              "properties": {
+                "event_type": { "const": "project_source.replacement_created" }
+              }
+            }
+          ]
+        },
+        "result": { "$ref": "#/$defs/CreatedResult" },
+        "preservation": { "$ref": "#/$defs/Preservation" },
+        "recovery": { "$ref": "#/$defs/CreateRecovery" }
+      }
+    },
+    "RetractionReceiptContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_ref",
+        "event_ref",
+        "result",
+        "preservation",
+        "recovery"
+      ],
+      "properties": {
+        "command_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/CommandRef" },
+            {
+              "type": "object",
+              "properties": {
+                "command_name": { "const": "RetractProjectSourceReplacement" }
+              }
+            }
+          ]
+        },
+        "event_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/EventRef" },
+            {
+              "type": "object",
+              "properties": {
+                "event_type": {
+                  "const": "project_source.replacement_retracted"
+                }
+              }
+            }
+          ]
+        },
+        "result": { "$ref": "#/$defs/RetractedResult" },
+        "preservation": { "$ref": "#/$defs/Preservation" },
+        "recovery": { "$ref": "#/$defs/RetractionDisposition" }
+      }
+    },
+    "ReceiptContent": {
+      "oneOf": [
+        { "$ref": "#/$defs/CreateReceiptContent" },
+        { "$ref": "#/$defs/RetractionReceiptContent" }
+      ]
+    }
+  }
+}

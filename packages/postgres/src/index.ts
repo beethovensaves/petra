@@ -22,6 +22,7 @@ export * from "./project-source-authority-repository.js";
 export * from "./project-source-lifecycle-authority-repository.js";
 export * from "./project-source-lifecycle-view-reader.js";
 export * from "./project-source-replacement-authority-repository.js";
+export * from "./project-source-replacement-command-authority-repository.js";
 export * from "./project-source-view-reader.js";
 export * from "./review-session-authority-repository.js";
 export * from "./project-review-view-reader.js";

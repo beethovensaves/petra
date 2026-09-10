@@ -1,0 +1,54 @@
+{
+  "schema_name": "petra.project-source-replacement-receipt",
+  "schema_version": "1.0.0",
+  "project_source_replacement_receipt_id": "project_source_relation_receipt_01K4C000000000000000000058",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "command_ref": {
+      "command_id": "command_01K4C000000000000000000054",
+      "idempotency_key": "project-source:007:replacement:retract:v1",
+      "command_name": "RetractProjectSourceReplacement",
+      "command_fingerprint": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    "event_ref": {
+      "event_id": "event_01K4C000000000000000000059",
+      "event_position": 6,
+      "stream_revision": 6,
+      "event_type": "project_source.replacement_retracted",
+      "record_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    "result": {
+      "effect": "replacement_retracted",
+      "replacement_ref": {
+        "project_source_replacement_id": "project_source_replacement_01K4C000000000000000000041",
+        "revision": 1,
+        "content_hash": "sha256:2a2f6624320c606c097ca76890b5d6417864acbefa20b735242290c3e32c9822",
+        "record_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "state": "retracted"
+      },
+      "retraction_ref": {
+        "project_source_replacement_retraction_id": "project_source_retraction_01K4C000000000000000000047",
+        "revision": 1,
+        "content_hash": "sha256:9302a6c2c9b4de60794b08a94b602d48d2016a3596ffc013e819d8db353a1f2d",
+        "record_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+      }
+    },
+    "preservation": {
+      "replacement_history": "retained",
+      "retraction_history": "retained",
+      "predecessor_source_history": "retained",
+      "successor_source_history": "retained",
+      "dependent_history": "retained",
+      "artifact_material": "retained"
+    },
+    "recovery": {
+      "recovery_kind": "separate_source_status_transition",
+      "source_status": "unchanged",
+      "separate_command_name": "RestoreProjectSource",
+      "effect": "relationship_inactive_predecessor_not_restored"
+    }
+  },
+  "content_hash": "sha256:3600b5da671f8be8655083e16ca9044da514b78b30108d35f81ff871715b2469",
+  "recorded_at": "2026-09-10T00:02:00.000Z"
+}

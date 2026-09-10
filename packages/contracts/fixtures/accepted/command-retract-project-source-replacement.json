@@ -1,0 +1,25 @@
+{
+  "schema_name": "petra.command-envelope",
+  "schema_version": "1.3.0",
+  "command_id": "command_01K4C000000000000000000054",
+  "idempotency_key": "project-source:007:replacement:retract:v1",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "capability_grant_id": "capability_grant_01K4C000000000000000000051",
+  "correlation_id": "trace_01K4C000000000000000000055",
+  "submitted_at": "2026-09-10T00:02:00.000Z",
+  "command": {
+    "command_name": "RetractProjectSourceReplacement",
+    "expected_replacement_ref": {
+      "project_source_replacement_id": "project_source_replacement_01K4C000000000000000000041",
+      "revision": 1,
+      "content_hash": "sha256:2a2f6624320c606c097ca76890b5d6417864acbefa20b735242290c3e32c9822",
+      "record_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "state": "active"
+    },
+    "reason": "Undo this effective supersession while preserving both source states and all history."
+  }
+}

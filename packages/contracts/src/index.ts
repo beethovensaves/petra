@@ -6,6 +6,10 @@ export type {
   PetraCapabilityGrant,
 } from "./generated/capability-grant.js";
 export type {
+  GrantContent as CapabilityGrantContentV110,
+  PetraCapabilityGrantV110,
+} from "./generated/capability-grant-v1-1.js";
+export type {
   GrantRef as CapabilityGrantRevocationGrantRef,
   HumanActorRef as CapabilityGrantRevokerRef,
   PetraCapabilityGrantRevocation,
@@ -172,6 +176,11 @@ export type {
   ReplacementRef as ProjectSourceReplacementRetractionReplacementRef,
   RetractionContent as ProjectSourceReplacementRetractionContent,
 } from "./generated/project-source-replacement-retraction.js";
+export type {
+  CreateReceiptContent as ProjectSourceReplacementCreateReceiptContent,
+  PetraProjectSourceReplacementReceipt,
+  RetractionReceiptContent as ProjectSourceReplacementRetractionReceiptContent,
+} from "./generated/project-source-replacement-receipt.js";
 export type ProjectSourceReplacementSourceRef =
   ProjectSourceReplacementExcludedRef | ProjectSourceReplacementActiveRef;
 export type {
@@ -438,6 +447,13 @@ export type {
   RestoreProjectSource,
 } from "./generated/command-envelope-v1-2.js";
 export type {
+  Command as PetraCommandV130,
+  CreateProjectSourceReplacement,
+  ExactReplacementRef as CommandProjectSourceReplacementRef,
+  PetraCommandEnvelopeV130,
+  RetractProjectSourceReplacement,
+} from "./generated/command-envelope-v1-3.js";
+export type {
   ApprovalRecorded as ApprovalRecordedEvent,
   ChangeSetApplied as ChangeSetAppliedEvent,
   ChangeSetConflicted as ChangeSetConflictedEvent,
@@ -461,11 +477,18 @@ export type {
   ProjectSourceTransitionPayload,
 } from "./generated/domain-event-v1-2.js";
 export type {
+  Event as PetraEventV130,
+  PetraDomainEventV130,
+  ProjectSourceReplacementCreated as ProjectSourceReplacementCreatedEvent,
+  ProjectSourceReplacementRetracted as ProjectSourceReplacementRetractedEvent,
+} from "./generated/domain-event-v1-3.js";
+export type {
   DomainEventMessage,
   PetraOutboxRecord,
 } from "./generated/outbox-record.js";
 export type { PetraOutboxRecordV110 } from "./generated/outbox-record-v1-1.js";
 export type { PetraOutboxRecordV120 } from "./generated/outbox-record-v1-2.js";
+export type { PetraOutboxRecordV130 } from "./generated/outbox-record-v1-3.js";
 export type {
   ArtifactInputBinding as WorkerArtifactInputBinding,
   ContractRef as WorkerContractRef,
@@ -723,6 +746,8 @@ export type {
 
 import type { PetraChangeSet } from "./generated/change-set.js";
 import type { PetraChangeSetV110 } from "./generated/change-set-v1-1.js";
+import type { PetraCapabilityGrant } from "./generated/capability-grant.js";
+import type { PetraCapabilityGrantV110 } from "./generated/capability-grant-v1-1.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
 import type { PetraDomainEvent } from "./generated/domain-event.js";
@@ -737,6 +762,8 @@ import type {
 } from "./generated/project-source-replacement.js";
 
 export type PetraChangeSetRecord = PetraChangeSet | PetraChangeSetV110;
+export type PetraCapabilityGrantRecord =
+  PetraCapabilityGrant | PetraCapabilityGrantV110;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =

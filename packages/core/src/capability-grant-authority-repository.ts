@@ -1,5 +1,5 @@
 import type {
-  PetraCapabilityGrant,
+  PetraCapabilityGrantRecord,
   PetraCapabilityGrantRevocation,
 } from "@petra/contracts";
 
@@ -9,17 +9,17 @@ import type {
  */
 export interface CapabilityGrantAuthorityRepository {
   registerCapabilityGrant(
-    grant: PetraCapabilityGrant,
-  ): Promise<PetraCapabilityGrant>;
+    grant: PetraCapabilityGrantRecord,
+  ): Promise<PetraCapabilityGrantRecord>;
   registerCapabilityGrantRevocation(
     revocation: PetraCapabilityGrantRevocation,
   ): Promise<PetraCapabilityGrantRevocation>;
   getCapabilityGrant(
     capabilityGrantId: string,
-  ): Promise<PetraCapabilityGrant | undefined>;
+  ): Promise<PetraCapabilityGrantRecord | undefined>;
   listProjectCapabilityGrants(
     projectId: string,
-  ): Promise<readonly PetraCapabilityGrant[]>;
+  ): Promise<readonly PetraCapabilityGrantRecord[]>;
   getCapabilityGrantRevocation(
     capabilityGrantRevocationId: string,
   ): Promise<PetraCapabilityGrantRevocation | undefined>;

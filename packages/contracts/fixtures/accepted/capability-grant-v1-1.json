@@ -1,0 +1,26 @@
+{
+  "schema_name": "petra.capability-grant",
+  "schema_version": "1.1.0",
+  "capability_grant_id": "capability_grant_01K4C000000000000000000051",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "grantee": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "content": {
+    "scope_kind": "project_commands",
+    "allowed_commands": [
+      "CreateProjectSourceReplacement",
+      "RetractProjectSourceReplacement"
+    ],
+    "valid_from": "2026-09-10T00:00:00.000Z",
+    "reason": "Allow the local Project owner to create and retract exact source replacement relations."
+  },
+  "content_hash": "sha256:ddf9583786d17e3c8f415f3d5c95f5dca6ebe8831bda538e0a7b518e6b31301d",
+  "issued_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "issued_at": "2026-09-10T00:00:00.000Z"
+}

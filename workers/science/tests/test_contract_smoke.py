@@ -124,6 +124,37 @@ class PetraCapabilityGrant(PetraModel):
     issued_at: str
 
 
+class CapabilityGrantContentV110(PetraModel):
+    scope_kind: Literal["project_commands"]
+    allowed_commands: list[
+        Literal[
+            "SubmitChangeSet",
+            "RecordApproval",
+            "ApplyChangeSet",
+            "ExcludeProjectSource",
+            "RestoreProjectSource",
+            "CreateProjectSourceReplacement",
+            "RetractProjectSourceReplacement",
+        ]
+    ]
+    valid_from: str
+    expires_at: str | None = None
+    reason: str
+
+
+class PetraCapabilityGrantV110(PetraModel):
+    schema_name: Literal["petra.capability-grant"]
+    schema_version: Literal["1.1.0"]
+    capability_grant_id: str
+    revision: Literal[1]
+    project_id: str
+    grantee: ActorRef
+    content: CapabilityGrantContentV110
+    content_hash: str
+    issued_by: CapabilityGrantHumanActorRef
+    issued_at: str
+
+
 class CapabilityGrantRef(PetraModel):
     capability_grant_id: str
     revision: Literal[1]
@@ -2924,6 +2955,56 @@ class PetraCommandEnvelopeV120(PetraModel):
     )
 
 
+class CreateProjectSourceReplacementCommand(PetraModel):
+    command_name: Literal["CreateProjectSourceReplacement"]
+    replacement_kind: Literal[
+        "newer_source_version",
+        "identity_resolution",
+        "preferred_copy_changed",
+        "project_role_replacement",
+    ]
+    replaced_source_ref: ProjectSourceReplacementExcludedRef
+    replacement_source_ref: ProjectSourceReplacementActiveRef
+    exclusion_receipt_ref: ProjectSourceReplacementExclusionReceiptRef
+    rationale: str
+
+
+class ProjectSourceReplacementExactActiveRef(PetraModel):
+    project_source_replacement_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+    state: Literal["active"]
+
+
+class RetractProjectSourceReplacementCommand(PetraModel):
+    command_name: Literal["RetractProjectSourceReplacement"]
+    expected_replacement_ref: ProjectSourceReplacementExactActiveRef
+    reason: str
+
+
+class PetraCommandEnvelopeV130(PetraModel):
+    schema_name: Literal["petra.command-envelope"]
+    schema_version: Literal["1.3.0"]
+    command_id: str
+    idempotency_key: str
+    project_id: str
+    actor: ActorRef
+    capability_grant_id: str
+    correlation_id: str
+    causation_id: str | None = None
+    submitted_at: str
+    command: (
+        SubmitChangeSetV110
+        | RecordApproval
+        | ApplyChangeSet
+        | ExcludeProjectSourceCommand
+        | RestoreProjectSourceCommand
+        | CreateProjectSourceReplacementCommand
+        | RetractProjectSourceReplacementCommand
+    )
+
+
 class ProjectSourceTransitionPayload(PetraModel):
     prior_source_ref: ProjectSourceCommandExactRef
     project_source: PetraProjectSource
@@ -3035,6 +3116,106 @@ class PetraProjectSourceLifecycleReceipt(PetraModel):
     revision: Literal[1]
     project_id: str
     content: ProjectSourceLifecycleReceiptContent
+    content_hash: str
+    recorded_at: str
+
+
+class ProjectSourceReplacementReceiptCommandRef(PetraModel):
+    command_id: str
+    idempotency_key: str
+    command_name: Literal[
+        "CreateProjectSourceReplacement", "RetractProjectSourceReplacement"
+    ]
+    command_fingerprint: str
+
+
+class ProjectSourceReplacementReceiptEventRef(PetraModel):
+    event_id: str
+    event_position: int
+    stream_revision: int
+    event_type: Literal[
+        "project_source.replacement_created",
+        "project_source.replacement_retracted",
+    ]
+    record_hash: str
+
+
+class ProjectSourceReplacementExactRetractedRef(PetraModel):
+    project_source_replacement_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+    state: Literal["retracted"]
+
+
+class ProjectSourceReplacementExactRetractionRef(PetraModel):
+    project_source_replacement_retraction_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class ProjectSourceReplacementPreservation(PetraModel):
+    replacement_history: Literal["retained"]
+    retraction_history: Literal["retained"]
+    predecessor_source_history: Literal["retained"]
+    successor_source_history: Literal["retained"]
+    dependent_history: Literal["retained"]
+    artifact_material: Literal["retained"]
+
+
+class ProjectSourceReplacementCreatedResult(PetraModel):
+    effect: Literal["replacement_activated"]
+    replacement_ref: ProjectSourceReplacementExactActiveRef
+
+
+class ProjectSourceReplacementRetractedResult(PetraModel):
+    effect: Literal["replacement_retracted"]
+    replacement_ref: ProjectSourceReplacementExactRetractedRef
+    retraction_ref: ProjectSourceReplacementExactRetractionRef
+
+
+class ProjectSourceReplacementCreateRecovery(PetraModel):
+    recovery_kind: Literal["compensating_relationship_retraction"]
+    state: Literal["available"]
+    inverse_command_name: Literal["RetractProjectSourceReplacement"]
+    expected_replacement_ref: ProjectSourceReplacementExactActiveRef
+    effect: Literal["relationship_retracted_without_source_restore"]
+
+
+class ProjectSourceReplacementRetractionDisposition(PetraModel):
+    recovery_kind: Literal["separate_source_status_transition"]
+    source_status: Literal["unchanged"]
+    separate_command_name: Literal["RestoreProjectSource"]
+    effect: Literal["relationship_inactive_predecessor_not_restored"]
+
+
+class ProjectSourceReplacementCreateReceiptContent(PetraModel):
+    command_ref: ProjectSourceReplacementReceiptCommandRef
+    event_ref: ProjectSourceReplacementReceiptEventRef
+    result: ProjectSourceReplacementCreatedResult
+    preservation: ProjectSourceReplacementPreservation
+    recovery: ProjectSourceReplacementCreateRecovery
+
+
+class ProjectSourceReplacementRetractionReceiptContent(PetraModel):
+    command_ref: ProjectSourceReplacementReceiptCommandRef
+    event_ref: ProjectSourceReplacementReceiptEventRef
+    result: ProjectSourceReplacementRetractedResult
+    preservation: ProjectSourceReplacementPreservation
+    recovery: ProjectSourceReplacementRetractionDisposition
+
+
+class PetraProjectSourceReplacementReceipt(PetraModel):
+    schema_name: Literal["petra.project-source-replacement-receipt"]
+    schema_version: Literal["1.0.0"]
+    project_source_replacement_receipt_id: str
+    revision: Literal[1]
+    project_id: str
+    content: (
+        ProjectSourceReplacementCreateReceiptContent
+        | ProjectSourceReplacementRetractionReceiptContent
+    )
     content_hash: str
     recorded_at: str
 
@@ -6216,6 +6397,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-source": PetraProjectSource,
     "project-source-replacement": PetraProjectSourceReplacement,
     "project-source-replacement-retraction": PetraProjectSourceReplacementRetraction,
+    "project-source-replacement-receipt": PetraProjectSourceReplacementReceipt,
     "project-source-view": PetraProjectSourceView,
     "project-source-lifecycle-view": PetraProjectSourceLifecycleView,
     "project-source-lifecycle-receipt": PetraProjectSourceLifecycleReceipt,
@@ -6284,11 +6466,13 @@ PYDANTIC_MODELS: dict[tuple[str, str], type[BaseModel]] = {
 }
 PYDANTIC_MODELS.update(
     {
+        ("capability-grant", "1.1.0"): PetraCapabilityGrantV110,
         ("change-set", "1.1.0"): PetraChangeSetV110,
         ("command-envelope", "1.1.0"): PetraCommandEnvelopeV110,
         ("domain-event", "1.1.0"): PetraDomainEventV110,
         ("outbox-record", "1.1.0"): PetraOutboxRecordV110,
         ("command-envelope", "1.2.0"): PetraCommandEnvelopeV120,
+        ("command-envelope", "1.3.0"): PetraCommandEnvelopeV130,
         ("domain-event", "1.2.0"): PetraDomainEventV120,
         ("outbox-record", "1.2.0"): PetraOutboxRecordV120,
         (
@@ -6358,6 +6542,7 @@ def test_change_set_content_hash_parity() -> None:
 
 def test_worker_manifest_and_work_unit_hash_parity() -> None:
     fixtures = [
+        ("capability-grant-v1-1.json", "content", "content_hash"),
         ("worker-input-manifest.json", "content", "content_hash"),
         ("worker-output-manifest.json", "content", "content_hash"),
         ("work-unit-requested.json", "spec", "spec_hash"),
@@ -6403,6 +6588,16 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-source-replacement.json", "content", "content_hash"),
         (
             "project-source-replacement-retraction.json",
+            "content",
+            "content_hash",
+        ),
+        (
+            "project-source-replacement-receipt-created.json",
+            "content",
+            "content_hash",
+        ),
+        (
+            "project-source-replacement-receipt-retracted.json",
             "content",
             "content_hash",
         ),

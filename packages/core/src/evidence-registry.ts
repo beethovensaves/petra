@@ -151,7 +151,9 @@ export interface CommandAuthorizationRequest {
   readonly commandName:
     | PetraCommandRecord["command_name"]
     | "ExcludeProjectSource"
-    | "RestoreProjectSource";
+    | "RestoreProjectSource"
+    | "CreateProjectSourceReplacement"
+    | "RetractProjectSourceReplacement";
   readonly projectId: string;
 }
 

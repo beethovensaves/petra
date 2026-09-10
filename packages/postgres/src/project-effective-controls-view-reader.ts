@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 import type {
-  PetraCapabilityGrant,
+  PetraCapabilityGrantRecord,
   PetraCapabilityGrantRevocation,
   PetraProject,
   PetraProjectDefinition,
@@ -508,9 +508,16 @@ export class PostgresProjectEffectiveControlsViewReader implements ProjectEffect
     return clone(definition);
   }
 
-  #capabilityGrant(payload: unknown, recordHash: string): PetraCapabilityGrant {
-    this.#contracts.assertValid("capability-grant", "1.0.0", payload);
-    const grant = payload as PetraCapabilityGrant;
+  #capabilityGrant(
+    payload: unknown,
+    recordHash: string,
+  ): PetraCapabilityGrantRecord {
+    const grant = payload as PetraCapabilityGrantRecord;
+    this.#contracts.assertValid(
+      "capability-grant",
+      grant.schema_version,
+      grant,
+    );
     if (
       grant.content_hash !== canonicalHash(grant.content) ||
       recordHash !== canonicalHash(grant)
@@ -526,7 +533,7 @@ export class PostgresProjectEffectiveControlsViewReader implements ProjectEffect
   #capabilityRevocation(
     payload: unknown,
     recordHash: string,
-    grant: PetraCapabilityGrant,
+    grant: PetraCapabilityGrantRecord,
     grantRecordHash: string,
   ): PetraCapabilityGrantRevocation {
     this.#contracts.assertValid(

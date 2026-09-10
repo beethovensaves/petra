@@ -4,7 +4,9 @@ import { readFileSync } from "node:fs";
 import type {
   PetraActor,
   PetraCapabilityGrant,
+  PetraCapabilityGrantRecord,
   PetraCapabilityGrantRevocation,
+  PetraCapabilityGrantV110,
   PetraProject,
 } from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
@@ -86,7 +88,7 @@ describePostgres("PostgreSQL CapabilityGrant authority", () => {
   };
 
   const evaluate = async (
-    grant: PetraCapabilityGrant,
+    grant: PetraCapabilityGrantRecord,
     overrides: Partial<{
       actor: PetraCapabilityGrant["grantee"];
       capabilityGrantId: string;
@@ -95,7 +97,9 @@ describePostgres("PostgreSQL CapabilityGrant authority", () => {
         | "RecordApproval"
         | "ApplyChangeSet"
         | "ExcludeProjectSource"
-        | "RestoreProjectSource";
+        | "RestoreProjectSource"
+        | "CreateProjectSourceReplacement"
+        | "RetractProjectSourceReplacement";
       projectId: string;
     }> = {},
   ): Promise<boolean> => {
@@ -121,6 +125,26 @@ describePostgres("PostgreSQL CapabilityGrant authority", () => {
       client.release();
     }
   };
+
+  it("authorizes the governed replacement commands through a v1.1 grant", async () => {
+    await registerScope();
+    const grant = readFixture<PetraCapabilityGrantV110>(
+      "capability-grant-v1-1",
+    );
+
+    await expect(repository.registerCapabilityGrant(grant)).resolves.toEqual(
+      grant,
+    );
+    await expect(
+      evaluate(grant, { commandName: "CreateProjectSourceReplacement" }),
+    ).resolves.toBe(true);
+    await expect(
+      evaluate(grant, { commandName: "RetractProjectSourceReplacement" }),
+    ).resolves.toBe(true);
+    await expect(
+      evaluate(grant, { commandName: "RestoreProjectSource" }),
+    ).resolves.toBe(false);
+  });
 
   it("registers one immutable exact command grant and fails closed outside its scope", async () => {
     await registerScope();

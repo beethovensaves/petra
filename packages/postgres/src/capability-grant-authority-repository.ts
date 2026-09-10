@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 import type {
-  PetraCapabilityGrant,
+  PetraCapabilityGrantRecord,
   PetraCapabilityGrantRevocation,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -74,8 +74,8 @@ export class PostgresCapabilityGrantAuthorityRepository implements CapabilityGra
   }
 
   async registerCapabilityGrant(
-    grant: PetraCapabilityGrant,
-  ): Promise<PetraCapabilityGrant> {
+    grant: PetraCapabilityGrantRecord,
+  ): Promise<PetraCapabilityGrantRecord> {
     this.#assertGrant(grant);
     const recordHash = canonicalHash(grant);
 
@@ -265,7 +265,7 @@ export class PostgresCapabilityGrantAuthorityRepository implements CapabilityGra
 
   async getCapabilityGrant(
     capabilityGrantId: string,
-  ): Promise<PetraCapabilityGrant | undefined> {
+  ): Promise<PetraCapabilityGrantRecord | undefined> {
     const result = await this.#pool.query<StoredRow>(
       `SELECT payload, record_hash
          FROM petra.capability_grants
@@ -278,7 +278,7 @@ export class PostgresCapabilityGrantAuthorityRepository implements CapabilityGra
 
   async listProjectCapabilityGrants(
     projectId: string,
-  ): Promise<readonly PetraCapabilityGrant[]> {
+  ): Promise<readonly PetraCapabilityGrantRecord[]> {
     const result = await this.#pool.query<StoredRow>(
       `SELECT payload, record_hash
          FROM petra.capability_grants
@@ -315,8 +315,12 @@ export class PostgresCapabilityGrantAuthorityRepository implements CapabilityGra
     return row === undefined ? undefined : this.#revocationFrom(row);
   }
 
-  #assertGrant(grant: PetraCapabilityGrant): void {
-    this.#contracts.assertValid("capability-grant", "1.0.0", grant);
+  #assertGrant(grant: PetraCapabilityGrantRecord): void {
+    this.#contracts.assertValid(
+      "capability-grant",
+      grant.schema_version,
+      grant,
+    );
     if (grant.content_hash !== canonicalHash(grant.content)) {
       throw new PostgresCapabilityGrantError(
         "CAPABILITY_GRANT_CONTENT_HASH_MISMATCH",
@@ -354,8 +358,8 @@ export class PostgresCapabilityGrantAuthorityRepository implements CapabilityGra
     }
   }
 
-  #grantFrom(row: StoredRow): PetraCapabilityGrant {
-    const grant = clone(row.payload) as PetraCapabilityGrant;
+  #grantFrom(row: StoredRow): PetraCapabilityGrantRecord {
+    const grant = clone(row.payload) as PetraCapabilityGrantRecord;
     this.#assertGrant(grant);
     if (row.record_hash !== canonicalHash(grant)) {
       throw new PostgresCapabilityGrantError(
@@ -489,10 +493,14 @@ export class PostgresCapabilityGrantCommandAuthorizer implements PostgresCommand
     const row = result.rows[0];
     if (row === undefined) return false;
 
-    let grant: PetraCapabilityGrant;
+    let grant: PetraCapabilityGrantRecord;
     try {
-      grant = clone(row.payload) as PetraCapabilityGrant;
-      this.#contracts.assertValid("capability-grant", "1.0.0", grant);
+      grant = clone(row.payload) as PetraCapabilityGrantRecord;
+      this.#contracts.assertValid(
+        "capability-grant",
+        grant.schema_version,
+        grant,
+      );
       if (
         grant.content_hash !== canonicalHash(grant.content) ||
         row.record_hash !== canonicalHash(grant)
@@ -506,7 +514,9 @@ export class PostgresCapabilityGrantCommandAuthorizer implements PostgresCommand
     if (
       grant.project_id !== request.projectId ||
       !sameActor(grant.grantee, request.actor) ||
-      !grant.content.allowed_commands.includes(request.commandName)
+      !(grant.content.allowed_commands as readonly string[]).includes(
+        request.commandName,
+      )
     ) {
       return false;
     }

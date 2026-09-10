@@ -1,0 +1,55 @@
+{
+  "schema_name": "petra.project-source-replacement-receipt",
+  "schema_version": "1.0.0",
+  "project_source_replacement_receipt_id": "project_source_relation_receipt_01K4C000000000000000000056",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "command_ref": {
+      "command_id": "command_01K4C000000000000000000052",
+      "idempotency_key": "project-source:007:replacement:create:v1",
+      "command_name": "CreateProjectSourceReplacement",
+      "command_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "event_ref": {
+      "event_id": "event_01K4C000000000000000000057",
+      "event_position": 5,
+      "stream_revision": 5,
+      "event_type": "project_source.replacement_created",
+      "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "result": {
+      "effect": "replacement_activated",
+      "replacement_ref": {
+        "project_source_replacement_id": "project_source_replacement_01K4C000000000000000000041",
+        "revision": 1,
+        "content_hash": "sha256:2a2f6624320c606c097ca76890b5d6417864acbefa20b735242290c3e32c9822",
+        "record_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "state": "active"
+      }
+    },
+    "preservation": {
+      "replacement_history": "retained",
+      "retraction_history": "retained",
+      "predecessor_source_history": "retained",
+      "successor_source_history": "retained",
+      "dependent_history": "retained",
+      "artifact_material": "retained"
+    },
+    "recovery": {
+      "recovery_kind": "compensating_relationship_retraction",
+      "state": "available",
+      "inverse_command_name": "RetractProjectSourceReplacement",
+      "expected_replacement_ref": {
+        "project_source_replacement_id": "project_source_replacement_01K4C000000000000000000041",
+        "revision": 1,
+        "content_hash": "sha256:2a2f6624320c606c097ca76890b5d6417864acbefa20b735242290c3e32c9822",
+        "record_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "state": "active"
+      },
+      "effect": "relationship_retracted_without_source_restore"
+    }
+  },
+  "content_hash": "sha256:2997b29cc6848ad3f99169a3c139781de171db09f0cfe6ee98a69fff54baf526",
+  "recorded_at": "2026-09-10T00:01:00.000Z"
+}

@@ -10,7 +10,6 @@ import type {
   PetraProject,
   PetraProjectDefinition,
   PetraProjectSource,
-  PetraProjectSourceReplacement,
   PetraProjectSourceReplacementRetraction,
   PetraRightsDecision,
   PetraSourceSpan,
@@ -22,6 +21,7 @@ import type {
   PersistDocumentBundleInput,
   PersistVerifiedArtifactInput,
   ProjectSourceLifecycleCommandEnvelope,
+  ProjectSourceReplacementCommandEnvelope,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
@@ -40,6 +40,7 @@ import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-
 import { PostgresProjectSourceLifecycleAuthorityRepository } from "../src/project-source-lifecycle-authority-repository.js";
 import { PostgresProjectSourceLifecycleViewReader } from "../src/project-source-lifecycle-view-reader.js";
 import { PostgresProjectSourceReplacementAuthorityRepository } from "../src/project-source-replacement-authority-repository.js";
+import { PostgresProjectSourceReplacementCommandAuthorityRepository } from "../src/project-source-replacement-command-authority-repository.js";
 import { PostgresProjectSourceViewReader } from "../src/project-source-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
@@ -79,6 +80,8 @@ const expectDocumentCode = async (
 describePostgres("PostgreSQL Document authority repository", () => {
   let eventIndex = 0;
   let outboxIndex = 0;
+  let replacementEventIndex = 0;
+  let replacementOutboxIndex = 0;
   const eventIds = [
     "event_01K4C000000000000000000031",
     "event_01K4C000000000000000000034",
@@ -86,6 +89,16 @@ describePostgres("PostgreSQL Document authority repository", () => {
   const outboxIds = [
     "outbox_01K4C000000000000000000032",
     "outbox_01K4C000000000000000000033",
+  ];
+  const replacementEventIds = [
+    "event_01K4C000000000000000000057",
+    "event_01K4C000000000000000000060",
+  ];
+  const replacementOutboxIds = [
+    "outbox_01K4C000000000000000000058",
+    "outbox_01K4C000000000000000000059",
+    "outbox_01K4C000000000000000000061",
+    "outbox_01K4C000000000000000000062",
   ];
   const pool = new Pool({ connectionString });
   const scopes = new PostgresResearchScopeRepository(pool);
@@ -125,6 +138,29 @@ describePostgres("PostgreSQL Document authority repository", () => {
   );
   const sourceReplacements =
     new PostgresProjectSourceReplacementAuthorityRepository(pool);
+  const sourceReplacementCommands =
+    new PostgresProjectSourceReplacementCommandAuthorityRepository(
+      pool,
+      {
+        authorize: (request) =>
+          request.actor.actor_kind === "human" &&
+          request.capabilityGrantId ===
+            "capability_grant_01K4C000000000000000000051" &&
+          (request.commandName === "CreateProjectSourceReplacement" ||
+            request.commandName === "RetractProjectSourceReplacement"),
+      },
+      {
+        nextId: (kind) => {
+          const id =
+            kind === "event"
+              ? replacementEventIds[replacementEventIndex++]
+              : replacementOutboxIds[replacementOutboxIndex++];
+          if (id === undefined) throw new Error(`Missing ${kind} test id.`);
+          return id;
+        },
+        now: () => "2026-09-10T00:03:00.000Z",
+      },
+    );
   const sourceViews = new PostgresProjectSourceViewReader(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
   const shellViews = new PostgresProjectShellViewReader(pool);
@@ -136,6 +172,8 @@ describePostgres("PostgreSQL Document authority repository", () => {
   beforeEach(async () => {
     eventIndex = 0;
     outboxIndex = 0;
+    replacementEventIndex = 0;
+    replacementOutboxIndex = 0;
     await pool.query(
       `TRUNCATE petra.artifacts,
                 petra.canonical_entities,
@@ -748,49 +786,98 @@ describePostgres("PostgreSQL Document authority repository", () => {
     successor.added_at = "2026-09-09T00:09:00.000Z";
     await projectSources.registerProjectSourceRevision(successor);
 
-    const replacement = readFixture<PetraProjectSourceReplacement>(
-      "project-source-replacement",
-    );
-    replacement.content.replaced_source_ref = {
+    const createReplacement =
+      readFixture<ProjectSourceReplacementCommandEnvelope>(
+        "command-create-project-source-replacement",
+      );
+    if (
+      createReplacement.command.command_name !==
+      "CreateProjectSourceReplacement"
+    ) {
+      throw new Error("Expected replacement creation fixture.");
+    }
+    createReplacement.command.replaced_source_ref = {
       project_source_id: replaced.project_source_id,
       revision: replaced.revision,
       content_hash: replaced.content_hash,
       record_hash: canonicalHash(replaced),
       status: "excluded",
     };
-    replacement.content.replacement_source_ref = {
+    createReplacement.command.replacement_source_ref = {
       project_source_id: successor.project_source_id,
       revision: successor.revision,
       content_hash: successor.content_hash,
       record_hash: canonicalHash(successor),
       status: "active",
     };
-    replacement.content.exclusion_receipt_ref = {
+    createReplacement.command.exclusion_receipt_ref = {
       project_source_lifecycle_receipt_id:
         exclusion.receipt.project_source_lifecycle_receipt_id,
       revision: exclusion.receipt.revision,
       content_hash: exclusion.receipt.content_hash,
       record_hash: canonicalHash(exclusion.receipt),
     };
-    replacement.content_hash = canonicalHash(replacement.content);
+    const creation =
+      await sourceReplacementCommands.executeProjectSourceReplacementCommand(
+        createReplacement,
+      );
+    if (creation.outcome !== "replacement_created") {
+      throw new Error("Expected replacement creation result.");
+    }
+    expect(creation.applied).toBe(true);
+    expect(creation.receipt.content.recovery).toEqual(
+      expect.objectContaining({
+        inverse_command_name: "RetractProjectSourceReplacement",
+        effect: "relationship_retracted_without_source_restore",
+      }),
+    );
+    const replacement = creation.replacement;
 
-    const staleReceipt = structuredClone(replacement);
-    staleReceipt.project_source_replacement_id =
-      "project_source_replacement_01K4C000000000000000000046";
-    staleReceipt.content.exclusion_receipt_ref.record_hash =
-      "sha256:0000000000000000000000000000000000000000000000000000000000000000";
-    staleReceipt.content_hash = canonicalHash(staleReceipt.content);
+    const createReplay =
+      await sourceReplacementCommands.executeProjectSourceReplacementCommand(
+        structuredClone(createReplacement),
+      );
+    expect(createReplay.applied).toBe(false);
+    expect(createReplay.receipt).toEqual(creation.receipt);
+    expect(
+      await sourceReplacementCommands.getProjectSourceReplacementCommandReceipt(
+        createReplacement.command_id,
+      ),
+    ).toEqual(creation.receipt);
+    const unauthorizedReplacement = structuredClone(createReplacement);
+    unauthorizedReplacement.command_id = "command_01K4C000000000000000000063";
+    unauthorizedReplacement.idempotency_key =
+      "project-source:007:replacement:create:unauthorized";
+    unauthorizedReplacement.capability_grant_id =
+      "capability_grant_01K4C000000000000000000064";
     await expect(
-      sourceReplacements.registerProjectSourceReplacement(staleReceipt),
+      sourceReplacementCommands.executeProjectSourceReplacementCommand(
+        unauthorizedReplacement,
+      ),
     ).rejects.toEqual(
       expect.objectContaining({
-        code: "PROJECT_SOURCE_REPLACEMENT_EXCLUSION_RECEIPT_STALE",
+        code: "PROJECT_SOURCE_REPLACEMENT_COMMAND_NOT_AUTHORIZED",
+      }),
+    );
+    const reusedReplacementKey = structuredClone(createReplacement);
+    if (
+      reusedReplacementKey.command.command_name !==
+      "CreateProjectSourceReplacement"
+    ) {
+      throw new Error("Expected cloned replacement creation command.");
+    }
+    reusedReplacementKey.command_id = "command_01K4C000000000000000000065";
+    reusedReplacementKey.command.rationale = "Different replacement intent.";
+    await expect(
+      sourceReplacementCommands.executeProjectSourceReplacementCommand(
+        reusedReplacementKey,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_REPLACEMENT_IDEMPOTENCY_KEY_REUSED",
       }),
     );
 
-    expect(
-      await sourceReplacements.registerProjectSourceReplacement(replacement),
-    ).toEqual(replacement);
     expect(
       await sourceReplacements.registerProjectSourceReplacement(
         structuredClone(replacement),
@@ -876,18 +963,44 @@ describePostgres("PostgreSQL Document authority repository", () => {
       expect.objectContaining({ code: "PROJECT_SOURCE_REPLACEMENT_CYCLE" }),
     );
 
-    const retraction = readFixture<PetraProjectSourceReplacementRetraction>(
-      "project-source-replacement-retraction",
+    const restoreWhileReplaced = structuredClone(excludeCommand);
+    restoreWhileReplaced.command_id = "command_01K4C000000000000000000066";
+    restoreWhileReplaced.idempotency_key =
+      "project-source:007:restore:while-replaced";
+    restoreWhileReplaced.command = {
+      command_name: "RestoreProjectSource",
+      expected_source_ref: {
+        project_source_id: replaced.project_source_id,
+        revision: replaced.revision,
+        content_hash: replaced.content_hash,
+        record_hash: canonicalHash(replaced),
+        status: "excluded",
+      },
+      reason: "Verify that replacement undo must precede source restoration.",
+    };
+    await expect(
+      sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
+        restoreWhileReplaced,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_LIFECYCLE_ACTIVE_REPLACEMENT",
+      }),
     );
-    retraction.content.replacement_ref = {
+
+    const retractionTemplate =
+      readFixture<PetraProjectSourceReplacementRetraction>(
+        "project-source-replacement-retraction",
+      );
+    retractionTemplate.content.replacement_ref = {
       project_source_replacement_id: replacement.project_source_replacement_id,
       revision: replacement.revision,
       content_hash: replacement.content_hash,
       record_hash: canonicalHash(replacement),
     };
-    retraction.content_hash = canonicalHash(retraction.content);
+    retractionTemplate.content_hash = canonicalHash(retractionTemplate.content);
 
-    const staleRetraction = structuredClone(retraction);
+    const staleRetraction = structuredClone(retractionTemplate);
     staleRetraction.project_source_replacement_retraction_id =
       "project_source_retraction_01K4C000000000000000000049";
     staleRetraction.content.replacement_ref.record_hash =
@@ -903,11 +1016,44 @@ describePostgres("PostgreSQL Document authority repository", () => {
       }),
     );
 
-    expect(
-      await sourceReplacements.registerProjectSourceReplacementRetraction(
-        retraction,
-      ),
-    ).toEqual(retraction);
+    const retractReplacement =
+      readFixture<ProjectSourceReplacementCommandEnvelope>(
+        "command-retract-project-source-replacement",
+      );
+    if (
+      retractReplacement.command.command_name !==
+      "RetractProjectSourceReplacement"
+    ) {
+      throw new Error("Expected replacement retraction fixture.");
+    }
+    retractReplacement.command.expected_replacement_ref = {
+      project_source_replacement_id: replacement.project_source_replacement_id,
+      revision: replacement.revision,
+      content_hash: replacement.content_hash,
+      record_hash: canonicalHash(replacement),
+      state: "active",
+    };
+    const retracted =
+      await sourceReplacementCommands.executeProjectSourceReplacementCommand(
+        retractReplacement,
+      );
+    if (retracted.outcome !== "replacement_retracted") {
+      throw new Error("Expected replacement retraction result.");
+    }
+    const retraction = retracted.retraction;
+    expect(retracted.applied).toBe(true);
+    expect(retracted.receipt.content.recovery).toEqual({
+      recovery_kind: "separate_source_status_transition",
+      source_status: "unchanged",
+      separate_command_name: "RestoreProjectSource",
+      effect: "relationship_inactive_predecessor_not_restored",
+    });
+    const retractReplay =
+      await sourceReplacementCommands.executeProjectSourceReplacementCommand(
+        structuredClone(retractReplacement),
+      );
+    expect(retractReplay.applied).toBe(false);
+    expect(retractReplay.receipt).toEqual(retracted.receipt);
     expect(
       await sourceReplacements.registerProjectSourceReplacementRetraction(
         structuredClone(retraction),
@@ -943,6 +1089,60 @@ describePostgres("PostgreSQL Document authority repository", () => {
         replaced.project_source_id,
       ),
     ).toEqual(replaced);
+    const staleReceipt = structuredClone(replacement);
+    staleReceipt.project_source_replacement_id =
+      "project_source_replacement_01K4C000000000000000000046";
+    staleReceipt.content.exclusion_receipt_ref.record_hash =
+      "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+    staleReceipt.content_hash = canonicalHash(staleReceipt.content);
+    await expect(
+      sourceReplacements.registerProjectSourceReplacement(staleReceipt),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_REPLACEMENT_EXCLUSION_RECEIPT_STALE",
+      }),
+    );
+    const governedEvents = await pool.query<{ event_type: string }>(
+      `SELECT event_type
+         FROM petra.domain_events
+        WHERE project_id = $1
+          AND event_type IN (
+            'project_source.replacement_created',
+            'project_source.replacement_retracted'
+          )
+        ORDER BY stream_revision`,
+      [project.project_id],
+    );
+    expect(governedEvents.rows).toEqual([
+      { event_type: "project_source.replacement_created" },
+      { event_type: "project_source.replacement_retracted" },
+    ]);
+    const governedOutbox = await pool.query<{ target: string }>(
+      `SELECT outbox.target
+         FROM petra.outbox_records AS outbox
+         JOIN petra.domain_events AS event ON event.event_id = outbox.event_id
+        WHERE event.project_id = $1
+          AND event.event_type IN (
+            'project_source.replacement_created',
+            'project_source.replacement_retracted'
+          )
+        ORDER BY outbox.outbox_position`,
+      [project.project_id],
+    );
+    expect(governedOutbox.rows).toEqual([
+      { target: "neo4j_graph" },
+      { target: "interface_authority" },
+      { target: "neo4j_graph" },
+      { target: "interface_authority" },
+    ]);
+    await expect(
+      pool.query(
+        `UPDATE petra.project_source_replacement_receipts
+            SET recorded_at = recorded_at + interval '1 second'
+          WHERE command_id = $1`,
+        [createReplacement.command_id],
+      ),
+    ).rejects.toBeDefined();
 
     const locationAfterRetraction = await objectLocations.locateProjectObject({
       project_id: project.project_id,
