@@ -101,6 +101,21 @@ export type {
   UnavailablePlaceSummary as ProjectShellUnavailablePlaceSummary,
 } from "./generated/project-shell-view-v1-1.js";
 export type {
+  AuthorityPosition as ProjectHistoryAuthorityPosition,
+  CommandRef as ProjectHistoryCommandRef,
+  EligibleRecovery as ProjectHistoryEligibleRecovery,
+  EventRef as ProjectHistoryEventRef,
+  HistoryContent as ProjectHistoryContent,
+  IneligibleRecovery as ProjectHistoryIneligibleRecovery,
+  ObservedEffect as ProjectHistoryObservedEffect,
+  PetraProjectHistoryView,
+  RecentChange as ProjectHistoryRecentChange,
+  Recovery as ProjectHistoryRecovery,
+  RecoveryRef as ProjectHistoryRecoveryRef,
+  SemanticDestination as ProjectHistorySemanticDestination,
+  TargetRef as ProjectHistoryTargetRef,
+} from "./generated/project-history-view.js";
+export type {
   AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
   ControlSection as ProjectEffectiveControlSection,
   ControlSections as ProjectEffectiveControlSections,

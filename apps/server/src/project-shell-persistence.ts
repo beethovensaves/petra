@@ -4,6 +4,7 @@ import {
   PostgresProjectSourceReplacementCommandAuthorityRepository,
   PostgresSingleUserCommandPrincipalResolver,
   PostgresProjectEffectiveControlsViewReader,
+  PostgresProjectHistoryViewReader,
   PostgresProjectInquiryViewReader,
   PostgresProjectObjectLocationViewReader,
   PostgresProjectRelationshipViewReader,
@@ -21,6 +22,7 @@ import pg from "pg";
 import type {
   AuthenticatedCommandPrincipalResolver,
   ProjectEffectiveControlsViewReader,
+  ProjectHistoryViewReader,
   ProjectInquiryViewReader,
   ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
@@ -40,6 +42,7 @@ const { Pool } = pg;
 export interface ProjectShellPersistence {
   readonly views: ProjectShellViewReader;
   readonly effectiveControls: ProjectEffectiveControlsViewReader;
+  readonly historyViews: ProjectHistoryViewReader;
   readonly sourceViews: ProjectSourceViewReader;
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly reviewViews: ProjectReviewViewReader;
@@ -196,6 +199,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
       return {
         views: new PostgresProjectShellViewReader(pool),
         effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
+        historyViews: new PostgresProjectHistoryViewReader(pool),
         sourceViews: new PostgresProjectSourceViewReader(pool),
         sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(
           pool,
@@ -244,6 +248,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
   return {
     views: new PostgresProjectShellViewReader(pool),
     effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
+    historyViews: new PostgresProjectHistoryViewReader(pool),
     sourceViews: new PostgresProjectSourceViewReader(pool),
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraProjectEffectiveControlsView,
+  PetraProjectHistoryView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
@@ -15,6 +16,7 @@ import type {
 } from "@petra/contracts";
 import type {
   ProjectEffectiveControlsViewReader,
+  ProjectHistoryViewReader,
   ProjectInquiryViewReader,
   ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
@@ -81,6 +83,16 @@ const controlsFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectEffectiveControlsView;
+
+const historyFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryView;
 
 const reviewFixture = JSON.parse(
   readFileSync(
@@ -212,6 +224,15 @@ const controlsReader: ProjectEffectiveControlsViewReader = {
     Promise.resolve(
       projectId === controlsFixture.project_id
         ? structuredClone(controlsFixture)
+        : undefined,
+    ),
+};
+
+const historyReader: ProjectHistoryViewReader = {
+  getRecentProjectHistoryView: (projectId) =>
+    Promise.resolve(
+      projectId === historyFixture.project_id
+        ? structuredClone(historyFixture)
         : undefined,
     ),
 };
@@ -410,6 +431,36 @@ describe("authorized Project shell query routes", () => {
     expect(overrideBody.error.code).toBe(
       "PROJECT_EFFECTIVE_CONTROLS_TARGET_INVALID",
     );
+  });
+
+  it("returns authenticated bounded Recent changes without accepting client history state", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: historyReader,
+    });
+    const path = `/api/queries/projects/${historyFixture.project_id}/history/recent`;
+    const response = await petra.app.request(authorized(path));
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(historyFixture);
+
+    const override = await petra.app.request(
+      authorized(`${path}?limit=20&graphSnapshot=local`),
+    );
+    expect(override.status).toBe(422);
+    const overrideBody = (await override.json()) as {
+      error: { code: string };
+    };
+    expect(overrideBody.error.code).toBe("PROJECT_HISTORY_QUERY_INVALID");
+
+    const crossProject = await petra.app.request(
+      authorized(
+        "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/history/recent",
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+
+    const unauthorized = await petra.app.request(path);
+    expect(unauthorized.status).toBe(401);
   });
 
   it("does not substitute another Project and preserves the API auth boundary", async () => {

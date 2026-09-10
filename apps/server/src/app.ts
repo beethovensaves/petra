@@ -26,6 +26,7 @@ import {
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
   type ProjectEffectiveControlsViewReader,
+  type ProjectHistoryViewReader,
   type ProjectInquiryAuthoredStatus,
   type ProjectInquiryViewReader,
   type ProjectObjectLocationViewReader,
@@ -63,6 +64,7 @@ export interface PetraAppOptions {
   codexWorkspaceRoot?: string;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
+  projectHistoryViews?: ProjectHistoryViewReader;
   projectSourceViews?: ProjectSourceViewReader;
   projectSourceLifecycleViews?: ProjectSourceLifecycleViewReader;
   commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
@@ -767,6 +769,55 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The effective Project controls view is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/history/recent",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "The bounded Recent changes read accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const view =
+          await options.projectHistoryViews.getRecentProjectHistoryView(
+            context.req.param("projectId"),
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_NOT_FOUND",
+            "The requested Project does not exist in the local authority store.",
+          );
+        }
+        contracts.assertValid("project-history-view", "1.0.0", view);
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_HISTORY_QUERY_INVALID"
+            : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project Recent changes view is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

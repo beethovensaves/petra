@@ -414,6 +414,148 @@ class PetraProjectShellView(PetraModel):
     read_at: str
 
 
+class ProjectHistoryCommandRef(PetraModel):
+    command_id: str
+    schema_version: Literal["1.0.0", "1.1.0", "1.2.0", "1.3.0"]
+    command_name: Literal[
+        "SubmitChangeSet",
+        "RecordApproval",
+        "ApplyChangeSet",
+        "ExcludeProjectSource",
+        "RestoreProjectSource",
+        "CreateProjectSourceReplacement",
+        "RetractProjectSourceReplacement",
+    ]
+    idempotency_key: str
+    command_fingerprint: str
+    capability_grant_id: str
+    correlation_id: str
+
+
+class ProjectHistoryEventRef(PetraModel):
+    event_id: str
+    schema_version: Literal["1.0.0", "1.1.0", "1.2.0", "1.3.0"]
+    event_type: Literal[
+        "change_set.submitted",
+        "approval.recorded",
+        "change_set.applied",
+        "change_set.conflicted",
+        "change_set.reverted",
+        "change_set.reversal_conflicted",
+        "project_source.excluded",
+        "project_source.restored",
+        "project_source.replacement_created",
+        "project_source.replacement_retracted",
+    ]
+    event_position: int
+    stream_revision: int
+    record_hash: str
+
+
+class ProjectHistoryTargetRef(PetraModel):
+    role: Literal["primary", "affected", "related"]
+    semantic_key: str
+    object_id: str
+    revision: int | None = None
+    content_hash: str | None = None
+    record_hash: str | None = None
+    authority_state: str | None = None
+
+
+class ProjectHistoryObservedEffect(PetraModel):
+    effect: Literal[
+        "change_proposed",
+        "approval_recorded",
+        "authority_change_applied",
+        "authority_change_conflicted",
+        "authority_change_reverted",
+        "reversal_conflicted",
+        "project_source_excluded",
+        "project_source_restored",
+        "source_replacement_created",
+        "source_replacement_retracted",
+    ]
+    outcome: Literal["completed", "conflicted"]
+    summary: str
+
+
+class ProjectHistoryRecoveryRef(PetraModel):
+    semantic_key: str
+    object_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+class ProjectHistoryEligibleRecovery(PetraModel):
+    eligibility: Literal["eligible"]
+    command_name: Literal[
+        "ExcludeProjectSource",
+        "RestoreProjectSource",
+        "RetractProjectSourceReplacement",
+    ]
+    expected_target_ref: ProjectHistoryRecoveryRef
+    reason: str
+
+
+class ProjectHistoryIneligibleRecovery(PetraModel):
+    eligibility: Literal["ineligible"]
+    reason: str
+
+
+class ProjectHistoryDestinationObjectRef(PetraModel):
+    semantic_key: str
+    object_id: str
+    revision: int | None = None
+
+
+class ProjectHistorySemanticDestination(PetraModel):
+    place_role: Literal["history"]
+    task_intent: Literal["view_history"]
+    object_ref: ProjectHistoryDestinationObjectRef
+
+
+class ProjectHistoryRecentChange(PetraModel):
+    command_ref: ProjectHistoryCommandRef
+    event_ref: ProjectHistoryEventRef
+    actor: ActorRef
+    occurred_at: str
+    recorded_at: str
+    family: Literal[
+        "change_control",
+        "project_source_lifecycle",
+        "project_source_replacement",
+    ]
+    targets: list[ProjectHistoryTargetRef]
+    observed_effect: ProjectHistoryObservedEffect
+    recovery: ProjectHistoryEligibleRecovery | ProjectHistoryIneligibleRecovery
+    semantic_destination: ProjectHistorySemanticDestination
+
+
+class ProjectHistoryAuthorityPosition(PetraModel):
+    through_event_position: int
+    through_stream_revision: int
+
+
+class ProjectHistoryContent(PetraModel):
+    view_kind: Literal["recent_changes"]
+    order: Literal["newest_first"]
+    quick_window_limit: Literal[10]
+    changes: list[ProjectHistoryRecentChange]
+    has_older: bool
+    authority: ProjectHistoryAuthorityPosition
+    graph_navigation_history: Literal["client_local_separate"]
+
+
+class PetraProjectHistoryView(PetraModel):
+    schema_name: Literal["petra.project-history-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: ProjectHistoryContent
+    content_hash: str
+    read_at: str
+
+
 class ProjectSourceDefinitionRef(PetraModel):
     project_definition_id: str
     revision: int
@@ -6393,6 +6535,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-definition": PetraProjectDefinition,
     "project-objective": PetraProjectObjective,
     "project-shell-view": PetraProjectShellView,
+    "project-history-view": PetraProjectHistoryView,
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-replacement": PetraProjectSourceReplacement,

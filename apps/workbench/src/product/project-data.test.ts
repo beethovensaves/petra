@@ -4,6 +4,7 @@ import type {
   PetraProject,
   PetraProjectDefinition,
   PetraProjectEffectiveControlsView,
+  PetraProjectHistoryView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
@@ -26,6 +27,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
+  getRecentProjectHistory,
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
   loadProjectPetraThread,
@@ -172,6 +174,16 @@ const controlsView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectEffectiveControlsView;
+
+const historyView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryView;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -507,6 +519,36 @@ describe("Project shell workbench adapter", () => {
       }),
     ).resolves.toEqual({});
     expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("reads the bounded causal Recent changes contract without mixing graph history", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyView));
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await getRecentProjectHistory(historyView.project_id);
+
+    expect(result).toEqual(historyView);
+    expect(result.content.quick_window_limit).toBe(10);
+    expect(result.content.graph_navigation_history).toBe(
+      "client_local_separate",
+    );
+    expect(result.content.changes[0]?.recovery.eligibility).toBe("eligible");
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${historyView.project_id}/history/recent`,
+    );
+    expect(
+      new Headers(fetch.mock.calls[0]?.[1]?.headers).get("authorization"),
+    ).toBe("Bearer petra-local-development");
+
+    const wrongProject = structuredClone(historyView);
+    wrongProject.project_id = "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongProject));
+    await expect(
+      getRecentProjectHistory(historyView.project_id),
+    ).rejects.toMatchObject({ status: 502 });
   });
 
   it("maps one exact ProjectSource authority chain into the frozen source surfaces", () => {

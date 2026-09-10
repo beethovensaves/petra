@@ -171,6 +171,13 @@ export const startPetraServer = async (
               projectEffectiveControls:
                 options.projectShellPersistence.effectiveControls,
             }),
+      ...(options.projectHistoryViews !== undefined
+        ? { projectHistoryViews: options.projectHistoryViews }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectHistoryViews: options.projectShellPersistence.historyViews,
+            }),
       ...(options.projectSourceViews !== undefined
         ? { projectSourceViews: options.projectSourceViews }
         : options.projectShellPersistence === undefined

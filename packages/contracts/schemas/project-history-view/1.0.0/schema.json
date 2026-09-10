@@ -1,0 +1,367 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-view/1.0.0/schema.json",
+  "title": "PetraProjectHistoryView",
+  "description": "An authorized, read-only Project History projection composed from immutable command and event authority, receipts, and current recovery authority. It is not a second ledger and excludes client-local graph navigation history.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-history-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/HistoryContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "SemanticKey": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+    },
+    "ActorRef": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "CommandRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "schema_version",
+        "command_name",
+        "idempotency_key",
+        "command_fingerprint",
+        "capability_grant_id",
+        "correlation_id"
+      ],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "schema_version": {
+          "enum": ["1.0.0", "1.1.0", "1.2.0", "1.3.0"]
+        },
+        "command_name": {
+          "enum": [
+            "SubmitChangeSet",
+            "RecordApproval",
+            "ApplyChangeSet",
+            "ExcludeProjectSource",
+            "RestoreProjectSource",
+            "CreateProjectSourceReplacement",
+            "RetractProjectSourceReplacement"
+          ]
+        },
+        "idempotency_key": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+        },
+        "command_fingerprint": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "capability_grant_id": {
+          "type": "string",
+          "pattern": "^capability_grant_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "correlation_id": {
+          "type": "string",
+          "pattern": "^trace_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      }
+    },
+    "EventRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "schema_version",
+        "event_type",
+        "event_position",
+        "stream_revision",
+        "record_hash"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+        },
+        "schema_version": {
+          "enum": ["1.0.0", "1.1.0", "1.2.0", "1.3.0"]
+        },
+        "event_type": {
+          "enum": [
+            "change_set.submitted",
+            "approval.recorded",
+            "change_set.applied",
+            "change_set.conflicted",
+            "change_set.reverted",
+            "change_set.reversal_conflicted",
+            "project_source.excluded",
+            "project_source.restored",
+            "project_source.replacement_created",
+            "project_source.replacement_retracted"
+          ]
+        },
+        "event_position": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "stream_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "TargetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "semantic_key", "object_id"],
+      "properties": {
+        "role": { "enum": ["primary", "affected", "related"] },
+        "semantic_key": { "$ref": "#/$defs/SemanticKey" },
+        "object_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "authority_state": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{1,63}$"
+        }
+      }
+    },
+    "ObservedEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effect", "outcome", "summary"],
+      "properties": {
+        "effect": {
+          "enum": [
+            "change_proposed",
+            "approval_recorded",
+            "authority_change_applied",
+            "authority_change_conflicted",
+            "authority_change_reverted",
+            "reversal_conflicted",
+            "project_source_excluded",
+            "project_source_restored",
+            "source_replacement_created",
+            "source_replacement_retracted"
+          ]
+        },
+        "outcome": { "enum": ["completed", "conflicted"] },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    },
+    "RecoveryRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_key",
+        "object_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "semantic_key": { "$ref": "#/$defs/SemanticKey" },
+        "object_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "EligibleRecovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eligibility",
+        "command_name",
+        "expected_target_ref",
+        "reason"
+      ],
+      "properties": {
+        "eligibility": { "const": "eligible" },
+        "command_name": {
+          "enum": [
+            "ExcludeProjectSource",
+            "RestoreProjectSource",
+            "RetractProjectSourceReplacement"
+          ]
+        },
+        "expected_target_ref": { "$ref": "#/$defs/RecoveryRef" },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    },
+    "IneligibleRecovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eligibility", "reason"],
+      "properties": {
+        "eligibility": { "const": "ineligible" },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    },
+    "Recovery": {
+      "oneOf": [
+        { "$ref": "#/$defs/EligibleRecovery" },
+        { "$ref": "#/$defs/IneligibleRecovery" }
+      ]
+    },
+    "SemanticDestination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place_role", "task_intent", "object_ref"],
+      "properties": {
+        "place_role": { "const": "history" },
+        "task_intent": { "const": "view_history" },
+        "object_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["semantic_key", "object_id"],
+          "properties": {
+            "semantic_key": { "$ref": "#/$defs/SemanticKey" },
+            "object_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            }
+          }
+        }
+      }
+    },
+    "RecentChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_ref",
+        "event_ref",
+        "actor",
+        "occurred_at",
+        "recorded_at",
+        "family",
+        "targets",
+        "observed_effect",
+        "recovery",
+        "semantic_destination"
+      ],
+      "properties": {
+        "command_ref": { "$ref": "#/$defs/CommandRef" },
+        "event_ref": { "$ref": "#/$defs/EventRef" },
+        "actor": { "$ref": "#/$defs/ActorRef" },
+        "occurred_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "recorded_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "family": {
+          "enum": [
+            "change_control",
+            "project_source_lifecycle",
+            "project_source_replacement"
+          ]
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "contains": {
+            "type": "object",
+            "properties": { "role": { "const": "primary" } },
+            "required": ["role"]
+          },
+          "minContains": 1,
+          "maxContains": 1,
+          "items": { "$ref": "#/$defs/TargetRef" }
+        },
+        "observed_effect": { "$ref": "#/$defs/ObservedEffect" },
+        "recovery": { "$ref": "#/$defs/Recovery" },
+        "semantic_destination": { "$ref": "#/$defs/SemanticDestination" }
+      }
+    },
+    "AuthorityPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["through_event_position", "through_stream_revision"],
+      "properties": {
+        "through_event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "through_stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "HistoryContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "order",
+        "quick_window_limit",
+        "changes",
+        "has_older",
+        "authority",
+        "graph_navigation_history"
+      ],
+      "properties": {
+        "view_kind": { "const": "recent_changes" },
+        "order": { "const": "newest_first" },
+        "quick_window_limit": { "const": 10 },
+        "changes": {
+          "type": "array",
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/RecentChange" }
+        },
+        "has_older": { "type": "boolean" },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" },
+        "graph_navigation_history": { "const": "client_local_separate" }
+      }
+    }
+  }
+}

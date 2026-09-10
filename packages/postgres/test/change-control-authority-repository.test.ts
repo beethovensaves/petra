@@ -49,6 +49,7 @@ import { PostgresDocumentAuthorityRepository } from "../src/document-authority-r
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
 import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import { PostgresProjectHistoryViewReader } from "../src/project-history-view-reader.js";
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
@@ -104,6 +105,7 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
+  const historyViews = new PostgresProjectHistoryViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -484,6 +486,24 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     ]);
     expect(events.map((event) => event.event_position)).toEqual([1, 2, 3]);
     expect(events.map((event) => event.stream_revision)).toEqual([1, 2, 3]);
+    const recentHistory = await historyViews.getRecentProjectHistoryView(
+      commands.submit.project_id,
+    );
+    expect(
+      recentHistory?.content.changes.map(({ event_ref }) => [
+        event_ref.schema_version,
+        event_ref.event_type,
+      ]),
+    ).toEqual([
+      ["1.0.0", "change_set.applied"],
+      ["1.0.0", "approval.recorded"],
+      ["1.0.0", "change_set.submitted"],
+    ]);
+    expect(
+      recentHistory?.content.changes.every(
+        ({ recovery }) => recovery.eligibility === "ineligible",
+      ),
+    ).toBe(true);
 
     const replayedAuthority = replayScientificAuthority(
       commands.submit.project_id,
@@ -862,6 +882,18 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       "1.1.0",
       "1.1.0",
     ]);
+    const recentHistory = await historyViews.getRecentProjectHistoryView(
+      commands.submit.project_id,
+    );
+    expect(recentHistory?.content.changes[0]?.event_ref).toEqual(
+      expect.objectContaining({
+        schema_version: "1.1.0",
+        event_type: "change_set.reverted",
+      }),
+    );
+    expect(recentHistory?.content.changes[0]?.observed_effect.effect).toBe(
+      "authority_change_reverted",
+    );
     const authorizations = await pool.query<{
       admission_kind: string;
       evidence_revision: string;

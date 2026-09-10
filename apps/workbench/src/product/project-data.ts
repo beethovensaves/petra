@@ -2,6 +2,7 @@ import type {
   CommandProjectSourceReplacementRef,
   PetraProjectSource,
   PetraProjectEffectiveControlsView,
+  PetraProjectHistoryView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
@@ -99,6 +100,30 @@ const effectiveControlsView = (
     );
   }
   return value as unknown as PetraProjectEffectiveControlsView;
+};
+
+const projectHistoryView = (value: unknown): PetraProjectHistoryView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "recent_changes" ||
+    value.content.order !== "newest_first" ||
+    value.content.quick_window_limit !== 10 ||
+    !Array.isArray(value.content.changes) ||
+    value.content.changes.length > 10 ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project Recent changes view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -1309,6 +1334,26 @@ export const loadProjectSourceCollection = async ({
     }
     return sourceRecordFromView(view);
   });
+};
+
+/**
+ * Typed data boundary for the bounded Project History read. This intentionally
+ * does not feed graph navigation history, which remains client-local state.
+ */
+export const getRecentProjectHistory = async (
+  projectId: string,
+): Promise<PetraProjectHistoryView> => {
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/history/recent`,
+  );
+  const view = projectHistoryView(value);
+  if (view.project_id !== projectId) {
+    throw new ProjectDataError(
+      "Petra returned Recent changes from another Project.",
+      502,
+    );
+  }
+  return view;
 };
 
 export const loadProjectSourceRecord = async ({
