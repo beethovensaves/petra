@@ -1,11 +1,13 @@
 # UX-REQ-007 causal Project History
 
 Status: bounded Recent changes and exact event-selected causal episode reads
-passed; retained collection traversal, dependency impact, filters, and broader
-recovery planning remain open
+passed; frozen History integration acceptance mapping recorded; frontend binding
+remains open and retained cursor traversal is the next backend capability
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `29f26f9`
+Implementation baseline: `7ae590f`
+Integration handoff:
+[UX-to-implementation requirements handoff](UX-BACKEND-HANDOFF.md)
 
 ## Result
 
@@ -33,6 +35,52 @@ The response fixes the quick window at ten, reports whether older authority
 exists, names its repeatable-read authority boundary, and explicitly declares
 graph navigation history `client_local_separate`. Ten is a presentation window,
 not a retention limit.
+
+## Frozen History integration disposition
+
+The closed `UX-DESIGN-FREEZE-01` surface already provides the containers needed
+for this data: one ordered History list, one route-selected detail article,
+Actor/Occurred/Recorded/Action facts, separate effect and recovery sections, one
+subordinate action-dialog slot, one return control, and responsive
+list-then-detail stacking. No new page, panel, tab, or visual language is needed.
+
+The implementation acceptance mapping is now recorded under `UX-REQ-007` in
+`UX-BACKEND-HANDOFF.md`. Its binding rules are:
+
+- the existing list becomes **Recent changes** and renders the backend order and
+  fixed limit of at most ten; `has_older` is status text, not pagination;
+- each existing row route uses its exact immutable `event_ref.event_id`, and
+  every selected or deep-linked event loads the exact episode endpoint rather
+  than composing detail from the list member;
+- Actor uses an authorized display label only when a trusted read supplies one,
+  otherwise exact Actor kind and ID; Occurred and Recorded remain distinct
+  localized `<time>` values with their ISO values preserved;
+- the observed effect and completed/conflicted outcome occupy the existing
+  Authority-effect area; the Projection-effect area states that projection
+  effect is unavailable because this contract supplies none;
+- command causation, Project-stream adjacency, and applicable receipt references
+  remain separately labelled in the existing Episode-members area;
+- eligible and ineligible recovery use the backend reason and exact registered
+  command name, but eligibility alone cannot enable the frozen generic reversal
+  dialog; and
+- the existing return control restores a client-held permitted origin resolved
+  through `UX-REQ-008`, with the current Project Brief as the direct/deep-link or
+  unavailable-origin fallback.
+
+The same mapping defines collection/detail loading independently; distinguishes
+empty, unavailable, unauthorized, missing/malformed event, stale recovery,
+integrity, and invalid-response states; preserves a selected event across safe
+retry; and prohibits fixture fallback. Native list links, `aria-current`,
+programmatic status and reasons, exact focus return, `<time>` semantics, forced
+color support, and the existing narrow-screen reading order are required.
+
+The current frozen route still uses synthetic `HistoryEpisode` fixtures. It does
+not yet call the implemented clients or map event IDs, error states, focus, and
+return context. The backend read also has no authorized Actor display descriptor,
+profile-resolved target title/origin, projection effect, revision-bound action
+preview, or full retained traversal. Those omissions remain explicit instead of
+being filled from the graph, current objects, or client prose. Graph navigation
+Back/Forward/Reset remains wholly client-local and never enters Project History.
 
 ## Supported event families
 
@@ -98,7 +146,7 @@ mutation boundaries and recheck current authority when invoked.
 
 ## Integrity and authorization
 
-The server route is
+The Recent changes server route is
 `GET /api/queries/projects/:projectId/history/recent`. Existing `/api/*` bearer
 authentication applies before the reader is called. The route accepts no query
 parameters, returns no substitute Project, and validates the composed contract
@@ -128,11 +176,13 @@ Recent changes composition over domain-event versions 1.0, 1.1, 1.2, and 1.3,
 and proves causal parent/following-command links, Project-stream adjacency, and
 exact lifecycle/replacement receipt references.
 
-## Next safe slice
+## Next backend capability
 
-The next additive read can expose complete authorized retained Project-event
-traversal with a stable cursor. It should reuse the same composition and
-authorization boundary, preserve the exact Project-stream order, and prevent
-cross-Project leakage or false global ordering across command, event, receipt,
-Work, and projection families. It must not turn the ten-item quick window into
-an authority limit or introduce universal undo.
+The next additive backend capability is complete authorized retained
+Project-event traversal with a stable cursor. It should reuse the same
+composition and authorization boundary, preserve exact Project-stream order,
+and prevent cross-Project leakage or false global ordering across command,
+event, receipt, Work, and projection families. `has_older` is not a cursor, and
+the current API provides no retained traversal. The addition must leave the
+ten-item quick window unchanged and must not introduce generic undo, generic
+Revert, or multi-step compensation.
