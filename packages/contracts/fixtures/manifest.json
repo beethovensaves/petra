@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.43.0",
+  "fixture_manifest_version": "1.45.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -125,6 +125,14 @@
     {
       "schema": "project-history-compensation-plan-view",
       "path": "fixtures/accepted/project-history-compensation-plan-view.json"
+    },
+    {
+      "schema": "project-history-compensation-execution-request",
+      "path": "fixtures/accepted/project-history-compensation-execution-request.json"
+    },
+    {
+      "schema": "project-history-compensation-execution-view",
+      "path": "fixtures/accepted/project-history-compensation-execution-view.json"
     },
     {
       "schema": "project-effective-controls-view",
@@ -548,6 +556,14 @@
     {
       "schema": "project-history-compensation-plan-view",
       "path": "fixtures/rejected/project-history-compensation-plan-executes.json"
+    },
+    {
+      "schema": "project-history-compensation-execution-request",
+      "path": "fixtures/rejected/project-history-compensation-execution-unconfirmed.json"
+    },
+    {
+      "schema": "project-history-compensation-execution-view",
+      "path": "fixtures/rejected/project-history-compensation-execution-claims-atomic.json"
     },
     {
       "schema": "composition-request",

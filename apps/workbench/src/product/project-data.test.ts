@@ -4,6 +4,7 @@ import type {
   PetraProject,
   PetraProjectDefinition,
   PetraProjectEffectiveControlsView,
+  PetraProjectHistoryCompensationExecutionView,
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
@@ -34,6 +35,7 @@ import {
   composeProjectHistoryCompensationPlan,
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
+  executeProjectHistoryCompensationPlan,
   getRecentProjectHistory,
   getProjectHistoryEpisode,
   getProjectHistoryCompensationPreview,
@@ -256,6 +258,16 @@ const historyCompensationPlanView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryCompensationPlanView;
+
+const historyCompensationExecutionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-compensation-execution-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationExecutionView;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -866,6 +878,52 @@ describe("Project shell workbench adapter", () => {
     fetch.mockResolvedValueOnce(Response.json(wrongReason));
     await expect(
       composeProjectHistoryCompensationPlan(input),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("submits the exact composed plan and preserves per-command execution recovery", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyCompensationExecutionView));
+    vi.stubGlobal("fetch", fetch);
+    const input = {
+      projectId: historyCompensationPlanView.project_id,
+      eventId: historyCompensationPlanView.event_id,
+      plan: historyCompensationPlanView,
+      explicitExecutionConfirmation: true as const,
+    };
+
+    const result = await executeProjectHistoryCompensationPlan(input);
+    expect(result).toEqual(historyCompensationExecutionView);
+    expect(result.content.atomicity).toBe(
+      "per_command_transaction_not_three_command_atomic",
+    );
+    expect(result.content.steps.map(({ state }) => state)).toEqual([
+      "retained_success",
+      "retained_success",
+      "retained_success",
+    ]);
+    const requestBody = fetch.mock.calls[0]?.[1]?.body;
+    if (typeof requestBody !== "string") {
+      throw new Error("Expected a JSON compensation-execution request body.");
+    }
+    const request = JSON.parse(requestBody) as {
+      plan: PetraProjectHistoryCompensationPlanView;
+      execution_confirmation: Record<string, unknown>;
+    };
+    expect(request.plan).toEqual(historyCompensationPlanView);
+    expect(request.execution_confirmation).toEqual({
+      confirmed: true,
+      acknowledged_atomicity:
+        "per_command_transaction_not_three_command_atomic",
+    });
+
+    const falseAtomicity = structuredClone(historyCompensationExecutionView);
+    (falseAtomicity.content as { atomicity: string }).atomicity =
+      "three_command_atomic";
+    fetch.mockResolvedValueOnce(Response.json(falseAtomicity));
+    await expect(
+      executeProjectHistoryCompensationPlan(input),
     ).rejects.toMatchObject({ status: 502 });
   });
 

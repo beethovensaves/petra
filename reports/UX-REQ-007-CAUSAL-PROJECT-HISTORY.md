@@ -5,11 +5,11 @@ snapshot-stable filtered retained Project-event traversal, and bounded direct
 dependency impact plus registered exact semantic-target adapters through
 ProjectSource and replacement authority, exact read-only ChangeSet recovery
 assessment, and revision-bound compensation preview passed; confirmed command
-plan composition passed; separately authorized single-plan execution remains
-open
+plan composition and separately authorized single-plan execution with exact
+partial-outcome recovery passed
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `37ffc38` plus this slice
+Implementation baseline: `718f641` plus this slice
 
 ## Result
 
@@ -296,6 +296,34 @@ snapshot, but remains a read result. No ChangeSet, Approval, command, event, or
 evidence revision is persisted, and no command is submitted. Execution requires
 a separate authorized request and must preserve exact partial-outcome recovery.
 
+`petra.project-history-compensation-execution-request@1.0.0` and
+`petra.project-history-compensation-execution-view@1.0.0` add that separate
+authenticated command at
+`POST /api/commands/projects/:projectId/history/events/:eventId/recovery/execute`.
+The request echoes the complete server-composed plan, requires explicit
+confirmation, and requires acknowledgment that each command owns a separate
+transaction. The echoed plan is untrusted input: it cannot confer an Actor,
+grant, command identity, or authority. Before a first execution, the server
+reconstructs the same preview from current authority and requires an exact
+canonical plan match.
+
+The executor submits only the plan's exact `SubmitChangeSet` →
+`RecordApproval` → `ApplyChangeSet` envelopes through Petra's existing
+idempotent command authority. Each command independently rechecks its current
+grant inside the transaction that retains that command's result. The
+three-command sequence is therefore not an all-or-nothing transaction. A retry
+derives an already completed result from the immutable command executions and
+events, or validates an exact retained successful prefix before attempting the
+next command. It never creates a plan-execution or History ledger.
+
+The response distinguishes retained success, retained terminal failure, an
+attempt failure for which no command execution was retained, and work not yet
+attempted. It reports the exact completed prefix and retry or review posture.
+On completion it also returns the exact resulting applied reversal ChangeSet,
+Claim and Assertion revisions, and `change_set.reverted` event. Dependent
+effects remain preserved and are not reversed automatically; generic undo,
+reversal of a reversal, and multi-step compensation remain unavailable.
+
 ProjectSource recovery is computed rather than copied from an old receipt:
 
 - an exclude or restore entry is eligible only while its exact resulting
@@ -316,18 +344,22 @@ mutation boundaries and recheck current authority when invoked.
 
 Existing `/api/*` bearer authentication applies to Recent changes, retained
 event traversal, exact episode detail, exact dependency impact, recovery
-assessment, compensation preview, and compensation-plan composition before a
-reader is called. The Recent route accepts no query parameters; the retained
-route accepts one bounded limit, one opaque cursor, and only the registered
-single-value exact filters.
+assessment, compensation preview, compensation-plan composition, and
+compensation execution before a reader or command boundary is called. The
+Recent route accepts no query parameters; the retained route accepts one
+bounded limit, one opaque cursor, and only the registered single-value exact
+filters.
 The episode, impact, recovery, and preview routes accept only one canonical
 event identity. Plan composition additionally accepts only the registered
 preview reference and three required human inputs in its bounded JSON body.
+Execution accepts only the exact full plan, literal confirmation, and the
+per-command-atomicity acknowledgment; route, request, event, Project, command
+order, causation, and plan identities must agree.
 Each returns no substitute Project and validates its composed contract before
 responding. Typed workbench clients verify the contract family, normalized
-query, Project, event, preview, and confirmed-input identities while treating
-the cursor as opaque. No component, CSS, browser route, or frozen surface
-changed.
+query, Project, event, preview, confirmed-input, plan, and execution-result
+identities while treating the cursor as opaque. No component, CSS, browser
+route, or frozen surface changed.
 
 The PostgreSQL reader fails closed when it cannot reproduce:
 
@@ -361,7 +393,10 @@ The PostgreSQL reader fails closed when it cannot reproduce:
   active grant, expiry, or canonical binding-hash input; or
 - a confirmed plan's canonical preview reconstruction, five-minute interval,
   current Project/target/impact/grant authority, ChangeSet/Approval linkage, or
-  exact command order and causation.
+  exact command order and causation; or
+- an execution request's exact plan identity, route binding, command envelope
+  fingerprints, retained-prefix shape, immutable execution/event hashes,
+  command result, or resulting reversal authority.
 
 ## Verification
 
@@ -370,6 +405,9 @@ retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2, ChangeSet
 recovery-assessment, and compensation-preview responses.
 Accepted plan-request and plan-view fixtures add the explicit-confirmation and
 non-persistence boundary.
+Accepted execution-request and execution-view fixtures add the separate command,
+per-command atomicity, exact retained-prefix, retry, and completed-effect
+boundary.
 Rejected fixtures cover an altered quick limit, false global episode order,
 unsafe offset or query-unbound cursor reuse, a dependency read that claims a
 reversibility decision, and an unregistered semantic target that fabricates a
@@ -378,7 +416,8 @@ replacement lineage and effective head state into one unsupported authority,
 claims that a recovery assessment composed a compensation preview, or turns a
 read-only preview into a created ChangeSet, recorded Approval, or executed
 command. An unconfirmed plan request and a plan response that claims execution
-are rejected.
+are rejected. An unconfirmed execution request and one that claims the three
+commands are atomic are also rejected.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
 suite pass. The database proof starts from an empty PostgreSQL 18.6 instance,
@@ -404,19 +443,22 @@ and unchanged ChangeSet, Approval, command, event, and evidence-revision counts.
 The plan proof additionally verifies compact preview-reference reconstruction,
 exact user input, deterministic causal envelopes with per-command grants,
 tamper and cross-Project rejection, grant-change invalidation, and the same
-zero-write boundary.
+zero-write boundary. The execution proof performs the three exact commands,
+replays the completed result without duplicate writes, rejects tampering and
+cross-Project reuse, distinguishes an unretained interrupted Approval attempt,
+and resumes from the exact retained Submit prefix before returning the applied
+reversal and resulting evidence revisions.
 
 ## Next safe slice
 
-The next safe History boundary is separately authorized execution of one exact,
-still-current confirmed plan through the existing immutable ChangeSet command
-authority. It must validate the plan's canonical identity and causal envelope
-chain, revalidate preview freshness, targets, and current grant authority, then
-submit only those three exact idempotent commands. The result must report each
-completed or failed command and the exact recovery/retry posture so a partial
-submission is never presented as an atomic success. A stale, rebound, blocked,
-ambiguous, cross-Project, already-compensated, expired, altered, or previously
-completed plan must fail closed or return its exact retained result. Generic
-undo, reversal of a reversal, multiple compensations, multi-step planning,
-historical ProjectDefinition interpretation, and frozen-interface integration
-remain later boundaries.
+The next safe History boundary is a bounded set of registered exact dependency
+adapters for Work, output, and delivery records that already retain an explicit
+reference to the selected Project event or its exact causal identities. Each
+adapter must name its owning immutable authority, preserve Project scope and
+record identity, report independent totals and coverage, and state unavailable
+or unregistered relationships without inference. It must not assert a global
+cross-family order, dependent effect, reversibility, or an exhaustive semantic
+closure. An authoritative origin filter, exact return behavior, generic undo,
+reversal of a reversal, multiple or multi-step compensation, historical
+ProjectDefinition interpretation, and frozen-interface integration remain
+later boundaries.

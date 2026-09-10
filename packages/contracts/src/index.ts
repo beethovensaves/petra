@@ -211,6 +211,13 @@ export type {
   PreviewRef as ProjectHistoryCompensationPlanPreviewRef,
   Revalidation as ProjectHistoryCompensationPlanRevalidation,
 } from "./generated/project-history-compensation-plan-view.js";
+export type { PetraProjectHistoryCompensationExecutionRequest } from "./generated/project-history-compensation-execution-request.js";
+export type {
+  ExecutionContent as ProjectHistoryCompensationExecutionContent,
+  ExecutionStep as ProjectHistoryCompensationExecutionStep,
+  PetraProjectHistoryCompensationExecutionView,
+  PlanRef as ProjectHistoryCompensationExecutionPlanRef,
+} from "./generated/project-history-compensation-execution-view.js";
 export type {
   AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
   ControlSection as ProjectEffectiveControlSection,

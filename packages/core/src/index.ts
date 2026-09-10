@@ -41,6 +41,7 @@ export * from "./model-gateway.js";
 export * from "./project-definition-authority-repository.js";
 export * from "./project-effective-controls-view.js";
 export * from "./project-history-view.js";
+export * from "./project-history-compensation-execution.js";
 export * from "./project-inquiry.js";
 export * from "./project-work-view.js";
 export * from "./project-thread.js";

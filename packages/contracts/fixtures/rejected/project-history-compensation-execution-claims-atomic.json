@@ -1,0 +1,184 @@
+{
+  "schema_name": "petra.project-history-compensation-execution-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "content": {
+    "execution_kind": "single_change_set_compensation_execution",
+    "authorization_scope": "authenticated_project",
+    "plan_ref": {
+      "schema_name": "petra.project-history-compensation-plan-view",
+      "schema_version": "1.0.0",
+      "content_hash": "sha256:ff8cc6bd6013b633f30b0dc7b12c677b99654639448dd3c65fc1586c9ec67cd7",
+      "composed_at": "2026-09-10T18:31:00.000Z",
+      "change_set_id": "change_set_12D6EPRH3VSX17T53W3CYJZDNE",
+      "change_set_content_hash": "sha256:a3638488564441c8b7fb05518fcaee4a128c03d2c7b8bbafde15006af946ce65",
+      "approval_id": "approval_36W2AN4186D70VNR0ESDD2YBBV",
+      "correlation_id": "trace_7J4EW1BJKEMNRWX1FNHBP071ZC"
+    },
+    "preflight": {
+      "state": "fresh_plan_revalidated",
+      "checked_at": "2026-09-10T18:31:01.000Z"
+    },
+    "outcome": "completed",
+    "completed_prefix": 3,
+    "steps": [
+      {
+        "position": 1,
+        "command_name": "SubmitChangeSet",
+        "command_ref": {
+          "command_id": "command_7YBK193V7XKCBFPG35D15C6313",
+          "schema_version": "1.1.0",
+          "command_name": "SubmitChangeSet",
+          "idempotency_key": "reversal:change_set_12D6EPRH3VSX17T53W3CYJZDNE:submit",
+          "command_fingerprint": "sha256:2b098214e1534925e48e5e59e045f38473a3a217d1431e44a4c7d77104497e17",
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+          "correlation_id": "trace_7J4EW1BJKEMNRWX1FNHBP071ZC"
+        },
+        "state": "retained_success",
+        "completed_at": "2026-09-10T18:32:00.000Z",
+        "result": {
+          "outcome": "submitted",
+          "command_id": "command_7YBK193V7XKCBFPG35D15C6313",
+          "change_set_id": "change_set_12D6EPRH3VSX17T53W3CYJZDNE",
+          "change_set_state": "submitted"
+        },
+        "event_ref": {
+          "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FC1",
+          "schema_version": "1.1.0",
+          "event_type": "change_set.submitted",
+          "event_position": 4,
+          "stream_revision": 4,
+          "record_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      },
+      {
+        "position": 2,
+        "command_name": "RecordApproval",
+        "command_ref": {
+          "command_id": "command_5WQCD86FEBCWJH0PBYDX4H3C9J",
+          "schema_version": "1.1.0",
+          "command_name": "RecordApproval",
+          "idempotency_key": "reversal:change_set_12D6EPRH3VSX17T53W3CYJZDNE:approved",
+          "command_fingerprint": "sha256:5edb25bedc269f46845d350b7d36249640793664ffc6216cacfc5696de967ebe",
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+          "correlation_id": "trace_7J4EW1BJKEMNRWX1FNHBP071ZC"
+        },
+        "state": "retained_success",
+        "completed_at": "2026-09-10T18:33:00.000Z",
+        "result": {
+          "outcome": "approval_recorded",
+          "command_id": "command_5WQCD86FEBCWJH0PBYDX4H3C9J",
+          "change_set_id": "change_set_12D6EPRH3VSX17T53W3CYJZDNE",
+          "change_set_state": "approved",
+          "approval_id": "approval_36W2AN4186D70VNR0ESDD2YBBV"
+        },
+        "event_ref": {
+          "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "schema_version": "1.1.0",
+          "event_type": "approval.recorded",
+          "event_position": 5,
+          "stream_revision": 5,
+          "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      },
+      {
+        "position": 3,
+        "command_name": "ApplyChangeSet",
+        "command_ref": {
+          "command_id": "command_23VFA25KVA5S2EEVEH19WF07YH",
+          "schema_version": "1.1.0",
+          "command_name": "ApplyChangeSet",
+          "idempotency_key": "reversal:change_set_12D6EPRH3VSX17T53W3CYJZDNE:apply",
+          "command_fingerprint": "sha256:4caf08f883db38e73dcea61e3caae0942bdf062c8612816ee17d21b3b3cf7690",
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+          "correlation_id": "trace_7J4EW1BJKEMNRWX1FNHBP071ZC"
+        },
+        "state": "retained_success",
+        "completed_at": "2026-09-10T18:34:00.000Z",
+        "result": {
+          "outcome": "reverted",
+          "command_id": "command_23VFA25KVA5S2EEVEH19WF07YH",
+          "change_set_id": "change_set_12D6EPRH3VSX17T53W3CYJZDNE",
+          "change_set_state": "applied",
+          "compensates_change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+          "approval_id": "approval_36W2AN4186D70VNR0ESDD2YBBV",
+          "claim_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "claim_revision": 3,
+          "assertion_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "assertion_revision": 3,
+          "applied_at": "2026-09-10T18:31:00.000Z"
+        },
+        "event_ref": {
+          "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+          "schema_version": "1.1.0",
+          "event_type": "change_set.reverted",
+          "event_position": 6,
+          "stream_revision": 6,
+          "record_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        }
+      }
+    ],
+    "authoritative_effect": {
+      "state": "compensation_applied",
+      "compensation_change_set_id": "change_set_12D6EPRH3VSX17T53W3CYJZDNE",
+      "compensated_change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+      "approval_id": "approval_36W2AN4186D70VNR0ESDD2YBBV",
+      "claim_ref": {
+        "semantic_key": "scientific.claim",
+        "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "prior_revision": 2,
+        "resulting_revision": 3,
+        "resulting_authority": {
+          "zone": "quarantine",
+          "review_state": "human_rejected"
+        }
+      },
+      "assertion_ref": {
+        "semantic_key": "scientific.assertion",
+        "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+        "prior_revision": 2,
+        "resulting_revision": 3,
+        "resulting_authority": {
+          "zone": "quarantine",
+          "review_state": "human_rejected"
+        }
+      },
+      "reversal_event_ref": {
+        "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+        "schema_version": "1.1.0",
+        "event_type": "change_set.reverted",
+        "event_position": 6,
+        "stream_revision": 6,
+        "record_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    },
+    "recovery": {
+      "state": "complete",
+      "same_request": "returns_exact_retained_result"
+    },
+    "atomicity": "three_command_atomic",
+    "derivation": {
+      "aggregate_ledger": "not_created",
+      "sources": [
+        "immutable_command_executions",
+        "immutable_domain_events",
+        "current_change_control_authority"
+      ]
+    },
+    "decision_boundary": {
+      "single_plan_execution": "performed_or_stopped_exactly",
+      "generic_undo": "not_available",
+      "multi_step_compensation": "not_assessed",
+      "reversal_of_reversal": "not_available"
+    },
+    "omissions": [
+      "dependent_effect_not_inferred_or_reversed",
+      "historical_project_definition_not_interpreted",
+      "cross_family_global_order_not_asserted"
+    ],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:d535d280ac926792d7bdd566fc1f874a7d4fafd0eca127ab20901c08594d0eb7",
+  "read_at": "2026-09-10T18:34:01.000Z"
+}

@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraProjectEffectiveControlsView,
+  PetraProjectHistoryCompensationExecutionRequest,
+  PetraProjectHistoryCompensationExecutionView,
   PetraProjectHistoryCompensationPlanRequest,
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
@@ -36,6 +38,7 @@ import type {
   ProjectWorkViewReader,
 } from "@petra/core";
 import {
+  ProjectHistoryCompensationExecutionUnavailableError,
   ProjectHistoryCompensationPlanUnavailableError,
   ProjectHistoryRecoveryPreviewUnavailableError,
 } from "@petra/core";
@@ -174,6 +177,26 @@ const historyCompensationPlanFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryCompensationPlanView;
+
+const historyCompensationExecutionRequestFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-compensation-execution-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationExecutionRequest;
+
+const historyCompensationExecutionFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-compensation-execution-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationExecutionView;
 
 const reviewFixture = JSON.parse(
   readFileSync(
@@ -804,6 +827,85 @@ describe("authorized Project shell query routes", () => {
     const staleBody = (await stale.json()) as { error: { code: string } };
     expect(staleBody.error.code).toBe(
       "PROJECT_HISTORY_COMPENSATION_PLAN_UNAVAILABLE",
+    );
+  });
+
+  it("executes one exact confirmed compensation plan with retained per-command outcomes", async () => {
+    const execution = {
+      executeProjectHistoryCompensationPlan: (
+        request: PetraProjectHistoryCompensationExecutionRequest,
+      ) =>
+        Promise.resolve(
+          request.project_id ===
+            historyCompensationExecutionFixture.project_id &&
+            request.event_id === historyCompensationExecutionFixture.event_id &&
+            request.plan.content_hash ===
+              historyCompensationExecutionFixture.content.plan_ref.content_hash
+            ? structuredClone(historyCompensationExecutionFixture)
+            : undefined,
+        ),
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryCompensationExecution: execution,
+    });
+    const path = `/api/commands/projects/${historyCompensationExecutionRequestFixture.project_id}/history/events/${historyCompensationExecutionRequestFixture.event_id}/recovery/execute`;
+    const response = await petra.app.request(
+      authorizedJson(path, historyCompensationExecutionRequestFixture),
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(
+      historyCompensationExecutionFixture,
+    );
+
+    const unconfirmed = structuredClone(
+      historyCompensationExecutionRequestFixture,
+    ) as
+      | PetraProjectHistoryCompensationExecutionRequest
+      | { execution_confirmation: { confirmed: boolean } };
+    unconfirmed.execution_confirmation.confirmed = false;
+    expect(
+      (await petra.app.request(authorizedJson(path, unconfirmed))).status,
+    ).toBe(422);
+    expect(
+      (
+        await petra.app.request(
+          authorizedJson(
+            `${path}?atomic=true`,
+            historyCompensationExecutionRequestFixture,
+          ),
+        )
+      ).status,
+    ).toBe(422);
+    expect(
+      (
+        await petra.app.request(
+          new Request(`http://petra.local${path}`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(historyCompensationExecutionRequestFixture),
+          }),
+        )
+      ).status,
+    ).toBe(401);
+
+    const unavailable = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryCompensationExecution: {
+        executeProjectHistoryCompensationPlan: () => {
+          throw new ProjectHistoryCompensationExecutionUnavailableError(
+            "The exact plan is stale or altered.",
+          );
+        },
+      },
+    });
+    const stale = await unavailable.app.request(
+      authorizedJson(path, historyCompensationExecutionRequestFixture),
+    );
+    expect(stale.status).toBe(409);
+    const staleBody = (await stale.json()) as { error: { code: string } };
+    expect(staleBody.error.code).toBe(
+      "PROJECT_HISTORY_COMPENSATION_EXECUTION_UNAVAILABLE",
     );
   });
 

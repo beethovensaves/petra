@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-compensation-execution-request/1.0.0/schema.json",
+  "title": "PetraProjectHistoryCompensationExecutionRequest",
+  "description": "An explicit request to execute one exact server-composed Project History compensation plan. The echoed plan is an untrusted identity reference and cannot confer Actor or command authority; the server revalidates it against current or retained authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "event_id",
+    "plan",
+    "execution_confirmation"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-history-compensation-execution-request"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "plan": {
+      "$ref": "../../project-history-compensation-plan-view/1.0.0/schema.json"
+    },
+    "execution_confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["confirmed", "acknowledged_atomicity"],
+      "properties": {
+        "confirmed": { "const": true },
+        "acknowledged_atomicity": {
+          "const": "per_command_transaction_not_three_command_atomic"
+        }
+      }
+    }
+  }
+}

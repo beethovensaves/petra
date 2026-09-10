@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.62.0",
+  "registry_version": "1.64.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -274,6 +274,28 @@
       "canonical_sha256": "sha256:a421f1ca365ae116cb900360d54719ea54795d7b2782ddb24776ed0a10022d25",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-history-compensation-plan-view.ts"
+    },
+    {
+      "name": "project-history-compensation-execution-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-compensation-execution-request/1.0.0/schema.json",
+      "path": "schemas/project-history-compensation-execution-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-explicit-execution-of-one-exact-compensation-plan",
+      "canonical_sha256": "sha256:3fe322f34d47a32207dc67efd7ba09f8e31688e9c5fe4e567617087a4ad4408e",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-compensation-execution-request.ts"
+    },
+    {
+      "name": "project-history-compensation-execution-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-compensation-execution-view/1.0.0/schema.json",
+      "path": "schemas/project-history-compensation-execution-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-per-command-compensation-execution-result",
+      "canonical_sha256": "sha256:8a9b1b6a9c1dd20bb86cfdf7d77b19b91964e6511a487c18b0c34b3cddcd58fa",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-compensation-execution-view.ts"
     },
     {
       "name": "project-effective-controls-view",

@@ -178,6 +178,17 @@ export const startPetraServer = async (
           : {
               projectHistoryViews: options.projectShellPersistence.historyViews,
             }),
+      ...(options.projectHistoryCompensationExecution !== undefined
+        ? {
+            projectHistoryCompensationExecution:
+              options.projectHistoryCompensationExecution,
+          }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectHistoryCompensationExecution:
+                options.projectShellPersistence.historyCompensationExecution,
+            }),
       ...(options.projectSourceViews !== undefined
         ? { projectSourceViews: options.projectSourceViews }
         : options.projectShellPersistence === undefined

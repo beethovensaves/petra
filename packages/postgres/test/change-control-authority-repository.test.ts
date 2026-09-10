@@ -18,6 +18,7 @@ import type {
   PetraParsedDocument,
   PetraProject,
   PetraProjectDefinition,
+  PetraProjectHistoryCompensationExecutionRequest,
   PetraProjectHistoryCompensationPlanRequest,
   PetraReviewInterruptResponse,
   PetraRightsDecision,
@@ -36,6 +37,7 @@ import type {
 import {
   buildCompensatingReversalCommandPlan,
   buildReviewDecisionCommandPlan,
+  ChangeControlError,
   DurableReviewInterruptCoordinator,
   executeCompensatingReversalPlan,
   executeReviewDecisionPlan,
@@ -53,6 +55,7 @@ import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-r
 import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
 import { PostgresProjectHistoryViewReader } from "../src/project-history-view-reader.js";
+import { PostgresProjectHistoryCompensationExecutor } from "../src/project-history-compensation-executor.js";
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
@@ -420,6 +423,75 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       },
       factory,
     );
+
+  const preparedCompensationPlan = async () => {
+    await registerEvidenceChain();
+    await capabilityGrants.registerCapabilityGrant(
+      readFixture<PetraCapabilityGrantRecord>("capability-grant"),
+    );
+    const commands = commandFixtures();
+    const repository = authority();
+    await repository.executeCommand(commands.submit);
+    await repository.executeCommand(commands.approve);
+    const promotion = await repository.executeCommand(commands.apply);
+    if (promotion.outcome !== "applied") {
+      throw new Error("Expected an applied promotion pipeline.");
+    }
+    const events = await repository.getDomainEvents({
+      projectId: commands.submit.project_id,
+    });
+    const appliedEvent = events.find(
+      ({ event }) => event.event_type === "change_set.applied",
+    );
+    if (appliedEvent === undefined) {
+      throw new Error("Expected the promotion's exact applied event.");
+    }
+    const preview =
+      await authorizedHistoryViews.getProjectHistoryCompensationPreviewView(
+        commands.submit.project_id,
+        appliedEvent.event_id,
+      );
+    if (preview === undefined) {
+      throw new Error("Expected an eligible compensation preview.");
+    }
+    const plan =
+      await authorizedHistoryViews.composeProjectHistoryCompensationPlan({
+        schema_name: "petra.project-history-compensation-plan-request",
+        schema_version: "1.0.0",
+        project_id: commands.submit.project_id,
+        event_id: appliedEvent.event_id,
+        preview_ref: {
+          schema_name: preview.schema_name,
+          schema_version: preview.schema_version,
+          content_hash: preview.content_hash,
+          binding_hash: preview.content.freshness.binding_hash,
+          issued_at: preview.content.freshness.issued_at,
+          valid_through: preview.content.freshness.valid_through,
+        },
+        confirmation: {
+          confirmed: true,
+          reason: "Retract the exact accepted pair through Project History.",
+          approval_rationale:
+            "The exact current authority supports this bounded compensation.",
+        },
+      });
+    if (plan === undefined) {
+      throw new Error("Expected one exact compensation command plan.");
+    }
+    const request: PetraProjectHistoryCompensationExecutionRequest = {
+      schema_name: "petra.project-history-compensation-execution-request",
+      schema_version: "1.0.0",
+      project_id: plan.project_id,
+      event_id: plan.event_id,
+      plan: structuredClone(plan),
+      execution_confirmation: {
+        confirmed: true,
+        acknowledged_atomicity:
+          "per_command_transaction_not_three_command_atomic",
+      },
+    };
+    return { commands, repository, promotion, appliedEvent, plan, request };
+  };
 
   it("atomically promotes a Claim and ASSERTS edge with events and target-ordered outbox", async () => {
     await registerEvidenceChain();
@@ -1599,6 +1671,167 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       { admission_kind: "reversal", evidence_revision: "3" },
       { admission_kind: "reversal", evidence_revision: "3" },
     ]);
+  });
+
+  it("executes and idempotently recovers one exact Project History compensation plan", async () => {
+    const prepared = await preparedCompensationPlan();
+    const executor = new PostgresProjectHistoryCompensationExecutor(
+      pool,
+      authorizedHistoryViews,
+      prepared.repository,
+    );
+
+    const first = await executor.executeProjectHistoryCompensationPlan(
+      prepared.request,
+    );
+    expect(first?.content).toMatchObject({
+      preflight: { state: "fresh_plan_revalidated" },
+      outcome: "completed",
+      completed_prefix: 3,
+      authoritative_effect: {
+        state: "compensation_applied",
+        compensated_change_set_id: prepared.promotion.change_set_id,
+        claim_ref: { resulting_revision: 3 },
+        assertion_ref: { resulting_revision: 3 },
+      },
+      recovery: {
+        state: "complete",
+        same_request: "returns_exact_retained_result",
+      },
+      atomicity: "per_command_transaction_not_three_command_atomic",
+      derivation: { aggregate_ledger: "not_created" },
+    });
+    expect(first?.content.steps.map(({ state }) => state)).toEqual([
+      "retained_success",
+      "retained_success",
+      "retained_success",
+    ]);
+    expect(
+      first?.content.steps.map((step) =>
+        step.state === "retained_success" || step.state === "retained_failure"
+          ? step.event_ref.event_type
+          : undefined,
+      ),
+    ).toEqual([
+      "change_set.submitted",
+      "approval.recorded",
+      "change_set.reverted",
+    ]);
+    const countsAfterFirst = await pool.query<{
+      commands: string;
+      events: string;
+      evidence_revisions: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.command_executions) AS commands,
+         (SELECT count(*)::text FROM petra.domain_events) AS events,
+         (SELECT count(*)::text FROM petra.evidence_entity_revisions)
+           AS evidence_revisions`,
+    );
+    expect(countsAfterFirst.rows[0]).toEqual({
+      commands: "6",
+      events: "6",
+      evidence_revisions: "6",
+    });
+
+    const replay = await executor.executeProjectHistoryCompensationPlan(
+      prepared.request,
+    );
+    expect(replay?.content.preflight.state).toBe(
+      "retained_completion_replayed",
+    );
+    expect(replay?.content.plan_ref).toEqual(first?.content.plan_ref);
+    const countsAfterReplay = await pool.query<{
+      commands: string;
+      events: string;
+      evidence_revisions: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.command_executions) AS commands,
+         (SELECT count(*)::text FROM petra.domain_events) AS events,
+         (SELECT count(*)::text FROM petra.evidence_entity_revisions)
+           AS evidence_revisions`,
+    );
+    expect(countsAfterReplay.rows[0]).toEqual(countsAfterFirst.rows[0]);
+
+    const tampered = structuredClone(prepared.request);
+    tampered.plan.content.change_set.content.reason =
+      "Altered after composition.";
+    await expect(
+      executor.executeProjectHistoryCompensationPlan(tampered),
+    ).rejects.toMatchObject({
+      code: "PROJECT_HISTORY_COMPENSATION_EXECUTION_UNAVAILABLE",
+    });
+    const crossProject = structuredClone(prepared.request);
+    crossProject.project_id = "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    await expect(
+      executor.executeProjectHistoryCompensationPlan(crossProject),
+    ).rejects.toMatchObject({
+      code: "PROJECT_HISTORY_COMPENSATION_EXECUTION_UNAVAILABLE",
+    });
+  });
+
+  it("reports and resumes an exact retained prefix after an unretained command interruption", async () => {
+    const prepared = await preparedCompensationPlan();
+    let interruptApproval = true;
+    const interrupted = new PostgresProjectHistoryCompensationExecutor(
+      pool,
+      authorizedHistoryViews,
+      {
+        executeCommand: (envelope) => {
+          if (
+            interruptApproval &&
+            envelope.command.command_name === "RecordApproval"
+          ) {
+            interruptApproval = false;
+            throw new ChangeControlError(
+              "COMMAND_NOT_AUTHORIZED",
+              "The simulated approval authority changed before submission.",
+            );
+          }
+          return prepared.repository.executeCommand(envelope);
+        },
+      },
+    );
+    const stopped = await interrupted.executeProjectHistoryCompensationPlan(
+      prepared.request,
+    );
+    expect(stopped?.content).toMatchObject({
+      outcome: "stopped",
+      completed_prefix: 1,
+      authoritative_effect: { state: "not_completed" },
+      recovery: {
+        state: "retry_exact_plan",
+        completed_prefix: 1,
+        same_request_is_idempotent: true,
+        next_position: 2,
+      },
+    });
+    expect(stopped?.content.steps.map(({ state }) => state)).toEqual([
+      "retained_success",
+      "attempt_failed_not_retained",
+      "not_attempted",
+    ]);
+
+    const resumed = new PostgresProjectHistoryCompensationExecutor(
+      pool,
+      authorizedHistoryViews,
+      prepared.repository,
+    );
+    const completed = await resumed.executeProjectHistoryCompensationPlan(
+      prepared.request,
+    );
+    expect(completed?.content).toMatchObject({
+      preflight: { state: "retained_prefix_validated" },
+      outcome: "completed",
+      completed_prefix: 3,
+      authoritative_effect: { state: "compensation_applied" },
+    });
+    expect(
+      await prepared.repository.getChangeSetState(
+        prepared.promotion.change_set_id,
+      ),
+    ).toBe("reverted");
   });
 
   it("deduplicates concurrent exact retries and rejects key or command rebound", async () => {

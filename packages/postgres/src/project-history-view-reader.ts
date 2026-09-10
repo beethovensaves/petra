@@ -2091,6 +2091,50 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   async composeProjectHistoryCompensationPlan(
     request: PetraProjectHistoryCompensationPlanRequest,
   ): Promise<PetraProjectHistoryCompensationPlanView | undefined> {
+    return this.#composeProjectHistoryCompensationPlan(request);
+  }
+
+  async revalidateProjectHistoryCompensationPlan(
+    plan: PetraProjectHistoryCompensationPlanView,
+  ): Promise<boolean> {
+    this.#contracts.assertValid(
+      "project-history-compensation-plan-view",
+      "1.0.0",
+      plan,
+    );
+    if (canonicalHash(plan.content) !== plan.content_hash) {
+      throw new ProjectHistoryCompensationPlanUnavailableError(
+        "The compensation plan content no longer reproduces its canonical identity.",
+      );
+    }
+    const recomposed = await this.#composeProjectHistoryCompensationPlan(
+      {
+        schema_name: "petra.project-history-compensation-plan-request",
+        schema_version: "1.0.0",
+        project_id: plan.project_id,
+        event_id: plan.event_id,
+        preview_ref: structuredClone(plan.content.preview_ref),
+        confirmation: {
+          confirmed: true,
+          reason: plan.content.change_set.content.reason,
+          approval_rationale: plan.content.approval.rationale,
+        },
+      },
+      plan.read_at,
+    );
+    if (recomposed === undefined) return false;
+    if (canonicalize(recomposed) !== canonicalize(plan)) {
+      throw new ProjectHistoryCompensationPlanUnavailableError(
+        "The compensation plan differs from the exact plan derived from current Project authority.",
+      );
+    }
+    return true;
+  }
+
+  async #composeProjectHistoryCompensationPlan(
+    request: PetraProjectHistoryCompensationPlanRequest,
+    compositionTime?: string,
+  ): Promise<PetraProjectHistoryCompensationPlanView | undefined> {
     this.#contracts.assertValid(
       "project-history-compensation-plan-request",
       "1.0.0",
@@ -2105,13 +2149,18 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     const checkedAt = Date.parse(current.read_at);
     const issuedAt = Date.parse(previewRef.issued_at);
     const validThrough = Date.parse(previewRef.valid_through);
+    const composedAt = compositionTime ?? current.read_at;
+    const composedAtValue = Date.parse(composedAt);
     if (
       !Number.isFinite(checkedAt) ||
       !Number.isFinite(issuedAt) ||
       !Number.isFinite(validThrough) ||
+      !Number.isFinite(composedAtValue) ||
       validThrough - issuedAt !== 5 * 60 * 1000 ||
       checkedAt < issuedAt ||
-      checkedAt >= validThrough
+      checkedAt >= validThrough ||
+      composedAtValue < issuedAt ||
+      composedAtValue >= validThrough
     ) {
       throw new ProjectHistoryCompensationPlanUnavailableError(
         "The compensation preview is expired or has an invalid freshness interval.",
@@ -2138,7 +2187,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       preview: current,
       reason: request.confirmation.reason,
       rationale: request.confirmation.approval_rationale,
-      composed_at: current.read_at,
+      composed_at: composedAt,
     });
     const actor = current.content.command_sequence[0].actor;
     if (actor.actor_kind !== "human") {
@@ -2171,11 +2220,11 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       confirmation: {
         state: "explicitly_confirmed",
         confirmed_by: humanActor,
-        confirmed_at: current.read_at,
+        confirmed_at: composedAt,
       },
       revalidation: {
         state: "passed",
-        checked_at: current.read_at,
+        checked_at: composedAt,
         assessment_content_hash: current.content.assessment_ref.content_hash,
         authority: structuredClone(current.content.assessment_ref.authority),
         target_bindings: structuredClone(current.content.operation_preview),
@@ -2239,7 +2288,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       event_id: request.event_id,
       content,
       content_hash: canonicalHash(content),
-      read_at: current.read_at,
+      read_at: composedAt,
     };
     this.#contracts.assertValid(
       "project-history-compensation-plan-view",

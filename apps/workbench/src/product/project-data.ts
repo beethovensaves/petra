@@ -1,4 +1,6 @@
 import type {
+  PetraProjectHistoryCompensationExecutionRequest,
+  PetraProjectHistoryCompensationExecutionView,
   PetraProjectHistoryCompensationPlanRequest,
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
@@ -701,6 +703,83 @@ const projectHistoryCompensationPlanView = (
     );
   }
   return value as unknown as PetraProjectHistoryCompensationPlanView;
+};
+
+const projectHistoryCompensationExecutionView = (
+  value: unknown,
+): PetraProjectHistoryCompensationExecutionView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-compensation-execution-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.execution_kind !==
+      "single_change_set_compensation_execution" ||
+    value.content.authorization_scope !== "authenticated_project" ||
+    !isRecord(value.content.plan_ref) ||
+    !isRecord(value.content.preflight) ||
+    (value.content.outcome !== "completed" &&
+      value.content.outcome !== "stopped") ||
+    !Number.isInteger(value.content.completed_prefix) ||
+    !Array.isArray(value.content.steps) ||
+    value.content.steps.length !== 3 ||
+    value.content.atomicity !==
+      "per_command_transaction_not_three_command_atomic" ||
+    !isRecord(value.content.derivation) ||
+    value.content.derivation.aggregate_ledger !== "not_created" ||
+    !isRecord(value.content.authoritative_effect) ||
+    !isRecord(value.content.recovery) ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History compensation execution result.",
+      502,
+    );
+  }
+  const expectedCommands = [
+    "SubmitChangeSet",
+    "RecordApproval",
+    "ApplyChangeSet",
+  ];
+  if (
+    value.content.steps.some((step, index) => {
+      if (
+        !isRecord(step) ||
+        step.position !== index + 1 ||
+        step.command_name !== expectedCommands[index] ||
+        !isRecord(step.command_ref) ||
+        step.command_ref.command_name !== step.command_name
+      ) {
+        return true;
+      }
+      return ![
+        "retained_success",
+        "retained_failure",
+        "attempt_failed_not_retained",
+        "not_attempted",
+      ].includes(String(step.state));
+    }) ||
+    (value.content.outcome === "completed" &&
+      (value.content.completed_prefix !== 3 ||
+        value.content.steps.some(
+          (step) => !isRecord(step) || step.state !== "retained_success",
+        ) ||
+        value.content.authoritative_effect.state !== "compensation_applied" ||
+        value.content.recovery.state !== "complete")) ||
+    (value.content.outcome === "stopped" &&
+      (Number(value.content.completed_prefix) > 2 ||
+        value.content.authoritative_effect.state !== "not_completed"))
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation execution with inconsistent command order, outcome, or recovery state.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryCompensationExecutionView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -2077,6 +2156,59 @@ export const composeProjectHistoryCompensationPlan = async (
   ) {
     throw new ProjectDataError(
       "Petra returned a compensation plan from another Project, event, preview, or confirmed input.",
+      502,
+    );
+  }
+  return view;
+};
+
+export interface ProjectHistoryCompensationExecutionInput {
+  readonly projectId: string;
+  readonly eventId: string;
+  readonly plan: PetraProjectHistoryCompensationPlanView;
+  readonly explicitExecutionConfirmation: true;
+}
+
+export const executeProjectHistoryCompensationPlan = async (
+  input: ProjectHistoryCompensationExecutionInput,
+): Promise<PetraProjectHistoryCompensationExecutionView> => {
+  if (
+    input.plan.project_id !== input.projectId ||
+    input.plan.event_id !== input.eventId
+  ) {
+    throw new ProjectDataError(
+      "Compensation execution requires the exact plan for the routed Project event.",
+      400,
+    );
+  }
+  const request: PetraProjectHistoryCompensationExecutionRequest = {
+    schema_name: "petra.project-history-compensation-execution-request",
+    schema_version: "1.0.0",
+    project_id: input.projectId,
+    event_id: input.eventId,
+    plan: structuredClone(input.plan),
+    execution_confirmation: {
+      confirmed: input.explicitExecutionConfirmation,
+      acknowledged_atomicity:
+        "per_command_transaction_not_three_command_atomic",
+    },
+  };
+  const value = await requestJson(
+    `/api/commands/projects/${encodeURIComponent(input.projectId)}/history/events/${encodeURIComponent(input.eventId)}/recovery/execute`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+  const view = projectHistoryCompensationExecutionView(value);
+  if (
+    view.project_id !== input.projectId ||
+    view.event_id !== input.eventId ||
+    view.content.plan_ref.content_hash !== input.plan.content_hash
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation execution from another Project, event, or plan.",
       502,
     );
   }

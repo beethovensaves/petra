@@ -1,0 +1,502 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-compensation-execution-view/1.0.0/schema.json",
+  "title": "PetraProjectHistoryCompensationExecutionView",
+  "description": "An authenticated result for one exact compensation-plan execution or retry, derived from immutable per-command executions and events rather than a second History ledger.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "event_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-history-compensation-execution-view"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "content": { "$ref": "#/$defs/ExecutionContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "PlanRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "content_hash",
+        "composed_at",
+        "change_set_id",
+        "change_set_content_hash",
+        "approval_id",
+        "correlation_id"
+      ],
+      "properties": {
+        "schema_name": {
+          "const": "petra.project-history-compensation-plan-view"
+        },
+        "schema_version": { "const": "1.0.0" },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "composed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "change_set_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "approval_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ApprovalId"
+        },
+        "correlation_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+        }
+      }
+    },
+    "SubmittedResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "command_id",
+        "change_set_id",
+        "change_set_state"
+      ],
+      "properties": {
+        "outcome": { "const": "submitted" },
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "change_set_state": { "const": "submitted" }
+      }
+    },
+    "ApprovalRecordedResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "command_id",
+        "change_set_id",
+        "change_set_state",
+        "approval_id"
+      ],
+      "properties": {
+        "outcome": { "const": "approval_recorded" },
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "change_set_state": { "const": "approved" },
+        "approval_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ApprovalId"
+        }
+      }
+    },
+    "RevertedResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "command_id",
+        "change_set_id",
+        "change_set_state",
+        "compensates_change_set_id",
+        "approval_id",
+        "claim_id",
+        "claim_revision",
+        "assertion_id",
+        "assertion_revision",
+        "applied_at"
+      ],
+      "properties": {
+        "outcome": { "const": "reverted" },
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "change_set_state": { "const": "applied" },
+        "compensates_change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "approval_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ApprovalId"
+        },
+        "claim_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "claim_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "assertion_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "assertion_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "applied_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "CommandResult": {
+      "oneOf": [
+        { "$ref": "#/$defs/SubmittedResult" },
+        { "$ref": "#/$defs/ApprovalRecordedResult" },
+        { "$ref": "#/$defs/RevertedResult" }
+      ]
+    },
+    "ErrorObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,127}$"
+        },
+        "message": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "RetainedSuccessStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "command_name",
+        "command_ref",
+        "state",
+        "completed_at",
+        "result",
+        "event_ref"
+      ],
+      "properties": {
+        "position": { "enum": [1, 2, 3] },
+        "command_name": {
+          "enum": ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        },
+        "command_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/CommandRef"
+        },
+        "state": { "const": "retained_success" },
+        "completed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "result": { "$ref": "#/$defs/CommandResult" },
+        "event_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/EventRef"
+        }
+      }
+    },
+    "RetainedFailureStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "command_name",
+        "command_ref",
+        "state",
+        "completed_at",
+        "error",
+        "event_ref"
+      ],
+      "properties": {
+        "position": { "enum": [1, 2, 3] },
+        "command_name": {
+          "enum": ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        },
+        "command_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/CommandRef"
+        },
+        "state": { "const": "retained_failure" },
+        "completed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "message"],
+          "properties": {
+            "code": {
+              "enum": ["STALE_TARGET_REVISION", "TARGET_AUTHORITY_MISMATCH"]
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          }
+        },
+        "event_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/EventRef"
+        }
+      }
+    },
+    "UnretainedFailureStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "command_name",
+        "command_ref",
+        "state",
+        "error",
+        "retention"
+      ],
+      "properties": {
+        "position": { "enum": [1, 2, 3] },
+        "command_name": {
+          "enum": ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        },
+        "command_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/CommandRef"
+        },
+        "state": { "const": "attempt_failed_not_retained" },
+        "error": { "$ref": "#/$defs/ErrorObservation" },
+        "retention": { "const": "not_in_immutable_command_executions" }
+      }
+    },
+    "NotAttemptedStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "command_name",
+        "command_ref",
+        "state",
+        "reason"
+      ],
+      "properties": {
+        "position": { "enum": [1, 2, 3] },
+        "command_name": {
+          "enum": ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        },
+        "command_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/CommandRef"
+        },
+        "state": { "const": "not_attempted" },
+        "reason": { "const": "prior_command_did_not_complete" }
+      }
+    },
+    "ExecutionStep": {
+      "oneOf": [
+        { "$ref": "#/$defs/RetainedSuccessStep" },
+        { "$ref": "#/$defs/RetainedFailureStep" },
+        { "$ref": "#/$defs/UnretainedFailureStep" },
+        { "$ref": "#/$defs/NotAttemptedStep" }
+      ]
+    },
+    "CompletedEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "compensation_change_set_id",
+        "compensated_change_set_id",
+        "approval_id",
+        "claim_ref",
+        "assertion_ref",
+        "reversal_event_ref"
+      ],
+      "properties": {
+        "state": { "const": "compensation_applied" },
+        "compensation_change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "compensated_change_set_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ChangeSetId"
+        },
+        "approval_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ApprovalId"
+        },
+        "claim_ref": {
+          "$ref": "../../project-history-compensation-preview-view/1.0.0/schema.json#/$defs/ResultingTarget"
+        },
+        "assertion_ref": {
+          "$ref": "../../project-history-compensation-preview-view/1.0.0/schema.json#/$defs/ResultingTarget"
+        },
+        "reversal_event_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/EventRef"
+        }
+      }
+    },
+    "IncompleteEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": { "const": "not_completed" },
+        "reason": { "const": "command_sequence_stopped" }
+      }
+    },
+    "CompletedRecovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "same_request"],
+      "properties": {
+        "state": { "const": "complete" },
+        "same_request": { "const": "returns_exact_retained_result" }
+      }
+    },
+    "IncompleteRecovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "completed_prefix",
+        "same_request_is_idempotent",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "enum": ["retry_exact_plan", "review_retained_failure"]
+        },
+        "completed_prefix": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "same_request_is_idempotent": { "const": true },
+        "next_position": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "ExecutionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_kind",
+        "authorization_scope",
+        "plan_ref",
+        "preflight",
+        "outcome",
+        "completed_prefix",
+        "steps",
+        "authoritative_effect",
+        "recovery",
+        "atomicity",
+        "derivation",
+        "decision_boundary",
+        "omissions",
+        "graph_navigation_history"
+      ],
+      "properties": {
+        "execution_kind": {
+          "const": "single_change_set_compensation_execution"
+        },
+        "authorization_scope": { "const": "authenticated_project" },
+        "plan_ref": { "$ref": "#/$defs/PlanRef" },
+        "preflight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "checked_at"],
+          "properties": {
+            "state": {
+              "enum": [
+                "fresh_plan_revalidated",
+                "retained_prefix_validated",
+                "retained_completion_replayed"
+              ]
+            },
+            "checked_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            }
+          }
+        },
+        "outcome": { "enum": ["completed", "stopped"] },
+        "completed_prefix": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "steps": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/ExecutionStep" }
+        },
+        "authoritative_effect": {
+          "oneOf": [
+            { "$ref": "#/$defs/CompletedEffect" },
+            { "$ref": "#/$defs/IncompleteEffect" }
+          ]
+        },
+        "recovery": {
+          "oneOf": [
+            { "$ref": "#/$defs/CompletedRecovery" },
+            { "$ref": "#/$defs/IncompleteRecovery" }
+          ]
+        },
+        "atomicity": {
+          "const": "per_command_transaction_not_three_command_atomic"
+        },
+        "derivation": {
+          "const": {
+            "aggregate_ledger": "not_created",
+            "sources": [
+              "immutable_command_executions",
+              "immutable_domain_events",
+              "current_change_control_authority"
+            ]
+          }
+        },
+        "decision_boundary": {
+          "const": {
+            "single_plan_execution": "performed_or_stopped_exactly",
+            "generic_undo": "not_available",
+            "multi_step_compensation": "not_assessed",
+            "reversal_of_reversal": "not_available"
+          }
+        },
+        "omissions": {
+          "const": [
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_global_order_not_asserted"
+          ]
+        },
+        "graph_navigation_history": { "const": "client_local_separate" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "outcome": { "const": "completed" } } },
+          "then": {
+            "properties": {
+              "completed_prefix": { "const": 3 },
+              "authoritative_effect": { "$ref": "#/$defs/CompletedEffect" },
+              "recovery": { "$ref": "#/$defs/CompletedRecovery" }
+            }
+          },
+          "else": {
+            "properties": {
+              "completed_prefix": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2
+              },
+              "authoritative_effect": { "$ref": "#/$defs/IncompleteEffect" },
+              "recovery": { "$ref": "#/$defs/IncompleteRecovery" }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

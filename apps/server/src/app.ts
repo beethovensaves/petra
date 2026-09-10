@@ -16,6 +16,7 @@ import {
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
 import type {
+  PetraProjectHistoryCompensationExecutionRequest,
   PetraProjectHistoryCompensationPlanRequest,
   ProjectHistoryRetainedCollectionFiltersV11,
 } from "@petra/contracts";
@@ -23,6 +24,7 @@ import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   DurableReviewInterruptError,
   PetraInteractionRuntime,
+  ProjectHistoryCompensationExecutionUnavailableError,
   ProjectHistoryCompensationPlanUnavailableError,
   ProjectHistoryRecoveryPreviewUnavailableError,
   ProjectHistoryViewRequestError,
@@ -34,6 +36,7 @@ import {
   type ReviewResolutionContext,
   type ProjectEffectiveControlsViewReader,
   type ProjectHistoryViewReader,
+  type ProjectHistoryCompensationExecutionBoundary,
   type ProjectInquiryAuthoredStatus,
   type ProjectInquiryViewReader,
   type ProjectObjectLocationViewReader,
@@ -72,6 +75,7 @@ export interface PetraAppOptions {
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
   projectHistoryViews?: ProjectHistoryViewReader;
+  projectHistoryCompensationExecution?: ProjectHistoryCompensationExecutionBoundary;
   projectSourceViews?: ProjectSourceViewReader;
   projectSourceLifecycleViews?: ProjectSourceLifecycleViewReader;
   commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
@@ -929,6 +933,106 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project History compensation command plan is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/history/events/:eventId/recovery/execute",
+    async (context) => {
+      if (options.projectHistoryCompensationExecution === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_COMPENSATION_EXECUTION_UNAVAILABLE",
+          "The authenticated Project History compensation execution boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const projectId = context.req.param("projectId");
+        const eventId = context.req.param("eventId");
+        if (
+          [...parameters.keys()].length > 0 ||
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !EVENT_ID_PATTERN.test(eventId)
+        ) {
+          throw new InteractionInputError(
+            "A History compensation execution requires canonical Project and event identities and accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const value = await readBoundedJson(context, maxBodyBytes);
+        try {
+          contracts.assertValid(
+            "project-history-compensation-execution-request",
+            "1.0.0",
+            value,
+          );
+        } catch {
+          throw new InteractionInputError(
+            "The History compensation execution request must contain one exact composed plan and explicit per-command atomicity confirmation.",
+          );
+        }
+        const request =
+          value as PetraProjectHistoryCompensationExecutionRequest;
+        if (
+          request.project_id !== projectId ||
+          request.event_id !== eventId ||
+          request.plan.project_id !== projectId ||
+          request.plan.event_id !== eventId
+        ) {
+          throw new InteractionInputError(
+            "The compensation execution request and plan must remain bound to the routed Project event.",
+          );
+        }
+        const view =
+          await options.projectHistoryCompensationExecution.executeProjectHistoryCompensationPlan(
+            request,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_HISTORY_EVENT_NOT_FOUND",
+            "The requested event is not available in this Project History.",
+          );
+        }
+        contracts.assertValid(
+          "project-history-compensation-execution-view",
+          "1.0.0",
+          view,
+        );
+        if (
+          view.project_id !== projectId ||
+          view.event_id !== eventId ||
+          view.content.plan_ref.content_hash !== request.plan.content_hash
+        ) {
+          throw new Error(
+            "The Project History compensation execution returned a different Project, event, or plan identity.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        const invalid = error instanceof InteractionInputError;
+        const unavailable =
+          error instanceof
+            ProjectHistoryCompensationExecutionUnavailableError ||
+          error instanceof ProjectHistoryCompensationPlanUnavailableError ||
+          error instanceof ProjectHistoryRecoveryPreviewUnavailableError;
+        return jsonError(
+          context,
+          invalid ? 422 : unavailable ? 409 : 503,
+          invalid
+            ? "PROJECT_HISTORY_COMPENSATION_EXECUTION_REQUEST_INVALID"
+            : unavailable
+              ? "PROJECT_HISTORY_COMPENSATION_EXECUTION_UNAVAILABLE"
+              : "PROJECT_HISTORY_COMPENSATION_EXECUTION_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project History compensation execution is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

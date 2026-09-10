@@ -1,5 +1,7 @@
 import {
   PostgresCapabilityGrantCommandAuthorizer,
+  PostgresChangeControlAuthorityRepository,
+  PostgresProjectHistoryCompensationExecutor,
   PostgresProjectSourceLifecycleAuthorityRepository,
   PostgresProjectSourceReplacementCommandAuthorityRepository,
   PostgresSingleUserCommandPrincipalResolver,
@@ -24,6 +26,7 @@ import type {
   AuthenticatedCommandPrincipalResolver,
   ProjectEffectiveControlsViewReader,
   ProjectHistoryViewReader,
+  ProjectHistoryCompensationExecutionBoundary,
   ProjectInquiryViewReader,
   ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
@@ -44,6 +47,7 @@ export interface ProjectShellPersistence {
   readonly views: ProjectShellViewReader;
   readonly effectiveControls: ProjectEffectiveControlsViewReader;
   readonly historyViews: ProjectHistoryViewReader;
+  readonly historyCompensationExecution: ProjectHistoryCompensationExecutionBoundary;
   readonly sourceViews: ProjectSourceViewReader;
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly reviewViews: ProjectReviewViewReader;
@@ -163,6 +167,31 @@ export const createProjectShellPersistenceFromEnvironment = async (
     application_name: "petra-project-shell",
     max: 5,
   });
+  const contracts = new PetraContractRegistry();
+  const historyViews = new PostgresProjectHistoryViewReader(pool, contracts, {
+    cursorSecret: historyCursorSecret(environment),
+    ...(configuredActorId === undefined || configuredActorId === ""
+      ? {}
+      : {
+          recoveryPrincipal: {
+            actor_id: configuredActorId,
+            actor_kind: "human" as const,
+          },
+        }),
+  });
+  const changeControlAuthority = new PostgresChangeControlAuthorityRepository(
+    pool,
+    new PostgresCapabilityGrantCommandAuthorizer(),
+    undefined,
+    contracts,
+  );
+  const historyCompensationExecution =
+    new PostgresProjectHistoryCompensationExecutor(
+      pool,
+      historyViews,
+      changeControlAuthority,
+      contracts,
+    );
   let driver: Driver | undefined;
   let closePromise: Promise<void> | undefined;
   const close = (): Promise<void> => {
@@ -212,21 +241,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
       return {
         views: new PostgresProjectShellViewReader(pool),
         effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
-        historyViews: new PostgresProjectHistoryViewReader(
-          pool,
-          new PetraContractRegistry(),
-          {
-            cursorSecret: historyCursorSecret(environment),
-            ...(configuredActorId === undefined || configuredActorId === ""
-              ? {}
-              : {
-                  recoveryPrincipal: {
-                    actor_id: configuredActorId,
-                    actor_kind: "human" as const,
-                  },
-                }),
-          },
-        ),
+        historyViews,
+        historyCompensationExecution,
         sourceViews: new PostgresProjectSourceViewReader(pool),
         sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(
           pool,
@@ -275,21 +291,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
   return {
     views: new PostgresProjectShellViewReader(pool),
     effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
-    historyViews: new PostgresProjectHistoryViewReader(
-      pool,
-      new PetraContractRegistry(),
-      {
-        cursorSecret: historyCursorSecret(environment),
-        ...(configuredActorId === undefined || configuredActorId === ""
-          ? {}
-          : {
-              recoveryPrincipal: {
-                actor_id: configuredActorId,
-                actor_kind: "human" as const,
-              },
-            }),
-      },
-    ),
+    historyViews,
+    historyCompensationExecution,
     sourceViews: new PostgresProjectSourceViewReader(pool),
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),

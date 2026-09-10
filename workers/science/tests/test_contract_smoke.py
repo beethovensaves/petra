@@ -4893,6 +4893,268 @@ class PetraProjectHistoryCompensationPlanView(PetraModel):
         return self
 
 
+class ProjectHistoryCompensationExecutionConfirmation(PetraModel):
+    confirmed: Literal[True]
+    acknowledged_atomicity: Literal["per_command_transaction_not_three_command_atomic"]
+
+
+class PetraProjectHistoryCompensationExecutionRequest(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-execution-request"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    plan: PetraProjectHistoryCompensationPlanView
+    execution_confirmation: ProjectHistoryCompensationExecutionConfirmation
+
+    @model_validator(mode="after")
+    def exact_request_binding(
+        self,
+    ) -> PetraProjectHistoryCompensationExecutionRequest:
+        if (
+            self.project_id != self.plan.project_id
+            or self.event_id != self.plan.event_id
+        ):
+            raise ValueError("compensation execution must use the routed exact plan")
+        return self
+
+
+class ProjectHistoryCompensationExecutionPlanRef(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-plan-view"]
+    schema_version: Literal["1.0.0"]
+    content_hash: str
+    composed_at: str
+    change_set_id: str
+    change_set_content_hash: str
+    approval_id: str
+    correlation_id: str
+
+
+class ProjectHistoryCompensationSubmittedResult(PetraModel):
+    outcome: Literal["submitted"]
+    command_id: str
+    change_set_id: str
+    change_set_state: Literal["submitted"]
+
+
+class ProjectHistoryCompensationApprovalResult(PetraModel):
+    outcome: Literal["approval_recorded"]
+    command_id: str
+    change_set_id: str
+    change_set_state: Literal["approved"]
+    approval_id: str
+
+
+class ProjectHistoryCompensationRevertedResult(PetraModel):
+    outcome: Literal["reverted"]
+    command_id: str
+    change_set_id: str
+    change_set_state: Literal["applied"]
+    compensates_change_set_id: str
+    approval_id: str
+    claim_id: str
+    claim_revision: int = Field(ge=1)
+    assertion_id: str
+    assertion_revision: int = Field(ge=1)
+    applied_at: str
+
+
+ProjectHistoryCompensationExecutionResult = (
+    ProjectHistoryCompensationSubmittedResult
+    | ProjectHistoryCompensationApprovalResult
+    | ProjectHistoryCompensationRevertedResult
+)
+
+
+class ProjectHistoryCompensationExecutionError(PetraModel):
+    code: str
+    message: str = Field(min_length=1, max_length=4000)
+
+
+class ProjectHistoryCompensationRetainedSuccess(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    command_ref: ProjectHistoryCommandRef
+    state: Literal["retained_success"]
+    completed_at: str
+    result: ProjectHistoryCompensationExecutionResult
+    event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryCompensationRetainedFailure(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    command_ref: ProjectHistoryCommandRef
+    state: Literal["retained_failure"]
+    completed_at: str
+    error: ProjectHistoryCompensationExecutionError
+    event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryCompensationUnretainedFailure(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    command_ref: ProjectHistoryCommandRef
+    state: Literal["attempt_failed_not_retained"]
+    error: ProjectHistoryCompensationExecutionError
+    retention: Literal["not_in_immutable_command_executions"]
+
+
+class ProjectHistoryCompensationNotAttempted(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    command_ref: ProjectHistoryCommandRef
+    state: Literal["not_attempted"]
+    reason: Literal["prior_command_did_not_complete"]
+
+
+ProjectHistoryCompensationExecutionStep = (
+    ProjectHistoryCompensationRetainedSuccess
+    | ProjectHistoryCompensationRetainedFailure
+    | ProjectHistoryCompensationUnretainedFailure
+    | ProjectHistoryCompensationNotAttempted
+)
+
+
+class ProjectHistoryCompensationCompletedEffect(PetraModel):
+    state: Literal["compensation_applied"]
+    compensation_change_set_id: str
+    compensated_change_set_id: str
+    approval_id: str
+    claim_ref: ProjectHistoryCompensationResult
+    assertion_ref: ProjectHistoryCompensationResult
+    reversal_event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryCompensationIncompleteEffect(PetraModel):
+    state: Literal["not_completed"]
+    reason: Literal["command_sequence_stopped"]
+
+
+class ProjectHistoryCompensationCompletedRecovery(PetraModel):
+    state: Literal["complete"]
+    same_request: Literal["returns_exact_retained_result"]
+
+
+class ProjectHistoryCompensationIncompleteRecovery(PetraModel):
+    state: Literal["retry_exact_plan", "review_retained_failure"]
+    completed_prefix: int = Field(ge=0, le=2)
+    same_request_is_idempotent: Literal[True]
+    next_position: int | None = Field(default=None, ge=1, le=3)
+    reason: str = Field(min_length=1, max_length=4000)
+
+
+class ProjectHistoryCompensationExecutionPreflight(PetraModel):
+    state: Literal[
+        "fresh_plan_revalidated",
+        "retained_prefix_validated",
+        "retained_completion_replayed",
+    ]
+    checked_at: str
+
+
+class ProjectHistoryCompensationExecutionDerivation(PetraModel):
+    aggregate_ledger: Literal["not_created"]
+    sources: list[
+        Literal[
+            "immutable_command_executions",
+            "immutable_domain_events",
+            "current_change_control_authority",
+        ]
+    ] = Field(min_length=3, max_length=3)
+
+
+class ProjectHistoryCompensationExecutionDecisionBoundary(PetraModel):
+    single_plan_execution: Literal["performed_or_stopped_exactly"]
+    generic_undo: Literal["not_available"]
+    multi_step_compensation: Literal["not_assessed"]
+    reversal_of_reversal: Literal["not_available"]
+
+
+class ProjectHistoryCompensationExecutionContent(PetraModel):
+    execution_kind: Literal["single_change_set_compensation_execution"]
+    authorization_scope: Literal["authenticated_project"]
+    plan_ref: ProjectHistoryCompensationExecutionPlanRef
+    preflight: ProjectHistoryCompensationExecutionPreflight
+    outcome: Literal["completed", "stopped"]
+    completed_prefix: int = Field(ge=0, le=3)
+    steps: list[ProjectHistoryCompensationExecutionStep] = Field(
+        min_length=3, max_length=3
+    )
+    authoritative_effect: (
+        ProjectHistoryCompensationCompletedEffect
+        | ProjectHistoryCompensationIncompleteEffect
+    )
+    recovery: (
+        ProjectHistoryCompensationCompletedRecovery
+        | ProjectHistoryCompensationIncompleteRecovery
+    )
+    atomicity: Literal["per_command_transaction_not_three_command_atomic"]
+    derivation: ProjectHistoryCompensationExecutionDerivation
+    decision_boundary: ProjectHistoryCompensationExecutionDecisionBoundary
+    omissions: list[
+        Literal[
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_global_order_not_asserted",
+        ]
+    ] = Field(min_length=3, max_length=3)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_execution(self) -> ProjectHistoryCompensationExecutionContent:
+        expected_commands = ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        if [step.position for step in self.steps] != [1, 2, 3] or [
+            step.command_name for step in self.steps
+        ] != expected_commands:
+            raise ValueError("compensation execution must preserve command order")
+        if any(
+            step.command_ref.command_name != step.command_name for step in self.steps
+        ):
+            raise ValueError("compensation execution command references must agree")
+        prefix = 0
+        for step in self.steps:
+            if isinstance(step, ProjectHistoryCompensationRetainedSuccess):
+                if prefix != step.position - 1:
+                    raise ValueError("retained successes must form an exact prefix")
+                prefix += 1
+        if prefix != self.completed_prefix:
+            raise ValueError("completed prefix does not match retained outcomes")
+        if self.outcome == "completed":
+            if (
+                prefix != 3
+                or not isinstance(
+                    self.authoritative_effect,
+                    ProjectHistoryCompensationCompletedEffect,
+                )
+                or not isinstance(
+                    self.recovery, ProjectHistoryCompensationCompletedRecovery
+                )
+            ):
+                raise ValueError("completed execution must expose exact effect")
+        elif (
+            prefix > 2
+            or not isinstance(
+                self.authoritative_effect,
+                ProjectHistoryCompensationIncompleteEffect,
+            )
+            or not isinstance(
+                self.recovery, ProjectHistoryCompensationIncompleteRecovery
+            )
+        ):
+            raise ValueError("stopped execution must expose recovery posture")
+        return self
+
+
+class PetraProjectHistoryCompensationExecutionView(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-execution-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryCompensationExecutionContent
+    content_hash: str
+    read_at: str
+
+
 class ChangeSetSubmittedPayloadV110(PetraModel):
     change_set: PetraChangeSetV110
 
@@ -8480,6 +8742,12 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
         PetraProjectHistoryCompensationPlanRequest
     ),
     "project-history-compensation-plan-view": PetraProjectHistoryCompensationPlanView,
+    "project-history-compensation-execution-request": (
+        PetraProjectHistoryCompensationExecutionRequest
+    ),
+    "project-history-compensation-execution-view": (
+        PetraProjectHistoryCompensationExecutionView
+    ),
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-replacement": PetraProjectSourceReplacement,
@@ -8682,6 +8950,11 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-thread.json", "content", "content_hash"),
         ("project-thread-view-collection.json", "content", "content_hash"),
         ("project-thread-view-detail.json", "content", "content_hash"),
+        (
+            "project-history-compensation-execution-view.json",
+            "content",
+            "content_hash",
+        ),
         ("project-source-lifecycle-view.json", "content", "content_hash"),
         ("project-source-lifecycle-receipt.json", "content", "content_hash"),
         ("project-source-replacement.json", "content", "content_hash"),
