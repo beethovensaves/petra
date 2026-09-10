@@ -4,6 +4,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryRetainedView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
@@ -104,6 +105,16 @@ const historyEpisodeFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryEpisodeView;
+
+const historyRetainedFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-retained-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRetainedView;
 
 const reviewFixture = JSON.parse(
   readFileSync(
@@ -253,6 +264,17 @@ const historyReader: ProjectHistoryViewReader = {
         ? structuredClone(historyEpisodeFixture)
         : undefined,
     ),
+  listRetainedProjectHistoryView: (projectId, request = {}) => {
+    if (projectId !== historyRetainedFixture.project_id) {
+      return Promise.resolve(undefined);
+    }
+    const view = structuredClone(historyRetainedFixture);
+    view.content.query = {
+      limit: request.limit ?? 50,
+      ...(request.cursor === undefined ? {} : { cursor: request.cursor }),
+    };
+    return Promise.resolve(view);
+  },
 };
 
 const reviewReader: ProjectReviewViewReader = {
@@ -508,6 +530,47 @@ describe("authorized Project shell query routes", () => {
       ),
     );
     expect(missing.status).toBe(404);
+  });
+
+  it("returns authenticated retained History pages and rejects unsafe query state", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: historyReader,
+    });
+    const path = `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?limit=1`;
+    const response = await petra.app.request(authorized(path));
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(historyRetainedFixture);
+
+    const firstPage = historyRetainedFixture.content.page;
+    if (!firstPage.has_more) throw new Error("Expected a retained cursor.");
+    const cursor = firstPage.next_cursor;
+    const continued = await petra.app.request(
+      authorized(`${path}&cursor=${encodeURIComponent(cursor)}`),
+    );
+    expect(continued.status).toBe(200);
+    const continuedBody =
+      (await continued.json()) as PetraProjectHistoryRetainedView;
+    expect(continuedBody.content.query.cursor).toBe(cursor);
+
+    const oldOffset = await petra.app.request(
+      authorized(`${path}&cursor=offset%3A1`),
+    );
+    expect(oldOffset.status).toBe(422);
+    const oldOffsetBody = (await oldOffset.json()) as {
+      error: { code: string };
+    };
+    expect(oldOffsetBody.error.code).toBe(
+      "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
+    );
+
+    const filtered = await petra.app.request(
+      authorized(`${path}&family=change_control`),
+    );
+    expect(filtered.status).toBe(422);
+    expect(await petra.app.request(path)).toEqual(
+      expect.objectContaining({ status: 401 }),
+    );
   });
 
   it("does not substitute another Project and preserves the API auth boundary", async () => {

@@ -1,8 +1,8 @@
 # UX-REQ-007 causal Project History
 
-Status: bounded Recent changes and exact event-selected causal episode reads
-passed; retained collection traversal, dependency impact, filters, and broader
-recovery planning remain open
+Status: bounded Recent changes, exact event-selected causal episodes, and
+snapshot-stable retained Project-event traversal passed; dependency impact,
+filters, and broader recovery planning remain open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
 Implementation baseline: `29f26f9`
@@ -73,6 +73,34 @@ The response explicitly omits dependency-impact composition, generic reversal
 assessment, and any cross-family total-order assertion. It is a read over the
 same immutable authority, not a new episode or History ledger.
 
+## Retained Project-event traversal
+
+`petra.project-history-retained-view@1.0.0` adds the authenticated collection
+read `GET /api/queries/projects/:projectId/history/events`. It reuses the exact
+change composition above and pages every retained Project event in descending
+Project-stream revision. The default page contains fifty changes; callers may
+request from one through one hundred. The fixed Recent changes window remains
+ten.
+
+The collection uses signed, opaque, keyset cursors rather than mutable offsets.
+Every continuation is bound to the exact Project, initial global authority
+position, initial Project-stream revision, head event identity and record hash,
+and the next exclusive stream boundary. A cursor therefore cannot be
+reinterpreted for another Project or another retained snapshot. Events appended
+after the first page do not shift, duplicate, or enter that traversal.
+
+The response deliberately separates two authority positions:
+
+- `retention_snapshot` fixes event membership and ordering for every page; and
+- `current_authority` records the page-read boundary used to recompute recovery
+  eligibility.
+
+This distinction keeps traversal stable while ensuring Petra never presents an
+old recovery assessment as current. The contract reports the total event count
+within the retained snapshot, whether another page exists, and an opaque next
+cursor only when required. It exposes no offset, filters, client-carried
+snapshot override, or cross-family order.
+
 ## Recovery semantics
 
 This slice does not invent generic undo or multi-step compensation. ChangeSet
@@ -98,13 +126,14 @@ mutation boundaries and recheck current authority when invoked.
 
 ## Integrity and authorization
 
-The server route is
-`GET /api/queries/projects/:projectId/history/recent`. Existing `/api/*` bearer
-authentication applies before the reader is called. The route accepts no query
-parameters, returns no substitute Project, and validates the composed contract
-before responding. The typed workbench client verifies the contract family,
-fixed ten-item boundary, separation from graph history, and exact Project
-identity. No component, CSS, browser route, or frozen surface changed.
+Existing `/api/*` bearer authentication applies to Recent changes, retained
+event traversal, and exact episode detail before a reader is called. The Recent
+route accepts no query parameters; the retained route accepts only one bounded
+limit and one opaque cursor; the episode route accepts only one canonical event
+identity. Each returns no substitute Project and validates its composed
+contract before responding. Typed workbench clients verify the contract family,
+query and Project identity while treating the cursor as opaque. No component,
+CSS, browser route, or frozen surface changed.
 
 The PostgreSQL reader fails closed when it cannot reproduce:
 
@@ -114,25 +143,32 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 - the receipt-to-command and receipt-to-event references;
 - a lifecycle event's exact prior and resulting source transition;
 - a replacement event's exact relationship or retraction record; or
-- the current exact source/replacement head used for recovery eligibility.
+- the current exact source/replacement head used for recovery eligibility;
+- a cursor signature, Project binding, canonical payload, retained authority
+  bounds, or exact head-event identity/hash; or
+- the original cursor snapshot after the authority store has moved backwards
+  or been replaced.
 
 ## Verification
 
-Contract fixtures include accepted exact Recent changes and causal-episode
-responses, a rejected attempt to change the quick limit to twenty, and a
-rejected episode that asserts a false global order. TypeScript generation, AJV
-conformance, strict Pydantic round-trip parity, server route tests, typed-client
-tests, and the real PostgreSQL integration suite pass. The database proof starts
-from an empty PostgreSQL 18.6 instance, migrates V001 through V030, exercises
-Recent changes composition over domain-event versions 1.0, 1.1, 1.2, and 1.3,
-and proves causal parent/following-command links, Project-stream adjacency, and
-exact lifecycle/replacement receipt references.
+Contract fixtures include accepted exact Recent changes, causal-episode, and
+retained traversal responses. Rejected fixtures cover an altered quick limit,
+false global episode order, and the unsafe reuse of an offset cursor. TypeScript
+generation, AJV conformance, strict Pydantic round-trip parity, server route
+tests, typed-client tests, and the real PostgreSQL integration suite pass. The
+database proof starts from an empty PostgreSQL 18.6 instance, migrates V001
+through V030, exercises all three reads over domain-event versions 1.0, 1.1,
+1.2, and 1.3, and proves cursor integrity, cross-Project rejection, stable
+membership after a concurrent append, keyset continuation without duplication,
+causal parent/following-command links, Project-stream adjacency, and exact
+lifecycle/replacement receipt references.
 
 ## Next safe slice
 
-The next additive read can expose complete authorized retained Project-event
-traversal with a stable cursor. It should reuse the same composition and
-authorization boundary, preserve the exact Project-stream order, and prevent
-cross-Project leakage or false global ordering across command, event, receipt,
-Work, and projection families. It must not turn the ten-item quick window into
-an authority limit or introduce universal undo.
+The next safe History boundary is a read-only dependency-impact assessment for
+one exact selected event. It should enumerate only registered, authorized,
+bounded dependent records with their precise authority source and omissions,
+without yet deciding ChangeSet reversibility or composing a compensation plan.
+Filters can follow once their exact query identity is bound into cursor
+snapshots. Universal undo, multi-step compensation, and event rewriting remain
+excluded.

@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.38.0",
+  "fixture_manifest_version": "1.39.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -86,6 +86,10 @@
     {
       "schema": "project-history-episode-view",
       "path": "fixtures/accepted/project-history-episode-view.json"
+    },
+    {
+      "schema": "project-history-retained-view",
+      "path": "fixtures/accepted/project-history-retained-view.json"
     },
     {
       "schema": "project-effective-controls-view",
@@ -470,6 +474,10 @@
     {
       "schema": "project-history-episode-view",
       "path": "fixtures/rejected/project-history-episode-view-false-order.json"
+    },
+    {
+      "schema": "project-history-retained-view",
+      "path": "fixtures/rejected/project-history-retained-view-offset-cursor.json"
     },
     {
       "schema": "composition-request",

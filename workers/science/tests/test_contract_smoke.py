@@ -619,6 +619,89 @@ class PetraProjectHistoryEpisodeView(PetraModel):
     read_at: str
 
 
+class ProjectHistoryRetainedQuery(PetraModel):
+    limit: int = Field(ge=1, le=100)
+    cursor: str | None = Field(
+        default=None,
+        min_length=80,
+        max_length=1024,
+        pattern=r"^phc1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$",
+    )
+
+
+class ProjectHistoryContinuedPage(PetraModel):
+    returned_count: int = Field(ge=1, le=100)
+    snapshot_total_count: int = Field(ge=1)
+    has_more: Literal[True]
+    next_cursor: str = Field(
+        min_length=80,
+        max_length=1024,
+        pattern=r"^phc1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$",
+    )
+
+
+class ProjectHistoryCompletePage(PetraModel):
+    returned_count: int = Field(ge=0, le=100)
+    snapshot_total_count: int = Field(ge=0)
+    has_more: Literal[False]
+
+
+class ProjectHistoryEmptyRetentionSnapshot(PetraModel):
+    through_event_position: int = Field(ge=0)
+    through_stream_revision: Literal[0]
+
+
+class ProjectHistoryNonemptyRetentionSnapshot(PetraModel):
+    through_event_position: int = Field(ge=1)
+    through_stream_revision: int = Field(ge=1)
+    head_event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryRetainedContent(PetraModel):
+    view_kind: Literal["retained_events"]
+    order_kind: Literal["project_stream_newest_first"]
+    query: ProjectHistoryRetainedQuery
+    changes: list[ProjectHistoryRecentChange] = Field(max_length=100)
+    page: ProjectHistoryContinuedPage | ProjectHistoryCompletePage
+    retention_snapshot: (
+        ProjectHistoryEmptyRetentionSnapshot | ProjectHistoryNonemptyRetentionSnapshot
+    )
+    current_authority: ProjectHistoryAuthorityPosition
+    recovery_authority: Literal["current_at_page_read"]
+    omissions: list[
+        Literal[
+            "filters_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_omissions(self) -> ProjectHistoryRetainedContent:
+        expected = {
+            "filters_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 5 or set(self.omissions) != expected:
+            raise ValueError("retained History must declare its five exact omissions")
+        return self
+
+
+class PetraProjectHistoryRetainedView(PetraModel):
+    schema_name: Literal["petra.project-history-retained-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: ProjectHistoryRetainedContent
+    content_hash: str
+    read_at: str
+
+
 class ProjectSourceDefinitionRef(PetraModel):
     project_definition_id: str
     revision: int
@@ -6600,6 +6683,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-shell-view": PetraProjectShellView,
     "project-history-view": PetraProjectHistoryView,
     "project-history-episode-view": PetraProjectHistoryEpisodeView,
+    "project-history-retained-view": PetraProjectHistoryRetainedView,
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-replacement": PetraProjectSourceReplacement,

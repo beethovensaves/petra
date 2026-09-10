@@ -1,17 +1,23 @@
-import { createHash } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 import type {
   PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryRetainedView,
   PetraProjectHistoryView,
   ProjectHistoryCausalCommandLink,
   ProjectHistoryEventRef,
   ProjectHistoryRecentChange,
   ProjectHistoryReceiptRef,
   ProjectHistoryRecovery,
+  ProjectHistoryRetentionSnapshot,
   ProjectHistoryTargetRef,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import type { ProjectHistoryViewReader } from "@petra/core";
+import {
+  ProjectHistoryViewRequestError,
+  type ProjectHistoryRetainedCollectionRequest,
+  type ProjectHistoryViewReader,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
 
@@ -45,6 +51,10 @@ interface AuthorityRow {
   stream_revision: string | null;
 }
 
+interface CountRow {
+  total_count: string;
+}
+
 interface CurrentSourceRow {
   project_source_id: string;
   revision: string;
@@ -73,6 +83,20 @@ interface EventRow {
   event_record_hash: string;
 }
 
+interface HistoryCursorPayload {
+  version: 1;
+  project_id: string;
+  snapshot_event_position: number;
+  snapshot_stream_revision: number;
+  snapshot_head_event_id: string;
+  snapshot_head_record_hash: string;
+  before_stream_revision: number;
+}
+
+export interface PostgresProjectHistoryViewReaderOptions {
+  readonly cursorSecret?: string;
+}
+
 type JsonRecord = Record<string, unknown>;
 interface DerivedHistoryChange {
   family: ProjectHistoryRecentChange["family"];
@@ -82,6 +106,14 @@ interface DerivedHistoryChange {
 }
 
 const HISTORY_LIMIT = 10;
+const RETAINED_DEFAULT_LIMIT = 50;
+const RETAINED_MAX_LIMIT = 100;
+const RETAINED_CURSOR = /^phc1\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]{43})$/u;
+const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const EVENT_ID = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
+const DEFAULT_CURSOR_SECRET =
+  "petra-local-development-history-cursor-secret-v1";
 const EVENT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0"] as const;
 const COMMAND_VERSIONS = EVENT_VERSIONS;
 
@@ -207,10 +239,22 @@ const sameExactRef = (
 export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReader {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
+  readonly #cursorSecret: Buffer;
 
-  constructor(pool: Pool, contracts = new PetraContractRegistry()) {
+  constructor(
+    pool: Pool,
+    contracts = new PetraContractRegistry(),
+    options: PostgresProjectHistoryViewReaderOptions = {},
+  ) {
     this.#pool = pool;
     this.#contracts = contracts;
+    const cursorSecret = options.cursorSecret ?? DEFAULT_CURSOR_SECRET;
+    if (cursorSecret.trim().length < 16) {
+      throw new Error(
+        "Project History cursor secret must contain at least sixteen characters.",
+      );
+    }
+    this.#cursorSecret = createHash("sha256").update(cursorSecret).digest();
   }
 
   async getRecentProjectHistoryView(
@@ -270,6 +314,384 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       this.#contracts.assertValid("project-history-view", "1.0.0", view);
       return structuredClone(view as unknown as PetraProjectHistoryView);
     });
+  }
+
+  async listRetainedProjectHistoryView(
+    projectId: string,
+    request: ProjectHistoryRetainedCollectionRequest = {},
+  ): Promise<PetraProjectHistoryRetainedView | undefined> {
+    const query = this.#retainedQuery(request);
+    const cursor =
+      query.cursor === undefined
+        ? undefined
+        : this.#decodeCursor(query.cursor, projectId);
+    return this.#readTransaction(async (client, readAt) => {
+      const exists = await client.query<{ exists: boolean }>(
+        "SELECT EXISTS (SELECT 1 FROM petra.projects WHERE project_id = $1) AS exists",
+        [projectId],
+      );
+      if (exists.rows[0]?.exists !== true) return undefined;
+
+      const currentAuthority = await this.#authority(client, projectId);
+      const retentionSnapshot =
+        cursor === undefined
+          ? await this.#retentionSnapshot(client, projectId, currentAuthority)
+          : await this.#resolveCursorSnapshot(
+              client,
+              projectId,
+              cursor,
+              currentAuthority,
+            );
+      const beforeStreamRevision =
+        cursor?.before_stream_revision ??
+        retentionSnapshot.through_stream_revision + 1;
+      const result = await client.query<HistoryRow>(
+        `SELECT event.payload AS event_payload,
+                event.record_hash AS event_record_hash,
+                execution.envelope AS command_envelope,
+                execution.command_fingerprint,
+                lifecycle.payload AS lifecycle_receipt_payload,
+                lifecycle.record_hash AS lifecycle_receipt_record_hash,
+                replacement.payload AS replacement_receipt_payload,
+                replacement.record_hash AS replacement_receipt_record_hash
+           FROM petra.domain_events AS event
+           JOIN petra.command_executions AS execution
+             ON execution.command_id = event.command_id
+            AND execution.project_id = event.project_id
+           LEFT JOIN petra.project_source_lifecycle_receipts AS lifecycle
+             ON lifecycle.command_id = event.command_id
+           LEFT JOIN petra.project_source_replacement_receipts AS replacement
+             ON replacement.command_id = event.command_id
+          WHERE event.project_id = $1
+            AND event.stream_revision <= $2
+            AND event.event_position <= $3
+            AND event.stream_revision < $4
+          ORDER BY event.stream_revision DESC
+          LIMIT $5`,
+        [
+          projectId,
+          retentionSnapshot.through_stream_revision,
+          retentionSnapshot.through_event_position,
+          beforeStreamRevision,
+          query.limit + 1,
+        ],
+      );
+      const hasMore = result.rows.length > query.limit;
+      const selectedRows = result.rows.slice(0, query.limit);
+      const changes: ProjectHistoryRecentChange[] = [];
+      for (const row of selectedRows) {
+        changes.push(await this.#change(client, row));
+      }
+      const count = await client.query<CountRow>(
+        `SELECT COUNT(*) AS total_count
+           FROM petra.domain_events
+          WHERE project_id = $1
+            AND stream_revision <= $2
+            AND event_position <= $3`,
+        [
+          projectId,
+          retentionSnapshot.through_stream_revision,
+          retentionSnapshot.through_event_position,
+        ],
+      );
+      const snapshotTotalCount = Number(count.rows[0]?.total_count);
+      if (!Number.isSafeInteger(snapshotTotalCount) || snapshotTotalCount < 0) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The retained Project event count is outside Petra's safe range.",
+        );
+      }
+      const lastChange = changes.at(-1);
+      if (hasMore && lastChange === undefined) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "A retained History continuation has no final event boundary.",
+        );
+      }
+      let nextCursor: string | undefined;
+      if (hasMore && lastChange !== undefined) {
+        if (!("head_event_ref" in retentionSnapshot)) {
+          throw new PostgresProjectHistoryViewError(
+            "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+            "A retained History continuation has no snapshot head event.",
+          );
+        }
+        nextCursor = this.#encodeCursor({
+          version: 1,
+          project_id: projectId,
+          snapshot_event_position: retentionSnapshot.through_event_position,
+          snapshot_stream_revision: retentionSnapshot.through_stream_revision,
+          snapshot_head_event_id: retentionSnapshot.head_event_ref.event_id,
+          snapshot_head_record_hash:
+            retentionSnapshot.head_event_ref.record_hash,
+          before_stream_revision: lastChange.event_ref.stream_revision,
+        });
+      }
+      const content = {
+        view_kind: "retained_events",
+        order_kind: "project_stream_newest_first",
+        query,
+        changes,
+        page: {
+          returned_count: changes.length,
+          snapshot_total_count: snapshotTotalCount,
+          has_more: hasMore,
+          ...(nextCursor === undefined ? {} : { next_cursor: nextCursor }),
+        },
+        retention_snapshot: retentionSnapshot,
+        current_authority: currentAuthority,
+        recovery_authority: "current_at_page_read",
+        omissions: [
+          "filters_not_supported",
+          "dependency_impact_not_composed",
+          "generic_reversal_assessment_not_composed",
+          "historical_project_definition_not_interpreted",
+          "cross_family_total_order_not_asserted",
+        ],
+        graph_navigation_history: "client_local_separate",
+      };
+      const view = {
+        schema_name: "petra.project-history-retained-view",
+        schema_version: "1.0.0",
+        project_id: projectId,
+        content,
+        content_hash: canonicalHash(content),
+        read_at: readAt,
+      };
+      this.#contracts.assertValid(
+        "project-history-retained-view",
+        "1.0.0",
+        view,
+      );
+      return structuredClone(
+        view as unknown as PetraProjectHistoryRetainedView,
+      );
+    });
+  }
+
+  #retainedQuery(
+    request: ProjectHistoryRetainedCollectionRequest,
+  ): PetraProjectHistoryRetainedView["content"]["query"] {
+    const limit = request.limit ?? RETAINED_DEFAULT_LIMIT;
+    if (
+      !Number.isSafeInteger(limit) ||
+      limit < 1 ||
+      limit > RETAINED_MAX_LIMIT
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History limit must be an integer from 1 through 100.",
+      );
+    }
+    if (
+      request.cursor !== undefined &&
+      (request.cursor.length > 1024 || !RETAINED_CURSOR.test(request.cursor))
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor is invalid.",
+      );
+    }
+    return {
+      limit,
+      ...(request.cursor === undefined ? {} : { cursor: request.cursor }),
+    };
+  }
+
+  #encodeCursor(payload: HistoryCursorPayload): string {
+    const encodedPayload = Buffer.from(canonicalize(payload)).toString(
+      "base64url",
+    );
+    const signature = createHmac("sha256", this.#cursorSecret)
+      .update(encodedPayload)
+      .digest("base64url");
+    return `phc1.${encodedPayload}.${signature}`;
+  }
+
+  #decodeCursor(cursor: string, projectId: string): HistoryCursorPayload {
+    const match = RETAINED_CURSOR.exec(cursor);
+    const encodedPayload = match?.[1];
+    const encodedSignature = match?.[2];
+    if (encodedPayload === undefined || encodedSignature === undefined) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor is invalid.",
+      );
+    }
+    const expectedSignature = createHmac("sha256", this.#cursorSecret)
+      .update(encodedPayload)
+      .digest();
+    const suppliedSignature = Buffer.from(encodedSignature, "base64url");
+    if (
+      suppliedSignature.length !== expectedSignature.length ||
+      !timingSafeEqual(suppliedSignature, expectedSignature)
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor integrity check failed.",
+      );
+    }
+
+    let decoded: unknown;
+    try {
+      decoded = JSON.parse(
+        Buffer.from(encodedPayload, "base64url").toString("utf8"),
+      ) as unknown;
+    } catch {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor payload is invalid.",
+      );
+    }
+    if (
+      typeof decoded !== "object" ||
+      decoded === null ||
+      Array.isArray(decoded)
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor payload is invalid.",
+      );
+    }
+    const value = decoded as Record<string, unknown>;
+    const keys = Object.keys(value).sort();
+    const expectedKeys = [
+      "before_stream_revision",
+      "project_id",
+      "snapshot_event_position",
+      "snapshot_head_event_id",
+      "snapshot_head_record_hash",
+      "snapshot_stream_revision",
+      "version",
+    ];
+    const isPositiveSafeInteger = (candidate: unknown): candidate is number =>
+      Number.isSafeInteger(candidate) && Number(candidate) >= 1;
+    if (
+      keys.length !== expectedKeys.length ||
+      keys.some((key, index) => key !== expectedKeys[index]) ||
+      value.version !== 1 ||
+      typeof value.project_id !== "string" ||
+      !PROJECT_ID.test(value.project_id) ||
+      !isPositiveSafeInteger(value.snapshot_event_position) ||
+      !isPositiveSafeInteger(value.snapshot_stream_revision) ||
+      typeof value.snapshot_head_event_id !== "string" ||
+      !EVENT_ID.test(value.snapshot_head_event_id) ||
+      typeof value.snapshot_head_record_hash !== "string" ||
+      !CONTENT_HASH.test(value.snapshot_head_record_hash) ||
+      !isPositiveSafeInteger(value.before_stream_revision) ||
+      value.before_stream_revision > value.snapshot_stream_revision
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor payload is invalid.",
+      );
+    }
+    const payload: HistoryCursorPayload = {
+      version: 1,
+      project_id: value.project_id,
+      snapshot_event_position: value.snapshot_event_position,
+      snapshot_stream_revision: value.snapshot_stream_revision,
+      snapshot_head_event_id: value.snapshot_head_event_id,
+      snapshot_head_record_hash: value.snapshot_head_record_hash,
+      before_stream_revision: value.before_stream_revision,
+    };
+    if (this.#encodeCursor(payload) !== cursor) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor encoding is not canonical.",
+      );
+    }
+    if (payload.project_id !== projectId) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor belongs to a different Project.",
+      );
+    }
+    return payload;
+  }
+
+  async #retentionSnapshot(
+    client: PoolClient,
+    projectId: string,
+    authority: PetraProjectHistoryView["content"]["authority"],
+  ): Promise<ProjectHistoryRetentionSnapshot> {
+    if (authority.through_stream_revision === 0) {
+      return {
+        through_event_position: authority.through_event_position,
+        through_stream_revision: 0,
+      };
+    }
+    const result = await client.query<EventRow>(
+      `SELECT payload AS event_payload, record_hash AS event_record_hash
+         FROM petra.domain_events
+        WHERE project_id = $1 AND stream_revision = $2`,
+      [projectId, authority.through_stream_revision],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The retained Project event head is unavailable.",
+      );
+    }
+    const headEventRef = this.#eventRef(
+      row.event_payload,
+      row.event_record_hash,
+    );
+    if (headEventRef.event_position > authority.through_event_position) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The retained Project event head exceeds current authority.",
+      );
+    }
+    return {
+      through_event_position: authority.through_event_position,
+      through_stream_revision: authority.through_stream_revision,
+      head_event_ref: headEventRef,
+    };
+  }
+
+  async #resolveCursorSnapshot(
+    client: PoolClient,
+    projectId: string,
+    cursor: HistoryCursorPayload,
+    currentAuthority: PetraProjectHistoryView["content"]["authority"],
+  ): Promise<ProjectHistoryRetentionSnapshot> {
+    if (
+      cursor.snapshot_event_position >
+        currentAuthority.through_event_position ||
+      cursor.snapshot_stream_revision > currentAuthority.through_stream_revision
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor references an unavailable authority snapshot.",
+      );
+    }
+    const result = await client.query<EventRow>(
+      `SELECT payload AS event_payload, record_hash AS event_record_hash
+         FROM petra.domain_events
+        WHERE project_id = $1
+          AND stream_revision = $2
+          AND event_id = $3`,
+      [
+        projectId,
+        cursor.snapshot_stream_revision,
+        cursor.snapshot_head_event_id,
+      ],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor does not resolve to its original Project snapshot.",
+      );
+    }
+    const headEventRef = this.#eventRef(
+      row.event_payload,
+      row.event_record_hash,
+    );
+    if (
+      headEventRef.record_hash !== cursor.snapshot_head_record_hash ||
+      headEventRef.event_position > cursor.snapshot_event_position
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor does not resolve to its original Project snapshot.",
+      );
+    }
+    return {
+      through_event_position: cursor.snapshot_event_position,
+      through_stream_revision: cursor.snapshot_stream_revision,
+      head_event_ref: headEventRef,
+    };
   }
 
   async getProjectHistoryEpisodeView(

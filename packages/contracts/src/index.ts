@@ -124,6 +124,17 @@ export type {
   StreamOrder as ProjectHistoryStreamOrder,
 } from "./generated/project-history-episode-view.js";
 export type {
+  AuthorityPosition as ProjectHistoryRetainedAuthorityPosition,
+  CollectionQuery as ProjectHistoryRetainedCollectionQuery,
+  EmptyRetentionSnapshot as ProjectHistoryEmptyRetentionSnapshot,
+  NonemptyRetentionSnapshot as ProjectHistoryNonemptyRetentionSnapshot,
+  OpaqueCursor as ProjectHistoryOpaqueCursor,
+  Page as ProjectHistoryRetainedPage,
+  PetraProjectHistoryRetainedView,
+  RetainedContent as ProjectHistoryRetainedContent,
+  RetentionSnapshot as ProjectHistoryRetentionSnapshot,
+} from "./generated/project-history-retained-view.js";
+export type {
   AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
   ControlSection as ProjectEffectiveControlSection,
   ControlSections as ProjectEffectiveControlSections,

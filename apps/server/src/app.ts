@@ -19,6 +19,7 @@ import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   DurableReviewInterruptError,
   PetraInteractionRuntime,
+  ProjectHistoryViewRequestError,
   ProjectSourceLifecycleAuthorityError,
   ProjectSourceReplacementCommandError,
   derivePetraId,
@@ -94,6 +95,7 @@ const PROJECT_SOURCE_LIFECYCLE_RECEIPT_ID_PATTERN =
   /^project_source_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const COMMAND_ID_PATTERN = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const EVENT_ID_PATTERN = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const HISTORY_CURSOR_PATTERN = /^phc1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/u;
 const CONTENT_HASH_PATTERN = /^sha256:[0-9a-f]{64}$/u;
 const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$/u;
 const WORK_UNIT_ID_PATTERN = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -819,6 +821,104 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project Recent changes view is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/history/events",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const allowed = new Set(["limit", "cursor"]);
+        const unknown = [...parameters.keys()].filter(
+          (key) => !allowed.has(key),
+        );
+        if (unknown.length > 0) {
+          throw new InteractionInputError(
+            "Retained Project History contains unregistered query parameters.",
+            [...new Set(unknown)],
+          );
+        }
+        for (const key of allowed) {
+          if (parameters.getAll(key).length > 1) {
+            throw new InteractionInputError(
+              `Retained Project History parameter ${key} must appear once.`,
+            );
+          }
+        }
+        const limitValue = parameters.get("limit");
+        const limit = limitValue === null ? undefined : Number(limitValue);
+        if (
+          limit !== undefined &&
+          (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History limit must be an integer from 1 through 100.",
+          );
+        }
+        const cursorValue = parameters.get("cursor");
+        const cursor = cursorValue === null ? undefined : cursorValue;
+        if (
+          cursor !== undefined &&
+          (cursor.length > 1024 || !HISTORY_CURSOR_PATTERN.test(cursor))
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History cursor is invalid.",
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const view =
+          await options.projectHistoryViews.listRetainedProjectHistoryView(
+            projectId,
+            {
+              ...(limit === undefined ? {} : { limit }),
+              ...(cursor === undefined ? {} : { cursor }),
+            },
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_NOT_FOUND",
+            "The requested Project does not exist in the local authority store.",
+          );
+        }
+        contracts.assertValid("project-history-retained-view", "1.0.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.content.view_kind !== "retained_events" ||
+          view.content.query.limit !== (limit ?? 50) ||
+          view.content.query.cursor !== cursor
+        ) {
+          throw new Error(
+            "The retained Project History reader returned a different Project or query.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        const invalid =
+          error instanceof InteractionInputError ||
+          error instanceof ProjectHistoryViewRequestError;
+        return jsonError(
+          context,
+          invalid ? 422 : 503,
+          invalid
+            ? "PROJECT_HISTORY_RETAINED_QUERY_INVALID"
+            : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The retained Project History is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

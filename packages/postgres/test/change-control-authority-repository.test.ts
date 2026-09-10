@@ -412,6 +412,20 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     const commands = commandFixtures();
     const repository = authority();
 
+    const emptyHistory = await historyViews.listRetainedProjectHistoryView(
+      commands.submit.project_id,
+    );
+    expect(emptyHistory?.content.changes).toEqual([]);
+    expect(emptyHistory?.content.page).toEqual({
+      returned_count: 0,
+      snapshot_total_count: 0,
+      has_more: false,
+    });
+    expect(emptyHistory?.content.retention_snapshot).toEqual({
+      through_event_position: 0,
+      through_stream_revision: 0,
+    });
+
     await expect(repository.executeCommand(commands.submit)).resolves.toEqual(
       expect.objectContaining({ outcome: "submitted" }),
     );
@@ -419,6 +433,48 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       expect.objectContaining({
         outcome: "approval_recorded",
         change_set_state: "approved",
+      }),
+    );
+    const retainedBeforeApply =
+      await historyViews.listRetainedProjectHistoryView(
+        commands.submit.project_id,
+        { limit: 1 },
+      );
+    expect(retainedBeforeApply?.content.changes[0]?.event_ref.event_type).toBe(
+      "approval.recorded",
+    );
+    expect(retainedBeforeApply?.content.page.snapshot_total_count).toBe(2);
+    expect(
+      retainedBeforeApply?.content.retention_snapshot.through_stream_revision,
+    ).toBe(2);
+    const retainedFirstPage = retainedBeforeApply?.content.page;
+    if (retainedFirstPage === undefined || !retainedFirstPage.has_more) {
+      throw new Error("Expected retained History continuation.");
+    }
+    const retainedCursor = retainedFirstPage.next_cursor;
+    const finalCursorCharacter = retainedCursor.at(-1);
+    if (finalCursorCharacter === undefined) {
+      throw new Error("Expected non-empty retained History cursor.");
+    }
+    const tamperedCursor = `${retainedCursor.slice(0, -1)}${finalCursorCharacter === "A" ? "B" : "A"}`;
+    await expect(
+      historyViews.listRetainedProjectHistoryView(commands.submit.project_id, {
+        limit: 1,
+        cursor: tamperedCursor,
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
+      }),
+    );
+    await expect(
+      historyViews.listRetainedProjectHistoryView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        { limit: 1, cursor: retainedCursor },
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
       }),
     );
     const applied = await repository.executeCommand(commands.apply);
@@ -432,6 +488,27 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         assertion_revision: 2,
       }),
     );
+    const retainedAfterApply =
+      await historyViews.listRetainedProjectHistoryView(
+        commands.submit.project_id,
+        { limit: 1, cursor: retainedCursor },
+      );
+    expect(
+      retainedAfterApply?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual(["change_set.submitted"]);
+    expect(retainedAfterApply?.content.page).toEqual({
+      returned_count: 1,
+      snapshot_total_count: 2,
+      has_more: false,
+    });
+    expect(
+      retainedAfterApply?.content.retention_snapshot.through_stream_revision,
+    ).toBe(2);
+    expect(
+      retainedAfterApply?.content.current_authority.through_stream_revision,
+    ).toBe(3);
     await expect(repository.executeCommand(commands.apply)).resolves.toEqual(
       applied,
     );
@@ -921,6 +998,16 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     expect(recentHistory?.content.changes[0]?.observed_effect.effect).toBe(
       "authority_change_reverted",
     );
+    const retainedHistory = await historyViews.listRetainedProjectHistoryView(
+      commands.submit.project_id,
+      { limit: 6 },
+    );
+    expect(
+      retainedHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.schema_version,
+      ),
+    ).toEqual(["1.1.0", "1.1.0", "1.1.0", "1.0.0", "1.0.0", "1.0.0"]);
+    expect(retainedHistory?.content.page.has_more).toBe(false);
     const authorizations = await pool.query<{
       admission_kind: string;
       evidence_revision: string;

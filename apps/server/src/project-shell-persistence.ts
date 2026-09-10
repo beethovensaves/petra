@@ -16,6 +16,7 @@ import {
   PostgresProjectWorkViewReader,
 } from "@petra/postgres";
 import { Neo4jAuthorityGraphStore } from "@petra/neo4j";
+import { PetraContractRegistry } from "@petra/contracts/validator";
 import neo4j, { type Driver } from "neo4j-driver";
 import pg from "pg";
 
@@ -58,6 +59,8 @@ export interface ProjectShellPersistence {
 }
 
 export interface ProjectShellPersistenceEnvironment {
+  readonly PETRA_AUTH_TOKEN?: string;
+  readonly PETRA_HISTORY_CURSOR_SECRET?: string;
   readonly PETRA_POSTGRES_HOST?: string;
   readonly PETRA_POSTGRES_HOST_PORT?: string;
   readonly PETRA_POSTGRES_USER?: string;
@@ -71,6 +74,16 @@ export interface ProjectShellPersistenceEnvironment {
   readonly PETRA_NEO4J_PASSWORD?: string;
   readonly PETRA_NEO4J_DATABASE?: string;
 }
+
+const historyCursorSecret = (
+  environment: ProjectShellPersistenceEnvironment,
+): string => {
+  const explicit = environment.PETRA_HISTORY_CURSOR_SECRET?.trim();
+  if (explicit !== undefined && explicit !== "") return explicit;
+  const authenticationToken =
+    environment.PETRA_AUTH_TOKEN?.trim() || "petra-local-development";
+  return `petra-history-cursor-v1:${authenticationToken}`;
+};
 
 export class ProjectShellPersistenceConfigurationError extends Error {
   constructor(message: string) {
@@ -199,7 +212,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
       return {
         views: new PostgresProjectShellViewReader(pool),
         effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
-        historyViews: new PostgresProjectHistoryViewReader(pool),
+        historyViews: new PostgresProjectHistoryViewReader(
+          pool,
+          new PetraContractRegistry(),
+          { cursorSecret: historyCursorSecret(environment) },
+        ),
         sourceViews: new PostgresProjectSourceViewReader(pool),
         sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(
           pool,
@@ -248,7 +265,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
   return {
     views: new PostgresProjectShellViewReader(pool),
     effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
-    historyViews: new PostgresProjectHistoryViewReader(pool),
+    historyViews: new PostgresProjectHistoryViewReader(
+      pool,
+      new PetraContractRegistry(),
+      { cursorSecret: historyCursorSecret(environment) },
+    ),
     sourceViews: new PostgresProjectSourceViewReader(pool),
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),

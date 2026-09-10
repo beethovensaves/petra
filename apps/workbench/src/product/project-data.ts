@@ -4,6 +4,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryRetainedView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
@@ -148,6 +149,36 @@ const projectHistoryEpisodeView = (
     );
   }
   return value as unknown as PetraProjectHistoryEpisodeView;
+};
+
+const projectHistoryRetainedView = (
+  value: unknown,
+): PetraProjectHistoryRetainedView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-retained-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "retained_events" ||
+    value.content.order_kind !== "project_stream_newest_first" ||
+    !isRecord(value.content.query) ||
+    !Array.isArray(value.content.changes) ||
+    value.content.changes.length > 100 ||
+    !isRecord(value.content.page) ||
+    !isRecord(value.content.retention_snapshot) ||
+    !isRecord(value.content.current_authority) ||
+    value.content.recovery_authority !== "current_at_page_read" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid retained Project History view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryRetainedView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -1391,6 +1422,41 @@ export const getProjectHistoryEpisode = async (
   if (view.project_id !== projectId || view.event_id !== eventId) {
     throw new ProjectDataError(
       "Petra returned a different Project History episode.",
+      502,
+    );
+  }
+  return view;
+};
+
+export interface RetainedProjectHistoryRequest {
+  readonly limit?: number;
+  readonly cursor?: string;
+}
+
+export const getRetainedProjectHistory = async (
+  projectId: string,
+  request: RetainedProjectHistoryRequest = {},
+): Promise<PetraProjectHistoryRetainedView> => {
+  const limit = request.limit ?? 50;
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+    throw new ProjectDataError(
+      "Retained Project History limit must be an integer from 1 through 100.",
+      400,
+    );
+  }
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (request.cursor !== undefined) query.set("cursor", request.cursor);
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/history/events?${query}`,
+  );
+  const view = projectHistoryRetainedView(value);
+  if (
+    view.project_id !== projectId ||
+    view.content.query.limit !== limit ||
+    view.content.query.cursor !== request.cursor
+  ) {
+    throw new ProjectDataError(
+      "Petra returned retained History from another Project or traversal query.",
       502,
     );
   }

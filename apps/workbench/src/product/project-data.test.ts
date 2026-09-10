@@ -6,6 +6,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryRetainedView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
@@ -30,6 +31,7 @@ import {
   executeProjectSourceLifecycleCommand,
   getRecentProjectHistory,
   getProjectHistoryEpisode,
+  getRetainedProjectHistory,
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
   loadProjectPetraThread,
@@ -196,6 +198,16 @@ const historyEpisodeView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryEpisodeView;
+
+const historyRetainedView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-retained-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRetainedView;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -592,6 +604,48 @@ describe("Project shell workbench adapter", () => {
         historyEpisodeView.event_id,
       ),
     ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("reads retained History pages without interpreting the opaque cursor", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyRetainedView));
+    vi.stubGlobal("fetch", fetch);
+
+    const first = await getRetainedProjectHistory(
+      historyRetainedView.project_id,
+      { limit: 1 },
+    );
+
+    expect(first).toEqual(historyRetainedView);
+    expect(first.content.order_kind).toBe("project_stream_newest_first");
+    expect(first.content.recovery_authority).toBe("current_at_page_read");
+    expect(first.content.graph_navigation_history).toBe(
+      "client_local_separate",
+    );
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${historyRetainedView.project_id}/history/events?limit=1`,
+    );
+
+    const firstPage = first.content.page;
+    if (!firstPage.has_more) throw new Error("Expected an opaque cursor.");
+    const continued = structuredClone(historyRetainedView);
+    continued.content.query.cursor = firstPage.next_cursor;
+    fetch.mockResolvedValueOnce(Response.json(continued));
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        limit: 1,
+        cursor: firstPage.next_cursor,
+      }),
+    ).resolves.toEqual(continued);
+    expect(fetch.mock.calls[1]?.[0]).toBe(
+      `/api/queries/projects/${historyRetainedView.project_id}/history/events?limit=1&cursor=${encodeURIComponent(firstPage.next_cursor)}`,
+    );
+
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, { limit: 101 }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it("maps one exact ProjectSource authority chain into the frozen source surfaces", () => {

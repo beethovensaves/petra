@@ -1122,6 +1122,33 @@ describePostgres("PostgreSQL Document authority repository", () => {
       "client_local_separate",
     );
     expect(recentHistory?.content.quick_window_limit).toBe(10);
+    const retainedFirst = await historyViews.listRetainedProjectHistoryView(
+      project.project_id,
+      { limit: 2 },
+    );
+    expect(
+      retainedFirst?.content.changes.map(
+        ({ event_ref }) => event_ref.schema_version,
+      ),
+    ).toEqual(["1.3.0", "1.3.0"]);
+    const retainedFirstPage = retainedFirst?.content.page;
+    if (retainedFirstPage === undefined || !retainedFirstPage.has_more) {
+      throw new Error("Expected retained ProjectSource History continuation.");
+    }
+    const retainedSecond = await historyViews.listRetainedProjectHistoryView(
+      project.project_id,
+      { limit: 2, cursor: retainedFirstPage.next_cursor },
+    );
+    expect(
+      retainedSecond?.content.changes.map(({ event_ref }) => [
+        event_ref.schema_version,
+        event_ref.event_type,
+      ]),
+    ).toEqual([["1.2.0", "project_source.excluded"]]);
+    expect(retainedSecond?.content.page.has_more).toBe(false);
+    expect(retainedSecond?.content.retention_snapshot).toEqual(
+      retainedFirst?.content.retention_snapshot,
+    );
     const retractionEvent = recentHistory?.content.changes[0]?.event_ref;
     if (retractionEvent === undefined) {
       throw new Error("Expected replacement-retraction History.");
