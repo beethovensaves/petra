@@ -1,7 +1,7 @@
 # Petra Design Implementation Roadmap
 
 Status: `UX-DESIGN-FREEZE-01` accepted against baseline `655d094`; initial Phase 2 neutral reference packet set implemented through `bfdcecf`
-Last updated: 2026-09-07
+Last updated: 2026-09-10
 Scope: deliver Petra's M1 experience module by module while implementation continues, without creating a second authority for architecture or feature completion
 
 Companion documents:
@@ -17,6 +17,7 @@ Companion documents:
 - [UX writing and interaction audit protocol](reports/UX-WRITING-INTERACTION-AUDIT-PROTOCOL.md)
 - [Use-agnostic user-flow architecture](reports/UX-FLOW-ARCHITECTURE.md)
 - [UX-to-implementation requirements handoff](reports/UX-BACKEND-HANDOFF.md)
+- [Sources lifecycle interface handoff](reports/UX-REQ-008-010-SOURCES-LIFECYCLE-INTERFACE-HANDOFF.md)
 - [Master Petra UX design brief and freeze criteria](reports/PETRA-UX-DESIGN-BRIEF.md)
 
 ## Outcome
@@ -1367,8 +1368,8 @@ A local component calculation is allowed for presentation-only state such as pan
 | `UX-REQ-006` | `proposed` | Durable Project threads, task linkage, exact per-turn context, stale-thread choices, and branch lineage | `M1.1`, `M1.6`, `M1.7` | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-007` | `proposed` | Client presentation-history boundary, recent-ten reversible changes, authorized causal Project History, exact compensation preview, additive governed Revert, projection comparison, and Return to current | `M1.1`, `M1.3`, `M1.5`, `M1.7`, later profile/history contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-008` | `partial`; initial live semantic-location slice passed | Semantic object location, exact/historical/replaced resolution, safe fallback, and registered destination role | `M1.1`, `M1.7`, later definition/type contracts | `reports/UX-REQ-008-SEMANTIC-LOCATION.md` |
-| `UX-REQ-009` | `proposed`; depends on Project-profile disposition | Snapshot-consistent, profile-resolved Project source and exact-inspection read model | `M1.2`, `M1.4`, `M1.7`, later profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
-| `UX-REQ-010` | `proposed`; architecture and retention decision required | Project-source association plus governed removal and local-copy deletion lifecycle | `M1.2`, `M1.5`, `M1.7`, later retention policy | `reports/UX-BACKEND-HANDOFF.md` |
+| `UX-REQ-009` | `partial`; scientific Project source read is live and frozen lifecycle integration is specified | Snapshot-consistent, profile-resolved Project source and exact-inspection read model | `M1.2`, `M1.4`, `M1.7`, later profile contracts | `reports/UX-REQ-008-010-SOURCES-LIFECYCLE-INTERFACE-HANDOFF.md` |
+| `UX-REQ-010` | `partial`; exclude/restore and replacement create/retract authority are live, frozen interface integration specified, physical deletion unavailable | Project-source association plus governed removal and local-copy deletion lifecycle | `M1.2`, `M1.5`, `M1.7`, later retention policy | `reports/UX-REQ-008-010-SOURCES-LIFECYCLE-INTERFACE-HANDOFF.md` |
 | `UX-REQ-011` | `proposed`; architecture decision required | Durable, profile-valid, non-authoritative working candidates and graph relationships derived from bounded interactions with exact origin, basis, validation, and revision lineage | `M1.1`, `M1.3`, `M1.5`, `M1.6`, `M1.7`, later profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-012` | `proposed` | Snapshot-consistent, profile-neutral Review-session query and missing correction, basis-change, separation, deferment, and member-outcome command composition | `M1.5`, `M1.7`, later profile contracts | `reports/UX-BACKEND-HANDOFF.md` |
 | `UX-REQ-013` | `proposed` | Bounded profile-resolved relationship query with exact layers/paths, scope and omissions, finite expansion, supplied comparison/impact facts, and temporal capabilities | `M1.3`, `M1.5`, `M1.6`, `M1.7`, later profile/temporal contracts | `reports/UX-BACKEND-HANDOFF.md` |

@@ -510,6 +510,17 @@ contract, live-integration, or full `UX-FX01`–`UX-FX46` validation evidence.
 Unavailable commands remain visibly unavailable rather than manufacturing
 authority in the client.
 
+On 2026-09-10 the design branch synchronized with backend `main` at `29f26f9`
+and specified the frozen Sources/Details integration for the now implemented
+ProjectSource lifecycle and replacement commands. The exact handoff is
+[`reports/UX-REQ-008-010-SOURCES-LIFECYCLE-INTERFACE-HANDOFF.md`](reports/UX-REQ-008-010-SOURCES-LIFECYCLE-INTERFACE-HANDOFF.md).
+It uses the existing Details permitted-actions slot and `PetraDialog`, keeps
+collection navigation and layout unchanged, makes replacement retraction and
+predecessor restoration two separate confirmed commands, and keeps physical
+deletion unavailable. Frontend connection still requires an actor-scoped read
+that supplies current eligibility, exact replacement, and exclusion-receipt
+references; existing client labels cannot supply those facts.
+
 ## Latest repository checkpoint
 
 - This conversation resumed on `design/m1-ux` at `230fadd`; DB10's specification
@@ -583,8 +594,14 @@ authority in the client.
   and `bfdcecf`. Its fixtures are synthetic, its unsupported commands are
   explicitly unavailable, and its limited automated/manual checks do not close
   the remaining evidence gates.
-- `UX-REQ-001` through `UX-REQ-023` remain proposed runtime
-  requirements; the design closure does not implement or close them.
+- Backend synchronization at `29f26f9` supplies governed source exclude,
+  restore, replacement creation, and relationship retraction. The 2026-09-10
+  Sources lifecycle interface handoff specifies their frozen control slot and
+  recovery behavior; the component integration and its required action read are
+  still open.
+- `UX-REQ-001` through `UX-REQ-023` remain open or partial as recorded in the
+  runtime disposition and design roadmap; the design closure does not close
+  them.
 - `ChatGPT Image Aug 29, 2026, 04_21_35 PM.png` and `Claim Form BASIC.pdf` are
   intentionally untracked user assets. Do not add or remove them without explicit
   direction.

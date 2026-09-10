@@ -3,7 +3,8 @@
 Status: exact immutable ProjectSource supersession, command-granular retraction,
 effective-head integrity, semantic-location traversal, and governed backend
 creation/retraction commands plus authenticated API and typed-client integration
-passed; frozen presentation integration remains open
+passed; frozen presentation integration is specified and implementation remains
+open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -96,6 +97,12 @@ No CSS, component, browser route hierarchy, layout, or client-owned history
 changed.
 The existing semantic-location response can support a later approved
 replacement affordance without requiring the client to infer domain authority.
+The exact existing control slot, action preview, confirmation, receipt,
+two-command recovery order, and remaining read-composition need are now defined
+in
+[the Sources lifecycle interface handoff](UX-REQ-008-010-SOURCES-LIFECYCLE-INTERFACE-HANDOFF.md).
+That specification preserves `UX-DESIGN-FREEZE-01`; it does not itself connect a
+component or command.
 
 ## Verification
 
@@ -115,6 +122,7 @@ source restoration before relation retraction.
 
 ## Remaining work
 
-- extend replacement/parent semantics only through owning object adapters; and
-- integrate the existing location result into an approved frozen-interface
-  control slot.
+- extend replacement/parent semantics only through owning object adapters;
+- add the actor-scoped lifecycle/replacement read composition required by the
+  frozen Details control slot; and
+- implement and validate the specified Sources/Details integration.
