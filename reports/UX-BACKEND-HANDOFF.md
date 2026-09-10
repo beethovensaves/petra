@@ -273,14 +273,17 @@ between shell context and task content more important.
   `UX1.0-DISC10`; `UX1.4-W05`, `UX1.4-W11`, `UX1.5`, `UX1.6-W15`,
   `DB17-P11`–`P12`, `UX-FLOW-12`, and `UX-FLOW-16`.
 - **Implemented backend baseline:** commits `92e9cb1`, `7ae590f`, `1c44dd3`,
-  `9530b09`, and `c5da977` add `petra.project-history-view@1.0.0`,
+  `9530b09`, `c5da977`, and `c198af6` add
+  `petra.project-history-view@1.0.0`,
   `petra.project-history-episode-view@1.0.0`, and
   `petra.project-history-retained-view@1.0.0` with authenticated Project-scoped
   routes, repeatable-read PostgreSQL composition, contract validation, typed
   workbench readers, and conformance fixtures. The dependency-impact commits
   add `petra.project-history-impact-view@1.0.0` at `9530b09` and
-  `petra.project-history-impact-view@1.1.0` with registered exact semantic-target
-  adapters at `c5da977`, both through the existing exact-event impact route.
+  `petra.project-history-impact-view@1.1.0` with the first registered exact
+  semantic-target adapters at `c5da977`, then version 1.2 with exact
+  ProjectSource and replacement adapters at `c198af6`, all through the existing
+  exact-event impact route.
   The implementation result and remaining backend work are recorded in
   [UX-REQ-007 causal Project History](UX-REQ-007-CAUSAL-PROJECT-HISTORY.md).
 - **Integration scope:** bind these reads to the frozen `HistorySurface` and its
@@ -299,12 +302,12 @@ between shell context and task content more important.
 | `HistoryRoute` at `/projects/:projectId/history` | `GET /api/queries/projects/:projectId/history/recent` | Load one `petra.project-history-view@1.0.0`; verify the exact Project, `view_kind: recent_changes`, `order: newest_first`, `quick_window_limit: 10`, no more than ten members, a well-formed content-hash field, and `graph_navigation_history: client_local_separate`. No client limit, cursor, graph state, or filter is sent. |
 | Left `history-episodes` ordered list | `content.changes` | Keep the existing list container and relabel its heading **Recent changes**. Render the returned order without regrouping or client sorting. The header count is the number shown, never a retained-history total. With `has_older: true`, its existing count text reads **10 shown · Older changes exist**. The implemented retained-events endpoint is a separate cursor traversal; `has_older` itself is not its cursor. This impact slice adds no collection control. |
 | Existing row link | `event_ref.event_id`, `recorded_at`, `command_ref.command_name`, `observed_effect.summary` | Link to the existing `/projects/:projectId/history/:episodeId` pattern with `episodeId` equal to the exact immutable `event_id`. Use the registered command label as the row action and the server summary as its description. Do not invent a target title from `semantic_key` or `object_id`. |
-| Existing selected detail article | `GET /api/queries/projects/:projectId/history/events/:eventId` and `GET /api/queries/projects/:projectId/history/events/:eventId/impact` | Every selected row and deep link loads the exact episode. The detail may then consume `petra.project-history-impact-view@1.1.0` for that same Project and event in its existing sections. Verify outer Project/event identity and the complete overlapping selected-event anchor before rendering impact. Bind `episodeId` semantically as an event ID; do not retain the fixture episode key as a second identity. |
+| Existing selected detail article | `GET /api/queries/projects/:projectId/history/events/:eventId` and `GET /api/queries/projects/:projectId/history/events/:eventId/impact` | Every selected row and deep link loads the exact episode. The detail may then consume `petra.project-history-impact-view@1.2.0` for that same Project and event in its existing sections. Verify outer Project/event identity and the complete overlapping selected-event anchor before rendering impact. Bind `episodeId` semantically as an event ID; do not retain the fixture episode key as a second identity. |
 | Detail header | `content.change.observed_effect` plus exact event type | Use the registered event/action label as the title, `observed_effect.summary` as the lead, and its `outcome` as explicit text. A descriptive profile target label is absent from the implemented contract and cannot be fabricated. |
 | Existing Actor, Occurred, Recorded, and Action facts | `actor`, `occurred_at`, `recorded_at`, and `command_ref` | Preserve all four rows. Actor renders an authorized display label only when another trusted Project read supplies one; otherwise render the exact kind and ID, such as **Human · actor_…**, rather than **Project author**. Render both timestamps with native `<time datetime="…">`; the visible value includes localized date, time, and zone while the element retains the exact ISO value. Do not collapse unequal occurred and recorded times. |
 | Existing **Authority effect** section | selected event `observed_effect`, `outcome`, `targets`, direct-impact summary, and semantic-target summary | Keep the event's supplied effect as the primary statement. Following sentences may separately report **{total} registered direct event/command references across four groups · {coverage}** and **{total} registered exact semantic-target references across {supported} of {assessed} assessed targets · {coverage}**. Never combine the totals, rename either **all dependencies**, infer a dependent effect, or treat either as a reversibility result. |
 | Existing **Projection effect** section | `impact.graph_projection_records` | Render the exact graph-projection attempt records, including attempt, applied/failed outcome, recorded time, and outbox binding. With complete zero coverage say **No registered graph-projection attempt was found for this event.** An attempt outcome does not establish the current Graph's freshness. |
-| Existing **Episode members** section | episode `causality`, `stream_order`, optional `receipt_ref`, direct-impact causal-command/outbox/GroundedResponse-invalidation groups, and `semantic_target_impact.target_assessments` | Keep every relation family separately labelled within this existing section. Nest the four semantic adapter groups beneath their exact selected-event target; keep a target-local non-result and its exact reason in that same target block. Preserve target, group, and reference order. Never describe Project-stream adjacency, outbox carriage, projection, invalidation, Review membership, GroundedResponse dependency, or composition lineage as command causation, and never merge them into a cross-family timeline. |
+| Existing **Episode members** section | episode `causality`, `stream_order`, optional `receipt_ref`, direct-impact causal-command/outbox/GroundedResponse-invalidation groups, and `semantic_target_impact.target_assessments` | Keep every relation family separately labelled within this existing section. Nest the applicable semantic adapter groups beneath their exact selected-event target; keep a target-local non-result and its exact reason in that same target block. Preserve target, group, and reference order. Never describe Project-stream adjacency, outbox carriage, projection, invalidation, Review membership, GroundedResponse dependency, source lineage, or composition lineage as command causation, and never merge them into a cross-family timeline. |
 | Existing **Recovery relationship** and `history-revert` block | `recovery`, direct and semantic-target coverage/`unknowns`, `decision_boundary`, and `omissions` | Apply the wording rules below. State both impact coverage boundaries and summarize unsupported target count beside recovery so proven references cannot be read as effects or a reversal decision. Eligibility is a separate current History fact, not permission to execute and not an impact preview. The existing subordinate `PetraDialog` stays closed and unlaunchable until an owning revision-bound preview/action adapter exists. |
 | Existing top return control | client-held entry context plus `UX-REQ-008` resolution | Reuse this one control for the exact-return behavior below. Direct entry or a deep link with no permitted origin keeps the frozen **Return to current Brief** fallback. |
 
@@ -343,7 +346,7 @@ kicker. No row is falsely marked selected.
 
 For the selected event only, request
 `GET /api/queries/projects/:projectId/history/events/:eventId/impact` with no
-query parameters. Accept only `petra.project-history-impact-view@1.1.0` with
+query parameters. Accept only `petra.project-history-impact-view@1.2.0` with
 `view_kind: dependency_impact`, `authorization_scope: authenticated_project`,
 `authority.isolation: repeatable_read`, and
 `graph_navigation_history: client_local_separate`. The outer `project_id` and
@@ -404,16 +407,55 @@ this slice adds no polling, filter, action, or background claim of currentness.
 
 #### Registered exact semantic-target binding
 
-Version 1.1 preserves the direct groups above and adds
+Version 1.2 preserves the direct groups and four version 1.1 adapters, then adds
+five ProjectSource and replacement adapters in
 `content.semantic_target_impact`. The adapter accepts the registry only when it
-contains exactly these four entries and mappings:
+contains exactly these nine entries in contract order with these mappings:
 
-| Adapter group | Registered exact targets | Immutable authority source | Existing detail placement and exact relations |
+| Adapter group | Registered exact targets | Authority source | Existing detail placement and exact relations |
 | --- | --- | --- | --- |
 | `change_control` | `petra.change-set`, `petra.approval`, `scientific.claim`, `scientific.assertion` | `immutable_change_control_target_bindings` | In **Episode members**, label **Change control**. Preserve `approves_exact_change_set`, `authorized_by_exact_change_set`, `authorized_by_exact_approval`, and `proposes_promotion_from_exact_evidence_revision` as distinct relations. |
 | `review_membership` | `scientific.claim`, `scientific.assertion` | `immutable_review_candidate_bindings` | In **Episode members**, label **ReviewSession membership** and preserve `contains_exact_review_candidate`. It proves that the exact evidence revision is a retained candidate member; it does not report a Review outcome. |
 | `grounded_response_dependency` | `scientific.claim`, `scientific.assertion` | `immutable_grounded_response_dependencies` | In **Episode members**, label **GroundedResponse dependencies** and preserve `depends_on_exact_grounded_evidence`. Keep this separate from the direct `grounded_response_invalidations` group. |
 | `composition_lineage` | `scientific.claim`, `scientific.assertion` | `immutable_composition_target_bindings` | In **Episode members**, label **Composition lineage**. Preserve `selects_exact_composition_subject`, `uses_exact_composition_evidence`, `maps_exact_provenance_basis`, and `retains_exact_draft_authority_dependency` separately. |
+| `project_source_lifecycle` | `petra.project-source` | `immutable_project_source_lifecycle_receipts` | In **Episode members**, label **Source lifecycle receipts**. Preserve `records_exact_source_prior_revision` and `records_exact_source_resulting_revision`; every reference is an immutable retained receipt. |
+| `project_source_dependency` | `petra.project-source` | `immutable_project_source_dependency_bindings` | In **Episode members**, label **Source dependencies**. Preserve parse, structure, span, Claim, Assertion, active Work, open Review, and GroundedResponse relations as the eight exact registered relation kinds below. |
+| `project_source_replacement_lineage` | `petra.project-source`, `petra.project-source-replacement` | `immutable_project_source_replacement_bindings` | In **Episode members**, label **Replacement lineage · retained**. Preserve `retains_exact_replaced_source`, `retains_exact_replacement_source`, and `retracts_exact_source_replacement`; every reference has immutable-revision posture. |
+| `project_source_replacement_receipt` | `petra.project-source-replacement` | `immutable_project_source_replacement_receipts` | In **Episode members**, label **Replacement command receipts** and preserve `records_exact_source_replacement_command`; every reference is an immutable retained receipt. |
+| `project_source_effective_head` | `petra.project-source`, `petra.project-source-replacement` | `current_project_source_replacement_heads` | In **Episode members**, label **Current replacement state**. Preserve `is_current_active_replacement_head` and `is_current_retracted_replacement_head`; every returned reference has current posture, and the relation states active versus retracted. |
+
+The **Source dependencies** group keeps these relations distinct:
+`parses_exact_source_artifact`, `structures_exact_source_artifact`,
+`locates_span_in_exact_source_artifact`,
+`derives_claim_from_exact_source_artifact`,
+`derives_assertion_from_exact_source_artifact`,
+`uses_exact_source_artifact_in_active_work`,
+`reviews_evidence_from_exact_source_artifact`, and
+`depends_on_exact_source_authority`. The labels describe registered bindings to
+the exact source artifact or authority. They do not claim that every downstream
+use is currently active: each returned reference's explicit posture remains
+visible, and the Work and Review relations are already restricted by the reader
+to active Work and the current open Review revision.
+
+For a source or replacement target, keep **Replacement lineage · retained**,
+**Replacement command receipts**, and **Current replacement state** as separate
+named lists with separate authority, counts, coverage, and empty results. The
+lineage and receipt lists use **Immutable retained revision** even when they
+describe a retraction. Only the effective-head list may use **Current dependent
+revision**. Its visible relation is **Current active replacement head** for
+`is_current_active_replacement_head` or **Current retracted replacement head**
+for `is_current_retracted_replacement_head`. A current retracted head means the
+head record currently carries retracted state; it does not revive the retained
+edge or restore the predecessor. Never derive current state from the newest
+lineage or receipt reference.
+
+With complete zero coverage, the retained-lineage list says **No retained
+replacement-lineage reference was found for this exact target.** The receipt
+list says **No replacement command receipt was found for this exact
+replacement.** The effective list says **No current replacement-head relation
+was found for this exact target at the read boundary.** An empty current group
+does not erase retained lineage, and an empty retained group does not imply that
+the target is currently active or retracted.
 
 The existing **Authority effect** section receives only the aggregate semantic-
 target summary. The existing **Projection effect** remains reserved for direct
@@ -430,6 +472,14 @@ then its `resolved_target_ref` supplies the verified schema name/version,
 optional content hash, and record hash. The resolved semantic key, object ID,
 revision, and any selected-target hashes must match. Do not replace an exact
 identity with a current object of the same kind or fabricate a title from an ID.
+
+The exact adapter-group sequence is part of the 1.2 client boundary: ChangeSet
+and Approval targets receive `change_control`; Claim and Assertion targets
+receive the original four groups; ProjectSource targets receive lifecycle,
+dependency, replacement-lineage, then effective-head groups; and replacement
+targets receive replacement-lineage, replacement-receipt, then effective-head
+groups. A missing, duplicate, reordered, or extra group fails the impact read
+closed. `summary.registered_adapter_count` must be nine.
 
 Within each target, keep the server's adapter-group order and the server's
 reference order. Every group displays its label, `authority_source`,
@@ -478,7 +528,7 @@ The three non-results are target-local states, not zero-count adapter groups:
 
 | `adapter_state` | Required existing-slot wording and behavior |
 | --- | --- |
-| `no_registered_exact_adapter` | Show **No exact semantic-target adapter is registered for this semantic key.** Preserve the exact target key and identity, require `groups: []`, and do not borrow an adapter from a related kind. ProjectSource and ProjectSource-replacement keys currently take this path. |
+| `no_registered_exact_adapter` | Show **No exact semantic-target adapter is registered for this semantic key.** Preserve the exact target key and identity, require `groups: []`, and do not borrow an adapter from a related kind. ProjectSource and ProjectSource-replacement are registered in 1.2; any other unregistered key still takes this path. |
 | `target_identity_incomplete` | Show **Registered semantic-target adapters require an immutable target revision.** Preserve the supplied target identity, require `groups: []`, and do not resolve its current revision. |
 | `target_authority_unavailable` | Show **The exact immutable target authority is unavailable in this Project snapshot.** Preserve the exact registered key, ID, and revision, require `groups: []`, and do not substitute a current or cross-Project record. |
 
@@ -487,12 +537,12 @@ change the selected episode or its recovery eligibility. A malformed registry,
 target-order or identity mismatch, unsupported adapter state, nonempty groups
 on a non-result, invalid authority/ref hash, or inconsistent count/coverage
 fails the entire impact response closed. Keep the exact episode visible and use
-**Registered dependency impact is unavailable for this event.** The 1.1 route
+**Registered dependency impact is unavailable for this event.** The 1.2 route
 returns direct and semantic impact together, so a whole-response failure exposes
 neither set of identities or counts. Out-of-order requests remain subject to the
 exact route event-ID guard.
 
-While the 1.1 request is pending, keep focus on the selected event, mark the
+While the 1.2 request is pending, keep focus on the selected event, mark the
 existing affected detail regions busy, and announce **Checking registered
 dependencies…** once. Each target is a programmatically named group within
 **Episode members**; its adapter groups are named lists, and authority, posture,
@@ -622,11 +672,12 @@ must continue rejecting any value other than
 
 #### Precise backend deltas, integration gaps, and next safe boundary
 
-- Backend commit `c5da977` advances the existing impact endpoint and typed
-  client from schema 1.0 to 1.1. The 1.1 response retains the complete direct
-  `impact` member and adds `semantic_target_impact`; it does not add another API
-  or browser path. A client pinned to 1.0 must update its accepted contract
-  version rather than issue a second semantic request.
+- Backend commit `c198af6` advances the existing impact endpoint and typed
+  client from schema 1.1 to 1.2. The 1.2 response retains the complete direct
+  `impact` member and all earlier semantic adapters, then expands the exact
+  registry from four to nine entries; it does not add another API or browser
+  path. A client pinned to 1.1 must update its accepted contract version rather
+  than issue a second source-impact request.
 - The frozen route still reads `REFERENCE_HISTORY`; it has no loaders/adapters
   for the implemented Recent, exact episode, retained traversal, or impact
   clients and uses fixture episode IDs. This is the immediate frontend
@@ -654,39 +705,35 @@ must continue rejecting any value other than
   `GET /api/queries/projects/:projectId/history/events` with signed opaque
   cursors; it is no longer the next backend gap. The frozen list is not yet
   wired to it, and this impact-conformance slice does not design its controls.
-- Version 1.1 has no authorized display labels, occurrence times, observed
+- Version 1.2 has no authorized display labels, occurrence times, observed
   effects, or semantic destinations for dependent references. The frozen
   adapter must use exact key/ID/revision fallbacks, must not sort them into a
   timeline, and cannot make them links unless an existing resolver authorizes
   the exact destination.
-- The semantic registry covers ChangeSet, Approval, Claim, and Assertion target
-  authority. ProjectSource and ProjectSource-replacement targets remain
-  explicitly unregistered even though their lifecycle and replacement
-  authorities exist. Identity-only relations, transitive closure, external
-  dependents, broader Work/output/delivery facts, and historical
-  ProjectDefinition interpretation remain outside the read.
+- The semantic registry now covers ChangeSet, Approval, Claim, Assertion,
+  ProjectSource, and ProjectSource-replacement target authority. Other semantic
+  keys remain explicitly unregistered. Identity-only relations, transitive
+  closure, external dependents, broader Work/output/delivery facts, and
+  historical ProjectDefinition interpretation remain outside the read.
 - Target assessment stops after ten selected-event targets and each adapter
   stops after twenty-five references. The response exposes coverage but no
   continuation cursor; this conformance slice adds no control for either bound.
 
-The next safe History boundary is to register exact ProjectSource and
-ProjectSource-replacement semantic-target adapters by reusing their existing
-immutable lifecycle, replacement, receipt, and dependency authorities. Each
-adapter must retain the version 1.1 per-target and per-adapter bounds and must
-separate retained replacement lineage from the effective replacement head.
-Unknown authority remains explicit. This boundary must not reinterpret a
-historical ProjectDefinition, turn identity-only relations into dependency
-truth, claim transitive completeness, assess reversibility, compose
-compensation, add filters, or merge families into one order.
+The next safe History boundary is authenticated bounded filtering of retained
+Project events with the complete query identity bound into the signed opaque
+snapshot cursor. It must leave Recent changes fixed at ten, preserve Project-
+stream order, calculate counts after authorization, and return explicit empty
+results without treating origin as authoritative. This slice does not start
+filter work and does not assess reversibility, compose compensation, or merge
+families into one order.
 
 - **Owner and status:** frontend integration track and product architecture;
   bounded Recent changes, exact causal episode, signed retained traversal, and
-  bounded direct dependency impact and registered exact semantic-target adapter
-  reads passed through `c5da977`. This frozen-surface acceptance mapping is
-  implementation-ready without component, CSS, or route changes. Frontend
-  binding and the stated gaps remain open; exact ProjectSource and
-  ProjectSource-replacement semantic-target adapters are the next safe History
-  boundary.
+  bounded direct dependency impact and nine registered exact semantic-target
+  adapter reads passed through `c198af6`. This frozen-surface acceptance mapping
+  is implementation-ready without component, CSS, or route changes. Frontend
+  binding and the stated gaps remain open; bounded retained-event filters are
+  the next safe History boundary.
 
 ### `UX-REQ-008` — semantic object location and safe deep-link resolution
 
@@ -2171,7 +2218,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Proposal, correction, exact preview, Apply, conflict, and Revert | ChangeSet, Approval, ReviewBatch, and additive event path in `M1.5` |
 | Durable conversation-derived working candidates and relationships | Proposed `UX-REQ-011`; existing bounded model records and evidence candidates remain inputs, not a generic working graph contract |
 | Profile-neutral Review session, comparison, deferment, separation, and member recovery | Proposed `UX-REQ-012`; current M1.5 evidence review remains the scientific contract foundation |
-| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable retained traversal, four-group direct dependency impact, and four registered exact semantic-target adapters under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration history remains client-local, and exact ProjectSource/replacement semantic-target adapters are the next safe boundary |
+| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable retained traversal, four-group direct dependency impact, and nine registered exact semantic-target adapters through ProjectSource/replacement authority under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration history remains client-local, and bounded retained-event filters are the next safe boundary |
 | Semantic object location, replacement, and safe fallback | Proposed `UX-REQ-008`; the client retains route and layout ownership |
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
 | Project-source membership, governed removal, and local-copy retention/deletion | Proposed `UX-REQ-010`; Project linking and content-addressed storage remain separate lifecycles |
