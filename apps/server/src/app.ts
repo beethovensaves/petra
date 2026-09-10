@@ -15,6 +15,7 @@ import {
   parseAgUiReviewResponse,
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
+import type { ProjectHistoryRetainedCollectionFiltersV11 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   DurableReviewInterruptError,
@@ -95,7 +96,58 @@ const PROJECT_SOURCE_LIFECYCLE_RECEIPT_ID_PATTERN =
   /^project_source_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const COMMAND_ID_PATTERN = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const EVENT_ID_PATTERN = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
-const HISTORY_CURSOR_PATTERN = /^phc1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/u;
+const HISTORY_CURSOR_PATTERN = /^phc2\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/u;
+const HISTORY_ACTOR_ID_PATTERN = /^actor_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const HISTORY_TIMESTAMP_PATTERN =
+  /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/u;
+const HISTORY_FAMILIES = new Set([
+  "change_control",
+  "project_source_lifecycle",
+  "project_source_replacement",
+]);
+const HISTORY_COMMAND_NAMES = new Set([
+  "SubmitChangeSet",
+  "RecordApproval",
+  "ApplyChangeSet",
+  "ExcludeProjectSource",
+  "RestoreProjectSource",
+  "CreateProjectSourceReplacement",
+  "RetractProjectSourceReplacement",
+]);
+const HISTORY_EVENT_TYPES = new Set([
+  "change_set.submitted",
+  "approval.recorded",
+  "change_set.applied",
+  "change_set.conflicted",
+  "change_set.reverted",
+  "change_set.reversal_conflicted",
+  "project_source.excluded",
+  "project_source.restored",
+  "project_source.replacement_created",
+  "project_source.replacement_retracted",
+]);
+const HISTORY_OUTCOMES = new Set(["completed", "conflicted"]);
+const HISTORY_EFFECTS = new Set([
+  "change_proposed",
+  "approval_recorded",
+  "authority_change_applied",
+  "authority_change_conflicted",
+  "authority_change_reverted",
+  "reversal_conflicted",
+  "project_source_excluded",
+  "project_source_restored",
+  "source_replacement_created",
+  "source_replacement_retracted",
+]);
+const HISTORY_TARGET_SEMANTIC_KEYS = new Set([
+  "petra.change-set",
+  "petra.approval",
+  "scientific.claim",
+  "scientific.assertion",
+  "petra.project-source",
+  "petra.project-source-replacement",
+  "petra.project-source-replacement-retraction",
+]);
 const CONTENT_HASH_PATTERN = /^sha256:[0-9a-f]{64}$/u;
 const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$/u;
 const WORK_UNIT_ID_PATTERN = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -840,7 +892,20 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       }
       try {
         const parameters = new URL(context.req.url).searchParams;
-        const allowed = new Set(["limit", "cursor"]);
+        const allowed = new Set([
+          "limit",
+          "cursor",
+          "family",
+          "command_name",
+          "event_type",
+          "actor_id",
+          "outcome",
+          "effect",
+          "target_semantic_key",
+          "target_object_id",
+          "recorded_from",
+          "recorded_through",
+        ]);
         const unknown = [...parameters.keys()].filter(
           (key) => !allowed.has(key),
         );
@@ -877,6 +942,149 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "Retained Project History cursor is invalid.",
           );
         }
+        const family = parameters.get("family") ?? undefined;
+        const commandName = parameters.get("command_name") ?? undefined;
+        const eventType = parameters.get("event_type") ?? undefined;
+        const actorId = parameters.get("actor_id") ?? undefined;
+        const outcome = parameters.get("outcome") ?? undefined;
+        const effect = parameters.get("effect") ?? undefined;
+        const targetSemanticKey =
+          parameters.get("target_semantic_key") ?? undefined;
+        const targetObjectId = parameters.get("target_object_id") ?? undefined;
+        const recordedFrom = parameters.get("recorded_from") ?? undefined;
+        const recordedThrough = parameters.get("recorded_through") ?? undefined;
+        if (family !== undefined && !HISTORY_FAMILIES.has(family)) {
+          throw new InteractionInputError(
+            "Retained Project History family filter is invalid.",
+          );
+        }
+        if (
+          commandName !== undefined &&
+          !HISTORY_COMMAND_NAMES.has(commandName)
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History command filter is invalid.",
+          );
+        }
+        if (eventType !== undefined && !HISTORY_EVENT_TYPES.has(eventType)) {
+          throw new InteractionInputError(
+            "Retained Project History event filter is invalid.",
+          );
+        }
+        if (actorId !== undefined && !HISTORY_ACTOR_ID_PATTERN.test(actorId)) {
+          throw new InteractionInputError(
+            "Retained Project History Actor filter is invalid.",
+          );
+        }
+        if (outcome !== undefined && !HISTORY_OUTCOMES.has(outcome)) {
+          throw new InteractionInputError(
+            "Retained Project History outcome filter is invalid.",
+          );
+        }
+        if (effect !== undefined && !HISTORY_EFFECTS.has(effect)) {
+          throw new InteractionInputError(
+            "Retained Project History authority-effect filter is invalid.",
+          );
+        }
+        if (
+          (targetSemanticKey === undefined) !==
+          (targetObjectId === undefined)
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History target filtering requires both semantic key and object identity.",
+          );
+        }
+        if (
+          targetSemanticKey !== undefined &&
+          !HISTORY_TARGET_SEMANTIC_KEYS.has(targetSemanticKey)
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History target semantic key is invalid.",
+          );
+        }
+        if (
+          targetObjectId !== undefined &&
+          !PETRA_ID_PATTERN.test(targetObjectId)
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History target object identity is invalid.",
+          );
+        }
+        const validHistoryTimestamp = (value: string | undefined): boolean =>
+          value === undefined ||
+          (HISTORY_TIMESTAMP_PATTERN.test(value) &&
+            Number.isFinite(Date.parse(value)));
+        if (
+          !validHistoryTimestamp(recordedFrom) ||
+          !validHistoryTimestamp(recordedThrough) ||
+          (recordedFrom !== undefined &&
+            recordedThrough !== undefined &&
+            Date.parse(recordedFrom) > Date.parse(recordedThrough))
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History recorded-time bounds are invalid.",
+          );
+        }
+        const filters: ProjectHistoryRetainedCollectionFiltersV11 = {
+          ...(family === undefined
+            ? {}
+            : {
+                family: family as NonNullable<
+                  ProjectHistoryRetainedCollectionFiltersV11["family"]
+                >,
+              }),
+          ...(commandName === undefined
+            ? {}
+            : {
+                command_name: commandName as NonNullable<
+                  ProjectHistoryRetainedCollectionFiltersV11["command_name"]
+                >,
+              }),
+          ...(eventType === undefined
+            ? {}
+            : {
+                event_type: eventType as NonNullable<
+                  ProjectHistoryRetainedCollectionFiltersV11["event_type"]
+                >,
+              }),
+          ...(actorId === undefined ? {} : { actor_id: actorId }),
+          ...(outcome === undefined
+            ? {}
+            : {
+                outcome: outcome as NonNullable<
+                  ProjectHistoryRetainedCollectionFiltersV11["outcome"]
+                >,
+              }),
+          ...(effect === undefined
+            ? {}
+            : {
+                effect: effect as NonNullable<
+                  ProjectHistoryRetainedCollectionFiltersV11["effect"]
+                >,
+              }),
+          ...(targetSemanticKey === undefined || targetObjectId === undefined
+            ? {}
+            : {
+                target: {
+                  semantic_key: targetSemanticKey as NonNullable<
+                    ProjectHistoryRetainedCollectionFiltersV11["target"]
+                  >["semantic_key"],
+                  object_id: targetObjectId,
+                },
+              }),
+          ...(recordedFrom === undefined && recordedThrough === undefined
+            ? {}
+            : {
+                recorded_at: {
+                  ...(recordedFrom === undefined
+                    ? {}
+                    : { from_inclusive: recordedFrom }),
+                  ...(recordedThrough === undefined
+                    ? {}
+                    : { through_inclusive: recordedThrough }),
+                },
+              }),
+        };
         const projectId = context.req.param("projectId");
         const view =
           await options.projectHistoryViews.listRetainedProjectHistoryView(
@@ -884,6 +1092,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             {
               ...(limit === undefined ? {} : { limit }),
               ...(cursor === undefined ? {} : { cursor }),
+              filters,
             },
           );
         if (view === undefined) {
@@ -894,12 +1103,13 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The requested Project does not exist in the local authority store.",
           );
         }
-        contracts.assertValid("project-history-retained-view", "1.0.0", view);
+        contracts.assertValid("project-history-retained-view", "1.1.0", view);
         if (
           view.project_id !== projectId ||
           view.content.view_kind !== "retained_events" ||
           view.content.query.limit !== (limit ?? 50) ||
-          view.content.query.cursor !== cursor
+          view.content.query.cursor !== cursor ||
+          JSON.stringify(view.content.query.filters) !== JSON.stringify(filters)
         ) {
           throw new Error(
             "The retained Project History reader returned a different Project or query.",

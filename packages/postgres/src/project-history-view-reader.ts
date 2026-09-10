@@ -4,7 +4,7 @@ import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactView,
   PetraProjectHistoryImpactViewV12,
-  PetraProjectHistoryRetainedView,
+  PetraProjectHistoryRetainedViewV11,
   PetraProjectHistoryView,
   ProjectHistoryCausalCommandLink,
   ProjectHistoryCommandRef,
@@ -12,6 +12,7 @@ import type {
   ProjectHistoryRecentChange,
   ProjectHistoryReceiptRef,
   ProjectHistoryRecovery,
+  ProjectHistoryRetainedCollectionFiltersV11,
   ProjectHistoryRegisteredTargetAssessmentV12 as ProjectHistoryRegisteredTargetAssessment,
   ProjectHistoryResolvedTargetRefV12 as ProjectHistoryResolvedTargetRef,
   ProjectHistoryRetentionSnapshot,
@@ -145,8 +146,9 @@ interface EventRow {
 }
 
 interface HistoryCursorPayload {
-  version: 1;
+  version: 2;
   project_id: string;
+  query_identity_hash: string;
   snapshot_event_position: number;
   snapshot_stream_revision: number;
   snapshot_head_event_id: string;
@@ -172,14 +174,65 @@ const RETAINED_MAX_LIMIT = 100;
 const IMPACT_MAX_REFS = 100;
 const SEMANTIC_TARGET_LIMIT = 10;
 const SEMANTIC_ADAPTER_MAX_REFS = 25;
-const RETAINED_CURSOR = /^phc1\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]{43})$/u;
+const RETAINED_CURSOR = /^phc2\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]{43})$/u;
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const EVENT_ID = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
+const ACTOR_ID = /^actor_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const TIMESTAMP =
+  /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/u;
 const DEFAULT_CURSOR_SECRET =
   "petra-local-development-history-cursor-secret-v1";
 const EVENT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0"] as const;
 const COMMAND_VERSIONS = EVENT_VERSIONS;
+const HISTORY_FAMILIES = [
+  "change_control",
+  "project_source_lifecycle",
+  "project_source_replacement",
+] as const;
+const HISTORY_COMMAND_NAMES = [
+  "SubmitChangeSet",
+  "RecordApproval",
+  "ApplyChangeSet",
+  "ExcludeProjectSource",
+  "RestoreProjectSource",
+  "CreateProjectSourceReplacement",
+  "RetractProjectSourceReplacement",
+] as const;
+const HISTORY_EVENT_TYPES = [
+  "change_set.submitted",
+  "approval.recorded",
+  "change_set.applied",
+  "change_set.conflicted",
+  "change_set.reverted",
+  "change_set.reversal_conflicted",
+  "project_source.excluded",
+  "project_source.restored",
+  "project_source.replacement_created",
+  "project_source.replacement_retracted",
+] as const;
+const HISTORY_OUTCOMES = ["completed", "conflicted"] as const;
+const HISTORY_EFFECTS = [
+  "change_proposed",
+  "approval_recorded",
+  "authority_change_applied",
+  "authority_change_conflicted",
+  "authority_change_reverted",
+  "reversal_conflicted",
+  "project_source_excluded",
+  "project_source_restored",
+  "source_replacement_created",
+  "source_replacement_retracted",
+] as const;
+const HISTORY_TARGET_PREFIXES = {
+  "petra.change-set": "change_set_",
+  "petra.approval": "approval_",
+  "scientific.claim": "claim_",
+  "scientific.assertion": "assertion_",
+  "petra.project-source": "project_source_",
+  "petra.project-source-replacement": "project_source_replacement_",
+  "petra.project-source-replacement-retraction": "project_source_retraction_",
+} as const;
 
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
@@ -383,12 +436,16 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   async listRetainedProjectHistoryView(
     projectId: string,
     request: ProjectHistoryRetainedCollectionRequest = {},
-  ): Promise<PetraProjectHistoryRetainedView | undefined> {
+  ): Promise<PetraProjectHistoryRetainedViewV11 | undefined> {
     const query = this.#retainedQuery(request);
+    const queryIdentityHash = canonicalHash({
+      limit: query.limit,
+      filters: query.filters,
+    });
     const cursor =
       query.cursor === undefined
         ? undefined
-        : this.#decodeCursor(query.cursor, projectId);
+        : this.#decodeCursor(query.cursor, projectId, queryIdentityHash);
     return this.#readTransaction(async (client, readAt) => {
       const exists = await client.query<{ exists: boolean }>(
         "SELECT EXISTS (SELECT 1 FROM petra.projects WHERE project_id = $1) AS exists",
@@ -409,6 +466,17 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       const beforeStreamRevision =
         cursor?.before_stream_revision ??
         retentionSnapshot.through_stream_revision + 1;
+      const pageParameters: (number | string | null)[] = [
+        projectId,
+        retentionSnapshot.through_stream_revision,
+        retentionSnapshot.through_event_position,
+        beforeStreamRevision,
+        query.limit + 1,
+      ];
+      const pageFilterSql = this.#retainedFilterSql(
+        query.filters,
+        pageParameters,
+      );
       const result = await client.query<HistoryRow>(
         `SELECT event.payload AS event_payload,
                 event.record_hash AS event_record_hash,
@@ -430,15 +498,10 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
             AND event.stream_revision <= $2
             AND event.event_position <= $3
             AND event.stream_revision < $4
+            ${pageFilterSql}
           ORDER BY event.stream_revision DESC
           LIMIT $5`,
-        [
-          projectId,
-          retentionSnapshot.through_stream_revision,
-          retentionSnapshot.through_event_position,
-          beforeStreamRevision,
-          query.limit + 1,
-        ],
+        pageParameters,
       );
       const hasMore = result.rows.length > query.limit;
       const selectedRows = result.rows.slice(0, query.limit);
@@ -446,17 +509,26 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       for (const row of selectedRows) {
         changes.push(await this.#change(client, row));
       }
+      const countParameters: (number | string | null)[] = [
+        projectId,
+        retentionSnapshot.through_stream_revision,
+        retentionSnapshot.through_event_position,
+      ];
+      const countFilterSql = this.#retainedFilterSql(
+        query.filters,
+        countParameters,
+      );
       const count = await client.query<CountRow>(
         `SELECT COUNT(*) AS total_count
-           FROM petra.domain_events
-          WHERE project_id = $1
-            AND stream_revision <= $2
-            AND event_position <= $3`,
-        [
-          projectId,
-          retentionSnapshot.through_stream_revision,
-          retentionSnapshot.through_event_position,
-        ],
+           FROM petra.domain_events AS event
+           JOIN petra.command_executions AS execution
+             ON execution.command_id = event.command_id
+            AND execution.project_id = event.project_id
+          WHERE event.project_id = $1
+            AND event.stream_revision <= $2
+            AND event.event_position <= $3
+            ${countFilterSql}`,
+        countParameters,
       );
       const snapshotTotalCount = Number(count.rows[0]?.total_count);
       if (!Number.isSafeInteger(snapshotTotalCount) || snapshotTotalCount < 0) {
@@ -481,8 +553,9 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           );
         }
         nextCursor = this.#encodeCursor({
-          version: 1,
+          version: 2,
           project_id: projectId,
+          query_identity_hash: queryIdentityHash,
           snapshot_event_position: retentionSnapshot.through_event_position,
           snapshot_stream_revision: retentionSnapshot.through_stream_revision,
           snapshot_head_event_id: retentionSnapshot.head_event_ref.event_id,
@@ -495,6 +568,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         view_kind: "retained_events",
         order_kind: "project_stream_newest_first",
         query,
+        cursor_binding: "project_snapshot_and_complete_query",
         changes,
         page: {
           returned_count: changes.length,
@@ -506,7 +580,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         current_authority: currentAuthority,
         recovery_authority: "current_at_page_read",
         omissions: [
-          "filters_not_supported",
+          "origin_filter_not_supported",
           "dependency_impact_not_composed",
           "generic_reversal_assessment_not_composed",
           "historical_project_definition_not_interpreted",
@@ -516,7 +590,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       };
       const view = {
         schema_name: "petra.project-history-retained-view",
-        schema_version: "1.0.0",
+        schema_version: "1.1.0",
         project_id: projectId,
         content,
         content_hash: canonicalHash(content),
@@ -524,18 +598,18 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       };
       this.#contracts.assertValid(
         "project-history-retained-view",
-        "1.0.0",
+        "1.1.0",
         view,
       );
       return structuredClone(
-        view as unknown as PetraProjectHistoryRetainedView,
+        view as unknown as PetraProjectHistoryRetainedViewV11,
       );
     });
   }
 
   #retainedQuery(
     request: ProjectHistoryRetainedCollectionRequest,
-  ): PetraProjectHistoryRetainedView["content"]["query"] {
+  ): PetraProjectHistoryRetainedViewV11["content"]["query"] {
     const limit = request.limit ?? RETAINED_DEFAULT_LIMIT;
     if (
       !Number.isSafeInteger(limit) ||
@@ -554,10 +628,312 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         "Retained Project History cursor is invalid.",
       );
     }
+    const filters = this.#retainedFilters(request.filters ?? {});
     return {
       limit,
+      filters,
       ...(request.cursor === undefined ? {} : { cursor: request.cursor }),
     };
+  }
+
+  #retainedFilters(
+    supplied: ProjectHistoryRetainedCollectionFiltersV11,
+  ): ProjectHistoryRetainedCollectionFiltersV11 {
+    if (
+      typeof supplied !== "object" ||
+      supplied === null ||
+      Array.isArray(supplied)
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History filters must be an object.",
+      );
+    }
+    const allowed = new Set([
+      "family",
+      "command_name",
+      "event_type",
+      "actor_id",
+      "outcome",
+      "effect",
+      "target",
+      "recorded_at",
+    ]);
+    if (Object.keys(supplied).some((key) => !allowed.has(key))) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History contains an unregistered filter.",
+      );
+    }
+    const includes = <Value extends string>(
+      values: readonly Value[],
+      candidate: unknown,
+    ): candidate is Value =>
+      typeof candidate === "string" && values.includes(candidate as Value);
+    if (
+      supplied.family !== undefined &&
+      !includes(HISTORY_FAMILIES, supplied.family)
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History family filter is invalid.",
+      );
+    }
+    if (
+      supplied.command_name !== undefined &&
+      !includes(HISTORY_COMMAND_NAMES, supplied.command_name)
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History command filter is invalid.",
+      );
+    }
+    if (
+      supplied.event_type !== undefined &&
+      !includes(HISTORY_EVENT_TYPES, supplied.event_type)
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History event filter is invalid.",
+      );
+    }
+    if (supplied.actor_id !== undefined && !ACTOR_ID.test(supplied.actor_id)) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History Actor filter is invalid.",
+      );
+    }
+    if (
+      supplied.outcome !== undefined &&
+      !includes(HISTORY_OUTCOMES, supplied.outcome)
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History outcome filter is invalid.",
+      );
+    }
+    if (
+      supplied.effect !== undefined &&
+      !includes(HISTORY_EFFECTS, supplied.effect)
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History authority-effect filter is invalid.",
+      );
+    }
+    let target: ProjectHistoryRetainedCollectionFiltersV11["target"];
+    if (supplied.target !== undefined) {
+      if (
+        typeof supplied.target !== "object" ||
+        supplied.target === null ||
+        Array.isArray(supplied.target) ||
+        Object.keys(supplied.target).length !== 2 ||
+        !Object.hasOwn(supplied.target, "semantic_key") ||
+        !Object.hasOwn(supplied.target, "object_id")
+      ) {
+        throw new ProjectHistoryViewRequestError(
+          "Retained Project History target filter requires one exact semantic key and object identity.",
+        );
+      }
+      const prefix = HISTORY_TARGET_PREFIXES[supplied.target.semantic_key];
+      if (
+        prefix === undefined ||
+        supplied.target.object_id.length !== prefix.length + 26 ||
+        !supplied.target.object_id.startsWith(prefix) ||
+        !/^[0-9A-HJKMNP-TV-Z]{26}$/u.test(
+          supplied.target.object_id.slice(prefix.length),
+        )
+      ) {
+        throw new ProjectHistoryViewRequestError(
+          "Retained Project History target filter identity does not match its registered semantic key.",
+        );
+      }
+      target = {
+        semantic_key: supplied.target.semantic_key,
+        object_id: supplied.target.object_id,
+      };
+    }
+    let recordedAt: ProjectHistoryRetainedCollectionFiltersV11["recorded_at"];
+    if (supplied.recorded_at !== undefined) {
+      if (
+        typeof supplied.recorded_at !== "object" ||
+        supplied.recorded_at === null ||
+        Array.isArray(supplied.recorded_at)
+      ) {
+        throw new ProjectHistoryViewRequestError(
+          "Retained Project History recorded-time filter must be an object.",
+        );
+      }
+      const keys = Object.keys(supplied.recorded_at);
+      if (
+        keys.length < 1 ||
+        keys.length > 2 ||
+        keys.some(
+          (key) => key !== "from_inclusive" && key !== "through_inclusive",
+        )
+      ) {
+        throw new ProjectHistoryViewRequestError(
+          "Retained Project History recorded-time filter requires a registered inclusive bound.",
+        );
+      }
+      const validTimestamp = (value: unknown): value is string =>
+        typeof value === "string" &&
+        TIMESTAMP.test(value) &&
+        Number.isFinite(Date.parse(value));
+      if (
+        (supplied.recorded_at.from_inclusive !== undefined &&
+          !validTimestamp(supplied.recorded_at.from_inclusive)) ||
+        (supplied.recorded_at.through_inclusive !== undefined &&
+          !validTimestamp(supplied.recorded_at.through_inclusive))
+      ) {
+        throw new ProjectHistoryViewRequestError(
+          "Retained Project History recorded-time filter is invalid.",
+        );
+      }
+      if (
+        supplied.recorded_at.from_inclusive !== undefined &&
+        supplied.recorded_at.through_inclusive !== undefined &&
+        Date.parse(supplied.recorded_at.from_inclusive) >
+          Date.parse(supplied.recorded_at.through_inclusive)
+      ) {
+        throw new ProjectHistoryViewRequestError(
+          "Retained Project History recorded-time bounds are reversed.",
+        );
+      }
+      recordedAt = {
+        ...(supplied.recorded_at.from_inclusive === undefined
+          ? {}
+          : { from_inclusive: supplied.recorded_at.from_inclusive }),
+        ...(supplied.recorded_at.through_inclusive === undefined
+          ? {}
+          : { through_inclusive: supplied.recorded_at.through_inclusive }),
+      };
+    }
+    return {
+      ...(supplied.family === undefined ? {} : { family: supplied.family }),
+      ...(supplied.command_name === undefined
+        ? {}
+        : { command_name: supplied.command_name }),
+      ...(supplied.event_type === undefined
+        ? {}
+        : { event_type: supplied.event_type }),
+      ...(supplied.actor_id === undefined
+        ? {}
+        : { actor_id: supplied.actor_id }),
+      ...(supplied.outcome === undefined ? {} : { outcome: supplied.outcome }),
+      ...(supplied.effect === undefined ? {} : { effect: supplied.effect }),
+      ...(target === undefined ? {} : { target }),
+      ...(recordedAt === undefined ? {} : { recorded_at: recordedAt }),
+    };
+  }
+
+  #retainedFilterSql(
+    filters: ProjectHistoryRetainedCollectionFiltersV11,
+    parameters: (number | string | null)[],
+  ): string {
+    const clauses: string[] = [];
+    const parameter = (value: string): string => {
+      parameters.push(value);
+      return `$${parameters.length}`;
+    };
+    if (filters.family !== undefined) {
+      const value = parameter(filters.family);
+      clauses.push(`CASE event.payload #>> '{event,event_type}'
+          WHEN 'change_set.submitted' THEN 'change_control'
+          WHEN 'approval.recorded' THEN 'change_control'
+          WHEN 'change_set.applied' THEN 'change_control'
+          WHEN 'change_set.conflicted' THEN 'change_control'
+          WHEN 'change_set.reverted' THEN 'change_control'
+          WHEN 'change_set.reversal_conflicted' THEN 'change_control'
+          WHEN 'project_source.excluded' THEN 'project_source_lifecycle'
+          WHEN 'project_source.restored' THEN 'project_source_lifecycle'
+          WHEN 'project_source.replacement_created' THEN 'project_source_replacement'
+          WHEN 'project_source.replacement_retracted' THEN 'project_source_replacement'
+        END = ${value}::text`);
+    }
+    if (filters.command_name !== undefined) {
+      const value = parameter(filters.command_name);
+      clauses.push(
+        `execution.envelope #>> '{command,command_name}' = ${value}::text`,
+      );
+    }
+    if (filters.event_type !== undefined) {
+      const value = parameter(filters.event_type);
+      clauses.push(`event.payload #>> '{event,event_type}' = ${value}::text`);
+    }
+    if (filters.actor_id !== undefined) {
+      const value = parameter(filters.actor_id);
+      clauses.push(`event.payload #>> '{actor,actor_id}' = ${value}::text`);
+    }
+    if (filters.outcome !== undefined) {
+      const value = parameter(filters.outcome);
+      clauses.push(`CASE event.payload #>> '{event,event_type}'
+          WHEN 'change_set.conflicted' THEN 'conflicted'
+          WHEN 'change_set.reversal_conflicted' THEN 'conflicted'
+          ELSE 'completed'
+        END = ${value}::text`);
+    }
+    if (filters.effect !== undefined) {
+      const value = parameter(filters.effect);
+      clauses.push(`CASE event.payload #>> '{event,event_type}'
+          WHEN 'change_set.submitted' THEN 'change_proposed'
+          WHEN 'approval.recorded' THEN 'approval_recorded'
+          WHEN 'change_set.applied' THEN 'authority_change_applied'
+          WHEN 'change_set.conflicted' THEN 'authority_change_conflicted'
+          WHEN 'change_set.reverted' THEN 'authority_change_reverted'
+          WHEN 'change_set.reversal_conflicted' THEN 'reversal_conflicted'
+          WHEN 'project_source.excluded' THEN 'project_source_excluded'
+          WHEN 'project_source.restored' THEN 'project_source_restored'
+          WHEN 'project_source.replacement_created' THEN 'source_replacement_created'
+          WHEN 'project_source.replacement_retracted' THEN 'source_replacement_retracted'
+        END = ${value}::text`);
+    }
+    if (filters.target !== undefined) {
+      const semanticKey = parameter(filters.target.semantic_key);
+      const objectId = parameter(filters.target.object_id);
+      clauses.push(`CASE ${semanticKey}::text
+          WHEN 'petra.change-set' THEN
+            CASE event.payload #>> '{event,event_type}'
+              WHEN 'change_set.submitted' THEN event.payload #>> '{event,payload,change_set,change_set_id}'
+              WHEN 'approval.recorded' THEN event.payload #>> '{event,payload,approval,subject,change_set_id}'
+              WHEN 'change_set.applied' THEN event.payload #>> '{event,payload,change_set_id}'
+              WHEN 'change_set.conflicted' THEN event.payload #>> '{event,payload,change_set_id}'
+              WHEN 'change_set.reverted' THEN event.payload #>> '{event,payload,change_set_id}'
+              WHEN 'change_set.reversal_conflicted' THEN event.payload #>> '{event,payload,change_set_id}'
+              ELSE NULL
+            END = ${objectId}::text
+          WHEN 'petra.approval' THEN
+            event.payload #>> '{event,event_type}' = 'approval.recorded'
+            AND event.payload #>> '{event,payload,approval,approval_id}' = ${objectId}::text
+          WHEN 'scientific.claim' THEN
+            event.payload #>> '{event,payload,claim,claim_id}' = ${objectId}::text
+            OR COALESCE(event.payload #> '{event,payload,targets}', '[]'::jsonb)
+                 @> jsonb_build_array(jsonb_build_object('target_kind', 'claim', 'target_id', ${objectId}::text))
+          WHEN 'scientific.assertion' THEN
+            event.payload #>> '{event,payload,assertion,assertion_id}' = ${objectId}::text
+            OR COALESCE(event.payload #> '{event,payload,targets}', '[]'::jsonb)
+                 @> jsonb_build_array(jsonb_build_object('target_kind', 'assertion', 'target_id', ${objectId}::text))
+          WHEN 'petra.project-source' THEN
+            event.payload #>> '{event,payload,project_source,project_source_id}' = ${objectId}::text
+            OR event.payload #>> '{event,payload,content,replaced_source_ref,project_source_id}' = ${objectId}::text
+            OR event.payload #>> '{event,payload,content,replacement_source_ref,project_source_id}' = ${objectId}::text
+            OR event.payload #>> '{event,payload,replacement,content,replaced_source_ref,project_source_id}' = ${objectId}::text
+            OR event.payload #>> '{event,payload,replacement,content,replacement_source_ref,project_source_id}' = ${objectId}::text
+          WHEN 'petra.project-source-replacement' THEN
+            event.payload #>> '{event,payload,project_source_replacement_id}' = ${objectId}::text
+            OR event.payload #>> '{event,payload,replacement,project_source_replacement_id}' = ${objectId}::text
+          WHEN 'petra.project-source-replacement-retraction' THEN
+            event.payload #>> '{event,payload,retraction,project_source_replacement_retraction_id}' = ${objectId}::text
+          ELSE FALSE
+        END`);
+    }
+    if (filters.recorded_at?.from_inclusive !== undefined) {
+      const value = parameter(filters.recorded_at.from_inclusive);
+      clauses.push(
+        `(event.payload ->> 'recorded_at')::timestamptz >= ${value}::timestamptz`,
+      );
+    }
+    if (filters.recorded_at?.through_inclusive !== undefined) {
+      const value = parameter(filters.recorded_at.through_inclusive);
+      clauses.push(
+        `(event.payload ->> 'recorded_at')::timestamptz <= ${value}::timestamptz`,
+      );
+    }
+    return clauses.length === 0
+      ? ""
+      : clauses.map((clause) => `AND (${clause})`).join("\n            ");
   }
 
   #encodeCursor(payload: HistoryCursorPayload): string {
@@ -567,10 +943,14 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     const signature = createHmac("sha256", this.#cursorSecret)
       .update(encodedPayload)
       .digest("base64url");
-    return `phc1.${encodedPayload}.${signature}`;
+    return `phc2.${encodedPayload}.${signature}`;
   }
 
-  #decodeCursor(cursor: string, projectId: string): HistoryCursorPayload {
+  #decodeCursor(
+    cursor: string,
+    projectId: string,
+    queryIdentityHash: string,
+  ): HistoryCursorPayload {
     const match = RETAINED_CURSOR.exec(cursor);
     const encodedPayload = match?.[1];
     const encodedSignature = match?.[2];
@@ -616,6 +996,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     const expectedKeys = [
       "before_stream_revision",
       "project_id",
+      "query_identity_hash",
       "snapshot_event_position",
       "snapshot_head_event_id",
       "snapshot_head_record_hash",
@@ -627,9 +1008,11 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     if (
       keys.length !== expectedKeys.length ||
       keys.some((key, index) => key !== expectedKeys[index]) ||
-      value.version !== 1 ||
+      value.version !== 2 ||
       typeof value.project_id !== "string" ||
       !PROJECT_ID.test(value.project_id) ||
+      typeof value.query_identity_hash !== "string" ||
+      !CONTENT_HASH.test(value.query_identity_hash) ||
       !isPositiveSafeInteger(value.snapshot_event_position) ||
       !isPositiveSafeInteger(value.snapshot_stream_revision) ||
       typeof value.snapshot_head_event_id !== "string" ||
@@ -644,8 +1027,9 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       );
     }
     const payload: HistoryCursorPayload = {
-      version: 1,
+      version: 2,
       project_id: value.project_id,
+      query_identity_hash: value.query_identity_hash,
       snapshot_event_position: value.snapshot_event_position,
       snapshot_stream_revision: value.snapshot_stream_revision,
       snapshot_head_event_id: value.snapshot_head_event_id,
@@ -660,6 +1044,11 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     if (payload.project_id !== projectId) {
       throw new ProjectHistoryViewRequestError(
         "Retained Project History cursor belongs to a different Project.",
+      );
+    }
+    if (payload.query_identity_hash !== queryIdentityHash) {
+      throw new ProjectHistoryViewRequestError(
+        "Retained Project History cursor belongs to a different normalized query.",
       );
     }
     return payload;

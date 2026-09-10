@@ -1,0 +1,50 @@
+{
+  "schema_name": "petra.project-history-retained-view",
+  "schema_version": "1.1.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "content": {
+    "view_kind": "retained_events",
+    "order_kind": "project_stream_newest_first",
+    "query": {
+      "limit": 1,
+      "filters": {
+        "family": "project_source_replacement"
+      },
+      "cursor": "phc1.eyJ2IjoxLCJwcm9qZWN0Ijoib3BhcXVlIn0.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "cursor_binding": "project_snapshot_and_complete_query",
+    "changes": [],
+    "page": {
+      "returned_count": 0,
+      "snapshot_total_count": 1,
+      "has_more": false
+    },
+    "retention_snapshot": {
+      "through_event_position": 8,
+      "through_stream_revision": 8,
+      "head_event_ref": {
+        "event_id": "event_01K4C000000000000000000057",
+        "schema_version": "1.3.0",
+        "event_type": "project_source.replacement_created",
+        "event_position": 8,
+        "stream_revision": 8,
+        "record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    "current_authority": {
+      "through_event_position": 8,
+      "through_stream_revision": 8
+    },
+    "recovery_authority": "current_at_page_read",
+    "omissions": [
+      "origin_filter_not_supported",
+      "dependency_impact_not_composed",
+      "generic_reversal_assessment_not_composed",
+      "historical_project_definition_not_interpreted",
+      "cross_family_total_order_not_asserted"
+    ],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "read_at": "2026-09-10T00:04:00.000Z"
+}

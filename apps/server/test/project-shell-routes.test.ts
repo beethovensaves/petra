@@ -5,7 +5,7 @@ import type {
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV12,
-  PetraProjectHistoryRetainedView,
+  PetraProjectHistoryRetainedViewV11,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
@@ -110,12 +110,12 @@ const historyEpisodeFixture = JSON.parse(
 const historyRetainedFixture = JSON.parse(
   readFileSync(
     new URL(
-      "../../../packages/contracts/fixtures/accepted/project-history-retained-view.json",
+      "../../../packages/contracts/fixtures/accepted/project-history-retained-view-v1-1.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryRetainedView;
+) as PetraProjectHistoryRetainedViewV11;
 
 const historyImpactFixture = JSON.parse(
   readFileSync(
@@ -289,6 +289,7 @@ const historyReader: ProjectHistoryViewReader = {
     const view = structuredClone(historyRetainedFixture);
     view.content.query = {
       limit: request.limit ?? 50,
+      filters: request.filters ?? {},
       ...(request.cursor === undefined ? {} : { cursor: request.cursor }),
     };
     return Promise.resolve(view);
@@ -587,7 +588,7 @@ describe("authorized Project shell query routes", () => {
       authToken: TOKEN,
       projectHistoryViews: historyReader,
     });
-    const path = `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?limit=1`;
+    const path = `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?limit=1&family=project_source_replacement&command_name=CreateProjectSourceReplacement&event_type=project_source.replacement_created&actor_id=actor_01ARZ3NDEKTSV4RRFFQ69G5FAV&outcome=completed&effect=source_replacement_created&target_semantic_key=petra.project-source&target_object_id=project_source_01K4C000000000000000000041&recorded_from=2026-09-10T00%3A00%3A00.000Z&recorded_through=2026-09-10T23%3A59%3A59.999Z`;
     const response = await petra.app.request(authorized(path));
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual(historyRetainedFixture);
@@ -600,7 +601,7 @@ describe("authorized Project shell query routes", () => {
     );
     expect(continued.status).toBe(200);
     const continuedBody =
-      (await continued.json()) as PetraProjectHistoryRetainedView;
+      (await continued.json()) as PetraProjectHistoryRetainedViewV11;
     expect(continuedBody.content.query.cursor).toBe(cursor);
 
     const oldOffset = await petra.app.request(
@@ -614,10 +615,25 @@ describe("authorized Project shell query routes", () => {
       "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
     );
 
-    const filtered = await petra.app.request(
-      authorized(`${path}&family=change_control`),
+    const unboundCursor = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?limit=1&cursor=phc1.eyJ2IjoxLCJwcm9qZWN0Ijoib3BhcXVlIn0.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`,
+      ),
     );
-    expect(filtered.status).toBe(422);
+    expect(unboundCursor.status).toBe(422);
+
+    const incompleteTarget = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?limit=1&target_semantic_key=petra.change-set`,
+      ),
+    );
+    expect(incompleteTarget.status).toBe(422);
+    const reversedTime = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?recorded_from=2026-09-11T00%3A00%3A00.000Z&recorded_through=2026-09-10T00%3A00%3A00.000Z`,
+      ),
+    );
+    expect(reversedTime.status).toBe(422);
     expect(await petra.app.request(path)).toEqual(
       expect.objectContaining({ status: 401 }),
     );

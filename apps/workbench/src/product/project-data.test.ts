@@ -7,7 +7,7 @@ import type {
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV12,
-  PetraProjectHistoryRetainedView,
+  PetraProjectHistoryRetainedViewV11,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
@@ -204,12 +204,12 @@ const historyEpisodeView = JSON.parse(
 const historyRetainedView = JSON.parse(
   readFileSync(
     new URL(
-      "../../../../packages/contracts/fixtures/accepted/project-history-retained-view.json",
+      "../../../../packages/contracts/fixtures/accepted/project-history-retained-view-v1-1.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryRetainedView;
+) as PetraProjectHistoryRetainedViewV11;
 
 const historyImpactView = JSON.parse(
   readFileSync(
@@ -703,17 +703,20 @@ describe("Project shell workbench adapter", () => {
 
     const first = await getRetainedProjectHistory(
       historyRetainedView.project_id,
-      { limit: 1 },
+      { limit: 1, filters: historyRetainedView.content.query.filters },
     );
 
     expect(first).toEqual(historyRetainedView);
     expect(first.content.order_kind).toBe("project_stream_newest_first");
     expect(first.content.recovery_authority).toBe("current_at_page_read");
+    expect(first.content.cursor_binding).toBe(
+      "project_snapshot_and_complete_query",
+    );
     expect(first.content.graph_navigation_history).toBe(
       "client_local_separate",
     );
     expect(fetch.mock.calls[0]?.[0]).toBe(
-      `/api/queries/projects/${historyRetainedView.project_id}/history/events?limit=1`,
+      `/api/queries/projects/${historyRetainedView.project_id}/history/events?limit=1&family=project_source_replacement&command_name=CreateProjectSourceReplacement&event_type=project_source.replacement_created&actor_id=actor_01ARZ3NDEKTSV4RRFFQ69G5FAV&outcome=completed&effect=source_replacement_created&target_semantic_key=petra.project-source&target_object_id=project_source_01K4C000000000000000000041&recorded_from=2026-09-10T00%3A00%3A00.000Z&recorded_through=2026-09-10T23%3A59%3A59.999Z`,
     );
 
     const firstPage = first.content.page;
@@ -725,16 +728,44 @@ describe("Project shell workbench adapter", () => {
       getRetainedProjectHistory(historyRetainedView.project_id, {
         limit: 1,
         cursor: firstPage.next_cursor,
+        filters: historyRetainedView.content.query.filters,
       }),
     ).resolves.toEqual(continued);
     expect(fetch.mock.calls[1]?.[0]).toBe(
-      `/api/queries/projects/${historyRetainedView.project_id}/history/events?limit=1&cursor=${encodeURIComponent(firstPage.next_cursor)}`,
+      `/api/queries/projects/${historyRetainedView.project_id}/history/events?limit=1&cursor=${encodeURIComponent(firstPage.next_cursor)}&family=project_source_replacement&command_name=CreateProjectSourceReplacement&event_type=project_source.replacement_created&actor_id=actor_01ARZ3NDEKTSV4RRFFQ69G5FAV&outcome=completed&effect=source_replacement_created&target_semantic_key=petra.project-source&target_object_id=project_source_01K4C000000000000000000041&recorded_from=2026-09-10T00%3A00%3A00.000Z&recorded_through=2026-09-10T23%3A59%3A59.999Z`,
     );
 
     await expect(
       getRetainedProjectHistory(historyRetainedView.project_id, { limit: 101 }),
     ).rejects.toMatchObject({ status: 400 });
-    expect(fetch).toHaveBeenCalledTimes(2);
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        limit: 1,
+        cursor:
+          "phc1.eyJ2IjoxLCJwcm9qZWN0Ijoib3BhcXVlIn0.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        filters: {
+          recorded_at: {
+            from_inclusive: "2026-09-11T00:00:00.000Z",
+            through_inclusive: "2026-09-10T00:00:00.000Z",
+          },
+        },
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+
+    const mismatched = structuredClone(historyRetainedView);
+    mismatched.content.query.filters.family = "change_control";
+    fetch.mockResolvedValueOnce(Response.json(mismatched));
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        limit: 1,
+        filters: historyRetainedView.content.query.filters,
+      }),
+    ).rejects.toMatchObject({ status: 502 });
+    expect(fetch).toHaveBeenCalledTimes(3);
   });
 
   it("maps one exact ProjectSource authority chain into the frozen source surfaces", () => {

@@ -477,6 +477,27 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
       }),
     );
+    await expect(
+      historyViews.listRetainedProjectHistoryView(commands.submit.project_id, {
+        limit: 2,
+        cursor: retainedCursor,
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
+      }),
+    );
+    await expect(
+      historyViews.listRetainedProjectHistoryView(commands.submit.project_id, {
+        limit: 1,
+        cursor: retainedCursor,
+        filters: { family: "change_control" },
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
+      }),
+    );
     const applied = await repository.executeCommand(commands.apply);
     if (applied.outcome !== "applied") {
       throw new Error("Expected applied ChangeSet result.");
@@ -508,6 +529,114 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     ).toBe(2);
     expect(
       retainedAfterApply?.content.current_authority.through_stream_revision,
+    ).toBe(3);
+    if (commands.apply.command.command_name !== "ApplyChangeSet") {
+      throw new Error("Expected ApplyChangeSet command fixture.");
+    }
+    const filteredApplied = await historyViews.listRetainedProjectHistoryView(
+      commands.submit.project_id,
+      {
+        limit: 10,
+        filters: {
+          family: "change_control",
+          command_name: "ApplyChangeSet",
+          event_type: "change_set.applied",
+          actor_id: commands.apply.actor.actor_id,
+          outcome: "completed",
+          effect: "authority_change_applied",
+          target: {
+            semantic_key: "petra.change-set",
+            object_id: commands.apply.command.change_set_id,
+          },
+          recorded_at: {
+            from_inclusive: "2026-08-28T18:14:00.000Z",
+            through_inclusive: "2026-08-28T18:14:00.000Z",
+          },
+        },
+      },
+    );
+    expect(
+      filteredApplied?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual(["change_set.applied"]);
+    expect(filteredApplied?.content.page).toEqual({
+      returned_count: 1,
+      snapshot_total_count: 1,
+      has_more: false,
+    });
+    expect(filteredApplied?.content.cursor_binding).toBe(
+      "project_snapshot_and_complete_query",
+    );
+    if (
+      commands.submit.command.command_name !== "SubmitChangeSet" ||
+      commands.approve.command.command_name !== "RecordApproval"
+    ) {
+      throw new Error("Expected submit and approval command fixtures.");
+    }
+    const claimOperation =
+      commands.submit.command.change_set.content.operations.find(
+        ({ operation_kind }) => operation_kind === "promote_claim",
+      );
+    const assertionOperation =
+      commands.submit.command.change_set.content.operations.find(
+        ({ operation_kind }) => operation_kind === "promote_assertion",
+      );
+    if (claimOperation === undefined || assertionOperation === undefined) {
+      throw new Error("Expected exact Claim and Assertion operations.");
+    }
+    const approvalFiltered = await historyViews.listRetainedProjectHistoryView(
+      commands.submit.project_id,
+      {
+        filters: {
+          target: {
+            semantic_key: "petra.approval",
+            object_id: commands.approve.command.approval.approval_id,
+          },
+        },
+      },
+    );
+    expect(
+      approvalFiltered?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual(["approval.recorded"]);
+    for (const target of [
+      {
+        semantic_key: "scientific.claim" as const,
+        object_id: claimOperation.target_id,
+      },
+      {
+        semantic_key: "scientific.assertion" as const,
+        object_id: assertionOperation.target_id,
+      },
+    ]) {
+      const targetFiltered = await historyViews.listRetainedProjectHistoryView(
+        commands.submit.project_id,
+        { filters: { target } },
+      );
+      expect(
+        targetFiltered?.content.changes.map(
+          ({ event_ref }) => event_ref.event_type,
+        ),
+      ).toEqual(["change_set.applied"]);
+    }
+    const emptyFiltered = await historyViews.listRetainedProjectHistoryView(
+      commands.submit.project_id,
+      {
+        filters: {
+          actor_id: serviceActor().actor_id,
+        },
+      },
+    );
+    expect(emptyFiltered?.content.changes).toEqual([]);
+    expect(emptyFiltered?.content.page).toEqual({
+      returned_count: 0,
+      snapshot_total_count: 0,
+      has_more: false,
+    });
+    expect(
+      emptyFiltered?.content.retention_snapshot.through_stream_revision,
     ).toBe(3);
     await expect(repository.executeCommand(commands.apply)).resolves.toEqual(
       applied,

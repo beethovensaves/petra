@@ -135,6 +135,14 @@ export type {
   RetentionSnapshot as ProjectHistoryRetentionSnapshot,
 } from "./generated/project-history-retained-view.js";
 export type {
+  CollectionFilters as ProjectHistoryRetainedCollectionFiltersV11,
+  CollectionQuery as ProjectHistoryRetainedCollectionQueryV11,
+  ExactTargetFilter as ProjectHistoryRetainedExactTargetFilterV11,
+  PetraProjectHistoryRetainedViewV110 as PetraProjectHistoryRetainedViewV11,
+  RecordedTimeFilter as ProjectHistoryRetainedRecordedTimeFilterV11,
+  RetainedContent as ProjectHistoryRetainedContentV11,
+} from "./generated/project-history-retained-view-v1-1.js";
+export type {
   AuthorityPosition as ProjectHistoryImpactAuthorityPosition,
   CausalCommand as ProjectHistoryImpactCausalCommand,
   CausalCommandGroup as ProjectHistoryImpactCausalCommandGroup,

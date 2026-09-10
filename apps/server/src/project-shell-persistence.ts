@@ -82,7 +82,7 @@ const historyCursorSecret = (
   if (explicit !== undefined && explicit !== "") return explicit;
   const authenticationToken =
     environment.PETRA_AUTH_TOKEN?.trim() || "petra-local-development";
-  return `petra-history-cursor-v1:${authenticationToken}`;
+  return `petra-history-cursor-v2:${authenticationToken}`;
 };
 
 export class ProjectShellPersistenceConfigurationError extends Error {

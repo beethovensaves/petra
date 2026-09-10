@@ -1,13 +1,15 @@
 import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV12,
-  PetraProjectHistoryRetainedView,
+  PetraProjectHistoryRetainedViewV11,
   PetraProjectHistoryView,
+  ProjectHistoryRetainedCollectionFiltersV11,
 } from "@petra/contracts";
 
 export interface ProjectHistoryRetainedCollectionRequest {
   readonly limit?: number;
   readonly cursor?: string;
+  readonly filters?: ProjectHistoryRetainedCollectionFiltersV11;
 }
 
 export class ProjectHistoryViewRequestError extends Error {
@@ -39,5 +41,5 @@ export interface ProjectHistoryViewReader {
   listRetainedProjectHistoryView(
     projectId: string,
     request?: ProjectHistoryRetainedCollectionRequest,
-  ): Promise<PetraProjectHistoryRetainedView | undefined>;
+  ): Promise<PetraProjectHistoryRetainedViewV11 | undefined>;
 }

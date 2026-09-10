@@ -702,6 +702,155 @@ class PetraProjectHistoryRetainedView(PetraModel):
     read_at: str
 
 
+class ProjectHistoryRetainedExactTargetFilterV110(PetraModel):
+    semantic_key: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "scientific.claim",
+        "scientific.assertion",
+        "petra.project-source",
+        "petra.project-source-replacement",
+        "petra.project-source-replacement-retraction",
+    ]
+    object_id: str
+
+
+class ProjectHistoryRetainedRecordedTimeFilterV110(PetraModel):
+    from_inclusive: str | None = None
+    through_inclusive: str | None = None
+
+    @model_validator(mode="after")
+    def at_least_one_bound(self) -> ProjectHistoryRetainedRecordedTimeFilterV110:
+        if self.from_inclusive is None and self.through_inclusive is None:
+            raise ValueError("recorded History time filter requires a bound")
+        return self
+
+
+class ProjectHistoryRetainedFiltersV110(PetraModel):
+    family: (
+        Literal[
+            "change_control",
+            "project_source_lifecycle",
+            "project_source_replacement",
+        ]
+        | None
+    ) = None
+    command_name: (
+        Literal[
+            "SubmitChangeSet",
+            "RecordApproval",
+            "ApplyChangeSet",
+            "ExcludeProjectSource",
+            "RestoreProjectSource",
+            "CreateProjectSourceReplacement",
+            "RetractProjectSourceReplacement",
+        ]
+        | None
+    ) = None
+    event_type: (
+        Literal[
+            "change_set.submitted",
+            "approval.recorded",
+            "change_set.applied",
+            "change_set.conflicted",
+            "change_set.reverted",
+            "change_set.reversal_conflicted",
+            "project_source.excluded",
+            "project_source.restored",
+            "project_source.replacement_created",
+            "project_source.replacement_retracted",
+        ]
+        | None
+    ) = None
+    actor_id: str | None = None
+    outcome: Literal["completed", "conflicted"] | None = None
+    effect: (
+        Literal[
+            "change_proposed",
+            "approval_recorded",
+            "authority_change_applied",
+            "authority_change_conflicted",
+            "authority_change_reverted",
+            "reversal_conflicted",
+            "project_source_excluded",
+            "project_source_restored",
+            "source_replacement_created",
+            "source_replacement_retracted",
+        ]
+        | None
+    ) = None
+    target: ProjectHistoryRetainedExactTargetFilterV110 | None = None
+    recorded_at: ProjectHistoryRetainedRecordedTimeFilterV110 | None = None
+
+
+class ProjectHistoryRetainedQueryV110(PetraModel):
+    limit: int = Field(ge=1, le=100)
+    filters: ProjectHistoryRetainedFiltersV110
+    cursor: str | None = Field(
+        default=None,
+        min_length=80,
+        max_length=1024,
+        pattern=r"^phc2\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$",
+    )
+
+
+class ProjectHistoryRetainedContinuedPageV110(PetraModel):
+    returned_count: int = Field(ge=1, le=100)
+    snapshot_total_count: int = Field(ge=1)
+    has_more: Literal[True]
+    next_cursor: str = Field(
+        min_length=80,
+        max_length=1024,
+        pattern=r"^phc2\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$",
+    )
+
+
+class ProjectHistoryRetainedContentV110(PetraModel):
+    view_kind: Literal["retained_events"]
+    order_kind: Literal["project_stream_newest_first"]
+    query: ProjectHistoryRetainedQueryV110
+    cursor_binding: Literal["project_snapshot_and_complete_query"]
+    changes: list[ProjectHistoryRecentChange] = Field(max_length=100)
+    page: ProjectHistoryRetainedContinuedPageV110 | ProjectHistoryCompletePage
+    retention_snapshot: (
+        ProjectHistoryEmptyRetentionSnapshot | ProjectHistoryNonemptyRetentionSnapshot
+    )
+    current_authority: ProjectHistoryAuthorityPosition
+    recovery_authority: Literal["current_at_page_read"]
+    omissions: list[
+        Literal[
+            "origin_filter_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_omissions(self) -> ProjectHistoryRetainedContentV110:
+        expected = {
+            "origin_filter_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 5 or set(self.omissions) != expected:
+            raise ValueError("filtered retained History must declare exact omissions")
+        return self
+
+
+class PetraProjectHistoryRetainedViewV110(PetraModel):
+    schema_name: Literal["petra.project-history-retained-view"]
+    schema_version: Literal["1.1.0"]
+    project_id: str
+    content: ProjectHistoryRetainedContentV110
+    content_hash: str
+    read_at: str
+
+
 class ProjectHistoryImpactEventAnchor(PetraModel):
     command_ref: ProjectHistoryCommandRef
     event_ref: ProjectHistoryEventRef
@@ -7812,6 +7961,10 @@ PYDANTIC_MODELS.update(
         ("model-request", "1.1.0"): PetraSynthesistModelRequest,
         ("model-call", "1.1.0"): PetraSynthesistModelCall,
         ("project-shell-view", "1.1.0"): PetraProjectShellViewV110,
+        (
+            "project-history-retained-view",
+            "1.1.0",
+        ): PetraProjectHistoryRetainedViewV110,
         (
             "project-history-impact-view",
             "1.1.0",

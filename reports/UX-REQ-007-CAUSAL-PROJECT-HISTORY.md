@@ -1,12 +1,13 @@
 # UX-REQ-007 causal Project History
 
 Status: bounded Recent changes, exact event-selected causal episodes,
-snapshot-stable retained Project-event traversal, and bounded direct dependency
-impact plus registered exact semantic-target adapters through ProjectSource and
-replacement authority passed; filters and broader recovery planning remain open
+snapshot-stable filtered retained Project-event traversal, and bounded direct
+dependency impact plus registered exact semantic-target adapters through
+ProjectSource and replacement authority passed; broader recovery planning
+remains open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `c5da977`
+Implementation baseline: `c198af6`
 
 ## Result
 
@@ -101,6 +102,26 @@ old recovery assessment as current. The contract reports the total event count
 within the retained snapshot, whether another page exists, and an opaque next
 cursor only when required. It exposes no offset, filters, client-carried
 snapshot override, or cross-family order.
+
+`petra.project-history-retained-view@1.1.0` adds conservative exact filtering
+without changing the Recent changes endpoint or its fixed ten-item window. One
+value per dimension may select family, registered command, event type, exact
+Actor ID, completed/conflicted outcome, observed authority effect, one exact
+target semantic-key/object-ID pair, and inclusive recorded-time bounds. All
+selected events remain ordered only by newest-first Project-stream revision;
+time filtering does not turn their timestamps into a global order.
+
+The response always echoes a normalized `filters` object. Every `phc2` cursor
+cryptographically binds its Project, retained snapshot, exclusive keyset
+boundary, page limit, and complete normalized filter identity. A continuation
+therefore fails closed if the caller changes a filter, adds or removes one,
+changes the limit, crosses Projects, tampers with the cursor, or can no longer
+resolve the original snapshot. `snapshot_total_count` is the authorized count
+matching those exact filters inside the fixed retained snapshot. A zero-match
+result preserves the authorized Project snapshot but exposes neither another
+Project nor an unfiltered count. Actor filtering is exact; origin filtering
+remains explicitly unavailable because current authority has no trustworthy
+origin classification.
 
 ## Bounded direct dependency impact
 
@@ -220,12 +241,12 @@ mutation boundaries and recheck current authority when invoked.
 Existing `/api/*` bearer authentication applies to Recent changes, retained
 event traversal, exact episode detail, and exact dependency impact before a
 reader is called. The Recent route accepts no query parameters; the retained
-route accepts only one bounded limit and one opaque cursor; the episode and
-impact routes accept only one canonical event identity. Each returns no
-substitute Project and validates its composed contract before responding. Typed
-workbench clients verify the contract family, query, Project, and event identity
-while treating the cursor as opaque. No component, CSS, browser route, or frozen
-surface changed.
+route accepts one bounded limit, one opaque cursor, and only the registered
+single-value exact filters; the episode and impact routes accept only one
+canonical event identity. Each returns no substitute Project and validates its
+composed contract before responding. Typed workbench clients verify the contract
+family, normalized query, Project, and event identity while treating the cursor
+as opaque. No component, CSS, browser route, or frozen surface changed.
 
 The PostgreSQL reader fails closed when it cannot reproduce:
 
@@ -237,7 +258,7 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 - a replacement event's exact relationship or retraction record; or
 - the current exact source/replacement head used for recovery eligibility;
 - a cursor signature, Project binding, canonical payload, retained authority
-  bounds, or exact head-event identity/hash; or
+  bounds, exact query identity, or exact head-event identity/hash; or
 - the original cursor snapshot after the authority store has moved backwards
   or been replaced;
 - an outbox record's exact embedded event payload and record hash;
@@ -256,20 +277,22 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal, and dependency-impact 1.0/1.1/1.2 responses. Rejected fixtures
-cover an altered quick limit, false global episode order, unsafe offset-cursor
-reuse, a dependency read that claims a reversibility decision, and an
-unregistered semantic target that fabricates a registered adapter group, plus
-an invalid response that collapses retained replacement lineage and effective
-head state into one unsupported authority.
+retained traversal 1.0/1.1, and dependency-impact 1.0/1.1/1.2 responses.
+Rejected fixtures cover an altered quick limit, false global episode order,
+unsafe offset or query-unbound cursor reuse, a dependency read that claims a
+reversibility decision, and an unregistered semantic target that fabricates a
+registered adapter group, plus an invalid response that collapses retained
+replacement lineage and effective head state into one unsupported authority.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
 suite pass. The database proof starts from an empty PostgreSQL 18.6 instance,
 migrates V001 through V030, exercises all four reads over domain-event versions
 1.0, 1.1, 1.2, and 1.3, and proves cursor integrity, cross-Project rejection,
 stable membership after a concurrent append, keyset continuation without
-duplication, causal parent/following-command links, Project-stream adjacency,
-exact lifecycle or replacement receipt references, and exact command, outbox,
+duplication, complete query/limit binding, exact filtered counts and zero-match
+results, every registered filter dimension, source/replacement/retraction target
+matching, causal parent/following-command links, Project-stream adjacency, exact
+lifecycle or replacement receipt references, and exact command, outbox,
 graph-projection, GroundedResponse-invalidation, ChangeSet/Approval,
 ReviewSession-membership, GroundedResponse-dependency, composition-lineage,
 ProjectSource lifecycle/dependency, immutable replacement/retraction/receipt,
@@ -278,10 +301,12 @@ distinguished from retained lineage without rewriting either.
 
 ## Next safe slice
 
-The next safe History boundary is authenticated bounded filtering of retained
-Project events with the complete filter identity cryptographically bound into
-the opaque snapshot cursor. Counts and empty results must remain Project-scoped
-and authorization-safe, Recent changes must remain fixed at ten, and no filter
-may manufacture a cross-family order. ChangeSet reversibility and compensation
-preview can follow only after the filtered read contract is stable. Universal
-undo, multi-step compensation, and event rewriting remain excluded.
+The next safe History boundary is a read-only, exact ChangeSet recovery
+assessment for one selected applied or reverted event. It must reuse current
+ChangeSet, Approval, evidence-head, causal-impact, and authorization facts to
+state whether the existing single-ChangeSet compensation path is assessable,
+eligible, blocked, or already compensated, with every unknown and current
+authority dependency explicit. It must not yet create a compensation, claim
+generic undo, combine multiple steps, reinterpret a historical
+ProjectDefinition, or rewrite any event. A revision-bound compensation preview
+may follow only after that assessment contract is stable.

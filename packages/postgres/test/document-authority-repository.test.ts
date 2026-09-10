@@ -1222,6 +1222,121 @@ describePostgres("PostgreSQL Document authority repository", () => {
     expect(retainedSecond?.content.retention_snapshot).toEqual(
       retainedFirst?.content.retention_snapshot,
     );
+    const predecessorHistory =
+      await historyViews.listRetainedProjectHistoryView(project.project_id, {
+        limit: 10,
+        filters: {
+          target: {
+            semantic_key: "petra.project-source",
+            object_id: replaced.project_source_id,
+          },
+        },
+      });
+    expect(
+      predecessorHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual([
+      "project_source.replacement_retracted",
+      "project_source.replacement_created",
+      "project_source.excluded",
+    ]);
+    expect(predecessorHistory?.content.page.snapshot_total_count).toBe(3);
+    const successorHistory = await historyViews.listRetainedProjectHistoryView(
+      project.project_id,
+      {
+        filters: {
+          target: {
+            semantic_key: "petra.project-source",
+            object_id: successor.project_source_id,
+          },
+        },
+      },
+    );
+    expect(
+      successorHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual([
+      "project_source.replacement_retracted",
+      "project_source.replacement_created",
+    ]);
+    const replacementFilters = {
+      family: "project_source_replacement" as const,
+      target: {
+        semantic_key: "petra.project-source-replacement" as const,
+        object_id: replacement.project_source_replacement_id,
+      },
+    };
+    const replacementHistoryFirst =
+      await historyViews.listRetainedProjectHistoryView(project.project_id, {
+        limit: 1,
+        filters: replacementFilters,
+      });
+    expect(
+      replacementHistoryFirst?.content.changes[0]?.event_ref.event_type,
+    ).toBe("project_source.replacement_retracted");
+    expect(replacementHistoryFirst?.content.page.snapshot_total_count).toBe(2);
+    const replacementHistoryFirstPage = replacementHistoryFirst?.content.page;
+    if (
+      replacementHistoryFirstPage === undefined ||
+      !replacementHistoryFirstPage.has_more
+    ) {
+      throw new Error("Expected filtered replacement History continuation.");
+    }
+    const replacementHistorySecond =
+      await historyViews.listRetainedProjectHistoryView(project.project_id, {
+        limit: 1,
+        cursor: replacementHistoryFirstPage.next_cursor,
+        filters: replacementFilters,
+      });
+    expect(
+      replacementHistorySecond?.content.changes[0]?.event_ref.event_type,
+    ).toBe("project_source.replacement_created");
+    await expect(
+      historyViews.listRetainedProjectHistoryView(project.project_id, {
+        limit: 1,
+        cursor: replacementHistoryFirstPage.next_cursor,
+        filters: {
+          ...replacementFilters,
+          target: {
+            semantic_key: "petra.project-source",
+            object_id: replaced.project_source_id,
+          },
+        },
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
+      }),
+    );
+    const retractionHistory = await historyViews.listRetainedProjectHistoryView(
+      project.project_id,
+      {
+        filters: {
+          target: {
+            semantic_key: "petra.project-source-replacement-retraction",
+            object_id: retraction.project_source_replacement_retraction_id,
+          },
+        },
+      },
+    );
+    expect(
+      retractionHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual(["project_source.replacement_retracted"]);
+    const lifecycleHistory = await historyViews.listRetainedProjectHistoryView(
+      project.project_id,
+      {
+        filters: { family: "project_source_lifecycle" },
+      },
+    );
+    expect(
+      lifecycleHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual(["project_source.excluded"]);
     const retractionEvent = recentHistory?.content.changes[0]?.event_ref;
     if (retractionEvent === undefined) {
       throw new Error("Expected replacement-retraction History.");
