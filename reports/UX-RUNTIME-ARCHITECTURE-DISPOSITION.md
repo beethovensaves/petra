@@ -11,8 +11,8 @@ passed; bounded Recent changes, exact event-selected episodes, signed
 snapshot-stable filtered retained Project-event traversal, and bounded direct
 dependency impact plus registered exact semantic-target adapters through
 ProjectSource and replacement authority plus exact read-only ChangeSet recovery
-assessment and revision-bound compensation preview through event 1.3 also
-passed;
+assessment, revision-bound compensation preview, and confirmed non-persisted
+command-plan composition through event 1.3 also passed;
 broader neutral runtime work remains open; transactional authorization
 and canonical Project-command CapabilityGrant authority passed
 Date: 2026-09-10
@@ -21,8 +21,9 @@ History dependency-impact implementation: `c198af6`
 History retained-filter implementation: `7380a0b`
 History recovery-assessment implementation: `9e90258`
 History compensation-preview implementation: `37ffc38`
+History compensation-plan implementation: `718f641`
 Frozen design baseline: `655d094`
-Design handoff reviewed: `af0ab0d`
+Design handoff reviewed: `3ece9da`
 Neutral reference checkpoint reviewed: `26b03ee`
 
 ## Outcome
@@ -165,6 +166,14 @@ revisions, retained records, required human input, and the governed three-
 command sequence; and names every invalidation cause. The existing subordinate
 History dialog consumes it without a new surface or route. The preview creates,
 records, composes, persists, and executes nothing.
+`petra.project-history-compensation-plan-request@1.0.0` and
+`petra.project-history-compensation-plan-view@1.0.0` at `718f641` accept the
+compact preview reference, explicit Reason, Approval rationale, and literal
+confirmation. The PostgreSQL composer reconstructs the eligible preview from
+current authority before returning its exact ChangeSet, Approval, and three
+causal command envelopes with separate grant bindings. The existing dialog
+consumes the confirmation, revalidation, and plan states. Nothing is persisted,
+submitted, or executed, and no new component, CSS, or browser route is needed.
 PostgreSQL command repositories now authorize inside their command transaction
 through an async-capable adapter supplied with the exact transactional client.
 V026 now supplies immutable Project-command grants, exact retained revocations,
@@ -442,7 +451,7 @@ explicitly records later implementation progress:
 | `UX-REQ-004` | **Partial, adapted and advanced after baseline.** ProjectDefinition and Objective contracts, immutable PostgreSQL authority, current binding, terminology, supported places, and optional template-seed origin now exist without requiring a profile catalogue. Paired scientific and controlled-writing Projects are independently project-authored and pass the same shell, control, and client-mapping paths. | Add full extension, presentation, compatibility, component-resolution, impact-review, and migration behavior while preserving Project-specific definitions. | Wave 1 foundation complete; extensions in later waves |
 | `UX-REQ-005` | **Partial.** Artifact/Manifest, document, DraftArtifact, provenance, support assessment, and additive draft revision preserve exact scientific ancestry. | Add an explicit imported-lineage root and reviewed promotion command for existing documents or projects. Import never endorses extracted meaning or overwrites the source. | Wave 5 |
 | `UX-REQ-006` | **Partial, advanced after baseline.** `petra.project-thread@1.0.0`, V022, and `ProjectThreadAuthorityRepository` provide durable Project-owned thread identity, immutable completed turns, exact definition/input/context/snapshot/execution/Work/result/Artifact/authority bindings, contiguous revisions, retained branch origin and continuation mode, and hash-only prompt limitations where legacy input bytes do not exist. `petra.project-thread-view@1.0.0`, authenticated routes, and the frozen Petra workspace now expose bounded exact collection/detail reads without fixture transcript fallback. InteractionRun remains execution and delivery state rather than the product thread. | Add create/append/branch/archive/reopen commands, stale-snapshot preflight and execution, retained transcript bytes for new turns, compaction, proposal/decision and PresentationContext linkage, and archive reconstruction. | Wave 2 read integration passed; commands and richer retention remain |
-| `UX-REQ-007` | **Partial, advanced after baseline.** `petra.project-history-view@1.0.0` exposes at most ten newest event-producing Project commands. Episode 1.0 adds exact causation and Project-stream adjacency; retained 1.1 adds filtered traversal with authorized counts and opaque Project/snapshot/limit/query cursor binding; impact 1.2 provides four direct groups and nine semantic adapters. Recovery assessment 1.0 binds one applied or reverted event to its promotion ChangeSet/Approval, current Claim–Assertion heads, current three-command grants, impact summaries/unknowns, and exact blockers or retained compensation. Compensation preview 1.0 derives an exact five-minute Claim/Assertion retraction, resulting revisions, retention boundary, required human input, and governed sequence only from a currently eligible assessment. It creates no ChangeSet or Approval, composes or executes no command, and never proposes reversal of a reversal. All reads derive from existing authority, persist no second ledger, and keep graph navigation history client-local. The frozen Scope/filter, collection, detail, and subordinate-dialog mappings require no new components, CSS, or browser routes. | Bind the fixture-backed frozen route to the typed reads. The backend still lacks authoritative origin filtering, Actor and target option catalogues, stable continuation-failure subcodes, and confirmed command-plan composition. Exact fallback identities and safe invalidation behavior are specified. Dependent labels/destinations, occurrence times, current projection freshness, and broader related facts remain gaps. This slice adds no execution, generic Undo, multi-step compensation, historical ProjectDefinition interpretation, or transitive closure. | Wave 3 Recent changes, episode, filtered traversal, dependency impact, recovery assessment, and read-only compensation preview passed; confirmed command-plan composition next |
+| `UX-REQ-007` | **Partial, advanced after baseline.** `petra.project-history-view@1.0.0` exposes at most ten newest event-producing Project commands. Episode 1.0 adds exact causation and Project-stream adjacency; retained 1.1 adds filtered traversal with authorized counts and opaque Project/snapshot/limit/query cursor binding; impact 1.2 provides four direct groups and nine semantic adapters. Recovery assessment 1.0 binds one applied or reverted event to its promotion ChangeSet/Approval, current Claim–Assertion heads, current three-command grants, impact summaries/unknowns, and exact blockers or retained compensation. Compensation preview 1.0 derives an exact five-minute Claim/Assertion retraction, resulting revisions, retention boundary, required human input, and governed sequence only from a currently eligible assessment. Plan request/view 1.0 accepts only its compact preview reference and confirmed human input, reconstructs current authority, and returns the linked ChangeSet, Approval, and three causal command envelopes. Preview and plan create no persisted record, submit or execute no command, and never propose reversal of a reversal. All reads derive from existing authority, persist no second ledger, and keep graph navigation history client-local. The frozen Scope/filter, collection, detail, and subordinate-dialog mappings require no new components, CSS, or browser routes. | Bind the fixture-backed frozen route to the typed reads. The backend still lacks authoritative origin filtering, Actor and target option catalogues, stable continuation-failure subcodes, and separately authorized single-plan execution with exact partial-outcome recovery. Exact fallback identities and safe invalidation behavior are specified. Dependent labels/destinations, occurrence times, current projection freshness, and broader related facts remain gaps. This slice adds no execution, generic Undo, multi-step compensation, historical ProjectDefinition interpretation, or transitive closure. | Wave 3 Recent changes, episode, filtered traversal, dependency impact, recovery assessment, read-only preview, and confirmed non-persisted plan composition passed; separately authorized single-plan execution next |
 | `UX-REQ-008` | **Partial, advanced after baseline.** `petra.project-object-location-view@1.0.0` and its Project-scoped PostgreSQL reader resolve exact current or retained historical ProjectSource, Assertion, ChangeSet, WorkUnit, and DraftArtifact identities to ProjectDefinition-permitted semantic place roles. V025 plus V027–V029 make its `superseded` state and bounded active replacement chain live while retaining retracted lineage separately. The frozen client alone maps roles to routes. | Add replacement/parent adapters for other owning object types, retained Project-snapshot selection, extension-registered profile tools, actor-specific object authorization if required, and full applicable `UX-FX19` evidence. | Wave 1 read foundation plus current/historical ProjectSource replacement separation passed; type-specific later slices |
 | `UX-REQ-009` | **Partial, advanced after baseline.** The scientific ProjectSource specialization and authorized collection/detail view now bind exact role, identity, copy, rights, parsed coverage, preview spans, downstream use, and authority position. The paired definition proof establishes neutral reference terminology but not a controlled-writing source adapter. | Add non-scholarly source specializations, linked Work/results, broader limitations, intake, and source-adapter conformance. | Wave 2 |
 | `UX-REQ-010` | **Partial, advanced after baseline.** ProjectSource has stable Project-local identity and immutable active or excluded revisions over a retained copy. `petra.project-source-lifecycle-view@1.0.0` previews exclude, restore, or local-copy deletion intent against eight bounded exact dependency groups and seven explicit retention areas. Lifecycle command/event/outbox 1.2, the lifecycle receipt, V024, and the PostgreSQL authority execute authorized, idempotent exclude/restore transitions as status-only revisions with compensating recovery. The authenticated public lifecycle route resolves a server-configured human Actor and exactly one active Project-command grant, rejects request-carried authority, and returns the exact receipt and resulting source revision. `petra.project-source-replacement@1.0.0`, immutable retraction 1.0, and V025/V027–V029 add exclusion-receipt-bound supersession with a validated effective head. Command/event/outbox 1.3, CapabilityGrant 1.1, the immutable replacement receipt, and V030 now govern creation and relation-only retraction atomically. Separate authenticated create/retract routes and a typed client reach that authority without request-carried identity. D019's separate next restore is enforced: restore fails while the replacement is active. All dependents and source materials remain retained; physical deletion is unavailable. | Add frozen-interface preview/confirmation/receipt/recovery integration, other source adapters, and broader dependency policy. Do not expose physical deletion until an accepted retention policy exists. | Wave 2 backend lifecycle, governed replacement authority, authenticated APIs, and typed clients passed; frozen presentation integration next; physical-copy policy in Wave 5 |
@@ -532,11 +541,14 @@ separately requested compensation preview now binds the eligible assessment,
 current target revisions and grants, ordered Claim then Assertion retractions,
 resulting revisions, retention, required input, and the governed three-command
 sequence for exactly five minutes while creating and executing nothing. The
-next safe backend History increment is confirmed command-plan composition with
-current-authority reconstruction and no persistence or execution. This slice
-does not design that plan, client recovery decisions, execution, generic Undo,
-reversal of a reversal, multi-step compensation, or transitive closure. The
-conformance mapping changes no frozen component, CSS, or browser route.
+confirmed command-plan composer now accepts the compact preview reference and
+exact human input, reconstructs current authority, and returns the ChangeSet,
+Approval, and per-grant causal envelopes without persistence or execution. The
+next safe backend History increment is separately authorized single-plan
+execution with exact partial-outcome recovery. This slice does not design that
+execution, generic Undo, reversal of a reversal, multi-step compensation, or
+transitive closure. The conformance mapping changes no frozen component, CSS,
+or browser route.
 
 Exit gate: one exact action can start bounded Work, preserve interruption state,
 return a result, and expose its history and eligible recovery without client-side
@@ -624,11 +636,13 @@ authority. Next, the design track may select an existing frozen slot for
 lifecycle and replacement preview, confirmation, receipt, and recovery; it must
 not invent client authority. For History, the exact read-only ChangeSet recovery
 assessment and separately requested five-minute compensation preview now map
-into the frozen detail and subordinate dialog. The next backend boundary is a
-confirmed command plan that accepts explicit Reason, Approval rationale, and
-confirmation; revalidates current authority; and returns deterministic
+into the frozen detail and subordinate dialog. Confirmed plan composition now
+accepts the compact preview reference plus explicit Reason, Approval rationale,
+and confirmation; revalidates current authority; and returns deterministic
 ChangeSet, Approval, and three command envelopes without persisting, submitting,
-or executing them.
+or executing them. The next backend boundary is separately authorized execution
+of one exact still-current plan with exact retained outcomes and recovery when
+submission is partial.
 Physical deletion remains excluded. Do not infer external filesystem edits or
 turn either conformance example into a mandatory template.
 
@@ -678,9 +692,9 @@ inferring it from execution references. The server-configured single-user human
 principal now resolves exactly one eligible Project-command grant and fails
 closed on missing or ambiguous authority. Lifecycle and replacement routes use
 that resolution and still revalidate the grant transactionally.
-The current complete repository gate passes with 819 always-on tests and seven
-expected service-dependent skips; the real PostgreSQL suite passes 106 cases
-after a clean V001-through-V030 migration.
+The current complete repository gate passes with 828 always-on TypeScript tests,
+25 Python tests, and seven expected service-dependent skips; the real PostgreSQL
+suite passes 106 cases after a clean V001-through-V030 migration.
 The History recovery proof validates exact promotion ChangeSet/Approval,
 current Claim–Assertion, active-grant, impact-summary, blocker, and retained
 compensation bindings under repeatable-read isolation. It exercises eligible,
@@ -690,3 +704,8 @@ preview proof validates exact assessment/authority binding, ordered operations
 and results, five-minute freshness and invalidation, and missing, ambiguous, or
 already-compensated rejection while proving unchanged ChangeSet, Approval,
 command, event, and evidence-revision counts.
+The compensation-plan proof reconstructs the compact preview reference from
+current authority, preserves distinct command grants, rejects tampering,
+cross-Project reuse, unconfirmed input, and grant changes, validates the exact
+causal envelope chain, and proves that plan composition leaves the same
+authority-table counts unchanged.
