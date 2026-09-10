@@ -1,0 +1,203 @@
+{
+  "schema_name": "petra.project-history-impact-view",
+  "schema_version": "1.1.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01K4C000000000000000000061",
+  "content": {
+    "view_kind": "dependency_impact",
+    "selected_event": {
+      "command_ref": {
+        "command_id": "command_01K4C000000000000000000060",
+        "schema_version": "1.2.0",
+        "command_name": "ExcludeProjectSource",
+        "idempotency_key": "source:exclude:v1",
+        "command_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+        "correlation_id": "trace_01K4C000000000000000000062"
+      },
+      "event_ref": {
+        "event_id": "event_01K4C000000000000000000061",
+        "schema_version": "1.2.0",
+        "event_type": "project_source.excluded",
+        "event_position": 4,
+        "stream_revision": 4,
+        "record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "occurred_at": "2026-09-10T18:01:00.000Z",
+      "recorded_at": "2026-09-10T18:01:00.000Z",
+      "family": "project_source_lifecycle",
+      "targets": [
+        {
+          "role": "primary",
+          "semantic_key": "petra.project-source",
+          "object_id": "project_source_01K4C000000000000000000041",
+          "revision": 2,
+          "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "record_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "authority_state": "excluded"
+        }
+      ],
+      "observed_effect": {
+        "effect": "project_source_excluded",
+        "outcome": "completed",
+        "summary": "Excluded the exact ProjectSource revision while retaining its history."
+      },
+      "semantic_destination": {
+        "place_role": "history",
+        "task_intent": "view_history",
+        "object_ref": {
+          "semantic_key": "petra.project-source",
+          "object_id": "project_source_01K4C000000000000000000041",
+          "revision": 2
+        }
+      }
+    },
+    "authorization_scope": "authenticated_project",
+    "impact": {
+      "scope": "registered_direct_event_and_command_dependents",
+      "summary": {
+        "registered_group_count": 4,
+        "total_count": 0,
+        "coverage": "complete"
+      },
+      "causal_commands": {
+        "relation": "caused_by_selected_command",
+        "authority_source": "immutable_command_causation",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "outbox_records": {
+        "relation": "carries_selected_event",
+        "authority_source": "immutable_event_outbox_binding",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "graph_projection_records": {
+        "relation": "projects_selected_event",
+        "authority_source": "immutable_projection_event_binding",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "grounded_response_invalidations": {
+        "relation": "invalidated_by_selected_event",
+        "authority_source": "immutable_response_invalidation_binding",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "unknowns": [
+        "unregistered_profile_specific_dependencies_may_exist",
+        "transitive_dependents_may_exist",
+        "external_system_dependents_are_not_observable"
+      ]
+    },
+    "semantic_target_impact": {
+      "scope": "registered_exact_semantic_target_dependents",
+      "target_limit": 10,
+      "per_adapter_ref_limit": 25,
+      "target_total_count": 1,
+      "target_returned_count": 1,
+      "target_coverage": "complete",
+      "registry": [
+        {
+          "adapter_kind": "change_control",
+          "authority_source": "immutable_change_control_target_bindings",
+          "semantic_keys": [
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion"
+          ]
+        },
+        {
+          "adapter_kind": "review_membership",
+          "authority_source": "immutable_review_candidate_bindings",
+          "semantic_keys": ["scientific.claim", "scientific.assertion"]
+        },
+        {
+          "adapter_kind": "grounded_response_dependency",
+          "authority_source": "immutable_grounded_response_dependencies",
+          "semantic_keys": ["scientific.claim", "scientific.assertion"]
+        },
+        {
+          "adapter_kind": "composition_lineage",
+          "authority_source": "immutable_composition_target_bindings",
+          "semantic_keys": ["scientific.claim", "scientific.assertion"]
+        }
+      ],
+      "target_assessments": [
+        {
+          "target_index": 0,
+          "target_ref": {
+            "role": "primary",
+            "semantic_key": "petra.project-source",
+            "object_id": "project_source_01K4C000000000000000000041",
+            "revision": 2,
+            "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "record_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "authority_state": "excluded"
+          },
+          "adapter_state": "no_registered_exact_adapter",
+          "reason": "No exact semantic-target adapter is registered for this semantic key.",
+          "groups": [
+            {
+              "adapter_kind": "change_control",
+              "authority_source": "immutable_change_control_target_bindings",
+              "relation_scope": "exact_target_revision",
+              "total_count": 0,
+              "returned_count": 0,
+              "coverage": "complete",
+              "refs": []
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "registered_adapter_count": 4,
+        "assessed_target_count": 1,
+        "supported_target_count": 0,
+        "total_count": 0,
+        "coverage": "complete"
+      },
+      "unknowns": [
+        "unregistered_semantic_keys_may_have_dependents",
+        "identity_only_semantic_relations_are_excluded",
+        "transitive_semantic_dependents_may_exist",
+        "external_system_dependents_are_not_observable"
+      ]
+    },
+    "decision_boundary": {
+      "reversibility": "not_assessed",
+      "compensation": "not_composed",
+      "dependent_effect": "not_inferred_from_reference"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "through_event_position": 4,
+      "through_stream_revision": 4
+    },
+    "omissions": [
+      "unregistered_semantic_target_adapters_not_composed",
+      "identity_only_semantic_relations_not_composed",
+      "transitive_dependency_closure_not_composed",
+      "reversibility_not_assessed",
+      "compensation_not_composed",
+      "historical_project_definition_not_interpreted",
+      "cross_family_total_order_not_asserted"
+    ],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "read_at": "2026-09-10T18:01:00.000Z"
+}

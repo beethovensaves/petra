@@ -896,6 +896,386 @@ class PetraProjectHistoryImpactView(PetraModel):
     read_at: str
 
 
+class ProjectHistorySemanticResolvedTargetRef(PetraModel):
+    semantic_key: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "scientific.claim",
+        "scientific.assertion",
+    ]
+    object_id: str
+    revision: int = Field(ge=1)
+    schema_name: Literal[
+        "petra.change-set", "petra.approval", "petra.claim", "petra.assertion"
+    ]
+    schema_version: Literal["1.0.0", "1.1.0"]
+    content_hash: str | None = None
+    record_hash: str
+
+    @model_validator(mode="after")
+    def supported_schema_version(self) -> ProjectHistorySemanticResolvedTargetRef:
+        if self.schema_name != "petra.change-set" and self.schema_version != "1.0.0":
+            raise ValueError(
+                "only ChangeSet semantic targets support authority version 1.1"
+            )
+        return self
+
+
+class ProjectHistorySemanticDependentRef(PetraModel):
+    semantic_key: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "scientific.claim",
+        "scientific.assertion",
+        "petra.review-session",
+        "petra.grounded-response",
+        "petra.composition-request",
+        "petra.composition-plan",
+        "petra.provenance-map",
+        "petra.draft-artifact",
+    ]
+    object_id: str
+    revision: int = Field(ge=1)
+    schema_name: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "petra.claim",
+        "petra.assertion",
+        "petra.review-session",
+        "petra.grounded-response",
+        "petra.composition-request",
+        "petra.composition-plan",
+        "petra.provenance-map",
+        "petra.draft-artifact",
+    ]
+    schema_version: Literal["1.0.0", "1.1.0"]
+    content_hash: str | None = None
+    record_hash: str
+    posture: Literal["current", "historical", "immutable_revision"]
+    relation: Literal[
+        "approves_exact_change_set",
+        "authorized_by_exact_change_set",
+        "authorized_by_exact_approval",
+        "proposes_promotion_from_exact_evidence_revision",
+        "contains_exact_review_candidate",
+        "depends_on_exact_grounded_evidence",
+        "selects_exact_composition_subject",
+        "uses_exact_composition_evidence",
+        "maps_exact_provenance_basis",
+        "retains_exact_draft_authority_dependency",
+    ]
+    relation_identity: str = Field(min_length=1, max_length=300)
+
+    @model_validator(mode="after")
+    def supported_schema_version(self) -> ProjectHistorySemanticDependentRef:
+        if self.schema_name != "petra.change-set" and self.schema_version != "1.0.0":
+            raise ValueError("only ChangeSet semantic dependents support version 1.1")
+        return self
+
+
+class ProjectHistorySemanticAdapterGroup(PetraModel):
+    adapter_kind: Literal[
+        "change_control",
+        "review_membership",
+        "grounded_response_dependency",
+        "composition_lineage",
+    ]
+    authority_source: Literal[
+        "immutable_change_control_target_bindings",
+        "immutable_review_candidate_bindings",
+        "immutable_grounded_response_dependencies",
+        "immutable_composition_target_bindings",
+    ]
+    relation_scope: Literal["exact_target_revision"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=25)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistorySemanticDependentRef] = Field(max_length=25)
+
+    @model_validator(mode="after")
+    def exact_authority_and_counts(self) -> ProjectHistorySemanticAdapterGroup:
+        authorities = {
+            "change_control": "immutable_change_control_target_bindings",
+            "review_membership": "immutable_review_candidate_bindings",
+            "grounded_response_dependency": (
+                "immutable_grounded_response_dependencies"
+            ),
+            "composition_lineage": "immutable_composition_target_bindings",
+        }
+        if authorities[self.adapter_kind] != self.authority_source:
+            raise ValueError("semantic adapter must name its exact owning authority")
+        if self.returned_count != len(self.refs):
+            raise ValueError(
+                "semantic adapter returned count must match its references"
+            )
+        expected_coverage = (
+            "truncated" if self.total_count > self.returned_count else "complete"
+        )
+        if self.coverage != expected_coverage:
+            raise ValueError("semantic adapter coverage must match its bounded count")
+        return self
+
+
+class ProjectHistorySemanticRegisteredAssessment(PetraModel):
+    target_index: int = Field(ge=0, le=99)
+    target_ref: ProjectHistoryTargetRef
+    adapter_state: Literal["registered"]
+    resolved_target_ref: ProjectHistorySemanticResolvedTargetRef
+    groups: list[ProjectHistorySemanticAdapterGroup] = Field(min_length=1, max_length=4)
+
+
+class ProjectHistorySemanticUnavailableAssessment(PetraModel):
+    target_index: int = Field(ge=0, le=99)
+    target_ref: ProjectHistoryTargetRef
+    adapter_state: Literal[
+        "no_registered_exact_adapter",
+        "target_identity_incomplete",
+        "target_authority_unavailable",
+    ]
+    reason: Literal[
+        "No exact semantic-target adapter is registered for this semantic key.",
+        "Registered semantic-target adapters require an immutable target revision.",
+        "The exact immutable target authority is unavailable in this Project snapshot.",
+    ]
+    groups: list[ProjectHistorySemanticAdapterGroup] = Field(max_length=0)
+
+    @model_validator(mode="after")
+    def exact_unavailability(self) -> ProjectHistorySemanticUnavailableAssessment:
+        registered_keys = {
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion",
+        }
+        reasons = {
+            "no_registered_exact_adapter": (
+                "No exact semantic-target adapter is registered for this semantic key."
+            ),
+            "target_identity_incomplete": (
+                "Registered semantic-target adapters require an immutable target "
+                "revision."
+            ),
+            "target_authority_unavailable": (
+                "The exact immutable target authority is unavailable in this Project "
+                "snapshot."
+            ),
+        }
+        if self.reason != reasons[self.adapter_state]:
+            raise ValueError("semantic adapter state must name its exact reason")
+        if self.adapter_state == "no_registered_exact_adapter":
+            if self.target_ref.semantic_key in registered_keys:
+                raise ValueError(
+                    "registered semantic keys must use a registered adapter state"
+                )
+        elif self.target_ref.semantic_key not in registered_keys:
+            raise ValueError(
+                "unavailable registered-adapter states require a registered key"
+            )
+        if self.adapter_state == "target_identity_incomplete":
+            if self.target_ref.revision is not None:
+                raise ValueError("incomplete semantic targets cannot have a revision")
+        elif (
+            self.adapter_state == "target_authority_unavailable"
+            and self.target_ref.revision is None
+        ):
+            raise ValueError("unavailable target authority requires an exact revision")
+        return self
+
+
+ProjectHistorySemanticTargetAssessment = (
+    ProjectHistorySemanticRegisteredAssessment
+    | ProjectHistorySemanticUnavailableAssessment
+)
+
+
+class ProjectHistorySemanticRegistryEntry(PetraModel):
+    adapter_kind: Literal[
+        "change_control",
+        "review_membership",
+        "grounded_response_dependency",
+        "composition_lineage",
+    ]
+    authority_source: Literal[
+        "immutable_change_control_target_bindings",
+        "immutable_review_candidate_bindings",
+        "immutable_grounded_response_dependencies",
+        "immutable_composition_target_bindings",
+    ]
+    semantic_keys: list[
+        Literal[
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion",
+        ]
+    ] = Field(min_length=2, max_length=4)
+
+
+class ProjectHistorySemanticSummary(PetraModel):
+    registered_adapter_count: Literal[4]
+    assessed_target_count: int = Field(ge=0, le=10)
+    supported_target_count: int = Field(ge=0, le=10)
+    total_count: int = Field(ge=0, le=40_000_000)
+    coverage: Literal["complete", "truncated"]
+
+
+class ProjectHistorySemanticTargetImpact(PetraModel):
+    scope: Literal["registered_exact_semantic_target_dependents"]
+    target_limit: Literal[10]
+    per_adapter_ref_limit: Literal[25]
+    target_total_count: int = Field(ge=1, le=100)
+    target_returned_count: int = Field(ge=1, le=10)
+    target_coverage: Literal["complete", "truncated"]
+    registry: list[ProjectHistorySemanticRegistryEntry] = Field(
+        min_length=4, max_length=4
+    )
+    target_assessments: list[ProjectHistorySemanticTargetAssessment] = Field(
+        min_length=1, max_length=10
+    )
+    summary: ProjectHistorySemanticSummary
+    unknowns: list[
+        Literal[
+            "unregistered_semantic_keys_may_have_dependents",
+            "identity_only_semantic_relations_are_excluded",
+            "transitive_semantic_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        ]
+    ] = Field(min_length=4, max_length=4)
+
+    @model_validator(mode="after")
+    def exact_registry_counts_and_unknowns(self) -> ProjectHistorySemanticTargetImpact:
+        expected_registry = [
+            (
+                "change_control",
+                "immutable_change_control_target_bindings",
+                [
+                    "petra.change-set",
+                    "petra.approval",
+                    "scientific.claim",
+                    "scientific.assertion",
+                ],
+            ),
+            (
+                "review_membership",
+                "immutable_review_candidate_bindings",
+                ["scientific.claim", "scientific.assertion"],
+            ),
+            (
+                "grounded_response_dependency",
+                "immutable_grounded_response_dependencies",
+                ["scientific.claim", "scientific.assertion"],
+            ),
+            (
+                "composition_lineage",
+                "immutable_composition_target_bindings",
+                ["scientific.claim", "scientific.assertion"],
+            ),
+        ]
+        actual_registry = [
+            (entry.adapter_kind, entry.authority_source, entry.semantic_keys)
+            for entry in self.registry
+        ]
+        if actual_registry != expected_registry:
+            raise ValueError("semantic adapter registry must be exact and ordered")
+        expected_unknowns = {
+            "unregistered_semantic_keys_may_have_dependents",
+            "identity_only_semantic_relations_are_excluded",
+            "transitive_semantic_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        }
+        if len(self.unknowns) != 4 or set(self.unknowns) != expected_unknowns:
+            raise ValueError("semantic impact must declare its four exact unknowns")
+        if self.target_returned_count != len(self.target_assessments):
+            raise ValueError("semantic target count must match its assessments")
+        supported = sum(
+            assessment.adapter_state == "registered"
+            for assessment in self.target_assessments
+        )
+        groups = [
+            group
+            for assessment in self.target_assessments
+            for group in assessment.groups
+        ]
+        if (
+            self.summary.assessed_target_count != len(self.target_assessments)
+            or self.summary.supported_target_count != supported
+            or self.summary.total_count != sum(group.total_count for group in groups)
+        ):
+            raise ValueError("semantic impact summary must match assessed groups")
+        expected_coverage = (
+            "truncated"
+            if self.target_coverage == "truncated"
+            or any(group.coverage == "truncated" for group in groups)
+            else "complete"
+        )
+        if self.summary.coverage != expected_coverage:
+            raise ValueError("semantic impact summary coverage must remain bounded")
+        return self
+
+
+class ProjectHistoryImpactContentV110(PetraModel):
+    view_kind: Literal["dependency_impact"]
+    selected_event: ProjectHistoryImpactEventAnchor
+    authorization_scope: Literal["authenticated_project"]
+    impact: ProjectHistoryImpactInventory
+    semantic_target_impact: ProjectHistorySemanticTargetImpact
+    decision_boundary: ProjectHistoryImpactDecisionBoundary
+    authority: ProjectHistoryImpactAuthority
+    omissions: list[
+        Literal[
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ] = Field(min_length=7, max_length=7)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_targets_and_omissions(self) -> ProjectHistoryImpactContentV110:
+        expected_omissions = {
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 7 or set(self.omissions) != expected_omissions:
+            raise ValueError(
+                "History impact 1.1 must declare its seven exact omissions"
+            )
+        if self.semantic_target_impact.target_total_count != len(
+            self.selected_event.targets
+        ):
+            raise ValueError("semantic impact must count the selected event targets")
+        for index, assessment in enumerate(
+            self.semantic_target_impact.target_assessments
+        ):
+            if (
+                assessment.target_index != index
+                or assessment.target_ref != self.selected_event.targets[index]
+            ):
+                raise ValueError(
+                    "semantic assessment must preserve target identity/order"
+                )
+        return self
+
+
+class PetraProjectHistoryImpactViewV110(PetraModel):
+    schema_name: Literal["petra.project-history-impact-view"]
+    schema_version: Literal["1.1.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryImpactContentV110
+    content_hash: str
+    read_at: str
+
+
 class ProjectSourceDefinitionRef(PetraModel):
     project_definition_id: str
     revision: int
@@ -6968,6 +7348,10 @@ PYDANTIC_MODELS.update(
         ("model-request", "1.1.0"): PetraSynthesistModelRequest,
         ("model-call", "1.1.0"): PetraSynthesistModelCall,
         ("project-shell-view", "1.1.0"): PetraProjectShellViewV110,
+        (
+            "project-history-impact-view",
+            "1.1.0",
+        ): PetraProjectHistoryImpactViewV110,
     }
 )
 

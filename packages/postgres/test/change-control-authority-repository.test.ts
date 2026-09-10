@@ -654,6 +654,39 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       compensation: "not_composed",
       dependent_effect: "not_inferred_from_reference",
     });
+    expect(submittedImpact?.schema_version).toBe("1.1.0");
+    expect(submittedImpact?.content.semantic_target_impact).toMatchObject({
+      target_total_count: 1,
+      target_returned_count: 1,
+      target_coverage: "complete",
+      summary: {
+        registered_adapter_count: 4,
+        assessed_target_count: 1,
+        supported_target_count: 1,
+        total_count: 3,
+        coverage: "complete",
+      },
+    });
+    const submittedTargetAssessment =
+      submittedImpact?.content.semantic_target_impact.target_assessments[0];
+    expect(submittedTargetAssessment?.adapter_state).toBe("registered");
+    expect(submittedTargetAssessment?.groups).toHaveLength(1);
+    expect(submittedTargetAssessment?.groups[0]).toMatchObject({
+      adapter_kind: "change_control",
+      authority_source: "immutable_change_control_target_bindings",
+      total_count: 3,
+      returned_count: 3,
+      coverage: "complete",
+    });
+    expect(
+      submittedTargetAssessment?.groups[0]?.refs.map(
+        ({ relation }) => relation,
+      ),
+    ).toEqual([
+      "approves_exact_change_set",
+      "authorized_by_exact_change_set",
+      "authorized_by_exact_change_set",
+    ]);
     expect(
       await historyViews.getProjectHistoryImpactView(
         "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
@@ -676,6 +709,18 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       ),
     ).toEqual(["neo4j_graph", "interface_authority"]);
     expect(appliedImpact?.content.impact.summary.total_count).toBe(2);
+    expect(
+      appliedImpact?.content.semantic_target_impact.target_assessments,
+    ).toHaveLength(3);
+    expect(
+      appliedImpact?.content.semantic_target_impact.target_assessments.map(
+        ({ adapter_state, groups }) => [adapter_state, groups.length],
+      ),
+    ).toEqual([
+      ["registered", 1],
+      ["registered", 4],
+      ["registered", 4],
+    ]);
 
     const replayedAuthority = replayScientificAuthority(
       commands.submit.project_id,

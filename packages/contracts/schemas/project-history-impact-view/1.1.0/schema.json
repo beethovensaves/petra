@@ -1,0 +1,740 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-impact-view/1.1.0/schema.json",
+  "title": "PetraProjectHistoryImpactViewV11",
+  "description": "An authorized, event-selected dependency inventory that preserves the 1.0 direct event/command groups and adds bounded adapters for exact semantic targets. It does not decide reversibility or compose compensation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "event_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-history-impact-view" },
+    "schema_version": { "const": "1.1.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "content": { "$ref": "#/$defs/ImpactContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ResolvedTargetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_key",
+        "object_id",
+        "revision",
+        "schema_name",
+        "schema_version",
+        "record_hash"
+      ],
+      "properties": {
+        "semantic_key": {
+          "enum": [
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion"
+          ]
+        },
+        "object_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "schema_name": {
+          "enum": [
+            "petra.change-set",
+            "petra.approval",
+            "petra.claim",
+            "petra.assertion"
+          ]
+        },
+        "schema_version": { "enum": ["1.0.0", "1.1.0"] },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "schema_name": { "const": "petra.change-set" } },
+            "required": ["schema_name"]
+          },
+          "else": {
+            "properties": { "schema_version": { "const": "1.0.0" } }
+          }
+        }
+      ]
+    },
+    "DependentRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_key",
+        "object_id",
+        "revision",
+        "schema_name",
+        "schema_version",
+        "record_hash",
+        "posture",
+        "relation",
+        "relation_identity"
+      ],
+      "properties": {
+        "semantic_key": {
+          "enum": [
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion",
+            "petra.review-session",
+            "petra.grounded-response",
+            "petra.composition-request",
+            "petra.composition-plan",
+            "petra.provenance-map",
+            "petra.draft-artifact"
+          ]
+        },
+        "object_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "schema_name": {
+          "enum": [
+            "petra.change-set",
+            "petra.approval",
+            "petra.claim",
+            "petra.assertion",
+            "petra.review-session",
+            "petra.grounded-response",
+            "petra.composition-request",
+            "petra.composition-plan",
+            "petra.provenance-map",
+            "petra.draft-artifact"
+          ]
+        },
+        "schema_version": {
+          "type": "string",
+          "enum": ["1.0.0", "1.1.0"]
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "posture": {
+          "enum": ["current", "historical", "immutable_revision"]
+        },
+        "relation": {
+          "enum": [
+            "approves_exact_change_set",
+            "authorized_by_exact_change_set",
+            "authorized_by_exact_approval",
+            "proposes_promotion_from_exact_evidence_revision",
+            "contains_exact_review_candidate",
+            "depends_on_exact_grounded_evidence",
+            "selects_exact_composition_subject",
+            "uses_exact_composition_evidence",
+            "maps_exact_provenance_basis",
+            "retains_exact_draft_authority_dependency"
+          ]
+        },
+        "relation_identity": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "schema_name": { "const": "petra.change-set" } },
+            "required": ["schema_name"]
+          },
+          "else": {
+            "properties": { "schema_version": { "const": "1.0.0" } }
+          }
+        }
+      ]
+    },
+    "AdapterGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter_kind",
+        "authority_source",
+        "relation_scope",
+        "total_count",
+        "returned_count",
+        "coverage",
+        "refs"
+      ],
+      "properties": {
+        "adapter_kind": {
+          "enum": [
+            "change_control",
+            "review_membership",
+            "grounded_response_dependency",
+            "composition_lineage"
+          ]
+        },
+        "authority_source": {
+          "enum": [
+            "immutable_change_control_target_bindings",
+            "immutable_review_candidate_bindings",
+            "immutable_grounded_response_dependencies",
+            "immutable_composition_target_bindings"
+          ]
+        },
+        "relation_scope": { "const": "exact_target_revision" },
+        "total_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "returned_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 25
+        },
+        "coverage": { "enum": ["complete", "truncated"] },
+        "refs": {
+          "type": "array",
+          "maxItems": 25,
+          "items": { "$ref": "#/$defs/DependentRef" }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "adapter_kind": { "const": "change_control" } },
+            "required": ["adapter_kind"]
+          },
+          "then": {
+            "properties": {
+              "authority_source": {
+                "const": "immutable_change_control_target_bindings"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter_kind": { "const": "review_membership" }
+            },
+            "required": ["adapter_kind"]
+          },
+          "then": {
+            "properties": {
+              "authority_source": {
+                "const": "immutable_review_candidate_bindings"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter_kind": { "const": "grounded_response_dependency" }
+            },
+            "required": ["adapter_kind"]
+          },
+          "then": {
+            "properties": {
+              "authority_source": {
+                "const": "immutable_grounded_response_dependencies"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter_kind": { "const": "composition_lineage" }
+            },
+            "required": ["adapter_kind"]
+          },
+          "then": {
+            "properties": {
+              "authority_source": {
+                "const": "immutable_composition_target_bindings"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RegisteredAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_index",
+        "target_ref",
+        "adapter_state",
+        "resolved_target_ref",
+        "groups"
+      ],
+      "properties": {
+        "target_index": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "target_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/TargetRef"
+        },
+        "adapter_state": { "const": "registered" },
+        "resolved_target_ref": { "$ref": "#/$defs/ResolvedTargetRef" },
+        "groups": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/AdapterGroup" }
+        }
+      }
+    },
+    "UnavailableAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_index",
+        "target_ref",
+        "adapter_state",
+        "reason",
+        "groups"
+      ],
+      "properties": {
+        "target_index": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "target_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/TargetRef"
+        },
+        "adapter_state": {
+          "enum": [
+            "no_registered_exact_adapter",
+            "target_identity_incomplete",
+            "target_authority_unavailable"
+          ]
+        },
+        "reason": {
+          "enum": [
+            "No exact semantic-target adapter is registered for this semantic key.",
+            "Registered semantic-target adapters require an immutable target revision.",
+            "The exact immutable target authority is unavailable in this Project snapshot."
+          ]
+        },
+        "groups": { "type": "array", "maxItems": 0 }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "adapter_state": { "const": "no_registered_exact_adapter" }
+            },
+            "required": ["adapter_state"]
+          },
+          "then": {
+            "properties": {
+              "target_ref": {
+                "type": "object",
+                "properties": {
+                  "semantic_key": {
+                    "not": {
+                      "enum": [
+                        "petra.change-set",
+                        "petra.approval",
+                        "scientific.claim",
+                        "scientific.assertion"
+                      ]
+                    }
+                  }
+                }
+              },
+              "reason": {
+                "const": "No exact semantic-target adapter is registered for this semantic key."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter_state": { "const": "target_identity_incomplete" }
+            },
+            "required": ["adapter_state"]
+          },
+          "then": {
+            "properties": {
+              "target_ref": {
+                "type": "object",
+                "not": {
+                  "type": "object",
+                  "properties": { "revision": { "type": "integer" } },
+                  "required": ["revision"]
+                }
+              },
+              "reason": {
+                "const": "Registered semantic-target adapters require an immutable target revision."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter_state": { "const": "target_authority_unavailable" }
+            },
+            "required": ["adapter_state"]
+          },
+          "then": {
+            "properties": {
+              "target_ref": {
+                "type": "object",
+                "properties": {
+                  "semantic_key": {
+                    "enum": [
+                      "petra.change-set",
+                      "petra.approval",
+                      "scientific.claim",
+                      "scientific.assertion"
+                    ]
+                  },
+                  "revision": {
+                    "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                  }
+                },
+                "required": ["revision"]
+              },
+              "reason": {
+                "const": "The exact immutable target authority is unavailable in this Project snapshot."
+              }
+            }
+          }
+        }
+      ]
+    },
+    "TargetAssessment": {
+      "oneOf": [
+        { "$ref": "#/$defs/RegisteredAssessment" },
+        { "$ref": "#/$defs/UnavailableAssessment" }
+      ]
+    },
+    "RegistryEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter_kind", "authority_source", "semantic_keys"],
+      "properties": {
+        "adapter_kind": {
+          "enum": [
+            "change_control",
+            "review_membership",
+            "grounded_response_dependency",
+            "composition_lineage"
+          ]
+        },
+        "authority_source": {
+          "enum": [
+            "immutable_change_control_target_bindings",
+            "immutable_review_candidate_bindings",
+            "immutable_grounded_response_dependencies",
+            "immutable_composition_target_bindings"
+          ]
+        },
+        "semantic_keys": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "petra.change-set",
+              "petra.approval",
+              "scientific.claim",
+              "scientific.assertion"
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "adapter_kind": { "const": "change_control" } },
+            "required": ["adapter_kind"]
+          },
+          "then": {
+            "properties": {
+              "authority_source": {
+                "const": "immutable_change_control_target_bindings"
+              },
+              "semantic_keys": {
+                "const": [
+                  "petra.change-set",
+                  "petra.approval",
+                  "scientific.claim",
+                  "scientific.assertion"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter_kind": { "const": "review_membership" }
+            },
+            "required": ["adapter_kind"]
+          },
+          "then": {
+            "properties": {
+              "authority_source": {
+                "const": "immutable_review_candidate_bindings"
+              },
+              "semantic_keys": {
+                "const": ["scientific.claim", "scientific.assertion"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter_kind": { "const": "grounded_response_dependency" }
+            },
+            "required": ["adapter_kind"]
+          },
+          "then": {
+            "properties": {
+              "authority_source": {
+                "const": "immutable_grounded_response_dependencies"
+              },
+              "semantic_keys": {
+                "const": ["scientific.claim", "scientific.assertion"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter_kind": { "const": "composition_lineage" }
+            },
+            "required": ["adapter_kind"]
+          },
+          "then": {
+            "properties": {
+              "authority_source": {
+                "const": "immutable_composition_target_bindings"
+              },
+              "semantic_keys": {
+                "const": ["scientific.claim", "scientific.assertion"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "SemanticSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registered_adapter_count",
+        "assessed_target_count",
+        "supported_target_count",
+        "total_count",
+        "coverage"
+      ],
+      "properties": {
+        "registered_adapter_count": { "const": 4 },
+        "assessed_target_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "supported_target_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "total_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 40000000
+        },
+        "coverage": { "enum": ["complete", "truncated"] }
+      }
+    },
+    "SemanticTargetImpact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "target_limit",
+        "per_adapter_ref_limit",
+        "target_total_count",
+        "target_returned_count",
+        "target_coverage",
+        "registry",
+        "target_assessments",
+        "summary",
+        "unknowns"
+      ],
+      "properties": {
+        "scope": { "const": "registered_exact_semantic_target_dependents" },
+        "target_limit": { "const": 10 },
+        "per_adapter_ref_limit": { "const": 25 },
+        "target_total_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "target_returned_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "target_coverage": { "enum": ["complete", "truncated"] },
+        "registry": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/RegistryEntry" },
+          "allOf": [
+            {
+              "contains": {
+                "type": "object",
+                "properties": { "adapter_kind": { "const": "change_control" } },
+                "required": ["adapter_kind"]
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "adapter_kind": { "const": "review_membership" }
+                },
+                "required": ["adapter_kind"]
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "adapter_kind": {
+                    "const": "grounded_response_dependency"
+                  }
+                },
+                "required": ["adapter_kind"]
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "adapter_kind": { "const": "composition_lineage" }
+                },
+                "required": ["adapter_kind"]
+              },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          ]
+        },
+        "target_assessments": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/TargetAssessment" }
+        },
+        "summary": { "$ref": "#/$defs/SemanticSummary" },
+        "unknowns": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "unregistered_semantic_keys_may_have_dependents",
+              "identity_only_semantic_relations_are_excluded",
+              "transitive_semantic_dependents_may_exist",
+              "external_system_dependents_are_not_observable"
+            ]
+          }
+        }
+      }
+    },
+    "ImpactContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "selected_event",
+        "authorization_scope",
+        "impact",
+        "semantic_target_impact",
+        "decision_boundary",
+        "authority",
+        "omissions",
+        "graph_navigation_history"
+      ],
+      "properties": {
+        "view_kind": { "const": "dependency_impact" },
+        "selected_event": {
+          "$ref": "../1.0.0/schema.json#/$defs/EventAnchor"
+        },
+        "authorization_scope": { "const": "authenticated_project" },
+        "impact": { "$ref": "../1.0.0/schema.json#/$defs/Impact" },
+        "semantic_target_impact": { "$ref": "#/$defs/SemanticTargetImpact" },
+        "decision_boundary": {
+          "$ref": "../1.0.0/schema.json#/$defs/DecisionBoundary"
+        },
+        "authority": {
+          "$ref": "../1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "omissions": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "unregistered_semantic_target_adapters_not_composed",
+              "identity_only_semantic_relations_not_composed",
+              "transitive_dependency_closure_not_composed",
+              "reversibility_not_assessed",
+              "compensation_not_composed",
+              "historical_project_definition_not_interpreted",
+              "cross_family_total_order_not_asserted"
+            ]
+          }
+        },
+        "graph_navigation_history": { "const": "client_local_separate" }
+      }
+    }
+  }
+}

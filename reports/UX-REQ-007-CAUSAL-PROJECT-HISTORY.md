@@ -2,11 +2,11 @@
 
 Status: bounded Recent changes, exact event-selected causal episodes,
 snapshot-stable retained Project-event traversal, and bounded direct dependency
-impact passed; semantic-target impact, filters, and broader recovery planning
-remain open
+impact plus registered exact semantic-target adapters passed; source-lifecycle
+semantic adapters, filters, and broader recovery planning remain open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `1c44dd3`
+Implementation baseline: `9530b09`
 
 ## Result
 
@@ -131,6 +131,45 @@ not asserted. A reference proves the relationship only: Petra neither infers
 the dependent's effect nor assesses reversibility or composes compensation in
 this view.
 
+## Registered exact semantic-target impact
+
+`petra.project-history-impact-view@1.1.0` preserves the 1.0 direct groups and
+adds a separate bounded assessment for each exact target carried by the
+selected event. It inspects at most ten targets and returns at most twenty-five
+references from each adapter. The assessment never substitutes identity-only
+similarity for an exact target revision/hash binding.
+
+Four adapters are registered against existing immutable authorities:
+
+- `change_control` reads exact ChangeSet, Approval, and evidence-revision
+  bindings from ChangeSets, approvals, operations, and promotion
+  authorizations;
+- `review_membership` reads exact Claim/Assertion membership from retained
+  ReviewSession candidate bindings;
+- `grounded_response_dependency` reads exact Claim/Assertion dependencies from
+  retained GroundedResponse revisions; and
+- `composition_lineage` reads exact Claim/Assertion subjects, plan evidence,
+  provenance bases, and draft-authority dependencies from retained composition
+  records.
+
+Every group names its owning authority, exact-revision relation scope, total,
+returned count, coverage, relation kind, stable relation identity, owning record
+identity/hash, and current, historical, or immutable-revision posture. Target
+authority is re-resolved and hash-validated in the same repeatable-read Project
+transaction. ChangeSet target and dependent records support both current
+contract versions 1.0 and 1.1; the selected event remains supported through
+domain-event 1.3.
+
+The assessment distinguishes three non-results rather than overclaiming
+coverage: no adapter is registered for the semantic key, a registered key lacks
+an immutable revision, or the named target authority is unavailable in the
+Project snapshot. ProjectSource and ProjectSource-replacement targets therefore
+remain explicitly unregistered in this slice even though their dedicated
+lifecycle authorities already exist. Identity-only semantic relations,
+transitive closure, and external-system dependents remain explicit unknowns.
+References do not imply the dependent's effect. Reversibility remains
+`not_assessed`; compensation remains `not_composed`.
+
 ## Recovery semantics
 
 This slice does not invent generic undo or multi-step compensation. ChangeSet
@@ -183,32 +222,43 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 - a graph-projection attempt's event, outbox, sequence, content, and record
   hashes; or
 - a GroundedResponse invalidation's selected event/change-set binding and exact
-  retained response revision.
+  retained response revision;
+- a registered semantic target's exact immutable authority payload, revision,
+  content hash where applicable, and record hash; or
+- a semantic dependent's exact owning record, version, revision, content hash
+  where applicable, record hash, Project scope, and registered relation
+  identity.
 
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal, and dependency-impact responses. Rejected fixtures cover an
-altered quick limit, false global episode order, unsafe offset-cursor reuse, and
-a dependency read that claims a reversibility decision. TypeScript generation,
-AJV conformance, strict Pydantic round-trip parity, server route tests,
-typed-client tests, and the real PostgreSQL integration suite pass. The database
-proof starts from an empty PostgreSQL 18.6 instance, migrates V001 through V030,
-exercises all four reads over domain-event versions 1.0, 1.1, 1.2, and 1.3, and
-proves cursor integrity, cross-Project rejection, stable membership after a
-concurrent append, keyset continuation without duplication, causal
-parent/following-command links, Project-stream adjacency, exact lifecycle or
-replacement receipt references, and exact command, outbox, graph-projection,
-and GroundedResponse-invalidation dependency bindings.
+retained traversal, and dependency-impact 1.0/1.1 responses. Rejected fixtures
+cover an altered quick limit, false global episode order, unsafe offset-cursor
+reuse, a dependency read that claims a reversibility decision, and an
+unregistered semantic target that fabricates a registered adapter group.
+TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
+server route tests, typed-client tests, and the real PostgreSQL integration
+suite pass. The database proof starts from an empty PostgreSQL 18.6 instance,
+migrates V001 through V030, exercises all four reads over domain-event versions
+1.0, 1.1, 1.2, and 1.3, and proves cursor integrity, cross-Project rejection,
+stable membership after a concurrent append, keyset continuation without
+duplication, causal parent/following-command links, Project-stream adjacency,
+exact lifecycle or replacement receipt references, and exact command, outbox,
+graph-projection, GroundedResponse-invalidation, ChangeSet/Approval,
+ReviewSession-membership, GroundedResponse-dependency, and composition-lineage
+bindings. Historical and current dependent revisions are distinguished without
+rewriting either.
 
 ## Next safe slice
 
-The next safe History boundary is a bounded, read-only set of registered
-semantic-target dependency adapters for the exact targets of one selected
-event. Each adapter must name its owning authority and coverage independently;
-Petra must continue to distinguish a proven reference from an inferred effect
-and must not claim transitive closure. ChangeSet reversibility and compensation
-preview can follow only after the relevant dependency truth is complete enough
-to support them. Filters can follow once their exact query identity is bound
-into cursor snapshots. Universal undo, multi-step compensation, and event
-rewriting remain excluded.
+The next safe History boundary is to register exact ProjectSource and
+ProjectSource-replacement semantic-target adapters by reusing their existing
+immutable lifecycle, replacement, receipt, and dependency authorities. The
+adapter must preserve the same per-target/per-adapter bounds and explicitly
+separate retained lineage from the effective replacement head; it must not
+reinterpret historical ProjectDefinitions or turn an identity-only relation
+into dependency truth. ChangeSet reversibility and compensation preview can
+follow only after the relevant dependency truth is complete enough to support
+them. Filters can follow once their exact query identity is bound into cursor
+snapshots. Universal undo, multi-step compensation, and event rewriting remain
+excluded.

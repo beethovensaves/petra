@@ -3,6 +3,7 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactView,
+  PetraProjectHistoryImpactViewV11,
   PetraProjectHistoryRetainedView,
   PetraProjectHistoryView,
   ProjectHistoryCausalCommandLink,
@@ -11,7 +12,12 @@ import type {
   ProjectHistoryRecentChange,
   ProjectHistoryReceiptRef,
   ProjectHistoryRecovery,
+  ProjectHistoryRegisteredTargetAssessment,
+  ProjectHistoryResolvedTargetRef,
   ProjectHistoryRetentionSnapshot,
+  ProjectHistorySemanticDependentRef,
+  ProjectHistorySemanticImpactAdapterGroup,
+  ProjectHistoryTargetAssessment,
   ProjectHistoryTargetRef,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -112,6 +118,27 @@ interface ImpactGroundedResponseRow {
   total_count: string;
 }
 
+interface SemanticTargetRow {
+  payload: unknown;
+  content_hash: string | null;
+  record_hash: string;
+}
+
+interface SemanticDependentRow {
+  semantic_key: ProjectHistorySemanticDependentRef["semantic_key"];
+  object_id: string;
+  revision: string;
+  schema_name: ProjectHistorySemanticDependentRef["schema_name"];
+  schema_version: string;
+  content_hash: string | null;
+  record_hash: string;
+  payload: unknown;
+  posture: ProjectHistorySemanticDependentRef["posture"];
+  relation: ProjectHistorySemanticDependentRef["relation"];
+  relation_identity: string;
+  total_count: string;
+}
+
 interface EventRow {
   event_payload: unknown;
   event_record_hash: string;
@@ -143,6 +170,8 @@ const HISTORY_LIMIT = 10;
 const RETAINED_DEFAULT_LIMIT = 50;
 const RETAINED_MAX_LIMIT = 100;
 const IMPACT_MAX_REFS = 100;
+const SEMANTIC_TARGET_LIMIT = 10;
+const SEMANTIC_ADAPTER_MAX_REFS = 25;
 const RETAINED_CURSOR = /^phc1\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]{43})$/u;
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const EVENT_ID = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -820,7 +849,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   async getProjectHistoryImpactView(
     projectId: string,
     eventId: string,
-  ): Promise<PetraProjectHistoryImpactView | undefined> {
+  ): Promise<PetraProjectHistoryImpactViewV11 | undefined> {
     return this.#readTransaction(async (client, readAt) => {
       const result = await client.query<HistoryRow>(
         `SELECT event.payload AS event_payload,
@@ -886,8 +915,13 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           "The direct dependency total exceeds Petra's safe integer range.",
         );
       }
+      const semanticTargetImpact = await this.#semanticTargetImpact(
+        client,
+        projectId,
+        change.targets,
+      );
       const authority = await this.#authority(client, projectId);
-      const content: PetraProjectHistoryImpactView["content"] = {
+      const content: PetraProjectHistoryImpactViewV11["content"] = {
         view_kind: "dependency_impact",
         selected_event: {
           command_ref: change.command_ref,
@@ -920,6 +954,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
             "external_system_dependents_are_not_observable",
           ],
         },
+        semantic_target_impact: semanticTargetImpact,
         decision_boundary: {
           reversibility: "not_assessed",
           compensation: "not_composed",
@@ -930,7 +965,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           ...authority,
         },
         omissions: [
-          "semantic_target_dependencies_not_composed",
+          "unregistered_semantic_target_adapters_not_composed",
+          "identity_only_semantic_relations_not_composed",
           "transitive_dependency_closure_not_composed",
           "reversibility_not_assessed",
           "compensation_not_composed",
@@ -939,18 +975,825 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         ],
         graph_navigation_history: "client_local_separate",
       };
-      const view: PetraProjectHistoryImpactView = {
+      const view: PetraProjectHistoryImpactViewV11 = {
         schema_name: "petra.project-history-impact-view",
-        schema_version: "1.0.0",
+        schema_version: "1.1.0",
         project_id: projectId,
         event_id: eventId,
         content,
         content_hash: canonicalHash(content),
         read_at: readAt,
       };
-      this.#contracts.assertValid("project-history-impact-view", "1.0.0", view);
+      this.#contracts.assertValid("project-history-impact-view", "1.1.0", view);
       return structuredClone(view);
     });
+  }
+
+  async #semanticTargetImpact(
+    client: PoolClient,
+    projectId: string,
+    targets: readonly ProjectHistoryTargetRef[],
+  ): Promise<
+    PetraProjectHistoryImpactViewV11["content"]["semantic_target_impact"]
+  > {
+    const selectedTargets = targets.slice(0, SEMANTIC_TARGET_LIMIT);
+    const targetAssessments: ProjectHistoryTargetAssessment[] = [];
+    for (const [targetIndex, target] of selectedTargets.entries()) {
+      targetAssessments.push(
+        await this.#semanticTargetAssessment(
+          client,
+          projectId,
+          targetIndex,
+          target,
+        ),
+      );
+    }
+    const groups = targetAssessments.flatMap((assessment) => assessment.groups);
+    const totalCount = groups.reduce(
+      (total, group) => total + group.total_count,
+      0,
+    );
+    if (!Number.isSafeInteger(totalCount) || totalCount > 40_000_000) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The semantic-target dependency total exceeds Petra's bounded contract.",
+      );
+    }
+    const targetCoverage =
+      targets.length > selectedTargets.length ? "truncated" : "complete";
+    const result = {
+      scope: "registered_exact_semantic_target_dependents",
+      target_limit: SEMANTIC_TARGET_LIMIT,
+      per_adapter_ref_limit: SEMANTIC_ADAPTER_MAX_REFS,
+      target_total_count: targets.length,
+      target_returned_count: selectedTargets.length,
+      target_coverage: targetCoverage,
+      registry: [
+        {
+          adapter_kind: "change_control",
+          authority_source: "immutable_change_control_target_bindings",
+          semantic_keys: [
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion",
+          ],
+        },
+        {
+          adapter_kind: "review_membership",
+          authority_source: "immutable_review_candidate_bindings",
+          semantic_keys: ["scientific.claim", "scientific.assertion"],
+        },
+        {
+          adapter_kind: "grounded_response_dependency",
+          authority_source: "immutable_grounded_response_dependencies",
+          semantic_keys: ["scientific.claim", "scientific.assertion"],
+        },
+        {
+          adapter_kind: "composition_lineage",
+          authority_source: "immutable_composition_target_bindings",
+          semantic_keys: ["scientific.claim", "scientific.assertion"],
+        },
+      ],
+      target_assessments: targetAssessments,
+      summary: {
+        registered_adapter_count: 4,
+        assessed_target_count: selectedTargets.length,
+        supported_target_count: targetAssessments.filter(
+          ({ adapter_state }) => adapter_state === "registered",
+        ).length,
+        total_count: totalCount,
+        coverage:
+          targetCoverage === "truncated" ||
+          groups.some(({ coverage }) => coverage === "truncated")
+            ? "truncated"
+            : "complete",
+      },
+      unknowns: [
+        "unregistered_semantic_keys_may_have_dependents",
+        "identity_only_semantic_relations_are_excluded",
+        "transitive_semantic_dependents_may_exist",
+        "external_system_dependents_are_not_observable",
+      ],
+    };
+    return result as unknown as PetraProjectHistoryImpactViewV11["content"]["semantic_target_impact"];
+  }
+
+  async #semanticTargetAssessment(
+    client: PoolClient,
+    projectId: string,
+    targetIndex: number,
+    target: ProjectHistoryTargetRef,
+  ): Promise<ProjectHistoryTargetAssessment> {
+    if (!this.#registeredSemanticKey(target.semantic_key)) {
+      return {
+        target_index: targetIndex,
+        target_ref: target,
+        adapter_state: "no_registered_exact_adapter",
+        reason:
+          "No exact semantic-target adapter is registered for this semantic key.",
+        groups: [],
+      };
+    }
+    if (target.revision === undefined) {
+      return {
+        target_index: targetIndex,
+        target_ref: target,
+        adapter_state: "target_identity_incomplete",
+        reason:
+          "Registered semantic-target adapters require an immutable target revision.",
+        groups: [],
+      };
+    }
+    const resolvedTarget = await this.#resolveSemanticTarget(
+      client,
+      projectId,
+      target,
+    );
+    if (resolvedTarget === undefined) {
+      return {
+        target_index: targetIndex,
+        target_ref: target,
+        adapter_state: "target_authority_unavailable",
+        reason:
+          "The exact immutable target authority is unavailable in this Project snapshot.",
+        groups: [],
+      };
+    }
+    const groups: ProjectHistorySemanticImpactAdapterGroup[] = [
+      await this.#semanticChangeControlGroup(client, projectId, resolvedTarget),
+    ];
+    if (
+      resolvedTarget.semantic_key === "scientific.claim" ||
+      resolvedTarget.semantic_key === "scientific.assertion"
+    ) {
+      groups.push(
+        await this.#semanticReviewGroup(client, projectId, resolvedTarget),
+        await this.#semanticGroundedResponseGroup(
+          client,
+          projectId,
+          resolvedTarget,
+        ),
+        await this.#semanticCompositionGroup(client, projectId, resolvedTarget),
+      );
+    }
+    return {
+      target_index: targetIndex,
+      target_ref: target,
+      adapter_state: "registered",
+      resolved_target_ref: resolvedTarget,
+      groups:
+        groups as unknown as ProjectHistoryRegisteredTargetAssessment["groups"],
+    };
+  }
+
+  #registeredSemanticKey(
+    semanticKey: string,
+  ): semanticKey is ProjectHistoryResolvedTargetRef["semantic_key"] {
+    return [
+      "petra.change-set",
+      "petra.approval",
+      "scientific.claim",
+      "scientific.assertion",
+    ].includes(semanticKey);
+  }
+
+  async #resolveSemanticTarget(
+    client: PoolClient,
+    projectId: string,
+    target: ProjectHistoryTargetRef,
+  ): Promise<ProjectHistoryResolvedTargetRef | undefined> {
+    const targetRevision = target.revision;
+    if (targetRevision === undefined) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A registered semantic target has no immutable revision.",
+      );
+    }
+    let result;
+    let contractName: string;
+    let schemaName: ProjectHistoryResolvedTargetRef["schema_name"];
+    let idField: string;
+    switch (target.semantic_key) {
+      case "petra.change-set":
+        contractName = "change-set";
+        schemaName = "petra.change-set";
+        idField = "change_set_id";
+        result = await client.query<SemanticTargetRow>(
+          `SELECT payload, content_hash, record_hash
+             FROM petra.change_sets
+            WHERE project_id = $1 AND change_set_id = $2 AND revision = $3`,
+          [projectId, target.object_id, targetRevision],
+        );
+        break;
+      case "petra.approval":
+        contractName = "approval";
+        schemaName = "petra.approval";
+        idField = "approval_id";
+        result = await client.query<SemanticTargetRow>(
+          `SELECT approval.payload, NULL::text AS content_hash,
+                  approval.record_hash
+             FROM petra.approvals AS approval
+             JOIN petra.change_sets AS change_set
+               ON change_set.change_set_id = approval.change_set_id
+            WHERE change_set.project_id = $1
+              AND approval.approval_id = $2
+              AND approval.revision = $3`,
+          [projectId, target.object_id, targetRevision],
+        );
+        break;
+      case "scientific.claim":
+      case "scientific.assertion": {
+        const evidenceKind =
+          target.semantic_key === "scientific.claim" ? "claim" : "assertion";
+        contractName = evidenceKind;
+        schemaName = `petra.${evidenceKind}`;
+        idField = `${evidenceKind}_id`;
+        result = await client.query<SemanticTargetRow>(
+          `SELECT payload, NULL::text AS content_hash, record_hash
+             FROM petra.evidence_entity_revisions
+            WHERE evidence_id = $1 AND evidence_kind = $2 AND revision = $3`,
+          [target.object_id, evidenceKind, targetRevision],
+        );
+        break;
+      }
+      default:
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_EVENT_UNSUPPORTED",
+          `No exact semantic target resolver is registered for ${target.semantic_key}.`,
+        );
+    }
+    const row = result.rows[0];
+    if (row === undefined) {
+      return undefined;
+    }
+    const payload = record(row.payload, "semantic target");
+    const schemaVersion = payload.schema_version;
+    if (
+      typeof schemaVersion !== "string" ||
+      (schemaVersion !== "1.0.0" &&
+        !(schemaName === "petra.change-set" && schemaVersion === "1.1.0"))
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A registered semantic target uses an unsupported authority contract version.",
+      );
+    }
+    this.#contracts.assertValid(contractName, schemaVersion, payload);
+    if (
+      payload.schema_name !== schemaName ||
+      payload.schema_version !== schemaVersion ||
+      payload[idField] !== target.object_id ||
+      payload.revision !== targetRevision ||
+      canonicalHash(payload) !== row.record_hash ||
+      (row.content_hash !== null &&
+        payload.content_hash !== row.content_hash) ||
+      (target.content_hash !== undefined &&
+        target.content_hash !== row.content_hash) ||
+      (target.record_hash !== undefined &&
+        target.record_hash !== row.record_hash)
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A registered semantic target differs from the exact immutable authority record.",
+      );
+    }
+    return {
+      semantic_key: target.semantic_key,
+      object_id: target.object_id,
+      revision: targetRevision,
+      schema_name: schemaName,
+      schema_version: schemaVersion,
+      ...(row.content_hash === null ? {} : { content_hash: row.content_hash }),
+      record_hash: row.record_hash,
+    };
+  }
+
+  async #semanticChangeControlGroup(
+    client: PoolClient,
+    projectId: string,
+    target: ProjectHistoryResolvedTargetRef,
+  ): Promise<ProjectHistorySemanticImpactAdapterGroup> {
+    let result;
+    if (target.semantic_key === "petra.change-set") {
+      if (target.content_hash === undefined) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "An exact ChangeSet target is missing its content hash.",
+        );
+      }
+      result = await client.query<SemanticDependentRow>(
+        `WITH matched AS (
+           SELECT 'petra.approval'::text AS semantic_key,
+                  approval.approval_id AS object_id,
+                  approval.revision::text AS revision,
+                  'petra.approval'::text AS schema_name,
+                  '1.0.0'::text AS schema_version,
+                  NULL::text AS content_hash,
+                  approval.record_hash, approval.payload,
+                  'immutable_revision'::text AS posture,
+                  'approves_exact_change_set'::text AS relation,
+                  'approval:' || approval.approval_id AS relation_identity
+             FROM petra.approvals AS approval
+             JOIN petra.change_sets AS change_set
+               ON change_set.change_set_id = approval.change_set_id
+            WHERE change_set.project_id = $1
+              AND approval.change_set_id = $2
+              AND approval.change_set_revision = $3
+              AND approval.change_set_content_hash = $4
+           UNION ALL
+           SELECT CASE evidence_authorization.evidence_kind
+                    WHEN 'claim' THEN 'scientific.claim'
+                    ELSE 'scientific.assertion'
+                  END,
+                  revision.evidence_id, revision.revision::text,
+                  revision.schema_name, revision.schema_version,
+                  NULL::text, revision.record_hash, revision.payload,
+                  CASE WHEN head.current_revision = revision.revision
+                    THEN 'current' ELSE 'historical' END,
+                  'authorized_by_exact_change_set',
+                  'authorization:' || revision.evidence_id || ':' ||
+                    revision.revision::text
+             FROM petra.evidence_revision_authorizations AS evidence_authorization
+             JOIN petra.change_sets AS change_set
+               ON change_set.change_set_id = evidence_authorization.change_set_id
+             JOIN petra.evidence_entity_revisions AS revision
+               ON revision.evidence_id = evidence_authorization.evidence_id
+              AND revision.evidence_kind = evidence_authorization.evidence_kind
+              AND revision.revision = evidence_authorization.evidence_revision
+             JOIN petra.evidence_entities AS head
+               ON head.evidence_id = revision.evidence_id
+              AND head.evidence_kind = revision.evidence_kind
+            WHERE change_set.project_id = $1
+              AND evidence_authorization.change_set_id = $2
+              AND evidence_authorization.change_set_revision = $3
+              AND evidence_authorization.change_set_content_hash = $4
+         )
+         SELECT matched.*, (count(*) OVER ())::text AS total_count
+           FROM matched
+          ORDER BY semantic_key, object_id, revision
+          LIMIT ${SEMANTIC_ADAPTER_MAX_REFS}`,
+        [projectId, target.object_id, target.revision, target.content_hash],
+      );
+    } else if (target.semantic_key === "petra.approval") {
+      result = await client.query<SemanticDependentRow>(
+        `WITH matched AS (
+           SELECT CASE evidence_authorization.evidence_kind
+                    WHEN 'claim' THEN 'scientific.claim'
+                    ELSE 'scientific.assertion'
+                  END AS semantic_key,
+                  revision.evidence_id AS object_id,
+                  revision.revision::text AS revision,
+                  revision.schema_name, revision.schema_version,
+                  NULL::text AS content_hash,
+                  revision.record_hash, revision.payload,
+                  CASE WHEN head.current_revision = revision.revision
+                    THEN 'current' ELSE 'historical' END AS posture,
+                  'authorized_by_exact_approval'::text AS relation,
+                  'authorization:' || revision.evidence_id || ':' ||
+                    revision.revision::text AS relation_identity
+             FROM petra.evidence_revision_authorizations AS evidence_authorization
+             JOIN petra.approvals AS approval
+               ON approval.approval_id = evidence_authorization.approval_id
+              AND approval.revision = evidence_authorization.approval_revision
+             JOIN petra.change_sets AS change_set
+               ON change_set.change_set_id = approval.change_set_id
+             JOIN petra.evidence_entity_revisions AS revision
+               ON revision.evidence_id = evidence_authorization.evidence_id
+              AND revision.evidence_kind = evidence_authorization.evidence_kind
+              AND revision.revision = evidence_authorization.evidence_revision
+             JOIN petra.evidence_entities AS head
+               ON head.evidence_id = revision.evidence_id
+              AND head.evidence_kind = revision.evidence_kind
+            WHERE change_set.project_id = $1
+              AND approval.approval_id = $2
+              AND approval.revision = $3
+              AND approval.record_hash = $4
+         )
+         SELECT matched.*, (count(*) OVER ())::text AS total_count
+           FROM matched
+          ORDER BY semantic_key, object_id, revision
+          LIMIT ${SEMANTIC_ADAPTER_MAX_REFS}`,
+        [projectId, target.object_id, target.revision, target.record_hash],
+      );
+    } else {
+      const evidenceKind =
+        target.semantic_key === "scientific.claim" ? "claim" : "assertion";
+      result = await client.query<SemanticDependentRow>(
+        `WITH matched AS (
+           SELECT 'petra.change-set'::text AS semantic_key,
+                  change_set.change_set_id AS object_id,
+                  change_set.revision::text AS revision,
+                  'petra.change-set'::text AS schema_name,
+                  change_set.payload ->> 'schema_version' AS schema_version,
+                  change_set.content_hash, change_set.record_hash,
+                  change_set.payload,
+                  'immutable_revision'::text AS posture,
+                  'proposes_promotion_from_exact_evidence_revision'::text
+                    AS relation,
+                  'operation:' || operation.position::text AS relation_identity
+             FROM petra.change_set_operations AS operation
+             JOIN petra.change_sets AS change_set
+               ON change_set.change_set_id = operation.change_set_id
+              AND change_set.revision = operation.change_set_revision
+             JOIN petra.evidence_entity_revisions AS target_revision
+               ON target_revision.evidence_id = operation.target_id
+              AND target_revision.evidence_kind = operation.target_evidence_kind
+              AND target_revision.revision = operation.base_revision
+            WHERE change_set.project_id = $1
+              AND operation.target_evidence_kind = $2
+              AND operation.target_id = $3
+              AND operation.base_revision = $4
+              AND target_revision.record_hash = $5
+         )
+         SELECT matched.*, (count(*) OVER ())::text AS total_count
+           FROM matched
+          ORDER BY object_id, revision, relation_identity
+          LIMIT ${SEMANTIC_ADAPTER_MAX_REFS}`,
+        [
+          projectId,
+          evidenceKind,
+          target.object_id,
+          target.revision,
+          target.record_hash,
+        ],
+      );
+    }
+    return this.#semanticGroup(
+      "change_control",
+      "immutable_change_control_target_bindings",
+      result.rows,
+    );
+  }
+
+  async #semanticReviewGroup(
+    client: PoolClient,
+    projectId: string,
+    target: ProjectHistoryResolvedTargetRef,
+  ): Promise<ProjectHistorySemanticImpactAdapterGroup> {
+    const evidenceKind =
+      target.semantic_key === "scientific.claim" ? "claim" : "assertion";
+    const result = await client.query<SemanticDependentRow>(
+      `WITH matched AS (
+         SELECT 'petra.review-session'::text AS semantic_key,
+                revision.review_session_id AS object_id,
+                revision.revision::text AS revision,
+                'petra.review-session'::text AS schema_name,
+                '1.0.0'::text AS schema_version,
+                revision.content_hash, revision.record_hash, revision.payload,
+                CASE WHEN head.current_revision = revision.revision
+                  THEN 'current' ELSE 'historical' END AS posture,
+                'contains_exact_review_candidate'::text AS relation,
+                'member:' || binding.member_position::text || '/binding:' ||
+                  binding.binding_position::text AS relation_identity
+           FROM petra.review_session_candidate_bindings AS binding
+           JOIN petra.review_session_revisions AS revision
+             ON revision.review_session_id = binding.review_session_id
+            AND revision.revision = binding.review_session_revision
+           JOIN petra.review_sessions AS head
+             ON head.review_session_id = revision.review_session_id
+          WHERE head.project_id = $1
+            AND binding.evidence_kind = $2
+            AND binding.evidence_id = $3
+            AND binding.evidence_revision = $4
+            AND binding.evidence_record_hash = $5
+       )
+       SELECT matched.*, (count(*) OVER ())::text AS total_count
+         FROM matched
+        ORDER BY object_id, revision, relation_identity
+        LIMIT ${SEMANTIC_ADAPTER_MAX_REFS}`,
+      [
+        projectId,
+        evidenceKind,
+        target.object_id,
+        target.revision,
+        target.record_hash,
+      ],
+    );
+    return this.#semanticGroup(
+      "review_membership",
+      "immutable_review_candidate_bindings",
+      result.rows,
+    );
+  }
+
+  async #semanticGroundedResponseGroup(
+    client: PoolClient,
+    projectId: string,
+    target: ProjectHistoryResolvedTargetRef,
+  ): Promise<ProjectHistorySemanticImpactAdapterGroup> {
+    const evidenceKind =
+      target.semantic_key === "scientific.claim" ? "claim" : "assertion";
+    const result = await client.query<SemanticDependentRow>(
+      `WITH matched AS (
+         SELECT 'petra.grounded-response'::text AS semantic_key,
+                revision.grounded_response_id AS object_id,
+                revision.revision::text AS revision,
+                'petra.grounded-response'::text AS schema_name,
+                '1.0.0'::text AS schema_version,
+                revision.content_hash, revision.record_hash, revision.payload,
+                CASE WHEN head.current_revision = revision.revision
+                  THEN 'current' ELSE 'historical' END AS posture,
+                'depends_on_exact_grounded_evidence'::text AS relation,
+                'dependency:' || dependency.position::text AS relation_identity
+           FROM petra.grounded_response_dependencies AS dependency
+           JOIN petra.grounded_response_revisions AS revision
+             ON revision.grounded_response_id = dependency.grounded_response_id
+            AND revision.revision = dependency.response_revision
+           JOIN petra.grounded_responses AS head
+             ON head.grounded_response_id = revision.grounded_response_id
+          WHERE revision.project_id = $1
+            AND dependency.object_kind = $2
+            AND dependency.object_id = $3
+            AND dependency.object_revision = $4
+            AND dependency.object_hash = $5
+       )
+       SELECT matched.*, (count(*) OVER ())::text AS total_count
+         FROM matched
+        ORDER BY object_id, revision, relation_identity
+        LIMIT ${SEMANTIC_ADAPTER_MAX_REFS}`,
+      [
+        projectId,
+        evidenceKind,
+        target.object_id,
+        target.revision,
+        target.record_hash,
+      ],
+    );
+    return this.#semanticGroup(
+      "grounded_response_dependency",
+      "immutable_grounded_response_dependencies",
+      result.rows,
+    );
+  }
+
+  async #semanticCompositionGroup(
+    client: PoolClient,
+    projectId: string,
+    target: ProjectHistoryResolvedTargetRef,
+  ): Promise<ProjectHistorySemanticImpactAdapterGroup> {
+    const evidenceKind =
+      target.semantic_key === "scientific.claim" ? "claim" : "assertion";
+    const result = await client.query<SemanticDependentRow>(
+      `WITH matched AS (
+         SELECT 'petra.composition-request'::text AS semantic_key,
+                request.composition_request_id AS object_id,
+                request.revision::text AS revision,
+                'petra.composition-request'::text AS schema_name,
+                '1.0.0'::text AS schema_version,
+                request.content_hash, request.record_hash, request.payload,
+                'immutable_revision'::text AS posture,
+                'selects_exact_composition_subject'::text AS relation,
+                'subject:' || subject.position::text AS relation_identity
+           FROM petra.composition_request_subjects AS subject
+           JOIN petra.composition_requests AS request
+             ON request.composition_request_id = subject.composition_request_id
+          WHERE request.project_id = $1
+            AND subject.object_kind = $2
+            AND subject.object_id = $3
+            AND subject.object_revision = $4
+            AND subject.object_hash = $5
+         UNION ALL
+         SELECT 'petra.composition-plan', plan.composition_plan_id,
+                plan.revision::text, 'petra.composition-plan', '1.0.0',
+                plan.content_hash, plan.record_hash, plan.payload,
+                'immutable_revision', 'uses_exact_composition_evidence',
+                'section:' || evidence.section_position::text || '/move:' ||
+                  evidence.move_position::text || '/evidence:' ||
+                  evidence.evidence_position::text
+           FROM petra.composition_plan_evidence_refs AS evidence
+           JOIN petra.composition_plans AS plan
+             ON plan.composition_plan_id = evidence.composition_plan_id
+          WHERE plan.project_id = $1
+            AND evidence.object_kind = $2
+            AND evidence.object_id = $3
+            AND evidence.object_revision = $4
+            AND evidence.object_hash = $5
+         UNION ALL
+         SELECT 'petra.provenance-map', map.provenance_map_id,
+                map.revision::text, 'petra.provenance-map', '1.0.0',
+                map.content_hash, map.record_hash, map.payload,
+                'immutable_revision', 'maps_exact_provenance_basis',
+                'mapping:' || basis.mapping_position::text || '/basis:' ||
+                  basis.basis_position::text
+           FROM petra.provenance_bases AS basis
+           JOIN petra.provenance_maps AS map
+             ON map.provenance_map_id = basis.provenance_map_id
+            AND map.revision = basis.provenance_map_revision
+          WHERE map.project_id = $1
+            AND basis.object_kind = $2
+            AND basis.object_id = $3
+            AND basis.object_revision = $4
+            AND basis.object_hash = $5
+         UNION ALL
+         SELECT 'petra.draft-artifact', revision.draft_artifact_id,
+                revision.revision::text, 'petra.draft-artifact', '1.0.0',
+                revision.content_hash, revision.record_hash, revision.payload,
+                CASE WHEN head.current_revision = revision.revision
+                  THEN 'current' ELSE 'historical' END,
+                'retains_exact_draft_authority_dependency',
+                'dependency:' || dependency.position::text
+           FROM petra.draft_authority_dependencies AS dependency
+           JOIN petra.draft_artifact_revisions AS revision
+             ON revision.draft_artifact_id = dependency.draft_artifact_id
+            AND revision.revision = dependency.draft_artifact_revision
+           JOIN petra.draft_artifacts AS head
+             ON head.draft_artifact_id = revision.draft_artifact_id
+          WHERE revision.project_id = $1
+            AND dependency.object_kind = $2
+            AND dependency.object_id = $3
+            AND dependency.object_revision = $4
+            AND dependency.object_hash = $5
+       )
+       SELECT matched.*, (count(*) OVER ())::text AS total_count
+         FROM matched
+        ORDER BY semantic_key, object_id, revision, relation_identity
+        LIMIT ${SEMANTIC_ADAPTER_MAX_REFS}`,
+      [
+        projectId,
+        evidenceKind,
+        target.object_id,
+        target.revision,
+        target.record_hash,
+      ],
+    );
+    return this.#semanticGroup(
+      "composition_lineage",
+      "immutable_composition_target_bindings",
+      result.rows,
+    );
+  }
+
+  #semanticGroup(
+    adapterKind: ProjectHistorySemanticImpactAdapterGroup["adapter_kind"],
+    authoritySource: ProjectHistorySemanticImpactAdapterGroup["authority_source"],
+    rows: readonly SemanticDependentRow[],
+  ): ProjectHistorySemanticImpactAdapterGroup {
+    const refs = rows.map((row) => this.#semanticDependentRef(row));
+    const totalCount = this.#impactTotal(
+      rows,
+      `${adapterKind} semantic record`,
+    );
+    return {
+      adapter_kind: adapterKind,
+      authority_source: authoritySource,
+      relation_scope: "exact_target_revision",
+      total_count: totalCount,
+      returned_count: refs.length,
+      coverage: totalCount > refs.length ? "truncated" : "complete",
+      refs,
+    };
+  }
+
+  #semanticDependentRef(
+    row: SemanticDependentRow,
+  ): ProjectHistorySemanticDependentRef {
+    const descriptor = this.#semanticDependentDescriptor(row.schema_name);
+    const payload = record(
+      row.payload,
+      `${row.schema_name} semantic dependent`,
+    );
+    const schemaVersion = row.schema_version;
+    if (
+      schemaVersion !== "1.0.0" &&
+      !(row.schema_name === "petra.change-set" && schemaVersion === "1.1.0")
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A semantic dependent uses an unsupported authority contract version.",
+      );
+    }
+    this.#contracts.assertValid(
+      descriptor.contractName,
+      schemaVersion,
+      payload,
+    );
+    const revision = this.#safeImpactPosition(
+      row.revision,
+      `${row.schema_name} revision`,
+    );
+    if (
+      payload.schema_name !== row.schema_name ||
+      payload.schema_version !== row.schema_version ||
+      payload[descriptor.idField] !== row.object_id ||
+      payload.revision !== revision ||
+      canonicalHash(payload) !== row.record_hash ||
+      (row.content_hash !== null &&
+        payload.content_hash !== row.content_hash) ||
+      descriptor.semanticKey !== row.semantic_key ||
+      !["current", "historical", "immutable_revision"].includes(row.posture) ||
+      !this.#semanticRelation(row.relation) ||
+      row.relation_identity.length < 1 ||
+      row.relation_identity.length > 300
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A semantic dependent differs from its exact owning authority record.",
+      );
+    }
+    return {
+      semantic_key: row.semantic_key,
+      object_id: row.object_id,
+      revision,
+      schema_name: row.schema_name,
+      schema_version: schemaVersion,
+      ...(row.content_hash === null ? {} : { content_hash: row.content_hash }),
+      record_hash: row.record_hash,
+      posture: row.posture,
+      relation: row.relation,
+      relation_identity: row.relation_identity,
+    };
+  }
+
+  #semanticDependentDescriptor(schemaName: string): {
+    contractName: string;
+    idField: string;
+    semanticKey: ProjectHistorySemanticDependentRef["semantic_key"];
+  } {
+    switch (schemaName) {
+      case "petra.change-set":
+        return {
+          contractName: "change-set",
+          idField: "change_set_id",
+          semanticKey: "petra.change-set",
+        };
+      case "petra.approval":
+        return {
+          contractName: "approval",
+          idField: "approval_id",
+          semanticKey: "petra.approval",
+        };
+      case "petra.claim":
+        return {
+          contractName: "claim",
+          idField: "claim_id",
+          semanticKey: "scientific.claim",
+        };
+      case "petra.assertion":
+        return {
+          contractName: "assertion",
+          idField: "assertion_id",
+          semanticKey: "scientific.assertion",
+        };
+      case "petra.review-session":
+        return {
+          contractName: "review-session",
+          idField: "review_session_id",
+          semanticKey: "petra.review-session",
+        };
+      case "petra.grounded-response":
+        return {
+          contractName: "grounded-response",
+          idField: "grounded_response_id",
+          semanticKey: "petra.grounded-response",
+        };
+      case "petra.composition-request":
+        return {
+          contractName: "composition-request",
+          idField: "composition_request_id",
+          semanticKey: "petra.composition-request",
+        };
+      case "petra.composition-plan":
+        return {
+          contractName: "composition-plan",
+          idField: "composition_plan_id",
+          semanticKey: "petra.composition-plan",
+        };
+      case "petra.provenance-map":
+        return {
+          contractName: "provenance-map",
+          idField: "provenance_map_id",
+          semanticKey: "petra.provenance-map",
+        };
+      case "petra.draft-artifact":
+        return {
+          contractName: "draft-artifact",
+          idField: "draft_artifact_id",
+          semanticKey: "petra.draft-artifact",
+        };
+      default:
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          `No semantic dependent contract is registered for ${schemaName}.`,
+        );
+    }
+  }
+
+  #semanticRelation(
+    relation: string,
+  ): relation is ProjectHistorySemanticDependentRef["relation"] {
+    return [
+      "approves_exact_change_set",
+      "authorized_by_exact_change_set",
+      "authorized_by_exact_approval",
+      "proposes_promotion_from_exact_evidence_revision",
+      "contains_exact_review_candidate",
+      "depends_on_exact_grounded_evidence",
+      "selects_exact_composition_subject",
+      "uses_exact_composition_evidence",
+      "maps_exact_provenance_basis",
+      "retains_exact_draft_authority_dependency",
+    ].includes(relation);
   }
 
   async #impactCausalCommands(

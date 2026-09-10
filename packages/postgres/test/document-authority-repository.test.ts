@@ -1205,8 +1205,13 @@ describePostgres("PostgreSQL Document authority repository", () => {
     });
     expect(exclusionImpact?.content.impact.summary.coverage).toBe("complete");
     expect(exclusionImpact?.content.omissions).toContain(
-      "semantic_target_dependencies_not_composed",
+      "unregistered_semantic_target_adapters_not_composed",
     );
+    expect(
+      exclusionImpact?.content.semantic_target_impact.target_assessments.every(
+        ({ adapter_state }) => adapter_state === "no_registered_exact_adapter",
+      ),
+    ).toBe(true);
     const staleReceipt = structuredClone(replacement);
     staleReceipt.project_source_replacement_id =
       "project_source_replacement_01K4C000000000000000000046";

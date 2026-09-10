@@ -34,6 +34,7 @@ import { PostgresChangeControlAuthorityRepository } from "../src/change-control-
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import { PostgresProjectHistoryViewReader } from "../src/project-history-view-reader.js";
 import { PostgresProjectReviewViewReader } from "../src/project-review-view-reader.js";
 import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
@@ -80,6 +81,7 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
   const projectSources = new PostgresProjectSourceAuthorityRepository(pool);
   const sessions = new PostgresReviewSessionAuthorityRepository(pool);
   const views = new PostgresProjectReviewViewReader(pool);
+  const historyViews = new PostgresProjectHistoryViewReader(pool);
   const changes = new PostgresChangeControlAuthorityRepository(pool, {
     authorize: () => true,
   });
@@ -380,6 +382,139 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
         },
       ],
     });
+
+    const apply = readFixture<PetraCommandEnvelope>("command-apply-change-set");
+    if (apply.command.command_name !== "ApplyChangeSet") {
+      throw new Error("Expected ApplyChangeSet fixture.");
+    }
+    apply.command.change_set_content_hash =
+      submit.command.change_set.content_hash;
+    await changes.executeCommand(apply);
+
+    const trustedClaim = await evidence.getClaim(
+      "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+    );
+    const trustedAssertion = await evidence.getAssertion(
+      "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+    );
+    if (trustedClaim === undefined || trustedAssertion === undefined) {
+      throw new Error(
+        "Expected trusted evidence after applying the ChangeSet.",
+      );
+    }
+    const currentSession = structuredClone(session);
+    currentSession.revision = 2;
+    currentSession.updated_at = "2026-09-08T16:03:00.000Z";
+    const currentClaimBinding =
+      currentSession.content.members[0]?.candidate_bindings[0];
+    const currentAssertionBinding =
+      currentSession.content.members[0]?.candidate_bindings[1];
+    if (
+      currentClaimBinding === undefined ||
+      currentAssertionBinding === undefined
+    ) {
+      throw new Error("Expected exact ReviewSession bindings.");
+    }
+    currentClaimBinding.record_ref.revision = trustedClaim.revision;
+    currentClaimBinding.record_ref.record_hash = canonicalHash(trustedClaim);
+    currentAssertionBinding.record_ref.revision = trustedAssertion.revision;
+    currentAssertionBinding.record_ref.record_hash =
+      canonicalHash(trustedAssertion);
+    await bindCurrentSnapshot(currentSession);
+    await sessions.registerReviewSessionRevision(currentSession);
+
+    const otherProject = structuredClone(readFixture<PetraProject>("project"));
+    otherProject.project_id = "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    otherProject.name = "Other Project with shared retained evidence";
+    await scopes.registerProjectRevision(otherProject);
+    const otherDefinition = structuredClone(
+      readFixture<PetraProjectDefinition>("project-definition-scientific"),
+    );
+    otherDefinition.project_definition_id =
+      "project_definition_01K4D000000000000000000090";
+    otherDefinition.project_id = otherProject.project_id;
+    await definitions.registerDefinitionRevision(otherDefinition);
+    const otherObjective = structuredClone(
+      readFixture<PetraProjectObjective>("project-objective"),
+    );
+    otherObjective.objective_id = "objective_01K4D000000000000000000090";
+    otherObjective.project_id = otherProject.project_id;
+    otherObjective.project_definition_ref = {
+      project_definition_id: otherDefinition.project_definition_id,
+      revision: otherDefinition.revision,
+      content_hash: otherDefinition.content_hash,
+    };
+    await definitions.registerObjectiveRevision(otherObjective);
+    const retainedSource = await projectSources.getProjectSource(
+      session.project_id,
+      "project_source_01K4C000000000000000000007",
+    );
+    if (retainedSource === undefined) {
+      throw new Error("Expected the retained scientific ProjectSource.");
+    }
+    const otherSource = structuredClone(retainedSource);
+    otherSource.project_source_id = "project_source_01K4D000000000000000000090";
+    otherSource.project_id = otherProject.project_id;
+    otherSource.content.project_definition_ref = {
+      project_definition_id: otherDefinition.project_definition_id,
+      revision: otherDefinition.revision,
+      content_hash: otherDefinition.content_hash,
+    };
+    otherSource.content_hash = canonicalHash(otherSource.content);
+    await projectSources.registerProjectSourceRevision(otherSource);
+    const otherSession = structuredClone(currentSession);
+    otherSession.review_session_id =
+      "review_session_01K4D000000000000000000090";
+    otherSession.revision = 1;
+    otherSession.project_id = otherProject.project_id;
+    otherSession.project_definition_ref = {
+      project_definition_id: otherDefinition.project_definition_id,
+      revision: otherDefinition.revision,
+      content_hash: otherDefinition.content_hash,
+    };
+    otherSession.content.objective_ref = {
+      objective_id: otherObjective.objective_id,
+      revision: otherObjective.revision,
+      content_hash: otherObjective.content_hash,
+    };
+    otherSession.content.snapshot.event_position = 0;
+    otherSession.content.snapshot.stream_revision = 0;
+    otherSession.content_hash = canonicalHash(otherSession.content);
+    await sessions.registerReviewSessionRevision(otherSession);
+
+    const appliedEvent = (
+      await changes.getDomainEvents({ projectId: session.project_id })
+    ).find(({ event }) => event.event_type === "change_set.applied");
+    if (appliedEvent === undefined) {
+      throw new Error("Expected the applied ChangeSet event.");
+    }
+    const impact = await historyViews.getProjectHistoryImpactView(
+      session.project_id,
+      appliedEvent.event_id,
+    );
+    const claimAssessment =
+      impact?.content.semantic_target_impact.target_assessments.find(
+        ({ target_ref }) => target_ref.object_id === trustedClaim.claim_id,
+      );
+    const reviewGroup = claimAssessment?.groups.find(
+      ({ adapter_kind }) => adapter_kind === "review_membership",
+    );
+    expect(reviewGroup).toMatchObject({
+      authority_source: "immutable_review_candidate_bindings",
+      relation_scope: "exact_target_revision",
+      total_count: 1,
+      returned_count: 1,
+      coverage: "complete",
+    });
+    expect(reviewGroup?.refs).toEqual([
+      expect.objectContaining({
+        object_id: currentSession.review_session_id,
+        revision: currentSession.revision,
+        posture: "current",
+        relation: "contains_exact_review_candidate",
+        relation_identity: "member:1/binding:1",
+      }),
+    ]);
   });
 
   it("rejects unregistered candidate semantics without partial session state", async () => {

@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.40.0",
+  "fixture_manifest_version": "1.41.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -94,6 +94,11 @@
     {
       "schema": "project-history-impact-view",
       "path": "fixtures/accepted/project-history-impact-view.json"
+    },
+    {
+      "schema": "project-history-impact-view",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/project-history-impact-view-v1-1.json"
     },
     {
       "schema": "project-effective-controls-view",
@@ -486,6 +491,11 @@
     {
       "schema": "project-history-impact-view",
       "path": "fixtures/rejected/project-history-impact-view-reversibility-decision.json"
+    },
+    {
+      "schema": "project-history-impact-view",
+      "version": "1.1.0",
+      "path": "fixtures/rejected/project-history-impact-view-v1-1-unsupported-adapter.json"
     },
     {
       "schema": "composition-request",

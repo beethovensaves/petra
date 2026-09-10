@@ -4,7 +4,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
-  PetraProjectHistoryImpactView,
+  PetraProjectHistoryImpactViewV11,
   PetraProjectHistoryRetainedView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -64,6 +64,24 @@ const apiToken = (): string => {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+const sameHistoryTargetRef = (
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+): boolean =>
+  left.role === right.role &&
+  left.semantic_key === right.semantic_key &&
+  left.object_id === right.object_id &&
+  left.revision === right.revision &&
+  left.content_hash === right.content_hash &&
+  left.record_hash === right.record_hash &&
+  left.authority_state === right.authority_state;
+
+const registeredHistorySemanticKey = (value: unknown): boolean =>
+  value === "petra.change-set" ||
+  value === "petra.approval" ||
+  value === "scientific.claim" ||
+  value === "scientific.assertion";
 
 type ProjectShellView = PetraProjectShellView | PetraProjectShellViewV11;
 
@@ -184,18 +202,27 @@ const projectHistoryRetainedView = (
 
 const projectHistoryImpactView = (
   value: unknown,
-): PetraProjectHistoryImpactView => {
+): PetraProjectHistoryImpactViewV11 => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-history-impact-view" ||
-    value.schema_version !== "1.0.0" ||
+    value.schema_version !== "1.1.0" ||
     typeof value.project_id !== "string" ||
     typeof value.event_id !== "string" ||
     !isRecord(value.content) ||
     value.content.view_kind !== "dependency_impact" ||
     value.content.authorization_scope !== "authenticated_project" ||
     !isRecord(value.content.selected_event) ||
+    !Array.isArray(value.content.selected_event.targets) ||
     !isRecord(value.content.impact) ||
+    !isRecord(value.content.semantic_target_impact) ||
+    value.content.semantic_target_impact.scope !==
+      "registered_exact_semantic_target_dependents" ||
+    value.content.semantic_target_impact.target_limit !== 10 ||
+    value.content.semantic_target_impact.per_adapter_ref_limit !== 25 ||
+    !Array.isArray(value.content.semantic_target_impact.registry) ||
+    value.content.semantic_target_impact.registry.length !== 4 ||
+    !Array.isArray(value.content.semantic_target_impact.target_assessments) ||
     !isRecord(value.content.decision_boundary) ||
     value.content.decision_boundary.reversibility !== "not_assessed" ||
     value.content.decision_boundary.compensation !== "not_composed" ||
@@ -210,7 +237,77 @@ const projectHistoryImpactView = (
       502,
     );
   }
-  return value as unknown as PetraProjectHistoryImpactView;
+  const selectedTargets = value.content.selected_event.targets;
+  const semanticImpact = value.content.semantic_target_impact;
+  const assessments = semanticImpact.target_assessments;
+  if (!Array.isArray(assessments)) {
+    throw new ProjectDataError(
+      "Petra returned invalid semantic History target assessments.",
+      502,
+    );
+  }
+  if (
+    semanticImpact.target_total_count !== selectedTargets.length ||
+    semanticImpact.target_returned_count !== assessments.length ||
+    assessments.some((assessment, index) => {
+      const selectedTarget: unknown = selectedTargets[index];
+      if (
+        !isRecord(assessment) ||
+        assessment.target_index !== index ||
+        !isRecord(assessment.target_ref) ||
+        !isRecord(selectedTarget) ||
+        !sameHistoryTargetRef(assessment.target_ref, selectedTarget) ||
+        !Array.isArray(assessment.groups)
+      ) {
+        return true;
+      }
+      if (assessment.adapter_state === "registered") {
+        const resolved = assessment.resolved_target_ref;
+        return (
+          !isRecord(resolved) ||
+          assessment.groups.length < 1 ||
+          resolved.semantic_key !== selectedTarget.semantic_key ||
+          resolved.object_id !== selectedTarget.object_id ||
+          resolved.revision !== selectedTarget.revision ||
+          (selectedTarget.content_hash !== undefined &&
+            resolved.content_hash !== selectedTarget.content_hash) ||
+          (selectedTarget.record_hash !== undefined &&
+            resolved.record_hash !== selectedTarget.record_hash)
+        );
+      }
+      if (assessment.groups.length !== 0) return true;
+      if (assessment.adapter_state === "no_registered_exact_adapter") {
+        return (
+          registeredHistorySemanticKey(selectedTarget.semantic_key) ||
+          assessment.reason !==
+            "No exact semantic-target adapter is registered for this semantic key."
+        );
+      }
+      if (assessment.adapter_state === "target_identity_incomplete") {
+        return (
+          !registeredHistorySemanticKey(selectedTarget.semantic_key) ||
+          selectedTarget.revision !== undefined ||
+          assessment.reason !==
+            "Registered semantic-target adapters require an immutable target revision."
+        );
+      }
+      if (assessment.adapter_state === "target_authority_unavailable") {
+        return (
+          !registeredHistorySemanticKey(selectedTarget.semantic_key) ||
+          typeof selectedTarget.revision !== "number" ||
+          assessment.reason !==
+            "The exact immutable target authority is unavailable in this Project snapshot."
+        );
+      }
+      return true;
+    })
+  ) {
+    throw new ProjectDataError(
+      "Petra returned semantic impact for different History targets.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryImpactViewV11;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -1463,7 +1560,7 @@ export const getProjectHistoryEpisode = async (
 export const getProjectHistoryImpact = async (
   projectId: string,
   eventId: string,
-): Promise<PetraProjectHistoryImpactView> => {
+): Promise<PetraProjectHistoryImpactViewV11> => {
   const value = await requestJson(
     `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}/impact`,
   );

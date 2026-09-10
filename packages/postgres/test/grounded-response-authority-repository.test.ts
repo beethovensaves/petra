@@ -2929,6 +2929,63 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       terminal.packets,
     );
     const original = await repository.register(terminal.input);
+    const compositionRequest = readFixture<PetraCompositionRequest>(
+      "composition-request",
+    );
+    const compositionPlan =
+      readFixture<PetraCompositionPlan>("composition-plan");
+    compositionRequest.snapshot_ref = structuredClone(
+      terminal.input.response.content.snapshot_ref,
+    );
+    compositionPlan.snapshot_ref = structuredClone(
+      terminal.input.response.content.snapshot_ref,
+    );
+    compositionPlan.evidence_packet_ref = structuredClone(
+      terminal.input.response.content.evidence_packet_ref,
+    );
+    const compositionEvidence = terminal.packets.getEvidencePacket(
+      compositionPlan.evidence_packet_ref.evidence_packet_id,
+    );
+    if (compositionEvidence === undefined) {
+      throw new Error("Expected the exact composition EvidencePacket.");
+    }
+    const compositionEvidenceByOrder = new Map(
+      compositionEvidence.content.selected_evidence.map((selection) => [
+        selection.context_selection_order,
+        selection.object_ref,
+      ]),
+    );
+    const compositionSubject = compositionEvidenceByOrder.get(1);
+    if (compositionSubject === undefined) {
+      throw new Error("Expected the selected composition subject.");
+    }
+    compositionRequest.content.subject_refs = [
+      structuredClone(compositionSubject),
+    ];
+    compositionRequest.content_hash = canonicalHash(compositionRequest.content);
+    compositionPlan.composition_request_ref.content_hash =
+      compositionRequest.content_hash;
+    for (const section of compositionPlan.content.sections) {
+      for (const move of section.moves) {
+        for (const evidenceRef of move.evidence_refs) {
+          const selected = compositionEvidenceByOrder.get(
+            evidenceRef.context_selection_order,
+          );
+          if (selected === undefined) {
+            throw new Error("Expected every planned evidence selection.");
+          }
+          evidenceRef.object_ref = structuredClone(selected);
+        }
+      }
+    }
+    compositionPlan.content_hash = canonicalHash(compositionPlan.content);
+    compositionPlan.compiled_by = serviceRef();
+    const composition = new PostgresCompositionAuthorityRepository(
+      pool,
+      terminal.packets,
+    );
+    await composition.registerRequest(compositionRequest);
+    await composition.registerPlan(compositionPlan);
     const artifactBefore = await pool.query<{ record_hash: string }>(
       "SELECT record_hash FROM petra.artifacts WHERE artifact_id = $1",
       [original.content.response_artifact_ref.artifact_id],
@@ -3053,5 +3110,58 @@ describePostgres("PostgreSQL grounded-response authority", () => {
         }),
       ],
     );
+    const appliedHistoryEvent = events.find(
+      ({ event }) => event.event_type === "change_set.applied",
+    );
+    if (appliedHistoryEvent === undefined) {
+      throw new Error("Expected the retained applied ChangeSet event.");
+    }
+    const dependencyImpact = await historyViews.getProjectHistoryImpactView(
+      original.project_id,
+      appliedHistoryEvent.event_id,
+    );
+    const claimAssessment =
+      dependencyImpact?.content.semantic_target_impact.target_assessments.find(
+        ({ target_ref }) => target_ref.object_id === promotion.claim.claim_id,
+      );
+    const groundedGroup = claimAssessment?.groups.find(
+      ({ adapter_kind }) => adapter_kind === "grounded_response_dependency",
+    );
+    expect(groundedGroup).toMatchObject({
+      authority_source: "immutable_grounded_response_dependencies",
+      relation_scope: "exact_target_revision",
+      total_count: 2,
+      returned_count: 2,
+      coverage: "complete",
+    });
+    expect(groundedGroup?.refs).toEqual([
+      expect.objectContaining({
+        object_id: original.grounded_response_id,
+        revision: 1,
+        posture: "historical",
+        relation: "depends_on_exact_grounded_evidence",
+      }),
+      expect.objectContaining({
+        object_id: invalidated?.grounded_response_id,
+        revision: 2,
+        posture: "current",
+        relation: "depends_on_exact_grounded_evidence",
+      }),
+    ]);
+    const compositionGroup = claimAssessment?.groups.find(
+      ({ adapter_kind }) => adapter_kind === "composition_lineage",
+    );
+    expect(compositionGroup).toMatchObject({
+      authority_source: "immutable_composition_target_bindings",
+      relation_scope: "exact_target_revision",
+      total_count: 3,
+      returned_count: 3,
+      coverage: "complete",
+    });
+    expect(compositionGroup?.refs.map(({ relation }) => relation)).toEqual([
+      "uses_exact_composition_evidence",
+      "uses_exact_composition_evidence",
+      "selects_exact_composition_subject",
+    ]);
   });
 });

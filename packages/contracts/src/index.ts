@@ -152,6 +152,19 @@ export type {
   ProjectionGroup as ProjectHistoryImpactProjectionGroup,
 } from "./generated/project-history-impact-view.js";
 export type {
+  AdapterGroup as ProjectHistorySemanticImpactAdapterGroup,
+  DependentRef as ProjectHistorySemanticDependentRef,
+  ImpactContent as ProjectHistoryImpactContentV11,
+  PetraProjectHistoryImpactViewV11,
+  RegisteredAssessment as ProjectHistoryRegisteredTargetAssessment,
+  RegistryEntry as ProjectHistorySemanticAdapterRegistration,
+  ResolvedTargetRef as ProjectHistoryResolvedTargetRef,
+  SemanticSummary as ProjectHistorySemanticImpactSummary,
+  SemanticTargetImpact as ProjectHistorySemanticTargetImpact,
+  TargetAssessment as ProjectHistoryTargetAssessment,
+  UnavailableAssessment as ProjectHistoryUnavailableTargetAssessment,
+} from "./generated/project-history-impact-view-v1-1.js";
+export type {
   AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
   ControlSection as ProjectEffectiveControlSection,
   ControlSections as ProjectEffectiveControlSections,
