@@ -6,7 +6,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
-  PetraProjectHistoryImpactViewV11,
+  PetraProjectHistoryImpactViewV12,
   PetraProjectHistoryRetainedView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -214,12 +214,12 @@ const historyRetainedView = JSON.parse(
 const historyImpactView = JSON.parse(
   readFileSync(
     new URL(
-      "../../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-1.json",
+      "../../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-2.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryImpactViewV11;
+) as PetraProjectHistoryImpactViewV12;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -634,13 +634,13 @@ describe("Project shell workbench adapter", () => {
     expect(result.content.semantic_target_impact).toMatchObject({
       target_limit: 10,
       per_adapter_ref_limit: 25,
-      target_total_count: 3,
-      target_returned_count: 3,
+      target_total_count: 1,
+      target_returned_count: 1,
       target_coverage: "complete",
       summary: {
-        registered_adapter_count: 4,
-        supported_target_count: 3,
-        total_count: 2,
+        registered_adapter_count: 9,
+        supported_target_count: 1,
+        total_count: 4,
       },
     });
     expect(result.content.decision_boundary).toEqual({
@@ -670,6 +670,23 @@ describe("Project shell workbench adapter", () => {
     wrongTarget.content.semantic_target_impact.target_assessments[0].target_ref.object_id =
       "change_set_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
     fetch.mockResolvedValueOnce(Response.json(wrongTarget));
+    await expect(
+      getProjectHistoryImpact(
+        historyImpactView.project_id,
+        historyImpactView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const collapsedReplacementState = structuredClone(historyImpactView);
+    const effectiveGroup =
+      collapsedReplacementState.content.semantic_target_impact
+        .target_assessments[0].groups[3];
+    if (effectiveGroup === undefined) {
+      throw new Error("Expected the ProjectSource effective-head group.");
+    }
+    effectiveGroup.authority_source =
+      "immutable_project_source_replacement_bindings";
+    fetch.mockResolvedValueOnce(Response.json(collapsedReplacementState));
     await expect(
       getProjectHistoryImpact(
         historyImpactView.project_id,

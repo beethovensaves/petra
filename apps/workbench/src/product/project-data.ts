@@ -4,7 +4,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
-  PetraProjectHistoryImpactViewV11,
+  PetraProjectHistoryImpactViewV12,
   PetraProjectHistoryRetainedView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -81,7 +81,158 @@ const registeredHistorySemanticKey = (value: unknown): boolean =>
   value === "petra.change-set" ||
   value === "petra.approval" ||
   value === "scientific.claim" ||
-  value === "scientific.assertion";
+  value === "scientific.assertion" ||
+  value === "petra.project-source" ||
+  value === "petra.project-source-replacement";
+
+const HISTORY_SEMANTIC_REGISTRY = [
+  [
+    "change_control",
+    "immutable_change_control_target_bindings",
+    [
+      "petra.change-set",
+      "petra.approval",
+      "scientific.claim",
+      "scientific.assertion",
+    ],
+  ],
+  [
+    "review_membership",
+    "immutable_review_candidate_bindings",
+    ["scientific.claim", "scientific.assertion"],
+  ],
+  [
+    "grounded_response_dependency",
+    "immutable_grounded_response_dependencies",
+    ["scientific.claim", "scientific.assertion"],
+  ],
+  [
+    "composition_lineage",
+    "immutable_composition_target_bindings",
+    ["scientific.claim", "scientific.assertion"],
+  ],
+  [
+    "project_source_lifecycle",
+    "immutable_project_source_lifecycle_receipts",
+    ["petra.project-source"],
+  ],
+  [
+    "project_source_dependency",
+    "immutable_project_source_dependency_bindings",
+    ["petra.project-source"],
+  ],
+  [
+    "project_source_replacement_lineage",
+    "immutable_project_source_replacement_bindings",
+    ["petra.project-source", "petra.project-source-replacement"],
+  ],
+  [
+    "project_source_replacement_receipt",
+    "immutable_project_source_replacement_receipts",
+    ["petra.project-source-replacement"],
+  ],
+  [
+    "project_source_effective_head",
+    "current_project_source_replacement_heads",
+    ["petra.project-source", "petra.project-source-replacement"],
+  ],
+] as const;
+
+const historySemanticRegistryIsExact = (value: unknown[]): boolean =>
+  value.every((entry, index) => {
+    const expected = HISTORY_SEMANTIC_REGISTRY[index];
+    return (
+      expected !== undefined &&
+      isRecord(entry) &&
+      entry.adapter_kind === expected[0] &&
+      entry.authority_source === expected[1] &&
+      Array.isArray(entry.semantic_keys) &&
+      entry.semantic_keys.length === expected[2].length &&
+      entry.semantic_keys.every(
+        (semanticKey, semanticIndex) =>
+          semanticKey === expected[2][semanticIndex],
+      )
+    );
+  });
+
+const historySemanticGroupIsValid = (value: unknown): boolean => {
+  if (
+    !isRecord(value) ||
+    typeof value.adapter_kind !== "string" ||
+    typeof value.authority_source !== "string" ||
+    value.relation_scope !== "exact_target_revision" ||
+    typeof value.total_count !== "number" ||
+    !Number.isSafeInteger(value.total_count) ||
+    value.total_count < 0 ||
+    typeof value.returned_count !== "number" ||
+    !Number.isSafeInteger(value.returned_count) ||
+    value.returned_count < 0 ||
+    !Array.isArray(value.refs) ||
+    value.refs.length > 25 ||
+    value.returned_count !== value.refs.length ||
+    value.coverage !==
+      (value.total_count > value.returned_count ? "truncated" : "complete")
+  ) {
+    return false;
+  }
+  const registration = HISTORY_SEMANTIC_REGISTRY.find(
+    ([adapterKind]) => adapterKind === value.adapter_kind,
+  );
+  if (registration?.[1] !== value.authority_source) return false;
+  return value.refs.every((ref) => {
+    if (!isRecord(ref)) return false;
+    if (value.adapter_kind === "project_source_replacement_lineage") {
+      return (
+        ref.posture === "immutable_revision" &&
+        (ref.relation === "retains_exact_replaced_source" ||
+          ref.relation === "retains_exact_replacement_source" ||
+          ref.relation === "retracts_exact_source_replacement")
+      );
+    }
+    if (value.adapter_kind === "project_source_effective_head") {
+      return (
+        ref.semantic_key === "petra.project-source-replacement" &&
+        ref.posture === "current" &&
+        (ref.relation === "is_current_active_replacement_head" ||
+          ref.relation === "is_current_retracted_replacement_head")
+      );
+    }
+    return true;
+  });
+};
+
+const expectedHistorySemanticGroups = (semanticKey: unknown): string[] => {
+  if (semanticKey === "petra.change-set" || semanticKey === "petra.approval") {
+    return ["change_control"];
+  }
+  if (
+    semanticKey === "scientific.claim" ||
+    semanticKey === "scientific.assertion"
+  ) {
+    return [
+      "change_control",
+      "review_membership",
+      "grounded_response_dependency",
+      "composition_lineage",
+    ];
+  }
+  if (semanticKey === "petra.project-source") {
+    return [
+      "project_source_lifecycle",
+      "project_source_dependency",
+      "project_source_replacement_lineage",
+      "project_source_effective_head",
+    ];
+  }
+  if (semanticKey === "petra.project-source-replacement") {
+    return [
+      "project_source_replacement_lineage",
+      "project_source_replacement_receipt",
+      "project_source_effective_head",
+    ];
+  }
+  return [];
+};
 
 type ProjectShellView = PetraProjectShellView | PetraProjectShellViewV11;
 
@@ -202,11 +353,11 @@ const projectHistoryRetainedView = (
 
 const projectHistoryImpactView = (
   value: unknown,
-): PetraProjectHistoryImpactViewV11 => {
+): PetraProjectHistoryImpactViewV12 => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-history-impact-view" ||
-    value.schema_version !== "1.1.0" ||
+    value.schema_version !== "1.2.0" ||
     typeof value.project_id !== "string" ||
     typeof value.event_id !== "string" ||
     !isRecord(value.content) ||
@@ -221,7 +372,10 @@ const projectHistoryImpactView = (
     value.content.semantic_target_impact.target_limit !== 10 ||
     value.content.semantic_target_impact.per_adapter_ref_limit !== 25 ||
     !Array.isArray(value.content.semantic_target_impact.registry) ||
-    value.content.semantic_target_impact.registry.length !== 4 ||
+    value.content.semantic_target_impact.registry.length !== 9 ||
+    !historySemanticRegistryIsExact(
+      value.content.semantic_target_impact.registry,
+    ) ||
     !Array.isArray(value.content.semantic_target_impact.target_assessments) ||
     !isRecord(value.content.decision_boundary) ||
     value.content.decision_boundary.reversibility !== "not_assessed" ||
@@ -263,9 +417,19 @@ const projectHistoryImpactView = (
       }
       if (assessment.adapter_state === "registered") {
         const resolved = assessment.resolved_target_ref;
+        const expectedGroups = expectedHistorySemanticGroups(
+          selectedTarget.semantic_key,
+        );
         return (
           !isRecord(resolved) ||
           assessment.groups.length < 1 ||
+          assessment.groups.length !== expectedGroups.length ||
+          assessment.groups.some(
+            (group, groupIndex) =>
+              !historySemanticGroupIsValid(group) ||
+              !isRecord(group) ||
+              group.adapter_kind !== expectedGroups[groupIndex],
+          ) ||
           resolved.semantic_key !== selectedTarget.semantic_key ||
           resolved.object_id !== selectedTarget.object_id ||
           resolved.revision !== selectedTarget.revision ||
@@ -307,7 +471,7 @@ const projectHistoryImpactView = (
       502,
     );
   }
-  return value as unknown as PetraProjectHistoryImpactViewV11;
+  return value as unknown as PetraProjectHistoryImpactViewV12;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -1560,7 +1724,7 @@ export const getProjectHistoryEpisode = async (
 export const getProjectHistoryImpact = async (
   projectId: string,
   eventId: string,
-): Promise<PetraProjectHistoryImpactViewV11> => {
+): Promise<PetraProjectHistoryImpactViewV12> => {
   const value = await requestJson(
     `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}/impact`,
   );

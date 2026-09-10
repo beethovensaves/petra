@@ -1,6 +1,6 @@
 import type {
   PetraProjectHistoryEpisodeView,
-  PetraProjectHistoryImpactViewV11,
+  PetraProjectHistoryImpactViewV12,
   PetraProjectHistoryRetainedView,
   PetraProjectHistoryView,
 } from "@petra/contracts";
@@ -35,7 +35,7 @@ export interface ProjectHistoryViewReader {
   getProjectHistoryImpactView(
     projectId: string,
     eventId: string,
-  ): Promise<PetraProjectHistoryImpactViewV11 | undefined>;
+  ): Promise<PetraProjectHistoryImpactViewV12 | undefined>;
   listRetainedProjectHistoryView(
     projectId: string,
     request?: ProjectHistoryRetainedCollectionRequest,

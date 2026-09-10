@@ -2,11 +2,11 @@
 
 Status: bounded Recent changes, exact event-selected causal episodes,
 snapshot-stable retained Project-event traversal, and bounded direct dependency
-impact plus registered exact semantic-target adapters passed; source-lifecycle
-semantic adapters, filters, and broader recovery planning remain open
+impact plus registered exact semantic-target adapters through ProjectSource and
+replacement authority passed; filters and broader recovery planning remain open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `9530b09`
+Implementation baseline: `c5da977`
 
 ## Result
 
@@ -163,12 +163,34 @@ domain-event 1.3.
 The assessment distinguishes three non-results rather than overclaiming
 coverage: no adapter is registered for the semantic key, a registered key lacks
 an immutable revision, or the named target authority is unavailable in the
-Project snapshot. ProjectSource and ProjectSource-replacement targets therefore
-remain explicitly unregistered in this slice even though their dedicated
-lifecycle authorities already exist. Identity-only semantic relations,
-transitive closure, and external-system dependents remain explicit unknowns.
-References do not imply the dependent's effect. Reversibility remains
-`not_assessed`; compensation remains `not_composed`.
+Project snapshot. Identity-only semantic relations, transitive closure, and
+external-system dependents remain explicit unknowns. References do not imply
+the dependent's effect. Reversibility remains `not_assessed`; compensation
+remains `not_composed`.
+
+`petra.project-history-impact-view@1.2.0` preserves 1.1 and registers five more
+bounded exact adapters for `petra.project-source` and
+`petra.project-source-replacement` targets:
+
+- `project_source_lifecycle` returns immutable lifecycle receipts only when
+  their exact prior or resulting source revision/hash matches the target;
+- `project_source_dependency` composes the exact source revision's immutable
+  artifact binding into parsed-document, structure, span, evidence, active
+  Work, open Review, and GroundedResponse authorities;
+- `project_source_replacement_lineage` returns immutable predecessor/successor
+  replacement edges or the immutable retraction of an exact replacement;
+- `project_source_replacement_receipt` returns the exact retained command
+  receipts for replacement creation or retraction; and
+- `project_source_effective_head` separately reads the current derived head and
+  states whether the exact replacement is the active or retracted head.
+
+The retained-lineage group always uses immutable-revision posture. The
+effective-head group is a separate current-authority group and never turns a
+retained replacement record into an assertion that it is active. All five
+groups retain the existing ten-target and twenty-five-reference bounds and run
+inside the same Project-scoped repeatable-read transaction. Missing exact
+source or replacement authority produces the existing explicit unavailable
+assessment rather than a substitute identity or a failure-open inference.
 
 ## Recovery semantics
 
@@ -225,6 +247,8 @@ The PostgreSQL reader fails closed when it cannot reproduce:
   retained response revision;
 - a registered semantic target's exact immutable authority payload, revision,
   content hash where applicable, and record hash; or
+- an exact ProjectSource lifecycle receipt, source-bound dependency,
+  replacement/retraction/receipt record, or current effective-head relation; or
 - a semantic dependent's exact owning record, version, revision, content hash
   where applicable, record hash, Project scope, and registered relation
   identity.
@@ -232,10 +256,12 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal, and dependency-impact 1.0/1.1 responses. Rejected fixtures
+retained traversal, and dependency-impact 1.0/1.1/1.2 responses. Rejected fixtures
 cover an altered quick limit, false global episode order, unsafe offset-cursor
 reuse, a dependency read that claims a reversibility decision, and an
-unregistered semantic target that fabricates a registered adapter group.
+unregistered semantic target that fabricates a registered adapter group, plus
+an invalid response that collapses retained replacement lineage and effective
+head state into one unsupported authority.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
 suite pass. The database proof starts from an empty PostgreSQL 18.6 instance,
@@ -245,20 +271,17 @@ stable membership after a concurrent append, keyset continuation without
 duplication, causal parent/following-command links, Project-stream adjacency,
 exact lifecycle or replacement receipt references, and exact command, outbox,
 graph-projection, GroundedResponse-invalidation, ChangeSet/Approval,
-ReviewSession-membership, GroundedResponse-dependency, and composition-lineage
-bindings. Historical and current dependent revisions are distinguished without
-rewriting either.
+ReviewSession-membership, GroundedResponse-dependency, composition-lineage,
+ProjectSource lifecycle/dependency, immutable replacement/retraction/receipt,
+and current effective-head bindings. Active and retracted head states are
+distinguished from retained lineage without rewriting either.
 
 ## Next safe slice
 
-The next safe History boundary is to register exact ProjectSource and
-ProjectSource-replacement semantic-target adapters by reusing their existing
-immutable lifecycle, replacement, receipt, and dependency authorities. The
-adapter must preserve the same per-target/per-adapter bounds and explicitly
-separate retained lineage from the effective replacement head; it must not
-reinterpret historical ProjectDefinitions or turn an identity-only relation
-into dependency truth. ChangeSet reversibility and compensation preview can
-follow only after the relevant dependency truth is complete enough to support
-them. Filters can follow once their exact query identity is bound into cursor
-snapshots. Universal undo, multi-step compensation, and event rewriting remain
-excluded.
+The next safe History boundary is authenticated bounded filtering of retained
+Project events with the complete filter identity cryptographically bound into
+the opaque snapshot cursor. Counts and empty results must remain Project-scoped
+and authorization-safe, Recent changes must remain fixed at ten, and no filter
+may manufacture a cross-family order. ChangeSet reversibility and compensation
+preview can follow only after the filtered read contract is stable. Universal
+undo, multi-step compensation, and event rewriting remain excluded.

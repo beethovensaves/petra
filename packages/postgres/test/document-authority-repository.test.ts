@@ -592,6 +592,53 @@ describePostgres("PostgreSQL Document authority repository", () => {
         excludeCommand.command_id,
       ),
     ).toEqual(exclusion.receipt);
+    const exclusionImpact = await historyViews.getProjectHistoryImpactView(
+      project.project_id,
+      exclusion.receipt.content.event_ref.event_id,
+    );
+    const sourceAssessment =
+      exclusionImpact?.content.semantic_target_impact.target_assessments[0];
+    expect(exclusionImpact?.schema_version).toBe("1.2.0");
+    expect(sourceAssessment?.adapter_state).toBe("registered");
+    expect(
+      sourceAssessment?.groups.map(({ adapter_kind }) => adapter_kind),
+    ).toEqual([
+      "project_source_lifecycle",
+      "project_source_dependency",
+      "project_source_replacement_lineage",
+      "project_source_effective_head",
+    ]);
+    expect(sourceAssessment?.groups[0]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: exclusion.receipt.project_source_lifecycle_receipt_id,
+        posture: "immutable_revision",
+        relation: "records_exact_source_resulting_revision",
+      }),
+    ]);
+    expect(sourceAssessment?.groups[1]).toMatchObject({
+      authority_source: "immutable_project_source_dependency_bindings",
+      total_count: 3,
+      returned_count: 3,
+      coverage: "complete",
+    });
+    expect(
+      sourceAssessment?.groups[1]?.refs.map(({ semantic_key, relation }) => [
+        semantic_key,
+        relation,
+      ]),
+    ).toEqual([
+      ["petra.parsed-document", "parses_exact_source_artifact"],
+      ["petra.source-span", "locates_span_in_exact_source_artifact"],
+      ["petra.structural-block", "structures_exact_source_artifact"],
+    ]);
+    expect(sourceAssessment?.groups[2]?.refs).toEqual([]);
+    expect(sourceAssessment?.groups[3]?.refs).toEqual([]);
+    expect(
+      await historyViews.getProjectHistoryImpactView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        exclusion.receipt.content.event_ref.event_id,
+      ),
+    ).toBeUndefined();
     const replay =
       await sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
         structuredClone(excludeCommand),
@@ -834,6 +881,32 @@ describePostgres("PostgreSQL Document authority repository", () => {
       }),
     );
     const replacement = creation.replacement;
+    const activeImpact = await historyViews.getProjectHistoryImpactView(
+      project.project_id,
+      creation.receipt.content.event_ref.event_id,
+    );
+    expect(activeImpact?.schema_version).toBe("1.2.0");
+    const activeReplacementAssessment =
+      activeImpact?.content.semantic_target_impact.target_assessments[0];
+    expect(activeReplacementAssessment?.adapter_state).toBe("registered");
+    expect(activeReplacementAssessment?.groups[0]).toMatchObject({
+      adapter_kind: "project_source_replacement_lineage",
+      total_count: 0,
+      returned_count: 0,
+    });
+    expect(activeReplacementAssessment?.groups[1]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: creation.receipt.project_source_replacement_receipt_id,
+        relation: "records_exact_source_replacement_command",
+      }),
+    ]);
+    expect(activeReplacementAssessment?.groups[2]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "current",
+        relation: "is_current_active_replacement_head",
+      }),
+    ]);
 
     const createReplay =
       await sourceReplacementCommands.executeProjectSourceReplacementCommand(
@@ -1190,6 +1263,69 @@ describePostgres("PostgreSQL Document authority repository", () => {
     expect(retractionImpact?.content.decision_boundary.compensation).toBe(
       "not_composed",
     );
+    expect(retractionImpact?.schema_version).toBe("1.2.0");
+    const replacementAssessment =
+      retractionImpact?.content.semantic_target_impact.target_assessments[0];
+    expect(replacementAssessment?.adapter_state).toBe("registered");
+    expect(
+      replacementAssessment?.groups.map(({ adapter_kind }) => adapter_kind),
+    ).toEqual([
+      "project_source_replacement_lineage",
+      "project_source_replacement_receipt",
+      "project_source_effective_head",
+    ]);
+    expect(replacementAssessment?.groups[0]?.refs).toEqual([
+      expect.objectContaining({
+        semantic_key: "petra.project-source-replacement-retraction",
+        object_id: retraction.project_source_replacement_retraction_id,
+        posture: "immutable_revision",
+        relation: "retracts_exact_source_replacement",
+      }),
+    ]);
+    expect(replacementAssessment?.groups[1]).toMatchObject({
+      authority_source: "immutable_project_source_replacement_receipts",
+      total_count: 2,
+      returned_count: 2,
+      coverage: "complete",
+    });
+    expect(replacementAssessment?.groups[2]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "current",
+        relation: "is_current_retracted_replacement_head",
+      }),
+    ]);
+    const predecessorAssessment =
+      retractionImpact?.content.semantic_target_impact.target_assessments[1];
+    expect(predecessorAssessment?.adapter_state).toBe("registered");
+    expect(predecessorAssessment?.groups[2]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "immutable_revision",
+        relation: "retains_exact_replaced_source",
+      }),
+    ]);
+    expect(predecessorAssessment?.groups[3]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "current",
+        relation: "is_current_retracted_replacement_head",
+      }),
+    ]);
+    const retractionAssessment =
+      retractionImpact?.content.semantic_target_impact.target_assessments[3];
+    expect(retractionAssessment).toMatchObject({
+      adapter_state: "no_registered_exact_adapter",
+      reason:
+        "No exact semantic-target adapter is registered for this semantic key.",
+      groups: [],
+    });
+    expect(
+      await historyViews.getProjectHistoryImpactView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        retractionEvent.event_id,
+      ),
+    ).toBeUndefined();
 
     const exclusionEvent = recentHistory?.content.changes[2]?.event_ref;
     if (exclusionEvent === undefined) {
@@ -1207,11 +1343,42 @@ describePostgres("PostgreSQL Document authority repository", () => {
     expect(exclusionImpact?.content.omissions).toContain(
       "unregistered_semantic_target_adapters_not_composed",
     );
+    const exclusionSourceAssessment =
+      exclusionImpact?.content.semantic_target_impact.target_assessments[0];
+    expect(exclusionSourceAssessment?.adapter_state).toBe("registered");
     expect(
-      exclusionImpact?.content.semantic_target_impact.target_assessments.every(
-        ({ adapter_state }) => adapter_state === "no_registered_exact_adapter",
-      ),
-    ).toBe(true);
+      exclusionSourceAssessment?.groups.map(({ adapter_kind }) => adapter_kind),
+    ).toEqual([
+      "project_source_lifecycle",
+      "project_source_dependency",
+      "project_source_replacement_lineage",
+      "project_source_effective_head",
+    ]);
+    expect(exclusionSourceAssessment?.groups[0]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: exclusion.receipt.project_source_lifecycle_receipt_id,
+        relation: "records_exact_source_resulting_revision",
+      }),
+    ]);
+    expect(exclusionSourceAssessment?.groups[1]).toMatchObject({
+      total_count: 0,
+      returned_count: 0,
+      coverage: "complete",
+    });
+    expect(exclusionSourceAssessment?.groups[2]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "immutable_revision",
+        relation: "retains_exact_replaced_source",
+      }),
+    ]);
+    expect(exclusionSourceAssessment?.groups[3]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "current",
+        relation: "is_current_retracted_replacement_head",
+      }),
+    ]);
     const staleReceipt = structuredClone(replacement);
     staleReceipt.project_source_replacement_id =
       "project_source_replacement_01K4C000000000000000000046";

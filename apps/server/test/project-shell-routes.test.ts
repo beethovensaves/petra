@@ -4,7 +4,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
-  PetraProjectHistoryImpactViewV11,
+  PetraProjectHistoryImpactViewV12,
   PetraProjectHistoryRetainedView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -120,12 +120,12 @@ const historyRetainedFixture = JSON.parse(
 const historyImpactFixture = JSON.parse(
   readFileSync(
     new URL(
-      "../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-1.json",
+      "../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-2.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryImpactViewV11;
+) as PetraProjectHistoryImpactViewV12;
 
 const reviewFixture = JSON.parse(
   readFileSync(

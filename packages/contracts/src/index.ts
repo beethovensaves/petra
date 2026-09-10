@@ -165,6 +165,18 @@ export type {
   UnavailableAssessment as ProjectHistoryUnavailableTargetAssessment,
 } from "./generated/project-history-impact-view-v1-1.js";
 export type {
+  AdapterGroup as ProjectHistorySemanticImpactAdapterGroupV12,
+  DependentRef as ProjectHistorySemanticDependentRefV12,
+  ImpactContent as ProjectHistoryImpactContentV12,
+  PetraProjectHistoryImpactViewV12,
+  RegisteredAssessment as ProjectHistoryRegisteredTargetAssessmentV12,
+  ResolvedTargetRef as ProjectHistoryResolvedTargetRefV12,
+  SemanticSummary as ProjectHistorySemanticImpactSummaryV12,
+  SemanticTargetImpact as ProjectHistorySemanticTargetImpactV12,
+  TargetAssessment as ProjectHistoryTargetAssessmentV12,
+  UnavailableAssessment as ProjectHistoryUnavailableTargetAssessmentV12,
+} from "./generated/project-history-impact-view-v1-2.js";
+export type {
   AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
   ControlSection as ProjectEffectiveControlSection,
   ControlSections as ProjectEffectiveControlSections,

@@ -654,13 +654,13 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       compensation: "not_composed",
       dependent_effect: "not_inferred_from_reference",
     });
-    expect(submittedImpact?.schema_version).toBe("1.1.0");
+    expect(submittedImpact?.schema_version).toBe("1.2.0");
     expect(submittedImpact?.content.semantic_target_impact).toMatchObject({
       target_total_count: 1,
       target_returned_count: 1,
       target_coverage: "complete",
       summary: {
-        registered_adapter_count: 4,
+        registered_adapter_count: 9,
         assessed_target_count: 1,
         supported_target_count: 1,
         total_count: 3,
