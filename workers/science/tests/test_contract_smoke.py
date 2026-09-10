@@ -556,6 +556,69 @@ class PetraProjectHistoryView(PetraModel):
     read_at: str
 
 
+class ProjectHistoryCausalCommandLink(PetraModel):
+    command_id: str
+    event_state: Literal["recorded", "not_recorded"]
+    event_ref: ProjectHistoryEventRef | None = None
+
+    @model_validator(mode="after")
+    def exact_event_state(self) -> ProjectHistoryCausalCommandLink:
+        if (self.event_state == "recorded") != (self.event_ref is not None):
+            raise ValueError("recorded causal commands require exactly one event ref")
+        return self
+
+
+class ProjectHistoryCausality(PetraModel):
+    event_causation_kind: Literal["command"]
+    event_causation_command_id: str
+    parent_command: ProjectHistoryCausalCommandLink | None = None
+    following_commands: list[ProjectHistoryCausalCommandLink]
+
+
+class ProjectHistoryStreamOrder(PetraModel):
+    order_kind: Literal["project_stream"]
+    previous_event_ref: ProjectHistoryEventRef | None = None
+    next_event_ref: ProjectHistoryEventRef | None = None
+
+
+class ProjectHistoryReceiptRef(PetraModel):
+    schema_name: Literal[
+        "petra.project-source-lifecycle-receipt",
+        "petra.project-source-replacement-receipt",
+    ]
+    record_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class ProjectHistoryEpisodeContent(PetraModel):
+    view_kind: Literal["causal_episode"]
+    change: ProjectHistoryRecentChange
+    causality: ProjectHistoryCausality
+    stream_order: ProjectHistoryStreamOrder
+    receipt_ref: ProjectHistoryReceiptRef | None = None
+    omissions: list[
+        Literal[
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    authority: ProjectHistoryAuthorityPosition
+    graph_navigation_history: Literal["client_local_separate"]
+
+
+class PetraProjectHistoryEpisodeView(PetraModel):
+    schema_name: Literal["petra.project-history-episode-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryEpisodeContent
+    content_hash: str
+    read_at: str
+
+
 class ProjectSourceDefinitionRef(PetraModel):
     project_definition_id: str
     revision: int
@@ -6536,6 +6599,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-objective": PetraProjectObjective,
     "project-shell-view": PetraProjectShellView,
     "project-history-view": PetraProjectHistoryView,
+    "project-history-episode-view": PetraProjectHistoryEpisodeView,
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-replacement": PetraProjectSourceReplacement,

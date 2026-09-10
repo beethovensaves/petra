@@ -3,6 +3,7 @@ import type {
   PetraProjectSource,
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
+  PetraProjectHistoryEpisodeView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
@@ -124,6 +125,29 @@ const projectHistoryView = (value: unknown): PetraProjectHistoryView => {
     );
   }
   return value as unknown as PetraProjectHistoryView;
+};
+
+const projectHistoryEpisodeView = (
+  value: unknown,
+): PetraProjectHistoryEpisodeView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-episode-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "causal_episode" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History episode.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryEpisodeView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -1350,6 +1374,23 @@ export const getRecentProjectHistory = async (
   if (view.project_id !== projectId) {
     throw new ProjectDataError(
       "Petra returned Recent changes from another Project.",
+      502,
+    );
+  }
+  return view;
+};
+
+export const getProjectHistoryEpisode = async (
+  projectId: string,
+  eventId: string,
+): Promise<PetraProjectHistoryEpisodeView> => {
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}`,
+  );
+  const view = projectHistoryEpisodeView(value);
+  if (view.project_id !== projectId || view.event_id !== eventId) {
+    throw new ProjectDataError(
+      "Petra returned a different Project History episode.",
       502,
     );
   }

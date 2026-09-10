@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-episode-view/1.0.0/schema.json",
+  "title": "PetraProjectHistoryEpisodeView",
+  "description": "An authorized exact Project History episode selected by immutable event identity. It distinguishes explicit command causation from adjacent Project-stream order and persists no second ledger.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "event_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-history-episode-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "content": { "$ref": "#/$defs/EpisodeContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "EventRef": {
+      "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/EventRef"
+    },
+    "CausalCommandLink": {
+      "oneOf": [
+        { "$ref": "#/$defs/RecordedCausalCommandLink" },
+        { "$ref": "#/$defs/CommandOnlyCausalLink" }
+      ]
+    },
+    "RecordedCausalCommandLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_id", "event_state", "event_ref"],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "event_state": { "const": "recorded" },
+        "event_ref": { "$ref": "#/$defs/EventRef" }
+      }
+    },
+    "CommandOnlyCausalLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_id", "event_state"],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "event_state": { "const": "not_recorded" }
+      }
+    },
+    "Causality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_causation_kind",
+        "event_causation_command_id",
+        "following_commands"
+      ],
+      "properties": {
+        "event_causation_kind": { "const": "command" },
+        "event_causation_command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "parent_command": { "$ref": "#/$defs/CausalCommandLink" },
+        "following_commands": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/CausalCommandLink" }
+        }
+      }
+    },
+    "StreamOrder": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["order_kind"],
+      "properties": {
+        "order_kind": { "const": "project_stream" },
+        "previous_event_ref": { "$ref": "#/$defs/EventRef" },
+        "next_event_ref": { "$ref": "#/$defs/EventRef" }
+      }
+    },
+    "ReceiptRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "record_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_name": {
+          "enum": [
+            "petra.project-source-lifecycle-receipt",
+            "petra.project-source-replacement-receipt"
+          ]
+        },
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "AuthorityPosition": {
+      "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/AuthorityPosition"
+    },
+    "EpisodeContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "change",
+        "causality",
+        "stream_order",
+        "omissions",
+        "authority",
+        "graph_navigation_history"
+      ],
+      "properties": {
+        "view_kind": { "const": "causal_episode" },
+        "change": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/RecentChange"
+        },
+        "causality": { "$ref": "#/$defs/Causality" },
+        "stream_order": { "$ref": "#/$defs/StreamOrder" },
+        "receipt_ref": { "$ref": "#/$defs/ReceiptRef" },
+        "omissions": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "dependency_impact_not_composed",
+              "generic_reversal_assessment_not_composed",
+              "cross_family_total_order_not_asserted"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": { "const": "dependency_impact_not_composed" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "generic_reversal_assessment_not_composed"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "cross_family_total_order_not_asserted"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          ]
+        },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" },
+        "graph_navigation_history": { "const": "client_local_separate" }
+      }
+    }
+  }
+}

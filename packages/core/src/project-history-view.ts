@@ -1,4 +1,7 @@
-import type { PetraProjectHistoryView } from "@petra/contracts";
+import type {
+  PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryView,
+} from "@petra/contracts";
 
 /**
  * Authorized Project History composition. Implementations read existing
@@ -9,4 +12,8 @@ export interface ProjectHistoryViewReader {
   getRecentProjectHistoryView(
     projectId: string,
   ): Promise<PetraProjectHistoryView | undefined>;
+  getProjectHistoryEpisodeView(
+    projectId: string,
+    eventId: string,
+  ): Promise<PetraProjectHistoryEpisodeView | undefined>;
 }

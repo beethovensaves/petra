@@ -504,6 +504,33 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         ({ recovery }) => recovery.eligibility === "ineligible",
       ),
     ).toBe(true);
+    const approvalEvent = events[1];
+    if (approvalEvent === undefined) {
+      throw new Error("Expected the approval event.");
+    }
+    const approvalEpisode = await historyViews.getProjectHistoryEpisodeView(
+      commands.submit.project_id,
+      approvalEvent.event_id,
+    );
+    expect(approvalEpisode?.content.causality.parent_command).toEqual(
+      expect.objectContaining({
+        command_id: commands.submit.command_id,
+        event_state: "recorded",
+      }),
+    );
+    expect(approvalEpisode?.content.causality.following_commands).toEqual([
+      expect.objectContaining({
+        command_id: commands.apply.command_id,
+        event_state: "recorded",
+      }),
+    ]);
+    expect(
+      approvalEpisode?.content.stream_order.previous_event_ref?.event_id,
+    ).toBe(events[0]?.event_id);
+    expect(approvalEpisode?.content.stream_order.next_event_ref?.event_id).toBe(
+      events[2]?.event_id,
+    );
+    expect(approvalEpisode?.content.receipt_ref).toBeUndefined();
 
     const replayedAuthority = replayScientificAuthority(
       commands.submit.project_id,

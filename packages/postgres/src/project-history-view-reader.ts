@@ -1,8 +1,12 @@
 import { createHash } from "node:crypto";
 
 import type {
+  PetraProjectHistoryEpisodeView,
   PetraProjectHistoryView,
+  ProjectHistoryCausalCommandLink,
+  ProjectHistoryEventRef,
   ProjectHistoryRecentChange,
+  ProjectHistoryReceiptRef,
   ProjectHistoryRecovery,
   ProjectHistoryTargetRef,
 } from "@petra/contracts";
@@ -56,6 +60,17 @@ interface ReplacementHeadRow {
   content_hash: string;
   record_hash: string;
   state: "active" | "retracted";
+}
+
+interface CausalCommandRow {
+  command_id: string;
+  event_payload: unknown;
+  event_record_hash: string | null;
+}
+
+interface EventRow {
+  event_payload: unknown;
+  event_record_hash: string;
 }
 
 type JsonRecord = Record<string, unknown>;
@@ -255,6 +270,306 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       this.#contracts.assertValid("project-history-view", "1.0.0", view);
       return structuredClone(view as unknown as PetraProjectHistoryView);
     });
+  }
+
+  async getProjectHistoryEpisodeView(
+    projectId: string,
+    eventId: string,
+  ): Promise<PetraProjectHistoryEpisodeView | undefined> {
+    return this.#readTransaction(async (client, readAt) => {
+      const result = await client.query<HistoryRow>(
+        `SELECT event.payload AS event_payload,
+                event.record_hash AS event_record_hash,
+                execution.envelope AS command_envelope,
+                execution.command_fingerprint,
+                lifecycle.payload AS lifecycle_receipt_payload,
+                lifecycle.record_hash AS lifecycle_receipt_record_hash,
+                replacement.payload AS replacement_receipt_payload,
+                replacement.record_hash AS replacement_receipt_record_hash
+           FROM petra.domain_events AS event
+           JOIN petra.command_executions AS execution
+             ON execution.command_id = event.command_id
+            AND execution.project_id = event.project_id
+           LEFT JOIN petra.project_source_lifecycle_receipts AS lifecycle
+             ON lifecycle.command_id = event.command_id
+           LEFT JOIN petra.project_source_replacement_receipts AS replacement
+             ON replacement.command_id = event.command_id
+          WHERE event.project_id = $1 AND event.event_id = $2`,
+        [projectId, eventId],
+      );
+      const row = result.rows[0];
+      if (row === undefined) return undefined;
+
+      const change = await this.#change(client, row);
+      const envelope = record(row.command_envelope, "command envelope");
+      const commandId = change.command_ref.command_id;
+      const commandCausationId = envelope.causation_id;
+      const parentCommand =
+        typeof commandCausationId === "string" &&
+        commandCausationId.startsWith("command_")
+          ? await this.#causalCommandLink(client, projectId, commandCausationId)
+          : undefined;
+      const followingCommands = await this.#followingCommands(
+        client,
+        projectId,
+        commandId,
+      );
+      const streamOrder = await this.#streamOrder(
+        client,
+        projectId,
+        change.event_ref.stream_revision,
+      );
+      const authority = await this.#authority(client, projectId);
+      const receiptRef = this.#receiptRef(row);
+      const content = {
+        view_kind: "causal_episode",
+        change,
+        causality: {
+          event_causation_kind: "command",
+          event_causation_command_id: commandId,
+          ...(parentCommand === undefined
+            ? {}
+            : { parent_command: parentCommand }),
+          following_commands: followingCommands,
+        },
+        stream_order: streamOrder,
+        ...(receiptRef === undefined ? {} : { receipt_ref: receiptRef }),
+        omissions: [
+          "dependency_impact_not_composed",
+          "generic_reversal_assessment_not_composed",
+          "cross_family_total_order_not_asserted",
+        ],
+        authority,
+        graph_navigation_history: "client_local_separate",
+      };
+      const view = {
+        schema_name: "petra.project-history-episode-view",
+        schema_version: "1.0.0",
+        project_id: projectId,
+        event_id: eventId,
+        content,
+        content_hash: canonicalHash(content),
+        read_at: readAt,
+      };
+      this.#contracts.assertValid(
+        "project-history-episode-view",
+        "1.0.0",
+        view,
+      );
+      return structuredClone(view as unknown as PetraProjectHistoryEpisodeView);
+    });
+  }
+
+  async #causalCommandLink(
+    client: PoolClient,
+    projectId: string,
+    commandId: string,
+  ): Promise<ProjectHistoryCausalCommandLink> {
+    const result = await client.query<CausalCommandRow>(
+      `SELECT execution.command_id,
+              event.payload AS event_payload,
+              event.record_hash AS event_record_hash
+         FROM petra.command_executions AS execution
+         LEFT JOIN petra.domain_events AS event
+           ON event.command_id = execution.command_id
+          AND event.project_id = execution.project_id
+        WHERE execution.project_id = $1 AND execution.command_id = $2`,
+      [projectId, commandId],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A command-shaped causal parent is unavailable in the selected Project.",
+      );
+    }
+    if (row.event_payload === null || row.event_record_hash === null) {
+      return { command_id: commandId, event_state: "not_recorded" };
+    }
+    return {
+      command_id: commandId,
+      event_state: "recorded",
+      event_ref: this.#eventRef(row.event_payload, row.event_record_hash),
+    };
+  }
+
+  async #followingCommands(
+    client: PoolClient,
+    projectId: string,
+    commandId: string,
+  ): Promise<ProjectHistoryCausalCommandLink[]> {
+    const result = await client.query<CausalCommandRow>(
+      `SELECT execution.command_id,
+              event.payload AS event_payload,
+              event.record_hash AS event_record_hash
+         FROM petra.command_executions AS execution
+         LEFT JOIN petra.domain_events AS event
+           ON event.command_id = execution.command_id
+          AND event.project_id = execution.project_id
+        WHERE execution.project_id = $1
+          AND execution.envelope ->> 'causation_id' = $2
+        ORDER BY event.stream_revision NULLS LAST,
+                 execution.completed_at, execution.command_id
+        LIMIT 100`,
+      [projectId, commandId],
+    );
+    return result.rows.map((row) =>
+      row.event_payload === null || row.event_record_hash === null
+        ? { command_id: row.command_id, event_state: "not_recorded" }
+        : {
+            command_id: row.command_id,
+            event_state: "recorded",
+            event_ref: this.#eventRef(row.event_payload, row.event_record_hash),
+          },
+    );
+  }
+
+  async #streamOrder(
+    client: PoolClient,
+    projectId: string,
+    streamRevision: number,
+  ): Promise<PetraProjectHistoryEpisodeView["content"]["stream_order"]> {
+    const previous = await client.query<EventRow>(
+      `SELECT payload AS event_payload, record_hash AS event_record_hash
+         FROM petra.domain_events
+        WHERE project_id = $1 AND stream_revision < $2
+        ORDER BY stream_revision DESC
+        LIMIT 1`,
+      [projectId, streamRevision],
+    );
+    const next = await client.query<EventRow>(
+      `SELECT payload AS event_payload, record_hash AS event_record_hash
+         FROM petra.domain_events
+        WHERE project_id = $1 AND stream_revision > $2
+        ORDER BY stream_revision
+        LIMIT 1`,
+      [projectId, streamRevision],
+    );
+    const previousRow = previous.rows[0];
+    const nextRow = next.rows[0];
+    return {
+      order_kind: "project_stream",
+      ...(previousRow === undefined
+        ? {}
+        : {
+            previous_event_ref: this.#eventRef(
+              previousRow.event_payload,
+              previousRow.event_record_hash,
+            ),
+          }),
+      ...(nextRow === undefined
+        ? {}
+        : {
+            next_event_ref: this.#eventRef(
+              nextRow.event_payload,
+              nextRow.event_record_hash,
+            ),
+          }),
+    };
+  }
+
+  #eventRef(payload: unknown, recordHash: string): ProjectHistoryEventRef {
+    const event = record(payload, "related domain event");
+    const version = stringMember(
+      event,
+      "schema_version",
+      "related domain event",
+    );
+    if (!EVENT_VERSIONS.includes(version as (typeof EVENT_VERSIONS)[number])) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_EVENT_UNSUPPORTED",
+        `Related domain event schema ${version} is not supported by Project History.`,
+      );
+    }
+    this.#contracts.assertValid("domain-event", version, event);
+    if (canonicalHash(event) !== recordHash) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A related immutable domain event record hash does not match its payload.",
+      );
+    }
+    const fact = objectMember(event, "event", "related domain event");
+    return {
+      event_id: stringMember(event, "event_id", "related domain event"),
+      schema_version: version as (typeof EVENT_VERSIONS)[number],
+      event_type: stringMember(
+        fact,
+        "event_type",
+        "related domain event.event",
+      ) as ProjectHistoryEventRef["event_type"],
+      event_position: numberMember(
+        event,
+        "event_position",
+        "related domain event",
+      ),
+      stream_revision: numberMember(
+        event,
+        "stream_revision",
+        "related domain event",
+      ),
+      record_hash: recordHash,
+    };
+  }
+
+  #receiptRef(row: HistoryRow): ProjectHistoryReceiptRef | undefined {
+    if (
+      row.lifecycle_receipt_payload !== null &&
+      row.replacement_receipt_payload !== null
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "One Project command cannot resolve both lifecycle and replacement receipts.",
+      );
+    }
+    const lifecycle = row.lifecycle_receipt_payload;
+    if (lifecycle !== null) {
+      const receipt = record(lifecycle, "lifecycle receipt");
+      if (row.lifecycle_receipt_record_hash === null) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The lifecycle receipt record hash is unavailable.",
+        );
+      }
+      return {
+        schema_name: "petra.project-source-lifecycle-receipt",
+        record_id: stringMember(
+          receipt,
+          "project_source_lifecycle_receipt_id",
+          "lifecycle receipt",
+        ),
+        revision: 1,
+        content_hash: stringMember(
+          receipt,
+          "content_hash",
+          "lifecycle receipt",
+        ),
+        record_hash: row.lifecycle_receipt_record_hash,
+      };
+    }
+    const replacement = row.replacement_receipt_payload;
+    if (replacement === null) return undefined;
+    const receipt = record(replacement, "replacement receipt");
+    if (row.replacement_receipt_record_hash === null) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The replacement receipt record hash is unavailable.",
+      );
+    }
+    return {
+      schema_name: "petra.project-source-replacement-receipt",
+      record_id: stringMember(
+        receipt,
+        "project_source_replacement_receipt_id",
+        "replacement receipt",
+      ),
+      revision: 1,
+      content_hash: stringMember(
+        receipt,
+        "content_hash",
+        "replacement receipt",
+      ),
+      record_hash: row.replacement_receipt_record_hash,
+    };
   }
 
   async #change(

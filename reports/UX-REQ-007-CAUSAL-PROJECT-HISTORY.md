@@ -1,7 +1,8 @@
 # UX-REQ-007 causal Project History
 
-Status: first bounded Recent changes read slice passed; full causal episodes,
-dependency impact, filters, and broader recovery planning remain open
+Status: bounded Recent changes and exact event-selected causal episode reads
+passed; retained collection traversal, dependency impact, filters, and broader
+recovery planning remain open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
 Implementation baseline: `29f26f9`
@@ -49,6 +50,29 @@ The reader validates and composes every event currently accepted by Petra:
 This support uses a History-specific version boundary. Petra's intentionally
 narrow older exhaustive command/event unions were not widened.
 
+## Exact causal episode detail
+
+`petra.project-history-episode-view@1.0.0` adds an authenticated detail read at
+`GET /api/queries/projects/:projectId/history/events/:eventId`. It selects one
+exact retained Project event and reuses the Recent changes composition for its
+actor, time, command/event identity, targets, observed effect, current recovery
+assessment, and semantic destination.
+
+The episode then adds four bounded relationships without asserting a synthetic
+total history order:
+
+- an exact parent command when the selected event records command causation;
+- up to one hundred later commands whose envelopes cite the selected event as
+  their cause, including whether each command produced a retained event;
+- the immediately previous and next event in the same Project event stream,
+  kept separate from command causation; and
+- the exact lifecycle or replacement receipt associated with the selected
+  command and event when that event family produces one.
+
+The response explicitly omits dependency-impact composition, generic reversal
+assessment, and any cross-family total-order assertion. It is a read over the
+same immutable authority, not a new episode or History ledger.
+
 ## Recovery semantics
 
 This slice does not invent generic undo or multi-step compensation. ChangeSet
@@ -94,19 +118,21 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 
 ## Verification
 
-Contract fixtures include an accepted exact History response and a rejected
-attempt to change the quick limit to twenty. TypeScript generation, AJV
+Contract fixtures include accepted exact Recent changes and causal-episode
+responses, a rejected attempt to change the quick limit to twenty, and a
+rejected episode that asserts a false global order. TypeScript generation, AJV
 conformance, strict Pydantic round-trip parity, server route tests, typed-client
 tests, and the real PostgreSQL integration suite pass. The database proof starts
-from an empty PostgreSQL 18.6 instance, migrates V001 through V030, and exercises
-History composition over domain-event versions 1.0, 1.1, 1.2, and 1.3.
+from an empty PostgreSQL 18.6 instance, migrates V001 through V030, exercises
+Recent changes composition over domain-event versions 1.0, 1.1, 1.2, and 1.3,
+and proves causal parent/following-command links, Project-stream adjacency, and
+exact lifecycle/replacement receipt references.
 
 ## Next safe slice
 
-The next additive read can expose one exact causal episode selected by event
-identity. It should reuse the same composition and authorization boundary,
-include the complete linked command/event/receipt facts already proven here,
-and return explicit omissions for still-unimplemented dependency impact,
-cross-family ordering, and generic reversal assessment. It must not turn the
-quick window into authoritative retention or introduce a universal undo
-command.
+The next additive read can expose complete authorized retained Project-event
+traversal with a stable cursor. It should reuse the same composition and
+authorization boundary, preserve the exact Project-stream order, and prevent
+cross-Project leakage or false global ordering across command, event, receipt,
+Work, and projection families. It must not turn the ten-item quick window into
+an authority limit or introduce universal undo.

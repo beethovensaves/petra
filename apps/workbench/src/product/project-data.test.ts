@@ -5,6 +5,7 @@ import type {
   PetraProjectDefinition,
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
+  PetraProjectHistoryEpisodeView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
@@ -28,6 +29,7 @@ import {
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
   getRecentProjectHistory,
+  getProjectHistoryEpisode,
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
   loadProjectPetraThread,
@@ -184,6 +186,16 @@ const historyView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryView;
+
+const historyEpisodeView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-episode-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryEpisodeView;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -548,6 +560,37 @@ describe("Project shell workbench adapter", () => {
     fetch.mockResolvedValueOnce(Response.json(wrongProject));
     await expect(
       getRecentProjectHistory(historyView.project_id),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("reads an exact event-selected episode without asserting cross-family order", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyEpisodeView));
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await getProjectHistoryEpisode(
+      historyEpisodeView.project_id,
+      historyEpisodeView.event_id,
+    );
+
+    expect(result).toEqual(historyEpisodeView);
+    expect(result.content.stream_order.order_kind).toBe("project_stream");
+    expect(result.content.omissions).toContain(
+      "cross_family_total_order_not_asserted",
+    );
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${historyEpisodeView.project_id}/history/events/${historyEpisodeView.event_id}`,
+    );
+
+    const wrongEvent = structuredClone(historyEpisodeView);
+    wrongEvent.event_id = "event_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongEvent));
+    await expect(
+      getProjectHistoryEpisode(
+        historyEpisodeView.project_id,
+        historyEpisodeView.event_id,
+      ),
     ).rejects.toMatchObject({ status: 502 });
   });
 

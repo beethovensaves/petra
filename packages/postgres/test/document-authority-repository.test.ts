@@ -1122,6 +1122,31 @@ describePostgres("PostgreSQL Document authority repository", () => {
       "client_local_separate",
     );
     expect(recentHistory?.content.quick_window_limit).toBe(10);
+    const retractionEvent = recentHistory?.content.changes[0]?.event_ref;
+    if (retractionEvent === undefined) {
+      throw new Error("Expected replacement-retraction History.");
+    }
+    const retractionEpisode = await historyViews.getProjectHistoryEpisodeView(
+      project.project_id,
+      retractionEvent.event_id,
+    );
+    expect(retractionEpisode?.content.receipt_ref).toEqual(
+      expect.objectContaining({
+        schema_name: "petra.project-source-replacement-receipt",
+        record_id: retracted.receipt.project_source_replacement_receipt_id,
+      }),
+    );
+    expect(
+      retractionEpisode?.content.stream_order.previous_event_ref?.event_type,
+    ).toBe("project_source.replacement_created");
+    expect(
+      retractionEpisode?.content.stream_order.next_event_ref,
+    ).toBeUndefined();
+    expect(retractionEpisode?.content.omissions).toEqual([
+      "dependency_impact_not_composed",
+      "generic_reversal_assessment_not_composed",
+      "cross_family_total_order_not_asserted",
+    ]);
     const staleReceipt = structuredClone(replacement);
     staleReceipt.project_source_replacement_id =
       "project_source_replacement_01K4C000000000000000000046";

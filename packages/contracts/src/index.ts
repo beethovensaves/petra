@@ -116,6 +116,14 @@ export type {
   TargetRef as ProjectHistoryTargetRef,
 } from "./generated/project-history-view.js";
 export type {
+  CausalCommandLink as ProjectHistoryCausalCommandLink,
+  Causality as ProjectHistoryCausality,
+  EpisodeContent as ProjectHistoryEpisodeContent,
+  PetraProjectHistoryEpisodeView,
+  ReceiptRef as ProjectHistoryReceiptRef,
+  StreamOrder as ProjectHistoryStreamOrder,
+} from "./generated/project-history-episode-view.js";
+export type {
   AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
   ControlSection as ProjectEffectiveControlSection,
   ControlSections as ProjectEffectiveControlSections,
