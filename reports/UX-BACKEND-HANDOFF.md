@@ -273,7 +273,7 @@ between shell context and task content more important.
   `UX1.0-DISC10`; `UX1.4-W05`, `UX1.4-W11`, `UX1.5`, `UX1.6-W15`,
   `DB17-P11`–`P12`, `UX-FLOW-12`, and `UX-FLOW-16`.
 - **Implemented backend baseline:** commits `92e9cb1`, `7ae590f`, `1c44dd3`,
-  `9530b09`, `c5da977`, `c198af6`, and `7380a0b` add
+  `9530b09`, `c5da977`, `c198af6`, `7380a0b`, and `9e90258` add
   `petra.project-history-view@1.0.0`,
   `petra.project-history-episode-view@1.0.0`, and
   `petra.project-history-retained-view@1.0.0`; `7380a0b` advances the retained
@@ -286,7 +286,9 @@ between shell context and task content more important.
   `petra.project-history-impact-view@1.1.0` with the first registered exact
   semantic-target adapters at `c5da977`, then version 1.2 with exact
   ProjectSource and replacement adapters at `c198af6`, all through the existing
-  exact-event impact route.
+  exact-event impact route. Commit `9e90258` adds
+  `petra.project-history-recovery-assessment-view@1.0.0` and its authenticated
+  exact-event recovery route.
   The implementation result and remaining backend work are recorded in
   [UX-REQ-007 causal Project History](UX-REQ-007-CAUSAL-PROJECT-HISTORY.md).
 - **Integration scope:** bind these reads to the frozen `HistorySurface` and its
@@ -294,11 +296,12 @@ between shell context and task content more important.
   page structure, visual language, or the design freeze. Retained filtering
   occupies the frozen `DB18-SP10` **Scope/filter** position and reuses the
   existing History collection region on the same browser route. Dependency
-  facts remain in the selected-event detail. No new page, panel, browser route,
-  Undo, reversibility decision, or compensation path is introduced. The only
-  recovery facts in scope remain the exact command-granular facts returned by
-  the History read. Semantic references remain dependency evidence and do not
-  become inferred effects.
+  facts and exact ChangeSet recovery assessment remain in the selected-event
+  detail. No new page, panel, browser route, generic Undo, preview composition,
+  or compensation execution path is introduced. The assessment reports whether
+  one exact ChangeSet may proceed to a separately requested preview; it does not
+  make the preview request or authorize a command. Semantic references remain
+  dependency evidence and do not become inferred effects.
 
 #### Frozen-surface acceptance mapping
 
@@ -309,13 +312,13 @@ between shell context and task content more important.
 | Left `history-episodes` ordered list in **Recent changes** scope | Recent `content.changes` | Keep the existing list container and heading **Recent changes**. Render the returned order without regrouping or client sorting. The header count is the number shown, never a retained-history total. With `has_older: true`, its existing count text reads **10 shown · Older changes exist**. Never send a retained filter, limit, or cursor to the Recent endpoint, and never replace `has_older` with a retained cursor. |
 | Same `history-episodes` ordered list in **Full History** scope | Retained 1.1 `content.changes`, `page`, and `retention_snapshot` | Render only the authorized matching events in supplied `project_stream_newest_first` order. The heading is **Full History** and its associated count is **{snapshot_total_count} matching events** or **{snapshot_total_count} events** when `filters` is empty. Append a continuation page only after its echoed query and retained snapshot match the active traversal. Do not mix Recent rows into this list or sort it by displayed time. |
 | Existing row link | `event_ref.event_id`, `recorded_at`, `command_ref.command_name`, `observed_effect.summary` | Link to the existing `/projects/:projectId/history/:episodeId` pattern with `episodeId` equal to the exact immutable `event_id`. Use the registered command label as the row action and the server summary as its description. Do not invent a target title from `semantic_key` or `object_id`. |
-| Existing selected detail article | `GET /api/queries/projects/:projectId/history/events/:eventId` and `GET /api/queries/projects/:projectId/history/events/:eventId/impact` | Every selected row and deep link loads the exact episode. The detail may then consume `petra.project-history-impact-view@1.2.0` for that same Project and event in its existing sections. Verify outer Project/event identity and the complete overlapping selected-event anchor before rendering impact. Bind `episodeId` semantically as an event ID; do not retain the fixture episode key as a second identity. |
+| Existing selected detail article | Exact episode, impact, and eligible event recovery reads | Every selected row and deep link loads the exact episode. The detail may then consume `petra.project-history-impact-view@1.2.0`; for `change_set.applied` or `change_set.reverted`, it may also consume `petra.project-history-recovery-assessment-view@1.0.0` from `GET /api/queries/projects/:projectId/history/events/:eventId/recovery`. Verify the outer Project/event identity and complete overlapping selected-event anchor before rendering either subordinate read. Bind `episodeId` only as the immutable event ID. Do not call the recovery route for another event type. |
 | Detail header | `content.change.observed_effect` plus exact event type | Use the registered event/action label as the title, `observed_effect.summary` as the lead, and its `outcome` as explicit text. A descriptive profile target label is absent from the implemented contract and cannot be fabricated. |
 | Existing Actor, Occurred, Recorded, and Action facts | `actor`, `occurred_at`, `recorded_at`, and `command_ref` | Preserve all four rows. Actor renders an authorized display label only when another trusted Project read supplies one; otherwise render the exact kind and ID, such as **Human · actor_…**, rather than **Project author**. Render both timestamps with native `<time datetime="…">`; the visible value includes localized date, time, and zone while the element retains the exact ISO value. Do not collapse unequal occurred and recorded times. |
-| Existing **Authority effect** section | selected event `observed_effect`, `outcome`, `targets`, direct-impact summary, and semantic-target summary | Keep the event's supplied effect as the primary statement. Following sentences may separately report **{total} registered direct event/command references across four groups · {coverage}** and **{total} registered exact semantic-target references across {supported} of {assessed} assessed targets · {coverage}**. Never combine the totals, rename either **all dependencies**, infer a dependent effect, or treat either as a reversibility result. |
+| Existing **Authority effect** section | selected event effect plus direct/semantic impact summaries, including the recovery assessment's exact `causal_impact_basis` | Keep the event's supplied effect as the primary statement. Following sentences may separately report **{total} registered direct event/command references across four groups · {coverage}** and **{total} registered exact semantic-target references across {supported} of {assessed} assessed targets · {coverage}**. When assessment is present, its summaries must match the same selected-event impact basis. Keep its three unknowns and **Dependent effects are not inferred from references** adjacent. Never combine totals, rename them **all dependencies**, or treat a reference as a dependent effect. |
 | Existing **Projection effect** section | `impact.graph_projection_records` | Render the exact graph-projection attempt records, including attempt, applied/failed outcome, recorded time, and outbox binding. With complete zero coverage say **No registered graph-projection attempt was found for this event.** An attempt outcome does not establish the current Graph's freshness. |
-| Existing **Episode members** section | episode `causality`, `stream_order`, optional `receipt_ref`, direct-impact causal-command/outbox/GroundedResponse-invalidation groups, and `semantic_target_impact.target_assessments` | Keep every relation family separately labelled within this existing section. Nest the applicable semantic adapter groups beneath their exact selected-event target; keep a target-local non-result and its exact reason in that same target block. Preserve target, group, and reference order. Never describe Project-stream adjacency, outbox carriage, projection, invalidation, Review membership, GroundedResponse dependency, source lineage, or composition lineage as command causation, and never merge them into a cross-family timeline. |
-| Existing **Recovery relationship** and `history-revert` block | `recovery`, direct and semantic-target coverage/`unknowns`, `decision_boundary`, and `omissions` | Apply the wording rules below. State both impact coverage boundaries and summarize unsupported target count beside recovery so proven references cannot be read as effects or a reversal decision. Eligibility is a separate current History fact, not permission to execute and not an impact preview. The existing subordinate `PetraDialog` stays closed and unlaunchable until an owning revision-bound preview/action adapter exists. |
+| Existing **Episode members** section | episode relationships, impact groups, and recovery `recovery_subject` | Keep every relation family separately labelled within this existing section. Nest the applicable semantic adapter groups beneath their exact selected-event target. When assessment is present, add separately named **Promotion ChangeSet**, **Applied Approval**, and **Current recovery targets** groups with every supplied revision, state, content/record hash, and exact ChangeSet binding. Keep the Claim then Assertion order. Never describe Project-stream adjacency, projection, invalidation, Review membership, source lineage, current evidence authority, or composition lineage as command causation. |
+| Existing **Recovery relationship** and `history-revert` block | event `recovery`, assessment, `command_authority`, causal unknowns, `decision_boundary`, and `omissions` | Apply the wording rules below. Keep the three required command checks in contract order with the resolved principal and exact granted authority or denial reason. State the assessment outcome, reason, exact blockers or retained compensation, and all no-preview/no-execution boundaries. `eligible_for_preview` permits only a separately requested revision-bound preview; it is neither a preview nor permission to execute. The subordinate dialog stays closed until a separate preview read succeeds. |
 | Existing top return control | client-held entry context plus `UX-REQ-008` resolution | Reuse this one control for the exact-return behavior below. Direct entry or a deep link with no permitted origin keeps the frozen **Return to current Brief** fallback. |
 
 The adapter uses these closed labels rather than exposing enum casing or
@@ -624,6 +627,93 @@ do not create a focusable but inactive link. Loading or target-local results do
 not move focus, repeat the selected event's Actor/time/effect, or change the
 existing narrow-screen order.
 
+#### Exact ChangeSet recovery-assessment binding
+
+Request
+`GET /api/queries/projects/:projectId/history/events/:eventId/recovery` with no
+query parameters only after the exact episode proves that the selected event is
+`change_set.applied` or `change_set.reverted`. Accept only
+`petra.project-history-recovery-assessment-view@1.0.0` with
+`view_kind: change_set_recovery_assessment`,
+`authorization_scope: authenticated_project`, repeatable-read authority, and
+`graph_navigation_history: client_local_separate`. The outer Project and event,
+`selected_event.event_ref.event_id`, and
+`causal_impact_basis.source_event_id` must equal the active detail. The complete
+selected-event anchor must match the verified episode. A mismatch fails only
+the assessment portion closed and never replaces the event detail.
+
+In **Episode members**, present the assessment basis in three separately named
+groups:
+
+| Assessment group | Required exact presentation |
+| --- | --- |
+| **Promotion ChangeSet** | Show `change_set_id`, revision 1, schema version, content and record hashes, and current state. This is always the original promotion being assessed. For a selected `change_set.reverted` event, `selected_event_role: compensation` identifies the selected event's role while the group still points to the promotion it compensated. |
+| **Applied Approval** | Show exact Approval ID/revision, approved decision, promotion ChangeSet ID/revision/content hash, and Approval record hash. Do not treat current user identity or a current grant as the retained approval. |
+| **Current recovery targets** | Show exactly one current Claim followed by one current Assertion with semantic key, object ID, revision, schema, record hash, authority zone, review state, admission kind, and optional promotion ChangeSet ID. State the supplied current posture explicitly. Eligibility requires the exact trusted, human-accepted Claim–`ASSERTS` pair produced by the promotion; the client never infers that relationship from proximity or matching IDs. |
+
+In **Recovery relationship**, show
+`principal_source: server_authenticated_single_user` and the configured human
+Actor, or the exact unavailable-principal reason. Then show the three required
+commands in fixed order: `SubmitChangeSet`, `RecordApproval`, and
+`ApplyChangeSet`. A granted command includes its exact CapabilityGrant ID,
+revision, content hash, and record hash. A denied command includes exactly one
+of `principal_not_configured`, `actor_not_registered`,
+`active_grant_not_found`, or `active_grant_ambiguous`. Keep
+**Authority is rechecked for every command** visible from
+`execution_recheck: required_at_each_command`; an assessment grant never becomes
+an executable client capability.
+
+The assessment state maps into the existing `history-revert` block as follows:
+
+| `assessment.state` | Frozen-block wording and behavior |
+| --- | --- |
+| `eligible_for_preview` | Heading **Eligible for compensation preview**. Show the supplied reason and **No compensation preview has been prepared. Requesting a preview is a separate read and will recheck current authority.** `blockers` must be empty. This state enables no execution and does not open the existing dialog from assessment data alone. |
+| `blocked` | Heading **Compensation preview blocked**. Show the supplied reason, followed by every blocker in server order with its exact code and detail. Accepted codes are `selected_change_set_is_compensation`, `change_set_not_applied`, `change_set_operation_set_invalid`, `target_revision_changed`, `target_authority_changed`, `target_pair_mismatch`, `impact_target_set_mismatch`, `command_authority_missing`, and `command_authority_ambiguous`. Render no preview or execution action. |
+| `already_compensated` | Heading **Already compensated**. Show the supplied reason plus the exact retained compensation ChangeSet, Approval, and `change_set.reverted` event reference. The event reference may use the existing History-detail route. State **This retained compensation is History; it cannot be compensated again here.** Render no preview or execution action and do not propose reversal of a reversal. |
+
+Every outcome retains `scope: single_change_set_compensation`. Beside it, show
+the complete decision boundary: **Reversibility assessed for this exact
+ChangeSet · Preview not composed · Execution not performed · Multi-step
+compensation not assessed.** The corresponding omissions remain visible. An
+eligible state means only that the server found no blocker at `read_at`; it does
+not approve rationale, confirmation, later authority, or any command.
+
+The assessment's `causal_impact_basis` reuses the exact source event and places
+its four-group direct count/coverage and nine-adapter semantic assessed,
+supported, total, and coverage values in **Authority effect**. State all three
+unknowns: profile-specific dependencies may be unregistered, transitive
+dependents may exist, and external-system dependents are not observable.
+`dependent_effect: not_inferred_from_reference` remains visible. These summaries
+support the bounded assessment; they are not a dependency list, complete safety
+claim, or inferred effect.
+
+While loading, preserve the verified episode, mark only **Recovery
+relationship** and its related basis groups busy, and announce **Checking exact
+ChangeSet recovery…** once without moving focus. A 404 says **This History event
+is unavailable in this Project.** A 422 unsupported event or malformed target
+says **Recovery assessment is unavailable for this History event.** A 503,
+contract/hash/identity mismatch, corrupt authority record, or out-of-order
+response says **Petra could not verify this recovery assessment. No preview or
+recovery action is available.** Authentication failure exposes no event,
+ChangeSet, Approval, evidence, grant, blocker, or compensation identity.
+
+If a newer Project-stream position is known after the assessment, keep the
+immutable selected event and retained promotion/Approval visible, but replace
+the assessment block with **Recovery assessment needs refresh** and do not use
+its eligibility. Reload the same event ID. Blockers and already-compensated
+identity remain attributable to their assessment `read_at`; only a newly
+verified response may restore current wording.
+
+Programmatically group the promotion, Approval, current targets, command
+authority, impact basis, assessment, and decision boundary under the existing
+detail headings. State, reason, every blocker, grant state, count, coverage,
+unknown, and no-preview/no-execution boundary are available as text and never
+by color alone. On user-requested assessment success, focus the assessment
+heading; on failure, focus its state heading. Keyboard reading order follows
+the visual order above. At narrow widths exact IDs and hashes wrap, while the
+Claim/Assertion pair and three command checks remain ordered lists without
+horizontal scrolling.
+
 #### Recovery wording and command boundary
 
 The existing recovery area maps only the implemented discriminated union:
@@ -634,13 +724,13 @@ The existing recovery area maps only the implemented discriminated union:
 | `eligibility: ineligible` | Heading: **Recovery unavailable**. Show the supplied `reason`. Render no executable recovery control and do not replace the reason with a generic disabled tooltip. |
 
 If a later owning action adapter supplies a current exact preview, the existing
-button/dialog slot may link to or host that single registered action after it
-rechecks the target ref. Until then, eligible source recovery directs the author
-to the existing source Details control when `UX-REQ-008` can resolve it; if it
-cannot, the block says **A current recovery preview is not available from this
-History event.** ChangeSet entries remain ineligible under the implemented read.
-No array selection, **Undo**, **Revert to here**, grouped execution, or
-multi-step compensation is part of this integration.
+button/dialog slot may host that separately requested preview after it rechecks
+the target ref. Until then, eligible source recovery directs the author to the
+existing source Details control when `UX-REQ-008` can resolve it; if it cannot,
+the block says **A current recovery preview is not available from this History
+event.** ChangeSet assessment eligibility stops at the separate preview request.
+No array selection, **Undo**, **Revert to here**, grouped execution, reversal of
+a reversal, or multi-step compensation is part of this integration.
 
 #### Semantic destination and exact return
 
@@ -774,10 +864,15 @@ must continue rejecting any value other than
   Project/snapshot/limit/complete-query binding. It does not change the Recent
   endpoint, quick-window limit, episode/impact reads, or browser route. A client
   pinned to retained 1.0 cannot continue a 1.1 traversal with a `phc1` cursor.
+- Backend commit `9e90258` adds the exact-event recovery assessment endpoint
+  and typed client. It accepts no query parameters and returns only a read-only
+  assessment for `change_set.applied` or `change_set.reverted`; it does not
+  alter the episode, impact, retained, or Recent contracts or add a browser
+  route.
 - The frozen route still reads `REFERENCE_HISTORY`; it has no loaders/adapters
-  for the implemented Recent, exact episode, retained traversal, or impact
-  clients and uses fixture episode IDs. This is the immediate frontend
-  integration gap. The retained and impact reads add no browser route.
+  for the implemented Recent, exact episode, retained traversal, impact, or
+  recovery-assessment clients and uses fixture episode IDs. This is the
+  immediate frontend integration gap. The added reads require no browser route.
 - The frozen `DB18-SP10` contract already places **Scope/filter** before the
   History collection and detail, and its state coverage includes long filtered
   History. The checked-in `HistorySurface` does not instantiate that position,
@@ -790,12 +885,13 @@ must continue rejecting any value other than
   authorized Actor display descriptor, profile-resolved target title/origin, or
   current projection-freshness result. The adapter must use exact fallback
   labels and distinguish an attempt outcome from current projection state.
-- The read reports current command-granular recovery eligibility but provides no
-  reversibility assessment, revision-bound confirmation preview, compensation,
-  or executable History action. Neither direct nor semantic-target dependency
-  references can fill those gaps. The existing generic reversal dialog must
-  remain unavailable; source actions stay governed by their existing Details
-  control contracts.
+- The recovery assessment now decides exact single-ChangeSet reversibility only
+  far enough to report `eligible_for_preview`, exact blockers, or a retained
+  compensation. It provides no revision-bound preview, rationale, confirmation,
+  compensation commands, or executable History action. Direct and semantic
+  dependency references remain bounded context rather than inferred effects.
+  The existing reversal dialog remains unavailable from assessment data alone;
+  source actions stay governed by their existing Details control contracts.
 - The routes are bearer-authenticated and Project-scoped. If Petra requires
   actor-specific member filtering beyond that configured boundary, the reader
   must add it before the list can claim per-member authorization. Counts and
@@ -833,21 +929,21 @@ must continue rejecting any value other than
   stops after twenty-five references. The response exposes coverage but no
   continuation cursor; this conformance slice adds no control for either bound.
 
-Backend `7380a0b` records a read-only exact ChangeSet recovery assessment for
-one selected applied or reverted event as the next safe History capability. It
-must reuse current authority and explicit unknowns and must not create a
-compensation. This freeze-conformance slice does not design or begin that
-assessment, revision-bound compensation preview, generic Undo, multi-step
-compensation, event rewriting, or an origin filter.
+Backend `9e90258` records a revision- and authority-bound read-only compensation
+preview as the next safe History capability. It may be requested only from an
+assessment still eligible for preview and must persist and execute nothing.
+This freeze-conformance slice does not design or begin that preview, generic
+Undo, reversal of a reversal, multi-step compensation, event rewriting,
+historical ProjectDefinition interpretation, or an origin filter.
 
 - **Owner and status:** frontend integration track and product architecture;
   bounded Recent changes, exact causal episode, signed filtered retained
   traversal, and bounded direct dependency impact and nine registered exact
-  semantic-target adapter reads passed through `7380a0b`. This frozen-surface
-  acceptance mapping is implementation-ready without component, CSS, or route
-  changes. Frontend binding and the stated gaps remain open; the backend's next
-  safe History boundary is the separate read-only exact ChangeSet recovery
-  assessment described above.
+  semantic-target adapter reads plus exact ChangeSet recovery assessment passed
+  through `9e90258`. This frozen-surface acceptance mapping is
+  implementation-ready without component, CSS, or route changes. Frontend
+  binding and the stated gaps remain open; the backend's next safe History
+  boundary is the separate read-only compensation preview described above.
 
 ### `UX-REQ-008` — semantic object location and safe deep-link resolution
 
@@ -2332,7 +2428,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Proposal, correction, exact preview, Apply, conflict, and Revert | ChangeSet, Approval, ReviewBatch, and additive event path in `M1.5` |
 | Durable conversation-derived working candidates and relationships | Proposed `UX-REQ-011`; existing bounded model records and evidence candidates remain inputs, not a generic working graph contract |
 | Profile-neutral Review session, comparison, deferment, separation, and member recovery | Proposed `UX-REQ-012`; current M1.5 evidence review remains the scientific contract foundation |
-| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding, four-group direct dependency impact, and nine registered exact semantic-target adapters through ProjectSource/replacement authority under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration history remains client-local, and read-only exact ChangeSet recovery assessment is the next backend boundary without beginning its design here |
+| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding, four-group direct dependency impact, nine registered exact semantic-target adapters through ProjectSource/replacement authority, and read-only exact ChangeSet recovery assessment under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration history remains client-local, and a separately requested revision-bound compensation preview is the next backend boundary without beginning its design here |
 | Semantic object location, replacement, and safe fallback | Proposed `UX-REQ-008`; the client retains route and layout ownership |
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
 | Project-source membership, governed removal, and local-copy retention/deletion | Proposed `UX-REQ-010`; Project linking and content-addressed storage remain separate lifecycles |
