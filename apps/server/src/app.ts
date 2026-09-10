@@ -20,6 +20,7 @@ import {
   DurableReviewInterruptError,
   PetraInteractionRuntime,
   ProjectSourceLifecycleAuthorityError,
+  ProjectSourceReplacementCommandError,
   derivePetraId,
   type AuthenticatedCommandPrincipalResolver,
   type ReviewInterruptBoundary,
@@ -35,6 +36,8 @@ import {
   type ProjectSourceLifecycleAuthorityRepository,
   type ProjectSourceLifecycleCommandEnvelope,
   type ProjectSourceLifecycleViewReader,
+  type ProjectSourceReplacementCommandAuthorityRepository,
+  type ProjectSourceReplacementCommandEnvelope,
   type ProjectSourceViewReader,
   type ProjectThreadLifecycleFilter,
   type ProjectThreadViewReader,
@@ -64,6 +67,7 @@ export interface PetraAppOptions {
   projectSourceLifecycleViews?: ProjectSourceLifecycleViewReader;
   commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
   projectSourceLifecycleAuthority?: ProjectSourceLifecycleAuthorityRepository;
+  projectSourceReplacementAuthority?: ProjectSourceReplacementCommandAuthorityRepository;
   projectReviewViews?: ProjectReviewViewReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
   projectObjectLocations?: ProjectObjectLocationViewReader;
@@ -82,6 +86,10 @@ const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$/;
 const PETRA_ID_PATTERN = /^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_ID_PATTERN = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_SOURCE_ID_PATTERN = /^project_source_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const PROJECT_SOURCE_REPLACEMENT_ID_PATTERN =
+  /^project_source_replacement_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const PROJECT_SOURCE_LIFECYCLE_RECEIPT_ID_PATTERN =
+  /^project_source_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const COMMAND_ID_PATTERN = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const CONTENT_HASH_PATTERN = /^sha256:[0-9a-f]{64}$/u;
 const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$/u;
@@ -120,6 +128,12 @@ const PROJECT_SOURCE_LIFECYCLE_ACTIONS: readonly ProjectSourceLifecycleAction[] 
 const PROJECT_SOURCE_LIFECYCLE_COMMAND_ACTIONS = [
   "exclude_project_source",
   "restore_project_source",
+] as const;
+const PROJECT_SOURCE_REPLACEMENT_KINDS = [
+  "newer_source_version",
+  "identity_resolution",
+  "preferred_copy_changed",
+  "project_role_replacement",
 ] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -161,6 +175,171 @@ const optionalEnum = <Value extends string>(
     throw new InteractionInputError(`${key} is not an allowed value.`);
   }
   return member as Value;
+};
+
+const positiveSafeInteger = (
+  value: Record<string, unknown>,
+  key: string,
+): number => {
+  const member = value[key];
+  if (!Number.isSafeInteger(member) || Number(member) < 1) {
+    throw new InteractionInputError(`${key} must be a positive safe integer.`);
+  }
+  return Number(member);
+};
+
+const canonicalHashMember = (
+  value: Record<string, unknown>,
+  key: string,
+): string => {
+  const member = requiredString(value, key);
+  if (!CONTENT_HASH_PATTERN.test(member)) {
+    throw new InteractionInputError(`${key} must be a canonical SHA-256 hash.`);
+  }
+  return member;
+};
+
+const projectSourceReplacementSourceRef = <
+  Status extends "active" | "excluded",
+>(
+  value: unknown,
+  label: string,
+  expectedStatus: Status,
+): {
+  project_source_id: string;
+  revision: number;
+  content_hash: string;
+  record_hash: string;
+  status: Status;
+} => {
+  if (!isRecord(value)) {
+    throw new InteractionInputError(
+      `${label} must be an exact ProjectSource reference.`,
+    );
+  }
+  assertExactKeys(
+    value,
+    new Set([
+      "project_source_id",
+      "revision",
+      "content_hash",
+      "record_hash",
+      "status",
+    ]),
+    label,
+  );
+  const projectSourceId = requiredString(value, "project_source_id");
+  if (!PROJECT_SOURCE_ID_PATTERN.test(projectSourceId)) {
+    throw new InteractionInputError(
+      `${label}.project_source_id must be canonical.`,
+    );
+  }
+  const status = optionalEnum(value, "status", ["active", "excluded"] as const);
+  if (status !== expectedStatus) {
+    throw new InteractionInputError(
+      `${label}.status must be ${expectedStatus}.`,
+    );
+  }
+  return {
+    project_source_id: projectSourceId,
+    revision: positiveSafeInteger(value, "revision"),
+    content_hash: canonicalHashMember(value, "content_hash"),
+    record_hash: canonicalHashMember(value, "record_hash"),
+    status: expectedStatus,
+  };
+};
+
+const projectSourceReplacementExclusionReceiptRef = (
+  value: unknown,
+): {
+  project_source_lifecycle_receipt_id: string;
+  revision: 1;
+  content_hash: string;
+  record_hash: string;
+} => {
+  if (!isRecord(value)) {
+    throw new InteractionInputError(
+      "exclusion_receipt_ref must be an exact lifecycle receipt reference.",
+    );
+  }
+  assertExactKeys(
+    value,
+    new Set([
+      "project_source_lifecycle_receipt_id",
+      "revision",
+      "content_hash",
+      "record_hash",
+    ]),
+    "exclusion_receipt_ref",
+  );
+  const receiptId = requiredString(
+    value,
+    "project_source_lifecycle_receipt_id",
+  );
+  if (!PROJECT_SOURCE_LIFECYCLE_RECEIPT_ID_PATTERN.test(receiptId)) {
+    throw new InteractionInputError(
+      "exclusion_receipt_ref must name a canonical lifecycle receipt.",
+    );
+  }
+  if (positiveSafeInteger(value, "revision") !== 1) {
+    throw new InteractionInputError(
+      "exclusion_receipt_ref revision must be 1.",
+    );
+  }
+  return {
+    project_source_lifecycle_receipt_id: receiptId,
+    revision: 1,
+    content_hash: canonicalHashMember(value, "content_hash"),
+    record_hash: canonicalHashMember(value, "record_hash"),
+  };
+};
+
+const projectSourceReplacementExactRef = (
+  value: unknown,
+): {
+  project_source_replacement_id: string;
+  revision: 1;
+  content_hash: string;
+  record_hash: string;
+  state: "active";
+} => {
+  if (!isRecord(value)) {
+    throw new InteractionInputError(
+      "expected_replacement_ref must be an exact active replacement reference.",
+    );
+  }
+  assertExactKeys(
+    value,
+    new Set([
+      "project_source_replacement_id",
+      "revision",
+      "content_hash",
+      "record_hash",
+      "state",
+    ]),
+    "expected_replacement_ref",
+  );
+  const replacementId = requiredString(value, "project_source_replacement_id");
+  if (!PROJECT_SOURCE_REPLACEMENT_ID_PATTERN.test(replacementId)) {
+    throw new InteractionInputError(
+      "expected_replacement_ref must name a canonical replacement.",
+    );
+  }
+  if (
+    positiveSafeInteger(value, "revision") !== 1 ||
+    optionalEnum(value, "state", ["active", "retracted"] as const) !== "active"
+  ) {
+    throw new InteractionInputError(
+      "expected_replacement_ref must name active revision 1.",
+    );
+  }
+  return {
+    project_source_replacement_id: replacementId,
+    revision: 1,
+    content_hash: canonicalHashMember(value, "content_hash"),
+    record_hash: canonicalHashMember(value, "record_hash"),
+    state: "active",
+  };
 };
 
 const jsonError = (
@@ -1475,6 +1654,487 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project source lifecycle command failed.",
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/source-replacements",
+    async (context) => {
+      if (
+        options.commandPrincipalResolver === undefined ||
+        options.projectSourceReplacementAuthority === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REPLACEMENT_COMMAND_UNAVAILABLE",
+          "The authenticated Project source replacement command boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Project source replacement commands do not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "Project source replacement commands require a canonical Project identity.",
+          );
+        }
+        const body = await readBoundedJson(context, maxBodyBytes);
+        if (!isRecord(body)) {
+          throw new InteractionInputError(
+            "The Project source replacement command must be an object.",
+          );
+        }
+        assertExactKeys(
+          body,
+          new Set([
+            "command_id",
+            "idempotency_key",
+            "replacement_kind",
+            "replaced_source_ref",
+            "replacement_source_ref",
+            "exclusion_receipt_ref",
+            "rationale",
+          ]),
+          "Project source replacement command",
+        );
+        const commandId = requiredString(body, "command_id");
+        const idempotencyKey = requiredString(body, "idempotency_key");
+        const replacementKind = optionalEnum(
+          body,
+          "replacement_kind",
+          PROJECT_SOURCE_REPLACEMENT_KINDS,
+        );
+        const rationale = requiredString(body, "rationale");
+        if (!COMMAND_ID_PATTERN.test(commandId)) {
+          throw new InteractionInputError(
+            "command_id must be a canonical command-prefixed Petra ID.",
+          );
+        }
+        if (!IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) {
+          throw new InteractionInputError(
+            "idempotency_key must satisfy Petra's registered command key format.",
+          );
+        }
+        if (replacementKind === undefined) {
+          throw new InteractionInputError("replacement_kind is required.");
+        }
+        if (rationale.length > 4_000) {
+          throw new InteractionInputError(
+            "rationale must contain at most 4000 characters.",
+          );
+        }
+        const replacedSourceRef = projectSourceReplacementSourceRef(
+          body.replaced_source_ref,
+          "replaced_source_ref",
+          "excluded",
+        );
+        const replacementSourceRef = projectSourceReplacementSourceRef(
+          body.replacement_source_ref,
+          "replacement_source_ref",
+          "active",
+        );
+        if (
+          replacedSourceRef.project_source_id ===
+          replacementSourceRef.project_source_id
+        ) {
+          throw new InteractionInputError(
+            "A ProjectSource cannot replace itself.",
+          );
+        }
+        const exclusionReceiptRef = projectSourceReplacementExclusionReceiptRef(
+          body.exclusion_receipt_ref,
+        );
+        const commandName = "CreateProjectSourceReplacement" as const;
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName,
+          });
+        if (principal.state === "denied") {
+          if (principal.reason === "active_grant_not_found") {
+            return jsonError(
+              context,
+              403,
+              "PROJECT_SOURCE_REPLACEMENT_COMMAND_FORBIDDEN",
+              "The authenticated principal has no active grant for this Project command.",
+            );
+          }
+          return jsonError(
+            context,
+            503,
+            principal.reason === "actor_not_registered"
+              ? "AUTHENTICATED_ACTOR_UNAVAILABLE"
+              : "PROJECT_COMMAND_AUTHORITY_AMBIGUOUS",
+            principal.reason === "actor_not_registered"
+              ? "The configured authenticated Actor is not registered."
+              : "More than one active grant matches the authenticated Project command.",
+          );
+        }
+        const envelope: ProjectSourceReplacementCommandEnvelope = {
+          schema_name: "petra.command-envelope",
+          schema_version: "1.3.0",
+          command_id: commandId,
+          idempotency_key: idempotencyKey,
+          project_id: projectId,
+          actor: principal.actor,
+          capability_grant_id: principal.capabilityGrantId,
+          correlation_id: derivePetraId(
+            "trace",
+            `${context.get("requestId")}:${randomUUID()}`,
+          ),
+          submitted_at: new Date().toISOString(),
+          command: {
+            command_name: commandName,
+            replacement_kind: replacementKind,
+            replaced_source_ref: replacedSourceRef,
+            replacement_source_ref: replacementSourceRef,
+            exclusion_receipt_ref: exclusionReceiptRef,
+            rationale,
+          },
+        };
+        contracts.assertValid("command-envelope", "1.3.0", envelope);
+        const result =
+          await options.projectSourceReplacementAuthority.executeProjectSourceReplacementCommand(
+            envelope,
+          );
+        contracts.assertValid(
+          "project-source-replacement-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid(
+          "project-source-replacement",
+          "1.0.0",
+          result.replacement,
+        );
+        const receiptResult = result.receipt.content.result;
+        const content = result.replacement.content;
+        if (
+          result.outcome !== "replacement_created" ||
+          result.receipt.project_id !== projectId ||
+          result.receipt.content.command_ref.command_id !== commandId ||
+          result.receipt.content.command_ref.idempotency_key !==
+            idempotencyKey ||
+          result.receipt.content.command_ref.command_name !== commandName ||
+          receiptResult.effect !== "replacement_activated" ||
+          receiptResult.replacement_ref.state !== "active" ||
+          result.replacement.project_id !== projectId ||
+          result.replacement.project_source_replacement_id !==
+            receiptResult.replacement_ref.project_source_replacement_id ||
+          result.replacement.revision !==
+            receiptResult.replacement_ref.revision ||
+          result.replacement.content_hash !==
+            receiptResult.replacement_ref.content_hash ||
+          content.replacement_kind !== replacementKind ||
+          content.rationale !== rationale ||
+          content.replaced_source_ref.project_source_id !==
+            replacedSourceRef.project_source_id ||
+          content.replaced_source_ref.revision !== replacedSourceRef.revision ||
+          content.replaced_source_ref.content_hash !==
+            replacedSourceRef.content_hash ||
+          content.replaced_source_ref.record_hash !==
+            replacedSourceRef.record_hash ||
+          content.replacement_source_ref.project_source_id !==
+            replacementSourceRef.project_source_id ||
+          content.replacement_source_ref.revision !==
+            replacementSourceRef.revision ||
+          content.replacement_source_ref.content_hash !==
+            replacementSourceRef.content_hash ||
+          content.replacement_source_ref.record_hash !==
+            replacementSourceRef.record_hash ||
+          content.exclusion_receipt_ref.project_source_lifecycle_receipt_id !==
+            exclusionReceiptRef.project_source_lifecycle_receipt_id ||
+          content.exclusion_receipt_ref.revision !==
+            exclusionReceiptRef.revision ||
+          content.exclusion_receipt_ref.content_hash !==
+            exclusionReceiptRef.content_hash ||
+          content.exclusion_receipt_ref.record_hash !==
+            exclusionReceiptRef.record_hash ||
+          typeof result.applied !== "boolean"
+        ) {
+          throw new Error(
+            "The Project source replacement authority returned a different command, Project, relation, or result.",
+          );
+        }
+        return context.json({
+          receipt: result.receipt,
+          replacement: result.replacement,
+          applied: result.applied,
+        });
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            422,
+            "PROJECT_SOURCE_REPLACEMENT_COMMAND_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        if (error instanceof ProjectSourceReplacementCommandError) {
+          const status =
+            error.code === "PROJECT_SOURCE_REPLACEMENT_COMMAND_NOT_AUTHORIZED"
+              ? 403
+              : error.code ===
+                    "PROJECT_SOURCE_REPLACEMENT_COMMAND_SOURCE_MISSING" ||
+                  error.code ===
+                    "PROJECT_SOURCE_REPLACEMENT_COMMAND_REPLACEMENT_MISSING"
+                ? 404
+                : error.code ===
+                    "PROJECT_SOURCE_REPLACEMENT_COMMAND_STORED_RECORD_CORRUPT"
+                  ? 503
+                  : 409;
+          return jsonError(context, status, error.code, error.message);
+        }
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REPLACEMENT_COMMAND_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project source replacement command failed.",
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/source-replacements/:replacementId/retraction",
+    async (context) => {
+      if (
+        options.commandPrincipalResolver === undefined ||
+        options.projectSourceReplacementAuthority === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REPLACEMENT_COMMAND_UNAVAILABLE",
+          "The authenticated Project source replacement command boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Project source replacement commands do not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const replacementId = context.req.param("replacementId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "Project source replacement commands require a canonical Project identity.",
+          );
+        }
+        if (!PROJECT_SOURCE_REPLACEMENT_ID_PATTERN.test(replacementId)) {
+          throw new InteractionInputError(
+            "Project source replacement retraction requires a canonical replacement identity.",
+          );
+        }
+        const body = await readBoundedJson(context, maxBodyBytes);
+        if (!isRecord(body)) {
+          throw new InteractionInputError(
+            "The Project source replacement retraction must be an object.",
+          );
+        }
+        assertExactKeys(
+          body,
+          new Set([
+            "command_id",
+            "idempotency_key",
+            "expected_replacement_ref",
+            "reason",
+          ]),
+          "Project source replacement retraction",
+        );
+        const commandId = requiredString(body, "command_id");
+        const idempotencyKey = requiredString(body, "idempotency_key");
+        const reason = requiredString(body, "reason");
+        if (!COMMAND_ID_PATTERN.test(commandId)) {
+          throw new InteractionInputError(
+            "command_id must be a canonical command-prefixed Petra ID.",
+          );
+        }
+        if (!IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) {
+          throw new InteractionInputError(
+            "idempotency_key must satisfy Petra's registered command key format.",
+          );
+        }
+        if (reason.length > 4_000) {
+          throw new InteractionInputError(
+            "reason must contain at most 4000 characters.",
+          );
+        }
+        const expectedReplacementRef = projectSourceReplacementExactRef(
+          body.expected_replacement_ref,
+        );
+        if (
+          expectedReplacementRef.project_source_replacement_id !== replacementId
+        ) {
+          throw new InteractionInputError(
+            "expected_replacement_ref must name the replacement in the route.",
+          );
+        }
+        const commandName = "RetractProjectSourceReplacement" as const;
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName,
+          });
+        if (principal.state === "denied") {
+          if (principal.reason === "active_grant_not_found") {
+            return jsonError(
+              context,
+              403,
+              "PROJECT_SOURCE_REPLACEMENT_COMMAND_FORBIDDEN",
+              "The authenticated principal has no active grant for this Project command.",
+            );
+          }
+          return jsonError(
+            context,
+            503,
+            principal.reason === "actor_not_registered"
+              ? "AUTHENTICATED_ACTOR_UNAVAILABLE"
+              : "PROJECT_COMMAND_AUTHORITY_AMBIGUOUS",
+            principal.reason === "actor_not_registered"
+              ? "The configured authenticated Actor is not registered."
+              : "More than one active grant matches the authenticated Project command.",
+          );
+        }
+        const envelope: ProjectSourceReplacementCommandEnvelope = {
+          schema_name: "petra.command-envelope",
+          schema_version: "1.3.0",
+          command_id: commandId,
+          idempotency_key: idempotencyKey,
+          project_id: projectId,
+          actor: principal.actor,
+          capability_grant_id: principal.capabilityGrantId,
+          correlation_id: derivePetraId(
+            "trace",
+            `${context.get("requestId")}:${randomUUID()}`,
+          ),
+          submitted_at: new Date().toISOString(),
+          command: {
+            command_name: commandName,
+            expected_replacement_ref: expectedReplacementRef,
+            reason,
+          },
+        };
+        contracts.assertValid("command-envelope", "1.3.0", envelope);
+        const result =
+          await options.projectSourceReplacementAuthority.executeProjectSourceReplacementCommand(
+            envelope,
+          );
+        contracts.assertValid(
+          "project-source-replacement-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid(
+          "project-source-replacement",
+          "1.0.0",
+          result.replacement,
+        );
+        if (result.outcome === "replacement_retracted") {
+          contracts.assertValid(
+            "project-source-replacement-retraction",
+            "1.0.0",
+            result.retraction,
+          );
+        }
+        const receiptResult = result.receipt.content.result;
+        if (
+          result.outcome !== "replacement_retracted" ||
+          receiptResult.effect !== "replacement_retracted" ||
+          result.receipt.project_id !== projectId ||
+          result.receipt.content.command_ref.command_id !== commandId ||
+          result.receipt.content.command_ref.idempotency_key !==
+            idempotencyKey ||
+          result.receipt.content.command_ref.command_name !== commandName ||
+          receiptResult.replacement_ref.project_source_replacement_id !==
+            replacementId ||
+          receiptResult.replacement_ref.revision !==
+            expectedReplacementRef.revision ||
+          receiptResult.replacement_ref.content_hash !==
+            expectedReplacementRef.content_hash ||
+          receiptResult.replacement_ref.record_hash !==
+            expectedReplacementRef.record_hash ||
+          receiptResult.replacement_ref.state !== "retracted" ||
+          result.replacement.project_id !== projectId ||
+          result.replacement.project_source_replacement_id !== replacementId ||
+          result.replacement.revision !== expectedReplacementRef.revision ||
+          result.replacement.content_hash !==
+            expectedReplacementRef.content_hash ||
+          result.retraction.project_id !== projectId ||
+          result.retraction.content.replacement_ref
+            .project_source_replacement_id !== replacementId ||
+          result.retraction.content.replacement_ref.revision !==
+            expectedReplacementRef.revision ||
+          result.retraction.content.replacement_ref.content_hash !==
+            expectedReplacementRef.content_hash ||
+          result.retraction.content.replacement_ref.record_hash !==
+            expectedReplacementRef.record_hash ||
+          receiptResult.retraction_ref
+            .project_source_replacement_retraction_id !==
+            result.retraction.project_source_replacement_retraction_id ||
+          receiptResult.retraction_ref.revision !==
+            result.retraction.revision ||
+          receiptResult.retraction_ref.content_hash !==
+            result.retraction.content_hash ||
+          typeof result.applied !== "boolean"
+        ) {
+          throw new Error(
+            "The Project source replacement authority returned a different retraction command, Project, relation, or result.",
+          );
+        }
+        return context.json({
+          receipt: result.receipt,
+          replacement: result.replacement,
+          retraction: result.retraction,
+          applied: result.applied,
+        });
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            422,
+            "PROJECT_SOURCE_REPLACEMENT_COMMAND_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        if (error instanceof ProjectSourceReplacementCommandError) {
+          const status =
+            error.code === "PROJECT_SOURCE_REPLACEMENT_COMMAND_NOT_AUTHORIZED"
+              ? 403
+              : error.code ===
+                    "PROJECT_SOURCE_REPLACEMENT_COMMAND_SOURCE_MISSING" ||
+                  error.code ===
+                    "PROJECT_SOURCE_REPLACEMENT_COMMAND_REPLACEMENT_MISSING"
+                ? 404
+                : error.code ===
+                    "PROJECT_SOURCE_REPLACEMENT_COMMAND_STORED_RECORD_CORRUPT"
+                  ? 503
+                  : 409;
+          return jsonError(context, status, error.code, error.message);
+        }
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REPLACEMENT_COMMAND_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project source replacement command failed.",
         );
       }
     },

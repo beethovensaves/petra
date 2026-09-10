@@ -13,6 +13,9 @@ import type {
   PetraProjectShellViewV11,
   PetraProjectSource,
   PetraProjectSourceLifecycleReceipt,
+  PetraProjectSourceReplacement,
+  PetraProjectSourceReplacementReceipt,
+  PetraProjectSourceReplacementRetraction,
   PetraProjectSourceView,
   PetraProjectThreadView,
   PetraProjectWorkView,
@@ -21,6 +24,7 @@ import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
@@ -30,6 +34,7 @@ import {
   loadProjectWorkCollection,
   loadProjectWorkDetail,
   projectRecordFromShellView,
+  retractProjectSourceReplacement,
   petraThreadFromView,
   reviewSessionFromView,
   sourceRecordFromView,
@@ -117,6 +122,46 @@ const sourceLifecycleReceipt = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectSourceLifecycleReceipt;
+
+const sourceReplacement = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-source-replacement.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectSourceReplacement;
+
+const sourceReplacementCreatedReceipt = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-source-replacement-receipt-created.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectSourceReplacementReceipt;
+
+const sourceReplacementRetractedReceipt = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-source-replacement-receipt-retracted.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectSourceReplacementReceipt;
+
+const sourceReplacementRetraction = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-source-replacement-retraction.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectSourceReplacementRetraction;
 
 const controlsView = JSON.parse(
   readFileSync(
@@ -587,6 +632,132 @@ describe("Project shell workbench adapter", () => {
     await expect(executeProjectSourceLifecycleCommand(base)).rejects.toThrow(
       "invalid Project source lifecycle command result",
     );
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends exact replacement creation input without client-selected authority", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return Promise.resolve(
+        Response.json({
+          receipt: sourceReplacementCreatedReceipt,
+          replacement: sourceReplacement,
+          applied: true,
+        }),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const input = {
+      projectId: sourceReplacement.project_id,
+      commandId: sourceReplacementCreatedReceipt.content.command_ref.command_id,
+      idempotencyKey:
+        sourceReplacementCreatedReceipt.content.command_ref.idempotency_key,
+      replacementKind: sourceReplacement.content.replacement_kind,
+      replacedSourceRef: sourceReplacement.content.replaced_source_ref,
+      replacementSourceRef: sourceReplacement.content.replacement_source_ref,
+      exclusionReceiptRef: sourceReplacement.content.exclusion_receipt_ref,
+      rationale: sourceReplacement.content.rationale,
+    };
+
+    await expect(createProjectSourceReplacement(input)).resolves.toEqual({
+      receipt: sourceReplacementCreatedReceipt,
+      replacement: sourceReplacement,
+      applied: true,
+    });
+    const [requestPath, requestInit] = fetch.mock.calls[0]!;
+    expect(requestPath).toBe(
+      `/api/commands/projects/${input.projectId}/source-replacements`,
+    );
+    expect(requestInit?.method).toBe("POST");
+    expect(new Headers(requestInit?.headers).get("authorization")).toBe(
+      "Bearer petra-local-development",
+    );
+    if (typeof requestInit?.body !== "string") {
+      throw new Error("Expected a JSON request body.");
+    }
+    const sent = JSON.parse(requestInit.body) as Record<string, unknown>;
+    expect(sent).toEqual({
+      command_id: input.commandId,
+      idempotency_key: input.idempotencyKey,
+      replacement_kind: input.replacementKind,
+      replaced_source_ref: input.replacedSourceRef,
+      replacement_source_ref: input.replacementSourceRef,
+      exclusion_receipt_ref: input.exclusionReceiptRef,
+      rationale: input.rationale,
+    });
+    expect(sent).not.toHaveProperty("actor");
+    expect(sent).not.toHaveProperty("capability_grant_id");
+    expect(sent).not.toHaveProperty("project_id");
+    expect(sent).not.toHaveProperty("submitted_at");
+  });
+
+  it("sends exact replacement retraction input and verifies relation-only recovery", async () => {
+    const receipt = structuredClone(sourceReplacementRetractedReceipt);
+    if (receipt.content.result.effect !== "replacement_retracted") {
+      throw new Error("Expected replacement retraction receipt.");
+    }
+    receipt.content.result.replacement_ref.record_hash =
+      sourceReplacementRetraction.content.replacement_ref.record_hash;
+    const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return Promise.resolve(
+        Response.json({
+          receipt,
+          replacement: sourceReplacement,
+          retraction: sourceReplacementRetraction,
+          applied: true,
+        }),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const input = {
+      projectId: sourceReplacement.project_id,
+      projectSourceReplacementId:
+        sourceReplacement.project_source_replacement_id,
+      commandId: receipt.content.command_ref.command_id,
+      idempotencyKey: receipt.content.command_ref.idempotency_key,
+      expectedReplacementRef: {
+        ...sourceReplacementRetraction.content.replacement_ref,
+        state: "active" as const,
+      },
+      reason: sourceReplacementRetraction.content.reason,
+    };
+
+    await expect(retractProjectSourceReplacement(input)).resolves.toEqual({
+      receipt,
+      replacement: sourceReplacement,
+      retraction: sourceReplacementRetraction,
+      applied: true,
+    });
+    const [requestPath, requestInit] = fetch.mock.calls[0]!;
+    expect(requestPath).toBe(
+      `/api/commands/projects/${input.projectId}/source-replacements/${input.projectSourceReplacementId}/retraction`,
+    );
+    if (typeof requestInit?.body !== "string") {
+      throw new Error("Expected a JSON request body.");
+    }
+    expect(JSON.parse(requestInit.body)).toEqual({
+      command_id: input.commandId,
+      idempotency_key: input.idempotencyKey,
+      expected_replacement_ref: input.expectedReplacementRef,
+      reason: input.reason,
+    });
+    expect(receipt.content.recovery).toEqual({
+      recovery_kind: "separate_source_status_transition",
+      source_status: "unchanged",
+      separate_command_name: "RestoreProjectSource",
+      effect: "relationship_inactive_predecessor_not_restored",
+    });
+
+    await expect(
+      retractProjectSourceReplacement({
+        ...input,
+        projectSourceReplacementId:
+          "project_source_replacement_01K4C000000000000000000099",
+      }),
+    ).rejects.toThrow("route relation's exact active state");
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 

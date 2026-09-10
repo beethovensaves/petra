@@ -267,6 +267,7 @@ describe("ProjectSource lifecycle command route", () => {
         ["PROJECT_SOURCE_LIFECYCLE_COMMAND_NOT_AUTHORIZED", 403],
         ["PROJECT_SOURCE_LIFECYCLE_SOURCE_NOT_FOUND", 404],
         ["PROJECT_SOURCE_LIFECYCLE_STALE_SOURCE", 409],
+        ["PROJECT_SOURCE_LIFECYCLE_ACTIVE_REPLACEMENT", 409],
         ["PROJECT_SOURCE_LIFECYCLE_STORED_RECORD_CORRUPT", 503],
       ];
     for (const [code, expectedStatus] of cases) {

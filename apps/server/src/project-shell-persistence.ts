@@ -1,6 +1,7 @@
 import {
   PostgresCapabilityGrantCommandAuthorizer,
   PostgresProjectSourceLifecycleAuthorityRepository,
+  PostgresProjectSourceReplacementCommandAuthorityRepository,
   PostgresSingleUserCommandPrincipalResolver,
   PostgresProjectEffectiveControlsViewReader,
   PostgresProjectInquiryViewReader,
@@ -27,6 +28,7 @@ import type {
   ProjectShellViewReader,
   ProjectSourceLifecycleViewReader,
   ProjectSourceLifecycleAuthorityRepository,
+  ProjectSourceReplacementCommandAuthorityRepository,
   ProjectSourceViewReader,
   ProjectThreadViewReader,
   ProjectWorkViewReader,
@@ -48,6 +50,7 @@ export interface ProjectShellPersistence {
   readonly inquiryViews: ProjectInquiryViewReader;
   readonly commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
   readonly sourceLifecycleAuthority: ProjectSourceLifecycleAuthorityRepository;
+  readonly sourceReplacementAuthority: ProjectSourceReplacementCommandAuthorityRepository;
   readonly close: () => Promise<void>;
 }
 
@@ -155,11 +158,13 @@ export const createProjectShellPersistenceFromEnvironment = async (
 
   try {
     const schema = await pool.query<{ ready: boolean }>(
-      "SELECT to_regclass('petra.capability_grants') IS NOT NULL AS ready",
+      `SELECT to_regclass('petra.capability_grants') IS NOT NULL
+          AND to_regclass('petra.project_source_replacement_receipts') IS NOT NULL
+          AS ready`,
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but V026 has not created petra.capability_grants.",
+        "PostgreSQL is reachable, but V030 Project command authority is unavailable.",
       );
     }
     const neo4jConfigured = [
@@ -214,6 +219,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
             pool,
             new PostgresCapabilityGrantCommandAuthorizer(),
           ),
+        sourceReplacementAuthority:
+          new PostgresProjectSourceReplacementCommandAuthorityRepository(
+            pool,
+            new PostgresCapabilityGrantCommandAuthorizer(),
+          ),
         relationshipViews: new PostgresProjectRelationshipViewReader(
           pool,
           graph,
@@ -252,6 +262,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
         }),
     sourceLifecycleAuthority:
       new PostgresProjectSourceLifecycleAuthorityRepository(
+        pool,
+        new PostgresCapabilityGrantCommandAuthorizer(),
+      ),
+    sourceReplacementAuthority:
+      new PostgresProjectSourceReplacementCommandAuthorityRepository(
         pool,
         new PostgresCapabilityGrantCommandAuthorizer(),
       ),

@@ -6,10 +6,10 @@ expanded Project-shell context, initial Project Work read, durable Project
 thread read, initial Project inquiry authority/read plus frozen Work
 composition, and governed ProjectSource exclusion/restoration authority passed;
 exact ProjectSource supersession/location and governed backend replacement
-creation/retraction also passed; broader neutral runtime work remains open;
-transactional authorization and canonical Project-command CapabilityGrant
-authority passed
-Date: 2026-09-08
+creation/retraction plus authenticated API and typed-client integration also
+passed; broader neutral runtime work remains open; transactional authorization
+and canonical Project-command CapabilityGrant authority passed
+Date: 2026-09-10
 Backend baseline: `main` at `344cf77`
 Frozen design baseline: `655d094`
 Design handoff reviewed: `ced8d81`
@@ -77,14 +77,16 @@ active chain as `superseded`. Retraction does not restore the predecessor;
 command-envelope/event/outbox 1.3, CapabilityGrant 1.1, V030, and the immutable
 replacement-command receipt now execute governed creation and retraction in one
 transaction. Restore is rejected until the active replacement is retracted.
-The public replacement command route remains open.
+Separate authenticated create/retract routes and a typed workbench client now
+reach the same authority without accepting request-carried identity or changing
+the frozen presentation.
 PostgreSQL command repositories now authorize inside their command transaction
 through an async-capable adapter supplied with the exact transactional client.
 V026 now supplies immutable Project-command grants, exact retained revocations,
 owner-only single-user issuance/revocation, transactional validity and scope
 enforcement, and live effective-controls composition without changing the
-synchronous core policy seam. The bearer token still does not bind an
-authenticated request to an exact Actor and grant.
+synchronous core policy seam. Both lifecycle and replacement routes now bind
+the bearer-authenticated request to an exact server-resolved Actor and grant.
 
 This advances `UX-REQ-001`, `UX-REQ-004`, `UX-REQ-006`, `UX-REQ-008`, `UX-REQ-009`,
 `UX-REQ-010`, `UX-REQ-012`, `UX-REQ-013`, `UX-REQ-014`, `UX-REQ-016`, and
@@ -356,7 +358,7 @@ explicitly records later implementation progress:
 | `UX-REQ-007` | **Partial.** Domain events and one evidence-pair compensating reversal exist; prior draft revisions remain readable. | Add authorized causal History queries, ten-step quick windows, computed dependency impact, generic eligible compensation previews, exact return, and durable presentation-history boundaries. Do not add a second ledger or erase events. | Wave 3 |
 | `UX-REQ-008` | **Partial, advanced after baseline.** `petra.project-object-location-view@1.0.0` and its Project-scoped PostgreSQL reader resolve exact current or retained historical ProjectSource, Assertion, ChangeSet, WorkUnit, and DraftArtifact identities to ProjectDefinition-permitted semantic place roles. V025 plus V027–V029 make its `superseded` state and bounded active replacement chain live while retaining retracted lineage separately. The frozen client alone maps roles to routes. | Add replacement/parent adapters for other owning object types, retained Project-snapshot selection, extension-registered profile tools, actor-specific object authorization if required, and full applicable `UX-FX19` evidence. | Wave 1 read foundation plus current/historical ProjectSource replacement separation passed; type-specific later slices |
 | `UX-REQ-009` | **Partial, advanced after baseline.** The scientific ProjectSource specialization and authorized collection/detail view now bind exact role, identity, copy, rights, parsed coverage, preview spans, downstream use, and authority position. The paired definition proof establishes neutral reference terminology but not a controlled-writing source adapter. | Add non-scholarly source specializations, linked Work/results, broader limitations, intake, and source-adapter conformance. | Wave 2 |
-| `UX-REQ-010` | **Partial, advanced after baseline.** ProjectSource has stable Project-local identity and immutable active or excluded revisions over a retained copy. `petra.project-source-lifecycle-view@1.0.0` previews exclude, restore, or local-copy deletion intent against eight bounded exact dependency groups and seven explicit retention areas. Lifecycle command/event/outbox 1.2, the lifecycle receipt, V024, and the PostgreSQL authority execute authorized, idempotent exclude/restore transitions as status-only revisions with compensating recovery. The authenticated public lifecycle route resolves a server-configured human Actor and exactly one active Project-command grant, rejects request-carried authority, and returns the exact receipt and resulting source revision. `petra.project-source-replacement@1.0.0`, immutable retraction 1.0, and V025/V027–V029 add exclusion-receipt-bound supersession with a validated effective head. Command/event/outbox 1.3, CapabilityGrant 1.1, the immutable replacement receipt, and V030 now govern creation and relation-only retraction atomically. D019's separate next restore is enforced: restore fails while the replacement is active. All dependents and source materials remain retained; physical deletion is unavailable. | Add the authenticated replacement command route and typed frozen-interface preview/confirmation/receipt/recovery integration, other source adapters, and broader dependency policy. Do not expose physical deletion until an accepted retention policy exists. | Wave 2 backend lifecycle, governed replacement authority, and authenticated lifecycle API passed; replacement API/client and interface integration next; physical-copy policy in Wave 5 |
+| `UX-REQ-010` | **Partial, advanced after baseline.** ProjectSource has stable Project-local identity and immutable active or excluded revisions over a retained copy. `petra.project-source-lifecycle-view@1.0.0` previews exclude, restore, or local-copy deletion intent against eight bounded exact dependency groups and seven explicit retention areas. Lifecycle command/event/outbox 1.2, the lifecycle receipt, V024, and the PostgreSQL authority execute authorized, idempotent exclude/restore transitions as status-only revisions with compensating recovery. The authenticated public lifecycle route resolves a server-configured human Actor and exactly one active Project-command grant, rejects request-carried authority, and returns the exact receipt and resulting source revision. `petra.project-source-replacement@1.0.0`, immutable retraction 1.0, and V025/V027–V029 add exclusion-receipt-bound supersession with a validated effective head. Command/event/outbox 1.3, CapabilityGrant 1.1, the immutable replacement receipt, and V030 now govern creation and relation-only retraction atomically. Separate authenticated create/retract routes and a typed client reach that authority without request-carried identity. D019's separate next restore is enforced: restore fails while the replacement is active. All dependents and source materials remain retained; physical deletion is unavailable. | Add frozen-interface preview/confirmation/receipt/recovery integration, other source adapters, and broader dependency policy. Do not expose physical deletion until an accepted retention policy exists. | Wave 2 backend lifecycle, governed replacement authority, authenticated APIs, and typed clients passed; frozen presentation integration next; physical-copy policy in Wave 5 |
 | `UX-REQ-011` | **Partial.** Claim/Assertion quarantine and DraftArtifact revisions prove proposal-before-authority in scientific paths. | Add ProjectDefinition-valid WorkingCandidate and working-relationship records for arbitrary domain objects, with exact turn/task/model/tool origin and validation state. Project them as the live working graph layer. | Wave 4 |
 | `UX-REQ-012` | **Partial, advanced after baseline.** EvidenceReviewBatch, accept/reject/correct plans, durable review interrupts, ChangeSets, approvals, and independent batch outcomes exist. V021 now adds durable profile-neutral ReviewSession identity plus a snapshot-consistent scientific Claim–`ASSERTS` read over exact ProjectDefinition semantics, ProjectSource basis, validation, ChangeSets, and Approvals. | Add other profile renderers, general working candidates, defer/reopen and material-basis commands, preflight, dependency grouping, multi-member presentation, per-member recovery, and permitted batch apply. Retain existing ChangeSet authority. | Wave 4 |
 | `UX-REQ-013` | **Partial, advanced after baseline.** `petra.project-relationship-view@1.0.0` and its authorized reader now return one bounded current scientific `ASSERTS` provenance path with ProjectDefinition terminology, exact PostgreSQL records and graph checkpoint, omissions, source destinations, and a textual peer. The frozen Graph consumes it without fixture fallback. | Add general task and endpoint selection, other registered relationship types, working and historical membership, retained-position reconstruction, comparison, expansion and continuation cursors, and temporal paths. Preserve renderer-neutral semantics and never infer authority from layout. | Wave 3 |
@@ -366,7 +368,7 @@ explicitly records later implementation progress:
 | `UX-REQ-017` | **Partial.** CompositionRequest/Plan, DraftArtifact/Span, ProvenanceMap, CitationBundle, assessments, renders, and persistence provide an exact scientific composition aggregate. | Add ProjectDefinition-resolved document collection/context reads, recognizable purpose, current and historical revision positions, ancestry, Work/inquiry links, findings, capabilities, and safe destinations. | Wave 5 |
 | `UX-REQ-018` | **Partial.** DraftRevisionEngine creates exact non-empty span replacements and additive support assessments. | Add a durable working-document boundary for blank, structural, and successive authoring; exact save acknowledgments; late suggestion/check reconciliation; and working-to-registered promotion. External filesystem editing remains excluded. | Wave 5 |
 | `UX-REQ-019` | **Partial.** Deterministic rendering, Artifact publication, warnings, and support assessments preserve exact generated scientific outputs. | Add exact working-copy capture, scoped findings/coverage, status-bearing representation, ExportManifest and delivery receipts, partial-format recovery, and destination eligibility. Export does not promote or certify content. | Wave 5 |
-| `UX-REQ-020` | **Partial, advanced after baseline.** `petra.project-effective-controls-view@1.0.0` composes exact Project privacy and enabled namespaces with the current ProjectDefinition and authority position under repeatable-read isolation. V026 adds immutable Project-command grants, retained revocations, exact Actor/Project/command/validity enforcement, and live effective/expired/revoked capability values. The single-user server resolver binds a configured canonical human Actor to exactly one eligible Project-command grant without accepting request-carried identity, and the ProjectSource lifecycle command route now exercises that boundary end to end. Routing, budget, and ReviewPolicy remain explicitly unsupported. The authenticated client verifies the Project and definition snapshot before presentation, and paired project-authored definitions prove Project-specific control resolution. | Extend the same resolved-principal discipline only to typed public commands as they become ready; add other owning policy and capability-scope records only where required, inheritance/pause/conflict states, active-Work impact, History destinations, and a registry mapping each genuinely editable value to its typed operation. Never add a universal `SetProjectSetting`; personal preferences remain local. | Wave 1 read, command-grant authority, principal resolution, and first public command use passed; transitions in Wave 3 |
+| `UX-REQ-020` | **Partial, advanced after baseline.** `petra.project-effective-controls-view@1.0.0` composes exact Project privacy and enabled namespaces with the current ProjectDefinition and authority position under repeatable-read isolation. V026 adds immutable Project-command grants, retained revocations, exact Actor/Project/command/validity enforcement, and live effective/expired/revoked capability values. The single-user server resolver binds a configured canonical human Actor to exactly one eligible Project-command grant without accepting request-carried identity; ProjectSource lifecycle and replacement routes now exercise that boundary end to end. Routing, budget, and ReviewPolicy remain explicitly unsupported. The authenticated client verifies the Project and definition snapshot before presentation, and paired project-authored definitions prove Project-specific control resolution. | Extend the same resolved-principal discipline only to typed public commands as they become ready; add other owning policy and capability-scope records only where required, inheritance/pause/conflict states, active-Work impact, History destinations, and a registry mapping each genuinely editable value to its typed operation. Never add a universal `SetProjectSetting`; personal preferences remain local. | Wave 1 read, command-grant authority, principal resolution, and multiple public command uses passed; transitions in Wave 3 |
 | `UX-REQ-021` | **Partial.** Scientific synthesist output, GroundedResponse, Felicity records, command receipts, and AG-UI delivery preserve important communication boundaries. | Add a ProjectDefinition-resolved CommunicationPlan with statement-level origin, force, basis, limitation, action/event links, terminology versions, and a validation/repair receipt. It is not mutation authority. | Wave 4 |
 | `UX-REQ-022` | **Missing composite contract.** AG-UI can carry non-authoritative client state; graph and ContextPacket foundations exist separately. | Add a bounded PresentationContext record linking exact semantic result, visible scene, complete accessible peer, optional permitted capture, model input, and validated explanation. Pixels and layout never establish domain meaning. | Wave 6 |
 | `UX-REQ-023` | **Partial foundations only.** Commands, events, ChangeSets, Work, interaction replay, projection checkpoints, artifacts, composition, and M1.9 recovery each record their own outcomes. | Add a read-only RecoveryAssessment that reconciles owning records into effect, preservation, member outcomes, eligible registered actions, and exact return. It cannot execute a generic recovery command or become another event ledger. | Wave 6 |
@@ -512,10 +514,10 @@ exclude/restore API now pass, and a typed workbench client reaches that boundary
 without changing the frozen presentation. The replacement-compensation
 semantics are accepted in D019 and the governed backend command path is now
 persisted through V030 with command/event/receipt/dual-outbox and grant 1.1
-vocabulary. Next expose that authority through the authenticated replacement
-API and typed client. In parallel, the design track may select an existing frozen
-slot for lifecycle preview, confirmation, receipt, and recovery; it must not
-invent client authority. Physical deletion remains excluded. Do not infer
+vocabulary. Authenticated replacement APIs and the typed client now reach that
+authority. Next, the design track may select an existing frozen slot for
+lifecycle and replacement preview, confirmation, receipt, and recovery; it must
+not invent client authority. Physical deletion remains excluded. Do not infer
 external filesystem edits or turn either conformance example into a mandatory
 template.
 
@@ -553,7 +555,9 @@ relationship retractions and validate a derived effective head. The semantic
 locator now returns only the active replacement chain without client inference.
 V030 adds governed replacement creation/retraction, exact replay, immutable
 events and receipts, dual graph/interface outbox intent, and strict relation
-retraction before predecessor restoration; the public route remains open.
+retraction before predecessor restoration. Separate authenticated create and
+retract routes plus the typed client now pass without changing the frozen
+presentation.
 The PostgreSQL command authorities await authorization after their
 deterministic locks and inside the transaction that owns replay or application.
 V026 adds immutable exact command grants and retained revocations, while its
@@ -561,8 +565,8 @@ database-backed authorizer serializes revocation against in-flight authorized
 commands. The effective-controls read now reports this authority without
 inferring it from execution references. The server-configured single-user human
 principal now resolves exactly one eligible Project-command grant and fails
-closed on missing or ambiguous authority. The lifecycle command route is its
-first public use and still revalidates the grant transactionally.
-The current complete repository gate passes with 787 always-on tests and seven
+closed on missing or ambiguous authority. Lifecycle and replacement routes use
+that resolution and still revalidate the grant transactionally.
+The current complete repository gate passes with 805 always-on tests and seven
 expected service-dependent skips; the real PostgreSQL suite passes 106 cases
 after a clean V001-through-V030 migration.

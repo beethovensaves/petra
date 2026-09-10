@@ -1,4 +1,5 @@
 import type {
+  CommandProjectSourceReplacementRef,
   PetraProjectSource,
   PetraProjectEffectiveControlsView,
   PetraProjectInquiryView,
@@ -9,10 +10,17 @@ import type {
   PetraProjectShellViewV11,
   PetraProjectSourceView,
   PetraProjectSourceLifecycleReceipt,
+  PetraProjectSourceReplacement,
+  PetraProjectSourceReplacementReceipt,
+  PetraProjectSourceReplacementRetraction,
   PetraProjectThreadView,
   PetraProjectWorkView,
   ProjectDefinitionTerm,
   ProjectSourceLifecycleExactSourceRef,
+  ProjectSourceReplacementActiveSourceRef,
+  ProjectSourceReplacementContent,
+  ProjectSourceReplacementExcludedSourceRef,
+  ProjectSourceReplacementExclusionReceiptRef,
   ProjectWorkDetailContent,
   ProjectWorkTaskSummary,
 } from "@petra/contracts";
@@ -272,6 +280,41 @@ export interface ProjectSourceLifecycleCommandResponse {
   readonly applied: boolean;
 }
 
+export interface CreateProjectSourceReplacementInput {
+  readonly projectId: string;
+  readonly commandId: string;
+  readonly idempotencyKey: string;
+  readonly replacementKind: ProjectSourceReplacementContent["replacement_kind"];
+  readonly replacedSourceRef: ProjectSourceReplacementExcludedSourceRef;
+  readonly replacementSourceRef: ProjectSourceReplacementActiveSourceRef;
+  readonly exclusionReceiptRef: ProjectSourceReplacementExclusionReceiptRef;
+  readonly rationale: string;
+}
+
+export interface CreateProjectSourceReplacementResponse {
+  readonly receipt: PetraProjectSourceReplacementReceipt;
+  readonly replacement: PetraProjectSourceReplacement;
+  readonly applied: boolean;
+}
+
+export interface RetractProjectSourceReplacementInput {
+  readonly projectId: string;
+  readonly projectSourceReplacementId: string;
+  readonly commandId: string;
+  readonly idempotencyKey: string;
+  readonly expectedReplacementRef: CommandProjectSourceReplacementRef & {
+    readonly state: "active";
+  };
+  readonly reason: string;
+}
+
+export interface RetractProjectSourceReplacementResponse {
+  readonly receipt: PetraProjectSourceReplacementReceipt;
+  readonly replacement: PetraProjectSourceReplacement;
+  readonly retraction: PetraProjectSourceReplacementRetraction;
+  readonly applied: boolean;
+}
+
 const projectSourceLifecycleCommandResponse = (
   value: unknown,
   input: ProjectSourceLifecycleCommandInput,
@@ -329,6 +372,147 @@ const projectSourceLifecycleCommandResponse = (
     projectSource: value.project_source as unknown as PetraProjectSource,
     applied: value.applied,
   };
+};
+
+const createProjectSourceReplacementResponse = (
+  value: unknown,
+  input: CreateProjectSourceReplacementInput,
+): CreateProjectSourceReplacementResponse => {
+  if (
+    !isRecord(value) ||
+    typeof value.applied !== "boolean" ||
+    !isRecord(value.receipt) ||
+    value.receipt.schema_name !== "petra.project-source-replacement-receipt" ||
+    value.receipt.schema_version !== "1.0.0" ||
+    value.receipt.project_id !== input.projectId ||
+    !isRecord(value.replacement) ||
+    value.replacement.schema_name !== "petra.project-source-replacement" ||
+    value.replacement.schema_version !== "1.0.0" ||
+    value.replacement.project_id !== input.projectId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project source replacement creation result.",
+      502,
+    );
+  }
+  const receipt =
+    value.receipt as unknown as PetraProjectSourceReplacementReceipt;
+  const replacement =
+    value.replacement as unknown as PetraProjectSourceReplacement;
+  const result = receipt.content.result;
+  if (
+    receipt.content.command_ref.command_id !== input.commandId ||
+    receipt.content.command_ref.idempotency_key !== input.idempotencyKey ||
+    receipt.content.command_ref.command_name !==
+      "CreateProjectSourceReplacement" ||
+    result.effect !== "replacement_activated" ||
+    result.replacement_ref.state !== "active" ||
+    replacement.project_source_replacement_id !==
+      result.replacement_ref.project_source_replacement_id ||
+    replacement.revision !== result.replacement_ref.revision ||
+    replacement.content_hash !== result.replacement_ref.content_hash ||
+    replacement.content.replacement_kind !== input.replacementKind ||
+    replacement.content.rationale !== input.rationale ||
+    replacement.content.replaced_source_ref.project_source_id !==
+      input.replacedSourceRef.project_source_id ||
+    replacement.content.replaced_source_ref.revision !==
+      input.replacedSourceRef.revision ||
+    replacement.content.replaced_source_ref.content_hash !==
+      input.replacedSourceRef.content_hash ||
+    replacement.content.replaced_source_ref.record_hash !==
+      input.replacedSourceRef.record_hash ||
+    replacement.content.replacement_source_ref.project_source_id !==
+      input.replacementSourceRef.project_source_id ||
+    replacement.content.replacement_source_ref.revision !==
+      input.replacementSourceRef.revision ||
+    replacement.content.replacement_source_ref.content_hash !==
+      input.replacementSourceRef.content_hash ||
+    replacement.content.replacement_source_ref.record_hash !==
+      input.replacementSourceRef.record_hash ||
+    replacement.content.exclusion_receipt_ref
+      .project_source_lifecycle_receipt_id !==
+      input.exclusionReceiptRef.project_source_lifecycle_receipt_id ||
+    replacement.content.exclusion_receipt_ref.revision !==
+      input.exclusionReceiptRef.revision ||
+    replacement.content.exclusion_receipt_ref.content_hash !==
+      input.exclusionReceiptRef.content_hash ||
+    replacement.content.exclusion_receipt_ref.record_hash !==
+      input.exclusionReceiptRef.record_hash
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a Project source replacement that does not match the command.",
+      502,
+    );
+  }
+  return { receipt, replacement, applied: value.applied };
+};
+
+const retractProjectSourceReplacementResponse = (
+  value: unknown,
+  input: RetractProjectSourceReplacementInput,
+): RetractProjectSourceReplacementResponse => {
+  if (
+    !isRecord(value) ||
+    typeof value.applied !== "boolean" ||
+    !isRecord(value.receipt) ||
+    value.receipt.schema_name !== "petra.project-source-replacement-receipt" ||
+    value.receipt.schema_version !== "1.0.0" ||
+    value.receipt.project_id !== input.projectId ||
+    !isRecord(value.replacement) ||
+    value.replacement.schema_name !== "petra.project-source-replacement" ||
+    value.replacement.schema_version !== "1.0.0" ||
+    value.replacement.project_id !== input.projectId ||
+    !isRecord(value.retraction) ||
+    value.retraction.schema_name !==
+      "petra.project-source-replacement-retraction" ||
+    value.retraction.schema_version !== "1.0.0" ||
+    value.retraction.project_id !== input.projectId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project source replacement retraction result.",
+      502,
+    );
+  }
+  const receipt =
+    value.receipt as unknown as PetraProjectSourceReplacementReceipt;
+  const replacement =
+    value.replacement as unknown as PetraProjectSourceReplacement;
+  const retraction =
+    value.retraction as unknown as PetraProjectSourceReplacementRetraction;
+  const result = receipt.content.result;
+  const expected = input.expectedReplacementRef;
+  if (
+    receipt.content.command_ref.command_id !== input.commandId ||
+    receipt.content.command_ref.idempotency_key !== input.idempotencyKey ||
+    receipt.content.command_ref.command_name !==
+      "RetractProjectSourceReplacement" ||
+    result.effect !== "replacement_retracted" ||
+    result.replacement_ref.project_source_replacement_id !==
+      input.projectSourceReplacementId ||
+    result.replacement_ref.revision !== expected.revision ||
+    result.replacement_ref.content_hash !== expected.content_hash ||
+    result.replacement_ref.record_hash !== expected.record_hash ||
+    result.replacement_ref.state !== "retracted" ||
+    replacement.project_source_replacement_id !==
+      input.projectSourceReplacementId ||
+    replacement.revision !== expected.revision ||
+    replacement.content_hash !== expected.content_hash ||
+    retraction.content.replacement_ref.project_source_replacement_id !==
+      input.projectSourceReplacementId ||
+    retraction.content.replacement_ref.revision !== expected.revision ||
+    retraction.content.replacement_ref.content_hash !== expected.content_hash ||
+    retraction.content.replacement_ref.record_hash !== expected.record_hash ||
+    result.retraction_ref.project_source_replacement_retraction_id !==
+      retraction.project_source_replacement_retraction_id ||
+    result.retraction_ref.revision !== retraction.revision ||
+    result.retraction_ref.content_hash !== retraction.content_hash
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a Project source replacement retraction that does not match the command.",
+      502,
+    );
+  }
+  return { receipt, replacement, retraction, applied: value.applied };
 };
 
 const fallbackTerm = (
@@ -1175,6 +1359,68 @@ export const executeProjectSourceLifecycleCommand = async (
     },
   );
   return projectSourceLifecycleCommandResponse(value, input);
+};
+
+export const createProjectSourceReplacement = async (
+  input: CreateProjectSourceReplacementInput,
+): Promise<CreateProjectSourceReplacementResponse> => {
+  if (
+    input.replacedSourceRef.status !== "excluded" ||
+    input.replacementSourceRef.status !== "active" ||
+    input.replacedSourceRef.project_source_id ===
+      input.replacementSourceRef.project_source_id
+  ) {
+    throw new ProjectDataError(
+      "A replacement must bind a distinct excluded predecessor to an active successor.",
+      400,
+    );
+  }
+  const value = await requestJson(
+    `/api/commands/projects/${encodeURIComponent(input.projectId)}/source-replacements`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        command_id: input.commandId,
+        idempotency_key: input.idempotencyKey,
+        replacement_kind: input.replacementKind,
+        replaced_source_ref: input.replacedSourceRef,
+        replacement_source_ref: input.replacementSourceRef,
+        exclusion_receipt_ref: input.exclusionReceiptRef,
+        rationale: input.rationale,
+      }),
+    },
+  );
+  return createProjectSourceReplacementResponse(value, input);
+};
+
+export const retractProjectSourceReplacement = async (
+  input: RetractProjectSourceReplacementInput,
+): Promise<RetractProjectSourceReplacementResponse> => {
+  if (
+    input.expectedReplacementRef.project_source_replacement_id !==
+      input.projectSourceReplacementId ||
+    input.expectedReplacementRef.state !== "active"
+  ) {
+    throw new ProjectDataError(
+      "A replacement retraction must use the route relation's exact active state.",
+      400,
+    );
+  }
+  const value = await requestJson(
+    `/api/commands/projects/${encodeURIComponent(input.projectId)}/source-replacements/${encodeURIComponent(input.projectSourceReplacementId)}/retraction`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        command_id: input.commandId,
+        idempotency_key: input.idempotencyKey,
+        expected_replacement_ref: input.expectedReplacementRef,
+        reason: input.reason,
+      }),
+    },
+  );
+  return retractProjectSourceReplacementResponse(value, input);
 };
 
 export const loadProjectReviewCollection = async ({

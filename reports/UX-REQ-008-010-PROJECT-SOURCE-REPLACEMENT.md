@@ -2,7 +2,8 @@
 
 Status: exact immutable ProjectSource supersession, command-granular retraction,
 effective-head integrity, semantic-location traversal, and governed backend
-creation/retraction commands passed; public integration remains open
+creation/retraction commands plus authenticated API and typed-client integration
+passed; frozen presentation integration remains open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -72,12 +73,14 @@ equivalent semantics.
 
 ## Authority and recovery boundary
 
-The backend command authority is complete through its transactional capability
-check, immutable event/outbox/receipt trail, exact replay, and strict recovery
-ordering. It does not yet expose replacement or retraction through a public
-command route. Petra's single-user bearer principal and canonical
-Project-command grant authority can resolve the exact Actor and active v1.1
-grant needed by that boundary.
+The command authority is complete through its transactional capability check,
+immutable event/outbox/receipt trail, exact replay, strict recovery ordering,
+and authenticated public boundary. Separate creation and relation-retraction
+routes resolve the single-user bearer principal to the exact server-owned Actor
+and active v1.1 Project-command grant. Requests cannot carry Actor, grant,
+correlation, submission time, or Project identity in the body. The typed
+workbench client sends only the registered domain input and verifies that the
+returned receipt and records match it.
 
 [D019](../decisions/D019-command-granular-project-source-replacement-retraction.md)
 fixes recovery at the command boundary: undoing replacement retracts only the
@@ -89,16 +92,18 @@ two-command order enforceable rather than advisory.
 
 ## Design-freeze behavior
 
-No CSS, component, route hierarchy, layout, or client-owned history changed.
+No CSS, component, browser route hierarchy, layout, or client-owned history
+changed.
 The existing semantic-location response can support a later approved
 replacement affordance without requiring the client to infer domain authority.
 
 ## Verification
 
 The increment passes contract generation and 373 contract cases, cross-language
-Pydantic parity, TypeScript build/typecheck, and the real PostgreSQL integration
-gate. The database suite passes 106 cases against PostgreSQL 18.6 after a clean
-Flyway V001 through V030 migration.
+Pydantic parity, TypeScript build/typecheck, authenticated route tests, typed
+client tests, and the real PostgreSQL integration gate. The database suite
+passes 106 cases against PostgreSQL 18.6 after a clean Flyway V001 through V030
+migration.
 
 The database proof additionally covers exact retraction replay, stale
 replacement-ref rejection, repeated-retraction refusal, immutable retraction
@@ -110,8 +115,6 @@ source restoration before relation retraction.
 
 ## Remaining work
 
-- expose the governed replacement-creation and retraction commands through the
-  authenticated public route and typed client;
 - extend replacement/parent semantics only through owning object adapters; and
 - integrate the existing location result into an approved frozen-interface
   control slot.
