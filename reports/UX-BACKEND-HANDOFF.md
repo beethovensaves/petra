@@ -272,33 +272,38 @@ between shell context and task content more important.
 - **Originating design work:** accepted `DB06`, `UX1.6-DISC01`, DB17, and
   `UX1.0-DISC10`; `UX1.4-W05`, `UX1.4-W11`, `UX1.5`, `UX1.6-W15`,
   `DB17-P11`–`P12`, `UX-FLOW-12`, and `UX-FLOW-16`.
-- **Implemented backend baseline:** commits `92e9cb1` and `7ae590f` add
-  `petra.project-history-view@1.0.0`,
-  `petra.project-history-episode-view@1.0.0`, authenticated Project-scoped
+- **Implemented backend baseline:** commits `92e9cb1`, `7ae590f`, `1c44dd3`, and
+  `9530b09` add `petra.project-history-view@1.0.0`,
+  `petra.project-history-episode-view@1.0.0`, and
+  `petra.project-history-retained-view@1.0.0` with authenticated Project-scoped
   routes, repeatable-read PostgreSQL composition, contract validation, typed
-  workbench readers, and conformance fixtures. The implementation result and
-  remaining backend work are recorded in
+  workbench readers, and conformance fixtures. The committed dependency-impact
+  slice at `9530b09` adds
+  `petra.project-history-impact-view@1.0.0` and the exact-event impact route.
+  The implementation result and remaining backend work are recorded in
   [UX-REQ-007 causal Project History](UX-REQ-007-CAUSAL-PROJECT-HISTORY.md).
-- **Integration scope:** bind those two reads to the frozen `HistorySurface` and
-  its existing routes. This handoff does not reopen navigation, page structure,
-  visual language, or the design freeze. It does not introduce generic Undo,
-  generic Revert, or multi-step compensation. The only recovery facts in scope
-  are the exact command-granular facts returned by the implemented read.
+- **Integration scope:** bind these reads to the frozen `HistorySurface` and its
+  existing routes and content regions. This handoff does not reopen navigation,
+  page structure, visual language, or the design freeze. The impact slice adds
+  direct-dependency facts to the selected event; it does not introduce a new
+  page, panel, browser route, filter, Undo, reversibility decision, or
+  compensation path. The only recovery facts in scope remain the exact
+  command-granular facts returned by the History read.
 
 #### Frozen-surface acceptance mapping
 
 | Existing frozen slot | Implemented binding | Acceptance rule |
 | --- | --- | --- |
 | `HistoryRoute` at `/projects/:projectId/history` | `GET /api/queries/projects/:projectId/history/recent` | Load one `petra.project-history-view@1.0.0`; verify the exact Project, `view_kind: recent_changes`, `order: newest_first`, `quick_window_limit: 10`, no more than ten members, a well-formed content-hash field, and `graph_navigation_history: client_local_separate`. No client limit, cursor, graph state, or filter is sent. |
-| Left `history-episodes` ordered list | `content.changes` | Keep the existing list container and relabel its heading **Recent changes**. Render the returned order without regrouping or client sorting. The header count is the number shown, never a retained-history total. With `has_older: true`, its existing count text reads **10 shown · Older changes exist**; it does not become a pagination control. |
+| Left `history-episodes` ordered list | `content.changes` | Keep the existing list container and relabel its heading **Recent changes**. Render the returned order without regrouping or client sorting. The header count is the number shown, never a retained-history total. With `has_older: true`, its existing count text reads **10 shown · Older changes exist**. The implemented retained-events endpoint is a separate cursor traversal; `has_older` itself is not its cursor. This impact slice adds no collection control. |
 | Existing row link | `event_ref.event_id`, `recorded_at`, `command_ref.command_name`, `observed_effect.summary` | Link to the existing `/projects/:projectId/history/:episodeId` pattern with `episodeId` equal to the exact immutable `event_id`. Use the registered command label as the row action and the server summary as its description. Do not invent a target title from `semantic_key` or `object_id`. |
-| Existing selected detail article | `GET /api/queries/projects/:projectId/history/events/:eventId` | Every selected row and deep link loads `petra.project-history-episode-view@1.0.0` for that exact event. Verify response Project and event identities before rendering. Bind `episodeId` semantically as an event ID; do not retain the fixture episode key as a second identity. |
+| Existing selected detail article | `GET /api/queries/projects/:projectId/history/events/:eventId` and `GET /api/queries/projects/:projectId/history/events/:eventId/impact` | Every selected row and deep link loads the exact episode. The detail may then consume the impact view for that same Project and event in its existing sections. Verify outer Project/event identity and the complete overlapping selected-event anchor before rendering impact. Bind `episodeId` semantically as an event ID; do not retain the fixture episode key as a second identity. |
 | Detail header | `content.change.observed_effect` plus exact event type | Use the registered event/action label as the title, `observed_effect.summary` as the lead, and its `outcome` as explicit text. A descriptive profile target label is absent from the implemented contract and cannot be fabricated. |
 | Existing Actor, Occurred, Recorded, and Action facts | `actor`, `occurred_at`, `recorded_at`, and `command_ref` | Preserve all four rows. Actor renders an authorized display label only when another trusted Project read supplies one; otherwise render the exact kind and ID, such as **Human · actor_…**, rather than **Project author**. Render both timestamps with native `<time datetime="…">`; the visible value includes localized date, time, and zone while the element retains the exact ISO value. Do not collapse unequal occurred and recorded times. |
-| Existing **Authority effect** section | `observed_effect.effect`, `outcome`, `summary`, and `targets` | State the supplied observed effect and completed/conflicted outcome. Exact target identity, revision, and authority state may follow in the same section. The client cannot infer a requested effect, dependency impact, before/after comparison, or broader consequence. |
-| Existing **Projection effect** section | No implemented History field | Keep the slot and render **Projection effect is unavailable for this History event.** Do not infer projection success or lag from a domain event, current graph, or absent error. A composed projection reference is a genuine later integration gap. |
-| Existing **Episode members** section | `causality`, `stream_order`, and optional `receipt_ref` | Present command causation, following commands, adjacent Project-stream events, and the exact applicable receipt as separately labelled relationships. Never describe previous/next stream adjacency as causation or synthesize a total order. If a linked command has `event_state: not_recorded`, say so; do not create an event row. |
-| Existing **Recovery relationship** and `history-revert` block | `recovery` | Apply the wording rules below. Eligibility is a current read fact, not permission to execute and not an impact preview. The existing subordinate `PetraDialog` remains the only available preview slot, but stays closed and unlaunchable until an owning revision-bound preview/action adapter exists. |
+| Existing **Authority effect** section | selected event `observed_effect`, `outcome`, `targets`, and impact summary | Keep the event's supplied effect as the primary statement. A following sentence may report **{total} registered direct-dependent references across four groups · {coverage}**. Never rename that number **all dependencies**, infer a dependent effect, or treat it as a reversibility result. |
+| Existing **Projection effect** section | `impact.graph_projection_records` | Render the exact graph-projection attempt records, including attempt, applied/failed outcome, recorded time, and outbox binding. With complete zero coverage say **No registered graph-projection attempt was found for this event.** An attempt outcome does not establish the current Graph's freshness. |
+| Existing **Episode members** section | episode `causality`, `stream_order`, optional `receipt_ref`, plus impact causal-command, outbox, and GroundedResponse-invalidation groups | Keep causal episode relations and the three impact groups separately labelled within this existing section. Preserve each group's returned order. Never describe Project-stream adjacency, outbox carriage, projection, or invalidation as command causation, and never merge groups into a cross-family timeline. |
+| Existing **Recovery relationship** and `history-revert` block | `recovery`, impact `unknowns`, `decision_boundary`, and `omissions` | Apply the wording rules below. State the impact coverage boundary beside recovery so direct references cannot be read as a reversal decision. Eligibility is a separate current History fact, not permission to execute and not an impact preview. The existing subordinate `PetraDialog` stays closed and unlaunchable until an owning revision-bound preview/action adapter exists. |
 | Existing top return control | client-held entry context plus `UX-REQ-008` resolution | Reuse this one control for the exact-return behavior below. Direct entry or a deep link with no permitted origin keeps the frozen **Return to current Brief** fallback. |
 
 The adapter uses these closed labels rather than exposing enum casing or
@@ -331,6 +336,68 @@ locally composed episode. A deep-linked retained event may be older than the
 ten-item window: render its exact detail, leave the Recent changes list intact,
 and state **Selected event is outside Recent changes** in the existing detail
 kicker. No row is falsely marked selected.
+
+#### Direct dependency-impact binding
+
+For the selected event only, request
+`GET /api/queries/projects/:projectId/history/events/:eventId/impact` with no
+query parameters. Accept only `petra.project-history-impact-view@1.0.0` with
+`view_kind: dependency_impact`, `authorization_scope: authenticated_project`,
+`authority.isolation: repeatable_read`, and
+`graph_navigation_history: client_local_separate`. The outer `project_id` and
+`event_id`, `selected_event.event_ref.event_id`, and every overlapping selected-
+event field must match the already accepted episode: command/event references,
+Actor, both times, family, targets, observed effect, and semantic destination.
+An anchor mismatch fails the impact portion closed and does not replace the
+selected event.
+
+The four groups map into the existing detail as follows:
+
+| Contract group | Existing detail placement | Required presentation |
+| --- | --- | --- |
+| `causal_commands` | **Episode members** | Label **Causal commands** and expose `relation: caused_by_selected_command` with `authority_source: immutable_command_causation`. Show returned/total, complete/truncated coverage, the exact `command_ref`, outcome, completed time, and recorded/not-recorded event state; include the exact `event_ref` only for a recorded command. A recorded linked event may use the existing History route; an unrecorded command does not become an event. |
+| `outbox_records` | **Episode members** | Label **Event outbox records** and expose `relation: carries_selected_event` with `authority_source: immutable_event_outbox_binding`. Show returned/total, coverage, exact outbox ID, schema version, position, target, target sequence, enqueue time, and record hash. An outbox record proves carriage of the event; it is not another author action. |
+| `graph_projection_records` | **Projection effect** | Label **Graph-projection attempts** and expose `relation: projects_selected_event` with `authority_source: immutable_projection_event_binding`. Show returned/total, coverage, exact record ID/revision/content hash/record hash, outbox ID/position/target sequence, attempt number, applied/failed outcome, and recorded time. Do not turn the last returned attempt into current projection freshness. |
+| `grounded_response_invalidations` | **Episode members** | Label **GroundedResponse invalidations** and expose `relation: invalidated_by_selected_event` with `authority_source: immutable_response_invalidation_binding`. Show returned/total, coverage, exact response ID/revision/content hash/record hash, current/historical posture, invalidated cache state, invalidation position, ChangeSet ID, and recorded time. Do not expose response content or infer its broader effect. |
+
+The group label, authority source, `returned_count`, `total_count`, and
+`coverage` remain together. `complete` means complete for that registered direct
+group at this repeatable-read boundary. `truncated` is rendered as **Showing
+{returned} of {total} registered direct references**; the contract supplies no
+group cursor, so this slice adds no continuation control. The summary total is
+a count of references across four distinct families, not a unique dependent-
+object count. Preserve server order inside each group and never sort records
+across groups by timestamp or position.
+
+When all four groups return complete zero counts, say **No registered direct
+dependents were found in these four groups.** Immediately retain the limitation:
+**Semantic-target and transitive dependencies are not included. Unregistered
+profile-specific dependencies may exist, and external-system dependencies may
+be unobservable.** A zero result cannot become **No impact**.
+
+The existing **Recovery relationship** section ends with this fixed decision
+boundary: **This dependency inventory does not assess reversibility, compose
+compensation, or infer a dependent's effect from its reference.** It also states
+that semantic-target dependencies, transitive closure, historical
+ProjectDefinition interpretation, and cross-family total order are omitted.
+These statements come from `unknowns`, `decision_boundary`, and `omissions`;
+the client does not shorten them based on counts or recovery eligibility.
+
+Impact loads independently after or alongside the exact episode. While pending,
+keep the selected event visible, mark only the existing affected detail regions
+busy, and announce **Checking registered direct dependencies…** once without
+moving focus. If the impact request is unavailable, unauthorized, malformed,
+missing, fails integrity, or returns an anchor mismatch, preserve an
+independently verified episode but show no impact identities or counts. The
+affected existing regions say **Registered dependency impact is unavailable for
+this event.** They do not use fixture data or change recovery eligibility. If
+impact requests complete out of order, render only the result whose exact event
+ID still matches the browser route.
+
+The impact `read_at` and authority position name its observation boundary. They
+do not prove later projection, invalidation, external, or profile-specific
+state absent. Reloading the selected event may request a fresh impact read, but
+this slice adds no polling, filter, action, or background claim of currentness.
 
 #### Recovery wording and command boundary
 
@@ -428,55 +495,73 @@ whose exact event ID still equals the route selection.
   adjacent relationship, recovery state, and unavailable reason remain in the
   screen-reader reading order. Forced colors and high zoom retain the same text
   and focus indication.
+- Each impact group remains a programmatically named list inside the existing
+  detail reading order. Its authority source, returned/total count, and
+  complete/truncated coverage are announced before its references. Loading the
+  groups does not move focus from the selected event or repeat the event's Actor,
+  time, and effect as a second episode.
 
 #### Client-local graph-history separation
 
 Graph **Back**, **Forward**, and **Reset** continue to own only the recent local
 view snapshots for task scope, depth, expansion, filters, layout, viewport,
-temporal position, and selection. They never call either Project History route,
-append an event, add a Recent changes row, change `has_older`, or affect recovery
-eligibility. Conversely, Project History never imports browser graph snapshots
-or describes graph navigation as a command. Both backend responses and the
-typed client must continue rejecting any value other than
+temporal position, and selection. They never call a Project History read,
+append an event, add a Recent changes row, change `has_older`, or affect
+recovery eligibility. Conversely, Project History never imports browser graph
+snapshots or describes graph navigation as a command. Every backend History
+response and typed client, including retained traversal and dependency impact,
+must continue rejecting any value other than
 `client_local_separate`.
 
-#### Genuine integration gaps and next backend capability
+#### Genuine integration gaps and next safe boundary
 
 - The frozen route still reads `REFERENCE_HISTORY`; it has no loaders/adapters
-  for the implemented typed History clients and uses fixture episode IDs. This
-  is the immediate frontend integration gap.
+  for the implemented Recent, exact episode, retained traversal, or impact
+  clients and uses fixture episode IDs. This is the immediate frontend
+  integration gap. The retained and impact reads add no browser route.
 - The frozen view model expects authored titles, an Actor display string, and a
-  separate projection effect. The implemented reads provide exact Actor kind/
-  ID and observed domain effect, but no authorized Actor display descriptor,
-  profile-resolved target title/origin, or projection status. The adapter must
-  use exact fallback labels and explicit unavailable wording.
+  projection-effect string. The implemented reads provide exact Actor kind/ID,
+  observed domain effect, and bounded projection-attempt records, but no
+  authorized Actor display descriptor, profile-resolved target title/origin, or
+  current projection-freshness result. The adapter must use exact fallback
+  labels and distinguish an attempt outcome from current projection state.
 - The read reports current command-granular recovery eligibility but provides no
-  revision-bound impact/confirmation preview or executable History action. The
-  existing generic reversal dialog must remain unavailable; source actions stay
-  governed by their existing Details control contracts.
+  reversibility assessment, revision-bound confirmation preview, compensation,
+  or executable History action. The direct dependency inventory cannot fill
+  those gaps. The existing generic reversal dialog must remain unavailable;
+  source actions stay governed by their existing Details control contracts.
 - The routes are bearer-authenticated and Project-scoped. If Petra requires
   actor-specific member filtering beyond that configured boundary, the reader
   must add it before the list can claim per-member authorization. Counts and
-  `has_older` must be computed after the same authorization boundary.
+  coverage must be computed after the same authorization boundary.
 - Current route errors collapse unavailable and integrity-read failures into
   broad status handling. The integration must map the existing safe codes as
   above and must not expose raw backend errors.
-- Complete retained History, filters, dependency impact, requested-effect
-  composition, related Work/output/delivery/projection facts, and historical
-  terminology interpretation are not implemented.
+- Snapshot-stable retained Project-event traversal is implemented at
+  `GET /api/queries/projects/:projectId/history/events` with signed opaque
+  cursors; it is no longer the next backend gap. The frozen list is not yet
+  wired to it, and this impact-conformance slice does not design its controls.
+- The impact read proves only four registered direct record groups. Semantic-
+  target dependencies and transitive closure remain omitted; unregistered
+  profile-specific and external dependencies may be unknown. Filters,
+  requested-effect composition, broader related Work/output/delivery facts,
+  and historical terminology interpretation also remain open.
 
-The next additive backend capability is authorized retained Project-event
-traversal with a stable cursor. It must reuse the current repeatable-read
-composition and Project-stream ordering, keep the ten-item Recent changes
-window unchanged, and prevent cross-Project leakage or false cross-family total
-ordering. `has_older: true` is only evidence that traversal would have results;
-it is not a cursor and must not produce a **Load more** control now.
+The next safe History boundary is a bounded, read-only registry of semantic-
+target dependency adapters for the exact targets on one selected event. Every
+adapter must name its owning immutable authority, exact relation, authorization
+scope, returned and total counts, and complete/truncated coverage. Unknown or
+unregistered target kinds fail explicitly. The boundary must retain the same
+unknowns and omissions, must not claim transitive completeness, and must not
+assess reversibility, compose compensation, add filters, or merge families into
+one order.
 
 - **Owner and status:** frontend integration track and product architecture;
-  bounded Recent changes and exact causal episode backend reads passed. This
-  frozen-surface acceptance mapping is implementation-ready. Frontend binding
-  and the stated gaps remain open; retained cursor traversal is the next backend
-  capability.
+  bounded Recent changes, exact causal episode, signed retained traversal, and
+  bounded direct dependency-impact backend reads passed. This frozen-surface
+  acceptance mapping is implementation-ready without component, CSS, or route
+  changes. Frontend binding and the stated gaps remain open; registered
+  semantic-target dependency adapters are the next safe History boundary.
 
 ### `UX-REQ-008` — semantic object location and safe deep-link resolution
 
@@ -1961,7 +2046,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Proposal, correction, exact preview, Apply, conflict, and Revert | ChangeSet, Approval, ReviewBatch, and additive event path in `M1.5` |
 | Durable conversation-derived working candidates and relationships | Proposed `UX-REQ-011`; existing bounded model records and evidence candidates remain inputs, not a generic working graph contract |
 | Profile-neutral Review session, comparison, deferment, separation, and member recovery | Proposed `UX-REQ-012`; current M1.5 evidence review remains the scientific contract foundation |
-| Presentation history and authorized Project History | Implemented bounded Recent changes and exact event-selected causal reads under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration history remains client-local, and retained cursor traversal is the next backend capability |
+| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable retained traversal, and four-group direct dependency impact under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration history remains client-local, and registered semantic-target dependency adapters are the next safe boundary |
 | Semantic object location, replacement, and safe fallback | Proposed `UX-REQ-008`; the client retains route and layout ownership |
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
 | Project-source membership, governed removal, and local-copy retention/deletion | Proposed `UX-REQ-010`; Project linking and content-addressed storage remain separate lifecycles |
