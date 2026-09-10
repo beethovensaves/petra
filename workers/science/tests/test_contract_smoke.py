@@ -702,6 +702,200 @@ class PetraProjectHistoryRetainedView(PetraModel):
     read_at: str
 
 
+class ProjectHistoryImpactEventAnchor(PetraModel):
+    command_ref: ProjectHistoryCommandRef
+    event_ref: ProjectHistoryEventRef
+    actor: ActorRef
+    occurred_at: str
+    recorded_at: str
+    family: Literal[
+        "change_control",
+        "project_source_lifecycle",
+        "project_source_replacement",
+    ]
+    targets: list[ProjectHistoryTargetRef] = Field(min_length=1, max_length=100)
+    observed_effect: ProjectHistoryObservedEffect
+    semantic_destination: ProjectHistorySemanticDestination
+
+
+class ProjectHistoryImpactRecordedCausalCommand(PetraModel):
+    command_ref: ProjectHistoryCommandRef
+    outcome: Literal["success", "failure"]
+    completed_at: str
+    event_state: Literal["recorded"]
+    event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryImpactUnrecordedCausalCommand(PetraModel):
+    command_ref: ProjectHistoryCommandRef
+    outcome: Literal["success", "failure"]
+    completed_at: str
+    event_state: Literal["not_recorded"]
+
+
+class ProjectHistoryImpactOutboxRef(PetraModel):
+    outbox_id: str
+    schema_version: Literal["1.0.0", "1.1.0", "1.2.0", "1.3.0"]
+    outbox_position: int = Field(ge=1)
+    target: Literal["neo4j_graph", "interface_authority"]
+    target_sequence: int = Field(ge=1)
+    enqueued_at: str
+    record_hash: str
+
+
+class ProjectHistoryImpactProjectionRef(PetraModel):
+    graph_projection_record_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+    outbox_id: str
+    outbox_position: int = Field(ge=1)
+    target_sequence: int = Field(ge=1)
+    attempt: int = Field(ge=1, le=100)
+    outcome: Literal["applied", "failed"]
+    recorded_at: str
+
+
+class ProjectHistoryImpactGroundedResponseRef(PetraModel):
+    grounded_response_id: str
+    revision: int = Field(ge=1)
+    content_hash: str
+    record_hash: str
+    posture: Literal["current", "historical"]
+    cache_state: Literal["invalidated"]
+    invalidation_position: int = Field(ge=1)
+    change_set_id: str
+    recorded_at: str
+
+
+class ProjectHistoryImpactCausalCommandGroup(PetraModel):
+    relation: Literal["caused_by_selected_command"]
+    authority_source: Literal["immutable_command_causation"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=100)
+    coverage: Literal["complete", "truncated"]
+    refs: list[
+        ProjectHistoryImpactRecordedCausalCommand
+        | ProjectHistoryImpactUnrecordedCausalCommand
+    ] = Field(max_length=100)
+
+
+class ProjectHistoryImpactOutboxGroup(PetraModel):
+    relation: Literal["carries_selected_event"]
+    authority_source: Literal["immutable_event_outbox_binding"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=100)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistoryImpactOutboxRef] = Field(max_length=100)
+
+
+class ProjectHistoryImpactProjectionGroup(PetraModel):
+    relation: Literal["projects_selected_event"]
+    authority_source: Literal["immutable_projection_event_binding"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=100)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistoryImpactProjectionRef] = Field(max_length=100)
+
+
+class ProjectHistoryImpactGroundedResponseGroup(PetraModel):
+    relation: Literal["invalidated_by_selected_event"]
+    authority_source: Literal["immutable_response_invalidation_binding"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=100)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistoryImpactGroundedResponseRef] = Field(max_length=100)
+
+
+class ProjectHistoryImpactSummary(PetraModel):
+    registered_group_count: Literal[4]
+    total_count: int = Field(ge=0, le=4_000_000)
+    coverage: Literal["complete", "truncated"]
+
+
+class ProjectHistoryImpactInventory(PetraModel):
+    scope: Literal["registered_direct_event_and_command_dependents"]
+    summary: ProjectHistoryImpactSummary
+    causal_commands: ProjectHistoryImpactCausalCommandGroup
+    outbox_records: ProjectHistoryImpactOutboxGroup
+    graph_projection_records: ProjectHistoryImpactProjectionGroup
+    grounded_response_invalidations: ProjectHistoryImpactGroundedResponseGroup
+    unknowns: list[
+        Literal[
+            "unregistered_profile_specific_dependencies_may_exist",
+            "transitive_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        ]
+    ] = Field(min_length=3, max_length=3)
+
+    @model_validator(mode="after")
+    def exact_unknowns(self) -> ProjectHistoryImpactInventory:
+        expected = {
+            "unregistered_profile_specific_dependencies_may_exist",
+            "transitive_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        }
+        if len(self.unknowns) != 3 or set(self.unknowns) != expected:
+            raise ValueError("History impact must declare its three exact unknowns")
+        return self
+
+
+class ProjectHistoryImpactDecisionBoundary(PetraModel):
+    reversibility: Literal["not_assessed"]
+    compensation: Literal["not_composed"]
+    dependent_effect: Literal["not_inferred_from_reference"]
+
+
+class ProjectHistoryImpactAuthority(PetraModel):
+    isolation: Literal["repeatable_read"]
+    through_event_position: int = Field(ge=0)
+    through_stream_revision: int = Field(ge=0)
+
+
+class ProjectHistoryImpactContent(PetraModel):
+    view_kind: Literal["dependency_impact"]
+    selected_event: ProjectHistoryImpactEventAnchor
+    authorization_scope: Literal["authenticated_project"]
+    impact: ProjectHistoryImpactInventory
+    decision_boundary: ProjectHistoryImpactDecisionBoundary
+    authority: ProjectHistoryImpactAuthority
+    omissions: list[
+        Literal[
+            "semantic_target_dependencies_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ] = Field(min_length=6, max_length=6)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_omissions(self) -> ProjectHistoryImpactContent:
+        expected = {
+            "semantic_target_dependencies_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 6 or set(self.omissions) != expected:
+            raise ValueError("History impact must declare its six exact omissions")
+        return self
+
+
+class PetraProjectHistoryImpactView(PetraModel):
+    schema_name: Literal["petra.project-history-impact-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryImpactContent
+    content_hash: str
+    read_at: str
+
+
 class ProjectSourceDefinitionRef(PetraModel):
     project_definition_id: str
     revision: int
@@ -6684,6 +6878,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-history-view": PetraProjectHistoryView,
     "project-history-episode-view": PetraProjectHistoryEpisodeView,
     "project-history-retained-view": PetraProjectHistoryRetainedView,
+    "project-history-impact-view": PetraProjectHistoryImpactView,
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-replacement": PetraProjectSourceReplacement,

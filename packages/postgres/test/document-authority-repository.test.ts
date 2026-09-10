@@ -1174,6 +1174,39 @@ describePostgres("PostgreSQL Document authority repository", () => {
       "generic_reversal_assessment_not_composed",
       "cross_family_total_order_not_asserted",
     ]);
+    const retractionImpact = await historyViews.getProjectHistoryImpactView(
+      project.project_id,
+      retractionEvent.event_id,
+    );
+    expect(retractionImpact?.content.selected_event.event_ref).toMatchObject({
+      schema_version: "1.3.0",
+      event_type: "project_source.replacement_retracted",
+    });
+    expect(
+      retractionImpact?.content.impact.outbox_records.refs.every(
+        ({ schema_version }) => schema_version === "1.3.0",
+      ),
+    ).toBe(true);
+    expect(retractionImpact?.content.decision_boundary.compensation).toBe(
+      "not_composed",
+    );
+
+    const exclusionEvent = recentHistory?.content.changes[2]?.event_ref;
+    if (exclusionEvent === undefined) {
+      throw new Error("Expected ProjectSource exclusion History.");
+    }
+    const exclusionImpact = await historyViews.getProjectHistoryImpactView(
+      project.project_id,
+      exclusionEvent.event_id,
+    );
+    expect(exclusionImpact?.content.selected_event.event_ref).toMatchObject({
+      schema_version: "1.2.0",
+      event_type: "project_source.excluded",
+    });
+    expect(exclusionImpact?.content.impact.summary.coverage).toBe("complete");
+    expect(exclusionImpact?.content.omissions).toContain(
+      "semantic_target_dependencies_not_composed",
+    );
     const staleReceipt = structuredClone(replacement);
     staleReceipt.project_source_replacement_id =
       "project_source_replacement_01K4C000000000000000000046";

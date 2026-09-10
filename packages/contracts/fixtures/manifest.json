@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.39.0",
+  "fixture_manifest_version": "1.40.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -90,6 +90,10 @@
     {
       "schema": "project-history-retained-view",
       "path": "fixtures/accepted/project-history-retained-view.json"
+    },
+    {
+      "schema": "project-history-impact-view",
+      "path": "fixtures/accepted/project-history-impact-view.json"
     },
     {
       "schema": "project-effective-controls-view",
@@ -478,6 +482,10 @@
     {
       "schema": "project-history-retained-view",
       "path": "fixtures/rejected/project-history-retained-view-offset-cursor.json"
+    },
+    {
+      "schema": "project-history-impact-view",
+      "path": "fixtures/rejected/project-history-impact-view-reversibility-decision.json"
     },
     {
       "schema": "composition-request",

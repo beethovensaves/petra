@@ -2,9 +2,11 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 import type {
   PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryImpactView,
   PetraProjectHistoryRetainedView,
   PetraProjectHistoryView,
   ProjectHistoryCausalCommandLink,
+  ProjectHistoryCommandRef,
   ProjectHistoryEventRef,
   ProjectHistoryRecentChange,
   ProjectHistoryReceiptRef,
@@ -78,6 +80,38 @@ interface CausalCommandRow {
   event_record_hash: string | null;
 }
 
+interface ImpactCausalCommandRow {
+  command_envelope: unknown;
+  command_fingerprint: string;
+  outcome_kind: "success" | "failure";
+  completed_at: Date;
+  event_payload: unknown;
+  event_record_hash: string | null;
+  total_count: string;
+}
+
+interface ImpactOutboxRow {
+  outbox_payload: unknown;
+  outbox_record_hash: string;
+  total_count: string;
+}
+
+interface ImpactProjectionRow {
+  projection_payload: unknown;
+  projection_record_hash: string;
+  total_count: string;
+}
+
+interface ImpactGroundedResponseRow {
+  response_payload: unknown;
+  response_record_hash: string;
+  current_revision: string;
+  invalidation_position: string;
+  event_type: string;
+  change_set_id: string;
+  total_count: string;
+}
+
 interface EventRow {
   event_payload: unknown;
   event_record_hash: string;
@@ -108,6 +142,7 @@ interface DerivedHistoryChange {
 const HISTORY_LIMIT = 10;
 const RETAINED_DEFAULT_LIMIT = 50;
 const RETAINED_MAX_LIMIT = 100;
+const IMPACT_MAX_REFS = 100;
 const RETAINED_CURSOR = /^phc1\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]{43})$/u;
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const EVENT_ID = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -782,6 +817,586 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     });
   }
 
+  async getProjectHistoryImpactView(
+    projectId: string,
+    eventId: string,
+  ): Promise<PetraProjectHistoryImpactView | undefined> {
+    return this.#readTransaction(async (client, readAt) => {
+      const result = await client.query<HistoryRow>(
+        `SELECT event.payload AS event_payload,
+                event.record_hash AS event_record_hash,
+                execution.envelope AS command_envelope,
+                execution.command_fingerprint,
+                lifecycle.payload AS lifecycle_receipt_payload,
+                lifecycle.record_hash AS lifecycle_receipt_record_hash,
+                replacement.payload AS replacement_receipt_payload,
+                replacement.record_hash AS replacement_receipt_record_hash
+           FROM petra.domain_events AS event
+           JOIN petra.command_executions AS execution
+             ON execution.command_id = event.command_id
+            AND execution.project_id = event.project_id
+           LEFT JOIN petra.project_source_lifecycle_receipts AS lifecycle
+             ON lifecycle.command_id = event.command_id
+           LEFT JOIN petra.project_source_replacement_receipts AS replacement
+             ON replacement.command_id = event.command_id
+          WHERE event.project_id = $1 AND event.event_id = $2`,
+        [projectId, eventId],
+      );
+      const row = result.rows[0];
+      if (row === undefined) return undefined;
+
+      const change = await this.#change(client, row);
+      const event = record(row.event_payload, "selected domain event");
+      const causalCommands = await this.#impactCausalCommands(
+        client,
+        projectId,
+        change.command_ref.command_id,
+      );
+      const outboxRecords = await this.#impactOutboxRecords(
+        client,
+        projectId,
+        change.event_ref,
+        event,
+      );
+      const graphProjectionRecords = await this.#impactProjectionRecords(
+        client,
+        projectId,
+        change.event_ref,
+      );
+      const groundedResponseInvalidations =
+        await this.#impactGroundedResponseInvalidations(
+          client,
+          projectId,
+          change.event_ref,
+          event,
+        );
+      const groups = [
+        causalCommands,
+        outboxRecords,
+        graphProjectionRecords,
+        groundedResponseInvalidations,
+      ];
+      const totalCount = groups.reduce(
+        (total, group) => total + group.total_count,
+        0,
+      );
+      if (!Number.isSafeInteger(totalCount)) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The direct dependency total exceeds Petra's safe integer range.",
+        );
+      }
+      const authority = await this.#authority(client, projectId);
+      const content: PetraProjectHistoryImpactView["content"] = {
+        view_kind: "dependency_impact",
+        selected_event: {
+          command_ref: change.command_ref,
+          event_ref: change.event_ref,
+          actor: change.actor,
+          occurred_at: change.occurred_at,
+          recorded_at: change.recorded_at,
+          family: change.family,
+          targets: change.targets,
+          observed_effect: change.observed_effect,
+          semantic_destination: change.semantic_destination,
+        },
+        authorization_scope: "authenticated_project",
+        impact: {
+          scope: "registered_direct_event_and_command_dependents",
+          summary: {
+            registered_group_count: 4,
+            total_count: totalCount,
+            coverage: groups.some(({ coverage }) => coverage === "truncated")
+              ? "truncated"
+              : "complete",
+          },
+          causal_commands: causalCommands,
+          outbox_records: outboxRecords,
+          graph_projection_records: graphProjectionRecords,
+          grounded_response_invalidations: groundedResponseInvalidations,
+          unknowns: [
+            "unregistered_profile_specific_dependencies_may_exist",
+            "transitive_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+          ],
+        },
+        decision_boundary: {
+          reversibility: "not_assessed",
+          compensation: "not_composed",
+          dependent_effect: "not_inferred_from_reference",
+        },
+        authority: {
+          isolation: "repeatable_read",
+          ...authority,
+        },
+        omissions: [
+          "semantic_target_dependencies_not_composed",
+          "transitive_dependency_closure_not_composed",
+          "reversibility_not_assessed",
+          "compensation_not_composed",
+          "historical_project_definition_not_interpreted",
+          "cross_family_total_order_not_asserted",
+        ],
+        graph_navigation_history: "client_local_separate",
+      };
+      const view: PetraProjectHistoryImpactView = {
+        schema_name: "petra.project-history-impact-view",
+        schema_version: "1.0.0",
+        project_id: projectId,
+        event_id: eventId,
+        content,
+        content_hash: canonicalHash(content),
+        read_at: readAt,
+      };
+      this.#contracts.assertValid("project-history-impact-view", "1.0.0", view);
+      return structuredClone(view);
+    });
+  }
+
+  async #impactCausalCommands(
+    client: PoolClient,
+    projectId: string,
+    commandId: string,
+  ): Promise<
+    PetraProjectHistoryImpactView["content"]["impact"]["causal_commands"]
+  > {
+    const result = await client.query<ImpactCausalCommandRow>(
+      `SELECT execution.envelope AS command_envelope,
+              execution.command_fingerprint,
+              execution.outcome_kind,
+              execution.completed_at,
+              event.payload AS event_payload,
+              event.record_hash AS event_record_hash,
+              count(*) OVER ()::text AS total_count
+         FROM petra.command_executions AS execution
+         LEFT JOIN petra.domain_events AS event
+           ON event.command_id = execution.command_id
+          AND event.project_id = execution.project_id
+        WHERE execution.project_id = $1
+          AND execution.envelope ->> 'causation_id' = $2
+        ORDER BY event.stream_revision NULLS LAST,
+                 execution.completed_at, execution.command_id
+        LIMIT ${IMPACT_MAX_REFS}`,
+      [projectId, commandId],
+    );
+    const refs = result.rows.map((row) => {
+      const commandRef = this.#commandRef(
+        row.command_envelope,
+        row.command_fingerprint,
+      );
+      if (row.event_payload === null || row.event_record_hash === null) {
+        return {
+          command_ref: commandRef,
+          outcome: row.outcome_kind,
+          completed_at: row.completed_at.toISOString(),
+          event_state: "not_recorded" as const,
+        };
+      }
+      return {
+        command_ref: commandRef,
+        outcome: row.outcome_kind,
+        completed_at: row.completed_at.toISOString(),
+        event_state: "recorded" as const,
+        event_ref: this.#eventRef(row.event_payload, row.event_record_hash),
+      };
+    });
+    const totalCount = this.#impactTotal(result.rows, "causal command");
+    return {
+      relation: "caused_by_selected_command",
+      authority_source: "immutable_command_causation",
+      total_count: totalCount,
+      returned_count: refs.length,
+      coverage: totalCount > refs.length ? "truncated" : "complete",
+      refs,
+    };
+  }
+
+  async #impactOutboxRecords(
+    client: PoolClient,
+    projectId: string,
+    eventRef: ProjectHistoryEventRef,
+    selectedEvent: JsonRecord,
+  ): Promise<
+    PetraProjectHistoryImpactView["content"]["impact"]["outbox_records"]
+  > {
+    const result = await client.query<ImpactOutboxRow>(
+      `SELECT outbox.payload AS outbox_payload,
+              outbox.record_hash AS outbox_record_hash,
+              count(*) OVER ()::text AS total_count
+         FROM petra.outbox_records AS outbox
+        WHERE outbox.partition_key = $1 AND outbox.event_id = $2
+        ORDER BY outbox.outbox_position, outbox.outbox_id
+        LIMIT ${IMPACT_MAX_REFS}`,
+      [projectId, eventRef.event_id],
+    );
+    const refs = result.rows.map((row) => {
+      const outbox = record(row.outbox_payload, "dependent outbox record");
+      const version = stringMember(
+        outbox,
+        "schema_version",
+        "dependent outbox record",
+      );
+      if (
+        !EVENT_VERSIONS.includes(version as (typeof EVENT_VERSIONS)[number])
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_EVENT_UNSUPPORTED",
+          `Dependent outbox schema ${version} is not supported by Project History.`,
+        );
+      }
+      this.#contracts.assertValid("outbox-record", version, outbox);
+      if (canonicalHash(outbox) !== row.outbox_record_hash) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "A dependent immutable outbox record hash does not match its payload.",
+        );
+      }
+      const message = objectMember(
+        outbox,
+        "message",
+        "dependent outbox record",
+      );
+      const carriedEvent = objectMember(
+        message,
+        "event",
+        "dependent outbox record.message",
+      );
+      if (
+        stringMember(carriedEvent, "event_id", "carried domain event") !==
+          eventRef.event_id ||
+        canonicalize(carriedEvent) !== canonicalize(selectedEvent)
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "A dependent outbox record does not carry the exact selected event.",
+        );
+      }
+      return {
+        outbox_id: stringMember(outbox, "outbox_id", "dependent outbox record"),
+        schema_version: version as (typeof EVENT_VERSIONS)[number],
+        outbox_position: numberMember(
+          outbox,
+          "outbox_position",
+          "dependent outbox record",
+        ),
+        target: stringMember(outbox, "target", "dependent outbox record") as
+          "neo4j_graph" | "interface_authority",
+        target_sequence: numberMember(
+          outbox,
+          "target_sequence",
+          "dependent outbox record",
+        ),
+        enqueued_at: stringMember(
+          outbox,
+          "enqueued_at",
+          "dependent outbox record",
+        ),
+        record_hash: row.outbox_record_hash,
+      };
+    });
+    const totalCount = this.#impactTotal(result.rows, "outbox record");
+    return {
+      relation: "carries_selected_event",
+      authority_source: "immutable_event_outbox_binding",
+      total_count: totalCount,
+      returned_count: refs.length,
+      coverage: totalCount > refs.length ? "truncated" : "complete",
+      refs,
+    };
+  }
+
+  async #impactProjectionRecords(
+    client: PoolClient,
+    projectId: string,
+    eventRef: ProjectHistoryEventRef,
+  ): Promise<
+    PetraProjectHistoryImpactView["content"]["impact"]["graph_projection_records"]
+  > {
+    const result = await client.query<ImpactProjectionRow>(
+      `SELECT projection.payload AS projection_payload,
+              projection.record_hash AS projection_record_hash,
+              count(*) OVER ()::text AS total_count
+         FROM petra.graph_projection_records AS projection
+        WHERE projection.project_id = $1 AND projection.event_id = $2
+        ORDER BY projection.outbox_position, projection.attempt,
+                 projection.graph_projection_record_id
+        LIMIT ${IMPACT_MAX_REFS}`,
+      [projectId, eventRef.event_id],
+    );
+    const refs = result.rows.map((row) => {
+      const projection = record(
+        row.projection_payload,
+        "dependent graph projection record",
+      );
+      this.#contracts.assertValid(
+        "graph-projection-record",
+        "1.0.0",
+        projection,
+      );
+      const content = objectMember(
+        projection,
+        "content",
+        "dependent graph projection record",
+      );
+      if (
+        canonicalHash(content) !== projection.content_hash ||
+        canonicalHash(projection) !== row.projection_record_hash
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "A dependent graph projection record cannot be reproduced exactly.",
+        );
+      }
+      const outbox = objectMember(
+        content,
+        "outbox_ref",
+        "dependent graph projection record.content",
+      );
+      if (
+        stringMember(outbox, "event_id", "projection outbox reference") !==
+          eventRef.event_id ||
+        numberMember(
+          outbox,
+          "event_position",
+          "projection outbox reference",
+        ) !== eventRef.event_position ||
+        numberMember(
+          outbox,
+          "stream_revision",
+          "projection outbox reference",
+        ) !== eventRef.stream_revision
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "A dependent projection record does not bind the exact selected event authority.",
+        );
+      }
+      const outcome = objectMember(
+        content,
+        "outcome",
+        "dependent graph projection record.content",
+      );
+      return {
+        graph_projection_record_id: stringMember(
+          projection,
+          "graph_projection_record_id",
+          "dependent graph projection record",
+        ),
+        revision: 1 as const,
+        content_hash: stringMember(
+          projection,
+          "content_hash",
+          "dependent graph projection record",
+        ),
+        record_hash: row.projection_record_hash,
+        outbox_id: stringMember(
+          outbox,
+          "outbox_id",
+          "projection outbox reference",
+        ),
+        outbox_position: numberMember(
+          outbox,
+          "outbox_position",
+          "projection outbox reference",
+        ),
+        target_sequence: numberMember(
+          outbox,
+          "target_sequence",
+          "projection outbox reference",
+        ),
+        attempt: numberMember(
+          content,
+          "attempt",
+          "dependent graph projection record.content",
+        ),
+        outcome: stringMember(
+          outcome,
+          "outcome_kind",
+          "dependent graph projection outcome",
+        ) as "applied" | "failed",
+        recorded_at: stringMember(
+          projection,
+          "recorded_at",
+          "dependent graph projection record",
+        ),
+      };
+    });
+    const totalCount = this.#impactTotal(
+      result.rows,
+      "graph projection record",
+    );
+    return {
+      relation: "projects_selected_event",
+      authority_source: "immutable_projection_event_binding",
+      total_count: totalCount,
+      returned_count: refs.length,
+      coverage: totalCount > refs.length ? "truncated" : "complete",
+      refs,
+    };
+  }
+
+  async #impactGroundedResponseInvalidations(
+    client: PoolClient,
+    projectId: string,
+    eventRef: ProjectHistoryEventRef,
+    selectedEvent: JsonRecord,
+  ): Promise<
+    PetraProjectHistoryImpactView["content"]["impact"]["grounded_response_invalidations"]
+  > {
+    const result = await client.query<ImpactGroundedResponseRow>(
+      `SELECT revision.payload AS response_payload,
+              revision.record_hash AS response_record_hash,
+              head.current_revision::text,
+              cause.position::text AS invalidation_position,
+              cause.event_type,
+              cause.change_set_id,
+              count(*) OVER ()::text AS total_count
+         FROM petra.grounded_response_invalidation_causes AS cause
+         JOIN petra.grounded_response_revisions AS revision
+           ON revision.grounded_response_id = cause.grounded_response_id
+          AND revision.revision = cause.response_revision
+         JOIN petra.grounded_responses AS head
+           ON head.grounded_response_id = revision.grounded_response_id
+          AND head.project_id = revision.project_id
+        WHERE revision.project_id = $1 AND cause.event_id = $2
+        ORDER BY revision.grounded_response_id, revision.revision,
+                 cause.position
+        LIMIT ${IMPACT_MAX_REFS}`,
+      [projectId, eventRef.event_id],
+    );
+    const eventFact = objectMember(
+      selectedEvent,
+      "event",
+      "selected domain event",
+    );
+    const eventPayload = objectMember(
+      eventFact,
+      "payload",
+      "selected domain event.event",
+    );
+    const selectedChangeSetId =
+      typeof eventPayload.change_set_id === "string"
+        ? eventPayload.change_set_id
+        : undefined;
+    const refs = result.rows.map((row) => {
+      const response = record(
+        row.response_payload,
+        "dependent GroundedResponse revision",
+      );
+      this.#contracts.assertValid("grounded-response", "1.0.0", response);
+      const content = objectMember(
+        response,
+        "content",
+        "dependent GroundedResponse revision",
+      );
+      const cache = objectMember(
+        content,
+        "cache",
+        "dependent GroundedResponse revision.content",
+      );
+      if (
+        canonicalHash(content) !== response.content_hash ||
+        canonicalHash(response) !== row.response_record_hash ||
+        stringMember(cache, "state", "dependent GroundedResponse cache") !==
+          "invalidated" ||
+        row.event_type !== eventRef.event_type ||
+        selectedChangeSetId === undefined ||
+        row.change_set_id !== selectedChangeSetId
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "A dependent GroundedResponse invalidation does not bind the selected event exactly.",
+        );
+      }
+      const revision = numberMember(
+        response,
+        "revision",
+        "dependent GroundedResponse revision",
+      );
+      const currentRevision = this.#safeImpactPosition(
+        row.current_revision,
+        "current GroundedResponse revision",
+      );
+      return {
+        grounded_response_id: stringMember(
+          response,
+          "grounded_response_id",
+          "dependent GroundedResponse revision",
+        ),
+        revision,
+        content_hash: stringMember(
+          response,
+          "content_hash",
+          "dependent GroundedResponse revision",
+        ),
+        record_hash: row.response_record_hash,
+        posture:
+          currentRevision === revision
+            ? ("current" as const)
+            : ("historical" as const),
+        cache_state: "invalidated" as const,
+        invalidation_position: this.#safeImpactPosition(
+          row.invalidation_position,
+          "GroundedResponse invalidation position",
+        ),
+        change_set_id: row.change_set_id,
+        recorded_at: stringMember(
+          response,
+          "recorded_at",
+          "dependent GroundedResponse revision",
+        ),
+      };
+    });
+    const totalCount = this.#impactTotal(
+      result.rows,
+      "GroundedResponse invalidation",
+    );
+    return {
+      relation: "invalidated_by_selected_event",
+      authority_source: "immutable_response_invalidation_binding",
+      total_count: totalCount,
+      returned_count: refs.length,
+      coverage: totalCount > refs.length ? "truncated" : "complete",
+      refs,
+    };
+  }
+
+  #impactTotal(
+    rows: readonly { total_count: string }[],
+    label: string,
+  ): number {
+    const total =
+      rows[0] === undefined
+        ? 0
+        : this.#safeImpactPosition(
+            rows[0].total_count,
+            `${label} total count`,
+            true,
+          );
+    if (total > 1_000_000) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        `The ${label} total count exceeds Petra's registered group bound.`,
+      );
+    }
+    return total;
+  }
+
+  #safeImpactPosition(value: string, label: string, allowZero = false): number {
+    const parsed = Number(value);
+    if (
+      !Number.isSafeInteger(parsed) ||
+      parsed < (allowZero ? 0 : 1) ||
+      parsed > 4000000
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        `The ${label} is outside Petra's bounded safe range.`,
+      );
+    }
+    return parsed;
+  }
+
   async #causalCommandLink(
     client: PoolClient,
     projectId: string,
@@ -991,6 +1606,78 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         "replacement receipt",
       ),
       record_hash: row.replacement_receipt_record_hash,
+    };
+  }
+
+  #commandRef(
+    envelopePayload: unknown,
+    commandFingerprint: string,
+  ): ProjectHistoryCommandRef {
+    const envelope = record(envelopePayload, "dependent command envelope");
+    const version = stringMember(
+      envelope,
+      "schema_version",
+      "dependent command envelope",
+    );
+    if (
+      !COMMAND_VERSIONS.includes(version as (typeof COMMAND_VERSIONS)[number])
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_EVENT_UNSUPPORTED",
+        `Dependent command envelope schema ${version} is not supported by Project History.`,
+      );
+    }
+    this.#contracts.assertValid("command-envelope", version, envelope);
+    const command = objectMember(
+      envelope,
+      "command",
+      "dependent command envelope",
+    );
+    const commandName = stringMember(
+      command,
+      "command_name",
+      "dependent command envelope.command",
+    );
+    const fingerprintValue = structuredClone(envelope);
+    if (
+      commandName === "ExcludeProjectSource" ||
+      commandName === "RestoreProjectSource" ||
+      commandName === "CreateProjectSourceReplacement" ||
+      commandName === "RetractProjectSourceReplacement"
+    ) {
+      delete fingerprintValue.correlation_id;
+      delete fingerprintValue.submitted_at;
+    }
+    if (canonicalHash(fingerprintValue) !== commandFingerprint) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A dependent immutable command fingerprint does not match its envelope.",
+      );
+    }
+    return {
+      command_id: stringMember(
+        envelope,
+        "command_id",
+        "dependent command envelope",
+      ),
+      schema_version: version as (typeof COMMAND_VERSIONS)[number],
+      command_name: commandName as ProjectHistoryCommandRef["command_name"],
+      idempotency_key: stringMember(
+        envelope,
+        "idempotency_key",
+        "dependent command envelope",
+      ),
+      command_fingerprint: commandFingerprint,
+      capability_grant_id: stringMember(
+        envelope,
+        "capability_grant_id",
+        "dependent command envelope",
+      ),
+      correlation_id: stringMember(
+        envelope,
+        "correlation_id",
+        "dependent command envelope",
+      ),
     };
   }
 

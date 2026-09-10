@@ -6,6 +6,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryImpactView,
   PetraProjectHistoryRetainedView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -31,6 +32,7 @@ import {
   executeProjectSourceLifecycleCommand,
   getRecentProjectHistory,
   getProjectHistoryEpisode,
+  getProjectHistoryImpact,
   getRetainedProjectHistory,
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
@@ -208,6 +210,16 @@ const historyRetainedView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryRetainedView;
+
+const historyImpactView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-impact-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryImpactView;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -602,6 +614,43 @@ describe("Project shell workbench adapter", () => {
       getProjectHistoryEpisode(
         historyEpisodeView.project_id,
         historyEpisodeView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("reads bounded direct dependency impact without inferring reversibility", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyImpactView));
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await getProjectHistoryImpact(
+      historyImpactView.project_id,
+      historyImpactView.event_id,
+    );
+
+    expect(result).toEqual(historyImpactView);
+    expect(result.content.impact.summary.registered_group_count).toBe(4);
+    expect(result.content.decision_boundary).toEqual({
+      reversibility: "not_assessed",
+      compensation: "not_composed",
+      dependent_effect: "not_inferred_from_reference",
+    });
+    expect(result.content.omissions).toContain(
+      "transitive_dependency_closure_not_composed",
+    );
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${historyImpactView.project_id}/history/events/${historyImpactView.event_id}/impact`,
+    );
+
+    const wrongEvent = structuredClone(historyImpactView);
+    wrongEvent.content.selected_event.event_ref.event_id =
+      "event_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongEvent));
+    await expect(
+      getProjectHistoryImpact(
+        historyImpactView.project_id,
+        historyImpactView.event_id,
       ),
     ).rejects.toMatchObject({ status: 502 });
   });

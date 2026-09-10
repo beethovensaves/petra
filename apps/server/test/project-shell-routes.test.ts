@@ -4,6 +4,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryImpactView,
   PetraProjectHistoryRetainedView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -115,6 +116,16 @@ const historyRetainedFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryRetainedView;
+
+const historyImpactFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-impact-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryImpactView;
 
 const reviewFixture = JSON.parse(
   readFileSync(
@@ -262,6 +273,13 @@ const historyReader: ProjectHistoryViewReader = {
       projectId === historyEpisodeFixture.project_id &&
         eventId === historyEpisodeFixture.event_id
         ? structuredClone(historyEpisodeFixture)
+        : undefined,
+    ),
+  getProjectHistoryImpactView: (projectId, eventId) =>
+    Promise.resolve(
+      projectId === historyImpactFixture.project_id &&
+        eventId === historyImpactFixture.event_id
+        ? structuredClone(historyImpactFixture)
         : undefined,
     ),
   listRetainedProjectHistoryView: (projectId, request = {}) => {
@@ -530,6 +548,38 @@ describe("authorized Project shell query routes", () => {
       ),
     );
     expect(missing.status).toBe(404);
+  });
+
+  it("returns authenticated bounded dependency impact for one exact History event", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: historyReader,
+    });
+    const path = `/api/queries/projects/${historyImpactFixture.project_id}/history/events/${historyImpactFixture.event_id}/impact`;
+    const response = await petra.app.request(authorized(path));
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(historyImpactFixture);
+
+    const filtered = await petra.app.request(
+      authorized(`${path}?kind=projection`),
+    );
+    expect(filtered.status).toBe(422);
+    const filteredBody = (await filtered.json()) as {
+      error: { code: string };
+    };
+    expect(filteredBody.error.code).toBe(
+      "PROJECT_HISTORY_IMPACT_TARGET_INVALID",
+    );
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/history/events/${historyImpactFixture.event_id}/impact`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+
+    const unauthorized = await petra.app.request(path);
+    expect(unauthorized.status).toBe(401);
   });
 
   it("returns authenticated retained History pages and rejects unsafe query state", async () => {

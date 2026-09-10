@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.58.0",
+  "registry_version": "1.59.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -186,6 +186,17 @@
       "canonical_sha256": "sha256:5efc48894f4f4dfe813886b87f33abb2b645b393184a12f8fa6066a7b84fb2d8",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-history-retained-view.ts"
+    },
+    {
+      "name": "project-history-impact-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-impact-view/1.0.0/schema.json",
+      "path": "schemas/project-history-impact-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-event-selected-bounded-direct-dependency-impact",
+      "canonical_sha256": "sha256:4e3ebaaed243af704a02816e0f7caa70d7ef6037e01c2921b41d941c57db8a92",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-impact-view.ts"
     },
     {
       "name": "project-effective-controls-view",

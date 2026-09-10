@@ -1,11 +1,12 @@
 # UX-REQ-007 causal Project History
 
-Status: bounded Recent changes, exact event-selected causal episodes, and
-snapshot-stable retained Project-event traversal passed; dependency impact,
-filters, and broader recovery planning remain open
+Status: bounded Recent changes, exact event-selected causal episodes,
+snapshot-stable retained Project-event traversal, and bounded direct dependency
+impact passed; semantic-target impact, filters, and broader recovery planning
+remain open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `29f26f9`
+Implementation baseline: `1c44dd3`
 
 ## Result
 
@@ -101,6 +102,35 @@ within the retained snapshot, whether another page exists, and an opaque next
 cursor only when required. It exposes no offset, filters, client-carried
 snapshot override, or cross-family order.
 
+## Bounded direct dependency impact
+
+`petra.project-history-impact-view@1.0.0` adds the authenticated exact-event read
+`GET /api/queries/projects/:projectId/history/events/:eventId/impact`. Under one
+repeatable-read transaction it reuses the selected event's existing History
+composition and enumerates four registered kinds of direct dependent records:
+
+- commands whose immutable envelope cites the selected command as its cause;
+- outbox records that carry the exact selected event;
+- graph-projection attempts bound to that event and its outbox record; and
+- GroundedResponse revisions whose invalidation-cause record names the selected
+  ChangeSet application or reversal event.
+
+Each group names its exact authority source, returns no more than one hundred
+references, reports its complete total, and declares `complete` or `truncated`
+coverage. Exact command/event identities, actor and times, targets, observed
+effect, and semantic destination remain attached to the selected event. The
+response also records the current event position and Project-stream revision
+used for the read.
+
+This is an inventory of registered direct event and command dependencies, not a
+claim that Petra has found every semantic consequence. It explicitly reports
+that profile-specific, transitive, and external-system dependencies may remain
+unknown. Semantic-target dependencies and transitive closure are omitted;
+historical ProjectDefinition interpretation and a cross-family total order are
+not asserted. A reference proves the relationship only: Petra neither infers
+the dependent's effect nor assesses reversibility or composes compensation in
+this view.
+
 ## Recovery semantics
 
 This slice does not invent generic undo or multi-step compensation. ChangeSet
@@ -127,13 +157,14 @@ mutation boundaries and recheck current authority when invoked.
 ## Integrity and authorization
 
 Existing `/api/*` bearer authentication applies to Recent changes, retained
-event traversal, and exact episode detail before a reader is called. The Recent
-route accepts no query parameters; the retained route accepts only one bounded
-limit and one opaque cursor; the episode route accepts only one canonical event
-identity. Each returns no substitute Project and validates its composed
-contract before responding. Typed workbench clients verify the contract family,
-query and Project identity while treating the cursor as opaque. No component,
-CSS, browser route, or frozen surface changed.
+event traversal, exact episode detail, and exact dependency impact before a
+reader is called. The Recent route accepts no query parameters; the retained
+route accepts only one bounded limit and one opaque cursor; the episode and
+impact routes accept only one canonical event identity. Each returns no
+substitute Project and validates its composed contract before responding. Typed
+workbench clients verify the contract family, query, Project, and event identity
+while treating the cursor as opaque. No component, CSS, browser route, or frozen
+surface changed.
 
 The PostgreSQL reader fails closed when it cannot reproduce:
 
@@ -147,28 +178,37 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 - a cursor signature, Project binding, canonical payload, retained authority
   bounds, or exact head-event identity/hash; or
 - the original cursor snapshot after the authority store has moved backwards
-  or been replaced.
+  or been replaced;
+- an outbox record's exact embedded event payload and record hash;
+- a graph-projection attempt's event, outbox, sequence, content, and record
+  hashes; or
+- a GroundedResponse invalidation's selected event/change-set binding and exact
+  retained response revision.
 
 ## Verification
 
-Contract fixtures include accepted exact Recent changes, causal-episode, and
-retained traversal responses. Rejected fixtures cover an altered quick limit,
-false global episode order, and the unsafe reuse of an offset cursor. TypeScript
-generation, AJV conformance, strict Pydantic round-trip parity, server route
-tests, typed-client tests, and the real PostgreSQL integration suite pass. The
-database proof starts from an empty PostgreSQL 18.6 instance, migrates V001
-through V030, exercises all three reads over domain-event versions 1.0, 1.1,
-1.2, and 1.3, and proves cursor integrity, cross-Project rejection, stable
-membership after a concurrent append, keyset continuation without duplication,
-causal parent/following-command links, Project-stream adjacency, and exact
-lifecycle/replacement receipt references.
+Contract fixtures include accepted exact Recent changes, causal-episode,
+retained traversal, and dependency-impact responses. Rejected fixtures cover an
+altered quick limit, false global episode order, unsafe offset-cursor reuse, and
+a dependency read that claims a reversibility decision. TypeScript generation,
+AJV conformance, strict Pydantic round-trip parity, server route tests,
+typed-client tests, and the real PostgreSQL integration suite pass. The database
+proof starts from an empty PostgreSQL 18.6 instance, migrates V001 through V030,
+exercises all four reads over domain-event versions 1.0, 1.1, 1.2, and 1.3, and
+proves cursor integrity, cross-Project rejection, stable membership after a
+concurrent append, keyset continuation without duplication, causal
+parent/following-command links, Project-stream adjacency, exact lifecycle or
+replacement receipt references, and exact command, outbox, graph-projection,
+and GroundedResponse-invalidation dependency bindings.
 
 ## Next safe slice
 
-The next safe History boundary is a read-only dependency-impact assessment for
-one exact selected event. It should enumerate only registered, authorized,
-bounded dependent records with their precise authority source and omissions,
-without yet deciding ChangeSet reversibility or composing a compensation plan.
-Filters can follow once their exact query identity is bound into cursor
-snapshots. Universal undo, multi-step compensation, and event rewriting remain
-excluded.
+The next safe History boundary is a bounded, read-only set of registered
+semantic-target dependency adapters for the exact targets of one selected
+event. Each adapter must name its owning authority and coverage independently;
+Petra must continue to distinguish a proven reference from an inferred effect
+and must not claim transitive closure. ChangeSet reversibility and compensation
+preview can follow only after the relevant dependency truth is complete enough
+to support them. Filters can follow once their exact query identity is bound
+into cursor snapshots. Universal undo, multi-step compensation, and event
+rewriting remain excluded.

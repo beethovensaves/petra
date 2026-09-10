@@ -80,6 +80,7 @@ import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-r
 import { PostgresGroundedResponseAuthorityRepository } from "../src/grounded-response-authority-repository.js";
 import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import { PostgresProjectHistoryViewReader } from "../src/project-history-view-reader.js";
 import {
   PostgresProjectInquiryAuthorityRepository,
   type PostgresProjectInquiryError,
@@ -498,6 +499,7 @@ describePostgres("PostgreSQL grounded-response authority", () => {
   const interactions = new PostgresInteractionAuthorityRepository(pool);
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
+  const historyViews = new PostgresProjectHistoryViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -3027,5 +3029,29 @@ describePostgres("PostgreSQL grounded-response authority", () => {
         change_set_id: reversal.event.payload.change_set_id,
       },
     ]);
+
+    const impact = await historyViews.getProjectHistoryImpactView(
+      original.project_id,
+      reversal.event_id,
+    );
+    expect(
+      impact?.content.impact.grounded_response_invalidations,
+    ).toMatchObject({
+      authority_source: "immutable_response_invalidation_binding",
+      total_count: 1,
+      returned_count: 1,
+      coverage: "complete",
+    });
+    expect(impact?.content.impact.grounded_response_invalidations.refs).toEqual(
+      [
+        expect.objectContaining({
+          grounded_response_id: invalidated?.grounded_response_id,
+          revision: invalidated?.revision,
+          posture: "current",
+          cache_state: "invalidated",
+          change_set_id: reversal.event.payload.change_set_id,
+        }),
+      ],
+    );
   });
 });

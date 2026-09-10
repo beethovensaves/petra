@@ -135,6 +135,23 @@ export type {
   RetentionSnapshot as ProjectHistoryRetentionSnapshot,
 } from "./generated/project-history-retained-view.js";
 export type {
+  AuthorityPosition as ProjectHistoryImpactAuthorityPosition,
+  CausalCommand as ProjectHistoryImpactCausalCommand,
+  CausalCommandGroup as ProjectHistoryImpactCausalCommandGroup,
+  DecisionBoundary as ProjectHistoryImpactDecisionBoundary,
+  EventAnchor as ProjectHistoryImpactEventAnchor,
+  GraphProjectionRecordRef as ProjectHistoryImpactGraphProjectionRecordRef,
+  GroundedResponseGroup as ProjectHistoryImpactGroundedResponseGroup,
+  GroundedResponseInvalidationRef as ProjectHistoryImpactGroundedResponseInvalidationRef,
+  Impact as ProjectHistoryImpact,
+  ImpactContent as ProjectHistoryImpactContent,
+  ImpactSummary as ProjectHistoryImpactSummary,
+  OutboxGroup as ProjectHistoryImpactOutboxGroup,
+  OutboxRecordRef as ProjectHistoryImpactOutboxRecordRef,
+  PetraProjectHistoryImpactView,
+  ProjectionGroup as ProjectHistoryImpactProjectionGroup,
+} from "./generated/project-history-impact-view.js";
+export type {
   AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
   ControlSection as ProjectEffectiveControlSection,
   ControlSections as ProjectEffectiveControlSections,

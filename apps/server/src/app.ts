@@ -926,6 +926,70 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   );
 
   app.get(
+    "/api/queries/projects/:projectId/history/events/:eventId/impact",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const eventId = context.req.param("eventId");
+        if (
+          [...parameters.keys()].length > 0 ||
+          !EVENT_ID_PATTERN.test(eventId)
+        ) {
+          throw new InteractionInputError(
+            "A History dependency-impact read requires one canonical event identity and accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const view =
+          await options.projectHistoryViews.getProjectHistoryImpactView(
+            projectId,
+            eventId,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_HISTORY_EVENT_NOT_FOUND",
+            "The requested event is not available in this Project History.",
+          );
+        }
+        contracts.assertValid("project-history-impact-view", "1.0.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.event_id !== eventId ||
+          view.content.selected_event.event_ref.event_id !== eventId
+        ) {
+          throw new Error(
+            "The Project History impact reader returned a different Project or event.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_HISTORY_IMPACT_TARGET_INVALID"
+            : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project History dependency impact is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
     "/api/queries/projects/:projectId/history/events/:eventId",
     async (context) => {
       if (options.projectHistoryViews === undefined) {

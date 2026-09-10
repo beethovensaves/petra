@@ -15,6 +15,7 @@ import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { PostgresGraphProjectionAuthorityRepository } from "../src/graph-projection-authority-repository.js";
+import { PostgresProjectHistoryViewReader } from "../src/project-history-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 
 const { Pool } = pg;
@@ -112,6 +113,7 @@ describePostgres("PostgreSQL-authoritative graph projection tracking", () => {
   const pool = new Pool({ connectionString });
   const scopes = new PostgresResearchScopeRepository(pool);
   const projections = new PostgresGraphProjectionAuthorityRepository(pool);
+  const historyViews = new PostgresProjectHistoryViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -278,6 +280,28 @@ describePostgres("PostgreSQL-authoritative graph projection tracking", () => {
         object_revision: "2",
       },
     ]);
+
+    const impact = await historyViews.getProjectHistoryImpactView(
+      graphOutbox().partition_key,
+      graphOutbox().message.event.event_id,
+    );
+    expect(impact?.content.impact.graph_projection_records).toMatchObject({
+      authority_source: "immutable_projection_event_binding",
+      total_count: 2,
+      returned_count: 2,
+      coverage: "complete",
+    });
+    expect(
+      impact?.content.impact.graph_projection_records.refs.map(
+        ({ attempt, outcome }) => [attempt, outcome],
+      ),
+    ).toEqual([
+      [1, "failed"],
+      [2, "applied"],
+    ]);
+    expect(impact?.content.decision_boundary.reversibility).toBe(
+      "not_assessed",
+    );
   });
 
   it("observes a later head but cannot advance across a missing target sequence", async () => {

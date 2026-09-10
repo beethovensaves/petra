@@ -4,6 +4,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryImpactView,
   PetraProjectHistoryRetainedView,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -179,6 +180,37 @@ const projectHistoryRetainedView = (
     );
   }
   return value as unknown as PetraProjectHistoryRetainedView;
+};
+
+const projectHistoryImpactView = (
+  value: unknown,
+): PetraProjectHistoryImpactView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-impact-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "dependency_impact" ||
+    value.content.authorization_scope !== "authenticated_project" ||
+    !isRecord(value.content.selected_event) ||
+    !isRecord(value.content.impact) ||
+    !isRecord(value.content.decision_boundary) ||
+    value.content.decision_boundary.reversibility !== "not_assessed" ||
+    value.content.decision_boundary.compensation !== "not_composed" ||
+    !isRecord(value.content.authority) ||
+    value.content.authority.isolation !== "repeatable_read" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History dependency-impact view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryImpactView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -1422,6 +1454,27 @@ export const getProjectHistoryEpisode = async (
   if (view.project_id !== projectId || view.event_id !== eventId) {
     throw new ProjectDataError(
       "Petra returned a different Project History episode.",
+      502,
+    );
+  }
+  return view;
+};
+
+export const getProjectHistoryImpact = async (
+  projectId: string,
+  eventId: string,
+): Promise<PetraProjectHistoryImpactView> => {
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}/impact`,
+  );
+  const view = projectHistoryImpactView(value);
+  if (
+    view.project_id !== projectId ||
+    view.event_id !== eventId ||
+    view.content.selected_event.event_ref.event_id !== eventId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned dependency impact from another Project or History event.",
       502,
     );
   }

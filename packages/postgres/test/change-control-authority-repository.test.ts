@@ -609,6 +609,74 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     );
     expect(approvalEpisode?.content.receipt_ref).toBeUndefined();
 
+    const submittedEvent = events[0];
+    if (submittedEvent === undefined) {
+      throw new Error("Expected the submitted ChangeSet event.");
+    }
+    const submittedImpact = await historyViews.getProjectHistoryImpactView(
+      commands.submit.project_id,
+      submittedEvent.event_id,
+    );
+    expect(submittedImpact?.content.selected_event).toMatchObject({
+      command_ref: { command_id: commands.submit.command_id },
+      event_ref: { event_id: submittedEvent.event_id },
+    });
+    const submittedCausalCommands =
+      submittedImpact?.content.impact.causal_commands.refs;
+    expect(submittedCausalCommands).toHaveLength(1);
+    const submittedCausalCommand = submittedCausalCommands?.[0];
+    expect(submittedCausalCommand?.command_ref.command_id).toBe(
+      commands.approve.command_id,
+    );
+    expect(submittedCausalCommand?.outcome).toBe("success");
+    expect(submittedCausalCommand?.event_state).toBe("recorded");
+    if (submittedCausalCommand?.event_state !== "recorded") {
+      throw new Error(
+        "Expected the approval command to have a recorded event.",
+      );
+    }
+    expect(submittedCausalCommand.event_ref.event_id).toBe(
+      approvalEvent.event_id,
+    );
+    expect(submittedImpact?.content.impact.outbox_records).toMatchObject({
+      authority_source: "immutable_event_outbox_binding",
+      total_count: 1,
+      returned_count: 1,
+      coverage: "complete",
+    });
+    expect(submittedImpact?.content.authority).toEqual({
+      isolation: "repeatable_read",
+      through_event_position: 3,
+      through_stream_revision: 3,
+    });
+    expect(submittedImpact?.content.decision_boundary).toEqual({
+      reversibility: "not_assessed",
+      compensation: "not_composed",
+      dependent_effect: "not_inferred_from_reference",
+    });
+    expect(
+      await historyViews.getProjectHistoryImpactView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        submittedEvent.event_id,
+      ),
+    ).toBeUndefined();
+
+    const appliedEvent = events[2];
+    if (appliedEvent === undefined) {
+      throw new Error("Expected the applied ChangeSet event.");
+    }
+    const appliedImpact = await historyViews.getProjectHistoryImpactView(
+      commands.submit.project_id,
+      appliedEvent.event_id,
+    );
+    expect(appliedImpact?.content.impact.outbox_records.refs).toHaveLength(2);
+    expect(
+      appliedImpact?.content.impact.outbox_records.refs.map(
+        ({ target }) => target,
+      ),
+    ).toEqual(["neo4j_graph", "interface_authority"]);
+    expect(appliedImpact?.content.impact.summary.total_count).toBe(2);
+
     const replayedAuthority = replayScientificAuthority(
       commands.submit.project_id,
       events,
@@ -997,6 +1065,25 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     );
     expect(recentHistory?.content.changes[0]?.observed_effect.effect).toBe(
       "authority_change_reverted",
+    );
+    const reversalEvent = recentHistory?.content.changes[0]?.event_ref;
+    if (reversalEvent === undefined) {
+      throw new Error("Expected the compensating-reversal History event.");
+    }
+    const reversalImpact = await historyViews.getProjectHistoryImpactView(
+      commands.submit.project_id,
+      reversalEvent.event_id,
+    );
+    expect(
+      reversalImpact?.content.selected_event.event_ref.schema_version,
+    ).toBe("1.1.0");
+    expect(
+      reversalImpact?.content.impact.outbox_records.refs.every(
+        ({ schema_version }) => schema_version === "1.1.0",
+      ),
+    ).toBe(true);
+    expect(reversalImpact?.content.decision_boundary.reversibility).toBe(
+      "not_assessed",
     );
     const retainedHistory = await historyViews.listRetainedProjectHistoryView(
       commands.submit.project_id,
