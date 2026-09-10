@@ -1889,6 +1889,242 @@ class PetraProjectHistoryImpactViewV120(PetraModel):
     read_at: str
 
 
+class ProjectHistoryRecoveryChangeSetRef(PetraModel):
+    change_set_id: str
+    revision: Literal[1]
+    schema_version: Literal["1.0.0", "1.1.0"]
+    content_hash: str
+    record_hash: str
+    current_state: Literal[
+        "submitted", "approved", "rejected", "applied", "conflicted", "reverted"
+    ]
+
+
+class ProjectHistoryRecoveryApprovalRef(PetraModel):
+    approval_id: str
+    revision: Literal[1]
+    change_set_id: str
+    change_set_revision: Literal[1]
+    change_set_content_hash: str
+    decision: Literal["approved"]
+    record_hash: str
+
+
+class ProjectHistoryRecoveryEvidenceRef(PetraModel):
+    semantic_key: Literal["scientific.claim", "scientific.assertion"]
+    object_id: str
+    revision: int = Field(ge=1)
+    schema_name: Literal["petra.claim", "petra.assertion"]
+    schema_version: Literal["1.0.0"]
+    record_hash: str
+    authority_zone: Literal["quarantine", "trusted"]
+    review_state: Literal[
+        "unreviewed",
+        "machine_checked",
+        "human_accepted",
+        "human_rejected",
+        "disputed",
+    ]
+    admission_kind: Literal["proposal", "promotion", "reversal"]
+    promotion_change_set_id: str | None = None
+
+
+class ProjectHistoryRecoverySubject(PetraModel):
+    selected_event_role: Literal["promotion", "compensation"]
+    promotion_change_set: ProjectHistoryRecoveryChangeSetRef
+    applied_approval: ProjectHistoryRecoveryApprovalRef
+    current_targets: list[ProjectHistoryRecoveryEvidenceRef] = Field(
+        min_length=2, max_length=2
+    )
+
+    @model_validator(mode="after")
+    def exact_target_pair(self) -> ProjectHistoryRecoverySubject:
+        if [target.semantic_key for target in self.current_targets] != [
+            "scientific.claim",
+            "scientific.assertion",
+        ]:
+            raise ValueError(
+                "recovery authority requires an ordered Claim–Assertion pair"
+            )
+        return self
+
+
+class ProjectHistoryRecoveryGrantRef(PetraModel):
+    capability_grant_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class ProjectHistoryRecoveryGrantedCommand(PetraModel):
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    state: Literal["granted"]
+    grant_ref: ProjectHistoryRecoveryGrantRef
+
+
+class ProjectHistoryRecoveryDeniedCommand(PetraModel):
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    state: Literal["denied"]
+    reason: Literal[
+        "principal_not_configured",
+        "actor_not_registered",
+        "active_grant_not_found",
+        "active_grant_ambiguous",
+    ]
+
+
+class ProjectHistoryRecoveryConfiguredPrincipal(PetraModel):
+    state: Literal["configured"]
+    actor: ActorRef
+
+
+class ProjectHistoryRecoveryUnavailablePrincipal(PetraModel):
+    state: Literal["unavailable"]
+    reason: Literal["principal_not_configured", "actor_not_registered"]
+
+
+class ProjectHistoryRecoveryCommandAuthority(PetraModel):
+    principal_source: Literal["server_authenticated_single_user"]
+    principal_state: (
+        ProjectHistoryRecoveryConfiguredPrincipal
+        | ProjectHistoryRecoveryUnavailablePrincipal
+    )
+    required_commands: list[
+        ProjectHistoryRecoveryGrantedCommand | ProjectHistoryRecoveryDeniedCommand
+    ] = Field(min_length=3, max_length=3)
+    execution_recheck: Literal["required_at_each_command"]
+
+    @model_validator(mode="after")
+    def exact_command_order(self) -> ProjectHistoryRecoveryCommandAuthority:
+        if [command.command_name for command in self.required_commands] != [
+            "SubmitChangeSet",
+            "RecordApproval",
+            "ApplyChangeSet",
+        ]:
+            raise ValueError("recovery authority requires three exact ordered commands")
+        return self
+
+
+class ProjectHistoryRecoveryBlocker(PetraModel):
+    code: Literal[
+        "selected_change_set_is_compensation",
+        "change_set_not_applied",
+        "change_set_operation_set_invalid",
+        "target_revision_changed",
+        "target_authority_changed",
+        "target_pair_mismatch",
+        "impact_target_set_mismatch",
+        "command_authority_missing",
+        "command_authority_ambiguous",
+    ]
+    detail: str
+
+
+class ProjectHistoryRecoveryEligible(PetraModel):
+    state: Literal["eligible_for_preview"]
+    scope: Literal["single_change_set_compensation"]
+    reason: str
+    blockers: list[ProjectHistoryRecoveryBlocker] = Field(max_length=0)
+
+
+class ProjectHistoryRecoveryBlocked(PetraModel):
+    state: Literal["blocked"]
+    scope: Literal["single_change_set_compensation"]
+    reason: str
+    blockers: list[ProjectHistoryRecoveryBlocker] = Field(min_length=1, max_length=20)
+
+
+class ProjectHistoryRecoveryAlreadyCompensated(PetraModel):
+    state: Literal["already_compensated"]
+    scope: Literal["single_change_set_compensation"]
+    reason: str
+    blockers: list[ProjectHistoryRecoveryBlocker] = Field(max_length=0)
+    compensation_change_set: ProjectHistoryRecoveryChangeSetRef
+    compensation_approval: ProjectHistoryRecoveryApprovalRef
+    compensation_event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryRecoveryCausalBasis(PetraModel):
+    source_event_id: str
+    direct_dependency_summary: ProjectHistoryImpactSummary
+    semantic_dependency_summary: ProjectHistorySemanticSummaryV120
+    dependent_effect: Literal["not_inferred_from_reference"]
+    unknowns: list[
+        Literal[
+            "unregistered_profile_specific_dependencies_may_exist",
+            "transitive_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        ]
+    ] = Field(min_length=3, max_length=3)
+
+
+class ProjectHistoryRecoveryDecisionBoundary(PetraModel):
+    reversibility: Literal["assessed_for_exact_change_set"]
+    compensation_preview: Literal["not_composed"]
+    compensation_execution: Literal["not_performed"]
+    multi_step_compensation: Literal["not_assessed"]
+
+
+class ProjectHistoryRecoveryContent(PetraModel):
+    view_kind: Literal["change_set_recovery_assessment"]
+    authorization_scope: Literal["authenticated_project"]
+    selected_event: ProjectHistoryRecentChange
+    recovery_subject: ProjectHistoryRecoverySubject
+    command_authority: ProjectHistoryRecoveryCommandAuthority
+    causal_impact_basis: ProjectHistoryRecoveryCausalBasis
+    assessment: (
+        ProjectHistoryRecoveryEligible
+        | ProjectHistoryRecoveryBlocked
+        | ProjectHistoryRecoveryAlreadyCompensated
+    )
+    decision_boundary: ProjectHistoryRecoveryDecisionBoundary
+    authority: ProjectHistoryImpactAuthority
+    omissions: list[
+        Literal[
+            "compensation_preview_not_composed",
+            "compensation_execution_not_performed",
+            "generic_undo_not_implemented",
+            "multi_step_compensation_not_assessed",
+            "historical_project_definition_not_interpreted",
+            "dependent_effect_not_inferred_from_reference",
+            "cross_family_total_order_not_asserted",
+        ]
+    ] = Field(min_length=7, max_length=7)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_boundaries(self) -> ProjectHistoryRecoveryContent:
+        expected = {
+            "compensation_preview_not_composed",
+            "compensation_execution_not_performed",
+            "generic_undo_not_implemented",
+            "multi_step_compensation_not_assessed",
+            "historical_project_definition_not_interpreted",
+            "dependent_effect_not_inferred_from_reference",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 7 or set(self.omissions) != expected:
+            raise ValueError("recovery assessment must preserve its exact omissions")
+        expected_unknowns = {
+            "unregistered_profile_specific_dependencies_may_exist",
+            "transitive_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        }
+        if set(self.causal_impact_basis.unknowns) != expected_unknowns:
+            raise ValueError("recovery assessment must preserve causal unknowns")
+        return self
+
+
+class PetraProjectHistoryRecoveryAssessmentView(PetraModel):
+    schema_name: Literal["petra.project-history-recovery-assessment-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryRecoveryContent
+    content_hash: str
+    read_at: str
+
+
 class ProjectSourceDefinitionRef(PetraModel):
     project_definition_id: str
     revision: int
@@ -7872,6 +8108,9 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-history-episode-view": PetraProjectHistoryEpisodeView,
     "project-history-retained-view": PetraProjectHistoryRetainedView,
     "project-history-impact-view": PetraProjectHistoryImpactView,
+    "project-history-recovery-assessment-view": (
+        PetraProjectHistoryRecoveryAssessmentView
+    ),
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-replacement": PetraProjectSourceReplacement,

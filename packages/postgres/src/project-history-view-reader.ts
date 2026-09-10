@@ -4,6 +4,7 @@ import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactView,
   PetraProjectHistoryImpactViewV12,
+  PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectHistoryView,
   ProjectHistoryCausalCommandLink,
@@ -158,6 +159,80 @@ interface HistoryCursorPayload {
 
 export interface PostgresProjectHistoryViewReaderOptions {
   readonly cursorSecret?: string;
+  readonly recoveryPrincipal?: {
+    readonly actor_id: string;
+    readonly actor_kind: "human";
+  };
+}
+
+interface RecoveryChangeSetRow {
+  payload: unknown;
+  record_hash: string;
+  current_state:
+    | "submitted"
+    | "approved"
+    | "rejected"
+    | "applied"
+    | "conflicted"
+    | "reverted";
+  applied_approval_id: string | null;
+}
+
+interface RecoveryApprovalRow {
+  payload: unknown;
+  record_hash: string;
+}
+
+interface RecoveryOperationRow {
+  position: string;
+  operation_kind:
+    | "promote_claim"
+    | "promote_assertion"
+    | "retract_claim"
+    | "retract_assertion";
+  target_id: string;
+  base_revision: string;
+  operation: unknown;
+}
+
+interface RecoveryEvidenceRow {
+  evidence_id: string;
+  evidence_kind: "claim" | "assertion";
+  current_revision: string;
+  authority_zone: "quarantine" | "trusted";
+  review_state:
+    | "unreviewed"
+    | "machine_checked"
+    | "human_accepted"
+    | "human_rejected"
+    | "disputed";
+  admission_kind: "proposal" | "promotion" | "reversal";
+  schema_name: "petra.claim" | "petra.assertion";
+  schema_version: "1.0.0";
+  record_hash: string;
+  payload: unknown;
+}
+
+interface RecoveryGrantRow {
+  command_name: "SubmitChangeSet" | "RecordApproval" | "ApplyChangeSet";
+  capability_grant_id: string | null;
+  revision: string | null;
+  content_hash: string | null;
+  record_hash: string | null;
+  payload: unknown;
+}
+
+interface RecoveryCompensationRow extends RecoveryChangeSetRow {
+  change_set_id: string;
+  approval_payload: unknown;
+  approval_record_hash: string;
+  event_payload: unknown;
+  event_record_hash: string;
+}
+
+interface RecoveryChangeSetAuthority {
+  payload: JsonRecord;
+  ref: PetraProjectHistoryRecoveryAssessmentView["content"]["recovery_subject"]["promotion_change_set"];
 }
 
 type JsonRecord = Record<string, unknown>;
@@ -357,6 +432,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
   readonly #cursorSecret: Buffer;
+  readonly #recoveryPrincipal:
+    { readonly actor_id: string; readonly actor_kind: "human" } | undefined;
 
   constructor(
     pool: Pool,
@@ -372,6 +449,18 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       );
     }
     this.#cursorSecret = createHash("sha256").update(cursorSecret).digest();
+    if (
+      options.recoveryPrincipal !== undefined &&
+      !ACTOR_ID.test(options.recoveryPrincipal.actor_id)
+    ) {
+      throw new Error(
+        "Project History recovery principal must use a canonical Actor identity.",
+      );
+    }
+    this.#recoveryPrincipal =
+      options.recoveryPrincipal === undefined
+        ? undefined
+        : { ...options.recoveryPrincipal };
   }
 
   async getRecentProjectHistoryView(
@@ -1376,6 +1465,983 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       this.#contracts.assertValid("project-history-impact-view", "1.2.0", view);
       return structuredClone(view);
     });
+  }
+
+  async getProjectHistoryRecoveryAssessmentView(
+    projectId: string,
+    eventId: string,
+  ): Promise<PetraProjectHistoryRecoveryAssessmentView | undefined> {
+    return this.#readTransaction(async (client, readAt) => {
+      const result = await client.query<HistoryRow>(
+        `SELECT event.payload AS event_payload,
+                event.record_hash AS event_record_hash,
+                execution.envelope AS command_envelope,
+                execution.command_fingerprint,
+                lifecycle.payload AS lifecycle_receipt_payload,
+                lifecycle.record_hash AS lifecycle_receipt_record_hash,
+                replacement.payload AS replacement_receipt_payload,
+                replacement.record_hash AS replacement_receipt_record_hash
+           FROM petra.domain_events AS event
+           JOIN petra.command_executions AS execution
+             ON execution.command_id = event.command_id
+            AND execution.project_id = event.project_id
+           LEFT JOIN petra.project_source_lifecycle_receipts AS lifecycle
+             ON lifecycle.command_id = event.command_id
+           LEFT JOIN petra.project_source_replacement_receipts AS replacement
+             ON replacement.command_id = event.command_id
+          WHERE event.project_id = $1 AND event.event_id = $2`,
+        [projectId, eventId],
+      );
+      const row = result.rows[0];
+      if (row === undefined) return undefined;
+
+      const selectedEvent = await this.#change(client, row);
+      const eventType = selectedEvent.event_ref.event_type;
+      if (
+        eventType !== "change_set.applied" &&
+        eventType !== "change_set.reverted"
+      ) {
+        throw new ProjectHistoryViewRequestError(
+          "A ChangeSet recovery assessment requires an exact change_set.applied or change_set.reverted event.",
+        );
+      }
+      const event = record(row.event_payload, "selected recovery event");
+      const eventFact = objectMember(event, "event", "selected recovery event");
+      const eventPayload = objectMember(
+        eventFact,
+        "payload",
+        "selected recovery event.event",
+      );
+      const selectedEventRole =
+        eventType === "change_set.reverted" ? "compensation" : "promotion";
+      const promotionChangeSetId =
+        eventType === "change_set.reverted"
+          ? stringMember(
+              eventPayload,
+              "compensates_change_set_id",
+              "selected recovery event payload",
+            )
+          : stringMember(
+              eventPayload,
+              "change_set_id",
+              "selected recovery event payload",
+            );
+      const selectedClaim = objectMember(
+        eventPayload,
+        "claim",
+        "selected recovery event payload",
+      );
+      const selectedAssertion = objectMember(
+        eventPayload,
+        "assertion",
+        "selected recovery event payload",
+      );
+      const claimId = stringMember(
+        selectedClaim,
+        "claim_id",
+        "selected recovery claim",
+      );
+      const assertionId = stringMember(
+        selectedAssertion,
+        "assertion_id",
+        "selected recovery assertion",
+      );
+
+      const promotionResult = await client.query<RecoveryChangeSetRow>(
+        `SELECT payload, record_hash, current_state, applied_approval_id
+           FROM petra.change_sets
+          WHERE project_id = $1 AND change_set_id = $2`,
+        [projectId, promotionChangeSetId],
+      );
+      const promotionRow = promotionResult.rows[0];
+      if (promotionRow === undefined) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The selected recovery event does not resolve its promotion ChangeSet in this Project.",
+        );
+      }
+      const promotion = this.#recoveryChangeSet(
+        promotionRow,
+        promotionChangeSetId,
+        "promotion ChangeSet",
+      );
+      if (promotionRow.applied_approval_id === null) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The applied promotion ChangeSet has no exact Approval binding.",
+        );
+      }
+      const approvalResult = await client.query<RecoveryApprovalRow>(
+        `SELECT payload, record_hash
+           FROM petra.approvals
+          WHERE approval_id = $1
+            AND change_set_id = $2
+            AND change_set_revision = 1
+            AND change_set_content_hash = $3`,
+        [
+          promotionRow.applied_approval_id,
+          promotionChangeSetId,
+          promotion.ref.content_hash,
+        ],
+      );
+      const approvalRow = approvalResult.rows[0];
+      if (approvalRow === undefined) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The applied promotion ChangeSet does not resolve its exact Approval.",
+        );
+      }
+      const approvalPayload = record(approvalRow.payload, "promotion Approval");
+      this.#contracts.assertValid("approval", "1.0.0", approvalPayload);
+      if (canonicalHash(approvalPayload) !== approvalRow.record_hash) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The promotion Approval record hash does not match its immutable payload.",
+        );
+      }
+      const approvalSubject = objectMember(
+        approvalPayload,
+        "subject",
+        "promotion Approval",
+      );
+      if (
+        stringMember(approvalPayload, "decision", "promotion Approval") !==
+          "approved" ||
+        stringMember(
+          approvalSubject,
+          "change_set_id",
+          "promotion Approval subject",
+        ) !== promotionChangeSetId
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The applied Approval does not authorize the exact promotion ChangeSet.",
+        );
+      }
+      const appliedApproval = {
+        approval_id: stringMember(
+          approvalPayload,
+          "approval_id",
+          "promotion Approval",
+        ),
+        revision: 1 as const,
+        change_set_id: promotionChangeSetId,
+        change_set_revision: 1 as const,
+        change_set_content_hash: promotion.ref.content_hash,
+        decision: "approved" as const,
+        record_hash: approvalRow.record_hash,
+      };
+
+      const operationsResult = await client.query<RecoveryOperationRow>(
+        `SELECT position::text, operation_kind, target_id,
+                base_revision::text, operation
+           FROM petra.change_set_operations
+          WHERE change_set_id = $1
+          ORDER BY position`,
+        [promotionChangeSetId],
+      );
+      const evidenceResult = await client.query<RecoveryEvidenceRow>(
+        `SELECT entity.evidence_id, entity.evidence_kind,
+                entity.current_revision::text,
+                revision.authority_zone, revision.review_state,
+                revision.admission_kind, revision.schema_name,
+                revision.schema_version, revision.record_hash,
+                revision.payload
+           FROM petra.evidence_entities AS entity
+           JOIN petra.evidence_entity_revisions AS revision
+             ON revision.evidence_id = entity.evidence_id
+            AND revision.evidence_kind = entity.evidence_kind
+            AND revision.revision = entity.current_revision
+          WHERE entity.evidence_id = ANY($1::text[])
+          ORDER BY CASE entity.evidence_kind WHEN 'claim' THEN 1 ELSE 2 END`,
+        [[claimId, assertionId]],
+      );
+      if (evidenceResult.rows.length !== 2) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The exact recovery Claim–Assertion pair is unavailable in current authority.",
+        );
+      }
+      const currentTargets = evidenceResult.rows.map((evidenceRow) =>
+        this.#recoveryEvidenceRef(evidenceRow),
+      ) as PetraProjectHistoryRecoveryAssessmentView["content"]["recovery_subject"]["current_targets"];
+      const claimRow = evidenceResult.rows.find(
+        ({ evidence_kind }) => evidence_kind === "claim",
+      );
+      const assertionRow = evidenceResult.rows.find(
+        ({ evidence_kind }) => evidence_kind === "assertion",
+      );
+      if (claimRow === undefined || assertionRow === undefined) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The recovery target authority does not contain one Claim and one Assertion.",
+        );
+      }
+
+      const commandAuthority = await this.#recoveryCommandAuthority(
+        client,
+        projectId,
+        readAt,
+      );
+      const compensation = await this.#recoveryCompensation(
+        client,
+        projectId,
+        promotionChangeSetId,
+      );
+
+      const causalCommands = await this.#impactCausalCommands(
+        client,
+        projectId,
+        selectedEvent.command_ref.command_id,
+      );
+      const outboxRecords = await this.#impactOutboxRecords(
+        client,
+        projectId,
+        selectedEvent.event_ref,
+        event,
+      );
+      const graphProjectionRecords = await this.#impactProjectionRecords(
+        client,
+        projectId,
+        selectedEvent.event_ref,
+      );
+      const groundedResponseInvalidations =
+        await this.#impactGroundedResponseInvalidations(
+          client,
+          projectId,
+          selectedEvent.event_ref,
+          event,
+        );
+      const directGroups = [
+        causalCommands,
+        outboxRecords,
+        graphProjectionRecords,
+        groundedResponseInvalidations,
+      ];
+      const directCount = directGroups.reduce(
+        (total, group) => total + group.total_count,
+        0,
+      );
+      if (!Number.isSafeInteger(directCount)) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The recovery dependency total exceeds Petra's safe integer range.",
+        );
+      }
+      const semanticImpact = await this.#semanticTargetImpact(
+        client,
+        projectId,
+        selectedEvent.targets,
+      );
+
+      const assessment =
+        compensation === undefined
+          ? this.#recoveryEligibility(
+              promotion,
+              operationsResult.rows,
+              claimRow,
+              assertionRow,
+              selectedClaim,
+              selectedAssertion,
+              commandAuthority,
+            )
+          : {
+              state: "already_compensated" as const,
+              scope: "single_change_set_compensation" as const,
+              reason:
+                "The promotion has already been compensated by the exact retained reversal ChangeSet and event.",
+              blockers: [] as [],
+              compensation_change_set: compensation.changeSet,
+              compensation_approval: compensation.approval,
+              compensation_event_ref: compensation.eventRef,
+            };
+      if (
+        eventType === "change_set.reverted" &&
+        compensation?.changeSet.change_set_id !==
+          stringMember(
+            eventPayload,
+            "change_set_id",
+            "selected recovery event payload",
+          )
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The selected compensation event is not the retained applied compensation for its promotion.",
+        );
+      }
+      const authority = await this.#authority(client, projectId);
+      const content: PetraProjectHistoryRecoveryAssessmentView["content"] = {
+        view_kind: "change_set_recovery_assessment",
+        authorization_scope: "authenticated_project",
+        selected_event: selectedEvent,
+        recovery_subject: {
+          selected_event_role: selectedEventRole,
+          promotion_change_set: promotion.ref,
+          applied_approval: appliedApproval,
+          current_targets: currentTargets,
+        },
+        command_authority: commandAuthority,
+        causal_impact_basis: {
+          source_event_id: eventId,
+          direct_dependency_summary: {
+            registered_group_count: 4,
+            total_count: directCount,
+            coverage: directGroups.some(
+              ({ coverage }) => coverage === "truncated",
+            )
+              ? "truncated"
+              : "complete",
+          },
+          semantic_dependency_summary: semanticImpact.summary,
+          dependent_effect: "not_inferred_from_reference",
+          unknowns: [
+            "unregistered_profile_specific_dependencies_may_exist",
+            "transitive_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+          ],
+        },
+        assessment,
+        decision_boundary: {
+          reversibility: "assessed_for_exact_change_set",
+          compensation_preview: "not_composed",
+          compensation_execution: "not_performed",
+          multi_step_compensation: "not_assessed",
+        },
+        authority: { isolation: "repeatable_read", ...authority },
+        omissions: [
+          "compensation_preview_not_composed",
+          "compensation_execution_not_performed",
+          "generic_undo_not_implemented",
+          "multi_step_compensation_not_assessed",
+          "historical_project_definition_not_interpreted",
+          "dependent_effect_not_inferred_from_reference",
+          "cross_family_total_order_not_asserted",
+        ],
+        graph_navigation_history: "client_local_separate",
+      };
+      const view: PetraProjectHistoryRecoveryAssessmentView = {
+        schema_name: "petra.project-history-recovery-assessment-view",
+        schema_version: "1.0.0",
+        project_id: projectId,
+        event_id: eventId,
+        content,
+        content_hash: canonicalHash(content),
+        read_at: readAt,
+      };
+      this.#contracts.assertValid(
+        "project-history-recovery-assessment-view",
+        "1.0.0",
+        view,
+      );
+      return structuredClone(view);
+    });
+  }
+
+  #recoveryChangeSet(
+    row: RecoveryChangeSetRow,
+    expectedId: string,
+    label: string,
+  ): RecoveryChangeSetAuthority {
+    const payload = record(row.payload, label);
+    const version = stringMember(payload, "schema_version", label);
+    if (version !== "1.0.0" && version !== "1.1.0") {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        `${label} uses an unsupported schema version.`,
+      );
+    }
+    this.#contracts.assertValid("change-set", version, payload);
+    const content = objectMember(payload, "content", label);
+    const contentHash = stringMember(payload, "content_hash", label);
+    if (
+      stringMember(payload, "change_set_id", label) !== expectedId ||
+      canonicalHash(content) !== contentHash ||
+      canonicalHash(payload) !== row.record_hash
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        `${label} cannot reproduce its immutable identities.`,
+      );
+    }
+    return {
+      payload,
+      ref: {
+        change_set_id: expectedId,
+        revision: 1,
+        schema_version: version,
+        content_hash: contentHash,
+        record_hash: row.record_hash,
+        current_state: row.current_state,
+      },
+    };
+  }
+
+  #recoveryEvidenceRef(
+    row: RecoveryEvidenceRow,
+  ): PetraProjectHistoryRecoveryAssessmentView["content"]["recovery_subject"]["current_targets"][number] {
+    const payload = record(row.payload, `current ${row.evidence_kind}`);
+    this.#contracts.assertValid(row.evidence_kind, row.schema_version, payload);
+    if (
+      stringMember(
+        payload,
+        row.evidence_kind === "claim" ? "claim_id" : "assertion_id",
+        `current ${row.evidence_kind}`,
+      ) !== row.evidence_id ||
+      canonicalHash(payload) !== row.record_hash
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        `The current ${row.evidence_kind} cannot reproduce its immutable identity.`,
+      );
+    }
+    const authority = objectMember(
+      payload,
+      "authority",
+      `current ${row.evidence_kind}`,
+    );
+    const promotion =
+      authority.promotion === undefined
+        ? undefined
+        : record(authority.promotion, `current ${row.evidence_kind} promotion`);
+    return {
+      semantic_key:
+        row.evidence_kind === "claim"
+          ? "scientific.claim"
+          : "scientific.assertion",
+      object_id: row.evidence_id,
+      revision: this.#safeImpactPosition(
+        row.current_revision,
+        `current ${row.evidence_kind} revision`,
+      ),
+      schema_name: row.schema_name,
+      schema_version: row.schema_version,
+      record_hash: row.record_hash,
+      authority_zone: row.authority_zone,
+      review_state: row.review_state,
+      admission_kind: row.admission_kind,
+      ...(promotion === undefined
+        ? {}
+        : {
+            promotion_change_set_id: stringMember(
+              promotion,
+              "change_set_id",
+              `current ${row.evidence_kind} promotion`,
+            ),
+          }),
+    };
+  }
+
+  async #recoveryCommandAuthority(
+    client: PoolClient,
+    projectId: string,
+    readAt: string,
+  ): Promise<
+    PetraProjectHistoryRecoveryAssessmentView["content"]["command_authority"]
+  > {
+    const commands = [
+      "SubmitChangeSet",
+      "RecordApproval",
+      "ApplyChangeSet",
+    ] as const;
+    if (this.#recoveryPrincipal === undefined) {
+      return {
+        principal_source: "server_authenticated_single_user",
+        principal_state: {
+          state: "unavailable",
+          reason: "principal_not_configured",
+        },
+        required_commands: [
+          {
+            command_name: "SubmitChangeSet",
+            state: "denied",
+            reason: "principal_not_configured",
+          },
+          {
+            command_name: "RecordApproval",
+            state: "denied",
+            reason: "principal_not_configured",
+          },
+          {
+            command_name: "ApplyChangeSet",
+            state: "denied",
+            reason: "principal_not_configured",
+          },
+        ],
+        execution_recheck: "required_at_each_command",
+      };
+    }
+    const actor = await client.query<{ exists: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM petra.actors
+          WHERE actor_id = $1 AND actor_kind = 'human'
+       ) AS exists`,
+      [this.#recoveryPrincipal.actor_id],
+    );
+    if (actor.rows[0]?.exists !== true) {
+      return {
+        principal_source: "server_authenticated_single_user",
+        principal_state: {
+          state: "unavailable",
+          reason: "actor_not_registered",
+        },
+        required_commands: [
+          {
+            command_name: "SubmitChangeSet",
+            state: "denied",
+            reason: "actor_not_registered",
+          },
+          {
+            command_name: "RecordApproval",
+            state: "denied",
+            reason: "actor_not_registered",
+          },
+          {
+            command_name: "ApplyChangeSet",
+            state: "denied",
+            reason: "actor_not_registered",
+          },
+        ],
+        execution_recheck: "required_at_each_command",
+      };
+    }
+    const grants = await client.query<RecoveryGrantRow>(
+      `SELECT required.command_name,
+              eligible.capability_grant_id, eligible.revision::text,
+              eligible.content_hash, eligible.record_hash, eligible.payload
+         FROM unnest($4::text[]) WITH ORDINALITY
+              AS required(command_name, command_order)
+         LEFT JOIN LATERAL (
+           SELECT grant_record.capability_grant_id, grant_record.revision,
+                  grant_record.content_hash, grant_record.record_hash,
+                  grant_record.payload
+             FROM petra.capability_grants AS grant_record
+            WHERE grant_record.project_id = $1
+              AND grant_record.grantee_actor_id = $2
+              AND grant_record.grantee_actor_kind = 'human'
+              AND grant_record.valid_from <= $3::timestamptz
+              AND (
+                grant_record.expires_at IS NULL
+                OR grant_record.expires_at > $3::timestamptz
+              )
+              AND required.command_name = ANY(grant_record.allowed_commands)
+              AND NOT EXISTS (
+                SELECT 1
+                  FROM petra.capability_grant_revocations AS revocation
+                 WHERE revocation.capability_grant_id =
+                       grant_record.capability_grant_id
+              )
+            ORDER BY grant_record.valid_from DESC,
+                     grant_record.capability_grant_id ASC
+            LIMIT 2
+         ) AS eligible ON true
+        ORDER BY required.command_order, eligible.capability_grant_id`,
+      [projectId, this.#recoveryPrincipal.actor_id, readAt, commands],
+    );
+    const requiredCommands = commands.map((commandName) => {
+      const matching = grants.rows.filter(
+        ({ command_name }) => command_name === commandName,
+      );
+      const eligible = matching.filter(
+        ({ capability_grant_id }) => capability_grant_id !== null,
+      );
+      if (eligible.length === 0) {
+        return {
+          command_name: commandName,
+          state: "denied" as const,
+          reason: "active_grant_not_found" as const,
+        };
+      }
+      if (eligible.length !== 1) {
+        return {
+          command_name: commandName,
+          state: "denied" as const,
+          reason: "active_grant_ambiguous" as const,
+        };
+      }
+      const grant = eligible[0];
+      if (
+        grant === undefined ||
+        grant.capability_grant_id === null ||
+        grant.revision === null ||
+        grant.content_hash === null ||
+        grant.record_hash === null
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The recovery command grant lost its exact authority identity.",
+        );
+      }
+      const payload = record(grant.payload, "recovery capability grant");
+      const version = stringMember(
+        payload,
+        "schema_version",
+        "recovery capability grant",
+      );
+      this.#contracts.assertValid("capability-grant", version, payload);
+      if (
+        canonicalHash(
+          objectMember(payload, "content", "recovery capability grant"),
+        ) !== grant.content_hash ||
+        canonicalHash(payload) !== grant.record_hash
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "The recovery command grant cannot reproduce its immutable identity.",
+        );
+      }
+      return {
+        command_name: commandName,
+        state: "granted" as const,
+        grant_ref: {
+          capability_grant_id: grant.capability_grant_id,
+          revision: 1 as const,
+          content_hash: grant.content_hash,
+          record_hash: grant.record_hash,
+        },
+      };
+    }) as PetraProjectHistoryRecoveryAssessmentView["content"]["command_authority"]["required_commands"];
+    return {
+      principal_source: "server_authenticated_single_user",
+      principal_state: {
+        state: "configured",
+        actor: { ...this.#recoveryPrincipal },
+      },
+      required_commands: requiredCommands,
+      execution_recheck: "required_at_each_command",
+    };
+  }
+
+  async #recoveryCompensation(
+    client: PoolClient,
+    projectId: string,
+    promotionChangeSetId: string,
+  ): Promise<
+    | {
+        changeSet: PetraProjectHistoryRecoveryAssessmentView["content"]["recovery_subject"]["promotion_change_set"];
+        approval: PetraProjectHistoryRecoveryAssessmentView["content"]["recovery_subject"]["applied_approval"];
+        eventRef: ProjectHistoryEventRef;
+      }
+    | undefined
+  > {
+    const result = await client.query<RecoveryCompensationRow>(
+      `SELECT reversal.change_set_id, reversal.payload,
+              reversal.record_hash, reversal.current_state,
+              reversal.applied_approval_id,
+              approval.payload AS approval_payload,
+              approval.record_hash AS approval_record_hash,
+              event.payload AS event_payload,
+              event.record_hash AS event_record_hash
+         FROM petra.change_sets AS reversal
+         JOIN petra.domain_events AS event
+           ON event.project_id = reversal.project_id
+          AND event.event_type = 'change_set.reverted'
+          AND event.payload #>> '{event,payload,change_set_id}' =
+              reversal.change_set_id
+         JOIN petra.approvals AS approval
+           ON approval.approval_id = reversal.applied_approval_id
+          AND approval.change_set_id = reversal.change_set_id
+          AND approval.change_set_revision = reversal.revision
+          AND approval.change_set_content_hash = reversal.content_hash
+        WHERE reversal.project_id = $1
+          AND reversal.compensates_change_set_id = $2
+          AND reversal.current_state = 'applied'
+        ORDER BY event.stream_revision
+        LIMIT 2`,
+      [projectId, promotionChangeSetId],
+    );
+    if (result.rows.length === 0) return undefined;
+    if (result.rows.length !== 1) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "More than one applied compensation claims the same promotion ChangeSet.",
+      );
+    }
+    const row = result.rows[0];
+    if (row === undefined) return undefined;
+    const changeSet = this.#recoveryChangeSet(
+      row,
+      row.change_set_id,
+      "compensation ChangeSet",
+    );
+    const approvalPayload = record(
+      row.approval_payload,
+      "compensation Approval",
+    );
+    this.#contracts.assertValid("approval", "1.0.0", approvalPayload);
+    if (canonicalHash(approvalPayload) !== row.approval_record_hash) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The compensation Approval record hash does not match its immutable payload.",
+      );
+    }
+    const approvalSubject = objectMember(
+      approvalPayload,
+      "subject",
+      "compensation Approval",
+    );
+    const approval = {
+      approval_id: stringMember(
+        approvalPayload,
+        "approval_id",
+        "compensation Approval",
+      ),
+      revision: 1 as const,
+      change_set_id: changeSet.ref.change_set_id,
+      change_set_revision: 1 as const,
+      change_set_content_hash: changeSet.ref.content_hash,
+      decision: "approved" as const,
+      record_hash: row.approval_record_hash,
+    };
+    if (
+      stringMember(
+        approvalSubject,
+        "change_set_id",
+        "compensation Approval subject",
+      ) !== changeSet.ref.change_set_id ||
+      stringMember(approvalPayload, "decision", "compensation Approval") !==
+        "approved"
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The compensation Approval does not authorize the exact compensation ChangeSet.",
+      );
+    }
+    const event = record(row.event_payload, "compensation event");
+    const version = stringMember(event, "schema_version", "compensation event");
+    this.#contracts.assertValid("domain-event", version, event);
+    if (canonicalHash(event) !== row.event_record_hash) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The compensation event record hash does not match its immutable payload.",
+      );
+    }
+    return {
+      changeSet: changeSet.ref,
+      approval,
+      eventRef: {
+        event_id: stringMember(event, "event_id", "compensation event"),
+        schema_version: version as ProjectHistoryEventRef["schema_version"],
+        event_type: "change_set.reverted",
+        event_position: numberMember(
+          event,
+          "event_position",
+          "compensation event",
+        ),
+        stream_revision: numberMember(
+          event,
+          "stream_revision",
+          "compensation event",
+        ),
+        record_hash: row.event_record_hash,
+      },
+    };
+  }
+
+  #recoveryEligibility(
+    promotion: RecoveryChangeSetAuthority,
+    operations: readonly RecoveryOperationRow[],
+    claimRow: RecoveryEvidenceRow,
+    assertionRow: RecoveryEvidenceRow,
+    selectedClaim: JsonRecord,
+    selectedAssertion: JsonRecord,
+    commandAuthority: PetraProjectHistoryRecoveryAssessmentView["content"]["command_authority"],
+  ): PetraProjectHistoryRecoveryAssessmentView["content"]["assessment"] {
+    const blockers: Array<{
+      code:
+        | "selected_change_set_is_compensation"
+        | "change_set_not_applied"
+        | "change_set_operation_set_invalid"
+        | "target_revision_changed"
+        | "target_authority_changed"
+        | "target_pair_mismatch"
+        | "impact_target_set_mismatch"
+        | "command_authority_missing"
+        | "command_authority_ambiguous";
+      detail: string;
+    }> = [];
+    const content = objectMember(
+      promotion.payload,
+      "content",
+      "promotion ChangeSet",
+    );
+    if (content.compensates_change_set_id !== undefined) {
+      blockers.push({
+        code: "selected_change_set_is_compensation",
+        detail: "A compensation ChangeSet cannot itself be compensated.",
+      });
+    }
+    if (promotion.ref.current_state !== "applied") {
+      blockers.push({
+        code: "change_set_not_applied",
+        detail: `The promotion ChangeSet is currently ${promotion.ref.current_state}, not applied.`,
+      });
+    }
+    const claimOperation = operations.find(
+      ({ operation_kind }) => operation_kind === "promote_claim",
+    );
+    const assertionOperation = operations.find(
+      ({ operation_kind }) => operation_kind === "promote_assertion",
+    );
+    if (
+      operations.length !== 2 ||
+      claimOperation === undefined ||
+      assertionOperation === undefined
+    ) {
+      blockers.push({
+        code: "change_set_operation_set_invalid",
+        detail:
+          "The promotion does not contain exactly one Claim and one Assertion promotion operation.",
+      });
+    } else {
+      const expectedClaimRevision = numberMember(
+        selectedClaim,
+        "revision",
+        "selected recovery claim",
+      );
+      const expectedAssertionRevision = numberMember(
+        selectedAssertion,
+        "revision",
+        "selected recovery assertion",
+      );
+      if (
+        claimOperation.target_id !== claimRow.evidence_id ||
+        assertionOperation.target_id !== assertionRow.evidence_id ||
+        this.#safeImpactPosition(
+          claimOperation.base_revision,
+          "promotion Claim base revision",
+        ) +
+          1 !==
+          expectedClaimRevision ||
+        this.#safeImpactPosition(
+          assertionOperation.base_revision,
+          "promotion Assertion base revision",
+        ) +
+          1 !==
+          expectedAssertionRevision
+      ) {
+        blockers.push({
+          code: "change_set_operation_set_invalid",
+          detail:
+            "The promotion operations do not bind the exact Claim and Assertion outputs recorded by the selected event.",
+        });
+      }
+      if (
+        this.#safeImpactPosition(
+          claimRow.current_revision,
+          "current Claim revision",
+        ) !== expectedClaimRevision ||
+        this.#safeImpactPosition(
+          assertionRow.current_revision,
+          "current Assertion revision",
+        ) !== expectedAssertionRevision ||
+        canonicalize(claimRow.payload) !== canonicalize(selectedClaim) ||
+        canonicalize(assertionRow.payload) !== canonicalize(selectedAssertion)
+      ) {
+        blockers.push({
+          code: "target_revision_changed",
+          detail:
+            "At least one current target no longer equals the exact authority revision produced by the selected event.",
+        });
+      }
+    }
+    const claim = record(claimRow.payload, "current recovery Claim");
+    const assertion = record(
+      assertionRow.payload,
+      "current recovery Assertion",
+    );
+    const claimAuthority = objectMember(
+      claim,
+      "authority",
+      "current recovery Claim",
+    );
+    const assertionAuthority = objectMember(
+      assertion,
+      "authority",
+      "current recovery Assertion",
+    );
+    const claimPromotion =
+      claimAuthority.promotion === undefined
+        ? undefined
+        : record(claimAuthority.promotion, "current Claim promotion");
+    const assertionPromotion =
+      assertionAuthority.promotion === undefined
+        ? undefined
+        : record(assertionAuthority.promotion, "current Assertion promotion");
+    if (
+      claimRow.authority_zone !== "trusted" ||
+      assertionRow.authority_zone !== "trusted" ||
+      claimRow.review_state !== "human_accepted" ||
+      assertionRow.review_state !== "human_accepted" ||
+      claimPromotion?.change_set_id !== promotion.ref.change_set_id ||
+      assertionPromotion?.change_set_id !== promotion.ref.change_set_id
+    ) {
+      blockers.push({
+        code: "target_authority_changed",
+        detail:
+          "The current targets are no longer the trusted, human-accepted pair authorized by this promotion.",
+      });
+    }
+    const assertionObject = objectMember(
+      assertion,
+      "object",
+      "current recovery Assertion",
+    );
+    if (
+      assertion.predicate !== "ASSERTS" ||
+      assertionObject.object_kind !== "entity" ||
+      assertionObject.entity_id !== claimRow.evidence_id
+    ) {
+      blockers.push({
+        code: "target_pair_mismatch",
+        detail:
+          "The current Assertion no longer forms the exact ASSERTS edge to the current Claim.",
+      });
+    }
+    const impact = objectMember(content, "impact", "promotion ChangeSet");
+    const affected = member<unknown>(
+      impact,
+      "affected_object_ids",
+      "promotion ChangeSet impact",
+    );
+    if (
+      !Array.isArray(affected) ||
+      affected.length !== 2 ||
+      new Set(affected).size !== 2 ||
+      !affected.includes(claimRow.evidence_id) ||
+      !affected.includes(assertionRow.evidence_id)
+    ) {
+      blockers.push({
+        code: "impact_target_set_mismatch",
+        detail:
+          "The retained impact does not name exactly the Claim–Assertion pair to be compensated.",
+      });
+    }
+    for (const command of commandAuthority.required_commands) {
+      if (command.state === "denied") {
+        blockers.push({
+          code:
+            command.reason === "active_grant_ambiguous"
+              ? "command_authority_ambiguous"
+              : "command_authority_missing",
+          detail: `${command.command_name} is not currently authorized (${command.reason}).`,
+        });
+      }
+    }
+    return blockers.length === 0
+      ? {
+          state: "eligible_for_preview",
+          scope: "single_change_set_compensation",
+          reason:
+            "The exact promotion, trusted Claim–ASSERTS pair, applied Approval, and required current command grants are available for a separately requested revision-bound preview.",
+          blockers: [],
+        }
+      : ({
+          state: "blocked",
+          scope: "single_change_set_compensation",
+          reason:
+            "The exact single-ChangeSet compensation path cannot proceed to preview under current authority.",
+          blockers: blockers.slice(0, 20),
+        } as unknown as PetraProjectHistoryRecoveryAssessmentView["content"]["assessment"]);
   }
 
   async #semanticTargetImpact(

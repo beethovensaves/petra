@@ -232,6 +232,17 @@
       "typescript_path": "src/generated/project-history-impact-view-v1-2.ts"
     },
     {
+      "name": "project-history-recovery-assessment-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-recovery-assessment-view/1.0.0/schema.json",
+      "path": "schemas/project-history-recovery-assessment-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-exact-change-set-recovery-assessment",
+      "canonical_sha256": "sha256:16cd8ad1837049ce5176d22622040d9b02e7ef46cbf5ae179fb21c26f93d84fe",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-recovery-assessment-view.ts"
+    },
+    {
       "name": "project-effective-controls-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-effective-controls-view/1.0.0/schema.json",

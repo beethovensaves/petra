@@ -1,0 +1,215 @@
+{
+  "schema_name": "petra.project-history-recovery-assessment-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "content": {
+    "view_kind": "change_set_recovery_assessment",
+    "authorization_scope": "authenticated_project",
+    "selected_event": {
+      "command_ref": {
+        "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBN",
+        "schema_version": "1.0.0",
+        "command_name": "ApplyChangeSet",
+        "idempotency_key": "review:claim-fbb:apply:v1",
+        "command_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+        "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK"
+      },
+      "event_ref": {
+        "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+        "schema_version": "1.0.0",
+        "event_type": "change_set.applied",
+        "event_position": 3,
+        "stream_revision": 3,
+        "record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "occurred_at": "2026-08-28T18:13:01.000Z",
+      "recorded_at": "2026-08-28T18:13:01.000Z",
+      "family": "change_control",
+      "targets": [
+        {
+          "role": "primary",
+          "semantic_key": "petra.change-set",
+          "object_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+          "revision": 1,
+          "content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+          "authority_state": "applied"
+        },
+        {
+          "role": "affected",
+          "semantic_key": "scientific.claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 2
+        },
+        {
+          "role": "affected",
+          "semantic_key": "scientific.assertion",
+          "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "revision": 2
+        }
+      ],
+      "observed_effect": {
+        "effect": "authority_change_applied",
+        "outcome": "completed",
+        "summary": "Applied the approved ChangeSet to the exact Claim and Assertion revisions."
+      },
+      "recovery": {
+        "eligibility": "ineligible",
+        "reason": "ChangeSet reversal requires a separate causal assessment. Generic undo and multi-step compensation are outside this bounded History slice."
+      },
+      "semantic_destination": {
+        "place_role": "history",
+        "task_intent": "view_history",
+        "object_ref": {
+          "semantic_key": "petra.change-set",
+          "object_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+          "revision": 1
+        }
+      }
+    },
+    "recovery_subject": {
+      "selected_event_role": "promotion",
+      "promotion_change_set": {
+        "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+        "revision": 1,
+        "schema_version": "1.0.0",
+        "content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+        "record_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "current_state": "applied"
+      },
+      "applied_approval": {
+        "approval_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+        "revision": 1,
+        "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+        "change_set_revision": 1,
+        "change_set_content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+        "decision": "approved",
+        "record_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "current_targets": [
+        {
+          "semantic_key": "scientific.claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 2,
+          "schema_name": "petra.claim",
+          "schema_version": "1.0.0",
+          "record_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "authority_zone": "trusted",
+          "review_state": "human_accepted",
+          "admission_kind": "promotion",
+          "promotion_change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF"
+        },
+        {
+          "semantic_key": "scientific.assertion",
+          "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "revision": 2,
+          "schema_name": "petra.assertion",
+          "schema_version": "1.0.0",
+          "record_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "authority_zone": "trusted",
+          "review_state": "human_accepted",
+          "admission_kind": "promotion",
+          "promotion_change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF"
+        }
+      ]
+    },
+    "command_authority": {
+      "principal_source": "server_authenticated_single_user",
+      "principal_state": {
+        "state": "configured",
+        "actor": {
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "actor_kind": "human"
+        }
+      },
+      "required_commands": [
+        {
+          "command_name": "SubmitChangeSet",
+          "state": "granted",
+          "grant_ref": {
+            "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+            "revision": 1,
+            "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          }
+        },
+        {
+          "command_name": "RecordApproval",
+          "state": "granted",
+          "grant_ref": {
+            "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+            "revision": 1,
+            "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          }
+        },
+        {
+          "command_name": "ApplyChangeSet",
+          "state": "granted",
+          "grant_ref": {
+            "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+            "revision": 1,
+            "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          }
+        }
+      ],
+      "execution_recheck": "required_at_each_command"
+    },
+    "causal_impact_basis": {
+      "source_event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+      "direct_dependency_summary": {
+        "registered_group_count": 4,
+        "total_count": 0,
+        "coverage": "complete"
+      },
+      "semantic_dependency_summary": {
+        "registered_adapter_count": 9,
+        "assessed_target_count": 3,
+        "supported_target_count": 3,
+        "total_count": 5,
+        "coverage": "complete"
+      },
+      "dependent_effect": "not_inferred_from_reference",
+      "unknowns": [
+        "unregistered_profile_specific_dependencies_may_exist",
+        "transitive_dependents_may_exist",
+        "external_system_dependents_are_not_observable"
+      ]
+    },
+    "assessment": {
+      "state": "eligible_for_preview",
+      "scope": "single_change_set_compensation",
+      "reason": "The exact promotion, trusted Claim–ASSERTS pair, applied Approval, and required current command grants are available for a separately requested revision-bound preview.",
+      "blockers": []
+    },
+    "decision_boundary": {
+      "reversibility": "assessed_for_exact_change_set",
+      "compensation_preview": "not_composed",
+      "compensation_execution": "not_performed",
+      "multi_step_compensation": "not_assessed"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "through_event_position": 3,
+      "through_stream_revision": 3
+    },
+    "omissions": [
+      "compensation_preview_not_composed",
+      "compensation_execution_not_performed",
+      "generic_undo_not_implemented",
+      "multi_step_compensation_not_assessed",
+      "historical_project_definition_not_interpreted",
+      "dependent_effect_not_inferred_from_reference",
+      "cross_family_total_order_not_asserted"
+    ],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "read_at": "2026-09-10T18:30:00.000Z"
+}

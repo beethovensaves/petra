@@ -215,7 +215,17 @@ export const createProjectShellPersistenceFromEnvironment = async (
         historyViews: new PostgresProjectHistoryViewReader(
           pool,
           new PetraContractRegistry(),
-          { cursorSecret: historyCursorSecret(environment) },
+          {
+            cursorSecret: historyCursorSecret(environment),
+            ...(configuredActorId === undefined || configuredActorId === ""
+              ? {}
+              : {
+                  recoveryPrincipal: {
+                    actor_id: configuredActorId,
+                    actor_kind: "human" as const,
+                  },
+                }),
+          },
         ),
         sourceViews: new PostgresProjectSourceViewReader(pool),
         sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(
@@ -268,7 +278,17 @@ export const createProjectShellPersistenceFromEnvironment = async (
     historyViews: new PostgresProjectHistoryViewReader(
       pool,
       new PetraContractRegistry(),
-      { cursorSecret: historyCursorSecret(environment) },
+      {
+        cursorSecret: historyCursorSecret(environment),
+        ...(configuredActorId === undefined || configuredActorId === ""
+          ? {}
+          : {
+              recoveryPrincipal: {
+                actor_id: configuredActorId,
+                actor_kind: "human" as const,
+              },
+            }),
+      },
     ),
     sourceViews: new PostgresProjectSourceViewReader(pool),
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),

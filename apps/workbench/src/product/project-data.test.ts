@@ -7,6 +7,7 @@ import type {
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV12,
+  PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -33,6 +34,7 @@ import {
   getRecentProjectHistory,
   getProjectHistoryEpisode,
   getProjectHistoryImpact,
+  getProjectHistoryRecoveryAssessment,
   getRetainedProjectHistory,
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
@@ -220,6 +222,16 @@ const historyImpactView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryImpactViewV12;
+
+const historyRecoveryView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-recovery-assessment-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRecoveryAssessmentView;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -691,6 +703,48 @@ describe("Project shell workbench adapter", () => {
       getProjectHistoryImpact(
         historyImpactView.project_id,
         historyImpactView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("reads an exact recovery assessment without composing compensation", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyRecoveryView));
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await getProjectHistoryRecoveryAssessment(
+      historyRecoveryView.project_id,
+      historyRecoveryView.event_id,
+    );
+
+    expect(result).toEqual(historyRecoveryView);
+    expect(result.content.assessment.state).toBe("eligible_for_preview");
+    expect(result.content.decision_boundary.compensation_preview).toBe(
+      "not_composed",
+    );
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${historyRecoveryView.project_id}/history/events/${historyRecoveryView.event_id}/recovery`,
+    );
+
+    const wrongEvent = structuredClone(historyRecoveryView);
+    wrongEvent.content.causal_impact_basis.source_event_id =
+      "event_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongEvent));
+    await expect(
+      getProjectHistoryRecoveryAssessment(
+        historyRecoveryView.project_id,
+        historyRecoveryView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const reorderedCommands = structuredClone(historyRecoveryView);
+    reorderedCommands.content.command_authority.required_commands.reverse();
+    fetch.mockResolvedValueOnce(Response.json(reorderedCommands));
+    await expect(
+      getProjectHistoryRecoveryAssessment(
+        historyRecoveryView.project_id,
+        historyRecoveryView.event_id,
       ),
     ).rejects.toMatchObject({ status: 502 });
   });

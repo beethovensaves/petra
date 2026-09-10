@@ -185,6 +185,16 @@ export type {
   UnavailableAssessment as ProjectHistoryUnavailableTargetAssessmentV12,
 } from "./generated/project-history-impact-view-v1-2.js";
 export type {
+  Assessment as ProjectHistoryRecoveryAssessment,
+  AssessmentBlocker as ProjectHistoryRecoveryAssessmentBlocker,
+  CausalImpactBasis as ProjectHistoryRecoveryCausalImpactBasis,
+  ChangeSetAuthorityRef as ProjectHistoryRecoveryChangeSetRef,
+  CommandAuthority as ProjectHistoryRecoveryCommandAuthority,
+  PetraProjectHistoryRecoveryAssessmentView,
+  RecoveryAssessmentContent as ProjectHistoryRecoveryAssessmentContent,
+  RecoverySubject as ProjectHistoryRecoverySubject,
+} from "./generated/project-history-recovery-assessment-view.js";
+export type {
   AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
   ControlSection as ProjectEffectiveControlSection,
   ControlSections as ProjectEffectiveControlSections,

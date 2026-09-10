@@ -5,6 +5,7 @@ import type {
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV12,
+  PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -475,6 +476,72 @@ const projectHistoryImpactView = (
     );
   }
   return value as unknown as PetraProjectHistoryImpactViewV12;
+};
+
+const projectHistoryRecoveryAssessmentView = (
+  value: unknown,
+): PetraProjectHistoryRecoveryAssessmentView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-recovery-assessment-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "change_set_recovery_assessment" ||
+    value.content.authorization_scope !== "authenticated_project" ||
+    !isRecord(value.content.selected_event) ||
+    !isRecord(value.content.selected_event.event_ref) ||
+    !isRecord(value.content.recovery_subject) ||
+    !Array.isArray(value.content.recovery_subject.current_targets) ||
+    value.content.recovery_subject.current_targets.length !== 2 ||
+    !isRecord(value.content.command_authority) ||
+    !Array.isArray(value.content.command_authority.required_commands) ||
+    value.content.command_authority.required_commands.length !== 3 ||
+    !isRecord(value.content.causal_impact_basis) ||
+    !isRecord(value.content.assessment) ||
+    !["eligible_for_preview", "blocked", "already_compensated"].includes(
+      String(value.content.assessment.state),
+    ) ||
+    !isRecord(value.content.decision_boundary) ||
+    value.content.decision_boundary.compensation_preview !== "not_composed" ||
+    value.content.decision_boundary.compensation_execution !==
+      "not_performed" ||
+    value.content.decision_boundary.multi_step_compensation !==
+      "not_assessed" ||
+    !isRecord(value.content.authority) ||
+    value.content.authority.isolation !== "repeatable_read" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History recovery assessment.",
+      502,
+    );
+  }
+  const commands = value.content.command_authority.required_commands;
+  const targets = value.content.recovery_subject.current_targets;
+  if (
+    commands.some(
+      (command, index) =>
+        !isRecord(command) ||
+        command.command_name !==
+          ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"][index],
+    ) ||
+    targets.some(
+      (target, index) =>
+        !isRecord(target) ||
+        target.semantic_key !==
+          ["scientific.claim", "scientific.assertion"][index],
+    )
+  ) {
+    throw new ProjectDataError(
+      "Petra returned recovery authority for a different command or evidence pair.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryRecoveryAssessmentView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -1739,6 +1806,28 @@ export const getProjectHistoryImpact = async (
   ) {
     throw new ProjectDataError(
       "Petra returned dependency impact from another Project or History event.",
+      502,
+    );
+  }
+  return view;
+};
+
+export const getProjectHistoryRecoveryAssessment = async (
+  projectId: string,
+  eventId: string,
+): Promise<PetraProjectHistoryRecoveryAssessmentView> => {
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}/recovery`,
+  );
+  const view = projectHistoryRecoveryAssessmentView(value);
+  if (
+    view.project_id !== projectId ||
+    view.event_id !== eventId ||
+    view.content.selected_event.event_ref.event_id !== eventId ||
+    view.content.causal_impact_basis.source_event_id !== eventId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a recovery assessment from another Project or History event.",
       502,
     );
   }

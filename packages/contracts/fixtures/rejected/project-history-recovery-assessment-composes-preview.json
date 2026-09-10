@@ -1,0 +1,31 @@
+{
+  "schema_name": "petra.project-history-recovery-assessment-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "content": {
+    "view_kind": "change_set_recovery_assessment",
+    "authorization_scope": "authenticated_project",
+    "selected_event": {},
+    "recovery_subject": {},
+    "command_authority": {},
+    "causal_impact_basis": {},
+    "assessment": {
+      "state": "eligible_for_preview",
+      "scope": "single_change_set_compensation",
+      "reason": "Preview was composed.",
+      "blockers": []
+    },
+    "decision_boundary": {
+      "reversibility": "assessed_for_exact_change_set",
+      "compensation_preview": "composed",
+      "compensation_execution": "not_performed",
+      "multi_step_compensation": "not_assessed"
+    },
+    "authority": {},
+    "omissions": [],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "read_at": "2026-09-10T18:30:00.000Z"
+}

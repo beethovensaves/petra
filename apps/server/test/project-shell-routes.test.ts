@@ -5,6 +5,7 @@ import type {
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV12,
+  PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -126,6 +127,16 @@ const historyImpactFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryImpactViewV12;
+
+const historyRecoveryFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-recovery-assessment-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRecoveryAssessmentView;
 
 const reviewFixture = JSON.parse(
   readFileSync(
@@ -280,6 +291,13 @@ const historyReader: ProjectHistoryViewReader = {
       projectId === historyImpactFixture.project_id &&
         eventId === historyImpactFixture.event_id
         ? structuredClone(historyImpactFixture)
+        : undefined,
+    ),
+  getProjectHistoryRecoveryAssessmentView: (projectId, eventId) =>
+    Promise.resolve(
+      projectId === historyRecoveryFixture.project_id &&
+        eventId === historyRecoveryFixture.event_id
+        ? structuredClone(historyRecoveryFixture)
         : undefined,
     ),
   listRetainedProjectHistoryView: (projectId, request = {}) => {
@@ -581,6 +599,36 @@ describe("authorized Project shell query routes", () => {
 
     const unauthorized = await petra.app.request(path);
     expect(unauthorized.status).toBe(401);
+  });
+
+  it("returns one authenticated read-only ChangeSet recovery assessment", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: historyReader,
+    });
+    const path = `/api/queries/projects/${historyRecoveryFixture.project_id}/history/events/${historyRecoveryFixture.event_id}/recovery`;
+    const response = await petra.app.request(authorized(path));
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(historyRecoveryFixture);
+
+    const override = await petra.app.request(
+      authorized(`${path}?execute=true`),
+    );
+    expect(override.status).toBe(422);
+    const overrideBody = (await override.json()) as {
+      error: { code: string };
+    };
+    expect(overrideBody.error.code).toBe(
+      "PROJECT_HISTORY_RECOVERY_TARGET_INVALID",
+    );
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/history/events/${historyRecoveryFixture.event_id}/recovery`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    expect((await petra.app.request(path)).status).toBe(401);
   });
 
   it("returns authenticated retained History pages and rejects unsafe query state", async () => {

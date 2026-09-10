@@ -7,6 +7,7 @@ import type {
   PetraArtifactManifest,
   PetraAssertion,
   PetraAuthor,
+  PetraCapabilityGrantRecord,
   PetraClaim,
   PetraCommandEnvelope,
   PetraEvidenceProposalBundle,
@@ -44,6 +45,7 @@ import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
+import { PostgresCapabilityGrantAuthorityRepository } from "../src/capability-grant-authority-repository.js";
 import { PostgresChangeControlAuthorityRepository } from "../src/change-control-authority-repository.js";
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
@@ -106,6 +108,17 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
   const historyViews = new PostgresProjectHistoryViewReader(pool);
+  const authorizedHistoryViews = new PostgresProjectHistoryViewReader(
+    pool,
+    undefined,
+    {
+      recoveryPrincipal: {
+        actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        actor_kind: "human",
+      },
+    },
+  );
+  const capabilityGrants = new PostgresCapabilityGrantAuthorityRepository(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -1149,6 +1162,9 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
 
   it("durably reverses a trusted pair while preserving every prior revision", async () => {
     await registerEvidenceChain();
+    await capabilityGrants.registerCapabilityGrant(
+      readFixture<PetraCapabilityGrantRecord>("capability-grant"),
+    );
     const commands = commandFixtures();
     const repository = authority();
     await repository.executeCommand(commands.submit);
@@ -1166,6 +1182,78 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     if (trustedClaim === undefined || trustedAssertion === undefined) {
       throw new Error("Expected current trusted evidence.");
     }
+    const promotionEvents = await repository.getDomainEvents({
+      projectId: commands.submit.project_id,
+    });
+    const appliedEvent = promotionEvents.find(
+      ({ event }) => event.event_type === "change_set.applied",
+    );
+    if (appliedEvent === undefined) {
+      throw new Error("Expected the exact promotion event.");
+    }
+    const unavailablePrincipalAssessment =
+      await historyViews.getProjectHistoryRecoveryAssessmentView(
+        commands.submit.project_id,
+        appliedEvent.event_id,
+      );
+    expect(unavailablePrincipalAssessment?.content.assessment).toMatchObject({
+      state: "blocked",
+      blockers: [
+        { code: "command_authority_missing" },
+        { code: "command_authority_missing" },
+        { code: "command_authority_missing" },
+      ],
+    });
+    const eligibleAssessment =
+      await authorizedHistoryViews.getProjectHistoryRecoveryAssessmentView(
+        commands.submit.project_id,
+        appliedEvent.event_id,
+      );
+    expect(eligibleAssessment?.content.assessment).toMatchObject({
+      state: "eligible_for_preview",
+      blockers: [],
+    });
+    expect(
+      eligibleAssessment?.content.command_authority.required_commands.map(
+        ({ state }) => state,
+      ),
+    ).toEqual(["granted", "granted", "granted"]);
+    expect(eligibleAssessment?.content.decision_boundary).toEqual({
+      reversibility: "assessed_for_exact_change_set",
+      compensation_preview: "not_composed",
+      compensation_execution: "not_performed",
+      multi_step_compensation: "not_assessed",
+    });
+    const overlappingGrant =
+      readFixture<PetraCapabilityGrantRecord>("capability-grant");
+    overlappingGrant.capability_grant_id =
+      "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBH";
+    overlappingGrant.content.reason =
+      "Deliberately overlap the exact recovery commands for ambiguity coverage.";
+    overlappingGrant.content_hash = canonicalHash(overlappingGrant.content);
+    await capabilityGrants.registerCapabilityGrant(overlappingGrant);
+    const ambiguousAssessment =
+      await authorizedHistoryViews.getProjectHistoryRecoveryAssessmentView(
+        commands.submit.project_id,
+        appliedEvent.event_id,
+      );
+    expect(
+      ambiguousAssessment?.content.assessment.state === "blocked"
+        ? ambiguousAssessment.content.assessment.blockers.map(
+            ({ code }) => code,
+          )
+        : [],
+    ).toEqual([
+      "command_authority_ambiguous",
+      "command_authority_ambiguous",
+      "command_authority_ambiguous",
+    ]);
+    await expect(
+      authorizedHistoryViews.getProjectHistoryRecoveryAssessmentView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        appliedEvent.event_id,
+      ),
+    ).resolves.toBeUndefined();
     const reviewer = commands.approve.command.approval.decided_by;
     const reversal = buildCompensatingReversalCommandPlan({
       project_id: commands.submit.project_id,
@@ -1259,6 +1347,31 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     expect(reversalImpact?.content.decision_boundary.reversibility).toBe(
       "not_assessed",
     );
+    const compensatedAssessment =
+      await authorizedHistoryViews.getProjectHistoryRecoveryAssessmentView(
+        commands.submit.project_id,
+        appliedEvent.event_id,
+      );
+    expect(compensatedAssessment?.content.assessment).toMatchObject({
+      state: "already_compensated",
+      compensation_change_set: {
+        change_set_id: reversal.change_set.change_set_id,
+        current_state: "applied",
+      },
+      compensation_event_ref: {
+        event_id: reversalEvent.event_id,
+        event_type: "change_set.reverted",
+      },
+    });
+    const reversalAssessment =
+      await authorizedHistoryViews.getProjectHistoryRecoveryAssessmentView(
+        commands.submit.project_id,
+        reversalEvent.event_id,
+      );
+    expect(reversalAssessment?.content).toMatchObject({
+      recovery_subject: { selected_event_role: "compensation" },
+      assessment: { state: "already_compensated" },
+    });
     const retainedHistory = await historyViews.listRetainedProjectHistoryView(
       commands.submit.project_id,
       { limit: 6 },
