@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-compensation-plan-view/1.0.0/schema.json",
+  "title": "PetraProjectHistoryCompensationPlanView",
+  "description": "A deterministic, non-persisted three-command compensation plan composed only after exact preview revalidation and explicit human confirmation. It is not execution and every command retains its transactional authority recheck.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "event_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-history-compensation-plan-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "content": { "$ref": "#/$defs/PlanContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "PreviewRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "content_hash",
+        "binding_hash",
+        "issued_at",
+        "valid_through"
+      ],
+      "properties": {
+        "schema_name": {
+          "const": "petra.project-history-compensation-preview-view"
+        },
+        "schema_version": { "const": "1.0.0" },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "binding_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "issued_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "valid_through": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "Revalidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "checked_at",
+        "assessment_content_hash",
+        "authority",
+        "target_bindings",
+        "preview_command_bindings",
+        "preview_expiry"
+      ],
+      "properties": {
+        "state": { "const": "passed" },
+        "checked_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "assessment_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "authority": {
+          "$ref": "../../project-history-impact-view/1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "target_bindings": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "../../project-history-compensation-preview-view/1.0.0/schema.json#/$defs/OperationPreview"
+          }
+        },
+        "preview_command_bindings": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "$ref": "../../project-history-compensation-preview-view/1.0.0/schema.json#/$defs/CommandStep"
+          }
+        },
+        "preview_expiry": { "const": "unexpired" }
+      }
+    },
+    "PlannedCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position", "command_name", "envelope", "state"],
+      "properties": {
+        "position": { "enum": [1, 2, 3] },
+        "command_name": {
+          "enum": ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        },
+        "envelope": {
+          "$ref": "../../command-envelope/1.1.0/schema.json"
+        },
+        "state": { "const": "composed_not_submitted" }
+      }
+    },
+    "PlanContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plan_kind",
+        "authorization_scope",
+        "preview_ref",
+        "confirmation",
+        "revalidation",
+        "change_set",
+        "approval",
+        "commands",
+        "persistence",
+        "execution",
+        "decision_boundary",
+        "omissions",
+        "graph_navigation_history"
+      ],
+      "properties": {
+        "plan_kind": { "const": "single_change_set_compensation_command_plan" },
+        "authorization_scope": { "const": "authenticated_project" },
+        "preview_ref": { "$ref": "#/$defs/PreviewRef" },
+        "confirmation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "confirmed_by", "confirmed_at"],
+          "properties": {
+            "state": { "const": "explicitly_confirmed" },
+            "confirmed_by": {
+              "$ref": "../../approval/1.0.0/schema.json#/$defs/HumanActorRef"
+            },
+            "confirmed_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            }
+          }
+        },
+        "revalidation": { "$ref": "#/$defs/Revalidation" },
+        "change_set": { "$ref": "../../change-set/1.1.0/schema.json" },
+        "approval": { "$ref": "../../approval/1.0.0/schema.json" },
+        "commands": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/PlannedCommand" }
+        },
+        "persistence": {
+          "const": {
+            "change_set": "not_persisted",
+            "approval": "not_persisted",
+            "commands": "not_persisted"
+          }
+        },
+        "execution": {
+          "const": {
+            "state": "not_performed",
+            "requires_separate_request": true,
+            "authority_recheck": "required_at_each_command"
+          }
+        },
+        "decision_boundary": {
+          "const": {
+            "preview": "revalidated",
+            "command_plan": "composed",
+            "compensation": "not_persisted_or_executed",
+            "generic_undo": "not_available",
+            "multi_step_compensation": "not_assessed"
+          }
+        },
+        "omissions": {
+          "const": [
+            "commands_not_submitted",
+            "compensation_not_persisted",
+            "compensation_not_executed",
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted"
+          ]
+        },
+        "graph_navigation_history": { "const": "client_local_separate" }
+      }
+    }
+  }
+}

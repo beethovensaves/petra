@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-compensation-plan-request/1.0.0/schema.json",
+  "title": "PetraProjectHistoryCompensationPlanRequest",
+  "description": "An explicit single-user confirmation of one exact, unexpired Project History compensation preview reference. The request supplies no Actor, grant, command identity, or execution authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "event_id",
+    "preview_ref",
+    "confirmation"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-history-compensation-plan-request"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "preview_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "content_hash",
+        "binding_hash",
+        "issued_at",
+        "valid_through"
+      ],
+      "properties": {
+        "schema_name": {
+          "const": "petra.project-history-compensation-preview-view"
+        },
+        "schema_version": { "const": "1.0.0" },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "binding_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "issued_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "valid_through": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["confirmed", "reason", "approval_rationale"],
+      "properties": {
+        "confirmed": { "const": true },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "approval_rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        }
+      }
+    }
+  }
+}

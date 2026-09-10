@@ -1,4 +1,6 @@
 import type {
+  PetraProjectHistoryCompensationPlanRequest,
+  PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV12,
@@ -32,6 +34,15 @@ export class ProjectHistoryRecoveryPreviewUnavailableError extends Error {
   }
 }
 
+export class ProjectHistoryCompensationPlanUnavailableError extends Error {
+  readonly code = "PROJECT_HISTORY_COMPENSATION_PLAN_UNAVAILABLE" as const;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "ProjectHistoryCompensationPlanUnavailableError";
+  }
+}
+
 /**
  * Authorized Project History composition. Implementations read existing
  * immutable command/event authority and current recovery authority; they do
@@ -57,6 +68,9 @@ export interface ProjectHistoryViewReader {
     projectId: string,
     eventId: string,
   ): Promise<PetraProjectHistoryCompensationPreviewView | undefined>;
+  composeProjectHistoryCompensationPlan(
+    request: PetraProjectHistoryCompensationPlanRequest,
+  ): Promise<PetraProjectHistoryCompensationPlanView | undefined>;
   listRetainedProjectHistoryView(
     projectId: string,
     request?: ProjectHistoryRetainedCollectionRequest,

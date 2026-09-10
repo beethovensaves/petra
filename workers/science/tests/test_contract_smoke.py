@@ -4729,6 +4729,170 @@ class PetraCommandEnvelopeV110(PetraModel):
     command: SubmitChangeSetV110 | RecordApproval | ApplyChangeSet
 
 
+class ProjectHistoryCompensationPlanPreviewRef(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-preview-view"]
+    schema_version: Literal["1.0.0"]
+    content_hash: str
+    binding_hash: str
+    issued_at: str
+    valid_through: str
+
+
+class ProjectHistoryCompensationPlanRequestConfirmation(PetraModel):
+    confirmed: Literal[True]
+    reason: str = Field(min_length=1, max_length=8000)
+    approval_rationale: str = Field(min_length=1, max_length=8000)
+
+
+class PetraProjectHistoryCompensationPlanRequest(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-plan-request"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    preview_ref: ProjectHistoryCompensationPlanPreviewRef
+    confirmation: ProjectHistoryCompensationPlanRequestConfirmation
+
+
+class ProjectHistoryCompensationPlanRevalidation(PetraModel):
+    state: Literal["passed"]
+    checked_at: str
+    assessment_content_hash: str
+    authority: ProjectHistoryImpactAuthority
+    target_bindings: list[
+        ProjectHistoryCompensationClaimOperation
+        | ProjectHistoryCompensationAssertionOperation
+    ] = Field(min_length=2, max_length=2)
+    preview_command_bindings: list[ProjectHistoryCompensationCommandStep] = Field(
+        min_length=3, max_length=3
+    )
+    preview_expiry: Literal["unexpired"]
+
+
+class ProjectHistoryCompensationPlannedCommand(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    envelope: PetraCommandEnvelopeV110
+    state: Literal["composed_not_submitted"]
+
+
+class ProjectHistoryCompensationPlanConfirmation(PetraModel):
+    state: Literal["explicitly_confirmed"]
+    confirmed_by: HumanActorRef
+    confirmed_at: str
+
+
+class ProjectHistoryCompensationPlanPersistence(PetraModel):
+    change_set: Literal["not_persisted"]
+    approval: Literal["not_persisted"]
+    commands: Literal["not_persisted"]
+
+
+class ProjectHistoryCompensationPlanExecution(PetraModel):
+    state: Literal["not_performed"]
+    requires_separate_request: Literal[True]
+    authority_recheck: Literal["required_at_each_command"]
+
+
+class ProjectHistoryCompensationPlanDecisionBoundary(PetraModel):
+    preview: Literal["revalidated"]
+    command_plan: Literal["composed"]
+    compensation: Literal["not_persisted_or_executed"]
+    generic_undo: Literal["not_available"]
+    multi_step_compensation: Literal["not_assessed"]
+
+
+class ProjectHistoryCompensationPlanContent(PetraModel):
+    plan_kind: Literal["single_change_set_compensation_command_plan"]
+    authorization_scope: Literal["authenticated_project"]
+    preview_ref: ProjectHistoryCompensationPlanPreviewRef
+    confirmation: ProjectHistoryCompensationPlanConfirmation
+    revalidation: ProjectHistoryCompensationPlanRevalidation
+    change_set: PetraChangeSetV110
+    approval: PetraApproval
+    commands: list[ProjectHistoryCompensationPlannedCommand] = Field(
+        min_length=3, max_length=3
+    )
+    persistence: ProjectHistoryCompensationPlanPersistence
+    execution: ProjectHistoryCompensationPlanExecution
+    decision_boundary: ProjectHistoryCompensationPlanDecisionBoundary
+    omissions: list[
+        Literal[
+            "commands_not_submitted",
+            "compensation_not_persisted",
+            "compensation_not_executed",
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted",
+        ]
+    ] = Field(min_length=5, max_length=5)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_plan(self) -> ProjectHistoryCompensationPlanContent:
+        expected_commands = ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        if [command.command_name for command in self.commands] != expected_commands or [
+            command.position for command in self.commands
+        ] != [1, 2, 3]:
+            raise ValueError("compensation plan must preserve exact command order")
+        if [
+            command.envelope.command.command_name for command in self.commands
+        ] != expected_commands:
+            raise ValueError("compensation plan envelope order is inconsistent")
+        submit = self.commands[0].envelope.command
+        review = self.commands[1].envelope.command
+        apply = self.commands[2].envelope.command
+        if not isinstance(submit, SubmitChangeSetV110):
+            raise ValueError("compensation plan must begin with its exact ChangeSet")
+        if not isinstance(review, RecordApproval) or not isinstance(
+            apply, ApplyChangeSet
+        ):
+            raise ValueError("compensation plan Approval/apply sequence is invalid")
+        if submit.change_set != self.change_set or review.approval != self.approval:
+            raise ValueError("compensation plan embedded records must be exact")
+        if (
+            self.approval.subject.change_set_id != self.change_set.change_set_id
+            or self.approval.subject.change_set_content_hash
+            != self.change_set.content_hash
+            or apply.change_set_id != self.change_set.change_set_id
+            or apply.change_set_content_hash != self.change_set.content_hash
+            or apply.approval_id != self.approval.approval_id
+        ):
+            raise ValueError("compensation plan causal identities must agree")
+        if [command.envelope.capability_grant_id for command in self.commands] != [
+            grant.grant_ref.capability_grant_id
+            for grant in self.revalidation.preview_command_bindings
+        ]:
+            raise ValueError("compensation plan grants must match revalidation")
+        return self
+
+
+class PetraProjectHistoryCompensationPlanView(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-plan-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryCompensationPlanContent
+    content_hash: str
+    read_at: str
+
+    @model_validator(mode="after")
+    def exact_view_binding(self) -> PetraProjectHistoryCompensationPlanView:
+        if (
+            self.content.change_set.content.project_id != self.project_id
+            or any(
+                command.envelope.project_id != self.project_id
+                for command in self.content.commands
+            )
+            or self.content.confirmation.confirmed_at != self.read_at
+            or self.content.revalidation.checked_at != self.read_at
+            or self.content.change_set.proposed_at != self.read_at
+            or self.content.approval.decided_at != self.read_at
+        ):
+            raise ValueError(
+                "compensation plan must preserve exact Project and read authority"
+            )
+        return self
+
+
 class ChangeSetSubmittedPayloadV110(PetraModel):
     change_set: PetraChangeSetV110
 
@@ -8312,6 +8476,10 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-history-compensation-preview-view": (
         PetraProjectHistoryCompensationPreviewView
     ),
+    "project-history-compensation-plan-request": (
+        PetraProjectHistoryCompensationPlanRequest
+    ),
+    "project-history-compensation-plan-view": PetraProjectHistoryCompensationPlanView,
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-replacement": PetraProjectSourceReplacement,

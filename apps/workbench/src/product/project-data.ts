@@ -1,4 +1,6 @@
 import type {
+  PetraProjectHistoryCompensationPlanRequest,
+  PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
   CommandProjectSourceReplacementRef,
   PetraProjectSource,
@@ -616,6 +618,89 @@ const projectHistoryCompensationPreviewView = (
     );
   }
   return value as unknown as PetraProjectHistoryCompensationPreviewView;
+};
+
+const projectHistoryCompensationPlanView = (
+  value: unknown,
+): PetraProjectHistoryCompensationPlanView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-compensation-plan-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.plan_kind !== "single_change_set_compensation_command_plan" ||
+    value.content.authorization_scope !== "authenticated_project" ||
+    !isRecord(value.content.preview_ref) ||
+    !isRecord(value.content.confirmation) ||
+    value.content.confirmation.state !== "explicitly_confirmed" ||
+    !isRecord(value.content.revalidation) ||
+    value.content.revalidation.state !== "passed" ||
+    value.content.revalidation.preview_expiry !== "unexpired" ||
+    !isRecord(value.content.change_set) ||
+    value.content.change_set.schema_name !== "petra.change-set" ||
+    value.content.change_set.schema_version !== "1.1.0" ||
+    !isRecord(value.content.approval) ||
+    !Array.isArray(value.content.commands) ||
+    value.content.commands.length !== 3 ||
+    !isRecord(value.content.persistence) ||
+    value.content.persistence.change_set !== "not_persisted" ||
+    value.content.persistence.approval !== "not_persisted" ||
+    value.content.persistence.commands !== "not_persisted" ||
+    !isRecord(value.content.execution) ||
+    value.content.execution.state !== "not_performed" ||
+    value.content.execution.requires_separate_request !== true ||
+    value.content.execution.authority_recheck !== "required_at_each_command" ||
+    !isRecord(value.content.decision_boundary) ||
+    value.content.decision_boundary.command_plan !== "composed" ||
+    value.content.decision_boundary.compensation !==
+      "not_persisted_or_executed" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History compensation command plan.",
+      502,
+    );
+  }
+  const changeSet = value.content.change_set;
+  const approval = value.content.approval;
+  const commands = value.content.commands;
+  if (
+    typeof changeSet.change_set_id !== "string" ||
+    typeof changeSet.content_hash !== "string" ||
+    !isRecord(changeSet.content) ||
+    changeSet.content.compensates_change_set_id === undefined ||
+    approval.schema_name !== "petra.approval" ||
+    approval.decision !== "approved" ||
+    !isRecord(approval.subject) ||
+    approval.subject.change_set_id !== changeSet.change_set_id ||
+    approval.subject.change_set_content_hash !== changeSet.content_hash ||
+    commands.some((step, index) => {
+      if (
+        !isRecord(step) ||
+        step.position !== index + 1 ||
+        step.command_name !==
+          ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"][index] ||
+        step.state !== "composed_not_submitted" ||
+        !isRecord(step.envelope) ||
+        step.envelope.project_id !== value.project_id ||
+        !isRecord(step.envelope.command) ||
+        step.envelope.command.command_name !== step.command_name
+      ) {
+        return true;
+      }
+      return false;
+    })
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation plan with inconsistent ChangeSet, Approval, or command identities.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryCompensationPlanView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -1924,6 +2009,74 @@ export const getProjectHistoryCompensationPreview = async (
   ) {
     throw new ProjectDataError(
       "Petra returned a compensation preview from another Project or History event.",
+      502,
+    );
+  }
+  return view;
+};
+
+export interface ProjectHistoryCompensationPlanInput {
+  readonly projectId: string;
+  readonly eventId: string;
+  readonly preview: PetraProjectHistoryCompensationPreviewView;
+  readonly reason: string;
+  readonly approvalRationale: string;
+  readonly explicitConfirmation: true;
+}
+
+export const composeProjectHistoryCompensationPlan = async (
+  input: ProjectHistoryCompensationPlanInput,
+): Promise<PetraProjectHistoryCompensationPlanView> => {
+  if (
+    input.reason.trim().length === 0 ||
+    input.approvalRationale.trim().length === 0 ||
+    input.preview.project_id !== input.projectId ||
+    input.preview.event_id !== input.eventId
+  ) {
+    throw new ProjectDataError(
+      "A compensation plan requires an exact routed preview, reason, Approval rationale, and explicit confirmation.",
+      400,
+    );
+  }
+  const request: PetraProjectHistoryCompensationPlanRequest = {
+    schema_name: "petra.project-history-compensation-plan-request",
+    schema_version: "1.0.0",
+    project_id: input.projectId,
+    event_id: input.eventId,
+    preview_ref: {
+      schema_name: "petra.project-history-compensation-preview-view",
+      schema_version: "1.0.0",
+      content_hash: input.preview.content_hash,
+      binding_hash: input.preview.content.freshness.binding_hash,
+      issued_at: input.preview.content.freshness.issued_at,
+      valid_through: input.preview.content.freshness.valid_through,
+    },
+    confirmation: {
+      confirmed: input.explicitConfirmation,
+      reason: input.reason,
+      approval_rationale: input.approvalRationale,
+    },
+  };
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(input.projectId)}/history/events/${encodeURIComponent(input.eventId)}/recovery/plan`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+  const view = projectHistoryCompensationPlanView(value);
+  if (
+    view.project_id !== input.projectId ||
+    view.event_id !== input.eventId ||
+    view.content.preview_ref.content_hash !== input.preview.content_hash ||
+    view.content.preview_ref.binding_hash !==
+      input.preview.content.freshness.binding_hash ||
+    view.content.change_set.content.reason !== input.reason ||
+    view.content.approval.rationale !== input.approvalRationale
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation plan from another Project, event, preview, or confirmed input.",
       502,
     );
   }

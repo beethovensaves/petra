@@ -15,11 +15,15 @@ import {
   parseAgUiReviewResponse,
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
-import type { ProjectHistoryRetainedCollectionFiltersV11 } from "@petra/contracts";
+import type {
+  PetraProjectHistoryCompensationPlanRequest,
+  ProjectHistoryRetainedCollectionFiltersV11,
+} from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   DurableReviewInterruptError,
   PetraInteractionRuntime,
+  ProjectHistoryCompensationPlanUnavailableError,
   ProjectHistoryRecoveryPreviewUnavailableError,
   ProjectHistoryViewRequestError,
   ProjectSourceLifecycleAuthorityError,
@@ -825,6 +829,106 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The effective Project controls view is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/queries/projects/:projectId/history/events/:eventId/recovery/plan",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const projectId = context.req.param("projectId");
+        const eventId = context.req.param("eventId");
+        if (
+          [...parameters.keys()].length > 0 ||
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !EVENT_ID_PATTERN.test(eventId)
+        ) {
+          throw new InteractionInputError(
+            "A History compensation plan requires canonical Project and event identities and accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const value = await readBoundedJson(context, maxBodyBytes);
+        try {
+          contracts.assertValid(
+            "project-history-compensation-plan-request",
+            "1.0.0",
+            value,
+          );
+        } catch {
+          throw new InteractionInputError(
+            "The History compensation plan request must contain one exact preview reference, non-empty reason and Approval rationale, and explicit confirmation.",
+          );
+        }
+        const request = value as PetraProjectHistoryCompensationPlanRequest;
+        if (
+          request.project_id !== projectId ||
+          request.event_id !== eventId ||
+          request.confirmation.reason.trim().length === 0 ||
+          request.confirmation.approval_rationale.trim().length === 0
+        ) {
+          throw new InteractionInputError(
+            "The compensation plan request must remain bound to the routed Project and event and contain substantive confirmed input.",
+          );
+        }
+        const view =
+          await options.projectHistoryViews.composeProjectHistoryCompensationPlan(
+            request,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_HISTORY_EVENT_NOT_FOUND",
+            "The requested event is not available in this Project History.",
+          );
+        }
+        contracts.assertValid(
+          "project-history-compensation-plan-view",
+          "1.0.0",
+          view,
+        );
+        if (
+          view.project_id !== projectId ||
+          view.event_id !== eventId ||
+          view.content.preview_ref.content_hash !==
+            request.preview_ref.content_hash ||
+          view.content.preview_ref.binding_hash !==
+            request.preview_ref.binding_hash
+        ) {
+          throw new Error(
+            "The Project History compensation plan returned a different Project, event, or preview binding.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        const invalid = error instanceof InteractionInputError;
+        const unavailable =
+          error instanceof ProjectHistoryCompensationPlanUnavailableError ||
+          error instanceof ProjectHistoryRecoveryPreviewUnavailableError;
+        return jsonError(
+          context,
+          invalid ? 422 : unavailable ? 409 : 503,
+          invalid
+            ? "PROJECT_HISTORY_COMPENSATION_PLAN_REQUEST_INVALID"
+            : unavailable
+              ? "PROJECT_HISTORY_COMPENSATION_PLAN_UNAVAILABLE"
+              : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project History compensation command plan is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

@@ -1,0 +1,378 @@
+{
+  "schema_name": "petra.project-history-compensation-plan-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "content": {
+    "plan_kind": "single_change_set_compensation_command_plan",
+    "authorization_scope": "authenticated_project",
+    "preview_ref": {
+      "schema_name": "petra.project-history-compensation-preview-view",
+      "schema_version": "1.0.0",
+      "content_hash": "sha256:b599ace876abf5f6343e4f649f4205b6ca45793da4e62219c4a99522c10518b2",
+      "binding_hash": "sha256:f88b0762d978690923fcc33ad7c2eb23ec3e55acd708fe9487b65561f9978c39",
+      "issued_at": "2026-09-10T18:30:00.000Z",
+      "valid_through": "2026-09-10T18:35:00.000Z"
+    },
+    "confirmation": {
+      "state": "explicitly_confirmed",
+      "confirmed_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "confirmed_at": "2026-09-10T18:31:00.000Z"
+    },
+    "revalidation": {
+      "state": "passed",
+      "checked_at": "2026-09-10T18:31:00.000Z",
+      "assessment_content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "authority": {
+        "isolation": "repeatable_read",
+        "through_event_position": 3,
+        "through_stream_revision": 3
+      },
+      "target_bindings": [
+        {
+          "operation_kind": "retract_claim",
+          "target_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "base_revision": 2,
+          "current_record_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "before": {
+            "zone": "trusted",
+            "review_state": "human_accepted"
+          },
+          "after": {
+            "zone": "quarantine",
+            "review_state": "human_rejected"
+          }
+        },
+        {
+          "operation_kind": "retract_assertion",
+          "target_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "base_revision": 2,
+          "current_record_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "before": {
+            "zone": "trusted",
+            "review_state": "human_accepted"
+          },
+          "after": {
+            "zone": "quarantine",
+            "review_state": "human_rejected"
+          }
+        }
+      ],
+      "preview_command_bindings": [
+        {
+          "position": 1,
+          "command_name": "SubmitChangeSet",
+          "actor": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "human"
+          },
+          "grant_ref": {
+            "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+            "revision": 1,
+            "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "composition_state": "not_composed",
+          "authority_recheck": "required",
+          "prerequisite": "confirmed_preview_and_required_input"
+        },
+        {
+          "position": 2,
+          "command_name": "RecordApproval",
+          "actor": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "human"
+          },
+          "grant_ref": {
+            "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+            "revision": 1,
+            "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "composition_state": "not_composed",
+          "authority_recheck": "required",
+          "prerequisite": "submitted_exact_change_set"
+        },
+        {
+          "position": 3,
+          "command_name": "ApplyChangeSet",
+          "actor": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "human"
+          },
+          "grant_ref": {
+            "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+            "revision": 1,
+            "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "composition_state": "not_composed",
+          "authority_recheck": "required",
+          "prerequisite": "approved_exact_change_set"
+        }
+      ],
+      "preview_expiry": "unexpired"
+    },
+    "change_set": {
+      "schema_name": "petra.change-set",
+      "schema_version": "1.1.0",
+      "change_set_id": "change_set_12D6EPRH3VSX17T53W3CYJZDNE",
+      "revision": 1,
+      "state": "submitted",
+      "content": {
+        "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "origin": "direct_edit",
+        "proposed_by": {
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "actor_kind": "human"
+        },
+        "reason": "Retract the accepted pair after confirmed review of its exact authority.",
+        "operations": [
+          {
+            "operation_kind": "retract_claim",
+            "target_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "base_revision": 2,
+            "before": {
+              "zone": "trusted",
+              "review_state": "human_accepted"
+            },
+            "after": {
+              "zone": "quarantine",
+              "review_state": "human_rejected"
+            }
+          },
+          {
+            "operation_kind": "retract_assertion",
+            "target_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+            "base_revision": 2,
+            "before": {
+              "zone": "trusted",
+              "review_state": "human_accepted"
+            },
+            "after": {
+              "zone": "quarantine",
+              "review_state": "human_rejected"
+            }
+          }
+        ],
+        "impact": {
+          "affected_object_ids": [
+            "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC"
+          ],
+          "downstream_object_ids": [],
+          "summary": "Retract the exact promoted Claim–Assertion pair while retaining dependent records and without inferring or automatically reversing dependent effects.",
+          "generated_at": "2026-09-10T18:31:00.000Z"
+        },
+        "risk_tier": "R2",
+        "compensates_change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF"
+      },
+      "content_hash": "sha256:a3638488564441c8b7fb05518fcaee4a128c03d2c7b8bbafde15006af946ce65",
+      "proposed_at": "2026-09-10T18:31:00.000Z"
+    },
+    "approval": {
+      "schema_name": "petra.approval",
+      "schema_version": "1.0.0",
+      "approval_id": "approval_36W2AN4186D70VNR0ESDD2YBBV",
+      "revision": 1,
+      "subject": {
+        "subject_kind": "change_set",
+        "change_set_id": "change_set_12D6EPRH3VSX17T53W3CYJZDNE",
+        "change_set_revision": 1,
+        "change_set_content_hash": "sha256:a3638488564441c8b7fb05518fcaee4a128c03d2c7b8bbafde15006af946ce65"
+      },
+      "decision": "approved",
+      "decision_scope": "exact_change_set",
+      "decided_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "rationale": "The exact promoted pair should leave current trusted authority while every prior revision and dependent record remains retained.",
+      "conditions": [],
+      "decided_at": "2026-09-10T18:31:00.000Z"
+    },
+    "commands": [
+      {
+        "position": 1,
+        "command_name": "SubmitChangeSet",
+        "envelope": {
+          "schema_name": "petra.command-envelope",
+          "schema_version": "1.1.0",
+          "command_id": "command_7YBK193V7XKCBFPG35D15C6313",
+          "idempotency_key": "reversal:change_set_12D6EPRH3VSX17T53W3CYJZDNE:submit",
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+          "actor": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "human"
+          },
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+          "correlation_id": "trace_7J4EW1BJKEMNRWX1FNHBP071ZC",
+          "submitted_at": "2026-09-10T18:31:00.000Z",
+          "command": {
+            "command_name": "SubmitChangeSet",
+            "change_set": {
+              "schema_name": "petra.change-set",
+              "schema_version": "1.1.0",
+              "change_set_id": "change_set_12D6EPRH3VSX17T53W3CYJZDNE",
+              "revision": 1,
+              "state": "submitted",
+              "content": {
+                "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+                "origin": "direct_edit",
+                "proposed_by": {
+                  "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                  "actor_kind": "human"
+                },
+                "reason": "Retract the accepted pair after confirmed review of its exact authority.",
+                "operations": [
+                  {
+                    "operation_kind": "retract_claim",
+                    "target_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                    "base_revision": 2,
+                    "before": {
+                      "zone": "trusted",
+                      "review_state": "human_accepted"
+                    },
+                    "after": {
+                      "zone": "quarantine",
+                      "review_state": "human_rejected"
+                    }
+                  },
+                  {
+                    "operation_kind": "retract_assertion",
+                    "target_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                    "base_revision": 2,
+                    "before": {
+                      "zone": "trusted",
+                      "review_state": "human_accepted"
+                    },
+                    "after": {
+                      "zone": "quarantine",
+                      "review_state": "human_rejected"
+                    }
+                  }
+                ],
+                "impact": {
+                  "affected_object_ids": [
+                    "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                    "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC"
+                  ],
+                  "downstream_object_ids": [],
+                  "summary": "Retract the exact promoted Claim–Assertion pair while retaining dependent records and without inferring or automatically reversing dependent effects.",
+                  "generated_at": "2026-09-10T18:31:00.000Z"
+                },
+                "risk_tier": "R2",
+                "compensates_change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF"
+              },
+              "content_hash": "sha256:a3638488564441c8b7fb05518fcaee4a128c03d2c7b8bbafde15006af946ce65",
+              "proposed_at": "2026-09-10T18:31:00.000Z"
+            }
+          }
+        },
+        "state": "composed_not_submitted"
+      },
+      {
+        "position": 2,
+        "command_name": "RecordApproval",
+        "envelope": {
+          "schema_name": "petra.command-envelope",
+          "schema_version": "1.1.0",
+          "command_id": "command_5WQCD86FEBCWJH0PBYDX4H3C9J",
+          "idempotency_key": "reversal:change_set_12D6EPRH3VSX17T53W3CYJZDNE:approved",
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+          "actor": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "human"
+          },
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+          "correlation_id": "trace_7J4EW1BJKEMNRWX1FNHBP071ZC",
+          "causation_id": "command_7YBK193V7XKCBFPG35D15C6313",
+          "submitted_at": "2026-09-10T18:31:00.000Z",
+          "command": {
+            "command_name": "RecordApproval",
+            "approval": {
+              "schema_name": "petra.approval",
+              "schema_version": "1.0.0",
+              "approval_id": "approval_36W2AN4186D70VNR0ESDD2YBBV",
+              "revision": 1,
+              "subject": {
+                "subject_kind": "change_set",
+                "change_set_id": "change_set_12D6EPRH3VSX17T53W3CYJZDNE",
+                "change_set_revision": 1,
+                "change_set_content_hash": "sha256:a3638488564441c8b7fb05518fcaee4a128c03d2c7b8bbafde15006af946ce65"
+              },
+              "decision": "approved",
+              "decision_scope": "exact_change_set",
+              "decided_by": {
+                "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                "actor_kind": "human"
+              },
+              "rationale": "The exact promoted pair should leave current trusted authority while every prior revision and dependent record remains retained.",
+              "conditions": [],
+              "decided_at": "2026-09-10T18:31:00.000Z"
+            }
+          }
+        },
+        "state": "composed_not_submitted"
+      },
+      {
+        "position": 3,
+        "command_name": "ApplyChangeSet",
+        "envelope": {
+          "schema_name": "petra.command-envelope",
+          "schema_version": "1.1.0",
+          "command_id": "command_23VFA25KVA5S2EEVEH19WF07YH",
+          "idempotency_key": "reversal:change_set_12D6EPRH3VSX17T53W3CYJZDNE:apply",
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+          "actor": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "human"
+          },
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+          "correlation_id": "trace_7J4EW1BJKEMNRWX1FNHBP071ZC",
+          "causation_id": "command_5WQCD86FEBCWJH0PBYDX4H3C9J",
+          "submitted_at": "2026-09-10T18:31:00.000Z",
+          "command": {
+            "command_name": "ApplyChangeSet",
+            "change_set_id": "change_set_12D6EPRH3VSX17T53W3CYJZDNE",
+            "change_set_revision": 1,
+            "change_set_content_hash": "sha256:a3638488564441c8b7fb05518fcaee4a128c03d2c7b8bbafde15006af946ce65",
+            "approval_id": "approval_36W2AN4186D70VNR0ESDD2YBBV",
+            "approval_revision": 1
+          }
+        },
+        "state": "composed_not_submitted"
+      }
+    ],
+    "persistence": {
+      "change_set": "not_persisted",
+      "approval": "not_persisted",
+      "commands": "not_persisted"
+    },
+    "execution": {
+      "state": "not_performed",
+      "requires_separate_request": true,
+      "authority_recheck": "required_at_each_command"
+    },
+    "decision_boundary": {
+      "preview": "revalidated",
+      "command_plan": "composed",
+      "compensation": "not_persisted_or_executed",
+      "generic_undo": "not_available",
+      "multi_step_compensation": "not_assessed"
+    },
+    "omissions": [
+      "commands_not_submitted",
+      "compensation_not_persisted",
+      "compensation_not_executed",
+      "dependent_effect_not_inferred_or_reversed",
+      "historical_project_definition_not_interpreted"
+    ],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:ff8cc6bd6013b633f30b0dc7b12c677b99654639448dd3c65fc1586c9ec67cd7",
+  "read_at": "2026-09-10T18:31:00.000Z"
+}

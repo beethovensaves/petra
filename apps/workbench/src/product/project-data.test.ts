@@ -4,6 +4,7 @@ import type {
   PetraProject,
   PetraProjectDefinition,
   PetraProjectEffectiveControlsView,
+  PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryCompensationPreviewView,
@@ -30,6 +31,7 @@ import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  composeProjectHistoryCompensationPlan,
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
   getRecentProjectHistory,
@@ -244,6 +246,16 @@ const historyCompensationPreviewView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryCompensationPreviewView;
+
+const historyCompensationPlanView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-compensation-plan-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationPlanView;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -808,6 +820,52 @@ describe("Project shell workbench adapter", () => {
         historyCompensationPreviewView.project_id,
         historyCompensationPreviewView.event_id,
       ),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("requests a confirmed command plan without client-supplied authority or execution", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyCompensationPlanView));
+    vi.stubGlobal("fetch", fetch);
+    const input = {
+      projectId: historyCompensationPreviewView.project_id,
+      eventId: historyCompensationPreviewView.event_id,
+      preview: historyCompensationPreviewView,
+      reason:
+        "Retract the accepted pair after confirmed review of its exact authority.",
+      approvalRationale:
+        "The exact promoted pair should leave current trusted authority while every prior revision and dependent record remains retained.",
+      explicitConfirmation: true as const,
+    };
+
+    const result = await composeProjectHistoryCompensationPlan(input);
+    expect(result).toEqual(historyCompensationPlanView);
+    expect(result.content.persistence).toEqual({
+      change_set: "not_persisted",
+      approval: "not_persisted",
+      commands: "not_persisted",
+    });
+    expect(result.content.execution).toMatchObject({
+      state: "not_performed",
+      requires_separate_request: true,
+      authority_recheck: "required_at_each_command",
+    });
+    const requestBody = fetch.mock.calls[0]?.[1]?.body;
+    if (typeof requestBody !== "string") {
+      throw new Error("Expected a JSON compensation-plan request body.");
+    }
+    const request = JSON.parse(requestBody) as Record<string, unknown>;
+    expect(request).toHaveProperty("preview_ref");
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capability_grant_id");
+    expect(request).not.toHaveProperty("execute");
+
+    const wrongReason = structuredClone(historyCompensationPlanView);
+    wrongReason.content.change_set.content.reason = "another reason";
+    fetch.mockResolvedValueOnce(Response.json(wrongReason));
+    await expect(
+      composeProjectHistoryCompensationPlan(input),
     ).rejects.toMatchObject({ status: 502 });
   });
 

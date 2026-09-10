@@ -1,6 +1,8 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 import type {
+  PetraProjectHistoryCompensationPlanRequest,
+  PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactView,
@@ -25,6 +27,8 @@ import type {
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
+  buildPreviewBoundCompensatingReversalCommandPlan,
+  ProjectHistoryCompensationPlanUnavailableError,
   ProjectHistoryRecoveryPreviewUnavailableError,
   ProjectHistoryViewRequestError,
   type ProjectHistoryRetainedCollectionRequest,
@@ -313,6 +317,24 @@ const HISTORY_TARGET_PREFIXES = {
 
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
+
+const compensationPreviewBindingHash = (
+  projectId: string,
+  eventId: string,
+  content: PetraProjectHistoryCompensationPreviewView["content"],
+): string =>
+  canonicalHash({
+    project_id: projectId,
+    event_id: eventId,
+    assessment_content_hash: content.assessment_ref.content_hash,
+    assessment_authority: content.assessment_ref.authority,
+    promotion_change_set: content.compensates_change_set,
+    targets: content.operation_preview,
+    command_grants: content.command_sequence.map(
+      ({ command_name, grant_ref }) => ({ command_name, grant_ref }),
+    ),
+    valid_through: content.freshness.valid_through,
+  });
 
 const record = (value: unknown, label: string): JsonRecord => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -1952,7 +1974,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       assessment_authority: assessment.content.authority,
       promotion_change_set:
         assessment.content.recovery_subject.promotion_change_set,
-      targets: assessment.content.recovery_subject.current_targets,
+      targets: operations,
       command_grants: commandSequence.map(({ command_name, grant_ref }) => ({
         command_name,
         grant_ref,
@@ -2060,6 +2082,167 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     };
     this.#contracts.assertValid(
       "project-history-compensation-preview-view",
+      "1.0.0",
+      view,
+    );
+    return structuredClone(view);
+  }
+
+  async composeProjectHistoryCompensationPlan(
+    request: PetraProjectHistoryCompensationPlanRequest,
+  ): Promise<PetraProjectHistoryCompensationPlanView | undefined> {
+    this.#contracts.assertValid(
+      "project-history-compensation-plan-request",
+      "1.0.0",
+      request,
+    );
+    const previewRef = request.preview_ref;
+    const current = await this.getProjectHistoryCompensationPreviewView(
+      request.project_id,
+      request.event_id,
+    );
+    if (current === undefined) return undefined;
+    const checkedAt = Date.parse(current.read_at);
+    const issuedAt = Date.parse(previewRef.issued_at);
+    const validThrough = Date.parse(previewRef.valid_through);
+    if (
+      !Number.isFinite(checkedAt) ||
+      !Number.isFinite(issuedAt) ||
+      !Number.isFinite(validThrough) ||
+      validThrough - issuedAt !== 5 * 60 * 1000 ||
+      checkedAt < issuedAt ||
+      checkedAt >= validThrough
+    ) {
+      throw new ProjectHistoryCompensationPlanUnavailableError(
+        "The compensation preview is expired or has an invalid freshness interval.",
+      );
+    }
+    const reproducedContent = structuredClone(current.content);
+    reproducedContent.assessment_ref.assessed_at = previewRef.issued_at;
+    reproducedContent.freshness.issued_at = previewRef.issued_at;
+    reproducedContent.freshness.valid_through = previewRef.valid_through;
+    reproducedContent.freshness.binding_hash = compensationPreviewBindingHash(
+      request.project_id,
+      request.event_id,
+      reproducedContent,
+    );
+    if (
+      reproducedContent.freshness.binding_hash !== previewRef.binding_hash ||
+      canonicalHash(reproducedContent) !== previewRef.content_hash
+    ) {
+      throw new ProjectHistoryCompensationPlanUnavailableError(
+        "The compensation preview no longer matches current Project, target, impact, or command-grant authority, or its canonical identity is invalid.",
+      );
+    }
+    const plan = buildPreviewBoundCompensatingReversalCommandPlan({
+      preview: current,
+      reason: request.confirmation.reason,
+      rationale: request.confirmation.approval_rationale,
+      composed_at: current.read_at,
+    });
+    const actor = current.content.command_sequence[0].actor;
+    if (actor.actor_kind !== "human") {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A confirmed compensation plan requires the configured human principal.",
+      );
+    }
+    const humanActor = {
+      actor_id: actor.actor_id,
+      actor_kind: "human" as const,
+    };
+    if (plan.review.command.command_name !== "RecordApproval") {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A confirmed compensation plan requires the exact Approval command.",
+      );
+    }
+    const content: PetraProjectHistoryCompensationPlanView["content"] = {
+      plan_kind: "single_change_set_compensation_command_plan",
+      authorization_scope: "authenticated_project",
+      preview_ref: {
+        schema_name: "petra.project-history-compensation-preview-view",
+        schema_version: "1.0.0",
+        content_hash: previewRef.content_hash,
+        binding_hash: previewRef.binding_hash,
+        issued_at: previewRef.issued_at,
+        valid_through: previewRef.valid_through,
+      },
+      confirmation: {
+        state: "explicitly_confirmed",
+        confirmed_by: humanActor,
+        confirmed_at: current.read_at,
+      },
+      revalidation: {
+        state: "passed",
+        checked_at: current.read_at,
+        assessment_content_hash: current.content.assessment_ref.content_hash,
+        authority: structuredClone(current.content.assessment_ref.authority),
+        target_bindings: structuredClone(current.content.operation_preview),
+        preview_command_bindings: structuredClone(
+          current.content.command_sequence,
+        ),
+        preview_expiry: "unexpired",
+      },
+      change_set: structuredClone(plan.change_set),
+      approval: structuredClone(plan.review.command.approval),
+      commands: [
+        {
+          position: 1,
+          command_name: "SubmitChangeSet",
+          envelope: structuredClone(plan.submit),
+          state: "composed_not_submitted",
+        },
+        {
+          position: 2,
+          command_name: "RecordApproval",
+          envelope: structuredClone(plan.review),
+          state: "composed_not_submitted",
+        },
+        {
+          position: 3,
+          command_name: "ApplyChangeSet",
+          envelope: structuredClone(plan.apply),
+          state: "composed_not_submitted",
+        },
+      ],
+      persistence: {
+        change_set: "not_persisted",
+        approval: "not_persisted",
+        commands: "not_persisted",
+      },
+      execution: {
+        state: "not_performed",
+        requires_separate_request: true,
+        authority_recheck: "required_at_each_command",
+      },
+      decision_boundary: {
+        preview: "revalidated",
+        command_plan: "composed",
+        compensation: "not_persisted_or_executed",
+        generic_undo: "not_available",
+        multi_step_compensation: "not_assessed",
+      },
+      omissions: [
+        "commands_not_submitted",
+        "compensation_not_persisted",
+        "compensation_not_executed",
+        "dependent_effect_not_inferred_or_reversed",
+        "historical_project_definition_not_interpreted",
+      ],
+      graph_navigation_history: "client_local_separate",
+    };
+    const view: PetraProjectHistoryCompensationPlanView = {
+      schema_name: "petra.project-history-compensation-plan-view",
+      schema_version: "1.0.0",
+      project_id: request.project_id,
+      event_id: request.event_id,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: current.read_at,
+    };
+    this.#contracts.assertValid(
+      "project-history-compensation-plan-view",
       "1.0.0",
       view,
     );

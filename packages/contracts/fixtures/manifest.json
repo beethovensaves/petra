@@ -119,6 +119,14 @@
       "path": "fixtures/accepted/project-history-compensation-preview-view.json"
     },
     {
+      "schema": "project-history-compensation-plan-request",
+      "path": "fixtures/accepted/project-history-compensation-plan-request.json"
+    },
+    {
+      "schema": "project-history-compensation-plan-view",
+      "path": "fixtures/accepted/project-history-compensation-plan-view.json"
+    },
+    {
       "schema": "project-effective-controls-view",
       "path": "fixtures/accepted/project-effective-controls-view.json"
     },
@@ -532,6 +540,14 @@
     {
       "schema": "project-history-compensation-preview-view",
       "path": "fixtures/rejected/project-history-compensation-preview-executes.json"
+    },
+    {
+      "schema": "project-history-compensation-plan-request",
+      "path": "fixtures/rejected/project-history-compensation-plan-unconfirmed.json"
+    },
+    {
+      "schema": "project-history-compensation-plan-view",
+      "path": "fixtures/rejected/project-history-compensation-plan-executes.json"
     },
     {
       "schema": "composition-request",

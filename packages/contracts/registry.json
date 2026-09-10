@@ -254,6 +254,28 @@
       "typescript_path": "src/generated/project-history-compensation-preview-view.ts"
     },
     {
+      "name": "project-history-compensation-plan-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-compensation-plan-request/1.0.0/schema.json",
+      "path": "schemas/project-history-compensation-plan-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-explicit-confirmation-of-one-exact-unexpired-compensation-preview-reference",
+      "canonical_sha256": "sha256:08e15b0d5fae6eee2964692439435dfe3ac2e2771243705ab1180e8d6d415490",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-compensation-plan-request.ts"
+    },
+    {
+      "name": "project-history-compensation-plan-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-compensation-plan-view/1.0.0/schema.json",
+      "path": "schemas/project-history-compensation-plan-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-revalidated-non-persisted-single-change-set-command-plan",
+      "canonical_sha256": "sha256:a421f1ca365ae116cb900360d54719ea54795d7b2782ddb24776ed0a10022d25",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-compensation-plan-view.ts"
+    },
+    {
       "name": "project-effective-controls-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-effective-controls-view/1.0.0/schema.json",

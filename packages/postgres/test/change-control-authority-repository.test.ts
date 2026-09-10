@@ -18,6 +18,7 @@ import type {
   PetraParsedDocument,
   PetraProject,
   PetraProjectDefinition,
+  PetraProjectHistoryCompensationPlanRequest,
   PetraReviewInterruptResponse,
   PetraRightsDecision,
   PetraSourceSpan,
@@ -1296,6 +1297,116 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
            AS evidence_revisions`,
     );
     expect(afterPreview.rows[0]).toEqual(beforePreview.rows[0]);
+    if (preview === undefined) {
+      throw new Error("Expected an eligible compensation preview.");
+    }
+    const planRequest: PetraProjectHistoryCompensationPlanRequest = {
+      schema_name: "petra.project-history-compensation-plan-request",
+      schema_version: "1.0.0",
+      project_id: commands.submit.project_id,
+      event_id: appliedEvent.event_id,
+      preview_ref: {
+        schema_name: preview.schema_name,
+        schema_version: preview.schema_version,
+        content_hash: preview.content_hash,
+        binding_hash: preview.content.freshness.binding_hash,
+        issued_at: preview.content.freshness.issued_at,
+        valid_through: preview.content.freshness.valid_through,
+      },
+      confirmation: {
+        confirmed: true,
+        reason: "Retract the exact accepted pair after explicit confirmation.",
+        approval_rationale:
+          "The exact current authority and retained impact basis support this bounded compensation.",
+      },
+    };
+    const commandPlan =
+      await authorizedHistoryViews.composeProjectHistoryCompensationPlan(
+        planRequest,
+      );
+    expect(commandPlan?.content).toMatchObject({
+      preview_ref: planRequest.preview_ref,
+      confirmation: { state: "explicitly_confirmed" },
+      revalidation: { state: "passed", preview_expiry: "unexpired" },
+      change_set: {
+        schema_version: "1.1.0",
+        content: {
+          compensates_change_set_id: promoted.change_set_id,
+          reason: planRequest.confirmation.reason,
+        },
+      },
+      approval: {
+        decision: "approved",
+        rationale: planRequest.confirmation.approval_rationale,
+      },
+      persistence: {
+        change_set: "not_persisted",
+        approval: "not_persisted",
+        commands: "not_persisted",
+      },
+      execution: {
+        state: "not_performed",
+        requires_separate_request: true,
+        authority_recheck: "required_at_each_command",
+      },
+    });
+    expect(
+      commandPlan?.content.commands.map(
+        ({ command_name, envelope, state }) => ({
+          command_name,
+          envelope_command: envelope.command.command_name,
+          state,
+        }),
+      ),
+    ).toEqual([
+      {
+        command_name: "SubmitChangeSet",
+        envelope_command: "SubmitChangeSet",
+        state: "composed_not_submitted",
+      },
+      {
+        command_name: "RecordApproval",
+        envelope_command: "RecordApproval",
+        state: "composed_not_submitted",
+      },
+      {
+        command_name: "ApplyChangeSet",
+        envelope_command: "ApplyChangeSet",
+        state: "composed_not_submitted",
+      },
+    ]);
+    const afterPlan = await pool.query<{
+      change_sets: string;
+      approvals: string;
+      commands: string;
+      events: string;
+      evidence_revisions: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.change_sets) AS change_sets,
+         (SELECT count(*)::text FROM petra.approvals) AS approvals,
+         (SELECT count(*)::text FROM petra.command_executions) AS commands,
+         (SELECT count(*)::text FROM petra.domain_events) AS events,
+         (SELECT count(*)::text FROM petra.evidence_entity_revisions)
+           AS evidence_revisions`,
+    );
+    expect(afterPlan.rows[0]).toEqual(beforePreview.rows[0]);
+    const tamperedPlanRequest = structuredClone(planRequest);
+    tamperedPlanRequest.preview_ref.binding_hash =
+      "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    await expect(
+      authorizedHistoryViews.composeProjectHistoryCompensationPlan(
+        tamperedPlanRequest,
+      ),
+    ).rejects.toMatchObject({
+      code: "PROJECT_HISTORY_COMPENSATION_PLAN_UNAVAILABLE",
+    });
+    await expect(
+      authorizedHistoryViews.composeProjectHistoryCompensationPlan({
+        ...planRequest,
+        project_id: "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+      }),
+    ).resolves.toBeUndefined();
     const overlappingGrant =
       readFixture<PetraCapabilityGrantRecord>("capability-grant");
     overlappingGrant.capability_grant_id =
@@ -1325,6 +1436,11 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         commands.submit.project_id,
         appliedEvent.event_id,
       ),
+    ).rejects.toMatchObject({
+      code: "PROJECT_HISTORY_RECOVERY_PREVIEW_UNAVAILABLE",
+    });
+    await expect(
+      authorizedHistoryViews.composeProjectHistoryCompensationPlan(planRequest),
     ).rejects.toMatchObject({
       code: "PROJECT_HISTORY_RECOVERY_PREVIEW_UNAVAILABLE",
     });

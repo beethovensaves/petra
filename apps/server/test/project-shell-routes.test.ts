@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraProjectEffectiveControlsView,
+  PetraProjectHistoryCompensationPlanRequest,
+  PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
@@ -33,7 +35,10 @@ import type {
   ProjectThreadViewReader,
   ProjectWorkViewReader,
 } from "@petra/core";
-import { ProjectHistoryRecoveryPreviewUnavailableError } from "@petra/core";
+import {
+  ProjectHistoryCompensationPlanUnavailableError,
+  ProjectHistoryRecoveryPreviewUnavailableError,
+} from "@petra/core";
 import { describe, expect, it } from "vitest";
 
 import { createPetraApp } from "../src/app.js";
@@ -149,6 +154,26 @@ const historyCompensationPreviewFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryCompensationPreviewView;
+
+const historyCompensationPlanRequestFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-compensation-plan-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationPlanRequest;
+
+const historyCompensationPlanFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-compensation-plan-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationPlanView;
 
 const reviewFixture = JSON.parse(
   readFileSync(
@@ -319,6 +344,17 @@ const historyReader: ProjectHistoryViewReader = {
         ? structuredClone(historyCompensationPreviewFixture)
         : undefined,
     ),
+  composeProjectHistoryCompensationPlan: (request) =>
+    Promise.resolve(
+      request.project_id === historyCompensationPlanFixture.project_id &&
+        request.event_id === historyCompensationPlanFixture.event_id &&
+        request.preview_ref.content_hash ===
+          historyCompensationPlanFixture.content.preview_ref.content_hash &&
+        request.preview_ref.binding_hash ===
+          historyCompensationPlanFixture.content.preview_ref.binding_hash
+        ? structuredClone(historyCompensationPlanFixture)
+        : undefined,
+    ),
   listRetainedProjectHistoryView: (projectId, request = {}) => {
     if (projectId !== historyRetainedFixture.project_id) {
       return Promise.resolve(undefined);
@@ -433,6 +469,16 @@ const inquiryReader: ProjectInquiryViewReader = {
 const authorized = (path: string): Request =>
   new Request(`http://petra.local${path}`, {
     headers: { authorization: `Bearer ${TOKEN}` },
+  });
+
+const authorizedJson = (path: string, body: unknown): Request =>
+  new Request(`http://petra.local${path}`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${TOKEN}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
   });
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -697,6 +743,67 @@ describe("authorized Project shell query routes", () => {
     };
     expect(blockedBody.error.code).toBe(
       "PROJECT_HISTORY_RECOVERY_PREVIEW_UNAVAILABLE",
+    );
+  });
+
+  it("composes a confirmed compensation command plan without submitting it", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: historyReader,
+    });
+    const path = `/api/queries/projects/${historyCompensationPlanRequestFixture.project_id}/history/events/${historyCompensationPlanRequestFixture.event_id}/recovery/plan`;
+    const response = await petra.app.request(
+      authorizedJson(path, historyCompensationPlanRequestFixture),
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(
+      historyCompensationPlanFixture,
+    );
+
+    const unconfirmed = structuredClone(
+      historyCompensationPlanRequestFixture,
+    ) as
+      | PetraProjectHistoryCompensationPlanRequest
+      | { confirmation: { confirmed: boolean } };
+    unconfirmed.confirmation.confirmed = false;
+    const rejected = await petra.app.request(authorizedJson(path, unconfirmed));
+    expect(rejected.status).toBe(422);
+
+    const queryOverride = await petra.app.request(
+      authorizedJson(
+        `${path}?execute=true`,
+        historyCompensationPlanRequestFixture,
+      ),
+    );
+    expect(queryOverride.status).toBe(422);
+
+    const unauthenticated = await petra.app.request(
+      new Request(`http://petra.local${path}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(historyCompensationPlanRequestFixture),
+      }),
+    );
+    expect(unauthenticated.status).toBe(401);
+
+    const unavailable = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: {
+        ...historyReader,
+        composeProjectHistoryCompensationPlan: () => {
+          throw new ProjectHistoryCompensationPlanUnavailableError(
+            "The exact preview is stale.",
+          );
+        },
+      },
+    });
+    const stale = await unavailable.app.request(
+      authorizedJson(path, historyCompensationPlanRequestFixture),
+    );
+    expect(stale.status).toBe(409);
+    const staleBody = (await stale.json()) as { error: { code: string } };
+    expect(staleBody.error.code).toBe(
+      "PROJECT_HISTORY_COMPENSATION_PLAN_UNAVAILABLE",
     );
   });
 
