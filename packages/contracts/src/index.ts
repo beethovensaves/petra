@@ -167,6 +167,11 @@ export type {
   PetraProjectSourceReplacement,
   ReplacementContent as ProjectSourceReplacementContent,
 } from "./generated/project-source-replacement.js";
+export type {
+  PetraProjectSourceReplacementRetraction,
+  ReplacementRef as ProjectSourceReplacementRetractionReplacementRef,
+  RetractionContent as ProjectSourceReplacementRetractionContent,
+} from "./generated/project-source-replacement-retraction.js";
 export type ProjectSourceReplacementSourceRef =
   ProjectSourceReplacementExcludedRef | ProjectSourceReplacementActiveRef;
 export type {

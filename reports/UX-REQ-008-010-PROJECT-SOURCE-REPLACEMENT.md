@@ -1,9 +1,9 @@
 # UX-REQ-008/010 ProjectSource replacement lineage
 
-Status: exact immutable ProjectSource supersession and semantic-location chain
-passed; governed creation command, relationship compensation, and public
-integration remain open
-Date: 2026-09-08
+Status: exact immutable ProjectSource supersession, command-granular retraction,
+effective-head integrity, and semantic-location traversal passed; governed
+creation/retraction commands and public integration remain open
+Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
 
 ## Result
@@ -32,12 +32,16 @@ serializable repository validates the contract, canonical content and record
 hashes, Project and Actor, current source heads, statuses, and receipt semantics
 before registration.
 
-One predecessor can have only one successor, so following a source never yields
-an ambiguous fork. Several duplicate or superseded predecessors may converge on
-one successor. Cycles are prohibited, and every upstream/downstream path is
-bounded to 32 edges to match the semantic-location contract. Replaying the same
-record is idempotent; rebinding its identity or assigning another successor
-fails closed.
+V027 adds immutable
+`petra.project-source-replacement-retraction@1.0.0` records and a derived
+effective head. One predecessor can have only one active successor, so following
+a source never yields an ambiguous current fork. After that exact relation is
+retracted, a new immutable replacement may become current while both the old
+edge and its retraction remain retained. V028 prevents direct head changes from
+disagreeing with immutable history, and V029 enforces the canonical bounded
+retraction ID kind. Several predecessors may still converge on one successor. Active cycles are prohibited, and every active upstream and
+downstream path is bounded to 32 edges. Exact replay is idempotent; identity
+rebinding and retracting a non-current edge fail closed.
 
 The exclusion receipt is not decorative provenance. Its exact ID, revision,
 content hash, and record hash must resolve to an `ExcludeProjectSource` result
@@ -47,10 +51,11 @@ whose resulting source reference exactly equals the predecessor reference.
 
 The existing `petra.project-object-location-view@1.0.0` contract already had a
 `superseded` state and a bounded `replacement_chain`; those fields are now live
-for ProjectSource identities. The repeatable-read location reader follows V025
-lineage, validates each edge and exact successor revision, and returns the
-registered `sources` destination while preserving the originally requested
-identity and revision.
+for ProjectSource identities. The repeatable-read location reader follows only
+active replacement heads, validates each edge and exact successor revision, and
+returns the registered `sources` destination while preserving the originally
+requested identity and revision. Retraction immediately removes that edge from
+current traversal without changing the predecessor's still-excluded status.
 
 The server and browser contracts do not guess replacements. Other object kinds
 continue to return no replacement chain until their owning authority registers
@@ -58,17 +63,17 @@ equivalent semantics.
 
 ## Authority and recovery boundary
 
-This slice supplies the contract, storage invariant, registration repository,
-and read integration. It does not expose a replacement command or public route.
-The existing bearer token still does not resolve an exact Actor and capability
-grant, and Petra has no canonical CapabilityGrant registry. The relation itself
-also lacks a compensating disposition, so it is not yet eligible for the
-ten-step quick-recovery experience.
+This slice supplies the contracts, storage invariants, registration repository,
+compensation semantics, and current/historical read separation. It does not
+expose replacement or retraction through a public command route. Petra's
+single-user bearer principal and canonical Project-command grant authority now
+resolve the exact Actor and active grant needed by that later boundary.
 
-A later governed replacement command must use the same exclusion receipt,
-record a Project event and command result, and define how an erroneous
-supersession is compensated without deleting this retained edge. It must not
-reinterpret `RestoreProjectSource` as silently erasing replacement history.
+[D019](../decisions/D019-command-granular-project-source-replacement-retraction.md)
+fixes recovery at the command boundary: undoing replacement retracts only the
+effective relation. Restoring the excluded predecessor remains the next
+separately authorized `RestoreProjectSource` step. Neither action erases the
+replacement or retraction record.
 
 ## Design-freeze behavior
 
@@ -78,28 +83,19 @@ replacement affordance without requiring the client to infer domain authority.
 
 ## Verification
 
-The increment passes:
+The increment passes the complete generation, registry, fixture, formatting,
+lint, typecheck, production-build, and always-on test gate. It also passes 105
+real PostgreSQL 18.6 integration cases after Flyway V001 through V029.
 
-- 353 contract, registry, generation, hash, and fixture cases;
-- strict TypeScript and Python type checks plus 25 Python cases;
-- 99 real PostgreSQL 18.6 integration cases after Flyway V001 through V025;
-  and
-- the complete generation, retrieval-floor, formatting, lint, typecheck,
-  production-build, and test gate with 686 always-on cases and seven expected
-  service-dependent skips.
-
-The database proof covers receipt-bound registration, exact copy replacement,
-idempotent replay, stale receipt rejection, duplicate-successor refusal,
-self-cycle refusal, immutable storage, Project-scoped chain reads, and a live
-`superseded` semantic-location result.
+The database proof additionally covers exact retraction replay, stale
+replacement-ref rejection, repeated-retraction refusal, immutable retraction
+storage, active-head integrity, retained excluded source state, removal from
+current semantic traversal, and a new successor after retraction.
 
 ## Remaining work
 
-- define the authenticated single-user Actor and capability-grant boundary;
-- add a typed, authorized, idempotent replacement command, event, result, and
-  compensation path;
-- decide whether and how supersession itself can be retracted while preserving
-  its historical record;
+- add typed, authorized, idempotent replacement-creation and retraction
+  commands, events, receipts, outbox intent, and public routes;
 - extend replacement/parent semantics only through owning object adapters; and
 - integrate the existing location result into an approved frozen-interface
   control slot.

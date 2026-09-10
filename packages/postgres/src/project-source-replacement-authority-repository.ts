@@ -4,6 +4,7 @@ import type {
   PetraProjectSource,
   PetraProjectSourceLifecycleReceipt,
   PetraProjectSourceReplacement,
+  PetraProjectSourceReplacementRetraction,
   ProjectSourceReplacementSourceRef,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -23,6 +24,11 @@ export type PostgresProjectSourceReplacementErrorCode =
   | "PROJECT_SOURCE_REPLACEMENT_EXCLUSION_RECEIPT_STALE"
   | "PROJECT_SOURCE_REPLACEMENT_CYCLE"
   | "PROJECT_SOURCE_REPLACEMENT_CHAIN_TOO_LONG"
+  | "PROJECT_SOURCE_REPLACEMENT_RETRACTION_CONTENT_HASH_MISMATCH"
+  | "PROJECT_SOURCE_REPLACEMENT_RETRACTION_ID_CONFLICT"
+  | "PROJECT_SOURCE_REPLACEMENT_RETRACTION_REPLACEMENT_MISSING"
+  | "PROJECT_SOURCE_REPLACEMENT_RETRACTION_REPLACEMENT_STALE"
+  | "PROJECT_SOURCE_REPLACEMENT_RETRACTION_NOT_ACTIVE"
   | "PROJECT_SOURCE_REPLACEMENT_STORED_RECORD_CORRUPT";
 
 export class PostgresProjectSourceReplacementError extends Error {
@@ -45,6 +51,13 @@ interface StoredRow {
 
 interface SourceRow extends StoredRow {
   project_source_id: string;
+}
+
+interface ReplacementTargetRow extends StoredRow {
+  project_id: string;
+  replaced_project_source_id: string;
+  revision: string;
+  content_hash: string;
 }
 
 interface PgError {
@@ -99,24 +112,21 @@ export class PostgresProjectSourceReplacementAuthorityRepository implements Proj
         `project-source:${replaced.project_source_id}`,
         `project-source:${successor.project_source_id}`,
       ]);
-      await this.#requireProjectAndActor(client, replacement);
+      await this.#requireProjectAndActor(
+        client,
+        replacement.project_id,
+        replacement.recorded_by,
+      );
 
-      const existing = await client.query<StoredRow & { identity: string }>(
+      const existing = await client.query<StoredRow>(
         `SELECT project_source_replacement_id AS identity, payload, record_hash
            FROM petra.project_source_replacements
           WHERE project_source_replacement_id = $1
-             OR (project_id = $2 AND replaced_project_source_id = $3)
           FOR UPDATE`,
-        [
-          replacement.project_source_replacement_id,
-          replacement.project_id,
-          replaced.project_source_id,
-        ],
+        [replacement.project_source_replacement_id],
       );
       const recordHash = canonicalHash(replacement);
-      const exact = existing.rows.find(
-        (row) => row.identity === replacement.project_source_replacement_id,
-      );
+      const exact = existing.rows[0];
       if (exact !== undefined && exact.record_hash === recordHash) {
         await client.query("COMMIT");
         return this.#stored(exact);
@@ -127,7 +137,19 @@ export class PostgresProjectSourceReplacementAuthorityRepository implements Proj
           "The ProjectSource replacement identity is already bound to different content.",
         );
       }
-      if (existing.rows[0] !== undefined) {
+      const active = await client.query(
+        `SELECT 1
+           FROM petra.project_source_replacement_heads AS head
+           JOIN petra.project_source_replacements AS current_replacement
+             ON current_replacement.project_source_replacement_id =
+                head.current_project_source_replacement_id
+          WHERE head.project_id = $1
+            AND head.replaced_project_source_id = $2
+            AND head.state = 'active'
+          FOR UPDATE OF head, current_replacement`,
+        [replacement.project_id, replaced.project_source_id],
+      );
+      if (active.rows[0] !== undefined) {
         throw this.#error(
           "PROJECT_SOURCE_REPLACEMENT_ALREADY_LINKED",
           "The replaced ProjectSource already has a registered successor.",
@@ -208,14 +230,175 @@ export class PostgresProjectSourceReplacementAuthorityRepository implements Proj
       : this.#stored(result.rows[0]);
   }
 
+  async registerProjectSourceReplacementRetraction(
+    retraction: PetraProjectSourceReplacementRetraction,
+  ): Promise<PetraProjectSourceReplacementRetraction> {
+    this.#contracts.assertValid(
+      "project-source-replacement-retraction",
+      "1.0.0",
+      retraction,
+    );
+    if (retraction.content_hash !== canonicalHash(retraction.content)) {
+      throw this.#error(
+        "PROJECT_SOURCE_REPLACEMENT_RETRACTION_CONTENT_HASH_MISMATCH",
+        "ProjectSource replacement retraction content_hash does not identify its exact content.",
+      );
+    }
+
+    const ref = retraction.content.replacement_ref;
+    const client = await this.#pool.connect();
+    try {
+      await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
+      const targetLookup = await client.query<ReplacementTargetRow>(
+        `SELECT project_id, replaced_project_source_id, revision::text,
+                content_hash, payload, record_hash
+           FROM petra.project_source_replacements
+          WHERE project_source_replacement_id = $1`,
+        [ref.project_source_replacement_id],
+      );
+      const target = targetLookup.rows[0];
+      await this.#lock(client, [
+        `project-source-replacement-retraction:${retraction.project_source_replacement_retraction_id}`,
+        `project-source-replacement:${ref.project_source_replacement_id}`,
+        ...(target === undefined
+          ? []
+          : [
+              `project-source-replacement-outgoing:${target.project_id}:${target.replaced_project_source_id}`,
+            ]),
+      ]);
+      await this.#requireProjectAndActor(
+        client,
+        retraction.project_id,
+        retraction.retracted_by,
+      );
+
+      const recordHash = canonicalHash(retraction);
+      const existing = await client.query<StoredRow>(
+        `SELECT payload, record_hash
+           FROM petra.project_source_replacement_retractions
+          WHERE project_source_replacement_retraction_id = $1
+          FOR UPDATE`,
+        [retraction.project_source_replacement_retraction_id],
+      );
+      const exact = existing.rows[0];
+      if (exact !== undefined && exact.record_hash === recordHash) {
+        await client.query("COMMIT");
+        return this.#storedRetraction(exact);
+      }
+      if (exact !== undefined) {
+        throw this.#error(
+          "PROJECT_SOURCE_REPLACEMENT_RETRACTION_ID_CONFLICT",
+          "The ProjectSource replacement retraction identity is already bound to different content.",
+        );
+      }
+      if (target === undefined) {
+        throw this.#error(
+          "PROJECT_SOURCE_REPLACEMENT_RETRACTION_REPLACEMENT_MISSING",
+          "The ProjectSource replacement to retract is unavailable.",
+        );
+      }
+      this.#stored(target);
+      if (
+        target.project_id !== retraction.project_id ||
+        Number(target.revision) !== ref.revision ||
+        target.content_hash !== ref.content_hash ||
+        target.record_hash !== ref.record_hash
+      ) {
+        throw this.#error(
+          "PROJECT_SOURCE_REPLACEMENT_RETRACTION_REPLACEMENT_STALE",
+          "The retraction must pin the exact replacement revision and hashes in the same Project.",
+        );
+      }
+
+      const active = await client.query(
+        `SELECT 1
+           FROM petra.project_source_replacement_heads
+          WHERE project_id = $1
+            AND replaced_project_source_id = $2
+            AND current_project_source_replacement_id = $3
+            AND state = 'active'
+          FOR UPDATE`,
+        [
+          retraction.project_id,
+          target.replaced_project_source_id,
+          ref.project_source_replacement_id,
+        ],
+      );
+      if (active.rows[0] === undefined) {
+        throw this.#error(
+          "PROJECT_SOURCE_REPLACEMENT_RETRACTION_NOT_ACTIVE",
+          "Only the current active ProjectSource replacement can be retracted.",
+        );
+      }
+
+      await client.query(
+        `INSERT INTO petra.project_source_replacement_retractions (
+           project_source_replacement_retraction_id, revision, project_id,
+           project_source_replacement_id, replacement_revision,
+           replacement_content_hash, replacement_record_hash, reason,
+           content_hash, retracted_by_actor_id, retracted_by_actor_kind,
+           retracted_at, record_hash, payload
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+           $12::timestamptz, $13, $14::jsonb
+         )`,
+        [
+          retraction.project_source_replacement_retraction_id,
+          retraction.revision,
+          retraction.project_id,
+          ref.project_source_replacement_id,
+          ref.revision,
+          ref.content_hash,
+          ref.record_hash,
+          retraction.content.reason,
+          retraction.content_hash,
+          retraction.retracted_by.actor_id,
+          retraction.retracted_by.actor_kind,
+          retraction.retracted_at,
+          recordHash,
+          JSON.stringify(retraction),
+        ],
+      );
+      await client.query("COMMIT");
+      return clone(retraction);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      if (error instanceof PostgresProjectSourceReplacementError) throw error;
+      throw this.#translate(error as PgError);
+    } finally {
+      client.release();
+    }
+  }
+
+  async getProjectSourceReplacementRetraction(
+    projectId: string,
+    projectSourceReplacementRetractionId: string,
+  ): Promise<PetraProjectSourceReplacementRetraction | undefined> {
+    const result = await this.#pool.query<StoredRow>(
+      `SELECT payload, record_hash
+         FROM petra.project_source_replacement_retractions
+        WHERE project_id = $1
+          AND project_source_replacement_retraction_id = $2`,
+      [projectId, projectSourceReplacementRetractionId],
+    );
+    return result.rows[0] === undefined
+      ? undefined
+      : this.#storedRetraction(result.rows[0]);
+  }
+
   async getProjectSourceSuccessor(
     projectId: string,
     replacedProjectSourceId: string,
   ): Promise<PetraProjectSourceReplacement | undefined> {
     const result = await this.#pool.query<StoredRow>(
-      `SELECT payload, record_hash
-         FROM petra.project_source_replacements
-        WHERE project_id = $1 AND replaced_project_source_id = $2`,
+      `SELECT replacement.payload, replacement.record_hash
+         FROM petra.project_source_replacement_heads AS head
+         JOIN petra.project_source_replacements AS replacement
+           ON replacement.project_source_replacement_id =
+              head.current_project_source_replacement_id
+        WHERE head.project_id = $1
+          AND head.replaced_project_source_id = $2
+          AND head.state = 'active'`,
       [projectId, replacedProjectSourceId],
     );
     return result.rows[0] === undefined
@@ -235,18 +418,26 @@ export class PostgresProjectSourceReplacementAuthorityRepository implements Proj
                   replacement.replaced_project_source_id,
                   replacement.replacement_project_source_id
                 ] AS path
-           FROM petra.project_source_replacements AS replacement
-          WHERE replacement.project_id = $1
-            AND replacement.replaced_project_source_id = $2
+           FROM petra.project_source_replacement_heads AS head
+           JOIN petra.project_source_replacements AS replacement
+             ON replacement.project_source_replacement_id =
+                head.current_project_source_replacement_id
+          WHERE head.project_id = $1
+            AND head.replaced_project_source_id = $2
+            AND head.state = 'active'
          UNION ALL
          SELECT replacement.payload, replacement.record_hash,
                 replacement.replacement_project_source_id, chain.depth + 1,
                 chain.path || replacement.replacement_project_source_id
            FROM chain
-           JOIN petra.project_source_replacements AS replacement
-             ON replacement.project_id = $1
-            AND replacement.replaced_project_source_id =
+           JOIN petra.project_source_replacement_heads AS head
+             ON head.project_id = $1
+            AND head.replaced_project_source_id =
                 chain.replacement_project_source_id
+            AND head.state = 'active'
+           JOIN petra.project_source_replacements AS replacement
+             ON replacement.project_source_replacement_id =
+                head.current_project_source_replacement_id
           WHERE chain.depth < 33
             AND NOT replacement.replacement_project_source_id = ANY(chain.path)
        )
@@ -266,20 +457,18 @@ export class PostgresProjectSourceReplacementAuthorityRepository implements Proj
 
   async #requireProjectAndActor(
     client: PoolClient,
-    replacement: PetraProjectSourceReplacement,
+    projectId: string,
+    actor: { actor_id: string; actor_kind: string },
   ): Promise<void> {
     const result = await client.query<{ actor_kind: string }>(
       `SELECT actor.actor_kind
          FROM petra.projects AS project
          JOIN petra.actors AS actor ON actor.actor_id = $2
         WHERE project.project_id = $1`,
-      [replacement.project_id, replacement.recorded_by.actor_id],
+      [projectId, actor.actor_id],
     );
     const row = result.rows[0];
-    if (
-      row === undefined ||
-      row.actor_kind !== replacement.recorded_by.actor_kind
-    ) {
+    if (row === undefined || row.actor_kind !== actor.actor_kind) {
       throw this.#error(
         "PROJECT_SOURCE_REPLACEMENT_PROJECT_MISMATCH",
         "The ProjectSource replacement Project and Actor must resolve exactly in local authority.",
@@ -437,13 +626,47 @@ export class PostgresProjectSourceReplacementAuthorityRepository implements Proj
     return replacement;
   }
 
+  #storedRetraction(row: StoredRow): PetraProjectSourceReplacementRetraction {
+    this.#contracts.assertValid(
+      "project-source-replacement-retraction",
+      "1.0.0",
+      row.payload,
+    );
+    const retraction = clone(
+      row.payload as PetraProjectSourceReplacementRetraction,
+    );
+    if (
+      retraction.content_hash !== canonicalHash(retraction.content) ||
+      row.record_hash !== canonicalHash(retraction)
+    ) {
+      throw this.#error(
+        "PROJECT_SOURCE_REPLACEMENT_STORED_RECORD_CORRUPT",
+        "A stored ProjectSource replacement retraction does not reproduce its canonical hashes.",
+      );
+    }
+    return retraction;
+  }
+
   #translate(error: PgError): PostgresProjectSourceReplacementError {
     if (error.code === "23505") {
+      if (error.constraint === "project_source_replacement_heads_active_key") {
+        return this.#error(
+          "PROJECT_SOURCE_REPLACEMENT_ALREADY_LINKED",
+          error.message ??
+            "The replaced ProjectSource already has an active successor.",
+        );
+      }
+      if (
+        error.constraint?.startsWith("project_source_replacement_retractions")
+      ) {
+        return this.#error(
+          "PROJECT_SOURCE_REPLACEMENT_RETRACTION_ID_CONFLICT",
+          error.message ??
+            "ProjectSource replacement retraction identity conflicts.",
+        );
+      }
       return this.#error(
-        error.constraint ===
-          "project_source_replacements_project_id_replaced_project_source_id_key"
-          ? "PROJECT_SOURCE_REPLACEMENT_ALREADY_LINKED"
-          : "PROJECT_SOURCE_REPLACEMENT_ID_CONFLICT",
+        "PROJECT_SOURCE_REPLACEMENT_ID_CONFLICT",
         error.message ?? "ProjectSource replacement identity conflicts.",
       );
     }
@@ -461,6 +684,18 @@ export class PostgresProjectSourceReplacementAuthorityRepository implements Proj
       if (message.includes("exclusion receipt")) {
         return this.#error(
           "PROJECT_SOURCE_REPLACEMENT_EXCLUSION_RECEIPT_STALE",
+          message,
+        );
+      }
+      if (message.includes("current active replacement")) {
+        return this.#error(
+          "PROJECT_SOURCE_REPLACEMENT_RETRACTION_NOT_ACTIVE",
+          message,
+        );
+      }
+      if (message.includes("retraction must pin")) {
+        return this.#error(
+          "PROJECT_SOURCE_REPLACEMENT_RETRACTION_REPLACEMENT_STALE",
           message,
         );
       }

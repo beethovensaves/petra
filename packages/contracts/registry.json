@@ -210,6 +210,17 @@
       "typescript_path": "src/generated/project-source-replacement.ts"
     },
     {
+      "name": "project-source-replacement-retraction",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-replacement-retraction/1.0.0/schema.json",
+      "path": "schemas/project-source-replacement-retraction/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-immutable-project-source-supersession-compensation",
+      "canonical_sha256": "sha256:4f4545a2b74a76094bde33039c2df1b1e11815906c5207a24deaaf97ab543077",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-replacement-retraction.ts"
+    },
+    {
       "name": "project-source-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-source-view/1.0.0/schema.json",

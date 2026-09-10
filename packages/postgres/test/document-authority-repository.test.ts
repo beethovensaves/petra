@@ -11,6 +11,7 @@ import type {
   PetraProjectDefinition,
   PetraProjectSource,
   PetraProjectSourceReplacement,
+  PetraProjectSourceReplacementRetraction,
   PetraRightsDecision,
   PetraSourceSpan,
   PetraStructuralBlock,
@@ -874,6 +875,148 @@ describePostgres("PostgreSQL Document authority repository", () => {
     ).rejects.toEqual(
       expect.objectContaining({ code: "PROJECT_SOURCE_REPLACEMENT_CYCLE" }),
     );
+
+    const retraction = readFixture<PetraProjectSourceReplacementRetraction>(
+      "project-source-replacement-retraction",
+    );
+    retraction.content.replacement_ref = {
+      project_source_replacement_id: replacement.project_source_replacement_id,
+      revision: replacement.revision,
+      content_hash: replacement.content_hash,
+      record_hash: canonicalHash(replacement),
+    };
+    retraction.content_hash = canonicalHash(retraction.content);
+
+    const staleRetraction = structuredClone(retraction);
+    staleRetraction.project_source_replacement_retraction_id =
+      "project_source_retraction_01K4C000000000000000000049";
+    staleRetraction.content.replacement_ref.record_hash =
+      "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+    staleRetraction.content_hash = canonicalHash(staleRetraction.content);
+    await expect(
+      sourceReplacements.registerProjectSourceReplacementRetraction(
+        staleRetraction,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_REPLACEMENT_RETRACTION_REPLACEMENT_STALE",
+      }),
+    );
+
+    expect(
+      await sourceReplacements.registerProjectSourceReplacementRetraction(
+        retraction,
+      ),
+    ).toEqual(retraction);
+    expect(
+      await sourceReplacements.registerProjectSourceReplacementRetraction(
+        structuredClone(retraction),
+      ),
+    ).toEqual(retraction);
+    expect(
+      await sourceReplacements.getProjectSourceReplacementRetraction(
+        project.project_id,
+        retraction.project_source_replacement_retraction_id,
+      ),
+    ).toEqual(retraction);
+    expect(
+      await sourceReplacements.getProjectSourceReplacement(
+        project.project_id,
+        replacement.project_source_replacement_id,
+      ),
+    ).toEqual(replacement);
+    expect(
+      await sourceReplacements.getProjectSourceSuccessor(
+        project.project_id,
+        replaced.project_source_id,
+      ),
+    ).toBeUndefined();
+    expect(
+      await sourceReplacements.listProjectSourceReplacementChain(
+        project.project_id,
+        replaced.project_source_id,
+      ),
+    ).toEqual([]);
+    expect(
+      await projectSources.getProjectSource(
+        project.project_id,
+        replaced.project_source_id,
+      ),
+    ).toEqual(replaced);
+
+    const locationAfterRetraction = await objectLocations.locateProjectObject({
+      project_id: project.project_id,
+      object_ref: {
+        semantic_key: "petra.project-source",
+        object_id: replaced.project_source_id,
+      },
+      task_intent: "inspect",
+    });
+    const resolutionAfterRetraction =
+      locationAfterRetraction?.content.resolution;
+    expect(resolutionAfterRetraction).toEqual(
+      expect.objectContaining({
+        state: "current",
+        replacement_chain: [],
+      }),
+    );
+    if (resolutionAfterRetraction?.state !== "current") {
+      throw new Error("Expected current source after replacement retraction.");
+    }
+    expect(resolutionAfterRetraction.descriptor.lifecycle_state).toBe(
+      "excluded",
+    );
+    await expect(
+      pool.query(
+        `UPDATE petra.project_source_replacement_retractions
+            SET reason = 'mutated'
+          WHERE project_source_replacement_retraction_id = $1`,
+        [retraction.project_source_replacement_retraction_id],
+      ),
+    ).rejects.toBeDefined();
+
+    const repeatedRetraction = structuredClone(retraction);
+    repeatedRetraction.project_source_replacement_retraction_id =
+      "project_source_retraction_01K4C000000000000000000050";
+    repeatedRetraction.content.reason = "Attempt a second retraction.";
+    repeatedRetraction.content_hash = canonicalHash(repeatedRetraction.content);
+    await expect(
+      sourceReplacements.registerProjectSourceReplacementRetraction(
+        repeatedRetraction,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_REPLACEMENT_RETRACTION_NOT_ACTIVE",
+      }),
+    );
+
+    expect(
+      await sourceReplacements.registerProjectSourceReplacement(duplicate),
+    ).toEqual(duplicate);
+    expect(
+      await sourceReplacements.getProjectSourceSuccessor(
+        project.project_id,
+        replaced.project_source_id,
+      ),
+    ).toEqual(duplicate);
+    const head = await pool.query<{
+      head_revision: string;
+      state: string;
+    }>(
+      `SELECT head_revision::text, state
+         FROM petra.project_source_replacement_heads
+        WHERE project_id = $1 AND replaced_project_source_id = $2`,
+      [project.project_id, replaced.project_source_id],
+    );
+    expect(head.rows).toEqual([{ head_revision: "3", state: "active" }]);
+    await expect(
+      pool.query(
+        `UPDATE petra.project_source_replacement_heads
+            SET state = 'retracted'
+          WHERE project_id = $1 AND replaced_project_source_id = $2`,
+        [project.project_id, replaced.project_source_id],
+      ),
+    ).rejects.toBeDefined();
   });
 
   it("rejects incomplete and internally misaligned bundles atomically", async () => {

@@ -107,6 +107,10 @@
       "path": "fixtures/accepted/project-source-replacement.json"
     },
     {
+      "schema": "project-source-replacement-retraction",
+      "path": "fixtures/accepted/project-source-replacement-retraction.json"
+    },
+    {
       "schema": "project-source-view",
       "path": "fixtures/accepted/project-source-view.json"
     },
@@ -772,6 +776,10 @@
     {
       "schema": "project-source-replacement",
       "path": "fixtures/rejected/project-source-replacement-predecessor-active.json"
+    },
+    {
+      "schema": "project-source-replacement-retraction",
+      "path": "fixtures/rejected/project-source-replacement-retraction-unpinned.json"
     }
   ],
   "canonical": [

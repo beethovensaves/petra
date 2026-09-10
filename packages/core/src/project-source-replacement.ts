@@ -1,8 +1,12 @@
-import type { PetraProjectSourceReplacement } from "@petra/contracts";
+import type {
+  PetraProjectSourceReplacement,
+  PetraProjectSourceReplacementRetraction,
+} from "@petra/contracts";
 
 /**
- * Immutable ProjectSource supersession lineage. Registration does not mutate,
- * delete, or rebind either ProjectSource identity.
+ * Immutable ProjectSource supersession and compensation lineage. Registration
+ * does not mutate, delete, or rebind either ProjectSource identity. Current
+ * traversal follows only the effective replacement head.
  */
 export interface ProjectSourceReplacementAuthorityRepository {
   registerProjectSourceReplacement(
@@ -12,6 +16,13 @@ export interface ProjectSourceReplacementAuthorityRepository {
     projectId: string,
     projectSourceReplacementId: string,
   ): Promise<PetraProjectSourceReplacement | undefined>;
+  registerProjectSourceReplacementRetraction(
+    retraction: PetraProjectSourceReplacementRetraction,
+  ): Promise<PetraProjectSourceReplacementRetraction>;
+  getProjectSourceReplacementRetraction(
+    projectId: string,
+    projectSourceReplacementRetractionId: string,
+  ): Promise<PetraProjectSourceReplacementRetraction | undefined>;
   getProjectSourceSuccessor(
     projectId: string,
     replacedProjectSourceId: string,

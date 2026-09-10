@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-replacement-retraction/1.0.0/schema.json",
+  "title": "PetraProjectSourceReplacementRetraction",
+  "description": "An immutable Project-scoped compensation record that makes one exact ProjectSource supersession relationship ineffective without deleting its history or restoring either source.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_source_replacement_retraction_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "retracted_by",
+    "retracted_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-source-replacement-retraction"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "project_source_replacement_retraction_id": {
+      "type": "string",
+      "pattern": "^project_source_retraction_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/RetractionContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "retracted_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "retracted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ReplacementRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_replacement_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "project_source_replacement_id": {
+          "type": "string",
+          "pattern": "^project_source_replacement_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "RetractionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["replacement_ref", "reason"],
+      "properties": {
+        "replacement_ref": { "$ref": "#/$defs/ReplacementRef" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    }
+  }
+}

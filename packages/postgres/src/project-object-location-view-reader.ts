@@ -206,9 +206,13 @@ const projectSourceLookup = async (
                 edge.replacement_project_source_id
               ] AS path,
               false AS is_cycle
-         FROM petra.project_source_replacements AS edge
-        WHERE edge.project_id = $1
-          AND edge.replaced_project_source_id = $2
+         FROM petra.project_source_replacement_heads AS head
+         JOIN petra.project_source_replacements AS edge
+           ON edge.project_source_replacement_id =
+              head.current_project_source_replacement_id
+        WHERE head.project_id = $1
+          AND head.replaced_project_source_id = $2
+          AND head.state = 'active'
        UNION ALL
        SELECT edge.payload, edge.record_hash,
               edge.replacement_project_source_id,
@@ -217,10 +221,14 @@ const projectSourceLookup = async (
               chain.path || edge.replacement_project_source_id,
               edge.replacement_project_source_id = ANY(chain.path)
          FROM chain
-         JOIN petra.project_source_replacements AS edge
-           ON edge.project_id = $1
-          AND edge.replaced_project_source_id =
+         JOIN petra.project_source_replacement_heads AS head
+           ON head.project_id = $1
+          AND head.replaced_project_source_id =
               chain.replacement_project_source_id
+          AND head.state = 'active'
+         JOIN petra.project_source_replacements AS edge
+           ON edge.project_source_replacement_id =
+              head.current_project_source_replacement_id
         WHERE chain.depth < 33 AND NOT chain.is_cycle
      )
      SELECT chain.edge_payload, chain.edge_record_hash,

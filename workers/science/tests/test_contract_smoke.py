@@ -485,6 +485,30 @@ class PetraProjectSourceReplacement(PetraModel):
     recorded_at: str
 
 
+class ProjectSourceReplacementRetractionRef(PetraModel):
+    project_source_replacement_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class ProjectSourceReplacementRetractionContent(PetraModel):
+    replacement_ref: ProjectSourceReplacementRetractionRef
+    reason: str
+
+
+class PetraProjectSourceReplacementRetraction(PetraModel):
+    schema_name: Literal["petra.project-source-replacement-retraction"]
+    schema_version: Literal["1.0.0"]
+    project_source_replacement_retraction_id: str
+    revision: Literal[1]
+    project_id: str
+    content: ProjectSourceReplacementRetractionContent
+    content_hash: str
+    retracted_by: ActorRef
+    retracted_at: str
+
+
 class ProjectSourceViewExactRef(PetraModel):
     record_id: str
     revision: int
@@ -6191,6 +6215,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-replacement": PetraProjectSourceReplacement,
+    "project-source-replacement-retraction": PetraProjectSourceReplacementRetraction,
     "project-source-view": PetraProjectSourceView,
     "project-source-lifecycle-view": PetraProjectSourceLifecycleView,
     "project-source-lifecycle-receipt": PetraProjectSourceLifecycleReceipt,
@@ -6376,6 +6401,11 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-source-lifecycle-view.json", "content", "content_hash"),
         ("project-source-lifecycle-receipt.json", "content", "content_hash"),
         ("project-source-replacement.json", "content", "content_hash"),
+        (
+            "project-source-replacement-retraction.json",
+            "content",
+            "content_hash",
+        ),
     ]
     for filename, projection, hash_field in fixtures:
         value = read_json(f"fixtures/accepted/{filename}")

@@ -1,0 +1,21 @@
+{
+  "schema_name": "petra.project-source-replacement-retraction",
+  "schema_version": "1.0.0",
+  "project_source_replacement_retraction_id": "project_source_retraction_01K4C000000000000000000048",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "replacement_ref": {
+      "project_source_replacement_id": "project_source_replacement_01K4C000000000000000000041",
+      "revision": 1,
+      "content_hash": "sha256:2a2f6624320c606c097ca76890b5d6417864acbefa20b735242290c3e32c9822"
+    },
+    "reason": "This invalid record does not pin the replacement record hash."
+  },
+  "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "retracted_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "retracted_at": "2026-09-09T00:11:00.000Z"
+}
