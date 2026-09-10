@@ -34,6 +34,7 @@ import type {
 } from "../src/document-authority-repository.js";
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import { PostgresProjectHistoryViewReader } from "../src/project-history-view-reader.js";
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresProjectShellViewReader } from "../src/project-shell-view-reader.js";
 import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
@@ -162,6 +163,7 @@ describePostgres("PostgreSQL Document authority repository", () => {
       },
     );
   const sourceViews = new PostgresProjectSourceViewReader(pool);
+  const historyViews = new PostgresProjectHistoryViewReader(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
   const shellViews = new PostgresProjectShellViewReader(pool);
 
@@ -1089,6 +1091,62 @@ describePostgres("PostgreSQL Document authority repository", () => {
         replaced.project_source_id,
       ),
     ).toEqual(replaced);
+    const recentHistory = await historyViews.getRecentProjectHistoryView(
+      project.project_id,
+    );
+    expect(recentHistory?.content.changes).toHaveLength(3);
+    expect(
+      recentHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual([
+      "project_source.replacement_retracted",
+      "project_source.replacement_created",
+      "project_source.excluded",
+    ]);
+    expect(
+      recentHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.schema_version,
+      ),
+    ).toEqual(["1.3.0", "1.3.0", "1.2.0"]);
+    expect(recentHistory?.content.changes[0]?.recovery).toEqual(
+      expect.objectContaining({
+        eligibility: "eligible",
+        command_name: "RestoreProjectSource",
+      }),
+    );
+    expect(recentHistory?.content.changes[1]?.recovery).toEqual(
+      expect.objectContaining({ eligibility: "ineligible" }),
+    );
+    expect(recentHistory?.content.graph_navigation_history).toBe(
+      "client_local_separate",
+    );
+    expect(recentHistory?.content.quick_window_limit).toBe(10);
+    const retractionEvent = recentHistory?.content.changes[0]?.event_ref;
+    if (retractionEvent === undefined) {
+      throw new Error("Expected replacement-retraction History.");
+    }
+    const retractionEpisode = await historyViews.getProjectHistoryEpisodeView(
+      project.project_id,
+      retractionEvent.event_id,
+    );
+    expect(retractionEpisode?.content.receipt_ref).toEqual(
+      expect.objectContaining({
+        schema_name: "petra.project-source-replacement-receipt",
+        record_id: retracted.receipt.project_source_replacement_receipt_id,
+      }),
+    );
+    expect(
+      retractionEpisode?.content.stream_order.previous_event_ref?.event_type,
+    ).toBe("project_source.replacement_created");
+    expect(
+      retractionEpisode?.content.stream_order.next_event_ref,
+    ).toBeUndefined();
+    expect(retractionEpisode?.content.omissions).toEqual([
+      "dependency_impact_not_composed",
+      "generic_reversal_assessment_not_composed",
+      "cross_family_total_order_not_asserted",
+    ]);
     const staleReceipt = structuredClone(replacement);
     staleReceipt.project_source_replacement_id =
       "project_source_replacement_01K4C000000000000000000046";

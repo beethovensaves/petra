@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.36.0",
+  "fixture_manifest_version": "1.38.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -78,6 +78,14 @@
       "schema": "project-shell-view",
       "version": "1.1.0",
       "path": "fixtures/accepted/project-shell-view-v1-1.json"
+    },
+    {
+      "schema": "project-history-view",
+      "path": "fixtures/accepted/project-history-view.json"
+    },
+    {
+      "schema": "project-history-episode-view",
+      "path": "fixtures/accepted/project-history-episode-view.json"
     },
     {
       "schema": "project-effective-controls-view",
@@ -455,6 +463,14 @@
     }
   ],
   "rejected": [
+    {
+      "schema": "project-history-view",
+      "path": "fixtures/rejected/project-history-view-too-many.json"
+    },
+    {
+      "schema": "project-history-episode-view",
+      "path": "fixtures/rejected/project-history-episode-view-false-order.json"
+    },
     {
       "schema": "composition-request",
       "path": "fixtures/rejected/composition-request-publication-authority.json"

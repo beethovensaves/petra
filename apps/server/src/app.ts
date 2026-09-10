@@ -26,6 +26,7 @@ import {
   type ReviewInterruptBoundary,
   type ReviewResolutionContext,
   type ProjectEffectiveControlsViewReader,
+  type ProjectHistoryViewReader,
   type ProjectInquiryAuthoredStatus,
   type ProjectInquiryViewReader,
   type ProjectObjectLocationViewReader,
@@ -63,6 +64,7 @@ export interface PetraAppOptions {
   codexWorkspaceRoot?: string;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
+  projectHistoryViews?: ProjectHistoryViewReader;
   projectSourceViews?: ProjectSourceViewReader;
   projectSourceLifecycleViews?: ProjectSourceLifecycleViewReader;
   commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
@@ -91,6 +93,7 @@ const PROJECT_SOURCE_REPLACEMENT_ID_PATTERN =
 const PROJECT_SOURCE_LIFECYCLE_RECEIPT_ID_PATTERN =
   /^project_source_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const COMMAND_ID_PATTERN = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const EVENT_ID_PATTERN = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const CONTENT_HASH_PATTERN = /^sha256:[0-9a-f]{64}$/u;
 const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$/u;
 const WORK_UNIT_ID_PATTERN = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -767,6 +770,109 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The effective Project controls view is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/history/recent",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "The bounded Recent changes read accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const view =
+          await options.projectHistoryViews.getRecentProjectHistoryView(
+            context.req.param("projectId"),
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_NOT_FOUND",
+            "The requested Project does not exist in the local authority store.",
+          );
+        }
+        contracts.assertValid("project-history-view", "1.0.0", view);
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_HISTORY_QUERY_INVALID"
+            : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project Recent changes view is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/history/events/:eventId",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const eventId = context.req.param("eventId");
+        if (
+          [...parameters.keys()].length > 0 ||
+          !EVENT_ID_PATTERN.test(eventId)
+        ) {
+          throw new InteractionInputError(
+            "A History episode requires one canonical event identity and accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const view =
+          await options.projectHistoryViews.getProjectHistoryEpisodeView(
+            context.req.param("projectId"),
+            eventId,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_HISTORY_EVENT_NOT_FOUND",
+            "The requested event is not available in this Project History.",
+          );
+        }
+        contracts.assertValid("project-history-episode-view", "1.0.0", view);
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_HISTORY_EVENT_INVALID"
+            : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project History episode is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

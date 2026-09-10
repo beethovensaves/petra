@@ -1,0 +1,19 @@
+{
+  "schema_name": "petra.project-history-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "content": {
+    "view_kind": "recent_changes",
+    "order": "newest_first",
+    "quick_window_limit": 20,
+    "changes": [],
+    "has_older": false,
+    "authority": {
+      "through_event_position": 0,
+      "through_stream_revision": 0
+    },
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+  "read_at": "2026-09-10T00:04:00.000Z"
+}

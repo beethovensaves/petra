@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.55.0",
+  "registry_version": "1.57.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -153,6 +153,28 @@
       "canonical_sha256": "sha256:859cf372c29e2ed06d7f4e0173a3f8955ba020ff7bb4a022be953d0e98038daf",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-shell-view-v1-1.ts"
+    },
+    {
+      "name": "project-history-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-view/1.0.0/schema.json",
+      "path": "schemas/project-history-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-bounded-causal-project-history-read",
+      "canonical_sha256": "sha256:12e3c4d947263f82b7181c47810cbb19bdf93dce4aae4e5925de85a0c606fdf8",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-view.ts"
+    },
+    {
+      "name": "project-history-episode-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-episode-view/1.0.0/schema.json",
+      "path": "schemas/project-history-episode-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-event-selected-causal-history-episode",
+      "canonical_sha256": "sha256:0881dc318a3c75a63d4ad86a2900deda845b9cd9e1a029a18ac0d9721044a8b5",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-episode-view.ts"
     },
     {
       "name": "project-effective-controls-view",
