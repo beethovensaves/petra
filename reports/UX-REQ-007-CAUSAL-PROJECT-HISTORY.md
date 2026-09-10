@@ -4,12 +4,13 @@ Status: bounded Recent changes, exact event-selected causal episodes,
 snapshot-stable filtered retained Project-event traversal, and bounded direct
 dependency impact plus registered exact semantic-target adapters through
 ProjectSource and replacement authority plus exact read-only ChangeSet recovery
-assessment passed; frozen History conformance mapping recorded; frontend
-binding remains open and revision-bound compensation preview is the next
-backend boundary without beginning its design
+assessment and revision-bound compensation preview passed; frozen History
+conformance mapping recorded; frontend binding remains open and confirmed
+command-plan composition is the next backend boundary without beginning its
+design
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `9e90258`
+Implementation baseline: `37ffc38`
 Integration handoff:
 [UX-to-implementation requirements handoff](UX-BACKEND-HANDOFF.md)
 
@@ -415,6 +416,55 @@ assessment alone. The contract fixes `compensation_preview: not_composed`,
 not_assessed`. Generic Undo, historical ProjectDefinition interpretation, event
 rewriting, preview composition, and compensation execution remain absent.
 
+`petra.project-history-compensation-preview-view@1.0.0` adds the authenticated
+read-only endpoint
+`GET /api/queries/projects/:projectId/history/events/:eventId/recovery/preview`.
+An explicit **Prepare reversal** request calls it only while the exact assessment
+is `eligible_for_preview`. The server recomposes current assessment authority;
+blocked or already-compensated results return unavailable rather than a
+substitute preview. Assessment arrival alone does not open the preview.
+
+The existing subordinate `PetraDialog` displays the successful preview. It
+first binds the assessment schema/version, event, content hash, assessment time,
+eligible state, and authority position to the accepted assessment, then binds
+the exact applied promotion ChangeSet. Its comparison presents
+`retract_claim` before `retract_assertion`; each operation shows target ID, base
+revision/current record hash, trusted/human-accepted before state, and
+quarantine/human-rejected after state beside the same target's exactly next
+resulting revision. The client preserves operation and result order.
+
+The dialog keeps the impact basis separate from the exact operation effect and
+states the retention boundary: prior revisions, promotion, Approval, and
+selected event remain retained; dependent records are not rewritten; dependent
+effects are not inferred or automatically reversed. It lists Reason, Approval
+rationale, and explicit confirmation as input still required before plan
+composition. This read collects or defaults none of them.
+
+The governed sequence remains explanatory and ordered:
+`SubmitChangeSet` → `RecordApproval` → `ApplyChangeSet`. Each step displays the
+exact Actor and CapabilityGrant, required authority recheck, not-composed state,
+and prerequisite. The preview provides no command envelope. Its decision
+boundary states read only, ChangeSet not created, Approval not recorded,
+commands not composed or executed, generic Undo unavailable, and multi-step
+compensation not assessed.
+
+Freshness starts at the assessment `read_at` and ends exactly five minutes
+later. The binding hash covers Project, event, assessment hash/authority,
+promotion ChangeSet, current targets, command grants, and valid-through time.
+Expiry, Project-authority advance, promotion-state change, target revision/hash
+change, or command-grant change invalidates the preview. An invalidated preview
+remains readable as expired/stale evidence but loses any current action posture;
+refresh requires a new assessment and preview for the same event.
+
+Loading keeps the assessment visible and dialog closed. Missing, malformed,
+unauthorized, unavailable, newly blocked/already-compensated, expired,
+integrity-failed, mismatched, or out-of-order results expose no unverified
+preview and create nothing. On success focus moves to the dialog heading; one
+expiry announcement replaces a live countdown, and **Close preview** returns
+focus to **Prepare reversal**. The comparison, retention, required inputs,
+three-command sequence, freshness, and read-only boundary have programmatic
+names and preserve their order when stacked at narrow widths.
+
 ProjectSource recovery is computed rather than copied from an old receipt:
 
 - an exclude or restore entry is eligible only while its exact resulting
@@ -435,19 +485,21 @@ mutation boundaries and recheck current authority when invoked.
 
 Existing `/api/*` bearer authentication applies to Recent changes, retained
 event traversal, exact episode detail, exact dependency impact, and exact
-recovery assessment before a reader is called. The Recent route accepts no
-query parameters; the retained route accepts one bounded limit, one opaque
-cursor, and only the registered
+recovery assessment and compensation preview before a reader is called. The
+Recent route accepts no query parameters; the retained route accepts one
+bounded limit, one opaque cursor, and only the registered
 single-value `family`, `command_name`, `event_type`, `actor_id`, `outcome`,
 `effect`, paired `target_semantic_key`/`target_object_id`, `recorded_from`, and
 `recorded_through` parameters. Parameters cannot repeat. The episode, impact,
-and recovery routes accept only one canonical event identity; recovery rejects
-query parameters and event types outside applied or reverted ChangeSets. Each
-returns no substitute Project and validates its composed contract before
-responding. Typed workbench clients verify the contract family, normalized
-filters, limit, optional cursor, Project, event, selected-event anchor, and
-recovery impact-source identity while treating `phc2` as opaque. No component,
-CSS, browser route, or frozen surface changed.
+recovery, and preview routes accept only one canonical event identity; recovery
+and preview reject query parameters, and preview returns unavailable unless the
+recomposed assessment remains eligible. Each returns no substitute Project and
+validates its composed contract before responding. Typed workbench clients
+verify the contract family, normalized filters, limit, optional cursor,
+Project, event, selected-event/assessment anchors, impact-source identity,
+operation/result order, revision increment, and positive freshness interval
+while treating `phc2` and the preview binding hash as opaque. No component, CSS,
+browser route, or frozen surface changed.
 
 The 1.2 typed client also binds `target_total_count` to the selected event's
 target count, `target_returned_count` to the assessment count, every
@@ -485,23 +537,27 @@ The PostgreSQL reader fails closed when it cannot reproduce:
   identity; or
 - a recovery promotion ChangeSet, applied Approval, current Claim/Assertion
   head, active command grant, or retained compensation ChangeSet/Approval/event
-  exact Project, revision, content, record, and causal binding.
+  exact Project, revision, content, record, and causal binding; or
+- a compensation preview's exact assessment, authority position, current
+  target, active grant, five-minute expiry, or canonical binding-hash input.
 
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
 retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2, and ChangeSet
-recovery-assessment responses.
+recovery-assessment and compensation-preview responses.
 Rejected fixtures cover an altered quick limit, false global episode order,
 unsafe offset or query-unbound cursor reuse, a dependency read that claims a
 reversibility decision, and an unregistered semantic target that fabricates a
 registered adapter group, plus an invalid response that collapses retained
 replacement lineage and effective head state into one unsupported authority or
-claims that a recovery assessment composed a compensation preview.
+claims that a recovery assessment composed a compensation preview, or turns a
+read-only preview into a created ChangeSet, recorded Approval, composed command,
+or execution.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
 suite pass. The database proof starts from an empty PostgreSQL 18.6 instance,
-migrates V001 through V030, exercises all five reads over domain-event versions
+migrates V001 through V030, exercises all six reads over domain-event versions
 1.0, 1.1, 1.2, and 1.3, and proves cursor integrity, cross-Project rejection,
 stable membership after a concurrent append, keyset continuation without
 duplication, complete Project/snapshot/limit/query binding, exact filtered counts
@@ -516,15 +572,18 @@ and current effective-head bindings. The recovery proof additionally exercises
 eligible, unavailable-principal blocked, and already-compensated states before
 and after one real compensating reversal, exact grant resolution, cross-Project
 non-disclosure, and both applied and reverted event selection. Active and
-retracted head states remain separate from retained lineage.
+retracted head states remain separate from retained lineage. The preview proof
+verifies exact operation/result order, five-minute authority binding,
+missing/ambiguous/already-compensated rejection, and unchanged ChangeSet,
+Approval, command, event, and evidence-revision counts.
 
 ## Next safe slice
 
-Backend `9e90258` identifies a revision-bound, read-only compensation preview
-for an assessment still `eligible_for_preview` as the next safe History
-capability. It must bind the assessment event and authority, exact current target
-revisions/hashes, current grants, impact basis, and a short freshness window
-while persisting and executing nothing. This freeze-conformance slice stops
-before designing that preview. Generic Undo, reversal of a reversal, multi-step
-compensation, historical ProjectDefinition interpretation, event rewriting,
-execution, and an untrusted origin filter remain excluded.
+Backend `37ffc38` identifies confirmation-to-command-plan composition for one
+unexpired preview as the next safe History capability. It must accept explicit
+user reason, Approval rationale, and confirmation, reconstruct and compare all
+current authority bindings, and return deterministic ChangeSet, Approval, and
+three command envelopes without persisting or submitting them. This freeze-
+conformance slice stops before designing that plan. Generic Undo, reversal of a
+reversal, multi-step compensation, historical ProjectDefinition interpretation,
+event rewriting, execution, and an untrusted origin filter remain excluded.
