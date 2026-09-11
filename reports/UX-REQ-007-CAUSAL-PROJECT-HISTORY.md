@@ -1,10 +1,11 @@
 # UX-REQ-007 causal Project History
 
-Status: bounded Recent changes, exact event-selected causal episodes,
-snapshot-stable filtered retained Project-event traversal with authorized Actor
-and target option catalogues plus stable non-disclosing continuation failures,
-bounded direct dependency impact plus registered exact semantic-target adapters
-through ProjectSource and replacement authority, three exact record-bound
+Status: bounded Recent changes, exact event-selected causal episodes with
+read-only retained ProjectDefinition authority, snapshot-stable filtered
+retained Project-event traversal with authorized Actor and target option
+catalogues plus stable non-disclosing continuation failures, bounded direct
+dependency impact plus registered exact semantic-target adapters through
+ProjectSource and replacement authority, three exact record-bound
 Work/output/replay groups with the exact current-Work destination state, exact
 read-only ChangeSet recovery assessment, revision-bound compensation preview,
 confirmed non-persisted command-plan composition, and separately authorized
@@ -12,7 +13,7 @@ exact compensation execution with partial-outcome recovery passed; frozen
 History conformance mapping recorded; frontend binding remains open
 Date: 2026-09-11
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `d0ae4c9`
+Implementation baseline: `1415352`
 Integration handoff:
 [UX-to-implementation requirements handoff](UX-BACKEND-HANDOFF.md)
 
@@ -81,6 +82,63 @@ total history order:
 The response explicitly omits dependency-impact composition, generic reversal
 assessment, and any cross-family total-order assertion. It is a read over the
 same immutable authority, not a new episode or History ledger.
+
+Backend commit `1415352` advances the same authenticated exact-event endpoint
+to `petra.project-history-episode-view@1.1.0`. Its only new detail member is the
+read-only `project_definition_authority` union. It does not add an endpoint,
+selected-event relationship, action, or History ledger.
+
+When `state: available`, the frozen **Authority effect** region appends a
+separately labelled **Retained ProjectDefinition authority** fact after the
+selected event's existing observed-effect text. It preserves all supplied
+fields as static authority metadata:
+
+- `project_definition_ref.schema_name: petra.project-definition` and version
+  `1.0.0`;
+- exact ProjectDefinition ID and revision;
+- exact content hash and record hash;
+- `effective_after_stream_revision`;
+- `authority_source: immutable_project_definition_event_stream_binding`; and
+- `selection_basis: latest_retained_binding_effective_before_selected_event`.
+
+The boundary must be strictly earlier than the selected event's Project-stream
+revision. Display it as **Effective after Project-stream revision
+{effective_after_stream_revision}; latest retained ProjectDefinition binding
+before this selected event.** Follow it with **Authority source ·
+immutable_project_definition_event_stream_binding** and **Selection basis ·
+latest_retained_binding_effective_before_selected_event** in the same static
+authority text. The ProjectDefinition identity, revision, and both hashes remain
+selectable static text and never become a link or destination.
+
+When `state: unavailable`, the same **Authority effect** position shows the
+exact reason **No exact retained ProjectDefinition authority binding is
+available for this selected event.** Preserve reason code
+`retained_project_definition_authority_not_available` in its programmatically
+associated state. Do not fetch, substitute, or present the current definition,
+and do not relabel the event with current terminology.
+
+For both states, the existing **Recovery relationship** limitations include
+**Historical destination interpretation was not performed** from
+`historical_destination_interpretation: not_performed` and retain the exact
+omission `historical_project_definition_not_interpreted`. The authority
+reference proves only which immutable definition boundary preceded the event.
+It does not authorize historical labels, terms, place names, destinations,
+components, or routes, and it does not change the existing current recovery
+assessment.
+
+The authority facts follow the existing selected-event heading and event effect
+in reading order. IDs and hashes wrap within the frozen detail width, the state
+and reason remain textual and non-color-only, and static metadata adds no
+keyboard stop. Episode loading exposes no prior event's definition authority.
+An invalid union, mismatched hash, boundary at or after the selected event,
+missing omission, or claimed historical interpretation fails the complete
+episode response closed and uses the existing selected-detail integrity state.
+It does not retain a partly verified authority block.
+
+The checked-in fixture-backed History surface still lacks an episode 1.1
+loader and adapter. Binding this union into the two existing detail regions is
+the frontend integration gap; it requires no component, CSS rule, browser
+route, filter, recovery decision, Undo behavior, or client-side authority.
 
 ## Retained Project-event traversal
 
@@ -608,15 +666,18 @@ or route.
 
 ## Frozen History detail conformance
 
-The closed `UX-DESIGN-FREEZE-01` History detail already has every placement this
-contract needs. The impact view does not add a component, panel, dialog, CSS
-rule, or browser route:
+The closed `UX-DESIGN-FREEZE-01` History detail already has every placement the
+episode 1.1 authority union and impact contract need. Neither adds a component,
+panel, dialog, CSS rule, or browser route:
 
 - its `selected_event` validates and preserves the exact event already open in
   the existing detail header and Actor/time/action facts;
 - its direct, semantic-target, and operational summaries may follow the observed
   event in **Authority effect**, separately labelled as registered reference
   counts rather than all impact;
+- its read-only retained ProjectDefinition authority follows the observed event
+  in **Authority effect** as exact static metadata or the supplied unavailable
+  reason, without interpreting the definition;
 - causal commands, event outbox records, GroundedResponse invalidations, the
   applicable per-target semantic and operational adapter groups, and any
   target-local non-result reason remain separately labelled in **Episode
@@ -626,7 +687,9 @@ rule, or browser route:
 - aggregate target/group coverage, all three `unknowns` arrays,
   `decision_boundary`, and `omissions` appear with **Recovery relationship**,
   where they explicitly prevent references from being read as effects,
-  reversibility, or compensation.
+  reversibility, or compensation. The same limitations region states that
+  historical destination interpretation was not performed and retains
+  `historical_project_definition_not_interpreted`.
 
 Every group retains its immutable `authority_source`, relation, returned count,
 total count, complete/truncated coverage, and exact references. The client keeps
@@ -659,7 +722,7 @@ truncated target or group coverage is stated in text and does not create a
 continuation control.
 
 The frozen route remains fixture-backed and has no loaders or adapters for the
-implemented Recent, episode, retained, 1.4 impact, or recovery-assessment
+implemented Recent, episode 1.1, retained, 1.4 impact, or recovery-assessment
 clients. This is an integration gap rather than a design gap. The retained
 filter mapping, impact detail mapping, and recovery assessment use separate
 frozen regions and do not change each other's authority. Graph
@@ -985,6 +1048,17 @@ command/envelope sequence, plan reference, execution steps, completed prefix,
 content/binding hashes as opaque. No component, CSS, browser route, or frozen
 surface changed.
 
+The episode 1.1 client accepts exactly one `project_definition_authority` union.
+For `available`, it verifies the fixed authority source and selection basis,
+the exact `petra.project-definition@1.0.0` identity/revision/content-hash/
+record-hash reference, `historical_destination_interpretation: not_performed`,
+and an effective-after stream revision that is nonnegative and strictly less
+than the selected event revision. For `unavailable`, it verifies the fixed
+reason code, exact supplied reason, and the same not-performed boundary. Both
+states require `historical_project_definition_not_interpreted`; any current-
+definition substitution or interpreted label/destination fails the episode
+closed.
+
 The retained 1.2 typed client requires both catalogues, their exact binding and
 facet constants, unique canonical option identities, fixed fallback/reason
 values, positive matching-event counts, active-first stable order, and exact
@@ -1043,6 +1117,9 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 - a retained 1.2 option catalogue's Project/snapshot/query facet basis, Actor
   payload/identity/record hash, target identity-only descriptor, stable order,
   matching-event counts, total, coverage, or zero-result behavior;
+- an episode 1.1 retained ProjectDefinition binding's Project, exact immutable
+  definition identity/revision/content/record hash, or strictly-before-event
+  stream boundary;
 - an outbox record's exact embedded event payload and record hash;
 - a graph-projection attempt's event, outbox, sequence, content, and record
   hashes; or
@@ -1076,14 +1153,15 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 
 ## Verification
 
-Contract fixtures include accepted exact Recent changes, causal-episode,
+Contract fixtures include accepted exact Recent changes, causal-episode 1.0/1.1,
 retained traversal 1.0/1.1/1.2, retained-continuation failure,
 dependency-impact 1.0/1.1/1.2/1.3/1.4, and ChangeSet recovery-assessment and
 compensation-preview responses. Accepted plan-request and plan-view fixtures
 cover explicit confirmation and non-persistence.
 Accepted execution-request and execution-view fixtures cover separate command
 authorization, non-atomicity, retained prefix, retry, and completed effect.
-Rejected fixtures cover an altered quick limit, false global episode order,
+Rejected fixtures cover an altered quick limit, false global episode order, an
+episode that claims historical interpretation without retained authority,
 unsafe offset or query-unbound cursor reuse, a continuation failure that exposes
 a Project-specific mismatch, a dependency read that claims a reversibility
 decision, a retained 1.2 target option that fabricates a title, and an
@@ -1099,9 +1177,9 @@ claims execution are also rejected. An unconfirmed execution request and an exec
 response that claims three-command atomicity are rejected.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
-suite pass. The complete gate includes 850 always-on TypeScript tests, 25 Python
-tests, seven expected service-dependent skips, and 109 PostgreSQL cases after a
-clean V001-through-V030 migration. The database proof exercises all seven
+suite pass. The complete gate includes 853 always-on TypeScript tests, 25 Python
+tests, seven expected service-dependent skips, and 110 PostgreSQL cases after a
+clean V001-through-V031 migration. The database proof exercises all seven
 History reads/compositions plus the execution command over domain-event versions
 1.0, 1.1, 1.2, and 1.3, and proves cursor integrity, cross-Project rejection,
 stable membership after a concurrent append, keyset continuation without
@@ -1163,14 +1241,25 @@ unavailable state. Output and replay remain unavailable with separate reasons,
 and contract, typed-client, and PostgreSQL checks reject a fabricated
 replay-to-ProjectThread destination.
 
+The episode 1.1 proof validates an exact ProjectDefinition registered before a
+selected event, an unavailable event that predates every retained definition
+binding, and a later available definition whose boundary remains inapplicable
+to the earlier event. It verifies immutable definition hashes, rejects a
+boundary at or after the selected stream revision, and rejects any performed
+historical destination interpretation. V031 serializes definition registration
+and event append on the Project lock, retains future boundaries immutably, and
+backfills only the current definition after the existing stream head instead of
+fabricating past authority.
+
 ## Next safe slice
 
-The next safe backend History boundary is a read-only exact retained
-ProjectDefinition authority reference for the selected event or retained
-snapshot. It must name the immutable ProjectDefinition identity, revision, and
-record hash effective at that historical position, or return an explicit
-unavailable state. That authority is required before any historical semantic
-destination can be interpreted; the current ProjectDefinition cannot be
-applied retroactively. This boundary adds no origin filter, destination,
-component, CSS rule, browser route, recovery decision, generic Undo, or
-compensation behavior.
+The next safe backend History boundary is a separately bounded, renderer-neutral
+historical semantic-destination interpretation for the selected event. It may
+resolve a registered event target only from an `available` episode 1.1 retained
+ProjectDefinition authority and that exact immutable definition revision; an
+unavailable authority must yield no destination. The backend must return an
+explicit renderer-neutral available/unavailable destination result rather than
+definition content for client interpretation; it may name registered semantic
+identity, place role, task intent, and route authority, but no label, term, URL,
+component, CSS rule, or browser route. Origin filtering, recovery changes,
+generic Undo, reversal of a reversal, and compensation changes remain excluded.
