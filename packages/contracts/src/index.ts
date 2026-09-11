@@ -132,6 +132,21 @@ export type {
   UnavailableProjectDefinitionAuthority as ProjectHistoryUnavailableDefinitionAuthorityV11,
 } from "./generated/project-history-episode-view-v1-1.js";
 export type {
+  AvailableHistoricalSemanticDestination as ProjectHistoryAvailableHistoricalSemanticDestinationV12,
+  AvailableProjectDefinitionAuthority as ProjectHistoryAvailableDefinitionAuthorityV12,
+  EpisodeContent as ProjectHistoryEpisodeContentV12,
+  HistoricalSemanticDestination as ProjectHistoryHistoricalSemanticDestinationV12,
+  HistoryEpisodeRouteAuthority as ProjectHistoryEpisodeRouteAuthorityV12,
+  PetraProjectHistoryEpisodeViewV120 as PetraProjectHistoryEpisodeViewV12,
+  ProjectDefinitionAuthority as ProjectHistoryDefinitionAuthorityV12,
+  ProjectDefinitionRef as ProjectHistoryDefinitionRefV12,
+  RegisteredHistoricalTargetRef as ProjectHistoryRegisteredHistoricalTargetRefV12,
+  UnavailableHistoricalSemanticDestinationUnregisteredTarget as ProjectHistoryUnregisteredHistoricalSemanticDestinationV12,
+  UnavailableHistoricalSemanticDestinationUnsupportedPlace as ProjectHistoryUnsupportedHistoricalSemanticDestinationV12,
+  UnavailableHistoricalSemanticDestinationWithoutAuthority as ProjectHistoryNoAuthorityHistoricalSemanticDestinationV12,
+  UnavailableProjectDefinitionAuthority as ProjectHistoryUnavailableDefinitionAuthorityV12,
+} from "./generated/project-history-episode-view-v1-2.js";
+export type {
   AuthorityPosition as ProjectHistoryRetainedAuthorityPosition,
   CollectionQuery as ProjectHistoryRetainedCollectionQuery,
   EmptyRetentionSnapshot as ProjectHistoryEmptyRetentionSnapshot,

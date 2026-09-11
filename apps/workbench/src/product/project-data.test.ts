@@ -7,7 +7,7 @@ import type {
   PetraProjectHistoryCompensationExecutionView,
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryView,
-  PetraProjectHistoryEpisodeViewV11,
+  PetraProjectHistoryEpisodeViewV12,
   PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
@@ -203,12 +203,12 @@ const historyView = JSON.parse(
 const historyEpisodeView = JSON.parse(
   readFileSync(
     new URL(
-      "../../../../packages/contracts/fixtures/accepted/project-history-episode-view-v1-1.json",
+      "../../../../packages/contracts/fixtures/accepted/project-history-episode-view-v1-2.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryEpisodeViewV11;
+) as PetraProjectHistoryEpisodeViewV12;
 
 const historyRetainedView = JSON.parse(
   readFileSync(
@@ -676,10 +676,48 @@ describe("Project shell workbench adapter", () => {
       ),
     ).rejects.toMatchObject({ status: 502 });
 
-    const interpreted = structuredClone(historyEpisodeView);
-    interpreted.content.project_definition_authority.historical_destination_interpretation =
-      "performed" as "not_performed";
-    fetch.mockResolvedValueOnce(Response.json(interpreted));
+    const noAuthority = structuredClone(historyEpisodeView);
+    noAuthority.content.project_definition_authority = {
+      state: "unavailable",
+      reason_code: "retained_project_definition_authority_not_available",
+      reason:
+        "No exact retained ProjectDefinition authority binding is available for this selected event.",
+      historical_destination_interpretation: "not_performed",
+    };
+    fetch.mockResolvedValueOnce(Response.json(noAuthority));
+    await expect(
+      getProjectHistoryEpisode(
+        historyEpisodeView.project_id,
+        historyEpisodeView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const substitutedDefinition = structuredClone(historyEpisodeView);
+    if (
+      substitutedDefinition.content.historical_semantic_destination.state !==
+      "available"
+    ) {
+      throw new Error("Expected the available destination fixture.");
+    }
+    substitutedDefinition.content.historical_semantic_destination.project_definition_ref.revision += 1;
+    fetch.mockResolvedValueOnce(Response.json(substitutedDefinition));
+    await expect(
+      getProjectHistoryEpisode(
+        historyEpisodeView.project_id,
+        historyEpisodeView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const wrongRouteEvent = structuredClone(historyEpisodeView);
+    if (
+      wrongRouteEvent.content.historical_semantic_destination.state !==
+      "available"
+    ) {
+      throw new Error("Expected the available destination fixture.");
+    }
+    wrongRouteEvent.content.historical_semantic_destination.route_authority.event_ref.event_id =
+      "event_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongRouteEvent));
     await expect(
       getProjectHistoryEpisode(
         historyEpisodeView.project_id,

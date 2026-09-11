@@ -1,7 +1,8 @@
 # UX-REQ-007 causal Project History
 
 Status: bounded Recent changes, exact event-selected causal episodes with an
-exact retained ProjectDefinition authority reference or unavailable state,
+exact retained ProjectDefinition authority reference and bounded renderer-neutral
+historical History destination or explicit unavailable states,
 snapshot-stable filtered retained Project-event traversal with authorized Actor
 and target option catalogues plus stable non-disclosing continuation-failure
 subcodes, and bounded direct dependency impact plus
@@ -13,7 +14,7 @@ preview, confirmed command-plan composition, and separately authorized
 single-plan execution with exact partial-outcome recovery also passed
 Date: 2026-09-11
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `d0ae4c9` plus this slice
+Implementation baseline: `1415352` plus this slice
 
 ## Result
 
@@ -103,6 +104,41 @@ Both states keep `historical_destination_interpretation: not_performed` and the
 episode now explicitly carries
 `historical_project_definition_not_interpreted`. The current definition is
 never substituted for missing historical authority.
+
+`petra.project-history-episode-view@1.2.0` performs the separately bounded
+interpretation that 1.1 deliberately omitted. It adds one
+`historical_semantic_destination` union to the same authenticated selected-event
+endpoint. No new API or browser route is introduced.
+
+An available destination requires all of the following under the same
+repeatable-read transaction:
+
+- an exact retained ProjectDefinition binding strictly before the selected
+  event;
+- validation of that exact immutable definition revision and both hashes;
+- the `history` place in that retained definition's `supported_places`;
+- one exact primary event target matching Petra's registered History target
+  registry; and
+- the selected immutable Project event as the route identity.
+
+The response then names only `place_role: history`,
+`task_intent: view_history`, the exact primary target, the exact retained
+ProjectDefinition reference, and `petra.project-history-episode-view@1.2.0` as
+the renderer-neutral route authority. It returns no definition content, label,
+term, URL, component, CSS rule, or browser route. The client validates equality
+between the destination definition and authority references and between the
+route and selected-event references; it does not construct authority from the
+semantic key.
+
+If retained definition authority is unavailable, destination interpretation is
+not performed and the response returns no place, task intent, route authority,
+or definition substitute. If the exact retained definition omits History, or a
+future selected primary target lacks a registered History adapter, the response
+returns a distinct unavailable reason after the bounded interpretation. A later
+current definition never changes an earlier event's destination. Version 1.2
+replaces the episode-only historical-interpretation omission with
+`historical_project_definition_content_not_returned`; other History contracts
+retain their narrower omissions.
 
 ## Retained Project-event traversal
 
@@ -645,19 +681,27 @@ earlier event. It verifies the immutable definition record hash and rejects a
 binding at or after the selected stream revision. The contract and typed client
 also reject any claim that historical destination interpretation was performed.
 
+The episode 1.2 proof validates the available History destination against the
+same exact retained definition and selected event, and validates the explicit
+no-authority and retained-definition-without-History states. Registering a later
+definition without History leaves the earlier event's available destination
+unchanged while making only a later event unavailable. Contract fixtures,
+strict Python parity, and the typed client reject a destination without retained
+definition authority, a substituted definition reference, and a route bound to
+a different event.
+
 ## Next safe slice
 
 The next safe History boundary is freeze-conformance mapping of
-`petra.project-history-episode-view@1.1.0` into the existing selected-event
-authority detail. The design must present the exact retained definition
-identity, revision, and record hash or its supplied unavailable reason while
-preserving `historical_destination_interpretation: not_performed`. No label,
-term, place, destination, component, CSS rule, browser route, filter, recovery
-decision, or client-side authority is required.
+`petra.project-history-episode-view@1.2.0` into the existing selected-event
+semantic destination and authority detail. The design must preserve the exact
+available or unavailable destination state, retained ProjectDefinition and
+selected-event route identities, renderer-neutral role and task intent, and the
+absence of definition content or renderer instructions. No component, CSS rule,
+browser route, filter, recovery decision, or client-side authority is required.
 
 An origin filter is not yet safe because current authority has no canonical
-origin classification. Historical ProjectDefinition interpretation must wait
-for the freeze-conformance mapping and a separately bounded destination slice.
-Exact client return behavior, generic undo, reversal of a reversal, multiple or
-multi-step compensation, and new frozen-interface integration remain later
-boundaries.
+origin classification. Interpretation beyond the selected event's registered
+History destination, exact client return behavior, generic undo, reversal of a
+reversal, multiple or multi-step compensation, and new frozen-interface
+integration remain later boundaries.

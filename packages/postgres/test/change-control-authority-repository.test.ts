@@ -954,6 +954,9 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       commands.submit.project_id,
       approvalEvent.event_id,
     );
+    if (approvalEpisode === undefined) {
+      throw new Error("Expected the selected approval History episode.");
+    }
     expect(approvalEpisode?.content.causality.parent_command).toEqual(
       expect.objectContaining({
         command_id: commands.submit.command_id,
@@ -973,7 +976,7 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       events[2]?.event_id,
     );
     expect(approvalEpisode?.content.receipt_ref).toBeUndefined();
-    expect(approvalEpisode?.schema_version).toBe("1.1.0");
+    expect(approvalEpisode?.schema_version).toBe("1.2.0");
     expect(approvalEpisode?.content.project_definition_authority).toEqual({
       state: "available",
       authority_source: "immutable_project_definition_event_stream_binding",
@@ -990,10 +993,33 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         record_hash:
           "sha256:4c87f0cd16f1ec12378220f60a148d65fcae9da2481d609e968e65ea93db7a1c",
       },
-      historical_destination_interpretation: "not_performed",
+      historical_destination_interpretation:
+        "performed_for_selected_event_target",
+    });
+    expect(approvalEpisode?.content.historical_semantic_destination).toEqual({
+      state: "available",
+      target_ref: approvalEpisode.content.change.targets[0],
+      place_role: "history",
+      task_intent: "view_history",
+      route_authority: {
+        schema_name: "petra.project-history-episode-view",
+        schema_version: "1.2.0",
+        view_kind: "causal_episode",
+        event_ref: approvalEpisode.content.change.event_ref,
+        authority_source:
+          "selected_project_event_and_exact_retained_project_definition",
+      },
+      project_definition_ref:
+        approvalEpisode.content.project_definition_authority.state ===
+        "available"
+          ? approvalEpisode.content.project_definition_authority
+              .project_definition_ref
+          : undefined,
+      interpretation_basis:
+        "exact_retained_project_definition_and_registered_history_target",
     });
     expect(approvalEpisode?.content.omissions).toContain(
-      "historical_project_definition_not_interpreted",
+      "historical_project_definition_content_not_returned",
     );
 
     const submittedEvent = events[0];
@@ -1194,12 +1220,23 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       commands.submit.project_id,
       submittedEvent.event_id,
     );
+    if (beforeBinding === undefined) {
+      throw new Error("Expected the pre-definition History episode.");
+    }
     expect(beforeBinding?.content.project_definition_authority).toEqual({
       state: "unavailable",
       reason_code: "retained_project_definition_authority_not_available",
       reason:
         "No exact retained ProjectDefinition authority binding is available for this selected event.",
       historical_destination_interpretation: "not_performed",
+    });
+    expect(beforeBinding?.content.historical_semantic_destination).toEqual({
+      state: "unavailable",
+      target_ref: beforeBinding.content.change.targets[0],
+      reason_code: "retained_project_definition_authority_not_available",
+      reason:
+        "No historical semantic destination is available because exact retained ProjectDefinition authority is unavailable for this selected event.",
+      interpretation_status: "not_performed",
     });
 
     const definition = readFixture<PetraProjectDefinition>(
@@ -1219,6 +1256,9 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       commands.submit.project_id,
       approvalEvent.event_id,
     );
+    if (afterBinding === undefined) {
+      throw new Error("Expected the definition-bound History episode.");
+    }
     expect(afterBinding?.content.project_definition_authority).toMatchObject({
       state: "available",
       effective_after_stream_revision: 1,
@@ -1227,7 +1267,86 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         revision: definition.revision,
         content_hash: definition.content_hash,
       },
-      historical_destination_interpretation: "not_performed",
+      historical_destination_interpretation:
+        "performed_for_selected_event_target",
+    });
+    expect(afterBinding?.content.historical_semantic_destination).toMatchObject(
+      {
+        state: "available",
+        place_role: "history",
+        task_intent: "view_history",
+        project_definition_ref: {
+          project_definition_id: definition.project_definition_id,
+          revision: definition.revision,
+          content_hash: definition.content_hash,
+        },
+      },
+    );
+
+    const definitionTwo = structuredClone(definition);
+    definitionTwo.revision = 2;
+    definitionTwo.content.label = "Scientific evidence inquiry without History";
+    definitionTwo.content.supported_places = [
+      "brief",
+      "sources",
+      "review",
+      "graph",
+      "work",
+      "petra",
+      "composition",
+      "settings",
+    ];
+    definitionTwo.content_hash = canonicalHash(definitionTwo.content);
+    definitionTwo.created_at = "2026-09-10T01:00:00.000Z";
+    await definitions.registerDefinitionRevision(definitionTwo);
+
+    const unchangedApproval = await historyViews.getProjectHistoryEpisodeView(
+      commands.submit.project_id,
+      approvalEvent.event_id,
+    );
+    expect(
+      unchangedApproval?.content.historical_semantic_destination.state,
+    ).toBe("available");
+    expect(
+      unchangedApproval?.content.project_definition_authority.state ===
+        "available" &&
+        unchangedApproval.content.project_definition_authority
+          .project_definition_ref.revision,
+    ).toBe(1);
+
+    await repository.executeCommand(commands.apply);
+    const appliedEvent = (
+      await repository.getDomainEvents({
+        projectId: commands.submit.project_id,
+      })
+    )[2];
+    if (appliedEvent === undefined) {
+      throw new Error(
+        "Expected one event after the second definition binding.",
+      );
+    }
+    const unsupportedHistory = await historyViews.getProjectHistoryEpisodeView(
+      commands.submit.project_id,
+      appliedEvent.event_id,
+    );
+    expect(
+      unsupportedHistory?.content.project_definition_authority,
+    ).toMatchObject({
+      state: "available",
+      effective_after_stream_revision: 2,
+      project_definition_ref: { revision: 2 },
+      historical_destination_interpretation:
+        "performed_for_selected_event_target",
+    });
+    expect(
+      unsupportedHistory?.content.historical_semantic_destination,
+    ).toMatchObject({
+      state: "unavailable",
+      reason_code: "retained_project_definition_history_place_not_supported",
+      reason:
+        "The exact retained ProjectDefinition does not authorize the History place for this selected event.",
+      interpretation_status: "performed",
+      project_definition_ref: { revision: 2 },
     });
 
     const stillBeforeBinding = await historyViews.getProjectHistoryEpisodeView(

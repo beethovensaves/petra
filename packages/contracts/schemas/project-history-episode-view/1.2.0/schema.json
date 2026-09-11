@@ -1,0 +1,408 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-episode-view/1.2.0/schema.json",
+  "title": "PetraProjectHistoryEpisodeViewV120",
+  "description": "An authorized exact Project History episode with a renderer-neutral historical History destination interpreted only from the exact retained ProjectDefinition effective before the selected event and a registered target adapter.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "event_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-history-episode-view" },
+    "schema_version": { "const": "1.2.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "content": { "$ref": "#/$defs/EpisodeContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ProjectDefinitionRef": {
+      "$ref": "../../project-history-episode-view/1.1.0/schema.json#/$defs/ProjectDefinitionRef"
+    },
+    "AvailableProjectDefinitionAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "authority_source",
+        "selection_basis",
+        "effective_after_stream_revision",
+        "project_definition_ref",
+        "historical_destination_interpretation"
+      ],
+      "properties": {
+        "state": { "const": "available" },
+        "authority_source": {
+          "const": "immutable_project_definition_event_stream_binding"
+        },
+        "selection_basis": {
+          "const": "latest_retained_binding_effective_before_selected_event"
+        },
+        "effective_after_stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "project_definition_ref": { "$ref": "#/$defs/ProjectDefinitionRef" },
+        "historical_destination_interpretation": {
+          "const": "performed_for_selected_event_target"
+        }
+      }
+    },
+    "UnavailableProjectDefinitionAuthority": {
+      "$ref": "../../project-history-episode-view/1.1.0/schema.json#/$defs/UnavailableProjectDefinitionAuthority"
+    },
+    "ProjectDefinitionAuthority": {
+      "oneOf": [
+        { "$ref": "#/$defs/AvailableProjectDefinitionAuthority" },
+        { "$ref": "#/$defs/UnavailableProjectDefinitionAuthority" }
+      ]
+    },
+    "RegisteredHistoricalTargetRef": {
+      "allOf": [
+        {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/TargetRef"
+        },
+        {
+          "type": "object",
+          "required": ["role"],
+          "properties": { "role": { "const": "primary" } }
+        },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "semantic_key": { "const": "petra.change-set" },
+                "object_id": { "type": "string", "pattern": "^change_set_" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "semantic_key": { "const": "petra.approval" },
+                "object_id": { "type": "string", "pattern": "^approval_" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "semantic_key": { "const": "scientific.claim" },
+                "object_id": { "type": "string", "pattern": "^claim_" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "semantic_key": { "const": "scientific.assertion" },
+                "object_id": { "type": "string", "pattern": "^assertion_" }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "semantic_key": { "const": "petra.project-source" },
+                "object_id": {
+                  "type": "string",
+                  "pattern": "^project_source_"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "semantic_key": {
+                  "const": "petra.project-source-replacement"
+                },
+                "object_id": {
+                  "type": "string",
+                  "pattern": "^project_source_replacement_"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "semantic_key": {
+                  "const": "petra.project-source-replacement-retraction"
+                },
+                "object_id": {
+                  "type": "string",
+                  "pattern": "^project_source_retraction_"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "HistoryEpisodeRouteAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "view_kind",
+        "event_ref",
+        "authority_source"
+      ],
+      "properties": {
+        "schema_name": { "const": "petra.project-history-episode-view" },
+        "schema_version": { "const": "1.2.0" },
+        "view_kind": { "const": "causal_episode" },
+        "event_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/EventRef"
+        },
+        "authority_source": {
+          "const": "selected_project_event_and_exact_retained_project_definition"
+        }
+      }
+    },
+    "AvailableHistoricalSemanticDestination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "target_ref",
+        "place_role",
+        "task_intent",
+        "route_authority",
+        "project_definition_ref",
+        "interpretation_basis"
+      ],
+      "properties": {
+        "state": { "const": "available" },
+        "target_ref": { "$ref": "#/$defs/RegisteredHistoricalTargetRef" },
+        "place_role": { "const": "history" },
+        "task_intent": { "const": "view_history" },
+        "route_authority": {
+          "$ref": "#/$defs/HistoryEpisodeRouteAuthority"
+        },
+        "project_definition_ref": { "$ref": "#/$defs/ProjectDefinitionRef" },
+        "interpretation_basis": {
+          "const": "exact_retained_project_definition_and_registered_history_target"
+        }
+      }
+    },
+    "UnavailableHistoricalSemanticDestinationWithoutAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "target_ref",
+        "reason_code",
+        "reason",
+        "interpretation_status"
+      ],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "target_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/TargetRef"
+        },
+        "reason_code": {
+          "const": "retained_project_definition_authority_not_available"
+        },
+        "reason": {
+          "const": "No historical semantic destination is available because exact retained ProjectDefinition authority is unavailable for this selected event."
+        },
+        "interpretation_status": { "const": "not_performed" }
+      }
+    },
+    "UnavailableHistoricalSemanticDestinationUnsupportedPlace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "target_ref",
+        "reason_code",
+        "reason",
+        "interpretation_status",
+        "project_definition_ref"
+      ],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "target_ref": { "$ref": "#/$defs/RegisteredHistoricalTargetRef" },
+        "reason_code": {
+          "const": "retained_project_definition_history_place_not_supported"
+        },
+        "reason": {
+          "const": "The exact retained ProjectDefinition does not authorize the History place for this selected event."
+        },
+        "interpretation_status": { "const": "performed" },
+        "project_definition_ref": { "$ref": "#/$defs/ProjectDefinitionRef" }
+      }
+    },
+    "UnavailableHistoricalSemanticDestinationUnregisteredTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "target_ref",
+        "reason_code",
+        "reason",
+        "interpretation_status",
+        "project_definition_ref"
+      ],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "target_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/TargetRef"
+        },
+        "reason_code": {
+          "const": "historical_event_target_destination_not_registered"
+        },
+        "reason": {
+          "const": "No historical semantic-destination adapter is registered for this selected event target."
+        },
+        "interpretation_status": { "const": "performed" },
+        "project_definition_ref": { "$ref": "#/$defs/ProjectDefinitionRef" }
+      }
+    },
+    "HistoricalSemanticDestination": {
+      "oneOf": [
+        { "$ref": "#/$defs/AvailableHistoricalSemanticDestination" },
+        {
+          "$ref": "#/$defs/UnavailableHistoricalSemanticDestinationWithoutAuthority"
+        },
+        {
+          "$ref": "#/$defs/UnavailableHistoricalSemanticDestinationUnsupportedPlace"
+        },
+        {
+          "$ref": "#/$defs/UnavailableHistoricalSemanticDestinationUnregisteredTarget"
+        }
+      ]
+    },
+    "EpisodeContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "change",
+        "causality",
+        "stream_order",
+        "project_definition_authority",
+        "historical_semantic_destination",
+        "omissions",
+        "authority",
+        "graph_navigation_history"
+      ],
+      "properties": {
+        "view_kind": { "const": "causal_episode" },
+        "change": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/RecentChange"
+        },
+        "causality": {
+          "$ref": "../../project-history-episode-view/1.0.0/schema.json#/$defs/Causality"
+        },
+        "stream_order": {
+          "$ref": "../../project-history-episode-view/1.0.0/schema.json#/$defs/StreamOrder"
+        },
+        "receipt_ref": {
+          "$ref": "../../project-history-episode-view/1.0.0/schema.json#/$defs/ReceiptRef"
+        },
+        "project_definition_authority": {
+          "$ref": "#/$defs/ProjectDefinitionAuthority"
+        },
+        "historical_semantic_destination": {
+          "$ref": "#/$defs/HistoricalSemanticDestination"
+        },
+        "omissions": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "dependency_impact_not_composed",
+              "generic_reversal_assessment_not_composed",
+              "historical_project_definition_content_not_returned",
+              "cross_family_total_order_not_asserted"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": { "const": "dependency_impact_not_composed" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "generic_reversal_assessment_not_composed"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "historical_project_definition_content_not_returned"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "cross_family_total_order_not_asserted"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          ]
+        },
+        "authority": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "graph_navigation_history": { "const": "client_local_separate" }
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "project_definition_authority": {
+              "$ref": "#/$defs/AvailableProjectDefinitionAuthority"
+            },
+            "historical_semantic_destination": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/AvailableHistoricalSemanticDestination"
+                },
+                {
+                  "$ref": "#/$defs/UnavailableHistoricalSemanticDestinationUnsupportedPlace"
+                },
+                {
+                  "$ref": "#/$defs/UnavailableHistoricalSemanticDestinationUnregisteredTarget"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "project_definition_authority": {
+              "$ref": "#/$defs/UnavailableProjectDefinitionAuthority"
+            },
+            "historical_semantic_destination": {
+              "$ref": "#/$defs/UnavailableHistoricalSemanticDestinationWithoutAuthority"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

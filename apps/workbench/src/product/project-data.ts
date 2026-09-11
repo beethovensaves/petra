@@ -8,7 +8,7 @@ import type {
   PetraProjectSource,
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
-  PetraProjectHistoryEpisodeViewV11,
+  PetraProjectHistoryEpisodeViewV12,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedContinuationFailure,
@@ -549,11 +549,65 @@ const projectHistoryView = (value: unknown): PetraProjectHistoryView => {
 
 const projectHistoryEpisodeView = (
   value: unknown,
-): PetraProjectHistoryEpisodeViewV11 => {
+): PetraProjectHistoryEpisodeViewV12 => {
   const definitionAuthority =
     isRecord(value) && isRecord(value.content)
       ? value.content.project_definition_authority
       : undefined;
+  const definitionRefIsValid = (
+    candidate: unknown,
+  ): candidate is Record<string, unknown> =>
+    isRecord(candidate) &&
+    hasExactKeys(candidate, [
+      "schema_name",
+      "schema_version",
+      "project_definition_id",
+      "revision",
+      "content_hash",
+      "record_hash",
+    ]) &&
+    candidate.schema_name === "petra.project-definition" &&
+    candidate.schema_version === "1.0.0" &&
+    typeof candidate.project_definition_id === "string" &&
+    Number.isSafeInteger(candidate.revision) &&
+    Number(candidate.revision) >= 1 &&
+    typeof candidate.content_hash === "string" &&
+    typeof candidate.record_hash === "string";
+  const exactScalarRecordMatch = (
+    left: Record<string, unknown>,
+    right: Record<string, unknown>,
+  ): boolean => {
+    const leftKeys = Object.keys(left).sort();
+    const rightKeys = Object.keys(right).sort();
+    return (
+      leftKeys.length === rightKeys.length &&
+      leftKeys.every(
+        (key, index) =>
+          key === rightKeys[index] &&
+          typeof left[key] !== "object" &&
+          left[key] === right[key],
+      )
+    );
+  };
+  const registeredHistoricalTarget = (candidate: unknown): boolean => {
+    if (
+      !isRecord(candidate) ||
+      typeof candidate.semantic_key !== "string" ||
+      typeof candidate.object_id !== "string"
+    ) {
+      return false;
+    }
+    const prefix =
+      HISTORY_RETAINED_TARGET_PREFIXES[
+        candidate.semantic_key as keyof typeof HISTORY_RETAINED_TARGET_PREFIXES
+      ];
+    return (
+      prefix !== undefined &&
+      candidate.object_id.startsWith(prefix) &&
+      candidate.object_id.length === prefix.length + 26 &&
+      /^[0-9A-HJKMNP-TV-Z]{26}$/u.test(candidate.object_id.slice(prefix.length))
+    );
+  };
   const availableDefinitionAuthority =
     isRecord(definitionAuthority) &&
     hasExactKeys(definitionAuthority, [
@@ -571,28 +625,9 @@ const projectHistoryEpisodeView = (
       "latest_retained_binding_effective_before_selected_event" &&
     Number.isSafeInteger(definitionAuthority.effective_after_stream_revision) &&
     Number(definitionAuthority.effective_after_stream_revision) >= 0 &&
-    isRecord(definitionAuthority.project_definition_ref) &&
-    hasExactKeys(definitionAuthority.project_definition_ref, [
-      "schema_name",
-      "schema_version",
-      "project_definition_id",
-      "revision",
-      "content_hash",
-      "record_hash",
-    ]) &&
-    definitionAuthority.project_definition_ref.schema_name ===
-      "petra.project-definition" &&
-    definitionAuthority.project_definition_ref.schema_version === "1.0.0" &&
-    typeof definitionAuthority.project_definition_ref.project_definition_id ===
-      "string" &&
-    Number.isSafeInteger(definitionAuthority.project_definition_ref.revision) &&
-    Number(definitionAuthority.project_definition_ref.revision) >= 1 &&
-    typeof definitionAuthority.project_definition_ref.content_hash ===
-      "string" &&
-    typeof definitionAuthority.project_definition_ref.record_hash ===
-      "string" &&
+    definitionRefIsValid(definitionAuthority.project_definition_ref) &&
     definitionAuthority.historical_destination_interpretation ===
-      "not_performed";
+      "performed_for_selected_event_target";
   const unavailableDefinitionAuthority =
     isRecord(definitionAuthority) &&
     hasExactKeys(definitionAuthority, [
@@ -608,25 +643,141 @@ const projectHistoryEpisodeView = (
       "No exact retained ProjectDefinition authority binding is available for this selected event." &&
     definitionAuthority.historical_destination_interpretation ===
       "not_performed";
+  const change =
+    isRecord(value) && isRecord(value.content) && isRecord(value.content.change)
+      ? value.content.change
+      : undefined;
+  const eventRef = isRecord(change?.event_ref) ? change.event_ref : undefined;
+  const primaryTarget =
+    Array.isArray(change?.targets) &&
+    change.targets.filter(
+      (target): target is Record<string, unknown> =>
+        isRecord(target) && target.role === "primary",
+    ).length === 1
+      ? (change.targets.find(
+          (target) => isRecord(target) && target.role === "primary",
+        ) as Record<string, unknown>)
+      : undefined;
+  const destination =
+    isRecord(value) && isRecord(value.content)
+      ? value.content.historical_semantic_destination
+      : undefined;
+  const targetMatches =
+    isRecord(destination) &&
+    isRecord(destination.target_ref) &&
+    primaryTarget !== undefined &&
+    exactScalarRecordMatch(destination.target_ref, primaryTarget);
+  const destinationDefinitionMatches =
+    isRecord(destination) &&
+    definitionRefIsValid(destination.project_definition_ref) &&
+    availableDefinitionAuthority &&
+    isRecord(definitionAuthority) &&
+    definitionRefIsValid(definitionAuthority.project_definition_ref) &&
+    exactScalarRecordMatch(
+      destination.project_definition_ref,
+      definitionAuthority.project_definition_ref,
+    );
+  const availableDestination =
+    isRecord(destination) &&
+    hasExactKeys(destination, [
+      "state",
+      "target_ref",
+      "place_role",
+      "task_intent",
+      "route_authority",
+      "project_definition_ref",
+      "interpretation_basis",
+    ]) &&
+    destination.state === "available" &&
+    targetMatches &&
+    destination.place_role === "history" &&
+    destination.task_intent === "view_history" &&
+    destination.interpretation_basis ===
+      "exact_retained_project_definition_and_registered_history_target" &&
+    destinationDefinitionMatches &&
+    registeredHistoricalTarget(destination.target_ref) &&
+    isRecord(destination.route_authority) &&
+    hasExactKeys(destination.route_authority, [
+      "schema_name",
+      "schema_version",
+      "view_kind",
+      "event_ref",
+      "authority_source",
+    ]) &&
+    destination.route_authority.schema_name ===
+      "petra.project-history-episode-view" &&
+    destination.route_authority.schema_version === "1.2.0" &&
+    destination.route_authority.view_kind === "causal_episode" &&
+    destination.route_authority.authority_source ===
+      "selected_project_event_and_exact_retained_project_definition" &&
+    isRecord(destination.route_authority.event_ref) &&
+    eventRef !== undefined &&
+    exactScalarRecordMatch(destination.route_authority.event_ref, eventRef);
+  const unavailableWithoutAuthority =
+    isRecord(destination) &&
+    hasExactKeys(destination, [
+      "state",
+      "target_ref",
+      "reason_code",
+      "reason",
+      "interpretation_status",
+    ]) &&
+    destination.state === "unavailable" &&
+    targetMatches &&
+    unavailableDefinitionAuthority &&
+    destination.reason_code ===
+      "retained_project_definition_authority_not_available" &&
+    destination.reason ===
+      "No historical semantic destination is available because exact retained ProjectDefinition authority is unavailable for this selected event." &&
+    destination.interpretation_status === "not_performed";
+  const unavailableWithAuthority =
+    isRecord(destination) &&
+    hasExactKeys(destination, [
+      "state",
+      "target_ref",
+      "reason_code",
+      "reason",
+      "interpretation_status",
+      "project_definition_ref",
+    ]) &&
+    destination.state === "unavailable" &&
+    targetMatches &&
+    destinationDefinitionMatches &&
+    destination.interpretation_status === "performed" &&
+    ((destination.reason_code ===
+      "retained_project_definition_history_place_not_supported" &&
+      destination.reason ===
+        "The exact retained ProjectDefinition does not authorize the History place for this selected event." &&
+      registeredHistoricalTarget(destination.target_ref)) ||
+      (destination.reason_code ===
+        "historical_event_target_destination_not_registered" &&
+        destination.reason ===
+          "No historical semantic-destination adapter is registered for this selected event target." &&
+        !registeredHistoricalTarget(destination.target_ref)));
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-history-episode-view" ||
-    value.schema_version !== "1.1.0" ||
+    value.schema_version !== "1.2.0" ||
     typeof value.project_id !== "string" ||
     typeof value.event_id !== "string" ||
     !isRecord(value.content) ||
     value.content.view_kind !== "causal_episode" ||
     value.content.graph_navigation_history !== "client_local_separate" ||
     (!availableDefinitionAuthority && !unavailableDefinitionAuthority) ||
+    (!availableDestination &&
+      !unavailableWithoutAuthority &&
+      !unavailableWithAuthority) ||
     (availableDefinitionAuthority &&
-      (!isRecord(value.content.change) ||
-        !isRecord(value.content.change.event_ref) ||
-        !Number.isSafeInteger(value.content.change.event_ref.stream_revision) ||
+      (eventRef === undefined ||
+        !Number.isSafeInteger(eventRef.stream_revision) ||
         Number(definitionAuthority.effective_after_stream_revision) >=
-          Number(value.content.change.event_ref.stream_revision))) ||
+          Number(eventRef.stream_revision))) ||
+    (unavailableDefinitionAuthority && !unavailableWithoutAuthority) ||
+    (availableDefinitionAuthority && unavailableWithoutAuthority) ||
+    eventRef?.event_id !== value.event_id ||
     !Array.isArray(value.content.omissions) ||
     !value.content.omissions.includes(
-      "historical_project_definition_not_interpreted",
+      "historical_project_definition_content_not_returned",
     ) ||
     typeof value.content_hash !== "string" ||
     typeof value.read_at !== "string"
@@ -636,7 +787,7 @@ const projectHistoryEpisodeView = (
       502,
     );
   }
-  return value as unknown as PetraProjectHistoryEpisodeViewV11;
+  return value as unknown as PetraProjectHistoryEpisodeViewV12;
 };
 
 const projectHistoryRetainedView = (
@@ -2451,7 +2602,7 @@ export const getRecentProjectHistory = async (
 export const getProjectHistoryEpisode = async (
   projectId: string,
   eventId: string,
-): Promise<PetraProjectHistoryEpisodeViewV11> => {
+): Promise<PetraProjectHistoryEpisodeViewV12> => {
   const value = await requestJson(
     `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}`,
   );

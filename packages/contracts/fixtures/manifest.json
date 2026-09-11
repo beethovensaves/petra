@@ -93,6 +93,11 @@
       "path": "fixtures/accepted/project-history-episode-view-v1-1.json"
     },
     {
+      "schema": "project-history-episode-view",
+      "version": "1.2.0",
+      "path": "fixtures/accepted/project-history-episode-view-v1-2.json"
+    },
+    {
       "schema": "project-history-retained-view",
       "path": "fixtures/accepted/project-history-retained-view.json"
     },
@@ -546,6 +551,11 @@
       "schema": "project-history-episode-view",
       "version": "1.1.0",
       "path": "fixtures/rejected/project-history-episode-view-v1-1-interpreted-without-authority.json"
+    },
+    {
+      "schema": "project-history-episode-view",
+      "version": "1.2.0",
+      "path": "fixtures/rejected/project-history-episode-view-v1-2-destination-without-authority.json"
     },
     {
       "schema": "project-history-retained-view",

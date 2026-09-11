@@ -679,6 +679,166 @@ class PetraProjectHistoryEpisodeViewV110(PetraModel):
     read_at: str
 
 
+class ProjectHistoryAvailableDefinitionAuthorityV120(PetraModel):
+    state: Literal["available"]
+    authority_source: Literal["immutable_project_definition_event_stream_binding"]
+    selection_basis: Literal["latest_retained_binding_effective_before_selected_event"]
+    effective_after_stream_revision: int = Field(ge=0)
+    project_definition_ref: ProjectHistoryDefinitionRefV110
+    historical_destination_interpretation: Literal[
+        "performed_for_selected_event_target"
+    ]
+
+
+class ProjectHistoryEpisodeRouteAuthorityV120(PetraModel):
+    schema_name: Literal["petra.project-history-episode-view"]
+    schema_version: Literal["1.2.0"]
+    view_kind: Literal["causal_episode"]
+    event_ref: ProjectHistoryEventRef
+    authority_source: Literal[
+        "selected_project_event_and_exact_retained_project_definition"
+    ]
+
+
+class ProjectHistoryAvailableHistoricalDestinationV120(PetraModel):
+    state: Literal["available"]
+    target_ref: ProjectHistoryTargetRef
+    place_role: Literal["history"]
+    task_intent: Literal["view_history"]
+    route_authority: ProjectHistoryEpisodeRouteAuthorityV120
+    project_definition_ref: ProjectHistoryDefinitionRefV110
+    interpretation_basis: Literal[
+        "exact_retained_project_definition_and_registered_history_target"
+    ]
+
+
+class ProjectHistoryNoAuthorityHistoricalDestinationV120(PetraModel):
+    state: Literal["unavailable"]
+    target_ref: ProjectHistoryTargetRef
+    reason_code: Literal["retained_project_definition_authority_not_available"]
+    reason: Literal[
+        "No historical semantic destination is available because exact retained "
+        "ProjectDefinition authority is unavailable for this selected event."
+    ]
+    interpretation_status: Literal["not_performed"]
+
+
+class ProjectHistoryUnsupportedPlaceHistoricalDestinationV120(PetraModel):
+    state: Literal["unavailable"]
+    target_ref: ProjectHistoryTargetRef
+    reason_code: Literal["retained_project_definition_history_place_not_supported"]
+    reason: Literal[
+        "The exact retained ProjectDefinition does not authorize the History "
+        "place for this selected event."
+    ]
+    interpretation_status: Literal["performed"]
+    project_definition_ref: ProjectHistoryDefinitionRefV110
+
+
+class ProjectHistoryUnregisteredTargetHistoricalDestinationV120(PetraModel):
+    state: Literal["unavailable"]
+    target_ref: ProjectHistoryTargetRef
+    reason_code: Literal["historical_event_target_destination_not_registered"]
+    reason: Literal[
+        "No historical semantic-destination adapter is registered for this "
+        "selected event target."
+    ]
+    interpretation_status: Literal["performed"]
+    project_definition_ref: ProjectHistoryDefinitionRefV110
+
+
+ProjectHistoryDefinitionAuthorityV120 = (
+    ProjectHistoryAvailableDefinitionAuthorityV120
+    | ProjectHistoryUnavailableDefinitionAuthorityV110
+)
+ProjectHistoryHistoricalDestinationV120 = (
+    ProjectHistoryAvailableHistoricalDestinationV120
+    | ProjectHistoryNoAuthorityHistoricalDestinationV120
+    | ProjectHistoryUnsupportedPlaceHistoricalDestinationV120
+    | ProjectHistoryUnregisteredTargetHistoricalDestinationV120
+)
+
+
+class ProjectHistoryEpisodeContentV120(PetraModel):
+    view_kind: Literal["causal_episode"]
+    change: ProjectHistoryRecentChange
+    causality: ProjectHistoryCausality
+    stream_order: ProjectHistoryStreamOrder
+    receipt_ref: ProjectHistoryReceiptRef | None = None
+    project_definition_authority: ProjectHistoryDefinitionAuthorityV120
+    historical_semantic_destination: ProjectHistoryHistoricalDestinationV120
+    omissions: list[
+        Literal[
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_content_not_returned",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    authority: ProjectHistoryAuthorityPosition
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_historical_destination(self) -> ProjectHistoryEpisodeContentV120:
+        primary = [target for target in self.change.targets if target.role == "primary"]
+        if len(primary) != 1:
+            raise ValueError("episode must retain one exact primary target")
+        destination = self.historical_semantic_destination
+        if destination.target_ref != primary[0]:
+            raise ValueError("historical destination must retain the primary target")
+        definition_authority = self.project_definition_authority
+        if isinstance(
+            definition_authority,
+            ProjectHistoryUnavailableDefinitionAuthorityV110,
+        ):
+            if not isinstance(
+                destination,
+                ProjectHistoryNoAuthorityHistoricalDestinationV120,
+            ):
+                raise ValueError(
+                    "unavailable definition authority yields no destination"
+                )
+            return self
+        if definition_authority.effective_after_stream_revision >= (
+            self.change.event_ref.stream_revision
+        ):
+            raise ValueError("definition binding must precede the selected event")
+        if isinstance(
+            destination,
+            ProjectHistoryNoAuthorityHistoricalDestinationV120,
+        ):
+            raise ValueError("available definition authority must be interpreted")
+        if destination.project_definition_ref != (
+            definition_authority.project_definition_ref
+        ):
+            raise ValueError("destination must use the exact retained definition")
+        if (
+            isinstance(
+                destination,
+                ProjectHistoryAvailableHistoricalDestinationV120,
+            )
+            and destination.route_authority.event_ref != self.change.event_ref
+        ):
+            raise ValueError("route authority must retain the selected event")
+        return self
+
+
+class PetraProjectHistoryEpisodeViewV120(PetraModel):
+    schema_name: Literal["petra.project-history-episode-view"]
+    schema_version: Literal["1.2.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryEpisodeContentV120
+    content_hash: str
+    read_at: str
+
+    @model_validator(mode="after")
+    def exact_selected_event(self) -> PetraProjectHistoryEpisodeViewV120:
+        if self.event_id != self.content.change.event_ref.event_id:
+            raise ValueError("episode route must retain the selected event identity")
+        return self
+
+
 class ProjectHistoryRetainedQuery(PetraModel):
     limit: int = Field(ge=1, le=100)
     cursor: str | None = Field(
@@ -9943,6 +10103,10 @@ PYDANTIC_MODELS.update(
             "project-history-episode-view",
             "1.1.0",
         ): PetraProjectHistoryEpisodeViewV110,
+        (
+            "project-history-episode-view",
+            "1.2.0",
+        ): PetraProjectHistoryEpisodeViewV120,
         (
             "project-history-retained-view",
             "1.1.0",

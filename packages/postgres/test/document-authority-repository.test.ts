@@ -1360,7 +1360,7 @@ describePostgres("PostgreSQL Document authority repository", () => {
     expect(retractionEpisode?.content.omissions).toEqual([
       "dependency_impact_not_composed",
       "generic_reversal_assessment_not_composed",
-      "historical_project_definition_not_interpreted",
+      "historical_project_definition_content_not_returned",
       "cross_family_total_order_not_asserted",
     ]);
     const retractionImpact = await historyViews.getProjectHistoryImpactView(
