@@ -273,8 +273,8 @@ between shell context and task content more important.
   `UX1.0-DISC10`; `UX1.4-W05`, `UX1.4-W11`, `UX1.5`, `UX1.6-W15`,
   `DB17-P11`–`P12`, `UX-FLOW-12`, and `UX-FLOW-16`.
 - **Implemented backend baseline:** commits `92e9cb1`, `7ae590f`, `1c44dd3`,
-  `9530b09`, `c5da977`, `c198af6`, `7380a0b`, `9e90258`, `37ffc38`, and
-  `718f641` add
+  `9530b09`, `c5da977`, `c198af6`, `7380a0b`, `9e90258`, `37ffc38`,
+  `718f641`, and `0e6688e` add
   `petra.project-history-view@1.0.0`,
   `petra.project-history-episode-view@1.0.0`, and
   `petra.project-history-retained-view@1.0.0`; `7380a0b` advances the retained
@@ -295,6 +295,10 @@ between shell context and task content more important.
   `petra.project-history-compensation-plan-request@1.0.0`,
   `petra.project-history-compensation-plan-view@1.0.0`, and authenticated
   `POST /api/queries/projects/:projectId/history/events/:eventId/recovery/plan`.
+  Commit `0e6688e` adds
+  `petra.project-history-compensation-execution-request@1.0.0`,
+  `petra.project-history-compensation-execution-view@1.0.0`, and authenticated
+  `POST /api/commands/projects/:projectId/history/events/:eventId/recovery/execute`.
   The implementation result and remaining backend work are recorded in
   [UX-REQ-007 causal Project History](UX-REQ-007-CAUSAL-PROJECT-HISTORY.md).
 - **Integration scope:** bind these reads to the frozen `HistorySurface` and its
@@ -304,13 +308,16 @@ between shell context and task content more important.
   existing History collection region on the same browser route. Dependency
   facts and exact ChangeSet recovery assessment remain in the selected-event
   detail and its existing subordinate dialog. No new page, panel, browser
-  route, generic Undo, or compensation execution path is introduced. The
+  route, or generic Undo is introduced. The
   assessment reports whether one exact ChangeSet may proceed to a separately
   requested preview. The preview itself creates, records, composes, persists,
   and executes nothing. Explicitly confirmed plan composition revalidates that
   preview and returns exact non-persisted command envelopes; it submits and
-  executes nothing. Semantic references remain dependency evidence and do not
-  become inferred effects.
+  executes nothing. Separately confirmed execution treats the echoed plan as
+  untrusted, revalidates the first attempt against current preview authority,
+  and runs each exact envelope through its own transaction and current grant
+  check. Semantic references remain dependency evidence and do not become
+  inferred effects.
 
 #### Frozen-surface acceptance mapping
 
@@ -327,7 +334,7 @@ between shell context and task content more important.
 | Existing **Authority effect** section | selected event effect plus direct/semantic impact summaries, including the recovery assessment's exact `causal_impact_basis` | Keep the event's supplied effect as the primary statement. Following sentences may separately report **{total} registered direct event/command references across four groups · {coverage}** and **{total} registered exact semantic-target references across {supported} of {assessed} assessed targets · {coverage}**. When assessment is present, its summaries must match the same selected-event impact basis. Keep its three unknowns and **Dependent effects are not inferred from references** adjacent. Never combine totals, rename them **all dependencies**, or treat a reference as a dependent effect. |
 | Existing **Projection effect** section | `impact.graph_projection_records` | Render the exact graph-projection attempt records, including attempt, applied/failed outcome, recorded time, and outbox binding. With complete zero coverage say **No registered graph-projection attempt was found for this event.** An attempt outcome does not establish the current Graph's freshness. |
 | Existing **Episode members** section | episode relationships, impact groups, and recovery `recovery_subject` | Keep every relation family separately labelled within this existing section. Nest the applicable semantic adapter groups beneath their exact selected-event target. When assessment is present, add separately named **Promotion ChangeSet**, **Applied Approval**, and **Current recovery targets** groups with every supplied revision, state, content/record hash, and exact ChangeSet binding. Keep the Claim then Assertion order. Never describe Project-stream adjacency, projection, invalidation, Review membership, source lineage, current evidence authority, or composition lineage as command causation. |
-| Existing **Recovery relationship**, `history-revert` block, and subordinate `PetraDialog` | event recovery; assessment; command authority; causal unknowns; preview; confirmed plan; decision boundaries and omissions | Keep the three required command checks in contract order with the resolved principal and exact granted authority or denial reason. State the assessment outcome, reason, exact blockers or retained compensation, and all no-execution boundaries. `eligible_for_preview` permits only a user-requested revision-bound preview. The existing dialog presents the preview, collects the three required confirmations, and may show the separately composed plan. Neither success permits execution. |
+| Existing **Recovery relationship**, `history-revert` block, and subordinate `PetraDialog` | event recovery; assessment; command authority; causal unknowns; preview; confirmed plan; exact execution result; decision boundaries and omissions | Keep the three required command checks in contract order with the resolved principal and exact granted authority or denial reason. State the assessment outcome, reason, exact blockers or retained compensation, and every boundary. `eligible_for_preview` permits only a user-requested revision-bound preview. The existing dialog presents the preview, collects plan input, shows the composed plan, obtains separate execution confirmation, and reports exact per-command outcomes. It never treats the echoed plan or client state as authority. |
 | Existing top return control | client-held entry context plus `UX-REQ-008` resolution | Reuse this one control for the exact-return behavior below. Direct entry or a deep link with no permitted origin keeps the frozen **Return to current Brief** fallback. |
 
 The adapter uses these closed labels rather than exposing enum casing or
@@ -843,12 +850,12 @@ order:
 | Persistence, execution, and boundary | State **ChangeSet not persisted · Approval not persisted · Commands not persisted · Commands not submitted · Execution not performed · Separate authorized request required · Authority rechecked at every command.** Also retain **Generic Undo unavailable · Multi-step compensation not assessed · Dependent effects not inferred or reversed · Historical ProjectDefinition not interpreted.** |
 
 After plan success, focus **Confirmed compensation plan** at the start of this
-result and keep **Close preview** as the exit. The frozen **Open Revert Review**
-action has completed its read-only purpose and becomes unavailable with
-**Command plan composed. Execution requires a separate authorized capability.**
-Do not expose an execute, apply, retry-command, or grouped-compensation action.
-Closing returns focus to **Prepare reversal** in the selected History detail;
-opening or closing the composed plan changes no History row or Project record.
+result and keep **Close preview** as the exit. **Open Revert Review** has
+completed its plan-composition purpose; the same existing primary footer slot
+may advance only to the separately confirmed **Revert change** state described
+below. No command runs on plan arrival. Closing before execution returns focus
+to **Prepare reversal** in the selected History detail, and opening or closing
+the composed plan changes no History row or Project record.
 
 A 422 `PROJECT_HISTORY_COMPENSATION_PLAN_REQUEST_INVALID` associates its exact
 correction with the first invalid field or confirmation, preserves both text
@@ -889,6 +896,153 @@ revalidation snapshot. No plan record or receipt exists for replay lookup. The
 result is deterministic for its exact confirmed input and revalidation
 snapshot, but it is not retained execution authority.
 
+#### Separately authorized exact compensation execution
+
+Execution remains inside the existing History detail and subordinate dialog.
+It adds no page, panel, browser route, progress component, or second footer
+action. Once the exact composed plan is visible, the existing confirmation
+region presents one new unchecked execution confirmation whose full label is:
+**I confirm Revert change and understand that Submit ChangeSet, Record approval,
+and Apply ChangeSet use separate transactions. Earlier commands may remain
+completed if a later command stops.** This confirmation is distinct from the
+earlier preview/plan confirmation and cannot be preselected or carried to a
+different plan.
+
+Selecting it supplies both `execution_confirmation.confirmed: true` and the
+literal acknowledgment
+`per_command_transaction_not_three_command_atomic`. The existing primary footer
+slot now uses the already-frozen **Revert change** label. It is available only
+for the exact displayed plan and selected confirmation. Invoking it sends
+`petra.project-history-compensation-execution-request@1.0.0` to
+`POST /api/commands/projects/:projectId/history/events/:eventId/recovery/execute`
+with no query parameters. The client echoes the complete accepted
+`petra.project-history-compensation-plan-view@1.0.0` unchanged and binds the
+outer and embedded Project/event IDs to the route.
+
+The full echoed plan is untrusted command input. Its Actor, CapabilityGrants,
+ChangeSet, Approval, command IDs, idempotency keys, causation, timestamps,
+content hashes, and envelopes do not confer authority merely because the client
+returns them. The server validates the plan schema and canonical content hash,
+reproduces every identity and causal binding, and on a first attempt with no
+retained command prefix reconstructs the exact plan from current preview
+authority. The client may validate response shape and exact equality with its
+active Project/event/plan, but it never calculates authority, freshness,
+eligibility, grant validity, prefix membership, or the next executable step.
+
+The three plan envelopes execute in fixed order:
+
+1. `SubmitChangeSet` owns one command transaction and current grant check.
+2. `RecordApproval` owns a separate command transaction and current grant
+   check after retained Submit success.
+3. `ApplyChangeSet` owns a third command transaction and current grant check
+   after retained Approval success.
+
+One HTTP request therefore does not make the three commands atomic. Every
+retained success or terminal failure has its own immutable command execution
+and domain event. After each command the executor reads that retained result
+before considering the next envelope. A later stop never rolls back, hides, or
+describes an earlier retained success as pending.
+
+While the request is pending, keep the exact plan and confirmation visible,
+mark **Revert change** busy, and announce **Executing the exact reversal plan.
+Each command commits separately.** The endpoint does not stream authoritative
+step progress, so all three rows retain their last verified state until the
+response arrives. Do not animate a guessed active command or advance a row from
+elapsed time. Closing, route departure, network loss, or client interruption
+does not cancel the server request. Preserve the exact untrusted request in the
+existing client-local recovery state and label the result **Execution outcome
+unknown** until the same exact request reconciles it. Loss of those exact plan
+bytes is not recoverable from a plan or execution ledger because neither exists;
+the interface must not invent a replacement request.
+
+Accept only `petra.project-history-compensation-execution-view@1.0.0` with
+`execution_kind: single_change_set_compensation_execution`, authenticated
+Project scope, a valid content hash and `read_at`, the exact routed Project and
+event, and `plan_ref.content_hash` equal to the submitted plan. Its atomicity
+must remain `per_command_transaction_not_three_command_atomic`, derivation must
+state `aggregate_ledger: not_created`, and graph-navigation history must remain
+`client_local_separate`.
+
+The existing dialog uses this response order:
+
+| Existing dialog region | Execution binding and wording |
+| --- | --- |
+| Plan identity | Show the exact plan schema/version, content hash, composed time, compensation ChangeSet ID/hash, Approval ID, and correlation ID from `plan_ref`. State **Echoed plan treated as untrusted server input; client content did not confer authority.** The Preflight row states which server validation occurred. |
+| Preflight | `fresh_plan_revalidated` → **Current preview authority revalidated before the first command.** `retained_prefix_validated` → **Immutable retained command prefix validated before any permitted continuation or review.** `retained_completion_replayed` → **Completed retained result recovered; no command was repeated.** Show `checked_at` with a native `<time>` value. |
+| Overall outcome | Show **Reversal completed** only for `outcome: completed` with `completed_prefix: 3`. Show **Reversal stopped after {completed_prefix} of 3 retained successes** for `outcome: stopped`; never call this rolled back or atomic failure. |
+| Three command rows | Preserve `SubmitChangeSet`, `RecordApproval`, `ApplyChangeSet` order. Each row shows position and exact command reference: ID, schema version, command name, idempotency key, fingerprint, CapabilityGrant ID, and correlation ID. Bind status and status-specific evidence exactly as below. |
+| Authoritative effect | `authoritative_effect.state: compensation_applied` shows the compensation and compensated ChangeSet IDs, Approval ID, exact Claim and Assertion prior/resulting revisions and quarantine/human-rejected authority, and exact reversal event. `authoritative_effect.state: not_completed` says **Compensation not completed · Command sequence stopped.** It does not hide a retained prefix or imply Claim/Assertion reversal. |
+| Recovery and boundary | Show exact recovery state, completed prefix, idempotent-same-request fact, optional next position, and supplied reason. State **Three separate command transactions · No second History or aggregate execution ledger · Dependent effects not inferred or automatically reversed · Generic Undo unavailable · Reversal of a reversal unavailable · Multi-step compensation not assessed · Historical ProjectDefinition not interpreted.** |
+
+Each command row maps one server state without client inference:
+
+| `steps[].state` | Required presentation and action posture |
+| --- | --- |
+| `retained_success` | **Retained success.** Show `completed_at`, the exact typed result, and the immutable event identity, version, type, position, stream revision, and record hash. This state belongs to the command even when a later command stops. |
+| `retained_failure` | **Retained terminal failure.** Show completion time, exact `STALE_TARGET_REVISION` or `TARGET_AUTHORITY_MISMATCH` code/message, and immutable `change_set.reversal_conflicted` event identity. Do not offer execution retry. The response recovery must be `review_retained_failure`; repeating the request only returns the same retained result. |
+| `attempt_failed_not_retained` | **Attempt failed; no immutable command execution was retained.** Show the supplied error code/message and `not_in_immutable_command_executions`. This is neither success nor a terminal retained failure. Offer the response-authorized exact retry only when recovery is `retry_exact_plan`. |
+| `not_attempted` | **Not attempted because the prior command did not complete.** Show no completion time, event, or invented error. |
+
+`completed_prefix` is the server-supplied count of contiguous
+`retained_success` steps from position one. The client checks that the response
+shape agrees but does not derive recovery permission from the rows. For
+`recovery.state: retry_exact_plan`, the same existing primary footer slot reads
+**Retry exact reversal** and states **{completed_prefix} retained · Next command
+{next_position} · Same exact request is idempotent.** It resends the same full
+plan and atomicity confirmation. The server validates the immutable successful
+prefix, begins with the first missing command, and rechecks that command's
+current grant. It does not require the browser to rebuild the plan or infer the
+prefix. For `review_retained_failure`, no retry is available; keep the supplied
+reason and exact failure event for review. For `complete`, require
+`same_request: returns_exact_retained_result`; the footer offers no execution
+action.
+
+On completion, focus **Reversal completed** and show the exact resulting
+compensation ChangeSet, Approval, Claim, Assertion, and reversal-event
+identities. The reversal event uses its exact `event_id` in the existing History
+detail route. Claim and Assertion destinations use the existing `UX-REQ-008`
+semantic resolver when available; the browser never constructs a route by
+parsing `semantic_key` or `object_id`. If resolution is unavailable, keep the
+exact reference as text. Refreshing the original selected event's assessment
+may then show its already-compensated relationship. The existing top return
+control preserves its client-held origin/focus behavior.
+
+A 422 `PROJECT_HISTORY_COMPENSATION_EXECUTION_REQUEST_INVALID`, query parameter,
+route/body mismatch, false confirmation, or false atomicity acknowledgment is
+rejected before the execution boundary and exposes no result. Authentication
+failure likewise exposes no additional plan or command identity. A 404
+`PROJECT_HISTORY_EVENT_NOT_FOUND` says the selected event is unavailable and
+shows no substitute. A 409
+`PROJECT_HISTORY_COMPENSATION_EXECUTION_UNAVAILABLE` covers stale, expired,
+altered, rebound, cross-Project, structurally invalid, authority-mismatched, or
+unreproducible plan/retained-prefix input. Preserve the exact plan as untrusted
+evidence, clear execution confirmation, and do not choose a next step in the
+client.
+
+A 503 `PROJECT_HISTORY_COMPENSATION_EXECUTION_UNAVAILABLE` means the command
+boundary is not configured and no request entered it. A 503
+`PROJECT_HISTORY_COMPENSATION_EXECUTION_FAILED`, lost response, timeout, or
+connection interruption does not establish whether a command committed. Keep
+the plan and last verified result, label the outcome unknown, clear the busy
+state, and make only the same-request reconciliation posture available. Never
+start a new plan, skip a command, or mark all steps failed. A contract/hash,
+Project/event/plan, step order/state, prefix, authoritative-effect/recovery,
+atomicity, derivation, or event/result identity mismatch is a client integrity
+failure:
+discard the response and preserve the last verified state.
+
+The ordered command list, completed-prefix statement, each distinct step state,
+exact error, authoritative effect, recovery reason, atomicity, derivation, and
+omissions are available as text and never by color alone. Pending execution and
+outcome changes use one polite live-status announcement. Success moves focus to
+the outcome heading; stopped execution or request failure moves focus to its
+status heading, followed by the exact affected command. Keyboard order follows
+plan identity, confirmation, primary action, preflight, overall outcome, three
+steps, effect, recovery, and semantic destinations. On narrow screens, each
+command row stacks without separating its state from its identity, grant,
+result/error, or event. IDs and hashes wrap, and neither progress nor recovery
+requires horizontal scrolling, hover, drag, motion, or the graph.
+
 #### Recovery wording and command boundary
 
 The existing recovery area maps only the implemented discriminated union:
@@ -899,14 +1053,14 @@ The existing recovery area maps only the implemented discriminated union:
 | `eligibility: ineligible` | Heading: **Recovery unavailable**. Show the supplied `reason`. Render no executable recovery control and do not replace the reason with a generic disabled tooltip. |
 
 For an eligible ChangeSet assessment, the existing button/dialog slot now hosts
-the separately requested read-only preview and confirmed non-persisted plan
-above. Eligible source recovery
+the separately requested read-only preview, confirmed non-persisted plan, and
+separately authorized exact execution above. Eligible source recovery
 continues to direct the author to the existing source Details control when
 `UX-REQ-008` can resolve it; if it cannot, the block says **A current recovery
-preview is not available from this History event.** Plan success stops before
-persistence, submission, or execution. No array selection, **Undo**, **Revert
-to here**, grouped execution, reversal of a reversal, or multi-step compensation
-is part of this integration.
+preview is not available from this History event.** Execution applies only that
+single exact plan through its three separately retained commands. No array
+selection, **Undo**, **Revert to here**, grouped or multi-plan execution,
+reversal of a reversal, or multi-step compensation is part of this integration.
 
 #### Semantic destination and exact return
 
@@ -1055,11 +1209,19 @@ must continue rejecting any value other than
   and typed client. It composes the exact ChangeSet, Approval, and three causal
   command envelopes only after preview/input confirmation and revalidation. It
   persists, submits, and executes nothing and changes no browser route.
+- Backend commit `0e6688e` adds the exact compensation-execution request/view,
+  authenticated exact-event command POST, PostgreSQL executor, and typed client.
+  It treats the echoed plan as untrusted input, revalidates a first attempt
+  against current preview authority, and runs the three envelopes through
+  separate idempotent command transactions with current grants. It reconstructs
+  completion or a retained prefix from immutable command executions and events;
+  it creates no aggregate execution ledger and changes no browser route.
 - The frozen route still reads `REFERENCE_HISTORY`; it has no loaders/adapters
   for the implemented Recent, exact episode, retained traversal, impact,
-  recovery-assessment, compensation-preview, or compensation-plan clients and
-  uses fixture episode IDs. This is the immediate frontend integration gap. The
-  added reads require no browser route.
+  recovery-assessment, compensation-preview, compensation-plan, or
+  compensation-execution clients and uses fixture episode IDs. This is the
+  immediate frontend integration gap. The added reads and command require no
+  browser route.
 - The frozen `DB18-SP10` contract already places **Scope/filter** before the
   History collection and detail, and its state coverage includes long filtered
   History. The checked-in `HistorySurface` does not instantiate that position,
@@ -1079,10 +1241,15 @@ must continue rejecting any value other than
   input, governed sequence, and freshness. Confirmed plan composition now
   accepts exact reason/rationale/confirmation, reconstructs the current preview,
   and returns the linked ChangeSet, Approval, and command envelopes. It provides
-  no persisted compensation, submitted command, receipt, or executable History
-  action. Direct and semantic dependency references remain bounded context
-  rather than inferred effects. Source actions stay governed by their existing
-  Details control contracts.
+  no persisted compensation, submitted command, receipt, or implicit execution.
+  Separately confirmed execution now revalidates an initial request, executes
+  each envelope in its own command transaction, and returns exact retained,
+  unretained-attempt, or not-attempted step posture plus the resulting reversal
+  authority. Retries use the same exact plan and retained prefix; the client
+  neither reconstructs authority nor treats the three steps as atomic. Direct
+  and semantic dependency references remain bounded context rather than
+  inferred effects. Source actions stay governed by their existing Details
+  control contracts.
 - The routes are bearer-authenticated and Project-scoped. If Petra requires
   actor-specific member filtering beyond that configured boundary, the reader
   must add it before the list can claim per-member authorization. Counts and
@@ -1120,25 +1287,26 @@ must continue rejecting any value other than
   stops after twenty-five references. The response exposes coverage but no
   continuation cursor; this conformance slice adds no control for either bound.
 
-Backend `718f641` records separately authorized execution of one exact,
-still-current confirmed plan as the next safe History capability. It must bind
-the canonical plan identity and causal envelope chain, revalidate preview
-freshness, targets, and per-command grants, submit only the three exact
-idempotent commands, and report each retained command outcome and precise
-partial-outcome recovery/retry posture. This freeze-conformance slice stops
-before that execution boundary. Generic Undo, reversal of a reversal, multiple
-or multi-step compensation, event rewriting, historical ProjectDefinition
-interpretation, and an origin filter remain excluded.
+Backend `0e6688e` identifies registered exact Work, output, and delivery
+dependency adapters as the next safe History boundary. Each future adapter must
+start from an explicit retained reference to the selected event or its exact
+causal identities, name its owning immutable authority, preserve Project and
+record identity, and report independent totals, coverage, unknown, and
+unregistered states. It must not infer effects, reversibility, exhaustive
+closure, or a global cross-family order. This report records that boundary only;
+it does not design or begin those adapters. Generic Undo, reversal of a
+reversal, multiple or multi-step compensation, event rewriting, historical
+ProjectDefinition interpretation, and an origin filter remain excluded.
 
 - **Owner and status:** frontend integration track and product architecture;
   bounded Recent changes, exact causal episode, signed filtered retained
   traversal, and bounded direct dependency impact and nine registered exact
   semantic-target adapter reads plus exact ChangeSet recovery assessment and
-  read-only compensation preview plus confirmed non-persisted plan composition
-  passed through `718f641`. This frozen-surface acceptance mapping is
-  implementation-ready without component, CSS, or route changes. Frontend
-  binding and the stated gaps remain open; the next boundary is separately
-  authorized single-plan execution.
+  read-only compensation preview, confirmed non-persisted plan composition, and
+  separately authorized exact execution passed through `0e6688e`. This
+  frozen-surface acceptance mapping is implementation-ready without component,
+  CSS, or route changes. Frontend binding and the stated gaps remain open; the
+  next boundary is registered exact Work/output/delivery dependency adapters.
 
 ### `UX-REQ-008` — semantic object location and safe deep-link resolution
 
@@ -2623,7 +2791,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Proposal, correction, exact preview, Apply, conflict, and Revert | ChangeSet, Approval, ReviewBatch, and additive event path in `M1.5` |
 | Durable conversation-derived working candidates and relationships | Proposed `UX-REQ-011`; existing bounded model records and evidence candidates remain inputs, not a generic working graph contract |
 | Profile-neutral Review session, comparison, deferment, separation, and member recovery | Proposed `UX-REQ-012`; current M1.5 evidence review remains the scientific contract foundation |
-| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding, four-group direct dependency impact, nine registered exact semantic-target adapters through ProjectSource/replacement authority, read-only exact ChangeSet recovery assessment, five-minute revision-bound compensation preview, and confirmed non-persisted command-plan composition under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration history remains client-local, and separately authorized single-plan execution is the next backend boundary |
+| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding, four-group direct dependency impact, nine registered exact semantic-target adapters through ProjectSource/replacement authority, read-only exact ChangeSet recovery assessment, five-minute revision-bound compensation preview, confirmed non-persisted command-plan composition, and separately authorized exact execution with retained-prefix recovery under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration history remains client-local, and registered exact Work/output/delivery dependency adapters are the next backend boundary |
 | Semantic object location, replacement, and safe fallback | Proposed `UX-REQ-008`; the client retains route and layout ownership |
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
 | Project-source membership, governed removal, and local-copy retention/deletion | Proposed `UX-REQ-010`; Project linking and content-addressed storage remain separate lifecycles |
