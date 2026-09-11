@@ -2,17 +2,17 @@
 
 Status: bounded Recent changes, exact event-selected causal episodes,
 snapshot-stable filtered retained Project-event traversal with authorized Actor
-and target option catalogues, bounded direct dependency impact plus registered
-exact semantic-target adapters through ProjectSource and replacement authority,
-three exact record-bound Work/output/replay groups with the exact current-Work
-destination state, exact read-only ChangeSet recovery assessment, revision-bound
-compensation preview, confirmed non-persisted command-plan composition, and
-separately authorized exact compensation execution with partial-outcome recovery
-passed; frozen History conformance mapping recorded; frontend binding remains
-open
-Date: 2026-09-10
+and target option catalogues plus stable non-disclosing continuation failures,
+bounded direct dependency impact plus registered exact semantic-target adapters
+through ProjectSource and replacement authority, three exact record-bound
+Work/output/replay groups with the exact current-Work destination state, exact
+read-only ChangeSet recovery assessment, revision-bound compensation preview,
+confirmed non-persisted command-plan composition, and separately authorized
+exact compensation execution with partial-outcome recovery passed; frozen
+History conformance mapping recorded; frontend binding remains open
+Date: 2026-09-11
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `04872ff`
+Implementation baseline: `d0ae4c9`
 Integration handoff:
 [UX-to-implementation requirements handoff](UX-BACKEND-HANDOFF.md)
 
@@ -224,6 +224,66 @@ never color-only or focusable controls.
 
 Retained 1.2 adds no filter dimension, component, CSS rule, browser route,
 second ledger, generic Undo, recovery decision, or compensation behavior.
+
+## Stable Full History continuation failure
+
+Backend commit `d0ae4c9` adds
+`petra.project-history-retained-continuation-failure@1.0.0` to the existing
+authenticated retained-History endpoint's rejected-continuation path. HTTP 422
+and the outer `PROJECT_HISTORY_RETAINED_QUERY_INVALID` code remain unchanged.
+The successful response remains `petra.project-history-retained-view@1.2.0`;
+the failure contract does not revise the collection, cursor, filter, or
+catalogue contract. An ordinary cursorless query or filter error has no
+continuation subcode.
+
+The accepted envelope has exactly three subcodes:
+
+- `CURSOR_INVALID` covers malformed shape or prefix, failed signature,
+  malformed or invalid payload, and non-canonical encoding;
+- `CURSOR_BINDING_MISMATCH` combines a changed Project, limit, or complete
+  normalized filter/query binding and never identifies which value differed;
+  and
+- `SNAPSHOT_UNAVAILABLE` means that the retained authority position or exact
+  snapshot-head event and record hash can no longer be reproduced.
+
+Each subcode carries the exact same public message: **This Full History
+traversal can no longer continue from its verified snapshot. Start again with
+the same filters.** Each also requires
+`cursor_disposition: discard_without_client_decoding` and
+`request_kind: cursorless_same_project_limit_and_filters`. The validated
+subcode stays in typed client error state for deterministic classification; it
+does not change visible or screen-reader copy, styling, urgency, action, or
+focus.
+
+The frozen invalid-continuation state keeps the last verified rows, exact
+filters, accepted Actor and Target catalogues, and selected event detail. It
+discards the rejected cursor and entire rejected page before append. The
+existing start-again action resends the same Project, limit, and normalized
+filters without any cursor. It does not decode or repair `phc2`, switch to
+Recent changes, change the selected event, or reuse a member of the rejected
+page.
+
+The status never reveals the cursor, raw subcode, request/trace identity,
+internal signature, decoder, query, or database diagnostic, or a mismatched
+identity, event, Actor, target, count, or prior permission. The combined binding
+subcode therefore cannot become cause-specific text. If a response claims the
+failure schema but its exact keys, constants, request/trace identities,
+subcode, fixed message, or restart values do not validate, the typed client
+preserves neither the subcode nor restart instruction. It may use only the same
+fixed public message because the claimed schema is recognizable; no claimed
+classification or restart is exposed as verified.
+
+Pending continuation behavior remains unchanged. On a validated failure, the
+existing collection status announces the fixed message once, receives focus,
+and places the existing start-again action next in reading order. Native button
+activation and successful first-page focus behavior remain unchanged. Repeated
+failures replace the same status rather than stacking alerts. The message wraps
+inside the existing narrow collection region, and `phc2` never enters visible
+or assistive output.
+
+This mapping adds no component, CSS rule, browser route, filter, catalogue,
+second History ledger, recovery decision, generic Undo, or compensation
+behavior.
 
 ## Bounded direct dependency impact
 
@@ -509,24 +569,29 @@ the detail says so without marking another row selected. A zero-match response
 says **No permitted History events match these filters**, preserves the filter
 values, and exposes no unfiltered count. Its catalogues may still contain
 replace-one-dimension alternatives, and an absent selected zero-match option
-does not clear the field. A continuation that is invalid, query-mismatched, or
-no longer resolvable keeps the last verified rows and catalogues and offers a
-cursorless restart with the same filters; it never appends an unverified page or
-silently widens the query.
+does not clear the field. A continuation that returns a fully valid failure
+envelope keeps the last verified rows, filters, catalogues, and selected detail;
+discards the cursor and rejected page; and offers the exact cursorless restart
+with the same Project, limit, and filters. All three subcodes use the same
+message and presentation. The client never appends an unverified page, silently
+widens the query, decodes `phc2`, or reveals which binding failed.
 
 The Scope/filter group, every field, composite target pair, inclusive time
 meaning, validation error, active value, and matching count have programmatic
 labels. Actor and Target option identity, count, descriptor authority/reason,
 catalogue returned/total counts, coverage, and absent continuation join that
 same reading order. Filter submission is keyboard operable and returns focus to
-the invoked control with one result announcement. A user-invoked continuation
-places focus at the first newly appended event; row selection follows the
-existing detail-heading focus rule. At narrow widths the Scope/filter region,
-collection, and detail retain that linear order; controls, exact identities,
-and hashes reflow without horizontal scrolling. Empty, unavailable,
-unauthorized, query-invalid, continuation-invalid, loading, and
-integrity-failure states stay in the affected existing region, preserve exact
-return, and reveal no unverified identities or counts.
+the invoked control with one result announcement. A successful user-invoked
+continuation places focus at the first newly appended event. A failed
+continuation focuses the existing status heading, announces the single public
+message once, and leaves the start-again action next in reading order; its raw
+subcode and cursor are absent from the accessibility tree. Row selection follows
+the existing detail-heading focus rule. At narrow widths the Scope/filter
+region, collection, and detail retain that linear order; controls, exact
+identities, and hashes reflow without horizontal scrolling. Empty, unavailable,
+unauthorized, query-invalid, continuation-invalid, loading, and integrity-
+failure states stay in the affected existing region, preserve exact return, and
+reveal no unverified identities or counts.
 
 The backend omission `origin_filter_not_supported` appears as a limitation in
 the existing Scope/filter position: **Origin filtering is unavailable because
@@ -535,8 +600,9 @@ is enabled or implemented from client state.
 
 The frozen design contract contains the required Scope/filter position, but the
 checked-in fixture-backed `HistorySurface` does not instantiate it, Full History
-collection state, retained continuation, Actor/Target catalogue binding, or any
-History loader. That is the precise frontend integration gap. This
+collection state, retained continuation, validated continuation-failure binding,
+Actor/Target catalogue binding, or any History loader. That is the precise
+frontend integration gap. This
 freeze-conformance report does not fill it by editing a component, stylesheet,
 or route.
 
@@ -928,6 +994,14 @@ active option's count to equal the positive fully filtered snapshot total, and
 rejects any inferred target title. It does not decode `phc2` or infer an omitted
 active option on a zero-result page.
 
+For an HTTP 422 response to a continuation request, the typed client preserves
+the retained-continuation subcode and restart instruction only after validating
+the exact failure schema/version, outer code, registered subcode, fixed message,
+restart constants, request/trace identities, and absence of extra fields. A
+malformed response that merely claims the schema keeps neither value. The
+client never decodes the cursor or converts an ordinary cursorless error into a
+continuation classification.
+
 The impact 1.2 typed client also binds `target_total_count` to the selected event's
 target count, `target_returned_count` to the assessment count, every
 `target_index` and `target_ref` to the same ordered event target, every
@@ -1003,19 +1077,21 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal 1.0/1.1/1.2, dependency-impact 1.0/1.1/1.2/1.3/1.4, and
-ChangeSet recovery-assessment and compensation-preview responses. Accepted plan-request
-and plan-view fixtures cover explicit confirmation and non-persistence.
+retained traversal 1.0/1.1/1.2, retained-continuation failure,
+dependency-impact 1.0/1.1/1.2/1.3/1.4, and ChangeSet recovery-assessment and
+compensation-preview responses. Accepted plan-request and plan-view fixtures
+cover explicit confirmation and non-persistence.
 Accepted execution-request and execution-view fixtures cover separate command
 authorization, non-atomicity, retained prefix, retry, and completed effect.
 Rejected fixtures cover an altered quick limit, false global episode order,
-unsafe offset or query-unbound cursor reuse, a dependency read that claims a
-reversibility decision, a retained 1.2 target option that fabricates a title,
-and an unregistered semantic target that fabricates a registered adapter group,
-plus an invalid response that collapses retained replacement lineage and
-effective head state into one unsupported authority or claims a global ordering
-scope for an operational group. The 1.4 rejected
-fixture fabricates an available replay-to-ProjectThread destination. Further
+unsafe offset or query-unbound cursor reuse, a continuation failure that exposes
+a Project-specific mismatch, a dependency read that claims a reversibility
+decision, a retained 1.2 target option that fabricates a title, and an
+unregistered semantic target that fabricates a registered adapter group, plus
+an invalid response that collapses retained replacement lineage and effective
+head state into one unsupported authority or claims a global ordering scope for
+an operational group. The 1.4 rejected fixture fabricates an available
+replay-to-ProjectThread destination. Further
 cases claim that a recovery assessment composed a compensation preview, or turn
 a read-only preview into a created ChangeSet, recorded Approval, composed
 command, or execution. An unconfirmed plan request and a plan response that
@@ -1023,7 +1099,7 @@ claims execution are also rejected. An unconfirmed execution request and an exec
 response that claims three-command atomicity are rejected.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
-suite pass. The complete gate includes 845 always-on TypeScript tests, 25 Python
+suite pass. The complete gate includes 850 always-on TypeScript tests, 25 Python
 tests, seven expected service-dependent skips, and 109 PostgreSQL cases after a
 clean V001-through-V030 migration. The database proof exercises all seven
 History reads/compositions plus the execution command over domain-event versions
@@ -1063,6 +1139,15 @@ Actor, exact immutable Actor authority, and explicit revision-neutral target
 title unavailability. Contract, Python parity, typed-client, and PostgreSQL
 checks reject a fabricated target title.
 
+The retained-continuation failure proof exercises malformed shape/prefix,
+failed signature, malformed/invalid payload, non-canonical encoding, Project,
+limit, and complete-filter binding mismatches, and unavailable retained
+authority or exact snapshot head. The server maps those conditions to three
+stable subcodes with one fixed message and restart instruction, omits internal
+diagnostics and cursor bytes, and leaves cursorless query failures without a
+subcode. Contract, Python, route, typed-client, and PostgreSQL checks reject a
+disclosing or malformed claimed envelope.
+
 The 1.3 operational proof registers the same exact ChangeSet record as a Work
 input in two Projects and returns only the selected Project's current WorkUnit.
 It follows that binding to immutable WorkerOutputManifest and
@@ -1080,10 +1165,12 @@ replay-to-ProjectThread destination.
 
 ## Next safe slice
 
-The next safe History boundary is a backend-only retained-view revision with
-stable machine-readable continuation-failure subcodes. It may distinguish a
-malformed or tampered cursor, changed Project/query/limit binding, and an
-unavailable retained snapshot while preserving the same non-disclosing,
-fail-closed restart behavior and `phc2` opacity. This report does not define the
-subcodes. It adds no filter, catalogue, component, CSS rule, browser route,
-second ledger, recovery decision, generic Undo, or compensation behavior.
+The next safe backend History boundary is a read-only exact retained
+ProjectDefinition authority reference for the selected event or retained
+snapshot. It must name the immutable ProjectDefinition identity, revision, and
+record hash effective at that historical position, or return an explicit
+unavailable state. That authority is required before any historical semantic
+destination can be interpreted; the current ProjectDefinition cannot be
+applied retroactively. This boundary adds no origin filter, destination,
+component, CSS rule, browser route, recovery decision, generic Undo, or
+compensation behavior.

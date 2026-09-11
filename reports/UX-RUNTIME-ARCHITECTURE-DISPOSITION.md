@@ -9,25 +9,27 @@ exact ProjectSource supersession/location and governed backend replacement
 creation/retraction plus authenticated API and typed-client integration also
 passed; bounded Recent changes, exact event-selected episodes, signed
 snapshot-stable filtered retained Project-event traversal with authorized Actor
-and target option catalogues, bounded direct dependency impact plus registered
-exact semantic-target adapters through ProjectSource and replacement authority,
-three exact record-bound Work/output/replay groups with an exact same-snapshot
-current-Work destination state, exact read-only ChangeSet recovery assessment,
-revision-bound compensation preview, confirmed non-persisted command-plan
-composition, and separately authorized exact compensation execution with
-retained-prefix recovery through event 1.3 also passed;
+and target option catalogues plus stable non-disclosing continuation failures,
+bounded direct dependency impact plus registered exact semantic-target adapters
+through ProjectSource and replacement authority, three exact record-bound
+Work/output/replay groups with an exact same-snapshot current-Work destination
+state, exact read-only ChangeSet recovery assessment, revision-bound
+compensation preview, confirmed non-persisted command-plan composition, and
+separately authorized exact compensation execution with retained-prefix
+recovery through event 1.3 also passed;
 broader neutral runtime work remains open; transactional authorization
 and canonical Project-command CapabilityGrant authority passed
-Date: 2026-09-10
+Date: 2026-09-11
 Backend baseline: `main` at `344cf77`
 History dependency-impact implementation: `161235a`
 History retained-filter implementation: `04872ff`
+History retained-continuation implementation: `d0ae4c9`
 History recovery-assessment implementation: `9e90258`
 History compensation-preview implementation: `37ffc38`
 History compensation-plan implementation: `718f641`
 History compensation-execution implementation: `0e6688e`
 Frozen design baseline: `655d094`
-Design handoff reviewed: `f465484`
+Design handoff reviewed: `ce76aaa`
 Neutral reference checkpoint reviewed: `26b03ee`
 
 ## Outcome
@@ -134,6 +136,14 @@ of continuation. Actor names retain exact immutable Actor ID and record-hash
 authority; targets expose exact identity only because no revision-neutral title
 authority exists. No current/historical title, profile label, compatibility,
 origin, or client authority is inferred.
+`petra.project-history-retained-continuation-failure@1.0.0` at `d0ae4c9`
+preserves HTTP 422 and the outer query-invalid code while classifying a rejected
+continuation as invalid cursor, combined Project/limit/complete-query binding
+mismatch, or unavailable retained snapshot. Every class returns the same public
+message and cursorless restart instruction, exposes no cursor or internal
+diagnostic, and leaves successful retained History at version 1.2. Cursorless
+query errors acquire no subcode, and the typed client retains classification
+and restart only for a fully valid failure envelope.
 `petra.project-history-impact-view@1.0.0` now inventories four registered kinds
 of direct dependents for one exact selected event under current repeatable-read
 Project authority: causally downstream commands, exact event outbox records,
@@ -501,7 +511,7 @@ explicitly records later implementation progress:
 | `UX-REQ-004` | **Partial, adapted and advanced after baseline.** ProjectDefinition and Objective contracts, immutable PostgreSQL authority, current binding, terminology, supported places, and optional template-seed origin now exist without requiring a profile catalogue. Paired scientific and controlled-writing Projects are independently project-authored and pass the same shell, control, and client-mapping paths. | Add full extension, presentation, compatibility, component-resolution, impact-review, and migration behavior while preserving Project-specific definitions. | Wave 1 foundation complete; extensions in later waves |
 | `UX-REQ-005` | **Partial.** Artifact/Manifest, document, DraftArtifact, provenance, support assessment, and additive draft revision preserve exact scientific ancestry. | Add an explicit imported-lineage root and reviewed promotion command for existing documents or projects. Import never endorses extracted meaning or overwrites the source. | Wave 5 |
 | `UX-REQ-006` | **Partial, advanced after baseline.** `petra.project-thread@1.0.0`, V022, and `ProjectThreadAuthorityRepository` provide durable Project-owned thread identity, immutable completed turns, exact definition/input/context/snapshot/execution/Work/result/Artifact/authority bindings, contiguous revisions, retained branch origin and continuation mode, and hash-only prompt limitations where legacy input bytes do not exist. `petra.project-thread-view@1.0.0`, authenticated routes, and the frozen Petra workspace now expose bounded exact collection/detail reads without fixture transcript fallback. InteractionRun remains execution and delivery state rather than the product thread. | Add create/append/branch/archive/reopen commands, stale-snapshot preflight and execution, retained transcript bytes for new turns, compaction, proposal/decision and PresentationContext linkage, and archive reconstruction. | Wave 2 read integration passed; commands and richer retention remain |
-| `UX-REQ-007` | **Partial, advanced after baseline.** `petra.project-history-view@1.0.0` exposes at most ten newest event-producing Project commands. Episode 1.0 adds exact causation and Project-stream adjacency; retained 1.1 adds filtered traversal with authorized counts and opaque Project/snapshot/limit/query cursor binding; retained 1.2 adds same-snapshot Actor and exact-target option catalogues with replace-own-dimension facet counts, active-first stable order, immutable Actor descriptors, and exact-identity-only target fallbacks. Impact 1.4 preserves four direct groups, nine semantic adapters, and the three independent exact-target-record groups for current WorkUnit heads, immutable WorkerOutputManifest records, and immutable InteractionReplayRecord receipts. It adds one destination state to each operational reference. Only a same-snapshot exact current WorkUnit backed by current ProjectDefinition Work support may use the existing Project Work detail authority; output and replay remain unavailable and cannot redirect through owning Work, Petra, or ProjectThread. Every operational reference preserves its WorkerInputManifest, WorkUnit, and applicable InteractionRun chain without inferring output effect, transitive closure, or cross-family order. Recovery assessment 1.0 binds one applied or reverted event to its promotion ChangeSet/Approval, current Claim–Assertion heads, current three-command grants, impact summaries/unknowns, and exact blockers or retained compensation. Compensation preview 1.0 derives an exact five-minute Claim/Assertion retraction, resulting revisions, retention boundary, required human input, and governed sequence only from a currently eligible assessment. Plan request/view 1.0 accepts only its compact preview reference and confirmed human input, reconstructs current authority, and returns the linked ChangeSet, Approval, and three causal command envelopes without persistence or execution. Execution request/view 1.0 separately accepts the full plan as untrusted input, revalidates an initial attempt against current preview authority, and runs each command through its own transaction and current grant check. It derives completion or a retained prefix from immutable command executions and events and distinguishes retained success, retained terminal failure, unretained attempt failure, and not-attempted work. All History state derives from existing authority, persists no second ledger, keeps graph navigation and exact History return/origin/focus/scroll context client-local, and exposes no generic undo or reversal of a reversal. The frozen Scope/filter, collection, detail, and subordinate-dialog mappings require no new components, CSS, or browser routes. | Bind the fixture-backed frozen route to the typed reads and command. The backend still lacks authoritative origin filtering, stable continuation-failure subcodes, historical ProjectDefinition interpretation, and complete applicable accessibility/recovery evidence. Exact fallback identities and safe invalidation behavior are specified. Dependent occurrence times, current projection freshness, and broader related facts remain gaps. Do not infer authority, effect, reversibility, transitive closure, or a cross-family order. | Wave 3 Recent changes, episode, filtered traversal, direct/semantic/operational impact, recovery assessment, read-only preview, confirmed non-persisted plan composition, and separately authorized exact execution with partial-outcome recovery passed; exact operational destination and retained filter-option mappings passed; stable continuation-failure subcodes next |
+| `UX-REQ-007` | **Partial, advanced after baseline.** `petra.project-history-view@1.0.0` exposes at most ten newest event-producing Project commands. Episode 1.0 adds exact causation and Project-stream adjacency; retained 1.1 adds filtered traversal with authorized counts and opaque Project/snapshot/limit/query cursor binding; retained 1.2 adds same-snapshot Actor and exact-target option catalogues with replace-own-dimension facet counts, active-first stable order, immutable Actor descriptors, and exact-identity-only target fallbacks. The retained-continuation failure contract adds invalid-cursor, combined binding-mismatch, and snapshot-unavailable subcodes under one non-disclosing cursorless-restart rule. Impact 1.4 preserves four direct groups, nine semantic adapters, and the three independent exact-target-record groups for current WorkUnit heads, immutable WorkerOutputManifest records, and immutable InteractionReplayRecord receipts. It adds one destination state to each operational reference. Only a same-snapshot exact current WorkUnit backed by current ProjectDefinition Work support may use the existing Project Work detail authority; output and replay remain unavailable and cannot redirect through owning Work, Petra, or ProjectThread. Every operational reference preserves its WorkerInputManifest, WorkUnit, and applicable InteractionRun chain without inferring output effect, transitive closure, or cross-family order. Recovery assessment 1.0 binds one applied or reverted event to its promotion ChangeSet/Approval, current Claim–Assertion heads, current three-command grants, impact summaries/unknowns, and exact blockers or retained compensation. Compensation preview 1.0 derives an exact five-minute Claim/Assertion retraction, resulting revisions, retention boundary, required human input, and governed sequence only from a currently eligible assessment. Plan request/view 1.0 accepts only its compact preview reference and confirmed human input, reconstructs current authority, and returns the linked ChangeSet, Approval, and three causal command envelopes without persistence or execution. Execution request/view 1.0 separately accepts the full plan as untrusted input, revalidates an initial attempt against current preview authority, and runs each command through its own transaction and current grant check. It derives completion or a retained prefix from immutable command executions and events and distinguishes retained success, retained terminal failure, unretained attempt failure, and not-attempted work. All History state derives from existing authority, persists no second ledger, keeps graph navigation and exact History return/origin/focus/scroll context client-local, and exposes no generic undo or reversal of a reversal. The frozen Scope/filter, collection, detail, and subordinate-dialog mappings require no new components, CSS, or browser routes. | Bind the fixture-backed frozen route to the typed reads and command. The backend still lacks authoritative origin filtering, historical ProjectDefinition interpretation, and complete applicable accessibility/recovery evidence. Exact fallback identities and safe invalidation behavior are specified. Dependent occurrence times, current projection freshness, and broader related facts remain gaps. Do not infer authority, effect, reversibility, transitive closure, or a cross-family order. | Wave 3 Recent changes, episode, filtered traversal, direct/semantic/operational impact, recovery assessment, read-only preview, confirmed non-persisted plan composition, and separately authorized exact execution with partial-outcome recovery passed; exact operational destination, retained filter-option, and continuation-failure mappings passed; exact retained ProjectDefinition authority reference next |
 | `UX-REQ-008` | **Partial, advanced after baseline.** `petra.project-object-location-view@1.0.0` and its Project-scoped PostgreSQL reader resolve exact current or retained historical ProjectSource, Assertion, ChangeSet, WorkUnit, and DraftArtifact identities to ProjectDefinition-permitted semantic place roles. V025 plus V027–V029 make its `superseded` state and bounded active replacement chain live while retaining retracted lineage separately. The frozen client alone maps roles to routes. | Add replacement/parent adapters for other owning object types, retained Project-snapshot selection, extension-registered profile tools, actor-specific object authorization if required, and full applicable `UX-FX19` evidence. | Wave 1 read foundation plus current/historical ProjectSource replacement separation passed; type-specific later slices |
 | `UX-REQ-009` | **Partial, advanced after baseline.** The scientific ProjectSource specialization and authorized collection/detail view now bind exact role, identity, copy, rights, parsed coverage, preview spans, downstream use, and authority position. The paired definition proof establishes neutral reference terminology but not a controlled-writing source adapter. | Add non-scholarly source specializations, linked Work/results, broader limitations, intake, and source-adapter conformance. | Wave 2 |
 | `UX-REQ-010` | **Partial, advanced after baseline.** ProjectSource has stable Project-local identity and immutable active or excluded revisions over a retained copy. `petra.project-source-lifecycle-view@1.0.0` previews exclude, restore, or local-copy deletion intent against eight bounded exact dependency groups and seven explicit retention areas. Lifecycle command/event/outbox 1.2, the lifecycle receipt, V024, and the PostgreSQL authority execute authorized, idempotent exclude/restore transitions as status-only revisions with compensating recovery. The authenticated public lifecycle route resolves a server-configured human Actor and exactly one active Project-command grant, rejects request-carried authority, and returns the exact receipt and resulting source revision. `petra.project-source-replacement@1.0.0`, immutable retraction 1.0, and V025/V027–V029 add exclusion-receipt-bound supersession with a validated effective head. Command/event/outbox 1.3, CapabilityGrant 1.1, the immutable replacement receipt, and V030 now govern creation and relation-only retraction atomically. Separate authenticated create/retract routes and a typed client reach that authority without request-carried identity. D019's separate next restore is enforced: restore fails while the replacement is active. All dependents and source materials remain retained; physical deletion is unavailable. | Add frozen-interface preview/confirmation/receipt/recovery integration, other source adapters, and broader dependency policy. Do not expose physical deletion until an accepted retention policy exists. | Wave 2 backend lifecycle, governed replacement authority, authenticated APIs, and typed clients passed; frozen presentation integration next; physical-copy policy in Wave 5 |
@@ -609,10 +619,14 @@ ProjectDefinition and Project Work detail authority are available. Output and
 replay stay static with their exact reasons. Retained 1.2 Actor and target
 catalogues now map into the existing Full History fields with exact facet
 counts, bounded coverage, immutable Actor authority, and target identity-only
-fallback. Stable machine-readable continuation-failure subcodes are the next
-backend-only boundary. Generic Undo, reversal of a reversal, and multi-step
-compensation remain later work. The conformance mapping adds no filter
-dimension, component, CSS rule, browser route, or second ledger.
+fallback. The three stable continuation-failure subcodes now map into the same
+invalid Full History continuation state, fixed public message, and cursorless
+restart while preserving verified rows, filters, catalogues, and detail. An
+exact retained ProjectDefinition authority reference is the next backend
+prerequisite for historical interpretation. Generic Undo, reversal of a
+reversal, and multi-step compensation remain later work. The conformance
+mapping adds no filter dimension, component, CSS rule, browser route, or second
+ledger.
 
 Exit gate: one exact action can start bounded Work, preserve interruption state,
 return a result, and expose its history and eligible recovery without client-side
@@ -714,9 +728,14 @@ ProjectDefinition and Project Work detail authority; output and replay remain
 static with their exact unavailable reasons. The client retains History origin,
 focus, scroll, and return context locally. Retained 1.2 Actor and target
 catalogues now map into the existing Full History filter fields without client
-authority or origin classification. The next backend increment may add stable
-machine-readable continuation-failure subcodes while preserving `phc2` opacity
-and the current fail-closed restart behavior.
+authority or origin classification. The stable continuation-failure contract
+now maps all three subcodes into the existing invalid-continuation state without
+decoding `phc2`, varying public copy, or disclosing a failed binding. The next
+safe backend History increment is a read-only exact retained ProjectDefinition
+identity, revision, and record-hash reference for the selected event or retained
+snapshot, with an unavailable state when that authority cannot be reproduced.
+Historical destination interpretation must wait for that authority and must not
+reuse the current definition retroactively.
 Physical deletion remains excluded. Do not infer external filesystem edits or
 turn either conformance example into a mandatory template.
 
@@ -766,7 +785,7 @@ inferring it from execution references. The server-configured single-user human
 principal now resolves exactly one eligible Project-command grant and fails
 closed on missing or ambiguous authority. Lifecycle and replacement routes use
 that resolution and still revalidate the grant transactionally.
-The current complete repository gate passes with 845 always-on TypeScript tests,
+The current complete repository gate passes with 850 always-on TypeScript tests,
 25 Python tests, and seven expected service-dependent skips; the real PostgreSQL
 suite passes 109 cases after a clean V001-through-V030 migration.
 The History impact 1.3 proof resolves the selected event's exact immutable
@@ -791,6 +810,14 @@ stability after an append, unrelated-Actor exclusion, selected-option count
 equivalence for positive results, exact immutable Actor descriptors, and
 revision-neutral target-title unavailability. Contract, Python parity,
 typed-client, and PostgreSQL checks reject a fabricated target title.
+The retained-continuation failure proof classifies malformed shape/prefix,
+signature, payload, and encoding failures; Project/limit/complete-query binding
+mismatches; and unavailable retained authority or snapshot-head evidence at
+their exact server-side failure points. HTTP 422, the outer code, fixed public
+message, and restart instruction remain constant. The API exposes no cursor or
+internal diagnostic, cursorless validation gains no subcode, and the strict
+typed client preserves classification and restart only for a fully valid
+envelope.
 The History recovery proof validates exact promotion ChangeSet/Approval,
 current Claim–Assertion, active-grant, impact-summary, blocker, and retained
 compensation bindings under repeatable-read isolation. It exercises eligible,

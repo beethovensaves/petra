@@ -1,7 +1,7 @@
 # UX-to-implementation requirements handoff
 
 Status: accepted requirements with implementation dispositions and integration handoffs
-Date: 2026-09-10
+Date: 2026-09-11
 Source: [Petra user-flow architecture](UX-FLOW-ARCHITECTURE.md)
 Design-freeze source: [Petra UX design brief](PETRA-UX-DESIGN-BRIEF.md)
 Design freeze: `UX-DESIGN-FREEZE-01` closed against baseline `655d094`
@@ -274,14 +274,17 @@ between shell context and task content more important.
   `DB17-P11`–`P12`, `UX-FLOW-12`, and `UX-FLOW-16`.
 - **Implemented backend baseline:** commits `92e9cb1`, `7ae590f`, `1c44dd3`,
   `9530b09`, `c5da977`, `c198af6`, `7380a0b`, `9e90258`, `37ffc38`,
-  `718f641`, `0e6688e`, `96acc5d`, `161235a`, and `04872ff` add
+  `718f641`, `0e6688e`, `96acc5d`, `161235a`, `04872ff`, and `d0ae4c9` add
   `petra.project-history-view@1.0.0`,
   `petra.project-history-episode-view@1.0.0`, and
   `petra.project-history-retained-view@1.0.0`; `7380a0b` advances the retained
   collection to `petra.project-history-retained-view@1.1.0` with bounded exact
   filters and complete-query cursor binding. Commit `04872ff` advances that
   collection to version 1.2 with same-snapshot Actor and target option
-  catalogues. All use authenticated
+  catalogues. Commit `d0ae4c9` adds
+  `petra.project-history-retained-continuation-failure@1.0.0` for rejected
+  continuations while successful retained History remains version 1.2. All use
+  authenticated
   Project-scoped routes, repeatable-read PostgreSQL composition, contract
   validation, typed workbench readers, and conformance fixtures. The
   dependency-impact commits add `petra.project-history-impact-view@1.0.0` at
@@ -333,6 +336,7 @@ between shell context and task content more important.
 | Frozen `DB18-SP10` **Scope/filter** position, before the History collection/detail layout | `GET /api/queries/projects/:projectId/history/events` with `petra.project-history-retained-view@1.2.0` | Keep **Recent changes** and **Full History** as two scopes over separate reads on the existing History route. Only Full History owns the retained limit, `phc2` cursor, eight exact filter dimensions, and same-snapshot Actor/target option catalogues. Each catalogue populates only its already-defined field. The checked-in `HistorySurface` has not instantiated this already-specified position; that is a frontend binding gap, not permission to add a surface, route, or visual system. |
 | Left `history-episodes` ordered list in **Recent changes** scope | Recent `content.changes` | Keep the existing list container and heading **Recent changes**. Render the returned order without regrouping or client sorting. The header count is the number shown, never a retained-history total. With `has_older: true`, its existing count text reads **10 shown · Older changes exist**. Never send a retained filter, limit, or cursor to the Recent endpoint, and never replace `has_older` with a retained cursor. |
 | Same `history-episodes` ordered list in **Full History** scope | Retained 1.2 `content.changes`, `page`, `filter_options`, and `retention_snapshot` | Render only the authorized matching events in supplied `project_stream_newest_first` order. The heading is **Full History** and its associated count is **{snapshot_total_count} matching events** or **{snapshot_total_count} events** when `filters` is empty. Keep catalogue counts inside their Actor/Target fields rather than treating them as collection totals. Append a continuation page only after its echoed query, retained snapshot, and option catalogues match the active traversal. Do not mix Recent rows into this list or sort it by displayed time. |
+| Existing invalid Full History continuation status and restart action | HTTP 422 `petra.project-history-retained-continuation-failure@1.0.0` | Accept this failure contract only for a request that supplied a continuation cursor and only when the complete envelope validates. Preserve its subcode and restart constants in typed client state, but render and announce the one fixed public message for all three subcodes. Keep the last verified rows, filters, catalogues, and selected detail; discard the rejected cursor and page. The existing restart action issues a cursorless request with the same Project, limit, and filters. Do not decode or display `phc2` or expose the subcode, diagnostics, or mismatched authority. |
 | Existing row link | `event_ref.event_id`, `recorded_at`, `command_ref.command_name`, `observed_effect.summary` | Link to the existing `/projects/:projectId/history/:episodeId` pattern with `episodeId` equal to the exact immutable `event_id`. Use the registered command label as the row action and the server summary as its description. Do not invent a target title from `semantic_key` or `object_id`. |
 | Existing selected detail article | Exact episode, impact, and eligible event recovery reads | Every selected row and deep link loads the exact episode. The detail may then consume `petra.project-history-impact-view@1.4.0`; for `change_set.applied` or `change_set.reverted`, it may also consume `petra.project-history-recovery-assessment-view@1.0.0` from `GET /api/queries/projects/:projectId/history/events/:eventId/recovery`. Verify the outer Project/event identity and complete overlapping selected-event anchor before rendering either subordinate read. Bind `episodeId` only as the immutable event ID. Do not call the recovery route for another event type. |
 | Detail header | `content.change.observed_effect` plus exact event type | Use the registered event/action label as the title, `observed_effect.summary` as the lead, and its `outcome` as explicit text. A descriptive profile target label is absent from the implemented contract and cannot be fabricated. |
@@ -476,6 +480,68 @@ the frozen narrow-screen field region without horizontal scrolling.
 
 Retained 1.2 adds no filter dimension, component, CSS rule, browser route,
 second ledger, generic Undo, recovery decision, or compensation behavior.
+
+#### Stable retained-continuation failure acceptance
+
+Backend commit `d0ae4c9` preserves the existing authenticated retained-History
+endpoint, HTTP 422 status, and outer
+`PROJECT_HISTORY_RETAINED_QUERY_INVALID` code. When a rejected request supplied
+a continuation cursor, accept only a complete
+`petra.project-history-retained-continuation-failure@1.0.0` envelope with its
+exact schema name/version, request and trace identities, one registered
+subcode, the fixed message, and both restart constants. Successful responses
+remain `petra.project-history-retained-view@1.2.0`. An ordinary cursorless query
+or filter error receives no continuation schema, subcode, or restart
+instruction.
+
+The three subcodes classify only these server-side failure families:
+
+| Validated subcode | Exact scope; never rendered as cause-specific copy |
+| --- | --- |
+| `CURSOR_INVALID` | Malformed cursor shape or prefix, failed signature, malformed or invalid payload, or non-canonical encoding. Do not distinguish tampering from malformed input. |
+| `CURSOR_BINDING_MISMATCH` | A changed Project, limit, or complete normalized filter/query binding. Preserve the combined classification and never reveal which binding or value differed. |
+| `SNAPSHOT_UNAVAILABLE` | The retained authority position or exact snapshot-head event and record hash can no longer be reproduced. Do not name the missing position, event, or hash. |
+
+Every validated subcode must contain the exact public message **This Full
+History traversal can no longer continue from its verified snapshot. Start
+again with the same filters.** and
+`restart.cursor_disposition: discard_without_client_decoding` plus
+`restart.request_kind: cursorless_same_project_limit_and_filters`. The typed
+client retains the validated subcode and restart values so that handling is
+deterministic, but neither becomes visible or assistive text. The interface
+does not vary the message, label, action, urgency, or focus behavior by
+subcode.
+
+On failure, keep the last verified rows, active filter values, accepted Actor
+and Target catalogues, and exact selected detail. Discard the rejected cursor
+and the complete returned page before any append. Keep the selected detail
+marked only when its verified row remains selected; do not switch to another
+event. The existing restart action removes the cursor and resends the exact
+same Project, limit, and normalized filters. It does not decode or repair the
+cursor, change a filter, refresh against a different Project, call Recent
+changes, or reuse any part of the rejected page.
+
+Never place `phc2`, a raw subcode, request/trace identity, internal decoder or
+database diagnostic, mismatched identity, event, Actor, target, count, or prior
+permission in visible copy or the accessibility tree. If a claimed failure
+envelope has an unknown/absent field, wrong constant, unregistered subcode,
+changed message, invalid request/trace identity, extra disclosure, or malformed
+restart value, the typed client preserves neither `subcode` nor `restart`.
+Because the response claimed this schema, it may still use the fixed public
+message, but it must expose no claimed classification or instruction as
+verified.
+
+While the continuation request is pending, retain the current loading behavior.
+On a validated failure, announce the fixed message once in the existing status
+region, move focus to that status heading, and keep the existing start-again
+action next in reading order. Activating it uses native button behavior; on a
+successful restart, focus follows the existing Full History first-page result
+rule. Repeated failures replace the same status text and do not create stacked
+alerts. At narrow widths the message and action remain in the existing
+collection position without exposing or horizontally scrolling the cursor.
+
+This mapping adds no component, CSS rule, browser route, filter, catalogue,
+History ledger, recovery decision, generic Undo, or compensation behavior.
 
 The scope and each active filter remain visible with the matching count. **Apply
 filters** starts a new retained traversal with no cursor. **Clear filters**
@@ -1341,12 +1407,12 @@ an adapter and leave unsupported links unavailable with their reason.
 | Empty Recent changes | HTTP 200 with `changes: []` uses the existing empty panel: **No permitted History events** and **Petra did not infer History from current objects or the Graph.** `has_older` must be false. |
 | Empty filtered Full History | HTTP 200 with `changes: []`, `snapshot_total_count: 0`, and `has_more: false` says **No permitted History events match these filters.** Preserve the exact filters and return control; expose no unfiltered count, substitute row, recovery action, or Recent result. Each 1.2 catalogue still reflects replace-only-its-own-dimension facet semantics and may contain options; a selected zero-match value may be absent and remains selected from the query echo. Empty `{}` instead says **No permitted History events.** |
 | Invalid filter or query | Client-side validation keeps focus on the first invalid field and associates the exact correction with it. Server `PROJECT_HISTORY_RETAINED_QUERY_INVALID` before a cursor exists says **These Full History filters could not be verified. Check the marked values and try again.** Do not issue a widened query. |
-| Invalid, stale, or mismatched continuation | A malformed/tampered `phc2` cursor, changed Project/limit/filter identity, non-canonical payload, or unavailable original snapshot returns `PROJECT_HISTORY_RETAINED_QUERY_INVALID`. A returned catalogue that differs from the accepted Project/snapshot/query basis instead fails client validation. Both keep the last verified rows, filters, and catalogues; discard the rejected cursor and page; and say **This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.** Starting again makes a cursorless request; it does not silently append a current page. Stable machine-readable server subcodes are the next backend boundary. |
+| Invalid, stale, or mismatched continuation | HTTP 422 with a fully valid `petra.project-history-retained-continuation-failure@1.0.0` envelope preserves one of `CURSOR_INVALID`, `CURSOR_BINDING_MISMATCH`, or `SNAPSHOT_UNAVAILABLE` in typed state. All three keep the last verified rows, filters, catalogues, and selected detail; discard the rejected cursor and page; and say **This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.** The same existing action starts a cursorless request with the unchanged Project, limit, and filters. Do not render the subcode or vary the state by cause. A returned catalogue that differs from the accepted Project/snapshot/query basis remains a client validation failure and cannot be recast as this server envelope. |
 | Unavailable | `PROJECT_HISTORY_UNAVAILABLE` uses the affected list/detail slot: **Project History is unavailable right now.** Keep exact return usable and expose no recovery action. A safely retained prior response and its catalogues may remain only when labelled with their `read_at` and **Last verified**; they are not current options or eligibility. |
 | Unauthorized | Authentication failure or a future forbidden result renders **Project History is unavailable for this Project.** It reveals no event, target, Actor name/identity/hash, option, filter match, count, prior permission, `has_older`, or continuation value. Keep only a permitted Project/Projects return. |
 | Missing or malformed event | `PROJECT_HISTORY_EVENT_NOT_FOUND` or invalid event identity renders **This History event is unavailable in this Project.** Keep the active authorized History collection and return control; do not substitute its first event. |
 | Stale collection or detail | Compare Recent/detail authority directly and retained `current_authority` with the detail authority. If detail is older, keep immutable event facts visible but mark recovery **Needs refresh** with **Recovery eligibility was checked at Project stream revision {detail}; current History is at {current}. Refresh this event before acting.** Reload the exact event ID. If Recent changes is older, mark it **Recent changes need refresh**; a retained snapshot remains intentionally stable and is not relabelled stale because new events were appended. Never silently switch events or inject new events into an active retained traversal. |
-| Integrity or invalid response | Server `PROJECT_HISTORY_READ_FAILED`, impossible page/count/order data, or client contract, Project, normalized-query, cursor-binding, content-hash, snapshot, or identity rejection renders **Petra could not verify this History response. No unverified events or recovery actions are available.** Do not label it empty, fall back to fixtures, reconstruct from graph state, append a partial page, or expose the server exception as author-facing prose. |
+| Integrity or invalid response | Server `PROJECT_HISTORY_READ_FAILED`, impossible page/count/order data, or client contract, Project, normalized-query, cursor-binding, content-hash, snapshot, or identity rejection renders **Petra could not verify this History response. No unverified events or recovery actions are available.** A malformed response claiming the retained-continuation failure schema retains the same fixed public continuation message but exposes no subcode or restart instruction as verified. Do not label either failure empty, fall back to fixtures, reconstruct from graph state, append a partial page, or expose the server exception as author-facing prose. |
 
 A collection failure does not erase an already verified deep-linked event; an
 event failure does not relabel the collection as empty. After a successful
@@ -1456,6 +1522,13 @@ must continue rejecting any value other than
   It adds no endpoint, query parameter, filter dimension, option continuation,
   or browser route. A client pinned to 1.1 must validate the complete 1.2 result
   rather than request or construct options separately.
+- Backend commit `d0ae4c9` adds
+  `petra.project-history-retained-continuation-failure@1.0.0` to the same
+  endpoint's HTTP 422 continuation path. It preserves the outer query-invalid
+  code, successful retained view 1.2, cursorless-query behavior, and `phc2`
+  format. The server classifies only invalid cursor, combined complete-binding
+  mismatch, and unavailable snapshot; the typed client preserves a subcode and
+  restart instruction only after validating the whole non-disclosing envelope.
 - Backend commit `9e90258` adds the exact-event recovery assessment endpoint
   and typed client. It accepts no query parameters and returns only a read-only
   assessment for `change_set.applied` or `change_set.reverted`; it does not
@@ -1487,9 +1560,10 @@ must continue rejecting any value other than
 - The frozen `DB18-SP10` contract already places **Scope/filter** before the
   History collection and detail, and its state coverage includes long filtered
   History. The checked-in `HistorySurface` does not instantiate that position,
-  a Full History collection state, or continuation behavior. Wiring the
-  retained client into those frozen positions remains an implementation gap;
-  the binding must accept 1.2 and populate only its existing Actor and Target
+  a Full History collection state, or continuation request/failure behavior.
+  Wiring the retained client into those frozen positions remains an
+  implementation gap; the binding must accept successful view 1.2, validate
+  continuation failure 1.0, and populate only its existing Actor and Target
   fields. This handoff adds no component, CSS rule, or route to fill it.
 - The frozen view model expects authored titles, an Actor display string, and a
   projection-effect string. The implemented reads provide exact Actor kind/ID,
@@ -1533,11 +1607,12 @@ must continue rejecting any value other than
   `origin_filter_not_supported`, and neither Actor, correlation, target,
   semantic destination, nor client return context provides authoritative origin
   classification. This is a backend capability gap, not a client filter.
-- All malformed, tampered, cross-Project, changed-query, and unavailable-
-  snapshot continuations currently share
-  `PROJECT_HISTORY_RETAINED_QUERY_INVALID`. The common restart behavior above is
-  implementable; a later backend revision would need stable subcodes before the
-  interface could state a more specific cause.
+- Rejected continuations retain the outer
+  `PROJECT_HISTORY_RETAINED_QUERY_INVALID` code and now carry one of three stable
+  failure subcodes. The subcodes intentionally do not authorize more specific
+  interface copy: `CURSOR_BINDING_MISMATCH` combines Project, limit, and complete
+  query differences, while every class has the same message and restart. A
+  malformed claimed envelope supplies no validated subcode or restart.
 - Version 1.4 still has no authorized display labels, occurrence times, or
   observed effects for dependent references. The frozen adapter uses exact
   key/ID/revision fallbacks and does not sort them into a timeline. Its only
@@ -1555,16 +1630,17 @@ must continue rejecting any value other than
   exposes independent coverage but no continuation cursor; this conformance
   slice adds no control for either bound.
 
-The next safe History boundary is a backend-only retained-view revision with
-stable machine-readable continuation-failure subcodes. It may distinguish a
-malformed or tampered cursor, changed Project/query/limit binding, and an
-unavailable retained snapshot only while preserving the same non-disclosing,
-fail-closed restart behavior. It changes no filter, catalogue, cursor opacity,
-component, route, recovery decision, or client authority. Output and replay
-destinations remain unavailable until exact Project-owned route authority
-exists. Generic Undo, reversal of a reversal, multiple or multi-step
-compensation, event rewriting, historical ProjectDefinition interpretation,
-new filters, and an origin filter remain excluded.
+The next safe backend History boundary is a read-only exact retained
+ProjectDefinition authority reference for the selected event or retained
+snapshot. It must name the immutable definition identity, revision, and record
+hash that governed that historical position, or report the authority
+unavailable. This is the prerequisite for later historical semantic-destination
+interpretation; the client must not apply the current ProjectDefinition
+retroactively. It does not add an origin filter, destination, filter, component,
+route, recovery decision, or client authority. Output and replay destinations
+remain unavailable until exact Project-owned route authority exists. Generic
+Undo, reversal of a reversal, multiple or multi-step compensation, event
+rewriting, and origin classification remain excluded.
 
 - **Owner and status:** frontend integration track and product architecture;
   bounded Recent changes, exact causal episode, signed filtered retained
@@ -1572,10 +1648,11 @@ new filters, and an origin filter remain excluded.
   semantic-target adapter reads plus three exact operational adapter groups,
   exact ChangeSet recovery assessment, read-only compensation preview,
   confirmed non-persisted plan composition, and separately authorized exact
-  execution passed through `04872ff`. This
+  execution and stable continuation failures passed through `d0ae4c9`. This
   frozen-surface acceptance mapping is implementation-ready without component,
   CSS, or route changes. Frontend binding and the stated gaps remain open; the
-  next boundary is stable machine-readable continuation-failure subcodes.
+  next backend boundary is an exact retained ProjectDefinition authority
+  reference before historical interpretation.
 
 ### `UX-REQ-008` — semantic object location and safe deep-link resolution
 
@@ -3060,7 +3137,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Proposal, correction, exact preview, Apply, conflict, and Revert | ChangeSet, Approval, ReviewBatch, and additive event path in `M1.5` |
 | Durable conversation-derived working candidates and relationships | Proposed `UX-REQ-011`; existing bounded model records and evidence candidates remain inputs, not a generic working graph contract |
 | Profile-neutral Review session, comparison, deferment, separation, and member recovery | Proposed `UX-REQ-012`; current M1.5 evidence review remains the scientific contract foundation |
-| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding and same-snapshot authorized Actor/target option catalogues, four-group direct dependency impact, nine registered exact semantic-target adapters through ProjectSource/replacement authority, three separately bounded exact Work/input, output-manifest, and interaction-replay groups with a same-snapshot exact current-Work destination and explicit output/replay non-destinations, read-only exact ChangeSet recovery assessment, five-minute revision-bound compensation preview, confirmed non-persisted command-plan composition, and separately authorized exact execution with retained-prefix recovery under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration and exact History return context remain client-local, and stable machine-readable continuation-failure subcodes are the next backend boundary |
+| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding, same-snapshot authorized Actor/target option catalogues, and stable non-disclosing continuation failures, four-group direct dependency impact, nine registered exact semantic-target adapters through ProjectSource/replacement authority, three separately bounded exact Work/input, output-manifest, and interaction-replay groups with a same-snapshot exact current-Work destination and explicit output/replay non-destinations, read-only exact ChangeSet recovery assessment, five-minute revision-bound compensation preview, confirmed non-persisted command-plan composition, and separately authorized exact execution with retained-prefix recovery under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration and exact History return context remain client-local, and an exact retained ProjectDefinition authority reference is the next backend prerequisite for historical interpretation |
 | Semantic object location, replacement, and safe fallback | Proposed `UX-REQ-008`; the client retains route and layout ownership |
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
 | Project-source membership, governed removal, and local-copy retention/deletion | Proposed `UX-REQ-010`; Project linking and content-addressed storage remain separate lifecycles |
