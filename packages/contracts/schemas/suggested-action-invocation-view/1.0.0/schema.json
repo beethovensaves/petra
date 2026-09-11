@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/suggested-action-invocation-view/1.0.0/schema.json",
+  "title": "PetraSuggestedActionInvocationView",
+  "description": "A current read over one immutable SuggestedAction invocation and its canonical WorkUnit, result, InteractionRun, revision history, semantic destinations, and eligible recovery operations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.suggested-action-invocation-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ViewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "InvocationRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "suggested_action_invocation_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "suggested_action_invocation_id": {
+          "type": "string",
+          "pattern": "^suggested_action_invocation_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "WorkUnitRef": {
+      "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/WorkUnitRef"
+    },
+    "RecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "content_hash", "record_hash"],
+      "properties": {
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "HistoryEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_unit_ref", "state", "recorded_at"],
+      "properties": {
+        "work_unit_ref": { "$ref": "#/$defs/WorkUnitRef" },
+        "state": {
+          "enum": [
+            "requested",
+            "queued",
+            "running",
+            "checkpointed",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "terminal_outcome": {
+          "enum": [
+            "succeeded",
+            "worker_failed",
+            "validation_failed",
+            "resource_exhausted",
+            "timed_out",
+            "cancelled"
+          ]
+        },
+        "recorded_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "RecoveryAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "eligibility", "reason"],
+      "properties": {
+        "operation": {
+          "enum": [
+            "retry_exact_start",
+            "reconnect_delivery",
+            "cancel_work",
+            "inspect_work",
+            "inspect_result"
+          ]
+        },
+        "eligibility": { "enum": ["eligible", "ineligible"] },
+        "command_name": { "enum": ["InvokeSuggestedAction", "CancelWorkUnit"] },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "ViewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "invocation_ref",
+        "invocation",
+        "operation_state",
+        "work",
+        "result",
+        "interaction",
+        "interrupt",
+        "history",
+        "recovery",
+        "authority",
+        "limitations"
+      ],
+      "properties": {
+        "view_kind": { "const": "invocation" },
+        "invocation_ref": { "$ref": "#/$defs/InvocationRef" },
+        "invocation": {
+          "$ref": "../../suggested-action-invocation/1.0.0/schema.json"
+        },
+        "operation_state": {
+          "enum": ["accepted", "running", "completed", "cancelled", "failed"]
+        },
+        "work": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["state", "expected_work_unit_id"],
+              "properties": {
+                "state": { "const": "pending_registration" },
+                "expected_work_unit_id": {
+                  "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "state",
+                "work_unit_ref",
+                "input_manifest_ref",
+                "execution_state"
+              ],
+              "properties": {
+                "state": { "const": "available" },
+                "work_unit_ref": { "$ref": "#/$defs/WorkUnitRef" },
+                "input_manifest_ref": { "$ref": "#/$defs/RecordRef" },
+                "execution_state": {
+                  "enum": [
+                    "requested",
+                    "queued",
+                    "running",
+                    "checkpointed",
+                    "completed",
+                    "cancelled"
+                  ]
+                },
+                "terminal_outcome": {
+                  "enum": [
+                    "succeeded",
+                    "worker_failed",
+                    "validation_failed",
+                    "resource_exhausted",
+                    "timed_out",
+                    "cancelled"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "result": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["state", "reason"],
+              "properties": {
+                "state": { "const": "pending" },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["state", "result_ref", "authority_effect"],
+              "properties": {
+                "state": { "const": "available" },
+                "result_ref": {
+                  "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/TypedRecordRef"
+                },
+                "authority_effect": { "const": "none" }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["state", "reason"],
+              "properties": {
+                "state": { "const": "unavailable" },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              }
+            }
+          ]
+        },
+        "interaction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "protocol_thread_id",
+            "protocol_run_id",
+            "durable_state"
+          ],
+          "properties": {
+            "protocol_thread_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "protocol_run_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "durable_state": { "enum": ["pending_terminal", "available"] },
+            "interaction_run_ref": { "$ref": "#/$defs/RecordRef" }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": { "durable_state": { "const": "available" } }
+              },
+              "then": {
+                "properties": {
+                  "interaction_run_ref": { "$ref": "#/$defs/RecordRef" }
+                },
+                "required": ["interaction_run_ref"]
+              },
+              "else": { "properties": { "interaction_run_ref": false } }
+            }
+          ]
+        },
+        "interrupt": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "delivery_abort_cancels_work", "reconnect"],
+          "properties": {
+            "state": { "const": "none_expected" },
+            "delivery_abort_cancels_work": { "const": false },
+            "reconnect": { "const": "exact_interaction_replay" }
+          }
+        },
+        "history": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "command_receipt_ref",
+            "work_revisions",
+            "destinations"
+          ],
+          "properties": {
+            "source": {
+              "const": "canonical_command_receipt_and_work_unit_revisions"
+            },
+            "command_receipt_ref": { "$ref": "#/$defs/InvocationRef" },
+            "work_revisions": {
+              "type": "array",
+              "maxItems": 100,
+              "items": { "$ref": "#/$defs/HistoryEntry" }
+            },
+            "destinations": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["place_role", "task_intent", "object_ref"],
+                "properties": {
+                  "place_role": { "enum": ["work", "history"] },
+                  "task_intent": { "enum": ["continue_work", "view_history"] },
+                  "object_ref": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["semantic_key", "object_id"],
+                    "properties": {
+                      "semantic_key": { "const": "petra.work-unit" },
+                      "object_id": {
+                        "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "recovery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["assessment", "actions"],
+          "properties": {
+            "assessment": { "const": "current_server_owned" },
+            "actions": {
+              "type": "array",
+              "minItems": 5,
+              "maxItems": 5,
+              "items": { "$ref": "#/$defs/RecoveryAction" }
+            }
+          }
+        },
+        "authority": {
+          "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        }
+      }
+    }
+  }
+}

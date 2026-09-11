@@ -1,20 +1,30 @@
 import { createHash } from "node:crypto";
 
 import type {
+  PetraCapabilityGrantRecord,
   PetraGroundedResponse,
   PetraProjectDefinition,
   PetraProjectInquiryLink,
   PetraProjectObjective,
   PetraSuggestedActionView,
+  PetraSuggestedActionViewV11,
   PetraWorkUnit,
   SuggestedAction,
   SuggestedActionAuthorityPosition,
   SuggestedActionBackgroundWork,
   SuggestedActionReady,
   SuggestedActionStale,
+  SuggestedWorkAction,
+  SuggestedWorkActionReady,
+  SuggestedWorkActionStale,
+  SuggestedWorkActionUnavailable,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import { derivePetraId, type SuggestedActionViewReader } from "@petra/core";
+import {
+  derivePetraId,
+  PETRA_GROUNDED_SYNTHESIST_PROFILE_V1_1,
+  type SuggestedActionViewReader,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
 
@@ -45,6 +55,11 @@ interface AuthorityRow {
 const PROJECT_INQUIRY_LINK_ID =
   /^project_inquiry_link_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const ACTION_DERIVATION_VERSION = "1.0.0";
+const WORK_ACTION_DERIVATION_VERSION = "1.1.0";
+
+export interface PostgresSuggestedActionViewReaderOptions {
+  readonly authenticatedActorId?: string;
+}
 
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
@@ -57,6 +72,12 @@ const actionIdFor = (projectInquiryLinkId: string): string =>
     `${projectInquiryLinkId}|inspect_existing_inquiry_result|${ACTION_DERIVATION_VERSION}`,
   );
 
+const workActionIdFor = (projectInquiryLinkId: string): string =>
+  derivePetraId(
+    "suggested_action",
+    `${projectInquiryLinkId}|run_grounded_synthesis|${WORK_ACTION_DERIVATION_VERSION}`,
+  );
+
 /**
  * Derives one exact read-only action from an immutable inquiry-result link.
  * The result is a preview only: it neither registers an action ledger nor
@@ -66,10 +87,16 @@ const actionIdFor = (projectInquiryLinkId: string): string =>
 export class PostgresSuggestedActionViewReader implements SuggestedActionViewReader {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
+  readonly #authenticatedActorId: string | undefined;
 
-  constructor(pool: Pool, contracts = new PetraContractRegistry()) {
+  constructor(
+    pool: Pool,
+    contracts = new PetraContractRegistry(),
+    options: PostgresSuggestedActionViewReaderOptions = {},
+  ) {
     this.#pool = pool;
     this.#contracts = contracts;
+    this.#authenticatedActorId = options.authenticatedActorId;
   }
 
   async getSuggestedActionViewForInquiryResult(
@@ -274,6 +301,335 @@ export class PostgresSuggestedActionViewReader implements SuggestedActionViewRea
       this.#contracts.assertValid("suggested-action-view", "1.0.0", view);
       return view;
     });
+  }
+
+  async getWorkStartingSuggestedActionViewForInquiryResult(
+    projectId: string,
+    projectInquiryLinkId: string,
+  ): Promise<PetraSuggestedActionViewV11 | undefined> {
+    if (!PROJECT_INQUIRY_LINK_ID.test(projectInquiryLinkId)) {
+      throw new PostgresSuggestedActionViewError(
+        "SUGGESTED_ACTION_VIEW_REQUEST_INVALID",
+        "A Work-starting SuggestedAction preview requires a canonical ProjectInquiryLink identity.",
+      );
+    }
+    return this.#readTransaction(async (client, readAt) => {
+      const linkRow = await this.#actionLink(
+        client,
+        projectId,
+        projectInquiryLinkId,
+      );
+      if (linkRow === undefined) return undefined;
+      const link = this.#record<PetraProjectInquiryLink>(
+        "project-inquiry-link",
+        linkRow,
+      );
+      const target = link.content.target;
+      if (target.target_kind !== "result" || target.bearing !== "addresses") {
+        throw this.#corrupt(
+          "The Work-starting SuggestedAction requires one exact inquiry-addressing result link.",
+        );
+      }
+      const definitionRow = await this.#exactDefinition(client, link);
+      const definition = this.#record<PetraProjectDefinition>(
+        "project-definition",
+        definitionRow,
+      );
+      const objectiveRow = await this.#exactObjective(client, link);
+      const objective = this.#record<PetraProjectObjective>(
+        "project-objective",
+        objectiveRow,
+      );
+      this.#assertLinkAuthority(link, definition, objective, projectId);
+      const responseRow = await this.#exactResponse(client, projectId, target);
+      const response = this.#record<PetraGroundedResponse>(
+        "grounded-response",
+        responseRow,
+      );
+      const sourceResultRef = {
+        schema_name: "petra.grounded-response" as const,
+        schema_version: "1.0.0" as const,
+        record_id: response.grounded_response_id,
+        revision: response.revision,
+        content_hash: response.content_hash,
+        record_hash: responseRow.record_hash,
+      };
+      const basis: SuggestedWorkAction["basis"] = {
+        derivation: "exact_immutable_inquiry_result_link",
+        project_definition_ref: {
+          project_definition_id: definition.project_definition_id,
+          revision: definition.revision,
+          content_hash: definition.content_hash,
+          record_hash: definitionRow.record_hash,
+          definition_family: definition.definition_family,
+        },
+        objective_ref: clone(link.content.inquiry_anchor.objective_ref),
+        inquiry_result_link_ref: {
+          project_inquiry_link_id: link.project_inquiry_link_id,
+          content_hash: link.content_hash,
+          record_hash: linkRow.record_hash,
+        },
+        source_result_ref: sourceResultRef,
+        snapshot_ref: clone(response.content.snapshot_ref),
+        context_packet_ref: {
+          record_id: response.content.context_packet_ref.context_packet_id,
+          revision: response.content.context_packet_ref.revision,
+          content_hash: response.content.context_packet_ref.content_hash,
+        },
+        evidence_packet_ref: {
+          record_id: response.content.evidence_packet_ref.evidence_packet_id,
+          revision: response.content.evidence_packet_ref.revision,
+          content_hash: response.content.evidence_packet_ref.content_hash,
+        },
+      };
+      const prompt = PETRA_GROUNDED_SYNTHESIST_PROFILE_V1_1.publicQuestion;
+      const action: SuggestedWorkAction = {
+        action_kind: "run_grounded_synthesis",
+        title: "Run exact grounded synthesis",
+        objective: {
+          objective_ref: clone(link.content.inquiry_anchor.objective_ref),
+          semantic_key: link.content.inquiry_anchor.semantic_key,
+          statement: objective.content.statement,
+        },
+        reason:
+          "Re-run Petra's certified bounded synthesis against the exact retained inquiry basis so the command, Work, result, and recovery path are durably inspectable.",
+        basis,
+        scope: {
+          scope_kind: "exact_grounded_synthesis_rerun",
+          included:
+            "Run the certified grounded-synthesis profile against the exact ProjectDefinition, Objective, inquiry link, snapshot, context packet, and evidence packet named by this action.",
+          excluded: [
+            "No outside retrieval or unrecorded evidence is permitted.",
+            "The returned GroundedResponse does not acquire scientific or inquiry-resolution authority.",
+          ],
+        },
+        missing_information: [],
+        response_depth: {
+          allowed: ["current_graph"],
+          recommended: "current_graph",
+          adjustable: false,
+        },
+        expected_result: {
+          state: "new_work_result",
+          result_kind: "grounded_response",
+          authority_effect: "none",
+          reusable: true,
+        },
+        resources: {
+          estimate_state: "bounded_limits",
+          duration: "unknown_with_hard_limit",
+          cost: "zero_monetary_cost_expected",
+          basis: "certified_grounded_synthesis_profile",
+          limits: {
+            max_wall_time_ms: 120_000,
+            max_output_bytes: 4_000_000,
+            max_attempts: 1,
+            max_parallelism: 1,
+            max_input_tokens: 4096,
+            max_output_tokens: 1600,
+          },
+        },
+        execution: {
+          workflow_name: "petra.synthesis.grounded",
+          workflow_version: "1.0.0",
+          task_name: "petra.synthesis.grounded",
+          worker_name: "petra.grounded_synthesis",
+          validator: "petra.grounded-synthesist-profile@1.1.0",
+          prompt,
+          prompt_hash: canonicalHash({ prompt }),
+          network_policy: "managed_provider_allowlist",
+        },
+        capability: {
+          command_name: "InvokeSuggestedAction",
+          approval: "not_required_after_exact_invocation",
+        },
+        interrupt: {
+          input_expectation: "none",
+          delivery_abort: "does_not_cancel_work",
+          reconnect: "exact_interaction_replay",
+        },
+        cancellation: {
+          policy: "cancellable",
+          command_name: "CancelWorkUnit",
+          consequence:
+            "explicit_command_cancels_work_and_preserves_recorded_history",
+        },
+        invocation: {
+          kind: "authenticated_command",
+          contract_name: "petra.suggested-action-invocation-request",
+          contract_version: "1.0.0",
+          command_name: "InvokeSuggestedAction",
+          idempotency: "exact_command_and_work_convergence",
+          path_convergence: "direct_and_conversational_same_command",
+        },
+      };
+      const currentDefinitionRow = await this.#currentDefinition(
+        client,
+        projectId,
+      );
+      const currentObjectiveRow = await this.#currentObjective(
+        client,
+        projectId,
+        objective.objective_id,
+      );
+      const dependencyReadiness = this.#readiness(
+        definition,
+        definitionRow.record_hash,
+        objective,
+        objectiveRow.record_hash,
+        response,
+        currentDefinitionRow,
+        currentObjectiveRow,
+      );
+      const readiness = await this.#workReadiness(
+        client,
+        projectId,
+        dependencyReadiness,
+      );
+      const content: PetraSuggestedActionViewV11["content"] = {
+        view_kind: "preview",
+        action_ref: {
+          suggested_action_id: workActionIdFor(projectInquiryLinkId),
+          revision: 1,
+          content_hash: canonicalHash(action),
+        },
+        action,
+        readiness,
+        operation: {
+          state: "command_ready",
+          work_start: "only_after_exact_invocation",
+          authority_change: "none",
+        },
+        authority: await this.#authority(client, projectId),
+        limitations: [
+          "Version 1.1 exposes one exact grounded-synthesis Work action; it does not rank or plan other actions.",
+          "Only the InvokeSuggestedAction command may start Work, and direct or conversational surfaces must submit that same command contract.",
+        ],
+      };
+      const view: PetraSuggestedActionViewV11 = {
+        schema_name: "petra.suggested-action-view",
+        schema_version: "1.1.0",
+        project_id: projectId,
+        content,
+        content_hash: canonicalHash(content),
+        read_at: readAt,
+      };
+      this.#contracts.assertValid("suggested-action-view", "1.1.0", view);
+      return view;
+    });
+  }
+
+  async #workReadiness(
+    client: PoolClient,
+    projectId: string,
+    dependencyReadiness: SuggestedActionReady | SuggestedActionStale,
+  ): Promise<
+    | SuggestedWorkActionReady
+    | SuggestedWorkActionStale
+    | SuggestedWorkActionUnavailable
+  > {
+    if (dependencyReadiness.state === "stale") {
+      return {
+        state: "stale",
+        reason_code:
+          dependencyReadiness.reason_code === "result_invalidated"
+            ? "source_result_invalidated"
+            : dependencyReadiness.reason_code,
+        reason: dependencyReadiness.reason,
+        missing_prerequisites: dependencyReadiness.missing_prerequisites,
+        regeneration: {
+          operation: "regenerate_suggested_action",
+          basis: "current_project_authority",
+        },
+      };
+    }
+    if (this.#authenticatedActorId === undefined) {
+      return {
+        state: "unavailable",
+        reason_code: "authenticated_actor_unavailable",
+        reason:
+          "The server has no authenticated actor configured for exact command authorization.",
+        missing_prerequisites: [
+          "Configure one authenticated Petra actor for Project commands.",
+        ],
+      };
+    }
+    const result = await client.query<StoredRow>(
+      `SELECT capability.payload, capability.record_hash
+         FROM petra.capability_grants AS capability
+         LEFT JOIN petra.capability_grant_revocations AS revocation
+           ON revocation.capability_grant_id = capability.capability_grant_id
+        WHERE capability.project_id = $1
+          AND capability.grantee_actor_id = $2
+          AND capability.grantee_actor_kind = 'human'
+          AND capability.valid_from <= transaction_timestamp()
+          AND (capability.expires_at IS NULL OR capability.expires_at > transaction_timestamp())
+          AND revocation.capability_grant_id IS NULL
+          AND 'InvokeSuggestedAction' = ANY(capability.allowed_commands)
+        ORDER BY capability.capability_grant_id
+        LIMIT 2`,
+      [projectId, this.#authenticatedActorId],
+    );
+    if (result.rows.length === 0) {
+      return {
+        state: "unavailable",
+        reason_code: "capability_grant_missing",
+        reason:
+          "The authenticated actor has no active Project grant for InvokeSuggestedAction.",
+        missing_prerequisites: [
+          "Issue one active Project capability grant containing InvokeSuggestedAction.",
+        ],
+      };
+    }
+    if (result.rows.length > 1) {
+      return {
+        state: "unavailable",
+        reason_code: "capability_grant_ambiguous",
+        reason:
+          "More than one active Project grant authorizes InvokeSuggestedAction for the authenticated actor.",
+        missing_prerequisites: [
+          "Retain exactly one active InvokeSuggestedAction grant for deterministic authority.",
+        ],
+      };
+    }
+    const row = result.rows[0]!;
+    const grant = this.#grantRecord(row);
+    return {
+      state: "ready",
+      reason_code: "exact_grounded_work_authorized",
+      reason:
+        "Every immutable action dependency is current and one exact actor grant authorizes InvokeSuggestedAction.",
+      missing_prerequisites: [],
+      grant_ref: {
+        capability_grant_id: grant.capability_grant_id,
+        revision: 1,
+        content_hash: grant.content_hash,
+        record_hash: row.record_hash,
+      },
+    };
+  }
+
+  #grantRecord(row: StoredRow): PetraCapabilityGrantRecord {
+    const version = (row.payload as { schema_version?: unknown })
+      .schema_version;
+    if (version !== "1.2.0") {
+      throw this.#corrupt(
+        "An InvokeSuggestedAction grant must use capability-grant schema 1.2.0.",
+      );
+    }
+    this.#contracts.assertValid("capability-grant", version, row.payload);
+    if (row.record_hash !== canonicalHash(row.payload)) {
+      throw this.#corrupt(
+        "The retained capability-grant record hash does not match its payload.",
+      );
+    }
+    const grant = row.payload as PetraCapabilityGrantRecord;
+    if (grant.content_hash !== canonicalHash(grant.content)) {
+      throw this.#corrupt(
+        "The retained capability-grant content hash does not match its payload.",
+      );
+    }
+    return clone(grant);
   }
 
   async #actionLink(

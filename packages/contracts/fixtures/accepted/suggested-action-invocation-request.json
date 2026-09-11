@@ -1,0 +1,14 @@
+{
+  "schema_name": "petra.suggested-action-invocation-request",
+  "schema_version": "1.0.0",
+  "command_id": "command_01K4C000000000000000000062",
+  "idempotency_key": "suggested-action:01K4C000000000000000000062",
+  "inquiry_result_link_id": "project_inquiry_link_01K4F000000000000000000003",
+  "expected_action_ref": {
+    "suggested_action_id": "suggested_action_01K4C000000000000000000062",
+    "revision": 1,
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "response_depth": "current_graph",
+  "submitted_at": "2026-09-11T18:40:00.000Z"
+}

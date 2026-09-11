@@ -476,6 +476,20 @@ export const createM1GroundedSynthesisRuntime = async (
           requested_at: now(),
         },
         snapshot_id: context.snapshot_ref.snapshot_id,
+        authority_binding: {
+          project_id: context.project_id,
+          context_packet_ref: {
+            record_id: context.context_packet_id,
+            revision: context.revision,
+            content_hash: context.content_hash,
+          },
+          evidence_packet_ref: {
+            record_id: evidence.evidence_packet_id,
+            revision: evidence.revision,
+            content_hash: evidence.content_hash,
+          },
+          snapshot_ref: structuredClone(context.snapshot_ref),
+        },
         retrieval: {
           route: "m1_frozen_certified_packet",
           lexical_ms: 0,

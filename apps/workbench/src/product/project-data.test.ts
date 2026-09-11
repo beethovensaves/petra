@@ -26,6 +26,9 @@ import type {
   PetraProjectSourceReplacementReceipt,
   PetraProjectSourceReplacementRetraction,
   PetraProjectSourceView,
+  PetraSuggestedActionInvocationRequest,
+  PetraSuggestedActionInvocationView,
+  PetraSuggestedActionViewV11,
   PetraProjectThreadView,
   PetraProjectWorkView,
 } from "@petra/contracts";
@@ -42,6 +45,8 @@ import {
   getProjectHistoryCompensationPreview,
   getProjectHistoryImpact,
   getProjectHistoryRecoveryAssessment,
+  getProjectSuggestedActionInvocation,
+  getProjectSuggestedWorkAction,
   getRetainedProjectHistory,
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
@@ -50,6 +55,7 @@ import {
   loadProjectSettings,
   loadProjectWorkCollection,
   loadProjectWorkDetail,
+  invokeProjectSuggestedAction,
   projectRecordFromShellView,
   retractProjectSourceReplacement,
   petraThreadFromView,
@@ -349,6 +355,36 @@ const inquiryDetailView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectInquiryView;
+
+const suggestedWorkActionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-view-v1-1.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionViewV11;
+
+const suggestedActionInvocationRequest = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-invocation-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionInvocationRequest;
+
+const suggestedActionInvocationView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-invocation-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionInvocationView;
 
 const threadCollectionView = JSON.parse(
   readFileSync(
@@ -1702,6 +1738,75 @@ describe("Project shell workbench adapter", () => {
       `/api/queries/projects/${projectId}/work/${workUnitId}`,
       `/api/queries/projects/${projectId}/inquiries?limit=100&work_unit_id=${workUnitId}`,
     ]);
+  });
+
+  it("previews, invokes, and rereads one exact Work-starting SuggestedAction", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      void init;
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      return Promise.resolve(
+        Response.json(
+          path.includes("/suggested-action-invocations/") ||
+            path.includes("/invoke")
+            ? suggestedActionInvocationView
+            : suggestedWorkActionView,
+        ),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    const projectId = suggestedWorkActionView.project_id;
+    const linkId =
+      suggestedWorkActionView.content.action.basis.inquiry_result_link_ref
+        .project_inquiry_link_id;
+    const actionId =
+      suggestedWorkActionView.content.action_ref.suggested_action_id;
+    const commandId = suggestedActionInvocationRequest.command_id;
+
+    await expect(
+      getProjectSuggestedWorkAction(projectId, linkId),
+    ).resolves.toEqual(suggestedWorkActionView);
+    await expect(
+      invokeProjectSuggestedAction(
+        projectId,
+        actionId,
+        suggestedActionInvocationRequest,
+      ),
+    ).resolves.toEqual(suggestedActionInvocationView);
+    await expect(
+      getProjectSuggestedActionInvocation(projectId, commandId),
+    ).resolves.toEqual(suggestedActionInvocationView);
+
+    expect(fetch.mock.calls.map((call) => call[0])).toEqual([
+      `/api/queries/projects/${projectId}/suggested-actions?inquiry_result_link_id=${linkId}&action_kind=run_grounded_synthesis`,
+      `/api/commands/projects/${projectId}/suggested-actions/${actionId}/invoke`,
+      `/api/queries/projects/${projectId}/suggested-action-invocations/${commandId}`,
+    ]);
+    const invokeInit = fetch.mock.calls[1]?.[1];
+    expect(invokeInit?.method).toBe("POST");
+    if (typeof invokeInit?.body !== "string") {
+      throw new TypeError("Expected a serialized SuggestedAction request.");
+    }
+    expect(JSON.parse(invokeInit.body)).toEqual(
+      suggestedActionInvocationRequest,
+    );
+    expect(new Headers(invokeInit?.headers).get("authorization")).toBe(
+      "Bearer petra-local-development",
+    );
+
+    await expect(
+      invokeProjectSuggestedAction(
+        projectId,
+        "suggested_action_01K4C000000000000000000999",
+        suggestedActionInvocationRequest,
+      ),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(fetch).toHaveBeenCalledTimes(3);
   });
 
   it("maps and loads one exact live Project thread without inventing message bytes", async () => {

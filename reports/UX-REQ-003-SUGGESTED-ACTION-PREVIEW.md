@@ -1,106 +1,117 @@
-# UX-REQ-003 SuggestedAction preview and readiness
+# UX-REQ-003 SuggestedAction preview and exact Work invocation
 
-Status: first exact Project-scoped read-only SuggestedAction preview passed;
-Work-starting actions, invocation, and frozen-interface integration remain open
+Status: backend Work-starting action family and exact invocation passed;
+frozen-interface mapping and cumulative live exit proof remain open
 Date: 2026-09-11
 Design boundary: `UX-DESIGN-FREEZE-01`
 
 ## Result
 
-Petra now exposes one revisioned, renderer-neutral SuggestedAction preview
-derived entirely from existing retained authority. The initial action recommends
-inspecting an exact GroundedResponse that already addresses a Project inquiry.
-It starts no Work, invokes no command, changes no Project record, and creates no
-second action ledger.
+Petra now exposes two revisioned, Project-scoped SuggestedAction previews from
+the same retained inquiry-result authority. The 1.0 read-only action remains
+unchanged. The new `petra.suggested-action-view@1.1.0` action can start one
+bounded grounded-synthesis Work task, but only after an authenticated exact
+invocation.
 
-The stable SuggestedAction identity is deterministically derived from the
-immutable `ProjectInquiryLink` identity, the fixed action kind, and the 1.0
-derivation version. That exact link can produce only revision 1 of this action.
-A different result link produces a different action identity instead of
-rewriting the old preview. The action revision hash covers only immutable action
-content. Current readiness is recomposed beside that revision, so a stale
-transition cannot change content under the same revision identity.
+The Work action is deterministically identified from its immutable action kind
+and exact basis. Its revision hash covers the ProjectDefinition, Objective,
+inquiry-result link, GroundedResponse, snapshot, context packet, evidence
+packet, fixed prompt, execution profile, resource limits, and result posture.
+Current dependency and grant readiness are recomposed beside that immutable
+revision. If any exact input is no longer current, the server rejects the old
+reference and returns the regenerated current preview.
 
-## Contract and authority boundary
+## Runtime and authority
 
-`petra.suggested-action-view@1.0.0` binds:
+`InvokeSuggestedAction` is registered in `petra.capability-grant@1.2.0`.
+Readiness is `ready` only when all bound records are exact and current and the
+authenticated Actor has exactly one active Project-scoped grant. The client
+cannot supply an Actor, grant, Project, WorkUnit, interaction, or trace
+identity.
 
-- the stable SuggestedAction identity, revision, and canonical action hash;
-- the exact ProjectDefinition revision and record hash;
-- the exact profile-valid Objective revision, semantic key, and statement;
-- the immutable inquiry-result link, GroundedResponse, snapshot, and any
-  declared producing WorkUnit reference;
-- the reason, exact included scope, explicit exclusions, and missing
-  information;
-- closed `ready` or `stale` view readiness with a reason code and server-owned
-  prerequisites, kept outside the immutable action-revision hash;
-- the only applicable `current_graph` depth for this existing-result action;
-- the already-available result, its reuse state, and its absence of authority
-  effect;
-- no-work resource, interrupt, approval, and cancellation consequences; and
-- a typed renderer-neutral invocation of the existing authenticated
-  `petra.project-inquiry-view@1.0.0` detail read.
+`petra.suggested-action-invocation-request@1.0.0` carries only the command and
+idempotency identities, inquiry-result link, expected action revision and hash,
+the fixed `current_graph` depth, and submission time. The server reconstructs
+the complete basis, resolves the principal and grant, and stores an immutable
+`petra.suggested-action-invocation@1.0.0` receipt in PostgreSQL. The receipt
+binds one deterministic WorkUnit and one interaction correlation to the exact
+command fingerprint. Repeating the same command or idempotency key converges on
+that receipt and Work; conflicting reuse fails closed.
 
-The PostgreSQL reader composes the preview inside one read-only repeatable-read
-transaction. It validates canonical content and record hashes for the exact
-ProjectInquiryLink, ProjectDefinition, Objective, GroundedResponse, and
-any declared producing WorkUnit before returning any action. A cross-Project
-link identity returns no result.
+The coordinator is the public command seam for both direct and conversational
+callers. It starts the existing grounded-synthesis interaction rather than a
+parallel executor. Before provider work, the executor verifies that its plan
+uses the receipt's exact Project, ProjectDefinition, Objective, snapshot,
+context packet, and evidence packet. Work registration then records the human
+Actor and exact invocation grant and creates an eight-entry immutable input
+manifest covering the prompt and seven retained authority records. A failure
+before durable Work registration may retry that same invocation; ordinary
+interaction replay cannot rerun completed Work.
 
-Readiness is `ready` only while the linked ProjectDefinition and Objective are
-still current, the Objective is active, the GroundedResponse remains reusable,
-and any declared producing Work revision is retained and completed. Definition
-or Objective replacement, inactive Objective state, or result invalidation
-makes the same immutable action preview `stale` with exact regeneration
-prerequisites. The browser does not calculate any of those states.
+Delivery interruption does not cancel Work. Reconnect uses the exact
+InteractionRun replay path, while explicit cancellation remains the existing
+authorized `CancelWorkUnit` command. The action's resource limits are the
+grounded workflow's hard limits: one attempt, one worker, 120 seconds, 4 MB of
+output, 4,096 input tokens, and 1,600 output tokens. No monetary cost is
+expected for the certified local profile, and the preview does not claim a
+duration estimate.
 
-## Authenticated API
+## Result, History, and recovery
 
-The authenticated query is:
+`petra.suggested-action-invocation-view@1.0.0` composes current command state
+from the immutable receipt and existing runtime authority. It exposes:
 
-`GET /api/queries/projects/:projectId/suggested-actions?inquiry_result_link_id=:projectInquiryLinkId`
+- pending or exact current WorkUnit identity and execution state;
+- the GroundedResponse result when one exists, without granting it scientific
+  authority;
+- the InteractionRun identity needed for exact replay;
+- canonical WorkUnit revisions as History, plus typed Work and History
+  destinations; and
+- five server-owned recovery assessments: inspect Work, inspect History,
+  reconnect delivery, cancel when currently eligible, and regenerate the
+  action.
 
-It resolves an exact immutable inquiry-result link through a bounded indexed
-lookup to its server-derived action without asking the browser to reproduce the
-identity derivation. The endpoint validates the canonical link identity and
-complete response contract, verifies that the returned Project and basis match
-the request, and returns stable invalid-query, not-found,
-unavailable-boundary, and read-failure responses. Action-ID-only lookup is
-deferred until an accepted invocation or retention boundary can resolve it
-without an unbounded Project scan or a second ledger.
+Petra does not persist a second Work, result, or History ledger. WorkUnit,
+WorkerInputManifest, GroundedResponse, InteractionRun, and their existing
+revisions remain canonical.
 
-The action's typed invocation names the existing inquiry-detail contract and
-exact Objective reference rather than a browser route. Design owns the later
-frozen-surface adapter.
+## Authenticated APIs and typed client
+
+The authenticated boundaries are:
+
+- `GET /api/queries/projects/:projectId/suggested-actions?inquiry_result_link_id=:linkId&action_kind=run_grounded_synthesis`
+- `POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke`
+- `GET /api/queries/projects/:projectId/suggested-action-invocations/:commandId`
+
+The renderer-neutral workbench client verifies the returned Project, link,
+action, and command identities. It passes the exact action reference back
+unchanged and contains no authority calculation or presentation decision. No
+frozen component, stylesheet, browser route, or fixture-backed surface changed
+in this backend slice.
 
 ## Verification
 
-The focused contract suite passed 433 tests, the server route suite passed 23
-tests, and the Python contract mirror passed 11 tests. Targeted TypeScript
-builds and test typechecks passed.
+The focused contract suite passed 443 tests, core passed 216, the server route
+suite passed 24, the renderer-neutral client suite passed 29, and the Python
+contract mirror passed 11. Those checks cover exact preview derivation,
+authorization, stale regeneration, idempotency, command receipt immutability,
+input registration, interaction correlation, result/History/recovery
+composition, and client identity guards.
 
-The disposable PostgreSQL 18.6 integration applied all 31 migrations and passed
-all 110 persistence tests across 15 files. The complete `npm run verify` gate
-then passed generation checks, the retrieval floor, formatting, lint,
-TypeScript and Python typechecks, the workbench production build, 866
-JavaScript/TypeScript tests including the 6 handoff automation tests, and 25
-Python tests.
+The disposable PostgreSQL 18.6 integration applied all 32 migrations and
+passed 111 persistence tests across 15 files. The complete `npm run verify`
+gate then passed generation and fixture checks, the retrieval floor,
+formatting, lint, TypeScript and Python typechecks, the workbench production
+build, 879 JavaScript/TypeScript tests with seven integration-only skips, and
+25 Python tests.
 
 ## Remaining UX-REQ-003 work
 
-This slice intentionally does not close `UX-REQ-003`. Remaining work includes:
-
-- immutable or derivable action families that preview bounded new Work;
-- capability, grant, budget, time, tool, validator, interrupt, and cancellation
-  readiness for those Work-starting actions;
-- exact action invocation with stale regeneration and idempotent convergence on
-  one durable WorkUnit;
-- direct and conversational paths using the same Petra command;
-- terminal result, History, and eligible-recovery bindings;
-- frozen-interface mapping and live integration without fixture fallback; and
-- the relevant reconnect, accessibility, responsive, and adverse-state proof.
-
-The next backend slice may add the smallest Work-starting action preview and
-exact invocation only after design maps this initial read-only preview into the
-frozen action region. It must not generalize priority, capability, cost,
-reversibility, or profile meaning in the client.
+This backend slice does not close `UX-REQ-003` or the Wave 3 exit gate. Design
+must map the Work-starting 1.1 preview and invocation view into the frozen
+action region, invoke the renderer-neutral command client without fixture
+fallback, and demonstrate the live start/result/History/recovery path. The
+remaining accessibility, responsive, reconnect, cancellation, stale, and
+adverse-state evidence also stays open. Other action families, adjustable
+depth, priority, steering, pause/resume, and generalized budget or cost policy
+are outside this bounded slice.

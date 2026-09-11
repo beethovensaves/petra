@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/suggested-action-invocation-request/1.0.0/schema.json",
+  "title": "PetraSuggestedActionInvocationRequest",
+  "description": "The client-supplied portion of one exact idempotent SuggestedAction invocation. Actor, grant, Project, Work, interaction, and trace identities remain server-owned.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "inquiry_result_link_id",
+    "expected_action_ref",
+    "response_depth",
+    "submitted_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.suggested-action-invocation-request" },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "inquiry_result_link_id": {
+      "type": "string",
+      "pattern": "^project_inquiry_link_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "expected_action_ref": {
+      "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/SuggestedActionRef"
+    },
+    "response_depth": { "const": "current_graph" },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

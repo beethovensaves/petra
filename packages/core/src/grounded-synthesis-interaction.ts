@@ -1,8 +1,10 @@
 import type {
   PetraModelSynthesistOutput,
+  PetraSuggestedActionInvocation,
   PetraSynthesistModelCall,
   PetraSynthesistModelRequest,
 } from "@petra/contracts";
+import { canonicalize } from "json-canonicalize";
 
 import type { DeepReadonly } from "./context-packet-registry.js";
 import type { PetraInteractionEvent } from "./interaction-runtime.js";
@@ -45,6 +47,20 @@ export interface GroundedSynthesisPlan {
   };
   readonly gateway_request: SynthesistGatewayRequest;
   readonly snapshot_id: string;
+  readonly authority_binding?: {
+    readonly project_id: string;
+    readonly context_packet_ref: {
+      readonly record_id: string;
+      readonly revision: number;
+      readonly content_hash: string;
+    };
+    readonly evidence_packet_ref: {
+      readonly record_id: string;
+      readonly revision: number;
+      readonly content_hash: string;
+    };
+    readonly snapshot_ref: PetraSuggestedActionInvocation["content"]["exact_inputs"]["snapshot_ref"];
+  };
   readonly retrieval: {
     readonly route: string;
     readonly lexical_ms: number;
@@ -76,6 +92,7 @@ export interface GroundedSynthesisGatewayPort {
 export interface GroundedSynthesisInteractionRequest {
   readonly prompt: string;
   readonly signal?: AbortSignal;
+  readonly suggestedActionInvocation?: PetraSuggestedActionInvocation;
   readonly onProgress: (progress: GroundedSynthesisProgress) => void;
 }
 
@@ -133,6 +150,7 @@ export interface GroundedSynthesisTerminalRequest {
 export interface GroundedSynthesisWorkStartRequest {
   readonly interaction: GroundedSynthesisTerminalRequest["interaction"];
   readonly prompt: string;
+  readonly suggestedActionInvocation?: PetraSuggestedActionInvocation;
 }
 
 export interface GroundedSynthesisWorkBinding {
@@ -229,6 +247,7 @@ export interface GroundedSynthesisInteractionExecutorPort {
 
 export type GroundedSynthesisInteractionErrorCode =
   | "GROUNDED_SYNTHESIS_CANCELLED"
+  | "GROUNDED_SYNTHESIS_ACTION_MISMATCH"
   | "GROUNDED_SYNTHESIS_NO_CALL"
   | "GROUNDED_SYNTHESIS_REJECTED";
 
@@ -326,6 +345,33 @@ export class GroundedSynthesisInteractionExecutor implements GroundedSynthesisIn
       prompt: request.prompt,
       ...(request.signal === undefined ? {} : { signal: request.signal }),
     });
+    const invocation = request.suggestedActionInvocation;
+    if (invocation !== undefined) {
+      const binding = plan.authority_binding;
+      const exact = invocation.content.exact_inputs;
+      if (
+        binding === undefined ||
+        binding.project_id !== invocation.project_id ||
+        binding.context_packet_ref.record_id !==
+          exact.context_packet_ref.record_id ||
+        binding.context_packet_ref.revision !==
+          exact.context_packet_ref.revision ||
+        binding.context_packet_ref.content_hash !==
+          exact.context_packet_ref.content_hash ||
+        binding.evidence_packet_ref.record_id !==
+          exact.evidence_packet_ref.record_id ||
+        binding.evidence_packet_ref.revision !==
+          exact.evidence_packet_ref.revision ||
+        binding.evidence_packet_ref.content_hash !==
+          exact.evidence_packet_ref.content_hash ||
+        canonicalize(binding.snapshot_ref) !== canonicalize(exact.snapshot_ref)
+      ) {
+        throw new GroundedSynthesisInteractionError(
+          "GROUNDED_SYNTHESIS_ACTION_MISMATCH",
+          "The planned grounded synthesis does not consume the exact Project, packets, and snapshot authorized by the SuggestedAction command.",
+        );
+      }
+    }
     assertNotCancelled(request.signal);
     request.onProgress({
       stage: "retrieval",

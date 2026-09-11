@@ -1,0 +1,164 @@
+{
+  "schema_name": "petra.suggested-action-view",
+  "schema_version": "1.1.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "view_kind": "preview",
+    "action_ref": {
+      "suggested_action_id": "suggested_action_01K4C000000000000000000062",
+      "revision": 1,
+      "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "action": {
+      "action_kind": "run_grounded_synthesis",
+      "title": "Run exact grounded synthesis",
+      "objective": {
+        "objective_ref": {
+          "objective_id": "objective_01K4C000000000000000000005",
+          "revision": 1,
+          "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "record_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "semantic_key": "scientific.research-question",
+        "statement": "Determine which claims are supported by exact inspectable passages."
+      },
+      "reason": "Re-run the certified bounded synthesis against the exact retained inquiry basis.",
+      "basis": {
+        "derivation": "exact_immutable_inquiry_result_link",
+        "project_definition_ref": {
+          "project_definition_id": "project_definition_01K4C000000000000000000001",
+          "revision": 1,
+          "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "record_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "definition_family": "petra.scientific-evidence"
+        },
+        "objective_ref": {
+          "objective_id": "objective_01K4C000000000000000000005",
+          "revision": 1,
+          "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "record_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "inquiry_result_link_ref": {
+          "project_inquiry_link_id": "project_inquiry_link_01K4F000000000000000000003",
+          "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "source_result_ref": {
+          "schema_name": "petra.grounded-response",
+          "schema_version": "1.0.0",
+          "record_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+          "revision": 1,
+          "content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "record_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        },
+        "snapshot_ref": {
+          "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+          "snapshot_revision": 1,
+          "event_position": 3,
+          "content_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        "context_packet_ref": {
+          "record_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCZ",
+          "revision": 1,
+          "content_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        "evidence_packet_ref": {
+          "record_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FD0",
+          "revision": 1,
+          "content_hash": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        }
+      },
+      "scope": {
+        "scope_kind": "exact_grounded_synthesis_rerun",
+        "included": "Use only the exact retained action basis.",
+        "excluded": [
+          "No outside retrieval is permitted.",
+          "The result gains no scientific authority."
+        ]
+      },
+      "missing_information": [],
+      "response_depth": {
+        "allowed": ["current_graph"],
+        "recommended": "current_graph",
+        "adjustable": false
+      },
+      "expected_result": {
+        "state": "new_work_result",
+        "result_kind": "grounded_response",
+        "authority_effect": "none",
+        "reusable": true
+      },
+      "resources": {
+        "estimate_state": "bounded_limits",
+        "duration": "unknown_with_hard_limit",
+        "cost": "zero_monetary_cost_expected",
+        "basis": "certified_grounded_synthesis_profile",
+        "limits": {
+          "max_wall_time_ms": 120000,
+          "max_output_bytes": 4000000,
+          "max_attempts": 1,
+          "max_parallelism": 1,
+          "max_input_tokens": 4096,
+          "max_output_tokens": 1600
+        }
+      },
+      "execution": {
+        "workflow_name": "petra.synthesis.grounded",
+        "workflow_version": "1.0.0",
+        "task_name": "petra.synthesis.grounded",
+        "worker_name": "petra.grounded_synthesis",
+        "validator": "petra.grounded-synthesist-profile@1.1.0",
+        "prompt": "What does the selected study report, and what limits the claim?",
+        "prompt_hash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "network_policy": "managed_provider_allowlist"
+      },
+      "capability": {
+        "command_name": "InvokeSuggestedAction",
+        "approval": "not_required_after_exact_invocation"
+      },
+      "interrupt": {
+        "input_expectation": "none",
+        "delivery_abort": "does_not_cancel_work",
+        "reconnect": "exact_interaction_replay"
+      },
+      "cancellation": {
+        "policy": "cancellable",
+        "command_name": "CancelWorkUnit",
+        "consequence": "explicit_command_cancels_work_and_preserves_recorded_history"
+      },
+      "invocation": {
+        "kind": "authenticated_command",
+        "contract_name": "petra.suggested-action-invocation-request",
+        "contract_version": "1.0.0",
+        "command_name": "InvokeSuggestedAction",
+        "idempotency": "exact_command_and_work_convergence",
+        "path_convergence": "direct_and_conversational_same_command"
+      }
+    },
+    "readiness": {
+      "state": "ready",
+      "reason_code": "exact_grounded_work_authorized",
+      "reason": "Every action dependency is current and one exact actor grant authorizes invocation.",
+      "missing_prerequisites": [],
+      "grant_ref": {
+        "capability_grant_id": "capability_grant_01K4C000000000000000000062",
+        "revision": 1,
+        "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "record_hash": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+      }
+    },
+    "operation": {
+      "state": "command_ready",
+      "work_start": "only_after_exact_invocation",
+      "authority_change": "none"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 1
+    },
+    "limitations": ["Only the exact authenticated command may start Work."]
+  },
+  "content_hash": "sha256:abababababababababababababababababababababababababababababababab",
+  "read_at": "2026-09-11T18:39:00.000Z"
+}

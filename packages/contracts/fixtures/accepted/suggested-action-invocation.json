@@ -1,0 +1,82 @@
+{
+  "schema_name": "petra.suggested-action-invocation",
+  "schema_version": "1.0.0",
+  "suggested_action_invocation_id": "suggested_action_invocation_01K4C000000000000000000062",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "command_ref": {
+      "command_id": "command_01K4C000000000000000000062",
+      "command_name": "InvokeSuggestedAction",
+      "idempotency_key": "suggested-action:01K4C000000000000000000062",
+      "command_fingerprint": "sha256:1212121212121212121212121212121212121212121212121212121212121212",
+      "capability_grant_id": "capability_grant_01K4C000000000000000000062",
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "correlation_id": "trace_01K4C000000000000000000062",
+      "submitted_at": "2026-09-11T18:40:00.000Z"
+    },
+    "action_ref": {
+      "suggested_action_id": "suggested_action_01K4C000000000000000000062",
+      "revision": 1,
+      "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "response_depth": "current_graph",
+    "exact_inputs": {
+      "project_definition_ref": {
+        "project_definition_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "record_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "definition_family": "petra.scientific-evidence"
+      },
+      "objective_ref": {
+        "objective_id": "objective_01K4C000000000000000000005",
+        "revision": 1,
+        "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "record_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "inquiry_result_link_ref": {
+        "project_inquiry_link_id": "project_inquiry_link_01K4F000000000000000000003",
+        "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "source_result_ref": {
+        "schema_name": "petra.grounded-response",
+        "schema_version": "1.0.0",
+        "record_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+        "revision": 1,
+        "content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "record_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      "snapshot_ref": {
+        "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+        "snapshot_revision": 1,
+        "event_position": 3,
+        "content_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "context_packet_ref": {
+        "record_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCZ",
+        "revision": 1,
+        "content_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+      },
+      "evidence_packet_ref": {
+        "record_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FD0",
+        "revision": 1,
+        "content_hash": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+      },
+      "prompt_hash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+    },
+    "expected_work_unit_id": "work_unit_01K4C000000000000000000062",
+    "interaction": {
+      "protocol_thread_id": "suggested-action:01K4C000000000000000000062",
+      "protocol_run_id": "suggested-action-command:01K4C000000000000000000062"
+    },
+    "path_convergence": "direct_and_conversational_same_command",
+    "authority_effect": "none"
+  },
+  "content_hash": "sha256:1313131313131313131313131313131313131313131313131313131313131313",
+  "recorded_at": "2026-09-11T18:40:01.000Z"
+}

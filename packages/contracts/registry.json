@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.69.0",
+  "registry_version": "1.74.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -54,6 +54,17 @@
       "canonical_sha256": "sha256:8f3d7a4fe3c0f90886b1d8663eed5aa97c9bfb3aa6cfe8f2a87da4d01cbf2336",
       "generate_typescript": true,
       "typescript_path": "src/generated/capability-grant-v1-1.ts"
+    },
+    {
+      "name": "capability-grant",
+      "version": "1.2.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.2.0/schema.json",
+      "path": "schemas/capability-grant/1.2.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-suggested-action-invocation-command",
+      "canonical_sha256": "sha256:104a7b5389bb2bddb2740c833f1760838c61cb05a598d4fe4778e540746c9caf",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-2.ts"
     },
     {
       "name": "capability-grant-revocation",
@@ -142,6 +153,50 @@
       "canonical_sha256": "sha256:b16696ae827d24ca80be11bb26cbf6e6faeeb2b6e2ae5ebf0973caa4f71a269c",
       "generate_typescript": true,
       "typescript_path": "src/generated/suggested-action-view.ts"
+    },
+    {
+      "name": "suggested-action-view",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/suggested-action-view/1.1.0/schema.json",
+      "path": "schemas/suggested-action-view/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-bounded-grounded-synthesis-work-action-preview",
+      "canonical_sha256": "sha256:04a1f8af71a10418180db822bc9ff5f118d2ceb52a7fbcf25fc5982ecf3c102c",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/suggested-action-view-v1-1.ts"
+    },
+    {
+      "name": "suggested-action-invocation-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/suggested-action-invocation-request/1.0.0/schema.json",
+      "path": "schemas/suggested-action-invocation-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-client-exact-action-command-request",
+      "canonical_sha256": "sha256:322d643f41b45f808d9c18dbf79bd46b9186a1a9490e4ffc9a9a7279c75f4dad",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/suggested-action-invocation-request.ts"
+    },
+    {
+      "name": "suggested-action-invocation",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/suggested-action-invocation/1.0.0/schema.json",
+      "path": "schemas/suggested-action-invocation/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-immutable-action-command-receipt",
+      "canonical_sha256": "sha256:dc5c0b6719f08f2b8ecae0509d845f70502247b61cc7300c2e48890bc0a9800c",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/suggested-action-invocation.ts"
+    },
+    {
+      "name": "suggested-action-invocation-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/suggested-action-invocation-view/1.0.0/schema.json",
+      "path": "schemas/suggested-action-invocation-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-action-work-result-history-recovery-composition",
+      "canonical_sha256": "sha256:f820c8fa92962fc0ea53eb16fc8d9a8f99dad75a2c28c778d69f6430977cf302",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/suggested-action-invocation-view.ts"
     },
     {
       "name": "project-shell-view",

@@ -10,6 +10,8 @@ import {
   DurableInteractionHistory,
   GroundedSynthesisTerminalRecorder,
   PetraInteractionRuntime,
+  SuggestedActionInvocationCoordinator,
+  derivePetraId,
   type GroundedSynthesisTerminalPort,
 } from "@petra/core";
 
@@ -153,6 +155,50 @@ export const startPetraServer = async (
               : { groundedSynthesisTerminal }),
             ...(interactionHistory === undefined ? {} : { interactionHistory }),
           });
+    const suggestedActionInvocations =
+      options.projectShellPersistence === undefined ||
+      runtime === undefined ||
+      grounded === undefined
+        ? undefined
+        : new SuggestedActionInvocationCoordinator(
+            options.projectShellPersistence.suggestedActionInvocations,
+            {
+              startSuggestedActionWork: async ({ invocation, prompt }) => {
+                const correlation = invocation.content.interaction;
+                const request = {
+                  threadId: correlation.protocol_thread_id,
+                  runId: correlation.protocol_run_id,
+                  prompt,
+                  requestId: derivePetraId(
+                    "request",
+                    invocation.content.command_ref.command_id,
+                  ),
+                  traceId: invocation.content.command_ref.correlation_id,
+                  workflow: "grounded_synthesis" as const,
+                  suggestedActionInvocation: invocation,
+                };
+                const restored = await runtime.restoreInteraction(
+                  correlation.protocol_thread_id,
+                  correlation.protocol_run_id,
+                  prompt,
+                );
+                if (restored === undefined) {
+                  runtime.startInteraction(request);
+                }
+                try {
+                  await runtime.awaitWorkRegistration(
+                    correlation.protocol_run_id,
+                  );
+                } catch (error) {
+                  if (restored?.status !== "failed") throw error;
+                  runtime.retryFailedWorkRegistration(request);
+                  await runtime.awaitWorkRegistration(
+                    correlation.protocol_run_id,
+                  );
+                }
+              },
+            },
+          );
     petra = createPetraApp({
       ...options,
       ...(runtime === undefined ? {} : { runtime }),
@@ -286,6 +332,24 @@ export const startPetraServer = async (
           : {
               suggestedActionViews:
                 options.projectShellPersistence.suggestedActionViews,
+            }),
+      ...(options.suggestedActionInvocations !== undefined
+        ? {
+            suggestedActionInvocations: options.suggestedActionInvocations,
+          }
+        : suggestedActionInvocations === undefined
+          ? {}
+          : { suggestedActionInvocations }),
+      ...(options.suggestedActionInvocationViews !== undefined
+        ? {
+            suggestedActionInvocationViews:
+              options.suggestedActionInvocationViews,
+          }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              suggestedActionInvocationViews:
+                options.projectShellPersistence.suggestedActionInvocations,
             }),
     });
     server = serve({

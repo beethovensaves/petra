@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
 
-import type { PetraReviewInterruptResponse } from "@petra/contracts";
+import type {
+  PetraReviewInterruptResponse,
+  PetraSuggestedActionInvocation,
+} from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
 
 import type {
@@ -120,6 +123,7 @@ export interface StartInteractionRequest {
   traceId: string;
   workflow?: PetraInteractionWorkflow;
   fixtureMode?: PetraFixtureMode;
+  suggestedActionInvocation?: PetraSuggestedActionInvocation;
 }
 
 export interface CancellationCommand {
@@ -214,6 +218,9 @@ const deterministicFixtureUlid = (seed: string): string => {
 const fixturePetraId = (kind: string, runId: string): string =>
   `${kind}_${deterministicFixtureUlid(`${kind}:${runId}`)}`;
 
+export const workUnitIdForInteractionRun = (runId: string): string =>
+  fixturePetraId("work_unit", normalizedIdPart(runId));
+
 const fixtureContentHash = (subject: string): string =>
   `sha256:${createHash("sha256").update(subject).digest("hex")}`;
 
@@ -275,7 +282,7 @@ export class PetraInteractionRuntime {
     const identity: InteractionIdentity = {
       threadId: request.threadId,
       runId: request.runId,
-      workUnitId: fixturePetraId("work_unit", safeRunId),
+      workUnitId: workUnitIdForInteractionRun(safeRunId),
       modelRequestId: fixturePetraId("model_request", safeRunId),
       requestId: request.requestId,
       traceId: request.traceId,
@@ -430,6 +437,35 @@ export class PetraInteractionRuntime {
     };
     this.#runs.set(runId, record);
     return this.snapshot(runId);
+  }
+
+  async awaitWorkRegistration(runId: string): Promise<void> {
+    const record = this.#requireRun(runId);
+    const work = await record.workBindingReady;
+    if (work === undefined) {
+      throw new Error(
+        "The interaction did not register a durable WorkUnit for this command.",
+      );
+    }
+  }
+
+  retryFailedWorkRegistration(
+    request: StartInteractionRequest,
+  ): InteractionRunSnapshot {
+    const record = this.#requireRun(request.runId);
+    if (
+      record.status !== "failed" ||
+      !record.terminal ||
+      record.workBinding !== undefined ||
+      record.identity.threadId !== request.threadId ||
+      record.inputHash !== promptHash(request.prompt)
+    ) {
+      throw new Error(
+        "Only a failed pre-registration interaction can retry exact Work registration.",
+      );
+    }
+    this.#runs.delete(request.runId);
+    return this.startInteraction(request);
   }
 
   async cancel(command: CancellationCommand): Promise<CommandResult> {
@@ -944,6 +980,11 @@ export class PetraInteractionRuntime {
             ).toISOString(),
           },
           prompt: request.prompt,
+          ...(request.suggestedActionInvocation === undefined
+            ? {}
+            : {
+                suggestedActionInvocation: request.suggestedActionInvocation,
+              }),
         });
         record.workBinding = durableWork;
         record.resolveWorkBinding(durableWork);
@@ -995,6 +1036,11 @@ export class PetraInteractionRuntime {
       result = await this.#groundedSynthesisExecutor.execute({
         prompt: request.prompt,
         signal: record.abortController.signal,
+        ...(request.suggestedActionInvocation === undefined
+          ? {}
+          : {
+              suggestedActionInvocation: request.suggestedActionInvocation,
+            }),
         onProgress: (progress) =>
           this.#appendGroundedProgress(record, progress),
       });

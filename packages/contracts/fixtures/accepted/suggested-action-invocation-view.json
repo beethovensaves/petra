@@ -1,0 +1,182 @@
+{
+  "schema_name": "petra.suggested-action-invocation-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "view_kind": "invocation",
+    "invocation_ref": {
+      "suggested_action_invocation_id": "suggested_action_invocation_01K4C000000000000000000062",
+      "revision": 1,
+      "content_hash": "sha256:1313131313131313131313131313131313131313131313131313131313131313",
+      "record_hash": "sha256:1414141414141414141414141414141414141414141414141414141414141414"
+    },
+    "invocation": {
+      "schema_name": "petra.suggested-action-invocation",
+      "schema_version": "1.0.0",
+      "suggested_action_invocation_id": "suggested_action_invocation_01K4C000000000000000000062",
+      "revision": 1,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "content": {
+        "command_ref": {
+          "command_id": "command_01K4C000000000000000000062",
+          "command_name": "InvokeSuggestedAction",
+          "idempotency_key": "suggested-action:01K4C000000000000000000062",
+          "command_fingerprint": "sha256:1212121212121212121212121212121212121212121212121212121212121212",
+          "capability_grant_id": "capability_grant_01K4C000000000000000000062",
+          "actor": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "human"
+          },
+          "correlation_id": "trace_01K4C000000000000000000062",
+          "submitted_at": "2026-09-11T18:40:00.000Z"
+        },
+        "action_ref": {
+          "suggested_action_id": "suggested_action_01K4C000000000000000000062",
+          "revision": 1,
+          "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "response_depth": "current_graph",
+        "exact_inputs": {
+          "project_definition_ref": {
+            "project_definition_id": "project_definition_01K4C000000000000000000001",
+            "revision": 1,
+            "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "record_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "definition_family": "petra.scientific-evidence"
+          },
+          "objective_ref": {
+            "objective_id": "objective_01K4C000000000000000000005",
+            "revision": 1,
+            "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "record_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "inquiry_result_link_ref": {
+            "project_inquiry_link_id": "project_inquiry_link_01K4F000000000000000000003",
+            "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "source_result_ref": {
+            "schema_name": "petra.grounded-response",
+            "schema_version": "1.0.0",
+            "record_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+            "revision": 1,
+            "content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "record_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+          },
+          "snapshot_ref": {
+            "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+            "snapshot_revision": 1,
+            "event_position": 3,
+            "content_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "context_packet_ref": {
+            "record_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCZ",
+            "revision": 1,
+            "content_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+          },
+          "evidence_packet_ref": {
+            "record_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FD0",
+            "revision": 1,
+            "content_hash": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+          },
+          "prompt_hash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+        },
+        "expected_work_unit_id": "work_unit_01K4C000000000000000000062",
+        "interaction": {
+          "protocol_thread_id": "suggested-action:01K4C000000000000000000062",
+          "protocol_run_id": "suggested-action-command:01K4C000000000000000000062"
+        },
+        "path_convergence": "direct_and_conversational_same_command",
+        "authority_effect": "none"
+      },
+      "content_hash": "sha256:1313131313131313131313131313131313131313131313131313131313131313",
+      "recorded_at": "2026-09-11T18:40:01.000Z"
+    },
+    "operation_state": "accepted",
+    "work": {
+      "state": "pending_registration",
+      "expected_work_unit_id": "work_unit_01K4C000000000000000000062"
+    },
+    "result": {
+      "state": "pending",
+      "reason": "The exact Work has not yet produced a durable GroundedResponse."
+    },
+    "interaction": {
+      "protocol_thread_id": "suggested-action:01K4C000000000000000000062",
+      "protocol_run_id": "suggested-action-command:01K4C000000000000000000062",
+      "durable_state": "pending_terminal"
+    },
+    "interrupt": {
+      "state": "none_expected",
+      "delivery_abort_cancels_work": false,
+      "reconnect": "exact_interaction_replay"
+    },
+    "history": {
+      "source": "canonical_command_receipt_and_work_unit_revisions",
+      "command_receipt_ref": {
+        "suggested_action_invocation_id": "suggested_action_invocation_01K4C000000000000000000062",
+        "revision": 1,
+        "content_hash": "sha256:1313131313131313131313131313131313131313131313131313131313131313",
+        "record_hash": "sha256:1414141414141414141414141414141414141414141414141414141414141414"
+      },
+      "work_revisions": [],
+      "destinations": [
+        {
+          "place_role": "work",
+          "task_intent": "continue_work",
+          "object_ref": {
+            "semantic_key": "petra.work-unit",
+            "object_id": "work_unit_01K4C000000000000000000062"
+          }
+        },
+        {
+          "place_role": "history",
+          "task_intent": "view_history",
+          "object_ref": {
+            "semantic_key": "petra.work-unit",
+            "object_id": "work_unit_01K4C000000000000000000062"
+          }
+        }
+      ]
+    },
+    "recovery": {
+      "assessment": "current_server_owned",
+      "actions": [
+        {
+          "operation": "retry_exact_start",
+          "eligibility": "eligible",
+          "command_name": "InvokeSuggestedAction",
+          "reason": "Exact retry converges on the same receipt and Work identity."
+        },
+        {
+          "operation": "reconnect_delivery",
+          "eligibility": "ineligible",
+          "reason": "Replay becomes available after Work registration."
+        },
+        {
+          "operation": "cancel_work",
+          "eligibility": "ineligible",
+          "reason": "Cancellation becomes available while Work is active."
+        },
+        {
+          "operation": "inspect_work",
+          "eligibility": "ineligible",
+          "reason": "The Work destination is pending registration."
+        },
+        {
+          "operation": "inspect_result",
+          "eligibility": "ineligible",
+          "reason": "No durable GroundedResponse is available yet."
+        }
+      ]
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 1
+    },
+    "limitations": ["Invocation has no scientific authority effect."]
+  },
+  "content_hash": "sha256:1515151515151515151515151515151515151515151515151515151515151515",
+  "read_at": "2026-09-11T18:40:02.000Z"
+}

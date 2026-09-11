@@ -24,6 +24,9 @@ import type {
   PetraProjectSourceReplacement,
   PetraProjectSourceReplacementReceipt,
   PetraProjectSourceReplacementRetraction,
+  PetraSuggestedActionInvocationRequest,
+  PetraSuggestedActionInvocationView,
+  PetraSuggestedActionViewV11,
   PetraProjectThreadView,
   PetraProjectWorkView,
   ProjectDefinitionTerm,
@@ -1470,6 +1473,52 @@ const projectInquiryView = (value: unknown): PetraProjectInquiryView => {
     );
   }
   return value as unknown as PetraProjectInquiryView;
+};
+
+const suggestedWorkActionView = (
+  value: unknown,
+): PetraSuggestedActionViewV11 => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.suggested-action-view" ||
+    value.schema_version !== "1.1.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "preview" ||
+    !isRecord(value.content.action_ref) ||
+    !isRecord(value.content.action) ||
+    value.content.action.action_kind !== "run_grounded_synthesis" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Work-starting SuggestedAction preview.",
+      502,
+    );
+  }
+  return value as unknown as PetraSuggestedActionViewV11;
+};
+
+const suggestedActionInvocationView = (
+  value: unknown,
+): PetraSuggestedActionInvocationView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.suggested-action-invocation-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "invocation" ||
+    !isRecord(value.content.invocation) ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid SuggestedAction invocation view.",
+      502,
+    );
+  }
+  return value as unknown as PetraSuggestedActionInvocationView;
 };
 
 const projectThreadView = (value: unknown): PetraProjectThreadView => {
@@ -3470,6 +3519,91 @@ export interface ProjectWorkDetailData {
   work: WorkProjectView;
   unit: WorkUnit;
 }
+
+/**
+ * Renderer-neutral boundary for the single Work-starting action family. The
+ * caller must retain the exact action ref and pass it back unchanged when it
+ * invokes the command.
+ */
+export const getProjectSuggestedWorkAction = async (
+  projectId: string,
+  inquiryResultLinkId: string,
+): Promise<PetraSuggestedActionViewV11> => {
+  const query = new URLSearchParams({
+    inquiry_result_link_id: inquiryResultLinkId,
+    action_kind: "run_grounded_synthesis",
+  });
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/suggested-actions?${query}`,
+  );
+  const view = suggestedWorkActionView(value);
+  if (
+    view.project_id !== projectId ||
+    view.content.action.basis.inquiry_result_link_ref
+      .project_inquiry_link_id !== inquiryResultLinkId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a SuggestedAction for a different Project or inquiry-result basis.",
+      502,
+    );
+  }
+  return view;
+};
+
+export const invokeProjectSuggestedAction = async (
+  projectId: string,
+  suggestedActionId: string,
+  request: PetraSuggestedActionInvocationRequest,
+): Promise<PetraSuggestedActionInvocationView> => {
+  if (request.expected_action_ref.suggested_action_id !== suggestedActionId) {
+    throw new ProjectDataError(
+      "The invocation request does not name the selected SuggestedAction.",
+      400,
+    );
+  }
+  const value = await requestJson(
+    `/api/commands/projects/${encodeURIComponent(projectId)}/suggested-actions/${encodeURIComponent(suggestedActionId)}/invoke`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+  const view = suggestedActionInvocationView(value);
+  if (
+    view.project_id !== projectId ||
+    view.content.invocation.content.command_ref.command_id !==
+      request.command_id ||
+    view.content.invocation.content.action_ref.suggested_action_id !==
+      suggestedActionId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a different SuggestedAction invocation identity.",
+      502,
+    );
+  }
+  return view;
+};
+
+export const getProjectSuggestedActionInvocation = async (
+  projectId: string,
+  commandId: string,
+): Promise<PetraSuggestedActionInvocationView> => {
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/suggested-action-invocations/${encodeURIComponent(commandId)}`,
+  );
+  const view = suggestedActionInvocationView(value);
+  if (
+    view.project_id !== projectId ||
+    view.content.invocation.content.command_ref.command_id !== commandId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a different SuggestedAction invocation identity.",
+      502,
+    );
+  }
+  return view;
+};
 
 export const loadProjectWorkDetail = async ({
   params,
