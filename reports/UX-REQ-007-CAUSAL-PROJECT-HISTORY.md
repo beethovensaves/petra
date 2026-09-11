@@ -1,6 +1,7 @@
 # UX-REQ-007 causal Project History
 
-Status: bounded Recent changes, exact event-selected causal episodes,
+Status: bounded Recent changes, exact event-selected causal episodes with an
+exact retained ProjectDefinition authority reference or unavailable state,
 snapshot-stable filtered retained Project-event traversal with authorized Actor
 and target option catalogues plus stable non-disclosing continuation-failure
 subcodes, and bounded direct dependency impact plus
@@ -12,7 +13,7 @@ preview, confirmed command-plan composition, and separately authorized
 single-plan execution with exact partial-outcome recovery also passed
 Date: 2026-09-11
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `04872ff` plus this slice
+Implementation baseline: `d0ae4c9` plus this slice
 
 ## Result
 
@@ -79,6 +80,29 @@ total history order:
 The response explicitly omits dependency-impact composition, generic reversal
 assessment, and any cross-family total-order assertion. It is a read over the
 same immutable authority, not a new episode or History ledger.
+
+`petra.project-history-episode-view@1.1.0` adds one read-only
+`project_definition_authority` state to that exact selected-event response.
+When Petra retained an immutable definition-to-Project-stream boundary before
+the event, the state returns the exact `petra.project-definition@1.0.0`
+identity, revision, content hash, record hash, and effective-after stream
+revision. The selection always uses the latest retained boundary strictly
+before the selected event. It returns no definition content, terminology,
+label, place, or destination interpretation.
+
+PostgreSQL V031 begins retaining those boundaries without fabricating a past
+binding. Definition registration and Project event append serialize on the
+same Project advisory lock. A new immutable definition binding captures the
+Project stream revision after which that exact definition may govern later
+events. Migration backfill anchors only each current definition after the
+Project's existing stream head, so older events correctly return
+`retained_project_definition_authority_not_available`. A later binding never
+changes an earlier episode from unavailable to available.
+
+Both states keep `historical_destination_interpretation: not_performed` and the
+episode now explicitly carries
+`historical_project_definition_not_interpreted`. The current definition is
+never substituted for missing historical authority.
 
 ## Retained Project-event traversal
 
@@ -557,7 +581,7 @@ rejected.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
 suite pass. The database proof starts from an empty PostgreSQL 18.6 instance,
-migrates V001 through V030, exercises all seven History reads/compositions over
+migrates V001 through V031, exercises all seven History reads/compositions over
 domain-event versions 1.0, 1.1, 1.2, and 1.3, and proves cursor integrity,
 cross-Project rejection,
 stable membership after a concurrent append, keyset continuation without
@@ -614,18 +638,26 @@ destination to its explicit unavailable state. Output and replay references
 remain unavailable for navigation in both snapshots, with distinct reasons;
 the replay never acquires a ProjectThread destination.
 
+The episode 1.1 proof validates an exact definition registered before an event,
+an explicit unavailable state for an event that predates any retained binding,
+and a later available definition whose boundary remains inapplicable to the
+earlier event. It verifies the immutable definition record hash and rejects a
+binding at or after the selected stream revision. The contract and typed client
+also reject any claim that historical destination interpretation was performed.
+
 ## Next safe slice
 
 The next safe History boundary is freeze-conformance mapping of
-`petra.project-history-retained-continuation-failure@1.0.0` into the existing
-invalid-continuation state. The design must keep the last verified rows, filters,
-and catalogues; discard the rejected cursor and page; preserve one public restart
-message; and never decode or display `phc2`. No component, CSS rule, browser
-route, filter, recovery decision, or client-side authority is required.
+`petra.project-history-episode-view@1.1.0` into the existing selected-event
+authority detail. The design must present the exact retained definition
+identity, revision, and record hash or its supplied unavailable reason while
+preserving `historical_destination_interpretation: not_performed`. No label,
+term, place, destination, component, CSS rule, browser route, filter, recovery
+decision, or client-side authority is required.
 
 An origin filter is not yet safe because current authority has no canonical
-origin classification. Historical ProjectDefinition interpretation likewise
-requires an exact retained definition revision rather than applying the current
-definition retroactively. Exact client return behavior, generic undo, reversal
-of a reversal, multiple or multi-step compensation, and new frozen-interface
-integration remain later boundaries.
+origin classification. Historical ProjectDefinition interpretation must wait
+for the freeze-conformance mapping and a separately bounded destination slice.
+Exact client return behavior, generic undo, reversal of a reversal, multiple or
+multi-step compensation, and new frozen-interface integration remain later
+boundaries.

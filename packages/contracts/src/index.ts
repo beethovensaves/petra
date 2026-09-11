@@ -124,6 +124,14 @@ export type {
   StreamOrder as ProjectHistoryStreamOrder,
 } from "./generated/project-history-episode-view.js";
 export type {
+  AvailableProjectDefinitionAuthority as ProjectHistoryAvailableDefinitionAuthorityV11,
+  EpisodeContent as ProjectHistoryEpisodeContentV11,
+  PetraProjectHistoryEpisodeViewV110 as PetraProjectHistoryEpisodeViewV11,
+  ProjectDefinitionAuthority as ProjectHistoryDefinitionAuthorityV11,
+  ProjectDefinitionRef as ProjectHistoryDefinitionRefV11,
+  UnavailableProjectDefinitionAuthority as ProjectHistoryUnavailableDefinitionAuthorityV11,
+} from "./generated/project-history-episode-view-v1-1.js";
+export type {
   AuthorityPosition as ProjectHistoryRetainedAuthorityPosition,
   CollectionQuery as ProjectHistoryRetainedCollectionQuery,
   EmptyRetentionSnapshot as ProjectHistoryEmptyRetentionSnapshot,

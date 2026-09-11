@@ -8,7 +8,7 @@ import type {
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryView,
-  PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryEpisodeViewV11,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedContinuationFailure,
@@ -113,12 +113,12 @@ const historyFixture = JSON.parse(
 const historyEpisodeFixture = JSON.parse(
   readFileSync(
     new URL(
-      "../../../packages/contracts/fixtures/accepted/project-history-episode-view.json",
+      "../../../packages/contracts/fixtures/accepted/project-history-episode-view-v1-1.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryEpisodeView;
+) as PetraProjectHistoryEpisodeViewV11;
 
 const historyRetainedFixture = JSON.parse(
   readFileSync(

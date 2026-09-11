@@ -190,6 +190,7 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
       objective_revisions: string;
       dependency_rows: string;
       focus_history: string;
+      history_bindings: string;
     }>(
       `SELECT
          (SELECT count(*) FROM petra.project_definition_revisions)::text
@@ -199,14 +200,50 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
          (SELECT count(*) FROM petra.project_objective_dependencies)::text
            AS dependency_rows,
          (SELECT count(*) FROM petra.project_objective_focus_history)::text
-           AS focus_history`,
+           AS focus_history,
+         (SELECT count(*) FROM petra.project_definition_history_bindings)::text
+           AS history_bindings`,
     );
     expect(counts.rows[0]).toEqual({
       definition_revisions: "2",
       objective_revisions: "3",
       dependency_rows: "1",
       focus_history: "2",
+      history_bindings: "2",
     });
+
+    const bindings = await pool.query<{
+      project_definition_revision: string;
+      effective_after_stream_revision: string;
+      project_definition_record_hash: string;
+    }>(
+      `SELECT project_definition_revision,
+              effective_after_stream_revision,
+              project_definition_record_hash
+         FROM petra.project_definition_history_bindings
+        ORDER BY project_definition_revision`,
+    );
+    expect(bindings.rows).toEqual([
+      {
+        project_definition_revision: "1",
+        effective_after_stream_revision: "0",
+        project_definition_record_hash: canonicalHash(definition),
+      },
+      {
+        project_definition_revision: "2",
+        effective_after_stream_revision: "0",
+        project_definition_record_hash: canonicalHash(definitionTwo),
+      },
+    ]);
+    await expect(
+      pool.query(
+        `UPDATE petra.project_definition_history_bindings
+            SET effective_after_stream_revision = 1
+          WHERE project_definition_id = $1
+            AND project_definition_revision = 1`,
+        [definition.project_definition_id],
+      ),
+    ).rejects.toEqual(expect.objectContaining({ code: "55000" }));
 
     const returned = await repository.getProjectDefinition(project.project_id);
     if (returned === undefined)

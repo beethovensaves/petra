@@ -174,13 +174,17 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     created_at: "2026-08-28T18:00:02.000Z",
   });
 
-  const registerResearchIdentities = async (): Promise<void> => {
+  const registerResearchIdentities = async (
+    includeDefinition = true,
+  ): Promise<void> => {
     await scopes.registerActor(readFixture<PetraActor>("actor"));
     await scopes.registerActor(modelActor());
     await scopes.registerProjectRevision(readFixture<PetraProject>("project"));
-    await definitions.registerDefinitionRevision(
-      readFixture<PetraProjectDefinition>("project-definition-scientific"),
-    );
+    if (includeDefinition) {
+      await definitions.registerDefinitionRevision(
+        readFixture<PetraProjectDefinition>("project-definition-scientific"),
+      );
+    }
     await identities.registerAuthorRevision(readFixture<PetraAuthor>("author"));
     await identities.registerWorkRevision(readFixture<PetraWork>("work"));
     await identities.registerWorkVersionRevision(
@@ -321,8 +325,10 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     return assertion;
   };
 
-  const registerEvidenceChain = async (): Promise<void> => {
-    await registerResearchIdentities();
+  const registerEvidenceChain = async (
+    includeDefinition = true,
+  ): Promise<void> => {
+    await registerResearchIdentities(includeDefinition);
     const source = sourceArtifactInput();
     await artifacts.registerVerifiedAcquisition(source);
     await artifacts.registerVerifiedAcquisition(parserArtifactInput(source));
@@ -967,6 +973,28 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       events[2]?.event_id,
     );
     expect(approvalEpisode?.content.receipt_ref).toBeUndefined();
+    expect(approvalEpisode?.schema_version).toBe("1.1.0");
+    expect(approvalEpisode?.content.project_definition_authority).toEqual({
+      state: "available",
+      authority_source: "immutable_project_definition_event_stream_binding",
+      selection_basis:
+        "latest_retained_binding_effective_before_selected_event",
+      effective_after_stream_revision: 0,
+      project_definition_ref: {
+        schema_name: "petra.project-definition",
+        schema_version: "1.0.0",
+        project_definition_id: "project_definition_01K4C000000000000000000001",
+        revision: 1,
+        content_hash:
+          "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+        record_hash:
+          "sha256:4c87f0cd16f1ec12378220f60a148d65fcae9da2481d609e968e65ea93db7a1c",
+      },
+      historical_destination_interpretation: "not_performed",
+    });
+    expect(approvalEpisode?.content.omissions).toContain(
+      "historical_project_definition_not_interpreted",
+    );
 
     const submittedEvent = events[0];
     if (submittedEvent === undefined) {
@@ -1146,6 +1174,69 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         approval_id: applied.approval_id,
       },
     ]);
+  });
+
+  it("returns unavailable before an exact retained definition boundary and the bound revision afterward", async () => {
+    await registerEvidenceChain(false);
+    const commands = commandFixtures();
+    const repository = authority();
+
+    await repository.executeCommand(commands.submit);
+    const submittedEvent = (
+      await repository.getDomainEvents({
+        projectId: commands.submit.project_id,
+      })
+    )[0];
+    if (submittedEvent === undefined) {
+      throw new Error("Expected one event before ProjectDefinition binding.");
+    }
+    const beforeBinding = await historyViews.getProjectHistoryEpisodeView(
+      commands.submit.project_id,
+      submittedEvent.event_id,
+    );
+    expect(beforeBinding?.content.project_definition_authority).toEqual({
+      state: "unavailable",
+      reason_code: "retained_project_definition_authority_not_available",
+      reason:
+        "No exact retained ProjectDefinition authority binding is available for this selected event.",
+      historical_destination_interpretation: "not_performed",
+    });
+
+    const definition = readFixture<PetraProjectDefinition>(
+      "project-definition-scientific",
+    );
+    await definitions.registerDefinitionRevision(definition);
+    await repository.executeCommand(commands.approve);
+    const approvalEvent = (
+      await repository.getDomainEvents({
+        projectId: commands.submit.project_id,
+      })
+    )[1];
+    if (approvalEvent === undefined) {
+      throw new Error("Expected one event after ProjectDefinition binding.");
+    }
+    const afterBinding = await historyViews.getProjectHistoryEpisodeView(
+      commands.submit.project_id,
+      approvalEvent.event_id,
+    );
+    expect(afterBinding?.content.project_definition_authority).toMatchObject({
+      state: "available",
+      effective_after_stream_revision: 1,
+      project_definition_ref: {
+        project_definition_id: definition.project_definition_id,
+        revision: definition.revision,
+        content_hash: definition.content_hash,
+      },
+      historical_destination_interpretation: "not_performed",
+    });
+
+    const stillBeforeBinding = await historyViews.getProjectHistoryEpisodeView(
+      commands.submit.project_id,
+      submittedEvent.event_id,
+    );
+    expect(stillBeforeBinding?.content.project_definition_authority.state).toBe(
+      "unavailable",
+    );
   });
 
   it("enumerates exact record-bound Work, output, and delivery dependencies without cross-Project leakage", async () => {

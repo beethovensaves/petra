@@ -5,7 +5,7 @@ import type {
   PetraProjectHistoryCompensationPlanRequest,
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
-  PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryEpisodeViewV11,
   PetraProjectHistoryImpactView,
   PetraProjectHistoryImpactViewV12,
   PetraProjectHistoryImpactViewV14,
@@ -15,6 +15,7 @@ import type {
   PetraProjectHistoryView,
   ProjectHistoryCausalCommandLink,
   ProjectHistoryCommandRef,
+  ProjectHistoryDefinitionAuthorityV11,
   ProjectHistoryEventRef,
   ProjectHistoryOperationalAdapterGroupV14 as ProjectHistoryOperationalAdapterGroup,
   ProjectHistoryOperationalDefinitionRefV14 as ProjectHistoryOperationalDefinitionRef,
@@ -190,6 +191,15 @@ interface OperationalDependentRow {
 interface OperationalDestinationDefinitionRow {
   definition_payload: unknown;
   definition_record_hash: string | null;
+}
+
+interface HistoricalProjectDefinitionRow {
+  project_definition_id: string;
+  project_definition_revision: string;
+  project_definition_content_hash: string;
+  project_definition_record_hash: string;
+  effective_after_stream_revision: string;
+  definition_payload: unknown;
 }
 
 interface EventRow {
@@ -1651,7 +1661,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   async getProjectHistoryEpisodeView(
     projectId: string,
     eventId: string,
-  ): Promise<PetraProjectHistoryEpisodeView | undefined> {
+  ): Promise<PetraProjectHistoryEpisodeViewV11 | undefined> {
     return this.#readTransaction(async (client, readAt) => {
       const result = await client.query<HistoryRow>(
         `SELECT event.payload AS event_payload,
@@ -1697,6 +1707,12 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       );
       const authority = await this.#authority(client, projectId);
       const receiptRef = this.#receiptRef(row);
+      const projectDefinitionAuthority =
+        await this.#historicalProjectDefinitionAuthority(
+          client,
+          projectId,
+          change.event_ref.stream_revision,
+        );
       const content = {
         view_kind: "causal_episode",
         change,
@@ -1710,9 +1726,11 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         },
         stream_order: streamOrder,
         ...(receiptRef === undefined ? {} : { receipt_ref: receiptRef }),
+        project_definition_authority: projectDefinitionAuthority,
         omissions: [
           "dependency_impact_not_composed",
           "generic_reversal_assessment_not_composed",
+          "historical_project_definition_not_interpreted",
           "cross_family_total_order_not_asserted",
         ],
         authority,
@@ -1720,7 +1738,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       };
       const view = {
         schema_name: "petra.project-history-episode-view",
-        schema_version: "1.0.0",
+        schema_version: "1.1.0",
         project_id: projectId,
         event_id: eventId,
         content,
@@ -1729,10 +1747,12 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       };
       this.#contracts.assertValid(
         "project-history-episode-view",
-        "1.0.0",
+        "1.1.0",
         view,
       );
-      return structuredClone(view as unknown as PetraProjectHistoryEpisodeView);
+      return structuredClone(
+        view as unknown as PetraProjectHistoryEpisodeViewV11,
+      );
     });
   }
 
@@ -6017,11 +6037,101 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     );
   }
 
+  async #historicalProjectDefinitionAuthority(
+    client: PoolClient,
+    projectId: string,
+    selectedStreamRevision: number,
+  ): Promise<ProjectHistoryDefinitionAuthorityV11> {
+    const result = await client.query<HistoricalProjectDefinitionRow>(
+      `SELECT binding.project_definition_id,
+              binding.project_definition_revision,
+              binding.project_definition_content_hash,
+              binding.project_definition_record_hash,
+              binding.effective_after_stream_revision,
+              revision.payload AS definition_payload
+         FROM petra.project_definition_history_bindings AS binding
+         JOIN petra.project_definition_revisions AS revision
+           ON revision.project_id = binding.project_id
+          AND revision.project_definition_id = binding.project_definition_id
+          AND revision.revision = binding.project_definition_revision
+          AND revision.content_hash = binding.project_definition_content_hash
+          AND revision.record_hash = binding.project_definition_record_hash
+        WHERE binding.project_id = $1
+          AND binding.effective_after_stream_revision < $2
+        ORDER BY binding.effective_after_stream_revision DESC,
+                 binding.project_definition_revision DESC
+        LIMIT 1`,
+      [projectId, selectedStreamRevision],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      return {
+        state: "unavailable",
+        reason_code: "retained_project_definition_authority_not_available",
+        reason:
+          "No exact retained ProjectDefinition authority binding is available for this selected event.",
+        historical_destination_interpretation: "not_performed",
+      };
+    }
+
+    const definition = record(
+      row.definition_payload,
+      "retained ProjectDefinition",
+    );
+    this.#contracts.assertValid("project-definition", "1.0.0", definition);
+    const revision = numberMember(
+      definition,
+      "revision",
+      "retained ProjectDefinition",
+    );
+    const effectiveAfterStreamRevision = Number(
+      row.effective_after_stream_revision,
+    );
+    if (
+      !Number.isSafeInteger(effectiveAfterStreamRevision) ||
+      effectiveAfterStreamRevision < 0 ||
+      effectiveAfterStreamRevision >= selectedStreamRevision ||
+      stringMember(definition, "project_id", "retained ProjectDefinition") !==
+        projectId ||
+      stringMember(
+        definition,
+        "project_definition_id",
+        "retained ProjectDefinition",
+      ) !== row.project_definition_id ||
+      revision !== Number(row.project_definition_revision) ||
+      stringMember(definition, "content_hash", "retained ProjectDefinition") !==
+        row.project_definition_content_hash ||
+      canonicalHash(definition) !== row.project_definition_record_hash
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A retained ProjectDefinition history binding does not match its immutable authority record.",
+      );
+    }
+
+    return {
+      state: "available",
+      authority_source: "immutable_project_definition_event_stream_binding",
+      selection_basis:
+        "latest_retained_binding_effective_before_selected_event",
+      effective_after_stream_revision: effectiveAfterStreamRevision,
+      project_definition_ref: {
+        schema_name: "petra.project-definition",
+        schema_version: "1.0.0",
+        project_definition_id: row.project_definition_id,
+        revision,
+        content_hash: row.project_definition_content_hash,
+        record_hash: row.project_definition_record_hash,
+      },
+      historical_destination_interpretation: "not_performed",
+    };
+  }
+
   async #streamOrder(
     client: PoolClient,
     projectId: string,
     streamRevision: number,
-  ): Promise<PetraProjectHistoryEpisodeView["content"]["stream_order"]> {
+  ): Promise<PetraProjectHistoryEpisodeViewV11["content"]["stream_order"]> {
     const previous = await client.query<EventRow>(
       `SELECT payload AS event_payload, record_hash AS event_record_hash
          FROM petra.domain_events

@@ -619,6 +619,66 @@ class PetraProjectHistoryEpisodeView(PetraModel):
     read_at: str
 
 
+class ProjectHistoryDefinitionRefV110(PetraModel):
+    schema_name: Literal["petra.project-definition"]
+    schema_version: Literal["1.0.0"]
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+class ProjectHistoryAvailableDefinitionAuthorityV110(PetraModel):
+    state: Literal["available"]
+    authority_source: Literal["immutable_project_definition_event_stream_binding"]
+    selection_basis: Literal["latest_retained_binding_effective_before_selected_event"]
+    effective_after_stream_revision: int
+    project_definition_ref: ProjectHistoryDefinitionRefV110
+    historical_destination_interpretation: Literal["not_performed"]
+
+
+class ProjectHistoryUnavailableDefinitionAuthorityV110(PetraModel):
+    state: Literal["unavailable"]
+    reason_code: Literal["retained_project_definition_authority_not_available"]
+    reason: Literal[
+        "No exact retained ProjectDefinition authority binding is available "
+        "for this selected event."
+    ]
+    historical_destination_interpretation: Literal["not_performed"]
+
+
+class ProjectHistoryEpisodeContentV110(PetraModel):
+    view_kind: Literal["causal_episode"]
+    change: ProjectHistoryRecentChange
+    causality: ProjectHistoryCausality
+    stream_order: ProjectHistoryStreamOrder
+    receipt_ref: ProjectHistoryReceiptRef | None = None
+    project_definition_authority: (
+        ProjectHistoryAvailableDefinitionAuthorityV110
+        | ProjectHistoryUnavailableDefinitionAuthorityV110
+    )
+    omissions: list[
+        Literal[
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    authority: ProjectHistoryAuthorityPosition
+    graph_navigation_history: Literal["client_local_separate"]
+
+
+class PetraProjectHistoryEpisodeViewV110(PetraModel):
+    schema_name: Literal["petra.project-history-episode-view"]
+    schema_version: Literal["1.1.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryEpisodeContentV110
+    content_hash: str
+    read_at: str
+
+
 class ProjectHistoryRetainedQuery(PetraModel):
     limit: int = Field(ge=1, le=100)
     cursor: str | None = Field(
@@ -9879,6 +9939,10 @@ PYDANTIC_MODELS.update(
         ("model-request", "1.1.0"): PetraSynthesistModelRequest,
         ("model-call", "1.1.0"): PetraSynthesistModelCall,
         ("project-shell-view", "1.1.0"): PetraProjectShellViewV110,
+        (
+            "project-history-episode-view",
+            "1.1.0",
+        ): PetraProjectHistoryEpisodeViewV110,
         (
             "project-history-retained-view",
             "1.1.0",

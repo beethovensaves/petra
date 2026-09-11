@@ -7,7 +7,7 @@ import type {
   PetraProjectHistoryCompensationExecutionView,
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryView,
-  PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryEpisodeViewV11,
   PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
@@ -203,12 +203,12 @@ const historyView = JSON.parse(
 const historyEpisodeView = JSON.parse(
   readFileSync(
     new URL(
-      "../../../../packages/contracts/fixtures/accepted/project-history-episode-view.json",
+      "../../../../packages/contracts/fixtures/accepted/project-history-episode-view-v1-1.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryEpisodeView;
+) as PetraProjectHistoryEpisodeViewV11;
 
 const historyRetainedView = JSON.parse(
   readFileSync(
@@ -669,6 +669,33 @@ describe("Project shell workbench adapter", () => {
     const wrongEvent = structuredClone(historyEpisodeView);
     wrongEvent.event_id = "event_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
     fetch.mockResolvedValueOnce(Response.json(wrongEvent));
+    await expect(
+      getProjectHistoryEpisode(
+        historyEpisodeView.project_id,
+        historyEpisodeView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const interpreted = structuredClone(historyEpisodeView);
+    interpreted.content.project_definition_authority.historical_destination_interpretation =
+      "performed" as "not_performed";
+    fetch.mockResolvedValueOnce(Response.json(interpreted));
+    await expect(
+      getProjectHistoryEpisode(
+        historyEpisodeView.project_id,
+        historyEpisodeView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const lateBinding = structuredClone(historyEpisodeView);
+    if (
+      lateBinding.content.project_definition_authority.state !== "available"
+    ) {
+      throw new Error("Expected the available definition fixture.");
+    }
+    lateBinding.content.project_definition_authority.effective_after_stream_revision =
+      historyEpisodeView.content.change.event_ref.stream_revision;
+    fetch.mockResolvedValueOnce(Response.json(lateBinding));
     await expect(
       getProjectHistoryEpisode(
         historyEpisodeView.project_id,

@@ -177,6 +177,17 @@
       "typescript_path": "src/generated/project-history-episode-view.ts"
     },
     {
+      "name": "project-history-episode-view",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/project-history-episode-view/1.1.0/schema.json",
+      "path": "schemas/project-history-episode-view/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-retained-project-definition-authority-reference",
+      "canonical_sha256": "sha256:e37b1ea19024e7ae2ba101519c363ab8d0f8238078532e258768ea7d8a803630",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-episode-view-v1-1.ts"
+    },
+    {
       "name": "project-history-retained-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-history-retained-view/1.0.0/schema.json",
