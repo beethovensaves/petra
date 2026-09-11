@@ -8,6 +8,10 @@ import {
   PetraTextArea,
 } from "../design-system/primitives.js";
 import type {
+  PetraSuggestedActionInvocationView,
+  PetraSuggestedActionViewV11,
+} from "@petra/contracts";
+import type {
   InquiryBranch,
   PetraThread,
   ProjectRecord,
@@ -15,8 +19,12 @@ import type {
   WorkStage,
   WorkUnit,
 } from "./model.js";
-import type { ProjectWorkDetailData } from "./project-data.js";
+import type {
+  ProjectPetraData,
+  ProjectWorkDetailData,
+} from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
+import { SuggestedWorkAction } from "./SuggestedAction.js";
 
 const WorkState = ({ unit }: { unit: WorkUnit }) => (
   <span className="work-state" data-state={unit.execution}>
@@ -643,9 +651,13 @@ const forceClass = (force: PetraThread["messages"][number]["force"]): string =>
 export const PetraSurface = ({
   project,
   thread,
+  suggestedWorkAction,
+  suggestedActionInvocation,
 }: {
   project: ProjectRecord;
   thread?: PetraThread | undefined;
+  suggestedWorkAction?: PetraSuggestedActionViewV11;
+  suggestedActionInvocation?: PetraSuggestedActionInvocationView;
 }): React.JSX.Element => {
   const [draft, setDraft] = useState("");
 
@@ -816,12 +828,38 @@ export const PetraSurface = ({
           </aside>
         </div>
       )}
+
+      {suggestedWorkAction === undefined ? null : (
+        <section
+          className="petra-suggested-action"
+          aria-labelledby="petra-suggested-action-region-title"
+        >
+          <header>
+            <p className="reference-panel-kicker">Suggested action</p>
+            <h2 id="petra-suggested-action-region-title">
+              Continue this exact Project action
+            </h2>
+            <p>
+              This conversational presentation submits the same exact Petra
+              invocation command as Brief.
+            </p>
+          </header>
+          <SuggestedWorkAction
+            projectId={project.id}
+            actionView={suggestedWorkAction}
+            {...(suggestedActionInvocation === undefined
+              ? {}
+              : { initialInvocation: suggestedActionInvocation })}
+            presentationPath="conversational"
+          />
+        </section>
+      )}
     </main>
   );
 };
 
 export const PetraRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const thread = useLoaderData<PetraThread | undefined>();
-  return <PetraSurface project={project} thread={thread} />;
+  const data = useLoaderData<ProjectPetraData>();
+  return <PetraSurface project={project} {...data} />;
 };

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import type { PetraSuggestedActionInvocation } from "@petra/contracts";
+
 import type {
   GroundedSynthesisInteractionExecutorPort,
   GroundedSynthesisTerminalPort,
@@ -10,6 +12,58 @@ import {
 } from "../src/interaction-runtime.js";
 
 describe("durable grounded cancellation runtime", () => {
+  it("retries only failed pre-registration Work and preserves the exact SuggestedAction receipt", async () => {
+    const invocation = {
+      suggested_action_invocation_id:
+        "suggested_action_invocation_01K4C000000000000000000062",
+    } as PetraSuggestedActionInvocation;
+    let starts = 0;
+    const terminal: GroundedSynthesisTerminalPort = {
+      startWork(request) {
+        starts += 1;
+        expect(request.suggestedActionInvocation).toBe(invocation);
+        if (starts === 1) {
+          return Promise.reject(new Error("temporary registration failure"));
+        }
+        return Promise.resolve({
+          work_unit_id: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          work_unit_revision: 3,
+          work_unit_spec_hash:
+            "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          state: "running",
+          started_at: "2026-09-11T18:40:01.000Z",
+        });
+      },
+      persist: () => Promise.reject(new Error("no terminal result")),
+    };
+    const runtime = new PetraInteractionRuntime({
+      groundedSynthesisTerminal: terminal,
+      groundedSynthesisExecutor: {
+        execute: () => Promise.reject(new Error("stop after registration")),
+      },
+    });
+    const request = {
+      threadId: "suggested-action:retry",
+      runId: "suggested-action-command:retry",
+      prompt: "Retry this exact action.",
+      requestId: "request-suggested-action-retry",
+      traceId: "trace-suggested-action-retry",
+      workflow: "grounded_synthesis" as const,
+      suggestedActionInvocation: invocation,
+    };
+    runtime.startInteraction(request);
+    await expect(runtime.awaitWorkRegistration(request.runId)).rejects.toThrow(
+      "did not register",
+    );
+    expect(runtime.snapshot(request.runId).status).toBe("failed");
+
+    runtime.retryFailedWorkRegistration(request);
+    await expect(
+      runtime.awaitWorkRegistration(request.runId),
+    ).resolves.toBeUndefined();
+    expect(starts).toBe(2);
+  });
+
   it("waits for durable work, interrupts only after the command, and fails closed when history cannot persist", async () => {
     let releaseWork!: () => void;
     const workReady = new Promise<void>((resolve) => {

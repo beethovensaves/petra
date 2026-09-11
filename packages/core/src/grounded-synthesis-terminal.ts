@@ -398,10 +398,12 @@ const groundedWorkStartRecords = (
   runtimeVersion: string,
   startedAt: string,
 ): { root: PetraWorkUnit; input: PetraWorkerInputManifest } => {
-  const actor = serviceRef(serviceActor);
+  const invocation = request.suggestedActionInvocation;
+  const actor =
+    invocation?.content.command_ref.actor ?? serviceRef(serviceActor);
   const inputId = derivePetraId(
     "worker_input_manifest",
-    `${request.interaction.work_unit_id}|${promptArtifact.content_hash}`,
+    `${request.interaction.work_unit_id}|${promptArtifact.content_hash}|${invocation?.suggested_action_invocation_id ?? "direct"}`,
   );
   const worker = {
     executor_kind: "typescript_worker" as const,
@@ -426,6 +428,84 @@ const groundedWorkStartRecords = (
         content_hash: promptArtifact.content_hash,
         byte_size: promptArtifact.byte_size,
       },
+      ...(invocation === undefined
+        ? []
+        : [
+            {
+              binding_kind: "record" as const,
+              name: "project_definition",
+              record_id:
+                invocation.content.exact_inputs.project_definition_ref
+                  .project_definition_id,
+              record_revision:
+                invocation.content.exact_inputs.project_definition_ref.revision,
+              snapshot_hash:
+                invocation.content.exact_inputs.project_definition_ref
+                  .record_hash,
+            },
+            {
+              binding_kind: "record" as const,
+              name: "objective",
+              record_id:
+                invocation.content.exact_inputs.objective_ref.objective_id,
+              record_revision:
+                invocation.content.exact_inputs.objective_ref.revision,
+              snapshot_hash:
+                invocation.content.exact_inputs.objective_ref.record_hash,
+            },
+            {
+              binding_kind: "record" as const,
+              name: "inquiry_result_link",
+              record_id:
+                invocation.content.exact_inputs.inquiry_result_link_ref
+                  .project_inquiry_link_id,
+              record_revision: 1,
+              snapshot_hash:
+                invocation.content.exact_inputs.inquiry_result_link_ref
+                  .record_hash,
+            },
+            {
+              binding_kind: "record" as const,
+              name: "source_result",
+              record_id:
+                invocation.content.exact_inputs.source_result_ref.record_id,
+              record_revision:
+                invocation.content.exact_inputs.source_result_ref.revision,
+              snapshot_hash:
+                invocation.content.exact_inputs.source_result_ref.record_hash,
+            },
+            {
+              binding_kind: "record" as const,
+              name: "authority_snapshot",
+              record_id:
+                invocation.content.exact_inputs.snapshot_ref.snapshot_id,
+              record_revision:
+                invocation.content.exact_inputs.snapshot_ref.snapshot_revision,
+              snapshot_hash:
+                invocation.content.exact_inputs.snapshot_ref.content_hash,
+            },
+            {
+              binding_kind: "record" as const,
+              name: "context_packet",
+              record_id:
+                invocation.content.exact_inputs.context_packet_ref.record_id,
+              record_revision:
+                invocation.content.exact_inputs.context_packet_ref.revision,
+              snapshot_hash:
+                invocation.content.exact_inputs.context_packet_ref.content_hash,
+            },
+            {
+              binding_kind: "record" as const,
+              name: "evidence_packet",
+              record_id:
+                invocation.content.exact_inputs.evidence_packet_ref.record_id,
+              record_revision:
+                invocation.content.exact_inputs.evidence_packet_ref.revision,
+              snapshot_hash:
+                invocation.content.exact_inputs.evidence_packet_ref
+                  .content_hash,
+            },
+          ]),
     ],
     expected_outputs: [
       {
@@ -491,10 +571,12 @@ const groundedWorkStartRecords = (
     spec,
     spec_hash: canonicalHash(spec),
     status: { state: "requested", requested_at: startedAt },
-    capability_grant_id: derivePetraId(
-      "capability_grant",
-      `${request.interaction.work_unit_id}|grounded-synthesis`,
-    ),
+    capability_grant_id:
+      invocation?.content.command_ref.capability_grant_id ??
+      derivePetraId(
+        "capability_grant",
+        `${request.interaction.work_unit_id}|grounded-synthesis`,
+      ),
     trace_id: petraCorrelationId("trace", request.interaction.trace_id),
     created_by: actor,
     created_at: startedAt,
@@ -1122,6 +1204,27 @@ export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTermi
         "A grounded WorkUnit requires a non-empty research prompt.",
       );
     }
+    const invocation = request.suggestedActionInvocation;
+    if (
+      invocation !== undefined &&
+      (invocation.project_id !== options.project.project_id ||
+        invocation.content_hash !== canonicalHash(invocation.content) ||
+        invocation.content.expected_work_unit_id !==
+          request.interaction.work_unit_id ||
+        invocation.content.interaction.protocol_thread_id !==
+          request.interaction.protocol_thread_id ||
+        invocation.content.interaction.protocol_run_id !==
+          request.interaction.protocol_run_id ||
+        invocation.content.command_ref.correlation_id !==
+          request.interaction.trace_id ||
+        invocation.content.exact_inputs.prompt_hash !==
+          canonicalHash({ prompt: request.prompt }))
+    ) {
+      throw new GroundedSynthesisTerminalError(
+        "GROUNDED_TERMINAL_EXECUTION_MISMATCH",
+        "The SuggestedAction invocation does not match this exact Project, prompt, Work identity, and interaction correlation.",
+      );
+    }
     for (const actor of options.actors)
       await options.scopes.registerActor(actor);
     await options.scopes.registerProjectRevision(options.project);
@@ -1139,6 +1242,27 @@ export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTermi
       const promptBinding = input?.content.inputs.find(
         (binding) => binding.name === "research_prompt",
       );
+      const expectedRecords = groundedWorkStartRecords(
+        request,
+        {
+          schema_name: "petra.artifact",
+          schema_version: "1.0.0",
+          artifact_id: expectedArtifactId,
+          revision: 1,
+          artifact_kind: "structured_text",
+          media_type: PROMPT_MEDIA_TYPE,
+          content_hash: promptHash,
+          byte_size: promptBytes.byteLength,
+          created_by:
+            invocation?.content.command_ref.actor ??
+            serviceRef(options.serviceActor),
+          created_at: existing.created_at,
+        },
+        options.serviceActor,
+        options.project.project_id,
+        options.runtimeVersion ?? process.versions.node,
+        existing.created_at,
+      );
       if (
         existing.project_id !== options.project.project_id ||
         existing.spec_hash !== canonicalHash(existing.spec) ||
@@ -1147,6 +1271,12 @@ export class GroundedSynthesisTerminalRecorder implements GroundedSynthesisTermi
         promptBinding?.binding_kind !== "artifact" ||
         promptBinding.artifact_id !== expectedArtifactId ||
         promptBinding.content_hash !== promptHash ||
+        canonicalize(input.content.inputs) !==
+          canonicalize(expectedRecords.input.content.inputs) ||
+        existing.capability_grant_id !==
+          expectedRecords.root.capability_grant_id ||
+        canonicalize(existing.created_by) !==
+          canonicalize(expectedRecords.root.created_by) ||
         existing.spec.cancellation_policy !== "cancellable" ||
         existing.status.state === "checkpointed"
       ) {

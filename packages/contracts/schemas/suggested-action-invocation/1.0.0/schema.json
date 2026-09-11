@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/suggested-action-invocation/1.0.0/schema.json",
+  "title": "PetraSuggestedActionInvocation",
+  "description": "An immutable receipt for one actor-authorized SuggestedAction command accepted against exact action inputs and deterministically bound to one WorkUnit and interaction correlation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "suggested_action_invocation_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.suggested-action-invocation" },
+    "schema_version": { "const": "1.0.0" },
+    "suggested_action_invocation_id": {
+      "type": "string",
+      "pattern": "^suggested_action_invocation_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/InvocationContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "CommandRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "command_name",
+        "idempotency_key",
+        "command_fingerprint",
+        "capability_grant_id",
+        "actor",
+        "correlation_id",
+        "submitted_at"
+      ],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "command_name": { "const": "InvokeSuggestedAction" },
+        "idempotency_key": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+        },
+        "command_fingerprint": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "capability_grant_id": {
+          "type": "string",
+          "pattern": "^capability_grant_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "actor": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "correlation_id": {
+          "type": "string",
+          "pattern": "^trace_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "submitted_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "ExactInputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_ref",
+        "objective_ref",
+        "inquiry_result_link_ref",
+        "source_result_ref",
+        "snapshot_ref",
+        "context_packet_ref",
+        "evidence_packet_ref",
+        "prompt_hash"
+      ],
+      "properties": {
+        "project_definition_ref": {
+          "$ref": "../../suggested-action-view/1.1.0/schema.json#/$defs/DefinitionRef"
+        },
+        "objective_ref": {
+          "$ref": "../../suggested-action-view/1.1.0/schema.json#/$defs/ObjectiveRef"
+        },
+        "inquiry_result_link_ref": {
+          "$ref": "../../suggested-action-view/1.1.0/schema.json#/$defs/InquiryLinkRef"
+        },
+        "source_result_ref": {
+          "$ref": "../../suggested-action-view/1.1.0/schema.json#/$defs/TypedRecordRef"
+        },
+        "snapshot_ref": {
+          "$ref": "../../suggested-action-view/1.1.0/schema.json#/$defs/SnapshotRef"
+        },
+        "context_packet_ref": {
+          "$ref": "../../suggested-action-view/1.1.0/schema.json#/$defs/PacketRef"
+        },
+        "evidence_packet_ref": {
+          "$ref": "../../suggested-action-view/1.1.0/schema.json#/$defs/PacketRef"
+        },
+        "prompt_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "InteractionCorrelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_thread_id", "protocol_run_id"],
+      "properties": {
+        "protocol_thread_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "protocol_run_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "InvocationContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_ref",
+        "action_ref",
+        "response_depth",
+        "exact_inputs",
+        "expected_work_unit_id",
+        "interaction",
+        "path_convergence",
+        "authority_effect"
+      ],
+      "properties": {
+        "command_ref": { "$ref": "#/$defs/CommandRef" },
+        "action_ref": {
+          "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/SuggestedActionRef"
+        },
+        "response_depth": { "const": "current_graph" },
+        "exact_inputs": { "$ref": "#/$defs/ExactInputs" },
+        "expected_work_unit_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+        },
+        "interaction": { "$ref": "#/$defs/InteractionCorrelation" },
+        "path_convergence": {
+          "const": "direct_and_conversational_same_command"
+        },
+        "authority_effect": { "const": "none" }
+      }
+    }
+  }
+}

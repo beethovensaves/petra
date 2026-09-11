@@ -8,6 +8,7 @@ import type {
   PetraAssertion,
   PetraAuthor,
   PetraClaim,
+  PetraCapabilityGrantV120,
   PetraCommandEnvelope,
   PetraCompositionPlan,
   PetraCompositionRequest,
@@ -34,6 +35,8 @@ import type {
   PetraWork,
   PetraWorkUnit,
   PetraWorkVersion,
+  PetraSuggestedActionInvocationRequest,
+  PetraSuggestedActionInvocation,
 } from "@petra/contracts";
 import type {
   DomainRecordFactory,
@@ -65,6 +68,10 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
 import { PostgresChangeControlAuthorityRepository } from "../src/change-control-authority-repository.js";
+import {
+  PostgresCapabilityGrantAuthorityRepository,
+  PostgresCapabilityGrantCommandAuthorizer,
+} from "../src/capability-grant-authority-repository.js";
 import {
   type CompositionAggregatePersistenceError,
   type CompositionAggregatePersistenceErrorCode,
@@ -109,6 +116,7 @@ import {
   PostgresSuggestedActionViewReader,
   type PostgresSuggestedActionViewError,
 } from "../src/suggested-action-view-reader.js";
+import { PostgresSuggestedActionInvocationAuthorityRepository } from "../src/suggested-action-invocation-authority-repository.js";
 import {
   availableArtifactStore,
   createMemoryArtifactStore,
@@ -1425,6 +1433,171 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       work_start: "not_performed",
       authority_change: "none",
     });
+
+    const human = readFixture<PetraActor>("actor");
+    const grantContent: PetraCapabilityGrantV120["content"] = {
+      scope_kind: "project_commands",
+      allowed_commands: ["InvokeSuggestedAction"],
+      valid_from: "2026-09-10T00:00:00.000Z",
+      reason:
+        "Allow the Project owner to invoke one exact bounded SuggestedAction.",
+    };
+    const grant: PetraCapabilityGrantV120 = {
+      schema_name: "petra.capability-grant",
+      schema_version: "1.2.0",
+      capability_grant_id: "capability_grant_01K4C000000000000000000061",
+      revision: 1,
+      project_id: objective.project_id,
+      grantee: { actor_id: human.actor_id, actor_kind: "human" },
+      content: grantContent,
+      content_hash: canonicalHash(grantContent),
+      issued_by: { actor_id: human.actor_id, actor_kind: "human" },
+      issued_at: "2026-09-10T00:00:00.000Z",
+    };
+    await new PostgresCapabilityGrantAuthorityRepository(
+      pool,
+    ).registerCapabilityGrant(grant);
+    const workActions = new PostgresSuggestedActionViewReader(pool, undefined, {
+      authenticatedActorId: human.actor_id,
+    });
+    const workAction =
+      await workActions.getWorkStartingSuggestedActionViewForInquiryResult(
+        objective.project_id,
+        resultLink.project_inquiry_link_id,
+      );
+    if (
+      workAction === undefined ||
+      workAction.content.readiness.state !== "ready"
+    ) {
+      throw new Error("Expected one authorized Work-starting SuggestedAction.");
+    }
+    expect(workAction.content.action.action_kind).toBe(
+      "run_grounded_synthesis",
+    );
+    expect(workAction.content.action.resources.estimate_state).toBe(
+      "bounded_limits",
+    );
+    expect(workAction.content.action.resources.duration).toBe(
+      "unknown_with_hard_limit",
+    );
+    expect(workAction.content.action.resources.cost).toBe(
+      "zero_monetary_cost_expected",
+    );
+    expect(workAction.content.action.resources.basis).toBe(
+      "certified_grounded_synthesis_profile",
+    );
+    expect(workAction.content.action.resources.limits.max_wall_time_ms).toBe(
+      120_000,
+    );
+    expect(workAction.content.action.resources.limits.max_attempts).toBe(1);
+    expect(workAction.content.action.interrupt).toEqual({
+      input_expectation: "none",
+      delivery_abort: "does_not_cancel_work",
+      reconnect: "exact_interaction_replay",
+    });
+    expect(workAction.content.readiness.grant_ref.capability_grant_id).toBe(
+      grant.capability_grant_id,
+    );
+
+    const request: PetraSuggestedActionInvocationRequest = {
+      schema_name: "petra.suggested-action-invocation-request",
+      schema_version: "1.0.0",
+      command_id: "command_01K4C000000000000000000061",
+      idempotency_key: "suggested-action:01K4C000000000000000000061",
+      inquiry_result_link_id: resultLink.project_inquiry_link_id,
+      expected_action_ref: structuredClone(workAction.content.action_ref),
+      response_depth: "current_graph",
+      submitted_at: "2026-09-11T18:40:00.000Z",
+    };
+    const invocations =
+      new PostgresSuggestedActionInvocationAuthorityRepository(
+        pool,
+        new PostgresCapabilityGrantCommandAuthorizer(),
+      );
+    const envelope = {
+      projectId: objective.project_id,
+      request,
+      action: workAction,
+      actor: { actor_id: human.actor_id, actor_kind: "human" as const },
+      capabilityGrantId: grant.capability_grant_id,
+      correlationId: "trace_01K4C000000000000000000061",
+    };
+    const accepted =
+      await invocations.acceptSuggestedActionInvocation(envelope);
+    expect(accepted.applied).toBe(true);
+    expect(
+      await invocations.acceptSuggestedActionInvocation(
+        structuredClone(envelope),
+      ),
+    ).toEqual({ invocation: accepted.invocation, applied: false });
+    const pendingInvocation =
+      await invocations.getSuggestedActionInvocationView(
+        objective.project_id,
+        request.command_id,
+      );
+    expect(pendingInvocation?.content.operation_state).toBe("accepted");
+    expect(pendingInvocation?.content.work).toEqual({
+      state: "pending_registration",
+      expected_work_unit_id: accepted.invocation.content.expected_work_unit_id,
+    });
+    expect(pendingInvocation?.content.result.state).toBe("pending");
+    expect(pendingInvocation?.content.recovery.assessment).toBe(
+      "current_server_owned",
+    );
+
+    const invocationWork = makeWork(
+      terminal.input.modelRequest,
+      structuredClone(evidence) as PetraEvidencePacket,
+    );
+    invocationWork.workUnit.work_unit_id =
+      accepted.invocation.content.expected_work_unit_id;
+    invocationWork.inputManifest.worker_input_manifest_id = derivePetraId(
+      "worker_input_manifest",
+      request.command_id,
+    );
+    invocationWork.inputManifest.work_unit_id =
+      invocationWork.workUnit.work_unit_id;
+    invocationWork.inputManifest.project_id = objective.project_id;
+    invocationWork.inputManifest.issued_by = structuredClone(envelope.actor);
+    invocationWork.inputManifest.content_hash = canonicalHash(
+      invocationWork.inputManifest.content,
+    );
+    invocationWork.workUnit.spec.input_manifest_ref = {
+      worker_input_manifest_id:
+        invocationWork.inputManifest.worker_input_manifest_id,
+      content_hash: invocationWork.inputManifest.content_hash,
+    };
+    invocationWork.workUnit.spec.idempotency_key = `work:${request.idempotency_key}`;
+    invocationWork.workUnit.spec.cancellation_policy = "cancellable";
+    invocationWork.workUnit.spec.cache = { cache_mode: "disabled" };
+    invocationWork.workUnit.spec_hash = canonicalHash(
+      invocationWork.workUnit.spec,
+    );
+    invocationWork.workUnit.capability_grant_id = grant.capability_grant_id;
+    invocationWork.workUnit.trace_id = envelope.correlationId;
+    invocationWork.workUnit.created_by = structuredClone(envelope.actor);
+    await workUnits.register({
+      workUnit: invocationWork.workUnit,
+      inputManifest: invocationWork.inputManifest,
+    });
+    const runningInvocation =
+      await invocations.getSuggestedActionInvocationView(
+        objective.project_id,
+        request.command_id,
+      );
+    expect(runningInvocation?.content.operation_state).toBe("running");
+    expect(runningInvocation?.content.work.state).toBe("available");
+    if (runningInvocation?.content.work.state !== "available") {
+      throw new Error("Expected registered SuggestedAction Work.");
+    }
+    expect(runningInvocation.content.work.execution_state).toBe("requested");
+    expect(runningInvocation.content.history.source).toBe(
+      "canonical_command_receipt_and_work_unit_revisions",
+    );
+    expect(runningInvocation.content.history.work_revisions).toHaveLength(1);
+    expect(runningInvocation.content.history.work_revisions[0]?.state).toBe(
+      "requested",
+    );
     expect(
       await suggestedActions.getSuggestedActionViewForInquiryResult(
         "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
@@ -2856,6 +3029,101 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       artifacts: "3",
       work_units: "2",
       interaction_runs: "2",
+    });
+  });
+
+  it("registers exact SuggestedAction inputs and actor authority on grounded Work", async () => {
+    const { registry: packets } = makePackets();
+    const store = createMemoryArtifactStore();
+    const feature = readFixture<PetraInteractionFeatureManifest>(
+      "interaction-feature-manifest",
+    );
+    feature.compiled_by = serviceRef();
+    const invocation = readFixture<PetraSuggestedActionInvocation>(
+      "suggested-action-invocation",
+    );
+    const prompt =
+      "What does the selected study report, and what limits the claim?";
+    const interaction = {
+      protocol_thread_id: invocation.content.interaction.protocol_thread_id,
+      protocol_run_id: invocation.content.interaction.protocol_run_id,
+      request_id: "request_01K4C000000000000000000062",
+      trace_id: invocation.content.command_ref.correlation_id,
+      work_unit_id: invocation.content.expected_work_unit_id,
+      started_at: "2026-09-11T18:40:01.000Z",
+    };
+    invocation.content.exact_inputs.prompt_hash = canonicalHash({ prompt });
+    invocation.content_hash = canonicalHash(invocation.content);
+    const recorder = new GroundedSynthesisTerminalRecorder({
+      actors: [readFixture<PetraActor>("actor"), serviceActor()],
+      serviceActor: serviceActor(),
+      project: readFixture<PetraProject>("project"),
+      featureManifest: feature,
+      roleCertification: certification(),
+      packets,
+      scopes,
+      artifactStore: store,
+      artifacts: new PostgresArtifactAuthorityRepository(pool, store),
+      executions: synthesist,
+      workUnits,
+      interactions,
+      groundedResponses: new PostgresGroundedResponseAuthorityRepository(
+        pool,
+        packets,
+      ),
+      runtimeVersion: "24.20.0",
+    });
+    const running = await recorder.startWork({
+      interaction,
+      prompt,
+      suggestedActionInvocation: invocation,
+    });
+    expect(running).toMatchObject({
+      work_unit_id: invocation.content.expected_work_unit_id,
+      state: "running",
+      work_unit_revision: 3,
+    });
+    const work = await workUnits.getWorkUnit(running.work_unit_id);
+    const input = await workUnits.getInputManifest(
+      work?.spec.input_manifest_ref.worker_input_manifest_id ?? "missing",
+    );
+    expect(work?.created_by).toEqual(invocation.content.command_ref.actor);
+    expect(work?.capability_grant_id).toBe(
+      invocation.content.command_ref.capability_grant_id,
+    );
+    expect(input?.issued_by).toEqual(invocation.content.command_ref.actor);
+    expect(input?.content.inputs.map((binding) => binding.name)).toEqual([
+      "research_prompt",
+      "project_definition",
+      "objective",
+      "inquiry_result_link",
+      "source_result",
+      "authority_snapshot",
+      "context_packet",
+      "evidence_packet",
+    ]);
+    expect(
+      input?.content.inputs.find(
+        (binding) => binding.name === "project_definition",
+      ),
+    ).toMatchObject({
+      binding_kind: "record",
+      record_id:
+        invocation.content.exact_inputs.project_definition_ref
+          .project_definition_id,
+      snapshot_hash:
+        invocation.content.exact_inputs.project_definition_ref.record_hash,
+    });
+    expect(
+      await recorder.startWork({
+        interaction: structuredClone(interaction),
+        prompt,
+        suggestedActionInvocation: structuredClone(invocation),
+      }),
+    ).toMatchObject({
+      work_unit_id: invocation.content.expected_work_unit_id,
+      state: "running",
+      work_unit_revision: 3,
     });
   });
 

@@ -155,6 +155,38 @@ class PetraCapabilityGrantV110(PetraModel):
     issued_at: str
 
 
+class CapabilityGrantContentV120(PetraModel):
+    scope_kind: Literal["project_commands"]
+    allowed_commands: list[
+        Literal[
+            "SubmitChangeSet",
+            "RecordApproval",
+            "ApplyChangeSet",
+            "ExcludeProjectSource",
+            "RestoreProjectSource",
+            "CreateProjectSourceReplacement",
+            "RetractProjectSourceReplacement",
+            "InvokeSuggestedAction",
+        ]
+    ]
+    valid_from: str
+    expires_at: str | None = None
+    reason: str
+
+
+class PetraCapabilityGrantV120(PetraModel):
+    schema_name: Literal["petra.capability-grant"]
+    schema_version: Literal["1.2.0"]
+    capability_grant_id: str
+    revision: Literal[1]
+    project_id: str
+    grantee: ActorRef
+    content: CapabilityGrantContentV120
+    content_hash: str
+    issued_by: CapabilityGrantHumanActorRef
+    issued_at: str
+
+
 class CapabilityGrantRef(PetraModel):
     capability_grant_id: str
     revision: Literal[1]
@@ -10144,6 +10176,387 @@ class PetraSuggestedActionView(PetraModel):
     read_at: str
 
 
+class SuggestedActionPacketRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+
+
+class SuggestedActionGrantRef(PetraModel):
+    capability_grant_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class SuggestedActionGroundedResponseRef(PetraModel):
+    schema_name: Literal["petra.grounded-response"]
+    schema_version: Literal["1.0.0"]
+    record_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+class SuggestedActionWorkBasis(PetraModel):
+    derivation: Literal["exact_immutable_inquiry_result_link"]
+    project_definition_ref: SuggestedActionDefinitionRef
+    objective_ref: ProjectInquiryObjectiveRef
+    inquiry_result_link_ref: SuggestedActionInquiryLinkRef
+    source_result_ref: SuggestedActionGroundedResponseRef
+    snapshot_ref: PacketSnapshotRef
+    context_packet_ref: SuggestedActionPacketRef
+    evidence_packet_ref: SuggestedActionPacketRef
+
+
+class SuggestedActionWorkScope(PetraModel):
+    scope_kind: Literal["exact_grounded_synthesis_rerun"]
+    included: str
+    excluded: list[str]
+
+
+class SuggestedActionWorkResponseDepth(PetraModel):
+    allowed: list[Literal["current_graph"]]
+    recommended: Literal["current_graph"]
+    adjustable: Literal[False]
+
+
+class SuggestedActionWorkExpectedResult(PetraModel):
+    state: Literal["new_work_result"]
+    result_kind: Literal["grounded_response"]
+    authority_effect: Literal["none"]
+    reusable: Literal[True]
+
+
+class SuggestedActionWorkResources(PetraModel):
+    estimate_state: Literal["bounded_limits"]
+    duration: Literal["unknown_with_hard_limit"]
+    cost: Literal["zero_monetary_cost_expected"]
+    basis: Literal["certified_grounded_synthesis_profile"]
+    limits: WorkerResourceLimits
+
+
+class SuggestedActionWorkExecution(PetraModel):
+    workflow_name: Literal["petra.synthesis.grounded"]
+    workflow_version: Literal["1.0.0"]
+    task_name: Literal["petra.synthesis.grounded"]
+    worker_name: Literal["petra.grounded_synthesis"]
+    validator: Literal["petra.grounded-synthesist-profile@1.1.0"]
+    prompt: str
+    prompt_hash: str
+    network_policy: Literal["managed_provider_allowlist"]
+
+
+class SuggestedActionWorkCapability(PetraModel):
+    command_name: Literal["InvokeSuggestedAction"]
+    approval: Literal["not_required_after_exact_invocation"]
+
+
+class SuggestedActionWorkInterrupt(PetraModel):
+    input_expectation: Literal["none"]
+    delivery_abort: Literal["does_not_cancel_work"]
+    reconnect: Literal["exact_interaction_replay"]
+
+
+class SuggestedActionWorkCancellation(PetraModel):
+    policy: Literal["cancellable"]
+    command_name: Literal["CancelWorkUnit"]
+    consequence: Literal["explicit_command_cancels_work_and_preserves_recorded_history"]
+
+
+class SuggestedActionWorkInvocation(PetraModel):
+    kind: Literal["authenticated_command"]
+    contract_name: Literal["petra.suggested-action-invocation-request"]
+    contract_version: Literal["1.0.0"]
+    command_name: Literal["InvokeSuggestedAction"]
+    idempotency: Literal["exact_command_and_work_convergence"]
+    path_convergence: Literal["direct_and_conversational_same_command"]
+
+
+class SuggestedActionWork(PetraModel):
+    action_kind: Literal["run_grounded_synthesis"]
+    title: str
+    objective: SuggestedActionObjective
+    reason: str
+    basis: SuggestedActionWorkBasis
+    scope: SuggestedActionWorkScope
+    missing_information: list[str]
+    response_depth: SuggestedActionWorkResponseDepth
+    expected_result: SuggestedActionWorkExpectedResult
+    resources: SuggestedActionWorkResources
+    execution: SuggestedActionWorkExecution
+    capability: SuggestedActionWorkCapability
+    interrupt: SuggestedActionWorkInterrupt
+    cancellation: SuggestedActionWorkCancellation
+    invocation: SuggestedActionWorkInvocation
+
+
+class SuggestedActionRegeneration(PetraModel):
+    operation: Literal["regenerate_suggested_action"]
+    basis: Literal["current_project_authority"]
+
+
+class SuggestedActionWorkReady(PetraModel):
+    state: Literal["ready"]
+    reason_code: Literal["exact_grounded_work_authorized"]
+    reason: str
+    missing_prerequisites: list[str]
+    grant_ref: SuggestedActionGrantRef
+
+
+class SuggestedActionWorkStale(PetraModel):
+    state: Literal["stale"]
+    reason_code: Literal[
+        "project_definition_changed",
+        "objective_changed",
+        "objective_inactive",
+        "source_result_invalidated",
+    ]
+    reason: str
+    missing_prerequisites: list[str]
+    regeneration: SuggestedActionRegeneration
+
+
+class SuggestedActionWorkUnavailable(PetraModel):
+    state: Literal["unavailable"]
+    reason_code: Literal[
+        "authenticated_actor_unavailable",
+        "capability_grant_missing",
+        "capability_grant_ambiguous",
+    ]
+    reason: str
+    missing_prerequisites: list[str]
+
+
+class SuggestedActionWorkOperation(PetraModel):
+    state: Literal["command_ready"]
+    work_start: Literal["only_after_exact_invocation"]
+    authority_change: Literal["none"]
+
+
+class SuggestedActionWorkPreviewContent(PetraModel):
+    view_kind: Literal["preview"]
+    action_ref: SuggestedActionRef
+    action: SuggestedActionWork
+    readiness: (
+        SuggestedActionWorkReady
+        | SuggestedActionWorkStale
+        | SuggestedActionWorkUnavailable
+    )
+    operation: SuggestedActionWorkOperation
+    authority: SuggestedActionAuthority
+    limitations: list[str]
+
+
+class PetraSuggestedActionViewV110(PetraModel):
+    schema_name: Literal["petra.suggested-action-view"]
+    schema_version: Literal["1.1.0"]
+    project_id: str
+    content: SuggestedActionWorkPreviewContent
+    content_hash: str
+    read_at: str
+
+
+class PetraSuggestedActionInvocationRequest(PetraModel):
+    schema_name: Literal["petra.suggested-action-invocation-request"]
+    schema_version: Literal["1.0.0"]
+    command_id: str
+    idempotency_key: str
+    inquiry_result_link_id: str
+    expected_action_ref: SuggestedActionRef
+    response_depth: Literal["current_graph"]
+    submitted_at: str
+
+
+class SuggestedActionInvocationCommandRef(PetraModel):
+    command_id: str
+    command_name: Literal["InvokeSuggestedAction"]
+    idempotency_key: str
+    command_fingerprint: str
+    capability_grant_id: str
+    actor: ActorRef
+    correlation_id: str
+    submitted_at: str
+
+
+class SuggestedActionInvocationExactInputs(PetraModel):
+    project_definition_ref: SuggestedActionDefinitionRef
+    objective_ref: ProjectInquiryObjectiveRef
+    inquiry_result_link_ref: SuggestedActionInquiryLinkRef
+    source_result_ref: SuggestedActionGroundedResponseRef
+    snapshot_ref: PacketSnapshotRef
+    context_packet_ref: SuggestedActionPacketRef
+    evidence_packet_ref: SuggestedActionPacketRef
+    prompt_hash: str
+
+
+class SuggestedActionInteractionCorrelation(PetraModel):
+    protocol_thread_id: str
+    protocol_run_id: str
+
+
+class SuggestedActionInvocationContent(PetraModel):
+    command_ref: SuggestedActionInvocationCommandRef
+    action_ref: SuggestedActionRef
+    response_depth: Literal["current_graph"]
+    exact_inputs: SuggestedActionInvocationExactInputs
+    expected_work_unit_id: str
+    interaction: SuggestedActionInteractionCorrelation
+    path_convergence: Literal["direct_and_conversational_same_command"]
+    authority_effect: Literal["none"]
+
+
+class PetraSuggestedActionCommandInvocation(PetraModel):
+    schema_name: Literal["petra.suggested-action-invocation"]
+    schema_version: Literal["1.0.0"]
+    suggested_action_invocation_id: str
+    revision: Literal[1]
+    project_id: str
+    content: SuggestedActionInvocationContent
+    content_hash: str
+    recorded_at: str
+
+
+class SuggestedActionInvocationRef(PetraModel):
+    suggested_action_invocation_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class SuggestedActionInvocationRecordRef(PetraModel):
+    record_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+SuggestedActionWorkState = Literal[
+    "requested", "queued", "running", "checkpointed", "completed", "cancelled"
+]
+SuggestedActionTerminalOutcome = Literal[
+    "succeeded",
+    "worker_failed",
+    "validation_failed",
+    "resource_exhausted",
+    "timed_out",
+    "cancelled",
+]
+
+
+class SuggestedActionInvocationHistoryEntry(PetraModel):
+    work_unit_ref: ProjectInquiryWorkUnitRef
+    state: SuggestedActionWorkState
+    terminal_outcome: SuggestedActionTerminalOutcome | None = None
+    recorded_at: str
+
+
+class SuggestedActionRecoveryAction(PetraModel):
+    operation: Literal[
+        "retry_exact_start",
+        "reconnect_delivery",
+        "cancel_work",
+        "inspect_work",
+        "inspect_result",
+    ]
+    eligibility: Literal["eligible", "ineligible"]
+    command_name: Literal["InvokeSuggestedAction", "CancelWorkUnit"] | None = None
+    reason: str
+
+
+class SuggestedActionPendingWork(PetraModel):
+    state: Literal["pending_registration"]
+    expected_work_unit_id: str
+
+
+class SuggestedActionAvailableWork(PetraModel):
+    state: Literal["available"]
+    work_unit_ref: ProjectInquiryWorkUnitRef
+    input_manifest_ref: SuggestedActionInvocationRecordRef
+    execution_state: SuggestedActionWorkState
+    terminal_outcome: SuggestedActionTerminalOutcome | None = None
+
+
+class SuggestedActionPendingResult(PetraModel):
+    state: Literal["pending"]
+    reason: str
+
+
+class SuggestedActionAvailableResult(PetraModel):
+    state: Literal["available"]
+    result_ref: SuggestedActionGroundedResponseRef
+    authority_effect: Literal["none"]
+
+
+class SuggestedActionUnavailableResult(PetraModel):
+    state: Literal["unavailable"]
+    reason: str
+
+
+class SuggestedActionInvocationInteraction(PetraModel):
+    protocol_thread_id: str
+    protocol_run_id: str
+    durable_state: Literal["pending_terminal", "available"]
+    interaction_run_ref: SuggestedActionInvocationRecordRef | None = None
+
+
+class SuggestedActionInvocationInterrupt(PetraModel):
+    state: Literal["none_expected"]
+    delivery_abort_cancels_work: Literal[False]
+    reconnect: Literal["exact_interaction_replay"]
+
+
+class SuggestedActionInvocationDestinationObject(PetraModel):
+    semantic_key: Literal["petra.work-unit"]
+    object_id: str
+
+
+class SuggestedActionInvocationDestination(PetraModel):
+    place_role: Literal["work", "history"]
+    task_intent: Literal["continue_work", "view_history"]
+    object_ref: SuggestedActionInvocationDestinationObject
+
+
+class SuggestedActionInvocationHistory(PetraModel):
+    source: Literal["canonical_command_receipt_and_work_unit_revisions"]
+    command_receipt_ref: SuggestedActionInvocationRef
+    work_revisions: list[SuggestedActionInvocationHistoryEntry]
+    destinations: list[SuggestedActionInvocationDestination]
+
+
+class SuggestedActionInvocationRecovery(PetraModel):
+    assessment: Literal["current_server_owned"]
+    actions: list[SuggestedActionRecoveryAction]
+
+
+class SuggestedActionInvocationViewContent(PetraModel):
+    view_kind: Literal["invocation"]
+    invocation_ref: SuggestedActionInvocationRef
+    invocation: PetraSuggestedActionCommandInvocation
+    operation_state: Literal["accepted", "running", "completed", "cancelled", "failed"]
+    work: SuggestedActionPendingWork | SuggestedActionAvailableWork
+    result: (
+        SuggestedActionPendingResult
+        | SuggestedActionAvailableResult
+        | SuggestedActionUnavailableResult
+    )
+    interaction: SuggestedActionInvocationInteraction
+    interrupt: SuggestedActionInvocationInterrupt
+    history: SuggestedActionInvocationHistory
+    recovery: SuggestedActionInvocationRecovery
+    authority: SuggestedActionAuthority
+    limitations: list[str]
+
+
+class PetraSuggestedActionInvocationView(PetraModel):
+    schema_name: Literal["petra.suggested-action-invocation-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: SuggestedActionInvocationViewContent
+    content_hash: str
+    read_at: str
+
+
 PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
@@ -10192,6 +10605,9 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-inquiry-role": PetraProjectInquiryRole,
     "project-inquiry-link": PetraProjectInquiryLink,
     "project-inquiry-view": PetraProjectInquiryView,
+    "suggested-action-invocation-request": PetraSuggestedActionInvocationRequest,
+    "suggested-action-invocation": PetraSuggestedActionCommandInvocation,
+    "suggested-action-invocation-view": PetraSuggestedActionInvocationView,
     "suggested-action-view": PetraSuggestedActionView,
     "project-thread": PetraProjectThread,
     "project-thread-view": PetraProjectThreadView,
@@ -10251,6 +10667,7 @@ PYDANTIC_MODELS: dict[tuple[str, str], type[BaseModel]] = {
 PYDANTIC_MODELS.update(
     {
         ("capability-grant", "1.1.0"): PetraCapabilityGrantV110,
+        ("capability-grant", "1.2.0"): PetraCapabilityGrantV120,
         ("change-set", "1.1.0"): PetraChangeSetV110,
         ("command-envelope", "1.1.0"): PetraCommandEnvelopeV110,
         ("domain-event", "1.1.0"): PetraDomainEventV110,
@@ -10298,6 +10715,7 @@ PYDANTIC_MODELS.update(
             "project-history-impact-view",
             "1.4.0",
         ): PetraProjectHistoryImpactViewV140,
+        ("suggested-action-view", "1.1.0"): PetraSuggestedActionViewV110,
     }
 )
 

@@ -24,6 +24,9 @@ import type {
   PetraProjectThreadView,
   PetraProjectWorkView,
   PetraSuggestedActionView,
+  PetraSuggestedActionViewV11,
+  PetraSuggestedActionInvocationRequest,
+  PetraSuggestedActionInvocationView,
 } from "@petra/contracts";
 import type {
   ProjectEffectiveControlsViewReader,
@@ -312,6 +315,36 @@ const suggestedActionFixture = JSON.parse(
   ),
 ) as PetraSuggestedActionView;
 
+const suggestedWorkActionFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/suggested-action-view-v1-1.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionViewV11;
+
+const suggestedActionInvocationRequestFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/suggested-action-invocation-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionInvocationRequest;
+
+const suggestedActionInvocationViewFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/suggested-action-invocation-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionInvocationView;
+
 const reader: ProjectShellViewReader = {
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
@@ -521,6 +554,18 @@ const suggestedActionReader: SuggestedActionViewReader = {
           suggestedActionFixture.content.action.basis.inquiry_result_link_ref
             .project_inquiry_link_id
         ? structuredClone(suggestedActionFixture)
+        : undefined,
+    ),
+  getWorkStartingSuggestedActionViewForInquiryResult: (
+    projectId,
+    projectInquiryLinkId,
+  ) =>
+    Promise.resolve(
+      projectId === suggestedWorkActionFixture.project_id &&
+        projectInquiryLinkId ===
+          suggestedWorkActionFixture.content.action.basis
+            .inquiry_result_link_ref.project_inquiry_link_id
+        ? structuredClone(suggestedWorkActionFixture)
         : undefined,
     ),
 };
@@ -1243,6 +1288,101 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(crossProjectBody.error.code).toBe("SUGGESTED_ACTION_NOT_FOUND");
+  });
+
+  it("previews and invokes one exact authenticated Work-starting SuggestedAction command", async () => {
+    let invoked = false;
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      suggestedActionViews: suggestedActionReader,
+      commandPrincipalResolver: {
+        resolveCommandPrincipal: () =>
+          Promise.resolve({
+            state: "resolved" as const,
+            actor: {
+              actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+              actor_kind: "human" as const,
+            },
+            capabilityGrantId: "capability_grant_01K4C000000000000000000062",
+          }),
+      },
+      suggestedActionInvocations: {
+        invoke: (envelope) => {
+          invoked = true;
+          expect(envelope.projectId).toBe(
+            suggestedWorkActionFixture.project_id,
+          );
+          expect(envelope.request).toEqual(
+            suggestedActionInvocationRequestFixture,
+          );
+          expect(envelope.action).toEqual(suggestedWorkActionFixture);
+          return Promise.resolve(
+            structuredClone(suggestedActionInvocationViewFixture),
+          );
+        },
+      },
+      suggestedActionInvocationViews: {
+        acceptSuggestedActionInvocation: () =>
+          Promise.reject(new Error("Read boundary cannot accept commands.")),
+        getSuggestedActionInvocationView: (projectId, commandId) =>
+          Promise.resolve(
+            projectId === suggestedActionInvocationViewFixture.project_id &&
+              commandId ===
+                suggestedActionInvocationViewFixture.content.invocation.content
+                  .command_ref.command_id
+              ? structuredClone(suggestedActionInvocationViewFixture)
+              : undefined,
+          ),
+      },
+    });
+    const linkId =
+      suggestedWorkActionFixture.content.action.basis.inquiry_result_link_ref
+        .project_inquiry_link_id;
+    const preview = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${suggestedWorkActionFixture.project_id}/suggested-actions?inquiry_result_link_id=${linkId}&action_kind=run_grounded_synthesis`,
+      ),
+    );
+    expect(preview.status).toBe(200);
+    await expect(preview.json()).resolves.toEqual(suggestedWorkActionFixture);
+
+    const actionId =
+      suggestedActionInvocationRequestFixture.expected_action_ref
+        .suggested_action_id;
+    const commandPath = `/api/commands/projects/${suggestedWorkActionFixture.project_id}/suggested-actions/${actionId}/invoke`;
+    const invokedResponse = await petra.app.request(
+      authorizedJson(commandPath, suggestedActionInvocationRequestFixture),
+    );
+    expect(invokedResponse.status).toBe(202);
+    expect(invoked).toBe(true);
+    await expect(invokedResponse.json()).resolves.toEqual(
+      suggestedActionInvocationViewFixture,
+    );
+
+    const commandId = suggestedActionInvocationRequestFixture.command_id;
+    const detail = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${suggestedWorkActionFixture.project_id}/suggested-action-invocations/${commandId}`,
+      ),
+    );
+    expect(detail.status).toBe(200);
+    await expect(detail.json()).resolves.toEqual(
+      suggestedActionInvocationViewFixture,
+    );
+
+    const stale = structuredClone(suggestedActionInvocationRequestFixture);
+    stale.expected_action_ref.content_hash =
+      "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+    const staleResponse = await petra.app.request(
+      authorizedJson(commandPath, stale),
+    );
+    expect(staleResponse.status).toBe(409);
+    const staleBody = (await staleResponse.json()) as {
+      error: { code: string };
+      regeneration: PetraSuggestedActionViewV11;
+    };
+    expect(staleBody.error.code).toBe("SUGGESTED_ACTION_INVOCATION_STALE");
+    expect(staleBody.regeneration).toEqual(suggestedWorkActionFixture);
   });
 
   it("returns bounded Work collection and exact detail without promoting output authority", async () => {

@@ -153,7 +153,8 @@ export interface CommandAuthorizationRequest {
     | "ExcludeProjectSource"
     | "RestoreProjectSource"
     | "CreateProjectSourceReplacement"
-    | "RetractProjectSourceReplacement";
+    | "RetractProjectSourceReplacement"
+    | "InvokeSuggestedAction";
   readonly projectId: string;
 }
 

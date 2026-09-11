@@ -27,6 +27,9 @@ import type {
   PetraProjectSourceReplacementReceipt,
   PetraProjectSourceReplacementRetraction,
   PetraProjectSourceView,
+  PetraSuggestedActionInvocationRequest,
+  PetraSuggestedActionInvocationView,
+  PetraSuggestedActionViewV11,
   PetraProjectThreadView,
   PetraProjectWorkView,
 } from "@petra/contracts";
@@ -35,6 +38,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   composeProjectHistoryCompensationPlan,
+  createSuggestedActionInvocationRequest,
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
   executeProjectHistoryCompensationPlan,
@@ -44,15 +48,19 @@ import {
   getProjectHistoryCompensationPreview,
   getProjectHistoryImpact,
   getProjectHistoryRecoveryAssessment,
+  getProjectSuggestedActionInvocation,
+  getProjectSuggestedWorkAction,
   getRetainedProjectHistory,
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
   loadProjectBrief,
+  loadProjectPetra,
   loadProjectPetraThread,
   loadProjectRecord,
   loadProjectSettings,
   loadProjectWorkCollection,
   loadProjectWorkDetail,
+  invokeProjectSuggestedAction,
   projectRecordFromShellView,
   retractProjectSourceReplacement,
   petraThreadFromView,
@@ -362,6 +370,36 @@ const suggestedActionView = JSON.parse(
     "utf8",
   ),
 ) as PetraSuggestedActionView;
+
+const suggestedWorkActionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-view-v1-1.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionViewV11;
+
+const suggestedActionInvocationRequest = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-invocation-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionInvocationRequest;
+
+const suggestedActionInvocationView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-invocation-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionInvocationView;
 
 const threadCollectionView = JSON.parse(
   readFileSync(
@@ -676,7 +714,9 @@ describe("Project shell workbench adapter", () => {
       return Promise.resolve(
         Response.json(
           path.includes("/suggested-actions?")
-            ? suggestedActionView
+            ? path.includes("action_kind=run_grounded_synthesis")
+              ? suggestedWorkActionView
+              : suggestedActionView
             : inquiryDetailView,
         ),
       );
@@ -699,10 +739,12 @@ describe("Project shell workbench adapter", () => {
     });
 
     expect(result.suggestedAction).toEqual(suggestedActionView);
+    expect(result.suggestedWorkAction).toEqual(suggestedWorkActionView);
     expect(result.invokedInquiry).toEqual(inquiryDetailView);
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(3);
     expect(fetch.mock.calls.map(([path]) => path)).toEqual([
       `/api/queries/projects/${suggestedActionView.project_id}/suggested-actions?inquiry_result_link_id=${linkId}`,
+      `/api/queries/projects/${suggestedActionView.project_id}/suggested-actions?inquiry_result_link_id=${linkId}&action_kind=run_grounded_synthesis`,
       `/api/queries/projects/${suggestedActionView.project_id}/inquiries/${suggestedActionView.content.action.invocation.objective_ref.objective_id}`,
     ]);
   });
@@ -756,7 +798,9 @@ describe("Project shell workbench adapter", () => {
             ? view
             : path.includes("/inquiries/")
               ? inquiryDetailView
-              : suggestedActionView,
+              : path.includes("action_kind=run_grounded_synthesis")
+                ? suggestedWorkActionView
+                : suggestedActionView,
         ),
       );
     });
@@ -773,11 +817,15 @@ describe("Project shell workbench adapter", () => {
       context: new RouterContextProvider(),
     });
 
-    expect(result).toEqual({ suggestedAction: suggestedActionView });
+    expect(result).toEqual({
+      suggestedAction: suggestedActionView,
+      suggestedWorkAction: suggestedWorkActionView,
+    });
     expect(fetch.mock.calls.map(([path]) => path)).toEqual([
       `/api/queries/projects/${suggestedActionView.project_id}/shell`,
       `/api/queries/projects/${suggestedActionView.project_id}/inquiries/${suggestedActionView.content.action.invocation.objective_ref.objective_id}`,
       `/api/queries/projects/${suggestedActionView.project_id}/suggested-actions?inquiry_result_link_id=${suggestedActionView.content.action.basis.inquiry_result_link_ref.project_inquiry_link_id}`,
+      `/api/queries/projects/${suggestedActionView.project_id}/suggested-actions?inquiry_result_link_id=${suggestedActionView.content.action.basis.inquiry_result_link_ref.project_inquiry_link_id}&action_kind=run_grounded_synthesis`,
     ]);
 
     const earlyShell = structuredClone(view);
@@ -1906,6 +1954,182 @@ describe("Project shell workbench adapter", () => {
       `/api/queries/projects/${projectId}/inquiries/objective_01K4C000000000000000000005`,
       `/api/queries/projects/${projectId}/work/${workUnitId}`,
       `/api/queries/projects/${projectId}/inquiries?limit=100&work_unit_id=${workUnitId}`,
+    ]);
+  });
+
+  it("previews, invokes, and rereads one exact Work-starting SuggestedAction", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      void init;
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      return Promise.resolve(
+        Response.json(
+          path.includes("/suggested-action-invocations/") ||
+            path.includes("/invoke")
+            ? suggestedActionInvocationView
+            : suggestedWorkActionView,
+        ),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    const projectId = suggestedWorkActionView.project_id;
+    const linkId =
+      suggestedWorkActionView.content.action.basis.inquiry_result_link_ref
+        .project_inquiry_link_id;
+    const actionId =
+      suggestedWorkActionView.content.action_ref.suggested_action_id;
+    const commandId = suggestedActionInvocationRequest.command_id;
+
+    await expect(
+      getProjectSuggestedWorkAction(projectId, linkId),
+    ).resolves.toEqual(suggestedWorkActionView);
+    await expect(
+      invokeProjectSuggestedAction(
+        projectId,
+        actionId,
+        suggestedActionInvocationRequest,
+      ),
+    ).resolves.toEqual(suggestedActionInvocationView);
+    await expect(
+      getProjectSuggestedActionInvocation(projectId, commandId),
+    ).resolves.toEqual(suggestedActionInvocationView);
+
+    expect(fetch.mock.calls.map((call) => call[0])).toEqual([
+      `/api/queries/projects/${projectId}/suggested-actions?inquiry_result_link_id=${linkId}&action_kind=run_grounded_synthesis`,
+      `/api/commands/projects/${projectId}/suggested-actions/${actionId}/invoke`,
+      `/api/queries/projects/${projectId}/suggested-action-invocations/${commandId}`,
+    ]);
+    const invokeInit = fetch.mock.calls[1]?.[1];
+    expect(invokeInit?.method).toBe("POST");
+    if (typeof invokeInit?.body !== "string") {
+      throw new TypeError("Expected a serialized SuggestedAction request.");
+    }
+    expect(JSON.parse(invokeInit.body)).toEqual(
+      suggestedActionInvocationRequest,
+    );
+    expect(new Headers(invokeInit?.headers).get("authorization")).toBe(
+      "Bearer petra-local-development",
+    );
+
+    await expect(
+      invokeProjectSuggestedAction(
+        projectId,
+        "suggested_action_01K4C000000000000000000999",
+        suggestedActionInvocationRequest,
+      ),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("builds only caller-owned invocation fields from the exact action ref", () => {
+    const request = createSuggestedActionInvocationRequest(
+      suggestedWorkActionView,
+      {
+        commandId: suggestedActionInvocationRequest.command_id,
+        idempotencyKey: suggestedActionInvocationRequest.idempotency_key,
+        submittedAt: suggestedActionInvocationRequest.submitted_at,
+      },
+    );
+
+    expect(request).toEqual(suggestedActionInvocationRequest);
+    expect(request).not.toHaveProperty("project_id");
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capability_grant_id");
+    expect(request).not.toHaveProperty("work_unit_id");
+    expect(request).not.toHaveProperty("interaction");
+    expect(request).not.toHaveProperty("trace_id");
+  });
+
+  it("retains the server-regenerated action on an exact stale invocation", async () => {
+    const staleReference = structuredClone(suggestedActionInvocationRequest);
+    staleReference.expected_action_ref.content_hash =
+      "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      Response.json(
+        {
+          error: {
+            code: "SUGGESTED_ACTION_INVOCATION_STALE",
+            message:
+              "The exact SuggestedAction revision or hash is stale; regenerate from current Project authority.",
+          },
+          regeneration: suggestedWorkActionView,
+        },
+        { status: 409 },
+      ),
+    );
+    vi.stubGlobal("fetch", fetch);
+
+    await expect(
+      invokeProjectSuggestedAction(
+        suggestedWorkActionView.project_id,
+        suggestedWorkActionView.content.action_ref.suggested_action_id,
+        staleReference,
+      ),
+    ).rejects.toMatchObject({
+      status: 409,
+      suggestedActionRegeneration: suggestedWorkActionView,
+    });
+    expect(fetch).toHaveBeenCalledOnce();
+  });
+
+  it("loads the same exact action command context for Petra presentation", async () => {
+    if (
+      threadCollectionView.content.view_kind !== "collection" ||
+      threadDetailView.content.view_kind !== "detail"
+    ) {
+      throw new Error("Expected exact Project thread fixtures.");
+    }
+    const threadId =
+      threadDetailView.content.summary.thread_ref.project_thread_id;
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      const value = path.includes("/suggested-action-invocations/")
+        ? suggestedActionInvocationView
+        : path.includes("/suggested-actions?")
+          ? suggestedWorkActionView
+          : path.includes(`/threads/${threadId}`)
+            ? threadDetailView
+            : threadCollectionView;
+      return Promise.resolve(Response.json(value));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const projectId = suggestedWorkActionView.project_id;
+    const linkId =
+      suggestedWorkActionView.content.action.basis.inquiry_result_link_ref
+        .project_inquiry_link_id;
+    const commandId = suggestedActionInvocationRequest.command_id;
+    const url = new URL(
+      `http://petra.test/projects/${projectId}/petra?inquiry_result_link_id=${linkId}&suggested_action_command_id=${commandId}`,
+    );
+
+    const data = await loadProjectPetra({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/petra",
+      params: { projectId },
+      context: new RouterContextProvider(),
+    });
+
+    expect(data.suggestedWorkAction).toEqual(suggestedWorkActionView);
+    expect(data.suggestedActionInvocation).toEqual(
+      suggestedActionInvocationView,
+    );
+    expect(data.thread?.id).toBe(threadId);
+    expect(fetch.mock.calls.map(([path]) => path)).toEqual([
+      `/api/queries/projects/${projectId}/threads?limit=1&lifecycle=open`,
+      `/api/queries/projects/${projectId}/suggested-actions?inquiry_result_link_id=${linkId}&action_kind=run_grounded_synthesis`,
+      `/api/queries/projects/${projectId}/suggested-action-invocations/${commandId}`,
+      `/api/queries/projects/${projectId}/threads/${threadId}`,
     ]);
   });
 

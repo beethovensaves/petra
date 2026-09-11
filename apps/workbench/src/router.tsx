@@ -35,7 +35,7 @@ import {
   loadProjectCollection,
   loadProjectBrief,
   loadProjectObjectLocationRedirect,
-  loadProjectPetraThread,
+  loadProjectPetra,
   loadProjectRelationshipView,
   loadProjectRecord,
   loadProjectReviewCollection,
@@ -121,7 +121,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "petra",
-            loader: loadProjectPetraThread,
+            loader: loadProjectPetra,
             element: <PetraRoute />,
           },
           { path: "composition", element: <CompositionCollectionRoute /> },

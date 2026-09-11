@@ -1,0 +1,23 @@
+{
+  "schema_name": "petra.capability-grant",
+  "schema_version": "1.2.0",
+  "capability_grant_id": "capability_grant_01K4C000000000000000000062",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "grantee": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "content": {
+    "scope_kind": "project_commands",
+    "allowed_commands": ["InvokeSuggestedAction"],
+    "valid_from": "2026-09-10T00:00:00.000Z",
+    "reason": "Allow one exact bounded SuggestedAction invocation."
+  },
+  "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "issued_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "issued_at": "2026-09-10T00:00:00.000Z"
+}

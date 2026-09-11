@@ -16,12 +16,16 @@ import {
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
 import type {
+  PetraSuggestedActionInvocationRequest,
   PetraProjectHistoryCompensationExecutionRequest,
   PetraProjectHistoryCompensationPlanRequest,
   PetraProjectHistoryRetainedContinuationFailure,
   ProjectHistoryRetainedCollectionFiltersV12,
 } from "@petra/contracts";
-import { PetraContractRegistry } from "@petra/contracts/validator";
+import {
+  ContractRegistryError,
+  PetraContractRegistry,
+} from "@petra/contracts/validator";
 import {
   DurableReviewInterruptError,
   PetraInteractionRuntime,
@@ -57,6 +61,8 @@ import {
   type ProjectWorkStateFilter,
   type ProjectWorkViewReader,
   type SuggestedActionViewReader,
+  type SuggestedActionInvocationCoordinator,
+  type SuggestedActionInvocationAuthorityRepository,
 } from "@petra/core";
 
 interface Variables {
@@ -91,6 +97,11 @@ export interface PetraAppOptions {
   projectThreadViews?: ProjectThreadViewReader;
   projectInquiryViews?: ProjectInquiryViewReader;
   suggestedActionViews?: SuggestedActionViewReader;
+  suggestedActionInvocations?: Pick<
+    SuggestedActionInvocationCoordinator,
+    "invoke"
+  >;
+  suggestedActionInvocationViews?: SuggestedActionInvocationAuthorityRepository;
 }
 
 export interface PetraApp {
@@ -170,6 +181,8 @@ const PROJECT_THREAD_ID_PATTERN = /^project_thread_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const OBJECTIVE_ID_PATTERN = /^objective_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_INQUIRY_LINK_ID_PATTERN =
   /^project_inquiry_link_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const SUGGESTED_ACTION_ID_PATTERN =
+  /^suggested_action_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const SEMANTIC_KEY_PATTERN = /^[a-z][a-z0-9._/-]{1,199}$/u;
 const LOCATION_INTENTS = [
   "orient",
@@ -838,14 +851,15 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       try {
         const parameters = new URL(context.req.url).searchParams;
         const unknown = [...parameters.keys()].filter(
-          (key) => key !== "inquiry_result_link_id",
+          (key) => key !== "inquiry_result_link_id" && key !== "action_kind",
         );
         if (
           unknown.length > 0 ||
-          parameters.getAll("inquiry_result_link_id").length !== 1
+          parameters.getAll("inquiry_result_link_id").length !== 1 ||
+          parameters.getAll("action_kind").length > 1
         ) {
           throw new InteractionInputError(
-            "SuggestedAction preview requires exactly one inquiry_result_link_id and no other query parameters.",
+            "SuggestedAction preview requires exactly one inquiry_result_link_id and at most one registered action_kind.",
             [...new Set(unknown)],
           );
         }
@@ -855,12 +869,27 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "SuggestedAction preview requires a canonical ProjectInquiryLink identity.",
           );
         }
+        const actionKind =
+          parameters.get("action_kind") ?? "inspect_existing_inquiry_result";
+        if (
+          actionKind !== "inspect_existing_inquiry_result" &&
+          actionKind !== "run_grounded_synthesis"
+        ) {
+          throw new InteractionInputError(
+            "action_kind must be inspect_existing_inquiry_result or run_grounded_synthesis.",
+          );
+        }
         const projectId = context.req.param("projectId");
         const view =
-          await options.suggestedActionViews.getSuggestedActionViewForInquiryResult(
-            projectId,
-            projectInquiryLinkId,
-          );
+          actionKind === "run_grounded_synthesis"
+            ? await options.suggestedActionViews.getWorkStartingSuggestedActionViewForInquiryResult(
+                projectId,
+                projectInquiryLinkId,
+              )
+            : await options.suggestedActionViews.getSuggestedActionViewForInquiryResult(
+                projectId,
+                projectInquiryLinkId,
+              );
         if (view === undefined) {
           return jsonError(
             context,
@@ -869,7 +898,11 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "No SuggestedAction is derived from the exact inquiry-result link in this Project.",
           );
         }
-        contracts.assertValid("suggested-action-view", "1.0.0", view);
+        contracts.assertValid(
+          "suggested-action-view",
+          actionKind === "run_grounded_synthesis" ? "1.1.0" : "1.0.0",
+          view,
+        );
         if (
           view.project_id !== projectId ||
           view.content.view_kind !== "preview" ||
@@ -891,6 +924,286 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The SuggestedAction preview is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke",
+    async (context) => {
+      if (
+        options.suggestedActionViews === undefined ||
+        options.suggestedActionInvocations === undefined ||
+        options.commandPrincipalResolver === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "SUGGESTED_ACTION_INVOCATION_UNAVAILABLE",
+          "The authenticated SuggestedAction-to-Work command boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "SuggestedAction invocation does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const suggestedActionId = context.req.param("suggestedActionId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "SuggestedAction invocation requires a canonical Project identity.",
+          );
+        }
+        if (!SUGGESTED_ACTION_ID_PATTERN.test(suggestedActionId)) {
+          throw new InteractionInputError(
+            "SuggestedAction invocation requires a canonical SuggestedAction identity.",
+          );
+        }
+        const body = await readBoundedJson(context, maxBodyBytes);
+        try {
+          contracts.assertValid(
+            "suggested-action-invocation-request",
+            "1.0.0",
+            body,
+          );
+        } catch (error) {
+          if (
+            error instanceof ContractRegistryError &&
+            error.code === "CONTRACT_VALUE_INVALID"
+          ) {
+            throw new InteractionInputError(
+              "SuggestedAction invocation does not match the registered request contract.",
+              error.validationErrors.map(
+                (validation) => validation.instancePath || validation.keyword,
+              ),
+            );
+          }
+          throw error;
+        }
+        const request = body as PetraSuggestedActionInvocationRequest;
+        if (
+          request.expected_action_ref.suggested_action_id !== suggestedActionId
+        ) {
+          throw new InteractionInputError(
+            "expected_action_ref must name the SuggestedAction in the route.",
+          );
+        }
+        const currentAction =
+          await options.suggestedActionViews.getWorkStartingSuggestedActionViewForInquiryResult(
+            projectId,
+            request.inquiry_result_link_id,
+          );
+        if (currentAction === undefined) {
+          return jsonError(
+            context,
+            404,
+            "SUGGESTED_ACTION_NOT_FOUND",
+            "No Work-starting SuggestedAction is derived from the exact inquiry-result link in this Project.",
+          );
+        }
+        if (
+          currentAction.content.action_ref.suggested_action_id !==
+            suggestedActionId ||
+          currentAction.content.action_ref.revision !==
+            request.expected_action_ref.revision ||
+          currentAction.content.action_ref.content_hash !==
+            request.expected_action_ref.content_hash
+        ) {
+          return context.json(
+            {
+              error: {
+                code: "SUGGESTED_ACTION_INVOCATION_STALE",
+                message:
+                  "The exact SuggestedAction revision or hash is stale; regenerate from current Project authority.",
+              },
+              regeneration: currentAction,
+            },
+            409,
+          );
+        }
+        if (currentAction.content.readiness.state !== "ready") {
+          return context.json(
+            {
+              error: {
+                code:
+                  currentAction.content.readiness.state === "stale"
+                    ? "SUGGESTED_ACTION_INVOCATION_STALE"
+                    : "SUGGESTED_ACTION_INVOCATION_UNAVAILABLE",
+                message: currentAction.content.readiness.reason,
+              },
+              regeneration: currentAction,
+            },
+            currentAction.content.readiness.state === "stale" ? 409 : 403,
+          );
+        }
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName: "InvokeSuggestedAction",
+          });
+        if (principal.state === "denied") {
+          return jsonError(
+            context,
+            principal.reason === "active_grant_not_found" ? 403 : 503,
+            principal.reason === "active_grant_not_found"
+              ? "SUGGESTED_ACTION_INVOCATION_FORBIDDEN"
+              : principal.reason === "actor_not_registered"
+                ? "AUTHENTICATED_ACTOR_UNAVAILABLE"
+                : "PROJECT_COMMAND_AUTHORITY_AMBIGUOUS",
+            principal.reason === "active_grant_not_found"
+              ? "The authenticated principal has no active InvokeSuggestedAction grant for this Project."
+              : principal.reason === "actor_not_registered"
+                ? "The configured authenticated Actor is not registered."
+                : "More than one active grant matches InvokeSuggestedAction for this Project.",
+          );
+        }
+        if (
+          principal.capabilityGrantId !==
+          currentAction.content.readiness.grant_ref.capability_grant_id
+        ) {
+          throw new Error(
+            "SuggestedAction readiness and authenticated command authority selected different grants.",
+          );
+        }
+        const view = await options.suggestedActionInvocations.invoke({
+          projectId,
+          request,
+          action: currentAction,
+          actor: principal.actor,
+          capabilityGrantId: principal.capabilityGrantId,
+          correlationId: derivePetraId(
+            "trace",
+            `${context.get("requestId")}:${randomUUID()}`,
+          ),
+        });
+        contracts.assertValid(
+          "suggested-action-invocation-view",
+          "1.0.0",
+          view,
+        );
+        if (
+          view.project_id !== projectId ||
+          view.content.invocation.content.command_ref.command_id !==
+            request.command_id ||
+          view.content.invocation.content.action_ref.suggested_action_id !==
+            suggestedActionId
+        ) {
+          throw new Error(
+            "SuggestedAction authority returned a different Project, command, or action.",
+          );
+        }
+        return context.json(
+          view,
+          view.content.operation_state === "accepted" ? 202 : 200,
+        );
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            422,
+            "SUGGESTED_ACTION_INVOCATION_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        const code =
+          error instanceof Error &&
+          "code" in error &&
+          typeof error.code === "string"
+            ? error.code
+            : undefined;
+        if (code?.startsWith("SUGGESTED_ACTION_INVOCATION_") === true) {
+          const status =
+            code === "SUGGESTED_ACTION_INVOCATION_NOT_AUTHORIZED"
+              ? 403
+              : code === "SUGGESTED_ACTION_INVOCATION_STORED_RECORD_CORRUPT"
+                ? 503
+                : 409;
+          return jsonError(
+            context,
+            status,
+            code,
+            error instanceof Error
+              ? error.message
+              : "SuggestedAction invocation failed.",
+          );
+        }
+        return jsonError(
+          context,
+          503,
+          "SUGGESTED_ACTION_INVOCATION_FAILED",
+          error instanceof Error
+            ? error.message
+            : "SuggestedAction invocation failed.",
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/suggested-action-invocations/:commandId",
+    async (context) => {
+      if (options.suggestedActionInvocationViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "SUGGESTED_ACTION_INVOCATION_VIEW_UNAVAILABLE",
+          "The SuggestedAction invocation read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "SuggestedAction invocation detail does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const commandId = context.req.param("commandId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !COMMAND_ID_PATTERN.test(commandId)
+        ) {
+          throw new InteractionInputError(
+            "SuggestedAction invocation detail requires canonical Project and command identities.",
+          );
+        }
+        const view =
+          await options.suggestedActionInvocationViews.getSuggestedActionInvocationView(
+            projectId,
+            commandId,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "SUGGESTED_ACTION_INVOCATION_NOT_FOUND",
+            "The command has no SuggestedAction invocation receipt in this Project.",
+          );
+        }
+        contracts.assertValid(
+          "suggested-action-invocation-view",
+          "1.0.0",
+          view,
+        );
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "SUGGESTED_ACTION_INVOCATION_QUERY_INVALID"
+            : "SUGGESTED_ACTION_INVOCATION_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The SuggestedAction invocation view is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

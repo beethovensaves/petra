@@ -21,7 +21,11 @@ non-persisted command-plan composition, and separately authorized exact
 compensation execution with retained-prefix recovery through event 1.3 also
 passed; the first server-owned read-only SuggestedAction preview and its frozen
 Brief **Next steps** integration also passed without client-side readiness,
-priority, capability, cost, or authority calculation;
+priority, capability, cost, or authority calculation; one exact authenticated
+SuggestedAction can now start bounded grounded-synthesis Work and expose its
+result, Work revisions, and current recovery posture through existing runtime
+authority, and its frozen direct and conversational presentations now preserve
+that authority without client-side calculation;
 broader neutral runtime work remains open; transactional authorization
 and canonical Project-command CapabilityGrant authority passed
 Date: 2026-09-11
@@ -35,6 +39,7 @@ History compensation-preview implementation: `37ffc38`
 History compensation-plan implementation: `718f641`
 History compensation-execution implementation: `0e6688e`
 SuggestedAction preview implementation: `840a036`
+SuggestedAction invocation implementation: `01c8b47`
 Frozen design baseline: `655d094`
 Design handoff reviewed: `5c629ea`
 Neutral reference checkpoint reviewed: `26b03ee`
@@ -104,6 +109,19 @@ transaction. Restore is rejected until the active replacement is retracted.
 Separate authenticated create/retract routes and a typed workbench client now
 reach the same authority without accepting request-carried identity or changing
 the frozen presentation.
+`petra.suggested-action-view@1.1.0` now adds one exact Work-starting
+grounded-synthesis action beside the unchanged 1.0 read-only action. Its
+server-owned readiness binds the current ProjectDefinition, Objective,
+inquiry-result link, GroundedResponse, snapshot, context and evidence packets,
+fixed prompt, execution limits, and one active `InvokeSuggestedAction` grant.
+The authenticated command resolves its Actor and grant on the server, stores an
+immutable idempotent invocation receipt, and converges direct and conversational
+callers on the existing grounded-synthesis interaction. That path registers the
+exact inputs on the deterministic WorkUnit, preserves InteractionRun replay and
+explicit Work cancellation, and composes result, Work-revision History,
+destinations, and current recovery without a second runtime ledger. The
+renderer-neutral typed client is ready for frozen action-region mapping; no
+frozen presentation code changed in the backend slice.
 `petra.project-history-view@1.0.0` now composes the newest ten Project event-
 producing commands from the existing immutable command/event/receipt records
 and current recovery authority. The authenticated query and typed client expose
@@ -534,7 +552,7 @@ explicitly records later implementation progress:
 | --- | --- | --- | --- |
 | `UX-REQ-001` | **Partial, advanced after baseline.** `ProjectShellView` 1.1 now composes exact ProjectDefinition, focused Objective, authority position, projection freshness, attention, ProjectDefinition-supported place summaries, and optional exact semantic selection under one repeatable-read transaction. The client verifies a complete route identity/hash tuple and does not persist selection. Paired project-authored scientific and controlled-writing definitions prove neutral term resolution. | Add exact attention-Work references, complete Review posture, active Work context, selection/Details behavior across applicable frozen surfaces, and the remaining accessibility/recovery validation. | Wave 1 read foundation complete; Wave 2 and integration validation |
 | `UX-REQ-002` | **Partial.** EvidencePacket, GroundedResponse, Work, review, graph, and composition records can supply a scientific Brief. | Add a bounded `ProjectBriefView` composition with exact basis, comparison, attention, recent decisions, and SuggestedAction references. Resolve sections through ProjectDefinition roles; keep summaries read-only. | Wave 4 |
-| `UX-REQ-003` | **Partial, advanced after baseline.** `petra.suggested-action-view@1.0.0` now derives one stable revisioned action from an exact immutable inquiry-result link under authenticated repeatable-read Project authority. It binds the exact ProjectDefinition, Objective, snapshot, GroundedResponse, any declared producing Work, reason, scope, depth, result, capability posture, no-work consequence, and typed inquiry-detail read. Current definition/objective/reuse authority supplies server-owned ready or stale state; the action starts no Work and creates no second ledger. The frozen Brief **Next steps** region now uses that authenticated runtime read without fixture fallback, preserves the exact basis and readiness, fails closed for stale or non-singular selection, and invokes only the typed inquiry-detail read after exact cross-reference validation. | Add Work-starting action families, exact capability/grant/budget/tool/interrupt/cancellation readiness, invocation commands with idempotency and stale regeneration, durable Work/result/History/recovery bindings, and server-owned discovery/ordering for multiple actions. Direct and conversational invocation share the command. | Wave 3 read-only existing-result preview and frozen design mapping passed; Work-starting preview and invocation next |
+| `UX-REQ-003` | **Partial, advanced after baseline.** The unchanged `petra.suggested-action-view@1.0.0` derives a stable read-only inspection action from an exact inquiry-result link. Version 1.1 adds one exact bounded grounded-synthesis Work action with immutable ProjectDefinition, Objective, link, source result, snapshot, context/evidence packet, prompt, execution, resource, interrupt, cancellation, and result bindings. Current dependency and exact `InvokeSuggestedAction` grant authority supply server-owned ready, stale, or unavailable state. The authenticated invocation request carries no Actor, grant, Project, Work, interaction, or trace authority; the server stores an immutable idempotent command receipt, converges direct and conversational callers on one deterministic existing-runtime WorkUnit, and composes result, InteractionRun replay, Work-revision History, destinations, and current recovery without a second ledger. The frozen **Next steps** region preserves the 1.0 inspect action and maps the 1.1 preview and invocation into one shared direct/ conversational component. It passes the exact action ref through the typed client, retains an uncertain retry identity, accepts only a matching server regeneration, and presents supplied Work/result/History/recovery state without client authority, grant, readiness, priority, cost, reversibility, or recovery calculation. | Demonstrate the cumulative live clean-start invocation/result/History/recovery path without fixture fallback. The History route still needs to consume the exact supplied Work destination, and this action card does not add the separate `CancelWorkUnit` client control or InteractionRun replay transport. Add other action families only from accepted product authority. | Wave 3 backend exact Work action and invocation plus frozen mapping passed; cumulative live exit proof next |
 | `UX-REQ-004` | **Partial, adapted and advanced after baseline.** ProjectDefinition and Objective contracts, immutable PostgreSQL authority, current binding, terminology, supported places, and optional template-seed origin now exist without requiring a profile catalogue. Paired scientific and controlled-writing Projects are independently project-authored and pass the same shell, control, and client-mapping paths. | Add full extension, presentation, compatibility, component-resolution, impact-review, and migration behavior while preserving Project-specific definitions. | Wave 1 foundation complete; extensions in later waves |
 | `UX-REQ-005` | **Partial.** Artifact/Manifest, document, DraftArtifact, provenance, support assessment, and additive draft revision preserve exact scientific ancestry. | Add an explicit imported-lineage root and reviewed promotion command for existing documents or projects. Import never endorses extracted meaning or overwrites the source. | Wave 5 |
 | `UX-REQ-006` | **Partial, advanced after baseline.** `petra.project-thread@1.0.0`, V022, and `ProjectThreadAuthorityRepository` provide durable Project-owned thread identity, immutable completed turns, exact definition/input/context/snapshot/execution/Work/result/Artifact/authority bindings, contiguous revisions, retained branch origin and continuation mode, and hash-only prompt limitations where legacy input bytes do not exist. `petra.project-thread-view@1.0.0`, authenticated routes, and the frozen Petra workspace now expose bounded exact collection/detail reads without fixture transcript fallback. InteractionRun remains execution and delivery state rather than the product thread. | Add create/append/branch/archive/reopen commands, stale-snapshot preflight and execution, retained transcript bytes for new turns, compaction, proposal/decision and PresentationContext linkage, and archive reconstruction. | Wave 2 read integration passed; commands and richer retention remain |
@@ -662,6 +680,22 @@ family with exact target authority and an existing renderer-neutral route
 authority. Generic Undo, reversal of a reversal, and multi-step compensation
 remain later work. The conformance mapping adds no filter dimension, component,
 CSS rule, browser route, or second ledger.
+
+The first `SuggestedActionView` retains its exact read-only existing-result
+inspection action and now adds one exact bounded grounded-synthesis Work action.
+The authenticated `InvokeSuggestedAction` boundary resolves server-owned Actor and
+grant authority, rejects stale revisions with regeneration, persists one
+immutable idempotent command receipt, and drives the existing interaction and
+Work runtime. Exact input manifests, InteractionRun replay, explicit
+cancellation, GroundedResponse results, Work-revision History, semantic
+destinations, and current recovery assessments remain bound to their owning
+records rather than a second ledger. The shared frozen Brief and Petra mapping
+uses the renderer-neutral typed client, carries the same exact command from both
+presentation paths, retains the 1.0 inspect action, and maps supplied action,
+Work, result, History, reconnect, cancellation, and recovery states without
+client-side authority calculation. The cumulative live proof is the next safe
+paired increment. Generic undo and broader action/control families remain later
+work.
 
 Exit gate: one exact action can start bounded Work, preserve interruption state,
 return a result, and expose its history and eligible recovery without client-side

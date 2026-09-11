@@ -5,6 +5,8 @@ import type {
   PetraProjectShellView,
   PetraProjectThreadView,
   PetraProjectWorkView,
+  PetraSuggestedActionInvocationView,
+  PetraSuggestedActionViewV11,
 } from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
@@ -29,6 +31,26 @@ import {
 
 const render = (node: React.ReactNode): string =>
   renderToStaticMarkup(<MemoryRouter>{node}</MemoryRouter>);
+
+const suggestedWorkActionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-view-v1-1.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionViewV11;
+
+const suggestedActionInvocationView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-invocation-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionInvocationView;
 
 describe("reference Work and Petra packets", () => {
   const project = getReferenceProject("inlet-cycle");
@@ -132,6 +154,32 @@ describe("reference Work and Petra packets", () => {
     expect(markup).toContain("No prompt will be sent");
     expect(markup).toContain('aria-disabled="true"');
     expect(markup).toContain("only the Work input adapter can resolve it");
+  });
+
+  it("submits the exact same SuggestedAction command from Petra presentation", () => {
+    const markup = render(
+      <PetraSurface
+        project={project}
+        thread={thread}
+        suggestedWorkAction={suggestedWorkActionView}
+        suggestedActionInvocation={suggestedActionInvocationView}
+      />,
+    );
+
+    expect(markup).toContain("Continue this exact Project action");
+    expect(markup).toContain(
+      "This conversational presentation submits the same exact Petra invocation command as Brief",
+    );
+    expect(markup).toContain('data-presentation-path="conversational"');
+    expect(markup).toContain(
+      'data-contract-name="petra.suggested-action-invocation-request"',
+    );
+    expect(markup).toContain('data-command-name="InvokeSuggestedAction"');
+    expect(markup).toContain(
+      suggestedActionInvocationView.content.invocation.content.command_ref
+        .command_id,
+    );
+    expect(markup).toContain("Return to the same Brief action");
   });
 
   it("renders a live exact thread while disclosing unavailable message bytes", () => {

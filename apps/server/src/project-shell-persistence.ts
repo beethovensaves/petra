@@ -17,6 +17,7 @@ import {
   PostgresProjectThreadViewReader,
   PostgresProjectWorkViewReader,
   PostgresSuggestedActionViewReader,
+  PostgresSuggestedActionInvocationAuthorityRepository,
 } from "@petra/postgres";
 import { Neo4jAuthorityGraphStore } from "@petra/neo4j";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -40,6 +41,7 @@ import type {
   ProjectThreadViewReader,
   ProjectWorkViewReader,
   SuggestedActionViewReader,
+  SuggestedActionInvocationAuthorityRepository,
 } from "@petra/core";
 import { parsePetraId } from "@petra/core";
 
@@ -59,6 +61,7 @@ export interface ProjectShellPersistence {
   readonly threadViews: ProjectThreadViewReader;
   readonly inquiryViews: ProjectInquiryViewReader;
   readonly suggestedActionViews: SuggestedActionViewReader;
+  readonly suggestedActionInvocations: SuggestedActionInvocationAuthorityRepository;
   readonly commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
   readonly sourceLifecycleAuthority: ProjectSourceLifecycleAuthorityRepository;
   readonly sourceReplacementAuthority: ProjectSourceReplacementCommandAuthorityRepository;
@@ -208,11 +211,12 @@ export const createProjectShellPersistenceFromEnvironment = async (
     const schema = await pool.query<{ ready: boolean }>(
       `SELECT to_regclass('petra.capability_grants') IS NOT NULL
           AND to_regclass('petra.project_source_replacement_receipts') IS NOT NULL
+          AND to_regclass('petra.suggested_action_invocations') IS NOT NULL
           AS ready`,
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but V030 Project command authority is unavailable.",
+        "PostgreSQL is reachable, but V032 SuggestedAction command authority is unavailable.",
       );
     }
     const neo4jConfigured = [
@@ -255,7 +259,19 @@ export const createProjectShellPersistenceFromEnvironment = async (
         workViews: new PostgresProjectWorkViewReader(pool),
         threadViews: new PostgresProjectThreadViewReader(pool),
         inquiryViews: new PostgresProjectInquiryViewReader(pool),
-        suggestedActionViews: new PostgresSuggestedActionViewReader(pool),
+        suggestedActionViews: new PostgresSuggestedActionViewReader(
+          pool,
+          contracts,
+          configuredActorId === undefined
+            ? {}
+            : { authenticatedActorId: configuredActorId },
+        ),
+        suggestedActionInvocations:
+          new PostgresSuggestedActionInvocationAuthorityRepository(
+            pool,
+            new PostgresCapabilityGrantCommandAuthorizer(contracts),
+            contracts,
+          ),
         ...(configuredActorId === undefined || configuredActorId === ""
           ? {}
           : {
@@ -304,7 +320,19 @@ export const createProjectShellPersistenceFromEnvironment = async (
     workViews: new PostgresProjectWorkViewReader(pool),
     threadViews: new PostgresProjectThreadViewReader(pool),
     inquiryViews: new PostgresProjectInquiryViewReader(pool),
-    suggestedActionViews: new PostgresSuggestedActionViewReader(pool),
+    suggestedActionViews: new PostgresSuggestedActionViewReader(
+      pool,
+      contracts,
+      configuredActorId === undefined
+        ? {}
+        : { authenticatedActorId: configuredActorId },
+    ),
+    suggestedActionInvocations:
+      new PostgresSuggestedActionInvocationAuthorityRepository(
+        pool,
+        new PostgresCapabilityGrantCommandAuthorizer(contracts),
+        contracts,
+      ),
     ...(configuredActorId === undefined || configuredActorId === ""
       ? {}
       : {

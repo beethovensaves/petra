@@ -2,7 +2,9 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraProjectInquiryView,
+  PetraSuggestedActionInvocationView,
   PetraSuggestedActionView,
+  PetraSuggestedActionViewV11,
 } from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
@@ -20,6 +22,10 @@ import {
   SourceReaderSurface,
   SourcesSurface,
 } from "./ReferenceWorkbench.js";
+import {
+  SuggestedActionInvocationResult,
+  SuggestedWorkAction,
+} from "./SuggestedAction.js";
 
 const render = (node: React.ReactNode): string =>
   renderToStaticMarkup(<MemoryRouter>{node}</MemoryRouter>);
@@ -43,6 +49,31 @@ const inquiryDetailView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectInquiryView;
+
+const suggestedWorkActionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-view-v1-1.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionViewV11;
+
+const suggestedActionInvocationView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-invocation-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionInvocationView;
+
+const referenceWorkbenchCss = readFileSync(
+  new URL("./reference-workbench.css", import.meta.url),
+  "utf8",
+);
 
 describe("neutral Petra reference workbench", () => {
   const inletProject = getReferenceProject("inlet-cycle");
@@ -85,6 +116,7 @@ describe("neutral Petra reference workbench", () => {
     const markup = render(
       <SuggestedActionPreview
         actionView={suggestedActionView}
+        workActionView={suggestedWorkActionView}
         invokedInquiry={inquiryDetailView}
       />,
     );
@@ -115,6 +147,11 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain(
       "This GroundedResponse addresses the inquiry with no authority effect",
     );
+    expect(markup).toContain("Run exact grounded synthesis");
+    expect(markup).toContain("Work starts only after this exact command");
+    expect(markup).toContain("InvokeSuggestedAction");
+    expect(markup).toContain('data-presentation-path="direct"');
+    expect(markup).toContain('data-command-name="InvokeSuggestedAction"');
   });
 
   it("fails closed on a stale action and exposes server prerequisites", () => {
@@ -137,6 +174,221 @@ describe("neutral Petra reference workbench", () => {
     );
     expect(markup).toContain('aria-disabled="true"');
     expect(markup).not.toContain('data-operation="get_project_inquiry_detail"');
+  });
+
+  it("maps server-owned stale and unavailable Work readiness without a client substitute", () => {
+    const stale = structuredClone(suggestedWorkActionView);
+    stale.content.readiness = {
+      state: "stale",
+      reason_code: "source_result_invalidated",
+      reason: "The exact source result is no longer reusable.",
+      missing_prerequisites: [
+        "Regenerate the action from current Project authority.",
+      ],
+      regeneration: {
+        operation: "regenerate_suggested_action",
+        basis: "current_project_authority",
+      },
+    };
+    const unavailable = structuredClone(suggestedWorkActionView);
+    unavailable.content.readiness = {
+      state: "unavailable",
+      reason_code: "capability_grant_missing",
+      reason: "No active invocation grant is available.",
+      missing_prerequisites: [
+        "An administrator must register one exact Project grant.",
+      ],
+    };
+
+    const staleMarkup = render(
+      <SuggestedWorkAction
+        projectId={stale.project_id}
+        actionView={stale}
+        presentationPath="direct"
+      />,
+    );
+    const unavailableMarkup = render(
+      <SuggestedWorkAction
+        projectId={unavailable.project_id}
+        actionView={unavailable}
+        presentationPath="conversational"
+      />,
+    );
+
+    expect(staleMarkup).toContain(
+      "The exact source result is no longer reusable",
+    );
+    expect(staleMarkup).toContain(
+      "Regenerate the action from current Project authority",
+    );
+    expect(staleMarkup).toContain('aria-disabled="true"');
+    expect(unavailableMarkup).toContain(
+      "No active invocation grant is available",
+    );
+    expect(unavailableMarkup).toContain('data-state="unavailable"');
+    expect(unavailableMarkup).toContain(
+      'data-presentation-path="conversational"',
+    );
+    expect(unavailableMarkup).not.toContain(
+      "capability_grant_01K4C000000000000000000062",
+    );
+  });
+
+  it("preserves exact pending Work, destinations, reconnect, cancellation, and recovery assessments", () => {
+    const markup = render(
+      <SuggestedActionInvocationResult view={suggestedActionInvocationView} />,
+    );
+
+    expect(markup).toContain("Exact invocation");
+    expect(markup).toContain(
+      suggestedActionInvocationView.content.invocation.content.command_ref
+        .command_id,
+    );
+    expect(markup).toContain(
+      suggestedActionInvocationView.content.work.state ===
+        "pending_registration"
+        ? suggestedActionInvocationView.content.work.expected_work_unit_id
+        : "missing pending Work fixture",
+    );
+    expect(markup).toContain("Delivery abort cancels Work no");
+    expect(markup).toContain("exact interaction replay");
+    expect(markup).toContain('data-place-role="work"');
+    expect(markup).toContain('data-place-role="history"');
+    expect(markup).toContain('data-operation="retry_exact_start"');
+    expect(markup).toContain('data-operation="reconnect_delivery"');
+    expect(markup).toContain('data-operation="cancel_work"');
+    expect(markup).toContain('data-eligibility="eligible"');
+    expect(markup).toContain("Refresh exact state");
+    expect(markup).toContain('aria-live="polite"');
+    expect(markup).toContain(
+      'aria-labelledby="suggested-action-invocation-title"',
+    );
+    expect(markup).toContain("Invocation has no scientific authority effect");
+  });
+
+  it("maps terminal result and canonical Work revisions without inventing result bytes", () => {
+    const completed = structuredClone(suggestedActionInvocationView);
+    const workRef = {
+      work_unit_id: "work_unit_01K4C000000000000000000062",
+      revision: 3,
+      spec_hash:
+        "sha256:1616161616161616161616161616161616161616161616161616161616161616",
+      record_hash:
+        "sha256:1717171717171717171717171717171717171717171717171717171717171717",
+    };
+    completed.content.operation_state = "completed";
+    completed.content.work = {
+      state: "available",
+      work_unit_ref: workRef,
+      input_manifest_ref: {
+        record_id: "worker_input_manifest_01K4C000000000000000000062",
+        revision: 1,
+        content_hash:
+          "sha256:1818181818181818181818181818181818181818181818181818181818181818",
+        record_hash:
+          "sha256:1919191919191919191919191919191919191919191919191919191919191919",
+      },
+      execution_state: "completed",
+      terminal_outcome: "succeeded",
+    };
+    completed.content.result = {
+      state: "available",
+      result_ref:
+        suggestedWorkActionView.content.action.basis.source_result_ref,
+      authority_effect: "none",
+    };
+    completed.content.history.work_revisions = [
+      {
+        work_unit_ref: { ...workRef, revision: 1 },
+        state: "requested",
+        recorded_at: "2026-09-11T18:40:01.000Z",
+      },
+      {
+        work_unit_ref: workRef,
+        state: "completed",
+        terminal_outcome: "succeeded",
+        recorded_at: "2026-09-11T18:40:04.000Z",
+      },
+    ];
+
+    const markup = render(<SuggestedActionInvocationResult view={completed} />);
+
+    expect(markup).toContain("Completed");
+    expect(markup).toContain("Revision 1 · requested");
+    expect(markup).toContain("Revision 3 · completed");
+    expect(markup).toContain(
+      suggestedWorkActionView.content.action.basis.source_result_ref.record_id,
+    );
+    expect(markup).toContain("Authority effect none");
+    expect(markup).not.toContain(
+      "What does the selected study report, and what limits the claim?",
+    );
+  });
+
+  it("presents cancelled Work and its server-owned recovery posture as retained state", () => {
+    const cancelled = structuredClone(suggestedActionInvocationView);
+    cancelled.content.operation_state = "cancelled";
+    cancelled.content.work = {
+      state: "available",
+      work_unit_ref: {
+        work_unit_id: "work_unit_01K4C000000000000000000062",
+        revision: 2,
+        spec_hash:
+          "sha256:1616161616161616161616161616161616161616161616161616161616161616",
+        record_hash:
+          "sha256:1717171717171717171717171717171717171717171717171717171717171717",
+      },
+      input_manifest_ref: {
+        record_id: "worker_input_manifest_01K4C000000000000000000062",
+        revision: 1,
+        content_hash:
+          "sha256:1818181818181818181818181818181818181818181818181818181818181818",
+        record_hash:
+          "sha256:1919191919191919191919191919191919191919191919191919191919191919",
+      },
+      execution_state: "cancelled",
+      terminal_outcome: "cancelled",
+    };
+    cancelled.content.result = {
+      state: "unavailable",
+      reason: "Cancelled Work did not produce a durable GroundedResponse.",
+    };
+    cancelled.content.recovery.actions = cancelled.content.recovery.actions.map(
+      (recovery) =>
+        recovery.operation === "cancel_work"
+          ? {
+              ...recovery,
+              eligibility: "ineligible",
+              reason: "The Work is already cancelled.",
+            }
+          : recovery,
+    ) as typeof cancelled.content.recovery.actions;
+
+    const markup = render(<SuggestedActionInvocationResult view={cancelled} />);
+
+    expect(markup).toContain("Cancelled");
+    expect(markup).toContain(
+      "Cancelled Work did not produce a durable GroundedResponse",
+    );
+    expect(markup).toContain("The Work is already cancelled");
+    expect(markup).toContain('data-operation="cancel_work"');
+    expect(markup).toContain('data-eligibility="ineligible"');
+  });
+
+  it("reflows action facts, recovery, and controls at the frozen narrow breakpoint", () => {
+    expect(referenceWorkbenchCss).toContain("@media (max-width: 38rem)");
+    expect(referenceWorkbenchCss).toContain(
+      ".reference-suggested-action__invocation > dl",
+    );
+    expect(referenceWorkbenchCss).toContain(
+      ".reference-suggested-action__recovery",
+    );
+    expect(referenceWorkbenchCss).toContain(
+      ".reference-suggested-work-action > header",
+    );
+    expect(referenceWorkbenchCss).toContain(
+      ".reference-suggested-action__invocation > header",
+    );
   });
 
   it("separates source identity, extent, rights, and downstream use", () => {

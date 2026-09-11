@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/suggested-action-view/1.1.0/schema.json",
+  "title": "PetraSuggestedActionViewV110",
+  "description": "A Project-scoped SuggestedAction preview that preserves the 1.0 exact read action and adds one exact, bounded grounded-synthesis Work action. It starts no Work while read.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.suggested-action-view" },
+    "schema_version": { "const": "1.1.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/WorkPreviewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "SuggestedActionRef": {
+      "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/SuggestedActionRef"
+    },
+    "DefinitionRef": {
+      "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/DefinitionRef"
+    },
+    "ObjectiveRef": {
+      "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/ObjectiveRef"
+    },
+    "InquiryLinkRef": {
+      "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/InquiryLinkRef"
+    },
+    "TypedRecordRef": {
+      "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/TypedRecordRef"
+    },
+    "WorkUnitRef": {
+      "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/WorkUnitRef"
+    },
+    "AuthorityPosition": {
+      "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/AuthorityPosition"
+    },
+    "Objective": {
+      "$ref": "../../suggested-action-view/1.0.0/schema.json#/$defs/Objective"
+    },
+    "SnapshotRef": {
+      "$ref": "../../context-packet/1.0.0/schema.json#/$defs/SnapshotRef"
+    },
+    "PacketRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "content_hash"],
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "pattern": "^(context_packet|evidence_packet)_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "GrantRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability_grant_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "capability_grant_id": {
+          "type": "string",
+          "pattern": "^capability_grant_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "WorkBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "derivation",
+        "project_definition_ref",
+        "objective_ref",
+        "inquiry_result_link_ref",
+        "source_result_ref",
+        "snapshot_ref",
+        "context_packet_ref",
+        "evidence_packet_ref"
+      ],
+      "properties": {
+        "derivation": { "const": "exact_immutable_inquiry_result_link" },
+        "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+        "objective_ref": { "$ref": "#/$defs/ObjectiveRef" },
+        "inquiry_result_link_ref": { "$ref": "#/$defs/InquiryLinkRef" },
+        "source_result_ref": { "$ref": "#/$defs/TypedRecordRef" },
+        "snapshot_ref": { "$ref": "#/$defs/SnapshotRef" },
+        "context_packet_ref": { "$ref": "#/$defs/PacketRef" },
+        "evidence_packet_ref": { "$ref": "#/$defs/PacketRef" }
+      }
+    },
+    "WorkAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_kind",
+        "title",
+        "objective",
+        "reason",
+        "basis",
+        "scope",
+        "missing_information",
+        "response_depth",
+        "expected_result",
+        "resources",
+        "execution",
+        "capability",
+        "interrupt",
+        "cancellation",
+        "invocation"
+      ],
+      "properties": {
+        "action_kind": { "const": "run_grounded_synthesis" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "objective": { "$ref": "#/$defs/Objective" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "basis": { "$ref": "#/$defs/WorkBasis" },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scope_kind", "included", "excluded"],
+          "properties": {
+            "scope_kind": { "const": "exact_grounded_synthesis_rerun" },
+            "included": { "type": "string", "minLength": 1, "maxLength": 1000 },
+            "excluded": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+            }
+          }
+        },
+        "missing_information": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        },
+        "response_depth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed", "recommended", "adjustable"],
+          "properties": {
+            "allowed": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": { "const": "current_graph" }
+            },
+            "recommended": { "const": "current_graph" },
+            "adjustable": { "const": false }
+          }
+        },
+        "expected_result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "result_kind", "authority_effect", "reusable"],
+          "properties": {
+            "state": { "const": "new_work_result" },
+            "result_kind": { "const": "grounded_response" },
+            "authority_effect": { "const": "none" },
+            "reusable": { "const": true }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["estimate_state", "duration", "cost", "basis", "limits"],
+          "properties": {
+            "estimate_state": { "const": "bounded_limits" },
+            "duration": { "const": "unknown_with_hard_limit" },
+            "cost": { "const": "zero_monetary_cost_expected" },
+            "basis": { "const": "certified_grounded_synthesis_profile" },
+            "limits": {
+              "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/ResourceLimits"
+            }
+          }
+        },
+        "execution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "workflow_name",
+            "workflow_version",
+            "task_name",
+            "worker_name",
+            "validator",
+            "prompt",
+            "prompt_hash",
+            "network_policy"
+          ],
+          "properties": {
+            "workflow_name": { "const": "petra.synthesis.grounded" },
+            "workflow_version": { "const": "1.0.0" },
+            "task_name": { "const": "petra.synthesis.grounded" },
+            "worker_name": { "const": "petra.grounded_synthesis" },
+            "validator": { "const": "petra.grounded-synthesist-profile@1.1.0" },
+            "prompt": { "type": "string", "minLength": 1, "maxLength": 4000 },
+            "prompt_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "network_policy": { "const": "managed_provider_allowlist" }
+          }
+        },
+        "capability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["command_name", "approval"],
+          "properties": {
+            "command_name": { "const": "InvokeSuggestedAction" },
+            "approval": { "const": "not_required_after_exact_invocation" }
+          }
+        },
+        "interrupt": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["input_expectation", "delivery_abort", "reconnect"],
+          "properties": {
+            "input_expectation": { "const": "none" },
+            "delivery_abort": { "const": "does_not_cancel_work" },
+            "reconnect": { "const": "exact_interaction_replay" }
+          }
+        },
+        "cancellation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["policy", "command_name", "consequence"],
+          "properties": {
+            "policy": { "const": "cancellable" },
+            "command_name": { "const": "CancelWorkUnit" },
+            "consequence": {
+              "const": "explicit_command_cancels_work_and_preserves_recorded_history"
+            }
+          }
+        },
+        "invocation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "contract_name",
+            "contract_version",
+            "command_name",
+            "idempotency",
+            "path_convergence"
+          ],
+          "properties": {
+            "kind": { "const": "authenticated_command" },
+            "contract_name": {
+              "const": "petra.suggested-action-invocation-request"
+            },
+            "contract_version": { "const": "1.0.0" },
+            "command_name": { "const": "InvokeSuggestedAction" },
+            "idempotency": { "const": "exact_command_and_work_convergence" },
+            "path_convergence": {
+              "const": "direct_and_conversational_same_command"
+            }
+          }
+        }
+      }
+    },
+    "WorkReady": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reason_code",
+        "reason",
+        "missing_prerequisites",
+        "grant_ref"
+      ],
+      "properties": {
+        "state": { "const": "ready" },
+        "reason_code": { "const": "exact_grounded_work_authorized" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "missing_prerequisites": { "type": "array", "maxItems": 0 },
+        "grant_ref": { "$ref": "#/$defs/GrantRef" }
+      }
+    },
+    "WorkStale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reason_code",
+        "reason",
+        "missing_prerequisites",
+        "regeneration"
+      ],
+      "properties": {
+        "state": { "const": "stale" },
+        "reason_code": {
+          "enum": [
+            "project_definition_changed",
+            "objective_changed",
+            "objective_inactive",
+            "source_result_invalidated"
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "missing_prerequisites": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+        },
+        "regeneration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation", "basis"],
+          "properties": {
+            "operation": { "const": "regenerate_suggested_action" },
+            "basis": { "const": "current_project_authority" }
+          }
+        }
+      }
+    },
+    "WorkUnavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason_code", "reason", "missing_prerequisites"],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason_code": {
+          "enum": [
+            "authenticated_actor_unavailable",
+            "capability_grant_missing",
+            "capability_grant_ambiguous"
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "missing_prerequisites": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+        }
+      }
+    },
+    "WorkPreviewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "action_ref",
+        "action",
+        "readiness",
+        "operation",
+        "authority",
+        "limitations"
+      ],
+      "properties": {
+        "view_kind": { "const": "preview" },
+        "action_ref": { "$ref": "#/$defs/SuggestedActionRef" },
+        "action": { "$ref": "#/$defs/WorkAction" },
+        "readiness": {
+          "oneOf": [
+            { "$ref": "#/$defs/WorkReady" },
+            { "$ref": "#/$defs/WorkStale" },
+            { "$ref": "#/$defs/WorkUnavailable" }
+          ]
+        },
+        "operation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "work_start", "authority_change"],
+          "properties": {
+            "state": { "const": "command_ready" },
+            "work_start": { "const": "only_after_exact_invocation" },
+            "authority_change": { "const": "none" }
+          }
+        },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        }
+      }
+    }
+  }
+}

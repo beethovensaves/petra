@@ -10,6 +10,10 @@ export type {
   PetraCapabilityGrantV110,
 } from "./generated/capability-grant-v1-1.js";
 export type {
+  GrantContent as CapabilityGrantContentV120,
+  PetraCapabilityGrantV120,
+} from "./generated/capability-grant-v1-2.js";
+export type {
   GrantRef as CapabilityGrantRevocationGrantRef,
   HumanActorRef as CapabilityGrantRevokerRef,
   PetraCapabilityGrantRevocation,
@@ -94,6 +98,32 @@ export type {
   SuggestedActionRef,
   ViewContent as SuggestedActionViewContent,
 } from "./generated/suggested-action-view.js";
+export type {
+  AuthorityPosition as SuggestedActionAuthorityPositionV11,
+  GrantRef as SuggestedActionGrantRefV11,
+  PetraSuggestedActionViewV110 as PetraSuggestedActionViewV11,
+  WorkAction as SuggestedWorkAction,
+  WorkBasis as SuggestedWorkActionBasis,
+  WorkPreviewContent as SuggestedWorkActionViewContent,
+  WorkReady as SuggestedWorkActionReady,
+  WorkStale as SuggestedWorkActionStale,
+  WorkUnavailable as SuggestedWorkActionUnavailable,
+} from "./generated/suggested-action-view-v1-1.js";
+export type { PetraSuggestedActionInvocationRequest } from "./generated/suggested-action-invocation-request.js";
+export type {
+  CommandRef as SuggestedActionInvocationCommandRef,
+  ExactInputs as SuggestedActionInvocationExactInputs,
+  InteractionCorrelation as SuggestedActionInteractionCorrelation,
+  InvocationContent as SuggestedActionInvocationContent,
+  PetraSuggestedActionInvocation,
+} from "./generated/suggested-action-invocation.js";
+export type {
+  HistoryEntry as SuggestedActionInvocationHistoryEntry,
+  InvocationRef as SuggestedActionInvocationRef,
+  PetraSuggestedActionInvocationView,
+  RecoveryAction as SuggestedActionInvocationRecoveryAction,
+  ViewContent as SuggestedActionInvocationViewContent,
+} from "./generated/suggested-action-invocation-view.js";
 export type {
   AttentionItem as ProjectShellAttentionItem,
   AuthorityPosition as ProjectShellAuthorityPosition,
@@ -959,6 +989,7 @@ import type { PetraChangeSet } from "./generated/change-set.js";
 import type { PetraChangeSetV110 } from "./generated/change-set-v1-1.js";
 import type { PetraCapabilityGrant } from "./generated/capability-grant.js";
 import type { PetraCapabilityGrantV110 } from "./generated/capability-grant-v1-1.js";
+import type { PetraCapabilityGrantV120 } from "./generated/capability-grant-v1-2.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
 import type { PetraDomainEvent } from "./generated/domain-event.js";
@@ -974,7 +1005,7 @@ import type {
 
 export type PetraChangeSetRecord = PetraChangeSet | PetraChangeSetV110;
 export type PetraCapabilityGrantRecord =
-  PetraCapabilityGrant | PetraCapabilityGrantV110;
+  PetraCapabilityGrant | PetraCapabilityGrantV110 | PetraCapabilityGrantV120;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =

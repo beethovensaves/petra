@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type {
   PetraProjectInquiryView,
   PetraSuggestedActionView,
+  PetraSuggestedActionViewV11,
 } from "@petra/contracts";
 import {
   Link,
@@ -21,6 +22,7 @@ import {
   getReferenceReview,
 } from "./fixtures.js";
 import type { ProjectBriefData } from "./project-data.js";
+import { SuggestedWorkAction } from "./SuggestedAction.js";
 import type {
   EngineState,
   ProjectPlace,
@@ -414,9 +416,11 @@ const SuggestedActionStateLabel = ({
 
 export const SuggestedActionPreview = ({
   actionView,
+  workActionView,
   invokedInquiry,
 }: {
   actionView: PetraSuggestedActionView;
+  workActionView?: PetraSuggestedActionViewV11;
   invokedInquiry?: PetraProjectInquiryView;
 }): React.JSX.Element => {
   const {
@@ -733,6 +737,13 @@ export const SuggestedActionPreview = ({
           </article>
         )}
       </article>
+      {workActionView === undefined ? null : (
+        <SuggestedWorkAction
+          projectId={actionView.project_id}
+          actionView={workActionView}
+          presentationPath="direct"
+        />
+      )}
     </section>
   );
 };
@@ -740,10 +751,12 @@ export const SuggestedActionPreview = ({
 export const BriefSurface = ({
   project,
   suggestedAction,
+  suggestedWorkAction,
   invokedInquiry,
 }: {
   project: ProjectRecord;
   suggestedAction?: PetraSuggestedActionView;
+  suggestedWorkAction?: PetraSuggestedActionViewV11;
   invokedInquiry?: PetraProjectInquiryView;
 }) => {
   const profileTool = getProjectProfileTool(project.id);
@@ -895,6 +908,9 @@ export const BriefSurface = ({
       {suggestedAction === undefined ? null : (
         <SuggestedActionPreview
           actionView={suggestedAction}
+          {...(suggestedWorkAction === undefined
+            ? {}
+            : { workActionView: suggestedWorkAction })}
           {...(invokedInquiry === undefined ? {} : { invokedInquiry })}
         />
       )}

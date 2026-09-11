@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.50.0",
+  "fixture_manifest_version": "1.55.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -17,6 +17,11 @@
       "schema": "capability-grant",
       "version": "1.1.0",
       "path": "fixtures/accepted/capability-grant-v1-1.json"
+    },
+    {
+      "schema": "capability-grant",
+      "version": "1.2.0",
+      "path": "fixtures/accepted/capability-grant-v1-2.json"
     },
     {
       "schema": "capability-grant-revocation",
@@ -73,6 +78,23 @@
     {
       "schema": "suggested-action-view",
       "path": "fixtures/accepted/suggested-action-view.json"
+    },
+    {
+      "schema": "suggested-action-view",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/suggested-action-view-v1-1.json"
+    },
+    {
+      "schema": "suggested-action-invocation-request",
+      "path": "fixtures/accepted/suggested-action-invocation-request.json"
+    },
+    {
+      "schema": "suggested-action-invocation",
+      "path": "fixtures/accepted/suggested-action-invocation.json"
+    },
+    {
+      "schema": "suggested-action-invocation-view",
+      "path": "fixtures/accepted/suggested-action-invocation-view.json"
     },
     {
       "schema": "project-shell-view",

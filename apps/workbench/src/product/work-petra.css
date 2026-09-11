@@ -747,6 +747,25 @@
   border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
 }
 
+.petra-suggested-action {
+  margin-top: var(--petra-space-5);
+  overflow: hidden;
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.petra-suggested-action > header {
+  padding: var(--petra-space-4) var(--petra-space-5);
+  border-bottom: var(--petra-rule-thin) solid var(--petra-border-default);
+  background: var(--petra-surface-inset);
+}
+
+.petra-suggested-action > header > :last-child {
+  margin-bottom: 0;
+  color: var(--petra-text-secondary);
+}
+
 @media (max-width: 68rem) {
   .inquiry-branches__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -822,7 +841,8 @@
   .petra-thread__context,
   .petra-messages,
   .petra-composer,
-  .petra-task-context {
+  .petra-task-context,
+  .petra-suggested-action > header {
     padding: var(--petra-space-4);
   }
 
