@@ -4,14 +4,15 @@ Status: bounded Recent changes, exact event-selected causal episodes,
 snapshot-stable filtered retained Project-event traversal, and bounded direct
 dependency impact plus registered exact semantic-target adapters through
 ProjectSource and replacement authority plus three exact record-bound Work,
-output-manifest, and interaction-replay groups plus exact read-only ChangeSet
-recovery assessment, revision-bound compensation preview, confirmed
+output-manifest, and interaction-replay groups with the exact current-Work
+destination state plus exact read-only ChangeSet recovery assessment, revision-bound
+compensation preview, confirmed
 non-persisted command-plan composition, and separately authorized exact
 compensation execution with partial-outcome recovery passed; frozen History
 conformance mapping recorded; frontend binding remains open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `96acc5d`
+Implementation baseline: `161235a`
 Integration handoff:
 [UX-to-implementation requirements handoff](UX-BACKEND-HANDOFF.md)
 
@@ -313,6 +314,79 @@ narrow screens, identities and hashes wrap while each WorkUnit,
 WorkerInputManifest, output/replay, and InteractionRun chain stays together;
 static identities add no inactive keyboard stops or horizontal scrolling.
 
+## Exact operational destination conformance
+
+Backend commit `161235a` advances the existing exact-event impact response to
+`petra.project-history-impact-view@1.4.0`. It preserves every 1.3 target,
+operational group, identity, binding chain, posture, relation, order, count,
+coverage value, unknown, and observed-effect, transitive-closure, and
+cross-family-order omission. The only additive member is one exact
+renderer-neutral `destination` state on every existing operational reference.
+It changes no group membership or total and introduces no URL.
+
+The existing **Episode members** row for `work_input_binding` uses its
+already-visible WorkUnit identity as the single native link only when the
+containing current `petra.work-unit` reference has `destination.state` set to
+`available`. The client requires all of these exact bindings before exposing
+the link:
+
+- `place_role: work` and `task_intent: inspect`;
+- destination `object_ref.semantic_key: petra.work-unit`, with object ID,
+  revision, and record hash equal to the containing reference and its
+  `work_unit_ref`;
+- route authority `petra.project-work-view@1.0.0`, `view_kind: detail`, and
+  `authority_source: current_project_definition_and_project_work_view`; and
+- the same-snapshot current `project_definition_ref`, preserving exact
+  ProjectDefinition ID, revision, content hash, and definition family.
+
+That ProjectDefinition authority proves Work support at the impact snapshot.
+The client does not recompute `supported_places`, infer support from the
+definition family, construct a URL from the semantic key, or interpret a
+historical ProjectDefinition. The existing Work-detail route adapter consumes
+the renderer-neutral authority without adding a browser route or control.
+
+A current WorkUnit with `destination.state: unavailable` remains static text
+and shows `project_work_route_authority_unavailable`: **The current
+ProjectDefinition does not authorize the exact Project Work detail
+destination.** WorkerOutputManifest always remains static text with
+`worker_output_manifest_route_not_registered`: **No exact Project-owned
+WorkerOutputManifest destination is registered.** Its nested Work binding is
+not a substitute link. InteractionReplayRecord and its InteractionRun/Work
+chain remain static text with
+`interaction_replay_record_route_not_registered`: **No exact Project-owned
+InteractionReplayRecord destination is registered; replay is not a
+ProjectThread binding.** Replay does not redirect to Petra, ProjectThread,
+InteractionRun, or owning Work.
+
+An available non-current Work destination, a Work object-ref mismatch, a
+malformed route or definition authority, or any available output/replay
+destination fails the complete impact portion closed. The existing episode
+stays usable and reports dependency impact unavailable. Version 1.4 retains the
+six operational `unknowns` and all nine 1.3 content omissions, including
+`operational_dependent_effect_not_inferred`,
+`transitive_dependency_closure_not_composed`,
+`historical_project_definition_not_interpreted`, and
+`cross_family_total_order_not_asserted`. Its single added omission is
+`unregistered_operational_destination_not_inferred`. No omission grants a
+client fallback.
+
+An available Work identity is the only kind of new tab stop. Its accessible name
+includes **Inspect Work**, the exact fallback WorkUnit ID, and current-revision
+meaning. Every unavailable reason is programmatically associated with its
+static identity and remains visible in narrow layouts, forced colors, and high
+zoom. Loading exposes no partly validated link and does not move focus. After
+activation, the existing Work detail heading receives focus only after its read
+succeeds; its existing unavailable state receives focus if the supplied exact
+current Work identity no longer resolves.
+
+The selected History event, invoking Work link, Recent/Full History scope,
+filters, scroll position, and permitted incoming origin remain client-local.
+Browser Back and the existing return behavior restore that context when it is
+still available. Version 1.4 supplies no origin, return, focus, scroll, or
+browser-history state and does not alter graph-navigation history. No component,
+CSS rule, browser route, filter, recovery decision, undo, or compensation
+behavior changes.
+
 ## Frozen full-History conformance
 
 The closed design already assigns **Scope/filter** as the first ordered region
@@ -425,7 +499,7 @@ truncated target or group coverage is stated in text and does not create a
 continuation control.
 
 The frozen route remains fixture-backed and has no loaders or adapters for the
-implemented Recent, episode, retained, 1.3 impact, or recovery-assessment
+implemented Recent, episode, retained, 1.4 impact, or recovery-assessment
 clients. This is an integration gap rather than a design gap. The retained
 filter mapping, impact detail mapping, and recovery assessment use separate
 frozen regions and do not change each other's authority. Graph
@@ -769,6 +843,13 @@ their registered posture and relation; replay must also retain the exact
 InteractionRun authority. The client derives no effect, destination, transitive
 relationship, or recovery state from these references.
 
+The 1.4 typed client additionally requires exactly one valid destination union
+on every operational reference. It permits `available` only for the containing
+current WorkUnit and verifies its exact object, route-authority, and
+ProjectDefinition bindings. It requires the fixed unavailable reason for a
+Work destination without current definition authority and rejects any available
+WorkerOutputManifest or InteractionReplayRecord destination.
+
 The PostgreSQL reader fails closed when it cannot reproduce:
 
 - an event record hash from its canonical payload;
@@ -798,6 +879,9 @@ The PostgreSQL reader fails closed when it cannot reproduce:
   WorkerInputManifest, WorkUnit, output manifest, InteractionRun, replay record,
   content hash where applicable, record hash, or registered relation identity;
   or
+- the current ProjectDefinition payload/content/record hashes and Work-place
+  support used to authorize a Work destination, or the exact destination object
+  and route-authority binding; or
 - a recovery promotion ChangeSet, applied Approval, current Claim/Assertion
   head, active command grant, or retained compensation ChangeSet/Approval/event
   exact Project, revision, content, record, and causal binding; or
@@ -813,7 +897,7 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2/1.3, and ChangeSet
+retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2/1.3/1.4, and ChangeSet
 recovery-assessment and compensation-preview responses. Accepted plan-request
 and plan-view fixtures cover explicit confirmation and non-persistence.
 Accepted execution-request and execution-view fixtures cover separate command
@@ -823,15 +907,17 @@ unsafe offset or query-unbound cursor reuse, a dependency read that claims a
 reversibility decision, and an unregistered semantic target that fabricates a
 registered adapter group, plus an invalid response that collapses retained
 replacement lineage and effective head state into one unsupported authority or
-claims a global ordering scope for an operational group, claims that a recovery
-assessment composed a compensation preview, or turns a read-only preview into a
-created ChangeSet, recorded Approval, composed command, or execution. An
+claims a global ordering scope for an operational group. The 1.4 rejected
+fixture fabricates an available replay-to-ProjectThread destination. Further
+cases claim that a recovery assessment composed a compensation preview, or turn
+a read-only preview into a created ChangeSet, recorded Approval, composed
+command, or execution. An
 unconfirmed plan request and a plan response that claims
 execution are also rejected. An unconfirmed execution request and an execution
 response that claims three-command atomicity are rejected.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
-suite pass. The complete gate includes 839 always-on TypeScript tests, 25 Python
+suite pass. The complete gate includes 842 always-on TypeScript tests, 25 Python
 tests, seven expected service-dependent skips, and 109 PostgreSQL cases after a
 clean V001-through-V030 migration. The database proof exercises all seven
 History reads/compositions plus the execution command over domain-event versions
@@ -869,14 +955,23 @@ InteractionReplayRecord authorities and validates every selected target,
 WorkerInputManifest, WorkUnit, output, InteractionRun, replay, content-hash, and
 record-hash link under the same repeatable-read snapshot.
 
+The 1.4 proof validates the current ProjectDefinition before returning a Work
+destination bound to the exact current WorkUnit revision and record hash and
+the existing Project Work detail authority. Advancing the definition to a
+revision without Work support changes only that Work destination to the exact
+unavailable state. Output and replay remain unavailable with separate reasons,
+and contract, typed-client, and PostgreSQL checks reject a fabricated
+replay-to-ProjectThread destination.
+
 ## Next safe slice
 
-The next safe History boundary is a backend contract for renderer-neutral
-destinations for registered operational references, only where an existing
-exact Project-owned route authority can be named. It must preserve the exact
-Work/output/replay revision and return behavior. An InteractionReplayRecord
-cannot become a ProjectThread destination without an explicit retained binding.
-This report identifies that boundary only. Filters, compensation changes, an
-authoritative origin filter, generic Undo, reversal of a reversal, multiple or
-multi-step compensation, historical ProjectDefinition interpretation, event
-rewriting, and new frozen interface elements remain excluded.
+The next safe History boundary is an authorized renderer-neutral Actor and
+target option catalogue for the already-frozen Full History filter fields. It
+must preserve exact IDs, permitted display descriptors, Project/snapshot/query
+binding, and counts after authorization. It must retain the explicit absence of
+an authoritative origin classification and add no filter dimension, browser
+route, or client authority. Output and replay destinations remain unavailable
+until exact Project-owned route authority exists. Compensation changes, generic
+Undo, reversal of a reversal, multiple or multi-step compensation, historical
+ProjectDefinition interpretation, event rewriting, and new frozen interface
+elements remain excluded.
