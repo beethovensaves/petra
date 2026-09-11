@@ -18,6 +18,7 @@ import {
 import type {
   PetraProjectHistoryCompensationExecutionRequest,
   PetraProjectHistoryCompensationPlanRequest,
+  PetraProjectHistoryRetainedContinuationFailure,
   ProjectHistoryRetainedCollectionFiltersV12,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -26,6 +27,7 @@ import {
   PetraInteractionRuntime,
   ProjectHistoryCompensationExecutionUnavailableError,
   ProjectHistoryCompensationPlanUnavailableError,
+  ProjectHistoryRetainedContinuationError,
   ProjectHistoryRecoveryPreviewUnavailableError,
   ProjectHistoryViewRequestError,
   ProjectSourceLifecycleAuthorityError,
@@ -106,6 +108,8 @@ const PROJECT_SOURCE_LIFECYCLE_RECEIPT_ID_PATTERN =
 const COMMAND_ID_PATTERN = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const EVENT_ID_PATTERN = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const HISTORY_CURSOR_PATTERN = /^phc2\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/u;
+const HISTORY_CONTINUATION_FAILURE_MESSAGE =
+  "This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.";
 const HISTORY_ACTOR_ID_PATTERN = /^actor_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const HISTORY_TIMESTAMP_PATTERN =
   /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/u;
@@ -482,6 +486,32 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   const maxBodyBytes = options.maxBodyBytes ?? 64 * 1024;
   const activeStreams = new Set<AbortController>();
   const contracts = new PetraContractRegistry();
+  const retainedHistoryContinuationFailure = (
+    context: Context<{ Variables: Variables }>,
+    error: ProjectHistoryRetainedContinuationError,
+  ): Response => {
+    const failure: PetraProjectHistoryRetainedContinuationFailure = {
+      schema_name: "petra.project-history-retained-continuation-failure",
+      schema_version: "1.0.0",
+      error: {
+        code: "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
+        subcode: error.subcode,
+        message: HISTORY_CONTINUATION_FAILURE_MESSAGE,
+        restart: {
+          cursor_disposition: "discard_without_client_decoding",
+          request_kind: "cursorless_same_project_limit_and_filters",
+        },
+      },
+      requestId: context.get("requestId"),
+      traceId: context.get("traceId"),
+    };
+    contracts.assertValid(
+      "project-history-retained-continuation-failure",
+      "1.0.0",
+      failure,
+    );
+    return context.json(failure, 422);
+  };
   const assertProjectShellView = (
     view: Awaited<
       ReturnType<
@@ -1147,7 +1177,8 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           cursor !== undefined &&
           (cursor.length > 1024 || !HISTORY_CURSOR_PATTERN.test(cursor))
         ) {
-          throw new InteractionInputError(
+          throw new ProjectHistoryRetainedContinuationError(
+            "CURSOR_INVALID",
             "Retained Project History cursor is invalid.",
           );
         }
@@ -1326,6 +1357,9 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         }
         return context.json(view);
       } catch (error) {
+        if (error instanceof ProjectHistoryRetainedContinuationError) {
+          return retainedHistoryContinuationFailure(context, error);
+        }
         const invalid =
           error instanceof InteractionInputError ||
           error instanceof ProjectHistoryViewRequestError;

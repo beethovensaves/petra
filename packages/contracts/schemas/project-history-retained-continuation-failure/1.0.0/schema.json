@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-retained-continuation-failure/1.0.0/schema.json",
+  "title": "PetraProjectHistoryRetainedContinuationFailure",
+  "description": "A stable, non-disclosing failure response for an opaque retained Project History continuation. The subcode distinguishes an invalid cursor, a Project/query/limit binding mismatch, or an unavailable retained snapshot without exposing cursor contents or the mismatched binding. Every result fails closed and requires a cursorless restart with the same active query.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "error",
+    "requestId",
+    "traceId"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-history-retained-continuation-failure"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "error": { "$ref": "#/$defs/ContinuationFailure" },
+    "requestId": { "$ref": "#/$defs/RequestIdentity" },
+    "traceId": { "$ref": "#/$defs/RequestIdentity" }
+  },
+  "$defs": {
+    "RequestIdentity": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "ContinuationFailureSubcode": {
+      "enum": [
+        "CURSOR_INVALID",
+        "CURSOR_BINDING_MISMATCH",
+        "SNAPSHOT_UNAVAILABLE"
+      ]
+    },
+    "Restart": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cursor_disposition", "request_kind"],
+      "properties": {
+        "cursor_disposition": { "const": "discard_without_client_decoding" },
+        "request_kind": {
+          "const": "cursorless_same_project_limit_and_filters"
+        }
+      }
+    },
+    "ContinuationFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "subcode", "message", "restart"],
+      "properties": {
+        "code": { "const": "PROJECT_HISTORY_RETAINED_QUERY_INVALID" },
+        "subcode": { "$ref": "#/$defs/ContinuationFailureSubcode" },
+        "message": {
+          "const": "This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters."
+        },
+        "restart": { "$ref": "#/$defs/Restart" }
+      }
+    }
+  }
+}

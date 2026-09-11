@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.67.0",
+  "registry_version": "1.68.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -208,6 +208,17 @@
       "canonical_sha256": "sha256:bc1265b7c31aaee501fc45ce72fe67ca6e1cea2d6d1b13bd2c4fe12160e82e70",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-history-retained-view-v1-2.ts"
+    },
+    {
+      "name": "project-history-retained-continuation-failure",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-retained-continuation-failure/1.0.0/schema.json",
+      "path": "schemas/project-history-retained-continuation-failure/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-stable-non-disclosing-retained-continuation-failure-subcodes",
+      "canonical_sha256": "sha256:0f3156e8e2175028ec39fa093c704f20240c0bf5b34f8f34fd067c04694ff1da",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-retained-continuation-failure.ts"
     },
     {
       "name": "project-history-impact-view",

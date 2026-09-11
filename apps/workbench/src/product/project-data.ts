@@ -11,6 +11,7 @@ import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
+  PetraProjectHistoryRetainedContinuationFailure,
   PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -32,6 +33,8 @@ import type {
   ProjectSourceReplacementExcludedSourceRef,
   ProjectSourceReplacementExclusionReceiptRef,
   ProjectHistoryRetainedCollectionFiltersV12,
+  ProjectHistoryRetainedContinuationFailureSubcode,
+  ProjectHistoryRetainedContinuationRestart,
   ProjectWorkDetailContent,
   ProjectWorkTaskSummary,
 } from "@petra/contracts";
@@ -53,14 +56,31 @@ import type {
 
 const DEVELOPMENT_TOKEN = "petra-local-development";
 const TOKEN_STORAGE_KEY = "petra.auth.token";
+const API_REQUEST_ID = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/u;
+const HISTORY_CONTINUATION_FAILURE_MESSAGE =
+  "This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.";
 
-class ProjectDataError extends Error {
+export class ProjectDataError extends Error {
   readonly status: number;
+  readonly code: "PROJECT_HISTORY_RETAINED_QUERY_INVALID" | undefined;
+  readonly subcode:
+    ProjectHistoryRetainedContinuationFailureSubcode | undefined;
+  readonly restart: ProjectHistoryRetainedContinuationRestart | undefined;
 
-  constructor(message: string, status: number) {
+  constructor(
+    message: string,
+    status: number,
+    continuationFailure?: PetraProjectHistoryRetainedContinuationFailure,
+  ) {
     super(message);
     this.name = "ProjectDataError";
     this.status = status;
+    this.code = continuationFailure?.error.code;
+    this.subcode = continuationFailure?.error.subcode;
+    this.restart =
+      continuationFailure === undefined
+        ? undefined
+        : { ...continuationFailure.error.restart };
   }
 }
 
@@ -71,6 +91,59 @@ const apiToken = (): string => {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+const hasExactKeys = (
+  value: Record<string, unknown>,
+  expected: readonly string[],
+): boolean => {
+  const keys = Object.keys(value).sort();
+  const sortedExpected = [...expected].sort();
+  return (
+    keys.length === sortedExpected.length &&
+    keys.every((key, index) => key === sortedExpected[index])
+  );
+};
+
+const retainedHistoryContinuationFailure = (
+  value: unknown,
+): PetraProjectHistoryRetainedContinuationFailure | undefined => {
+  if (
+    !isRecord(value) ||
+    !hasExactKeys(value, [
+      "schema_name",
+      "schema_version",
+      "error",
+      "requestId",
+      "traceId",
+    ]) ||
+    value.schema_name !==
+      "petra.project-history-retained-continuation-failure" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.requestId !== "string" ||
+    !API_REQUEST_ID.test(value.requestId) ||
+    typeof value.traceId !== "string" ||
+    !API_REQUEST_ID.test(value.traceId) ||
+    !isRecord(value.error) ||
+    !hasExactKeys(value.error, ["code", "subcode", "message", "restart"]) ||
+    value.error.code !== "PROJECT_HISTORY_RETAINED_QUERY_INVALID" ||
+    (value.error.subcode !== "CURSOR_INVALID" &&
+      value.error.subcode !== "CURSOR_BINDING_MISMATCH" &&
+      value.error.subcode !== "SNAPSHOT_UNAVAILABLE") ||
+    value.error.message !== HISTORY_CONTINUATION_FAILURE_MESSAGE ||
+    !isRecord(value.error.restart) ||
+    !hasExactKeys(value.error.restart, [
+      "cursor_disposition",
+      "request_kind",
+    ]) ||
+    value.error.restart.cursor_disposition !==
+      "discard_without_client_decoding" ||
+    value.error.restart.request_kind !==
+      "cursorless_same_project_limit_and_filters"
+  ) {
+    return undefined;
+  }
+  return value as unknown as PetraProjectHistoryRetainedContinuationFailure;
+};
 
 const toUnknownArray = (value: unknown): unknown[] =>
   Array.isArray(value) ? value.map((entry: unknown): unknown => entry) : [];
@@ -1211,9 +1284,20 @@ const requestJson = async (
   });
   if (!response.ok) {
     let message = `Petra could not read this Project (${response.status}).`;
+    let continuationFailure:
+      PetraProjectHistoryRetainedContinuationFailure | undefined;
     try {
       const body = (await response.json()) as unknown;
-      if (
+      continuationFailure = retainedHistoryContinuationFailure(body);
+      if (continuationFailure !== undefined) {
+        message = continuationFailure.error.message;
+      } else if (
+        isRecord(body) &&
+        body.schema_name ===
+          "petra.project-history-retained-continuation-failure"
+      ) {
+        message = HISTORY_CONTINUATION_FAILURE_MESSAGE;
+      } else if (
         isRecord(body) &&
         isRecord(body.error) &&
         typeof body.error.message === "string"
@@ -1223,7 +1307,7 @@ const requestJson = async (
     } catch {
       // The status remains the authoritative error when no JSON body exists.
     }
-    throw new ProjectDataError(message, response.status);
+    throw new ProjectDataError(message, response.status, continuationFailure);
   }
   return response.json() as Promise<unknown>;
 };

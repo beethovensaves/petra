@@ -8,6 +8,7 @@ import type {
   PetraProjectHistoryRetainedViewV12,
   PetraProjectHistoryView,
   ProjectHistoryRetainedCollectionFiltersV12,
+  ProjectHistoryRetainedContinuationFailureSubcode,
 } from "@petra/contracts";
 
 export interface ProjectHistoryRetainedCollectionRequest {
@@ -22,6 +23,19 @@ export class ProjectHistoryViewRequestError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "ProjectHistoryViewRequestError";
+  }
+}
+
+export class ProjectHistoryRetainedContinuationError extends ProjectHistoryViewRequestError {
+  readonly subcode: ProjectHistoryRetainedContinuationFailureSubcode;
+
+  constructor(
+    subcode: ProjectHistoryRetainedContinuationFailureSubcode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ProjectHistoryRetainedContinuationError";
+    this.subcode = subcode;
   }
 }
 

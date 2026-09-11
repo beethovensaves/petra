@@ -37,6 +37,7 @@ import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   buildPreviewBoundCompensatingReversalCommandPlan,
   ProjectHistoryCompensationPlanUnavailableError,
+  ProjectHistoryRetainedContinuationError,
   ProjectHistoryRecoveryPreviewUnavailableError,
   ProjectHistoryViewRequestError,
   type ProjectHistoryRetainedCollectionRequest,
@@ -798,7 +799,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       request.cursor !== undefined &&
       (request.cursor.length > 1024 || !RETAINED_CURSOR.test(request.cursor))
     ) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "CURSOR_INVALID",
         "Retained Project History cursor is invalid.",
       );
     }
@@ -1443,7 +1445,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     const encodedPayload = match?.[1];
     const encodedSignature = match?.[2];
     if (encodedPayload === undefined || encodedSignature === undefined) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "CURSOR_INVALID",
         "Retained Project History cursor is invalid.",
       );
     }
@@ -1455,7 +1458,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       suppliedSignature.length !== expectedSignature.length ||
       !timingSafeEqual(suppliedSignature, expectedSignature)
     ) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "CURSOR_INVALID",
         "Retained Project History cursor integrity check failed.",
       );
     }
@@ -1466,7 +1470,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         Buffer.from(encodedPayload, "base64url").toString("utf8"),
       ) as unknown;
     } catch {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "CURSOR_INVALID",
         "Retained Project History cursor payload is invalid.",
       );
     }
@@ -1475,7 +1480,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       decoded === null ||
       Array.isArray(decoded)
     ) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "CURSOR_INVALID",
         "Retained Project History cursor payload is invalid.",
       );
     }
@@ -1510,7 +1516,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       !isPositiveSafeInteger(value.before_stream_revision) ||
       value.before_stream_revision > value.snapshot_stream_revision
     ) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "CURSOR_INVALID",
         "Retained Project History cursor payload is invalid.",
       );
     }
@@ -1525,17 +1532,20 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       before_stream_revision: value.before_stream_revision,
     };
     if (this.#encodeCursor(payload) !== cursor) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "CURSOR_INVALID",
         "Retained Project History cursor encoding is not canonical.",
       );
     }
     if (payload.project_id !== projectId) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "CURSOR_BINDING_MISMATCH",
         "Retained Project History cursor belongs to a different Project.",
       );
     }
     if (payload.query_identity_hash !== queryIdentityHash) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "CURSOR_BINDING_MISMATCH",
         "Retained Project History cursor belongs to a different normalized query.",
       );
     }
@@ -1594,7 +1604,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         currentAuthority.through_event_position ||
       cursor.snapshot_stream_revision > currentAuthority.through_stream_revision
     ) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "SNAPSHOT_UNAVAILABLE",
         "Retained Project History cursor references an unavailable authority snapshot.",
       );
     }
@@ -1612,7 +1623,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     );
     const row = result.rows[0];
     if (row === undefined) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "SNAPSHOT_UNAVAILABLE",
         "Retained Project History cursor does not resolve to its original Project snapshot.",
       );
     }
@@ -1624,7 +1636,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       headEventRef.record_hash !== cursor.snapshot_head_record_hash ||
       headEventRef.event_position > cursor.snapshot_event_position
     ) {
-      throw new ProjectHistoryViewRequestError(
+      throw new ProjectHistoryRetainedContinuationError(
+        "SNAPSHOT_UNAVAILABLE",
         "Retained Project History cursor does not resolve to its original Project snapshot.",
       );
     }

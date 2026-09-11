@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import type {
@@ -86,6 +86,18 @@ const sha256 = (bytes: Uint8Array): string =>
 const canonicalHash = (value: unknown): string =>
   sha256(new TextEncoder().encode(canonicalize(value)));
 
+const HISTORY_CURSOR_SECRET = "petra-postgres-history-cursor-test-secret";
+const signedHistoryCursor = (payload: unknown): string => {
+  const encodedPayload = Buffer.from(canonicalize(payload)).toString(
+    "base64url",
+  );
+  const key = createHash("sha256").update(HISTORY_CURSOR_SECRET).digest();
+  const signature = createHmac("sha256", key)
+    .update(encodedPayload)
+    .digest("base64url");
+  return `phc2.${encodedPayload}.${signature}`;
+};
+
 const expectChangeCode = async (
   operation: () => Promise<unknown>,
   code: string,
@@ -113,11 +125,14 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
-  const historyViews = new PostgresProjectHistoryViewReader(pool);
+  const historyViews = new PostgresProjectHistoryViewReader(pool, undefined, {
+    cursorSecret: HISTORY_CURSOR_SECRET,
+  });
   const authorizedHistoryViews = new PostgresProjectHistoryViewReader(
     pool,
     undefined,
     {
+      cursorSecret: HISTORY_CURSOR_SECRET,
       recoveryPrincipal: {
         actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
         actor_kind: "human",
@@ -628,6 +643,7 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     ).rejects.toEqual(
       expect.objectContaining({
         code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
+        subcode: "CURSOR_INVALID",
       }),
     );
     await expect(
@@ -638,6 +654,7 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     ).rejects.toEqual(
       expect.objectContaining({
         code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
+        subcode: "CURSOR_BINDING_MISMATCH",
       }),
     );
     await expect(
@@ -648,6 +665,7 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     ).rejects.toEqual(
       expect.objectContaining({
         code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
+        subcode: "CURSOR_BINDING_MISMATCH",
       }),
     );
     await expect(
@@ -659,6 +677,26 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     ).rejects.toEqual(
       expect.objectContaining({
         code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
+        subcode: "CURSOR_BINDING_MISMATCH",
+      }),
+    );
+    const encodedPayload = retainedCursor.split(".")[1];
+    if (encodedPayload === undefined) {
+      throw new Error("Expected an encoded retained History cursor payload.");
+    }
+    const unavailableSnapshotPayload = JSON.parse(
+      Buffer.from(encodedPayload, "base64url").toString("utf8"),
+    ) as Record<string, unknown>;
+    unavailableSnapshotPayload.snapshot_event_position = 102;
+    await expect(
+      historyViews.listRetainedProjectHistoryView(commands.submit.project_id, {
+        limit: 1,
+        cursor: signedHistoryCursor(unavailableSnapshotPayload),
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
+        subcode: "SNAPSHOT_UNAVAILABLE",
       }),
     );
     const applied = await repository.executeCommand(commands.apply);

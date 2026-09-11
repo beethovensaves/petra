@@ -11,6 +11,7 @@ import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
+  PetraProjectHistoryRetainedContinuationFailure,
   PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -40,6 +41,7 @@ import type {
 import {
   ProjectHistoryCompensationExecutionUnavailableError,
   ProjectHistoryCompensationPlanUnavailableError,
+  ProjectHistoryRetainedContinuationError,
   ProjectHistoryRecoveryPreviewUnavailableError,
 } from "@petra/core";
 import { describe, expect, it } from "vitest";
@@ -127,6 +129,16 @@ const historyRetainedFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryRetainedViewV12;
+
+const historyContinuationFailureFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-retained-continuation-failure.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRetainedContinuationFailure;
 
 const historyImpactFixture = JSON.parse(
   readFileSync(
@@ -934,12 +946,18 @@ describe("authorized Project shell query routes", () => {
       authorized(`${path}&cursor=offset%3A1`),
     );
     expect(oldOffset.status).toBe(422);
-    const oldOffsetBody = (await oldOffset.json()) as {
-      error: { code: string };
-    };
-    expect(oldOffsetBody.error.code).toBe(
-      "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
-    );
+    const oldOffsetBody =
+      (await oldOffset.json()) as PetraProjectHistoryRetainedContinuationFailure;
+    expect(oldOffsetBody).toMatchObject({
+      schema_name: "petra.project-history-retained-continuation-failure",
+      schema_version: "1.0.0",
+      error: {
+        code: "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
+        subcode: "CURSOR_INVALID",
+        message: historyContinuationFailureFixture.error.message,
+        restart: historyContinuationFailureFixture.error.restart,
+      },
+    });
 
     const unboundCursor = await petra.app.request(
       authorized(
@@ -954,6 +972,10 @@ describe("authorized Project shell query routes", () => {
       ),
     );
     expect(incompleteTarget.status).toBe(422);
+    const incompleteTargetBody = (await incompleteTarget.json()) as {
+      error: { subcode?: string };
+    };
+    expect(incompleteTargetBody.error.subcode).toBeUndefined();
     const reversedTime = await petra.app.request(
       authorized(
         `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?recorded_from=2026-09-11T00%3A00%3A00.000Z&recorded_through=2026-09-10T00%3A00%3A00.000Z`,
@@ -963,6 +985,54 @@ describe("authorized Project shell query routes", () => {
     expect(await petra.app.request(path)).toEqual(
       expect.objectContaining({ status: 401 }),
     );
+  });
+
+  it("returns stable non-disclosing retained History continuation subcodes", async () => {
+    const page = historyRetainedFixture.content.page;
+    if (!page.has_more) throw new Error("Expected a retained cursor fixture.");
+    const subcodes = [
+      "CURSOR_INVALID",
+      "CURSOR_BINDING_MISMATCH",
+      "SNAPSHOT_UNAVAILABLE",
+    ] as const;
+    for (const subcode of subcodes) {
+      const failingReader: ProjectHistoryViewReader = {
+        ...historyReader,
+        listRetainedProjectHistoryView: () =>
+          Promise.reject(
+            new ProjectHistoryRetainedContinuationError(
+              subcode,
+              `Internal continuation detail for ${subcode}`,
+            ),
+          ),
+      };
+      const petra = createPetraApp({
+        authToken: TOKEN,
+        projectHistoryViews: failingReader,
+      });
+      const response = await petra.app.request(
+        authorized(
+          `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?limit=1&cursor=${encodeURIComponent(page.next_cursor)}`,
+        ),
+      );
+      expect(response.status).toBe(422);
+      const body =
+        (await response.json()) as PetraProjectHistoryRetainedContinuationFailure;
+      expect(body).toMatchObject({
+        schema_name: "petra.project-history-retained-continuation-failure",
+        schema_version: "1.0.0",
+        error: {
+          code: "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
+          subcode,
+          message: historyContinuationFailureFixture.error.message,
+          restart: historyContinuationFailureFixture.error.restart,
+        },
+      });
+      expect(JSON.stringify(body)).not.toContain(
+        "Internal continuation detail",
+      );
+      expect(JSON.stringify(body)).not.toContain(page.next_cursor);
+    }
   });
 
   it("does not substitute another Project and preserves the API auth boundary", async () => {

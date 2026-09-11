@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.48.0",
+  "fixture_manifest_version": "1.49.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -100,6 +100,10 @@
       "schema": "project-history-retained-view",
       "version": "1.2.0",
       "path": "fixtures/accepted/project-history-retained-view-v1-2.json"
+    },
+    {
+      "schema": "project-history-retained-continuation-failure",
+      "path": "fixtures/accepted/project-history-retained-continuation-failure.json"
     },
     {
       "schema": "project-history-impact-view",
@@ -546,6 +550,10 @@
       "schema": "project-history-retained-view",
       "version": "1.2.0",
       "path": "fixtures/rejected/project-history-retained-view-v1-2-inferred-target-title.json"
+    },
+    {
+      "schema": "project-history-retained-continuation-failure",
+      "path": "fixtures/rejected/project-history-retained-continuation-failure-disclosing-binding.json"
     },
     {
       "schema": "project-history-impact-view",

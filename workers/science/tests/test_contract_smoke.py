@@ -1070,6 +1070,41 @@ class PetraProjectHistoryRetainedViewV120(PetraModel):
     read_at: str
 
 
+class ProjectHistoryRetainedContinuationRestart(PetraModel):
+    cursor_disposition: Literal["discard_without_client_decoding"]
+    request_kind: Literal["cursorless_same_project_limit_and_filters"]
+
+
+class ProjectHistoryRetainedContinuationFailureContent(PetraModel):
+    code: Literal["PROJECT_HISTORY_RETAINED_QUERY_INVALID"]
+    subcode: Literal[
+        "CURSOR_INVALID",
+        "CURSOR_BINDING_MISMATCH",
+        "SNAPSHOT_UNAVAILABLE",
+    ]
+    message: Literal[
+        "This Full History traversal can no longer continue from its verified "
+        "snapshot. Start again with the same filters."
+    ]
+    restart: ProjectHistoryRetainedContinuationRestart
+
+
+class PetraProjectHistoryRetainedContinuationFailure(PetraModel):
+    schema_name: Literal["petra.project-history-retained-continuation-failure"]
+    schema_version: Literal["1.0.0"]
+    error: ProjectHistoryRetainedContinuationFailureContent
+    requestId: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+    )
+    traceId: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+    )
+
+
 class ProjectHistoryImpactEventAnchor(PetraModel):
     command_ref: ProjectHistoryCommandRef
     event_ref: ProjectHistoryEventRef
@@ -9735,6 +9770,9 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-history-view": PetraProjectHistoryView,
     "project-history-episode-view": PetraProjectHistoryEpisodeView,
     "project-history-retained-view": PetraProjectHistoryRetainedView,
+    "project-history-retained-continuation-failure": (
+        PetraProjectHistoryRetainedContinuationFailure
+    ),
     "project-history-impact-view": PetraProjectHistoryImpactView,
     "project-history-recovery-assessment-view": (
         PetraProjectHistoryRecoveryAssessmentView

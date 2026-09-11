@@ -11,6 +11,7 @@ import type {
   PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
+  PetraProjectHistoryRetainedContinuationFailure,
   PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
@@ -218,6 +219,16 @@ const historyRetainedView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryRetainedViewV12;
+
+const historyContinuationFailure = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-retained-continuation-failure.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRetainedContinuationFailure;
 
 const historyImpactView = JSON.parse(
   readFileSync(
@@ -1122,6 +1133,63 @@ describe("Project shell workbench adapter", () => {
       }),
     ).rejects.toMatchObject({ status: 502 });
     expect(fetch).toHaveBeenCalledTimes(4);
+  });
+
+  it("preserves only validated retained History continuation failure subcodes", async () => {
+    const page = historyRetainedView.content.page;
+    if (!page.has_more) throw new Error("Expected an opaque cursor fixture.");
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", fetch);
+
+    for (const subcode of [
+      "CURSOR_INVALID",
+      "CURSOR_BINDING_MISMATCH",
+      "SNAPSHOT_UNAVAILABLE",
+    ] as const) {
+      const failure = structuredClone(historyContinuationFailure);
+      failure.error.subcode = subcode;
+      fetch.mockResolvedValueOnce(Response.json(failure, { status: 422 }));
+      await expect(
+        getRetainedProjectHistory(historyRetainedView.project_id, {
+          limit: 1,
+          cursor: page.next_cursor,
+          filters: historyRetainedView.content.query.filters,
+        }),
+      ).rejects.toMatchObject({
+        name: "ProjectDataError",
+        status: 422,
+        code: "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
+        subcode,
+        message: historyContinuationFailure.error.message,
+        restart: historyContinuationFailure.error.restart,
+      });
+    }
+
+    const disclosingFailure = {
+      ...structuredClone(historyContinuationFailure),
+      error: {
+        ...structuredClone(historyContinuationFailure.error),
+        subcode: "PROJECT_MISMATCH",
+        message: "The cursor belongs to another exact Project.",
+      },
+    };
+    fetch.mockResolvedValueOnce(
+      Response.json(disclosingFailure, { status: 422 }),
+    );
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        limit: 1,
+        cursor: page.next_cursor,
+        filters: historyRetainedView.content.query.filters,
+      }),
+    ).rejects.toMatchObject({
+      name: "ProjectDataError",
+      status: 422,
+      code: undefined,
+      subcode: undefined,
+      message: historyContinuationFailure.error.message,
+      restart: undefined,
+    });
   });
 
   it("maps one exact ProjectSource authority chain into the frozen source surfaces", () => {

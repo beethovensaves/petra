@@ -159,6 +159,12 @@ export type {
   TargetOptionCatalogue as ProjectHistoryTargetOptionCatalogueV12,
 } from "./generated/project-history-retained-view-v1-2.js";
 export type {
+  ContinuationFailure as ProjectHistoryRetainedContinuationFailureContent,
+  ContinuationFailureSubcode as ProjectHistoryRetainedContinuationFailureSubcode,
+  PetraProjectHistoryRetainedContinuationFailure,
+  Restart as ProjectHistoryRetainedContinuationRestart,
+} from "./generated/project-history-retained-continuation-failure.js";
+export type {
   AuthorityPosition as ProjectHistoryImpactAuthorityPosition,
   CausalCommand as ProjectHistoryImpactCausalCommand,
   CausalCommandGroup as ProjectHistoryImpactCausalCommandGroup,

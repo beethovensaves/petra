@@ -2,16 +2,17 @@
 
 Status: bounded Recent changes, exact event-selected causal episodes,
 snapshot-stable filtered retained Project-event traversal with authorized Actor
-and target option catalogues, and bounded direct dependency impact plus
+and target option catalogues plus stable non-disclosing continuation-failure
+subcodes, and bounded direct dependency impact plus
 registered exact semantic-target adapters through ProjectSource and replacement
 authority plus exact record-bound Work, output, and delivery dependencies with
 exact renderer-neutral Work destinations passed;
 exact read-only ChangeSet recovery assessment, revision-bound compensation
 preview, confirmed command-plan composition, and separately authorized
 single-plan execution with exact partial-outcome recovery also passed
-Date: 2026-09-10
+Date: 2026-09-11
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `161235a` plus this slice
+Implementation baseline: `04872ff` plus this slice
 
 ## Result
 
@@ -163,6 +164,36 @@ The catalogues remain stable across continuation pages because their membership
 and counts use the cursor's retained snapshot. Current recovery eligibility is
 still recomputed at page read. Origin remains unsupported, graph-navigation
 History remains client-local, and the fixed Recent changes window remains ten.
+
+## Stable continuation-failure classification
+
+`petra.project-history-retained-continuation-failure@1.0.0` adds a strict API
+error contract for a rejected `phc2` continuation. The outer
+`PROJECT_HISTORY_RETAINED_QUERY_INVALID` code and HTTP 422 status remain
+unchanged. A stable subcode now identifies one of three bounded causes:
+
+- `CURSOR_INVALID` covers an invalid prefix or shape, failed signature,
+  malformed payload, invalid payload fields, and non-canonical encoding;
+- `CURSOR_BINDING_MISMATCH` covers a different Project or a different complete
+  normalized query, including its limit and filters, without identifying which
+  binding differed; and
+- `SNAPSHOT_UNAVAILABLE` covers a cursor whose retained authority position is
+  no longer available or whose exact snapshot head event and record hash cannot
+  be reproduced.
+
+Every subcode returns the same non-disclosing message and the same machine
+instruction: discard the cursor without client decoding, then issue a cursorless
+request with the same active Project, limit, and filters. The response never
+echoes the cursor, internal decoder message, mismatched identity, event, Actor,
+target, count, or prior permission state. Ordinary cursorless filter and query
+validation retains the existing error shape and does not acquire a continuation
+subcode.
+
+The successful retained view remains version 1.2 and `phc2` remains opaque. The
+strict typed client preserves a subcode and restart instruction only when the
+complete failure envelope validates. This slice adds no endpoint, query
+parameter, filter, catalogue, cursor variant, History ledger, recovery decision,
+or frozen-interface change.
 
 ## Bounded direct dependency impact
 
@@ -500,19 +531,21 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal 1.0/1.1/1.2, dependency-impact 1.0/1.1/1.2/1.3/1.4,
-ChangeSet recovery-assessment, and compensation-preview responses.
+retained traversal 1.0/1.1/1.2, retained-continuation failure,
+dependency-impact 1.0/1.1/1.2/1.3/1.4, ChangeSet recovery-assessment, and
+compensation-preview responses.
 Accepted plan-request and plan-view fixtures add the explicit-confirmation and
 non-persistence boundary.
 Accepted execution-request and execution-view fixtures add the separate command,
 per-command atomicity, exact retained-prefix, retry, and completed-effect
 boundary.
 Rejected fixtures cover an altered quick limit, false global episode order,
-unsafe offset or query-unbound cursor reuse, a 1.2 target option that fabricates
-an inferred title, a dependency read that claims a reversibility decision, and
-an unregistered semantic target that fabricates a registered adapter group,
-plus an invalid response that collapses retained replacement lineage and
-effective head state into one unsupported authority.
+unsafe offset or query-unbound cursor reuse, a continuation failure that exposes
+a Project-specific mismatch, a 1.2 target option that fabricates an inferred
+title, a dependency read that claims a reversibility decision, and an
+unregistered semantic target that fabricates a registered adapter group, plus
+an invalid response that collapses retained replacement lineage and effective
+head state into one unsupported authority.
 Another rejected response claims a global ordering scope for an operational
 dependency group, and a 1.4 response cannot present replay as a ProjectThread
 destination. Further rejected cases claim that a recovery assessment
@@ -560,6 +593,13 @@ unrelated registered Actor, and replace-only-this-dimension behavior across
 combined Actor and target filters. The strict contract, Python parity model,
 and typed client reject a fabricated target title.
 
+The continuation-failure proof separately exercises tampered cursor integrity,
+Project, limit, and filter binding mismatches, and a validly signed unavailable
+snapshot. The API maps all three subcodes to one fixed message and restart
+instruction without returning its internal diagnostic or cursor. A non-cursor
+query failure receives no continuation subcode, and the strict client declines
+to preserve an unregistered or otherwise invalid failure envelope.
+
 The 1.3 operational proof registers the same exact ChangeSet record as a Work
 input in two Projects and confirms that only the selected Project's current
 WorkUnit is returned. It then follows that binding to the selected Project's
@@ -576,17 +616,12 @@ the replay never acquires a ProjectThread destination.
 
 ## Next safe slice
 
-The next safe History boundary is freeze-conformance mapping of the fixed 1.2
-Actor and target option catalogues into the existing Full History filter region.
-The design must preserve the exact Project/snapshot/query binding, facet count
-semantics, bounded coverage, immutable Actor authority, and target
-`exact_identity_only` fallback without creating client-side authority.
-
-After that mapping, the next backend-only increment is stable machine-readable
-continuation-failure subcodes that distinguish malformed or tampered cursors,
-changed Project/query/limit bindings, and unavailable retained snapshots without
-disclosing cross-Project state. The existing broad failure behavior remains
-fail-closed until that contract is defined.
+The next safe History boundary is freeze-conformance mapping of
+`petra.project-history-retained-continuation-failure@1.0.0` into the existing
+invalid-continuation state. The design must keep the last verified rows, filters,
+and catalogues; discard the rejected cursor and page; preserve one public restart
+message; and never decode or display `phc2`. No component, CSS rule, browser
+route, filter, recovery decision, or client-side authority is required.
 
 An origin filter is not yet safe because current authority has no canonical
 origin classification. Historical ProjectDefinition interpretation likewise
