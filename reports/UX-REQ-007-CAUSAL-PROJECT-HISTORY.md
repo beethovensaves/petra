@@ -1,18 +1,18 @@
 # UX-REQ-007 causal Project History
 
 Status: bounded Recent changes, exact event-selected causal episodes,
-snapshot-stable filtered retained Project-event traversal, and bounded direct
-dependency impact plus registered exact semantic-target adapters through
-ProjectSource and replacement authority plus three exact record-bound Work,
-output-manifest, and interaction-replay groups with the exact current-Work
-destination state plus exact read-only ChangeSet recovery assessment, revision-bound
-compensation preview, confirmed
-non-persisted command-plan composition, and separately authorized exact
-compensation execution with partial-outcome recovery passed; frozen History
-conformance mapping recorded; frontend binding remains open
+snapshot-stable filtered retained Project-event traversal with authorized Actor
+and target option catalogues, bounded direct dependency impact plus registered
+exact semantic-target adapters through ProjectSource and replacement authority,
+three exact record-bound Work/output/replay groups with the exact current-Work
+destination state, exact read-only ChangeSet recovery assessment, revision-bound
+compensation preview, confirmed non-persisted command-plan composition, and
+separately authorized exact compensation execution with partial-outcome recovery
+passed; frozen History conformance mapping recorded; frontend binding remains
+open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `161235a`
+Implementation baseline: `04872ff`
 Integration handoff:
 [UX-to-implementation requirements handoff](UX-BACKEND-HANDOFF.md)
 
@@ -139,6 +139,91 @@ return context, and current object state cannot substitute for origin. The
 backend supplies neither an authorized Actor option catalogue/display label nor
 target option catalogue/title; any display resolution must come from a separate
 authorized Project read and preserve the exact ID fallback.
+
+## Authorized Full History filter options
+
+Backend commit `04872ff` advances the same authenticated endpoint to
+`petra.project-history-retained-view@1.2.0`. It preserves the fixed Recent
+changes endpoint and ten-item window, the eight existing Full History filter
+dimensions, newest-first retained Project-stream order, `phc2` opacity, and
+complete Project/snapshot/limit/query cursor binding. Actor and target
+catalogues are additive members of the retained response rather than separate
+requests, controls, routes, or ledgers.
+
+`filter_options` requires `authorization_scope: authenticated_project`,
+`snapshot_and_query_binding: retention_snapshot_and_complete_normalized_query`,
+`dimension_semantics: replace_same_dimension_preserve_other_filters`, and
+`count_basis: matching_authorized_events_after_replacing_same_dimension`. The
+Actor catalogue removes only `filters.actor_id` while preserving every other
+normalized filter; the target catalogue removes only the complete
+`filters.target` pair. Selecting or clearing an option changes only that field,
+and the existing **Apply filters** command begins a new cursorless traversal.
+The client performs no compatibility or authority calculation.
+
+Both catalogues have `option_limit: 100`, a returned count equal to the options
+array length, an exact total count, complete/truncated coverage, and
+`continuation: not_composed`. The active option appears first when returned;
+other options sort by `matching_event_count` descending, then Actor ID or exact
+target semantic key/object ID. Petra renders the server order and visibly states
+**{returned_count} of {total_count} · {Complete|Truncated} coverage · No option
+continuation** beside the appropriate existing field. Truncation creates no
+load-more control.
+
+Actor options contain only Actors on authorized matching Project events within
+the retained snapshot after applying every non-Actor filter. The option
+preserves exact Actor ID/kind and a positive matching-event count. Its display
+name comes only from `display_descriptor.state: available` backed by the exact
+immutable `petra.actor@1.0.0` Actor ID and record hash. The field presents the
+name with Actor kind, exact ID, and count; the record hash remains in its
+programmatically associated authority description. A globally registered Actor
+without a matching Project event is absent and cannot be inserted from client
+state.
+
+Target options contain only a registered exact semantic-key/object-ID pair and
+a positive count of distinct matching events. They preserve
+`display_descriptor.state: exact_identity_only`,
+`fallback: semantic_key_and_object_id`, reason code
+`revision_neutral_target_title_authority_not_registered`, and the exact reason
+**No authorized revision-neutral title is registered for this exact History
+target identity.** The existing Target field uses only semantic key, object ID,
+and count. It does not resolve a current/historical title, replacement,
+ProjectDefinition term, profile label, or compatibility state.
+
+Catalogue counts are facet counts, not collection totals. Actor counts partition
+the other-filter result only with no active Actor and complete Actor coverage.
+Target counts can overlap because an event can have several targets; they count
+distinct events per identity and cannot be added together. When a positive
+fully filtered result has an active Actor or target option, that option's count
+equals `page.snapshot_total_count`. On a valid zero-result query the active
+value may be absent because every returned option has a positive count; the
+field retains the exact selected value from the query echo.
+
+Complete zero catalogues say **No Actor options match the other active filters**
+or **No Target options match the other active filters** while keeping zero of
+zero, complete coverage, and no continuation visible. On first-page loading,
+the frozen Full History filter group stays busy, preserves entered values, and
+announces **Loading Full History filter options…** once without presenting old
+counts as current. Continuations keep accepted options because the retained
+snapshot and complete query are unchanged; a catalogue mismatch rejects the
+page append.
+
+A malformed option identity, Actor authority/hash mismatch, inferred target
+title, server-order/count/coverage mismatch, missing catalogue, unauthorized
+response, or stale response fails the complete retained result closed. One
+catalogue cannot survive while the other fails. Existing Full History failure
+and restart behavior applies, and no option identity or count is disclosed on
+unauthorized results.
+
+The existing Actor and Target fields retain their native keyboard behavior.
+Their programmatic labels expose the active value, option identity,
+matching-event count, immutable authority or exact-identity-only reason,
+catalogue returned/total counts, coverage, zero/truncated state, and explicit
+absence of continuation in reading order. Long IDs and hashes wrap at the
+frozen narrow breakpoint. Counts, reasons, and unavailable states are text and
+never color-only or focusable controls.
+
+Retained 1.2 adds no filter dimension, component, CSS rule, browser route,
+second ledger, generic Undo, recovery decision, or compensation behavior.
 
 ## Bounded direct dependency impact
 
@@ -391,49 +476,57 @@ behavior changes.
 
 The closed design already assigns **Scope/filter** as the first ordered region
 of `DB18-SP10` History and includes long filtered History in its state coverage.
-Version 1.1 fills that semantic position on the existing History route; it does
-not create a new surface, component family, visual language, CSS rule, or
-browser route. The same `history-episodes` ordered-list region presents either
-the unchanged Recent changes read or one Full History traversal, while the
-selected-event detail remains the same exact detail region.
+Version 1.1 introduced the exact filters and version 1.2 fills their existing
+Actor and Target fields with same-snapshot options on the existing History
+route. It does not create a new surface, component family, visual language, CSS
+rule, or browser route. The same `history-episodes` ordered-list region presents
+either the unchanged Recent changes read or one Full History traversal, while
+the selected-event detail remains the same exact detail region.
 
 Recent changes always calls its dedicated endpoint without a filter, limit, or
-cursor and remains capped at ten. Full History alone calls the retained 1.1
+cursor and remains capped at ten. Full History alone calls the retained 1.2
 endpoint. Its frozen Scope/filter position exposes one value per family,
 command, event, Actor, outcome, authority-effect, and exact-target dimension,
 plus either or both inclusive recorded-time bounds. Applying, clearing, or
 changing a filter or page limit starts a cursorless traversal. All supplied
 filters are conjunctive. The client does not infer compatible combinations;
-valid combinations with no match remain authorized empty results.
+valid combinations with no match remain authorized empty results. The Actor and
+Target catalogues populate those two existing fields and replace only their own
+dimension when computing option counts.
 
 The Full History collection preserves backend order and reports the authorized
 `snapshot_total_count` next to its heading. Continuation appends only a response
 whose exact Project, normalized filters, limit, retained snapshot head, and
-exclusive Project-stream boundary still match the active traversal. `phc2`
-remains opaque and absent from visible and assistive output. Newer events do not
-enter the fixed traversal; current recovery facts are recomputed at each page
-read and remain backend facts rather than client decisions.
+exclusive Project-stream boundary and option catalogues still match the active
+traversal. `phc2` remains opaque and absent from visible and assistive output.
+Newer events do not enter the fixed traversal; current recovery facts are
+recomputed at each page read and remain backend facts rather than client
+decisions.
 
 The exact selected event and verified detail survive filter changes until the
 author selects another matching row. If it is outside the current result page,
 the detail says so without marking another row selected. A zero-match response
 says **No permitted History events match these filters**, preserves the filter
-values, and exposes no unfiltered count. A continuation that is invalid,
-query-mismatched, or no longer resolvable keeps the last verified rows and
-offers a cursorless restart with the same filters; it never appends an unverified
-page or silently widens the query.
+values, and exposes no unfiltered count. Its catalogues may still contain
+replace-one-dimension alternatives, and an absent selected zero-match option
+does not clear the field. A continuation that is invalid, query-mismatched, or
+no longer resolvable keeps the last verified rows and catalogues and offers a
+cursorless restart with the same filters; it never appends an unverified page or
+silently widens the query.
 
 The Scope/filter group, every field, composite target pair, inclusive time
 meaning, validation error, active value, and matching count have programmatic
-labels. Filter submission is keyboard operable and returns focus to the invoked
-control with one result announcement. A user-invoked continuation places focus
-at the first newly appended event; row selection follows the existing detail-
-heading focus rule. At narrow widths the Scope/filter region, collection, and
-detail retain that linear order; controls and exact identities reflow without
-horizontal scrolling. Empty, unavailable, unauthorized, query-invalid,
-continuation-invalid, loading, and integrity-failure states stay in the affected
-existing region, preserve exact return, and reveal no unverified identities or
-counts.
+labels. Actor and Target option identity, count, descriptor authority/reason,
+catalogue returned/total counts, coverage, and absent continuation join that
+same reading order. Filter submission is keyboard operable and returns focus to
+the invoked control with one result announcement. A user-invoked continuation
+places focus at the first newly appended event; row selection follows the
+existing detail-heading focus rule. At narrow widths the Scope/filter region,
+collection, and detail retain that linear order; controls, exact identities,
+and hashes reflow without horizontal scrolling. Empty, unavailable,
+unauthorized, query-invalid, continuation-invalid, loading, and
+integrity-failure states stay in the affected existing region, preserve exact
+return, and reveal no unverified identities or counts.
 
 The backend omission `origin_filter_not_supported` appears as a limitation in
 the existing Scope/filter position: **Origin filtering is unavailable because
@@ -442,9 +535,10 @@ is enabled or implemented from client state.
 
 The frozen design contract contains the required Scope/filter position, but the
 checked-in fixture-backed `HistorySurface` does not instantiate it, Full History
-collection state, retained continuation, or any History loader. That is the
-precise frontend integration gap. This freeze-conformance report does not fill
-it by editing a component, stylesheet, or route.
+collection state, retained continuation, Actor/Target catalogue binding, or any
+History loader. That is the precise frontend integration gap. This
+freeze-conformance report does not fill it by editing a component, stylesheet,
+or route.
 
 ## Frozen History detail conformance
 
@@ -825,7 +919,16 @@ command/envelope sequence, plan reference, execution steps, completed prefix,
 content/binding hashes as opaque. No component, CSS, browser route, or frozen
 surface changed.
 
-The 1.2 typed client also binds `target_total_count` to the selected event's
+The retained 1.2 typed client requires both catalogues, their exact binding and
+facet constants, unique canonical option identities, fixed fallback/reason
+values, positive matching-event counts, active-first stable order, and exact
+returned/total/coverage/no-continuation relationships. It binds an Actor name
+only to a matching immutable Actor ID and valid record hash, requires a returned
+active option's count to equal the positive fully filtered snapshot total, and
+rejects any inferred target title. It does not decode `phc2` or infer an omitted
+active option on a zero-result page.
+
+The impact 1.2 typed client also binds `target_total_count` to the selected event's
 target count, `target_returned_count` to the assessment count, every
 `target_index` and `target_ref` to the same ordered event target, every
 registered resolution to the exact target revision and supplied hashes, and
@@ -863,6 +966,9 @@ The PostgreSQL reader fails closed when it cannot reproduce:
   binding, retained authority bounds, or exact head-event identity/hash; or
 - the original cursor snapshot after the authority store has moved backwards
   or been replaced;
+- a retained 1.2 option catalogue's Project/snapshot/query facet basis, Actor
+  payload/identity/record hash, target identity-only descriptor, stable order,
+  matching-event counts, total, coverage, or zero-result behavior;
 - an outbox record's exact embedded event payload and record hash;
 - a graph-projection attempt's event, outbox, sequence, content, and record
   hashes; or
@@ -897,27 +1003,27 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2/1.3/1.4, and ChangeSet
-recovery-assessment and compensation-preview responses. Accepted plan-request
+retained traversal 1.0/1.1/1.2, dependency-impact 1.0/1.1/1.2/1.3/1.4, and
+ChangeSet recovery-assessment and compensation-preview responses. Accepted plan-request
 and plan-view fixtures cover explicit confirmation and non-persistence.
 Accepted execution-request and execution-view fixtures cover separate command
 authorization, non-atomicity, retained prefix, retry, and completed effect.
 Rejected fixtures cover an altered quick limit, false global episode order,
 unsafe offset or query-unbound cursor reuse, a dependency read that claims a
-reversibility decision, and an unregistered semantic target that fabricates a
-registered adapter group, plus an invalid response that collapses retained
-replacement lineage and effective head state into one unsupported authority or
-claims a global ordering scope for an operational group. The 1.4 rejected
+reversibility decision, a retained 1.2 target option that fabricates a title,
+and an unregistered semantic target that fabricates a registered adapter group,
+plus an invalid response that collapses retained replacement lineage and
+effective head state into one unsupported authority or claims a global ordering
+scope for an operational group. The 1.4 rejected
 fixture fabricates an available replay-to-ProjectThread destination. Further
 cases claim that a recovery assessment composed a compensation preview, or turn
 a read-only preview into a created ChangeSet, recorded Approval, composed
-command, or execution. An
-unconfirmed plan request and a plan response that claims
-execution are also rejected. An unconfirmed execution request and an execution
+command, or execution. An unconfirmed plan request and a plan response that
+claims execution are also rejected. An unconfirmed execution request and an execution
 response that claims three-command atomicity are rejected.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
-suite pass. The complete gate includes 842 always-on TypeScript tests, 25 Python
+suite pass. The complete gate includes 845 always-on TypeScript tests, 25 Python
 tests, seven expected service-dependent skips, and 109 PostgreSQL cases after a
 clean V001-through-V030 migration. The database proof exercises all seven
 History reads/compositions plus the execution command over domain-event versions
@@ -948,6 +1054,15 @@ and cross-Project reuse, distinguishes an unretained interrupted Approval
 attempt, and resumes from the exact retained Submit prefix before returning the
 reversal event and resulting evidence revisions.
 
+The retained 1.2 proof validates both catalogues against the same Project,
+retention snapshot, and normalized query. It proves replace-only dimension
+counts across combined Actor/target filters, active-first stable
+ordering, selected-option equivalence to the positive filtered snapshot total,
+continuation stability after a new event, exclusion of an unrelated registered
+Actor, exact immutable Actor authority, and explicit revision-neutral target
+title unavailability. Contract, Python parity, typed-client, and PostgreSQL
+checks reject a fabricated target title.
+
 The 1.3 operational proof registers the same exact ChangeSet record as a Work
 input in two Projects and returns only the selected Project's current WorkUnit.
 It follows that binding to immutable WorkerOutputManifest and
@@ -965,13 +1080,10 @@ replay-to-ProjectThread destination.
 
 ## Next safe slice
 
-The next safe History boundary is an authorized renderer-neutral Actor and
-target option catalogue for the already-frozen Full History filter fields. It
-must preserve exact IDs, permitted display descriptors, Project/snapshot/query
-binding, and counts after authorization. It must retain the explicit absence of
-an authoritative origin classification and add no filter dimension, browser
-route, or client authority. Output and replay destinations remain unavailable
-until exact Project-owned route authority exists. Compensation changes, generic
-Undo, reversal of a reversal, multiple or multi-step compensation, historical
-ProjectDefinition interpretation, event rewriting, and new frozen interface
-elements remain excluded.
+The next safe History boundary is a backend-only retained-view revision with
+stable machine-readable continuation-failure subcodes. It may distinguish a
+malformed or tampered cursor, changed Project/query/limit binding, and an
+unavailable retained snapshot while preserving the same non-disclosing,
+fail-closed restart behavior and `phc2` opacity. This report does not define the
+subcodes. It adds no filter, catalogue, component, CSS rule, browser route,
+second ledger, recovery decision, generic Undo, or compensation behavior.

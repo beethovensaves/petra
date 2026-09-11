@@ -274,12 +274,14 @@ between shell context and task content more important.
   `DB17-P11`–`P12`, `UX-FLOW-12`, and `UX-FLOW-16`.
 - **Implemented backend baseline:** commits `92e9cb1`, `7ae590f`, `1c44dd3`,
   `9530b09`, `c5da977`, `c198af6`, `7380a0b`, `9e90258`, `37ffc38`,
-  `718f641`, `0e6688e`, `96acc5d`, and `161235a` add
+  `718f641`, `0e6688e`, `96acc5d`, `161235a`, and `04872ff` add
   `petra.project-history-view@1.0.0`,
   `petra.project-history-episode-view@1.0.0`, and
   `petra.project-history-retained-view@1.0.0`; `7380a0b` advances the retained
   collection to `petra.project-history-retained-view@1.1.0` with bounded exact
-  filters and complete-query cursor binding. All use authenticated
+  filters and complete-query cursor binding. Commit `04872ff` advances that
+  collection to version 1.2 with same-snapshot Actor and target option
+  catalogues. All use authenticated
   Project-scoped routes, repeatable-read PostgreSQL composition, contract
   validation, typed workbench readers, and conformance fixtures. The
   dependency-impact commits add `petra.project-history-impact-view@1.0.0` at
@@ -328,9 +330,9 @@ between shell context and task content more important.
 | Existing frozen slot | Implemented binding | Acceptance rule |
 | --- | --- | --- |
 | `HistoryRoute` at `/projects/:projectId/history` | `GET /api/queries/projects/:projectId/history/recent` | Load one `petra.project-history-view@1.0.0`; verify the exact Project, `view_kind: recent_changes`, `order: newest_first`, `quick_window_limit: 10`, no more than ten members, a well-formed content-hash field, and `graph_navigation_history: client_local_separate`. No client limit, cursor, graph state, or filter is sent. |
-| Frozen `DB18-SP10` **Scope/filter** position, before the History collection/detail layout | `GET /api/queries/projects/:projectId/history/events` with `petra.project-history-retained-view@1.1.0` | Keep **Recent changes** and **Full History** as two scopes over separate reads on the existing History route. Only Full History owns the retained limit, `phc2` cursor, and eight exact filter dimensions. The checked-in `HistorySurface` has not instantiated this already-specified position; that is a frontend binding gap, not permission to add a surface, route, or visual system. |
+| Frozen `DB18-SP10` **Scope/filter** position, before the History collection/detail layout | `GET /api/queries/projects/:projectId/history/events` with `petra.project-history-retained-view@1.2.0` | Keep **Recent changes** and **Full History** as two scopes over separate reads on the existing History route. Only Full History owns the retained limit, `phc2` cursor, eight exact filter dimensions, and same-snapshot Actor/target option catalogues. Each catalogue populates only its already-defined field. The checked-in `HistorySurface` has not instantiated this already-specified position; that is a frontend binding gap, not permission to add a surface, route, or visual system. |
 | Left `history-episodes` ordered list in **Recent changes** scope | Recent `content.changes` | Keep the existing list container and heading **Recent changes**. Render the returned order without regrouping or client sorting. The header count is the number shown, never a retained-history total. With `has_older: true`, its existing count text reads **10 shown · Older changes exist**. Never send a retained filter, limit, or cursor to the Recent endpoint, and never replace `has_older` with a retained cursor. |
-| Same `history-episodes` ordered list in **Full History** scope | Retained 1.1 `content.changes`, `page`, and `retention_snapshot` | Render only the authorized matching events in supplied `project_stream_newest_first` order. The heading is **Full History** and its associated count is **{snapshot_total_count} matching events** or **{snapshot_total_count} events** when `filters` is empty. Append a continuation page only after its echoed query and retained snapshot match the active traversal. Do not mix Recent rows into this list or sort it by displayed time. |
+| Same `history-episodes` ordered list in **Full History** scope | Retained 1.2 `content.changes`, `page`, `filter_options`, and `retention_snapshot` | Render only the authorized matching events in supplied `project_stream_newest_first` order. The heading is **Full History** and its associated count is **{snapshot_total_count} matching events** or **{snapshot_total_count} events** when `filters` is empty. Keep catalogue counts inside their Actor/Target fields rather than treating them as collection totals. Append a continuation page only after its echoed query, retained snapshot, and option catalogues match the active traversal. Do not mix Recent rows into this list or sort it by displayed time. |
 | Existing row link | `event_ref.event_id`, `recorded_at`, `command_ref.command_name`, `observed_effect.summary` | Link to the existing `/projects/:projectId/history/:episodeId` pattern with `episodeId` equal to the exact immutable `event_id`. Use the registered command label as the row action and the server summary as its description. Do not invent a target title from `semantic_key` or `object_id`. |
 | Existing selected detail article | Exact episode, impact, and eligible event recovery reads | Every selected row and deep link loads the exact episode. The detail may then consume `petra.project-history-impact-view@1.4.0`; for `change_set.applied` or `change_set.reverted`, it may also consume `petra.project-history-recovery-assessment-view@1.0.0` from `GET /api/queries/projects/:projectId/history/events/:eventId/recovery`. Verify the outer Project/event identity and complete overlapping selected-event anchor before rendering either subordinate read. Bind `episodeId` only as the immutable event ID. Do not call the recovery route for another event type. |
 | Detail header | `content.change.observed_effect` plus exact event type | Use the registered event/action label as the title, `observed_effect.summary` as the lead, and its `outcome` as explicit text. A descriptive profile target label is absent from the implemented contract and cannot be fabricated. |
@@ -376,7 +378,7 @@ kicker. No row is falsely marked selected.
 
 Full History requests
 `GET /api/queries/projects/:projectId/history/events`. Accept only
-`petra.project-history-retained-view@1.1.0` for the exact Project with
+`petra.project-history-retained-view@1.2.0` for the exact Project with
 `view_kind: retained_events`, `order_kind: project_stream_newest_first`,
 `cursor_binding: project_snapshot_and_complete_query`, and
 `graph_navigation_history: client_local_separate`. The default `limit` is fifty;
@@ -395,11 +397,85 @@ or widen it.
 | **Family** | `family` → `filters.family` | One of `change_control`, `project_source_lifecycle`, or `project_source_replacement`. This groups registered event families only; it does not assert an order between families. |
 | **Command** | `command_name` → `filters.command_name` | One of `SubmitChangeSet`, `RecordApproval`, `ApplyChangeSet`, `ExcludeProjectSource`, `RestoreProjectSource`, `CreateProjectSourceReplacement`, or `RetractProjectSourceReplacement`. Use the closed visible action labels above. |
 | **Event** | `event_type` → `filters.event_type` | One exact registered event type: `change_set.submitted`, `approval.recorded`, `change_set.applied`, `change_set.conflicted`, `change_set.reverted`, `change_set.reversal_conflicted`, `project_source.excluded`, `project_source.restored`, `project_source.replacement_created`, or `project_source.replacement_retracted`. |
-| **Actor** | `actor_id` → `filters.actor_id` | One canonical Actor ID. It matches exact identity, not actor kind, display label, role, or origin. Show a trusted display label only when another authorized Project read resolves the same ID; otherwise keep the exact ID visible. |
+| **Actor** | `actor_id` → `filters.actor_id` | One canonical Actor ID. It matches exact identity, not actor kind, display label, role, or origin. Retained 1.2 may show only the exact immutable Actor-record display descriptor supplied for that catalogue option; keep Actor kind and exact ID visible and preserve its authority record hash. |
 | **Outcome** | `outcome` → `filters.outcome` | One of `completed` or `conflicted`, visibly **Completed** or **Conflicted**. This is the recorded event outcome and does not decide recovery. |
 | **Authority effect** | `effect` → `filters.effect` | One of the ten closed effect values in the label table above. Preserve the supplied effect meaning; never infer it from current object state. |
 | **Target** | inseparable `target_semantic_key` and `target_object_id` → `filters.target.{semantic_key,object_id}` | One registered semantic key and canonical object ID pair. The key is one of `petra.change-set`, `petra.approval`, `scientific.claim`, `scientific.assertion`, `petra.project-source`, `petra.project-source-replacement`, or `petra.project-source-replacement-retraction`. This is exact object identity across matching events; the filter carries no target revision. Never send only half the pair or silently replace it with a current object. |
 | **Recorded from** / **Recorded through** | `recorded_from` / `recorded_through` → `filters.recorded_at.from_inclusive` / `.through_inclusive` | Supply either inclusive bound or both as exact UTC timestamps; when both exist, from must not be later than through. Display localized date, time, and zone while retaining the exact ISO values. This filters `recorded_at`; it does not filter `occurred_at` or change Project-stream order. |
+
+Retained 1.2 fills only the existing **Actor** and **Target** filter fields from
+`content.filter_options`; it creates no catalogue request or new filter control.
+Require `authorization_scope: authenticated_project`,
+`snapshot_and_query_binding: retention_snapshot_and_complete_normalized_query`,
+`dimension_semantics: replace_same_dimension_preserve_other_filters`, and
+`count_basis: matching_authorized_events_after_replacing_same_dimension`.
+Thus each option count uses the accepted Project and retention snapshot, removes
+only that catalogue's dimension from the echoed normalized query, applies every
+other filter, and counts authorized matching events. Selecting or clearing an
+Actor changes only `filters.actor_id`; selecting or clearing a Target changes
+only the inseparable `filters.target` pair. **Apply filters** still starts a new
+cursorless traversal. The client neither predicts compatibility nor widens the
+other seven dimensions.
+
+Map the two fixed catalogues inside their existing fields:
+
+| Catalogue | Option acceptance and field presentation |
+| --- | --- |
+| `actor_catalogue` | Require `option_limit: 100` and `order_kind: active_option_first_then_matching_event_count_desc_then_actor_id`. Each option has one canonical `actor_ref` with ID and kind, positive `matching_event_count`, and `display_descriptor.state: available`. Use only its `display_name`. Require `authority_ref.schema_name: petra.actor`, schema version `1.0.0`, the same Actor ID, and the exact immutable Actor record hash. Present **{display_name} · {actor_kind} · {actor_id} · {matching_event_count} matching events**. Keep the record hash in the option's programmatically associated authority description. Never obtain the name from an event, current principal, profile label, or client cache. A globally registered Actor with no matching authorized Project event is absent. |
+| `target_catalogue` | Require `option_limit: 100` and `order_kind: active_option_first_then_matching_event_count_desc_then_target_identity`. Each option has one registered exact semantic-key/object-ID pair and a positive count of distinct matching events. Present **{semantic_key} · {object_id} · {matching_event_count} matching events**. Preserve `display_descriptor.state: exact_identity_only`, `fallback: semantic_key_and_object_id`, reason code `revision_neutral_target_title_authority_not_registered`, and **No authorized revision-neutral title is registered for this exact History target identity.** Associate that supplied reason with the field and every option; do not resolve a current or historical title, profile term, replacement, or compatibility label. |
+
+Use the supplied order without client sorting. If the active filter value occurs
+in the returned options, it is first even when another option has a higher
+count; the remaining Actor options sort by count descending then Actor ID, and
+the remaining Target options by count descending then semantic key and object
+ID. When the fully filtered snapshot total is positive, the active option's
+`matching_event_count` equals `page.snapshot_total_count`. A valid zero-result
+query may omit its active value because options have positive counts only; keep
+the exact active field value from `content.query.filters` and do not clear or
+rename it.
+
+For each catalogue, require `returned_count` to equal `options.length`,
+`total_count` to be at least the returned count, `coverage: complete` only when
+the two counts are equal, `coverage: truncated` only when total is greater, and
+`continuation: not_composed`. Show the existing field status as **Actor options:
+{returned_count} of {total_count} · {Complete|Truncated} coverage · No option
+continuation** and the equivalent **Target options** text. Complete zero uses
+**No Actor options match the other active filters** or **No Target options match
+the other active filters**, while retaining the `0 of 0`, complete-coverage,
+and no-continuation status. Truncation adds no **More options** action; changing
+other existing filters and applying them is the only way to obtain a different
+catalogue.
+
+Do not add option counts together. Actor counts partition matching events only
+when no Actor filter is active and Actor coverage is complete. Target counts may
+overlap because one event can contain several exact targets; each count is a
+distinct-event count for that option, not a target occurrence, unique-target,
+or Project total. Neither catalogue count replaces the Full History
+`snapshot_total_count`.
+
+On a first-page request, mark the existing Full History filter group busy and
+announce **Loading Full History filter options…** with the existing polite
+status. Retain exact entered filter values but expose no prior-query option
+counts as current. A continuation keeps the already verified catalogues visible
+because its Project, snapshot, and complete query are unchanged; reject the
+append if either returned catalogue differs from that accepted basis. Any
+malformed identity, immutable Actor record/hash mismatch, inferred target title,
+order/count/coverage mismatch, or partial/missing catalogue fails the complete
+retained response closed. Reuse the existing Full History unavailable or
+continuation-failure state and never retain one catalogue while rejecting the
+other.
+
+The Actor and Target fields keep their existing keyboard semantics. Their
+programmatic names, active value, option label, matching-event count, authority
+or exact-identity-only description, catalogue counts, coverage, zero/truncated
+state, and no-continuation statement occur in reading order. Do not create a
+focusable count, hash, unavailable reason, or disabled continuation control.
+Applying or clearing still returns focus to the invoked control and announces
+one Full History result count. Long Actor IDs, target IDs, and hashes wrap inside
+the frozen narrow-screen field region without horizontal scrolling.
+
+Retained 1.2 adds no filter dimension, component, CSS rule, browser route,
+second ledger, generic Undo, recovery decision, or compensation behavior.
 
 The scope and each active filter remain visible with the matching count. **Apply
 filters** starts a new retained traversal with no cursor. **Clear filters**
@@ -1260,14 +1336,14 @@ an adapter and leave unsupported links unavailable with their reason.
 | State | Existing-surface acceptance behavior |
 | --- | --- |
 | Loading Recent changes | Keep the History heading and return control. Mark the existing list region `aria-busy="true"` and show **Loading Recent changes…** in that region. Do not show fixture rows or the empty state while the request is pending. |
-| Loading Full History | Keep the selected scope, exact filter values, History heading, return control, and independently verified detail. Mark the existing list region busy and show **Loading Full History…** on the first page. During continuation keep verified rows and show **Loading older History events…** in the collection status position. Do not display a stale matching count as current. |
+| Loading Full History | Keep the selected scope, exact filter values, History heading, return control, and independently verified detail. Mark the existing list and filter regions busy and show **Loading Full History…** plus one polite **Loading Full History filter options…** status on the first page. During continuation keep verified rows and catalogues and show **Loading older History events…** in the collection status position. Do not display a prior-query matching or catalogue count as current. |
 | Loading selected event | Keep the active authorized collection and selected-row identity. Mark the detail article busy and show **Loading this History event…** in the existing detail slot. Do not reuse the preceding event's details. |
 | Empty Recent changes | HTTP 200 with `changes: []` uses the existing empty panel: **No permitted History events** and **Petra did not infer History from current objects or the Graph.** `has_older` must be false. |
-| Empty filtered Full History | HTTP 200 with `changes: []`, `snapshot_total_count: 0`, and `has_more: false` says **No permitted History events match these filters.** Preserve the exact filters and return control; expose no unfiltered count, substitute row, recovery action, or Recent result. Empty `{}` instead says **No permitted History events.** |
+| Empty filtered Full History | HTTP 200 with `changes: []`, `snapshot_total_count: 0`, and `has_more: false` says **No permitted History events match these filters.** Preserve the exact filters and return control; expose no unfiltered count, substitute row, recovery action, or Recent result. Each 1.2 catalogue still reflects replace-only-its-own-dimension facet semantics and may contain options; a selected zero-match value may be absent and remains selected from the query echo. Empty `{}` instead says **No permitted History events.** |
 | Invalid filter or query | Client-side validation keeps focus on the first invalid field and associates the exact correction with it. Server `PROJECT_HISTORY_RETAINED_QUERY_INVALID` before a cursor exists says **These Full History filters could not be verified. Check the marked values and try again.** Do not issue a widened query. |
-| Invalid, stale, or mismatched continuation | A malformed/tampered `phc2` cursor, changed Project/limit/filter identity, non-canonical payload, or unavailable original snapshot returns `PROJECT_HISTORY_RETAINED_QUERY_INVALID`. Keep the last verified rows and filters, discard the rejected cursor, and say **This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.** Starting again makes a cursorless request; it does not silently append a current page. |
-| Unavailable | `PROJECT_HISTORY_UNAVAILABLE` uses the affected list/detail slot: **Project History is unavailable right now.** Keep exact return usable and expose no recovery action. A safely retained prior response may remain only when labelled with its `read_at` and **Last verified**; it is not current eligibility. |
-| Unauthorized | Authentication failure or a future forbidden result renders **Project History is unavailable for this Project.** It reveals no event, target, actor, filter match, count, prior permission, `has_older`, or continuation value. Keep only a permitted Project/Projects return. |
+| Invalid, stale, or mismatched continuation | A malformed/tampered `phc2` cursor, changed Project/limit/filter identity, non-canonical payload, or unavailable original snapshot returns `PROJECT_HISTORY_RETAINED_QUERY_INVALID`. A returned catalogue that differs from the accepted Project/snapshot/query basis instead fails client validation. Both keep the last verified rows, filters, and catalogues; discard the rejected cursor and page; and say **This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.** Starting again makes a cursorless request; it does not silently append a current page. Stable machine-readable server subcodes are the next backend boundary. |
+| Unavailable | `PROJECT_HISTORY_UNAVAILABLE` uses the affected list/detail slot: **Project History is unavailable right now.** Keep exact return usable and expose no recovery action. A safely retained prior response and its catalogues may remain only when labelled with their `read_at` and **Last verified**; they are not current options or eligibility. |
+| Unauthorized | Authentication failure or a future forbidden result renders **Project History is unavailable for this Project.** It reveals no event, target, Actor name/identity/hash, option, filter match, count, prior permission, `has_older`, or continuation value. Keep only a permitted Project/Projects return. |
 | Missing or malformed event | `PROJECT_HISTORY_EVENT_NOT_FOUND` or invalid event identity renders **This History event is unavailable in this Project.** Keep the active authorized History collection and return control; do not substitute its first event. |
 | Stale collection or detail | Compare Recent/detail authority directly and retained `current_authority` with the detail authority. If detail is older, keep immutable event facts visible but mark recovery **Needs refresh** with **Recovery eligibility was checked at Project stream revision {detail}; current History is at {current}. Refresh this event before acting.** Reload the exact event ID. If Recent changes is older, mark it **Recent changes need refresh**; a retained snapshot remains intentionally stable and is not relabelled stale because new events were appended. Never silently switch events or inject new events into an active retained traversal. |
 | Integrity or invalid response | Server `PROJECT_HISTORY_READ_FAILED`, impossible page/count/order data, or client contract, Project, normalized-query, cursor-binding, content-hash, snapshot, or identity rejection renders **Petra could not verify this History response. No unverified events or recovery actions are available.** Do not label it empty, fall back to fixtures, reconstruct from graph state, append a partial page, or expose the server exception as author-facing prose. |
@@ -1373,6 +1449,13 @@ must continue rejecting any value other than
   Project/snapshot/limit/complete-query binding. It does not change the Recent
   endpoint, quick-window limit, episode/impact reads, or browser route. A client
   pinned to retained 1.0 cannot continue a 1.1 traversal with a `phc1` cursor.
+- Backend commit `04872ff` advances that same retained endpoint and typed client
+  from schema 1.1 to 1.2. It adds Actor and target option catalogues bound to the
+  authenticated Project, retention snapshot, and complete normalized query.
+  Each catalogue replaces only its own dimension for authorized event counts.
+  It adds no endpoint, query parameter, filter dimension, option continuation,
+  or browser route. A client pinned to 1.1 must validate the complete 1.2 result
+  rather than request or construct options separately.
 - Backend commit `9e90258` adds the exact-event recovery assessment endpoint
   and typed client. It accepts no query parameters and returns only a read-only
   assessment for `change_set.applied` or `change_set.reverted`; it does not
@@ -1404,15 +1487,18 @@ must continue rejecting any value other than
 - The frozen `DB18-SP10` contract already places **Scope/filter** before the
   History collection and detail, and its state coverage includes long filtered
   History. The checked-in `HistorySurface` does not instantiate that position,
-  a Full History collection state, or continuation behavior. Wiring the 1.1
-  client into those frozen positions remains an implementation gap; this handoff
-  adds no component, CSS rule, or route to fill it.
+  a Full History collection state, or continuation behavior. Wiring the
+  retained client into those frozen positions remains an implementation gap;
+  the binding must accept 1.2 and populate only its existing Actor and Target
+  fields. This handoff adds no component, CSS rule, or route to fill it.
 - The frozen view model expects authored titles, an Actor display string, and a
   projection-effect string. The implemented reads provide exact Actor kind/ID,
-  observed domain effect, and bounded projection-attempt records, but no
-  authorized Actor display descriptor, profile-resolved target title/origin, or
-  current projection-freshness result. The adapter must use exact fallback
-  labels and distinguish an attempt outcome from current projection state.
+  observed domain effect, and bounded projection-attempt records. Retained 1.2
+  now supplies immutable Actor-record display descriptors for authorized Actor
+  filter options only. It deliberately supplies no revision-neutral target
+  title, profile-resolved origin, or current projection-freshness result. The
+  adapter must use the target's exact semantic key/ID fallback and distinguish
+  an attempt outcome from current projection state.
 - The recovery assessment now decides exact single-ChangeSet reversibility only
   far enough to report `eligible_for_preview`, exact blockers, or a retained
   compensation. The separately requested preview now supplies the exact
@@ -1438,11 +1524,11 @@ must continue rejecting any value other than
   above and must not expose raw backend errors.
 - Snapshot-stable filtered retained Project-event traversal is implemented at
   `GET /api/queries/projects/:projectId/history/events` with signed opaque
-  `phc2` cursors. The API and typed client accept every registered filter, but
-  the filter response supplies no authorized Actor option catalogue/display
-  descriptor or target option catalogue/title. Contextual exact IDs and
-  separately authorized resolvers may fill those labels; the History client
-  may not invent them.
+  `phc2` cursors. The 1.2 API and typed client accept every registered filter and
+  return same-snapshot Actor and exact-target catalogues. Actor display names
+  retain immutable Actor record authority. Target options remain exact identity
+  only because no revision-neutral title authority exists. The History client
+  may not infer a title or merge option counts across dimensions.
 - Origin filtering remains explicitly unavailable. The response requires
   `origin_filter_not_supported`, and neither Actor, correlation, target,
   semantic destination, nor client return context provides authoritative origin
@@ -1469,13 +1555,14 @@ must continue rejecting any value other than
   exposes independent coverage but no continuation cursor; this conformance
   slice adds no control for either bound.
 
-The next safe History boundary is an authorized renderer-neutral Actor and
-target option catalogue for the already-frozen Full History filter fields. It
-must preserve exact IDs, authorized display descriptors, Project/snapshot/query
-binding, counts after authorization, and the explicit absence of an origin
-classification. It adds no filter dimension, route, or client authority. Output
-and replay destinations remain unavailable until an exact Project-owned route
-authority exists. Generic Undo, reversal of a reversal, multiple or multi-step
+The next safe History boundary is a backend-only retained-view revision with
+stable machine-readable continuation-failure subcodes. It may distinguish a
+malformed or tampered cursor, changed Project/query/limit binding, and an
+unavailable retained snapshot only while preserving the same non-disclosing,
+fail-closed restart behavior. It changes no filter, catalogue, cursor opacity,
+component, route, recovery decision, or client authority. Output and replay
+destinations remain unavailable until exact Project-owned route authority
+exists. Generic Undo, reversal of a reversal, multiple or multi-step
 compensation, event rewriting, historical ProjectDefinition interpretation,
 new filters, and an origin filter remain excluded.
 
@@ -1485,11 +1572,10 @@ new filters, and an origin filter remain excluded.
   semantic-target adapter reads plus three exact operational adapter groups,
   exact ChangeSet recovery assessment, read-only compensation preview,
   confirmed non-persisted plan composition, and separately authorized exact
-  execution passed through `161235a`. This
+  execution passed through `04872ff`. This
   frozen-surface acceptance mapping is implementation-ready without component,
   CSS, or route changes. Frontend binding and the stated gaps remain open; the
-  next boundary is an authorized Actor and target option catalogue for the
-  existing Full History filters.
+  next boundary is stable machine-readable continuation-failure subcodes.
 
 ### `UX-REQ-008` — semantic object location and safe deep-link resolution
 
@@ -2974,7 +3060,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Proposal, correction, exact preview, Apply, conflict, and Revert | ChangeSet, Approval, ReviewBatch, and additive event path in `M1.5` |
 | Durable conversation-derived working candidates and relationships | Proposed `UX-REQ-011`; existing bounded model records and evidence candidates remain inputs, not a generic working graph contract |
 | Profile-neutral Review session, comparison, deferment, separation, and member recovery | Proposed `UX-REQ-012`; current M1.5 evidence review remains the scientific contract foundation |
-| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding, four-group direct dependency impact, nine registered exact semantic-target adapters through ProjectSource/replacement authority, three separately bounded exact Work/input, output-manifest, and interaction-replay groups with a same-snapshot exact current-Work destination and explicit output/replay non-destinations, read-only exact ChangeSet recovery assessment, five-minute revision-bound compensation preview, confirmed non-persisted command-plan composition, and separately authorized exact execution with retained-prefix recovery under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration and exact History return context remain client-local, and an authorized Actor/target option catalogue for the existing Full History filters is the next backend boundary |
+| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding and same-snapshot authorized Actor/target option catalogues, four-group direct dependency impact, nine registered exact semantic-target adapters through ProjectSource/replacement authority, three separately bounded exact Work/input, output-manifest, and interaction-replay groups with a same-snapshot exact current-Work destination and explicit output/replay non-destinations, read-only exact ChangeSet recovery assessment, five-minute revision-bound compensation preview, confirmed non-persisted command-plan composition, and separately authorized exact execution with retained-prefix recovery under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration and exact History return context remain client-local, and stable machine-readable continuation-failure subcodes are the next backend boundary |
 | Semantic object location, replacement, and safe fallback | Proposed `UX-REQ-008`; the client retains route and layout ownership |
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
 | Project-source membership, governed removal, and local-copy retention/deletion | Proposed `UX-REQ-010`; Project linking and content-addressed storage remain separate lifecycles |
