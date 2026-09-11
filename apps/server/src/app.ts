@@ -1381,7 +1381,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The requested event is not available in this Project History.",
           );
         }
-        contracts.assertValid("project-history-impact-view", "1.3.0", view);
+        contracts.assertValid("project-history-impact-view", "1.4.0", view);
         if (
           view.project_id !== projectId ||
           view.event_id !== eventId ||

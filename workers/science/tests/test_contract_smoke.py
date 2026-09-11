@@ -2313,6 +2313,367 @@ class PetraProjectHistoryImpactViewV130(PetraModel):
     read_at: str
 
 
+class ProjectHistoryOperationalDefinitionRefV140(PetraModel):
+    project_definition_id: str
+    revision: int = Field(ge=1)
+    content_hash: str
+    definition_family: str
+
+
+class ProjectHistoryOperationalDestinationObjectRefV140(PetraModel):
+    semantic_key: Literal["petra.work-unit"]
+    object_id: str
+    revision: int = Field(ge=1)
+    record_hash: str
+
+
+class ProjectHistoryOperationalRouteAuthorityV140(PetraModel):
+    schema_name: Literal["petra.project-work-view"]
+    schema_version: Literal["1.0.0"]
+    view_kind: Literal["detail"]
+    authority_source: Literal["current_project_definition_and_project_work_view"]
+
+
+class ProjectHistoryAvailableWorkDestinationV140(PetraModel):
+    state: Literal["available"]
+    place_role: Literal["work"]
+    task_intent: Literal["inspect"]
+    object_ref: ProjectHistoryOperationalDestinationObjectRefV140
+    route_authority: ProjectHistoryOperationalRouteAuthorityV140
+    project_definition_ref: ProjectHistoryOperationalDefinitionRefV140
+
+
+class ProjectHistoryUnavailableWorkDestinationV140(PetraModel):
+    state: Literal["unavailable"]
+    reason_code: Literal["project_work_route_authority_unavailable"]
+    reason: Literal[
+        "The current ProjectDefinition does not authorize the exact Project Work "
+        "detail destination."
+    ]
+
+
+class ProjectHistoryUnavailableOutputDestinationV140(PetraModel):
+    state: Literal["unavailable"]
+    reason_code: Literal["worker_output_manifest_route_not_registered"]
+    reason: Literal[
+        "No exact Project-owned WorkerOutputManifest destination is registered."
+    ]
+
+
+class ProjectHistoryUnavailableReplayDestinationV140(PetraModel):
+    state: Literal["unavailable"]
+    reason_code: Literal["interaction_replay_record_route_not_registered"]
+    reason: Literal[
+        "No exact Project-owned InteractionReplayRecord destination is registered; "
+        "replay is not a ProjectThread binding."
+    ]
+
+
+ProjectHistoryOperationalDestinationV140 = (
+    ProjectHistoryAvailableWorkDestinationV140
+    | ProjectHistoryUnavailableWorkDestinationV140
+    | ProjectHistoryUnavailableOutputDestinationV140
+    | ProjectHistoryUnavailableReplayDestinationV140
+)
+
+
+class ProjectHistoryOperationalDependentRefV140(
+    ProjectHistoryOperationalDependentRefV130
+):
+    destination: ProjectHistoryOperationalDestinationV140
+
+    @model_validator(mode="after")
+    def exact_destination(self) -> ProjectHistoryOperationalDependentRefV140:
+        destination = self.destination
+        if self.semantic_key == "petra.work-unit":
+            if not isinstance(
+                destination,
+                ProjectHistoryAvailableWorkDestinationV140
+                | ProjectHistoryUnavailableWorkDestinationV140,
+            ):
+                raise ValueError("Work must use only its exact destination state")
+            if isinstance(destination, ProjectHistoryAvailableWorkDestinationV140):
+                target = destination.object_ref
+                if (
+                    target.object_id != self.work_unit_ref.work_unit_id
+                    or target.revision != self.work_unit_ref.revision
+                    or target.record_hash != self.work_unit_ref.record_hash
+                ):
+                    raise ValueError(
+                        "Work destination must preserve the exact current Work ref"
+                    )
+        elif self.semantic_key == "petra.worker-output-manifest":
+            if not isinstance(
+                destination, ProjectHistoryUnavailableOutputDestinationV140
+            ):
+                raise ValueError("Worker output has no exact registered destination")
+        elif not isinstance(
+            destination, ProjectHistoryUnavailableReplayDestinationV140
+        ):
+            raise ValueError("Interaction replay has no ProjectThread destination")
+        return self
+
+
+class ProjectHistoryOperationalAdapterGroupV140(PetraModel):
+    adapter_kind: Literal["work_input_binding", "work_output", "interaction_delivery"]
+    authority_source: Literal[
+        "current_work_heads_with_immutable_input_bindings",
+        "immutable_worker_output_manifests_for_bound_work",
+        "immutable_interaction_replay_records_for_bound_work",
+    ]
+    relation_scope: Literal["exact_target_record_binding"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=25)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistoryOperationalDependentRefV140] = Field(max_length=25)
+
+    @model_validator(mode="after")
+    def exact_authority_and_counts(
+        self,
+    ) -> ProjectHistoryOperationalAdapterGroupV140:
+        expected = {
+            "work_input_binding": (
+                "current_work_heads_with_immutable_input_bindings",
+                "petra.work-unit",
+            ),
+            "work_output": (
+                "immutable_worker_output_manifests_for_bound_work",
+                "petra.worker-output-manifest",
+            ),
+            "interaction_delivery": (
+                "immutable_interaction_replay_records_for_bound_work",
+                "petra.interaction-replay-record",
+            ),
+        }
+        authority, semantic_key = expected[self.adapter_kind]
+        if self.authority_source != authority or any(
+            ref.semantic_key != semantic_key for ref in self.refs
+        ):
+            raise ValueError("operational adapter must preserve its owning authority")
+        if self.returned_count != len(self.refs):
+            raise ValueError("operational returned count must match its refs")
+        expected_coverage = (
+            "truncated" if self.total_count > self.returned_count else "complete"
+        )
+        if self.coverage != expected_coverage:
+            raise ValueError("operational coverage must match its bounded count")
+        return self
+
+
+class ProjectHistoryOperationalRegisteredAssessmentV140(PetraModel):
+    target_index: int = Field(ge=0, le=99)
+    target_ref: ProjectHistoryTargetRef
+    adapter_state: Literal["registered"]
+    resolved_target_record: ProjectHistoryOperationalResolvedTargetRecordV130
+    groups: list[ProjectHistoryOperationalAdapterGroupV140] = Field(
+        min_length=3, max_length=3
+    )
+
+    @model_validator(mode="after")
+    def exact_target_and_group_order(
+        self,
+    ) -> ProjectHistoryOperationalRegisteredAssessmentV140:
+        resolved = self.resolved_target_record
+        if (
+            resolved.semantic_key != self.target_ref.semantic_key
+            or resolved.object_id != self.target_ref.object_id
+            or resolved.revision != self.target_ref.revision
+            or (
+                self.target_ref.record_hash is not None
+                and resolved.record_hash != self.target_ref.record_hash
+            )
+        ):
+            raise ValueError("operational assessment must preserve target identity")
+        if [group.adapter_kind for group in self.groups] != [
+            "work_input_binding",
+            "work_output",
+            "interaction_delivery",
+        ]:
+            raise ValueError("operational groups must retain registry order")
+        for group in self.groups:
+            for ref in group.refs:
+                binding = ref.input_binding_ref
+                if (
+                    binding.record_id != resolved.object_id
+                    or binding.record_revision != resolved.revision
+                    or binding.snapshot_hash != resolved.record_hash
+                ):
+                    raise ValueError(
+                        "operational ref must bind the exact target record"
+                    )
+        return self
+
+
+ProjectHistoryOperationalTargetAssessmentV140 = (
+    ProjectHistoryOperationalRegisteredAssessmentV140
+    | ProjectHistoryOperationalUnavailableAssessmentV130
+)
+
+
+class ProjectHistoryOperationalDependencyImpactV140(PetraModel):
+    scope: Literal["registered_exact_operational_dependents"]
+    target_limit: Literal[10]
+    per_adapter_ref_limit: Literal[25]
+    target_total_count: int = Field(ge=1, le=100)
+    target_returned_count: int = Field(ge=1, le=10)
+    target_coverage: Literal["complete", "truncated"]
+    registry: list[ProjectHistoryOperationalRegistryEntryV130] = Field(
+        min_length=3, max_length=3
+    )
+    target_assessments: list[ProjectHistoryOperationalTargetAssessmentV140] = Field(
+        min_length=1, max_length=10
+    )
+    summary: ProjectHistoryOperationalSummaryV130
+    unknowns: list[
+        Literal[
+            "work_without_exact_record_binding_is_excluded",
+            "unresolved_target_record_authority_may_hide_bindings",
+            "worker_output_effect_is_not_inferred",
+            "interaction_delivery_effect_is_not_inferred",
+            "transitive_operational_dependency_closure_is_not_composed",
+            "cross_family_total_order_is_not_asserted",
+        ]
+    ] = Field(min_length=6, max_length=6)
+
+    @model_validator(mode="after")
+    def exact_registry_counts_and_unknowns(
+        self,
+    ) -> ProjectHistoryOperationalDependencyImpactV140:
+        expected_registry = [
+            (
+                "work_input_binding",
+                "current_work_heads_with_immutable_input_bindings",
+                "petra.work-unit",
+            ),
+            (
+                "work_output",
+                "immutable_worker_output_manifests_for_bound_work",
+                "petra.worker-output-manifest",
+            ),
+            (
+                "interaction_delivery",
+                "immutable_interaction_replay_records_for_bound_work",
+                "petra.interaction-replay-record",
+            ),
+        ]
+        actual_registry = [
+            (
+                entry.adapter_kind,
+                entry.authority_source,
+                entry.dependent_semantic_key,
+            )
+            for entry in self.registry
+        ]
+        if actual_registry != expected_registry:
+            raise ValueError("operational adapter registry must be exact and ordered")
+        expected_unknowns = {
+            "work_without_exact_record_binding_is_excluded",
+            "unresolved_target_record_authority_may_hide_bindings",
+            "worker_output_effect_is_not_inferred",
+            "interaction_delivery_effect_is_not_inferred",
+            "transitive_operational_dependency_closure_is_not_composed",
+            "cross_family_total_order_is_not_asserted",
+        }
+        if len(self.unknowns) != 6 or set(self.unknowns) != expected_unknowns:
+            raise ValueError("operational impact must declare its six exact unknowns")
+        groups = [
+            group
+            for assessment in self.target_assessments
+            for group in assessment.groups
+        ]
+        supported = sum(
+            assessment.adapter_state == "registered"
+            for assessment in self.target_assessments
+        )
+        if (
+            self.target_returned_count != len(self.target_assessments)
+            or self.summary.assessed_target_count != len(self.target_assessments)
+            or self.summary.supported_target_count != supported
+            or self.summary.total_count != sum(group.total_count for group in groups)
+        ):
+            raise ValueError("operational impact summary must match assessed groups")
+        expected_coverage = (
+            "truncated"
+            if self.target_coverage == "truncated"
+            or any(group.coverage == "truncated" for group in groups)
+            else "complete"
+        )
+        if self.summary.coverage != expected_coverage:
+            raise ValueError("operational impact coverage must remain bounded")
+        return self
+
+
+class ProjectHistoryImpactContentV140(PetraModel):
+    view_kind: Literal["dependency_impact"]
+    selected_event: ProjectHistoryImpactEventAnchor
+    authorization_scope: Literal["authenticated_project"]
+    impact: ProjectHistoryImpactInventory
+    semantic_target_impact: ProjectHistorySemanticTargetImpactV120
+    operational_dependency_impact: ProjectHistoryOperationalDependencyImpactV140
+    decision_boundary: ProjectHistoryImpactDecisionBoundary
+    authority: ProjectHistoryImpactAuthority
+    omissions: list[
+        Literal[
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "work_without_exact_record_binding_not_composed",
+            "operational_dependent_effect_not_inferred",
+            "unregistered_operational_destination_not_inferred",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ] = Field(min_length=10, max_length=10)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_targets_and_omissions(self) -> ProjectHistoryImpactContentV140:
+        expected_omissions = {
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "work_without_exact_record_binding_not_composed",
+            "operational_dependent_effect_not_inferred",
+            "unregistered_operational_destination_not_inferred",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 10 or set(self.omissions) != expected_omissions:
+            raise ValueError("History impact 1.4 must declare its ten exact omissions")
+        targets = self.selected_event.targets
+        if self.semantic_target_impact.target_total_count != len(
+            targets
+        ) or self.operational_dependency_impact.target_total_count != len(targets):
+            raise ValueError("History impact slices must count selected event targets")
+        for assessments in (
+            self.semantic_target_impact.target_assessments,
+            self.operational_dependency_impact.target_assessments,
+        ):
+            for index, assessment in enumerate(assessments):
+                if (
+                    assessment.target_index != index
+                    or assessment.target_ref != targets[index]
+                ):
+                    raise ValueError(
+                        "History impact assessments must preserve target identity/order"
+                    )
+        return self
+
+
+class PetraProjectHistoryImpactViewV140(PetraModel):
+    schema_name: Literal["petra.project-history-impact-view"]
+    schema_version: Literal["1.4.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryImpactContentV140
+    content_hash: str
+    read_at: str
+
+
 class ProjectHistoryRecoveryChangeSetRef(PetraModel):
     change_set_id: str
     revision: Literal[1]
@@ -9277,6 +9638,10 @@ PYDANTIC_MODELS.update(
             "project-history-impact-view",
             "1.3.0",
         ): PetraProjectHistoryImpactViewV130,
+        (
+            "project-history-impact-view",
+            "1.4.0",
+        ): PetraProjectHistoryImpactViewV140,
     }
 )
 

@@ -4,13 +4,13 @@ Status: bounded Recent changes, exact event-selected causal episodes,
 snapshot-stable filtered retained Project-event traversal, and bounded direct
 dependency impact plus registered exact semantic-target adapters through
 ProjectSource and replacement authority plus exact record-bound Work, output,
-and delivery dependencies passed; exact read-only ChangeSet recovery assessment,
-revision-bound compensation preview, confirmed command-plan composition, and
-separately authorized single-plan execution with exact partial-outcome recovery
-also passed
+and delivery dependencies with exact renderer-neutral Work destinations passed;
+exact read-only ChangeSet recovery assessment, revision-bound compensation
+preview, confirmed command-plan composition, and separately authorized
+single-plan execution with exact partial-outcome recovery also passed
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `0e6688e` plus this slice
+Implementation baseline: `96acc5d` plus this slice
 
 ## Result
 
@@ -248,6 +248,30 @@ record authority, unregistered transitive relationships, effects, and a
 cross-family order remain explicit unknowns. No operational or History ledger
 was added.
 
+## Exact renderer-neutral operational destinations
+
+`petra.project-history-impact-view@1.4.0` preserves the complete 1.3 result and
+adds one explicit destination state to every operational reference. A current
+WorkUnit ref receives an `available` Work destination only when the same
+repeatable-read snapshot contains a valid current ProjectDefinition that
+supports the existing Work place. The destination repeats the exact current
+WorkUnit ID, revision, and record hash; names `inspect` intent; identifies
+`petra.project-work-view@1.0.0` detail as its route authority; and retains the
+exact current ProjectDefinition reference. It returns no URL, component, or
+layout instruction.
+
+When the current ProjectDefinition is missing or does not support Work, the
+Work destination is explicitly unavailable. WorkerOutputManifest and
+InteractionReplayRecord destinations are always unavailable in this version
+because Petra has no exact Project-owned route for either record. An output is
+not redirected to its owning Work, and a replay is not redirected to Petra or
+treated as a ProjectThread binding. These unavailable states preserve the exact
+operational records and reasons instead of inventing navigation authority.
+
+The existing client-owned History return context remains unchanged. Version
+1.4 does not add origin, focus, scroll, or browser history state and does not
+change any frozen component, CSS, or browser route.
+
 ## Recovery semantics
 
 `petra.project-history-recovery-assessment-view@1.0.0` adds the authenticated
@@ -438,7 +462,7 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2/1.3, ChangeSet
+retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2/1.3/1.4, ChangeSet
 recovery-assessment, and compensation-preview responses.
 Accepted plan-request and plan-view fixtures add the explicit-confirmation and
 non-persistence boundary.
@@ -451,7 +475,8 @@ reversibility decision, and an unregistered semantic target that fabricates a
 registered adapter group, plus an invalid response that collapses retained
 replacement lineage and effective head state into one unsupported authority.
 Another rejected response claims a global ordering scope for an operational
-dependency group. Further rejected cases claim that a recovery assessment
+dependency group, and a 1.4 response cannot present replay as a ProjectThread
+destination. Further rejected cases claim that a recovery assessment
 composed a compensation preview or turn a read-only preview into a created
 ChangeSet, recorded Approval, or executed command. An unconfirmed plan request
 and a plan response that claims execution are rejected. An unconfirmed
@@ -495,14 +520,20 @@ immutable WorkerOutputManifest and InteractionReplayRecord, validating the
 complete WorkerInputManifest–WorkUnit–InteractionRun authority chain and every
 content or record hash under the same repeatable-read snapshot.
 
+The 1.4 destination proof binds the returned current WorkUnit to the exact
+current ProjectDefinition and Project Work detail authority. Advancing that
+definition to a revision without the Work place changes only the Work
+destination to its explicit unavailable state. Output and replay references
+remain unavailable for navigation in both snapshots, with distinct reasons;
+the replay never acquires a ProjectThread destination.
+
 ## Next safe slice
 
-The next safe History boundary is freeze-conformance mapping of the fixed 1.3
-operational result into the existing History detail regions. A subsequent
-backend increment may add renderer-neutral destinations for the registered
-operational references, but only where an existing exact Project-owned route
-authority can be named; InteractionRun replay must not be presented as a
-ProjectThread destination without an explicit binding.
+The next safe History boundary is freeze-conformance mapping of the fixed 1.4
+operational destination result into the existing History detail regions. Only
+the exact current WorkUnit destination may become a link. Output and replay
+must remain text with their supplied unavailable reasons, and client-owned
+exact return behavior remains separate.
 
 An origin filter is not yet safe because current authority has no canonical
 origin classification. Historical ProjectDefinition interpretation likewise

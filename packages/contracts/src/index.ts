@@ -199,6 +199,28 @@ export type {
   WorkUnitRef as ProjectHistoryOperationalWorkUnitRefV13,
 } from "./generated/project-history-impact-view-v1-3.js";
 export type {
+  AvailableWorkDestination as ProjectHistoryAvailableWorkDestinationV14,
+  DefinitionRef as ProjectHistoryOperationalDefinitionRefV14,
+  ImpactContent as ProjectHistoryImpactContentV14,
+  InputBindingRef as ProjectHistoryOperationalInputBindingRefV14,
+  InteractionRunRef as ProjectHistoryOperationalInteractionRunRefV14,
+  OperationalAdapterGroup as ProjectHistoryOperationalAdapterGroupV14,
+  OperationalDependencyImpact as ProjectHistoryOperationalDependencyImpactV14,
+  OperationalDependentRef as ProjectHistoryOperationalDependentRefV14,
+  OperationalDestination as ProjectHistoryOperationalDestinationV14,
+  OperationalTargetAssessment as ProjectHistoryOperationalTargetAssessmentV14,
+  OutputOperationalDestination as ProjectHistoryOutputOperationalDestinationV14,
+  PetraProjectHistoryImpactViewV14,
+  ProjectWorkRouteAuthority as ProjectHistoryProjectWorkRouteAuthorityV14,
+  RegisteredOperationalAssessment as ProjectHistoryRegisteredOperationalAssessmentV14,
+  ReplayOperationalDestination as ProjectHistoryReplayOperationalDestinationV14,
+  ResolvedTargetRecord as ProjectHistoryResolvedTargetRecordV14,
+  UnavailableOperationalAssessment as ProjectHistoryUnavailableOperationalAssessmentV14,
+  UnavailableWorkDestination as ProjectHistoryUnavailableWorkDestinationV14,
+  WorkOperationalDestination as ProjectHistoryWorkOperationalDestinationV14,
+  WorkUnitRef as ProjectHistoryOperationalWorkUnitRefV14,
+} from "./generated/project-history-impact-view-v1-4.js";
+export type {
   Assessment as ProjectHistoryRecoveryAssessment,
   AssessmentBlocker as ProjectHistoryRecoveryAssessmentBlocker,
   CausalImpactBasis as ProjectHistoryRecoveryCausalImpactBasis,

@@ -3,7 +3,7 @@ import type {
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryEpisodeView,
-  PetraProjectHistoryImpactViewV13,
+  PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectHistoryView,
@@ -59,7 +59,7 @@ export interface ProjectHistoryViewReader {
   getProjectHistoryImpactView(
     projectId: string,
     eventId: string,
-  ): Promise<PetraProjectHistoryImpactViewV13 | undefined>;
+  ): Promise<PetraProjectHistoryImpactViewV14 | undefined>;
   getProjectHistoryRecoveryAssessmentView(
     projectId: string,
     eventId: string,

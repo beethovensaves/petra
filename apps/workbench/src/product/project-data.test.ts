@@ -9,7 +9,7 @@ import type {
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryCompensationPreviewView,
-  PetraProjectHistoryImpactViewV13,
+  PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectInquiryView,
@@ -222,12 +222,12 @@ const historyRetainedView = JSON.parse(
 const historyImpactView = JSON.parse(
   readFileSync(
     new URL(
-      "../../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-3.json",
+      "../../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-4.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryImpactViewV13;
+) as PetraProjectHistoryImpactViewV14;
 
 const historyRecoveryView = JSON.parse(
   readFileSync(
@@ -703,6 +703,33 @@ describe("Project shell workbench adapter", () => {
         total_count: 3,
       },
     });
+    const destinationAssessment =
+      result.content.operational_dependency_impact.target_assessments[0];
+    if (destinationAssessment?.adapter_state !== "registered") {
+      throw new Error("Expected a registered operational assessment.");
+    }
+    expect(destinationAssessment.groups[0].refs[0]?.destination).toMatchObject({
+      state: "available",
+      place_role: "work",
+      task_intent: "inspect",
+      route_authority: {
+        schema_name: "petra.project-work-view",
+        schema_version: "1.0.0",
+        view_kind: "detail",
+      },
+    });
+    expect(destinationAssessment.groups[1].refs[0]?.destination).toEqual({
+      state: "unavailable",
+      reason_code: "worker_output_manifest_route_not_registered",
+      reason:
+        "No exact Project-owned WorkerOutputManifest destination is registered.",
+    });
+    expect(destinationAssessment.groups[2].refs[0]?.destination).toEqual({
+      state: "unavailable",
+      reason_code: "interaction_replay_record_route_not_registered",
+      reason:
+        "No exact Project-owned InteractionReplayRecord destination is registered; replay is not a ProjectThread binding.",
+    });
     expect(result.content.decision_boundary).toEqual({
       reversibility: "not_assessed",
       compensation: "not_composed",
@@ -764,6 +791,27 @@ describe("Project shell workbench adapter", () => {
     operationalAssessment.groups[1].refs[0]!.input_binding_ref.snapshot_hash =
       "sha256:0000000000000000000000000000000000000000000000000000000000000000";
     fetch.mockResolvedValueOnce(Response.json(reboundOperationalTarget));
+    await expect(
+      getProjectHistoryImpact(
+        historyImpactView.project_id,
+        historyImpactView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const fabricatedReplayDestination = structuredClone(historyImpactView);
+    const fabricatedAssessment =
+      fabricatedReplayDestination.content.operational_dependency_impact
+        .target_assessments[0];
+    if (fabricatedAssessment?.adapter_state !== "registered") {
+      throw new Error("Expected a registered operational assessment.");
+    }
+    const replayDestination =
+      fabricatedAssessment.groups[2].refs[0]?.destination;
+    if (replayDestination === undefined) {
+      throw new Error("Expected an interaction replay destination state.");
+    }
+    Object.assign(replayDestination, { state: "available" });
+    fetch.mockResolvedValueOnce(Response.json(fabricatedReplayDestination));
     await expect(
       getProjectHistoryImpact(
         historyImpactView.project_id,

@@ -871,7 +871,7 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       compensation: "not_composed",
       dependent_effect: "not_inferred_from_reference",
     });
-    expect(submittedImpact?.schema_version).toBe("1.3.0");
+    expect(submittedImpact?.schema_version).toBe("1.4.0");
     expect(submittedImpact?.content.semantic_target_impact).toMatchObject({
       target_total_count: 1,
       target_returned_count: 1,
@@ -1185,7 +1185,7 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       commands.submit.project_id,
       submittedEvent.event_id,
     );
-    expect(impact?.schema_version).toBe("1.3.0");
+    expect(impact?.schema_version).toBe("1.4.0");
     expect(impact?.content.operational_dependency_impact).toMatchObject({
       scope: "registered_exact_operational_dependents",
       target_total_count: 1,
@@ -1231,10 +1231,30 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         record_revision: 1,
         snapshot_hash: targetRecordHash,
       },
+      destination: {
+        state: "available",
+        place_role: "work",
+        task_intent: "inspect",
+        object_ref: {
+          semantic_key: "petra.work-unit",
+          object_id: completed.work_unit_id,
+          revision: completed.revision,
+        },
+        route_authority: {
+          schema_name: "petra.project-work-view",
+          schema_version: "1.0.0",
+          view_kind: "detail",
+          authority_source: "current_project_definition_and_project_work_view",
+        },
+      },
     });
     expect(assessment.groups[1].refs[0]).toMatchObject({
       object_id: output.worker_output_manifest_id,
       relation: "reports_output_for_work_using_exact_history_target",
+      destination: {
+        state: "unavailable",
+        reason_code: "worker_output_manifest_route_not_registered",
+      },
     });
     expect(assessment.groups[2].refs[0]).toMatchObject({
       object_id: replay.interaction_replay_record_id,
@@ -1243,6 +1263,10 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         interaction_run_id: run.interaction_run_id,
         revision: run.revision,
         content_hash: run.content_hash,
+      },
+      destination: {
+        state: "unavailable",
+        reason_code: "interaction_replay_record_route_not_registered",
       },
     });
     expect(
@@ -1256,6 +1280,42 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     expect(impact?.content.omissions).toContain(
       "cross_family_total_order_not_asserted",
     );
+
+    const definitionWithoutWork = readFixture<PetraProjectDefinition>(
+      "project-definition-scientific",
+    );
+    definitionWithoutWork.revision = 2;
+    definitionWithoutWork.content.supported_places = [
+      "brief",
+      "sources",
+      "review",
+      "graph",
+      "petra",
+      "composition",
+      "history",
+      "settings",
+    ];
+    definitionWithoutWork.content_hash = canonicalHash(
+      definitionWithoutWork.content,
+    );
+    definitionWithoutWork.created_at = "2026-09-10T18:00:04.000Z";
+    await definitions.registerDefinitionRevision(definitionWithoutWork);
+    const impactWithoutWork = await historyViews.getProjectHistoryImpactView(
+      commands.submit.project_id,
+      submittedEvent.event_id,
+    );
+    const assessmentWithoutWork =
+      impactWithoutWork?.content.operational_dependency_impact
+        .target_assessments[0];
+    if (assessmentWithoutWork?.adapter_state !== "registered") {
+      throw new Error("Expected operational impact without a Work place.");
+    }
+    expect(assessmentWithoutWork.groups[0].refs[0]?.destination).toEqual({
+      state: "unavailable",
+      reason_code: "project_work_route_authority_unavailable",
+      reason:
+        "The current ProjectDefinition does not authorize the exact Project Work detail destination.",
+    });
   });
 
   it("executes a generated review plan through the durable command boundary", async () => {

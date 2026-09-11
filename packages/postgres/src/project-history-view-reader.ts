@@ -7,16 +7,18 @@ import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactView,
   PetraProjectHistoryImpactViewV12,
-  PetraProjectHistoryImpactViewV13,
+  PetraProjectHistoryImpactViewV14,
+  PetraProjectDefinition,
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectHistoryView,
   ProjectHistoryCausalCommandLink,
   ProjectHistoryCommandRef,
   ProjectHistoryEventRef,
-  ProjectHistoryOperationalAdapterGroupV13 as ProjectHistoryOperationalAdapterGroup,
-  ProjectHistoryOperationalDependentRefV13 as ProjectHistoryOperationalDependentRef,
-  ProjectHistoryOperationalTargetAssessmentV13 as ProjectHistoryOperationalTargetAssessment,
+  ProjectHistoryOperationalAdapterGroupV14 as ProjectHistoryOperationalAdapterGroup,
+  ProjectHistoryOperationalDefinitionRefV14 as ProjectHistoryOperationalDefinitionRef,
+  ProjectHistoryOperationalDependentRefV14 as ProjectHistoryOperationalDependentRef,
+  ProjectHistoryOperationalTargetAssessmentV14 as ProjectHistoryOperationalTargetAssessment,
   ProjectHistoryRecentChange,
   ProjectHistoryReceiptRef,
   ProjectHistoryRecovery,
@@ -26,7 +28,7 @@ import type {
   ProjectHistoryRetentionSnapshot,
   ProjectHistorySemanticDependentRefV12 as ProjectHistorySemanticDependentRef,
   ProjectHistorySemanticImpactAdapterGroupV12 as ProjectHistorySemanticImpactAdapterGroup,
-  ProjectHistoryResolvedTargetRecordV13 as ProjectHistoryResolvedTargetRecord,
+  ProjectHistoryResolvedTargetRecordV14 as ProjectHistoryResolvedTargetRecord,
   ProjectHistoryTargetAssessmentV12 as ProjectHistoryTargetAssessment,
   ProjectHistoryTargetRef,
 } from "@petra/contracts";
@@ -165,6 +167,11 @@ interface OperationalDependentRow {
   interaction_run_payload: unknown;
   interaction_run_record_hash: string | null;
   total_count: string;
+}
+
+interface OperationalDestinationDefinitionRow {
+  definition_payload: unknown;
+  definition_record_hash: string | null;
 }
 
 interface EventRow {
@@ -1372,7 +1379,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   async getProjectHistoryImpactView(
     projectId: string,
     eventId: string,
-  ): Promise<PetraProjectHistoryImpactViewV13 | undefined> {
+  ): Promise<PetraProjectHistoryImpactViewV14 | undefined> {
     return this.#readTransaction(async (client, readAt) => {
       const result = await client.query<HistoryRow>(
         `SELECT event.payload AS event_payload,
@@ -1451,7 +1458,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           semanticTargetImpact,
         );
       const authority = await this.#authority(client, projectId);
-      const content: PetraProjectHistoryImpactViewV13["content"] = {
+      const content: PetraProjectHistoryImpactViewV14["content"] = {
         view_kind: "dependency_impact",
         selected_event: {
           command_ref: change.command_ref,
@@ -1501,6 +1508,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           "transitive_dependency_closure_not_composed",
           "work_without_exact_record_binding_not_composed",
           "operational_dependent_effect_not_inferred",
+          "unregistered_operational_destination_not_inferred",
           "reversibility_not_assessed",
           "compensation_not_composed",
           "historical_project_definition_not_interpreted",
@@ -1508,16 +1516,16 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         ],
         graph_navigation_history: "client_local_separate",
       };
-      const view: PetraProjectHistoryImpactViewV13 = {
+      const view: PetraProjectHistoryImpactViewV14 = {
         schema_name: "petra.project-history-impact-view",
-        schema_version: "1.3.0",
+        schema_version: "1.4.0",
         project_id: projectId,
         event_id: eventId,
         content,
         content_hash: canonicalHash(content),
         read_at: readAt,
       };
-      this.#contracts.assertValid("project-history-impact-view", "1.3.0", view);
+      this.#contracts.assertValid("project-history-impact-view", "1.4.0", view);
       return structuredClone(view);
     });
   }
@@ -3063,8 +3071,10 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     targets: readonly ProjectHistoryTargetRef[],
     semanticImpact: PetraProjectHistoryImpactViewV12["content"]["semantic_target_impact"],
   ): Promise<
-    PetraProjectHistoryImpactViewV13["content"]["operational_dependency_impact"]
+    PetraProjectHistoryImpactViewV14["content"]["operational_dependency_impact"]
   > {
+    const workDestinationDefinition =
+      await this.#operationalWorkDestinationDefinition(client, projectId);
     const selectedTargets = targets.slice(0, SEMANTIC_TARGET_LIMIT);
     const targetAssessments: ProjectHistoryOperationalTargetAssessment[] = [];
     for (const [targetIndex, target] of selectedTargets.entries()) {
@@ -3123,6 +3133,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         client,
         projectId,
         resolvedTarget,
+        workDestinationDefinition,
       );
       const workOutputGroup = await this.#operationalWorkOutputGroup(
         client,
@@ -3182,7 +3193,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         },
       ],
       target_assessments:
-        targetAssessments as PetraProjectHistoryImpactViewV13["content"]["operational_dependency_impact"]["target_assessments"],
+        targetAssessments as PetraProjectHistoryImpactViewV14["content"]["operational_dependency_impact"]["target_assessments"],
       summary: {
         registered_adapter_count: 3,
         assessed_target_count: selectedTargets.length,
@@ -3207,10 +3218,63 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     };
   }
 
+  async #operationalWorkDestinationDefinition(
+    client: PoolClient,
+    projectId: string,
+  ): Promise<ProjectHistoryOperationalDefinitionRef | undefined> {
+    const result = await client.query<OperationalDestinationDefinitionRow>(
+      `SELECT revision.payload AS definition_payload,
+              revision.record_hash AS definition_record_hash
+         FROM petra.projects AS project
+         LEFT JOIN petra.project_definitions AS definition
+           ON definition.project_id = project.project_id
+         LEFT JOIN petra.project_definition_revisions AS revision
+           ON revision.project_definition_id = definition.project_definition_id
+          AND revision.revision = definition.current_revision
+        WHERE project.project_id = $1`,
+      [projectId],
+    );
+    const row = result.rows[0];
+    if (
+      row === undefined ||
+      row.definition_payload === null ||
+      row.definition_record_hash === null
+    ) {
+      return undefined;
+    }
+    this.#contracts.assertValid(
+      "project-definition",
+      "1.0.0",
+      row.definition_payload,
+    );
+    const definition = row.definition_payload as PetraProjectDefinition;
+    if (
+      definition.project_id !== projectId ||
+      definition.content_hash !== canonicalHash(definition.content) ||
+      row.definition_record_hash !== canonicalHash(definition)
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The current ProjectDefinition cannot authorize an operational destination.",
+      );
+    }
+    if (!definition.content.supported_places.includes("work")) {
+      return undefined;
+    }
+    return {
+      project_definition_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+      definition_family: definition.definition_family,
+    };
+  }
+
   async #operationalWorkInputGroup(
     client: PoolClient,
     projectId: string,
     target: ProjectHistoryResolvedTargetRecord,
+    workDestinationDefinition:
+      ProjectHistoryOperationalDefinitionRef | undefined,
   ): Promise<ProjectHistoryOperationalAdapterGroup> {
     const result = await client.query<OperationalDependentRow>(
       `WITH matched AS (
@@ -3251,7 +3315,13 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       "work_input_binding",
       "current_work_heads_with_immutable_input_bindings",
       result.rows.map((row) =>
-        this.#operationalDependentRef(row, projectId, target, "work_input"),
+        this.#operationalDependentRef(
+          row,
+          projectId,
+          target,
+          "work_input",
+          workDestinationDefinition,
+        ),
       ),
       result.rows[0]?.total_count,
     );
@@ -3385,6 +3455,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     projectId: string,
     target: ProjectHistoryResolvedTargetRecord,
     kind: "work_input" | "work_output" | "interaction_delivery",
+    workDestinationDefinition?: ProjectHistoryOperationalDefinitionRef,
   ): ProjectHistoryOperationalDependentRef {
     const input = record(row.input_payload, "operational WorkerInputManifest");
     const inputContent = objectMember(
@@ -3482,6 +3553,33 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         relation_identity: relationPrefix,
         work_unit_ref: workUnitRef,
         input_binding_ref: inputBindingRef,
+        destination:
+          workDestinationDefinition === undefined
+            ? {
+                state: "unavailable",
+                reason_code: "project_work_route_authority_unavailable",
+                reason:
+                  "The current ProjectDefinition does not authorize the exact Project Work detail destination.",
+              }
+            : {
+                state: "available",
+                place_role: "work",
+                task_intent: "inspect",
+                object_ref: {
+                  semantic_key: "petra.work-unit",
+                  object_id: workUnitRef.work_unit_id,
+                  revision: workUnitRef.revision,
+                  record_hash: workUnitRef.record_hash,
+                },
+                route_authority: {
+                  schema_name: "petra.project-work-view",
+                  schema_version: "1.0.0",
+                  view_kind: "detail",
+                  authority_source:
+                    "current_project_definition_and_project_work_view",
+                },
+                project_definition_ref: workDestinationDefinition,
+              },
       };
     }
 
@@ -3538,6 +3636,12 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         relation_identity: `${relationPrefix}/output:${outputId}`,
         work_unit_ref: workUnitRef,
         input_binding_ref: inputBindingRef,
+        destination: {
+          state: "unavailable",
+          reason_code: "worker_output_manifest_route_not_registered",
+          reason:
+            "No exact Project-owned WorkerOutputManifest destination is registered.",
+        },
       };
     }
 
@@ -3661,6 +3765,12 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           "operational InteractionRun",
         ),
         record_hash: row.interaction_run_record_hash,
+      },
+      destination: {
+        state: "unavailable",
+        reason_code: "interaction_replay_record_route_not_registered",
+        reason:
+          "No exact Project-owned InteractionReplayRecord destination is registered; replay is not a ProjectThread binding.",
       },
     };
   }

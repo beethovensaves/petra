@@ -9,7 +9,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
-  PetraProjectHistoryImpactViewV13,
+  PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectInquiryView,
@@ -280,6 +280,58 @@ const historyOperationalRegistryIsExact = (value: unknown[]): boolean =>
     );
   });
 
+const historyOperationalDestinationIsValid = (
+  value: unknown,
+  semanticKey: (typeof HISTORY_OPERATIONAL_REGISTRY)[number][2],
+  workUnitRef: Record<string, unknown>,
+): boolean => {
+  if (!isRecord(value) || typeof value.state !== "string") return false;
+  if (semanticKey === "petra.work-unit") {
+    if (value.state === "unavailable") {
+      return (
+        value.reason_code === "project_work_route_authority_unavailable" &&
+        value.reason ===
+          "The current ProjectDefinition does not authorize the exact Project Work detail destination."
+      );
+    }
+    return (
+      value.state === "available" &&
+      value.place_role === "work" &&
+      value.task_intent === "inspect" &&
+      isRecord(value.object_ref) &&
+      value.object_ref.semantic_key === "petra.work-unit" &&
+      value.object_ref.object_id === workUnitRef.work_unit_id &&
+      value.object_ref.revision === workUnitRef.revision &&
+      value.object_ref.record_hash === workUnitRef.record_hash &&
+      isRecord(value.route_authority) &&
+      value.route_authority.schema_name === "petra.project-work-view" &&
+      value.route_authority.schema_version === "1.0.0" &&
+      value.route_authority.view_kind === "detail" &&
+      value.route_authority.authority_source ===
+        "current_project_definition_and_project_work_view" &&
+      isRecord(value.project_definition_ref) &&
+      typeof value.project_definition_ref.project_definition_id === "string" &&
+      typeof value.project_definition_ref.revision === "number" &&
+      typeof value.project_definition_ref.content_hash === "string" &&
+      typeof value.project_definition_ref.definition_family === "string"
+    );
+  }
+  if (semanticKey === "petra.worker-output-manifest") {
+    return (
+      value.state === "unavailable" &&
+      value.reason_code === "worker_output_manifest_route_not_registered" &&
+      value.reason ===
+        "No exact Project-owned WorkerOutputManifest destination is registered."
+    );
+  }
+  return (
+    value.state === "unavailable" &&
+    value.reason_code === "interaction_replay_record_route_not_registered" &&
+    value.reason ===
+      "No exact Project-owned InteractionReplayRecord destination is registered; replay is not a ProjectThread binding."
+  );
+};
+
 const historyOperationalGroupIsValid = (
   value: unknown,
   groupIndex: number,
@@ -323,6 +375,11 @@ const historyOperationalGroupIsValid = (
       typeof ref.work_unit_ref.revision !== "number" ||
       typeof ref.work_unit_ref.spec_hash !== "string" ||
       typeof ref.work_unit_ref.record_hash !== "string" ||
+      !historyOperationalDestinationIsValid(
+        ref.destination,
+        expected[2],
+        ref.work_unit_ref,
+      ) ||
       !isRecord(ref.input_binding_ref) ||
       ref.input_binding_ref.record_id !== resolvedTarget.object_id ||
       ref.input_binding_ref.record_revision !== resolvedTarget.revision ||
@@ -474,11 +531,11 @@ const projectHistoryRetainedView = (
 
 const projectHistoryImpactView = (
   value: unknown,
-): PetraProjectHistoryImpactViewV13 => {
+): PetraProjectHistoryImpactViewV14 => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-history-impact-view" ||
-    value.schema_version !== "1.3.0" ||
+    value.schema_version !== "1.4.0" ||
     typeof value.project_id !== "string" ||
     typeof value.event_id !== "string" ||
     !isRecord(value.content) ||
@@ -701,7 +758,7 @@ const projectHistoryImpactView = (
       502,
     );
   }
-  return value as unknown as PetraProjectHistoryImpactViewV13;
+  return value as unknown as PetraProjectHistoryImpactViewV14;
 };
 
 const projectHistoryRecoveryAssessmentView = (
@@ -2253,7 +2310,7 @@ export const getProjectHistoryEpisode = async (
 export const getProjectHistoryImpact = async (
   projectId: string,
   eventId: string,
-): Promise<PetraProjectHistoryImpactViewV13> => {
+): Promise<PetraProjectHistoryImpactViewV14> => {
   const value = await requestJson(
     `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}/impact`,
   );
