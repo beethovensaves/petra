@@ -18,7 +18,7 @@ import {
 import type {
   PetraProjectHistoryCompensationExecutionRequest,
   PetraProjectHistoryCompensationPlanRequest,
-  ProjectHistoryRetainedCollectionFiltersV11,
+  ProjectHistoryRetainedCollectionFiltersV12,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
@@ -1234,26 +1234,26 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "Retained Project History recorded-time bounds are invalid.",
           );
         }
-        const filters: ProjectHistoryRetainedCollectionFiltersV11 = {
+        const filters: ProjectHistoryRetainedCollectionFiltersV12 = {
           ...(family === undefined
             ? {}
             : {
                 family: family as NonNullable<
-                  ProjectHistoryRetainedCollectionFiltersV11["family"]
+                  ProjectHistoryRetainedCollectionFiltersV12["family"]
                 >,
               }),
           ...(commandName === undefined
             ? {}
             : {
                 command_name: commandName as NonNullable<
-                  ProjectHistoryRetainedCollectionFiltersV11["command_name"]
+                  ProjectHistoryRetainedCollectionFiltersV12["command_name"]
                 >,
               }),
           ...(eventType === undefined
             ? {}
             : {
                 event_type: eventType as NonNullable<
-                  ProjectHistoryRetainedCollectionFiltersV11["event_type"]
+                  ProjectHistoryRetainedCollectionFiltersV12["event_type"]
                 >,
               }),
           ...(actorId === undefined ? {} : { actor_id: actorId }),
@@ -1261,14 +1261,14 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             ? {}
             : {
                 outcome: outcome as NonNullable<
-                  ProjectHistoryRetainedCollectionFiltersV11["outcome"]
+                  ProjectHistoryRetainedCollectionFiltersV12["outcome"]
                 >,
               }),
           ...(effect === undefined
             ? {}
             : {
                 effect: effect as NonNullable<
-                  ProjectHistoryRetainedCollectionFiltersV11["effect"]
+                  ProjectHistoryRetainedCollectionFiltersV12["effect"]
                 >,
               }),
           ...(targetSemanticKey === undefined || targetObjectId === undefined
@@ -1276,7 +1276,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             : {
                 target: {
                   semantic_key: targetSemanticKey as NonNullable<
-                    ProjectHistoryRetainedCollectionFiltersV11["target"]
+                    ProjectHistoryRetainedCollectionFiltersV12["target"]
                   >["semantic_key"],
                   object_id: targetObjectId,
                 },
@@ -1312,7 +1312,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The requested Project does not exist in the local authority store.",
           );
         }
-        contracts.assertValid("project-history-retained-view", "1.1.0", view);
+        contracts.assertValid("project-history-retained-view", "1.2.0", view);
         if (
           view.project_id !== projectId ||
           view.content.view_kind !== "retained_events" ||

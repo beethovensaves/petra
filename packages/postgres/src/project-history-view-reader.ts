@@ -1,6 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 import type {
+  PetraActor,
   PetraProjectHistoryCompensationPlanRequest,
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
@@ -10,7 +11,7 @@ import type {
   PetraProjectHistoryImpactViewV14,
   PetraProjectDefinition,
   PetraProjectHistoryRecoveryAssessmentView,
-  PetraProjectHistoryRetainedViewV11,
+  PetraProjectHistoryRetainedViewV12,
   PetraProjectHistoryView,
   ProjectHistoryCausalCommandLink,
   ProjectHistoryCommandRef,
@@ -22,7 +23,7 @@ import type {
   ProjectHistoryRecentChange,
   ProjectHistoryReceiptRef,
   ProjectHistoryRecovery,
-  ProjectHistoryRetainedCollectionFiltersV11,
+  ProjectHistoryRetainedCollectionFiltersV12,
   ProjectHistoryRegisteredTargetAssessmentV12 as ProjectHistoryRegisteredTargetAssessment,
   ProjectHistoryResolvedTargetRefV12 as ProjectHistoryResolvedTargetRef,
   ProjectHistoryRetentionSnapshot,
@@ -75,6 +76,22 @@ interface AuthorityRow {
 }
 
 interface CountRow {
+  total_count: string;
+}
+
+interface HistoryActorOptionRow {
+  actor_id: string;
+  actor_kind: PetraActor["actor_kind"];
+  actor_payload: unknown;
+  actor_record_hash: string;
+  matching_event_count: string;
+  total_count: string;
+}
+
+interface HistoryTargetOptionRow {
+  semantic_key: keyof typeof HISTORY_TARGET_PREFIXES;
+  object_id: string;
+  matching_event_count: string;
   total_count: string;
 }
 
@@ -279,6 +296,7 @@ interface DerivedHistoryChange {
 const HISTORY_LIMIT = 10;
 const RETAINED_DEFAULT_LIMIT = 50;
 const RETAINED_MAX_LIMIT = 100;
+const RETAINED_FILTER_OPTION_LIMIT = 100;
 const IMPACT_MAX_REFS = 100;
 const SEMANTIC_TARGET_LIMIT = 10;
 const SEMANTIC_ADAPTER_MAX_REFS = 25;
@@ -577,7 +595,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   async listRetainedProjectHistoryView(
     projectId: string,
     request: ProjectHistoryRetainedCollectionRequest = {},
-  ): Promise<PetraProjectHistoryRetainedViewV11 | undefined> {
+  ): Promise<PetraProjectHistoryRetainedViewV12 | undefined> {
     const query = this.#retainedQuery(request);
     const queryIdentityHash = canonicalHash({
       limit: query.limit,
@@ -705,18 +723,33 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           before_stream_revision: lastChange.event_ref.stream_revision,
         });
       }
-      const content = {
+      const filterOptions = await this.#retainedFilterOptions(
+        client,
+        projectId,
+        retentionSnapshot,
+        query.filters,
+      );
+      const page: PetraProjectHistoryRetainedViewV12["content"]["page"] =
+        hasMore
+          ? {
+              returned_count: changes.length,
+              snapshot_total_count: snapshotTotalCount,
+              has_more: true,
+              next_cursor: nextCursor as string,
+            }
+          : {
+              returned_count: changes.length,
+              snapshot_total_count: snapshotTotalCount,
+              has_more: false,
+            };
+      const content: PetraProjectHistoryRetainedViewV12["content"] = {
         view_kind: "retained_events",
         order_kind: "project_stream_newest_first",
         query,
         cursor_binding: "project_snapshot_and_complete_query",
         changes,
-        page: {
-          returned_count: changes.length,
-          snapshot_total_count: snapshotTotalCount,
-          has_more: hasMore,
-          ...(nextCursor === undefined ? {} : { next_cursor: nextCursor }),
-        },
+        page,
+        filter_options: filterOptions,
         retention_snapshot: retentionSnapshot,
         current_authority: currentAuthority,
         recovery_authority: "current_at_page_read",
@@ -731,7 +764,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       };
       const view = {
         schema_name: "petra.project-history-retained-view",
-        schema_version: "1.1.0",
+        schema_version: "1.2.0",
         project_id: projectId,
         content,
         content_hash: canonicalHash(content),
@@ -739,18 +772,18 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       };
       this.#contracts.assertValid(
         "project-history-retained-view",
-        "1.1.0",
+        "1.2.0",
         view,
       );
       return structuredClone(
-        view as unknown as PetraProjectHistoryRetainedViewV11,
+        view as unknown as PetraProjectHistoryRetainedViewV12,
       );
     });
   }
 
   #retainedQuery(
     request: ProjectHistoryRetainedCollectionRequest,
-  ): PetraProjectHistoryRetainedViewV11["content"]["query"] {
+  ): PetraProjectHistoryRetainedViewV12["content"]["query"] {
     const limit = request.limit ?? RETAINED_DEFAULT_LIMIT;
     if (
       !Number.isSafeInteger(limit) ||
@@ -778,8 +811,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   }
 
   #retainedFilters(
-    supplied: ProjectHistoryRetainedCollectionFiltersV11,
-  ): ProjectHistoryRetainedCollectionFiltersV11 {
+    supplied: ProjectHistoryRetainedCollectionFiltersV12,
+  ): ProjectHistoryRetainedCollectionFiltersV12 {
     if (
       typeof supplied !== "object" ||
       supplied === null ||
@@ -854,7 +887,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         "Retained Project History authority-effect filter is invalid.",
       );
     }
-    let target: ProjectHistoryRetainedCollectionFiltersV11["target"];
+    let target: ProjectHistoryRetainedCollectionFiltersV12["target"];
     if (supplied.target !== undefined) {
       if (
         typeof supplied.target !== "object" ||
@@ -886,7 +919,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         object_id: supplied.target.object_id,
       };
     }
-    let recordedAt: ProjectHistoryRetainedCollectionFiltersV11["recorded_at"];
+    let recordedAt: ProjectHistoryRetainedCollectionFiltersV12["recorded_at"];
     if (supplied.recorded_at !== undefined) {
       if (
         typeof supplied.recorded_at !== "object" ||
@@ -961,8 +994,9 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   }
 
   #retainedFilterSql(
-    filters: ProjectHistoryRetainedCollectionFiltersV11,
+    filters: ProjectHistoryRetainedCollectionFiltersV12,
     parameters: (number | string | null)[],
+    excludedDimension?: "actor_id" | "target",
   ): string {
     const clauses: string[] = [];
     const parameter = (value: string): string => {
@@ -994,7 +1028,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       const value = parameter(filters.event_type);
       clauses.push(`event.payload #>> '{event,event_type}' = ${value}::text`);
     }
-    if (filters.actor_id !== undefined) {
+    if (filters.actor_id !== undefined && excludedDimension !== "actor_id") {
       const value = parameter(filters.actor_id);
       clauses.push(`event.payload #>> '{actor,actor_id}' = ${value}::text`);
     }
@@ -1021,7 +1055,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           WHEN 'project_source.replacement_retracted' THEN 'source_replacement_retracted'
         END = ${value}::text`);
     }
-    if (filters.target !== undefined) {
+    if (filters.target !== undefined && excludedDimension !== "target") {
       const semanticKey = parameter(filters.target.semantic_key);
       const objectId = parameter(filters.target.object_id);
       clauses.push(`CASE ${semanticKey}::text
@@ -1075,6 +1109,319 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     return clauses.length === 0
       ? ""
       : clauses.map((clause) => `AND (${clause})`).join("\n            ");
+  }
+
+  async #retainedFilterOptions(
+    client: PoolClient,
+    projectId: string,
+    retentionSnapshot: PetraProjectHistoryRetainedViewV12["content"]["retention_snapshot"],
+    filters: ProjectHistoryRetainedCollectionFiltersV12,
+  ): Promise<PetraProjectHistoryRetainedViewV12["content"]["filter_options"]> {
+    const actorParameters: (number | string | null)[] = [
+      projectId,
+      retentionSnapshot.through_stream_revision,
+      retentionSnapshot.through_event_position,
+    ];
+    const actorFilterSql = this.#retainedFilterSql(
+      filters,
+      actorParameters,
+      "actor_id",
+    );
+    actorParameters.push(filters.actor_id ?? null);
+    const selectedActorParameter = `$${actorParameters.length}`;
+    actorParameters.push(RETAINED_FILTER_OPTION_LIMIT);
+    const actorLimitParameter = `$${actorParameters.length}`;
+    const actorResult = await client.query<HistoryActorOptionRow>(
+      `SELECT event.actor_id,
+              event.actor_kind,
+              actor.payload AS actor_payload,
+              actor.record_hash AS actor_record_hash,
+              COUNT(*)::text AS matching_event_count,
+              COUNT(*) OVER ()::text AS total_count
+         FROM petra.domain_events AS event
+         JOIN petra.command_executions AS execution
+           ON execution.command_id = event.command_id
+          AND execution.project_id = event.project_id
+         JOIN petra.actors AS actor
+           ON actor.actor_id = event.actor_id
+          AND actor.actor_kind = event.actor_kind
+        WHERE event.project_id = $1
+          AND event.stream_revision <= $2
+          AND event.event_position <= $3
+          ${actorFilterSql}
+        GROUP BY event.actor_id, event.actor_kind, actor.payload,
+                 actor.record_hash
+        ORDER BY (event.actor_id = ${selectedActorParameter}::text) DESC,
+                 COUNT(*) DESC, event.actor_id
+        LIMIT ${actorLimitParameter}::integer`,
+      actorParameters,
+    );
+
+    const targetParameters: (number | string | null)[] = [
+      projectId,
+      retentionSnapshot.through_stream_revision,
+      retentionSnapshot.through_event_position,
+    ];
+    const targetFilterSql = this.#retainedFilterSql(
+      filters,
+      targetParameters,
+      "target",
+    );
+    targetParameters.push(filters.target?.semantic_key ?? null);
+    const selectedTargetKeyParameter = `$${targetParameters.length}`;
+    targetParameters.push(filters.target?.object_id ?? null);
+    const selectedTargetIdParameter = `$${targetParameters.length}`;
+    targetParameters.push(RETAINED_FILTER_OPTION_LIMIT);
+    const targetLimitParameter = `$${targetParameters.length}`;
+    const targetResult = await client.query<HistoryTargetOptionRow>(
+      `WITH matched_events AS (
+         SELECT event.event_id, event.event_type, event.payload
+           FROM petra.domain_events AS event
+           JOIN petra.command_executions AS execution
+             ON execution.command_id = event.command_id
+            AND execution.project_id = event.project_id
+          WHERE event.project_id = $1
+            AND event.stream_revision <= $2
+            AND event.event_position <= $3
+            ${targetFilterSql}
+       ), target_occurrences AS (
+         SELECT event_id,
+                'petra.change-set'::text AS semantic_key,
+                CASE event_type
+                  WHEN 'change_set.submitted' THEN
+                    payload #>> '{event,payload,change_set,change_set_id}'
+                  WHEN 'approval.recorded' THEN
+                    payload #>> '{event,payload,approval,subject,change_set_id}'
+                  ELSE payload #>> '{event,payload,change_set_id}'
+                END AS object_id
+           FROM matched_events
+          WHERE event_type IN (
+            'change_set.submitted', 'approval.recorded',
+            'change_set.applied', 'change_set.conflicted',
+            'change_set.reverted', 'change_set.reversal_conflicted'
+          )
+         UNION ALL
+         SELECT event_id, 'petra.approval'::text,
+                payload #>> '{event,payload,approval,approval_id}'
+           FROM matched_events
+          WHERE event_type = 'approval.recorded'
+         UNION ALL
+         SELECT event_id, 'scientific.claim'::text,
+                payload #>> '{event,payload,claim,claim_id}'
+           FROM matched_events
+          WHERE event_type IN ('change_set.applied', 'change_set.reverted')
+         UNION ALL
+         SELECT event_id, 'scientific.assertion'::text,
+                payload #>> '{event,payload,assertion,assertion_id}'
+           FROM matched_events
+          WHERE event_type IN ('change_set.applied', 'change_set.reverted')
+         UNION ALL
+         SELECT event_id,
+                ('scientific.' || (conflict_target.value ->> 'target_kind'))::text,
+                conflict_target.value ->> 'target_id'
+           FROM matched_events
+           CROSS JOIN LATERAL jsonb_array_elements(
+             COALESCE(payload #> '{event,payload,targets}', '[]'::jsonb)
+           ) AS conflict_target(value)
+          WHERE event_type IN (
+            'change_set.conflicted', 'change_set.reversal_conflicted'
+          )
+         UNION ALL
+         SELECT event_id, 'petra.project-source'::text,
+                payload #>> '{event,payload,project_source,project_source_id}'
+           FROM matched_events
+          WHERE event_type IN (
+            'project_source.excluded', 'project_source.restored'
+          )
+         UNION ALL
+         SELECT event_id, 'petra.project-source-replacement'::text,
+                CASE event_type
+                  WHEN 'project_source.replacement_created' THEN
+                    payload #>> '{event,payload,project_source_replacement_id}'
+                  ELSE
+                    payload #>> '{event,payload,replacement,project_source_replacement_id}'
+                END
+           FROM matched_events
+          WHERE event_type IN (
+            'project_source.replacement_created',
+            'project_source.replacement_retracted'
+          )
+         UNION ALL
+         SELECT event_id, 'petra.project-source'::text, source.object_id
+           FROM matched_events
+           CROSS JOIN LATERAL (
+             VALUES
+               (CASE event_type
+                  WHEN 'project_source.replacement_created' THEN
+                    payload #>> '{event,payload,content,replaced_source_ref,project_source_id}'
+                  ELSE
+                    payload #>> '{event,payload,replacement,content,replaced_source_ref,project_source_id}'
+                END),
+               (CASE event_type
+                  WHEN 'project_source.replacement_created' THEN
+                    payload #>> '{event,payload,content,replacement_source_ref,project_source_id}'
+                  ELSE
+                    payload #>> '{event,payload,replacement,content,replacement_source_ref,project_source_id}'
+                END)
+           ) AS source(object_id)
+          WHERE event_type IN (
+            'project_source.replacement_created',
+            'project_source.replacement_retracted'
+          )
+         UNION ALL
+         SELECT event_id,
+                'petra.project-source-replacement-retraction'::text,
+                payload #>> '{event,payload,retraction,project_source_replacement_retraction_id}'
+           FROM matched_events
+          WHERE event_type = 'project_source.replacement_retracted'
+       ), distinct_target_events AS (
+         SELECT DISTINCT event_id, semantic_key, object_id
+           FROM target_occurrences
+          WHERE object_id IS NOT NULL
+       ), grouped_targets AS (
+         SELECT semantic_key, object_id,
+                COUNT(*)::bigint AS matching_event_count
+           FROM distinct_target_events
+          GROUP BY semantic_key, object_id
+       )
+       SELECT semantic_key, object_id,
+              matching_event_count::text,
+              COUNT(*) OVER ()::text AS total_count
+         FROM grouped_targets
+        ORDER BY (
+                   semantic_key = ${selectedTargetKeyParameter}::text
+                   AND object_id = ${selectedTargetIdParameter}::text
+                 ) DESC,
+                 matching_event_count DESC, semantic_key, object_id
+        LIMIT ${targetLimitParameter}::integer`,
+      targetParameters,
+    );
+
+    const safeCount = (value: string | undefined, label: string): number => {
+      const count = Number(value ?? "0");
+      if (!Number.isSafeInteger(count) || count < 0) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          `${label} is outside Petra's safe range.`,
+        );
+      }
+      return count;
+    };
+    const actorTotalCount = safeCount(
+      actorResult.rows[0]?.total_count,
+      "The retained History Actor option count",
+    );
+    const actorOptions = actorResult.rows.map((row) => {
+      this.#contracts.assertValid("actor", "1.0.0", row.actor_payload);
+      const actor = row.actor_payload as PetraActor;
+      if (
+        actor.actor_id !== row.actor_id ||
+        actor.actor_kind !== row.actor_kind ||
+        canonicalHash(actor) !== row.actor_record_hash ||
+        row.total_count !== actorResult.rows[0]?.total_count
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "A retained History Actor option does not reproduce its immutable Actor authority.",
+        );
+      }
+      return {
+        actor_ref: {
+          actor_id: actor.actor_id,
+          actor_kind: actor.actor_kind,
+        },
+        display_descriptor: {
+          state: "available" as const,
+          display_name: actor.display_name,
+          authority_ref: {
+            schema_name: "petra.actor" as const,
+            schema_version: "1.0.0" as const,
+            actor_id: actor.actor_id,
+            record_hash: row.actor_record_hash,
+          },
+        },
+        matching_event_count: safeCount(
+          row.matching_event_count,
+          "A retained History Actor option event count",
+        ),
+      };
+    });
+    const targetTotalCount = safeCount(
+      targetResult.rows[0]?.total_count,
+      "The retained History target option count",
+    );
+    const targetOptions = targetResult.rows.map((row) => {
+      const prefix = HISTORY_TARGET_PREFIXES[row.semantic_key];
+      if (
+        prefix === undefined ||
+        row.object_id.length !== prefix.length + 26 ||
+        !row.object_id.startsWith(prefix) ||
+        !/^[0-9A-HJKMNP-TV-Z]{26}$/u.test(row.object_id.slice(prefix.length)) ||
+        row.total_count !== targetResult.rows[0]?.total_count
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "A retained History target option is not a registered exact target identity.",
+        );
+      }
+      return {
+        target_ref: {
+          semantic_key: row.semantic_key,
+          object_id: row.object_id,
+        },
+        display_descriptor: {
+          state: "exact_identity_only" as const,
+          fallback: "semantic_key_and_object_id" as const,
+          reason_code:
+            "revision_neutral_target_title_authority_not_registered" as const,
+          reason:
+            "No authorized revision-neutral title is registered for this exact History target identity." as const,
+        },
+        matching_event_count: safeCount(
+          row.matching_event_count,
+          "A retained History target option event count",
+        ),
+      };
+    });
+    if (
+      actorTotalCount < actorOptions.length ||
+      targetTotalCount < targetOptions.length
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "A retained History filter option total is smaller than its returned catalogue.",
+      );
+    }
+
+    return {
+      authorization_scope: "authenticated_project",
+      snapshot_and_query_binding:
+        "retention_snapshot_and_complete_normalized_query",
+      dimension_semantics: "replace_same_dimension_preserve_other_filters",
+      count_basis: "matching_authorized_events_after_replacing_same_dimension",
+      actor_catalogue: {
+        option_limit: RETAINED_FILTER_OPTION_LIMIT,
+        order_kind:
+          "active_option_first_then_matching_event_count_desc_then_actor_id",
+        returned_count: actorOptions.length,
+        total_count: actorTotalCount,
+        coverage:
+          actorTotalCount > actorOptions.length ? "truncated" : "complete",
+        continuation: "not_composed",
+        options: actorOptions,
+      },
+      target_catalogue: {
+        option_limit: RETAINED_FILTER_OPTION_LIMIT,
+        order_kind:
+          "active_option_first_then_matching_event_count_desc_then_target_identity",
+        returned_count: targetOptions.length,
+        total_count: targetTotalCount,
+        coverage:
+          targetTotalCount > targetOptions.length ? "truncated" : "complete",
+        continuation: "not_composed",
+        options: targetOptions,
+      },
+    };
   }
 
   #encodeCursor(payload: HistoryCursorPayload): string {

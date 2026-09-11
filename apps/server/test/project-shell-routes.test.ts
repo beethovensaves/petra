@@ -11,7 +11,7 @@ import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
-  PetraProjectHistoryRetainedViewV11,
+  PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
@@ -121,12 +121,12 @@ const historyEpisodeFixture = JSON.parse(
 const historyRetainedFixture = JSON.parse(
   readFileSync(
     new URL(
-      "../../../packages/contracts/fixtures/accepted/project-history-retained-view-v1-1.json",
+      "../../../packages/contracts/fixtures/accepted/project-history-retained-view-v1-2.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryRetainedViewV11;
+) as PetraProjectHistoryRetainedViewV12;
 
 const historyImpactFixture = JSON.parse(
   readFileSync(
@@ -927,7 +927,7 @@ describe("authorized Project shell query routes", () => {
     );
     expect(continued.status).toBe(200);
     const continuedBody =
-      (await continued.json()) as PetraProjectHistoryRetainedViewV11;
+      (await continued.json()) as PetraProjectHistoryRetainedViewV12;
     expect(continuedBody.content.query.cursor).toBe(cursor);
 
     const oldOffset = await petra.app.request(

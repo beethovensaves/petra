@@ -497,7 +497,15 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
 
   it("atomically promotes a Claim and ASSERTS edge with events and target-ordered outbox", async () => {
     await registerEvidenceChain();
+    await scopes.registerActor(serviceActor());
     const commands = commandFixtures();
+    if (
+      commands.submit.command.command_name !== "SubmitChangeSet" ||
+      commands.approve.command.command_name !== "RecordApproval" ||
+      commands.apply.command.command_name !== "ApplyChangeSet"
+    ) {
+      throw new Error("Expected change-control command fixtures.");
+    }
     const repository = authority();
 
     const emptyHistory = await historyViews.listRetainedProjectHistoryView(
@@ -512,6 +520,20 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     expect(emptyHistory?.content.retention_snapshot).toEqual({
       through_event_position: 0,
       through_stream_revision: 0,
+    });
+    expect(emptyHistory?.schema_version).toBe("1.2.0");
+    expect(emptyHistory?.content.filter_options).toMatchObject({
+      dimension_semantics: "replace_same_dimension_preserve_other_filters",
+      actor_catalogue: {
+        returned_count: 0,
+        total_count: 0,
+        coverage: "complete",
+      },
+      target_catalogue: {
+        returned_count: 0,
+        total_count: 0,
+        coverage: "complete",
+      },
     });
 
     await expect(repository.executeCommand(commands.submit)).resolves.toEqual(
@@ -532,6 +554,59 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       "approval.recorded",
     );
     expect(retainedBeforeApply?.content.page.snapshot_total_count).toBe(2);
+    expect(retainedBeforeApply?.schema_version).toBe("1.2.0");
+    expect(
+      retainedBeforeApply?.content.filter_options.actor_catalogue.options.map(
+        ({ actor_ref, display_descriptor, matching_event_count }) => ({
+          actor_ref,
+          display_name: display_descriptor.display_name,
+          matching_event_count,
+        }),
+      ),
+    ).toEqual([
+      {
+        actor_ref: {
+          actor_id: commands.approve.actor.actor_id,
+          actor_kind: "human",
+        },
+        display_name: "Researcher",
+        matching_event_count: 1,
+      },
+      {
+        actor_ref: {
+          actor_id: commands.submit.actor.actor_id,
+          actor_kind: "model",
+        },
+        display_name: "Petra extraction model",
+        matching_event_count: 1,
+      },
+    ]);
+    expect(
+      retainedBeforeApply?.content.filter_options.target_catalogue.options.map(
+        ({ target_ref, display_descriptor, matching_event_count }) => ({
+          target_ref,
+          descriptor_state: display_descriptor.state,
+          matching_event_count,
+        }),
+      ),
+    ).toEqual([
+      {
+        target_ref: {
+          semantic_key: "petra.change-set",
+          object_id: commands.submit.command.change_set.change_set_id,
+        },
+        descriptor_state: "exact_identity_only",
+        matching_event_count: 2,
+      },
+      {
+        target_ref: {
+          semantic_key: "petra.approval",
+          object_id: commands.approve.command.approval.approval_id,
+        },
+        descriptor_state: "exact_identity_only",
+        matching_event_count: 1,
+      },
+    ]);
     expect(
       retainedBeforeApply?.content.retention_snapshot.through_stream_revision,
     ).toBe(2);
@@ -618,9 +693,9 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     expect(
       retainedAfterApply?.content.current_authority.through_stream_revision,
     ).toBe(3);
-    if (commands.apply.command.command_name !== "ApplyChangeSet") {
-      throw new Error("Expected ApplyChangeSet command fixture.");
-    }
+    expect(retainedAfterApply?.content.filter_options).toEqual(
+      retainedBeforeApply?.content.filter_options,
+    );
     const filteredApplied = await historyViews.listRetainedProjectHistoryView(
       commands.submit.project_id,
       {
@@ -656,12 +731,14 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     expect(filteredApplied?.content.cursor_binding).toBe(
       "project_snapshot_and_complete_query",
     );
-    if (
-      commands.submit.command.command_name !== "SubmitChangeSet" ||
-      commands.approve.command.command_name !== "RecordApproval"
-    ) {
-      throw new Error("Expected submit and approval command fixtures.");
-    }
+    expect(
+      filteredApplied?.content.filter_options.actor_catalogue.options.map(
+        ({ actor_ref, matching_event_count }) => [
+          actor_ref.actor_id,
+          matching_event_count,
+        ],
+      ),
+    ).toEqual([[commands.apply.actor.actor_id, 1]]);
     const claimOperation =
       commands.submit.command.change_set.content.operations.find(
         ({ operation_kind }) => operation_kind === "promote_claim",
@@ -673,6 +750,19 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     if (claimOperation === undefined || assertionOperation === undefined) {
       throw new Error("Expected exact Claim and Assertion operations.");
     }
+    expect(
+      filteredApplied?.content.filter_options.target_catalogue.options.map(
+        ({ target_ref, matching_event_count }) => [
+          target_ref.semantic_key,
+          target_ref.object_id,
+          matching_event_count,
+        ],
+      ),
+    ).toEqual([
+      ["petra.change-set", commands.apply.command.change_set_id, 1],
+      ["scientific.assertion", assertionOperation.target_id, 1],
+      ["scientific.claim", claimOperation.target_id, 1],
+    ]);
     const approvalFiltered = await historyViews.listRetainedProjectHistoryView(
       commands.submit.project_id,
       {
@@ -726,6 +816,20 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
     expect(
       emptyFiltered?.content.retention_snapshot.through_stream_revision,
     ).toBe(3);
+    expect(
+      emptyFiltered?.content.filter_options.actor_catalogue.options.map(
+        ({ actor_ref, matching_event_count }) => [
+          actor_ref.actor_id,
+          matching_event_count,
+        ],
+      ),
+    ).toEqual([
+      [commands.apply.actor.actor_id, 2],
+      [commands.submit.actor.actor_id, 1],
+    ]);
+    expect(
+      emptyFiltered?.content.filter_options.target_catalogue.options,
+    ).toEqual([]);
     await expect(repository.executeCommand(commands.apply)).resolves.toEqual(
       applied,
     );

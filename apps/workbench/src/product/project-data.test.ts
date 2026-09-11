@@ -11,7 +11,7 @@ import type {
   PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
-  PetraProjectHistoryRetainedViewV11,
+  PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
@@ -212,12 +212,12 @@ const historyEpisodeView = JSON.parse(
 const historyRetainedView = JSON.parse(
   readFileSync(
     new URL(
-      "../../../../packages/contracts/fixtures/accepted/project-history-retained-view-v1-1.json",
+      "../../../../packages/contracts/fixtures/accepted/project-history-retained-view-v1-2.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryRetainedViewV11;
+) as PetraProjectHistoryRetainedViewV12;
 
 const historyImpactView = JSON.parse(
   readFileSync(
@@ -1024,6 +1024,35 @@ describe("Project shell workbench adapter", () => {
     expect(first.content.graph_navigation_history).toBe(
       "client_local_separate",
     );
+    expect(first.content.filter_options).toMatchObject({
+      authorization_scope: "authenticated_project",
+      snapshot_and_query_binding:
+        "retention_snapshot_and_complete_normalized_query",
+      dimension_semantics: "replace_same_dimension_preserve_other_filters",
+      actor_catalogue: {
+        total_count: 1,
+        coverage: "complete",
+      },
+      target_catalogue: {
+        total_count: 2,
+        coverage: "complete",
+      },
+    });
+    expect(
+      first.content.filter_options.actor_catalogue.options[0]
+        ?.display_descriptor,
+    ).toEqual(
+      expect.objectContaining({
+        state: "available",
+        display_name: "Researcher",
+      }),
+    );
+    expect(
+      first.content.filter_options.target_catalogue.options.every(
+        ({ display_descriptor }) =>
+          display_descriptor.state === "exact_identity_only",
+      ),
+    ).toBe(true);
     expect(fetch.mock.calls[0]?.[0]).toBe(
       `/api/queries/projects/${historyRetainedView.project_id}/history/events?limit=1&family=project_source_replacement&command_name=CreateProjectSourceReplacement&event_type=project_source.replacement_created&actor_id=actor_01ARZ3NDEKTSV4RRFFQ69G5FAV&outcome=completed&effect=source_replacement_created&target_semantic_key=petra.project-source&target_object_id=project_source_01K4C000000000000000000041&recorded_from=2026-09-10T00%3A00%3A00.000Z&recorded_through=2026-09-10T23%3A59%3A59.999Z`,
     );
@@ -1074,7 +1103,25 @@ describe("Project shell workbench adapter", () => {
         filters: historyRetainedView.content.query.filters,
       }),
     ).rejects.toMatchObject({ status: 502 });
-    expect(fetch).toHaveBeenCalledTimes(3);
+
+    const inferredTargetTitle = structuredClone(historyRetainedView);
+    (
+      inferredTargetTitle.content.filter_options.target_catalogue
+        .options[0] as {
+        display_descriptor: unknown;
+      }
+    ).display_descriptor = {
+      state: "available",
+      title: "A title inferred from a current object",
+    };
+    fetch.mockResolvedValueOnce(Response.json(inferredTargetTitle));
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        limit: 1,
+        filters: historyRetainedView.content.query.filters,
+      }),
+    ).rejects.toMatchObject({ status: 502 });
+    expect(fetch).toHaveBeenCalledTimes(4);
   });
 
   it("maps one exact ProjectSource authority chain into the frozen source surfaces", () => {

@@ -11,7 +11,7 @@ import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
-  PetraProjectHistoryRetainedViewV11,
+  PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
@@ -31,7 +31,7 @@ import type {
   ProjectSourceReplacementContent,
   ProjectSourceReplacementExcludedSourceRef,
   ProjectSourceReplacementExclusionReceiptRef,
-  ProjectHistoryRetainedCollectionFiltersV11,
+  ProjectHistoryRetainedCollectionFiltersV12,
   ProjectWorkDetailContent,
   ProjectWorkTaskSummary,
 } from "@petra/contracts";
@@ -499,11 +499,11 @@ const projectHistoryEpisodeView = (
 
 const projectHistoryRetainedView = (
   value: unknown,
-): PetraProjectHistoryRetainedViewV11 => {
+): PetraProjectHistoryRetainedViewV12 => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-history-retained-view" ||
-    value.schema_version !== "1.1.0" ||
+    value.schema_version !== "1.2.0" ||
     typeof value.project_id !== "string" ||
     !isRecord(value.content) ||
     value.content.view_kind !== "retained_events" ||
@@ -514,6 +514,11 @@ const projectHistoryRetainedView = (
     !Array.isArray(value.content.changes) ||
     value.content.changes.length > 100 ||
     !isRecord(value.content.page) ||
+    !retainedHistoryFilterOptionsAreValid(
+      value.content.filter_options,
+      value.content.page.snapshot_total_count,
+      value.content.query.filters,
+    ) ||
     !isRecord(value.content.retention_snapshot) ||
     !isRecord(value.content.current_authority) ||
     value.content.recovery_authority !== "current_at_page_read" ||
@@ -526,7 +531,7 @@ const projectHistoryRetainedView = (
       502,
     );
   }
-  return value as unknown as PetraProjectHistoryRetainedViewV11;
+  return value as unknown as PetraProjectHistoryRetainedViewV12;
 };
 
 const projectHistoryImpactView = (
@@ -2496,11 +2501,12 @@ export const executeProjectHistoryCompensationPlan = async (
 export interface RetainedProjectHistoryRequest {
   readonly limit?: number;
   readonly cursor?: string;
-  readonly filters?: ProjectHistoryRetainedCollectionFiltersV11;
+  readonly filters?: ProjectHistoryRetainedCollectionFiltersV12;
 }
 
 const HISTORY_RETAINED_CURSOR = /^phc2\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/u;
 const HISTORY_RETAINED_ACTOR = /^actor_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const HISTORY_RETAINED_CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
 const HISTORY_RETAINED_TIMESTAMP =
   /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/u;
 const HISTORY_RETAINED_FILTER_VALUES = {
@@ -2554,9 +2560,188 @@ const HISTORY_RETAINED_TARGET_PREFIXES = {
   "petra.project-source-replacement-retraction": "project_source_retraction_",
 } as const;
 
+const retainedHistoryFilterOptionsAreValid = (
+  supplied: unknown,
+  suppliedSnapshotTotalCount: unknown,
+  suppliedFilters: unknown,
+): boolean => {
+  if (
+    !isRecord(supplied) ||
+    supplied.authorization_scope !== "authenticated_project" ||
+    supplied.snapshot_and_query_binding !==
+      "retention_snapshot_and_complete_normalized_query" ||
+    supplied.dimension_semantics !==
+      "replace_same_dimension_preserve_other_filters" ||
+    supplied.count_basis !==
+      "matching_authorized_events_after_replacing_same_dimension" ||
+    !isRecord(supplied.actor_catalogue) ||
+    !isRecord(supplied.target_catalogue) ||
+    !isRecord(suppliedFilters) ||
+    !Number.isSafeInteger(suppliedSnapshotTotalCount) ||
+    Number(suppliedSnapshotTotalCount) < 0
+  ) {
+    return false;
+  }
+  const snapshotTotalCount = Number(suppliedSnapshotTotalCount);
+  const catalogueBaseIsValid = (
+    catalogue: Record<string, unknown>,
+    orderKind: string,
+  ): catalogue is Record<string, unknown> & { options: unknown[] } =>
+    catalogue.option_limit === 100 &&
+    catalogue.order_kind === orderKind &&
+    Number.isSafeInteger(catalogue.returned_count) &&
+    Number(catalogue.returned_count) >= 0 &&
+    Number(catalogue.returned_count) <= 100 &&
+    Number.isSafeInteger(catalogue.total_count) &&
+    Number(catalogue.total_count) >= Number(catalogue.returned_count) &&
+    catalogue.continuation === "not_composed" &&
+    Array.isArray(catalogue.options) &&
+    catalogue.options.length === catalogue.returned_count &&
+    (catalogue.coverage === "complete"
+      ? catalogue.total_count === catalogue.returned_count
+      : catalogue.coverage === "truncated" &&
+        Number(catalogue.total_count) > Number(catalogue.returned_count));
+  const actorCatalogue = supplied.actor_catalogue;
+  const targetCatalogue = supplied.target_catalogue;
+  if (
+    !catalogueBaseIsValid(
+      actorCatalogue,
+      "active_option_first_then_matching_event_count_desc_then_actor_id",
+    ) ||
+    !catalogueBaseIsValid(
+      targetCatalogue,
+      "active_option_first_then_matching_event_count_desc_then_target_identity",
+    )
+  ) {
+    return false;
+  }
+
+  const actorIds = new Set<string>();
+  const actorOrder: { id: string; count: number; active: boolean }[] = [];
+  let actorCountSum = 0;
+  let selectedActorCount: number | undefined;
+  for (const option of actorCatalogue.options) {
+    if (
+      !isRecord(option) ||
+      !isRecord(option.actor_ref) ||
+      typeof option.actor_ref.actor_id !== "string" ||
+      !HISTORY_RETAINED_ACTOR.test(option.actor_ref.actor_id) ||
+      (option.actor_ref.actor_kind !== "human" &&
+        option.actor_ref.actor_kind !== "service" &&
+        option.actor_ref.actor_kind !== "model") ||
+      actorIds.has(option.actor_ref.actor_id) ||
+      !isRecord(option.display_descriptor) ||
+      option.display_descriptor.state !== "available" ||
+      typeof option.display_descriptor.display_name !== "string" ||
+      option.display_descriptor.display_name.length < 1 ||
+      option.display_descriptor.display_name.length > 160 ||
+      !isRecord(option.display_descriptor.authority_ref) ||
+      option.display_descriptor.authority_ref.schema_name !== "petra.actor" ||
+      option.display_descriptor.authority_ref.schema_version !== "1.0.0" ||
+      option.display_descriptor.authority_ref.actor_id !==
+        option.actor_ref.actor_id ||
+      typeof option.display_descriptor.authority_ref.record_hash !== "string" ||
+      !HISTORY_RETAINED_CONTENT_HASH.test(
+        option.display_descriptor.authority_ref.record_hash,
+      ) ||
+      !Number.isSafeInteger(option.matching_event_count) ||
+      Number(option.matching_event_count) < 1
+    ) {
+      return false;
+    }
+    const actorId = option.actor_ref.actor_id;
+    const matchingEventCount = Number(option.matching_event_count);
+    const active = suppliedFilters.actor_id === actorId;
+    actorIds.add(actorId);
+    actorCountSum += matchingEventCount;
+    actorOrder.push({ id: actorId, count: matchingEventCount, active });
+    if (active) selectedActorCount = matchingEventCount;
+  }
+  const expectedActorOrder = [...actorOrder].sort(
+    (left, right) =>
+      Number(right.active) - Number(left.active) ||
+      right.count - left.count ||
+      left.id.localeCompare(right.id),
+  );
+  if (
+    actorOrder.some(
+      (option, index) => option.id !== expectedActorOrder[index]?.id,
+    ) ||
+    (suppliedFilters.actor_id === undefined &&
+      actorCatalogue.coverage === "complete" &&
+      actorCountSum !== snapshotTotalCount) ||
+    (suppliedFilters.actor_id !== undefined &&
+      snapshotTotalCount > 0 &&
+      selectedActorCount !== snapshotTotalCount)
+  ) {
+    return false;
+  }
+
+  const targetIds = new Set<string>();
+  const targetOrder: { id: string; count: number; active: boolean }[] = [];
+  let selectedTargetCount: number | undefined;
+  for (const option of targetCatalogue.options) {
+    if (
+      !isRecord(option) ||
+      !isRecord(option.target_ref) ||
+      typeof option.target_ref.semantic_key !== "string" ||
+      typeof option.target_ref.object_id !== "string"
+    ) {
+      return false;
+    }
+    const semanticKey = option.target_ref.semantic_key;
+    const objectId = option.target_ref.object_id;
+    const prefix =
+      HISTORY_RETAINED_TARGET_PREFIXES[
+        semanticKey as keyof typeof HISTORY_RETAINED_TARGET_PREFIXES
+      ];
+    const identity = `${semanticKey}\u0000${objectId}`;
+    if (
+      prefix === undefined ||
+      objectId.length !== prefix.length + 26 ||
+      !objectId.startsWith(prefix) ||
+      !/^[0-9A-HJKMNP-TV-Z]{26}$/u.test(objectId.slice(prefix.length)) ||
+      targetIds.has(identity) ||
+      !isRecord(option.display_descriptor) ||
+      option.display_descriptor.state !== "exact_identity_only" ||
+      option.display_descriptor.fallback !== "semantic_key_and_object_id" ||
+      option.display_descriptor.reason_code !==
+        "revision_neutral_target_title_authority_not_registered" ||
+      option.display_descriptor.reason !==
+        "No authorized revision-neutral title is registered for this exact History target identity." ||
+      !Number.isSafeInteger(option.matching_event_count) ||
+      Number(option.matching_event_count) < 1
+    ) {
+      return false;
+    }
+    const matchingEventCount = Number(option.matching_event_count);
+    const active =
+      isRecord(suppliedFilters.target) &&
+      suppliedFilters.target.semantic_key === semanticKey &&
+      suppliedFilters.target.object_id === objectId;
+    targetIds.add(identity);
+    targetOrder.push({ id: identity, count: matchingEventCount, active });
+    if (active) selectedTargetCount = matchingEventCount;
+  }
+  const expectedTargetOrder = [...targetOrder].sort(
+    (left, right) =>
+      Number(right.active) - Number(left.active) ||
+      right.count - left.count ||
+      left.id.localeCompare(right.id),
+  );
+  return (
+    !targetOrder.some(
+      (option, index) => option.id !== expectedTargetOrder[index]?.id,
+    ) &&
+    (!isRecord(suppliedFilters.target) ||
+      snapshotTotalCount === 0 ||
+      selectedTargetCount === snapshotTotalCount)
+  );
+};
+
 const retainedProjectHistoryFilters = (
-  supplied: ProjectHistoryRetainedCollectionFiltersV11 | undefined,
-): ProjectHistoryRetainedCollectionFiltersV11 => {
+  supplied: ProjectHistoryRetainedCollectionFiltersV12 | undefined,
+): ProjectHistoryRetainedCollectionFiltersV12 => {
   if (supplied === undefined) return {};
   if (!isRecord(supplied)) {
     throw new ProjectDataError(
@@ -2581,7 +2766,7 @@ const retainedProjectHistoryFilters = (
     );
   }
   const typed =
-    supplied as unknown as ProjectHistoryRetainedCollectionFiltersV11;
+    supplied as unknown as ProjectHistoryRetainedCollectionFiltersV12;
   for (const key of [
     "family",
     "command_name",
@@ -2609,7 +2794,7 @@ const retainedProjectHistoryFilters = (
       400,
     );
   }
-  let target: ProjectHistoryRetainedCollectionFiltersV11["target"];
+  let target: ProjectHistoryRetainedCollectionFiltersV12["target"];
   const suppliedTarget = typed.target;
   if (suppliedTarget !== undefined) {
     if (
@@ -2643,7 +2828,7 @@ const retainedProjectHistoryFilters = (
       object_id: suppliedTarget.object_id,
     };
   }
-  let recordedAt: ProjectHistoryRetainedCollectionFiltersV11["recorded_at"];
+  let recordedAt: ProjectHistoryRetainedCollectionFiltersV12["recorded_at"];
   const suppliedRecordedAt = typed.recorded_at;
   if (suppliedRecordedAt !== undefined) {
     if (!isRecord(suppliedRecordedAt)) {
@@ -2698,7 +2883,7 @@ const retainedProjectHistoryFilters = (
 export const getRetainedProjectHistory = async (
   projectId: string,
   request: RetainedProjectHistoryRequest = {},
-): Promise<PetraProjectHistoryRetainedViewV11> => {
+): Promise<PetraProjectHistoryRetainedViewV12> => {
   const limit = request.limit ?? 50;
   if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
     throw new ProjectDataError(

@@ -1,16 +1,17 @@
 # UX-REQ-007 causal Project History
 
 Status: bounded Recent changes, exact event-selected causal episodes,
-snapshot-stable filtered retained Project-event traversal, and bounded direct
-dependency impact plus registered exact semantic-target adapters through
-ProjectSource and replacement authority plus exact record-bound Work, output,
-and delivery dependencies with exact renderer-neutral Work destinations passed;
+snapshot-stable filtered retained Project-event traversal with authorized Actor
+and target option catalogues, and bounded direct dependency impact plus
+registered exact semantic-target adapters through ProjectSource and replacement
+authority plus exact record-bound Work, output, and delivery dependencies with
+exact renderer-neutral Work destinations passed;
 exact read-only ChangeSet recovery assessment, revision-bound compensation
 preview, confirmed command-plan composition, and separately authorized
 single-plan execution with exact partial-outcome recovery also passed
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `96acc5d` plus this slice
+Implementation baseline: `161235a` plus this slice
 
 ## Result
 
@@ -125,6 +126,43 @@ result preserves the authorized Project snapshot but exposes neither another
 Project nor an unfiltered count. Actor filtering is exact; origin filtering
 remains explicitly unavailable because current authority has no trustworthy
 origin classification.
+
+## Authorized Full History filter options
+
+`petra.project-history-retained-view@1.2.0` adds Actor and exact-target option
+catalogues to the existing retained collection response. It does not add an
+endpoint, route, filter dimension, or catalogue ledger. Both catalogues are
+composed inside the same repeatable-read transaction and are bound to the exact
+authenticated Project, retained snapshot, and complete normalized query.
+
+Each catalogue applies facet semantics: it replaces only its own filter
+dimension while preserving every other normalized filter. Options therefore
+carry server-derived counts for the authorized events that would match that
+choice, rather than asking the client to infer compatibility. The active option
+sorts first, followed by matching-event count descending and exact stable
+identity. Each catalogue returns at most one hundred options and reports its
+returned count, complete total, `complete` or `truncated` coverage, and that no
+option continuation was composed.
+
+Actor options include only Actors present on retained events in the selected
+Project and snapshot after applying the other filters. The display name comes
+from the Actor's exact immutable `petra.actor@1.0.0` record, whose Actor identity
+and record hash remain attached as its authority. Registering an Actor globally
+does not make that Actor visible in a Project catalogue without a matching
+retained Project event.
+
+Target options count distinct matching events for each registered exact
+semantic-key/object-ID pair. The retained target filter is revision-neutral,
+and Petra has no registered authority for a title that is valid across every
+relevant event revision. The response therefore returns the exact semantic key
+and object ID with a fixed `exact_identity_only` descriptor and reason. It does
+not substitute a current object title, apply the current ProjectDefinition to a
+historical event, or infer a label from a profile.
+
+The catalogues remain stable across continuation pages because their membership
+and counts use the cursor's retained snapshot. Current recovery eligibility is
+still recomputed at page read. Origin remains unsupported, graph-navigation
+History remains client-local, and the fixed Recent changes window remains ten.
 
 ## Bounded direct dependency impact
 
@@ -462,18 +500,19 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2/1.3/1.4, ChangeSet
-recovery-assessment, and compensation-preview responses.
+retained traversal 1.0/1.1/1.2, dependency-impact 1.0/1.1/1.2/1.3/1.4,
+ChangeSet recovery-assessment, and compensation-preview responses.
 Accepted plan-request and plan-view fixtures add the explicit-confirmation and
 non-persistence boundary.
 Accepted execution-request and execution-view fixtures add the separate command,
 per-command atomicity, exact retained-prefix, retry, and completed-effect
 boundary.
 Rejected fixtures cover an altered quick limit, false global episode order,
-unsafe offset or query-unbound cursor reuse, a dependency read that claims a
-reversibility decision, and an unregistered semantic target that fabricates a
-registered adapter group, plus an invalid response that collapses retained
-replacement lineage and effective head state into one unsupported authority.
+unsafe offset or query-unbound cursor reuse, a 1.2 target option that fabricates
+an inferred title, a dependency read that claims a reversibility decision, and
+an unregistered semantic target that fabricates a registered adapter group,
+plus an invalid response that collapses retained replacement lineage and
+effective head state into one unsupported authority.
 Another rejected response claims a global ordering scope for an operational
 dependency group, and a 1.4 response cannot present replay as a ProjectThread
 destination. Further rejected cases claim that a recovery assessment
@@ -513,6 +552,14 @@ cross-Project reuse, distinguishes an unretained interrupted Approval attempt,
 and resumes from the exact retained Submit prefix before returning the applied
 reversal and resulting evidence revisions.
 
+The retained 1.2 proof additionally validates Actor and target option facets
+against the same Project snapshot and normalized query. It proves active-first
+stable ordering, exact counts, selected-option equivalence to the filtered
+snapshot total, continuation stability after a new event, exclusion of an
+unrelated registered Actor, and replace-only-this-dimension behavior across
+combined Actor and target filters. The strict contract, Python parity model,
+and typed client reject a fabricated target title.
+
 The 1.3 operational proof registers the same exact ChangeSet record as a Work
 input in two Projects and confirms that only the selected Project's current
 WorkUnit is returned. It then follows that binding to the selected Project's
@@ -529,11 +576,17 @@ the replay never acquires a ProjectThread destination.
 
 ## Next safe slice
 
-The next safe History boundary is freeze-conformance mapping of the fixed 1.4
-operational destination result into the existing History detail regions. Only
-the exact current WorkUnit destination may become a link. Output and replay
-must remain text with their supplied unavailable reasons, and client-owned
-exact return behavior remains separate.
+The next safe History boundary is freeze-conformance mapping of the fixed 1.2
+Actor and target option catalogues into the existing Full History filter region.
+The design must preserve the exact Project/snapshot/query binding, facet count
+semantics, bounded coverage, immutable Actor authority, and target
+`exact_identity_only` fallback without creating client-side authority.
+
+After that mapping, the next backend-only increment is stable machine-readable
+continuation-failure subcodes that distinguish malformed or tampered cursors,
+changed Project/query/limit bindings, and unavailable retained snapshots without
+disclosing cross-Project state. The existing broad failure behavior remains
+fail-closed until that contract is defined.
 
 An origin filter is not yet safe because current authority has no canonical
 origin classification. Historical ProjectDefinition interpretation likewise

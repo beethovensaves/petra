@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-retained-view/1.2.0/schema.json",
+  "title": "PetraProjectHistoryRetainedViewV120",
+  "description": "An authorized, cursor-paged traversal of retained Project events in newest-first Project-stream order with bounded exact filters and same-snapshot Actor and target option catalogues. Option counts replace only their own filter dimension while preserving every other normalized filter. Actor display descriptors come from immutable Actor authority; target titles remain unavailable without revision-neutral authority. It is not a second ledger.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-history-retained-view" },
+    "schema_version": { "const": "1.2.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/RetainedContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "OpaqueCursor": {
+      "type": "string",
+      "minLength": 80,
+      "maxLength": 1024,
+      "pattern": "^phc2\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]{43}$"
+    },
+    "Family": {
+      "enum": [
+        "change_control",
+        "project_source_lifecycle",
+        "project_source_replacement"
+      ]
+    },
+    "CommandName": {
+      "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/CommandRef/properties/command_name"
+    },
+    "EventType": {
+      "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/EventRef/properties/event_type"
+    },
+    "Outcome": {
+      "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/ObservedEffect/properties/outcome"
+    },
+    "Effect": {
+      "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/ObservedEffect/properties/effect"
+    },
+    "ExactTargetFilter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["semantic_key", "object_id"],
+      "properties": {
+        "semantic_key": {
+          "enum": [
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion",
+            "petra.project-source",
+            "petra.project-source-replacement",
+            "petra.project-source-replacement-retraction"
+          ]
+        },
+        "object_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        }
+      }
+    },
+    "RecordedTimeFilter": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "from_inclusive": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "through_inclusive": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "CollectionFilters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "family": { "$ref": "#/$defs/Family" },
+        "command_name": { "$ref": "#/$defs/CommandName" },
+        "event_type": { "$ref": "#/$defs/EventType" },
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "outcome": { "$ref": "#/$defs/Outcome" },
+        "effect": { "$ref": "#/$defs/Effect" },
+        "target": { "$ref": "#/$defs/ExactTargetFilter" },
+        "recorded_at": { "$ref": "#/$defs/RecordedTimeFilter" }
+      }
+    },
+    "CollectionQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["limit", "filters"],
+      "properties": {
+        "limit": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "filters": { "$ref": "#/$defs/CollectionFilters" },
+        "cursor": { "$ref": "#/$defs/OpaqueCursor" }
+      }
+    },
+    "RetentionSnapshot": {
+      "$ref": "../../project-history-retained-view/1.0.0/schema.json#/$defs/RetentionSnapshot"
+    },
+    "Page": {
+      "oneOf": [
+        { "$ref": "#/$defs/ContinuedPage" },
+        { "$ref": "#/$defs/CompletePage" }
+      ]
+    },
+    "ContinuedPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "returned_count",
+        "snapshot_total_count",
+        "has_more",
+        "next_cursor"
+      ],
+      "properties": {
+        "returned_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "snapshot_total_count": {
+          "description": "The authorized count matching the exact filters within the retained Project snapshot.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "has_more": { "const": true },
+        "next_cursor": { "$ref": "#/$defs/OpaqueCursor" }
+      }
+    },
+    "CompletePage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["returned_count", "snapshot_total_count", "has_more"],
+      "properties": {
+        "returned_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "snapshot_total_count": {
+          "description": "The authorized count matching the exact filters within the retained Project snapshot.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "has_more": { "const": false }
+      }
+    },
+    "ActorRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_name", "schema_version", "actor_id", "record_hash"],
+      "properties": {
+        "schema_name": { "const": "petra.actor" },
+        "schema_version": { "const": "1.0.0" },
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ActorDisplayDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "display_name", "authority_ref"],
+      "properties": {
+        "state": { "const": "available" },
+        "display_name": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "authority_ref": { "$ref": "#/$defs/ActorRecordRef" }
+      }
+    },
+    "ActorOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_ref", "display_descriptor", "matching_event_count"],
+      "properties": {
+        "actor_ref": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "display_descriptor": { "$ref": "#/$defs/ActorDisplayDescriptor" },
+        "matching_event_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "TargetDisplayDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "fallback", "reason_code", "reason"],
+      "properties": {
+        "state": { "const": "exact_identity_only" },
+        "fallback": { "const": "semantic_key_and_object_id" },
+        "reason_code": {
+          "const": "revision_neutral_target_title_authority_not_registered"
+        },
+        "reason": {
+          "const": "No authorized revision-neutral title is registered for this exact History target identity."
+        }
+      }
+    },
+    "TargetOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_ref", "display_descriptor", "matching_event_count"],
+      "properties": {
+        "target_ref": { "$ref": "#/$defs/ExactTargetFilter" },
+        "display_descriptor": { "$ref": "#/$defs/TargetDisplayDescriptor" },
+        "matching_event_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "ActorOptionCatalogue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "option_limit",
+        "order_kind",
+        "returned_count",
+        "total_count",
+        "coverage",
+        "continuation",
+        "options"
+      ],
+      "properties": {
+        "option_limit": { "const": 100 },
+        "order_kind": {
+          "const": "active_option_first_then_matching_event_count_desc_then_actor_id"
+        },
+        "returned_count": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "total_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "coverage": { "enum": ["complete", "truncated"] },
+        "continuation": { "const": "not_composed" },
+        "options": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ActorOption" }
+        }
+      }
+    },
+    "TargetOptionCatalogue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "option_limit",
+        "order_kind",
+        "returned_count",
+        "total_count",
+        "coverage",
+        "continuation",
+        "options"
+      ],
+      "properties": {
+        "option_limit": { "const": 100 },
+        "order_kind": {
+          "const": "active_option_first_then_matching_event_count_desc_then_target_identity"
+        },
+        "returned_count": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "total_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "coverage": { "enum": ["complete", "truncated"] },
+        "continuation": { "const": "not_composed" },
+        "options": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/TargetOption" }
+        }
+      }
+    },
+    "FilterOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorization_scope",
+        "snapshot_and_query_binding",
+        "dimension_semantics",
+        "count_basis",
+        "actor_catalogue",
+        "target_catalogue"
+      ],
+      "properties": {
+        "authorization_scope": { "const": "authenticated_project" },
+        "snapshot_and_query_binding": {
+          "const": "retention_snapshot_and_complete_normalized_query"
+        },
+        "dimension_semantics": {
+          "const": "replace_same_dimension_preserve_other_filters"
+        },
+        "count_basis": {
+          "const": "matching_authorized_events_after_replacing_same_dimension"
+        },
+        "actor_catalogue": { "$ref": "#/$defs/ActorOptionCatalogue" },
+        "target_catalogue": { "$ref": "#/$defs/TargetOptionCatalogue" }
+      }
+    },
+    "RetainedContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "order_kind",
+        "query",
+        "cursor_binding",
+        "changes",
+        "page",
+        "filter_options",
+        "retention_snapshot",
+        "current_authority",
+        "recovery_authority",
+        "omissions",
+        "graph_navigation_history"
+      ],
+      "properties": {
+        "view_kind": { "const": "retained_events" },
+        "order_kind": { "const": "project_stream_newest_first" },
+        "query": { "$ref": "#/$defs/CollectionQuery" },
+        "cursor_binding": { "const": "project_snapshot_and_complete_query" },
+        "changes": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/RecentChange"
+          }
+        },
+        "page": { "$ref": "#/$defs/Page" },
+        "filter_options": { "$ref": "#/$defs/FilterOptions" },
+        "retention_snapshot": { "$ref": "#/$defs/RetentionSnapshot" },
+        "current_authority": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "recovery_authority": { "const": "current_at_page_read" },
+        "omissions": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "origin_filter_not_supported",
+              "dependency_impact_not_composed",
+              "generic_reversal_assessment_not_composed",
+              "historical_project_definition_not_interpreted",
+              "cross_family_total_order_not_asserted"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": { "const": "origin_filter_not_supported" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": { "const": "dependency_impact_not_composed" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "generic_reversal_assessment_not_composed"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "historical_project_definition_not_interpreted"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "cross_family_total_order_not_asserted"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          ]
+        },
+        "graph_navigation_history": { "const": "client_local_separate" }
+      }
+    }
+  }
+}

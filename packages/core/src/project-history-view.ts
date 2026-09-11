@@ -5,15 +5,15 @@ import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
-  PetraProjectHistoryRetainedViewV11,
+  PetraProjectHistoryRetainedViewV12,
   PetraProjectHistoryView,
-  ProjectHistoryRetainedCollectionFiltersV11,
+  ProjectHistoryRetainedCollectionFiltersV12,
 } from "@petra/contracts";
 
 export interface ProjectHistoryRetainedCollectionRequest {
   readonly limit?: number;
   readonly cursor?: string;
-  readonly filters?: ProjectHistoryRetainedCollectionFiltersV11;
+  readonly filters?: ProjectHistoryRetainedCollectionFiltersV12;
 }
 
 export class ProjectHistoryViewRequestError extends Error {
@@ -74,5 +74,5 @@ export interface ProjectHistoryViewReader {
   listRetainedProjectHistoryView(
     projectId: string,
     request?: ProjectHistoryRetainedCollectionRequest,
-  ): Promise<PetraProjectHistoryRetainedViewV11 | undefined>;
+  ): Promise<PetraProjectHistoryRetainedViewV12 | undefined>;
 }

@@ -143,6 +143,22 @@ export type {
   RetainedContent as ProjectHistoryRetainedContentV11,
 } from "./generated/project-history-retained-view-v1-1.js";
 export type {
+  ActorDisplayDescriptor as ProjectHistoryActorDisplayDescriptorV12,
+  ActorOption as ProjectHistoryActorOptionV12,
+  ActorOptionCatalogue as ProjectHistoryActorOptionCatalogueV12,
+  ActorRecordRef as ProjectHistoryActorRecordRefV12,
+  CollectionFilters as ProjectHistoryRetainedCollectionFiltersV12,
+  CollectionQuery as ProjectHistoryRetainedCollectionQueryV12,
+  ExactTargetFilter as ProjectHistoryRetainedExactTargetFilterV12,
+  FilterOptions as ProjectHistoryFilterOptionsV12,
+  PetraProjectHistoryRetainedViewV120 as PetraProjectHistoryRetainedViewV12,
+  RecordedTimeFilter as ProjectHistoryRetainedRecordedTimeFilterV12,
+  RetainedContent as ProjectHistoryRetainedContentV12,
+  TargetDisplayDescriptor as ProjectHistoryTargetDisplayDescriptorV12,
+  TargetOption as ProjectHistoryTargetOptionV12,
+  TargetOptionCatalogue as ProjectHistoryTargetOptionCatalogueV12,
+} from "./generated/project-history-retained-view-v1-2.js";
+export type {
   AuthorityPosition as ProjectHistoryImpactAuthorityPosition,
   CausalCommand as ProjectHistoryImpactCausalCommand,
   CausalCommandGroup as ProjectHistoryImpactCausalCommandGroup,

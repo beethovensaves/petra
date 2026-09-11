@@ -851,6 +851,225 @@ class PetraProjectHistoryRetainedViewV110(PetraModel):
     read_at: str
 
 
+class ProjectHistoryActorRecordRefV120(PetraModel):
+    schema_name: Literal["petra.actor"]
+    schema_version: Literal["1.0.0"]
+    actor_id: str
+    record_hash: str
+
+
+class ProjectHistoryActorDisplayDescriptorV120(PetraModel):
+    state: Literal["available"]
+    display_name: str = Field(min_length=1, max_length=160)
+    authority_ref: ProjectHistoryActorRecordRefV120
+
+
+class ProjectHistoryActorOptionV120(PetraModel):
+    actor_ref: ActorRef
+    display_descriptor: ProjectHistoryActorDisplayDescriptorV120
+    matching_event_count: int = Field(ge=1)
+
+
+class ProjectHistoryTargetDisplayDescriptorV120(PetraModel):
+    state: Literal["exact_identity_only"]
+    fallback: Literal["semantic_key_and_object_id"]
+    reason_code: Literal["revision_neutral_target_title_authority_not_registered"]
+    reason: Literal[
+        "No authorized revision-neutral title is registered "
+        "for this exact History target identity."
+    ]
+
+
+class ProjectHistoryTargetOptionV120(PetraModel):
+    target_ref: ProjectHistoryRetainedExactTargetFilterV110
+    display_descriptor: ProjectHistoryTargetDisplayDescriptorV120
+    matching_event_count: int = Field(ge=1)
+
+
+class ProjectHistoryActorOptionCatalogueV120(PetraModel):
+    option_limit: Literal[100]
+    order_kind: Literal[
+        "active_option_first_then_matching_event_count_desc_then_actor_id"
+    ]
+    returned_count: int = Field(ge=0, le=100)
+    total_count: int = Field(ge=0)
+    coverage: Literal["complete", "truncated"]
+    continuation: Literal["not_composed"]
+    options: list[ProjectHistoryActorOptionV120] = Field(max_length=100)
+
+    @model_validator(mode="after")
+    def catalogue_counts(self) -> ProjectHistoryActorOptionCatalogueV120:
+        if self.returned_count != len(self.options):
+            raise ValueError("Actor option count must match returned options")
+        if self.coverage == "complete" and self.total_count != self.returned_count:
+            raise ValueError("complete Actor option coverage requires the exact total")
+        if self.coverage == "truncated" and self.total_count <= self.returned_count:
+            raise ValueError("truncated Actor options require an omitted option")
+        return self
+
+
+class ProjectHistoryTargetOptionCatalogueV120(PetraModel):
+    option_limit: Literal[100]
+    order_kind: Literal[
+        "active_option_first_then_matching_event_count_desc_then_target_identity"
+    ]
+    returned_count: int = Field(ge=0, le=100)
+    total_count: int = Field(ge=0)
+    coverage: Literal["complete", "truncated"]
+    continuation: Literal["not_composed"]
+    options: list[ProjectHistoryTargetOptionV120] = Field(max_length=100)
+
+    @model_validator(mode="after")
+    def catalogue_counts(self) -> ProjectHistoryTargetOptionCatalogueV120:
+        if self.returned_count != len(self.options):
+            raise ValueError("target option count must match returned options")
+        if self.coverage == "complete" and self.total_count != self.returned_count:
+            raise ValueError("complete target option coverage requires the exact total")
+        if self.coverage == "truncated" and self.total_count <= self.returned_count:
+            raise ValueError("truncated target options require an omitted option")
+        return self
+
+
+class ProjectHistoryFilterOptionsV120(PetraModel):
+    authorization_scope: Literal["authenticated_project"]
+    snapshot_and_query_binding: Literal[
+        "retention_snapshot_and_complete_normalized_query"
+    ]
+    dimension_semantics: Literal["replace_same_dimension_preserve_other_filters"]
+    count_basis: Literal["matching_authorized_events_after_replacing_same_dimension"]
+    actor_catalogue: ProjectHistoryActorOptionCatalogueV120
+    target_catalogue: ProjectHistoryTargetOptionCatalogueV120
+
+
+class ProjectHistoryRetainedContentV120(PetraModel):
+    view_kind: Literal["retained_events"]
+    order_kind: Literal["project_stream_newest_first"]
+    query: ProjectHistoryRetainedQueryV110
+    cursor_binding: Literal["project_snapshot_and_complete_query"]
+    changes: list[ProjectHistoryRecentChange] = Field(max_length=100)
+    page: ProjectHistoryRetainedContinuedPageV110 | ProjectHistoryCompletePage
+    filter_options: ProjectHistoryFilterOptionsV120
+    retention_snapshot: (
+        ProjectHistoryEmptyRetentionSnapshot | ProjectHistoryNonemptyRetentionSnapshot
+    )
+    current_authority: ProjectHistoryAuthorityPosition
+    recovery_authority: Literal["current_at_page_read"]
+    omissions: list[
+        Literal[
+            "origin_filter_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_option_semantics(self) -> ProjectHistoryRetainedContentV120:
+        expected_omissions = {
+            "origin_filter_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 5 or set(self.omissions) != expected_omissions:
+            raise ValueError("filter-option History must declare exact omissions")
+
+        actors = self.filter_options.actor_catalogue
+        actor_ids = [option.actor_ref.actor_id for option in actors.options]
+        if len(actor_ids) != len(set(actor_ids)):
+            raise ValueError("Actor filter options must be unique")
+        if any(
+            option.actor_ref.actor_id
+            != option.display_descriptor.authority_ref.actor_id
+            for option in actors.options
+        ):
+            raise ValueError("Actor descriptor authority must match its option")
+        selected_actor = self.query.filters.actor_id
+        expected_actor_order = sorted(
+            actors.options,
+            key=lambda option: (
+                option.actor_ref.actor_id != selected_actor,
+                -option.matching_event_count,
+                option.actor_ref.actor_id,
+            ),
+        )
+        if actor_ids != [option.actor_ref.actor_id for option in expected_actor_order]:
+            raise ValueError("Actor filter options have invalid order")
+        selected_actor_options = [
+            option
+            for option in actors.options
+            if option.actor_ref.actor_id == selected_actor
+        ]
+        if (
+            self.page.snapshot_total_count > 0
+            and selected_actor is not None
+            and (
+                len(selected_actor_options) != 1
+                or selected_actor_options[0].matching_event_count
+                != self.page.snapshot_total_count
+            )
+        ):
+            raise ValueError("selected Actor count must match the filtered result")
+        if (
+            selected_actor is None
+            and actors.coverage == "complete"
+            and sum(option.matching_event_count for option in actors.options)
+            != self.page.snapshot_total_count
+        ):
+            raise ValueError("complete Actor counts must partition matching events")
+
+        targets = self.filter_options.target_catalogue
+        target_ids = [
+            (option.target_ref.semantic_key, option.target_ref.object_id)
+            for option in targets.options
+        ]
+        if len(target_ids) != len(set(target_ids)):
+            raise ValueError("target filter options must be unique")
+        selected_target = self.query.filters.target
+        expected_target_order = sorted(
+            targets.options,
+            key=lambda option: (
+                selected_target is None
+                or option.target_ref.semantic_key != selected_target.semantic_key
+                or option.target_ref.object_id != selected_target.object_id,
+                -option.matching_event_count,
+                option.target_ref.semantic_key,
+                option.target_ref.object_id,
+            ),
+        )
+        if target_ids != [
+            (option.target_ref.semantic_key, option.target_ref.object_id)
+            for option in expected_target_order
+        ]:
+            raise ValueError("target filter options have invalid order")
+        if self.page.snapshot_total_count > 0 and selected_target is not None:
+            selected_target_options = [
+                option
+                for option in targets.options
+                if option.target_ref.semantic_key == selected_target.semantic_key
+                and option.target_ref.object_id == selected_target.object_id
+            ]
+            if (
+                len(selected_target_options) != 1
+                or selected_target_options[0].matching_event_count
+                != self.page.snapshot_total_count
+            ):
+                raise ValueError("selected target count must match the filtered result")
+        return self
+
+
+class PetraProjectHistoryRetainedViewV120(PetraModel):
+    schema_name: Literal["petra.project-history-retained-view"]
+    schema_version: Literal["1.2.0"]
+    project_id: str
+    content: ProjectHistoryRetainedContentV120
+    content_hash: str
+    read_at: str
+
+
 class ProjectHistoryImpactEventAnchor(PetraModel):
     command_ref: ProjectHistoryCommandRef
     event_ref: ProjectHistoryEventRef
@@ -9626,6 +9845,10 @@ PYDANTIC_MODELS.update(
             "project-history-retained-view",
             "1.1.0",
         ): PetraProjectHistoryRetainedViewV110,
+        (
+            "project-history-retained-view",
+            "1.2.0",
+        ): PetraProjectHistoryRetainedViewV120,
         (
             "project-history-impact-view",
             "1.1.0",
