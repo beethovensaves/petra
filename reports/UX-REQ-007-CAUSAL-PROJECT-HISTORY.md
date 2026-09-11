@@ -3,14 +3,15 @@
 Status: bounded Recent changes, exact event-selected causal episodes,
 snapshot-stable filtered retained Project-event traversal, and bounded direct
 dependency impact plus registered exact semantic-target adapters through
-ProjectSource and replacement authority plus exact read-only ChangeSet recovery
-assessment, revision-bound compensation preview, and confirmed non-persisted
-command-plan composition and separately authorized exact compensation execution
-with partial-outcome recovery passed; frozen History conformance mapping
-recorded; frontend binding remains open
+ProjectSource and replacement authority plus three exact record-bound Work,
+output-manifest, and interaction-replay groups plus exact read-only ChangeSet
+recovery assessment, revision-bound compensation preview, confirmed
+non-persisted command-plan composition, and separately authorized exact
+compensation execution with partial-outcome recovery passed; frozen History
+conformance mapping recorded; frontend binding remains open
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `0e6688e`
+Implementation baseline: `96acc5d`
 Integration handoff:
 [UX-to-implementation requirements handoff](UX-BACKEND-HANDOFF.md)
 
@@ -233,6 +234,85 @@ repeatable-read transaction. Missing exact source or replacement authority
 produces the existing target-local unavailable assessment rather than a
 substitute identity or failure-open inference.
 
+## Registered exact operational dependencies
+
+Backend commit `96acc5d` advances the same exact-event endpoint to
+`petra.project-history-impact-view@1.3.0`. Version 1.3 preserves the complete
+direct and semantic-target result and adds a separate
+`operational_dependency_impact` section. For each of at most ten event targets,
+it resolves the exact immutable target record from the event or an already
+validated semantic authority, then returns three independent groups in fixed
+registry order:
+
+- `work_input_binding` returns current WorkUnit-head references only where an
+  immutable WorkerInputManifest record input matches the target ID, revision,
+  and record hash;
+- `work_output` returns immutable WorkerOutputManifest records for Work with
+  that exact input binding; and
+- `interaction_delivery` returns immutable InteractionReplayRecord receipts for
+  InteractionRuns tied to that bound Work.
+
+Every reference preserves semantic and owning-record identity, revision,
+schema, posture, relation, stable relation identity, and record hash. Its
+`work_unit_ref` preserves WorkUnit ID, revision, spec hash, and record hash. Its
+`input_binding_ref` preserves WorkerInputManifest ID/revision, content and record
+hashes, binding position/name, and target ID/revision/snapshot hash. Output and
+replay references add their content and record hashes; replay also preserves
+the exact InteractionRun ID/revision/content hash/record hash. A replay row's
+WorkUnit is the revision retained by its InteractionRun and is never replaced
+with the current WorkUnit head.
+
+The Work group uses `current` posture; output and replay use
+`immutable_revision`. Each group has its own total, returned count,
+twenty-five-reference bound, coverage, and server order. Target and group totals
+remain separate from direct and semantic-target totals and count relation
+references rather than unique objects. The three-group registry order is only a
+reading order: Petra asserts no transitive closure or temporal, causal, or
+cross-family ordering.
+
+The frozen detail places the three groups beneath their exact target in
+**Episode members**, labelled **Current Work using this exact target**,
+**Worker output manifests for bound Work**, and **Interaction replay receipts
+for bound Work**. **Authority effect** receives a third separately labelled
+operational summary. It states **Worker output effect is not inferred** and
+**Interaction replay effect is not inferred. Interaction replay is not
+worker-output delivery or a ProjectThread binding.** **Projection effect**,
+recovery, and compensation remain unchanged.
+Version 1.3 supplies no operational semantic destination, so the exact
+identities remain text rather than client-constructed links. It creates no
+second History or operational ledger.
+
+`target_identity_incomplete` retains the target and states **Operational
+adapters require an immutable target revision.**
+`target_record_authority_unavailable` retains the target and states **The exact
+immutable target record authority is unavailable in this Project snapshot.**
+Both require empty groups and expose no operational identities or counts. Work
+without the exact immutable record binding is excluded. Complete zero groups
+say separately that no current bound WorkUnit head, immutable output manifest,
+or immutable replay record was found; zero does not mean no operational effect.
+Truncated target or group coverage reports the exact returned and total counts
+and adds no continuation control.
+
+The operational `unknowns` remain exact and independently visible:
+`work_without_exact_record_binding_is_excluded`,
+`unresolved_target_record_authority_may_hide_bindings`,
+`worker_output_effect_is_not_inferred`,
+`interaction_delivery_effect_is_not_inferred`,
+`transitive_operational_dependency_closure_is_not_composed`, and
+`cross_family_total_order_is_not_asserted`.
+
+The 1.3 request loads all direct, semantic-target, and operational impact
+together. Pending state reuses the existing dependency status and moves no
+focus. A registry/order, selected-target, binding, Project, content-hash,
+record-hash, count, coverage, or authority mismatch fails the entire impact
+response closed while preserving the independently verified episode. A
+target-local unavailable state preserves other verified targets. Each target,
+group, authority source, posture, relation, count, coverage, empty/unavailable
+reason, and binding-chain label has programmatic text in reading order. On
+narrow screens, identities and hashes wrap while each WorkUnit,
+WorkerInputManifest, output/replay, and InteractionRun chain stays together;
+static identities add no inactive keyboard stops or horizontal scrolling.
+
 ## Frozen full-History conformance
 
 The closed design already assigns **Scope/filter** as the first ordered region
@@ -300,15 +380,16 @@ rule, or browser route:
 
 - its `selected_event` validates and preserves the exact event already open in
   the existing detail header and Actor/time/action facts;
-- its direct and semantic summaries may follow the observed event in
-  **Authority effect**, separately labelled as registered reference counts
-  rather than all impact;
+- its direct, semantic-target, and operational summaries may follow the observed
+  event in **Authority effect**, separately labelled as registered reference
+  counts rather than all impact;
 - causal commands, event outbox records, GroundedResponse invalidations, the
-  applicable per-target semantic adapter groups, and any target-local non-result
-  reason remain separately labelled in **Episode members**;
+  applicable per-target semantic and operational adapter groups, and any
+  target-local non-result reason remain separately labelled in **Episode
+  members**;
 - exact graph-projection attempts occupy **Projection effect**, while their
   applied/failed records remain distinct from current Graph freshness; and
-- aggregate target/group coverage, both `unknowns` arrays,
+- aggregate target/group coverage, all three `unknowns` arrays,
   `decision_boundary`, and `omissions` appear with **Recovery relationship**,
   where they explicitly prevent references from being read as effects,
   reversibility, or compensation.
@@ -316,16 +397,18 @@ rule, or browser route:
 Every group retains its immutable `authority_source`, relation, returned count,
 total count, complete/truncated coverage, and exact references. The client keeps
 server order inside a group and never sorts relation families into a common
-timeline. The semantic portion also retains exact target order, target and
-per-adapter bounds, resolved authority identity, relation identity, and posture.
+timeline. The semantic and operational portions also retain exact target order,
+target and per-adapter bounds, resolved authority identity, relation identity,
+and posture.
 Replacement lineage and command receipts stay under separately labelled
 retained groups; only the separately labelled effective-head group presents the
 current active or retracted relationship. Each keeps independent counts,
 coverage, and empty wording.
-Complete zero direct groups and complete zero semantic groups receive separate
+Complete zero direct, semantic-target, and operational groups receive separate
 bounded wording followed immediately by applicable unregistered-key,
-identity-only, transitive, profile-specific, and external limitations. They
-cannot be summarized as no impact.
+identity-only, exact-binding, unresolved-authority, transitive,
+profile-specific, external, effect, and ordering limitations. They cannot be
+summarized as no impact.
 
 Impact loads independently for the selected event and never replaces episode
 facts or recovery eligibility. Its Project, event, and complete overlapping
@@ -342,7 +425,7 @@ truncated target or group coverage is stated in text and does not create a
 continuation control.
 
 The frozen route remains fixture-backed and has no loaders or adapters for the
-implemented Recent, episode, retained, 1.2 impact, or recovery-assessment
+implemented Recent, episode, retained, 1.3 impact, or recovery-assessment
 clients. This is an integration gap rather than a design gap. The retained
 filter mapping, impact detail mapping, and recovery assessment use separate
 frozen regions and do not change each other's authority. Graph
@@ -677,6 +760,15 @@ the exact nine-entry registry and the exact group set and order for each
 registered target kind, including the distinct immutable lineage and current
 effective-head authorities.
 
+The 1.3 typed client additionally requires the exact three-entry operational
+registry and fixed group order. It binds every operational target index and
+reference to the selected event, validates resolved record authority, requires
+independent group totals and coverage, and checks every WorkUnit and immutable
+input binding against that target. Output and replay references must preserve
+their registered posture and relation; replay must also retain the exact
+InteractionRun authority. The client derives no effect, destination, transitive
+relationship, or recovery state from these references.
+
 The PostgreSQL reader fails closed when it cannot reproduce:
 
 - an event record hash from its canonical payload;
@@ -702,6 +794,10 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 - a semantic dependent's exact owning record, version, revision, content hash
   where applicable, record hash, Project scope, and registered relation
   identity; or
+- an operational dependent's exact Project, target record binding,
+  WorkerInputManifest, WorkUnit, output manifest, InteractionRun, replay record,
+  content hash where applicable, record hash, or registered relation identity;
+  or
 - a recovery promotion ChangeSet, applied Approval, current Claim/Assertion
   head, active command grant, or retained compensation ChangeSet/Approval/event
   exact Project, revision, content, record, and causal binding; or
@@ -717,7 +813,7 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2, and ChangeSet
+retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2/1.3, and ChangeSet
 recovery-assessment and compensation-preview responses. Accepted plan-request
 and plan-view fixtures cover explicit confirmation and non-persistence.
 Accepted execution-request and execution-view fixtures cover separate command
@@ -727,15 +823,16 @@ unsafe offset or query-unbound cursor reuse, a dependency read that claims a
 reversibility decision, and an unregistered semantic target that fabricates a
 registered adapter group, plus an invalid response that collapses retained
 replacement lineage and effective head state into one unsupported authority or
-claims that a recovery assessment composed a compensation preview, or turns a
-read-only preview into a created ChangeSet, recorded Approval, composed command,
-or execution. An unconfirmed plan request and a plan response that claims
+claims a global ordering scope for an operational group, claims that a recovery
+assessment composed a compensation preview, or turns a read-only preview into a
+created ChangeSet, recorded Approval, composed command, or execution. An
+unconfirmed plan request and a plan response that claims
 execution are also rejected. An unconfirmed execution request and an execution
 response that claims three-command atomicity are rejected.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
-suite pass. The complete gate includes 836 always-on TypeScript tests, 25 Python
-tests, seven expected service-dependent skips, and 108 PostgreSQL cases after a
+suite pass. The complete gate includes 839 always-on TypeScript tests, 25 Python
+tests, seven expected service-dependent skips, and 109 PostgreSQL cases after a
 clean V001-through-V030 migration. The database proof exercises all seven
 History reads/compositions plus the execution command over domain-event versions
 1.0, 1.1, 1.2, and 1.3, and proves cursor integrity, cross-Project rejection,
@@ -765,15 +862,21 @@ and cross-Project reuse, distinguishes an unretained interrupted Approval
 attempt, and resumes from the exact retained Submit prefix before returning the
 reversal event and resulting evidence revisions.
 
+The 1.3 operational proof registers the same exact ChangeSet record as a Work
+input in two Projects and returns only the selected Project's current WorkUnit.
+It follows that binding to immutable WorkerOutputManifest and
+InteractionReplayRecord authorities and validates every selected target,
+WorkerInputManifest, WorkUnit, output, InteractionRun, replay, content-hash, and
+record-hash link under the same repeatable-read snapshot.
+
 ## Next safe slice
 
-Backend `0e6688e` identifies registered exact Work, output, and delivery
-dependency adapters as the next safe History boundary. Each future adapter must
-start from an explicit retained reference to the selected event or its exact
-causal identities, name its immutable authority, preserve Project and record
-identity, and report independent totals, coverage, unknown, and unregistered
-states without inferring effect, reversibility, exhaustive closure, or global
-cross-family order. This report records that boundary only; it does not design
-or begin those adapters. An authoritative origin filter, generic Undo, reversal
-of a reversal, multiple or multi-step compensation, historical
-ProjectDefinition interpretation, and event rewriting remain excluded.
+The next safe History boundary is a backend contract for renderer-neutral
+destinations for registered operational references, only where an existing
+exact Project-owned route authority can be named. It must preserve the exact
+Work/output/replay revision and return behavior. An InteractionReplayRecord
+cannot become a ProjectThread destination without an explicit retained binding.
+This report identifies that boundary only. Filters, compensation changes, an
+authoritative origin filter, generic Undo, reversal of a reversal, multiple or
+multi-step compensation, historical ProjectDefinition interpretation, event
+rewriting, and new frozen interface elements remain excluded.

@@ -274,7 +274,7 @@ between shell context and task content more important.
   `DB17-P11`–`P12`, `UX-FLOW-12`, and `UX-FLOW-16`.
 - **Implemented backend baseline:** commits `92e9cb1`, `7ae590f`, `1c44dd3`,
   `9530b09`, `c5da977`, `c198af6`, `7380a0b`, `9e90258`, `37ffc38`,
-  `718f641`, and `0e6688e` add
+  `718f641`, `0e6688e`, and `96acc5d` add
   `petra.project-history-view@1.0.0`,
   `petra.project-history-episode-view@1.0.0`, and
   `petra.project-history-retained-view@1.0.0`; `7380a0b` advances the retained
@@ -286,8 +286,10 @@ between shell context and task content more important.
   `9530b09` and
   `petra.project-history-impact-view@1.1.0` with the first registered exact
   semantic-target adapters at `c5da977`, then version 1.2 with exact
-  ProjectSource and replacement adapters at `c198af6`, all through the existing
-  exact-event impact route. Commit `9e90258` adds
+  ProjectSource and replacement adapters at `c198af6`, and version 1.3 with
+  exact record-bound Work, output-manifest, and interaction-replay adapters at
+  `96acc5d`, all through the existing exact-event impact route. Commit `9e90258`
+  adds
   `petra.project-history-recovery-assessment-view@1.0.0` and its authenticated
   exact-event recovery route. Commit `37ffc38` adds
   `petra.project-history-compensation-preview-view@1.0.0` at the subordinate
@@ -305,10 +307,11 @@ between shell context and task content more important.
   existing routes and content regions. This handoff does not reopen navigation,
   page structure, visual language, or the design freeze. Retained filtering
   occupies the frozen `DB18-SP10` **Scope/filter** position and reuses the
-  existing History collection region on the same browser route. Dependency
-  facts and exact ChangeSet recovery assessment remain in the selected-event
-  detail and its existing subordinate dialog. No new page, panel, browser
-  route, or generic Undo is introduced. The
+  existing History collection region on the same browser route. Direct,
+  semantic-target, and operational dependency facts remain in the selected-
+  event detail. Exact ChangeSet recovery stays in that detail and its existing
+  subordinate dialog. No new page, panel, browser route, or generic Undo is
+  introduced. The
   assessment reports whether one exact ChangeSet may proceed to a separately
   requested preview. The preview itself creates, records, composes, persists,
   and executes nothing. Explicitly confirmed plan composition revalidates that
@@ -316,8 +319,8 @@ between shell context and task content more important.
   executes nothing. Separately confirmed execution treats the echoed plan as
   untrusted, revalidates the first attempt against current preview authority,
   and runs each exact envelope through its own transaction and current grant
-  check. Semantic references remain dependency evidence and do not become
-  inferred effects.
+  check. Semantic and operational references remain dependency evidence and do
+  not become inferred effects.
 
 #### Frozen-surface acceptance mapping
 
@@ -328,12 +331,12 @@ between shell context and task content more important.
 | Left `history-episodes` ordered list in **Recent changes** scope | Recent `content.changes` | Keep the existing list container and heading **Recent changes**. Render the returned order without regrouping or client sorting. The header count is the number shown, never a retained-history total. With `has_older: true`, its existing count text reads **10 shown · Older changes exist**. Never send a retained filter, limit, or cursor to the Recent endpoint, and never replace `has_older` with a retained cursor. |
 | Same `history-episodes` ordered list in **Full History** scope | Retained 1.1 `content.changes`, `page`, and `retention_snapshot` | Render only the authorized matching events in supplied `project_stream_newest_first` order. The heading is **Full History** and its associated count is **{snapshot_total_count} matching events** or **{snapshot_total_count} events** when `filters` is empty. Append a continuation page only after its echoed query and retained snapshot match the active traversal. Do not mix Recent rows into this list or sort it by displayed time. |
 | Existing row link | `event_ref.event_id`, `recorded_at`, `command_ref.command_name`, `observed_effect.summary` | Link to the existing `/projects/:projectId/history/:episodeId` pattern with `episodeId` equal to the exact immutable `event_id`. Use the registered command label as the row action and the server summary as its description. Do not invent a target title from `semantic_key` or `object_id`. |
-| Existing selected detail article | Exact episode, impact, and eligible event recovery reads | Every selected row and deep link loads the exact episode. The detail may then consume `petra.project-history-impact-view@1.2.0`; for `change_set.applied` or `change_set.reverted`, it may also consume `petra.project-history-recovery-assessment-view@1.0.0` from `GET /api/queries/projects/:projectId/history/events/:eventId/recovery`. Verify the outer Project/event identity and complete overlapping selected-event anchor before rendering either subordinate read. Bind `episodeId` only as the immutable event ID. Do not call the recovery route for another event type. |
+| Existing selected detail article | Exact episode, impact, and eligible event recovery reads | Every selected row and deep link loads the exact episode. The detail may then consume `petra.project-history-impact-view@1.3.0`; for `change_set.applied` or `change_set.reverted`, it may also consume `petra.project-history-recovery-assessment-view@1.0.0` from `GET /api/queries/projects/:projectId/history/events/:eventId/recovery`. Verify the outer Project/event identity and complete overlapping selected-event anchor before rendering either subordinate read. Bind `episodeId` only as the immutable event ID. Do not call the recovery route for another event type. |
 | Detail header | `content.change.observed_effect` plus exact event type | Use the registered event/action label as the title, `observed_effect.summary` as the lead, and its `outcome` as explicit text. A descriptive profile target label is absent from the implemented contract and cannot be fabricated. |
 | Existing Actor, Occurred, Recorded, and Action facts | `actor`, `occurred_at`, `recorded_at`, and `command_ref` | Preserve all four rows. Actor renders an authorized display label only when another trusted Project read supplies one; otherwise render the exact kind and ID, such as **Human · actor_…**, rather than **Project author**. Render both timestamps with native `<time datetime="…">`; the visible value includes localized date, time, and zone while the element retains the exact ISO value. Do not collapse unequal occurred and recorded times. |
-| Existing **Authority effect** section | selected event effect plus direct/semantic impact summaries, including the recovery assessment's exact `causal_impact_basis` | Keep the event's supplied effect as the primary statement. Following sentences may separately report **{total} registered direct event/command references across four groups · {coverage}** and **{total} registered exact semantic-target references across {supported} of {assessed} assessed targets · {coverage}**. When assessment is present, its summaries must match the same selected-event impact basis. Keep its three unknowns and **Dependent effects are not inferred from references** adjacent. Never combine totals, rename them **all dependencies**, or treat a reference as a dependent effect. |
+| Existing **Authority effect** section | selected event effect plus direct, semantic-target, and operational impact summaries, including the recovery assessment's exact `causal_impact_basis` | Keep the event's supplied effect as the primary statement. Following sentences may separately report **{total} registered direct event/command references across four groups · {coverage}**, **{total} registered exact semantic-target references across {supported} of {assessed} assessed targets · {coverage}**, and **{total} registered exact operational references across {supported} of {assessed} assessed targets · {coverage}**. The recovery assessment still binds only its supplied direct/semantic causal-impact basis. Keep **Worker output effect is not inferred**, **Interaction replay effect is not inferred**, and **Interaction replay is not worker-output delivery or a ProjectThread binding** with the operational summary. Never combine the three totals, rename them **all dependencies**, or treat a reference as a dependent effect. |
 | Existing **Projection effect** section | `impact.graph_projection_records` | Render the exact graph-projection attempt records, including attempt, applied/failed outcome, recorded time, and outbox binding. With complete zero coverage say **No registered graph-projection attempt was found for this event.** An attempt outcome does not establish the current Graph's freshness. |
-| Existing **Episode members** section | episode relationships, impact groups, and recovery `recovery_subject` | Keep every relation family separately labelled within this existing section. Nest the applicable semantic adapter groups beneath their exact selected-event target. When assessment is present, add separately named **Promotion ChangeSet**, **Applied Approval**, and **Current recovery targets** groups with every supplied revision, state, content/record hash, and exact ChangeSet binding. Keep the Claim then Assertion order. Never describe Project-stream adjacency, projection, invalidation, Review membership, source lineage, current evidence authority, or composition lineage as command causation. |
+| Existing **Episode members** section | episode relationships, direct, semantic-target, and operational impact groups, and recovery `recovery_subject` | Keep every relation family separately labelled within this existing section. Nest the applicable semantic and three operational adapter groups beneath their exact selected-event target; never interleave or globally sort the Work, output, and replay families. When assessment is present, add separately named **Promotion ChangeSet**, **Applied Approval**, and **Current recovery targets** groups with every supplied revision, state, content/record hash, and exact ChangeSet binding. Keep the Claim then Assertion order. Never describe Project-stream adjacency, projection, invalidation, Review membership, source lineage, current evidence authority, composition lineage, Work input, output, or replay as command causation. |
 | Existing **Recovery relationship**, `history-revert` block, and subordinate `PetraDialog` | event recovery; assessment; command authority; causal unknowns; preview; confirmed plan; exact execution result; decision boundaries and omissions | Keep the three required command checks in contract order with the resolved principal and exact granted authority or denial reason. State the assessment outcome, reason, exact blockers or retained compensation, and every boundary. `eligible_for_preview` permits only a user-requested revision-bound preview. The existing dialog presents the preview, collects plan input, shows the composed plan, obtains separate execution confirmation, and reports exact per-command outcomes. It never treats the echoed plan or client state as authority. |
 | Existing top return control | client-held entry context plus `UX-REQ-008` resolution | Reuse this one control for the exact-return behavior below. Direct entry or a deep link with no permitted origin keeps the frozen **Return to current Brief** fallback. |
 
@@ -435,7 +438,7 @@ render a working or client-only origin filter.
 
 For the selected event only, request
 `GET /api/queries/projects/:projectId/history/events/:eventId/impact` with no
-query parameters. Accept only `petra.project-history-impact-view@1.2.0` with
+query parameters. Accept only `petra.project-history-impact-view@1.3.0` with
 `view_kind: dependency_impact`, `authorization_scope: authenticated_project`,
 `authority.isolation: repeatable_read`, and
 `graph_navigation_history: client_local_separate`. The outer `project_id` and
@@ -465,18 +468,18 @@ across groups by timestamp or position.
 
 When all four groups return complete zero counts, say **No registered direct
 event or command dependents were found in these four groups.** Immediately say
-that registered exact semantic-target dependencies are reported separately and
-retain the transitive, profile-specific, and external-system limitations. A
-zero direct-group result cannot become **No impact**.
+that registered exact semantic-target and operational dependencies are reported
+separately and retain the transitive, profile-specific, and external-system
+limitations. A zero direct-group result cannot become **No impact**.
 
 The existing **Recovery relationship** section ends with this fixed decision
 boundary: **This dependency inventory does not assess reversibility, compose
 compensation, or infer a dependent's effect from its reference.** It also states
 that unregistered semantic-target adapters, identity-only semantic relations,
 transitive closure, historical ProjectDefinition interpretation, and
-cross-family total order are omitted. These statements come from both sets of
-`unknowns`, `decision_boundary`, and `omissions`; the client does not shorten
-them based on counts, target support, or recovery eligibility.
+cross-family total order are omitted. These statements come from all three
+`unknowns` arrays plus `decision_boundary` and `omissions`; the client does not
+shorten them based on counts, target support, or recovery eligibility.
 
 Impact loads independently after or alongside the exact episode. While pending,
 keep the selected event visible, mark only the existing affected detail regions
@@ -621,17 +624,18 @@ The three non-results are target-local states, not zero-count adapter groups:
 | `target_identity_incomplete` | Show **Registered semantic-target adapters require an immutable target revision.** Preserve the supplied target identity, require `groups: []`, and do not resolve its current revision. |
 | `target_authority_unavailable` | Show **The exact immutable target authority is unavailable in this Project snapshot.** Preserve the exact registered key, ID, and revision, require `groups: []`, and do not substitute a current or cross-Project record. |
 
-A target-local non-result leaves other verified assessments visible and does not
+A target-local semantic non-result leaves other verified assessments visible and does not
 change the selected episode or its recovery eligibility. A malformed registry,
 target-order or identity mismatch, unsupported adapter state, nonempty groups
 on a non-result, invalid authority/ref hash, or inconsistent count/coverage
 fails the entire impact response closed. Keep the exact episode visible and use
 **Registered dependency impact is unavailable for this event.** The 1.2 route
-returns direct and semantic impact together, so a whole-response failure exposes
-neither set of identities or counts. Out-of-order requests remain subject to the
+returned direct and semantic impact together; version 1.3 adds operational
+impact to the same response, so a whole-response failure exposes none of the
+three sets of identities or counts. Out-of-order requests remain subject to the
 exact route event-ID guard.
 
-While the 1.2 request is pending, keep focus on the selected event, mark the
+While the 1.3 request is pending, keep focus on the selected event, mark the
 existing affected detail regions busy, and announce **Checking registered
 dependencies…** once. Each target is a programmatically named group within
 **Episode members**; its adapter groups are named lists, and authority, posture,
@@ -642,6 +646,124 @@ resolve its exact identity; the contract supplies no dependent destination, so
 do not create a focusable but inactive link. Loading or target-local results do
 not move focus, repeat the selected event's Actor/time/effect, or change the
 existing narrow-screen order.
+
+#### Registered exact operational-dependency binding
+
+Version 1.3 preserves the complete direct and semantic-target result and adds
+`content.operational_dependency_impact`. The same existing **Episode members**
+region nests its three independent groups under each exact selected-event target
+in this fixed contract order:
+
+| Operational group | Authority and relation | Existing-slot presentation |
+| --- | --- | --- |
+| `work_input_binding` | `current_work_heads_with_immutable_input_bindings`; `uses_exact_history_target_as_work_input` | Label **Current Work using this exact target**. Show the current WorkUnit identity and exact immutable WorkerInputManifest binding. Current describes the WorkUnit head at `read_at`; it does not make the selected historical target current. |
+| `work_output` | `immutable_worker_output_manifests_for_bound_work`; `reports_output_for_work_using_exact_history_target` | Label **Worker output manifests for bound Work**. Show each immutable WorkerOutputManifest identity and its exact Work and input-binding chain. State **Worker output effect is not inferred.** A manifest reference neither presents output contents nor establishes a Project-authority change. |
+| `interaction_delivery` | `immutable_interaction_replay_records_for_bound_work`; `delivers_interaction_for_work_using_exact_history_target` | Label **Interaction replay receipts for bound Work**. Show each immutable InteractionReplayRecord and its exact InteractionRun, Work, and input-binding chain. State **Interaction replay effect is not inferred** and **Interaction replay is not worker-output delivery or a ProjectThread binding.** Do not label this group Worker output, conversation History, or ProjectThread. |
+
+Every group retains `relation_scope: exact_target_record_binding`, its own
+`returned_count`, `total_count`, and complete/truncated `coverage`, and its
+server-supplied reference order. Do not merge group totals, deduplicate the same
+Work across bindings, or sort the three families by Work revision, replay
+revision, timestamp, or ID. Their registry order is a reading order only; it
+asserts no temporal, causal, or cross-family total order.
+
+Render operational target assessments in ascending `target_index`. The index
+and complete `target_ref` must match the same selected-event target used by the
+semantic assessment. A registered assessment shows
+`resolved_target_record.semantic_key`, object ID, revision, optional content
+hash, record hash, and one exact authority source:
+
+- `selected_event_target` means the immutable event target supplied its record
+  hash; and
+- `resolved_immutable_semantic_authority` means the already-validated semantic
+  target adapter supplied the exact immutable record authority.
+
+Neither source permits current-object substitution. `target_identity_incomplete`
+shows **Operational adapters require an immutable target revision.**
+`target_record_authority_unavailable` shows **The exact immutable target record
+authority is unavailable in this Project snapshot.** Both retain the exact
+`target_ref`, require `groups: []`, expose no operational identities or counts,
+and leave other verified target assessments visible. Work whose immutable input
+does not bind the exact target ID, revision, and record hash is excluded from all
+three groups; the client cannot broaden matching by object ID alone.
+
+Each returned reference first shows semantic key, object ID, revision, schema
+name/version, optional content hash, record hash, posture, exact relation, and
+stable `relation_identity`. It then shows the complete binding chain:
+
+- `work_unit_ref`: WorkUnit ID, revision, spec hash, and record hash;
+- `input_binding_ref`: WorkerInputManifest ID, revision, content hash, record
+  hash, binding position and name, and the target record ID, revision, and
+  snapshot hash;
+- for `work_output`, the WorkerOutputManifest content hash and record hash; and
+- for `interaction_delivery`, the InteractionReplayRecord content and record
+  hashes plus `interaction_run_ref` ID, revision, content hash, and record hash.
+
+The Work group alone uses `posture: current`; output and replay use
+`posture: immutable_revision`. The WorkUnit reference inside a replay row is the
+exact revision retained by its InteractionRun and must not be replaced with the
+current WorkUnit head. A missing hash, mismatched Project, target binding,
+manifest, WorkUnit, output, InteractionRun, replay, relation, or identity fails
+the complete impact response closed.
+
+Operational assessment uses the first ten event targets and at most twenty-five
+references per adapter. Require `target_total_count` to equal the selected-event
+target count and `target_returned_count` to equal the assessment count. Require
+`summary.registered_adapter_count: 3`, `assessed_target_count` equal to that
+same assessment count, `supported_target_count` equal to the registered-target
+count, and `summary.total_count` equal to the sum of all returned group totals.
+Summary coverage is truncated when target coverage or any group is truncated.
+`target_coverage: truncated` reads **Showing
+{target_returned_count} of {target_total_count} event targets for registered
+operational dependencies.** A truncated group reads **Showing {returned_count}
+of {total_count} registered exact operational references.** The contract
+supplies no continuation cursor, so neither state adds a control. The summary
+total is the sum of group relation-reference totals for returned assessments;
+it is not a unique Work/output/replay count and remains separate from the direct
+and semantic-target totals.
+
+Complete zero groups use separate bounded wording: **No current WorkUnit head
+with an exact immutable input binding was found for this target**, **No immutable
+WorkerOutputManifest was found for Work bound to this target**, or **No immutable
+InteractionReplayRecord was found for Work bound to this target.** When every
+target and group has complete coverage and the aggregate total is zero, the
+**Authority effect** summary may say **No registered exact operational
+references were found for these event targets.** It must immediately retain the
+unresolved-authority, exact-binding, effect, transitive-closure, and cross-family
+limitations. Zero never means no operational effect.
+
+Retain every operational `unknowns` value as a distinct limitation:
+`work_without_exact_record_binding_is_excluded`,
+`unresolved_target_record_authority_may_hide_bindings`,
+`worker_output_effect_is_not_inferred`,
+`interaction_delivery_effect_is_not_inferred`,
+`transitive_operational_dependency_closure_is_not_composed`, and
+`cross_family_total_order_is_not_asserted`. Do not collapse these contract
+facts into the zero, unavailable, or truncation message.
+
+Version 1.3 returns direct, semantic-target, and operational impact in one
+response. Pending state reuses the existing **Checking registered dependencies…**
+announcement and marks only **Authority effect**, **Projection effect**, and
+**Episode members** busy; it creates no additional progress region and does not
+move focus. A malformed registry or group order, target/binding/hash mismatch,
+inconsistent count or coverage, unauthorized or missing event, unavailable
+route, integrity failure, or stale/out-of-order response exposes none of the
+three impact sets. Keep the independently verified episode and say
+**Registered dependency impact is unavailable for this event.**
+
+Each target and operational group has a programmatic heading. Authority source,
+posture, relation, counts, coverage, and the binding-chain label precede its
+references in reading order. Empty, unavailable, and truncated states are text
+and never color-only. Static identities are not tab stops: version 1.3 supplies
+no semantic destinations for these operational references, so keep them as
+text rather than constructing Work, interaction, or thread routes. On narrow
+screens, keep each target, group, reference identity, WorkUnit,
+WorkerInputManifest, output or replay, and InteractionRun chain together; wrap
+IDs and hashes without horizontal scrolling. Loading and target-local results
+do not repeat the selected event's Actor, time, or effect and do not move focus.
+Version 1.3 creates no second History or operational ledger and changes no
+filter, recovery, compensation, generic Undo, component, CSS, or browser-route
+behavior.
 
 #### Exact ChangeSet recovery-assessment binding
 
@@ -1188,6 +1310,12 @@ must continue rejecting any value other than
   registry from four to nine entries; it does not add another API or browser
   path. A client pinned to 1.1 must update its accepted contract version rather
   than issue a second source-impact request.
+- Backend commit `96acc5d` advances that same endpoint and typed client from
+  impact schema 1.2 to 1.3. It preserves the complete direct and semantic-target
+  members and adds three exact operational adapter groups under the same
+  Project-scoped repeatable-read response. It adds no API or browser route. A
+  client pinned to 1.2 must accept and validate the complete 1.3 result rather
+  than issue separate Work, output, or replay requests from History.
 - Backend commit `7380a0b` advances the existing retained collection endpoint
   and typed client from schema 1.0 to 1.1. It adds the eight exact filter
   dimensions, normalized query echo, authorized matching count, and `phc2`
@@ -1273,40 +1401,43 @@ must continue rejecting any value other than
   `PROJECT_HISTORY_RETAINED_QUERY_INVALID`. The common restart behavior above is
   implementable; a later backend revision would need stable subcodes before the
   interface could state a more specific cause.
-- Version 1.2 has no authorized display labels, occurrence times, observed
+- Version 1.3 has no authorized display labels, occurrence times, observed
   effects, or semantic destinations for dependent references. The frozen
   adapter must use exact key/ID/revision fallbacks, must not sort them into a
   timeline, and cannot make them links unless an existing resolver authorizes
-  the exact destination.
+  the exact destination. In particular, an InteractionReplayRecord supplies no
+  ProjectThread binding.
 - The semantic registry now covers ChangeSet, Approval, Claim, Assertion,
   ProjectSource, and ProjectSource-replacement target authority. Other semantic
   keys remain explicitly unregistered. Identity-only relations, transitive
-  closure, external dependents, broader Work/output/delivery facts, and
-  historical ProjectDefinition interpretation remain outside the read.
-- Target assessment stops after ten selected-event targets and each adapter
-  stops after twenty-five references. The response exposes coverage but no
-  continuation cursor; this conformance slice adds no control for either bound.
+  closure, external dependents, Work without exact target-record input binding,
+  and historical ProjectDefinition interpretation remain outside the read.
+- Semantic and operational target assessment each stop after ten selected-event
+  targets, and every adapter stops after twenty-five references. The response
+  exposes independent coverage but no continuation cursor; this conformance
+  slice adds no control for either bound.
 
-Backend `0e6688e` identifies registered exact Work, output, and delivery
-dependency adapters as the next safe History boundary. Each future adapter must
-start from an explicit retained reference to the selected event or its exact
-causal identities, name its owning immutable authority, preserve Project and
-record identity, and report independent totals, coverage, unknown, and
-unregistered states. It must not infer effects, reversibility, exhaustive
-closure, or a global cross-family order. This report records that boundary only;
-it does not design or begin those adapters. Generic Undo, reversal of a
-reversal, multiple or multi-step compensation, event rewriting, historical
-ProjectDefinition interpretation, and an origin filter remain excluded.
+The next safe History boundary is a backend contract for renderer-neutral
+destinations for registered operational references, limited to identities with
+an existing exact Project-owned route authority. The destination must preserve
+the exact Work/output/replay revision and return semantics; an
+InteractionReplayRecord must not become a ProjectThread destination without an
+explicit retained binding. This report identifies that boundary only. Generic
+Undo, reversal of a reversal, multiple or multi-step compensation, event
+rewriting, historical ProjectDefinition interpretation, filters, and an origin
+filter remain excluded.
 
 - **Owner and status:** frontend integration track and product architecture;
   bounded Recent changes, exact causal episode, signed filtered retained
   traversal, and bounded direct dependency impact and nine registered exact
-  semantic-target adapter reads plus exact ChangeSet recovery assessment and
-  read-only compensation preview, confirmed non-persisted plan composition, and
-  separately authorized exact execution passed through `0e6688e`. This
+  semantic-target adapter reads plus three exact operational adapter groups,
+  exact ChangeSet recovery assessment, read-only compensation preview,
+  confirmed non-persisted plan composition, and separately authorized exact
+  execution passed through `96acc5d`. This
   frozen-surface acceptance mapping is implementation-ready without component,
   CSS, or route changes. Frontend binding and the stated gaps remain open; the
-  next boundary is registered exact Work/output/delivery dependency adapters.
+  next boundary is renderer-neutral operational destinations backed by exact
+  Project-owned route authority.
 
 ### `UX-REQ-008` — semantic object location and safe deep-link resolution
 
@@ -2791,7 +2922,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Proposal, correction, exact preview, Apply, conflict, and Revert | ChangeSet, Approval, ReviewBatch, and additive event path in `M1.5` |
 | Durable conversation-derived working candidates and relationships | Proposed `UX-REQ-011`; existing bounded model records and evidence candidates remain inputs, not a generic working graph contract |
 | Profile-neutral Review session, comparison, deferment, separation, and member recovery | Proposed `UX-REQ-012`; current M1.5 evidence review remains the scientific contract foundation |
-| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding, four-group direct dependency impact, nine registered exact semantic-target adapters through ProjectSource/replacement authority, read-only exact ChangeSet recovery assessment, five-minute revision-bound compensation preview, confirmed non-persisted command-plan composition, and separately authorized exact execution with retained-prefix recovery under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration history remains client-local, and registered exact Work/output/delivery dependency adapters are the next backend boundary |
+| Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding, four-group direct dependency impact, nine registered exact semantic-target adapters through ProjectSource/replacement authority, three separately bounded exact Work/input, output-manifest, and interaction-replay groups, read-only exact ChangeSet recovery assessment, five-minute revision-bound compensation preview, confirmed non-persisted command-plan composition, and separately authorized exact execution with retained-prefix recovery under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration history remains client-local, and renderer-neutral operational destinations backed by exact Project-owned route authority are the next backend boundary |
 | Semantic object location, replacement, and safe fallback | Proposed `UX-REQ-008`; the client retains route and layout ownership |
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
 | Project-source membership, governed removal, and local-copy retention/deletion | Proposed `UX-REQ-010`; Project linking and content-addressed storage remain separate lifecycles |
