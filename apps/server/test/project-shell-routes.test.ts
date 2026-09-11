@@ -23,6 +23,7 @@ import type {
   PetraProjectSourceView,
   PetraProjectThreadView,
   PetraProjectWorkView,
+  PetraSuggestedActionView,
 } from "@petra/contracts";
 import type {
   ProjectEffectiveControlsViewReader,
@@ -37,6 +38,7 @@ import type {
   ProjectSourceViewReader,
   ProjectThreadViewReader,
   ProjectWorkViewReader,
+  SuggestedActionViewReader,
 } from "@petra/core";
 import {
   ProjectHistoryCompensationExecutionUnavailableError,
@@ -300,6 +302,16 @@ const inquiryDetailFixture = JSON.parse(
   ),
 ) as PetraProjectInquiryView;
 
+const suggestedActionFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/suggested-action-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionView;
+
 const reader: ProjectShellViewReader = {
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
@@ -499,6 +511,18 @@ const inquiryReader: ProjectInquiryViewReader = {
         : undefined,
     );
   },
+};
+
+const suggestedActionReader: SuggestedActionViewReader = {
+  getSuggestedActionViewForInquiryResult: (projectId, projectInquiryLinkId) =>
+    Promise.resolve(
+      projectId === suggestedActionFixture.project_id &&
+        projectInquiryLinkId ===
+          suggestedActionFixture.content.action.basis.inquiry_result_link_ref
+            .project_inquiry_link_id
+        ? structuredClone(suggestedActionFixture)
+        : undefined,
+    ),
 };
 
 const authorized = (path: string): Request =>
@@ -1161,6 +1185,64 @@ describe("authorized Project shell query routes", () => {
       ),
     );
     expect(crossProject.status).toBe(404);
+  });
+
+  it("returns an exact authenticated read-only SuggestedAction preview", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      suggestedActionViews: suggestedActionReader,
+    });
+    const linkId =
+      suggestedActionFixture.content.action.basis.inquiry_result_link_ref
+        .project_inquiry_link_id;
+    const path = `/api/queries/projects/${suggestedActionFixture.project_id}/suggested-actions?inquiry_result_link_id=${linkId}`;
+
+    const unauthorized = await petra.app.request(path);
+    expect(unauthorized.status).toBe(401);
+
+    const response = await petra.app.request(authorized(path));
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as PetraSuggestedActionView;
+    expect(body).toEqual(suggestedActionFixture);
+    expect(body.content.readiness.state).toBe("ready");
+    expect(body.content.operation).toEqual({
+      state: "read_only",
+      work_start: "not_performed",
+      authority_change: "none",
+    });
+    expect(body.content.action.invocation.kind).toBe("authenticated_read");
+    expect(body.content.action_ref.suggested_action_id).toMatch(
+      /^suggested_action_[0-9A-HJKMNP-TV-Z]{26}$/u,
+    );
+
+    const malformed = await petra.app.request(
+      authorized(`${path}&depth=research_deeply`),
+    );
+    expect(malformed.status).toBe(422);
+    const malformedBody = (await malformed.json()) as {
+      error: { code: string };
+    };
+    expect(malformedBody.error.code).toBe("SUGGESTED_ACTION_QUERY_INVALID");
+
+    const missingLink = await petra.app.request(
+      authorized(`/api/queries/projects/${body.project_id}/suggested-actions`),
+    );
+    expect(missingLink.status).toBe(422);
+    const missingLinkBody = (await missingLink.json()) as {
+      error: { code: string };
+    };
+    expect(missingLinkBody.error.code).toBe("SUGGESTED_ACTION_QUERY_INVALID");
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/suggested-actions?inquiry_result_link_id=${linkId}`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    const crossProjectBody = (await crossProject.json()) as {
+      error: { code: string };
+    };
+    expect(crossProjectBody.error.code).toBe("SUGGESTED_ACTION_NOT_FOUND");
   });
 
   it("returns bounded Work collection and exact detail without promoting output authority", async () => {

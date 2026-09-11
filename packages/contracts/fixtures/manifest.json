@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.49.0",
+  "fixture_manifest_version": "1.50.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -69,6 +69,10 @@
     {
       "schema": "project-inquiry-view",
       "path": "fixtures/accepted/project-inquiry-view-detail.json"
+    },
+    {
+      "schema": "suggested-action-view",
+      "path": "fixtures/accepted/suggested-action-view.json"
     },
     {
       "schema": "project-shell-view",

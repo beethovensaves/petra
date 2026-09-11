@@ -44,6 +44,7 @@ export * from "./project-history-view.js";
 export * from "./project-history-compensation-execution.js";
 export * from "./project-inquiry.js";
 export * from "./project-work-view.js";
+export * from "./suggested-action-view.js";
 export * from "./project-thread.js";
 export * from "./project-shell-view.js";
 export * from "./project-source-authority-repository.js";

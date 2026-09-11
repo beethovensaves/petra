@@ -106,6 +106,10 @@ import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-r
 import { PostgresSynthesistExecutionRepository } from "../src/synthesist-execution-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
 import {
+  PostgresSuggestedActionViewReader,
+  type PostgresSuggestedActionViewError,
+} from "../src/suggested-action-view-reader.js";
+import {
   availableArtifactStore,
   createMemoryArtifactStore,
 } from "./artifact-store-fixture.js";
@@ -190,6 +194,17 @@ const expectProjectInquiryViewCode = async (
 ): Promise<void> => {
   await expect(operation()).rejects.toEqual(
     expect.objectContaining<Partial<PostgresProjectInquiryViewError>>({ code }),
+  );
+};
+
+const expectSuggestedActionViewCode = async (
+  operation: () => Promise<unknown>,
+  code: PostgresSuggestedActionViewError["code"],
+): Promise<void> => {
+  await expect(operation()).rejects.toEqual(
+    expect.objectContaining<Partial<PostgresSuggestedActionViewError>>({
+      code,
+    }),
   );
 };
 
@@ -1352,6 +1367,100 @@ describePostgres("PostgreSQL grounded-response authority", () => {
         [workLink.project_inquiry_link_id],
       ),
     ).rejects.toBeTruthy();
+
+    const suggestedActions = new PostgresSuggestedActionViewReader(pool);
+    const suggestedActionId = derivePetraId(
+      "suggested_action",
+      `${resultLink.project_inquiry_link_id}|inspect_existing_inquiry_result|1.0.0`,
+    );
+    const action =
+      await suggestedActions.getSuggestedActionViewForInquiryResult(
+        objective.project_id,
+        resultLink.project_inquiry_link_id,
+      );
+    const actionForLink =
+      await suggestedActions.getSuggestedActionViewForInquiryResult(
+        objective.project_id,
+        resultLink.project_inquiry_link_id,
+      );
+    if (action === undefined || actionForLink === undefined) {
+      throw new Error(
+        "Expected both SuggestedAction preview reads to resolve.",
+      );
+    }
+    const { read_at: actionReadAt, ...actionAuthority } = action;
+    const { read_at: actionForLinkReadAt, ...actionForLinkAuthority } =
+      actionForLink;
+    expect(actionForLinkAuthority).toEqual(actionAuthority);
+    expect(Date.parse(actionReadAt)).not.toBeNaN();
+    expect(Date.parse(actionForLinkReadAt)).not.toBeNaN();
+    expect(action).toEqual(
+      expect.objectContaining({
+        schema_name: "petra.suggested-action-view",
+        schema_version: "1.0.0",
+        project_id: objective.project_id,
+      }),
+    );
+    expect(action?.content.action_ref).toEqual(
+      expect.objectContaining({
+        suggested_action_id: suggestedActionId,
+        revision: 1,
+      }),
+    );
+    expect(action.content.readiness).toEqual(
+      expect.objectContaining({
+        state: "ready",
+        reason_code: "exact_existing_result_available",
+        missing_prerequisites: [],
+      }),
+    );
+    expect(action?.content.action.background_work).toEqual(
+      expect.objectContaining({
+        state: "completed",
+        terminal_outcome: "succeeded",
+      }),
+    );
+    expect(action?.content.operation).toEqual({
+      state: "read_only",
+      work_start: "not_performed",
+      authority_change: "none",
+    });
+    expect(
+      await suggestedActions.getSuggestedActionViewForInquiryResult(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        resultLink.project_inquiry_link_id,
+      ),
+    ).toBeUndefined();
+    await expectSuggestedActionViewCode(
+      () =>
+        suggestedActions.getSuggestedActionViewForInquiryResult(
+          objective.project_id,
+          "project_inquiry_link_invalid",
+        ),
+      "SUGGESTED_ACTION_VIEW_REQUEST_INVALID",
+    );
+
+    const revisedObjective = structuredClone(objective);
+    revisedObjective.revision = 2;
+    revisedObjective.content.statement =
+      "Reassess the inquiry after its exact result was recorded.";
+    revisedObjective.content_hash = canonicalHash(revisedObjective.content);
+    revisedObjective.updated_at = "2026-09-08T18:38:00.000Z";
+    await definitions.registerObjectiveRevision(revisedObjective);
+    const staleAction =
+      await suggestedActions.getSuggestedActionViewForInquiryResult(
+        objective.project_id,
+        resultLink.project_inquiry_link_id,
+      );
+    expect(staleAction?.content.readiness).toEqual(
+      expect.objectContaining({
+        state: "stale",
+        reason_code: "objective_changed",
+      }),
+    );
+    expect(staleAction?.content.action_ref).toEqual(action.content.action_ref);
+    expect(staleAction?.content.action).toEqual(action.content.action);
+    expect(staleAction?.content_hash).not.toBe(action.content_hash);
   });
 
   it("persists immutable Project threads, revisions, and exact branch origins", async () => {

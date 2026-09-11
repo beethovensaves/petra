@@ -83,6 +83,18 @@ export type {
   WorkLink as ProjectInquiryViewWorkLink,
 } from "./generated/project-inquiry-view.js";
 export type {
+  Action as SuggestedAction,
+  AuthorityPosition as SuggestedActionAuthorityPosition,
+  BackgroundWork as SuggestedActionBackgroundWork,
+  Basis as SuggestedActionBasis,
+  Objective as SuggestedActionObjective,
+  PetraSuggestedActionView,
+  Ready as SuggestedActionReady,
+  Stale as SuggestedActionStale,
+  SuggestedActionRef,
+  ViewContent as SuggestedActionViewContent,
+} from "./generated/suggested-action-view.js";
+export type {
   AttentionItem as ProjectShellAttentionItem,
   AuthorityPosition as ProjectShellAuthorityPosition,
   DefinitionSummary as ProjectShellDefinitionSummary,

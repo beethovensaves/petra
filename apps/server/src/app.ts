@@ -56,6 +56,7 @@ import {
   type ProjectThreadViewReader,
   type ProjectWorkStateFilter,
   type ProjectWorkViewReader,
+  type SuggestedActionViewReader,
 } from "@petra/core";
 
 interface Variables {
@@ -89,6 +90,7 @@ export interface PetraAppOptions {
   projectWorkViews?: ProjectWorkViewReader;
   projectThreadViews?: ProjectThreadViewReader;
   projectInquiryViews?: ProjectInquiryViewReader;
+  suggestedActionViews?: SuggestedActionViewReader;
 }
 
 export interface PetraApp {
@@ -166,6 +168,8 @@ const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$/u;
 const WORK_UNIT_ID_PATTERN = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_THREAD_ID_PATTERN = /^project_thread_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const OBJECTIVE_ID_PATTERN = /^objective_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const PROJECT_INQUIRY_LINK_ID_PATTERN =
+  /^project_inquiry_link_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const SEMANTIC_KEY_PATTERN = /^[a-z][a-z0-9._/-]{1,199}$/u;
 const LOCATION_INTENTS = [
   "orient",
@@ -819,6 +823,79 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       );
     }
   });
+
+  app.get(
+    "/api/queries/projects/:projectId/suggested-actions",
+    async (context) => {
+      if (options.suggestedActionViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "SUGGESTED_ACTIONS_UNAVAILABLE",
+          "The authorized SuggestedAction preview boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const unknown = [...parameters.keys()].filter(
+          (key) => key !== "inquiry_result_link_id",
+        );
+        if (
+          unknown.length > 0 ||
+          parameters.getAll("inquiry_result_link_id").length !== 1
+        ) {
+          throw new InteractionInputError(
+            "SuggestedAction preview requires exactly one inquiry_result_link_id and no other query parameters.",
+            [...new Set(unknown)],
+          );
+        }
+        const projectInquiryLinkId = parameters.get("inquiry_result_link_id")!;
+        if (!PROJECT_INQUIRY_LINK_ID_PATTERN.test(projectInquiryLinkId)) {
+          throw new InteractionInputError(
+            "SuggestedAction preview requires a canonical ProjectInquiryLink identity.",
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const view =
+          await options.suggestedActionViews.getSuggestedActionViewForInquiryResult(
+            projectId,
+            projectInquiryLinkId,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "SUGGESTED_ACTION_NOT_FOUND",
+            "No SuggestedAction is derived from the exact inquiry-result link in this Project.",
+          );
+        }
+        contracts.assertValid("suggested-action-view", "1.0.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.content.view_kind !== "preview" ||
+          view.content.action.basis.inquiry_result_link_ref
+            .project_inquiry_link_id !== projectInquiryLinkId
+        ) {
+          throw new Error(
+            "The SuggestedAction reader returned a different Project or inquiry-result basis.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "SUGGESTED_ACTION_QUERY_INVALID"
+            : "SUGGESTED_ACTION_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The SuggestedAction preview is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
 
   app.get(
     "/api/queries/projects/:projectId/effective-controls",

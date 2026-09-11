@@ -16,6 +16,7 @@ import {
   PostgresProjectSourceViewReader,
   PostgresProjectThreadViewReader,
   PostgresProjectWorkViewReader,
+  PostgresSuggestedActionViewReader,
 } from "@petra/postgres";
 import { Neo4jAuthorityGraphStore } from "@petra/neo4j";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -38,6 +39,7 @@ import type {
   ProjectSourceViewReader,
   ProjectThreadViewReader,
   ProjectWorkViewReader,
+  SuggestedActionViewReader,
 } from "@petra/core";
 import { parsePetraId } from "@petra/core";
 
@@ -56,6 +58,7 @@ export interface ProjectShellPersistence {
   readonly workViews: ProjectWorkViewReader;
   readonly threadViews: ProjectThreadViewReader;
   readonly inquiryViews: ProjectInquiryViewReader;
+  readonly suggestedActionViews: SuggestedActionViewReader;
   readonly commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
   readonly sourceLifecycleAuthority: ProjectSourceLifecycleAuthorityRepository;
   readonly sourceReplacementAuthority: ProjectSourceReplacementCommandAuthorityRepository;
@@ -252,6 +255,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         workViews: new PostgresProjectWorkViewReader(pool),
         threadViews: new PostgresProjectThreadViewReader(pool),
         inquiryViews: new PostgresProjectInquiryViewReader(pool),
+        suggestedActionViews: new PostgresSuggestedActionViewReader(pool),
         ...(configuredActorId === undefined || configuredActorId === ""
           ? {}
           : {
@@ -300,6 +304,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     workViews: new PostgresProjectWorkViewReader(pool),
     threadViews: new PostgresProjectThreadViewReader(pool),
     inquiryViews: new PostgresProjectInquiryViewReader(pool),
+    suggestedActionViews: new PostgresSuggestedActionViewReader(pool),
     ...(configuredActorId === undefined || configuredActorId === ""
       ? {}
       : {

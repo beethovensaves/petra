@@ -17,6 +17,7 @@ export * from "./project-effective-controls-view-reader.js";
 export * from "./project-history-view-reader.js";
 export * from "./project-history-compensation-executor.js";
 export * from "./project-work-view-reader.js";
+export * from "./suggested-action-view-reader.js";
 export * from "./project-thread-authority-repository.js";
 export * from "./project-thread-view-reader.js";
 export * from "./project-shell-view-reader.js";

@@ -9978,6 +9978,172 @@ class PetraGroundedResponse(PetraModel):
     recorded_at: str
 
 
+class SuggestedActionRef(PetraModel):
+    suggested_action_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class SuggestedActionDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+    definition_family: str
+
+
+class SuggestedActionObjective(PetraModel):
+    objective_ref: ProjectInquiryObjectiveRef
+    semantic_key: str
+    statement: str
+
+
+class SuggestedActionInquiryLinkRef(PetraModel):
+    project_inquiry_link_id: str
+    content_hash: str
+    record_hash: str
+
+
+class SuggestedActionBasis(PetraModel):
+    derivation: Literal["exact_immutable_inquiry_result_link"]
+    project_definition_ref: SuggestedActionDefinitionRef
+    inquiry_result_link_ref: SuggestedActionInquiryLinkRef
+    result_ref: ProjectInquiryTypedRecordRef
+    snapshot_ref: PacketSnapshotRef
+    produced_by_work_ref: ProjectInquiryWorkUnitRef | None = None
+
+
+class SuggestedActionScope(PetraModel):
+    scope_kind: Literal["exact_existing_result"]
+    included: str
+    excluded: list[str]
+
+
+class SuggestedActionReady(PetraModel):
+    state: Literal["ready"]
+    reason_code: Literal["exact_existing_result_available"]
+    reason: str
+    missing_prerequisites: list[str]
+
+
+class SuggestedActionStale(PetraModel):
+    state: Literal["stale"]
+    reason_code: Literal[
+        "project_definition_changed",
+        "objective_changed",
+        "objective_inactive",
+        "result_invalidated",
+    ]
+    reason: str
+    missing_prerequisites: list[str]
+
+
+class SuggestedActionResponseDepth(PetraModel):
+    allowed: list[Literal["current_graph"]]
+    recommended: Literal["current_graph"]
+    adjustable: Literal[False]
+
+
+class SuggestedActionExpectedResult(PetraModel):
+    state: Literal["already_available"]
+    result_kind: Literal["grounded_response"]
+    result_ref: ProjectInquiryTypedRecordRef
+    authority_effect: Literal["none"]
+    reusable: bool
+
+
+class SuggestedActionResources(PetraModel):
+    duration: Literal["not_required"]
+    cost: Literal["not_required"]
+    basis: Literal["read_only_existing_result"]
+
+
+class SuggestedActionCapability(PetraModel):
+    capability_key: Literal["petra.project-inquiry.read"]
+    grant_status: Literal["satisfied_by_authenticated_project_read"]
+    approval: Literal["not_required"]
+
+
+class SuggestedActionInterrupt(PetraModel):
+    expectation: Literal["none"]
+
+
+class SuggestedActionCancellation(PetraModel):
+    consequence: Literal["not_applicable_no_work_started"]
+
+
+class SuggestedActionCompletedWork(PetraModel):
+    state: Literal["completed"]
+    work_unit_ref: ProjectInquiryWorkUnitRef
+    terminal_outcome: ProjectWorkTerminalOutcome
+
+
+class SuggestedActionUnavailableWork(PetraModel):
+    state: Literal["unavailable"]
+    reason: str
+
+
+class SuggestedActionInvocation(PetraModel):
+    kind: Literal["authenticated_read"]
+    contract_name: Literal["petra.project-inquiry-view"]
+    contract_version: Literal["1.0.0"]
+    operation: Literal["get_project_inquiry_detail"]
+    project_id: str
+    objective_ref: ProjectInquiryObjectiveRef
+    place_role: Literal["brief"]
+    task_intent: Literal["inspect"]
+    idempotency: Literal["safe_exact_read"]
+
+
+class SuggestedAction(PetraModel):
+    action_kind: Literal["inspect_existing_inquiry_result"]
+    title: str
+    objective: SuggestedActionObjective
+    reason: str
+    basis: SuggestedActionBasis
+    scope: SuggestedActionScope
+    missing_information: list[str]
+    response_depth: SuggestedActionResponseDepth
+    expected_result: SuggestedActionExpectedResult
+    resources: SuggestedActionResources
+    capability: SuggestedActionCapability
+    interrupt: SuggestedActionInterrupt
+    cancellation: SuggestedActionCancellation
+    background_work: SuggestedActionCompletedWork | SuggestedActionUnavailableWork
+    invocation: SuggestedActionInvocation
+
+
+class SuggestedActionOperation(PetraModel):
+    state: Literal["read_only"]
+    work_start: Literal["not_performed"]
+    authority_change: Literal["none"]
+
+
+class SuggestedActionAuthority(PetraModel):
+    isolation: Literal["repeatable_read"]
+    event_position: int
+    stream_revision: int
+
+
+class SuggestedActionViewContent(PetraModel):
+    view_kind: Literal["preview"]
+    action_ref: SuggestedActionRef
+    action: SuggestedAction
+    readiness: SuggestedActionReady | SuggestedActionStale
+    operation: SuggestedActionOperation
+    authority: SuggestedActionAuthority
+    limitations: list[str]
+
+
+class PetraSuggestedActionView(PetraModel):
+    schema_name: Literal["petra.suggested-action-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: SuggestedActionViewContent
+    content_hash: str
+    read_at: str
+
+
 PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
@@ -10026,6 +10192,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-inquiry-role": PetraProjectInquiryRole,
     "project-inquiry-link": PetraProjectInquiryLink,
     "project-inquiry-view": PetraProjectInquiryView,
+    "suggested-action-view": PetraSuggestedActionView,
     "project-thread": PetraProjectThread,
     "project-thread-view": PetraProjectThreadView,
     "author": PetraAuthor,
@@ -10229,6 +10396,7 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-inquiry-result-link.json", "content", "content_hash"),
         ("project-inquiry-view-collection.json", "content", "content_hash"),
         ("project-inquiry-view-detail.json", "content", "content_hash"),
+        ("suggested-action-view.json", "content", "content_hash"),
         ("project-thread.json", "content", "content_hash"),
         ("project-thread-view-collection.json", "content", "content_hash"),
         ("project-thread-view-detail.json", "content", "content_hash"),
