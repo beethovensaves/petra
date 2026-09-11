@@ -1,0 +1,465 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/suggested-action-view/1.0.0/schema.json",
+  "title": "PetraSuggestedActionView",
+  "description": "A Project-scoped, revisioned, read-only SuggestedAction preview derived from one exact immutable inquiry-result link and its retained authority. It does not start Work or change Project authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.suggested-action-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "content": { "$ref": "#/$defs/ViewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "SuggestedActionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suggested_action_id", "revision", "content_hash"],
+      "properties": {
+        "suggested_action_id": {
+          "type": "string",
+          "pattern": "^suggested_action_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "DefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "definition_family"
+      ],
+      "properties": {
+        "project_definition_id": {
+          "type": "string",
+          "pattern": "^project_definition_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "definition_family": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]{2,127}$"
+        }
+      }
+    },
+    "ObjectiveRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "revision", "content_hash", "record_hash"],
+      "properties": {
+        "objective_id": {
+          "type": "string",
+          "pattern": "^objective_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "InquiryLinkRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_inquiry_link_id", "content_hash", "record_hash"],
+      "properties": {
+        "project_inquiry_link_id": {
+          "type": "string",
+          "pattern": "^project_inquiry_link_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "TypedRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "record_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_name": { "const": "petra.grounded-response" },
+        "schema_version": { "const": "1.0.0" },
+        "record_id": {
+          "type": "string",
+          "pattern": "^grounded_response_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "WorkUnitRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_unit_id", "revision", "spec_hash", "record_hash"],
+      "properties": {
+        "work_unit_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "spec_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_ref", "semantic_key", "statement"],
+      "properties": {
+        "objective_ref": { "$ref": "#/$defs/ObjectiveRef" },
+        "semantic_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "statement": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "Basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "derivation",
+        "project_definition_ref",
+        "inquiry_result_link_ref",
+        "result_ref",
+        "snapshot_ref"
+      ],
+      "properties": {
+        "derivation": { "const": "exact_immutable_inquiry_result_link" },
+        "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+        "inquiry_result_link_ref": { "$ref": "#/$defs/InquiryLinkRef" },
+        "result_ref": { "$ref": "#/$defs/TypedRecordRef" },
+        "snapshot_ref": {
+          "$ref": "../../context-packet/1.0.0/schema.json#/$defs/SnapshotRef"
+        },
+        "produced_by_work_ref": { "$ref": "#/$defs/WorkUnitRef" }
+      }
+    },
+    "Ready": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason_code", "reason", "missing_prerequisites"],
+      "properties": {
+        "state": { "const": "ready" },
+        "reason_code": { "const": "exact_existing_result_available" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "missing_prerequisites": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "Stale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason_code", "reason", "missing_prerequisites"],
+      "properties": {
+        "state": { "const": "stale" },
+        "reason_code": {
+          "enum": [
+            "project_definition_changed",
+            "objective_changed",
+            "objective_inactive",
+            "result_invalidated"
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "missing_prerequisites": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+        }
+      }
+    },
+    "BackgroundWork": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "work_unit_ref", "terminal_outcome"],
+          "properties": {
+            "state": { "const": "completed" },
+            "work_unit_ref": { "$ref": "#/$defs/WorkUnitRef" },
+            "terminal_outcome": {
+              "enum": [
+                "succeeded",
+                "worker_failed",
+                "validation_failed",
+                "resource_exhausted",
+                "timed_out",
+                "cancelled"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason"],
+          "properties": {
+            "state": { "const": "unavailable" },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 1000 }
+          }
+        }
+      ]
+    },
+    "Action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_kind",
+        "title",
+        "objective",
+        "reason",
+        "basis",
+        "scope",
+        "missing_information",
+        "response_depth",
+        "expected_result",
+        "resources",
+        "capability",
+        "interrupt",
+        "cancellation",
+        "background_work",
+        "invocation"
+      ],
+      "properties": {
+        "action_kind": { "const": "inspect_existing_inquiry_result" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "objective": { "$ref": "#/$defs/Objective" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "basis": { "$ref": "#/$defs/Basis" },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scope_kind", "included", "excluded"],
+          "properties": {
+            "scope_kind": { "const": "exact_existing_result" },
+            "included": { "type": "string", "minLength": 1, "maxLength": 1000 },
+            "excluded": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+            }
+          }
+        },
+        "missing_information": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        },
+        "response_depth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed", "recommended", "adjustable"],
+          "properties": {
+            "allowed": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": { "const": "current_graph" }
+            },
+            "recommended": { "const": "current_graph" },
+            "adjustable": { "const": false }
+          }
+        },
+        "expected_result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "result_kind",
+            "result_ref",
+            "authority_effect",
+            "reusable"
+          ],
+          "properties": {
+            "state": { "const": "already_available" },
+            "result_kind": { "const": "grounded_response" },
+            "result_ref": { "$ref": "#/$defs/TypedRecordRef" },
+            "authority_effect": { "const": "none" },
+            "reusable": { "type": "boolean" }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["duration", "cost", "basis"],
+          "properties": {
+            "duration": { "const": "not_required" },
+            "cost": { "const": "not_required" },
+            "basis": { "const": "read_only_existing_result" }
+          }
+        },
+        "capability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["capability_key", "grant_status", "approval"],
+          "properties": {
+            "capability_key": { "const": "petra.project-inquiry.read" },
+            "grant_status": {
+              "const": "satisfied_by_authenticated_project_read"
+            },
+            "approval": { "const": "not_required" }
+          }
+        },
+        "interrupt": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["expectation"],
+          "properties": { "expectation": { "const": "none" } }
+        },
+        "cancellation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["consequence"],
+          "properties": {
+            "consequence": { "const": "not_applicable_no_work_started" }
+          }
+        },
+        "background_work": { "$ref": "#/$defs/BackgroundWork" },
+        "invocation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "contract_name",
+            "contract_version",
+            "operation",
+            "project_id",
+            "objective_ref",
+            "place_role",
+            "task_intent",
+            "idempotency"
+          ],
+          "properties": {
+            "kind": { "const": "authenticated_read" },
+            "contract_name": { "const": "petra.project-inquiry-view" },
+            "contract_version": { "const": "1.0.0" },
+            "operation": { "const": "get_project_inquiry_detail" },
+            "project_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+            },
+            "objective_ref": { "$ref": "#/$defs/ObjectiveRef" },
+            "place_role": { "const": "brief" },
+            "task_intent": { "const": "inspect" },
+            "idempotency": { "const": "safe_exact_read" }
+          }
+        }
+      }
+    },
+    "AuthorityPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isolation", "event_position", "stream_revision"],
+      "properties": {
+        "isolation": { "const": "repeatable_read" },
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "ViewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "action_ref",
+        "action",
+        "readiness",
+        "operation",
+        "authority",
+        "limitations"
+      ],
+      "properties": {
+        "view_kind": { "const": "preview" },
+        "action_ref": { "$ref": "#/$defs/SuggestedActionRef" },
+        "action": { "$ref": "#/$defs/Action" },
+        "readiness": {
+          "description": "Current server-owned readiness for the immutable action revision. Readiness is recomputed and is not part of action_ref.content_hash.",
+          "oneOf": [{ "$ref": "#/$defs/Ready" }, { "$ref": "#/$defs/Stale" }]
+        },
+        "operation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "work_start", "authority_change"],
+          "properties": {
+            "state": { "const": "read_only" },
+            "work_start": { "const": "not_performed" },
+            "authority_change": { "const": "none" }
+          }
+        },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": ["backend", "design"]
+    },
+    "disposition": {
+      "type": "string",
+      "enum": ["handoff", "wave_complete", "needs_user", "blocked"]
+    },
+    "slice_id": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "counterpart_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "verification": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "next_safe_boundary": {
+      "type": "string"
+    },
+    "handoff_prompt": {
+      "type": "string"
+    },
+    "wave_exit_assessment": {
+      "type": "string"
+    },
+    "user_attention": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "role",
+    "disposition",
+    "slice_id",
+    "summary",
+    "commit",
+    "counterpart_commit",
+    "verification",
+    "next_safe_boundary",
+    "handoff_prompt",
+    "wave_exit_assessment",
+    "user_attention"
+  ],
+  "additionalProperties": false
+}

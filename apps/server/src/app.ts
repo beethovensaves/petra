@@ -15,10 +15,21 @@ import {
   parseAgUiReviewResponse,
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
+import type {
+  PetraProjectHistoryCompensationExecutionRequest,
+  PetraProjectHistoryCompensationPlanRequest,
+  PetraProjectHistoryRetainedContinuationFailure,
+  ProjectHistoryRetainedCollectionFiltersV12,
+} from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   DurableReviewInterruptError,
   PetraInteractionRuntime,
+  ProjectHistoryCompensationExecutionUnavailableError,
+  ProjectHistoryCompensationPlanUnavailableError,
+  ProjectHistoryRetainedContinuationError,
+  ProjectHistoryRecoveryPreviewUnavailableError,
+  ProjectHistoryViewRequestError,
   ProjectSourceLifecycleAuthorityError,
   ProjectSourceReplacementCommandError,
   derivePetraId,
@@ -27,6 +38,7 @@ import {
   type ReviewResolutionContext,
   type ProjectEffectiveControlsViewReader,
   type ProjectHistoryViewReader,
+  type ProjectHistoryCompensationExecutionBoundary,
   type ProjectInquiryAuthoredStatus,
   type ProjectInquiryViewReader,
   type ProjectObjectLocationViewReader,
@@ -44,6 +56,7 @@ import {
   type ProjectThreadViewReader,
   type ProjectWorkStateFilter,
   type ProjectWorkViewReader,
+  type SuggestedActionViewReader,
 } from "@petra/core";
 
 interface Variables {
@@ -65,6 +78,7 @@ export interface PetraAppOptions {
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
   projectHistoryViews?: ProjectHistoryViewReader;
+  projectHistoryCompensationExecution?: ProjectHistoryCompensationExecutionBoundary;
   projectSourceViews?: ProjectSourceViewReader;
   projectSourceLifecycleViews?: ProjectSourceLifecycleViewReader;
   commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
@@ -76,6 +90,7 @@ export interface PetraAppOptions {
   projectWorkViews?: ProjectWorkViewReader;
   projectThreadViews?: ProjectThreadViewReader;
   projectInquiryViews?: ProjectInquiryViewReader;
+  suggestedActionViews?: SuggestedActionViewReader;
 }
 
 export interface PetraApp {
@@ -94,11 +109,67 @@ const PROJECT_SOURCE_LIFECYCLE_RECEIPT_ID_PATTERN =
   /^project_source_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const COMMAND_ID_PATTERN = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const EVENT_ID_PATTERN = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const HISTORY_CURSOR_PATTERN = /^phc2\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/u;
+const HISTORY_CONTINUATION_FAILURE_MESSAGE =
+  "This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.";
+const HISTORY_ACTOR_ID_PATTERN = /^actor_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const HISTORY_TIMESTAMP_PATTERN =
+  /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/u;
+const HISTORY_FAMILIES = new Set([
+  "change_control",
+  "project_source_lifecycle",
+  "project_source_replacement",
+]);
+const HISTORY_COMMAND_NAMES = new Set([
+  "SubmitChangeSet",
+  "RecordApproval",
+  "ApplyChangeSet",
+  "ExcludeProjectSource",
+  "RestoreProjectSource",
+  "CreateProjectSourceReplacement",
+  "RetractProjectSourceReplacement",
+]);
+const HISTORY_EVENT_TYPES = new Set([
+  "change_set.submitted",
+  "approval.recorded",
+  "change_set.applied",
+  "change_set.conflicted",
+  "change_set.reverted",
+  "change_set.reversal_conflicted",
+  "project_source.excluded",
+  "project_source.restored",
+  "project_source.replacement_created",
+  "project_source.replacement_retracted",
+]);
+const HISTORY_OUTCOMES = new Set(["completed", "conflicted"]);
+const HISTORY_EFFECTS = new Set([
+  "change_proposed",
+  "approval_recorded",
+  "authority_change_applied",
+  "authority_change_conflicted",
+  "authority_change_reverted",
+  "reversal_conflicted",
+  "project_source_excluded",
+  "project_source_restored",
+  "source_replacement_created",
+  "source_replacement_retracted",
+]);
+const HISTORY_TARGET_SEMANTIC_KEYS = new Set([
+  "petra.change-set",
+  "petra.approval",
+  "scientific.claim",
+  "scientific.assertion",
+  "petra.project-source",
+  "petra.project-source-replacement",
+  "petra.project-source-replacement-retraction",
+]);
 const CONTENT_HASH_PATTERN = /^sha256:[0-9a-f]{64}$/u;
 const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$/u;
 const WORK_UNIT_ID_PATTERN = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_THREAD_ID_PATTERN = /^project_thread_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const OBJECTIVE_ID_PATTERN = /^objective_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const PROJECT_INQUIRY_LINK_ID_PATTERN =
+  /^project_inquiry_link_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const SEMANTIC_KEY_PATTERN = /^[a-z][a-z0-9._/-]{1,199}$/u;
 const LOCATION_INTENTS = [
   "orient",
@@ -419,6 +490,32 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   const maxBodyBytes = options.maxBodyBytes ?? 64 * 1024;
   const activeStreams = new Set<AbortController>();
   const contracts = new PetraContractRegistry();
+  const retainedHistoryContinuationFailure = (
+    context: Context<{ Variables: Variables }>,
+    error: ProjectHistoryRetainedContinuationError,
+  ): Response => {
+    const failure: PetraProjectHistoryRetainedContinuationFailure = {
+      schema_name: "petra.project-history-retained-continuation-failure",
+      schema_version: "1.0.0",
+      error: {
+        code: "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
+        subcode: error.subcode,
+        message: HISTORY_CONTINUATION_FAILURE_MESSAGE,
+        restart: {
+          cursor_disposition: "discard_without_client_decoding",
+          request_kind: "cursorless_same_project_limit_and_filters",
+        },
+      },
+      requestId: context.get("requestId"),
+      traceId: context.get("traceId"),
+    };
+    contracts.assertValid(
+      "project-history-retained-continuation-failure",
+      "1.0.0",
+      failure,
+    );
+    return context.json(failure, 422);
+  };
   const assertProjectShellView = (
     view: Awaited<
       ReturnType<
@@ -728,6 +825,79 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   });
 
   app.get(
+    "/api/queries/projects/:projectId/suggested-actions",
+    async (context) => {
+      if (options.suggestedActionViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "SUGGESTED_ACTIONS_UNAVAILABLE",
+          "The authorized SuggestedAction preview boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const unknown = [...parameters.keys()].filter(
+          (key) => key !== "inquiry_result_link_id",
+        );
+        if (
+          unknown.length > 0 ||
+          parameters.getAll("inquiry_result_link_id").length !== 1
+        ) {
+          throw new InteractionInputError(
+            "SuggestedAction preview requires exactly one inquiry_result_link_id and no other query parameters.",
+            [...new Set(unknown)],
+          );
+        }
+        const projectInquiryLinkId = parameters.get("inquiry_result_link_id")!;
+        if (!PROJECT_INQUIRY_LINK_ID_PATTERN.test(projectInquiryLinkId)) {
+          throw new InteractionInputError(
+            "SuggestedAction preview requires a canonical ProjectInquiryLink identity.",
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const view =
+          await options.suggestedActionViews.getSuggestedActionViewForInquiryResult(
+            projectId,
+            projectInquiryLinkId,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "SUGGESTED_ACTION_NOT_FOUND",
+            "No SuggestedAction is derived from the exact inquiry-result link in this Project.",
+          );
+        }
+        contracts.assertValid("suggested-action-view", "1.0.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.content.view_kind !== "preview" ||
+          view.content.action.basis.inquiry_result_link_ref
+            .project_inquiry_link_id !== projectInquiryLinkId
+        ) {
+          throw new Error(
+            "The SuggestedAction reader returned a different Project or inquiry-result basis.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "SUGGESTED_ACTION_QUERY_INVALID"
+            : "SUGGESTED_ACTION_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The SuggestedAction preview is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
     "/api/queries/projects/:projectId/effective-controls",
     async (context) => {
       if (options.projectEffectiveControls === undefined) {
@@ -770,6 +940,206 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The effective Project controls view is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/queries/projects/:projectId/history/events/:eventId/recovery/plan",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const projectId = context.req.param("projectId");
+        const eventId = context.req.param("eventId");
+        if (
+          [...parameters.keys()].length > 0 ||
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !EVENT_ID_PATTERN.test(eventId)
+        ) {
+          throw new InteractionInputError(
+            "A History compensation plan requires canonical Project and event identities and accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const value = await readBoundedJson(context, maxBodyBytes);
+        try {
+          contracts.assertValid(
+            "project-history-compensation-plan-request",
+            "1.0.0",
+            value,
+          );
+        } catch {
+          throw new InteractionInputError(
+            "The History compensation plan request must contain one exact preview reference, non-empty reason and Approval rationale, and explicit confirmation.",
+          );
+        }
+        const request = value as PetraProjectHistoryCompensationPlanRequest;
+        if (
+          request.project_id !== projectId ||
+          request.event_id !== eventId ||
+          request.confirmation.reason.trim().length === 0 ||
+          request.confirmation.approval_rationale.trim().length === 0
+        ) {
+          throw new InteractionInputError(
+            "The compensation plan request must remain bound to the routed Project and event and contain substantive confirmed input.",
+          );
+        }
+        const view =
+          await options.projectHistoryViews.composeProjectHistoryCompensationPlan(
+            request,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_HISTORY_EVENT_NOT_FOUND",
+            "The requested event is not available in this Project History.",
+          );
+        }
+        contracts.assertValid(
+          "project-history-compensation-plan-view",
+          "1.0.0",
+          view,
+        );
+        if (
+          view.project_id !== projectId ||
+          view.event_id !== eventId ||
+          view.content.preview_ref.content_hash !==
+            request.preview_ref.content_hash ||
+          view.content.preview_ref.binding_hash !==
+            request.preview_ref.binding_hash
+        ) {
+          throw new Error(
+            "The Project History compensation plan returned a different Project, event, or preview binding.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        const invalid = error instanceof InteractionInputError;
+        const unavailable =
+          error instanceof ProjectHistoryCompensationPlanUnavailableError ||
+          error instanceof ProjectHistoryRecoveryPreviewUnavailableError;
+        return jsonError(
+          context,
+          invalid ? 422 : unavailable ? 409 : 503,
+          invalid
+            ? "PROJECT_HISTORY_COMPENSATION_PLAN_REQUEST_INVALID"
+            : unavailable
+              ? "PROJECT_HISTORY_COMPENSATION_PLAN_UNAVAILABLE"
+              : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project History compensation command plan is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/history/events/:eventId/recovery/execute",
+    async (context) => {
+      if (options.projectHistoryCompensationExecution === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_COMPENSATION_EXECUTION_UNAVAILABLE",
+          "The authenticated Project History compensation execution boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const projectId = context.req.param("projectId");
+        const eventId = context.req.param("eventId");
+        if (
+          [...parameters.keys()].length > 0 ||
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !EVENT_ID_PATTERN.test(eventId)
+        ) {
+          throw new InteractionInputError(
+            "A History compensation execution requires canonical Project and event identities and accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const value = await readBoundedJson(context, maxBodyBytes);
+        try {
+          contracts.assertValid(
+            "project-history-compensation-execution-request",
+            "1.0.0",
+            value,
+          );
+        } catch {
+          throw new InteractionInputError(
+            "The History compensation execution request must contain one exact composed plan and explicit per-command atomicity confirmation.",
+          );
+        }
+        const request =
+          value as PetraProjectHistoryCompensationExecutionRequest;
+        if (
+          request.project_id !== projectId ||
+          request.event_id !== eventId ||
+          request.plan.project_id !== projectId ||
+          request.plan.event_id !== eventId
+        ) {
+          throw new InteractionInputError(
+            "The compensation execution request and plan must remain bound to the routed Project event.",
+          );
+        }
+        const view =
+          await options.projectHistoryCompensationExecution.executeProjectHistoryCompensationPlan(
+            request,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_HISTORY_EVENT_NOT_FOUND",
+            "The requested event is not available in this Project History.",
+          );
+        }
+        contracts.assertValid(
+          "project-history-compensation-execution-view",
+          "1.0.0",
+          view,
+        );
+        if (
+          view.project_id !== projectId ||
+          view.event_id !== eventId ||
+          view.content.plan_ref.content_hash !== request.plan.content_hash
+        ) {
+          throw new Error(
+            "The Project History compensation execution returned a different Project, event, or plan identity.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        const invalid = error instanceof InteractionInputError;
+        const unavailable =
+          error instanceof
+            ProjectHistoryCompensationExecutionUnavailableError ||
+          error instanceof ProjectHistoryCompensationPlanUnavailableError ||
+          error instanceof ProjectHistoryRecoveryPreviewUnavailableError;
+        return jsonError(
+          context,
+          invalid ? 422 : unavailable ? 409 : 503,
+          invalid
+            ? "PROJECT_HISTORY_COMPENSATION_EXECUTION_REQUEST_INVALID"
+            : unavailable
+              ? "PROJECT_HISTORY_COMPENSATION_EXECUTION_UNAVAILABLE"
+              : "PROJECT_HISTORY_COMPENSATION_EXECUTION_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project History compensation execution is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }
@@ -826,6 +1196,476 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
   );
 
   app.get(
+    "/api/queries/projects/:projectId/history/events",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const allowed = new Set([
+          "limit",
+          "cursor",
+          "family",
+          "command_name",
+          "event_type",
+          "actor_id",
+          "outcome",
+          "effect",
+          "target_semantic_key",
+          "target_object_id",
+          "recorded_from",
+          "recorded_through",
+        ]);
+        const unknown = [...parameters.keys()].filter(
+          (key) => !allowed.has(key),
+        );
+        if (unknown.length > 0) {
+          throw new InteractionInputError(
+            "Retained Project History contains unregistered query parameters.",
+            [...new Set(unknown)],
+          );
+        }
+        for (const key of allowed) {
+          if (parameters.getAll(key).length > 1) {
+            throw new InteractionInputError(
+              `Retained Project History parameter ${key} must appear once.`,
+            );
+          }
+        }
+        const limitValue = parameters.get("limit");
+        const limit = limitValue === null ? undefined : Number(limitValue);
+        if (
+          limit !== undefined &&
+          (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History limit must be an integer from 1 through 100.",
+          );
+        }
+        const cursorValue = parameters.get("cursor");
+        const cursor = cursorValue === null ? undefined : cursorValue;
+        if (
+          cursor !== undefined &&
+          (cursor.length > 1024 || !HISTORY_CURSOR_PATTERN.test(cursor))
+        ) {
+          throw new ProjectHistoryRetainedContinuationError(
+            "CURSOR_INVALID",
+            "Retained Project History cursor is invalid.",
+          );
+        }
+        const family = parameters.get("family") ?? undefined;
+        const commandName = parameters.get("command_name") ?? undefined;
+        const eventType = parameters.get("event_type") ?? undefined;
+        const actorId = parameters.get("actor_id") ?? undefined;
+        const outcome = parameters.get("outcome") ?? undefined;
+        const effect = parameters.get("effect") ?? undefined;
+        const targetSemanticKey =
+          parameters.get("target_semantic_key") ?? undefined;
+        const targetObjectId = parameters.get("target_object_id") ?? undefined;
+        const recordedFrom = parameters.get("recorded_from") ?? undefined;
+        const recordedThrough = parameters.get("recorded_through") ?? undefined;
+        if (family !== undefined && !HISTORY_FAMILIES.has(family)) {
+          throw new InteractionInputError(
+            "Retained Project History family filter is invalid.",
+          );
+        }
+        if (
+          commandName !== undefined &&
+          !HISTORY_COMMAND_NAMES.has(commandName)
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History command filter is invalid.",
+          );
+        }
+        if (eventType !== undefined && !HISTORY_EVENT_TYPES.has(eventType)) {
+          throw new InteractionInputError(
+            "Retained Project History event filter is invalid.",
+          );
+        }
+        if (actorId !== undefined && !HISTORY_ACTOR_ID_PATTERN.test(actorId)) {
+          throw new InteractionInputError(
+            "Retained Project History Actor filter is invalid.",
+          );
+        }
+        if (outcome !== undefined && !HISTORY_OUTCOMES.has(outcome)) {
+          throw new InteractionInputError(
+            "Retained Project History outcome filter is invalid.",
+          );
+        }
+        if (effect !== undefined && !HISTORY_EFFECTS.has(effect)) {
+          throw new InteractionInputError(
+            "Retained Project History authority-effect filter is invalid.",
+          );
+        }
+        if (
+          (targetSemanticKey === undefined) !==
+          (targetObjectId === undefined)
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History target filtering requires both semantic key and object identity.",
+          );
+        }
+        if (
+          targetSemanticKey !== undefined &&
+          !HISTORY_TARGET_SEMANTIC_KEYS.has(targetSemanticKey)
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History target semantic key is invalid.",
+          );
+        }
+        if (
+          targetObjectId !== undefined &&
+          !PETRA_ID_PATTERN.test(targetObjectId)
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History target object identity is invalid.",
+          );
+        }
+        const validHistoryTimestamp = (value: string | undefined): boolean =>
+          value === undefined ||
+          (HISTORY_TIMESTAMP_PATTERN.test(value) &&
+            Number.isFinite(Date.parse(value)));
+        if (
+          !validHistoryTimestamp(recordedFrom) ||
+          !validHistoryTimestamp(recordedThrough) ||
+          (recordedFrom !== undefined &&
+            recordedThrough !== undefined &&
+            Date.parse(recordedFrom) > Date.parse(recordedThrough))
+        ) {
+          throw new InteractionInputError(
+            "Retained Project History recorded-time bounds are invalid.",
+          );
+        }
+        const filters: ProjectHistoryRetainedCollectionFiltersV12 = {
+          ...(family === undefined
+            ? {}
+            : {
+                family: family as NonNullable<
+                  ProjectHistoryRetainedCollectionFiltersV12["family"]
+                >,
+              }),
+          ...(commandName === undefined
+            ? {}
+            : {
+                command_name: commandName as NonNullable<
+                  ProjectHistoryRetainedCollectionFiltersV12["command_name"]
+                >,
+              }),
+          ...(eventType === undefined
+            ? {}
+            : {
+                event_type: eventType as NonNullable<
+                  ProjectHistoryRetainedCollectionFiltersV12["event_type"]
+                >,
+              }),
+          ...(actorId === undefined ? {} : { actor_id: actorId }),
+          ...(outcome === undefined
+            ? {}
+            : {
+                outcome: outcome as NonNullable<
+                  ProjectHistoryRetainedCollectionFiltersV12["outcome"]
+                >,
+              }),
+          ...(effect === undefined
+            ? {}
+            : {
+                effect: effect as NonNullable<
+                  ProjectHistoryRetainedCollectionFiltersV12["effect"]
+                >,
+              }),
+          ...(targetSemanticKey === undefined || targetObjectId === undefined
+            ? {}
+            : {
+                target: {
+                  semantic_key: targetSemanticKey as NonNullable<
+                    ProjectHistoryRetainedCollectionFiltersV12["target"]
+                  >["semantic_key"],
+                  object_id: targetObjectId,
+                },
+              }),
+          ...(recordedFrom === undefined && recordedThrough === undefined
+            ? {}
+            : {
+                recorded_at: {
+                  ...(recordedFrom === undefined
+                    ? {}
+                    : { from_inclusive: recordedFrom }),
+                  ...(recordedThrough === undefined
+                    ? {}
+                    : { through_inclusive: recordedThrough }),
+                },
+              }),
+        };
+        const projectId = context.req.param("projectId");
+        const view =
+          await options.projectHistoryViews.listRetainedProjectHistoryView(
+            projectId,
+            {
+              ...(limit === undefined ? {} : { limit }),
+              ...(cursor === undefined ? {} : { cursor }),
+              filters,
+            },
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_NOT_FOUND",
+            "The requested Project does not exist in the local authority store.",
+          );
+        }
+        contracts.assertValid("project-history-retained-view", "1.2.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.content.view_kind !== "retained_events" ||
+          view.content.query.limit !== (limit ?? 50) ||
+          view.content.query.cursor !== cursor ||
+          JSON.stringify(view.content.query.filters) !== JSON.stringify(filters)
+        ) {
+          throw new Error(
+            "The retained Project History reader returned a different Project or query.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        if (error instanceof ProjectHistoryRetainedContinuationError) {
+          return retainedHistoryContinuationFailure(context, error);
+        }
+        const invalid =
+          error instanceof InteractionInputError ||
+          error instanceof ProjectHistoryViewRequestError;
+        return jsonError(
+          context,
+          invalid ? 422 : 503,
+          invalid
+            ? "PROJECT_HISTORY_RETAINED_QUERY_INVALID"
+            : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The retained Project History is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/history/events/:eventId/impact",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const eventId = context.req.param("eventId");
+        if (
+          [...parameters.keys()].length > 0 ||
+          !EVENT_ID_PATTERN.test(eventId)
+        ) {
+          throw new InteractionInputError(
+            "A History dependency-impact read requires one canonical event identity and accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const view =
+          await options.projectHistoryViews.getProjectHistoryImpactView(
+            projectId,
+            eventId,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_HISTORY_EVENT_NOT_FOUND",
+            "The requested event is not available in this Project History.",
+          );
+        }
+        contracts.assertValid("project-history-impact-view", "1.4.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.event_id !== eventId ||
+          view.content.selected_event.event_ref.event_id !== eventId
+        ) {
+          throw new Error(
+            "The Project History impact reader returned a different Project or event.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_HISTORY_IMPACT_TARGET_INVALID"
+            : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project History dependency impact is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/history/events/:eventId/recovery",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const eventId = context.req.param("eventId");
+        if (
+          [...parameters.keys()].length > 0 ||
+          !EVENT_ID_PATTERN.test(eventId)
+        ) {
+          throw new InteractionInputError(
+            "A History recovery assessment requires one canonical event identity and accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const view =
+          await options.projectHistoryViews.getProjectHistoryRecoveryAssessmentView(
+            projectId,
+            eventId,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_HISTORY_EVENT_NOT_FOUND",
+            "The requested event is not available in this Project History.",
+          );
+        }
+        contracts.assertValid(
+          "project-history-recovery-assessment-view",
+          "1.0.0",
+          view,
+        );
+        if (
+          view.project_id !== projectId ||
+          view.event_id !== eventId ||
+          view.content.selected_event.event_ref.event_id !== eventId ||
+          view.content.causal_impact_basis.source_event_id !== eventId
+        ) {
+          throw new Error(
+            "The Project History recovery reader returned a different Project or event.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        const invalid =
+          error instanceof InteractionInputError ||
+          error instanceof ProjectHistoryViewRequestError;
+        return jsonError(
+          context,
+          invalid ? 422 : 503,
+          invalid
+            ? "PROJECT_HISTORY_RECOVERY_TARGET_INVALID"
+            : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project History recovery assessment is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/history/events/:eventId/recovery/preview",
+    async (context) => {
+      if (options.projectHistoryViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_HISTORY_UNAVAILABLE",
+          "The authorized Project History read boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        const eventId = context.req.param("eventId");
+        if (
+          [...parameters.keys()].length > 0 ||
+          !EVENT_ID_PATTERN.test(eventId)
+        ) {
+          throw new InteractionInputError(
+            "A History compensation preview requires one canonical event identity and accepts no query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const view =
+          await options.projectHistoryViews.getProjectHistoryCompensationPreviewView(
+            projectId,
+            eventId,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_HISTORY_EVENT_NOT_FOUND",
+            "The requested event is not available in this Project History.",
+          );
+        }
+        contracts.assertValid(
+          "project-history-compensation-preview-view",
+          "1.0.0",
+          view,
+        );
+        if (
+          view.project_id !== projectId ||
+          view.event_id !== eventId ||
+          view.content.assessment_ref.event_id !== eventId ||
+          view.content.impact_basis.source_event_id !== eventId
+        ) {
+          throw new Error(
+            "The Project History compensation preview returned a different Project or event.",
+          );
+        }
+        return context.json(view);
+      } catch (error) {
+        const invalid = error instanceof InteractionInputError;
+        const unavailable =
+          error instanceof ProjectHistoryRecoveryPreviewUnavailableError;
+        return jsonError(
+          context,
+          invalid ? 422 : unavailable ? 409 : 503,
+          invalid
+            ? "PROJECT_HISTORY_COMPENSATION_PREVIEW_TARGET_INVALID"
+            : unavailable
+              ? "PROJECT_HISTORY_RECOVERY_PREVIEW_UNAVAILABLE"
+              : "PROJECT_HISTORY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project History compensation preview is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
     "/api/queries/projects/:projectId/history/events/:eventId",
     async (context) => {
       if (options.projectHistoryViews === undefined) {
@@ -861,7 +1701,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The requested event is not available in this Project History.",
           );
         }
-        contracts.assertValid("project-history-episode-view", "1.0.0", view);
+        contracts.assertValid("project-history-episode-view", "1.2.0", view);
         return context.json(view);
       } catch (error) {
         return jsonError(

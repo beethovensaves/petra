@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import type {
+  PetraProjectInquiryView,
+  PetraSuggestedActionView,
+} from "@petra/contracts";
 import {
   Link,
   NavLink,
@@ -16,6 +20,7 @@ import {
   getProjectProfileTool,
   getReferenceReview,
 } from "./fixtures.js";
+import type { ProjectBriefData } from "./project-data.js";
 import type {
   EngineState,
   ProjectPlace,
@@ -384,7 +389,363 @@ const SurfaceHeading = ({
   </header>
 );
 
-export const BriefSurface = ({ project }: { project: ProjectRecord }) => {
+const plainLabel = (value: string): string => value.replaceAll("_", " ");
+
+const presentationLabel = (value: string): string =>
+  plainLabel(value).replace(/^./u, (character) =>
+    character.toLocaleUpperCase(),
+  );
+
+const SuggestedActionStateLabel = ({
+  action,
+}: {
+  action: PetraSuggestedActionView;
+}): React.JSX.Element => {
+  const readiness = action.content.readiness;
+  return (
+    <span className="reference-status" data-state={readiness.state}>
+      <span aria-hidden="true" className="reference-status__symbol">
+        {readiness.state === "ready" ? "✓" : "!"}
+      </span>
+      {readiness.state === "ready" ? "Ready" : "Stale"}
+    </span>
+  );
+};
+
+export const SuggestedActionPreview = ({
+  actionView,
+  invokedInquiry,
+}: {
+  actionView: PetraSuggestedActionView;
+  invokedInquiry?: PetraProjectInquiryView;
+}): React.JSX.Element => {
+  const {
+    action_ref: actionRef,
+    action,
+    readiness,
+    authority,
+  } = actionView.content;
+  const { basis, expected_result: expectedResult, invocation } = action;
+  const invokedDetail =
+    invokedInquiry?.content.view_kind === "detail"
+      ? invokedInquiry.content
+      : undefined;
+  const invokedResult = invokedDetail?.result_links.find(
+    ({ link_ref: linkRef }) =>
+      linkRef.project_inquiry_link_id ===
+      basis.inquiry_result_link_ref.project_inquiry_link_id,
+  );
+  const invocationQuery = new URLSearchParams({
+    inquiry_result_link_id:
+      basis.inquiry_result_link_ref.project_inquiry_link_id,
+    invoke: invocation.operation,
+  });
+  const invocationHref = `?${invocationQuery}#suggested-action-result`;
+  const noWorkConsequence = `Duration ${plainLabel(action.resources.duration)} · cost ${plainLabel(action.resources.cost)} · interrupt ${plainLabel(action.interrupt.expectation)} · cancellation ${plainLabel(action.cancellation.consequence)}`;
+
+  return (
+    <section
+      className="reference-section reference-suggested-action"
+      aria-labelledby="suggested-action-title"
+    >
+      <div className="reference-section__heading">
+        <div>
+          <p className="reference-panel-kicker">Next steps</p>
+          <h2 id="suggested-action-title">Suggested action</h2>
+        </div>
+        <SuggestedActionStateLabel action={actionView} />
+      </div>
+
+      <article className="reference-suggested-action__preview">
+        <header>
+          <p className="reference-contract-label">Read-only preview</p>
+          <h3>{action.title}</h3>
+          <p>{action.reason}</p>
+        </header>
+
+        <dl className="reference-suggested-action__summary">
+          <div>
+            <dt>Objective</dt>
+            <dd>{action.objective.statement}</dd>
+          </div>
+          <div>
+            <dt>Current readiness</dt>
+            <dd>
+              <strong>{presentationLabel(readiness.reason_code)}</strong>
+              <span>{readiness.reason}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Exact scope</dt>
+            <dd>{action.scope.included}</dd>
+          </div>
+          <div>
+            <dt>Result and authority</dt>
+            <dd>
+              Existing {plainLabel(expectedResult.result_kind)} · authority
+              effect {expectedResult.authority_effect} · reusable{" "}
+              {expectedResult.reusable ? "yes" : "no"}
+            </dd>
+          </div>
+        </dl>
+
+        {readiness.missing_prerequisites.length === 0 ? null : (
+          <div className="reference-suggested-action__prerequisites">
+            <strong>Required before this action can be used</strong>
+            <ul>
+              {readiness.missing_prerequisites.map((prerequisite) => (
+                <li key={prerequisite}>{prerequisite}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="reference-suggested-action__boundary">
+          <strong>No new Work or Project authority change</strong>
+          <p>
+            {presentationLabel(actionView.content.operation.state)}
+            {" · Work "}
+            {plainLabel(actionView.content.operation.work_start)}
+            {" · authority change "}
+            {actionView.content.operation.authority_change}. {noWorkConsequence}
+            .
+          </p>
+          <p>
+            Capability <code>{action.capability.capability_key}</code> is{" "}
+            {plainLabel(action.capability.grant_status)}; approval is{" "}
+            {plainLabel(action.capability.approval)}.
+          </p>
+        </div>
+
+        <details className="reference-suggested-action__scope">
+          <summary>Scope, omissions, and limitations</summary>
+          <strong>Excluded</strong>
+          <ul>
+            {action.scope.excluded.map((exclusion) => (
+              <li key={exclusion}>{exclusion}</li>
+            ))}
+          </ul>
+          {action.missing_information.length === 0 ? null : (
+            <>
+              <strong>Missing information</strong>
+              <ul>
+                {action.missing_information.map((missing) => (
+                  <li key={missing}>{missing}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          <strong>Contract limitations</strong>
+          <ul>
+            {actionView.content.limitations.map((limitation) => (
+              <li key={limitation}>{limitation}</li>
+            ))}
+          </ul>
+        </details>
+
+        <details className="reference-suggested-action__identity">
+          <summary>Exact action and authority basis</summary>
+          <dl>
+            <div>
+              <dt>SuggestedAction</dt>
+              <dd>
+                <code>{actionRef.suggested_action_id}</code> · revision{" "}
+                {actionRef.revision}
+                <span>Content hash {actionRef.content_hash}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>ProjectDefinition</dt>
+              <dd>
+                <code>
+                  {basis.project_definition_ref.project_definition_id}
+                </code>{" "}
+                · revision {basis.project_definition_ref.revision} ·{" "}
+                {basis.project_definition_ref.definition_family}
+                <span>
+                  Content hash {basis.project_definition_ref.content_hash}
+                </span>
+                <span>
+                  Record hash {basis.project_definition_ref.record_hash}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt>Objective</dt>
+              <dd>
+                <code>{action.objective.objective_ref.objective_id}</code> ·
+                revision {action.objective.objective_ref.revision} ·{" "}
+                {action.objective.semantic_key}
+                <span>
+                  Content hash {action.objective.objective_ref.content_hash}
+                </span>
+                <span>
+                  Record hash {action.objective.objective_ref.record_hash}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt>Inquiry-result link</dt>
+              <dd>
+                <code>
+                  {basis.inquiry_result_link_ref.project_inquiry_link_id}
+                </code>
+                <span>
+                  Content hash {basis.inquiry_result_link_ref.content_hash}
+                </span>
+                <span>
+                  Record hash {basis.inquiry_result_link_ref.record_hash}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt>GroundedResponse</dt>
+              <dd>
+                <code>{basis.result_ref.record_id}</code> · revision{" "}
+                {basis.result_ref.revision} · {basis.result_ref.schema_name}@
+                {basis.result_ref.schema_version}
+                <span>Content hash {basis.result_ref.content_hash}</span>
+                <span>Record hash {basis.result_ref.record_hash}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Snapshot</dt>
+              <dd>
+                <code>{basis.snapshot_ref.snapshot_id}</code> · revision{" "}
+                {basis.snapshot_ref.snapshot_revision} · authority event{" "}
+                {basis.snapshot_ref.event_position}
+                <span>Content hash {basis.snapshot_ref.content_hash}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Declared Work basis</dt>
+              <dd>
+                {basis.produced_by_work_ref === undefined ? (
+                  plainLabel(action.background_work.state)
+                ) : (
+                  <>
+                    <code>{basis.produced_by_work_ref.work_unit_id}</code> ·
+                    revision {basis.produced_by_work_ref.revision}
+                    <span>
+                      Spec hash {basis.produced_by_work_ref.spec_hash}
+                    </span>
+                    <span>
+                      Record hash {basis.produced_by_work_ref.record_hash}
+                    </span>
+                    {action.background_work.state === "completed" ? (
+                      <span>
+                        Server state: completed ·{" "}
+                        {plainLabel(action.background_work.terminal_outcome)}
+                      </span>
+                    ) : null}
+                  </>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>Read authority</dt>
+              <dd>
+                {presentationLabel(authority.isolation)} · event{" "}
+                {authority.event_position} · stream revision{" "}
+                {authority.stream_revision}
+                <span>
+                  View hash {actionView.content_hash} · read{" "}
+                  {actionView.read_at}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt>Typed invocation</dt>
+              <dd>
+                <code>
+                  {invocation.contract_name}@{invocation.contract_version}
+                </code>{" "}
+                · {invocation.operation} · {invocation.place_role} ·{" "}
+                {invocation.task_intent} · {invocation.idempotency}
+              </dd>
+            </div>
+          </dl>
+        </details>
+
+        <div className="reference-suggested-action__actions">
+          {readiness.state === "ready" ? (
+            <Link
+              className="reference-primary-link"
+              to={invocationHref}
+              data-contract-name={invocation.contract_name}
+              data-contract-version={invocation.contract_version}
+              data-operation={invocation.operation}
+            >
+              Inspect existing inquiry result
+            </Link>
+          ) : (
+            <PetraButton
+              variant="primary"
+              unavailable={{
+                reason: readiness.reason,
+                prerequisite: readiness.missing_prerequisites.join(" "),
+              }}
+            >
+              Inspect existing inquiry result
+            </PetraButton>
+          )}
+          <span>
+            This invokes an authenticated exact read. It does not start Work.
+          </span>
+        </div>
+
+        {invokedDetail === undefined || invokedResult === undefined ? null : (
+          <article
+            className="reference-suggested-action__result"
+            id="suggested-action-result"
+            tabIndex={-1}
+            aria-labelledby="suggested-action-result-title"
+          >
+            <p className="reference-panel-kicker">Exact inquiry detail</p>
+            <h3 id="suggested-action-result-title">
+              {invokedDetail.summary.current_framing}
+            </h3>
+            <p>
+              Authored status {invokedDetail.summary.authored_status}. Work and
+              result state do not change that authored status.
+            </p>
+            <dl>
+              <div>
+                <dt>Linked result</dt>
+                <dd>
+                  <code>{invokedResult.result_ref.record_id}</code> · revision{" "}
+                  {invokedResult.result_ref.revision}
+                </dd>
+              </div>
+              <div>
+                <dt>Authority statement</dt>
+                <dd>{invokedResult.authority_statement}</dd>
+              </div>
+              <div>
+                <dt>Current understanding</dt>
+                <dd>{invokedDetail.current_understanding.reason}</dd>
+              </div>
+              <div>
+                <dt>Admissible basis</dt>
+                <dd>{invokedDetail.basis.reason}</dd>
+              </div>
+            </dl>
+          </article>
+        )}
+      </article>
+    </section>
+  );
+};
+
+export const BriefSurface = ({
+  project,
+  suggestedAction,
+  invokedInquiry,
+}: {
+  project: ProjectRecord;
+  suggestedAction?: PetraSuggestedActionView;
+  invokedInquiry?: PetraProjectInquiryView;
+}) => {
   const profileTool = getProjectProfileTool(project.id);
 
   return (
@@ -531,6 +892,13 @@ export const BriefSurface = ({ project }: { project: ProjectRecord }) => {
         )}
       </section>
 
+      {suggestedAction === undefined ? null : (
+        <SuggestedActionPreview
+          actionView={suggestedAction}
+          {...(invokedInquiry === undefined ? {} : { invokedInquiry })}
+        />
+      )}
+
       <section className="reference-section" aria-labelledby="decisions-title">
         <div className="reference-section__heading">
           <div>
@@ -548,9 +916,10 @@ export const BriefSurface = ({ project }: { project: ProjectRecord }) => {
   );
 };
 
-export const BriefRoute = (): React.JSX.Element => (
-  <BriefSurface project={useProjectRecord()} />
-);
+export const BriefRoute = (): React.JSX.Element => {
+  const data = useLoaderData<ProjectBriefData>();
+  return <BriefSurface project={useProjectRecord()} {...data} />;
+};
 
 const sourceSearchText = (source: SourceRecord): string =>
   `${source.title} ${source.kind} ${source.role} ${source.creator}`.toLocaleLowerCase();

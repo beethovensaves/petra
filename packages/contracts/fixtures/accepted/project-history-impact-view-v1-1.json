@@ -1,0 +1,358 @@
+{
+  "schema_name": "petra.project-history-impact-view",
+  "schema_version": "1.1.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "content": {
+    "view_kind": "dependency_impact",
+    "selected_event": {
+      "command_ref": {
+        "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBN",
+        "schema_version": "1.0.0",
+        "command_name": "ApplyChangeSet",
+        "idempotency_key": "review:claim-fbb:apply:v1",
+        "command_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+        "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK"
+      },
+      "event_ref": {
+        "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+        "schema_version": "1.0.0",
+        "event_type": "change_set.applied",
+        "event_position": 3,
+        "stream_revision": 3,
+        "record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "occurred_at": "2026-08-28T18:13:01.000Z",
+      "recorded_at": "2026-08-28T18:13:01.000Z",
+      "family": "change_control",
+      "targets": [
+        {
+          "role": "primary",
+          "semantic_key": "petra.change-set",
+          "object_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+          "revision": 1,
+          "content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+          "authority_state": "applied"
+        },
+        {
+          "role": "affected",
+          "semantic_key": "scientific.claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 2
+        },
+        {
+          "role": "affected",
+          "semantic_key": "scientific.assertion",
+          "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "revision": 2
+        }
+      ],
+      "observed_effect": {
+        "effect": "authority_change_applied",
+        "outcome": "completed",
+        "summary": "Applied the approved ChangeSet to the exact Claim and Assertion revisions."
+      },
+      "semantic_destination": {
+        "place_role": "history",
+        "task_intent": "view_history",
+        "object_ref": {
+          "semantic_key": "petra.change-set",
+          "object_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+          "revision": 1
+        }
+      }
+    },
+    "authorization_scope": "authenticated_project",
+    "impact": {
+      "scope": "registered_direct_event_and_command_dependents",
+      "summary": {
+        "registered_group_count": 4,
+        "total_count": 0,
+        "coverage": "complete"
+      },
+      "causal_commands": {
+        "relation": "caused_by_selected_command",
+        "authority_source": "immutable_command_causation",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "outbox_records": {
+        "relation": "carries_selected_event",
+        "authority_source": "immutable_event_outbox_binding",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "graph_projection_records": {
+        "relation": "projects_selected_event",
+        "authority_source": "immutable_projection_event_binding",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "grounded_response_invalidations": {
+        "relation": "invalidated_by_selected_event",
+        "authority_source": "immutable_response_invalidation_binding",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "unknowns": [
+        "unregistered_profile_specific_dependencies_may_exist",
+        "transitive_dependents_may_exist",
+        "external_system_dependents_are_not_observable"
+      ]
+    },
+    "semantic_target_impact": {
+      "scope": "registered_exact_semantic_target_dependents",
+      "target_limit": 10,
+      "per_adapter_ref_limit": 25,
+      "target_total_count": 3,
+      "target_returned_count": 3,
+      "target_coverage": "complete",
+      "registry": [
+        {
+          "adapter_kind": "change_control",
+          "authority_source": "immutable_change_control_target_bindings",
+          "semantic_keys": [
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion"
+          ]
+        },
+        {
+          "adapter_kind": "review_membership",
+          "authority_source": "immutable_review_candidate_bindings",
+          "semantic_keys": ["scientific.claim", "scientific.assertion"]
+        },
+        {
+          "adapter_kind": "grounded_response_dependency",
+          "authority_source": "immutable_grounded_response_dependencies",
+          "semantic_keys": ["scientific.claim", "scientific.assertion"]
+        },
+        {
+          "adapter_kind": "composition_lineage",
+          "authority_source": "immutable_composition_target_bindings",
+          "semantic_keys": ["scientific.claim", "scientific.assertion"]
+        }
+      ],
+      "target_assessments": [
+        {
+          "target_index": 0,
+          "target_ref": {
+            "role": "primary",
+            "semantic_key": "petra.change-set",
+            "object_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+            "revision": 1,
+            "content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+            "authority_state": "applied"
+          },
+          "adapter_state": "registered",
+          "resolved_target_ref": {
+            "semantic_key": "petra.change-set",
+            "object_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+            "revision": 1,
+            "schema_name": "petra.change-set",
+            "schema_version": "1.0.0",
+            "content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+            "record_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "groups": [
+            {
+              "adapter_kind": "change_control",
+              "authority_source": "immutable_change_control_target_bindings",
+              "relation_scope": "exact_target_revision",
+              "total_count": 1,
+              "returned_count": 1,
+              "coverage": "complete",
+              "refs": [
+                {
+                  "semantic_key": "petra.approval",
+                  "object_id": "approval_01ARZ3NDEKTSV4RRFFQ69G5FBG",
+                  "revision": 1,
+                  "schema_name": "petra.approval",
+                  "schema_version": "1.0.0",
+                  "record_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                  "posture": "immutable_revision",
+                  "relation": "approves_exact_change_set",
+                  "relation_identity": "approval:approval_01ARZ3NDEKTSV4RRFFQ69G5FBG"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "target_index": 1,
+          "target_ref": {
+            "role": "affected",
+            "semantic_key": "scientific.claim",
+            "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "revision": 2
+          },
+          "adapter_state": "registered",
+          "resolved_target_ref": {
+            "semantic_key": "scientific.claim",
+            "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "revision": 2,
+            "schema_name": "petra.claim",
+            "schema_version": "1.0.0",
+            "record_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          },
+          "groups": [
+            {
+              "adapter_kind": "change_control",
+              "authority_source": "immutable_change_control_target_bindings",
+              "relation_scope": "exact_target_revision",
+              "total_count": 0,
+              "returned_count": 0,
+              "coverage": "complete",
+              "refs": []
+            },
+            {
+              "adapter_kind": "review_membership",
+              "authority_source": "immutable_review_candidate_bindings",
+              "relation_scope": "exact_target_revision",
+              "total_count": 0,
+              "returned_count": 0,
+              "coverage": "complete",
+              "refs": []
+            },
+            {
+              "adapter_kind": "grounded_response_dependency",
+              "authority_source": "immutable_grounded_response_dependencies",
+              "relation_scope": "exact_target_revision",
+              "total_count": 1,
+              "returned_count": 1,
+              "coverage": "complete",
+              "refs": [
+                {
+                  "semantic_key": "petra.grounded-response",
+                  "object_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+                  "revision": 1,
+                  "schema_name": "petra.grounded-response",
+                  "schema_version": "1.0.0",
+                  "content_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                  "record_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+                  "posture": "current",
+                  "relation": "depends_on_exact_grounded_evidence",
+                  "relation_identity": "dependency:1"
+                }
+              ]
+            },
+            {
+              "adapter_kind": "composition_lineage",
+              "authority_source": "immutable_composition_target_bindings",
+              "relation_scope": "exact_target_revision",
+              "total_count": 0,
+              "returned_count": 0,
+              "coverage": "complete",
+              "refs": []
+            }
+          ]
+        },
+        {
+          "target_index": 2,
+          "target_ref": {
+            "role": "affected",
+            "semantic_key": "scientific.assertion",
+            "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+            "revision": 2
+          },
+          "adapter_state": "registered",
+          "resolved_target_ref": {
+            "semantic_key": "scientific.assertion",
+            "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+            "revision": 2,
+            "schema_name": "petra.assertion",
+            "schema_version": "1.0.0",
+            "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "groups": [
+            {
+              "adapter_kind": "change_control",
+              "authority_source": "immutable_change_control_target_bindings",
+              "relation_scope": "exact_target_revision",
+              "total_count": 0,
+              "returned_count": 0,
+              "coverage": "complete",
+              "refs": []
+            },
+            {
+              "adapter_kind": "review_membership",
+              "authority_source": "immutable_review_candidate_bindings",
+              "relation_scope": "exact_target_revision",
+              "total_count": 0,
+              "returned_count": 0,
+              "coverage": "complete",
+              "refs": []
+            },
+            {
+              "adapter_kind": "grounded_response_dependency",
+              "authority_source": "immutable_grounded_response_dependencies",
+              "relation_scope": "exact_target_revision",
+              "total_count": 0,
+              "returned_count": 0,
+              "coverage": "complete",
+              "refs": []
+            },
+            {
+              "adapter_kind": "composition_lineage",
+              "authority_source": "immutable_composition_target_bindings",
+              "relation_scope": "exact_target_revision",
+              "total_count": 0,
+              "returned_count": 0,
+              "coverage": "complete",
+              "refs": []
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "registered_adapter_count": 4,
+        "assessed_target_count": 3,
+        "supported_target_count": 3,
+        "total_count": 2,
+        "coverage": "complete"
+      },
+      "unknowns": [
+        "unregistered_semantic_keys_may_have_dependents",
+        "identity_only_semantic_relations_are_excluded",
+        "transitive_semantic_dependents_may_exist",
+        "external_system_dependents_are_not_observable"
+      ]
+    },
+    "decision_boundary": {
+      "reversibility": "not_assessed",
+      "compensation": "not_composed",
+      "dependent_effect": "not_inferred_from_reference"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "through_event_position": 3,
+      "through_stream_revision": 3
+    },
+    "omissions": [
+      "unregistered_semantic_target_adapters_not_composed",
+      "identity_only_semantic_relations_not_composed",
+      "transitive_dependency_closure_not_composed",
+      "reversibility_not_assessed",
+      "compensation_not_composed",
+      "historical_project_definition_not_interpreted",
+      "cross_family_total_order_not_asserted"
+    ],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "read_at": "2026-09-10T18:00:00.000Z"
+}

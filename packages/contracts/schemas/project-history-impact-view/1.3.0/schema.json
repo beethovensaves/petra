@@ -1,0 +1,610 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-impact-view/1.3.0/schema.json",
+  "title": "PetraProjectHistoryImpactViewV13",
+  "description": "An authorized, event-selected dependency inventory that preserves the 1.2 semantic-target result and adds bounded exact WorkUnit, worker-output, and interaction-delivery dependency adapters. Operational references are derived from retained record bindings under one repeatable-read snapshot; they do not infer effects, decide reversibility, compose compensation, or assert a cross-family order.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "event_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-history-impact-view" },
+    "schema_version": { "const": "1.3.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "content": { "$ref": "#/$defs/ImpactContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ResolvedTargetRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_key",
+        "object_id",
+        "revision",
+        "record_hash",
+        "authority_source"
+      ],
+      "properties": {
+        "semantic_key": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/SemanticKey"
+        },
+        "object_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "authority_source": {
+          "enum": [
+            "selected_event_target",
+            "resolved_immutable_semantic_authority"
+          ]
+        }
+      }
+    },
+    "WorkUnitRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_unit_id", "revision", "spec_hash", "record_hash"],
+      "properties": {
+        "work_unit_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "spec_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "InputBindingRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "worker_input_manifest_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "binding_position",
+        "binding_name",
+        "record_id",
+        "record_revision",
+        "snapshot_hash"
+      ],
+      "properties": {
+        "worker_input_manifest_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkerInputManifestId"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "binding_position": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "binding_name": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/SlotName"
+        },
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "record_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "snapshot_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "InteractionRunRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interaction_run_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "interaction_run_id": {
+          "$ref": "../../interaction-run/1.0.0/schema.json#/$defs/InteractionRunId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "OperationalDependentRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_key",
+        "object_id",
+        "revision",
+        "schema_name",
+        "schema_version",
+        "record_hash",
+        "posture",
+        "relation",
+        "relation_identity",
+        "work_unit_ref",
+        "input_binding_ref"
+      ],
+      "properties": {
+        "semantic_key": {
+          "enum": [
+            "petra.work-unit",
+            "petra.worker-output-manifest",
+            "petra.interaction-replay-record"
+          ]
+        },
+        "object_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "schema_name": {
+          "enum": [
+            "petra.work-unit",
+            "petra.worker-output-manifest",
+            "petra.interaction-replay-record"
+          ]
+        },
+        "schema_version": { "const": "1.0.0" },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "posture": { "enum": ["current", "immutable_revision"] },
+        "relation": {
+          "enum": [
+            "uses_exact_history_target_as_work_input",
+            "reports_output_for_work_using_exact_history_target",
+            "delivers_interaction_for_work_using_exact_history_target"
+          ]
+        },
+        "relation_identity": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "work_unit_ref": { "$ref": "#/$defs/WorkUnitRef" },
+        "input_binding_ref": { "$ref": "#/$defs/InputBindingRef" },
+        "interaction_run_ref": { "$ref": "#/$defs/InteractionRunRef" }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "semantic_key": { "const": "petra.work-unit" },
+            "schema_name": { "const": "petra.work-unit" },
+            "posture": { "const": "current" },
+            "relation": {
+              "const": "uses_exact_history_target_as_work_input"
+            }
+          }
+        },
+        {
+          "properties": {
+            "semantic_key": { "const": "petra.worker-output-manifest" },
+            "schema_name": { "const": "petra.worker-output-manifest" },
+            "posture": { "const": "immutable_revision" },
+            "relation": {
+              "const": "reports_output_for_work_using_exact_history_target"
+            },
+            "content_hash": {}
+          },
+          "required": ["content_hash"]
+        },
+        {
+          "properties": {
+            "semantic_key": { "const": "petra.interaction-replay-record" },
+            "schema_name": { "const": "petra.interaction-replay-record" },
+            "posture": { "const": "immutable_revision" },
+            "relation": {
+              "const": "delivers_interaction_for_work_using_exact_history_target"
+            },
+            "content_hash": {},
+            "interaction_run_ref": {}
+          },
+          "required": ["content_hash", "interaction_run_ref"]
+        }
+      ]
+    },
+    "OperationalAdapterGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter_kind",
+        "authority_source",
+        "relation_scope",
+        "total_count",
+        "returned_count",
+        "coverage",
+        "refs"
+      ],
+      "properties": {
+        "adapter_kind": {
+          "enum": ["work_input_binding", "work_output", "interaction_delivery"]
+        },
+        "authority_source": {
+          "enum": [
+            "current_work_heads_with_immutable_input_bindings",
+            "immutable_worker_output_manifests_for_bound_work",
+            "immutable_interaction_replay_records_for_bound_work"
+          ]
+        },
+        "relation_scope": { "const": "exact_target_record_binding" },
+        "total_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "returned_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 25
+        },
+        "coverage": { "enum": ["complete", "truncated"] },
+        "refs": {
+          "type": "array",
+          "maxItems": 25,
+          "items": { "$ref": "#/$defs/OperationalDependentRef" }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "adapter_kind": { "const": "work_input_binding" },
+            "authority_source": {
+              "const": "current_work_heads_with_immutable_input_bindings"
+            },
+            "refs": {
+              "type": "array",
+              "items": {
+                "allOf": [
+                  { "$ref": "#/$defs/OperationalDependentRef" },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "semantic_key": { "const": "petra.work-unit" }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "adapter_kind": { "const": "work_output" },
+            "authority_source": {
+              "const": "immutable_worker_output_manifests_for_bound_work"
+            },
+            "refs": {
+              "type": "array",
+              "items": {
+                "allOf": [
+                  { "$ref": "#/$defs/OperationalDependentRef" },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "semantic_key": {
+                        "const": "petra.worker-output-manifest"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "adapter_kind": { "const": "interaction_delivery" },
+            "authority_source": {
+              "const": "immutable_interaction_replay_records_for_bound_work"
+            },
+            "refs": {
+              "type": "array",
+              "items": {
+                "allOf": [
+                  { "$ref": "#/$defs/OperationalDependentRef" },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "semantic_key": {
+                        "const": "petra.interaction-replay-record"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RegisteredOperationalAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_index",
+        "target_ref",
+        "adapter_state",
+        "resolved_target_record",
+        "groups"
+      ],
+      "properties": {
+        "target_index": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "target_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/TargetRef"
+        },
+        "adapter_state": { "const": "registered" },
+        "resolved_target_record": { "$ref": "#/$defs/ResolvedTargetRecord" },
+        "groups": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/OperationalAdapterGroup" }
+        }
+      }
+    },
+    "UnavailableOperationalAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_index",
+        "target_ref",
+        "adapter_state",
+        "reason",
+        "groups"
+      ],
+      "properties": {
+        "target_index": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "target_ref": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/TargetRef"
+        },
+        "adapter_state": {
+          "enum": [
+            "target_identity_incomplete",
+            "target_record_authority_unavailable"
+          ]
+        },
+        "reason": {
+          "enum": [
+            "Operational adapters require an immutable target revision.",
+            "The exact immutable target record authority is unavailable in this Project snapshot."
+          ]
+        },
+        "groups": { "type": "array", "maxItems": 0 }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "adapter_state": { "const": "target_identity_incomplete" },
+            "reason": {
+              "const": "Operational adapters require an immutable target revision."
+            }
+          }
+        },
+        {
+          "properties": {
+            "adapter_state": {
+              "const": "target_record_authority_unavailable"
+            },
+            "reason": {
+              "const": "The exact immutable target record authority is unavailable in this Project snapshot."
+            }
+          }
+        }
+      ]
+    },
+    "OperationalTargetAssessment": {
+      "oneOf": [
+        { "$ref": "#/$defs/RegisteredOperationalAssessment" },
+        { "$ref": "#/$defs/UnavailableOperationalAssessment" }
+      ]
+    },
+    "OperationalDependencyImpact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "target_limit",
+        "per_adapter_ref_limit",
+        "target_total_count",
+        "target_returned_count",
+        "target_coverage",
+        "registry",
+        "target_assessments",
+        "summary",
+        "unknowns"
+      ],
+      "properties": {
+        "scope": { "const": "registered_exact_operational_dependents" },
+        "target_limit": { "const": 10 },
+        "per_adapter_ref_limit": { "const": 25 },
+        "target_total_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "target_returned_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "target_coverage": { "enum": ["complete", "truncated"] },
+        "registry": {
+          "const": [
+            {
+              "adapter_kind": "work_input_binding",
+              "authority_source": "current_work_heads_with_immutable_input_bindings",
+              "dependent_semantic_key": "petra.work-unit"
+            },
+            {
+              "adapter_kind": "work_output",
+              "authority_source": "immutable_worker_output_manifests_for_bound_work",
+              "dependent_semantic_key": "petra.worker-output-manifest"
+            },
+            {
+              "adapter_kind": "interaction_delivery",
+              "authority_source": "immutable_interaction_replay_records_for_bound_work",
+              "dependent_semantic_key": "petra.interaction-replay-record"
+            }
+          ]
+        },
+        "target_assessments": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/OperationalTargetAssessment" }
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "registered_adapter_count",
+            "assessed_target_count",
+            "supported_target_count",
+            "total_count",
+            "coverage"
+          ],
+          "properties": {
+            "registered_adapter_count": { "const": 3 },
+            "assessed_target_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "supported_target_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "total_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 30000000
+            },
+            "coverage": { "enum": ["complete", "truncated"] }
+          }
+        },
+        "unknowns": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "work_without_exact_record_binding_is_excluded",
+              "unresolved_target_record_authority_may_hide_bindings",
+              "worker_output_effect_is_not_inferred",
+              "interaction_delivery_effect_is_not_inferred",
+              "transitive_operational_dependency_closure_is_not_composed",
+              "cross_family_total_order_is_not_asserted"
+            ]
+          }
+        }
+      }
+    },
+    "ImpactContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "selected_event",
+        "authorization_scope",
+        "impact",
+        "semantic_target_impact",
+        "operational_dependency_impact",
+        "decision_boundary",
+        "authority",
+        "omissions",
+        "graph_navigation_history"
+      ],
+      "properties": {
+        "view_kind": { "const": "dependency_impact" },
+        "selected_event": {
+          "$ref": "../1.0.0/schema.json#/$defs/EventAnchor"
+        },
+        "authorization_scope": { "const": "authenticated_project" },
+        "impact": { "$ref": "../1.0.0/schema.json#/$defs/Impact" },
+        "semantic_target_impact": {
+          "$ref": "../1.2.0/schema.json#/$defs/SemanticTargetImpact"
+        },
+        "operational_dependency_impact": {
+          "$ref": "#/$defs/OperationalDependencyImpact"
+        },
+        "decision_boundary": {
+          "$ref": "../1.0.0/schema.json#/$defs/DecisionBoundary"
+        },
+        "authority": {
+          "$ref": "../1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "omissions": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "unregistered_semantic_target_adapters_not_composed",
+              "identity_only_semantic_relations_not_composed",
+              "transitive_dependency_closure_not_composed",
+              "work_without_exact_record_binding_not_composed",
+              "operational_dependent_effect_not_inferred",
+              "reversibility_not_assessed",
+              "compensation_not_composed",
+              "historical_project_definition_not_interpreted",
+              "cross_family_total_order_not_asserted"
+            ]
+          }
+        },
+        "graph_navigation_history": { "const": "client_local_separate" }
+      }
+    }
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-episode-view/1.1.0/schema.json",
+  "title": "PetraProjectHistoryEpisodeViewV110",
+  "description": "An authorized exact Project History episode with a retained ProjectDefinition authority reference effective before the selected event, or an explicit unavailable state. It does not interpret historical destinations or persist a second ledger.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "event_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-history-episode-view" },
+    "schema_version": { "const": "1.1.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "content": { "$ref": "#/$defs/EpisodeContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ProjectDefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "project_definition_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_name": { "const": "petra.project-definition" },
+        "schema_version": { "const": "1.0.0" },
+        "project_definition_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^project_definition_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "AvailableProjectDefinitionAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "authority_source",
+        "selection_basis",
+        "effective_after_stream_revision",
+        "project_definition_ref",
+        "historical_destination_interpretation"
+      ],
+      "properties": {
+        "state": { "const": "available" },
+        "authority_source": {
+          "const": "immutable_project_definition_event_stream_binding"
+        },
+        "selection_basis": {
+          "const": "latest_retained_binding_effective_before_selected_event"
+        },
+        "effective_after_stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "project_definition_ref": {
+          "$ref": "#/$defs/ProjectDefinitionRef"
+        },
+        "historical_destination_interpretation": {
+          "const": "not_performed"
+        }
+      }
+    },
+    "UnavailableProjectDefinitionAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reason_code",
+        "reason",
+        "historical_destination_interpretation"
+      ],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason_code": {
+          "const": "retained_project_definition_authority_not_available"
+        },
+        "reason": {
+          "const": "No exact retained ProjectDefinition authority binding is available for this selected event."
+        },
+        "historical_destination_interpretation": {
+          "const": "not_performed"
+        }
+      }
+    },
+    "ProjectDefinitionAuthority": {
+      "oneOf": [
+        { "$ref": "#/$defs/AvailableProjectDefinitionAuthority" },
+        { "$ref": "#/$defs/UnavailableProjectDefinitionAuthority" }
+      ]
+    },
+    "EpisodeContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "change",
+        "causality",
+        "stream_order",
+        "project_definition_authority",
+        "omissions",
+        "authority",
+        "graph_navigation_history"
+      ],
+      "properties": {
+        "view_kind": { "const": "causal_episode" },
+        "change": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/RecentChange"
+        },
+        "causality": {
+          "$ref": "../../project-history-episode-view/1.0.0/schema.json#/$defs/Causality"
+        },
+        "stream_order": {
+          "$ref": "../../project-history-episode-view/1.0.0/schema.json#/$defs/StreamOrder"
+        },
+        "receipt_ref": {
+          "$ref": "../../project-history-episode-view/1.0.0/schema.json#/$defs/ReceiptRef"
+        },
+        "project_definition_authority": {
+          "$ref": "#/$defs/ProjectDefinitionAuthority"
+        },
+        "omissions": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "dependency_impact_not_composed",
+              "generic_reversal_assessment_not_composed",
+              "historical_project_definition_not_interpreted",
+              "cross_family_total_order_not_asserted"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": { "const": "dependency_impact_not_composed" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "generic_reversal_assessment_not_composed"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "historical_project_definition_not_interpreted"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "const": "cross_family_total_order_not_asserted"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          ]
+        },
+        "authority": {
+          "$ref": "../../project-history-view/1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "graph_navigation_history": { "const": "client_local_separate" }
+      }
+    }
+  }
+}

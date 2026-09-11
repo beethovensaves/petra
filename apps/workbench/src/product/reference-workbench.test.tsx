@@ -1,3 +1,9 @@
+import { readFileSync } from "node:fs";
+
+import type {
+  PetraProjectInquiryView,
+  PetraSuggestedActionView,
+} from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
@@ -10,12 +16,33 @@ import {
 import {
   BriefSurface,
   ProjectsSurface,
+  SuggestedActionPreview,
   SourceReaderSurface,
   SourcesSurface,
 } from "./ReferenceWorkbench.js";
 
 const render = (node: React.ReactNode): string =>
   renderToStaticMarkup(<MemoryRouter>{node}</MemoryRouter>);
+
+const suggestedActionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionView;
+
+const inquiryDetailView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-inquiry-view-detail.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectInquiryView;
 
 describe("neutral Petra reference workbench", () => {
   const inletProject = getReferenceProject("inlet-cycle");
@@ -52,6 +79,64 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain('id="attention-source-depth"');
     expect(markup).toContain("Projection catching up");
     expect(markup).toContain("The authoritative snapshot is current");
+  });
+
+  it("maps exact runtime SuggestedAction authority into the frozen Next steps region", () => {
+    const markup = render(
+      <SuggestedActionPreview
+        actionView={suggestedActionView}
+        invokedInquiry={inquiryDetailView}
+      />,
+    );
+
+    expect(markup).toContain("Next steps");
+    expect(markup).toContain("Inspect existing inquiry result");
+    expect(markup).toContain("Exact existing result available");
+    expect(markup).toContain("No new Work or Project authority change");
+    expect(markup).toContain("Work not performed");
+    expect(markup).toContain(
+      suggestedActionView.content.action_ref.suggested_action_id,
+    );
+    expect(markup).toContain(
+      suggestedActionView.content.action.basis.project_definition_ref
+        .record_hash,
+    );
+    expect(markup).toContain(
+      suggestedActionView.content.action.basis.snapshot_ref.snapshot_id,
+    );
+    expect(markup).toContain(
+      suggestedActionView.content.action.basis.produced_by_work_ref
+        ?.work_unit_id ?? "missing Work fixture",
+    );
+    expect(markup).toContain('data-contract-name="petra.project-inquiry-view"');
+    expect(markup).toContain('data-operation="get_project_inquiry_detail"');
+    expect(markup).toContain("This invokes an authenticated exact read");
+    expect(markup).toContain("Exact inquiry detail");
+    expect(markup).toContain(
+      "This GroundedResponse addresses the inquiry with no authority effect",
+    );
+  });
+
+  it("fails closed on a stale action and exposes server prerequisites", () => {
+    const stale = structuredClone(suggestedActionView);
+    stale.content.readiness = {
+      state: "stale",
+      reason_code: "result_invalidated",
+      reason:
+        "The exact GroundedResponse is no longer reusable under current authority.",
+      missing_prerequisites: [
+        "Regenerate a SuggestedAction from a current reusable result.",
+      ],
+    };
+
+    const markup = render(<SuggestedActionPreview actionView={stale} />);
+
+    expect(markup).toContain("Stale");
+    expect(markup).toContain(
+      "Regenerate a SuggestedAction from a current reusable result.",
+    );
+    expect(markup).toContain('aria-disabled="true"');
+    expect(markup).not.toContain('data-operation="get_project_inquiry_detail"');
   });
 
   it("separates source identity, extent, rights, and downstream use", () => {

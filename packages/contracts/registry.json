@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.57.0",
+  "registry_version": "1.69.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -133,6 +133,17 @@
       "typescript_path": "src/generated/project-inquiry-view.ts"
     },
     {
+      "name": "suggested-action-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/suggested-action-view/1.0.0/schema.json",
+      "path": "schemas/suggested-action-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-existing-inquiry-result-action-preview",
+      "canonical_sha256": "sha256:b16696ae827d24ca80be11bb26cbf6e6faeeb2b6e2ae5ebf0973caa4f71a269c",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/suggested-action-view.ts"
+    },
+    {
       "name": "project-shell-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-shell-view/1.0.0/schema.json",
@@ -175,6 +186,193 @@
       "canonical_sha256": "sha256:0881dc318a3c75a63d4ad86a2900deda845b9cd9e1a029a18ac0d9721044a8b5",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-history-episode-view.ts"
+    },
+    {
+      "name": "project-history-episode-view",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/project-history-episode-view/1.1.0/schema.json",
+      "path": "schemas/project-history-episode-view/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-retained-project-definition-authority-reference",
+      "canonical_sha256": "sha256:e37b1ea19024e7ae2ba101519c363ab8d0f8238078532e258768ea7d8a803630",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-episode-view-v1-1.ts"
+    },
+    {
+      "name": "project-history-episode-view",
+      "version": "1.2.0",
+      "$id": "https://petra.local/schemas/project-history-episode-view/1.2.0/schema.json",
+      "path": "schemas/project-history-episode-view/1.2.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-retained-definition-historical-history-destination",
+      "canonical_sha256": "sha256:a1c0eb8c363c142d581edad2e380135bfc7a19214aba758c41c9217a3996ab81",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-episode-view-v1-2.ts"
+    },
+    {
+      "name": "project-history-retained-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-retained-view/1.0.0/schema.json",
+      "path": "schemas/project-history-retained-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-snapshot-stable-retained-project-event-traversal",
+      "canonical_sha256": "sha256:5efc48894f4f4dfe813886b87f33abb2b645b393184a12f8fa6066a7b84fb2d8",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-retained-view.ts"
+    },
+    {
+      "name": "project-history-retained-view",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/project-history-retained-view/1.1.0/schema.json",
+      "path": "schemas/project-history-retained-view/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-bounded-filtering-with-query-bound-snapshot-cursors",
+      "canonical_sha256": "sha256:d1f134ad7cbe5f817c6380a6d785bb9bad34f9964db120ff1631038b72d01867",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-retained-view-v1-1.ts"
+    },
+    {
+      "name": "project-history-retained-view",
+      "version": "1.2.0",
+      "$id": "https://petra.local/schemas/project-history-retained-view/1.2.0/schema.json",
+      "path": "schemas/project-history-retained-view/1.2.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-snapshot-bound-actor-and-target-filter-options",
+      "canonical_sha256": "sha256:bc1265b7c31aaee501fc45ce72fe67ca6e1cea2d6d1b13bd2c4fe12160e82e70",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-retained-view-v1-2.ts"
+    },
+    {
+      "name": "project-history-retained-continuation-failure",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-retained-continuation-failure/1.0.0/schema.json",
+      "path": "schemas/project-history-retained-continuation-failure/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-stable-non-disclosing-retained-continuation-failure-subcodes",
+      "canonical_sha256": "sha256:0f3156e8e2175028ec39fa093c704f20240c0bf5b34f8f34fd067c04694ff1da",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-retained-continuation-failure.ts"
+    },
+    {
+      "name": "project-history-impact-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-impact-view/1.0.0/schema.json",
+      "path": "schemas/project-history-impact-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-event-selected-bounded-direct-dependency-impact",
+      "canonical_sha256": "sha256:4e3ebaaed243af704a02816e0f7caa70d7ef6037e01c2921b41d941c57db8a92",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-impact-view.ts"
+    },
+    {
+      "name": "project-history-impact-view",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/project-history-impact-view/1.1.0/schema.json",
+      "path": "schemas/project-history-impact-view/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-bounded-exact-semantic-target-adapters",
+      "canonical_sha256": "sha256:63c519d321cb5056210ea0cf00f6b0ccc345f2a42a2e8575aa0911bf9ee6e251",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-impact-view-v1-1.ts"
+    },
+    {
+      "name": "project-history-impact-view",
+      "version": "1.2.0",
+      "$id": "https://petra.local/schemas/project-history-impact-view/1.2.0/schema.json",
+      "path": "schemas/project-history-impact-view/1.2.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-source-and-replacement-semantic-target-adapters",
+      "canonical_sha256": "sha256:1214a1af397a6e6cbe3f573787ead050f7c571124afde1d050a0b19ccdc06212",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-impact-view-v1-2.ts"
+    },
+    {
+      "name": "project-history-impact-view",
+      "version": "1.3.0",
+      "$id": "https://petra.local/schemas/project-history-impact-view/1.3.0/schema.json",
+      "path": "schemas/project-history-impact-view/1.3.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-bounded-exact-work-output-and-delivery-dependency-adapters",
+      "canonical_sha256": "sha256:1b3cd9d9a8fe7e0390fc13827b690d0a6977048e1fbab15dbc5f6a9bdae5f9d4",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-impact-view-v1-3.ts"
+    },
+    {
+      "name": "project-history-impact-view",
+      "version": "1.4.0",
+      "$id": "https://petra.local/schemas/project-history-impact-view/1.4.0/schema.json",
+      "path": "schemas/project-history-impact-view/1.4.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-renderer-neutral-exact-operational-destinations",
+      "canonical_sha256": "sha256:4e6416509196b4f5b1494ce0788ee4c0b1969675fd0c062704ff9960b2fa3cb9",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-impact-view-v1-4.ts"
+    },
+    {
+      "name": "project-history-recovery-assessment-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-recovery-assessment-view/1.0.0/schema.json",
+      "path": "schemas/project-history-recovery-assessment-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-exact-change-set-recovery-assessment",
+      "canonical_sha256": "sha256:16cd8ad1837049ce5176d22622040d9b02e7ef46cbf5ae179fb21c26f93d84fe",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-recovery-assessment-view.ts"
+    },
+    {
+      "name": "project-history-compensation-preview-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-compensation-preview-view/1.0.0/schema.json",
+      "path": "schemas/project-history-compensation-preview-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-short-lived-read-only-single-change-set-compensation-preview",
+      "canonical_sha256": "sha256:c1065e93580a32c6976f8f5ffa2a72f94a981277b5706e20967dae55daef8c1c",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-compensation-preview-view.ts"
+    },
+    {
+      "name": "project-history-compensation-plan-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-compensation-plan-request/1.0.0/schema.json",
+      "path": "schemas/project-history-compensation-plan-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-explicit-confirmation-of-one-exact-unexpired-compensation-preview-reference",
+      "canonical_sha256": "sha256:08e15b0d5fae6eee2964692439435dfe3ac2e2771243705ab1180e8d6d415490",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-compensation-plan-request.ts"
+    },
+    {
+      "name": "project-history-compensation-plan-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-compensation-plan-view/1.0.0/schema.json",
+      "path": "schemas/project-history-compensation-plan-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-revalidated-non-persisted-single-change-set-command-plan",
+      "canonical_sha256": "sha256:a421f1ca365ae116cb900360d54719ea54795d7b2782ddb24776ed0a10022d25",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-compensation-plan-view.ts"
+    },
+    {
+      "name": "project-history-compensation-execution-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-compensation-execution-request/1.0.0/schema.json",
+      "path": "schemas/project-history-compensation-execution-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-explicit-execution-of-one-exact-compensation-plan",
+      "canonical_sha256": "sha256:3fe322f34d47a32207dc67efd7ba09f8e31688e9c5fe4e567617087a4ad4408e",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-compensation-execution-request.ts"
+    },
+    {
+      "name": "project-history-compensation-execution-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-history-compensation-execution-view/1.0.0/schema.json",
+      "path": "schemas/project-history-compensation-execution-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-per-command-compensation-execution-result",
+      "canonical_sha256": "sha256:8a9b1b6a9c1dd20bb86cfdf7d77b19b91964e6511a487c18b0c34b3cddcd58fa",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-history-compensation-execution-view.ts"
     },
     {
       "name": "project-effective-controls-view",

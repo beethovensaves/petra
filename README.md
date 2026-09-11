@@ -106,6 +106,14 @@ checksum.
 | `npm run test:integration` | Run Vitest and pytest against disposable real services, then delete the stack. |
 | `npm run measure:m1-boundary` | Rebuild and measure the isolated browser cost of Petra's AG-UI client boundary. |
 | `npm run verify` | Run generation, formatting, linting, type checking, and tests. |
+| `npm run wave:doctor -- --wave 3` | Verify that the two Wave 3 worktrees, remotes, Node 24, and Codex CLI are ready for automated handoff. |
+| `npm run wave:backend -- --wave 3` | Start the waiting backend worker for the bounded Wave 3 handoff loop. |
+| `npm run wave:status -- --wave 3` | Inspect the local Wave 3 worker, commit, and stop state. |
+
+The optional two-worktree Codex coordinator is documented in
+[Petra wave handoff automation](WAVE_HANDOFF_AUTOMATION.md). It alternates one
+bounded backend or design slice at a time and stops fail-closed at the wave gate,
+an unresolved decision, or any verification or repository failure.
 
 `services:reset` destroys local development data. Use it only when that is the
 intended recovery action.

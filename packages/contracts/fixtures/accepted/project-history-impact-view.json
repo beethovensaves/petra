@@ -1,0 +1,182 @@
+{
+  "schema_name": "petra.project-history-impact-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "content": {
+    "view_kind": "dependency_impact",
+    "selected_event": {
+      "command_ref": {
+        "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBN",
+        "schema_version": "1.0.0",
+        "command_name": "ApplyChangeSet",
+        "idempotency_key": "review:claim-fbb:apply:v1",
+        "command_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+        "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK"
+      },
+      "event_ref": {
+        "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+        "schema_version": "1.0.0",
+        "event_type": "change_set.applied",
+        "event_position": 3,
+        "stream_revision": 3,
+        "record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "occurred_at": "2026-08-28T18:13:01.000Z",
+      "recorded_at": "2026-08-28T18:13:01.000Z",
+      "family": "change_control",
+      "targets": [
+        {
+          "role": "primary",
+          "semantic_key": "petra.change-set",
+          "object_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+          "revision": 1,
+          "content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+          "authority_state": "applied"
+        },
+        {
+          "role": "affected",
+          "semantic_key": "scientific.claim",
+          "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 2
+        },
+        {
+          "role": "affected",
+          "semantic_key": "scientific.assertion",
+          "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+          "revision": 2
+        }
+      ],
+      "observed_effect": {
+        "effect": "authority_change_applied",
+        "outcome": "completed",
+        "summary": "Applied the approved ChangeSet to the exact Claim and Assertion revisions."
+      },
+      "semantic_destination": {
+        "place_role": "history",
+        "task_intent": "view_history",
+        "object_ref": {
+          "semantic_key": "petra.change-set",
+          "object_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+          "revision": 1
+        }
+      }
+    },
+    "authorization_scope": "authenticated_project",
+    "impact": {
+      "scope": "registered_direct_event_and_command_dependents",
+      "summary": {
+        "registered_group_count": 4,
+        "total_count": 4,
+        "coverage": "complete"
+      },
+      "causal_commands": {
+        "relation": "caused_by_selected_command",
+        "authority_source": "immutable_command_causation",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "outbox_records": {
+        "relation": "carries_selected_event",
+        "authority_source": "immutable_event_outbox_binding",
+        "total_count": 2,
+        "returned_count": 2,
+        "coverage": "complete",
+        "refs": [
+          {
+            "outbox_id": "outbox_01ARZ3NDEKTSV4RRFFQ69G5FC6",
+            "schema_version": "1.0.0",
+            "outbox_position": 3,
+            "target": "neo4j_graph",
+            "target_sequence": 1,
+            "enqueued_at": "2026-08-28T18:13:01.000Z",
+            "record_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          {
+            "outbox_id": "outbox_01ARZ3NDEKTSV4RRFFQ69G5FC7",
+            "schema_version": "1.0.0",
+            "outbox_position": 4,
+            "target": "interface_authority",
+            "target_sequence": 3,
+            "enqueued_at": "2026-08-28T18:13:01.000Z",
+            "record_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ]
+      },
+      "graph_projection_records": {
+        "relation": "projects_selected_event",
+        "authority_source": "immutable_projection_event_binding",
+        "total_count": 1,
+        "returned_count": 1,
+        "coverage": "complete",
+        "refs": [
+          {
+            "graph_projection_record_id": "graph_projection_record_01ARZ3NDEKTSV4RRFFQ69G5FC8",
+            "revision": 1,
+            "content_hash": "sha256:640ae8e9a235d4816f240e28930f3d7bcec4c5ec7a5ab9818223f08b2412d11b",
+            "record_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "outbox_id": "outbox_01ARZ3NDEKTSV4RRFFQ69G5FC6",
+            "outbox_position": 3,
+            "target_sequence": 1,
+            "attempt": 2,
+            "outcome": "applied",
+            "recorded_at": "2026-08-29T14:10:03.000Z"
+          }
+        ]
+      },
+      "grounded_response_invalidations": {
+        "relation": "invalidated_by_selected_event",
+        "authority_source": "immutable_response_invalidation_binding",
+        "total_count": 1,
+        "returned_count": 1,
+        "coverage": "complete",
+        "refs": [
+          {
+            "grounded_response_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+            "revision": 2,
+            "content_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "record_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "posture": "current",
+            "cache_state": "invalidated",
+            "invalidation_position": 1,
+            "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+            "recorded_at": "2026-08-29T14:10:04.000Z"
+          }
+        ]
+      },
+      "unknowns": [
+        "unregistered_profile_specific_dependencies_may_exist",
+        "transitive_dependents_may_exist",
+        "external_system_dependents_are_not_observable"
+      ]
+    },
+    "decision_boundary": {
+      "reversibility": "not_assessed",
+      "compensation": "not_composed",
+      "dependent_effect": "not_inferred_from_reference"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "through_event_position": 3,
+      "through_stream_revision": 3
+    },
+    "omissions": [
+      "semantic_target_dependencies_not_composed",
+      "transitive_dependency_closure_not_composed",
+      "reversibility_not_assessed",
+      "compensation_not_composed",
+      "historical_project_definition_not_interpreted",
+      "cross_family_total_order_not_asserted"
+    ],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "read_at": "2026-09-10T15:00:00.000Z"
+}

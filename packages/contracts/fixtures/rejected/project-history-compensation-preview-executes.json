@@ -1,0 +1,33 @@
+{
+  "schema_name": "petra.project-history-compensation-preview-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "content": {
+    "view_kind": "single_change_set_compensation_preview",
+    "authorization_scope": "authenticated_project",
+    "assessment_ref": {},
+    "compensates_change_set": {},
+    "target_change_set_schema": {},
+    "operation_preview": [],
+    "impact_basis": {},
+    "result_preview": [],
+    "preservation": {},
+    "required_user_input": [],
+    "change_set_composition": "completed",
+    "command_sequence": [],
+    "freshness": {},
+    "decision_boundary": {
+      "preview": "read_only",
+      "change_set": "created",
+      "approval": "recorded",
+      "commands": "executed",
+      "generic_undo": "available",
+      "multi_step_compensation": "not_assessed"
+    },
+    "omissions": [],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+  "read_at": "2026-09-10T18:30:00.000Z"
+}

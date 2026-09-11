@@ -80,6 +80,7 @@ import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-r
 import { PostgresGroundedResponseAuthorityRepository } from "../src/grounded-response-authority-repository.js";
 import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import { PostgresProjectHistoryViewReader } from "../src/project-history-view-reader.js";
 import {
   PostgresProjectInquiryAuthorityRepository,
   type PostgresProjectInquiryError,
@@ -104,6 +105,10 @@ import {
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresSynthesistExecutionRepository } from "../src/synthesist-execution-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
+import {
+  PostgresSuggestedActionViewReader,
+  type PostgresSuggestedActionViewError,
+} from "../src/suggested-action-view-reader.js";
 import {
   availableArtifactStore,
   createMemoryArtifactStore,
@@ -189,6 +194,17 @@ const expectProjectInquiryViewCode = async (
 ): Promise<void> => {
   await expect(operation()).rejects.toEqual(
     expect.objectContaining<Partial<PostgresProjectInquiryViewError>>({ code }),
+  );
+};
+
+const expectSuggestedActionViewCode = async (
+  operation: () => Promise<unknown>,
+  code: PostgresSuggestedActionViewError["code"],
+): Promise<void> => {
+  await expect(operation()).rejects.toEqual(
+    expect.objectContaining<Partial<PostgresSuggestedActionViewError>>({
+      code,
+    }),
   );
 };
 
@@ -498,6 +514,7 @@ describePostgres("PostgreSQL grounded-response authority", () => {
   const interactions = new PostgresInteractionAuthorityRepository(pool);
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
+  const historyViews = new PostgresProjectHistoryViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -1350,6 +1367,100 @@ describePostgres("PostgreSQL grounded-response authority", () => {
         [workLink.project_inquiry_link_id],
       ),
     ).rejects.toBeTruthy();
+
+    const suggestedActions = new PostgresSuggestedActionViewReader(pool);
+    const suggestedActionId = derivePetraId(
+      "suggested_action",
+      `${resultLink.project_inquiry_link_id}|inspect_existing_inquiry_result|1.0.0`,
+    );
+    const action =
+      await suggestedActions.getSuggestedActionViewForInquiryResult(
+        objective.project_id,
+        resultLink.project_inquiry_link_id,
+      );
+    const actionForLink =
+      await suggestedActions.getSuggestedActionViewForInquiryResult(
+        objective.project_id,
+        resultLink.project_inquiry_link_id,
+      );
+    if (action === undefined || actionForLink === undefined) {
+      throw new Error(
+        "Expected both SuggestedAction preview reads to resolve.",
+      );
+    }
+    const { read_at: actionReadAt, ...actionAuthority } = action;
+    const { read_at: actionForLinkReadAt, ...actionForLinkAuthority } =
+      actionForLink;
+    expect(actionForLinkAuthority).toEqual(actionAuthority);
+    expect(Date.parse(actionReadAt)).not.toBeNaN();
+    expect(Date.parse(actionForLinkReadAt)).not.toBeNaN();
+    expect(action).toEqual(
+      expect.objectContaining({
+        schema_name: "petra.suggested-action-view",
+        schema_version: "1.0.0",
+        project_id: objective.project_id,
+      }),
+    );
+    expect(action?.content.action_ref).toEqual(
+      expect.objectContaining({
+        suggested_action_id: suggestedActionId,
+        revision: 1,
+      }),
+    );
+    expect(action.content.readiness).toEqual(
+      expect.objectContaining({
+        state: "ready",
+        reason_code: "exact_existing_result_available",
+        missing_prerequisites: [],
+      }),
+    );
+    expect(action?.content.action.background_work).toEqual(
+      expect.objectContaining({
+        state: "completed",
+        terminal_outcome: "succeeded",
+      }),
+    );
+    expect(action?.content.operation).toEqual({
+      state: "read_only",
+      work_start: "not_performed",
+      authority_change: "none",
+    });
+    expect(
+      await suggestedActions.getSuggestedActionViewForInquiryResult(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        resultLink.project_inquiry_link_id,
+      ),
+    ).toBeUndefined();
+    await expectSuggestedActionViewCode(
+      () =>
+        suggestedActions.getSuggestedActionViewForInquiryResult(
+          objective.project_id,
+          "project_inquiry_link_invalid",
+        ),
+      "SUGGESTED_ACTION_VIEW_REQUEST_INVALID",
+    );
+
+    const revisedObjective = structuredClone(objective);
+    revisedObjective.revision = 2;
+    revisedObjective.content.statement =
+      "Reassess the inquiry after its exact result was recorded.";
+    revisedObjective.content_hash = canonicalHash(revisedObjective.content);
+    revisedObjective.updated_at = "2026-09-08T18:38:00.000Z";
+    await definitions.registerObjectiveRevision(revisedObjective);
+    const staleAction =
+      await suggestedActions.getSuggestedActionViewForInquiryResult(
+        objective.project_id,
+        resultLink.project_inquiry_link_id,
+      );
+    expect(staleAction?.content.readiness).toEqual(
+      expect.objectContaining({
+        state: "stale",
+        reason_code: "objective_changed",
+      }),
+    );
+    expect(staleAction?.content.action_ref).toEqual(action.content.action_ref);
+    expect(staleAction?.content.action).toEqual(action.content.action);
+    expect(staleAction?.content_hash).not.toBe(action.content_hash);
   });
 
   it("persists immutable Project threads, revisions, and exact branch origins", async () => {
@@ -2927,6 +3038,63 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       terminal.packets,
     );
     const original = await repository.register(terminal.input);
+    const compositionRequest = readFixture<PetraCompositionRequest>(
+      "composition-request",
+    );
+    const compositionPlan =
+      readFixture<PetraCompositionPlan>("composition-plan");
+    compositionRequest.snapshot_ref = structuredClone(
+      terminal.input.response.content.snapshot_ref,
+    );
+    compositionPlan.snapshot_ref = structuredClone(
+      terminal.input.response.content.snapshot_ref,
+    );
+    compositionPlan.evidence_packet_ref = structuredClone(
+      terminal.input.response.content.evidence_packet_ref,
+    );
+    const compositionEvidence = terminal.packets.getEvidencePacket(
+      compositionPlan.evidence_packet_ref.evidence_packet_id,
+    );
+    if (compositionEvidence === undefined) {
+      throw new Error("Expected the exact composition EvidencePacket.");
+    }
+    const compositionEvidenceByOrder = new Map(
+      compositionEvidence.content.selected_evidence.map((selection) => [
+        selection.context_selection_order,
+        selection.object_ref,
+      ]),
+    );
+    const compositionSubject = compositionEvidenceByOrder.get(1);
+    if (compositionSubject === undefined) {
+      throw new Error("Expected the selected composition subject.");
+    }
+    compositionRequest.content.subject_refs = [
+      structuredClone(compositionSubject),
+    ];
+    compositionRequest.content_hash = canonicalHash(compositionRequest.content);
+    compositionPlan.composition_request_ref.content_hash =
+      compositionRequest.content_hash;
+    for (const section of compositionPlan.content.sections) {
+      for (const move of section.moves) {
+        for (const evidenceRef of move.evidence_refs) {
+          const selected = compositionEvidenceByOrder.get(
+            evidenceRef.context_selection_order,
+          );
+          if (selected === undefined) {
+            throw new Error("Expected every planned evidence selection.");
+          }
+          evidenceRef.object_ref = structuredClone(selected);
+        }
+      }
+    }
+    compositionPlan.content_hash = canonicalHash(compositionPlan.content);
+    compositionPlan.compiled_by = serviceRef();
+    const composition = new PostgresCompositionAuthorityRepository(
+      pool,
+      terminal.packets,
+    );
+    await composition.registerRequest(compositionRequest);
+    await composition.registerPlan(compositionPlan);
     const artifactBefore = await pool.query<{ record_hash: string }>(
       "SELECT record_hash FROM petra.artifacts WHERE artifact_id = $1",
       [original.content.response_artifact_ref.artifact_id],
@@ -3026,6 +3194,83 @@ describePostgres("PostgreSQL grounded-response authority", () => {
         event_type: "change_set.reverted",
         change_set_id: reversal.event.payload.change_set_id,
       },
+    ]);
+
+    const impact = await historyViews.getProjectHistoryImpactView(
+      original.project_id,
+      reversal.event_id,
+    );
+    expect(
+      impact?.content.impact.grounded_response_invalidations,
+    ).toMatchObject({
+      authority_source: "immutable_response_invalidation_binding",
+      total_count: 1,
+      returned_count: 1,
+      coverage: "complete",
+    });
+    expect(impact?.content.impact.grounded_response_invalidations.refs).toEqual(
+      [
+        expect.objectContaining({
+          grounded_response_id: invalidated?.grounded_response_id,
+          revision: invalidated?.revision,
+          posture: "current",
+          cache_state: "invalidated",
+          change_set_id: reversal.event.payload.change_set_id,
+        }),
+      ],
+    );
+    const appliedHistoryEvent = events.find(
+      ({ event }) => event.event_type === "change_set.applied",
+    );
+    if (appliedHistoryEvent === undefined) {
+      throw new Error("Expected the retained applied ChangeSet event.");
+    }
+    const dependencyImpact = await historyViews.getProjectHistoryImpactView(
+      original.project_id,
+      appliedHistoryEvent.event_id,
+    );
+    const claimAssessment =
+      dependencyImpact?.content.semantic_target_impact.target_assessments.find(
+        ({ target_ref }) => target_ref.object_id === promotion.claim.claim_id,
+      );
+    const groundedGroup = claimAssessment?.groups.find(
+      ({ adapter_kind }) => adapter_kind === "grounded_response_dependency",
+    );
+    expect(groundedGroup).toMatchObject({
+      authority_source: "immutable_grounded_response_dependencies",
+      relation_scope: "exact_target_revision",
+      total_count: 2,
+      returned_count: 2,
+      coverage: "complete",
+    });
+    expect(groundedGroup?.refs).toEqual([
+      expect.objectContaining({
+        object_id: original.grounded_response_id,
+        revision: 1,
+        posture: "historical",
+        relation: "depends_on_exact_grounded_evidence",
+      }),
+      expect.objectContaining({
+        object_id: invalidated?.grounded_response_id,
+        revision: 2,
+        posture: "current",
+        relation: "depends_on_exact_grounded_evidence",
+      }),
+    ]);
+    const compositionGroup = claimAssessment?.groups.find(
+      ({ adapter_kind }) => adapter_kind === "composition_lineage",
+    );
+    expect(compositionGroup).toMatchObject({
+      authority_source: "immutable_composition_target_bindings",
+      relation_scope: "exact_target_revision",
+      total_count: 3,
+      returned_count: 3,
+      coverage: "complete",
+    });
+    expect(compositionGroup?.refs.map(({ relation }) => relation)).toEqual([
+      "uses_exact_composition_evidence",
+      "uses_exact_composition_evidence",
+      "selects_exact_composition_subject",
     ]);
   });
 });

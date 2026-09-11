@@ -1,0 +1,124 @@
+{
+  "schema_name": "petra.project-history-impact-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "content": {
+    "view_kind": "dependency_impact",
+    "selected_event": {
+      "command_ref": {
+        "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FBN",
+        "schema_version": "1.0.0",
+        "command_name": "ApplyChangeSet",
+        "idempotency_key": "review:claim-fbb:apply:v1",
+        "command_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+        "correlation_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FBK"
+      },
+      "event_ref": {
+        "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+        "schema_version": "1.0.0",
+        "event_type": "change_set.applied",
+        "event_position": 3,
+        "stream_revision": 3,
+        "record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "occurred_at": "2026-08-28T18:13:01.000Z",
+      "recorded_at": "2026-08-28T18:13:01.000Z",
+      "family": "change_control",
+      "targets": [
+        {
+          "role": "primary",
+          "semantic_key": "petra.change-set",
+          "object_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+          "revision": 1
+        }
+      ],
+      "observed_effect": {
+        "effect": "authority_change_applied",
+        "outcome": "completed",
+        "summary": "Applied the exact ChangeSet."
+      },
+      "semantic_destination": {
+        "place_role": "history",
+        "task_intent": "view_history",
+        "object_ref": {
+          "semantic_key": "petra.change-set",
+          "object_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+          "revision": 1
+        }
+      }
+    },
+    "authorization_scope": "authenticated_project",
+    "impact": {
+      "scope": "registered_direct_event_and_command_dependents",
+      "summary": {
+        "registered_group_count": 4,
+        "total_count": 0,
+        "coverage": "complete"
+      },
+      "causal_commands": {
+        "relation": "caused_by_selected_command",
+        "authority_source": "immutable_command_causation",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "outbox_records": {
+        "relation": "carries_selected_event",
+        "authority_source": "immutable_event_outbox_binding",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "graph_projection_records": {
+        "relation": "projects_selected_event",
+        "authority_source": "immutable_projection_event_binding",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "grounded_response_invalidations": {
+        "relation": "invalidated_by_selected_event",
+        "authority_source": "immutable_response_invalidation_binding",
+        "total_count": 0,
+        "returned_count": 0,
+        "coverage": "complete",
+        "refs": []
+      },
+      "unknowns": [
+        "unregistered_profile_specific_dependencies_may_exist",
+        "transitive_dependents_may_exist",
+        "external_system_dependents_are_not_observable"
+      ]
+    },
+    "decision_boundary": {
+      "reversibility": "eligible",
+      "compensation": "not_composed",
+      "dependent_effect": "not_inferred_from_reference"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "through_event_position": 3,
+      "through_stream_revision": 3
+    },
+    "omissions": [
+      "semantic_target_dependencies_not_composed",
+      "transitive_dependency_closure_not_composed",
+      "reversibility_not_assessed",
+      "compensation_not_composed",
+      "historical_project_definition_not_interpreted",
+      "cross_family_total_order_not_asserted"
+    ],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "read_at": "2026-09-10T15:00:00.000Z"
+}

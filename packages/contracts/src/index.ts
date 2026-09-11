@@ -83,6 +83,18 @@ export type {
   WorkLink as ProjectInquiryViewWorkLink,
 } from "./generated/project-inquiry-view.js";
 export type {
+  Action as SuggestedAction,
+  AuthorityPosition as SuggestedActionAuthorityPosition,
+  BackgroundWork as SuggestedActionBackgroundWork,
+  Basis as SuggestedActionBasis,
+  Objective as SuggestedActionObjective,
+  PetraSuggestedActionView,
+  Ready as SuggestedActionReady,
+  Stale as SuggestedActionStale,
+  SuggestedActionRef,
+  ViewContent as SuggestedActionViewContent,
+} from "./generated/suggested-action-view.js";
+export type {
   AttentionItem as ProjectShellAttentionItem,
   AuthorityPosition as ProjectShellAuthorityPosition,
   DefinitionSummary as ProjectShellDefinitionSummary,
@@ -123,6 +135,182 @@ export type {
   ReceiptRef as ProjectHistoryReceiptRef,
   StreamOrder as ProjectHistoryStreamOrder,
 } from "./generated/project-history-episode-view.js";
+export type {
+  AvailableProjectDefinitionAuthority as ProjectHistoryAvailableDefinitionAuthorityV11,
+  EpisodeContent as ProjectHistoryEpisodeContentV11,
+  PetraProjectHistoryEpisodeViewV110 as PetraProjectHistoryEpisodeViewV11,
+  ProjectDefinitionAuthority as ProjectHistoryDefinitionAuthorityV11,
+  ProjectDefinitionRef as ProjectHistoryDefinitionRefV11,
+  UnavailableProjectDefinitionAuthority as ProjectHistoryUnavailableDefinitionAuthorityV11,
+} from "./generated/project-history-episode-view-v1-1.js";
+export type {
+  AvailableHistoricalSemanticDestination as ProjectHistoryAvailableHistoricalSemanticDestinationV12,
+  AvailableProjectDefinitionAuthority as ProjectHistoryAvailableDefinitionAuthorityV12,
+  EpisodeContent as ProjectHistoryEpisodeContentV12,
+  HistoricalSemanticDestination as ProjectHistoryHistoricalSemanticDestinationV12,
+  HistoryEpisodeRouteAuthority as ProjectHistoryEpisodeRouteAuthorityV12,
+  PetraProjectHistoryEpisodeViewV120 as PetraProjectHistoryEpisodeViewV12,
+  ProjectDefinitionAuthority as ProjectHistoryDefinitionAuthorityV12,
+  ProjectDefinitionRef as ProjectHistoryDefinitionRefV12,
+  RegisteredHistoricalTargetRef as ProjectHistoryRegisteredHistoricalTargetRefV12,
+  UnavailableHistoricalSemanticDestinationUnregisteredTarget as ProjectHistoryUnregisteredHistoricalSemanticDestinationV12,
+  UnavailableHistoricalSemanticDestinationUnsupportedPlace as ProjectHistoryUnsupportedHistoricalSemanticDestinationV12,
+  UnavailableHistoricalSemanticDestinationWithoutAuthority as ProjectHistoryNoAuthorityHistoricalSemanticDestinationV12,
+  UnavailableProjectDefinitionAuthority as ProjectHistoryUnavailableDefinitionAuthorityV12,
+} from "./generated/project-history-episode-view-v1-2.js";
+export type {
+  AuthorityPosition as ProjectHistoryRetainedAuthorityPosition,
+  CollectionQuery as ProjectHistoryRetainedCollectionQuery,
+  EmptyRetentionSnapshot as ProjectHistoryEmptyRetentionSnapshot,
+  NonemptyRetentionSnapshot as ProjectHistoryNonemptyRetentionSnapshot,
+  OpaqueCursor as ProjectHistoryOpaqueCursor,
+  Page as ProjectHistoryRetainedPage,
+  PetraProjectHistoryRetainedView,
+  RetainedContent as ProjectHistoryRetainedContent,
+  RetentionSnapshot as ProjectHistoryRetentionSnapshot,
+} from "./generated/project-history-retained-view.js";
+export type {
+  CollectionFilters as ProjectHistoryRetainedCollectionFiltersV11,
+  CollectionQuery as ProjectHistoryRetainedCollectionQueryV11,
+  ExactTargetFilter as ProjectHistoryRetainedExactTargetFilterV11,
+  PetraProjectHistoryRetainedViewV110 as PetraProjectHistoryRetainedViewV11,
+  RecordedTimeFilter as ProjectHistoryRetainedRecordedTimeFilterV11,
+  RetainedContent as ProjectHistoryRetainedContentV11,
+} from "./generated/project-history-retained-view-v1-1.js";
+export type {
+  ActorDisplayDescriptor as ProjectHistoryActorDisplayDescriptorV12,
+  ActorOption as ProjectHistoryActorOptionV12,
+  ActorOptionCatalogue as ProjectHistoryActorOptionCatalogueV12,
+  ActorRecordRef as ProjectHistoryActorRecordRefV12,
+  CollectionFilters as ProjectHistoryRetainedCollectionFiltersV12,
+  CollectionQuery as ProjectHistoryRetainedCollectionQueryV12,
+  ExactTargetFilter as ProjectHistoryRetainedExactTargetFilterV12,
+  FilterOptions as ProjectHistoryFilterOptionsV12,
+  PetraProjectHistoryRetainedViewV120 as PetraProjectHistoryRetainedViewV12,
+  RecordedTimeFilter as ProjectHistoryRetainedRecordedTimeFilterV12,
+  RetainedContent as ProjectHistoryRetainedContentV12,
+  TargetDisplayDescriptor as ProjectHistoryTargetDisplayDescriptorV12,
+  TargetOption as ProjectHistoryTargetOptionV12,
+  TargetOptionCatalogue as ProjectHistoryTargetOptionCatalogueV12,
+} from "./generated/project-history-retained-view-v1-2.js";
+export type {
+  ContinuationFailure as ProjectHistoryRetainedContinuationFailureContent,
+  ContinuationFailureSubcode as ProjectHistoryRetainedContinuationFailureSubcode,
+  PetraProjectHistoryRetainedContinuationFailure,
+  Restart as ProjectHistoryRetainedContinuationRestart,
+} from "./generated/project-history-retained-continuation-failure.js";
+export type {
+  AuthorityPosition as ProjectHistoryImpactAuthorityPosition,
+  CausalCommand as ProjectHistoryImpactCausalCommand,
+  CausalCommandGroup as ProjectHistoryImpactCausalCommandGroup,
+  DecisionBoundary as ProjectHistoryImpactDecisionBoundary,
+  EventAnchor as ProjectHistoryImpactEventAnchor,
+  GraphProjectionRecordRef as ProjectHistoryImpactGraphProjectionRecordRef,
+  GroundedResponseGroup as ProjectHistoryImpactGroundedResponseGroup,
+  GroundedResponseInvalidationRef as ProjectHistoryImpactGroundedResponseInvalidationRef,
+  Impact as ProjectHistoryImpact,
+  ImpactContent as ProjectHistoryImpactContent,
+  ImpactSummary as ProjectHistoryImpactSummary,
+  OutboxGroup as ProjectHistoryImpactOutboxGroup,
+  OutboxRecordRef as ProjectHistoryImpactOutboxRecordRef,
+  PetraProjectHistoryImpactView,
+  ProjectionGroup as ProjectHistoryImpactProjectionGroup,
+} from "./generated/project-history-impact-view.js";
+export type {
+  AdapterGroup as ProjectHistorySemanticImpactAdapterGroup,
+  DependentRef as ProjectHistorySemanticDependentRef,
+  ImpactContent as ProjectHistoryImpactContentV11,
+  PetraProjectHistoryImpactViewV11,
+  RegisteredAssessment as ProjectHistoryRegisteredTargetAssessment,
+  RegistryEntry as ProjectHistorySemanticAdapterRegistration,
+  ResolvedTargetRef as ProjectHistoryResolvedTargetRef,
+  SemanticSummary as ProjectHistorySemanticImpactSummary,
+  SemanticTargetImpact as ProjectHistorySemanticTargetImpact,
+  TargetAssessment as ProjectHistoryTargetAssessment,
+  UnavailableAssessment as ProjectHistoryUnavailableTargetAssessment,
+} from "./generated/project-history-impact-view-v1-1.js";
+export type {
+  AdapterGroup as ProjectHistorySemanticImpactAdapterGroupV12,
+  DependentRef as ProjectHistorySemanticDependentRefV12,
+  ImpactContent as ProjectHistoryImpactContentV12,
+  PetraProjectHistoryImpactViewV12,
+  RegisteredAssessment as ProjectHistoryRegisteredTargetAssessmentV12,
+  ResolvedTargetRef as ProjectHistoryResolvedTargetRefV12,
+  SemanticSummary as ProjectHistorySemanticImpactSummaryV12,
+  SemanticTargetImpact as ProjectHistorySemanticTargetImpactV12,
+  TargetAssessment as ProjectHistoryTargetAssessmentV12,
+  UnavailableAssessment as ProjectHistoryUnavailableTargetAssessmentV12,
+} from "./generated/project-history-impact-view-v1-2.js";
+export type {
+  ImpactContent as ProjectHistoryImpactContentV13,
+  InputBindingRef as ProjectHistoryOperationalInputBindingRefV13,
+  InteractionRunRef as ProjectHistoryOperationalInteractionRunRefV13,
+  OperationalAdapterGroup as ProjectHistoryOperationalAdapterGroupV13,
+  OperationalDependencyImpact as ProjectHistoryOperationalDependencyImpactV13,
+  OperationalDependentRef as ProjectHistoryOperationalDependentRefV13,
+  OperationalTargetAssessment as ProjectHistoryOperationalTargetAssessmentV13,
+  PetraProjectHistoryImpactViewV13,
+  RegisteredOperationalAssessment as ProjectHistoryRegisteredOperationalAssessmentV13,
+  ResolvedTargetRecord as ProjectHistoryResolvedTargetRecordV13,
+  UnavailableOperationalAssessment as ProjectHistoryUnavailableOperationalAssessmentV13,
+  WorkUnitRef as ProjectHistoryOperationalWorkUnitRefV13,
+} from "./generated/project-history-impact-view-v1-3.js";
+export type {
+  AvailableWorkDestination as ProjectHistoryAvailableWorkDestinationV14,
+  DefinitionRef as ProjectHistoryOperationalDefinitionRefV14,
+  ImpactContent as ProjectHistoryImpactContentV14,
+  InputBindingRef as ProjectHistoryOperationalInputBindingRefV14,
+  InteractionRunRef as ProjectHistoryOperationalInteractionRunRefV14,
+  OperationalAdapterGroup as ProjectHistoryOperationalAdapterGroupV14,
+  OperationalDependencyImpact as ProjectHistoryOperationalDependencyImpactV14,
+  OperationalDependentRef as ProjectHistoryOperationalDependentRefV14,
+  OperationalDestination as ProjectHistoryOperationalDestinationV14,
+  OperationalTargetAssessment as ProjectHistoryOperationalTargetAssessmentV14,
+  OutputOperationalDestination as ProjectHistoryOutputOperationalDestinationV14,
+  PetraProjectHistoryImpactViewV14,
+  ProjectWorkRouteAuthority as ProjectHistoryProjectWorkRouteAuthorityV14,
+  RegisteredOperationalAssessment as ProjectHistoryRegisteredOperationalAssessmentV14,
+  ReplayOperationalDestination as ProjectHistoryReplayOperationalDestinationV14,
+  ResolvedTargetRecord as ProjectHistoryResolvedTargetRecordV14,
+  UnavailableOperationalAssessment as ProjectHistoryUnavailableOperationalAssessmentV14,
+  UnavailableWorkDestination as ProjectHistoryUnavailableWorkDestinationV14,
+  WorkOperationalDestination as ProjectHistoryWorkOperationalDestinationV14,
+  WorkUnitRef as ProjectHistoryOperationalWorkUnitRefV14,
+} from "./generated/project-history-impact-view-v1-4.js";
+export type {
+  Assessment as ProjectHistoryRecoveryAssessment,
+  AssessmentBlocker as ProjectHistoryRecoveryAssessmentBlocker,
+  CausalImpactBasis as ProjectHistoryRecoveryCausalImpactBasis,
+  ChangeSetAuthorityRef as ProjectHistoryRecoveryChangeSetRef,
+  CommandAuthority as ProjectHistoryRecoveryCommandAuthority,
+  PetraProjectHistoryRecoveryAssessmentView,
+  RecoveryAssessmentContent as ProjectHistoryRecoveryAssessmentContent,
+  RecoverySubject as ProjectHistoryRecoverySubject,
+} from "./generated/project-history-recovery-assessment-view.js";
+export type {
+  AssessmentRef as ProjectHistoryCompensationPreviewAssessmentRef,
+  CommandStep as ProjectHistoryCompensationPreviewCommandStep,
+  Freshness as ProjectHistoryCompensationPreviewFreshness,
+  OperationPreview as ProjectHistoryCompensationOperationPreview,
+  PetraProjectHistoryCompensationPreviewView,
+  PreviewContent as ProjectHistoryCompensationPreviewContent,
+  ResultingTarget as ProjectHistoryCompensationResultingTarget,
+} from "./generated/project-history-compensation-preview-view.js";
+export type { PetraProjectHistoryCompensationPlanRequest } from "./generated/project-history-compensation-plan-request.js";
+export type {
+  PetraProjectHistoryCompensationPlanView,
+  PlanContent as ProjectHistoryCompensationPlanContent,
+  PlannedCommand as ProjectHistoryCompensationPlannedCommand,
+  PreviewRef as ProjectHistoryCompensationPlanPreviewRef,
+  Revalidation as ProjectHistoryCompensationPlanRevalidation,
+} from "./generated/project-history-compensation-plan-view.js";
+export type { PetraProjectHistoryCompensationExecutionRequest } from "./generated/project-history-compensation-execution-request.js";
+export type {
+  ExecutionContent as ProjectHistoryCompensationExecutionContent,
+  ExecutionStep as ProjectHistoryCompensationExecutionStep,
+  PetraProjectHistoryCompensationExecutionView,
+  PlanRef as ProjectHistoryCompensationExecutionPlanRef,
+} from "./generated/project-history-compensation-execution-view.js";
 export type {
   AuthoritySnapshot as ProjectEffectiveControlsAuthoritySnapshot,
   ControlSection as ProjectEffectiveControlSection,

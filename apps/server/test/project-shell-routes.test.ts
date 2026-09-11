@@ -2,8 +2,17 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraProjectEffectiveControlsView,
+  PetraProjectHistoryCompensationExecutionRequest,
+  PetraProjectHistoryCompensationExecutionView,
+  PetraProjectHistoryCompensationPlanRequest,
+  PetraProjectHistoryCompensationPlanView,
+  PetraProjectHistoryCompensationPreviewView,
   PetraProjectHistoryView,
-  PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryEpisodeViewV12,
+  PetraProjectHistoryImpactViewV14,
+  PetraProjectHistoryRecoveryAssessmentView,
+  PetraProjectHistoryRetainedContinuationFailure,
+  PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
@@ -14,6 +23,7 @@ import type {
   PetraProjectSourceView,
   PetraProjectThreadView,
   PetraProjectWorkView,
+  PetraSuggestedActionView,
 } from "@petra/contracts";
 import type {
   ProjectEffectiveControlsViewReader,
@@ -28,6 +38,13 @@ import type {
   ProjectSourceViewReader,
   ProjectThreadViewReader,
   ProjectWorkViewReader,
+  SuggestedActionViewReader,
+} from "@petra/core";
+import {
+  ProjectHistoryCompensationExecutionUnavailableError,
+  ProjectHistoryCompensationPlanUnavailableError,
+  ProjectHistoryRetainedContinuationError,
+  ProjectHistoryRecoveryPreviewUnavailableError,
 } from "@petra/core";
 import { describe, expect, it } from "vitest";
 
@@ -98,12 +115,102 @@ const historyFixture = JSON.parse(
 const historyEpisodeFixture = JSON.parse(
   readFileSync(
     new URL(
-      "../../../packages/contracts/fixtures/accepted/project-history-episode-view.json",
+      "../../../packages/contracts/fixtures/accepted/project-history-episode-view-v1-2.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryEpisodeView;
+) as PetraProjectHistoryEpisodeViewV12;
+
+const historyRetainedFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-retained-view-v1-2.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRetainedViewV12;
+
+const historyContinuationFailureFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-retained-continuation-failure.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRetainedContinuationFailure;
+
+const historyImpactFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-4.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryImpactViewV14;
+
+const historyRecoveryFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-recovery-assessment-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRecoveryAssessmentView;
+
+const historyCompensationPreviewFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-compensation-preview-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationPreviewView;
+
+const historyCompensationPlanRequestFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-compensation-plan-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationPlanRequest;
+
+const historyCompensationPlanFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-compensation-plan-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationPlanView;
+
+const historyCompensationExecutionRequestFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-compensation-execution-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationExecutionRequest;
+
+const historyCompensationExecutionFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-history-compensation-execution-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationExecutionView;
 
 const reviewFixture = JSON.parse(
   readFileSync(
@@ -195,6 +302,16 @@ const inquiryDetailFixture = JSON.parse(
   ),
 ) as PetraProjectInquiryView;
 
+const suggestedActionFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/suggested-action-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionView;
+
 const reader: ProjectShellViewReader = {
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
@@ -253,6 +370,50 @@ const historyReader: ProjectHistoryViewReader = {
         ? structuredClone(historyEpisodeFixture)
         : undefined,
     ),
+  getProjectHistoryImpactView: (projectId, eventId) =>
+    Promise.resolve(
+      projectId === historyImpactFixture.project_id &&
+        eventId === historyImpactFixture.event_id
+        ? structuredClone(historyImpactFixture)
+        : undefined,
+    ),
+  getProjectHistoryRecoveryAssessmentView: (projectId, eventId) =>
+    Promise.resolve(
+      projectId === historyRecoveryFixture.project_id &&
+        eventId === historyRecoveryFixture.event_id
+        ? structuredClone(historyRecoveryFixture)
+        : undefined,
+    ),
+  getProjectHistoryCompensationPreviewView: (projectId, eventId) =>
+    Promise.resolve(
+      projectId === historyCompensationPreviewFixture.project_id &&
+        eventId === historyCompensationPreviewFixture.event_id
+        ? structuredClone(historyCompensationPreviewFixture)
+        : undefined,
+    ),
+  composeProjectHistoryCompensationPlan: (request) =>
+    Promise.resolve(
+      request.project_id === historyCompensationPlanFixture.project_id &&
+        request.event_id === historyCompensationPlanFixture.event_id &&
+        request.preview_ref.content_hash ===
+          historyCompensationPlanFixture.content.preview_ref.content_hash &&
+        request.preview_ref.binding_hash ===
+          historyCompensationPlanFixture.content.preview_ref.binding_hash
+        ? structuredClone(historyCompensationPlanFixture)
+        : undefined,
+    ),
+  listRetainedProjectHistoryView: (projectId, request = {}) => {
+    if (projectId !== historyRetainedFixture.project_id) {
+      return Promise.resolve(undefined);
+    }
+    const view = structuredClone(historyRetainedFixture);
+    view.content.query = {
+      limit: request.limit ?? 50,
+      filters: request.filters ?? {},
+      ...(request.cursor === undefined ? {} : { cursor: request.cursor }),
+    };
+    return Promise.resolve(view);
+  },
 };
 
 const reviewReader: ProjectReviewViewReader = {
@@ -352,9 +513,31 @@ const inquiryReader: ProjectInquiryViewReader = {
   },
 };
 
+const suggestedActionReader: SuggestedActionViewReader = {
+  getSuggestedActionViewForInquiryResult: (projectId, projectInquiryLinkId) =>
+    Promise.resolve(
+      projectId === suggestedActionFixture.project_id &&
+        projectInquiryLinkId ===
+          suggestedActionFixture.content.action.basis.inquiry_result_link_ref
+            .project_inquiry_link_id
+        ? structuredClone(suggestedActionFixture)
+        : undefined,
+    ),
+};
+
 const authorized = (path: string): Request =>
   new Request(`http://petra.local${path}`, {
     headers: { authorization: `Bearer ${TOKEN}` },
+  });
+
+const authorizedJson = (path: string, body: unknown): Request =>
+  new Request(`http://petra.local${path}`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${TOKEN}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
   });
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -510,6 +693,372 @@ describe("authorized Project shell query routes", () => {
     expect(missing.status).toBe(404);
   });
 
+  it("returns authenticated bounded dependency impact for one exact History event", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: historyReader,
+    });
+    const path = `/api/queries/projects/${historyImpactFixture.project_id}/history/events/${historyImpactFixture.event_id}/impact`;
+    const response = await petra.app.request(authorized(path));
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(historyImpactFixture);
+
+    const filtered = await petra.app.request(
+      authorized(`${path}?kind=projection`),
+    );
+    expect(filtered.status).toBe(422);
+    const filteredBody = (await filtered.json()) as {
+      error: { code: string };
+    };
+    expect(filteredBody.error.code).toBe(
+      "PROJECT_HISTORY_IMPACT_TARGET_INVALID",
+    );
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/history/events/${historyImpactFixture.event_id}/impact`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+
+    const unauthorized = await petra.app.request(path);
+    expect(unauthorized.status).toBe(401);
+  });
+
+  it("returns one authenticated read-only ChangeSet recovery assessment", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: historyReader,
+    });
+    const path = `/api/queries/projects/${historyRecoveryFixture.project_id}/history/events/${historyRecoveryFixture.event_id}/recovery`;
+    const response = await petra.app.request(authorized(path));
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(historyRecoveryFixture);
+
+    const override = await petra.app.request(
+      authorized(`${path}?execute=true`),
+    );
+    expect(override.status).toBe(422);
+    const overrideBody = (await override.json()) as {
+      error: { code: string };
+    };
+    expect(overrideBody.error.code).toBe(
+      "PROJECT_HISTORY_RECOVERY_TARGET_INVALID",
+    );
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/history/events/${historyRecoveryFixture.event_id}/recovery`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    expect((await petra.app.request(path)).status).toBe(401);
+  });
+
+  it("returns one authenticated read-only revision-bound compensation preview", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: historyReader,
+    });
+    const path = `/api/queries/projects/${historyCompensationPreviewFixture.project_id}/history/events/${historyCompensationPreviewFixture.event_id}/recovery/preview`;
+    const response = await petra.app.request(authorized(path));
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(
+      historyCompensationPreviewFixture,
+    );
+
+    const execute = await petra.app.request(authorized(`${path}?execute=true`));
+    expect(execute.status).toBe(422);
+    const executeBody = (await execute.json()) as {
+      error: { code: string };
+    };
+    expect(executeBody.error.code).toBe(
+      "PROJECT_HISTORY_COMPENSATION_PREVIEW_TARGET_INVALID",
+    );
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/history/events/${historyCompensationPreviewFixture.event_id}/recovery/preview`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    expect((await petra.app.request(path)).status).toBe(401);
+
+    const unavailable = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: {
+        ...historyReader,
+        getProjectHistoryCompensationPreviewView: () => {
+          throw new ProjectHistoryRecoveryPreviewUnavailableError(
+            "The exact recovery assessment is blocked.",
+          );
+        },
+      },
+    });
+    const blocked = await unavailable.app.request(authorized(path));
+    expect(blocked.status).toBe(409);
+    const blockedBody = (await blocked.json()) as {
+      error: { code: string };
+    };
+    expect(blockedBody.error.code).toBe(
+      "PROJECT_HISTORY_RECOVERY_PREVIEW_UNAVAILABLE",
+    );
+  });
+
+  it("composes a confirmed compensation command plan without submitting it", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: historyReader,
+    });
+    const path = `/api/queries/projects/${historyCompensationPlanRequestFixture.project_id}/history/events/${historyCompensationPlanRequestFixture.event_id}/recovery/plan`;
+    const response = await petra.app.request(
+      authorizedJson(path, historyCompensationPlanRequestFixture),
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(
+      historyCompensationPlanFixture,
+    );
+
+    const unconfirmed = structuredClone(
+      historyCompensationPlanRequestFixture,
+    ) as
+      | PetraProjectHistoryCompensationPlanRequest
+      | { confirmation: { confirmed: boolean } };
+    unconfirmed.confirmation.confirmed = false;
+    const rejected = await petra.app.request(authorizedJson(path, unconfirmed));
+    expect(rejected.status).toBe(422);
+
+    const queryOverride = await petra.app.request(
+      authorizedJson(
+        `${path}?execute=true`,
+        historyCompensationPlanRequestFixture,
+      ),
+    );
+    expect(queryOverride.status).toBe(422);
+
+    const unauthenticated = await petra.app.request(
+      new Request(`http://petra.local${path}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(historyCompensationPlanRequestFixture),
+      }),
+    );
+    expect(unauthenticated.status).toBe(401);
+
+    const unavailable = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: {
+        ...historyReader,
+        composeProjectHistoryCompensationPlan: () => {
+          throw new ProjectHistoryCompensationPlanUnavailableError(
+            "The exact preview is stale.",
+          );
+        },
+      },
+    });
+    const stale = await unavailable.app.request(
+      authorizedJson(path, historyCompensationPlanRequestFixture),
+    );
+    expect(stale.status).toBe(409);
+    const staleBody = (await stale.json()) as { error: { code: string } };
+    expect(staleBody.error.code).toBe(
+      "PROJECT_HISTORY_COMPENSATION_PLAN_UNAVAILABLE",
+    );
+  });
+
+  it("executes one exact confirmed compensation plan with retained per-command outcomes", async () => {
+    const execution = {
+      executeProjectHistoryCompensationPlan: (
+        request: PetraProjectHistoryCompensationExecutionRequest,
+      ) =>
+        Promise.resolve(
+          request.project_id ===
+            historyCompensationExecutionFixture.project_id &&
+            request.event_id === historyCompensationExecutionFixture.event_id &&
+            request.plan.content_hash ===
+              historyCompensationExecutionFixture.content.plan_ref.content_hash
+            ? structuredClone(historyCompensationExecutionFixture)
+            : undefined,
+        ),
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryCompensationExecution: execution,
+    });
+    const path = `/api/commands/projects/${historyCompensationExecutionRequestFixture.project_id}/history/events/${historyCompensationExecutionRequestFixture.event_id}/recovery/execute`;
+    const response = await petra.app.request(
+      authorizedJson(path, historyCompensationExecutionRequestFixture),
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(
+      historyCompensationExecutionFixture,
+    );
+
+    const unconfirmed = structuredClone(
+      historyCompensationExecutionRequestFixture,
+    ) as
+      | PetraProjectHistoryCompensationExecutionRequest
+      | { execution_confirmation: { confirmed: boolean } };
+    unconfirmed.execution_confirmation.confirmed = false;
+    expect(
+      (await petra.app.request(authorizedJson(path, unconfirmed))).status,
+    ).toBe(422);
+    expect(
+      (
+        await petra.app.request(
+          authorizedJson(
+            `${path}?atomic=true`,
+            historyCompensationExecutionRequestFixture,
+          ),
+        )
+      ).status,
+    ).toBe(422);
+    expect(
+      (
+        await petra.app.request(
+          new Request(`http://petra.local${path}`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(historyCompensationExecutionRequestFixture),
+          }),
+        )
+      ).status,
+    ).toBe(401);
+
+    const unavailable = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryCompensationExecution: {
+        executeProjectHistoryCompensationPlan: () => {
+          throw new ProjectHistoryCompensationExecutionUnavailableError(
+            "The exact plan is stale or altered.",
+          );
+        },
+      },
+    });
+    const stale = await unavailable.app.request(
+      authorizedJson(path, historyCompensationExecutionRequestFixture),
+    );
+    expect(stale.status).toBe(409);
+    const staleBody = (await stale.json()) as { error: { code: string } };
+    expect(staleBody.error.code).toBe(
+      "PROJECT_HISTORY_COMPENSATION_EXECUTION_UNAVAILABLE",
+    );
+  });
+
+  it("returns authenticated retained History pages and rejects unsafe query state", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectHistoryViews: historyReader,
+    });
+    const path = `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?limit=1&family=project_source_replacement&command_name=CreateProjectSourceReplacement&event_type=project_source.replacement_created&actor_id=actor_01ARZ3NDEKTSV4RRFFQ69G5FAV&outcome=completed&effect=source_replacement_created&target_semantic_key=petra.project-source&target_object_id=project_source_01K4C000000000000000000041&recorded_from=2026-09-10T00%3A00%3A00.000Z&recorded_through=2026-09-10T23%3A59%3A59.999Z`;
+    const response = await petra.app.request(authorized(path));
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(historyRetainedFixture);
+
+    const firstPage = historyRetainedFixture.content.page;
+    if (!firstPage.has_more) throw new Error("Expected a retained cursor.");
+    const cursor = firstPage.next_cursor;
+    const continued = await petra.app.request(
+      authorized(`${path}&cursor=${encodeURIComponent(cursor)}`),
+    );
+    expect(continued.status).toBe(200);
+    const continuedBody =
+      (await continued.json()) as PetraProjectHistoryRetainedViewV12;
+    expect(continuedBody.content.query.cursor).toBe(cursor);
+
+    const oldOffset = await petra.app.request(
+      authorized(`${path}&cursor=offset%3A1`),
+    );
+    expect(oldOffset.status).toBe(422);
+    const oldOffsetBody =
+      (await oldOffset.json()) as PetraProjectHistoryRetainedContinuationFailure;
+    expect(oldOffsetBody).toMatchObject({
+      schema_name: "petra.project-history-retained-continuation-failure",
+      schema_version: "1.0.0",
+      error: {
+        code: "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
+        subcode: "CURSOR_INVALID",
+        message: historyContinuationFailureFixture.error.message,
+        restart: historyContinuationFailureFixture.error.restart,
+      },
+    });
+
+    const unboundCursor = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?limit=1&cursor=phc1.eyJ2IjoxLCJwcm9qZWN0Ijoib3BhcXVlIn0.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`,
+      ),
+    );
+    expect(unboundCursor.status).toBe(422);
+
+    const incompleteTarget = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?limit=1&target_semantic_key=petra.change-set`,
+      ),
+    );
+    expect(incompleteTarget.status).toBe(422);
+    const incompleteTargetBody = (await incompleteTarget.json()) as {
+      error: { subcode?: string };
+    };
+    expect(incompleteTargetBody.error.subcode).toBeUndefined();
+    const reversedTime = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?recorded_from=2026-09-11T00%3A00%3A00.000Z&recorded_through=2026-09-10T00%3A00%3A00.000Z`,
+      ),
+    );
+    expect(reversedTime.status).toBe(422);
+    expect(await petra.app.request(path)).toEqual(
+      expect.objectContaining({ status: 401 }),
+    );
+  });
+
+  it("returns stable non-disclosing retained History continuation subcodes", async () => {
+    const page = historyRetainedFixture.content.page;
+    if (!page.has_more) throw new Error("Expected a retained cursor fixture.");
+    const subcodes = [
+      "CURSOR_INVALID",
+      "CURSOR_BINDING_MISMATCH",
+      "SNAPSHOT_UNAVAILABLE",
+    ] as const;
+    for (const subcode of subcodes) {
+      const failingReader: ProjectHistoryViewReader = {
+        ...historyReader,
+        listRetainedProjectHistoryView: () =>
+          Promise.reject(
+            new ProjectHistoryRetainedContinuationError(
+              subcode,
+              `Internal continuation detail for ${subcode}`,
+            ),
+          ),
+      };
+      const petra = createPetraApp({
+        authToken: TOKEN,
+        projectHistoryViews: failingReader,
+      });
+      const response = await petra.app.request(
+        authorized(
+          `/api/queries/projects/${historyRetainedFixture.project_id}/history/events?limit=1&cursor=${encodeURIComponent(page.next_cursor)}`,
+        ),
+      );
+      expect(response.status).toBe(422);
+      const body =
+        (await response.json()) as PetraProjectHistoryRetainedContinuationFailure;
+      expect(body).toMatchObject({
+        schema_name: "petra.project-history-retained-continuation-failure",
+        schema_version: "1.0.0",
+        error: {
+          code: "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
+          subcode,
+          message: historyContinuationFailureFixture.error.message,
+          restart: historyContinuationFailureFixture.error.restart,
+        },
+      });
+      expect(JSON.stringify(body)).not.toContain(
+        "Internal continuation detail",
+      );
+      expect(JSON.stringify(body)).not.toContain(page.next_cursor);
+    }
+  });
+
   it("does not substitute another Project and preserves the API auth boundary", async () => {
     const petra = createPetraApp({
       authToken: TOKEN,
@@ -636,6 +1185,64 @@ describe("authorized Project shell query routes", () => {
       ),
     );
     expect(crossProject.status).toBe(404);
+  });
+
+  it("returns an exact authenticated read-only SuggestedAction preview", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      suggestedActionViews: suggestedActionReader,
+    });
+    const linkId =
+      suggestedActionFixture.content.action.basis.inquiry_result_link_ref
+        .project_inquiry_link_id;
+    const path = `/api/queries/projects/${suggestedActionFixture.project_id}/suggested-actions?inquiry_result_link_id=${linkId}`;
+
+    const unauthorized = await petra.app.request(path);
+    expect(unauthorized.status).toBe(401);
+
+    const response = await petra.app.request(authorized(path));
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as PetraSuggestedActionView;
+    expect(body).toEqual(suggestedActionFixture);
+    expect(body.content.readiness.state).toBe("ready");
+    expect(body.content.operation).toEqual({
+      state: "read_only",
+      work_start: "not_performed",
+      authority_change: "none",
+    });
+    expect(body.content.action.invocation.kind).toBe("authenticated_read");
+    expect(body.content.action_ref.suggested_action_id).toMatch(
+      /^suggested_action_[0-9A-HJKMNP-TV-Z]{26}$/u,
+    );
+
+    const malformed = await petra.app.request(
+      authorized(`${path}&depth=research_deeply`),
+    );
+    expect(malformed.status).toBe(422);
+    const malformedBody = (await malformed.json()) as {
+      error: { code: string };
+    };
+    expect(malformedBody.error.code).toBe("SUGGESTED_ACTION_QUERY_INVALID");
+
+    const missingLink = await petra.app.request(
+      authorized(`/api/queries/projects/${body.project_id}/suggested-actions`),
+    );
+    expect(missingLink.status).toBe(422);
+    const missingLinkBody = (await missingLink.json()) as {
+      error: { code: string };
+    };
+    expect(missingLinkBody.error.code).toBe("SUGGESTED_ACTION_QUERY_INVALID");
+
+    const crossProject = await petra.app.request(
+      authorized(
+        `/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/suggested-actions?inquiry_result_link_id=${linkId}`,
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    const crossProjectBody = (await crossProject.json()) as {
+      error: { code: string };
+    };
+    expect(crossProjectBody.error.code).toBe("SUGGESTED_ACTION_NOT_FOUND");
   });
 
   it("returns bounded Work collection and exact detail without promoting output authority", async () => {

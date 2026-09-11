@@ -1,0 +1,153 @@
+{
+  "schema_name": "petra.suggested-action-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "view_kind": "preview",
+    "action_ref": {
+      "suggested_action_id": "suggested_action_6C5847W4B5HAKQF0KA4FR426J2",
+      "revision": 1,
+      "content_hash": "sha256:8b2ff2dd3b63ee316cf9ed4325af440bef76882c4a7056a6b8b5b48cfb816f40"
+    },
+    "action": {
+      "action_kind": "inspect_existing_inquiry_result",
+      "title": "Inspect existing inquiry result",
+      "objective": {
+        "objective_ref": {
+          "objective_id": "objective_01K4C000000000000000000005",
+          "revision": 1,
+          "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+          "record_hash": "sha256:38d1df70ad42ee22d959cafe6a431f4662dbcf7cc8caf18d8a07dc2077e61b8c"
+        },
+        "semantic_key": "scientific.research-question",
+        "statement": "Determine which claims in the selected source are supported by exact inspectable passages."
+      },
+      "reason": "An exact GroundedResponse already addresses this inquiry. Inspect its recorded basis and limitations before deciding whether new Work is warranted.",
+      "basis": {
+        "derivation": "exact_immutable_inquiry_result_link",
+        "project_definition_ref": {
+          "project_definition_id": "project_definition_01K4C000000000000000000001",
+          "revision": 1,
+          "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+          "record_hash": "sha256:4c87f0cd16f1ec12378220f60a148d65fcae9da2481d609e968e65ea93db7a1c",
+          "definition_family": "petra.scientific-evidence"
+        },
+        "inquiry_result_link_ref": {
+          "project_inquiry_link_id": "project_inquiry_link_01K4F000000000000000000003",
+          "content_hash": "sha256:dba4d871c409e4b89dffece5629ec35dfbbb25e87f19d4942110499c0ef57724",
+          "record_hash": "sha256:19d6bff432decd79ec652892c3807cbe45c91b99871fb0e7c651984c60031690"
+        },
+        "result_ref": {
+          "schema_name": "petra.grounded-response",
+          "schema_version": "1.0.0",
+          "record_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+          "revision": 1,
+          "content_hash": "sha256:a510a2fd1eb89fadcfc9008b4d55f4f0e8983dffef10793e77dbabd0a3256f6d",
+          "record_hash": "sha256:2f63c2e8c7885581bfc1e25fbc894edf46e0861a46bc9e082ce161027f44d696"
+        },
+        "snapshot_ref": {
+          "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+          "snapshot_revision": 1,
+          "event_position": 3,
+          "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "produced_by_work_ref": {
+          "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4,
+          "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+          "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+        }
+      },
+      "scope": {
+        "scope_kind": "exact_existing_result",
+        "included": "Open the exact linked GroundedResponse in the current inquiry context.",
+        "excluded": [
+          "No new retrieval, model call, or durable Work starts.",
+          "No result is promoted to inquiry resolution or scientific authority."
+        ]
+      },
+      "missing_information": [
+        "The linked result addresses the inquiry but is not registered as admissible inquiry basis or an accepted finding."
+      ],
+      "response_depth": {
+        "allowed": ["current_graph"],
+        "recommended": "current_graph",
+        "adjustable": false
+      },
+      "expected_result": {
+        "state": "already_available",
+        "result_kind": "grounded_response",
+        "result_ref": {
+          "schema_name": "petra.grounded-response",
+          "schema_version": "1.0.0",
+          "record_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+          "revision": 1,
+          "content_hash": "sha256:a510a2fd1eb89fadcfc9008b4d55f4f0e8983dffef10793e77dbabd0a3256f6d",
+          "record_hash": "sha256:2f63c2e8c7885581bfc1e25fbc894edf46e0861a46bc9e082ce161027f44d696"
+        },
+        "authority_effect": "none",
+        "reusable": true
+      },
+      "resources": {
+        "duration": "not_required",
+        "cost": "not_required",
+        "basis": "read_only_existing_result"
+      },
+      "capability": {
+        "capability_key": "petra.project-inquiry.read",
+        "grant_status": "satisfied_by_authenticated_project_read",
+        "approval": "not_required"
+      },
+      "interrupt": { "expectation": "none" },
+      "cancellation": { "consequence": "not_applicable_no_work_started" },
+      "background_work": {
+        "state": "completed",
+        "work_unit_ref": {
+          "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 4,
+          "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+          "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+        },
+        "terminal_outcome": "succeeded"
+      },
+      "invocation": {
+        "kind": "authenticated_read",
+        "contract_name": "petra.project-inquiry-view",
+        "contract_version": "1.0.0",
+        "operation": "get_project_inquiry_detail",
+        "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "objective_ref": {
+          "objective_id": "objective_01K4C000000000000000000005",
+          "revision": 1,
+          "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+          "record_hash": "sha256:38d1df70ad42ee22d959cafe6a431f4662dbcf7cc8caf18d8a07dc2077e61b8c"
+        },
+        "place_role": "brief",
+        "task_intent": "inspect",
+        "idempotency": "safe_exact_read"
+      }
+    },
+    "readiness": {
+      "state": "ready",
+      "reason_code": "exact_existing_result_available",
+      "reason": "The exact ProjectDefinition, active objective, immutable inquiry-result link, reusable GroundedResponse, and every declared producing Work revision remain available.",
+      "missing_prerequisites": []
+    },
+    "operation": {
+      "state": "read_only",
+      "work_start": "not_performed",
+      "authority_change": "none"
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 3,
+      "stream_revision": 1
+    },
+    "limitations": [
+      "Version 1.0 derives only exact inspection actions for an existing linked GroundedResponse.",
+      "It does not recommend new Work, calculate cross-action priority, invoke a command, or apply a result."
+    ]
+  },
+  "content_hash": "sha256:571b78d8efaa77b1284f09b3e92f49b9d4270a509bc781502a62a0aa22d76b49",
+  "read_at": "2026-09-11T18:30:00.000Z"
+}

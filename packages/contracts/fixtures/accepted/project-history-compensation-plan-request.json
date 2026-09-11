@@ -1,0 +1,19 @@
+{
+  "schema_name": "petra.project-history-compensation-plan-request",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "preview_ref": {
+    "schema_name": "petra.project-history-compensation-preview-view",
+    "schema_version": "1.0.0",
+    "content_hash": "sha256:b599ace876abf5f6343e4f649f4205b6ca45793da4e62219c4a99522c10518b2",
+    "binding_hash": "sha256:f88b0762d978690923fcc33ad7c2eb23ec3e55acd708fe9487b65561f9978c39",
+    "issued_at": "2026-09-10T18:30:00.000Z",
+    "valid_through": "2026-09-10T18:35:00.000Z"
+  },
+  "confirmation": {
+    "confirmed": true,
+    "reason": "Retract the accepted pair after confirmed review of its exact authority.",
+    "approval_rationale": "The exact promoted pair should leave current trusted authority while every prior revision and dependent record remains retained."
+  }
+}

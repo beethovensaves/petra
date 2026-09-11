@@ -1,5 +1,7 @@
 import {
   PostgresCapabilityGrantCommandAuthorizer,
+  PostgresChangeControlAuthorityRepository,
+  PostgresProjectHistoryCompensationExecutor,
   PostgresProjectSourceLifecycleAuthorityRepository,
   PostgresProjectSourceReplacementCommandAuthorityRepository,
   PostgresSingleUserCommandPrincipalResolver,
@@ -14,8 +16,10 @@ import {
   PostgresProjectSourceViewReader,
   PostgresProjectThreadViewReader,
   PostgresProjectWorkViewReader,
+  PostgresSuggestedActionViewReader,
 } from "@petra/postgres";
 import { Neo4jAuthorityGraphStore } from "@petra/neo4j";
+import { PetraContractRegistry } from "@petra/contracts/validator";
 import neo4j, { type Driver } from "neo4j-driver";
 import pg from "pg";
 
@@ -23,6 +27,7 @@ import type {
   AuthenticatedCommandPrincipalResolver,
   ProjectEffectiveControlsViewReader,
   ProjectHistoryViewReader,
+  ProjectHistoryCompensationExecutionBoundary,
   ProjectInquiryViewReader,
   ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
@@ -34,6 +39,7 @@ import type {
   ProjectSourceViewReader,
   ProjectThreadViewReader,
   ProjectWorkViewReader,
+  SuggestedActionViewReader,
 } from "@petra/core";
 import { parsePetraId } from "@petra/core";
 
@@ -43,6 +49,7 @@ export interface ProjectShellPersistence {
   readonly views: ProjectShellViewReader;
   readonly effectiveControls: ProjectEffectiveControlsViewReader;
   readonly historyViews: ProjectHistoryViewReader;
+  readonly historyCompensationExecution: ProjectHistoryCompensationExecutionBoundary;
   readonly sourceViews: ProjectSourceViewReader;
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly reviewViews: ProjectReviewViewReader;
@@ -51,6 +58,7 @@ export interface ProjectShellPersistence {
   readonly workViews: ProjectWorkViewReader;
   readonly threadViews: ProjectThreadViewReader;
   readonly inquiryViews: ProjectInquiryViewReader;
+  readonly suggestedActionViews: SuggestedActionViewReader;
   readonly commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
   readonly sourceLifecycleAuthority: ProjectSourceLifecycleAuthorityRepository;
   readonly sourceReplacementAuthority: ProjectSourceReplacementCommandAuthorityRepository;
@@ -58,6 +66,8 @@ export interface ProjectShellPersistence {
 }
 
 export interface ProjectShellPersistenceEnvironment {
+  readonly PETRA_AUTH_TOKEN?: string;
+  readonly PETRA_HISTORY_CURSOR_SECRET?: string;
   readonly PETRA_POSTGRES_HOST?: string;
   readonly PETRA_POSTGRES_HOST_PORT?: string;
   readonly PETRA_POSTGRES_USER?: string;
@@ -71,6 +81,16 @@ export interface ProjectShellPersistenceEnvironment {
   readonly PETRA_NEO4J_PASSWORD?: string;
   readonly PETRA_NEO4J_DATABASE?: string;
 }
+
+const historyCursorSecret = (
+  environment: ProjectShellPersistenceEnvironment,
+): string => {
+  const explicit = environment.PETRA_HISTORY_CURSOR_SECRET?.trim();
+  if (explicit !== undefined && explicit !== "") return explicit;
+  const authenticationToken =
+    environment.PETRA_AUTH_TOKEN?.trim() || "petra-local-development";
+  return `petra-history-cursor-v2:${authenticationToken}`;
+};
 
 export class ProjectShellPersistenceConfigurationError extends Error {
   constructor(message: string) {
@@ -150,6 +170,31 @@ export const createProjectShellPersistenceFromEnvironment = async (
     application_name: "petra-project-shell",
     max: 5,
   });
+  const contracts = new PetraContractRegistry();
+  const historyViews = new PostgresProjectHistoryViewReader(pool, contracts, {
+    cursorSecret: historyCursorSecret(environment),
+    ...(configuredActorId === undefined || configuredActorId === ""
+      ? {}
+      : {
+          recoveryPrincipal: {
+            actor_id: configuredActorId,
+            actor_kind: "human" as const,
+          },
+        }),
+  });
+  const changeControlAuthority = new PostgresChangeControlAuthorityRepository(
+    pool,
+    new PostgresCapabilityGrantCommandAuthorizer(),
+    undefined,
+    contracts,
+  );
+  const historyCompensationExecution =
+    new PostgresProjectHistoryCompensationExecutor(
+      pool,
+      historyViews,
+      changeControlAuthority,
+      contracts,
+    );
   let driver: Driver | undefined;
   let closePromise: Promise<void> | undefined;
   const close = (): Promise<void> => {
@@ -199,7 +244,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
       return {
         views: new PostgresProjectShellViewReader(pool),
         effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
-        historyViews: new PostgresProjectHistoryViewReader(pool),
+        historyViews,
+        historyCompensationExecution,
         sourceViews: new PostgresProjectSourceViewReader(pool),
         sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(
           pool,
@@ -209,6 +255,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         workViews: new PostgresProjectWorkViewReader(pool),
         threadViews: new PostgresProjectThreadViewReader(pool),
         inquiryViews: new PostgresProjectInquiryViewReader(pool),
+        suggestedActionViews: new PostgresSuggestedActionViewReader(pool),
         ...(configuredActorId === undefined || configuredActorId === ""
           ? {}
           : {
@@ -248,7 +295,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
   return {
     views: new PostgresProjectShellViewReader(pool),
     effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
-    historyViews: new PostgresProjectHistoryViewReader(pool),
+    historyViews,
+    historyCompensationExecution,
     sourceViews: new PostgresProjectSourceViewReader(pool),
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),
@@ -256,6 +304,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     workViews: new PostgresProjectWorkViewReader(pool),
     threadViews: new PostgresProjectThreadViewReader(pool),
     inquiryViews: new PostgresProjectInquiryViewReader(pool),
+    suggestedActionViews: new PostgresSuggestedActionViewReader(pool),
     ...(configuredActorId === undefined || configuredActorId === ""
       ? {}
       : {

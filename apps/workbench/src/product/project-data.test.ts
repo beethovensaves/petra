@@ -4,8 +4,15 @@ import type {
   PetraProject,
   PetraProjectDefinition,
   PetraProjectEffectiveControlsView,
+  PetraProjectHistoryCompensationExecutionView,
+  PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryView,
-  PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryEpisodeViewV12,
+  PetraProjectHistoryCompensationPreviewView,
+  PetraProjectHistoryImpactViewV14,
+  PetraProjectHistoryRecoveryAssessmentView,
+  PetraProjectHistoryRetainedContinuationFailure,
+  PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
@@ -13,6 +20,7 @@ import type {
   PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectShellViewV11,
+  PetraSuggestedActionView,
   PetraProjectSource,
   PetraProjectSourceLifecycleReceipt,
   PetraProjectSourceReplacement,
@@ -26,12 +34,20 @@ import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  composeProjectHistoryCompensationPlan,
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
+  executeProjectHistoryCompensationPlan,
   getRecentProjectHistory,
+  getProjectSuggestedAction,
   getProjectHistoryEpisode,
+  getProjectHistoryCompensationPreview,
+  getProjectHistoryImpact,
+  getProjectHistoryRecoveryAssessment,
+  getRetainedProjectHistory,
   graphQuestionFromView,
   loadProjectObjectLocationRedirect,
+  loadProjectBrief,
   loadProjectPetraThread,
   loadProjectRecord,
   loadProjectSettings,
@@ -190,12 +206,82 @@ const historyView = JSON.parse(
 const historyEpisodeView = JSON.parse(
   readFileSync(
     new URL(
-      "../../../../packages/contracts/fixtures/accepted/project-history-episode-view.json",
+      "../../../../packages/contracts/fixtures/accepted/project-history-episode-view-v1-2.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryEpisodeView;
+) as PetraProjectHistoryEpisodeViewV12;
+
+const historyRetainedView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-retained-view-v1-2.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRetainedViewV12;
+
+const historyContinuationFailure = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-retained-continuation-failure.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRetainedContinuationFailure;
+
+const historyImpactView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-4.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryImpactViewV14;
+
+const historyRecoveryView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-recovery-assessment-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRecoveryAssessmentView;
+
+const historyCompensationPreviewView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-compensation-preview-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationPreviewView;
+
+const historyCompensationPlanView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-compensation-plan-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationPlanView;
+
+const historyCompensationExecutionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-compensation-execution-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryCompensationExecutionView;
 
 const reviewView = JSON.parse(
   readFileSync(
@@ -266,6 +352,16 @@ const inquiryDetailView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectInquiryView;
+
+const suggestedActionView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/suggested-action-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraSuggestedActionView;
 
 const threadCollectionView = JSON.parse(
   readFileSync(
@@ -533,6 +629,198 @@ describe("Project shell workbench adapter", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it("reads one exact server-owned SuggestedAction without client authority", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(suggestedActionView));
+    vi.stubGlobal("fetch", fetch);
+    const linkId =
+      suggestedActionView.content.action.basis.inquiry_result_link_ref
+        .project_inquiry_link_id;
+
+    const result = await getProjectSuggestedAction(
+      suggestedActionView.project_id,
+      linkId,
+    );
+
+    expect(result).toEqual(suggestedActionView);
+    expect(result.content.readiness.state).toBe("ready");
+    expect(result.content.operation).toEqual({
+      state: "read_only",
+      work_start: "not_performed",
+      authority_change: "none",
+    });
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${suggestedActionView.project_id}/suggested-actions?inquiry_result_link_id=${linkId}`,
+    );
+    const headers = new Headers(fetch.mock.calls[0]?.[1]?.headers);
+    expect(headers.get("authorization")).toBe("Bearer petra-local-development");
+
+    const substituted = structuredClone(suggestedActionView);
+    substituted.content.action.invocation.objective_ref.objective_id =
+      "objective_01K4C000000000000000000099";
+    fetch.mockResolvedValueOnce(Response.json(substituted));
+    await expect(
+      getProjectSuggestedAction(suggestedActionView.project_id, linkId),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("uses the SuggestedAction's typed invocation for exact inquiry detail", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      return Promise.resolve(
+        Response.json(
+          path.includes("/suggested-actions?")
+            ? suggestedActionView
+            : inquiryDetailView,
+        ),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const linkId =
+      suggestedActionView.content.action.basis.inquiry_result_link_ref
+        .project_inquiry_link_id;
+    const operation = suggestedActionView.content.action.invocation.operation;
+    const url = new URL(
+      `http://petra.test/projects/${suggestedActionView.project_id}/brief?inquiry_result_link_id=${linkId}&invoke=${operation}`,
+    );
+
+    const result = await loadProjectBrief({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/brief",
+      params: { projectId: suggestedActionView.project_id },
+      context: new RouterContextProvider(),
+    });
+
+    expect(result.suggestedAction).toEqual(suggestedActionView);
+    expect(result.invokedInquiry).toEqual(inquiryDetailView);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch.mock.calls.map(([path]) => path)).toEqual([
+      `/api/queries/projects/${suggestedActionView.project_id}/suggested-actions?inquiry_result_link_id=${linkId}`,
+      `/api/queries/projects/${suggestedActionView.project_id}/inquiries/${suggestedActionView.content.action.invocation.objective_ref.objective_id}`,
+    ]);
+  });
+
+  it("does not invoke a stale SuggestedAction or start substitute Work", async () => {
+    const stale = structuredClone(suggestedActionView);
+    stale.content.readiness = {
+      state: "stale",
+      reason_code: "result_invalidated",
+      reason:
+        "The exact GroundedResponse is no longer reusable under current authority.",
+      missing_prerequisites: [
+        "Regenerate a SuggestedAction from a current reusable result.",
+      ],
+    };
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(stale));
+    vi.stubGlobal("fetch", fetch);
+    const linkId =
+      stale.content.action.basis.inquiry_result_link_ref
+        .project_inquiry_link_id;
+    const url = new URL(
+      `http://petra.test/projects/${stale.project_id}/brief?inquiry_result_link_id=${linkId}&invoke=get_project_inquiry_detail`,
+    );
+
+    await expect(
+      loadProjectBrief({
+        request: new Request(url),
+        url,
+        pattern: "/projects/:projectId/brief",
+        params: { projectId: stale.project_id },
+        context: new RouterContextProvider(),
+      }),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch.mock.calls[0]?.[0]).toContain("/suggested-actions?");
+  });
+
+  it("discovers one exact current-focus action without deriving priority", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      return Promise.resolve(
+        Response.json(
+          path.endsWith("/shell")
+            ? view
+            : path.includes("/inquiries/")
+              ? inquiryDetailView
+              : suggestedActionView,
+        ),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.test/projects/${suggestedActionView.project_id}/brief`,
+    );
+
+    const result = await loadProjectBrief({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/brief",
+      params: { projectId: suggestedActionView.project_id },
+      context: new RouterContextProvider(),
+    });
+
+    expect(result).toEqual({ suggestedAction: suggestedActionView });
+    expect(fetch.mock.calls.map(([path]) => path)).toEqual([
+      `/api/queries/projects/${suggestedActionView.project_id}/shell`,
+      `/api/queries/projects/${suggestedActionView.project_id}/inquiries/${suggestedActionView.content.action.invocation.objective_ref.objective_id}`,
+      `/api/queries/projects/${suggestedActionView.project_id}/suggested-actions?inquiry_result_link_id=${suggestedActionView.content.action.basis.inquiry_result_link_ref.project_inquiry_link_id}`,
+    ]);
+
+    const earlyShell = structuredClone(view);
+    delete earlyShell.content.current_objective;
+    fetch.mockResolvedValueOnce(Response.json(earlyShell));
+    await expect(
+      loadProjectBrief({
+        request: new Request(url),
+        url,
+        pattern: "/projects/:projectId/brief",
+        params: { projectId: suggestedActionView.project_id },
+        context: new RouterContextProvider(),
+      }),
+    ).resolves.toEqual({});
+
+    const multipleResults = structuredClone(inquiryDetailView);
+    if (multipleResults.content.view_kind !== "detail") {
+      throw new Error("Expected exact inquiry detail.");
+    }
+    const secondResult = structuredClone(
+      multipleResults.content.result_links[0],
+    );
+    if (secondResult === undefined) {
+      throw new Error("Expected one exact inquiry result link.");
+    }
+    secondResult.link_ref.project_inquiry_link_id =
+      "project_inquiry_link_01K4F000000000000000000099";
+    multipleResults.content.result_links.push(secondResult);
+    multipleResults.content.summary.linked_result_count = 2;
+    fetch
+      .mockResolvedValueOnce(Response.json(view))
+      .mockResolvedValueOnce(Response.json(multipleResults));
+    await expect(
+      loadProjectBrief({
+        request: new Request(url),
+        url,
+        pattern: "/projects/:projectId/brief",
+        params: { projectId: suggestedActionView.project_id },
+        context: new RouterContextProvider(),
+      }),
+    ).resolves.toEqual({});
+  });
+
   it("reads the bounded causal Recent changes contract without mixing graph history", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
@@ -592,6 +880,586 @@ describe("Project shell workbench adapter", () => {
         historyEpisodeView.event_id,
       ),
     ).rejects.toMatchObject({ status: 502 });
+
+    const noAuthority = structuredClone(historyEpisodeView);
+    noAuthority.content.project_definition_authority = {
+      state: "unavailable",
+      reason_code: "retained_project_definition_authority_not_available",
+      reason:
+        "No exact retained ProjectDefinition authority binding is available for this selected event.",
+      historical_destination_interpretation: "not_performed",
+    };
+    fetch.mockResolvedValueOnce(Response.json(noAuthority));
+    await expect(
+      getProjectHistoryEpisode(
+        historyEpisodeView.project_id,
+        historyEpisodeView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const substitutedDefinition = structuredClone(historyEpisodeView);
+    if (
+      substitutedDefinition.content.historical_semantic_destination.state !==
+      "available"
+    ) {
+      throw new Error("Expected the available destination fixture.");
+    }
+    substitutedDefinition.content.historical_semantic_destination.project_definition_ref.revision += 1;
+    fetch.mockResolvedValueOnce(Response.json(substitutedDefinition));
+    await expect(
+      getProjectHistoryEpisode(
+        historyEpisodeView.project_id,
+        historyEpisodeView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const wrongRouteEvent = structuredClone(historyEpisodeView);
+    if (
+      wrongRouteEvent.content.historical_semantic_destination.state !==
+      "available"
+    ) {
+      throw new Error("Expected the available destination fixture.");
+    }
+    wrongRouteEvent.content.historical_semantic_destination.route_authority.event_ref.event_id =
+      "event_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongRouteEvent));
+    await expect(
+      getProjectHistoryEpisode(
+        historyEpisodeView.project_id,
+        historyEpisodeView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const lateBinding = structuredClone(historyEpisodeView);
+    if (
+      lateBinding.content.project_definition_authority.state !== "available"
+    ) {
+      throw new Error("Expected the available definition fixture.");
+    }
+    lateBinding.content.project_definition_authority.effective_after_stream_revision =
+      historyEpisodeView.content.change.event_ref.stream_revision;
+    fetch.mockResolvedValueOnce(Response.json(lateBinding));
+    await expect(
+      getProjectHistoryEpisode(
+        historyEpisodeView.project_id,
+        historyEpisodeView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("reads bounded semantic and operational impact without inferring effects or reversibility", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyImpactView));
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await getProjectHistoryImpact(
+      historyImpactView.project_id,
+      historyImpactView.event_id,
+    );
+
+    expect(result).toEqual(historyImpactView);
+    expect(result.content.impact.summary.registered_group_count).toBe(4);
+    expect(result.content.semantic_target_impact).toMatchObject({
+      target_limit: 10,
+      per_adapter_ref_limit: 25,
+      target_total_count: 1,
+      target_returned_count: 1,
+      target_coverage: "complete",
+      summary: {
+        registered_adapter_count: 9,
+        supported_target_count: 1,
+        total_count: 4,
+      },
+    });
+    expect(result.content.operational_dependency_impact).toMatchObject({
+      target_limit: 10,
+      per_adapter_ref_limit: 25,
+      target_total_count: 1,
+      target_returned_count: 1,
+      target_coverage: "complete",
+      summary: {
+        registered_adapter_count: 3,
+        supported_target_count: 1,
+        total_count: 3,
+      },
+    });
+    const destinationAssessment =
+      result.content.operational_dependency_impact.target_assessments[0];
+    if (destinationAssessment?.adapter_state !== "registered") {
+      throw new Error("Expected a registered operational assessment.");
+    }
+    expect(destinationAssessment.groups[0].refs[0]?.destination).toMatchObject({
+      state: "available",
+      place_role: "work",
+      task_intent: "inspect",
+      route_authority: {
+        schema_name: "petra.project-work-view",
+        schema_version: "1.0.0",
+        view_kind: "detail",
+      },
+    });
+    expect(destinationAssessment.groups[1].refs[0]?.destination).toEqual({
+      state: "unavailable",
+      reason_code: "worker_output_manifest_route_not_registered",
+      reason:
+        "No exact Project-owned WorkerOutputManifest destination is registered.",
+    });
+    expect(destinationAssessment.groups[2].refs[0]?.destination).toEqual({
+      state: "unavailable",
+      reason_code: "interaction_replay_record_route_not_registered",
+      reason:
+        "No exact Project-owned InteractionReplayRecord destination is registered; replay is not a ProjectThread binding.",
+    });
+    expect(result.content.decision_boundary).toEqual({
+      reversibility: "not_assessed",
+      compensation: "not_composed",
+      dependent_effect: "not_inferred_from_reference",
+    });
+    expect(result.content.omissions).toContain(
+      "transitive_dependency_closure_not_composed",
+    );
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${historyImpactView.project_id}/history/events/${historyImpactView.event_id}/impact`,
+    );
+
+    const wrongEvent = structuredClone(historyImpactView);
+    wrongEvent.content.selected_event.event_ref.event_id =
+      "event_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongEvent));
+    await expect(
+      getProjectHistoryImpact(
+        historyImpactView.project_id,
+        historyImpactView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const wrongTarget = structuredClone(historyImpactView);
+    wrongTarget.content.semantic_target_impact.target_assessments[0].target_ref.object_id =
+      "change_set_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongTarget));
+    await expect(
+      getProjectHistoryImpact(
+        historyImpactView.project_id,
+        historyImpactView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const collapsedReplacementState = structuredClone(historyImpactView);
+    const effectiveGroup =
+      collapsedReplacementState.content.semantic_target_impact
+        .target_assessments[0].groups[3];
+    if (effectiveGroup === undefined) {
+      throw new Error("Expected the ProjectSource effective-head group.");
+    }
+    effectiveGroup.authority_source =
+      "immutable_project_source_replacement_bindings";
+    fetch.mockResolvedValueOnce(Response.json(collapsedReplacementState));
+    await expect(
+      getProjectHistoryImpact(
+        historyImpactView.project_id,
+        historyImpactView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const reboundOperationalTarget = structuredClone(historyImpactView);
+    const operationalAssessment =
+      reboundOperationalTarget.content.operational_dependency_impact
+        .target_assessments[0];
+    if (operationalAssessment?.adapter_state !== "registered") {
+      throw new Error("Expected a registered operational assessment.");
+    }
+    operationalAssessment.groups[1].refs[0]!.input_binding_ref.snapshot_hash =
+      "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+    fetch.mockResolvedValueOnce(Response.json(reboundOperationalTarget));
+    await expect(
+      getProjectHistoryImpact(
+        historyImpactView.project_id,
+        historyImpactView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const fabricatedReplayDestination = structuredClone(historyImpactView);
+    const fabricatedAssessment =
+      fabricatedReplayDestination.content.operational_dependency_impact
+        .target_assessments[0];
+    if (fabricatedAssessment?.adapter_state !== "registered") {
+      throw new Error("Expected a registered operational assessment.");
+    }
+    const replayDestination =
+      fabricatedAssessment.groups[2].refs[0]?.destination;
+    if (replayDestination === undefined) {
+      throw new Error("Expected an interaction replay destination state.");
+    }
+    Object.assign(replayDestination, { state: "available" });
+    fetch.mockResolvedValueOnce(Response.json(fabricatedReplayDestination));
+    await expect(
+      getProjectHistoryImpact(
+        historyImpactView.project_id,
+        historyImpactView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("reads an exact recovery assessment without composing compensation", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyRecoveryView));
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await getProjectHistoryRecoveryAssessment(
+      historyRecoveryView.project_id,
+      historyRecoveryView.event_id,
+    );
+
+    expect(result).toEqual(historyRecoveryView);
+    expect(result.content.assessment.state).toBe("eligible_for_preview");
+    expect(result.content.decision_boundary.compensation_preview).toBe(
+      "not_composed",
+    );
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${historyRecoveryView.project_id}/history/events/${historyRecoveryView.event_id}/recovery`,
+    );
+
+    const wrongEvent = structuredClone(historyRecoveryView);
+    wrongEvent.content.causal_impact_basis.source_event_id =
+      "event_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongEvent));
+    await expect(
+      getProjectHistoryRecoveryAssessment(
+        historyRecoveryView.project_id,
+        historyRecoveryView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const reorderedCommands = structuredClone(historyRecoveryView);
+    reorderedCommands.content.command_authority.required_commands.reverse();
+    fetch.mockResolvedValueOnce(Response.json(reorderedCommands));
+    await expect(
+      getProjectHistoryRecoveryAssessment(
+        historyRecoveryView.project_id,
+        historyRecoveryView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("reads a revision-bound preview without treating it as execution authority", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyCompensationPreviewView));
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await getProjectHistoryCompensationPreview(
+      historyCompensationPreviewView.project_id,
+      historyCompensationPreviewView.event_id,
+    );
+
+    expect(result).toEqual(historyCompensationPreviewView);
+    expect(
+      result.content.operation_preview.map(
+        ({ operation_kind }) => operation_kind,
+      ),
+    ).toEqual(["retract_claim", "retract_assertion"]);
+    expect(result.content.decision_boundary).toMatchObject({
+      preview: "read_only",
+      change_set: "not_created",
+      approval: "not_recorded",
+      commands: "not_composed_or_executed",
+    });
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${historyCompensationPreviewView.project_id}/history/events/${historyCompensationPreviewView.event_id}/recovery/preview`,
+    );
+
+    const staleShape = structuredClone(historyCompensationPreviewView);
+    staleShape.content.result_preview[0].resulting_revision =
+      staleShape.content.result_preview[0].prior_revision;
+    fetch.mockResolvedValueOnce(Response.json(staleShape));
+    await expect(
+      getProjectHistoryCompensationPreview(
+        historyCompensationPreviewView.project_id,
+        historyCompensationPreviewView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const wrongEvent = structuredClone(historyCompensationPreviewView);
+    wrongEvent.content.assessment_ref.event_id =
+      "event_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    fetch.mockResolvedValueOnce(Response.json(wrongEvent));
+    await expect(
+      getProjectHistoryCompensationPreview(
+        historyCompensationPreviewView.project_id,
+        historyCompensationPreviewView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("requests a confirmed command plan without client-supplied authority or execution", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyCompensationPlanView));
+    vi.stubGlobal("fetch", fetch);
+    const input = {
+      projectId: historyCompensationPreviewView.project_id,
+      eventId: historyCompensationPreviewView.event_id,
+      preview: historyCompensationPreviewView,
+      reason:
+        "Retract the accepted pair after confirmed review of its exact authority.",
+      approvalRationale:
+        "The exact promoted pair should leave current trusted authority while every prior revision and dependent record remains retained.",
+      explicitConfirmation: true as const,
+    };
+
+    const result = await composeProjectHistoryCompensationPlan(input);
+    expect(result).toEqual(historyCompensationPlanView);
+    expect(result.content.persistence).toEqual({
+      change_set: "not_persisted",
+      approval: "not_persisted",
+      commands: "not_persisted",
+    });
+    expect(result.content.execution).toMatchObject({
+      state: "not_performed",
+      requires_separate_request: true,
+      authority_recheck: "required_at_each_command",
+    });
+    const requestBody = fetch.mock.calls[0]?.[1]?.body;
+    if (typeof requestBody !== "string") {
+      throw new Error("Expected a JSON compensation-plan request body.");
+    }
+    const request = JSON.parse(requestBody) as Record<string, unknown>;
+    expect(request).toHaveProperty("preview_ref");
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capability_grant_id");
+    expect(request).not.toHaveProperty("execute");
+
+    const wrongReason = structuredClone(historyCompensationPlanView);
+    wrongReason.content.change_set.content.reason = "another reason";
+    fetch.mockResolvedValueOnce(Response.json(wrongReason));
+    await expect(
+      composeProjectHistoryCompensationPlan(input),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("submits the exact composed plan and preserves per-command execution recovery", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyCompensationExecutionView));
+    vi.stubGlobal("fetch", fetch);
+    const input = {
+      projectId: historyCompensationPlanView.project_id,
+      eventId: historyCompensationPlanView.event_id,
+      plan: historyCompensationPlanView,
+      explicitExecutionConfirmation: true as const,
+    };
+
+    const result = await executeProjectHistoryCompensationPlan(input);
+    expect(result).toEqual(historyCompensationExecutionView);
+    expect(result.content.atomicity).toBe(
+      "per_command_transaction_not_three_command_atomic",
+    );
+    expect(result.content.steps.map(({ state }) => state)).toEqual([
+      "retained_success",
+      "retained_success",
+      "retained_success",
+    ]);
+    const requestBody = fetch.mock.calls[0]?.[1]?.body;
+    if (typeof requestBody !== "string") {
+      throw new Error("Expected a JSON compensation-execution request body.");
+    }
+    const request = JSON.parse(requestBody) as {
+      plan: PetraProjectHistoryCompensationPlanView;
+      execution_confirmation: Record<string, unknown>;
+    };
+    expect(request.plan).toEqual(historyCompensationPlanView);
+    expect(request.execution_confirmation).toEqual({
+      confirmed: true,
+      acknowledged_atomicity:
+        "per_command_transaction_not_three_command_atomic",
+    });
+
+    const falseAtomicity = structuredClone(historyCompensationExecutionView);
+    (falseAtomicity.content as { atomicity: string }).atomicity =
+      "three_command_atomic";
+    fetch.mockResolvedValueOnce(Response.json(falseAtomicity));
+    await expect(
+      executeProjectHistoryCompensationPlan(input),
+    ).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("reads retained History pages without interpreting the opaque cursor", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(historyRetainedView));
+    vi.stubGlobal("fetch", fetch);
+
+    const first = await getRetainedProjectHistory(
+      historyRetainedView.project_id,
+      { limit: 1, filters: historyRetainedView.content.query.filters },
+    );
+
+    expect(first).toEqual(historyRetainedView);
+    expect(first.content.order_kind).toBe("project_stream_newest_first");
+    expect(first.content.recovery_authority).toBe("current_at_page_read");
+    expect(first.content.cursor_binding).toBe(
+      "project_snapshot_and_complete_query",
+    );
+    expect(first.content.graph_navigation_history).toBe(
+      "client_local_separate",
+    );
+    expect(first.content.filter_options).toMatchObject({
+      authorization_scope: "authenticated_project",
+      snapshot_and_query_binding:
+        "retention_snapshot_and_complete_normalized_query",
+      dimension_semantics: "replace_same_dimension_preserve_other_filters",
+      actor_catalogue: {
+        total_count: 1,
+        coverage: "complete",
+      },
+      target_catalogue: {
+        total_count: 2,
+        coverage: "complete",
+      },
+    });
+    expect(
+      first.content.filter_options.actor_catalogue.options[0]
+        ?.display_descriptor,
+    ).toEqual(
+      expect.objectContaining({
+        state: "available",
+        display_name: "Researcher",
+      }),
+    );
+    expect(
+      first.content.filter_options.target_catalogue.options.every(
+        ({ display_descriptor }) =>
+          display_descriptor.state === "exact_identity_only",
+      ),
+    ).toBe(true);
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${historyRetainedView.project_id}/history/events?limit=1&family=project_source_replacement&command_name=CreateProjectSourceReplacement&event_type=project_source.replacement_created&actor_id=actor_01ARZ3NDEKTSV4RRFFQ69G5FAV&outcome=completed&effect=source_replacement_created&target_semantic_key=petra.project-source&target_object_id=project_source_01K4C000000000000000000041&recorded_from=2026-09-10T00%3A00%3A00.000Z&recorded_through=2026-09-10T23%3A59%3A59.999Z`,
+    );
+
+    const firstPage = first.content.page;
+    if (!firstPage.has_more) throw new Error("Expected an opaque cursor.");
+    const continued = structuredClone(historyRetainedView);
+    continued.content.query.cursor = firstPage.next_cursor;
+    fetch.mockResolvedValueOnce(Response.json(continued));
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        limit: 1,
+        cursor: firstPage.next_cursor,
+        filters: historyRetainedView.content.query.filters,
+      }),
+    ).resolves.toEqual(continued);
+    expect(fetch.mock.calls[1]?.[0]).toBe(
+      `/api/queries/projects/${historyRetainedView.project_id}/history/events?limit=1&cursor=${encodeURIComponent(firstPage.next_cursor)}&family=project_source_replacement&command_name=CreateProjectSourceReplacement&event_type=project_source.replacement_created&actor_id=actor_01ARZ3NDEKTSV4RRFFQ69G5FAV&outcome=completed&effect=source_replacement_created&target_semantic_key=petra.project-source&target_object_id=project_source_01K4C000000000000000000041&recorded_from=2026-09-10T00%3A00%3A00.000Z&recorded_through=2026-09-10T23%3A59%3A59.999Z`,
+    );
+
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, { limit: 101 }),
+    ).rejects.toMatchObject({ status: 400 });
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        limit: 1,
+        cursor:
+          "phc1.eyJ2IjoxLCJwcm9qZWN0Ijoib3BhcXVlIn0.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        filters: {
+          recorded_at: {
+            from_inclusive: "2026-09-11T00:00:00.000Z",
+            through_inclusive: "2026-09-10T00:00:00.000Z",
+          },
+        },
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+
+    const mismatched = structuredClone(historyRetainedView);
+    mismatched.content.query.filters.family = "change_control";
+    fetch.mockResolvedValueOnce(Response.json(mismatched));
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        limit: 1,
+        filters: historyRetainedView.content.query.filters,
+      }),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const inferredTargetTitle = structuredClone(historyRetainedView);
+    (
+      inferredTargetTitle.content.filter_options.target_catalogue
+        .options[0] as {
+        display_descriptor: unknown;
+      }
+    ).display_descriptor = {
+      state: "available",
+      title: "A title inferred from a current object",
+    };
+    fetch.mockResolvedValueOnce(Response.json(inferredTargetTitle));
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        limit: 1,
+        filters: historyRetainedView.content.query.filters,
+      }),
+    ).rejects.toMatchObject({ status: 502 });
+    expect(fetch).toHaveBeenCalledTimes(4);
+  });
+
+  it("preserves only validated retained History continuation failure subcodes", async () => {
+    const page = historyRetainedView.content.page;
+    if (!page.has_more) throw new Error("Expected an opaque cursor fixture.");
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", fetch);
+
+    for (const subcode of [
+      "CURSOR_INVALID",
+      "CURSOR_BINDING_MISMATCH",
+      "SNAPSHOT_UNAVAILABLE",
+    ] as const) {
+      const failure = structuredClone(historyContinuationFailure);
+      failure.error.subcode = subcode;
+      fetch.mockResolvedValueOnce(Response.json(failure, { status: 422 }));
+      await expect(
+        getRetainedProjectHistory(historyRetainedView.project_id, {
+          limit: 1,
+          cursor: page.next_cursor,
+          filters: historyRetainedView.content.query.filters,
+        }),
+      ).rejects.toMatchObject({
+        name: "ProjectDataError",
+        status: 422,
+        code: "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
+        subcode,
+        message: historyContinuationFailure.error.message,
+        restart: historyContinuationFailure.error.restart,
+      });
+    }
+
+    const disclosingFailure = {
+      ...structuredClone(historyContinuationFailure),
+      error: {
+        ...structuredClone(historyContinuationFailure.error),
+        subcode: "PROJECT_MISMATCH",
+        message: "The cursor belongs to another exact Project.",
+      },
+    };
+    fetch.mockResolvedValueOnce(
+      Response.json(disclosingFailure, { status: 422 }),
+    );
+    await expect(
+      getRetainedProjectHistory(historyRetainedView.project_id, {
+        limit: 1,
+        cursor: page.next_cursor,
+        filters: historyRetainedView.content.query.filters,
+      }),
+    ).rejects.toMatchObject({
+      name: "ProjectDataError",
+      status: 422,
+      code: undefined,
+      subcode: undefined,
+      message: historyContinuationFailure.error.message,
+      restart: undefined,
+    });
   });
 
   it("maps one exact ProjectSource authority chain into the frozen source surfaces", () => {

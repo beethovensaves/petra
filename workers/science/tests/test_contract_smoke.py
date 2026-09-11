@@ -619,6 +619,2969 @@ class PetraProjectHistoryEpisodeView(PetraModel):
     read_at: str
 
 
+class ProjectHistoryDefinitionRefV110(PetraModel):
+    schema_name: Literal["petra.project-definition"]
+    schema_version: Literal["1.0.0"]
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+
+
+class ProjectHistoryAvailableDefinitionAuthorityV110(PetraModel):
+    state: Literal["available"]
+    authority_source: Literal["immutable_project_definition_event_stream_binding"]
+    selection_basis: Literal["latest_retained_binding_effective_before_selected_event"]
+    effective_after_stream_revision: int
+    project_definition_ref: ProjectHistoryDefinitionRefV110
+    historical_destination_interpretation: Literal["not_performed"]
+
+
+class ProjectHistoryUnavailableDefinitionAuthorityV110(PetraModel):
+    state: Literal["unavailable"]
+    reason_code: Literal["retained_project_definition_authority_not_available"]
+    reason: Literal[
+        "No exact retained ProjectDefinition authority binding is available "
+        "for this selected event."
+    ]
+    historical_destination_interpretation: Literal["not_performed"]
+
+
+class ProjectHistoryEpisodeContentV110(PetraModel):
+    view_kind: Literal["causal_episode"]
+    change: ProjectHistoryRecentChange
+    causality: ProjectHistoryCausality
+    stream_order: ProjectHistoryStreamOrder
+    receipt_ref: ProjectHistoryReceiptRef | None = None
+    project_definition_authority: (
+        ProjectHistoryAvailableDefinitionAuthorityV110
+        | ProjectHistoryUnavailableDefinitionAuthorityV110
+    )
+    omissions: list[
+        Literal[
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    authority: ProjectHistoryAuthorityPosition
+    graph_navigation_history: Literal["client_local_separate"]
+
+
+class PetraProjectHistoryEpisodeViewV110(PetraModel):
+    schema_name: Literal["petra.project-history-episode-view"]
+    schema_version: Literal["1.1.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryEpisodeContentV110
+    content_hash: str
+    read_at: str
+
+
+class ProjectHistoryAvailableDefinitionAuthorityV120(PetraModel):
+    state: Literal["available"]
+    authority_source: Literal["immutable_project_definition_event_stream_binding"]
+    selection_basis: Literal["latest_retained_binding_effective_before_selected_event"]
+    effective_after_stream_revision: int = Field(ge=0)
+    project_definition_ref: ProjectHistoryDefinitionRefV110
+    historical_destination_interpretation: Literal[
+        "performed_for_selected_event_target"
+    ]
+
+
+class ProjectHistoryEpisodeRouteAuthorityV120(PetraModel):
+    schema_name: Literal["petra.project-history-episode-view"]
+    schema_version: Literal["1.2.0"]
+    view_kind: Literal["causal_episode"]
+    event_ref: ProjectHistoryEventRef
+    authority_source: Literal[
+        "selected_project_event_and_exact_retained_project_definition"
+    ]
+
+
+class ProjectHistoryAvailableHistoricalDestinationV120(PetraModel):
+    state: Literal["available"]
+    target_ref: ProjectHistoryTargetRef
+    place_role: Literal["history"]
+    task_intent: Literal["view_history"]
+    route_authority: ProjectHistoryEpisodeRouteAuthorityV120
+    project_definition_ref: ProjectHistoryDefinitionRefV110
+    interpretation_basis: Literal[
+        "exact_retained_project_definition_and_registered_history_target"
+    ]
+
+
+class ProjectHistoryNoAuthorityHistoricalDestinationV120(PetraModel):
+    state: Literal["unavailable"]
+    target_ref: ProjectHistoryTargetRef
+    reason_code: Literal["retained_project_definition_authority_not_available"]
+    reason: Literal[
+        "No historical semantic destination is available because exact retained "
+        "ProjectDefinition authority is unavailable for this selected event."
+    ]
+    interpretation_status: Literal["not_performed"]
+
+
+class ProjectHistoryUnsupportedPlaceHistoricalDestinationV120(PetraModel):
+    state: Literal["unavailable"]
+    target_ref: ProjectHistoryTargetRef
+    reason_code: Literal["retained_project_definition_history_place_not_supported"]
+    reason: Literal[
+        "The exact retained ProjectDefinition does not authorize the History "
+        "place for this selected event."
+    ]
+    interpretation_status: Literal["performed"]
+    project_definition_ref: ProjectHistoryDefinitionRefV110
+
+
+class ProjectHistoryUnregisteredTargetHistoricalDestinationV120(PetraModel):
+    state: Literal["unavailable"]
+    target_ref: ProjectHistoryTargetRef
+    reason_code: Literal["historical_event_target_destination_not_registered"]
+    reason: Literal[
+        "No historical semantic-destination adapter is registered for this "
+        "selected event target."
+    ]
+    interpretation_status: Literal["performed"]
+    project_definition_ref: ProjectHistoryDefinitionRefV110
+
+
+ProjectHistoryDefinitionAuthorityV120 = (
+    ProjectHistoryAvailableDefinitionAuthorityV120
+    | ProjectHistoryUnavailableDefinitionAuthorityV110
+)
+ProjectHistoryHistoricalDestinationV120 = (
+    ProjectHistoryAvailableHistoricalDestinationV120
+    | ProjectHistoryNoAuthorityHistoricalDestinationV120
+    | ProjectHistoryUnsupportedPlaceHistoricalDestinationV120
+    | ProjectHistoryUnregisteredTargetHistoricalDestinationV120
+)
+
+
+class ProjectHistoryEpisodeContentV120(PetraModel):
+    view_kind: Literal["causal_episode"]
+    change: ProjectHistoryRecentChange
+    causality: ProjectHistoryCausality
+    stream_order: ProjectHistoryStreamOrder
+    receipt_ref: ProjectHistoryReceiptRef | None = None
+    project_definition_authority: ProjectHistoryDefinitionAuthorityV120
+    historical_semantic_destination: ProjectHistoryHistoricalDestinationV120
+    omissions: list[
+        Literal[
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_content_not_returned",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    authority: ProjectHistoryAuthorityPosition
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_historical_destination(self) -> ProjectHistoryEpisodeContentV120:
+        primary = [target for target in self.change.targets if target.role == "primary"]
+        if len(primary) != 1:
+            raise ValueError("episode must retain one exact primary target")
+        destination = self.historical_semantic_destination
+        if destination.target_ref != primary[0]:
+            raise ValueError("historical destination must retain the primary target")
+        definition_authority = self.project_definition_authority
+        if isinstance(
+            definition_authority,
+            ProjectHistoryUnavailableDefinitionAuthorityV110,
+        ):
+            if not isinstance(
+                destination,
+                ProjectHistoryNoAuthorityHistoricalDestinationV120,
+            ):
+                raise ValueError(
+                    "unavailable definition authority yields no destination"
+                )
+            return self
+        if definition_authority.effective_after_stream_revision >= (
+            self.change.event_ref.stream_revision
+        ):
+            raise ValueError("definition binding must precede the selected event")
+        if isinstance(
+            destination,
+            ProjectHistoryNoAuthorityHistoricalDestinationV120,
+        ):
+            raise ValueError("available definition authority must be interpreted")
+        if destination.project_definition_ref != (
+            definition_authority.project_definition_ref
+        ):
+            raise ValueError("destination must use the exact retained definition")
+        if (
+            isinstance(
+                destination,
+                ProjectHistoryAvailableHistoricalDestinationV120,
+            )
+            and destination.route_authority.event_ref != self.change.event_ref
+        ):
+            raise ValueError("route authority must retain the selected event")
+        return self
+
+
+class PetraProjectHistoryEpisodeViewV120(PetraModel):
+    schema_name: Literal["petra.project-history-episode-view"]
+    schema_version: Literal["1.2.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryEpisodeContentV120
+    content_hash: str
+    read_at: str
+
+    @model_validator(mode="after")
+    def exact_selected_event(self) -> PetraProjectHistoryEpisodeViewV120:
+        if self.event_id != self.content.change.event_ref.event_id:
+            raise ValueError("episode route must retain the selected event identity")
+        return self
+
+
+class ProjectHistoryRetainedQuery(PetraModel):
+    limit: int = Field(ge=1, le=100)
+    cursor: str | None = Field(
+        default=None,
+        min_length=80,
+        max_length=1024,
+        pattern=r"^phc1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$",
+    )
+
+
+class ProjectHistoryContinuedPage(PetraModel):
+    returned_count: int = Field(ge=1, le=100)
+    snapshot_total_count: int = Field(ge=1)
+    has_more: Literal[True]
+    next_cursor: str = Field(
+        min_length=80,
+        max_length=1024,
+        pattern=r"^phc1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$",
+    )
+
+
+class ProjectHistoryCompletePage(PetraModel):
+    returned_count: int = Field(ge=0, le=100)
+    snapshot_total_count: int = Field(ge=0)
+    has_more: Literal[False]
+
+
+class ProjectHistoryEmptyRetentionSnapshot(PetraModel):
+    through_event_position: int = Field(ge=0)
+    through_stream_revision: Literal[0]
+
+
+class ProjectHistoryNonemptyRetentionSnapshot(PetraModel):
+    through_event_position: int = Field(ge=1)
+    through_stream_revision: int = Field(ge=1)
+    head_event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryRetainedContent(PetraModel):
+    view_kind: Literal["retained_events"]
+    order_kind: Literal["project_stream_newest_first"]
+    query: ProjectHistoryRetainedQuery
+    changes: list[ProjectHistoryRecentChange] = Field(max_length=100)
+    page: ProjectHistoryContinuedPage | ProjectHistoryCompletePage
+    retention_snapshot: (
+        ProjectHistoryEmptyRetentionSnapshot | ProjectHistoryNonemptyRetentionSnapshot
+    )
+    current_authority: ProjectHistoryAuthorityPosition
+    recovery_authority: Literal["current_at_page_read"]
+    omissions: list[
+        Literal[
+            "filters_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_omissions(self) -> ProjectHistoryRetainedContent:
+        expected = {
+            "filters_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 5 or set(self.omissions) != expected:
+            raise ValueError("retained History must declare its five exact omissions")
+        return self
+
+
+class PetraProjectHistoryRetainedView(PetraModel):
+    schema_name: Literal["petra.project-history-retained-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: ProjectHistoryRetainedContent
+    content_hash: str
+    read_at: str
+
+
+class ProjectHistoryRetainedExactTargetFilterV110(PetraModel):
+    semantic_key: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "scientific.claim",
+        "scientific.assertion",
+        "petra.project-source",
+        "petra.project-source-replacement",
+        "petra.project-source-replacement-retraction",
+    ]
+    object_id: str
+
+
+class ProjectHistoryRetainedRecordedTimeFilterV110(PetraModel):
+    from_inclusive: str | None = None
+    through_inclusive: str | None = None
+
+    @model_validator(mode="after")
+    def at_least_one_bound(self) -> ProjectHistoryRetainedRecordedTimeFilterV110:
+        if self.from_inclusive is None and self.through_inclusive is None:
+            raise ValueError("recorded History time filter requires a bound")
+        return self
+
+
+class ProjectHistoryRetainedFiltersV110(PetraModel):
+    family: (
+        Literal[
+            "change_control",
+            "project_source_lifecycle",
+            "project_source_replacement",
+        ]
+        | None
+    ) = None
+    command_name: (
+        Literal[
+            "SubmitChangeSet",
+            "RecordApproval",
+            "ApplyChangeSet",
+            "ExcludeProjectSource",
+            "RestoreProjectSource",
+            "CreateProjectSourceReplacement",
+            "RetractProjectSourceReplacement",
+        ]
+        | None
+    ) = None
+    event_type: (
+        Literal[
+            "change_set.submitted",
+            "approval.recorded",
+            "change_set.applied",
+            "change_set.conflicted",
+            "change_set.reverted",
+            "change_set.reversal_conflicted",
+            "project_source.excluded",
+            "project_source.restored",
+            "project_source.replacement_created",
+            "project_source.replacement_retracted",
+        ]
+        | None
+    ) = None
+    actor_id: str | None = None
+    outcome: Literal["completed", "conflicted"] | None = None
+    effect: (
+        Literal[
+            "change_proposed",
+            "approval_recorded",
+            "authority_change_applied",
+            "authority_change_conflicted",
+            "authority_change_reverted",
+            "reversal_conflicted",
+            "project_source_excluded",
+            "project_source_restored",
+            "source_replacement_created",
+            "source_replacement_retracted",
+        ]
+        | None
+    ) = None
+    target: ProjectHistoryRetainedExactTargetFilterV110 | None = None
+    recorded_at: ProjectHistoryRetainedRecordedTimeFilterV110 | None = None
+
+
+class ProjectHistoryRetainedQueryV110(PetraModel):
+    limit: int = Field(ge=1, le=100)
+    filters: ProjectHistoryRetainedFiltersV110
+    cursor: str | None = Field(
+        default=None,
+        min_length=80,
+        max_length=1024,
+        pattern=r"^phc2\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$",
+    )
+
+
+class ProjectHistoryRetainedContinuedPageV110(PetraModel):
+    returned_count: int = Field(ge=1, le=100)
+    snapshot_total_count: int = Field(ge=1)
+    has_more: Literal[True]
+    next_cursor: str = Field(
+        min_length=80,
+        max_length=1024,
+        pattern=r"^phc2\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$",
+    )
+
+
+class ProjectHistoryRetainedContentV110(PetraModel):
+    view_kind: Literal["retained_events"]
+    order_kind: Literal["project_stream_newest_first"]
+    query: ProjectHistoryRetainedQueryV110
+    cursor_binding: Literal["project_snapshot_and_complete_query"]
+    changes: list[ProjectHistoryRecentChange] = Field(max_length=100)
+    page: ProjectHistoryRetainedContinuedPageV110 | ProjectHistoryCompletePage
+    retention_snapshot: (
+        ProjectHistoryEmptyRetentionSnapshot | ProjectHistoryNonemptyRetentionSnapshot
+    )
+    current_authority: ProjectHistoryAuthorityPosition
+    recovery_authority: Literal["current_at_page_read"]
+    omissions: list[
+        Literal[
+            "origin_filter_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_omissions(self) -> ProjectHistoryRetainedContentV110:
+        expected = {
+            "origin_filter_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 5 or set(self.omissions) != expected:
+            raise ValueError("filtered retained History must declare exact omissions")
+        return self
+
+
+class PetraProjectHistoryRetainedViewV110(PetraModel):
+    schema_name: Literal["petra.project-history-retained-view"]
+    schema_version: Literal["1.1.0"]
+    project_id: str
+    content: ProjectHistoryRetainedContentV110
+    content_hash: str
+    read_at: str
+
+
+class ProjectHistoryActorRecordRefV120(PetraModel):
+    schema_name: Literal["petra.actor"]
+    schema_version: Literal["1.0.0"]
+    actor_id: str
+    record_hash: str
+
+
+class ProjectHistoryActorDisplayDescriptorV120(PetraModel):
+    state: Literal["available"]
+    display_name: str = Field(min_length=1, max_length=160)
+    authority_ref: ProjectHistoryActorRecordRefV120
+
+
+class ProjectHistoryActorOptionV120(PetraModel):
+    actor_ref: ActorRef
+    display_descriptor: ProjectHistoryActorDisplayDescriptorV120
+    matching_event_count: int = Field(ge=1)
+
+
+class ProjectHistoryTargetDisplayDescriptorV120(PetraModel):
+    state: Literal["exact_identity_only"]
+    fallback: Literal["semantic_key_and_object_id"]
+    reason_code: Literal["revision_neutral_target_title_authority_not_registered"]
+    reason: Literal[
+        "No authorized revision-neutral title is registered "
+        "for this exact History target identity."
+    ]
+
+
+class ProjectHistoryTargetOptionV120(PetraModel):
+    target_ref: ProjectHistoryRetainedExactTargetFilterV110
+    display_descriptor: ProjectHistoryTargetDisplayDescriptorV120
+    matching_event_count: int = Field(ge=1)
+
+
+class ProjectHistoryActorOptionCatalogueV120(PetraModel):
+    option_limit: Literal[100]
+    order_kind: Literal[
+        "active_option_first_then_matching_event_count_desc_then_actor_id"
+    ]
+    returned_count: int = Field(ge=0, le=100)
+    total_count: int = Field(ge=0)
+    coverage: Literal["complete", "truncated"]
+    continuation: Literal["not_composed"]
+    options: list[ProjectHistoryActorOptionV120] = Field(max_length=100)
+
+    @model_validator(mode="after")
+    def catalogue_counts(self) -> ProjectHistoryActorOptionCatalogueV120:
+        if self.returned_count != len(self.options):
+            raise ValueError("Actor option count must match returned options")
+        if self.coverage == "complete" and self.total_count != self.returned_count:
+            raise ValueError("complete Actor option coverage requires the exact total")
+        if self.coverage == "truncated" and self.total_count <= self.returned_count:
+            raise ValueError("truncated Actor options require an omitted option")
+        return self
+
+
+class ProjectHistoryTargetOptionCatalogueV120(PetraModel):
+    option_limit: Literal[100]
+    order_kind: Literal[
+        "active_option_first_then_matching_event_count_desc_then_target_identity"
+    ]
+    returned_count: int = Field(ge=0, le=100)
+    total_count: int = Field(ge=0)
+    coverage: Literal["complete", "truncated"]
+    continuation: Literal["not_composed"]
+    options: list[ProjectHistoryTargetOptionV120] = Field(max_length=100)
+
+    @model_validator(mode="after")
+    def catalogue_counts(self) -> ProjectHistoryTargetOptionCatalogueV120:
+        if self.returned_count != len(self.options):
+            raise ValueError("target option count must match returned options")
+        if self.coverage == "complete" and self.total_count != self.returned_count:
+            raise ValueError("complete target option coverage requires the exact total")
+        if self.coverage == "truncated" and self.total_count <= self.returned_count:
+            raise ValueError("truncated target options require an omitted option")
+        return self
+
+
+class ProjectHistoryFilterOptionsV120(PetraModel):
+    authorization_scope: Literal["authenticated_project"]
+    snapshot_and_query_binding: Literal[
+        "retention_snapshot_and_complete_normalized_query"
+    ]
+    dimension_semantics: Literal["replace_same_dimension_preserve_other_filters"]
+    count_basis: Literal["matching_authorized_events_after_replacing_same_dimension"]
+    actor_catalogue: ProjectHistoryActorOptionCatalogueV120
+    target_catalogue: ProjectHistoryTargetOptionCatalogueV120
+
+
+class ProjectHistoryRetainedContentV120(PetraModel):
+    view_kind: Literal["retained_events"]
+    order_kind: Literal["project_stream_newest_first"]
+    query: ProjectHistoryRetainedQueryV110
+    cursor_binding: Literal["project_snapshot_and_complete_query"]
+    changes: list[ProjectHistoryRecentChange] = Field(max_length=100)
+    page: ProjectHistoryRetainedContinuedPageV110 | ProjectHistoryCompletePage
+    filter_options: ProjectHistoryFilterOptionsV120
+    retention_snapshot: (
+        ProjectHistoryEmptyRetentionSnapshot | ProjectHistoryNonemptyRetentionSnapshot
+    )
+    current_authority: ProjectHistoryAuthorityPosition
+    recovery_authority: Literal["current_at_page_read"]
+    omissions: list[
+        Literal[
+            "origin_filter_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ]
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_option_semantics(self) -> ProjectHistoryRetainedContentV120:
+        expected_omissions = {
+            "origin_filter_not_supported",
+            "dependency_impact_not_composed",
+            "generic_reversal_assessment_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 5 or set(self.omissions) != expected_omissions:
+            raise ValueError("filter-option History must declare exact omissions")
+
+        actors = self.filter_options.actor_catalogue
+        actor_ids = [option.actor_ref.actor_id for option in actors.options]
+        if len(actor_ids) != len(set(actor_ids)):
+            raise ValueError("Actor filter options must be unique")
+        if any(
+            option.actor_ref.actor_id
+            != option.display_descriptor.authority_ref.actor_id
+            for option in actors.options
+        ):
+            raise ValueError("Actor descriptor authority must match its option")
+        selected_actor = self.query.filters.actor_id
+        expected_actor_order = sorted(
+            actors.options,
+            key=lambda option: (
+                option.actor_ref.actor_id != selected_actor,
+                -option.matching_event_count,
+                option.actor_ref.actor_id,
+            ),
+        )
+        if actor_ids != [option.actor_ref.actor_id for option in expected_actor_order]:
+            raise ValueError("Actor filter options have invalid order")
+        selected_actor_options = [
+            option
+            for option in actors.options
+            if option.actor_ref.actor_id == selected_actor
+        ]
+        if (
+            self.page.snapshot_total_count > 0
+            and selected_actor is not None
+            and (
+                len(selected_actor_options) != 1
+                or selected_actor_options[0].matching_event_count
+                != self.page.snapshot_total_count
+            )
+        ):
+            raise ValueError("selected Actor count must match the filtered result")
+        if (
+            selected_actor is None
+            and actors.coverage == "complete"
+            and sum(option.matching_event_count for option in actors.options)
+            != self.page.snapshot_total_count
+        ):
+            raise ValueError("complete Actor counts must partition matching events")
+
+        targets = self.filter_options.target_catalogue
+        target_ids = [
+            (option.target_ref.semantic_key, option.target_ref.object_id)
+            for option in targets.options
+        ]
+        if len(target_ids) != len(set(target_ids)):
+            raise ValueError("target filter options must be unique")
+        selected_target = self.query.filters.target
+        expected_target_order = sorted(
+            targets.options,
+            key=lambda option: (
+                selected_target is None
+                or option.target_ref.semantic_key != selected_target.semantic_key
+                or option.target_ref.object_id != selected_target.object_id,
+                -option.matching_event_count,
+                option.target_ref.semantic_key,
+                option.target_ref.object_id,
+            ),
+        )
+        if target_ids != [
+            (option.target_ref.semantic_key, option.target_ref.object_id)
+            for option in expected_target_order
+        ]:
+            raise ValueError("target filter options have invalid order")
+        if self.page.snapshot_total_count > 0 and selected_target is not None:
+            selected_target_options = [
+                option
+                for option in targets.options
+                if option.target_ref.semantic_key == selected_target.semantic_key
+                and option.target_ref.object_id == selected_target.object_id
+            ]
+            if (
+                len(selected_target_options) != 1
+                or selected_target_options[0].matching_event_count
+                != self.page.snapshot_total_count
+            ):
+                raise ValueError("selected target count must match the filtered result")
+        return self
+
+
+class PetraProjectHistoryRetainedViewV120(PetraModel):
+    schema_name: Literal["petra.project-history-retained-view"]
+    schema_version: Literal["1.2.0"]
+    project_id: str
+    content: ProjectHistoryRetainedContentV120
+    content_hash: str
+    read_at: str
+
+
+class ProjectHistoryRetainedContinuationRestart(PetraModel):
+    cursor_disposition: Literal["discard_without_client_decoding"]
+    request_kind: Literal["cursorless_same_project_limit_and_filters"]
+
+
+class ProjectHistoryRetainedContinuationFailureContent(PetraModel):
+    code: Literal["PROJECT_HISTORY_RETAINED_QUERY_INVALID"]
+    subcode: Literal[
+        "CURSOR_INVALID",
+        "CURSOR_BINDING_MISMATCH",
+        "SNAPSHOT_UNAVAILABLE",
+    ]
+    message: Literal[
+        "This Full History traversal can no longer continue from its verified "
+        "snapshot. Start again with the same filters."
+    ]
+    restart: ProjectHistoryRetainedContinuationRestart
+
+
+class PetraProjectHistoryRetainedContinuationFailure(PetraModel):
+    schema_name: Literal["petra.project-history-retained-continuation-failure"]
+    schema_version: Literal["1.0.0"]
+    error: ProjectHistoryRetainedContinuationFailureContent
+    requestId: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+    )
+    traceId: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+    )
+
+
+class ProjectHistoryImpactEventAnchor(PetraModel):
+    command_ref: ProjectHistoryCommandRef
+    event_ref: ProjectHistoryEventRef
+    actor: ActorRef
+    occurred_at: str
+    recorded_at: str
+    family: Literal[
+        "change_control",
+        "project_source_lifecycle",
+        "project_source_replacement",
+    ]
+    targets: list[ProjectHistoryTargetRef] = Field(min_length=1, max_length=100)
+    observed_effect: ProjectHistoryObservedEffect
+    semantic_destination: ProjectHistorySemanticDestination
+
+
+class ProjectHistoryImpactRecordedCausalCommand(PetraModel):
+    command_ref: ProjectHistoryCommandRef
+    outcome: Literal["success", "failure"]
+    completed_at: str
+    event_state: Literal["recorded"]
+    event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryImpactUnrecordedCausalCommand(PetraModel):
+    command_ref: ProjectHistoryCommandRef
+    outcome: Literal["success", "failure"]
+    completed_at: str
+    event_state: Literal["not_recorded"]
+
+
+class ProjectHistoryImpactOutboxRef(PetraModel):
+    outbox_id: str
+    schema_version: Literal["1.0.0", "1.1.0", "1.2.0", "1.3.0"]
+    outbox_position: int = Field(ge=1)
+    target: Literal["neo4j_graph", "interface_authority"]
+    target_sequence: int = Field(ge=1)
+    enqueued_at: str
+    record_hash: str
+
+
+class ProjectHistoryImpactProjectionRef(PetraModel):
+    graph_projection_record_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+    outbox_id: str
+    outbox_position: int = Field(ge=1)
+    target_sequence: int = Field(ge=1)
+    attempt: int = Field(ge=1, le=100)
+    outcome: Literal["applied", "failed"]
+    recorded_at: str
+
+
+class ProjectHistoryImpactGroundedResponseRef(PetraModel):
+    grounded_response_id: str
+    revision: int = Field(ge=1)
+    content_hash: str
+    record_hash: str
+    posture: Literal["current", "historical"]
+    cache_state: Literal["invalidated"]
+    invalidation_position: int = Field(ge=1)
+    change_set_id: str
+    recorded_at: str
+
+
+class ProjectHistoryImpactCausalCommandGroup(PetraModel):
+    relation: Literal["caused_by_selected_command"]
+    authority_source: Literal["immutable_command_causation"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=100)
+    coverage: Literal["complete", "truncated"]
+    refs: list[
+        ProjectHistoryImpactRecordedCausalCommand
+        | ProjectHistoryImpactUnrecordedCausalCommand
+    ] = Field(max_length=100)
+
+
+class ProjectHistoryImpactOutboxGroup(PetraModel):
+    relation: Literal["carries_selected_event"]
+    authority_source: Literal["immutable_event_outbox_binding"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=100)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistoryImpactOutboxRef] = Field(max_length=100)
+
+
+class ProjectHistoryImpactProjectionGroup(PetraModel):
+    relation: Literal["projects_selected_event"]
+    authority_source: Literal["immutable_projection_event_binding"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=100)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistoryImpactProjectionRef] = Field(max_length=100)
+
+
+class ProjectHistoryImpactGroundedResponseGroup(PetraModel):
+    relation: Literal["invalidated_by_selected_event"]
+    authority_source: Literal["immutable_response_invalidation_binding"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=100)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistoryImpactGroundedResponseRef] = Field(max_length=100)
+
+
+class ProjectHistoryImpactSummary(PetraModel):
+    registered_group_count: Literal[4]
+    total_count: int = Field(ge=0, le=4_000_000)
+    coverage: Literal["complete", "truncated"]
+
+
+class ProjectHistoryImpactInventory(PetraModel):
+    scope: Literal["registered_direct_event_and_command_dependents"]
+    summary: ProjectHistoryImpactSummary
+    causal_commands: ProjectHistoryImpactCausalCommandGroup
+    outbox_records: ProjectHistoryImpactOutboxGroup
+    graph_projection_records: ProjectHistoryImpactProjectionGroup
+    grounded_response_invalidations: ProjectHistoryImpactGroundedResponseGroup
+    unknowns: list[
+        Literal[
+            "unregistered_profile_specific_dependencies_may_exist",
+            "transitive_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        ]
+    ] = Field(min_length=3, max_length=3)
+
+    @model_validator(mode="after")
+    def exact_unknowns(self) -> ProjectHistoryImpactInventory:
+        expected = {
+            "unregistered_profile_specific_dependencies_may_exist",
+            "transitive_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        }
+        if len(self.unknowns) != 3 or set(self.unknowns) != expected:
+            raise ValueError("History impact must declare its three exact unknowns")
+        return self
+
+
+class ProjectHistoryImpactDecisionBoundary(PetraModel):
+    reversibility: Literal["not_assessed"]
+    compensation: Literal["not_composed"]
+    dependent_effect: Literal["not_inferred_from_reference"]
+
+
+class ProjectHistoryImpactAuthority(PetraModel):
+    isolation: Literal["repeatable_read"]
+    through_event_position: int = Field(ge=0)
+    through_stream_revision: int = Field(ge=0)
+
+
+class ProjectHistoryImpactContent(PetraModel):
+    view_kind: Literal["dependency_impact"]
+    selected_event: ProjectHistoryImpactEventAnchor
+    authorization_scope: Literal["authenticated_project"]
+    impact: ProjectHistoryImpactInventory
+    decision_boundary: ProjectHistoryImpactDecisionBoundary
+    authority: ProjectHistoryImpactAuthority
+    omissions: list[
+        Literal[
+            "semantic_target_dependencies_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ] = Field(min_length=6, max_length=6)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_omissions(self) -> ProjectHistoryImpactContent:
+        expected = {
+            "semantic_target_dependencies_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 6 or set(self.omissions) != expected:
+            raise ValueError("History impact must declare its six exact omissions")
+        return self
+
+
+class PetraProjectHistoryImpactView(PetraModel):
+    schema_name: Literal["petra.project-history-impact-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryImpactContent
+    content_hash: str
+    read_at: str
+
+
+class ProjectHistorySemanticResolvedTargetRef(PetraModel):
+    semantic_key: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "scientific.claim",
+        "scientific.assertion",
+    ]
+    object_id: str
+    revision: int = Field(ge=1)
+    schema_name: Literal[
+        "petra.change-set", "petra.approval", "petra.claim", "petra.assertion"
+    ]
+    schema_version: Literal["1.0.0", "1.1.0"]
+    content_hash: str | None = None
+    record_hash: str
+
+    @model_validator(mode="after")
+    def supported_schema_version(self) -> ProjectHistorySemanticResolvedTargetRef:
+        if self.schema_name != "petra.change-set" and self.schema_version != "1.0.0":
+            raise ValueError(
+                "only ChangeSet semantic targets support authority version 1.1"
+            )
+        return self
+
+
+class ProjectHistorySemanticDependentRef(PetraModel):
+    semantic_key: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "scientific.claim",
+        "scientific.assertion",
+        "petra.review-session",
+        "petra.grounded-response",
+        "petra.composition-request",
+        "petra.composition-plan",
+        "petra.provenance-map",
+        "petra.draft-artifact",
+    ]
+    object_id: str
+    revision: int = Field(ge=1)
+    schema_name: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "petra.claim",
+        "petra.assertion",
+        "petra.review-session",
+        "petra.grounded-response",
+        "petra.composition-request",
+        "petra.composition-plan",
+        "petra.provenance-map",
+        "petra.draft-artifact",
+    ]
+    schema_version: Literal["1.0.0", "1.1.0"]
+    content_hash: str | None = None
+    record_hash: str
+    posture: Literal["current", "historical", "immutable_revision"]
+    relation: Literal[
+        "approves_exact_change_set",
+        "authorized_by_exact_change_set",
+        "authorized_by_exact_approval",
+        "proposes_promotion_from_exact_evidence_revision",
+        "contains_exact_review_candidate",
+        "depends_on_exact_grounded_evidence",
+        "selects_exact_composition_subject",
+        "uses_exact_composition_evidence",
+        "maps_exact_provenance_basis",
+        "retains_exact_draft_authority_dependency",
+    ]
+    relation_identity: str = Field(min_length=1, max_length=300)
+
+    @model_validator(mode="after")
+    def supported_schema_version(self) -> ProjectHistorySemanticDependentRef:
+        if self.schema_name != "petra.change-set" and self.schema_version != "1.0.0":
+            raise ValueError("only ChangeSet semantic dependents support version 1.1")
+        return self
+
+
+class ProjectHistorySemanticAdapterGroup(PetraModel):
+    adapter_kind: Literal[
+        "change_control",
+        "review_membership",
+        "grounded_response_dependency",
+        "composition_lineage",
+    ]
+    authority_source: Literal[
+        "immutable_change_control_target_bindings",
+        "immutable_review_candidate_bindings",
+        "immutable_grounded_response_dependencies",
+        "immutable_composition_target_bindings",
+    ]
+    relation_scope: Literal["exact_target_revision"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=25)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistorySemanticDependentRef] = Field(max_length=25)
+
+    @model_validator(mode="after")
+    def exact_authority_and_counts(self) -> ProjectHistorySemanticAdapterGroup:
+        authorities = {
+            "change_control": "immutable_change_control_target_bindings",
+            "review_membership": "immutable_review_candidate_bindings",
+            "grounded_response_dependency": (
+                "immutable_grounded_response_dependencies"
+            ),
+            "composition_lineage": "immutable_composition_target_bindings",
+        }
+        if authorities[self.adapter_kind] != self.authority_source:
+            raise ValueError("semantic adapter must name its exact owning authority")
+        if self.returned_count != len(self.refs):
+            raise ValueError(
+                "semantic adapter returned count must match its references"
+            )
+        expected_coverage = (
+            "truncated" if self.total_count > self.returned_count else "complete"
+        )
+        if self.coverage != expected_coverage:
+            raise ValueError("semantic adapter coverage must match its bounded count")
+        return self
+
+
+class ProjectHistorySemanticRegisteredAssessment(PetraModel):
+    target_index: int = Field(ge=0, le=99)
+    target_ref: ProjectHistoryTargetRef
+    adapter_state: Literal["registered"]
+    resolved_target_ref: ProjectHistorySemanticResolvedTargetRef
+    groups: list[ProjectHistorySemanticAdapterGroup] = Field(min_length=1, max_length=4)
+
+
+class ProjectHistorySemanticUnavailableAssessment(PetraModel):
+    target_index: int = Field(ge=0, le=99)
+    target_ref: ProjectHistoryTargetRef
+    adapter_state: Literal[
+        "no_registered_exact_adapter",
+        "target_identity_incomplete",
+        "target_authority_unavailable",
+    ]
+    reason: Literal[
+        "No exact semantic-target adapter is registered for this semantic key.",
+        "Registered semantic-target adapters require an immutable target revision.",
+        "The exact immutable target authority is unavailable in this Project snapshot.",
+    ]
+    groups: list[ProjectHistorySemanticAdapterGroup] = Field(max_length=0)
+
+    @model_validator(mode="after")
+    def exact_unavailability(self) -> ProjectHistorySemanticUnavailableAssessment:
+        registered_keys = {
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion",
+        }
+        reasons = {
+            "no_registered_exact_adapter": (
+                "No exact semantic-target adapter is registered for this semantic key."
+            ),
+            "target_identity_incomplete": (
+                "Registered semantic-target adapters require an immutable target "
+                "revision."
+            ),
+            "target_authority_unavailable": (
+                "The exact immutable target authority is unavailable in this Project "
+                "snapshot."
+            ),
+        }
+        if self.reason != reasons[self.adapter_state]:
+            raise ValueError("semantic adapter state must name its exact reason")
+        if self.adapter_state == "no_registered_exact_adapter":
+            if self.target_ref.semantic_key in registered_keys:
+                raise ValueError(
+                    "registered semantic keys must use a registered adapter state"
+                )
+        elif self.target_ref.semantic_key not in registered_keys:
+            raise ValueError(
+                "unavailable registered-adapter states require a registered key"
+            )
+        if self.adapter_state == "target_identity_incomplete":
+            if self.target_ref.revision is not None:
+                raise ValueError("incomplete semantic targets cannot have a revision")
+        elif (
+            self.adapter_state == "target_authority_unavailable"
+            and self.target_ref.revision is None
+        ):
+            raise ValueError("unavailable target authority requires an exact revision")
+        return self
+
+
+ProjectHistorySemanticTargetAssessment = (
+    ProjectHistorySemanticRegisteredAssessment
+    | ProjectHistorySemanticUnavailableAssessment
+)
+
+
+class ProjectHistorySemanticRegistryEntry(PetraModel):
+    adapter_kind: Literal[
+        "change_control",
+        "review_membership",
+        "grounded_response_dependency",
+        "composition_lineage",
+    ]
+    authority_source: Literal[
+        "immutable_change_control_target_bindings",
+        "immutable_review_candidate_bindings",
+        "immutable_grounded_response_dependencies",
+        "immutable_composition_target_bindings",
+    ]
+    semantic_keys: list[
+        Literal[
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion",
+        ]
+    ] = Field(min_length=2, max_length=4)
+
+
+class ProjectHistorySemanticSummary(PetraModel):
+    registered_adapter_count: Literal[4]
+    assessed_target_count: int = Field(ge=0, le=10)
+    supported_target_count: int = Field(ge=0, le=10)
+    total_count: int = Field(ge=0, le=40_000_000)
+    coverage: Literal["complete", "truncated"]
+
+
+class ProjectHistorySemanticTargetImpact(PetraModel):
+    scope: Literal["registered_exact_semantic_target_dependents"]
+    target_limit: Literal[10]
+    per_adapter_ref_limit: Literal[25]
+    target_total_count: int = Field(ge=1, le=100)
+    target_returned_count: int = Field(ge=1, le=10)
+    target_coverage: Literal["complete", "truncated"]
+    registry: list[ProjectHistorySemanticRegistryEntry] = Field(
+        min_length=4, max_length=4
+    )
+    target_assessments: list[ProjectHistorySemanticTargetAssessment] = Field(
+        min_length=1, max_length=10
+    )
+    summary: ProjectHistorySemanticSummary
+    unknowns: list[
+        Literal[
+            "unregistered_semantic_keys_may_have_dependents",
+            "identity_only_semantic_relations_are_excluded",
+            "transitive_semantic_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        ]
+    ] = Field(min_length=4, max_length=4)
+
+    @model_validator(mode="after")
+    def exact_registry_counts_and_unknowns(self) -> ProjectHistorySemanticTargetImpact:
+        expected_registry = [
+            (
+                "change_control",
+                "immutable_change_control_target_bindings",
+                [
+                    "petra.change-set",
+                    "petra.approval",
+                    "scientific.claim",
+                    "scientific.assertion",
+                ],
+            ),
+            (
+                "review_membership",
+                "immutable_review_candidate_bindings",
+                ["scientific.claim", "scientific.assertion"],
+            ),
+            (
+                "grounded_response_dependency",
+                "immutable_grounded_response_dependencies",
+                ["scientific.claim", "scientific.assertion"],
+            ),
+            (
+                "composition_lineage",
+                "immutable_composition_target_bindings",
+                ["scientific.claim", "scientific.assertion"],
+            ),
+        ]
+        actual_registry = [
+            (entry.adapter_kind, entry.authority_source, entry.semantic_keys)
+            for entry in self.registry
+        ]
+        if actual_registry != expected_registry:
+            raise ValueError("semantic adapter registry must be exact and ordered")
+        expected_unknowns = {
+            "unregistered_semantic_keys_may_have_dependents",
+            "identity_only_semantic_relations_are_excluded",
+            "transitive_semantic_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        }
+        if len(self.unknowns) != 4 or set(self.unknowns) != expected_unknowns:
+            raise ValueError("semantic impact must declare its four exact unknowns")
+        if self.target_returned_count != len(self.target_assessments):
+            raise ValueError("semantic target count must match its assessments")
+        supported = sum(
+            assessment.adapter_state == "registered"
+            for assessment in self.target_assessments
+        )
+        groups = [
+            group
+            for assessment in self.target_assessments
+            for group in assessment.groups
+        ]
+        if (
+            self.summary.assessed_target_count != len(self.target_assessments)
+            or self.summary.supported_target_count != supported
+            or self.summary.total_count != sum(group.total_count for group in groups)
+        ):
+            raise ValueError("semantic impact summary must match assessed groups")
+        expected_coverage = (
+            "truncated"
+            if self.target_coverage == "truncated"
+            or any(group.coverage == "truncated" for group in groups)
+            else "complete"
+        )
+        if self.summary.coverage != expected_coverage:
+            raise ValueError("semantic impact summary coverage must remain bounded")
+        return self
+
+
+class ProjectHistoryImpactContentV110(PetraModel):
+    view_kind: Literal["dependency_impact"]
+    selected_event: ProjectHistoryImpactEventAnchor
+    authorization_scope: Literal["authenticated_project"]
+    impact: ProjectHistoryImpactInventory
+    semantic_target_impact: ProjectHistorySemanticTargetImpact
+    decision_boundary: ProjectHistoryImpactDecisionBoundary
+    authority: ProjectHistoryImpactAuthority
+    omissions: list[
+        Literal[
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ] = Field(min_length=7, max_length=7)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_targets_and_omissions(self) -> ProjectHistoryImpactContentV110:
+        expected_omissions = {
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 7 or set(self.omissions) != expected_omissions:
+            raise ValueError(
+                "History impact 1.1 must declare its seven exact omissions"
+            )
+        if self.semantic_target_impact.target_total_count != len(
+            self.selected_event.targets
+        ):
+            raise ValueError("semantic impact must count the selected event targets")
+        for index, assessment in enumerate(
+            self.semantic_target_impact.target_assessments
+        ):
+            if (
+                assessment.target_index != index
+                or assessment.target_ref != self.selected_event.targets[index]
+            ):
+                raise ValueError(
+                    "semantic assessment must preserve target identity/order"
+                )
+        return self
+
+
+class PetraProjectHistoryImpactViewV110(PetraModel):
+    schema_name: Literal["petra.project-history-impact-view"]
+    schema_version: Literal["1.1.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryImpactContentV110
+    content_hash: str
+    read_at: str
+
+
+class ProjectHistorySemanticResolvedTargetRefV120(PetraModel):
+    semantic_key: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "scientific.claim",
+        "scientific.assertion",
+        "petra.project-source",
+        "petra.project-source-replacement",
+    ]
+    object_id: str
+    revision: int = Field(ge=1)
+    schema_name: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "petra.claim",
+        "petra.assertion",
+        "petra.project-source",
+        "petra.project-source-replacement",
+    ]
+    schema_version: Literal["1.0.0", "1.1.0"]
+    content_hash: str | None = None
+    record_hash: str
+
+    @model_validator(mode="after")
+    def supported_schema_version(
+        self,
+    ) -> ProjectHistorySemanticResolvedTargetRefV120:
+        if self.schema_name != "petra.change-set" and self.schema_version != "1.0.0":
+            raise ValueError(
+                "only ChangeSet semantic targets support authority version 1.1"
+            )
+        return self
+
+
+class ProjectHistorySemanticDependentRefV120(PetraModel):
+    semantic_key: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "scientific.claim",
+        "scientific.assertion",
+        "petra.review-session",
+        "petra.grounded-response",
+        "petra.composition-request",
+        "petra.composition-plan",
+        "petra.provenance-map",
+        "petra.draft-artifact",
+        "petra.parsed-document",
+        "petra.structural-block",
+        "petra.source-span",
+        "petra.work-unit",
+        "petra.project-source-lifecycle-receipt",
+        "petra.project-source-replacement",
+        "petra.project-source-replacement-retraction",
+        "petra.project-source-replacement-receipt",
+    ]
+    object_id: str
+    revision: int = Field(ge=1)
+    schema_name: Literal[
+        "petra.change-set",
+        "petra.approval",
+        "petra.claim",
+        "petra.assertion",
+        "petra.review-session",
+        "petra.grounded-response",
+        "petra.composition-request",
+        "petra.composition-plan",
+        "petra.provenance-map",
+        "petra.draft-artifact",
+        "petra.parsed-document",
+        "petra.structural-block",
+        "petra.source-span",
+        "petra.work-unit",
+        "petra.project-source-lifecycle-receipt",
+        "petra.project-source-replacement",
+        "petra.project-source-replacement-retraction",
+        "petra.project-source-replacement-receipt",
+    ]
+    schema_version: Literal["1.0.0", "1.1.0"]
+    content_hash: str | None = None
+    record_hash: str
+    posture: Literal["current", "historical", "immutable_revision"]
+    relation: Literal[
+        "approves_exact_change_set",
+        "authorized_by_exact_change_set",
+        "authorized_by_exact_approval",
+        "proposes_promotion_from_exact_evidence_revision",
+        "contains_exact_review_candidate",
+        "depends_on_exact_grounded_evidence",
+        "selects_exact_composition_subject",
+        "uses_exact_composition_evidence",
+        "maps_exact_provenance_basis",
+        "retains_exact_draft_authority_dependency",
+        "parses_exact_source_artifact",
+        "structures_exact_source_artifact",
+        "locates_span_in_exact_source_artifact",
+        "derives_claim_from_exact_source_artifact",
+        "derives_assertion_from_exact_source_artifact",
+        "uses_exact_source_artifact_in_active_work",
+        "reviews_evidence_from_exact_source_artifact",
+        "depends_on_exact_source_authority",
+        "records_exact_source_prior_revision",
+        "records_exact_source_resulting_revision",
+        "retains_exact_replaced_source",
+        "retains_exact_replacement_source",
+        "retracts_exact_source_replacement",
+        "records_exact_source_replacement_command",
+        "is_current_active_replacement_head",
+        "is_current_retracted_replacement_head",
+    ]
+    relation_identity: str = Field(min_length=1, max_length=300)
+
+    @model_validator(mode="after")
+    def supported_schema_version(
+        self,
+    ) -> ProjectHistorySemanticDependentRefV120:
+        if self.schema_name != "petra.change-set" and self.schema_version != "1.0.0":
+            raise ValueError("only ChangeSet semantic dependents support version 1.1")
+        return self
+
+
+class ProjectHistorySemanticAdapterGroupV120(PetraModel):
+    adapter_kind: Literal[
+        "change_control",
+        "review_membership",
+        "grounded_response_dependency",
+        "composition_lineage",
+        "project_source_lifecycle",
+        "project_source_dependency",
+        "project_source_replacement_lineage",
+        "project_source_replacement_receipt",
+        "project_source_effective_head",
+    ]
+    authority_source: Literal[
+        "immutable_change_control_target_bindings",
+        "immutable_review_candidate_bindings",
+        "immutable_grounded_response_dependencies",
+        "immutable_composition_target_bindings",
+        "immutable_project_source_lifecycle_receipts",
+        "immutable_project_source_dependency_bindings",
+        "immutable_project_source_replacement_bindings",
+        "immutable_project_source_replacement_receipts",
+        "current_project_source_replacement_heads",
+    ]
+    relation_scope: Literal["exact_target_revision"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=25)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistorySemanticDependentRefV120] = Field(max_length=25)
+
+    @model_validator(mode="after")
+    def exact_authority_and_counts(
+        self,
+    ) -> ProjectHistorySemanticAdapterGroupV120:
+        authorities = {
+            "change_control": "immutable_change_control_target_bindings",
+            "review_membership": "immutable_review_candidate_bindings",
+            "grounded_response_dependency": (
+                "immutable_grounded_response_dependencies"
+            ),
+            "composition_lineage": "immutable_composition_target_bindings",
+            "project_source_lifecycle": ("immutable_project_source_lifecycle_receipts"),
+            "project_source_dependency": (
+                "immutable_project_source_dependency_bindings"
+            ),
+            "project_source_replacement_lineage": (
+                "immutable_project_source_replacement_bindings"
+            ),
+            "project_source_replacement_receipt": (
+                "immutable_project_source_replacement_receipts"
+            ),
+            "project_source_effective_head": (
+                "current_project_source_replacement_heads"
+            ),
+        }
+        if authorities[self.adapter_kind] != self.authority_source:
+            raise ValueError("semantic adapter must name its exact owning authority")
+        if self.returned_count != len(self.refs):
+            raise ValueError(
+                "semantic adapter returned count must match its references"
+            )
+        expected_coverage = (
+            "truncated" if self.total_count > self.returned_count else "complete"
+        )
+        if self.coverage != expected_coverage:
+            raise ValueError("semantic adapter coverage must match its bounded count")
+        return self
+
+
+class ProjectHistorySemanticRegisteredAssessmentV120(PetraModel):
+    target_index: int = Field(ge=0, le=99)
+    target_ref: ProjectHistoryTargetRef
+    adapter_state: Literal["registered"]
+    resolved_target_ref: ProjectHistorySemanticResolvedTargetRefV120
+    groups: list[ProjectHistorySemanticAdapterGroupV120] = Field(
+        min_length=1, max_length=4
+    )
+
+
+class ProjectHistorySemanticUnavailableAssessmentV120(PetraModel):
+    target_index: int = Field(ge=0, le=99)
+    target_ref: ProjectHistoryTargetRef
+    adapter_state: Literal[
+        "no_registered_exact_adapter",
+        "target_identity_incomplete",
+        "target_authority_unavailable",
+    ]
+    reason: Literal[
+        "No exact semantic-target adapter is registered for this semantic key.",
+        "Registered semantic-target adapters require an immutable target revision.",
+        "The exact immutable target authority is unavailable in this Project snapshot.",
+    ]
+    groups: list[ProjectHistorySemanticAdapterGroupV120] = Field(max_length=0)
+
+    @model_validator(mode="after")
+    def exact_unavailability(
+        self,
+    ) -> ProjectHistorySemanticUnavailableAssessmentV120:
+        registered_keys = {
+            "petra.change-set",
+            "petra.approval",
+            "scientific.claim",
+            "scientific.assertion",
+            "petra.project-source",
+            "petra.project-source-replacement",
+        }
+        reasons = {
+            "no_registered_exact_adapter": (
+                "No exact semantic-target adapter is registered for this semantic key."
+            ),
+            "target_identity_incomplete": (
+                "Registered semantic-target adapters require an immutable target "
+                "revision."
+            ),
+            "target_authority_unavailable": (
+                "The exact immutable target authority is unavailable in this Project "
+                "snapshot."
+            ),
+        }
+        if self.reason != reasons[self.adapter_state]:
+            raise ValueError("semantic adapter state must name its exact reason")
+        if self.adapter_state == "no_registered_exact_adapter":
+            if self.target_ref.semantic_key in registered_keys:
+                raise ValueError(
+                    "registered semantic keys must use a registered adapter state"
+                )
+        elif self.target_ref.semantic_key not in registered_keys:
+            raise ValueError(
+                "unavailable registered-adapter states require a registered key"
+            )
+        if self.adapter_state == "target_identity_incomplete":
+            if self.target_ref.revision is not None:
+                raise ValueError("incomplete semantic targets cannot have a revision")
+        elif (
+            self.adapter_state == "target_authority_unavailable"
+            and self.target_ref.revision is None
+        ):
+            raise ValueError("unavailable target authority requires an exact revision")
+        return self
+
+
+ProjectHistorySemanticTargetAssessmentV120 = (
+    ProjectHistorySemanticRegisteredAssessmentV120
+    | ProjectHistorySemanticUnavailableAssessmentV120
+)
+
+
+class ProjectHistorySemanticRegistryEntryV120(PetraModel):
+    adapter_kind: str
+    authority_source: str
+    semantic_keys: list[str] = Field(min_length=1, max_length=4)
+
+
+class ProjectHistorySemanticSummaryV120(PetraModel):
+    registered_adapter_count: Literal[9]
+    assessed_target_count: int = Field(ge=0, le=10)
+    supported_target_count: int = Field(ge=0, le=10)
+    total_count: int = Field(ge=0, le=40_000_000)
+    coverage: Literal["complete", "truncated"]
+
+
+class ProjectHistorySemanticTargetImpactV120(PetraModel):
+    scope: Literal["registered_exact_semantic_target_dependents"]
+    target_limit: Literal[10]
+    per_adapter_ref_limit: Literal[25]
+    target_total_count: int = Field(ge=1, le=100)
+    target_returned_count: int = Field(ge=1, le=10)
+    target_coverage: Literal["complete", "truncated"]
+    registry: list[ProjectHistorySemanticRegistryEntryV120] = Field(
+        min_length=9, max_length=9
+    )
+    target_assessments: list[ProjectHistorySemanticTargetAssessmentV120] = Field(
+        min_length=1, max_length=10
+    )
+    summary: ProjectHistorySemanticSummaryV120
+    unknowns: list[
+        Literal[
+            "unregistered_semantic_keys_may_have_dependents",
+            "identity_only_semantic_relations_are_excluded",
+            "transitive_semantic_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        ]
+    ] = Field(min_length=4, max_length=4)
+
+    @model_validator(mode="after")
+    def exact_registry_counts_and_unknowns(
+        self,
+    ) -> ProjectHistorySemanticTargetImpactV120:
+        expected_registry = [
+            (
+                "change_control",
+                "immutable_change_control_target_bindings",
+                [
+                    "petra.change-set",
+                    "petra.approval",
+                    "scientific.claim",
+                    "scientific.assertion",
+                ],
+            ),
+            (
+                "review_membership",
+                "immutable_review_candidate_bindings",
+                ["scientific.claim", "scientific.assertion"],
+            ),
+            (
+                "grounded_response_dependency",
+                "immutable_grounded_response_dependencies",
+                ["scientific.claim", "scientific.assertion"],
+            ),
+            (
+                "composition_lineage",
+                "immutable_composition_target_bindings",
+                ["scientific.claim", "scientific.assertion"],
+            ),
+            (
+                "project_source_lifecycle",
+                "immutable_project_source_lifecycle_receipts",
+                ["petra.project-source"],
+            ),
+            (
+                "project_source_dependency",
+                "immutable_project_source_dependency_bindings",
+                ["petra.project-source"],
+            ),
+            (
+                "project_source_replacement_lineage",
+                "immutable_project_source_replacement_bindings",
+                ["petra.project-source", "petra.project-source-replacement"],
+            ),
+            (
+                "project_source_replacement_receipt",
+                "immutable_project_source_replacement_receipts",
+                ["petra.project-source-replacement"],
+            ),
+            (
+                "project_source_effective_head",
+                "current_project_source_replacement_heads",
+                ["petra.project-source", "petra.project-source-replacement"],
+            ),
+        ]
+        actual_registry = [
+            (entry.adapter_kind, entry.authority_source, entry.semantic_keys)
+            for entry in self.registry
+        ]
+        if actual_registry != expected_registry:
+            raise ValueError("semantic adapter registry must be exact and ordered")
+        expected_unknowns = {
+            "unregistered_semantic_keys_may_have_dependents",
+            "identity_only_semantic_relations_are_excluded",
+            "transitive_semantic_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        }
+        if len(self.unknowns) != 4 or set(self.unknowns) != expected_unknowns:
+            raise ValueError("semantic impact must declare its four exact unknowns")
+        if self.target_returned_count != len(self.target_assessments):
+            raise ValueError("semantic target count must match its assessments")
+        supported = sum(
+            assessment.adapter_state == "registered"
+            for assessment in self.target_assessments
+        )
+        groups = [
+            group
+            for assessment in self.target_assessments
+            for group in assessment.groups
+        ]
+        if (
+            self.summary.assessed_target_count != len(self.target_assessments)
+            or self.summary.supported_target_count != supported
+            or self.summary.total_count != sum(group.total_count for group in groups)
+        ):
+            raise ValueError("semantic impact summary must match assessed groups")
+        expected_coverage = (
+            "truncated"
+            if self.target_coverage == "truncated"
+            or any(group.coverage == "truncated" for group in groups)
+            else "complete"
+        )
+        if self.summary.coverage != expected_coverage:
+            raise ValueError("semantic impact summary coverage must remain bounded")
+        return self
+
+
+class ProjectHistoryImpactContentV120(PetraModel):
+    view_kind: Literal["dependency_impact"]
+    selected_event: ProjectHistoryImpactEventAnchor
+    authorization_scope: Literal["authenticated_project"]
+    impact: ProjectHistoryImpactInventory
+    semantic_target_impact: ProjectHistorySemanticTargetImpactV120
+    decision_boundary: ProjectHistoryImpactDecisionBoundary
+    authority: ProjectHistoryImpactAuthority
+    omissions: list[
+        Literal[
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ] = Field(min_length=7, max_length=7)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_targets_and_omissions(self) -> ProjectHistoryImpactContentV120:
+        expected_omissions = {
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 7 or set(self.omissions) != expected_omissions:
+            raise ValueError(
+                "History impact 1.2 must declare its seven exact omissions"
+            )
+        if self.semantic_target_impact.target_total_count != len(
+            self.selected_event.targets
+        ):
+            raise ValueError("semantic impact must count the selected event targets")
+        for index, assessment in enumerate(
+            self.semantic_target_impact.target_assessments
+        ):
+            if (
+                assessment.target_index != index
+                or assessment.target_ref != self.selected_event.targets[index]
+            ):
+                raise ValueError(
+                    "semantic assessment must preserve target identity/order"
+                )
+        return self
+
+
+class PetraProjectHistoryImpactViewV120(PetraModel):
+    schema_name: Literal["petra.project-history-impact-view"]
+    schema_version: Literal["1.2.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryImpactContentV120
+    content_hash: str
+    read_at: str
+
+
+class ProjectHistoryOperationalResolvedTargetRecordV130(PetraModel):
+    semantic_key: str
+    object_id: str
+    revision: int = Field(ge=1)
+    content_hash: str | None = None
+    record_hash: str
+    authority_source: Literal[
+        "selected_event_target", "resolved_immutable_semantic_authority"
+    ]
+
+
+class ProjectHistoryOperationalWorkUnitRefV130(PetraModel):
+    work_unit_id: str
+    revision: int = Field(ge=1)
+    spec_hash: str
+    record_hash: str
+
+
+class ProjectHistoryOperationalInputBindingRefV130(PetraModel):
+    worker_input_manifest_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+    binding_position: int = Field(ge=1, le=10_000)
+    binding_name: str
+    record_id: str
+    record_revision: int = Field(ge=1)
+    snapshot_hash: str
+
+
+class ProjectHistoryOperationalInteractionRunRefV130(PetraModel):
+    interaction_run_id: str
+    revision: int = Field(ge=1)
+    content_hash: str
+    record_hash: str
+
+
+class ProjectHistoryOperationalDependentRefV130(PetraModel):
+    semantic_key: Literal[
+        "petra.work-unit",
+        "petra.worker-output-manifest",
+        "petra.interaction-replay-record",
+    ]
+    object_id: str
+    revision: int = Field(ge=1)
+    schema_name: Literal[
+        "petra.work-unit",
+        "petra.worker-output-manifest",
+        "petra.interaction-replay-record",
+    ]
+    schema_version: Literal["1.0.0"]
+    content_hash: str | None = None
+    record_hash: str
+    posture: Literal["current", "immutable_revision"]
+    relation: Literal[
+        "uses_exact_history_target_as_work_input",
+        "reports_output_for_work_using_exact_history_target",
+        "delivers_interaction_for_work_using_exact_history_target",
+    ]
+    relation_identity: str = Field(min_length=1, max_length=500)
+    work_unit_ref: ProjectHistoryOperationalWorkUnitRefV130
+    input_binding_ref: ProjectHistoryOperationalInputBindingRefV130
+    interaction_run_ref: ProjectHistoryOperationalInteractionRunRefV130 | None = None
+
+    @model_validator(mode="after")
+    def exact_kind_and_authority(
+        self,
+    ) -> ProjectHistoryOperationalDependentRefV130:
+        expected = {
+            "petra.work-unit": (
+                "petra.work-unit",
+                "current",
+                "uses_exact_history_target_as_work_input",
+            ),
+            "petra.worker-output-manifest": (
+                "petra.worker-output-manifest",
+                "immutable_revision",
+                "reports_output_for_work_using_exact_history_target",
+            ),
+            "petra.interaction-replay-record": (
+                "petra.interaction-replay-record",
+                "immutable_revision",
+                "delivers_interaction_for_work_using_exact_history_target",
+            ),
+        }
+        if (
+            self.schema_name,
+            self.posture,
+            self.relation,
+        ) != expected[self.semantic_key]:
+            raise ValueError(
+                "operational reference kind must preserve its exact relation"
+            )
+        if self.semantic_key == "petra.work-unit":
+            if (
+                self.content_hash is not None
+                or self.interaction_run_ref is not None
+                or self.object_id != self.work_unit_ref.work_unit_id
+                or self.revision != self.work_unit_ref.revision
+                or self.record_hash != self.work_unit_ref.record_hash
+            ):
+                raise ValueError(
+                    "Work dependency must be the exact current WorkUnit ref"
+                )
+        elif self.content_hash is None:
+            raise ValueError("immutable operational records require a content hash")
+        if (self.semantic_key == "petra.interaction-replay-record") != (
+            self.interaction_run_ref is not None
+        ):
+            raise ValueError(
+                "only interaction deliveries require an InteractionRun ref"
+            )
+        return self
+
+
+class ProjectHistoryOperationalAdapterGroupV130(PetraModel):
+    adapter_kind: Literal["work_input_binding", "work_output", "interaction_delivery"]
+    authority_source: Literal[
+        "current_work_heads_with_immutable_input_bindings",
+        "immutable_worker_output_manifests_for_bound_work",
+        "immutable_interaction_replay_records_for_bound_work",
+    ]
+    relation_scope: Literal["exact_target_record_binding"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=25)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistoryOperationalDependentRefV130] = Field(max_length=25)
+
+    @model_validator(mode="after")
+    def exact_authority_and_counts(
+        self,
+    ) -> ProjectHistoryOperationalAdapterGroupV130:
+        expected = {
+            "work_input_binding": (
+                "current_work_heads_with_immutable_input_bindings",
+                "petra.work-unit",
+            ),
+            "work_output": (
+                "immutable_worker_output_manifests_for_bound_work",
+                "petra.worker-output-manifest",
+            ),
+            "interaction_delivery": (
+                "immutable_interaction_replay_records_for_bound_work",
+                "petra.interaction-replay-record",
+            ),
+        }
+        authority, semantic_key = expected[self.adapter_kind]
+        if self.authority_source != authority or any(
+            ref.semantic_key != semantic_key for ref in self.refs
+        ):
+            raise ValueError("operational adapter must preserve its owning authority")
+        if self.returned_count != len(self.refs):
+            raise ValueError("operational returned count must match its refs")
+        expected_coverage = (
+            "truncated" if self.total_count > self.returned_count else "complete"
+        )
+        if self.coverage != expected_coverage:
+            raise ValueError("operational coverage must match its bounded count")
+        return self
+
+
+class ProjectHistoryOperationalRegisteredAssessmentV130(PetraModel):
+    target_index: int = Field(ge=0, le=99)
+    target_ref: ProjectHistoryTargetRef
+    adapter_state: Literal["registered"]
+    resolved_target_record: ProjectHistoryOperationalResolvedTargetRecordV130
+    groups: list[ProjectHistoryOperationalAdapterGroupV130] = Field(
+        min_length=3, max_length=3
+    )
+
+    @model_validator(mode="after")
+    def exact_target_and_group_order(
+        self,
+    ) -> ProjectHistoryOperationalRegisteredAssessmentV130:
+        resolved = self.resolved_target_record
+        if (
+            resolved.semantic_key != self.target_ref.semantic_key
+            or resolved.object_id != self.target_ref.object_id
+            or resolved.revision != self.target_ref.revision
+            or (
+                self.target_ref.record_hash is not None
+                and resolved.record_hash != self.target_ref.record_hash
+            )
+        ):
+            raise ValueError("operational assessment must preserve target identity")
+        if [group.adapter_kind for group in self.groups] != [
+            "work_input_binding",
+            "work_output",
+            "interaction_delivery",
+        ]:
+            raise ValueError("operational groups must retain registry order")
+        for group in self.groups:
+            for ref in group.refs:
+                binding = ref.input_binding_ref
+                if (
+                    binding.record_id != resolved.object_id
+                    or binding.record_revision != resolved.revision
+                    or binding.snapshot_hash != resolved.record_hash
+                ):
+                    raise ValueError(
+                        "operational ref must bind the exact target record"
+                    )
+        return self
+
+
+class ProjectHistoryOperationalUnavailableAssessmentV130(PetraModel):
+    target_index: int = Field(ge=0, le=99)
+    target_ref: ProjectHistoryTargetRef
+    adapter_state: Literal[
+        "target_identity_incomplete", "target_record_authority_unavailable"
+    ]
+    reason: Literal[
+        "Operational adapters require an immutable target revision.",
+        "The exact immutable target record authority is unavailable in this "
+        "Project snapshot.",
+    ]
+    groups: list[ProjectHistoryOperationalAdapterGroupV130] = Field(max_length=0)
+
+    @model_validator(mode="after")
+    def exact_unavailability(
+        self,
+    ) -> ProjectHistoryOperationalUnavailableAssessmentV130:
+        reasons = {
+            "target_identity_incomplete": (
+                "Operational adapters require an immutable target revision."
+            ),
+            "target_record_authority_unavailable": (
+                "The exact immutable target record authority is unavailable in this "
+                "Project snapshot."
+            ),
+        }
+        if self.reason != reasons[self.adapter_state]:
+            raise ValueError("operational adapter state must name its exact reason")
+        if (self.adapter_state == "target_identity_incomplete") != (
+            self.target_ref.revision is None
+        ):
+            raise ValueError(
+                "operational target state must match revision availability"
+            )
+        return self
+
+
+ProjectHistoryOperationalTargetAssessmentV130 = (
+    ProjectHistoryOperationalRegisteredAssessmentV130
+    | ProjectHistoryOperationalUnavailableAssessmentV130
+)
+
+
+class ProjectHistoryOperationalRegistryEntryV130(PetraModel):
+    adapter_kind: str
+    authority_source: str
+    dependent_semantic_key: str
+
+
+class ProjectHistoryOperationalSummaryV130(PetraModel):
+    registered_adapter_count: Literal[3]
+    assessed_target_count: int = Field(ge=0, le=10)
+    supported_target_count: int = Field(ge=0, le=10)
+    total_count: int = Field(ge=0, le=30_000_000)
+    coverage: Literal["complete", "truncated"]
+
+
+class ProjectHistoryOperationalDependencyImpactV130(PetraModel):
+    scope: Literal["registered_exact_operational_dependents"]
+    target_limit: Literal[10]
+    per_adapter_ref_limit: Literal[25]
+    target_total_count: int = Field(ge=1, le=100)
+    target_returned_count: int = Field(ge=1, le=10)
+    target_coverage: Literal["complete", "truncated"]
+    registry: list[ProjectHistoryOperationalRegistryEntryV130] = Field(
+        min_length=3, max_length=3
+    )
+    target_assessments: list[ProjectHistoryOperationalTargetAssessmentV130] = Field(
+        min_length=1, max_length=10
+    )
+    summary: ProjectHistoryOperationalSummaryV130
+    unknowns: list[
+        Literal[
+            "work_without_exact_record_binding_is_excluded",
+            "unresolved_target_record_authority_may_hide_bindings",
+            "worker_output_effect_is_not_inferred",
+            "interaction_delivery_effect_is_not_inferred",
+            "transitive_operational_dependency_closure_is_not_composed",
+            "cross_family_total_order_is_not_asserted",
+        ]
+    ] = Field(min_length=6, max_length=6)
+
+    @model_validator(mode="after")
+    def exact_registry_counts_and_unknowns(
+        self,
+    ) -> ProjectHistoryOperationalDependencyImpactV130:
+        expected_registry = [
+            (
+                "work_input_binding",
+                "current_work_heads_with_immutable_input_bindings",
+                "petra.work-unit",
+            ),
+            (
+                "work_output",
+                "immutable_worker_output_manifests_for_bound_work",
+                "petra.worker-output-manifest",
+            ),
+            (
+                "interaction_delivery",
+                "immutable_interaction_replay_records_for_bound_work",
+                "petra.interaction-replay-record",
+            ),
+        ]
+        actual_registry = [
+            (
+                entry.adapter_kind,
+                entry.authority_source,
+                entry.dependent_semantic_key,
+            )
+            for entry in self.registry
+        ]
+        if actual_registry != expected_registry:
+            raise ValueError("operational adapter registry must be exact and ordered")
+        expected_unknowns = {
+            "work_without_exact_record_binding_is_excluded",
+            "unresolved_target_record_authority_may_hide_bindings",
+            "worker_output_effect_is_not_inferred",
+            "interaction_delivery_effect_is_not_inferred",
+            "transitive_operational_dependency_closure_is_not_composed",
+            "cross_family_total_order_is_not_asserted",
+        }
+        if len(self.unknowns) != 6 or set(self.unknowns) != expected_unknowns:
+            raise ValueError("operational impact must declare its six exact unknowns")
+        groups = [
+            group
+            for assessment in self.target_assessments
+            for group in assessment.groups
+        ]
+        supported = sum(
+            assessment.adapter_state == "registered"
+            for assessment in self.target_assessments
+        )
+        if (
+            self.target_returned_count != len(self.target_assessments)
+            or self.summary.assessed_target_count != len(self.target_assessments)
+            or self.summary.supported_target_count != supported
+            or self.summary.total_count != sum(group.total_count for group in groups)
+        ):
+            raise ValueError("operational impact summary must match assessed groups")
+        expected_coverage = (
+            "truncated"
+            if self.target_coverage == "truncated"
+            or any(group.coverage == "truncated" for group in groups)
+            else "complete"
+        )
+        if self.summary.coverage != expected_coverage:
+            raise ValueError("operational impact coverage must remain bounded")
+        return self
+
+
+class ProjectHistoryImpactContentV130(PetraModel):
+    view_kind: Literal["dependency_impact"]
+    selected_event: ProjectHistoryImpactEventAnchor
+    authorization_scope: Literal["authenticated_project"]
+    impact: ProjectHistoryImpactInventory
+    semantic_target_impact: ProjectHistorySemanticTargetImpactV120
+    operational_dependency_impact: ProjectHistoryOperationalDependencyImpactV130
+    decision_boundary: ProjectHistoryImpactDecisionBoundary
+    authority: ProjectHistoryImpactAuthority
+    omissions: list[
+        Literal[
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "work_without_exact_record_binding_not_composed",
+            "operational_dependent_effect_not_inferred",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ] = Field(min_length=9, max_length=9)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_targets_and_omissions(self) -> ProjectHistoryImpactContentV130:
+        expected_omissions = {
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "work_without_exact_record_binding_not_composed",
+            "operational_dependent_effect_not_inferred",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 9 or set(self.omissions) != expected_omissions:
+            raise ValueError("History impact 1.3 must declare its nine exact omissions")
+        targets = self.selected_event.targets
+        if self.semantic_target_impact.target_total_count != len(
+            targets
+        ) or self.operational_dependency_impact.target_total_count != len(targets):
+            raise ValueError("History impact slices must count selected event targets")
+        for assessments in (
+            self.semantic_target_impact.target_assessments,
+            self.operational_dependency_impact.target_assessments,
+        ):
+            for index, assessment in enumerate(assessments):
+                if (
+                    assessment.target_index != index
+                    or assessment.target_ref != targets[index]
+                ):
+                    raise ValueError(
+                        "History impact assessments must preserve target identity/order"
+                    )
+        return self
+
+
+class PetraProjectHistoryImpactViewV130(PetraModel):
+    schema_name: Literal["petra.project-history-impact-view"]
+    schema_version: Literal["1.3.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryImpactContentV130
+    content_hash: str
+    read_at: str
+
+
+class ProjectHistoryOperationalDefinitionRefV140(PetraModel):
+    project_definition_id: str
+    revision: int = Field(ge=1)
+    content_hash: str
+    definition_family: str
+
+
+class ProjectHistoryOperationalDestinationObjectRefV140(PetraModel):
+    semantic_key: Literal["petra.work-unit"]
+    object_id: str
+    revision: int = Field(ge=1)
+    record_hash: str
+
+
+class ProjectHistoryOperationalRouteAuthorityV140(PetraModel):
+    schema_name: Literal["petra.project-work-view"]
+    schema_version: Literal["1.0.0"]
+    view_kind: Literal["detail"]
+    authority_source: Literal["current_project_definition_and_project_work_view"]
+
+
+class ProjectHistoryAvailableWorkDestinationV140(PetraModel):
+    state: Literal["available"]
+    place_role: Literal["work"]
+    task_intent: Literal["inspect"]
+    object_ref: ProjectHistoryOperationalDestinationObjectRefV140
+    route_authority: ProjectHistoryOperationalRouteAuthorityV140
+    project_definition_ref: ProjectHistoryOperationalDefinitionRefV140
+
+
+class ProjectHistoryUnavailableWorkDestinationV140(PetraModel):
+    state: Literal["unavailable"]
+    reason_code: Literal["project_work_route_authority_unavailable"]
+    reason: Literal[
+        "The current ProjectDefinition does not authorize the exact Project Work "
+        "detail destination."
+    ]
+
+
+class ProjectHistoryUnavailableOutputDestinationV140(PetraModel):
+    state: Literal["unavailable"]
+    reason_code: Literal["worker_output_manifest_route_not_registered"]
+    reason: Literal[
+        "No exact Project-owned WorkerOutputManifest destination is registered."
+    ]
+
+
+class ProjectHistoryUnavailableReplayDestinationV140(PetraModel):
+    state: Literal["unavailable"]
+    reason_code: Literal["interaction_replay_record_route_not_registered"]
+    reason: Literal[
+        "No exact Project-owned InteractionReplayRecord destination is registered; "
+        "replay is not a ProjectThread binding."
+    ]
+
+
+ProjectHistoryOperationalDestinationV140 = (
+    ProjectHistoryAvailableWorkDestinationV140
+    | ProjectHistoryUnavailableWorkDestinationV140
+    | ProjectHistoryUnavailableOutputDestinationV140
+    | ProjectHistoryUnavailableReplayDestinationV140
+)
+
+
+class ProjectHistoryOperationalDependentRefV140(
+    ProjectHistoryOperationalDependentRefV130
+):
+    destination: ProjectHistoryOperationalDestinationV140
+
+    @model_validator(mode="after")
+    def exact_destination(self) -> ProjectHistoryOperationalDependentRefV140:
+        destination = self.destination
+        if self.semantic_key == "petra.work-unit":
+            if not isinstance(
+                destination,
+                ProjectHistoryAvailableWorkDestinationV140
+                | ProjectHistoryUnavailableWorkDestinationV140,
+            ):
+                raise ValueError("Work must use only its exact destination state")
+            if isinstance(destination, ProjectHistoryAvailableWorkDestinationV140):
+                target = destination.object_ref
+                if (
+                    target.object_id != self.work_unit_ref.work_unit_id
+                    or target.revision != self.work_unit_ref.revision
+                    or target.record_hash != self.work_unit_ref.record_hash
+                ):
+                    raise ValueError(
+                        "Work destination must preserve the exact current Work ref"
+                    )
+        elif self.semantic_key == "petra.worker-output-manifest":
+            if not isinstance(
+                destination, ProjectHistoryUnavailableOutputDestinationV140
+            ):
+                raise ValueError("Worker output has no exact registered destination")
+        elif not isinstance(
+            destination, ProjectHistoryUnavailableReplayDestinationV140
+        ):
+            raise ValueError("Interaction replay has no ProjectThread destination")
+        return self
+
+
+class ProjectHistoryOperationalAdapterGroupV140(PetraModel):
+    adapter_kind: Literal["work_input_binding", "work_output", "interaction_delivery"]
+    authority_source: Literal[
+        "current_work_heads_with_immutable_input_bindings",
+        "immutable_worker_output_manifests_for_bound_work",
+        "immutable_interaction_replay_records_for_bound_work",
+    ]
+    relation_scope: Literal["exact_target_record_binding"]
+    total_count: int = Field(ge=0, le=1_000_000)
+    returned_count: int = Field(ge=0, le=25)
+    coverage: Literal["complete", "truncated"]
+    refs: list[ProjectHistoryOperationalDependentRefV140] = Field(max_length=25)
+
+    @model_validator(mode="after")
+    def exact_authority_and_counts(
+        self,
+    ) -> ProjectHistoryOperationalAdapterGroupV140:
+        expected = {
+            "work_input_binding": (
+                "current_work_heads_with_immutable_input_bindings",
+                "petra.work-unit",
+            ),
+            "work_output": (
+                "immutable_worker_output_manifests_for_bound_work",
+                "petra.worker-output-manifest",
+            ),
+            "interaction_delivery": (
+                "immutable_interaction_replay_records_for_bound_work",
+                "petra.interaction-replay-record",
+            ),
+        }
+        authority, semantic_key = expected[self.adapter_kind]
+        if self.authority_source != authority or any(
+            ref.semantic_key != semantic_key for ref in self.refs
+        ):
+            raise ValueError("operational adapter must preserve its owning authority")
+        if self.returned_count != len(self.refs):
+            raise ValueError("operational returned count must match its refs")
+        expected_coverage = (
+            "truncated" if self.total_count > self.returned_count else "complete"
+        )
+        if self.coverage != expected_coverage:
+            raise ValueError("operational coverage must match its bounded count")
+        return self
+
+
+class ProjectHistoryOperationalRegisteredAssessmentV140(PetraModel):
+    target_index: int = Field(ge=0, le=99)
+    target_ref: ProjectHistoryTargetRef
+    adapter_state: Literal["registered"]
+    resolved_target_record: ProjectHistoryOperationalResolvedTargetRecordV130
+    groups: list[ProjectHistoryOperationalAdapterGroupV140] = Field(
+        min_length=3, max_length=3
+    )
+
+    @model_validator(mode="after")
+    def exact_target_and_group_order(
+        self,
+    ) -> ProjectHistoryOperationalRegisteredAssessmentV140:
+        resolved = self.resolved_target_record
+        if (
+            resolved.semantic_key != self.target_ref.semantic_key
+            or resolved.object_id != self.target_ref.object_id
+            or resolved.revision != self.target_ref.revision
+            or (
+                self.target_ref.record_hash is not None
+                and resolved.record_hash != self.target_ref.record_hash
+            )
+        ):
+            raise ValueError("operational assessment must preserve target identity")
+        if [group.adapter_kind for group in self.groups] != [
+            "work_input_binding",
+            "work_output",
+            "interaction_delivery",
+        ]:
+            raise ValueError("operational groups must retain registry order")
+        for group in self.groups:
+            for ref in group.refs:
+                binding = ref.input_binding_ref
+                if (
+                    binding.record_id != resolved.object_id
+                    or binding.record_revision != resolved.revision
+                    or binding.snapshot_hash != resolved.record_hash
+                ):
+                    raise ValueError(
+                        "operational ref must bind the exact target record"
+                    )
+        return self
+
+
+ProjectHistoryOperationalTargetAssessmentV140 = (
+    ProjectHistoryOperationalRegisteredAssessmentV140
+    | ProjectHistoryOperationalUnavailableAssessmentV130
+)
+
+
+class ProjectHistoryOperationalDependencyImpactV140(PetraModel):
+    scope: Literal["registered_exact_operational_dependents"]
+    target_limit: Literal[10]
+    per_adapter_ref_limit: Literal[25]
+    target_total_count: int = Field(ge=1, le=100)
+    target_returned_count: int = Field(ge=1, le=10)
+    target_coverage: Literal["complete", "truncated"]
+    registry: list[ProjectHistoryOperationalRegistryEntryV130] = Field(
+        min_length=3, max_length=3
+    )
+    target_assessments: list[ProjectHistoryOperationalTargetAssessmentV140] = Field(
+        min_length=1, max_length=10
+    )
+    summary: ProjectHistoryOperationalSummaryV130
+    unknowns: list[
+        Literal[
+            "work_without_exact_record_binding_is_excluded",
+            "unresolved_target_record_authority_may_hide_bindings",
+            "worker_output_effect_is_not_inferred",
+            "interaction_delivery_effect_is_not_inferred",
+            "transitive_operational_dependency_closure_is_not_composed",
+            "cross_family_total_order_is_not_asserted",
+        ]
+    ] = Field(min_length=6, max_length=6)
+
+    @model_validator(mode="after")
+    def exact_registry_counts_and_unknowns(
+        self,
+    ) -> ProjectHistoryOperationalDependencyImpactV140:
+        expected_registry = [
+            (
+                "work_input_binding",
+                "current_work_heads_with_immutable_input_bindings",
+                "petra.work-unit",
+            ),
+            (
+                "work_output",
+                "immutable_worker_output_manifests_for_bound_work",
+                "petra.worker-output-manifest",
+            ),
+            (
+                "interaction_delivery",
+                "immutable_interaction_replay_records_for_bound_work",
+                "petra.interaction-replay-record",
+            ),
+        ]
+        actual_registry = [
+            (
+                entry.adapter_kind,
+                entry.authority_source,
+                entry.dependent_semantic_key,
+            )
+            for entry in self.registry
+        ]
+        if actual_registry != expected_registry:
+            raise ValueError("operational adapter registry must be exact and ordered")
+        expected_unknowns = {
+            "work_without_exact_record_binding_is_excluded",
+            "unresolved_target_record_authority_may_hide_bindings",
+            "worker_output_effect_is_not_inferred",
+            "interaction_delivery_effect_is_not_inferred",
+            "transitive_operational_dependency_closure_is_not_composed",
+            "cross_family_total_order_is_not_asserted",
+        }
+        if len(self.unknowns) != 6 or set(self.unknowns) != expected_unknowns:
+            raise ValueError("operational impact must declare its six exact unknowns")
+        groups = [
+            group
+            for assessment in self.target_assessments
+            for group in assessment.groups
+        ]
+        supported = sum(
+            assessment.adapter_state == "registered"
+            for assessment in self.target_assessments
+        )
+        if (
+            self.target_returned_count != len(self.target_assessments)
+            or self.summary.assessed_target_count != len(self.target_assessments)
+            or self.summary.supported_target_count != supported
+            or self.summary.total_count != sum(group.total_count for group in groups)
+        ):
+            raise ValueError("operational impact summary must match assessed groups")
+        expected_coverage = (
+            "truncated"
+            if self.target_coverage == "truncated"
+            or any(group.coverage == "truncated" for group in groups)
+            else "complete"
+        )
+        if self.summary.coverage != expected_coverage:
+            raise ValueError("operational impact coverage must remain bounded")
+        return self
+
+
+class ProjectHistoryImpactContentV140(PetraModel):
+    view_kind: Literal["dependency_impact"]
+    selected_event: ProjectHistoryImpactEventAnchor
+    authorization_scope: Literal["authenticated_project"]
+    impact: ProjectHistoryImpactInventory
+    semantic_target_impact: ProjectHistorySemanticTargetImpactV120
+    operational_dependency_impact: ProjectHistoryOperationalDependencyImpactV140
+    decision_boundary: ProjectHistoryImpactDecisionBoundary
+    authority: ProjectHistoryImpactAuthority
+    omissions: list[
+        Literal[
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "work_without_exact_record_binding_not_composed",
+            "operational_dependent_effect_not_inferred",
+            "unregistered_operational_destination_not_inferred",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        ]
+    ] = Field(min_length=10, max_length=10)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_targets_and_omissions(self) -> ProjectHistoryImpactContentV140:
+        expected_omissions = {
+            "unregistered_semantic_target_adapters_not_composed",
+            "identity_only_semantic_relations_not_composed",
+            "transitive_dependency_closure_not_composed",
+            "work_without_exact_record_binding_not_composed",
+            "operational_dependent_effect_not_inferred",
+            "unregistered_operational_destination_not_inferred",
+            "reversibility_not_assessed",
+            "compensation_not_composed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 10 or set(self.omissions) != expected_omissions:
+            raise ValueError("History impact 1.4 must declare its ten exact omissions")
+        targets = self.selected_event.targets
+        if self.semantic_target_impact.target_total_count != len(
+            targets
+        ) or self.operational_dependency_impact.target_total_count != len(targets):
+            raise ValueError("History impact slices must count selected event targets")
+        for assessments in (
+            self.semantic_target_impact.target_assessments,
+            self.operational_dependency_impact.target_assessments,
+        ):
+            for index, assessment in enumerate(assessments):
+                if (
+                    assessment.target_index != index
+                    or assessment.target_ref != targets[index]
+                ):
+                    raise ValueError(
+                        "History impact assessments must preserve target identity/order"
+                    )
+        return self
+
+
+class PetraProjectHistoryImpactViewV140(PetraModel):
+    schema_name: Literal["petra.project-history-impact-view"]
+    schema_version: Literal["1.4.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryImpactContentV140
+    content_hash: str
+    read_at: str
+
+
+class ProjectHistoryRecoveryChangeSetRef(PetraModel):
+    change_set_id: str
+    revision: Literal[1]
+    schema_version: Literal["1.0.0", "1.1.0"]
+    content_hash: str
+    record_hash: str
+    current_state: Literal[
+        "submitted", "approved", "rejected", "applied", "conflicted", "reverted"
+    ]
+
+
+class ProjectHistoryRecoveryApprovalRef(PetraModel):
+    approval_id: str
+    revision: Literal[1]
+    change_set_id: str
+    change_set_revision: Literal[1]
+    change_set_content_hash: str
+    decision: Literal["approved"]
+    record_hash: str
+
+
+class ProjectHistoryRecoveryEvidenceRef(PetraModel):
+    semantic_key: Literal["scientific.claim", "scientific.assertion"]
+    object_id: str
+    revision: int = Field(ge=1)
+    schema_name: Literal["petra.claim", "petra.assertion"]
+    schema_version: Literal["1.0.0"]
+    record_hash: str
+    authority_zone: Literal["quarantine", "trusted"]
+    review_state: Literal[
+        "unreviewed",
+        "machine_checked",
+        "human_accepted",
+        "human_rejected",
+        "disputed",
+    ]
+    admission_kind: Literal["proposal", "promotion", "reversal"]
+    promotion_change_set_id: str | None = None
+
+
+class ProjectHistoryRecoverySubject(PetraModel):
+    selected_event_role: Literal["promotion", "compensation"]
+    promotion_change_set: ProjectHistoryRecoveryChangeSetRef
+    applied_approval: ProjectHistoryRecoveryApprovalRef
+    current_targets: list[ProjectHistoryRecoveryEvidenceRef] = Field(
+        min_length=2, max_length=2
+    )
+
+    @model_validator(mode="after")
+    def exact_target_pair(self) -> ProjectHistoryRecoverySubject:
+        if [target.semantic_key for target in self.current_targets] != [
+            "scientific.claim",
+            "scientific.assertion",
+        ]:
+            raise ValueError(
+                "recovery authority requires an ordered Claim–Assertion pair"
+            )
+        return self
+
+
+class ProjectHistoryRecoveryGrantRef(PetraModel):
+    capability_grant_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class ProjectHistoryRecoveryGrantedCommand(PetraModel):
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    state: Literal["granted"]
+    grant_ref: ProjectHistoryRecoveryGrantRef
+
+
+class ProjectHistoryRecoveryDeniedCommand(PetraModel):
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    state: Literal["denied"]
+    reason: Literal[
+        "principal_not_configured",
+        "actor_not_registered",
+        "active_grant_not_found",
+        "active_grant_ambiguous",
+    ]
+
+
+class ProjectHistoryRecoveryConfiguredPrincipal(PetraModel):
+    state: Literal["configured"]
+    actor: ActorRef
+
+
+class ProjectHistoryRecoveryUnavailablePrincipal(PetraModel):
+    state: Literal["unavailable"]
+    reason: Literal["principal_not_configured", "actor_not_registered"]
+
+
+class ProjectHistoryRecoveryCommandAuthority(PetraModel):
+    principal_source: Literal["server_authenticated_single_user"]
+    principal_state: (
+        ProjectHistoryRecoveryConfiguredPrincipal
+        | ProjectHistoryRecoveryUnavailablePrincipal
+    )
+    required_commands: list[
+        ProjectHistoryRecoveryGrantedCommand | ProjectHistoryRecoveryDeniedCommand
+    ] = Field(min_length=3, max_length=3)
+    execution_recheck: Literal["required_at_each_command"]
+
+    @model_validator(mode="after")
+    def exact_command_order(self) -> ProjectHistoryRecoveryCommandAuthority:
+        if [command.command_name for command in self.required_commands] != [
+            "SubmitChangeSet",
+            "RecordApproval",
+            "ApplyChangeSet",
+        ]:
+            raise ValueError("recovery authority requires three exact ordered commands")
+        return self
+
+
+class ProjectHistoryRecoveryBlocker(PetraModel):
+    code: Literal[
+        "selected_change_set_is_compensation",
+        "change_set_not_applied",
+        "change_set_operation_set_invalid",
+        "target_revision_changed",
+        "target_authority_changed",
+        "target_pair_mismatch",
+        "impact_target_set_mismatch",
+        "command_authority_missing",
+        "command_authority_ambiguous",
+    ]
+    detail: str
+
+
+class ProjectHistoryRecoveryEligible(PetraModel):
+    state: Literal["eligible_for_preview"]
+    scope: Literal["single_change_set_compensation"]
+    reason: str
+    blockers: list[ProjectHistoryRecoveryBlocker] = Field(max_length=0)
+
+
+class ProjectHistoryRecoveryBlocked(PetraModel):
+    state: Literal["blocked"]
+    scope: Literal["single_change_set_compensation"]
+    reason: str
+    blockers: list[ProjectHistoryRecoveryBlocker] = Field(min_length=1, max_length=20)
+
+
+class ProjectHistoryRecoveryAlreadyCompensated(PetraModel):
+    state: Literal["already_compensated"]
+    scope: Literal["single_change_set_compensation"]
+    reason: str
+    blockers: list[ProjectHistoryRecoveryBlocker] = Field(max_length=0)
+    compensation_change_set: ProjectHistoryRecoveryChangeSetRef
+    compensation_approval: ProjectHistoryRecoveryApprovalRef
+    compensation_event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryRecoveryCausalBasis(PetraModel):
+    source_event_id: str
+    direct_dependency_summary: ProjectHistoryImpactSummary
+    semantic_dependency_summary: ProjectHistorySemanticSummaryV120
+    dependent_effect: Literal["not_inferred_from_reference"]
+    unknowns: list[
+        Literal[
+            "unregistered_profile_specific_dependencies_may_exist",
+            "transitive_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        ]
+    ] = Field(min_length=3, max_length=3)
+
+
+class ProjectHistoryRecoveryDecisionBoundary(PetraModel):
+    reversibility: Literal["assessed_for_exact_change_set"]
+    compensation_preview: Literal["not_composed"]
+    compensation_execution: Literal["not_performed"]
+    multi_step_compensation: Literal["not_assessed"]
+
+
+class ProjectHistoryRecoveryContent(PetraModel):
+    view_kind: Literal["change_set_recovery_assessment"]
+    authorization_scope: Literal["authenticated_project"]
+    selected_event: ProjectHistoryRecentChange
+    recovery_subject: ProjectHistoryRecoverySubject
+    command_authority: ProjectHistoryRecoveryCommandAuthority
+    causal_impact_basis: ProjectHistoryRecoveryCausalBasis
+    assessment: (
+        ProjectHistoryRecoveryEligible
+        | ProjectHistoryRecoveryBlocked
+        | ProjectHistoryRecoveryAlreadyCompensated
+    )
+    decision_boundary: ProjectHistoryRecoveryDecisionBoundary
+    authority: ProjectHistoryImpactAuthority
+    omissions: list[
+        Literal[
+            "compensation_preview_not_composed",
+            "compensation_execution_not_performed",
+            "generic_undo_not_implemented",
+            "multi_step_compensation_not_assessed",
+            "historical_project_definition_not_interpreted",
+            "dependent_effect_not_inferred_from_reference",
+            "cross_family_total_order_not_asserted",
+        ]
+    ] = Field(min_length=7, max_length=7)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_boundaries(self) -> ProjectHistoryRecoveryContent:
+        expected = {
+            "compensation_preview_not_composed",
+            "compensation_execution_not_performed",
+            "generic_undo_not_implemented",
+            "multi_step_compensation_not_assessed",
+            "historical_project_definition_not_interpreted",
+            "dependent_effect_not_inferred_from_reference",
+            "cross_family_total_order_not_asserted",
+        }
+        if len(self.omissions) != 7 or set(self.omissions) != expected:
+            raise ValueError("recovery assessment must preserve its exact omissions")
+        expected_unknowns = {
+            "unregistered_profile_specific_dependencies_may_exist",
+            "transitive_dependents_may_exist",
+            "external_system_dependents_are_not_observable",
+        }
+        if set(self.causal_impact_basis.unknowns) != expected_unknowns:
+            raise ValueError("recovery assessment must preserve causal unknowns")
+        return self
+
+
+class PetraProjectHistoryRecoveryAssessmentView(PetraModel):
+    schema_name: Literal["petra.project-history-recovery-assessment-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryRecoveryContent
+    content_hash: str
+    read_at: str
+
+
+class ProjectHistoryCompensationAssessmentRef(PetraModel):
+    schema_name: Literal["petra.project-history-recovery-assessment-view"]
+    schema_version: Literal["1.0.0"]
+    event_id: str
+    content_hash: str
+    assessed_at: str
+    assessment_state: Literal["eligible_for_preview"]
+    authority: ProjectHistoryImpactAuthority
+
+
+class ProjectHistoryCompensationTrustedState(PetraModel):
+    zone: Literal["trusted"]
+    review_state: Literal["human_accepted"]
+
+
+class ProjectHistoryCompensationRetractionState(PetraModel):
+    zone: Literal["quarantine"]
+    review_state: Literal["human_rejected"]
+
+
+class ProjectHistoryCompensationClaimOperation(PetraModel):
+    operation_kind: Literal["retract_claim"]
+    target_id: str
+    base_revision: int = Field(ge=1)
+    current_record_hash: str
+    before: ProjectHistoryCompensationTrustedState
+    after: ProjectHistoryCompensationRetractionState
+
+
+class ProjectHistoryCompensationAssertionOperation(PetraModel):
+    operation_kind: Literal["retract_assertion"]
+    target_id: str
+    base_revision: int = Field(ge=1)
+    current_record_hash: str
+    before: ProjectHistoryCompensationTrustedState
+    after: ProjectHistoryCompensationRetractionState
+
+
+class ProjectHistoryCompensationResult(PetraModel):
+    semantic_key: Literal["scientific.claim", "scientific.assertion"]
+    object_id: str
+    prior_revision: int = Field(ge=1)
+    resulting_revision: int = Field(ge=1)
+    resulting_authority: ProjectHistoryCompensationRetractionState
+
+
+class ProjectHistoryCompensationGrantRef(PetraModel):
+    capability_grant_id: str
+    revision: Literal[1]
+    content_hash: str
+    record_hash: str
+
+
+class ProjectHistoryCompensationCommandStep(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    actor: ActorRef
+    grant_ref: ProjectHistoryCompensationGrantRef
+    composition_state: Literal["not_composed"]
+    authority_recheck: Literal["required"]
+    prerequisite: Literal[
+        "confirmed_preview_and_required_input",
+        "submitted_exact_change_set",
+        "approved_exact_change_set",
+    ]
+
+
+class ProjectHistoryCompensationPreservation(PetraModel):
+    prior_revisions: Literal["retained"]
+    promotion_and_approval: Literal["retained"]
+    selected_event: Literal["retained"]
+    dependent_records: Literal["not_rewritten"]
+    dependent_effects: Literal["not_automatically_reversed"]
+
+
+class ProjectHistoryCompensationFreshness(PetraModel):
+    issued_at: str
+    valid_through: str
+    binding_hash: str
+    invalidation_causes: list[
+        Literal[
+            "expiry_reached",
+            "project_authority_advanced",
+            "promotion_state_changed",
+            "target_revision_or_record_changed",
+            "command_grant_changed",
+        ]
+    ] = Field(min_length=5, max_length=5)
+
+
+class ProjectHistoryCompensationTargetSchema(PetraModel):
+    schema_name: Literal["petra.change-set"]
+    schema_version: Literal["1.1.0"]
+    risk_tier: Literal["R2"]
+    origin: Literal["direct_edit"]
+
+
+class ProjectHistoryCompensationDecisionBoundary(PetraModel):
+    preview: Literal["read_only"]
+    change_set: Literal["not_created"]
+    approval: Literal["not_recorded"]
+    commands: Literal["not_composed_or_executed"]
+    generic_undo: Literal["not_available"]
+    multi_step_compensation: Literal["not_assessed"]
+
+
+class ProjectHistoryCompensationPreviewContent(PetraModel):
+    view_kind: Literal["single_change_set_compensation_preview"]
+    authorization_scope: Literal["authenticated_project"]
+    assessment_ref: ProjectHistoryCompensationAssessmentRef
+    compensates_change_set: ProjectHistoryRecoveryChangeSetRef
+    target_change_set_schema: ProjectHistoryCompensationTargetSchema
+    operation_preview: list[
+        ProjectHistoryCompensationClaimOperation
+        | ProjectHistoryCompensationAssertionOperation
+    ] = Field(min_length=2, max_length=2)
+    impact_basis: ProjectHistoryRecoveryCausalBasis
+    result_preview: list[ProjectHistoryCompensationResult] = Field(
+        min_length=2, max_length=2
+    )
+    preservation: ProjectHistoryCompensationPreservation
+    required_user_input: list[
+        Literal["reason", "approval_rationale", "explicit_confirmation"]
+    ] = Field(min_length=3, max_length=3)
+    change_set_composition: Literal["deferred_until_confirmed_input"]
+    command_sequence: list[ProjectHistoryCompensationCommandStep] = Field(
+        min_length=3, max_length=3
+    )
+    freshness: ProjectHistoryCompensationFreshness
+    decision_boundary: ProjectHistoryCompensationDecisionBoundary
+    omissions: list[
+        Literal[
+            "user_reason_not_supplied",
+            "approval_rationale_not_supplied",
+            "command_envelopes_not_composed",
+            "compensation_not_persisted",
+            "compensation_not_executed",
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted",
+        ]
+    ] = Field(min_length=7, max_length=7)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_preview(self) -> ProjectHistoryCompensationPreviewContent:
+        if [operation.operation_kind for operation in self.operation_preview] != [
+            "retract_claim",
+            "retract_assertion",
+        ]:
+            raise ValueError("compensation preview requires an ordered retraction pair")
+        if [result.semantic_key for result in self.result_preview] != [
+            "scientific.claim",
+            "scientific.assertion",
+        ] or any(
+            result.resulting_revision != result.prior_revision + 1
+            for result in self.result_preview
+        ):
+            raise ValueError("compensation preview must advance the exact target pair")
+        expected_steps = [
+            (1, "SubmitChangeSet", "confirmed_preview_and_required_input"),
+            (2, "RecordApproval", "submitted_exact_change_set"),
+            (3, "ApplyChangeSet", "approved_exact_change_set"),
+        ]
+        if [
+            (step.position, step.command_name, step.prerequisite)
+            for step in self.command_sequence
+        ] != expected_steps:
+            raise ValueError("compensation preview must preserve its command sequence")
+        if self.required_user_input != [
+            "reason",
+            "approval_rationale",
+            "explicit_confirmation",
+        ]:
+            raise ValueError("compensation preview must require exact human input")
+        expected_omissions = {
+            "user_reason_not_supplied",
+            "approval_rationale_not_supplied",
+            "command_envelopes_not_composed",
+            "compensation_not_persisted",
+            "compensation_not_executed",
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted",
+        }
+        if set(self.omissions) != expected_omissions:
+            raise ValueError("compensation preview must preserve exact omissions")
+        return self
+
+
+class PetraProjectHistoryCompensationPreviewView(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-preview-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryCompensationPreviewContent
+    content_hash: str
+    read_at: str
+
+
 class ProjectSourceDefinitionRef(PetraModel):
     project_definition_id: str
     revision: int
@@ -3023,6 +5986,432 @@ class PetraCommandEnvelopeV110(PetraModel):
     causation_id: str | None = None
     submitted_at: str
     command: SubmitChangeSetV110 | RecordApproval | ApplyChangeSet
+
+
+class ProjectHistoryCompensationPlanPreviewRef(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-preview-view"]
+    schema_version: Literal["1.0.0"]
+    content_hash: str
+    binding_hash: str
+    issued_at: str
+    valid_through: str
+
+
+class ProjectHistoryCompensationPlanRequestConfirmation(PetraModel):
+    confirmed: Literal[True]
+    reason: str = Field(min_length=1, max_length=8000)
+    approval_rationale: str = Field(min_length=1, max_length=8000)
+
+
+class PetraProjectHistoryCompensationPlanRequest(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-plan-request"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    preview_ref: ProjectHistoryCompensationPlanPreviewRef
+    confirmation: ProjectHistoryCompensationPlanRequestConfirmation
+
+
+class ProjectHistoryCompensationPlanRevalidation(PetraModel):
+    state: Literal["passed"]
+    checked_at: str
+    assessment_content_hash: str
+    authority: ProjectHistoryImpactAuthority
+    target_bindings: list[
+        ProjectHistoryCompensationClaimOperation
+        | ProjectHistoryCompensationAssertionOperation
+    ] = Field(min_length=2, max_length=2)
+    preview_command_bindings: list[ProjectHistoryCompensationCommandStep] = Field(
+        min_length=3, max_length=3
+    )
+    preview_expiry: Literal["unexpired"]
+
+
+class ProjectHistoryCompensationPlannedCommand(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    envelope: PetraCommandEnvelopeV110
+    state: Literal["composed_not_submitted"]
+
+
+class ProjectHistoryCompensationPlanConfirmation(PetraModel):
+    state: Literal["explicitly_confirmed"]
+    confirmed_by: HumanActorRef
+    confirmed_at: str
+
+
+class ProjectHistoryCompensationPlanPersistence(PetraModel):
+    change_set: Literal["not_persisted"]
+    approval: Literal["not_persisted"]
+    commands: Literal["not_persisted"]
+
+
+class ProjectHistoryCompensationPlanExecution(PetraModel):
+    state: Literal["not_performed"]
+    requires_separate_request: Literal[True]
+    authority_recheck: Literal["required_at_each_command"]
+
+
+class ProjectHistoryCompensationPlanDecisionBoundary(PetraModel):
+    preview: Literal["revalidated"]
+    command_plan: Literal["composed"]
+    compensation: Literal["not_persisted_or_executed"]
+    generic_undo: Literal["not_available"]
+    multi_step_compensation: Literal["not_assessed"]
+
+
+class ProjectHistoryCompensationPlanContent(PetraModel):
+    plan_kind: Literal["single_change_set_compensation_command_plan"]
+    authorization_scope: Literal["authenticated_project"]
+    preview_ref: ProjectHistoryCompensationPlanPreviewRef
+    confirmation: ProjectHistoryCompensationPlanConfirmation
+    revalidation: ProjectHistoryCompensationPlanRevalidation
+    change_set: PetraChangeSetV110
+    approval: PetraApproval
+    commands: list[ProjectHistoryCompensationPlannedCommand] = Field(
+        min_length=3, max_length=3
+    )
+    persistence: ProjectHistoryCompensationPlanPersistence
+    execution: ProjectHistoryCompensationPlanExecution
+    decision_boundary: ProjectHistoryCompensationPlanDecisionBoundary
+    omissions: list[
+        Literal[
+            "commands_not_submitted",
+            "compensation_not_persisted",
+            "compensation_not_executed",
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted",
+        ]
+    ] = Field(min_length=5, max_length=5)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_plan(self) -> ProjectHistoryCompensationPlanContent:
+        expected_commands = ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        if [command.command_name for command in self.commands] != expected_commands or [
+            command.position for command in self.commands
+        ] != [1, 2, 3]:
+            raise ValueError("compensation plan must preserve exact command order")
+        if [
+            command.envelope.command.command_name for command in self.commands
+        ] != expected_commands:
+            raise ValueError("compensation plan envelope order is inconsistent")
+        submit = self.commands[0].envelope.command
+        review = self.commands[1].envelope.command
+        apply = self.commands[2].envelope.command
+        if not isinstance(submit, SubmitChangeSetV110):
+            raise ValueError("compensation plan must begin with its exact ChangeSet")
+        if not isinstance(review, RecordApproval) or not isinstance(
+            apply, ApplyChangeSet
+        ):
+            raise ValueError("compensation plan Approval/apply sequence is invalid")
+        if submit.change_set != self.change_set or review.approval != self.approval:
+            raise ValueError("compensation plan embedded records must be exact")
+        if (
+            self.approval.subject.change_set_id != self.change_set.change_set_id
+            or self.approval.subject.change_set_content_hash
+            != self.change_set.content_hash
+            or apply.change_set_id != self.change_set.change_set_id
+            or apply.change_set_content_hash != self.change_set.content_hash
+            or apply.approval_id != self.approval.approval_id
+        ):
+            raise ValueError("compensation plan causal identities must agree")
+        if [command.envelope.capability_grant_id for command in self.commands] != [
+            grant.grant_ref.capability_grant_id
+            for grant in self.revalidation.preview_command_bindings
+        ]:
+            raise ValueError("compensation plan grants must match revalidation")
+        return self
+
+
+class PetraProjectHistoryCompensationPlanView(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-plan-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryCompensationPlanContent
+    content_hash: str
+    read_at: str
+
+    @model_validator(mode="after")
+    def exact_view_binding(self) -> PetraProjectHistoryCompensationPlanView:
+        if (
+            self.content.change_set.content.project_id != self.project_id
+            or any(
+                command.envelope.project_id != self.project_id
+                for command in self.content.commands
+            )
+            or self.content.confirmation.confirmed_at != self.read_at
+            or self.content.revalidation.checked_at != self.read_at
+            or self.content.change_set.proposed_at != self.read_at
+            or self.content.approval.decided_at != self.read_at
+        ):
+            raise ValueError(
+                "compensation plan must preserve exact Project and read authority"
+            )
+        return self
+
+
+class ProjectHistoryCompensationExecutionConfirmation(PetraModel):
+    confirmed: Literal[True]
+    acknowledged_atomicity: Literal["per_command_transaction_not_three_command_atomic"]
+
+
+class PetraProjectHistoryCompensationExecutionRequest(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-execution-request"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    plan: PetraProjectHistoryCompensationPlanView
+    execution_confirmation: ProjectHistoryCompensationExecutionConfirmation
+
+    @model_validator(mode="after")
+    def exact_request_binding(
+        self,
+    ) -> PetraProjectHistoryCompensationExecutionRequest:
+        if (
+            self.project_id != self.plan.project_id
+            or self.event_id != self.plan.event_id
+        ):
+            raise ValueError("compensation execution must use the routed exact plan")
+        return self
+
+
+class ProjectHistoryCompensationExecutionPlanRef(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-plan-view"]
+    schema_version: Literal["1.0.0"]
+    content_hash: str
+    composed_at: str
+    change_set_id: str
+    change_set_content_hash: str
+    approval_id: str
+    correlation_id: str
+
+
+class ProjectHistoryCompensationSubmittedResult(PetraModel):
+    outcome: Literal["submitted"]
+    command_id: str
+    change_set_id: str
+    change_set_state: Literal["submitted"]
+
+
+class ProjectHistoryCompensationApprovalResult(PetraModel):
+    outcome: Literal["approval_recorded"]
+    command_id: str
+    change_set_id: str
+    change_set_state: Literal["approved"]
+    approval_id: str
+
+
+class ProjectHistoryCompensationRevertedResult(PetraModel):
+    outcome: Literal["reverted"]
+    command_id: str
+    change_set_id: str
+    change_set_state: Literal["applied"]
+    compensates_change_set_id: str
+    approval_id: str
+    claim_id: str
+    claim_revision: int = Field(ge=1)
+    assertion_id: str
+    assertion_revision: int = Field(ge=1)
+    applied_at: str
+
+
+ProjectHistoryCompensationExecutionResult = (
+    ProjectHistoryCompensationSubmittedResult
+    | ProjectHistoryCompensationApprovalResult
+    | ProjectHistoryCompensationRevertedResult
+)
+
+
+class ProjectHistoryCompensationExecutionError(PetraModel):
+    code: str
+    message: str = Field(min_length=1, max_length=4000)
+
+
+class ProjectHistoryCompensationRetainedSuccess(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    command_ref: ProjectHistoryCommandRef
+    state: Literal["retained_success"]
+    completed_at: str
+    result: ProjectHistoryCompensationExecutionResult
+    event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryCompensationRetainedFailure(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    command_ref: ProjectHistoryCommandRef
+    state: Literal["retained_failure"]
+    completed_at: str
+    error: ProjectHistoryCompensationExecutionError
+    event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryCompensationUnretainedFailure(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    command_ref: ProjectHistoryCommandRef
+    state: Literal["attempt_failed_not_retained"]
+    error: ProjectHistoryCompensationExecutionError
+    retention: Literal["not_in_immutable_command_executions"]
+
+
+class ProjectHistoryCompensationNotAttempted(PetraModel):
+    position: Literal[1, 2, 3]
+    command_name: Literal["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+    command_ref: ProjectHistoryCommandRef
+    state: Literal["not_attempted"]
+    reason: Literal["prior_command_did_not_complete"]
+
+
+ProjectHistoryCompensationExecutionStep = (
+    ProjectHistoryCompensationRetainedSuccess
+    | ProjectHistoryCompensationRetainedFailure
+    | ProjectHistoryCompensationUnretainedFailure
+    | ProjectHistoryCompensationNotAttempted
+)
+
+
+class ProjectHistoryCompensationCompletedEffect(PetraModel):
+    state: Literal["compensation_applied"]
+    compensation_change_set_id: str
+    compensated_change_set_id: str
+    approval_id: str
+    claim_ref: ProjectHistoryCompensationResult
+    assertion_ref: ProjectHistoryCompensationResult
+    reversal_event_ref: ProjectHistoryEventRef
+
+
+class ProjectHistoryCompensationIncompleteEffect(PetraModel):
+    state: Literal["not_completed"]
+    reason: Literal["command_sequence_stopped"]
+
+
+class ProjectHistoryCompensationCompletedRecovery(PetraModel):
+    state: Literal["complete"]
+    same_request: Literal["returns_exact_retained_result"]
+
+
+class ProjectHistoryCompensationIncompleteRecovery(PetraModel):
+    state: Literal["retry_exact_plan", "review_retained_failure"]
+    completed_prefix: int = Field(ge=0, le=2)
+    same_request_is_idempotent: Literal[True]
+    next_position: int | None = Field(default=None, ge=1, le=3)
+    reason: str = Field(min_length=1, max_length=4000)
+
+
+class ProjectHistoryCompensationExecutionPreflight(PetraModel):
+    state: Literal[
+        "fresh_plan_revalidated",
+        "retained_prefix_validated",
+        "retained_completion_replayed",
+    ]
+    checked_at: str
+
+
+class ProjectHistoryCompensationExecutionDerivation(PetraModel):
+    aggregate_ledger: Literal["not_created"]
+    sources: list[
+        Literal[
+            "immutable_command_executions",
+            "immutable_domain_events",
+            "current_change_control_authority",
+        ]
+    ] = Field(min_length=3, max_length=3)
+
+
+class ProjectHistoryCompensationExecutionDecisionBoundary(PetraModel):
+    single_plan_execution: Literal["performed_or_stopped_exactly"]
+    generic_undo: Literal["not_available"]
+    multi_step_compensation: Literal["not_assessed"]
+    reversal_of_reversal: Literal["not_available"]
+
+
+class ProjectHistoryCompensationExecutionContent(PetraModel):
+    execution_kind: Literal["single_change_set_compensation_execution"]
+    authorization_scope: Literal["authenticated_project"]
+    plan_ref: ProjectHistoryCompensationExecutionPlanRef
+    preflight: ProjectHistoryCompensationExecutionPreflight
+    outcome: Literal["completed", "stopped"]
+    completed_prefix: int = Field(ge=0, le=3)
+    steps: list[ProjectHistoryCompensationExecutionStep] = Field(
+        min_length=3, max_length=3
+    )
+    authoritative_effect: (
+        ProjectHistoryCompensationCompletedEffect
+        | ProjectHistoryCompensationIncompleteEffect
+    )
+    recovery: (
+        ProjectHistoryCompensationCompletedRecovery
+        | ProjectHistoryCompensationIncompleteRecovery
+    )
+    atomicity: Literal["per_command_transaction_not_three_command_atomic"]
+    derivation: ProjectHistoryCompensationExecutionDerivation
+    decision_boundary: ProjectHistoryCompensationExecutionDecisionBoundary
+    omissions: list[
+        Literal[
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted",
+            "cross_family_global_order_not_asserted",
+        ]
+    ] = Field(min_length=3, max_length=3)
+    graph_navigation_history: Literal["client_local_separate"]
+
+    @model_validator(mode="after")
+    def exact_execution(self) -> ProjectHistoryCompensationExecutionContent:
+        expected_commands = ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        if [step.position for step in self.steps] != [1, 2, 3] or [
+            step.command_name for step in self.steps
+        ] != expected_commands:
+            raise ValueError("compensation execution must preserve command order")
+        if any(
+            step.command_ref.command_name != step.command_name for step in self.steps
+        ):
+            raise ValueError("compensation execution command references must agree")
+        prefix = 0
+        for step in self.steps:
+            if isinstance(step, ProjectHistoryCompensationRetainedSuccess):
+                if prefix != step.position - 1:
+                    raise ValueError("retained successes must form an exact prefix")
+                prefix += 1
+        if prefix != self.completed_prefix:
+            raise ValueError("completed prefix does not match retained outcomes")
+        if self.outcome == "completed":
+            if (
+                prefix != 3
+                or not isinstance(
+                    self.authoritative_effect,
+                    ProjectHistoryCompensationCompletedEffect,
+                )
+                or not isinstance(
+                    self.recovery, ProjectHistoryCompensationCompletedRecovery
+                )
+            ):
+                raise ValueError("completed execution must expose exact effect")
+        elif (
+            prefix > 2
+            or not isinstance(
+                self.authoritative_effect,
+                ProjectHistoryCompensationIncompleteEffect,
+            )
+            or not isinstance(
+                self.recovery, ProjectHistoryCompensationIncompleteRecovery
+            )
+        ):
+            raise ValueError("stopped execution must expose recovery posture")
+        return self
+
+
+class PetraProjectHistoryCompensationExecutionView(PetraModel):
+    schema_name: Literal["petra.project-history-compensation-execution-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    event_id: str
+    content: ProjectHistoryCompensationExecutionContent
+    content_hash: str
+    read_at: str
 
 
 class ChangeSetSubmittedPayloadV110(PetraModel):
@@ -6589,6 +9978,172 @@ class PetraGroundedResponse(PetraModel):
     recorded_at: str
 
 
+class SuggestedActionRef(PetraModel):
+    suggested_action_id: str
+    revision: Literal[1]
+    content_hash: str
+
+
+class SuggestedActionDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    record_hash: str
+    definition_family: str
+
+
+class SuggestedActionObjective(PetraModel):
+    objective_ref: ProjectInquiryObjectiveRef
+    semantic_key: str
+    statement: str
+
+
+class SuggestedActionInquiryLinkRef(PetraModel):
+    project_inquiry_link_id: str
+    content_hash: str
+    record_hash: str
+
+
+class SuggestedActionBasis(PetraModel):
+    derivation: Literal["exact_immutable_inquiry_result_link"]
+    project_definition_ref: SuggestedActionDefinitionRef
+    inquiry_result_link_ref: SuggestedActionInquiryLinkRef
+    result_ref: ProjectInquiryTypedRecordRef
+    snapshot_ref: PacketSnapshotRef
+    produced_by_work_ref: ProjectInquiryWorkUnitRef | None = None
+
+
+class SuggestedActionScope(PetraModel):
+    scope_kind: Literal["exact_existing_result"]
+    included: str
+    excluded: list[str]
+
+
+class SuggestedActionReady(PetraModel):
+    state: Literal["ready"]
+    reason_code: Literal["exact_existing_result_available"]
+    reason: str
+    missing_prerequisites: list[str]
+
+
+class SuggestedActionStale(PetraModel):
+    state: Literal["stale"]
+    reason_code: Literal[
+        "project_definition_changed",
+        "objective_changed",
+        "objective_inactive",
+        "result_invalidated",
+    ]
+    reason: str
+    missing_prerequisites: list[str]
+
+
+class SuggestedActionResponseDepth(PetraModel):
+    allowed: list[Literal["current_graph"]]
+    recommended: Literal["current_graph"]
+    adjustable: Literal[False]
+
+
+class SuggestedActionExpectedResult(PetraModel):
+    state: Literal["already_available"]
+    result_kind: Literal["grounded_response"]
+    result_ref: ProjectInquiryTypedRecordRef
+    authority_effect: Literal["none"]
+    reusable: bool
+
+
+class SuggestedActionResources(PetraModel):
+    duration: Literal["not_required"]
+    cost: Literal["not_required"]
+    basis: Literal["read_only_existing_result"]
+
+
+class SuggestedActionCapability(PetraModel):
+    capability_key: Literal["petra.project-inquiry.read"]
+    grant_status: Literal["satisfied_by_authenticated_project_read"]
+    approval: Literal["not_required"]
+
+
+class SuggestedActionInterrupt(PetraModel):
+    expectation: Literal["none"]
+
+
+class SuggestedActionCancellation(PetraModel):
+    consequence: Literal["not_applicable_no_work_started"]
+
+
+class SuggestedActionCompletedWork(PetraModel):
+    state: Literal["completed"]
+    work_unit_ref: ProjectInquiryWorkUnitRef
+    terminal_outcome: ProjectWorkTerminalOutcome
+
+
+class SuggestedActionUnavailableWork(PetraModel):
+    state: Literal["unavailable"]
+    reason: str
+
+
+class SuggestedActionInvocation(PetraModel):
+    kind: Literal["authenticated_read"]
+    contract_name: Literal["petra.project-inquiry-view"]
+    contract_version: Literal["1.0.0"]
+    operation: Literal["get_project_inquiry_detail"]
+    project_id: str
+    objective_ref: ProjectInquiryObjectiveRef
+    place_role: Literal["brief"]
+    task_intent: Literal["inspect"]
+    idempotency: Literal["safe_exact_read"]
+
+
+class SuggestedAction(PetraModel):
+    action_kind: Literal["inspect_existing_inquiry_result"]
+    title: str
+    objective: SuggestedActionObjective
+    reason: str
+    basis: SuggestedActionBasis
+    scope: SuggestedActionScope
+    missing_information: list[str]
+    response_depth: SuggestedActionResponseDepth
+    expected_result: SuggestedActionExpectedResult
+    resources: SuggestedActionResources
+    capability: SuggestedActionCapability
+    interrupt: SuggestedActionInterrupt
+    cancellation: SuggestedActionCancellation
+    background_work: SuggestedActionCompletedWork | SuggestedActionUnavailableWork
+    invocation: SuggestedActionInvocation
+
+
+class SuggestedActionOperation(PetraModel):
+    state: Literal["read_only"]
+    work_start: Literal["not_performed"]
+    authority_change: Literal["none"]
+
+
+class SuggestedActionAuthority(PetraModel):
+    isolation: Literal["repeatable_read"]
+    event_position: int
+    stream_revision: int
+
+
+class SuggestedActionViewContent(PetraModel):
+    view_kind: Literal["preview"]
+    action_ref: SuggestedActionRef
+    action: SuggestedAction
+    readiness: SuggestedActionReady | SuggestedActionStale
+    operation: SuggestedActionOperation
+    authority: SuggestedActionAuthority
+    limitations: list[str]
+
+
+class PetraSuggestedActionView(PetraModel):
+    schema_name: Literal["petra.suggested-action-view"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content: SuggestedActionViewContent
+    content_hash: str
+    read_at: str
+
+
 PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
@@ -6600,6 +10155,27 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-shell-view": PetraProjectShellView,
     "project-history-view": PetraProjectHistoryView,
     "project-history-episode-view": PetraProjectHistoryEpisodeView,
+    "project-history-retained-view": PetraProjectHistoryRetainedView,
+    "project-history-retained-continuation-failure": (
+        PetraProjectHistoryRetainedContinuationFailure
+    ),
+    "project-history-impact-view": PetraProjectHistoryImpactView,
+    "project-history-recovery-assessment-view": (
+        PetraProjectHistoryRecoveryAssessmentView
+    ),
+    "project-history-compensation-preview-view": (
+        PetraProjectHistoryCompensationPreviewView
+    ),
+    "project-history-compensation-plan-request": (
+        PetraProjectHistoryCompensationPlanRequest
+    ),
+    "project-history-compensation-plan-view": PetraProjectHistoryCompensationPlanView,
+    "project-history-compensation-execution-request": (
+        PetraProjectHistoryCompensationExecutionRequest
+    ),
+    "project-history-compensation-execution-view": (
+        PetraProjectHistoryCompensationExecutionView
+    ),
     "project-effective-controls-view": PetraProjectEffectiveControlsView,
     "project-source": PetraProjectSource,
     "project-source-replacement": PetraProjectSourceReplacement,
@@ -6616,6 +10192,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-inquiry-role": PetraProjectInquiryRole,
     "project-inquiry-link": PetraProjectInquiryLink,
     "project-inquiry-view": PetraProjectInquiryView,
+    "suggested-action-view": PetraSuggestedActionView,
     "project-thread": PetraProjectThread,
     "project-thread-view": PetraProjectThreadView,
     "author": PetraAuthor,
@@ -6689,6 +10266,38 @@ PYDANTIC_MODELS.update(
         ("model-request", "1.1.0"): PetraSynthesistModelRequest,
         ("model-call", "1.1.0"): PetraSynthesistModelCall,
         ("project-shell-view", "1.1.0"): PetraProjectShellViewV110,
+        (
+            "project-history-episode-view",
+            "1.1.0",
+        ): PetraProjectHistoryEpisodeViewV110,
+        (
+            "project-history-episode-view",
+            "1.2.0",
+        ): PetraProjectHistoryEpisodeViewV120,
+        (
+            "project-history-retained-view",
+            "1.1.0",
+        ): PetraProjectHistoryRetainedViewV110,
+        (
+            "project-history-retained-view",
+            "1.2.0",
+        ): PetraProjectHistoryRetainedViewV120,
+        (
+            "project-history-impact-view",
+            "1.1.0",
+        ): PetraProjectHistoryImpactViewV110,
+        (
+            "project-history-impact-view",
+            "1.2.0",
+        ): PetraProjectHistoryImpactViewV120,
+        (
+            "project-history-impact-view",
+            "1.3.0",
+        ): PetraProjectHistoryImpactViewV130,
+        (
+            "project-history-impact-view",
+            "1.4.0",
+        ): PetraProjectHistoryImpactViewV140,
     }
 )
 
@@ -6787,9 +10396,15 @@ def test_worker_manifest_and_work_unit_hash_parity() -> None:
         ("project-inquiry-result-link.json", "content", "content_hash"),
         ("project-inquiry-view-collection.json", "content", "content_hash"),
         ("project-inquiry-view-detail.json", "content", "content_hash"),
+        ("suggested-action-view.json", "content", "content_hash"),
         ("project-thread.json", "content", "content_hash"),
         ("project-thread-view-collection.json", "content", "content_hash"),
         ("project-thread-view-detail.json", "content", "content_hash"),
+        (
+            "project-history-compensation-execution-view.json",
+            "content",
+            "content_hash",
+        ),
         ("project-source-lifecycle-view.json", "content", "content_hash"),
         ("project-source-lifecycle-receipt.json", "content", "content_hash"),
         ("project-source-replacement.json", "content", "content_hash"),

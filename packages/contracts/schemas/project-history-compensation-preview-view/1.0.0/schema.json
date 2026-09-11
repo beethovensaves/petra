@@ -1,0 +1,358 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-history-compensation-preview-view/1.0.0/schema.json",
+  "title": "PetraProjectHistoryCompensationPreviewView",
+  "description": "A short-lived, read-only preview of the exact single-ChangeSet Claim–Assertion retraction and governed command sequence available from one still-eligible recovery assessment. It is not a ChangeSet, Approval, command, or execution authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "event_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-history-compensation-preview-view"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "event_id": {
+      "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+    },
+    "content": { "$ref": "#/$defs/PreviewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "AssessmentRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "event_id",
+        "content_hash",
+        "assessed_at",
+        "assessment_state",
+        "authority"
+      ],
+      "properties": {
+        "schema_name": {
+          "const": "petra.project-history-recovery-assessment-view"
+        },
+        "schema_version": { "const": "1.0.0" },
+        "event_id": {
+          "$ref": "../../domain-event/1.0.0/schema.json#/$defs/EventId"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "assessed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "assessment_state": { "const": "eligible_for_preview" },
+        "authority": {
+          "$ref": "../../project-history-impact-view/1.0.0/schema.json#/$defs/AuthorityPosition"
+        }
+      }
+    },
+    "RetractionState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zone", "review_state"],
+      "properties": {
+        "zone": { "const": "quarantine" },
+        "review_state": { "const": "human_rejected" }
+      }
+    },
+    "TrustedState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zone", "review_state"],
+      "properties": {
+        "zone": { "const": "trusted" },
+        "review_state": { "const": "human_accepted" }
+      }
+    },
+    "ClaimRetraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_kind",
+        "target_id",
+        "base_revision",
+        "current_record_hash",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "operation_kind": { "const": "retract_claim" },
+        "target_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ClaimId"
+        },
+        "base_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "current_record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "before": { "$ref": "#/$defs/TrustedState" },
+        "after": { "$ref": "#/$defs/RetractionState" }
+      }
+    },
+    "AssertionRetraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_kind",
+        "target_id",
+        "base_revision",
+        "current_record_hash",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "operation_kind": { "const": "retract_assertion" },
+        "target_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/AssertionId"
+        },
+        "base_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "current_record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "before": { "$ref": "#/$defs/TrustedState" },
+        "after": { "$ref": "#/$defs/RetractionState" }
+      }
+    },
+    "OperationPreview": {
+      "oneOf": [
+        { "$ref": "#/$defs/ClaimRetraction" },
+        { "$ref": "#/$defs/AssertionRetraction" }
+      ]
+    },
+    "ResultingTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_key",
+        "object_id",
+        "prior_revision",
+        "resulting_revision",
+        "resulting_authority"
+      ],
+      "properties": {
+        "semantic_key": {
+          "enum": ["scientific.claim", "scientific.assertion"]
+        },
+        "object_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "prior_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "resulting_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "resulting_authority": { "$ref": "#/$defs/RetractionState" }
+      }
+    },
+    "CommandStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "command_name",
+        "actor",
+        "grant_ref",
+        "composition_state",
+        "authority_recheck",
+        "prerequisite"
+      ],
+      "properties": {
+        "position": { "enum": [1, 2, 3] },
+        "command_name": {
+          "enum": ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        },
+        "actor": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "grant_ref": {
+          "$ref": "../../project-history-recovery-assessment-view/1.0.0/schema.json#/$defs/GrantAuthorityRef"
+        },
+        "composition_state": { "const": "not_composed" },
+        "authority_recheck": { "const": "required" },
+        "prerequisite": {
+          "enum": [
+            "confirmed_preview_and_required_input",
+            "submitted_exact_change_set",
+            "approved_exact_change_set"
+          ]
+        }
+      }
+    },
+    "Freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "issued_at",
+        "valid_through",
+        "binding_hash",
+        "invalidation_causes"
+      ],
+      "properties": {
+        "issued_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "valid_through": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "binding_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "invalidation_causes": {
+          "const": [
+            "expiry_reached",
+            "project_authority_advanced",
+            "promotion_state_changed",
+            "target_revision_or_record_changed",
+            "command_grant_changed"
+          ]
+        }
+      }
+    },
+    "PreviewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "authorization_scope",
+        "assessment_ref",
+        "compensates_change_set",
+        "target_change_set_schema",
+        "operation_preview",
+        "impact_basis",
+        "result_preview",
+        "preservation",
+        "required_user_input",
+        "change_set_composition",
+        "command_sequence",
+        "freshness",
+        "decision_boundary",
+        "omissions",
+        "graph_navigation_history"
+      ],
+      "properties": {
+        "view_kind": { "const": "single_change_set_compensation_preview" },
+        "authorization_scope": { "const": "authenticated_project" },
+        "assessment_ref": { "$ref": "#/$defs/AssessmentRef" },
+        "compensates_change_set": {
+          "$ref": "../../project-history-recovery-assessment-view/1.0.0/schema.json#/$defs/ChangeSetAuthorityRef"
+        },
+        "target_change_set_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_name", "schema_version", "risk_tier", "origin"],
+          "properties": {
+            "schema_name": { "const": "petra.change-set" },
+            "schema_version": { "const": "1.1.0" },
+            "risk_tier": { "const": "R2" },
+            "origin": { "const": "direct_edit" }
+          }
+        },
+        "operation_preview": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/OperationPreview" },
+          "allOf": [
+            {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "operation_kind": { "const": "retract_claim" }
+                },
+                "required": ["operation_kind"]
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "operation_kind": { "const": "retract_assertion" }
+                },
+                "required": ["operation_kind"]
+              },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          ]
+        },
+        "impact_basis": {
+          "$ref": "../../project-history-recovery-assessment-view/1.0.0/schema.json#/$defs/CausalImpactBasis"
+        },
+        "result_preview": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/ResultingTarget" }
+        },
+        "preservation": {
+          "const": {
+            "prior_revisions": "retained",
+            "promotion_and_approval": "retained",
+            "selected_event": "retained",
+            "dependent_records": "not_rewritten",
+            "dependent_effects": "not_automatically_reversed"
+          }
+        },
+        "required_user_input": {
+          "const": ["reason", "approval_rationale", "explicit_confirmation"]
+        },
+        "change_set_composition": { "const": "deferred_until_confirmed_input" },
+        "command_sequence": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/CommandStep" }
+        },
+        "freshness": { "$ref": "#/$defs/Freshness" },
+        "decision_boundary": {
+          "const": {
+            "preview": "read_only",
+            "change_set": "not_created",
+            "approval": "not_recorded",
+            "commands": "not_composed_or_executed",
+            "generic_undo": "not_available",
+            "multi_step_compensation": "not_assessed"
+          }
+        },
+        "omissions": {
+          "const": [
+            "user_reason_not_supplied",
+            "approval_rationale_not_supplied",
+            "command_envelopes_not_composed",
+            "compensation_not_persisted",
+            "compensation_not_executed",
+            "dependent_effect_not_inferred_or_reversed",
+            "historical_project_definition_not_interpreted"
+          ]
+        },
+        "graph_navigation_history": { "const": "client_local_separate" }
+      }
+    }
+  }
+}

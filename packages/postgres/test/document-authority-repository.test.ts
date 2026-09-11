@@ -592,6 +592,53 @@ describePostgres("PostgreSQL Document authority repository", () => {
         excludeCommand.command_id,
       ),
     ).toEqual(exclusion.receipt);
+    const exclusionImpact = await historyViews.getProjectHistoryImpactView(
+      project.project_id,
+      exclusion.receipt.content.event_ref.event_id,
+    );
+    const sourceAssessment =
+      exclusionImpact?.content.semantic_target_impact.target_assessments[0];
+    expect(exclusionImpact?.schema_version).toBe("1.4.0");
+    expect(sourceAssessment?.adapter_state).toBe("registered");
+    expect(
+      sourceAssessment?.groups.map(({ adapter_kind }) => adapter_kind),
+    ).toEqual([
+      "project_source_lifecycle",
+      "project_source_dependency",
+      "project_source_replacement_lineage",
+      "project_source_effective_head",
+    ]);
+    expect(sourceAssessment?.groups[0]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: exclusion.receipt.project_source_lifecycle_receipt_id,
+        posture: "immutable_revision",
+        relation: "records_exact_source_resulting_revision",
+      }),
+    ]);
+    expect(sourceAssessment?.groups[1]).toMatchObject({
+      authority_source: "immutable_project_source_dependency_bindings",
+      total_count: 3,
+      returned_count: 3,
+      coverage: "complete",
+    });
+    expect(
+      sourceAssessment?.groups[1]?.refs.map(({ semantic_key, relation }) => [
+        semantic_key,
+        relation,
+      ]),
+    ).toEqual([
+      ["petra.parsed-document", "parses_exact_source_artifact"],
+      ["petra.source-span", "locates_span_in_exact_source_artifact"],
+      ["petra.structural-block", "structures_exact_source_artifact"],
+    ]);
+    expect(sourceAssessment?.groups[2]?.refs).toEqual([]);
+    expect(sourceAssessment?.groups[3]?.refs).toEqual([]);
+    expect(
+      await historyViews.getProjectHistoryImpactView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        exclusion.receipt.content.event_ref.event_id,
+      ),
+    ).toBeUndefined();
     const replay =
       await sourceLifecycleAuthority.executeProjectSourceLifecycleCommand(
         structuredClone(excludeCommand),
@@ -834,6 +881,32 @@ describePostgres("PostgreSQL Document authority repository", () => {
       }),
     );
     const replacement = creation.replacement;
+    const activeImpact = await historyViews.getProjectHistoryImpactView(
+      project.project_id,
+      creation.receipt.content.event_ref.event_id,
+    );
+    expect(activeImpact?.schema_version).toBe("1.4.0");
+    const activeReplacementAssessment =
+      activeImpact?.content.semantic_target_impact.target_assessments[0];
+    expect(activeReplacementAssessment?.adapter_state).toBe("registered");
+    expect(activeReplacementAssessment?.groups[0]).toMatchObject({
+      adapter_kind: "project_source_replacement_lineage",
+      total_count: 0,
+      returned_count: 0,
+    });
+    expect(activeReplacementAssessment?.groups[1]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: creation.receipt.project_source_replacement_receipt_id,
+        relation: "records_exact_source_replacement_command",
+      }),
+    ]);
+    expect(activeReplacementAssessment?.groups[2]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "current",
+        relation: "is_current_active_replacement_head",
+      }),
+    ]);
 
     const createReplay =
       await sourceReplacementCommands.executeProjectSourceReplacementCommand(
@@ -1122,6 +1195,148 @@ describePostgres("PostgreSQL Document authority repository", () => {
       "client_local_separate",
     );
     expect(recentHistory?.content.quick_window_limit).toBe(10);
+    const retainedFirst = await historyViews.listRetainedProjectHistoryView(
+      project.project_id,
+      { limit: 2 },
+    );
+    expect(
+      retainedFirst?.content.changes.map(
+        ({ event_ref }) => event_ref.schema_version,
+      ),
+    ).toEqual(["1.3.0", "1.3.0"]);
+    const retainedFirstPage = retainedFirst?.content.page;
+    if (retainedFirstPage === undefined || !retainedFirstPage.has_more) {
+      throw new Error("Expected retained ProjectSource History continuation.");
+    }
+    const retainedSecond = await historyViews.listRetainedProjectHistoryView(
+      project.project_id,
+      { limit: 2, cursor: retainedFirstPage.next_cursor },
+    );
+    expect(
+      retainedSecond?.content.changes.map(({ event_ref }) => [
+        event_ref.schema_version,
+        event_ref.event_type,
+      ]),
+    ).toEqual([["1.2.0", "project_source.excluded"]]);
+    expect(retainedSecond?.content.page.has_more).toBe(false);
+    expect(retainedSecond?.content.retention_snapshot).toEqual(
+      retainedFirst?.content.retention_snapshot,
+    );
+    const predecessorHistory =
+      await historyViews.listRetainedProjectHistoryView(project.project_id, {
+        limit: 10,
+        filters: {
+          target: {
+            semantic_key: "petra.project-source",
+            object_id: replaced.project_source_id,
+          },
+        },
+      });
+    expect(
+      predecessorHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual([
+      "project_source.replacement_retracted",
+      "project_source.replacement_created",
+      "project_source.excluded",
+    ]);
+    expect(predecessorHistory?.content.page.snapshot_total_count).toBe(3);
+    const successorHistory = await historyViews.listRetainedProjectHistoryView(
+      project.project_id,
+      {
+        filters: {
+          target: {
+            semantic_key: "petra.project-source",
+            object_id: successor.project_source_id,
+          },
+        },
+      },
+    );
+    expect(
+      successorHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual([
+      "project_source.replacement_retracted",
+      "project_source.replacement_created",
+    ]);
+    const replacementFilters = {
+      family: "project_source_replacement" as const,
+      target: {
+        semantic_key: "petra.project-source-replacement" as const,
+        object_id: replacement.project_source_replacement_id,
+      },
+    };
+    const replacementHistoryFirst =
+      await historyViews.listRetainedProjectHistoryView(project.project_id, {
+        limit: 1,
+        filters: replacementFilters,
+      });
+    expect(
+      replacementHistoryFirst?.content.changes[0]?.event_ref.event_type,
+    ).toBe("project_source.replacement_retracted");
+    expect(replacementHistoryFirst?.content.page.snapshot_total_count).toBe(2);
+    const replacementHistoryFirstPage = replacementHistoryFirst?.content.page;
+    if (
+      replacementHistoryFirstPage === undefined ||
+      !replacementHistoryFirstPage.has_more
+    ) {
+      throw new Error("Expected filtered replacement History continuation.");
+    }
+    const replacementHistorySecond =
+      await historyViews.listRetainedProjectHistoryView(project.project_id, {
+        limit: 1,
+        cursor: replacementHistoryFirstPage.next_cursor,
+        filters: replacementFilters,
+      });
+    expect(
+      replacementHistorySecond?.content.changes[0]?.event_ref.event_type,
+    ).toBe("project_source.replacement_created");
+    await expect(
+      historyViews.listRetainedProjectHistoryView(project.project_id, {
+        limit: 1,
+        cursor: replacementHistoryFirstPage.next_cursor,
+        filters: {
+          ...replacementFilters,
+          target: {
+            semantic_key: "petra.project-source",
+            object_id: replaced.project_source_id,
+          },
+        },
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_HISTORY_VIEW_REQUEST_INVALID",
+      }),
+    );
+    const retractionHistory = await historyViews.listRetainedProjectHistoryView(
+      project.project_id,
+      {
+        filters: {
+          target: {
+            semantic_key: "petra.project-source-replacement-retraction",
+            object_id: retraction.project_source_replacement_retraction_id,
+          },
+        },
+      },
+    );
+    expect(
+      retractionHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual(["project_source.replacement_retracted"]);
+    const lifecycleHistory = await historyViews.listRetainedProjectHistoryView(
+      project.project_id,
+      {
+        filters: { family: "project_source_lifecycle" },
+      },
+    );
+    expect(
+      lifecycleHistory?.content.changes.map(
+        ({ event_ref }) => event_ref.event_type,
+      ),
+    ).toEqual(["project_source.excluded"]);
     const retractionEvent = recentHistory?.content.changes[0]?.event_ref;
     if (retractionEvent === undefined) {
       throw new Error("Expected replacement-retraction History.");
@@ -1145,7 +1360,140 @@ describePostgres("PostgreSQL Document authority repository", () => {
     expect(retractionEpisode?.content.omissions).toEqual([
       "dependency_impact_not_composed",
       "generic_reversal_assessment_not_composed",
+      "historical_project_definition_content_not_returned",
       "cross_family_total_order_not_asserted",
+    ]);
+    const retractionImpact = await historyViews.getProjectHistoryImpactView(
+      project.project_id,
+      retractionEvent.event_id,
+    );
+    expect(retractionImpact?.content.selected_event.event_ref).toMatchObject({
+      schema_version: "1.3.0",
+      event_type: "project_source.replacement_retracted",
+    });
+    expect(
+      retractionImpact?.content.impact.outbox_records.refs.every(
+        ({ schema_version }) => schema_version === "1.3.0",
+      ),
+    ).toBe(true);
+    expect(retractionImpact?.content.decision_boundary.compensation).toBe(
+      "not_composed",
+    );
+    expect(retractionImpact?.schema_version).toBe("1.4.0");
+    const replacementAssessment =
+      retractionImpact?.content.semantic_target_impact.target_assessments[0];
+    expect(replacementAssessment?.adapter_state).toBe("registered");
+    expect(
+      replacementAssessment?.groups.map(({ adapter_kind }) => adapter_kind),
+    ).toEqual([
+      "project_source_replacement_lineage",
+      "project_source_replacement_receipt",
+      "project_source_effective_head",
+    ]);
+    expect(replacementAssessment?.groups[0]?.refs).toEqual([
+      expect.objectContaining({
+        semantic_key: "petra.project-source-replacement-retraction",
+        object_id: retraction.project_source_replacement_retraction_id,
+        posture: "immutable_revision",
+        relation: "retracts_exact_source_replacement",
+      }),
+    ]);
+    expect(replacementAssessment?.groups[1]).toMatchObject({
+      authority_source: "immutable_project_source_replacement_receipts",
+      total_count: 2,
+      returned_count: 2,
+      coverage: "complete",
+    });
+    expect(replacementAssessment?.groups[2]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "current",
+        relation: "is_current_retracted_replacement_head",
+      }),
+    ]);
+    const predecessorAssessment =
+      retractionImpact?.content.semantic_target_impact.target_assessments[1];
+    expect(predecessorAssessment?.adapter_state).toBe("registered");
+    expect(predecessorAssessment?.groups[2]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "immutable_revision",
+        relation: "retains_exact_replaced_source",
+      }),
+    ]);
+    expect(predecessorAssessment?.groups[3]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "current",
+        relation: "is_current_retracted_replacement_head",
+      }),
+    ]);
+    const retractionAssessment =
+      retractionImpact?.content.semantic_target_impact.target_assessments[3];
+    expect(retractionAssessment).toMatchObject({
+      adapter_state: "no_registered_exact_adapter",
+      reason:
+        "No exact semantic-target adapter is registered for this semantic key.",
+      groups: [],
+    });
+    expect(
+      await historyViews.getProjectHistoryImpactView(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        retractionEvent.event_id,
+      ),
+    ).toBeUndefined();
+
+    const exclusionEvent = recentHistory?.content.changes[2]?.event_ref;
+    if (exclusionEvent === undefined) {
+      throw new Error("Expected ProjectSource exclusion History.");
+    }
+    const exclusionImpact = await historyViews.getProjectHistoryImpactView(
+      project.project_id,
+      exclusionEvent.event_id,
+    );
+    expect(exclusionImpact?.content.selected_event.event_ref).toMatchObject({
+      schema_version: "1.2.0",
+      event_type: "project_source.excluded",
+    });
+    expect(exclusionImpact?.content.impact.summary.coverage).toBe("complete");
+    expect(exclusionImpact?.content.omissions).toContain(
+      "unregistered_semantic_target_adapters_not_composed",
+    );
+    const exclusionSourceAssessment =
+      exclusionImpact?.content.semantic_target_impact.target_assessments[0];
+    expect(exclusionSourceAssessment?.adapter_state).toBe("registered");
+    expect(
+      exclusionSourceAssessment?.groups.map(({ adapter_kind }) => adapter_kind),
+    ).toEqual([
+      "project_source_lifecycle",
+      "project_source_dependency",
+      "project_source_replacement_lineage",
+      "project_source_effective_head",
+    ]);
+    expect(exclusionSourceAssessment?.groups[0]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: exclusion.receipt.project_source_lifecycle_receipt_id,
+        relation: "records_exact_source_resulting_revision",
+      }),
+    ]);
+    expect(exclusionSourceAssessment?.groups[1]).toMatchObject({
+      total_count: 0,
+      returned_count: 0,
+      coverage: "complete",
+    });
+    expect(exclusionSourceAssessment?.groups[2]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "immutable_revision",
+        relation: "retains_exact_replaced_source",
+      }),
+    ]);
+    expect(exclusionSourceAssessment?.groups[3]?.refs).toEqual([
+      expect.objectContaining({
+        object_id: replacement.project_source_replacement_id,
+        posture: "current",
+        relation: "is_current_retracted_replacement_head",
+      }),
     ]);
     const staleReceipt = structuredClone(replacement);
     staleReceipt.project_source_replacement_id =

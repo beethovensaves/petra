@@ -1,0 +1,15 @@
+{
+  "schema_name": "petra.project-history-retained-continuation-failure",
+  "schema_version": "1.0.0",
+  "error": {
+    "code": "PROJECT_HISTORY_RETAINED_QUERY_INVALID",
+    "subcode": "CURSOR_BINDING_MISMATCH",
+    "message": "This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.",
+    "restart": {
+      "cursor_disposition": "discard_without_client_decoding",
+      "request_kind": "cursorless_same_project_limit_and_filters"
+    }
+  },
+  "requestId": "request_01K4C000000000000000000061",
+  "traceId": "trace_01K4C000000000000000000062"
+}

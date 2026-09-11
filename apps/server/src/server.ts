@@ -178,6 +178,17 @@ export const startPetraServer = async (
           : {
               projectHistoryViews: options.projectShellPersistence.historyViews,
             }),
+      ...(options.projectHistoryCompensationExecution !== undefined
+        ? {
+            projectHistoryCompensationExecution:
+              options.projectHistoryCompensationExecution,
+          }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectHistoryCompensationExecution:
+                options.projectShellPersistence.historyCompensationExecution,
+            }),
       ...(options.projectSourceViews !== undefined
         ? { projectSourceViews: options.projectSourceViews }
         : options.projectShellPersistence === undefined
@@ -267,6 +278,14 @@ export const startPetraServer = async (
           ? {}
           : {
               projectInquiryViews: options.projectShellPersistence.inquiryViews,
+            }),
+      ...(options.suggestedActionViews !== undefined
+        ? { suggestedActionViews: options.suggestedActionViews }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              suggestedActionViews:
+                options.projectShellPersistence.suggestedActionViews,
             }),
     });
     server = serve({

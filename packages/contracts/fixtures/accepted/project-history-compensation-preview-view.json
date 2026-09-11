@@ -1,0 +1,208 @@
+{
+  "schema_name": "petra.project-history-compensation-preview-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+  "content": {
+    "view_kind": "single_change_set_compensation_preview",
+    "authorization_scope": "authenticated_project",
+    "assessment_ref": {
+      "schema_name": "petra.project-history-recovery-assessment-view",
+      "schema_version": "1.0.0",
+      "event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+      "content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "assessed_at": "2026-09-10T18:30:00.000Z",
+      "assessment_state": "eligible_for_preview",
+      "authority": {
+        "isolation": "repeatable_read",
+        "through_event_position": 3,
+        "through_stream_revision": 3
+      }
+    },
+    "compensates_change_set": {
+      "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+      "revision": 1,
+      "schema_version": "1.0.0",
+      "content_hash": "sha256:2fa69736f30d955d8c0f992cabc8b14a274704c70e16d7e8b51081257481b35b",
+      "record_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "current_state": "applied"
+    },
+    "target_change_set_schema": {
+      "schema_name": "petra.change-set",
+      "schema_version": "1.1.0",
+      "risk_tier": "R2",
+      "origin": "direct_edit"
+    },
+    "operation_preview": [
+      {
+        "operation_kind": "retract_claim",
+        "target_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "base_revision": 2,
+        "current_record_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "before": {
+          "zone": "trusted",
+          "review_state": "human_accepted"
+        },
+        "after": {
+          "zone": "quarantine",
+          "review_state": "human_rejected"
+        }
+      },
+      {
+        "operation_kind": "retract_assertion",
+        "target_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+        "base_revision": 2,
+        "current_record_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "before": {
+          "zone": "trusted",
+          "review_state": "human_accepted"
+        },
+        "after": {
+          "zone": "quarantine",
+          "review_state": "human_rejected"
+        }
+      }
+    ],
+    "impact_basis": {
+      "source_event_id": "event_01ARZ3NDEKTSV4RRFFQ69G5FBX",
+      "direct_dependency_summary": {
+        "registered_group_count": 4,
+        "total_count": 0,
+        "coverage": "complete"
+      },
+      "semantic_dependency_summary": {
+        "registered_adapter_count": 9,
+        "assessed_target_count": 3,
+        "supported_target_count": 3,
+        "total_count": 5,
+        "coverage": "complete"
+      },
+      "dependent_effect": "not_inferred_from_reference",
+      "unknowns": [
+        "unregistered_profile_specific_dependencies_may_exist",
+        "transitive_dependents_may_exist",
+        "external_system_dependents_are_not_observable"
+      ]
+    },
+    "result_preview": [
+      {
+        "semantic_key": "scientific.claim",
+        "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "prior_revision": 2,
+        "resulting_revision": 3,
+        "resulting_authority": {
+          "zone": "quarantine",
+          "review_state": "human_rejected"
+        }
+      },
+      {
+        "semantic_key": "scientific.assertion",
+        "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+        "prior_revision": 2,
+        "resulting_revision": 3,
+        "resulting_authority": {
+          "zone": "quarantine",
+          "review_state": "human_rejected"
+        }
+      }
+    ],
+    "preservation": {
+      "prior_revisions": "retained",
+      "promotion_and_approval": "retained",
+      "selected_event": "retained",
+      "dependent_records": "not_rewritten",
+      "dependent_effects": "not_automatically_reversed"
+    },
+    "required_user_input": [
+      "reason",
+      "approval_rationale",
+      "explicit_confirmation"
+    ],
+    "change_set_composition": "deferred_until_confirmed_input",
+    "command_sequence": [
+      {
+        "position": 1,
+        "command_name": "SubmitChangeSet",
+        "actor": {
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "actor_kind": "human"
+        },
+        "grant_ref": {
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+          "revision": 1,
+          "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "composition_state": "not_composed",
+        "authority_recheck": "required",
+        "prerequisite": "confirmed_preview_and_required_input"
+      },
+      {
+        "position": 2,
+        "command_name": "RecordApproval",
+        "actor": {
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "actor_kind": "human"
+        },
+        "grant_ref": {
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+          "revision": 1,
+          "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "composition_state": "not_composed",
+        "authority_recheck": "required",
+        "prerequisite": "submitted_exact_change_set"
+      },
+      {
+        "position": 3,
+        "command_name": "ApplyChangeSet",
+        "actor": {
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "actor_kind": "human"
+        },
+        "grant_ref": {
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+          "revision": 1,
+          "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "composition_state": "not_composed",
+        "authority_recheck": "required",
+        "prerequisite": "approved_exact_change_set"
+      }
+    ],
+    "freshness": {
+      "issued_at": "2026-09-10T18:30:00.000Z",
+      "valid_through": "2026-09-10T18:35:00.000Z",
+      "binding_hash": "sha256:f88b0762d978690923fcc33ad7c2eb23ec3e55acd708fe9487b65561f9978c39",
+      "invalidation_causes": [
+        "expiry_reached",
+        "project_authority_advanced",
+        "promotion_state_changed",
+        "target_revision_or_record_changed",
+        "command_grant_changed"
+      ]
+    },
+    "decision_boundary": {
+      "preview": "read_only",
+      "change_set": "not_created",
+      "approval": "not_recorded",
+      "commands": "not_composed_or_executed",
+      "generic_undo": "not_available",
+      "multi_step_compensation": "not_assessed"
+    },
+    "omissions": [
+      "user_reason_not_supplied",
+      "approval_rationale_not_supplied",
+      "command_envelopes_not_composed",
+      "compensation_not_persisted",
+      "compensation_not_executed",
+      "dependent_effect_not_inferred_or_reversed",
+      "historical_project_definition_not_interpreted"
+    ],
+    "graph_navigation_history": "client_local_separate"
+  },
+  "content_hash": "sha256:b599ace876abf5f6343e4f649f4205b6ca45793da4e62219c4a99522c10518b2",
+  "read_at": "2026-09-10T18:30:00.000Z"
+}

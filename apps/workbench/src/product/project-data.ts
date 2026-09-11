@@ -1,15 +1,25 @@
 import type {
+  PetraProjectHistoryCompensationExecutionRequest,
+  PetraProjectHistoryCompensationExecutionView,
+  PetraProjectHistoryCompensationPlanRequest,
+  PetraProjectHistoryCompensationPlanView,
+  PetraProjectHistoryCompensationPreviewView,
   CommandProjectSourceReplacementRef,
   PetraProjectSource,
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
-  PetraProjectHistoryEpisodeView,
+  PetraProjectHistoryEpisodeViewV12,
+  PetraProjectHistoryImpactViewV14,
+  PetraProjectHistoryRecoveryAssessmentView,
+  PetraProjectHistoryRetainedContinuationFailure,
+  PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
   PetraProjectShellViewV11,
+  PetraSuggestedActionView,
   PetraProjectSourceView,
   PetraProjectSourceLifecycleReceipt,
   PetraProjectSourceReplacement,
@@ -23,6 +33,9 @@ import type {
   ProjectSourceReplacementContent,
   ProjectSourceReplacementExcludedSourceRef,
   ProjectSourceReplacementExclusionReceiptRef,
+  ProjectHistoryRetainedCollectionFiltersV12,
+  ProjectHistoryRetainedContinuationFailureSubcode,
+  ProjectHistoryRetainedContinuationRestart,
   ProjectWorkDetailContent,
   ProjectWorkTaskSummary,
 } from "@petra/contracts";
@@ -44,14 +57,31 @@ import type {
 
 const DEVELOPMENT_TOKEN = "petra-local-development";
 const TOKEN_STORAGE_KEY = "petra.auth.token";
+const API_REQUEST_ID = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/u;
+const HISTORY_CONTINUATION_FAILURE_MESSAGE =
+  "This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.";
 
-class ProjectDataError extends Error {
+export class ProjectDataError extends Error {
   readonly status: number;
+  readonly code: "PROJECT_HISTORY_RETAINED_QUERY_INVALID" | undefined;
+  readonly subcode:
+    ProjectHistoryRetainedContinuationFailureSubcode | undefined;
+  readonly restart: ProjectHistoryRetainedContinuationRestart | undefined;
 
-  constructor(message: string, status: number) {
+  constructor(
+    message: string,
+    status: number,
+    continuationFailure?: PetraProjectHistoryRetainedContinuationFailure,
+  ) {
     super(message);
     this.name = "ProjectDataError";
     this.status = status;
+    this.code = continuationFailure?.error.code;
+    this.subcode = continuationFailure?.error.subcode;
+    this.restart =
+      continuationFailure === undefined
+        ? undefined
+        : { ...continuationFailure.error.restart };
   }
 }
 
@@ -62,6 +92,397 @@ const apiToken = (): string => {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+const hasExactKeys = (
+  value: Record<string, unknown>,
+  expected: readonly string[],
+): boolean => {
+  const keys = Object.keys(value).sort();
+  const sortedExpected = [...expected].sort();
+  return (
+    keys.length === sortedExpected.length &&
+    keys.every((key, index) => key === sortedExpected[index])
+  );
+};
+
+const retainedHistoryContinuationFailure = (
+  value: unknown,
+): PetraProjectHistoryRetainedContinuationFailure | undefined => {
+  if (
+    !isRecord(value) ||
+    !hasExactKeys(value, [
+      "schema_name",
+      "schema_version",
+      "error",
+      "requestId",
+      "traceId",
+    ]) ||
+    value.schema_name !==
+      "petra.project-history-retained-continuation-failure" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.requestId !== "string" ||
+    !API_REQUEST_ID.test(value.requestId) ||
+    typeof value.traceId !== "string" ||
+    !API_REQUEST_ID.test(value.traceId) ||
+    !isRecord(value.error) ||
+    !hasExactKeys(value.error, ["code", "subcode", "message", "restart"]) ||
+    value.error.code !== "PROJECT_HISTORY_RETAINED_QUERY_INVALID" ||
+    (value.error.subcode !== "CURSOR_INVALID" &&
+      value.error.subcode !== "CURSOR_BINDING_MISMATCH" &&
+      value.error.subcode !== "SNAPSHOT_UNAVAILABLE") ||
+    value.error.message !== HISTORY_CONTINUATION_FAILURE_MESSAGE ||
+    !isRecord(value.error.restart) ||
+    !hasExactKeys(value.error.restart, [
+      "cursor_disposition",
+      "request_kind",
+    ]) ||
+    value.error.restart.cursor_disposition !==
+      "discard_without_client_decoding" ||
+    value.error.restart.request_kind !==
+      "cursorless_same_project_limit_and_filters"
+  ) {
+    return undefined;
+  }
+  return value as unknown as PetraProjectHistoryRetainedContinuationFailure;
+};
+
+const toUnknownArray = (value: unknown): unknown[] =>
+  Array.isArray(value) ? value.map((entry: unknown): unknown => entry) : [];
+
+const sameHistoryTargetRef = (
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+): boolean =>
+  left.role === right.role &&
+  left.semantic_key === right.semantic_key &&
+  left.object_id === right.object_id &&
+  left.revision === right.revision &&
+  left.content_hash === right.content_hash &&
+  left.record_hash === right.record_hash &&
+  left.authority_state === right.authority_state;
+
+const registeredHistorySemanticKey = (value: unknown): boolean =>
+  value === "petra.change-set" ||
+  value === "petra.approval" ||
+  value === "scientific.claim" ||
+  value === "scientific.assertion" ||
+  value === "petra.project-source" ||
+  value === "petra.project-source-replacement";
+
+const HISTORY_SEMANTIC_REGISTRY = [
+  [
+    "change_control",
+    "immutable_change_control_target_bindings",
+    [
+      "petra.change-set",
+      "petra.approval",
+      "scientific.claim",
+      "scientific.assertion",
+    ],
+  ],
+  [
+    "review_membership",
+    "immutable_review_candidate_bindings",
+    ["scientific.claim", "scientific.assertion"],
+  ],
+  [
+    "grounded_response_dependency",
+    "immutable_grounded_response_dependencies",
+    ["scientific.claim", "scientific.assertion"],
+  ],
+  [
+    "composition_lineage",
+    "immutable_composition_target_bindings",
+    ["scientific.claim", "scientific.assertion"],
+  ],
+  [
+    "project_source_lifecycle",
+    "immutable_project_source_lifecycle_receipts",
+    ["petra.project-source"],
+  ],
+  [
+    "project_source_dependency",
+    "immutable_project_source_dependency_bindings",
+    ["petra.project-source"],
+  ],
+  [
+    "project_source_replacement_lineage",
+    "immutable_project_source_replacement_bindings",
+    ["petra.project-source", "petra.project-source-replacement"],
+  ],
+  [
+    "project_source_replacement_receipt",
+    "immutable_project_source_replacement_receipts",
+    ["petra.project-source-replacement"],
+  ],
+  [
+    "project_source_effective_head",
+    "current_project_source_replacement_heads",
+    ["petra.project-source", "petra.project-source-replacement"],
+  ],
+] as const;
+
+const historySemanticRegistryIsExact = (value: unknown[]): boolean =>
+  value.every((entry, index) => {
+    const expected = HISTORY_SEMANTIC_REGISTRY[index];
+    return (
+      expected !== undefined &&
+      isRecord(entry) &&
+      entry.adapter_kind === expected[0] &&
+      entry.authority_source === expected[1] &&
+      Array.isArray(entry.semantic_keys) &&
+      entry.semantic_keys.length === expected[2].length &&
+      entry.semantic_keys.every(
+        (semanticKey, semanticIndex) =>
+          semanticKey === expected[2][semanticIndex],
+      )
+    );
+  });
+
+const historySemanticGroupIsValid = (value: unknown): boolean => {
+  if (
+    !isRecord(value) ||
+    typeof value.adapter_kind !== "string" ||
+    typeof value.authority_source !== "string" ||
+    value.relation_scope !== "exact_target_revision" ||
+    typeof value.total_count !== "number" ||
+    !Number.isSafeInteger(value.total_count) ||
+    value.total_count < 0 ||
+    typeof value.returned_count !== "number" ||
+    !Number.isSafeInteger(value.returned_count) ||
+    value.returned_count < 0 ||
+    !Array.isArray(value.refs) ||
+    value.refs.length > 25 ||
+    value.returned_count !== value.refs.length ||
+    value.coverage !==
+      (value.total_count > value.returned_count ? "truncated" : "complete")
+  ) {
+    return false;
+  }
+  const registration = HISTORY_SEMANTIC_REGISTRY.find(
+    ([adapterKind]) => adapterKind === value.adapter_kind,
+  );
+  if (registration?.[1] !== value.authority_source) return false;
+  return value.refs.every((ref) => {
+    if (!isRecord(ref)) return false;
+    if (value.adapter_kind === "project_source_replacement_lineage") {
+      return (
+        ref.posture === "immutable_revision" &&
+        (ref.relation === "retains_exact_replaced_source" ||
+          ref.relation === "retains_exact_replacement_source" ||
+          ref.relation === "retracts_exact_source_replacement")
+      );
+    }
+    if (value.adapter_kind === "project_source_effective_head") {
+      return (
+        ref.semantic_key === "petra.project-source-replacement" &&
+        ref.posture === "current" &&
+        (ref.relation === "is_current_active_replacement_head" ||
+          ref.relation === "is_current_retracted_replacement_head")
+      );
+    }
+    return true;
+  });
+};
+
+const expectedHistorySemanticGroups = (semanticKey: unknown): string[] => {
+  if (semanticKey === "petra.change-set" || semanticKey === "petra.approval") {
+    return ["change_control"];
+  }
+  if (
+    semanticKey === "scientific.claim" ||
+    semanticKey === "scientific.assertion"
+  ) {
+    return [
+      "change_control",
+      "review_membership",
+      "grounded_response_dependency",
+      "composition_lineage",
+    ];
+  }
+  if (semanticKey === "petra.project-source") {
+    return [
+      "project_source_lifecycle",
+      "project_source_dependency",
+      "project_source_replacement_lineage",
+      "project_source_effective_head",
+    ];
+  }
+  if (semanticKey === "petra.project-source-replacement") {
+    return [
+      "project_source_replacement_lineage",
+      "project_source_replacement_receipt",
+      "project_source_effective_head",
+    ];
+  }
+  return [];
+};
+
+const HISTORY_OPERATIONAL_REGISTRY = [
+  [
+    "work_input_binding",
+    "current_work_heads_with_immutable_input_bindings",
+    "petra.work-unit",
+    "uses_exact_history_target_as_work_input",
+    "current",
+  ],
+  [
+    "work_output",
+    "immutable_worker_output_manifests_for_bound_work",
+    "petra.worker-output-manifest",
+    "reports_output_for_work_using_exact_history_target",
+    "immutable_revision",
+  ],
+  [
+    "interaction_delivery",
+    "immutable_interaction_replay_records_for_bound_work",
+    "petra.interaction-replay-record",
+    "delivers_interaction_for_work_using_exact_history_target",
+    "immutable_revision",
+  ],
+] as const;
+
+const historyOperationalRegistryIsExact = (value: unknown[]): boolean =>
+  value.every((entry, index) => {
+    const expected = HISTORY_OPERATIONAL_REGISTRY[index];
+    return (
+      expected !== undefined &&
+      isRecord(entry) &&
+      entry.adapter_kind === expected[0] &&
+      entry.authority_source === expected[1] &&
+      entry.dependent_semantic_key === expected[2]
+    );
+  });
+
+const historyOperationalDestinationIsValid = (
+  value: unknown,
+  semanticKey: (typeof HISTORY_OPERATIONAL_REGISTRY)[number][2],
+  workUnitRef: Record<string, unknown>,
+): boolean => {
+  if (!isRecord(value) || typeof value.state !== "string") return false;
+  if (semanticKey === "petra.work-unit") {
+    if (value.state === "unavailable") {
+      return (
+        value.reason_code === "project_work_route_authority_unavailable" &&
+        value.reason ===
+          "The current ProjectDefinition does not authorize the exact Project Work detail destination."
+      );
+    }
+    return (
+      value.state === "available" &&
+      value.place_role === "work" &&
+      value.task_intent === "inspect" &&
+      isRecord(value.object_ref) &&
+      value.object_ref.semantic_key === "petra.work-unit" &&
+      value.object_ref.object_id === workUnitRef.work_unit_id &&
+      value.object_ref.revision === workUnitRef.revision &&
+      value.object_ref.record_hash === workUnitRef.record_hash &&
+      isRecord(value.route_authority) &&
+      value.route_authority.schema_name === "petra.project-work-view" &&
+      value.route_authority.schema_version === "1.0.0" &&
+      value.route_authority.view_kind === "detail" &&
+      value.route_authority.authority_source ===
+        "current_project_definition_and_project_work_view" &&
+      isRecord(value.project_definition_ref) &&
+      typeof value.project_definition_ref.project_definition_id === "string" &&
+      typeof value.project_definition_ref.revision === "number" &&
+      typeof value.project_definition_ref.content_hash === "string" &&
+      typeof value.project_definition_ref.definition_family === "string"
+    );
+  }
+  if (semanticKey === "petra.worker-output-manifest") {
+    return (
+      value.state === "unavailable" &&
+      value.reason_code === "worker_output_manifest_route_not_registered" &&
+      value.reason ===
+        "No exact Project-owned WorkerOutputManifest destination is registered."
+    );
+  }
+  return (
+    value.state === "unavailable" &&
+    value.reason_code === "interaction_replay_record_route_not_registered" &&
+    value.reason ===
+      "No exact Project-owned InteractionReplayRecord destination is registered; replay is not a ProjectThread binding."
+  );
+};
+
+const historyOperationalGroupIsValid = (
+  value: unknown,
+  groupIndex: number,
+  resolvedTarget: Record<string, unknown>,
+): boolean => {
+  const expected = HISTORY_OPERATIONAL_REGISTRY[groupIndex];
+  if (
+    expected === undefined ||
+    !isRecord(value) ||
+    value.adapter_kind !== expected[0] ||
+    value.authority_source !== expected[1] ||
+    value.relation_scope !== "exact_target_record_binding" ||
+    typeof value.total_count !== "number" ||
+    !Number.isSafeInteger(value.total_count) ||
+    value.total_count < 0 ||
+    typeof value.returned_count !== "number" ||
+    !Number.isSafeInteger(value.returned_count) ||
+    value.returned_count < 0 ||
+    !Array.isArray(value.refs) ||
+    value.refs.length > 25 ||
+    value.returned_count !== value.refs.length ||
+    value.total_count < value.returned_count ||
+    value.coverage !==
+      (value.total_count > value.returned_count ? "truncated" : "complete")
+  ) {
+    return false;
+  }
+  return value.refs.every((ref) => {
+    if (
+      !isRecord(ref) ||
+      ref.semantic_key !== expected[2] ||
+      ref.schema_name !== expected[2] ||
+      ref.schema_version !== "1.0.0" ||
+      ref.relation !== expected[3] ||
+      ref.posture !== expected[4] ||
+      typeof ref.object_id !== "string" ||
+      typeof ref.revision !== "number" ||
+      typeof ref.record_hash !== "string" ||
+      !isRecord(ref.work_unit_ref) ||
+      typeof ref.work_unit_ref.work_unit_id !== "string" ||
+      typeof ref.work_unit_ref.revision !== "number" ||
+      typeof ref.work_unit_ref.spec_hash !== "string" ||
+      typeof ref.work_unit_ref.record_hash !== "string" ||
+      !historyOperationalDestinationIsValid(
+        ref.destination,
+        expected[2],
+        ref.work_unit_ref,
+      ) ||
+      !isRecord(ref.input_binding_ref) ||
+      ref.input_binding_ref.record_id !== resolvedTarget.object_id ||
+      ref.input_binding_ref.record_revision !== resolvedTarget.revision ||
+      ref.input_binding_ref.snapshot_hash !== resolvedTarget.record_hash
+    ) {
+      return false;
+    }
+    if (expected[0] === "work_input_binding") {
+      return (
+        ref.object_id === ref.work_unit_ref.work_unit_id &&
+        ref.revision === ref.work_unit_ref.revision &&
+        ref.record_hash === ref.work_unit_ref.record_hash &&
+        ref.content_hash === undefined &&
+        ref.interaction_run_ref === undefined
+      );
+    }
+    if (typeof ref.content_hash !== "string") return false;
+    if (expected[0] === "work_output") {
+      return ref.interaction_run_ref === undefined;
+    }
+    return (
+      isRecord(ref.interaction_run_ref) &&
+      typeof ref.interaction_run_ref.interaction_run_id === "string" &&
+      typeof ref.interaction_run_ref.revision === "number" &&
+      typeof ref.interaction_run_ref.content_hash === "string" &&
+      typeof ref.interaction_run_ref.record_hash === "string"
+    );
+  });
+};
 
 type ProjectShellView = PetraProjectShellView | PetraProjectShellViewV11;
 
@@ -129,16 +550,236 @@ const projectHistoryView = (value: unknown): PetraProjectHistoryView => {
 
 const projectHistoryEpisodeView = (
   value: unknown,
-): PetraProjectHistoryEpisodeView => {
+): PetraProjectHistoryEpisodeViewV12 => {
+  const definitionAuthority =
+    isRecord(value) && isRecord(value.content)
+      ? value.content.project_definition_authority
+      : undefined;
+  const definitionRefIsValid = (
+    candidate: unknown,
+  ): candidate is Record<string, unknown> =>
+    isRecord(candidate) &&
+    hasExactKeys(candidate, [
+      "schema_name",
+      "schema_version",
+      "project_definition_id",
+      "revision",
+      "content_hash",
+      "record_hash",
+    ]) &&
+    candidate.schema_name === "petra.project-definition" &&
+    candidate.schema_version === "1.0.0" &&
+    typeof candidate.project_definition_id === "string" &&
+    Number.isSafeInteger(candidate.revision) &&
+    Number(candidate.revision) >= 1 &&
+    typeof candidate.content_hash === "string" &&
+    typeof candidate.record_hash === "string";
+  const exactScalarRecordMatch = (
+    left: Record<string, unknown>,
+    right: Record<string, unknown>,
+  ): boolean => {
+    const leftKeys = Object.keys(left).sort();
+    const rightKeys = Object.keys(right).sort();
+    return (
+      leftKeys.length === rightKeys.length &&
+      leftKeys.every(
+        (key, index) =>
+          key === rightKeys[index] &&
+          typeof left[key] !== "object" &&
+          left[key] === right[key],
+      )
+    );
+  };
+  const registeredHistoricalTarget = (candidate: unknown): boolean => {
+    if (
+      !isRecord(candidate) ||
+      typeof candidate.semantic_key !== "string" ||
+      typeof candidate.object_id !== "string"
+    ) {
+      return false;
+    }
+    const prefix =
+      HISTORY_RETAINED_TARGET_PREFIXES[
+        candidate.semantic_key as keyof typeof HISTORY_RETAINED_TARGET_PREFIXES
+      ];
+    return (
+      prefix !== undefined &&
+      candidate.object_id.startsWith(prefix) &&
+      candidate.object_id.length === prefix.length + 26 &&
+      /^[0-9A-HJKMNP-TV-Z]{26}$/u.test(candidate.object_id.slice(prefix.length))
+    );
+  };
+  const availableDefinitionAuthority =
+    isRecord(definitionAuthority) &&
+    hasExactKeys(definitionAuthority, [
+      "state",
+      "authority_source",
+      "selection_basis",
+      "effective_after_stream_revision",
+      "project_definition_ref",
+      "historical_destination_interpretation",
+    ]) &&
+    definitionAuthority.state === "available" &&
+    definitionAuthority.authority_source ===
+      "immutable_project_definition_event_stream_binding" &&
+    definitionAuthority.selection_basis ===
+      "latest_retained_binding_effective_before_selected_event" &&
+    Number.isSafeInteger(definitionAuthority.effective_after_stream_revision) &&
+    Number(definitionAuthority.effective_after_stream_revision) >= 0 &&
+    definitionRefIsValid(definitionAuthority.project_definition_ref) &&
+    definitionAuthority.historical_destination_interpretation ===
+      "performed_for_selected_event_target";
+  const unavailableDefinitionAuthority =
+    isRecord(definitionAuthority) &&
+    hasExactKeys(definitionAuthority, [
+      "state",
+      "reason_code",
+      "reason",
+      "historical_destination_interpretation",
+    ]) &&
+    definitionAuthority.state === "unavailable" &&
+    definitionAuthority.reason_code ===
+      "retained_project_definition_authority_not_available" &&
+    definitionAuthority.reason ===
+      "No exact retained ProjectDefinition authority binding is available for this selected event." &&
+    definitionAuthority.historical_destination_interpretation ===
+      "not_performed";
+  const change =
+    isRecord(value) && isRecord(value.content) && isRecord(value.content.change)
+      ? value.content.change
+      : undefined;
+  const eventRef = isRecord(change?.event_ref) ? change.event_ref : undefined;
+  const primaryTarget =
+    Array.isArray(change?.targets) &&
+    change.targets.filter(
+      (target): target is Record<string, unknown> =>
+        isRecord(target) && target.role === "primary",
+    ).length === 1
+      ? (change.targets.find(
+          (target) => isRecord(target) && target.role === "primary",
+        ) as Record<string, unknown>)
+      : undefined;
+  const destination =
+    isRecord(value) && isRecord(value.content)
+      ? value.content.historical_semantic_destination
+      : undefined;
+  const targetMatches =
+    isRecord(destination) &&
+    isRecord(destination.target_ref) &&
+    primaryTarget !== undefined &&
+    exactScalarRecordMatch(destination.target_ref, primaryTarget);
+  const destinationDefinitionMatches =
+    isRecord(destination) &&
+    definitionRefIsValid(destination.project_definition_ref) &&
+    availableDefinitionAuthority &&
+    isRecord(definitionAuthority) &&
+    definitionRefIsValid(definitionAuthority.project_definition_ref) &&
+    exactScalarRecordMatch(
+      destination.project_definition_ref,
+      definitionAuthority.project_definition_ref,
+    );
+  const availableDestination =
+    isRecord(destination) &&
+    hasExactKeys(destination, [
+      "state",
+      "target_ref",
+      "place_role",
+      "task_intent",
+      "route_authority",
+      "project_definition_ref",
+      "interpretation_basis",
+    ]) &&
+    destination.state === "available" &&
+    targetMatches &&
+    destination.place_role === "history" &&
+    destination.task_intent === "view_history" &&
+    destination.interpretation_basis ===
+      "exact_retained_project_definition_and_registered_history_target" &&
+    destinationDefinitionMatches &&
+    registeredHistoricalTarget(destination.target_ref) &&
+    isRecord(destination.route_authority) &&
+    hasExactKeys(destination.route_authority, [
+      "schema_name",
+      "schema_version",
+      "view_kind",
+      "event_ref",
+      "authority_source",
+    ]) &&
+    destination.route_authority.schema_name ===
+      "petra.project-history-episode-view" &&
+    destination.route_authority.schema_version === "1.2.0" &&
+    destination.route_authority.view_kind === "causal_episode" &&
+    destination.route_authority.authority_source ===
+      "selected_project_event_and_exact_retained_project_definition" &&
+    isRecord(destination.route_authority.event_ref) &&
+    eventRef !== undefined &&
+    exactScalarRecordMatch(destination.route_authority.event_ref, eventRef);
+  const unavailableWithoutAuthority =
+    isRecord(destination) &&
+    hasExactKeys(destination, [
+      "state",
+      "target_ref",
+      "reason_code",
+      "reason",
+      "interpretation_status",
+    ]) &&
+    destination.state === "unavailable" &&
+    targetMatches &&
+    unavailableDefinitionAuthority &&
+    destination.reason_code ===
+      "retained_project_definition_authority_not_available" &&
+    destination.reason ===
+      "No historical semantic destination is available because exact retained ProjectDefinition authority is unavailable for this selected event." &&
+    destination.interpretation_status === "not_performed";
+  const unavailableWithAuthority =
+    isRecord(destination) &&
+    hasExactKeys(destination, [
+      "state",
+      "target_ref",
+      "reason_code",
+      "reason",
+      "interpretation_status",
+      "project_definition_ref",
+    ]) &&
+    destination.state === "unavailable" &&
+    targetMatches &&
+    destinationDefinitionMatches &&
+    destination.interpretation_status === "performed" &&
+    ((destination.reason_code ===
+      "retained_project_definition_history_place_not_supported" &&
+      destination.reason ===
+        "The exact retained ProjectDefinition does not authorize the History place for this selected event." &&
+      registeredHistoricalTarget(destination.target_ref)) ||
+      (destination.reason_code ===
+        "historical_event_target_destination_not_registered" &&
+        destination.reason ===
+          "No historical semantic-destination adapter is registered for this selected event target." &&
+        !registeredHistoricalTarget(destination.target_ref)));
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-history-episode-view" ||
-    value.schema_version !== "1.0.0" ||
+    value.schema_version !== "1.2.0" ||
     typeof value.project_id !== "string" ||
     typeof value.event_id !== "string" ||
     !isRecord(value.content) ||
     value.content.view_kind !== "causal_episode" ||
     value.content.graph_navigation_history !== "client_local_separate" ||
+    (!availableDefinitionAuthority && !unavailableDefinitionAuthority) ||
+    (!availableDestination &&
+      !unavailableWithoutAuthority &&
+      !unavailableWithAuthority) ||
+    (availableDefinitionAuthority &&
+      (eventRef === undefined ||
+        !Number.isSafeInteger(eventRef.stream_revision) ||
+        Number(definitionAuthority.effective_after_stream_revision) >=
+          Number(eventRef.stream_revision))) ||
+    (unavailableDefinitionAuthority && !unavailableWithoutAuthority) ||
+    (availableDefinitionAuthority && unavailableWithoutAuthority) ||
+    eventRef?.event_id !== value.event_id ||
+    !Array.isArray(value.content.omissions) ||
+    !value.content.omissions.includes(
+      "historical_project_definition_content_not_returned",
+    ) ||
     typeof value.content_hash !== "string" ||
     typeof value.read_at !== "string"
   ) {
@@ -147,7 +788,575 @@ const projectHistoryEpisodeView = (
       502,
     );
   }
-  return value as unknown as PetraProjectHistoryEpisodeView;
+  return value as unknown as PetraProjectHistoryEpisodeViewV12;
+};
+
+const projectHistoryRetainedView = (
+  value: unknown,
+): PetraProjectHistoryRetainedViewV12 => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-retained-view" ||
+    value.schema_version !== "1.2.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "retained_events" ||
+    value.content.order_kind !== "project_stream_newest_first" ||
+    !isRecord(value.content.query) ||
+    !isRecord(value.content.query.filters) ||
+    value.content.cursor_binding !== "project_snapshot_and_complete_query" ||
+    !Array.isArray(value.content.changes) ||
+    value.content.changes.length > 100 ||
+    !isRecord(value.content.page) ||
+    !retainedHistoryFilterOptionsAreValid(
+      value.content.filter_options,
+      value.content.page.snapshot_total_count,
+      value.content.query.filters,
+    ) ||
+    !isRecord(value.content.retention_snapshot) ||
+    !isRecord(value.content.current_authority) ||
+    value.content.recovery_authority !== "current_at_page_read" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid retained Project History view.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryRetainedViewV12;
+};
+
+const projectHistoryImpactView = (
+  value: unknown,
+): PetraProjectHistoryImpactViewV14 => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-impact-view" ||
+    value.schema_version !== "1.4.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "dependency_impact" ||
+    value.content.authorization_scope !== "authenticated_project" ||
+    !isRecord(value.content.selected_event) ||
+    !Array.isArray(value.content.selected_event.targets) ||
+    !isRecord(value.content.impact) ||
+    !isRecord(value.content.semantic_target_impact) ||
+    value.content.semantic_target_impact.scope !==
+      "registered_exact_semantic_target_dependents" ||
+    value.content.semantic_target_impact.target_limit !== 10 ||
+    value.content.semantic_target_impact.per_adapter_ref_limit !== 25 ||
+    !Array.isArray(value.content.semantic_target_impact.registry) ||
+    value.content.semantic_target_impact.registry.length !== 9 ||
+    !historySemanticRegistryIsExact(
+      value.content.semantic_target_impact.registry,
+    ) ||
+    !Array.isArray(value.content.semantic_target_impact.target_assessments) ||
+    !isRecord(value.content.operational_dependency_impact) ||
+    value.content.operational_dependency_impact.scope !==
+      "registered_exact_operational_dependents" ||
+    value.content.operational_dependency_impact.target_limit !== 10 ||
+    value.content.operational_dependency_impact.per_adapter_ref_limit !== 25 ||
+    !Array.isArray(value.content.operational_dependency_impact.registry) ||
+    value.content.operational_dependency_impact.registry.length !== 3 ||
+    !historyOperationalRegistryIsExact(
+      value.content.operational_dependency_impact.registry,
+    ) ||
+    !Array.isArray(
+      value.content.operational_dependency_impact.target_assessments,
+    ) ||
+    !isRecord(value.content.decision_boundary) ||
+    value.content.decision_boundary.reversibility !== "not_assessed" ||
+    value.content.decision_boundary.compensation !== "not_composed" ||
+    !isRecord(value.content.authority) ||
+    value.content.authority.isolation !== "repeatable_read" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History dependency-impact view.",
+      502,
+    );
+  }
+  const selectedTargets = value.content.selected_event.targets;
+  const semanticImpact = value.content.semantic_target_impact;
+  const assessments = semanticImpact.target_assessments;
+  if (!Array.isArray(assessments)) {
+    throw new ProjectDataError(
+      "Petra returned invalid semantic History target assessments.",
+      502,
+    );
+  }
+  if (
+    semanticImpact.target_total_count !== selectedTargets.length ||
+    semanticImpact.target_returned_count !== assessments.length ||
+    assessments.some((assessment, index) => {
+      const selectedTarget: unknown = selectedTargets[index];
+      if (
+        !isRecord(assessment) ||
+        assessment.target_index !== index ||
+        !isRecord(assessment.target_ref) ||
+        !isRecord(selectedTarget) ||
+        !sameHistoryTargetRef(assessment.target_ref, selectedTarget) ||
+        !Array.isArray(assessment.groups)
+      ) {
+        return true;
+      }
+      if (assessment.adapter_state === "registered") {
+        const resolved = assessment.resolved_target_ref;
+        const expectedGroups = expectedHistorySemanticGroups(
+          selectedTarget.semantic_key,
+        );
+        return (
+          !isRecord(resolved) ||
+          assessment.groups.length < 1 ||
+          assessment.groups.length !== expectedGroups.length ||
+          assessment.groups.some(
+            (group, groupIndex) =>
+              !historySemanticGroupIsValid(group) ||
+              !isRecord(group) ||
+              group.adapter_kind !== expectedGroups[groupIndex],
+          ) ||
+          resolved.semantic_key !== selectedTarget.semantic_key ||
+          resolved.object_id !== selectedTarget.object_id ||
+          resolved.revision !== selectedTarget.revision ||
+          (selectedTarget.content_hash !== undefined &&
+            resolved.content_hash !== selectedTarget.content_hash) ||
+          (selectedTarget.record_hash !== undefined &&
+            resolved.record_hash !== selectedTarget.record_hash)
+        );
+      }
+      if (assessment.groups.length !== 0) return true;
+      if (assessment.adapter_state === "no_registered_exact_adapter") {
+        return (
+          registeredHistorySemanticKey(selectedTarget.semantic_key) ||
+          assessment.reason !==
+            "No exact semantic-target adapter is registered for this semantic key."
+        );
+      }
+      if (assessment.adapter_state === "target_identity_incomplete") {
+        return (
+          !registeredHistorySemanticKey(selectedTarget.semantic_key) ||
+          selectedTarget.revision !== undefined ||
+          assessment.reason !==
+            "Registered semantic-target adapters require an immutable target revision."
+        );
+      }
+      if (assessment.adapter_state === "target_authority_unavailable") {
+        return (
+          !registeredHistorySemanticKey(selectedTarget.semantic_key) ||
+          typeof selectedTarget.revision !== "number" ||
+          assessment.reason !==
+            "The exact immutable target authority is unavailable in this Project snapshot."
+        );
+      }
+      return true;
+    })
+  ) {
+    throw new ProjectDataError(
+      "Petra returned semantic impact for different History targets.",
+      502,
+    );
+  }
+  const operationalImpact = value.content.operational_dependency_impact;
+  const operationalAssessments = toUnknownArray(
+    operationalImpact.target_assessments,
+  );
+  const operationalGroups = operationalAssessments.flatMap((assessment) =>
+    isRecord(assessment) ? toUnknownArray(assessment.groups) : [],
+  );
+  const operationalSupportedCount = operationalAssessments.filter(
+    (assessment) =>
+      isRecord(assessment) && assessment.adapter_state === "registered",
+  ).length;
+  const operationalTotalCount = operationalGroups.reduce<number>(
+    (total, group) =>
+      total +
+      (isRecord(group) && typeof group.total_count === "number"
+        ? group.total_count
+        : Number.NaN),
+    0,
+  );
+  if (
+    operationalImpact.target_total_count !== selectedTargets.length ||
+    operationalImpact.target_returned_count !== operationalAssessments.length ||
+    !isRecord(operationalImpact.summary) ||
+    operationalImpact.summary.registered_adapter_count !== 3 ||
+    operationalImpact.summary.assessed_target_count !==
+      operationalAssessments.length ||
+    operationalImpact.summary.supported_target_count !==
+      operationalSupportedCount ||
+    operationalImpact.summary.total_count !== operationalTotalCount ||
+    operationalImpact.summary.coverage !==
+      (operationalImpact.target_coverage === "truncated" ||
+      operationalGroups.some(
+        (group) => isRecord(group) && group.coverage === "truncated",
+      )
+        ? "truncated"
+        : "complete") ||
+    operationalAssessments.some((assessment, index) => {
+      const selectedTarget: unknown = selectedTargets[index];
+      if (
+        !isRecord(assessment) ||
+        assessment.target_index !== index ||
+        !isRecord(assessment.target_ref) ||
+        !isRecord(selectedTarget) ||
+        !sameHistoryTargetRef(assessment.target_ref, selectedTarget) ||
+        !Array.isArray(assessment.groups)
+      ) {
+        return true;
+      }
+      if (assessment.adapter_state === "registered") {
+        if (
+          !isRecord(assessment.resolved_target_record) ||
+          assessment.resolved_target_record.semantic_key !==
+            selectedTarget.semantic_key ||
+          assessment.resolved_target_record.object_id !==
+            selectedTarget.object_id ||
+          assessment.resolved_target_record.revision !==
+            selectedTarget.revision ||
+          typeof assessment.resolved_target_record.record_hash !== "string" ||
+          ![
+            "selected_event_target",
+            "resolved_immutable_semantic_authority",
+          ].includes(
+            String(assessment.resolved_target_record.authority_source),
+          ) ||
+          assessment.groups.length !== 3
+        ) {
+          return true;
+        }
+        return assessment.groups.some(
+          (group, groupIndex) =>
+            !historyOperationalGroupIsValid(
+              group,
+              groupIndex,
+              assessment.resolved_target_record as Record<string, unknown>,
+            ),
+        );
+      }
+      const unavailableReasons = {
+        target_identity_incomplete:
+          "Operational adapters require an immutable target revision.",
+        target_record_authority_unavailable:
+          "The exact immutable target record authority is unavailable in this Project snapshot.",
+      } as const;
+      const adapterState = String(assessment.adapter_state);
+      return assessment.groups.length !== 0 ||
+        !(adapterState in unavailableReasons)
+        ? true
+        : assessment.reason !==
+            unavailableReasons[adapterState as keyof typeof unavailableReasons];
+    })
+  ) {
+    throw new ProjectDataError(
+      "Petra returned operational impact for different History targets.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryImpactViewV14;
+};
+
+const projectHistoryRecoveryAssessmentView = (
+  value: unknown,
+): PetraProjectHistoryRecoveryAssessmentView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-recovery-assessment-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "change_set_recovery_assessment" ||
+    value.content.authorization_scope !== "authenticated_project" ||
+    !isRecord(value.content.selected_event) ||
+    !isRecord(value.content.selected_event.event_ref) ||
+    !isRecord(value.content.recovery_subject) ||
+    !Array.isArray(value.content.recovery_subject.current_targets) ||
+    value.content.recovery_subject.current_targets.length !== 2 ||
+    !isRecord(value.content.command_authority) ||
+    !Array.isArray(value.content.command_authority.required_commands) ||
+    value.content.command_authority.required_commands.length !== 3 ||
+    !isRecord(value.content.causal_impact_basis) ||
+    !isRecord(value.content.assessment) ||
+    !["eligible_for_preview", "blocked", "already_compensated"].includes(
+      String(value.content.assessment.state),
+    ) ||
+    !isRecord(value.content.decision_boundary) ||
+    value.content.decision_boundary.compensation_preview !== "not_composed" ||
+    value.content.decision_boundary.compensation_execution !==
+      "not_performed" ||
+    value.content.decision_boundary.multi_step_compensation !==
+      "not_assessed" ||
+    !isRecord(value.content.authority) ||
+    value.content.authority.isolation !== "repeatable_read" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History recovery assessment.",
+      502,
+    );
+  }
+  const commands = value.content.command_authority.required_commands;
+  const targets = value.content.recovery_subject.current_targets;
+  if (
+    commands.some(
+      (command, index) =>
+        !isRecord(command) ||
+        command.command_name !==
+          ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"][index],
+    ) ||
+    targets.some(
+      (target, index) =>
+        !isRecord(target) ||
+        target.semantic_key !==
+          ["scientific.claim", "scientific.assertion"][index],
+    )
+  ) {
+    throw new ProjectDataError(
+      "Petra returned recovery authority for a different command or evidence pair.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryRecoveryAssessmentView;
+};
+
+const projectHistoryCompensationPreviewView = (
+  value: unknown,
+): PetraProjectHistoryCompensationPreviewView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-compensation-preview-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "single_change_set_compensation_preview" ||
+    value.content.authorization_scope !== "authenticated_project" ||
+    !isRecord(value.content.assessment_ref) ||
+    value.content.assessment_ref.assessment_state !== "eligible_for_preview" ||
+    !Array.isArray(value.content.operation_preview) ||
+    value.content.operation_preview.length !== 2 ||
+    !Array.isArray(value.content.result_preview) ||
+    value.content.result_preview.length !== 2 ||
+    value.content.change_set_composition !== "deferred_until_confirmed_input" ||
+    !Array.isArray(value.content.command_sequence) ||
+    value.content.command_sequence.length !== 3 ||
+    !isRecord(value.content.freshness) ||
+    typeof value.content.freshness.binding_hash !== "string" ||
+    !isRecord(value.content.decision_boundary) ||
+    value.content.decision_boundary.preview !== "read_only" ||
+    value.content.decision_boundary.change_set !== "not_created" ||
+    value.content.decision_boundary.approval !== "not_recorded" ||
+    value.content.decision_boundary.commands !== "not_composed_or_executed" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History compensation preview.",
+      502,
+    );
+  }
+  const operations = value.content.operation_preview;
+  const results = value.content.result_preview;
+  const commands = value.content.command_sequence;
+  if (
+    operations.some(
+      (operation, index) =>
+        !isRecord(operation) ||
+        operation.operation_kind !==
+          ["retract_claim", "retract_assertion"][index],
+    ) ||
+    results.some(
+      (result, index) =>
+        !isRecord(result) ||
+        result.semantic_key !==
+          ["scientific.claim", "scientific.assertion"][index] ||
+        typeof result.prior_revision !== "number" ||
+        result.resulting_revision !== result.prior_revision + 1,
+    ) ||
+    commands.some(
+      (command, index) =>
+        !isRecord(command) ||
+        command.position !== index + 1 ||
+        command.command_name !==
+          ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"][index],
+    ) ||
+    Date.parse(String(value.content.freshness.valid_through)) <=
+      Date.parse(String(value.content.freshness.issued_at))
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation preview with inconsistent revisions, operations, sequence, or freshness.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryCompensationPreviewView;
+};
+
+const projectHistoryCompensationPlanView = (
+  value: unknown,
+): PetraProjectHistoryCompensationPlanView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-compensation-plan-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.plan_kind !== "single_change_set_compensation_command_plan" ||
+    value.content.authorization_scope !== "authenticated_project" ||
+    !isRecord(value.content.preview_ref) ||
+    !isRecord(value.content.confirmation) ||
+    value.content.confirmation.state !== "explicitly_confirmed" ||
+    !isRecord(value.content.revalidation) ||
+    value.content.revalidation.state !== "passed" ||
+    value.content.revalidation.preview_expiry !== "unexpired" ||
+    !isRecord(value.content.change_set) ||
+    value.content.change_set.schema_name !== "petra.change-set" ||
+    value.content.change_set.schema_version !== "1.1.0" ||
+    !isRecord(value.content.approval) ||
+    !Array.isArray(value.content.commands) ||
+    value.content.commands.length !== 3 ||
+    !isRecord(value.content.persistence) ||
+    value.content.persistence.change_set !== "not_persisted" ||
+    value.content.persistence.approval !== "not_persisted" ||
+    value.content.persistence.commands !== "not_persisted" ||
+    !isRecord(value.content.execution) ||
+    value.content.execution.state !== "not_performed" ||
+    value.content.execution.requires_separate_request !== true ||
+    value.content.execution.authority_recheck !== "required_at_each_command" ||
+    !isRecord(value.content.decision_boundary) ||
+    value.content.decision_boundary.command_plan !== "composed" ||
+    value.content.decision_boundary.compensation !==
+      "not_persisted_or_executed" ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History compensation command plan.",
+      502,
+    );
+  }
+  const changeSet = value.content.change_set;
+  const approval = value.content.approval;
+  const commands = value.content.commands;
+  if (
+    typeof changeSet.change_set_id !== "string" ||
+    typeof changeSet.content_hash !== "string" ||
+    !isRecord(changeSet.content) ||
+    changeSet.content.compensates_change_set_id === undefined ||
+    approval.schema_name !== "petra.approval" ||
+    approval.decision !== "approved" ||
+    !isRecord(approval.subject) ||
+    approval.subject.change_set_id !== changeSet.change_set_id ||
+    approval.subject.change_set_content_hash !== changeSet.content_hash ||
+    commands.some((step, index) => {
+      if (
+        !isRecord(step) ||
+        step.position !== index + 1 ||
+        step.command_name !==
+          ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"][index] ||
+        step.state !== "composed_not_submitted" ||
+        !isRecord(step.envelope) ||
+        step.envelope.project_id !== value.project_id ||
+        !isRecord(step.envelope.command) ||
+        step.envelope.command.command_name !== step.command_name
+      ) {
+        return true;
+      }
+      return false;
+    })
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation plan with inconsistent ChangeSet, Approval, or command identities.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryCompensationPlanView;
+};
+
+const projectHistoryCompensationExecutionView = (
+  value: unknown,
+): PetraProjectHistoryCompensationExecutionView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-history-compensation-execution-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    typeof value.event_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.execution_kind !==
+      "single_change_set_compensation_execution" ||
+    value.content.authorization_scope !== "authenticated_project" ||
+    !isRecord(value.content.plan_ref) ||
+    !isRecord(value.content.preflight) ||
+    (value.content.outcome !== "completed" &&
+      value.content.outcome !== "stopped") ||
+    !Number.isInteger(value.content.completed_prefix) ||
+    !Array.isArray(value.content.steps) ||
+    value.content.steps.length !== 3 ||
+    value.content.atomicity !==
+      "per_command_transaction_not_three_command_atomic" ||
+    !isRecord(value.content.derivation) ||
+    value.content.derivation.aggregate_ledger !== "not_created" ||
+    !isRecord(value.content.authoritative_effect) ||
+    !isRecord(value.content.recovery) ||
+    value.content.graph_navigation_history !== "client_local_separate" ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project History compensation execution result.",
+      502,
+    );
+  }
+  const expectedCommands = [
+    "SubmitChangeSet",
+    "RecordApproval",
+    "ApplyChangeSet",
+  ];
+  if (
+    value.content.steps.some((step, index) => {
+      if (
+        !isRecord(step) ||
+        step.position !== index + 1 ||
+        step.command_name !== expectedCommands[index] ||
+        !isRecord(step.command_ref) ||
+        step.command_ref.command_name !== step.command_name
+      ) {
+        return true;
+      }
+      return ![
+        "retained_success",
+        "retained_failure",
+        "attempt_failed_not_retained",
+        "not_attempted",
+      ].includes(String(step.state));
+    }) ||
+    (value.content.outcome === "completed" &&
+      (value.content.completed_prefix !== 3 ||
+        value.content.steps.some(
+          (step) => !isRecord(step) || step.state !== "retained_success",
+        ) ||
+        value.content.authoritative_effect.state !== "compensation_applied" ||
+        value.content.recovery.state !== "complete")) ||
+    (value.content.outcome === "stopped" &&
+      (Number(value.content.completed_prefix) > 2 ||
+        value.content.authoritative_effect.state !== "not_completed"))
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation execution with inconsistent command order, outcome, or recovery state.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryCompensationExecutionView;
 };
 
 const sourceView = (value: unknown): PetraProjectSourceView => {
@@ -264,6 +1473,106 @@ const projectInquiryView = (value: unknown): PetraProjectInquiryView => {
   return value as unknown as PetraProjectInquiryView;
 };
 
+const suggestedActionView = (value: unknown): PetraSuggestedActionView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.suggested-action-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    value.content.view_kind !== "preview" ||
+    !isRecord(value.content.action_ref) ||
+    typeof value.content.action_ref.suggested_action_id !== "string" ||
+    value.content.action_ref.revision !== 1 ||
+    typeof value.content.action_ref.content_hash !== "string" ||
+    !isRecord(value.content.action) ||
+    value.content.action.action_kind !== "inspect_existing_inquiry_result" ||
+    !isRecord(value.content.action.objective) ||
+    !isRecord(value.content.action.objective.objective_ref) ||
+    !isRecord(value.content.action.basis) ||
+    !isRecord(value.content.action.basis.project_definition_ref) ||
+    !isRecord(value.content.action.basis.inquiry_result_link_ref) ||
+    !isRecord(value.content.action.basis.result_ref) ||
+    !isRecord(value.content.action.basis.snapshot_ref) ||
+    !isRecord(value.content.action.expected_result) ||
+    !isRecord(value.content.action.resources) ||
+    !isRecord(value.content.action.capability) ||
+    !isRecord(value.content.action.interrupt) ||
+    !isRecord(value.content.action.cancellation) ||
+    !isRecord(value.content.action.background_work) ||
+    !isRecord(value.content.action.invocation) ||
+    !isRecord(value.content.readiness) ||
+    (value.content.readiness.state !== "ready" &&
+      value.content.readiness.state !== "stale") ||
+    !Array.isArray(value.content.readiness.missing_prerequisites) ||
+    (value.content.readiness.state === "ready" &&
+      value.content.readiness.missing_prerequisites.length !== 0) ||
+    (value.content.readiness.state === "stale" &&
+      value.content.readiness.missing_prerequisites.length === 0) ||
+    !isRecord(value.content.operation) ||
+    value.content.operation.state !== "read_only" ||
+    value.content.operation.work_start !== "not_performed" ||
+    value.content.operation.authority_change !== "none" ||
+    !isRecord(value.content.authority) ||
+    !Array.isArray(value.content.limitations) ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid SuggestedAction preview.",
+      502,
+    );
+  }
+  return value as unknown as PetraSuggestedActionView;
+};
+
+const exactObjectiveRefMatches = (
+  left: PetraSuggestedActionView["content"]["action"]["objective"]["objective_ref"],
+  right: PetraSuggestedActionView["content"]["action"]["objective"]["objective_ref"],
+): boolean =>
+  left.objective_id === right.objective_id &&
+  left.revision === right.revision &&
+  left.content_hash === right.content_hash &&
+  left.record_hash === right.record_hash;
+
+const exactResultRefMatches = (
+  left: {
+    readonly schema_name: string;
+    readonly schema_version: string;
+    readonly record_id: string;
+    readonly revision: number;
+    readonly content_hash: string;
+    readonly record_hash: string;
+  },
+  right: {
+    readonly schema_name: string;
+    readonly schema_version: string;
+    readonly record_id: string;
+    readonly revision: number;
+    readonly content_hash: string;
+    readonly record_hash: string;
+  },
+): boolean =>
+  left.schema_name === right.schema_name &&
+  left.schema_version === right.schema_version &&
+  left.record_id === right.record_id &&
+  left.revision === right.revision &&
+  left.content_hash === right.content_hash &&
+  left.record_hash === right.record_hash;
+
+const exactWorkRefMatches = (
+  left: NonNullable<
+    PetraSuggestedActionView["content"]["action"]["basis"]["produced_by_work_ref"]
+  >,
+  right: NonNullable<
+    PetraSuggestedActionView["content"]["action"]["basis"]["produced_by_work_ref"]
+  >,
+): boolean =>
+  left.work_unit_id === right.work_unit_id &&
+  left.revision === right.revision &&
+  left.spec_hash === right.spec_hash &&
+  left.record_hash === right.record_hash;
+
 const projectThreadView = (value: unknown): PetraProjectThreadView => {
   if (
     !isRecord(value) ||
@@ -296,9 +1605,20 @@ const requestJson = async (
   });
   if (!response.ok) {
     let message = `Petra could not read this Project (${response.status}).`;
+    let continuationFailure:
+      PetraProjectHistoryRetainedContinuationFailure | undefined;
     try {
       const body = (await response.json()) as unknown;
-      if (
+      continuationFailure = retainedHistoryContinuationFailure(body);
+      if (continuationFailure !== undefined) {
+        message = continuationFailure.error.message;
+      } else if (
+        isRecord(body) &&
+        body.schema_name ===
+          "petra.project-history-retained-continuation-failure"
+      ) {
+        message = HISTORY_CONTINUATION_FAILURE_MESSAGE;
+      } else if (
         isRecord(body) &&
         isRecord(body.error) &&
         typeof body.error.message === "string"
@@ -308,7 +1628,7 @@ const requestJson = async (
     } catch {
       // The status remains the authoritative error when no JSON body exists.
     }
-    throw new ProjectDataError(message, response.status);
+    throw new ProjectDataError(message, response.status, continuationFailure);
   }
   return response.json() as Promise<unknown>;
 };
@@ -1278,6 +2598,213 @@ export const loadProjectRecord = async ({
   return projectRecordFromShellView(view);
 };
 
+export interface ProjectBriefData {
+  readonly suggestedAction?: PetraSuggestedActionView;
+  readonly invokedInquiry?: PetraProjectInquiryView;
+}
+
+export const getProjectSuggestedAction = async (
+  projectId: string,
+  projectInquiryLinkId: string,
+): Promise<PetraSuggestedActionView> => {
+  const query = new URLSearchParams({
+    inquiry_result_link_id: projectInquiryLinkId,
+  });
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/suggested-actions?${query}`,
+  );
+  const view = suggestedActionView(value);
+  const { action, authority, operation, readiness } = view.content;
+  const { basis, expected_result: expectedResult, invocation } = action;
+  const basisWork = basis.produced_by_work_ref;
+  const backgroundWork = action.background_work;
+  const workBasisMatches =
+    basisWork === undefined
+      ? backgroundWork.state === "unavailable"
+      : backgroundWork.state === "completed" &&
+        exactWorkRefMatches(basisWork, backgroundWork.work_unit_ref);
+  if (
+    view.project_id !== projectId ||
+    basis.inquiry_result_link_ref.project_inquiry_link_id !==
+      projectInquiryLinkId ||
+    invocation.kind !== "authenticated_read" ||
+    invocation.contract_name !== "petra.project-inquiry-view" ||
+    invocation.contract_version !== "1.0.0" ||
+    invocation.operation !== "get_project_inquiry_detail" ||
+    invocation.project_id !== projectId ||
+    invocation.place_role !== "brief" ||
+    invocation.task_intent !== "inspect" ||
+    invocation.idempotency !== "safe_exact_read" ||
+    !exactObjectiveRefMatches(
+      action.objective.objective_ref,
+      invocation.objective_ref,
+    ) ||
+    !exactResultRefMatches(basis.result_ref, expectedResult.result_ref) ||
+    basis.snapshot_ref.event_position !== authority.event_position ||
+    operation.state !== "read_only" ||
+    operation.work_start !== "not_performed" ||
+    operation.authority_change !== "none" ||
+    (readiness.state === "ready" &&
+      readiness.missing_prerequisites.length !== 0) ||
+    !workBasisMatches
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a SuggestedAction whose exact basis, readiness, or invocation does not match this Project read.",
+      502,
+    );
+  }
+  return view;
+};
+
+const invokedInquiryMatchesAction = (
+  inquiry: PetraProjectInquiryView,
+  actionView: PetraSuggestedActionView,
+): boolean => {
+  if (
+    inquiry.project_id !== actionView.project_id ||
+    inquiry.content.view_kind !== "detail"
+  ) {
+    return false;
+  }
+  const { action } = actionView.content;
+  const { basis, invocation } = action;
+  const definition = inquiry.content.project_definition_ref;
+  const actionDefinition = basis.project_definition_ref;
+  const linkedResults = inquiry.content.result_links.filter(
+    ({ link_ref: linkRef }) =>
+      linkRef.project_inquiry_link_id ===
+      basis.inquiry_result_link_ref.project_inquiry_link_id,
+  );
+  const linkedResult = linkedResults[0];
+  if (
+    definition.project_definition_id !==
+      actionDefinition.project_definition_id ||
+    definition.revision !== actionDefinition.revision ||
+    definition.content_hash !== actionDefinition.content_hash ||
+    definition.definition_family !== actionDefinition.definition_family ||
+    !exactObjectiveRefMatches(
+      inquiry.content.summary.inquiry_anchor_ref,
+      invocation.objective_ref,
+    ) ||
+    linkedResults.length !== 1 ||
+    linkedResult === undefined ||
+    linkedResult.link_ref.content_hash !==
+      basis.inquiry_result_link_ref.content_hash ||
+    linkedResult.link_ref.record_hash !==
+      basis.inquiry_result_link_ref.record_hash ||
+    !exactResultRefMatches(linkedResult.result_ref, basis.result_ref)
+  ) {
+    return false;
+  }
+  const actionWork = basis.produced_by_work_ref;
+  const inquiryWork = linkedResult.produced_by_work_ref;
+  return actionWork === undefined
+    ? inquiryWork === undefined
+    : inquiryWork !== undefined && exactWorkRefMatches(actionWork, inquiryWork);
+};
+
+export const loadProjectBrief = async ({
+  params,
+  request,
+}: LoaderFunctionArgs): Promise<ProjectBriefData> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const incoming = new URL(request.url).searchParams;
+  const linkIds = incoming.getAll("inquiry_result_link_id");
+  const invocations = incoming.getAll("invoke");
+  if (linkIds.length > 1 || invocations.length > 1) {
+    throw new ProjectDataError(
+      "The SuggestedAction selection and invocation must each be exact.",
+      400,
+    );
+  }
+  let linkId = linkIds[0];
+  const invocation = invocations[0];
+  if (linkId === undefined) {
+    if (invocation !== undefined) {
+      throw new ProjectDataError(
+        "A SuggestedAction invocation requires its exact inquiry-result link.",
+        400,
+      );
+    }
+    const shell = shellView(
+      await requestJson(
+        `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
+      ),
+    );
+    if (shell.project_id !== projectId) {
+      throw new ProjectDataError(
+        "Petra returned a Brief action context for another Project.",
+        502,
+      );
+    }
+    const currentObjective = shell.content.current_objective;
+    if (currentObjective === undefined) return {};
+    const inquiry = projectInquiryView(
+      await requestJson(
+        `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries/${encodeURIComponent(currentObjective.objective_id)}`,
+      ),
+    );
+    if (
+      inquiry.project_id !== projectId ||
+      inquiry.content.view_kind !== "detail" ||
+      inquiry.content.summary.inquiry_anchor_ref.objective_id !==
+        currentObjective.objective_id ||
+      inquiry.content.summary.inquiry_anchor_ref.revision !==
+        currentObjective.revision ||
+      inquiry.content.summary.inquiry_anchor_ref.content_hash !==
+        currentObjective.content_hash ||
+      inquiry.content.project_definition_ref.project_definition_id !==
+        shell.content.definition.project_definition_id ||
+      inquiry.content.project_definition_ref.revision !==
+        shell.content.definition.revision ||
+      inquiry.content.project_definition_ref.content_hash !==
+        shell.content.definition.content_hash
+    ) {
+      throw new ProjectDataError(
+        "Petra returned inquiry action context that does not match the current Brief focus and ProjectDefinition.",
+        502,
+      );
+    }
+    if (inquiry.content.result_links.length !== 1) return {};
+    linkId = inquiry.content.result_links[0]?.link_ref.project_inquiry_link_id;
+    if (linkId === undefined) return {};
+  }
+  if (!API_REQUEST_ID.test(linkId)) {
+    throw new ProjectDataError(
+      "The SuggestedAction inquiry-result link is invalid.",
+      400,
+    );
+  }
+  if (invocation !== undefined && invocation !== "get_project_inquiry_detail") {
+    throw new ProjectDataError(
+      "The SuggestedAction invocation is unsupported.",
+      400,
+    );
+  }
+  const suggestedAction = await getProjectSuggestedAction(projectId, linkId);
+  if (invocation === undefined) return { suggestedAction };
+  if (suggestedAction.content.readiness.state !== "ready") {
+    throw new ProjectDataError(
+      "This SuggestedAction is stale and cannot be invoked. Regenerate it from current authority first.",
+      409,
+    );
+  }
+  const objectiveId =
+    suggestedAction.content.action.invocation.objective_ref.objective_id;
+  const inquiry = projectInquiryView(
+    await requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries/${encodeURIComponent(objectiveId)}`,
+    ),
+  );
+  if (!invokedInquiryMatchesAction(inquiry, suggestedAction)) {
+    throw new ProjectDataError(
+      "Petra returned inquiry detail that does not match the SuggestedAction's exact typed invocation and basis.",
+      502,
+    );
+  }
+  return { suggestedAction, invokedInquiry: inquiry };
+};
+
 export interface ProjectSettingsData {
   selectedProject?: ProjectRecord;
   controls?: PetraProjectEffectiveControlsView;
@@ -1383,7 +2910,7 @@ export const getRecentProjectHistory = async (
 export const getProjectHistoryEpisode = async (
   projectId: string,
   eventId: string,
-): Promise<PetraProjectHistoryEpisodeView> => {
+): Promise<PetraProjectHistoryEpisodeViewV12> => {
   const value = await requestJson(
     `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}`,
   );
@@ -1391,6 +2918,632 @@ export const getProjectHistoryEpisode = async (
   if (view.project_id !== projectId || view.event_id !== eventId) {
     throw new ProjectDataError(
       "Petra returned a different Project History episode.",
+      502,
+    );
+  }
+  return view;
+};
+
+export const getProjectHistoryImpact = async (
+  projectId: string,
+  eventId: string,
+): Promise<PetraProjectHistoryImpactViewV14> => {
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}/impact`,
+  );
+  const view = projectHistoryImpactView(value);
+  if (
+    view.project_id !== projectId ||
+    view.event_id !== eventId ||
+    view.content.selected_event.event_ref.event_id !== eventId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned dependency impact from another Project or History event.",
+      502,
+    );
+  }
+  return view;
+};
+
+export const getProjectHistoryRecoveryAssessment = async (
+  projectId: string,
+  eventId: string,
+): Promise<PetraProjectHistoryRecoveryAssessmentView> => {
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}/recovery`,
+  );
+  const view = projectHistoryRecoveryAssessmentView(value);
+  if (
+    view.project_id !== projectId ||
+    view.event_id !== eventId ||
+    view.content.selected_event.event_ref.event_id !== eventId ||
+    view.content.causal_impact_basis.source_event_id !== eventId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a recovery assessment from another Project or History event.",
+      502,
+    );
+  }
+  return view;
+};
+
+export const getProjectHistoryCompensationPreview = async (
+  projectId: string,
+  eventId: string,
+): Promise<PetraProjectHistoryCompensationPreviewView> => {
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}/recovery/preview`,
+  );
+  const view = projectHistoryCompensationPreviewView(value);
+  if (
+    view.project_id !== projectId ||
+    view.event_id !== eventId ||
+    view.content.assessment_ref.event_id !== eventId ||
+    view.content.impact_basis.source_event_id !== eventId
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation preview from another Project or History event.",
+      502,
+    );
+  }
+  return view;
+};
+
+export interface ProjectHistoryCompensationPlanInput {
+  readonly projectId: string;
+  readonly eventId: string;
+  readonly preview: PetraProjectHistoryCompensationPreviewView;
+  readonly reason: string;
+  readonly approvalRationale: string;
+  readonly explicitConfirmation: true;
+}
+
+export const composeProjectHistoryCompensationPlan = async (
+  input: ProjectHistoryCompensationPlanInput,
+): Promise<PetraProjectHistoryCompensationPlanView> => {
+  if (
+    input.reason.trim().length === 0 ||
+    input.approvalRationale.trim().length === 0 ||
+    input.preview.project_id !== input.projectId ||
+    input.preview.event_id !== input.eventId
+  ) {
+    throw new ProjectDataError(
+      "A compensation plan requires an exact routed preview, reason, Approval rationale, and explicit confirmation.",
+      400,
+    );
+  }
+  const request: PetraProjectHistoryCompensationPlanRequest = {
+    schema_name: "petra.project-history-compensation-plan-request",
+    schema_version: "1.0.0",
+    project_id: input.projectId,
+    event_id: input.eventId,
+    preview_ref: {
+      schema_name: "petra.project-history-compensation-preview-view",
+      schema_version: "1.0.0",
+      content_hash: input.preview.content_hash,
+      binding_hash: input.preview.content.freshness.binding_hash,
+      issued_at: input.preview.content.freshness.issued_at,
+      valid_through: input.preview.content.freshness.valid_through,
+    },
+    confirmation: {
+      confirmed: input.explicitConfirmation,
+      reason: input.reason,
+      approval_rationale: input.approvalRationale,
+    },
+  };
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(input.projectId)}/history/events/${encodeURIComponent(input.eventId)}/recovery/plan`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+  const view = projectHistoryCompensationPlanView(value);
+  if (
+    view.project_id !== input.projectId ||
+    view.event_id !== input.eventId ||
+    view.content.preview_ref.content_hash !== input.preview.content_hash ||
+    view.content.preview_ref.binding_hash !==
+      input.preview.content.freshness.binding_hash ||
+    view.content.change_set.content.reason !== input.reason ||
+    view.content.approval.rationale !== input.approvalRationale
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation plan from another Project, event, preview, or confirmed input.",
+      502,
+    );
+  }
+  return view;
+};
+
+export interface ProjectHistoryCompensationExecutionInput {
+  readonly projectId: string;
+  readonly eventId: string;
+  readonly plan: PetraProjectHistoryCompensationPlanView;
+  readonly explicitExecutionConfirmation: true;
+}
+
+export const executeProjectHistoryCompensationPlan = async (
+  input: ProjectHistoryCompensationExecutionInput,
+): Promise<PetraProjectHistoryCompensationExecutionView> => {
+  if (
+    input.plan.project_id !== input.projectId ||
+    input.plan.event_id !== input.eventId
+  ) {
+    throw new ProjectDataError(
+      "Compensation execution requires the exact plan for the routed Project event.",
+      400,
+    );
+  }
+  const request: PetraProjectHistoryCompensationExecutionRequest = {
+    schema_name: "petra.project-history-compensation-execution-request",
+    schema_version: "1.0.0",
+    project_id: input.projectId,
+    event_id: input.eventId,
+    plan: structuredClone(input.plan),
+    execution_confirmation: {
+      confirmed: input.explicitExecutionConfirmation,
+      acknowledged_atomicity:
+        "per_command_transaction_not_three_command_atomic",
+    },
+  };
+  const value = await requestJson(
+    `/api/commands/projects/${encodeURIComponent(input.projectId)}/history/events/${encodeURIComponent(input.eventId)}/recovery/execute`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+  const view = projectHistoryCompensationExecutionView(value);
+  if (
+    view.project_id !== input.projectId ||
+    view.event_id !== input.eventId ||
+    view.content.plan_ref.content_hash !== input.plan.content_hash
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a compensation execution from another Project, event, or plan.",
+      502,
+    );
+  }
+  return view;
+};
+
+export interface RetainedProjectHistoryRequest {
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly filters?: ProjectHistoryRetainedCollectionFiltersV12;
+}
+
+const HISTORY_RETAINED_CURSOR = /^phc2\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/u;
+const HISTORY_RETAINED_ACTOR = /^actor_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const HISTORY_RETAINED_CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
+const HISTORY_RETAINED_TIMESTAMP =
+  /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/u;
+const HISTORY_RETAINED_FILTER_VALUES = {
+  family: new Set([
+    "change_control",
+    "project_source_lifecycle",
+    "project_source_replacement",
+  ]),
+  command_name: new Set([
+    "SubmitChangeSet",
+    "RecordApproval",
+    "ApplyChangeSet",
+    "ExcludeProjectSource",
+    "RestoreProjectSource",
+    "CreateProjectSourceReplacement",
+    "RetractProjectSourceReplacement",
+  ]),
+  event_type: new Set([
+    "change_set.submitted",
+    "approval.recorded",
+    "change_set.applied",
+    "change_set.conflicted",
+    "change_set.reverted",
+    "change_set.reversal_conflicted",
+    "project_source.excluded",
+    "project_source.restored",
+    "project_source.replacement_created",
+    "project_source.replacement_retracted",
+  ]),
+  outcome: new Set(["completed", "conflicted"]),
+  effect: new Set([
+    "change_proposed",
+    "approval_recorded",
+    "authority_change_applied",
+    "authority_change_conflicted",
+    "authority_change_reverted",
+    "reversal_conflicted",
+    "project_source_excluded",
+    "project_source_restored",
+    "source_replacement_created",
+    "source_replacement_retracted",
+  ]),
+} as const;
+const HISTORY_RETAINED_TARGET_PREFIXES = {
+  "petra.change-set": "change_set_",
+  "petra.approval": "approval_",
+  "scientific.claim": "claim_",
+  "scientific.assertion": "assertion_",
+  "petra.project-source": "project_source_",
+  "petra.project-source-replacement": "project_source_replacement_",
+  "petra.project-source-replacement-retraction": "project_source_retraction_",
+} as const;
+
+const retainedHistoryFilterOptionsAreValid = (
+  supplied: unknown,
+  suppliedSnapshotTotalCount: unknown,
+  suppliedFilters: unknown,
+): boolean => {
+  if (
+    !isRecord(supplied) ||
+    supplied.authorization_scope !== "authenticated_project" ||
+    supplied.snapshot_and_query_binding !==
+      "retention_snapshot_and_complete_normalized_query" ||
+    supplied.dimension_semantics !==
+      "replace_same_dimension_preserve_other_filters" ||
+    supplied.count_basis !==
+      "matching_authorized_events_after_replacing_same_dimension" ||
+    !isRecord(supplied.actor_catalogue) ||
+    !isRecord(supplied.target_catalogue) ||
+    !isRecord(suppliedFilters) ||
+    !Number.isSafeInteger(suppliedSnapshotTotalCount) ||
+    Number(suppliedSnapshotTotalCount) < 0
+  ) {
+    return false;
+  }
+  const snapshotTotalCount = Number(suppliedSnapshotTotalCount);
+  const catalogueBaseIsValid = (
+    catalogue: Record<string, unknown>,
+    orderKind: string,
+  ): catalogue is Record<string, unknown> & { options: unknown[] } =>
+    catalogue.option_limit === 100 &&
+    catalogue.order_kind === orderKind &&
+    Number.isSafeInteger(catalogue.returned_count) &&
+    Number(catalogue.returned_count) >= 0 &&
+    Number(catalogue.returned_count) <= 100 &&
+    Number.isSafeInteger(catalogue.total_count) &&
+    Number(catalogue.total_count) >= Number(catalogue.returned_count) &&
+    catalogue.continuation === "not_composed" &&
+    Array.isArray(catalogue.options) &&
+    catalogue.options.length === catalogue.returned_count &&
+    (catalogue.coverage === "complete"
+      ? catalogue.total_count === catalogue.returned_count
+      : catalogue.coverage === "truncated" &&
+        Number(catalogue.total_count) > Number(catalogue.returned_count));
+  const actorCatalogue = supplied.actor_catalogue;
+  const targetCatalogue = supplied.target_catalogue;
+  if (
+    !catalogueBaseIsValid(
+      actorCatalogue,
+      "active_option_first_then_matching_event_count_desc_then_actor_id",
+    ) ||
+    !catalogueBaseIsValid(
+      targetCatalogue,
+      "active_option_first_then_matching_event_count_desc_then_target_identity",
+    )
+  ) {
+    return false;
+  }
+
+  const actorIds = new Set<string>();
+  const actorOrder: { id: string; count: number; active: boolean }[] = [];
+  let actorCountSum = 0;
+  let selectedActorCount: number | undefined;
+  for (const option of actorCatalogue.options) {
+    if (
+      !isRecord(option) ||
+      !isRecord(option.actor_ref) ||
+      typeof option.actor_ref.actor_id !== "string" ||
+      !HISTORY_RETAINED_ACTOR.test(option.actor_ref.actor_id) ||
+      (option.actor_ref.actor_kind !== "human" &&
+        option.actor_ref.actor_kind !== "service" &&
+        option.actor_ref.actor_kind !== "model") ||
+      actorIds.has(option.actor_ref.actor_id) ||
+      !isRecord(option.display_descriptor) ||
+      option.display_descriptor.state !== "available" ||
+      typeof option.display_descriptor.display_name !== "string" ||
+      option.display_descriptor.display_name.length < 1 ||
+      option.display_descriptor.display_name.length > 160 ||
+      !isRecord(option.display_descriptor.authority_ref) ||
+      option.display_descriptor.authority_ref.schema_name !== "petra.actor" ||
+      option.display_descriptor.authority_ref.schema_version !== "1.0.0" ||
+      option.display_descriptor.authority_ref.actor_id !==
+        option.actor_ref.actor_id ||
+      typeof option.display_descriptor.authority_ref.record_hash !== "string" ||
+      !HISTORY_RETAINED_CONTENT_HASH.test(
+        option.display_descriptor.authority_ref.record_hash,
+      ) ||
+      !Number.isSafeInteger(option.matching_event_count) ||
+      Number(option.matching_event_count) < 1
+    ) {
+      return false;
+    }
+    const actorId = option.actor_ref.actor_id;
+    const matchingEventCount = Number(option.matching_event_count);
+    const active = suppliedFilters.actor_id === actorId;
+    actorIds.add(actorId);
+    actorCountSum += matchingEventCount;
+    actorOrder.push({ id: actorId, count: matchingEventCount, active });
+    if (active) selectedActorCount = matchingEventCount;
+  }
+  const expectedActorOrder = [...actorOrder].sort(
+    (left, right) =>
+      Number(right.active) - Number(left.active) ||
+      right.count - left.count ||
+      left.id.localeCompare(right.id),
+  );
+  if (
+    actorOrder.some(
+      (option, index) => option.id !== expectedActorOrder[index]?.id,
+    ) ||
+    (suppliedFilters.actor_id === undefined &&
+      actorCatalogue.coverage === "complete" &&
+      actorCountSum !== snapshotTotalCount) ||
+    (suppliedFilters.actor_id !== undefined &&
+      snapshotTotalCount > 0 &&
+      selectedActorCount !== snapshotTotalCount)
+  ) {
+    return false;
+  }
+
+  const targetIds = new Set<string>();
+  const targetOrder: { id: string; count: number; active: boolean }[] = [];
+  let selectedTargetCount: number | undefined;
+  for (const option of targetCatalogue.options) {
+    if (
+      !isRecord(option) ||
+      !isRecord(option.target_ref) ||
+      typeof option.target_ref.semantic_key !== "string" ||
+      typeof option.target_ref.object_id !== "string"
+    ) {
+      return false;
+    }
+    const semanticKey = option.target_ref.semantic_key;
+    const objectId = option.target_ref.object_id;
+    const prefix =
+      HISTORY_RETAINED_TARGET_PREFIXES[
+        semanticKey as keyof typeof HISTORY_RETAINED_TARGET_PREFIXES
+      ];
+    const identity = `${semanticKey}\u0000${objectId}`;
+    if (
+      prefix === undefined ||
+      objectId.length !== prefix.length + 26 ||
+      !objectId.startsWith(prefix) ||
+      !/^[0-9A-HJKMNP-TV-Z]{26}$/u.test(objectId.slice(prefix.length)) ||
+      targetIds.has(identity) ||
+      !isRecord(option.display_descriptor) ||
+      option.display_descriptor.state !== "exact_identity_only" ||
+      option.display_descriptor.fallback !== "semantic_key_and_object_id" ||
+      option.display_descriptor.reason_code !==
+        "revision_neutral_target_title_authority_not_registered" ||
+      option.display_descriptor.reason !==
+        "No authorized revision-neutral title is registered for this exact History target identity." ||
+      !Number.isSafeInteger(option.matching_event_count) ||
+      Number(option.matching_event_count) < 1
+    ) {
+      return false;
+    }
+    const matchingEventCount = Number(option.matching_event_count);
+    const active =
+      isRecord(suppliedFilters.target) &&
+      suppliedFilters.target.semantic_key === semanticKey &&
+      suppliedFilters.target.object_id === objectId;
+    targetIds.add(identity);
+    targetOrder.push({ id: identity, count: matchingEventCount, active });
+    if (active) selectedTargetCount = matchingEventCount;
+  }
+  const expectedTargetOrder = [...targetOrder].sort(
+    (left, right) =>
+      Number(right.active) - Number(left.active) ||
+      right.count - left.count ||
+      left.id.localeCompare(right.id),
+  );
+  return (
+    !targetOrder.some(
+      (option, index) => option.id !== expectedTargetOrder[index]?.id,
+    ) &&
+    (!isRecord(suppliedFilters.target) ||
+      snapshotTotalCount === 0 ||
+      selectedTargetCount === snapshotTotalCount)
+  );
+};
+
+const retainedProjectHistoryFilters = (
+  supplied: ProjectHistoryRetainedCollectionFiltersV12 | undefined,
+): ProjectHistoryRetainedCollectionFiltersV12 => {
+  if (supplied === undefined) return {};
+  if (!isRecord(supplied)) {
+    throw new ProjectDataError(
+      "Retained Project History filters must be an object.",
+      400,
+    );
+  }
+  const allowed = new Set([
+    "family",
+    "command_name",
+    "event_type",
+    "actor_id",
+    "outcome",
+    "effect",
+    "target",
+    "recorded_at",
+  ]);
+  if (Object.keys(supplied).some((key) => !allowed.has(key))) {
+    throw new ProjectDataError(
+      "Retained Project History contains an unsupported filter.",
+      400,
+    );
+  }
+  const typed =
+    supplied as unknown as ProjectHistoryRetainedCollectionFiltersV12;
+  for (const key of [
+    "family",
+    "command_name",
+    "event_type",
+    "outcome",
+    "effect",
+  ] as const) {
+    const value = typed[key];
+    if (
+      value !== undefined &&
+      !HISTORY_RETAINED_FILTER_VALUES[key].has(value)
+    ) {
+      throw new ProjectDataError(
+        `Retained Project History ${key} filter is invalid.`,
+        400,
+      );
+    }
+  }
+  if (
+    typed.actor_id !== undefined &&
+    !HISTORY_RETAINED_ACTOR.test(typed.actor_id)
+  ) {
+    throw new ProjectDataError(
+      "Retained Project History Actor filter is invalid.",
+      400,
+    );
+  }
+  let target: ProjectHistoryRetainedCollectionFiltersV12["target"];
+  const suppliedTarget = typed.target;
+  if (suppliedTarget !== undefined) {
+    if (
+      !isRecord(suppliedTarget) ||
+      Object.keys(suppliedTarget).length !== 2 ||
+      typeof suppliedTarget.semantic_key !== "string" ||
+      typeof suppliedTarget.object_id !== "string"
+    ) {
+      throw new ProjectDataError(
+        "Retained Project History target filter requires an exact semantic key and object identity.",
+        400,
+      );
+    }
+    const semanticKey = suppliedTarget.semantic_key;
+    const prefix = HISTORY_RETAINED_TARGET_PREFIXES[semanticKey];
+    if (
+      prefix === undefined ||
+      suppliedTarget.object_id.length !== prefix.length + 26 ||
+      !suppliedTarget.object_id.startsWith(prefix) ||
+      !/^[0-9A-HJKMNP-TV-Z]{26}$/u.test(
+        suppliedTarget.object_id.slice(prefix.length),
+      )
+    ) {
+      throw new ProjectDataError(
+        "Retained Project History target identity is invalid.",
+        400,
+      );
+    }
+    target = {
+      semantic_key: semanticKey,
+      object_id: suppliedTarget.object_id,
+    };
+  }
+  let recordedAt: ProjectHistoryRetainedCollectionFiltersV12["recorded_at"];
+  const suppliedRecordedAt = typed.recorded_at;
+  if (suppliedRecordedAt !== undefined) {
+    if (!isRecord(suppliedRecordedAt)) {
+      throw new ProjectDataError(
+        "Retained Project History recorded-time filter is invalid.",
+        400,
+      );
+    }
+    const keys = Object.keys(suppliedRecordedAt);
+    const from = suppliedRecordedAt.from_inclusive;
+    const through = suppliedRecordedAt.through_inclusive;
+    const validTimestamp = (value: unknown): value is string =>
+      typeof value === "string" &&
+      HISTORY_RETAINED_TIMESTAMP.test(value) &&
+      Number.isFinite(Date.parse(value));
+    if (
+      keys.length < 1 ||
+      keys.length > 2 ||
+      keys.some(
+        (key) => key !== "from_inclusive" && key !== "through_inclusive",
+      ) ||
+      (from !== undefined && !validTimestamp(from)) ||
+      (through !== undefined && !validTimestamp(through)) ||
+      (from !== undefined &&
+        through !== undefined &&
+        Date.parse(from) > Date.parse(through))
+    ) {
+      throw new ProjectDataError(
+        "Retained Project History recorded-time bounds are invalid.",
+        400,
+      );
+    }
+    recordedAt = {
+      ...(from === undefined ? {} : { from_inclusive: from }),
+      ...(through === undefined ? {} : { through_inclusive: through }),
+    };
+  }
+  return {
+    ...(typed.family === undefined ? {} : { family: typed.family }),
+    ...(typed.command_name === undefined
+      ? {}
+      : { command_name: typed.command_name }),
+    ...(typed.event_type === undefined ? {} : { event_type: typed.event_type }),
+    ...(typed.actor_id === undefined ? {} : { actor_id: typed.actor_id }),
+    ...(typed.outcome === undefined ? {} : { outcome: typed.outcome }),
+    ...(typed.effect === undefined ? {} : { effect: typed.effect }),
+    ...(target === undefined ? {} : { target }),
+    ...(recordedAt === undefined ? {} : { recorded_at: recordedAt }),
+  };
+};
+
+export const getRetainedProjectHistory = async (
+  projectId: string,
+  request: RetainedProjectHistoryRequest = {},
+): Promise<PetraProjectHistoryRetainedViewV12> => {
+  const limit = request.limit ?? 50;
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+    throw new ProjectDataError(
+      "Retained Project History limit must be an integer from 1 through 100.",
+      400,
+    );
+  }
+  if (
+    request.cursor !== undefined &&
+    (request.cursor.length > 1024 ||
+      !HISTORY_RETAINED_CURSOR.test(request.cursor))
+  ) {
+    throw new ProjectDataError(
+      "Retained Project History cursor is invalid.",
+      400,
+    );
+  }
+  const filters = retainedProjectHistoryFilters(request.filters);
+  const query = new URLSearchParams({ limit: String(limit) });
+  if (request.cursor !== undefined) query.set("cursor", request.cursor);
+  if (filters.family !== undefined) query.set("family", filters.family);
+  if (filters.command_name !== undefined)
+    query.set("command_name", filters.command_name);
+  if (filters.event_type !== undefined)
+    query.set("event_type", filters.event_type);
+  if (filters.actor_id !== undefined) query.set("actor_id", filters.actor_id);
+  if (filters.outcome !== undefined) query.set("outcome", filters.outcome);
+  if (filters.effect !== undefined) query.set("effect", filters.effect);
+  if (filters.target !== undefined) {
+    query.set("target_semantic_key", filters.target.semantic_key);
+    query.set("target_object_id", filters.target.object_id);
+  }
+  if (filters.recorded_at?.from_inclusive !== undefined)
+    query.set("recorded_from", filters.recorded_at.from_inclusive);
+  if (filters.recorded_at?.through_inclusive !== undefined)
+    query.set("recorded_through", filters.recorded_at.through_inclusive);
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/history/events?${query}`,
+  );
+  const view = projectHistoryRetainedView(value);
+  if (
+    view.project_id !== projectId ||
+    view.content.query.limit !== limit ||
+    view.content.query.cursor !== request.cursor ||
+    JSON.stringify(view.content.query.filters) !== JSON.stringify(filters)
+  ) {
+    throw new ProjectDataError(
+      "Petra returned retained History from another Project or traversal query.",
       502,
     );
   }

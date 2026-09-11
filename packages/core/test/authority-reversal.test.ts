@@ -6,6 +6,7 @@ import type {
   PetraClaim,
   PetraCommandEnvelope,
   PetraParsedDocument,
+  PetraProjectHistoryCompensationPreviewView,
   PetraSourceSpan,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -14,6 +15,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildCompensatingReversalCommandPlan,
+  buildPreviewBoundCompensatingReversalCommandPlan,
   executeCompensatingReversalPlan,
 } from "../src/evidence-review.js";
 import {
@@ -87,6 +89,45 @@ const setupPromotedPair = () => {
 };
 
 describe("compensating scientific-authority reversal", () => {
+  it("composes a preview-bound plan with each exact command grant and no execution", () => {
+    const preview = readFixture<PetraProjectHistoryCompensationPreviewView>(
+      "project-history-compensation-preview-view",
+    );
+    preview.content.command_sequence[1].grant_ref.capability_grant_id =
+      "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBK";
+    preview.content.command_sequence[2].grant_ref.capability_grant_id =
+      "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBM";
+
+    const plan = buildPreviewBoundCompensatingReversalCommandPlan({
+      preview,
+      reason: "Retract the exact pair after explicit confirmation.",
+      rationale: "The exact authority and impact basis were reviewed.",
+      composed_at: "2026-09-10T18:31:00.000Z",
+    });
+
+    expect(plan.change_set.content.operations).toEqual(
+      preview.content.operation_preview.map((operation) => ({
+        operation_kind: operation.operation_kind,
+        target_id: operation.target_id,
+        base_revision: operation.base_revision,
+        before: operation.before,
+        after: operation.after,
+      })),
+    );
+    expect(
+      [plan.submit, plan.review, plan.apply].map(
+        ({ capability_grant_id }) => capability_grant_id,
+      ),
+    ).toEqual(
+      preview.content.command_sequence.map(
+        ({ grant_ref }) => grant_ref.capability_grant_id,
+      ),
+    );
+    expect(plan.change_set.content.compensates_change_set_id).toBe(
+      preview.content.compensates_change_set.change_set_id,
+    );
+  });
+
   it("retracts a trusted pair without erasing its promotion history", async () => {
     const { registry, claim, assertion, promoted, plan } = setupPromotedPair();
 
