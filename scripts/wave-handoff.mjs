@@ -360,6 +360,21 @@ function codexExecutable() {
   return existsSync(preferred) ? preferred : "codex";
 }
 
+export function buildCodexExecArguments({ root, outputPath }) {
+  return [
+    "exec",
+    "--cd",
+    root,
+    "--approve-for-me",
+    "--json",
+    "--output-schema",
+    resultSchemaPath,
+    "--output-last-message",
+    outputPath,
+    "-",
+  ];
+}
+
 function eventSummary(line, role) {
   try {
     const event = JSON.parse(line);
@@ -415,20 +430,7 @@ async function runCodexWorker({ role, wave, state }) {
   const errorLog = createWriteStream(stderrPath, { flags: "wx" });
   const child = spawn(
     codexExecutable(),
-    [
-      "exec",
-      "--cd",
-      roles[role].root,
-      "--sandbox",
-      "workspace-write",
-      "--approve-for-me",
-      "--json",
-      "--output-schema",
-      resultSchemaPath,
-      "--output-last-message",
-      outputPath,
-      "-",
-    ],
+    buildCodexExecArguments({ root: roles[role].root, outputPath }),
     {
       cwd: roles[role].root,
       env: pinnedEnvironment(),

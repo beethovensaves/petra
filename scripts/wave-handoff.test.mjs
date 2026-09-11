@@ -5,12 +5,22 @@ import test from "node:test";
 import Ajv2020 from "ajv/dist/2020.js";
 
 import {
+  buildCodexExecArguments,
   buildWorkerPrompt,
   parseArguments,
   parsePorcelainZ,
   unexpectedChanges,
   validateWorkerResult,
 } from "./wave-handoff.mjs";
+
+test("uses automatic approval review without a conflicting sandbox flag", () => {
+  const args = buildCodexExecArguments({
+    root: "/tmp/backend",
+    outputPath: "/tmp/result.json",
+  });
+  assert.ok(args.includes("--approve-for-me"));
+  assert.equal(args.includes("--sandbox"), false);
+});
 
 test("parses worker options with a bounded slice count", () => {
   assert.deepEqual(

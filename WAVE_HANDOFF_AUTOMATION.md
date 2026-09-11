@@ -64,9 +64,9 @@ first, then record the stop. If a worker exits unexpectedly, inspect
 
 ## Safety boundary
 
-The coordinator uses `codex exec --sandbox workspace-write --approve-for-me`
-with a strict output schema. It never uses the dangerous sandbox bypass. Every
-handoff verifies:
+The coordinator uses `codex exec --approve-for-me`, which routes approvals
+through automatic review in the `workspace-write` sandbox, with a strict output
+schema. It never uses the dangerous sandbox bypass. Every handoff verifies:
 
 - expected branch and exact counterpart commit;
 - no concurrent counterpart change;
