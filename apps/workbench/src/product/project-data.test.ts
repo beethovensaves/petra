@@ -9,7 +9,7 @@ import type {
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryCompensationPreviewView,
-  PetraProjectHistoryImpactViewV12,
+  PetraProjectHistoryImpactViewV13,
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectInquiryView,
@@ -222,12 +222,12 @@ const historyRetainedView = JSON.parse(
 const historyImpactView = JSON.parse(
   readFileSync(
     new URL(
-      "../../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-2.json",
+      "../../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-3.json",
       import.meta.url,
     ),
     "utf8",
   ),
-) as PetraProjectHistoryImpactViewV12;
+) as PetraProjectHistoryImpactViewV13;
 
 const historyRecoveryView = JSON.parse(
   readFileSync(
@@ -666,7 +666,7 @@ describe("Project shell workbench adapter", () => {
     ).rejects.toMatchObject({ status: 502 });
   });
 
-  it("reads bounded direct and semantic-target impact without inferring reversibility", async () => {
+  it("reads bounded semantic and operational impact without inferring effects or reversibility", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockResolvedValue(Response.json(historyImpactView));
@@ -689,6 +689,18 @@ describe("Project shell workbench adapter", () => {
         registered_adapter_count: 9,
         supported_target_count: 1,
         total_count: 4,
+      },
+    });
+    expect(result.content.operational_dependency_impact).toMatchObject({
+      target_limit: 10,
+      per_adapter_ref_limit: 25,
+      target_total_count: 1,
+      target_returned_count: 1,
+      target_coverage: "complete",
+      summary: {
+        registered_adapter_count: 3,
+        supported_target_count: 1,
+        total_count: 3,
       },
     });
     expect(result.content.decision_boundary).toEqual({
@@ -735,6 +747,23 @@ describe("Project shell workbench adapter", () => {
     effectiveGroup.authority_source =
       "immutable_project_source_replacement_bindings";
     fetch.mockResolvedValueOnce(Response.json(collapsedReplacementState));
+    await expect(
+      getProjectHistoryImpact(
+        historyImpactView.project_id,
+        historyImpactView.event_id,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+
+    const reboundOperationalTarget = structuredClone(historyImpactView);
+    const operationalAssessment =
+      reboundOperationalTarget.content.operational_dependency_impact
+        .target_assessments[0];
+    if (operationalAssessment?.adapter_state !== "registered") {
+      throw new Error("Expected a registered operational assessment.");
+    }
+    operationalAssessment.groups[1].refs[0]!.input_binding_ref.snapshot_hash =
+      "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+    fetch.mockResolvedValueOnce(Response.json(reboundOperationalTarget));
     await expect(
       getProjectHistoryImpact(
         historyImpactView.project_id,

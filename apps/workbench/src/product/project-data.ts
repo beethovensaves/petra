@@ -9,7 +9,7 @@ import type {
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
   PetraProjectHistoryEpisodeView,
-  PetraProjectHistoryImpactViewV12,
+  PetraProjectHistoryImpactViewV13,
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectInquiryView,
@@ -71,6 +71,9 @@ const apiToken = (): string => {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+const toUnknownArray = (value: unknown): unknown[] =>
+  Array.isArray(value) ? value.map((entry: unknown): unknown => entry) : [];
 
 const sameHistoryTargetRef = (
   left: Record<string, unknown>,
@@ -241,6 +244,115 @@ const expectedHistorySemanticGroups = (semanticKey: unknown): string[] => {
   return [];
 };
 
+const HISTORY_OPERATIONAL_REGISTRY = [
+  [
+    "work_input_binding",
+    "current_work_heads_with_immutable_input_bindings",
+    "petra.work-unit",
+    "uses_exact_history_target_as_work_input",
+    "current",
+  ],
+  [
+    "work_output",
+    "immutable_worker_output_manifests_for_bound_work",
+    "petra.worker-output-manifest",
+    "reports_output_for_work_using_exact_history_target",
+    "immutable_revision",
+  ],
+  [
+    "interaction_delivery",
+    "immutable_interaction_replay_records_for_bound_work",
+    "petra.interaction-replay-record",
+    "delivers_interaction_for_work_using_exact_history_target",
+    "immutable_revision",
+  ],
+] as const;
+
+const historyOperationalRegistryIsExact = (value: unknown[]): boolean =>
+  value.every((entry, index) => {
+    const expected = HISTORY_OPERATIONAL_REGISTRY[index];
+    return (
+      expected !== undefined &&
+      isRecord(entry) &&
+      entry.adapter_kind === expected[0] &&
+      entry.authority_source === expected[1] &&
+      entry.dependent_semantic_key === expected[2]
+    );
+  });
+
+const historyOperationalGroupIsValid = (
+  value: unknown,
+  groupIndex: number,
+  resolvedTarget: Record<string, unknown>,
+): boolean => {
+  const expected = HISTORY_OPERATIONAL_REGISTRY[groupIndex];
+  if (
+    expected === undefined ||
+    !isRecord(value) ||
+    value.adapter_kind !== expected[0] ||
+    value.authority_source !== expected[1] ||
+    value.relation_scope !== "exact_target_record_binding" ||
+    typeof value.total_count !== "number" ||
+    !Number.isSafeInteger(value.total_count) ||
+    value.total_count < 0 ||
+    typeof value.returned_count !== "number" ||
+    !Number.isSafeInteger(value.returned_count) ||
+    value.returned_count < 0 ||
+    !Array.isArray(value.refs) ||
+    value.refs.length > 25 ||
+    value.returned_count !== value.refs.length ||
+    value.total_count < value.returned_count ||
+    value.coverage !==
+      (value.total_count > value.returned_count ? "truncated" : "complete")
+  ) {
+    return false;
+  }
+  return value.refs.every((ref) => {
+    if (
+      !isRecord(ref) ||
+      ref.semantic_key !== expected[2] ||
+      ref.schema_name !== expected[2] ||
+      ref.schema_version !== "1.0.0" ||
+      ref.relation !== expected[3] ||
+      ref.posture !== expected[4] ||
+      typeof ref.object_id !== "string" ||
+      typeof ref.revision !== "number" ||
+      typeof ref.record_hash !== "string" ||
+      !isRecord(ref.work_unit_ref) ||
+      typeof ref.work_unit_ref.work_unit_id !== "string" ||
+      typeof ref.work_unit_ref.revision !== "number" ||
+      typeof ref.work_unit_ref.spec_hash !== "string" ||
+      typeof ref.work_unit_ref.record_hash !== "string" ||
+      !isRecord(ref.input_binding_ref) ||
+      ref.input_binding_ref.record_id !== resolvedTarget.object_id ||
+      ref.input_binding_ref.record_revision !== resolvedTarget.revision ||
+      ref.input_binding_ref.snapshot_hash !== resolvedTarget.record_hash
+    ) {
+      return false;
+    }
+    if (expected[0] === "work_input_binding") {
+      return (
+        ref.object_id === ref.work_unit_ref.work_unit_id &&
+        ref.revision === ref.work_unit_ref.revision &&
+        ref.record_hash === ref.work_unit_ref.record_hash &&
+        ref.content_hash === undefined &&
+        ref.interaction_run_ref === undefined
+      );
+    }
+    if (typeof ref.content_hash !== "string") return false;
+    if (expected[0] === "work_output") {
+      return ref.interaction_run_ref === undefined;
+    }
+    return (
+      isRecord(ref.interaction_run_ref) &&
+      typeof ref.interaction_run_ref.interaction_run_id === "string" &&
+      typeof ref.interaction_run_ref.revision === "number" &&
+      typeof ref.interaction_run_ref.content_hash === "string" &&
+      typeof ref.interaction_run_ref.record_hash === "string"
+    );
+  });
+};
+
 type ProjectShellView = PetraProjectShellView | PetraProjectShellViewV11;
 
 const shellView = (value: unknown): ProjectShellView => {
@@ -362,11 +474,11 @@ const projectHistoryRetainedView = (
 
 const projectHistoryImpactView = (
   value: unknown,
-): PetraProjectHistoryImpactViewV12 => {
+): PetraProjectHistoryImpactViewV13 => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-history-impact-view" ||
-    value.schema_version !== "1.2.0" ||
+    value.schema_version !== "1.3.0" ||
     typeof value.project_id !== "string" ||
     typeof value.event_id !== "string" ||
     !isRecord(value.content) ||
@@ -386,6 +498,19 @@ const projectHistoryImpactView = (
       value.content.semantic_target_impact.registry,
     ) ||
     !Array.isArray(value.content.semantic_target_impact.target_assessments) ||
+    !isRecord(value.content.operational_dependency_impact) ||
+    value.content.operational_dependency_impact.scope !==
+      "registered_exact_operational_dependents" ||
+    value.content.operational_dependency_impact.target_limit !== 10 ||
+    value.content.operational_dependency_impact.per_adapter_ref_limit !== 25 ||
+    !Array.isArray(value.content.operational_dependency_impact.registry) ||
+    value.content.operational_dependency_impact.registry.length !== 3 ||
+    !historyOperationalRegistryIsExact(
+      value.content.operational_dependency_impact.registry,
+    ) ||
+    !Array.isArray(
+      value.content.operational_dependency_impact.target_assessments,
+    ) ||
     !isRecord(value.content.decision_boundary) ||
     value.content.decision_boundary.reversibility !== "not_assessed" ||
     value.content.decision_boundary.compensation !== "not_composed" ||
@@ -480,7 +605,103 @@ const projectHistoryImpactView = (
       502,
     );
   }
-  return value as unknown as PetraProjectHistoryImpactViewV12;
+  const operationalImpact = value.content.operational_dependency_impact;
+  const operationalAssessments = toUnknownArray(
+    operationalImpact.target_assessments,
+  );
+  const operationalGroups = operationalAssessments.flatMap((assessment) =>
+    isRecord(assessment) ? toUnknownArray(assessment.groups) : [],
+  );
+  const operationalSupportedCount = operationalAssessments.filter(
+    (assessment) =>
+      isRecord(assessment) && assessment.adapter_state === "registered",
+  ).length;
+  const operationalTotalCount = operationalGroups.reduce<number>(
+    (total, group) =>
+      total +
+      (isRecord(group) && typeof group.total_count === "number"
+        ? group.total_count
+        : Number.NaN),
+    0,
+  );
+  if (
+    operationalImpact.target_total_count !== selectedTargets.length ||
+    operationalImpact.target_returned_count !== operationalAssessments.length ||
+    !isRecord(operationalImpact.summary) ||
+    operationalImpact.summary.registered_adapter_count !== 3 ||
+    operationalImpact.summary.assessed_target_count !==
+      operationalAssessments.length ||
+    operationalImpact.summary.supported_target_count !==
+      operationalSupportedCount ||
+    operationalImpact.summary.total_count !== operationalTotalCount ||
+    operationalImpact.summary.coverage !==
+      (operationalImpact.target_coverage === "truncated" ||
+      operationalGroups.some(
+        (group) => isRecord(group) && group.coverage === "truncated",
+      )
+        ? "truncated"
+        : "complete") ||
+    operationalAssessments.some((assessment, index) => {
+      const selectedTarget: unknown = selectedTargets[index];
+      if (
+        !isRecord(assessment) ||
+        assessment.target_index !== index ||
+        !isRecord(assessment.target_ref) ||
+        !isRecord(selectedTarget) ||
+        !sameHistoryTargetRef(assessment.target_ref, selectedTarget) ||
+        !Array.isArray(assessment.groups)
+      ) {
+        return true;
+      }
+      if (assessment.adapter_state === "registered") {
+        if (
+          !isRecord(assessment.resolved_target_record) ||
+          assessment.resolved_target_record.semantic_key !==
+            selectedTarget.semantic_key ||
+          assessment.resolved_target_record.object_id !==
+            selectedTarget.object_id ||
+          assessment.resolved_target_record.revision !==
+            selectedTarget.revision ||
+          typeof assessment.resolved_target_record.record_hash !== "string" ||
+          ![
+            "selected_event_target",
+            "resolved_immutable_semantic_authority",
+          ].includes(
+            String(assessment.resolved_target_record.authority_source),
+          ) ||
+          assessment.groups.length !== 3
+        ) {
+          return true;
+        }
+        return assessment.groups.some(
+          (group, groupIndex) =>
+            !historyOperationalGroupIsValid(
+              group,
+              groupIndex,
+              assessment.resolved_target_record as Record<string, unknown>,
+            ),
+        );
+      }
+      const unavailableReasons = {
+        target_identity_incomplete:
+          "Operational adapters require an immutable target revision.",
+        target_record_authority_unavailable:
+          "The exact immutable target record authority is unavailable in this Project snapshot.",
+      } as const;
+      const adapterState = String(assessment.adapter_state);
+      return assessment.groups.length !== 0 ||
+        !(adapterState in unavailableReasons)
+        ? true
+        : assessment.reason !==
+            unavailableReasons[adapterState as keyof typeof unavailableReasons];
+    })
+  ) {
+    throw new ProjectDataError(
+      "Petra returned operational impact for different History targets.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectHistoryImpactViewV13;
 };
 
 const projectHistoryRecoveryAssessmentView = (
@@ -2032,7 +2253,7 @@ export const getProjectHistoryEpisode = async (
 export const getProjectHistoryImpact = async (
   projectId: string,
   eventId: string,
-): Promise<PetraProjectHistoryImpactViewV12> => {
+): Promise<PetraProjectHistoryImpactViewV13> => {
   const value = await requestJson(
     `/api/queries/projects/${encodeURIComponent(projectId)}/history/events/${encodeURIComponent(eventId)}/impact`,
   );

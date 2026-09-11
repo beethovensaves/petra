@@ -3,13 +3,14 @@
 Status: bounded Recent changes, exact event-selected causal episodes,
 snapshot-stable filtered retained Project-event traversal, and bounded direct
 dependency impact plus registered exact semantic-target adapters through
-ProjectSource and replacement authority, exact read-only ChangeSet recovery
-assessment, and revision-bound compensation preview passed; confirmed command
-plan composition and separately authorized single-plan execution with exact
-partial-outcome recovery passed
+ProjectSource and replacement authority plus exact record-bound Work, output,
+and delivery dependencies passed; exact read-only ChangeSet recovery assessment,
+revision-bound compensation preview, confirmed command-plan composition, and
+separately authorized single-plan execution with exact partial-outcome recovery
+also passed
 Date: 2026-09-10
 Design boundary: `UX-DESIGN-FREEZE-01`
-Implementation baseline: `718f641` plus this slice
+Implementation baseline: `0e6688e` plus this slice
 
 ## Result
 
@@ -215,6 +216,38 @@ inside the same Project-scoped repeatable-read transaction. Missing exact
 source or replacement authority produces the existing explicit unavailable
 assessment rather than a substitute identity or a failure-open inference.
 
+## Registered exact operational dependencies
+
+`petra.project-history-impact-view@1.3.0` preserves the complete 1.2 direct and
+semantic-target result and adds a separate `operational_dependency_impact`
+section. For each of at most ten selected-event targets, it resolves one exact
+target record identity from the immutable event target or the existing semantic
+authority adapter, then queries three registered operational relationships:
+
+- `work_input_binding` returns the current WorkUnit head only when its immutable
+  WorkerInputManifest contains a record input whose ID, revision, and snapshot
+  hash match the exact target;
+- `work_output` returns immutable WorkerOutputManifest records for Work bound by
+  that exact input; and
+- `interaction_delivery` returns immutable InteractionReplayRecord receipts for
+  InteractionRuns tied to the same bound Work.
+
+Every relationship preserves the WorkUnit revision and record hash, exact input
+manifest content and record hashes, binding position and name, and target record
+identity. Output references additionally retain their content and record hashes.
+Delivery references retain those hashes plus the exact InteractionRun revision,
+content hash, and record hash. Each adapter has its own total, returned count,
+twenty-five-reference bound, and coverage result. The registry order does not
+assert a temporal or causal order between Work, output, and delivery families.
+
+The output and delivery adapters prove only that a retained record belongs to
+Work whose immutable input bound the exact History target. Petra does not infer
+that the output changed Project authority or that the replay delivered a worker
+output. Work without the exact record binding is excluded; unresolved target
+record authority, unregistered transitive relationships, effects, and a
+cross-family order remain explicit unknowns. No operational or History ledger
+was added.
+
 ## Recovery semantics
 
 `petra.project-history-recovery-assessment-view@1.0.0` adds the authenticated
@@ -386,6 +419,10 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 - a semantic dependent's exact owning record, version, revision, content hash
   where applicable, record hash, Project scope, and registered relation
   identity; or
+- an operational dependent's exact Project, target record binding,
+  WorkerInputManifest, WorkUnit, output manifest, InteractionRun, replay record,
+  content hash where applicable, record hash, or registered relation identity;
+  or
 - a recovery ChangeSet, applied Approval, current evidence head, active grant,
   or retained compensation event's exact Project, revision, content, record,
   and causal binding; or
@@ -401,7 +438,7 @@ The PostgreSQL reader fails closed when it cannot reproduce:
 ## Verification
 
 Contract fixtures include accepted exact Recent changes, causal-episode,
-retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2, ChangeSet
+retained traversal 1.0/1.1, dependency-impact 1.0/1.1/1.2/1.3, ChangeSet
 recovery-assessment, and compensation-preview responses.
 Accepted plan-request and plan-view fixtures add the explicit-confirmation and
 non-persistence boundary.
@@ -412,12 +449,14 @@ Rejected fixtures cover an altered quick limit, false global episode order,
 unsafe offset or query-unbound cursor reuse, a dependency read that claims a
 reversibility decision, and an unregistered semantic target that fabricates a
 registered adapter group, plus an invalid response that collapses retained
-replacement lineage and effective head state into one unsupported authority,
-claims that a recovery assessment composed a compensation preview, or turns a
-read-only preview into a created ChangeSet, recorded Approval, or executed
-command. An unconfirmed plan request and a plan response that claims execution
-are rejected. An unconfirmed execution request and one that claims the three
-commands are atomic are also rejected.
+replacement lineage and effective head state into one unsupported authority.
+Another rejected response claims a global ordering scope for an operational
+dependency group. Further rejected cases claim that a recovery assessment
+composed a compensation preview or turn a read-only preview into a created
+ChangeSet, recorded Approval, or executed command. An unconfirmed plan request
+and a plan response that claims execution are rejected. An unconfirmed
+execution request and one that claims the three commands are atomic are also
+rejected.
 TypeScript generation, AJV conformance, strict Pydantic round-trip parity,
 server route tests, typed-client tests, and the real PostgreSQL integration
 suite pass. The database proof starts from an empty PostgreSQL 18.6 instance,
@@ -449,16 +488,25 @@ cross-Project reuse, distinguishes an unretained interrupted Approval attempt,
 and resumes from the exact retained Submit prefix before returning the applied
 reversal and resulting evidence revisions.
 
+The 1.3 operational proof registers the same exact ChangeSet record as a Work
+input in two Projects and confirms that only the selected Project's current
+WorkUnit is returned. It then follows that binding to the selected Project's
+immutable WorkerOutputManifest and InteractionReplayRecord, validating the
+complete WorkerInputManifest–WorkUnit–InteractionRun authority chain and every
+content or record hash under the same repeatable-read snapshot.
+
 ## Next safe slice
 
-The next safe History boundary is a bounded set of registered exact dependency
-adapters for Work, output, and delivery records that already retain an explicit
-reference to the selected Project event or its exact causal identities. Each
-adapter must name its owning immutable authority, preserve Project scope and
-record identity, report independent totals and coverage, and state unavailable
-or unregistered relationships without inference. It must not assert a global
-cross-family order, dependent effect, reversibility, or an exhaustive semantic
-closure. An authoritative origin filter, exact return behavior, generic undo,
-reversal of a reversal, multiple or multi-step compensation, historical
-ProjectDefinition interpretation, and frozen-interface integration remain
-later boundaries.
+The next safe History boundary is freeze-conformance mapping of the fixed 1.3
+operational result into the existing History detail regions. A subsequent
+backend increment may add renderer-neutral destinations for the registered
+operational references, but only where an existing exact Project-owned route
+authority can be named; InteractionRun replay must not be presented as a
+ProjectThread destination without an explicit binding.
+
+An origin filter is not yet safe because current authority has no canonical
+origin classification. Historical ProjectDefinition interpretation likewise
+requires an exact retained definition revision rather than applying the current
+definition retroactively. Exact client return behavior, generic undo, reversal
+of a reversal, multiple or multi-step compensation, and new frozen-interface
+integration remain later boundaries.

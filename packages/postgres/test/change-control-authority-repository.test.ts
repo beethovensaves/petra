@@ -25,7 +25,9 @@ import type {
   PetraSourceSpan,
   PetraStructuralBlock,
   PetraWork,
+  PetraInteractionReplayRecord,
   PetraWorkerInputManifest,
+  PetraWorkerOutputManifest,
   PetraWorkUnit,
   PetraWorkVersion,
 } from "@petra/contracts";
@@ -869,7 +871,7 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       compensation: "not_composed",
       dependent_effect: "not_inferred_from_reference",
     });
-    expect(submittedImpact?.schema_version).toBe("1.2.0");
+    expect(submittedImpact?.schema_version).toBe("1.3.0");
     expect(submittedImpact?.content.semantic_target_impact).toMatchObject({
       target_total_count: 1,
       target_returned_count: 1,
@@ -902,6 +904,19 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
       "authorized_by_exact_change_set",
       "authorized_by_exact_change_set",
     ]);
+    expect(
+      submittedImpact?.content.operational_dependency_impact,
+    ).toMatchObject({
+      target_total_count: 1,
+      target_returned_count: 1,
+      summary: {
+        registered_adapter_count: 3,
+        assessed_target_count: 1,
+        supported_target_count: 1,
+        total_count: 0,
+        coverage: "complete",
+      },
+    });
     expect(
       await historyViews.getProjectHistoryImpactView(
         "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
@@ -989,6 +1004,258 @@ describePostgres("PostgreSQL ChangeSet authority, event, and outbox", () => {
         approval_id: applied.approval_id,
       },
     ]);
+  });
+
+  it("enumerates exact record-bound Work, output, and delivery dependencies without cross-Project leakage", async () => {
+    await registerEvidenceChain();
+    await scopes.registerActor(serviceActor());
+    const commands = commandFixtures();
+    if (commands.submit.command.command_name !== "SubmitChangeSet") {
+      throw new Error("Expected the submitted ChangeSet fixture.");
+    }
+    const submittedChangeSet = commands.submit.command.change_set;
+    const repository = authority();
+    await repository.executeCommand(commands.submit);
+    const submittedEvent = (
+      await repository.getDomainEvents({
+        projectId: commands.submit.project_id,
+      })
+    )[0];
+    if (submittedEvent === undefined) {
+      throw new Error("Expected the submitted ChangeSet event.");
+    }
+    const targetRecordHash = canonicalHash(submittedChangeSet);
+
+    const boundWorkRegistration = (
+      projectId: string,
+      workUnitId: string,
+      inputManifestId: string,
+      idempotencyKey: string,
+    ) => {
+      const workUnit = readFixture<PetraWorkUnit>("work-unit-requested");
+      const inputManifest = readFixture<PetraWorkerInputManifest>(
+        "worker-input-manifest",
+      );
+      const creator = {
+        actor_id: serviceActor().actor_id,
+        actor_kind: "service" as const,
+      };
+      inputManifest.worker_input_manifest_id = inputManifestId;
+      inputManifest.work_unit_id = workUnitId;
+      inputManifest.project_id = projectId;
+      inputManifest.issued_by = creator;
+      inputManifest.content.inputs = [
+        {
+          binding_kind: "record",
+          name: "history_target",
+          record_id: submittedChangeSet.change_set_id,
+          record_revision: submittedChangeSet.revision,
+          snapshot_hash: targetRecordHash,
+        },
+      ];
+      inputManifest.content_hash = canonicalHash(inputManifest.content);
+
+      workUnit.work_unit_id = workUnitId;
+      workUnit.project_id = projectId;
+      workUnit.created_by = creator;
+      workUnit.spec.idempotency_key = idempotencyKey;
+      workUnit.spec.cache = {
+        cache_mode: "reuse_exact",
+        cache_key: idempotencyKey,
+      };
+      workUnit.spec.input_manifest_ref = {
+        worker_input_manifest_id: inputManifestId,
+        content_hash: inputManifest.content_hash,
+      };
+      workUnit.spec_hash = canonicalHash(workUnit.spec);
+      return { workUnit, inputManifest };
+    };
+
+    const registration = boundWorkRegistration(
+      commands.submit.project_id,
+      "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "worker_input_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+      "history-impact:work:primary",
+    );
+    await workUnits.register(registration);
+    const queued = await workUnits.queue(
+      registration.workUnit.work_unit_id,
+      1,
+      "2026-09-10T18:00:01.000Z",
+    );
+    const running = await workUnits.start(
+      registration.workUnit.work_unit_id,
+      queued.revision,
+      1,
+      "2026-09-10T18:00:02.000Z",
+    );
+    const output = readFixture<PetraWorkerOutputManifest>(
+      "worker-output-manifest",
+    );
+    output.work_unit_id = registration.workUnit.work_unit_id;
+    output.project_id = registration.workUnit.project_id;
+    output.worker_input_manifest_id =
+      registration.inputManifest.worker_input_manifest_id;
+    output.worker_input_manifest_hash = registration.inputManifest.content_hash;
+    output.content.started_at = "2026-09-10T18:00:02.000Z";
+    output.content.completed_at = "2026-09-10T18:00:03.000Z";
+    output.reported_at = "2026-09-10T18:00:03.000Z";
+    output.content_hash = canonicalHash(output.content);
+    const completed = await workUnits.complete(output, running.revision);
+
+    const feature = readFixture<PetraInteractionFeatureManifest>(
+      "interaction-feature-manifest",
+    );
+    feature.compiled_by = {
+      actor_id: serviceActor().actor_id,
+      actor_kind: "service",
+    };
+    await interactions.registerFeatureManifest(feature);
+    const run = readFixture<PetraInteractionRun>("interaction-run");
+    run.content.correlation.work_unit_ref = {
+      work_unit_id: completed.work_unit_id,
+      revision: completed.revision,
+      spec_hash: completed.spec_hash,
+    };
+    run.content_hash = canonicalHash(run.content);
+    await interactions.registerRun(run);
+    const interactionEvent = readFixture<PetraInteractionEventRecord>(
+      "interaction-event-record",
+    );
+    interactionEvent.interaction_run_ref = {
+      interaction_run_id: run.interaction_run_id,
+      revision: run.revision,
+      content_hash: run.content_hash,
+    };
+    interactionEvent.recorded_by = {
+      actor_id: serviceActor().actor_id,
+      actor_kind: "service",
+    };
+    const interactionPayloadArtifact = parserArtifactInput(
+      sourceArtifactInput(),
+    ).artifact;
+    interactionEvent.content.payload_artifact_ref = {
+      artifact_id: interactionPayloadArtifact.artifact_id,
+      content_sha256: interactionPayloadArtifact.content_hash,
+      byte_size: interactionPayloadArtifact.byte_size,
+      media_type: interactionPayloadArtifact.media_type,
+    };
+    interactionEvent.content_hash = canonicalHash(interactionEvent.content);
+    await interactions.appendEvent(interactionEvent);
+    const replay = readFixture<PetraInteractionReplayRecord>(
+      "interaction-replay-record",
+    );
+    replay.interaction_run_ref = structuredClone(
+      interactionEvent.interaction_run_ref,
+    );
+    replay.content.delivered_event_refs = [
+      {
+        interaction_event_record_id:
+          interactionEvent.interaction_event_record_id,
+        sequence: interactionEvent.sequence,
+        content_hash: interactionEvent.content_hash,
+      },
+    ];
+    replay.content.work_unit_observation = {
+      work_unit_id: completed.work_unit_id,
+      revision: completed.revision,
+      status: "succeeded",
+    };
+    replay.recorded_by = {
+      actor_id: serviceActor().actor_id,
+      actor_kind: "service",
+    };
+    replay.content_hash = canonicalHash(replay.content);
+    await interactions.registerReplay(replay);
+
+    const otherProject = readFixture<PetraProject>("project");
+    otherProject.project_id = "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    otherProject.name = "Operational dependency isolation";
+    await scopes.registerProjectRevision(otherProject);
+    await workUnits.register(
+      boundWorkRegistration(
+        otherProject.project_id,
+        "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FE2",
+        "worker_input_manifest_01ARZ3NDEKTSV4RRFFQ69G5FE3",
+        "history-impact:work:other-project",
+      ),
+    );
+
+    const impact = await historyViews.getProjectHistoryImpactView(
+      commands.submit.project_id,
+      submittedEvent.event_id,
+    );
+    expect(impact?.schema_version).toBe("1.3.0");
+    expect(impact?.content.operational_dependency_impact).toMatchObject({
+      scope: "registered_exact_operational_dependents",
+      target_total_count: 1,
+      target_returned_count: 1,
+      summary: {
+        registered_adapter_count: 3,
+        assessed_target_count: 1,
+        supported_target_count: 1,
+        total_count: 3,
+        coverage: "complete",
+      },
+    });
+    const assessment =
+      impact?.content.operational_dependency_impact.target_assessments[0];
+    expect(assessment?.adapter_state).toBe("registered");
+    if (assessment?.adapter_state !== "registered") {
+      throw new Error("Expected exact operational target authority.");
+    }
+    expect(assessment.resolved_target_record).toEqual({
+      semantic_key: "petra.change-set",
+      object_id: submittedChangeSet.change_set_id,
+      revision: 1,
+      content_hash: submittedChangeSet.content_hash,
+      record_hash: targetRecordHash,
+      authority_source: "resolved_immutable_semantic_authority",
+    });
+    expect(
+      assessment.groups.map(({ adapter_kind, total_count }) => [
+        adapter_kind,
+        total_count,
+      ]),
+    ).toEqual([
+      ["work_input_binding", 1],
+      ["work_output", 1],
+      ["interaction_delivery", 1],
+    ]);
+    expect(assessment.groups[0].refs[0]).toMatchObject({
+      object_id: completed.work_unit_id,
+      revision: completed.revision,
+      posture: "current",
+      input_binding_ref: {
+        record_id: submittedChangeSet.change_set_id,
+        record_revision: 1,
+        snapshot_hash: targetRecordHash,
+      },
+    });
+    expect(assessment.groups[1].refs[0]).toMatchObject({
+      object_id: output.worker_output_manifest_id,
+      relation: "reports_output_for_work_using_exact_history_target",
+    });
+    expect(assessment.groups[2].refs[0]).toMatchObject({
+      object_id: replay.interaction_replay_record_id,
+      relation: "delivers_interaction_for_work_using_exact_history_target",
+      interaction_run_ref: {
+        interaction_run_id: run.interaction_run_id,
+        revision: run.revision,
+        content_hash: run.content_hash,
+      },
+    });
+    expect(
+      assessment.groups.flatMap(({ refs }) =>
+        refs.map(({ work_unit_ref }) => work_unit_ref.work_unit_id),
+      ),
+    ).not.toContain("work_unit_01ARZ3NDEKTSV4RRFFQ69G5FE2");
+    expect(impact?.content.decision_boundary.dependent_effect).toBe(
+      "not_inferred_from_reference",
+    );
+    expect(impact?.content.omissions).toContain(
+      "cross_family_total_order_not_asserted",
+    );
   });
 
   it("executes a generated review plan through the durable command boundary", async () => {

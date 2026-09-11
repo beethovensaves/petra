@@ -598,7 +598,7 @@ describePostgres("PostgreSQL Document authority repository", () => {
     );
     const sourceAssessment =
       exclusionImpact?.content.semantic_target_impact.target_assessments[0];
-    expect(exclusionImpact?.schema_version).toBe("1.2.0");
+    expect(exclusionImpact?.schema_version).toBe("1.3.0");
     expect(sourceAssessment?.adapter_state).toBe("registered");
     expect(
       sourceAssessment?.groups.map(({ adapter_kind }) => adapter_kind),
@@ -885,7 +885,7 @@ describePostgres("PostgreSQL Document authority repository", () => {
       project.project_id,
       creation.receipt.content.event_ref.event_id,
     );
-    expect(activeImpact?.schema_version).toBe("1.2.0");
+    expect(activeImpact?.schema_version).toBe("1.3.0");
     const activeReplacementAssessment =
       activeImpact?.content.semantic_target_impact.target_assessments[0];
     expect(activeReplacementAssessment?.adapter_state).toBe("registered");
@@ -1378,7 +1378,7 @@ describePostgres("PostgreSQL Document authority repository", () => {
     expect(retractionImpact?.content.decision_boundary.compensation).toBe(
       "not_composed",
     );
-    expect(retractionImpact?.schema_version).toBe("1.2.0");
+    expect(retractionImpact?.schema_version).toBe("1.3.0");
     const replacementAssessment =
       retractionImpact?.content.semantic_target_impact.target_assessments[0];
     expect(replacementAssessment?.adapter_state).toBe("registered");

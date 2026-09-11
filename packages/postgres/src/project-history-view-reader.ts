@@ -7,12 +7,16 @@ import type {
   PetraProjectHistoryEpisodeView,
   PetraProjectHistoryImpactView,
   PetraProjectHistoryImpactViewV12,
+  PetraProjectHistoryImpactViewV13,
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedViewV11,
   PetraProjectHistoryView,
   ProjectHistoryCausalCommandLink,
   ProjectHistoryCommandRef,
   ProjectHistoryEventRef,
+  ProjectHistoryOperationalAdapterGroupV13 as ProjectHistoryOperationalAdapterGroup,
+  ProjectHistoryOperationalDependentRefV13 as ProjectHistoryOperationalDependentRef,
+  ProjectHistoryOperationalTargetAssessmentV13 as ProjectHistoryOperationalTargetAssessment,
   ProjectHistoryRecentChange,
   ProjectHistoryReceiptRef,
   ProjectHistoryRecovery,
@@ -22,6 +26,7 @@ import type {
   ProjectHistoryRetentionSnapshot,
   ProjectHistorySemanticDependentRefV12 as ProjectHistorySemanticDependentRef,
   ProjectHistorySemanticImpactAdapterGroupV12 as ProjectHistorySemanticImpactAdapterGroup,
+  ProjectHistoryResolvedTargetRecordV13 as ProjectHistoryResolvedTargetRecord,
   ProjectHistoryTargetAssessmentV12 as ProjectHistoryTargetAssessment,
   ProjectHistoryTargetRef,
 } from "@petra/contracts";
@@ -147,6 +152,21 @@ interface SemanticDependentRow {
   total_count: string;
 }
 
+interface OperationalDependentRow {
+  dependent_payload: unknown;
+  dependent_record_hash: string;
+  work_payload: unknown;
+  work_record_hash: string;
+  input_payload: unknown;
+  input_record_hash: string;
+  binding_position: string;
+  binding_name: string;
+  binding_payload: unknown;
+  interaction_run_payload: unknown;
+  interaction_run_record_hash: string | null;
+  total_count: string;
+}
+
 interface EventRow {
   event_payload: unknown;
   event_record_hash: string;
@@ -255,6 +275,7 @@ const RETAINED_MAX_LIMIT = 100;
 const IMPACT_MAX_REFS = 100;
 const SEMANTIC_TARGET_LIMIT = 10;
 const SEMANTIC_ADAPTER_MAX_REFS = 25;
+const OPERATIONAL_ADAPTER_MAX_REFS = 25;
 const RETAINED_CURSOR = /^phc2\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]{43})$/u;
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const EVENT_ID = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -1351,7 +1372,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   async getProjectHistoryImpactView(
     projectId: string,
     eventId: string,
-  ): Promise<PetraProjectHistoryImpactViewV12 | undefined> {
+  ): Promise<PetraProjectHistoryImpactViewV13 | undefined> {
     return this.#readTransaction(async (client, readAt) => {
       const result = await client.query<HistoryRow>(
         `SELECT event.payload AS event_payload,
@@ -1422,8 +1443,15 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         projectId,
         change.targets,
       );
+      const operationalDependencyImpact =
+        await this.#operationalDependencyImpact(
+          client,
+          projectId,
+          change.targets,
+          semanticTargetImpact,
+        );
       const authority = await this.#authority(client, projectId);
-      const content: PetraProjectHistoryImpactViewV12["content"] = {
+      const content: PetraProjectHistoryImpactViewV13["content"] = {
         view_kind: "dependency_impact",
         selected_event: {
           command_ref: change.command_ref,
@@ -1457,6 +1485,7 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           ],
         },
         semantic_target_impact: semanticTargetImpact,
+        operational_dependency_impact: operationalDependencyImpact,
         decision_boundary: {
           reversibility: "not_assessed",
           compensation: "not_composed",
@@ -1470,6 +1499,8 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           "unregistered_semantic_target_adapters_not_composed",
           "identity_only_semantic_relations_not_composed",
           "transitive_dependency_closure_not_composed",
+          "work_without_exact_record_binding_not_composed",
+          "operational_dependent_effect_not_inferred",
           "reversibility_not_assessed",
           "compensation_not_composed",
           "historical_project_definition_not_interpreted",
@@ -1477,16 +1508,16 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
         ],
         graph_navigation_history: "client_local_separate",
       };
-      const view: PetraProjectHistoryImpactViewV12 = {
+      const view: PetraProjectHistoryImpactViewV13 = {
         schema_name: "petra.project-history-impact-view",
-        schema_version: "1.2.0",
+        schema_version: "1.3.0",
         project_id: projectId,
         event_id: eventId,
         content,
         content_hash: canonicalHash(content),
         read_at: readAt,
       };
-      this.#contracts.assertValid("project-history-impact-view", "1.2.0", view);
+      this.#contracts.assertValid("project-history-impact-view", "1.3.0", view);
       return structuredClone(view);
     });
   }
@@ -3024,6 +3055,645 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
       ],
     };
     return result as unknown as PetraProjectHistoryImpactViewV12["content"]["semantic_target_impact"];
+  }
+
+  async #operationalDependencyImpact(
+    client: PoolClient,
+    projectId: string,
+    targets: readonly ProjectHistoryTargetRef[],
+    semanticImpact: PetraProjectHistoryImpactViewV12["content"]["semantic_target_impact"],
+  ): Promise<
+    PetraProjectHistoryImpactViewV13["content"]["operational_dependency_impact"]
+  > {
+    const selectedTargets = targets.slice(0, SEMANTIC_TARGET_LIMIT);
+    const targetAssessments: ProjectHistoryOperationalTargetAssessment[] = [];
+    for (const [targetIndex, target] of selectedTargets.entries()) {
+      const semanticAssessment = semanticImpact.target_assessments[targetIndex];
+      if (target.revision === undefined) {
+        targetAssessments.push({
+          target_index: targetIndex,
+          target_ref: target,
+          adapter_state: "target_identity_incomplete",
+          reason: "Operational adapters require an immutable target revision.",
+          groups: [],
+        });
+        continue;
+      }
+      const resolvedTarget =
+        target.record_hash === undefined
+          ? semanticAssessment?.adapter_state === "registered"
+            ? {
+                semantic_key: target.semantic_key,
+                object_id: target.object_id,
+                revision: target.revision,
+                ...(semanticAssessment.resolved_target_ref.content_hash ===
+                undefined
+                  ? {}
+                  : {
+                      content_hash:
+                        semanticAssessment.resolved_target_ref.content_hash,
+                    }),
+                record_hash: semanticAssessment.resolved_target_ref.record_hash,
+                authority_source:
+                  "resolved_immutable_semantic_authority" as const,
+              }
+            : undefined
+          : {
+              semantic_key: target.semantic_key,
+              object_id: target.object_id,
+              revision: target.revision,
+              ...(target.content_hash === undefined
+                ? {}
+                : { content_hash: target.content_hash }),
+              record_hash: target.record_hash,
+              authority_source: "selected_event_target" as const,
+            };
+      if (resolvedTarget === undefined) {
+        targetAssessments.push({
+          target_index: targetIndex,
+          target_ref: target,
+          adapter_state: "target_record_authority_unavailable",
+          reason:
+            "The exact immutable target record authority is unavailable in this Project snapshot.",
+          groups: [],
+        });
+        continue;
+      }
+      const workInputGroup = await this.#operationalWorkInputGroup(
+        client,
+        projectId,
+        resolvedTarget,
+      );
+      const workOutputGroup = await this.#operationalWorkOutputGroup(
+        client,
+        projectId,
+        resolvedTarget,
+      );
+      const interactionDeliveryGroup =
+        await this.#operationalInteractionDeliveryGroup(
+          client,
+          projectId,
+          resolvedTarget,
+        );
+      targetAssessments.push({
+        target_index: targetIndex,
+        target_ref: target,
+        adapter_state: "registered",
+        resolved_target_record: resolvedTarget,
+        groups: [workInputGroup, workOutputGroup, interactionDeliveryGroup],
+      });
+    }
+    const groups = targetAssessments.flatMap((assessment) => assessment.groups);
+    const totalCount = groups.reduce(
+      (total, group) => total + group.total_count,
+      0,
+    );
+    if (!Number.isSafeInteger(totalCount) || totalCount > 30_000_000) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The operational dependency total exceeds Petra's bounded contract.",
+      );
+    }
+    const targetCoverage =
+      targets.length > selectedTargets.length ? "truncated" : "complete";
+    return {
+      scope: "registered_exact_operational_dependents",
+      target_limit: SEMANTIC_TARGET_LIMIT,
+      per_adapter_ref_limit: OPERATIONAL_ADAPTER_MAX_REFS,
+      target_total_count: targets.length,
+      target_returned_count: selectedTargets.length,
+      target_coverage: targetCoverage,
+      registry: [
+        {
+          adapter_kind: "work_input_binding",
+          authority_source: "current_work_heads_with_immutable_input_bindings",
+          dependent_semantic_key: "petra.work-unit",
+        },
+        {
+          adapter_kind: "work_output",
+          authority_source: "immutable_worker_output_manifests_for_bound_work",
+          dependent_semantic_key: "petra.worker-output-manifest",
+        },
+        {
+          adapter_kind: "interaction_delivery",
+          authority_source:
+            "immutable_interaction_replay_records_for_bound_work",
+          dependent_semantic_key: "petra.interaction-replay-record",
+        },
+      ],
+      target_assessments:
+        targetAssessments as PetraProjectHistoryImpactViewV13["content"]["operational_dependency_impact"]["target_assessments"],
+      summary: {
+        registered_adapter_count: 3,
+        assessed_target_count: selectedTargets.length,
+        supported_target_count: targetAssessments.filter(
+          ({ adapter_state }) => adapter_state === "registered",
+        ).length,
+        total_count: totalCount,
+        coverage:
+          targetCoverage === "truncated" ||
+          groups.some(({ coverage }) => coverage === "truncated")
+            ? "truncated"
+            : "complete",
+      },
+      unknowns: [
+        "work_without_exact_record_binding_is_excluded",
+        "unresolved_target_record_authority_may_hide_bindings",
+        "worker_output_effect_is_not_inferred",
+        "interaction_delivery_effect_is_not_inferred",
+        "transitive_operational_dependency_closure_is_not_composed",
+        "cross_family_total_order_is_not_asserted",
+      ],
+    };
+  }
+
+  async #operationalWorkInputGroup(
+    client: PoolClient,
+    projectId: string,
+    target: ProjectHistoryResolvedTargetRecord,
+  ): Promise<ProjectHistoryOperationalAdapterGroup> {
+    const result = await client.query<OperationalDependentRow>(
+      `WITH matched AS (
+         SELECT revision.payload AS dependent_payload,
+                revision.record_hash AS dependent_record_hash,
+                revision.payload AS work_payload,
+                revision.record_hash AS work_record_hash,
+                input.payload AS input_payload,
+                input.record_hash AS input_record_hash,
+                binding.position::text AS binding_position,
+                binding.binding_name,
+                binding.binding AS binding_payload,
+                NULL::jsonb AS interaction_run_payload,
+                NULL::text AS interaction_run_record_hash
+           FROM petra.worker_input_bindings AS binding
+           JOIN petra.worker_input_manifests AS input
+             ON input.worker_input_manifest_id = binding.worker_input_manifest_id
+            AND input.project_id = $1
+           JOIN petra.work_units AS head
+             ON head.work_unit_id = input.work_unit_id
+            AND head.project_id = $1
+            AND head.input_manifest_id = input.worker_input_manifest_id
+           JOIN petra.work_unit_revisions AS revision
+             ON revision.work_unit_id = head.work_unit_id
+            AND revision.revision = head.current_revision
+          WHERE binding.binding_kind = 'record'
+            AND binding.record_id = $2
+            AND binding.record_revision = $3
+            AND binding.snapshot_hash = $4
+       )
+       SELECT matched.*, (count(*) OVER ())::text AS total_count
+         FROM matched
+        ORDER BY dependent_payload ->> 'work_unit_id', binding_position::bigint
+        LIMIT ${OPERATIONAL_ADAPTER_MAX_REFS}`,
+      [projectId, target.object_id, target.revision, target.record_hash],
+    );
+    return this.#operationalGroup(
+      "work_input_binding",
+      "current_work_heads_with_immutable_input_bindings",
+      result.rows.map((row) =>
+        this.#operationalDependentRef(row, projectId, target, "work_input"),
+      ),
+      result.rows[0]?.total_count,
+    );
+  }
+
+  async #operationalWorkOutputGroup(
+    client: PoolClient,
+    projectId: string,
+    target: ProjectHistoryResolvedTargetRecord,
+  ): Promise<ProjectHistoryOperationalAdapterGroup> {
+    const result = await client.query<OperationalDependentRow>(
+      `WITH matched AS (
+         SELECT output.payload AS dependent_payload,
+                output.record_hash AS dependent_record_hash,
+                revision.payload AS work_payload,
+                revision.record_hash AS work_record_hash,
+                input.payload AS input_payload,
+                input.record_hash AS input_record_hash,
+                binding.position::text AS binding_position,
+                binding.binding_name,
+                binding.binding AS binding_payload,
+                NULL::jsonb AS interaction_run_payload,
+                NULL::text AS interaction_run_record_hash
+           FROM petra.worker_input_bindings AS binding
+           JOIN petra.worker_input_manifests AS input
+             ON input.worker_input_manifest_id = binding.worker_input_manifest_id
+            AND input.project_id = $1
+           JOIN petra.work_units AS head
+             ON head.work_unit_id = input.work_unit_id
+            AND head.project_id = $1
+            AND head.input_manifest_id = input.worker_input_manifest_id
+           JOIN petra.work_unit_revisions AS revision
+             ON revision.work_unit_id = head.work_unit_id
+            AND revision.revision = head.current_revision
+           JOIN petra.worker_output_manifests AS output
+             ON output.work_unit_id = head.work_unit_id
+            AND output.project_id = $1
+            AND output.worker_input_manifest_id = input.worker_input_manifest_id
+          WHERE binding.binding_kind = 'record'
+            AND binding.record_id = $2
+            AND binding.record_revision = $3
+            AND binding.snapshot_hash = $4
+       )
+       SELECT matched.*, (count(*) OVER ())::text AS total_count
+         FROM matched
+        ORDER BY dependent_payload ->> 'worker_output_manifest_id',
+                 binding_position::bigint
+        LIMIT ${OPERATIONAL_ADAPTER_MAX_REFS}`,
+      [projectId, target.object_id, target.revision, target.record_hash],
+    );
+    return this.#operationalGroup(
+      "work_output",
+      "immutable_worker_output_manifests_for_bound_work",
+      result.rows.map((row) =>
+        this.#operationalDependentRef(row, projectId, target, "work_output"),
+      ),
+      result.rows[0]?.total_count,
+    );
+  }
+
+  async #operationalInteractionDeliveryGroup(
+    client: PoolClient,
+    projectId: string,
+    target: ProjectHistoryResolvedTargetRecord,
+  ): Promise<ProjectHistoryOperationalAdapterGroup> {
+    const result = await client.query<OperationalDependentRow>(
+      `WITH matched AS (
+         SELECT replay.payload AS dependent_payload,
+                replay.record_hash AS dependent_record_hash,
+                work_revision.payload AS work_payload,
+                work_revision.record_hash AS work_record_hash,
+                input.payload AS input_payload,
+                input.record_hash AS input_record_hash,
+                binding.position::text AS binding_position,
+                binding.binding_name,
+                binding.binding AS binding_payload,
+                run_revision.payload AS interaction_run_payload,
+                run_revision.record_hash AS interaction_run_record_hash
+           FROM petra.worker_input_bindings AS binding
+           JOIN petra.worker_input_manifests AS input
+             ON input.worker_input_manifest_id = binding.worker_input_manifest_id
+            AND input.project_id = $1
+           JOIN petra.work_units AS head
+             ON head.work_unit_id = input.work_unit_id
+            AND head.project_id = $1
+            AND head.input_manifest_id = input.worker_input_manifest_id
+           JOIN petra.interaction_runs AS run
+             ON run.work_unit_id = head.work_unit_id
+            AND run.project_id = $1
+           JOIN petra.interaction_replay_records AS replay
+             ON replay.interaction_run_id = run.interaction_run_id
+            AND replay.project_id = $1
+           JOIN petra.interaction_run_revisions AS run_revision
+             ON run_revision.interaction_run_id = replay.interaction_run_id
+            AND run_revision.revision = replay.interaction_run_revision
+            AND run_revision.content_hash = replay.interaction_run_hash
+           JOIN petra.work_unit_revisions AS work_revision
+             ON work_revision.work_unit_id = run.work_unit_id
+            AND work_revision.revision = run.work_unit_revision
+            AND work_revision.project_id = $1
+            AND work_revision.spec_hash = run.work_unit_spec_hash
+          WHERE binding.binding_kind = 'record'
+            AND binding.record_id = $2
+            AND binding.record_revision = $3
+            AND binding.snapshot_hash = $4
+       )
+       SELECT matched.*, (count(*) OVER ())::text AS total_count
+         FROM matched
+        ORDER BY dependent_payload ->> 'interaction_replay_record_id',
+                 binding_position::bigint
+        LIMIT ${OPERATIONAL_ADAPTER_MAX_REFS}`,
+      [projectId, target.object_id, target.revision, target.record_hash],
+    );
+    return this.#operationalGroup(
+      "interaction_delivery",
+      "immutable_interaction_replay_records_for_bound_work",
+      result.rows.map((row) =>
+        this.#operationalDependentRef(
+          row,
+          projectId,
+          target,
+          "interaction_delivery",
+        ),
+      ),
+      result.rows[0]?.total_count,
+    );
+  }
+
+  #operationalDependentRef(
+    row: OperationalDependentRow,
+    projectId: string,
+    target: ProjectHistoryResolvedTargetRecord,
+    kind: "work_input" | "work_output" | "interaction_delivery",
+  ): ProjectHistoryOperationalDependentRef {
+    const input = record(row.input_payload, "operational WorkerInputManifest");
+    const inputContent = objectMember(
+      input,
+      "content",
+      "operational WorkerInputManifest",
+    );
+    this.#contracts.assertValid("worker-input-manifest", "1.0.0", input);
+    const bindingPosition = this.#safeImpactPosition(
+      row.binding_position,
+      "operational input binding position",
+    );
+    const binding = record(row.binding_payload, "operational input binding");
+    const inputs = member<unknown>(
+      inputContent,
+      "inputs",
+      "operational WorkerInputManifest.content",
+    );
+    if (
+      !Array.isArray(inputs) ||
+      canonicalHash(input) !== row.input_record_hash ||
+      canonicalHash(inputContent) !== input.content_hash ||
+      input.project_id !== projectId ||
+      binding.binding_kind !== "record" ||
+      binding.name !== row.binding_name ||
+      binding.record_id !== target.object_id ||
+      binding.record_revision !== target.revision ||
+      binding.snapshot_hash !== target.record_hash ||
+      canonicalize(inputs[bindingPosition - 1]) !== canonicalize(binding)
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "An operational dependency lost its exact immutable WorkerInputManifest binding.",
+      );
+    }
+
+    const work = record(row.work_payload, "operational WorkUnit");
+    const workSpec = objectMember(work, "spec", "operational WorkUnit");
+    const inputRef = objectMember(
+      workSpec,
+      "input_manifest_ref",
+      "operational WorkUnit.spec",
+    );
+    this.#contracts.assertValid("work-unit", "1.0.0", work);
+    if (
+      canonicalHash(work) !== row.work_record_hash ||
+      canonicalHash(workSpec) !== work.spec_hash ||
+      work.project_id !== projectId ||
+      work.work_unit_id !== input.work_unit_id ||
+      inputRef.worker_input_manifest_id !== input.worker_input_manifest_id ||
+      inputRef.content_hash !== input.content_hash
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "An operational dependency lost its exact WorkUnit authority chain.",
+      );
+    }
+    const workUnitRef = {
+      work_unit_id: stringMember(work, "work_unit_id", "operational WorkUnit"),
+      revision: numberMember(work, "revision", "operational WorkUnit"),
+      spec_hash: stringMember(work, "spec_hash", "operational WorkUnit"),
+      record_hash: row.work_record_hash,
+    };
+    const inputBindingRef = {
+      worker_input_manifest_id: stringMember(
+        input,
+        "worker_input_manifest_id",
+        "operational WorkerInputManifest",
+      ),
+      revision: 1 as const,
+      content_hash: stringMember(
+        input,
+        "content_hash",
+        "operational WorkerInputManifest",
+      ),
+      record_hash: row.input_record_hash,
+      binding_position: bindingPosition,
+      binding_name: row.binding_name,
+      record_id: target.object_id,
+      record_revision: target.revision,
+      snapshot_hash: target.record_hash,
+    };
+    const relationPrefix = `input:${inputBindingRef.worker_input_manifest_id}/binding:${bindingPosition}`;
+
+    if (kind === "work_input") {
+      return {
+        semantic_key: "petra.work-unit",
+        object_id: workUnitRef.work_unit_id,
+        revision: workUnitRef.revision,
+        schema_name: "petra.work-unit",
+        schema_version: "1.0.0",
+        record_hash: row.work_record_hash,
+        posture: "current",
+        relation: "uses_exact_history_target_as_work_input",
+        relation_identity: relationPrefix,
+        work_unit_ref: workUnitRef,
+        input_binding_ref: inputBindingRef,
+      };
+    }
+
+    const dependent = record(
+      row.dependent_payload,
+      kind === "work_output"
+        ? "operational WorkerOutputManifest"
+        : "operational InteractionReplayRecord",
+    );
+    if (kind === "work_output") {
+      this.#contracts.assertValid("worker-output-manifest", "1.0.0", dependent);
+      const outputContent = objectMember(
+        dependent,
+        "content",
+        "operational WorkerOutputManifest",
+      );
+      if (
+        canonicalHash(dependent) !== row.dependent_record_hash ||
+        canonicalHash(outputContent) !== dependent.content_hash ||
+        dependent.project_id !== projectId ||
+        dependent.work_unit_id !== workUnitRef.work_unit_id ||
+        dependent.worker_input_manifest_id !==
+          inputBindingRef.worker_input_manifest_id ||
+        dependent.worker_input_manifest_hash !== inputBindingRef.content_hash
+      ) {
+        throw new PostgresProjectHistoryViewError(
+          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+          "An operational WorkerOutputManifest lost its exact bound Work authority.",
+        );
+      }
+      const outputId = stringMember(
+        dependent,
+        "worker_output_manifest_id",
+        "operational WorkerOutputManifest",
+      );
+      return {
+        semantic_key: "petra.worker-output-manifest",
+        object_id: outputId,
+        revision: numberMember(
+          dependent,
+          "revision",
+          "operational WorkerOutputManifest",
+        ),
+        schema_name: "petra.worker-output-manifest",
+        schema_version: "1.0.0",
+        content_hash: stringMember(
+          dependent,
+          "content_hash",
+          "operational WorkerOutputManifest",
+        ),
+        record_hash: row.dependent_record_hash,
+        posture: "immutable_revision",
+        relation: "reports_output_for_work_using_exact_history_target",
+        relation_identity: `${relationPrefix}/output:${outputId}`,
+        work_unit_ref: workUnitRef,
+        input_binding_ref: inputBindingRef,
+      };
+    }
+
+    if (
+      row.interaction_run_payload === null ||
+      row.interaction_run_record_hash === null
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "An interaction delivery dependency has no retained InteractionRun authority.",
+      );
+    }
+    const interactionRun = record(
+      row.interaction_run_payload,
+      "operational InteractionRun",
+    );
+    const runContent = objectMember(
+      interactionRun,
+      "content",
+      "operational InteractionRun",
+    );
+    const correlation = objectMember(
+      runContent,
+      "correlation",
+      "operational InteractionRun.content",
+    );
+    const runWorkRef = objectMember(
+      correlation,
+      "work_unit_ref",
+      "operational InteractionRun correlation",
+    );
+    this.#contracts.assertValid("interaction-run", "1.0.0", interactionRun);
+    if (
+      canonicalHash(interactionRun) !== row.interaction_run_record_hash ||
+      canonicalHash(runContent) !== interactionRun.content_hash ||
+      interactionRun.project_id !== projectId ||
+      runWorkRef.work_unit_id !== workUnitRef.work_unit_id ||
+      runWorkRef.revision !== workUnitRef.revision ||
+      runWorkRef.spec_hash !== workUnitRef.spec_hash
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "An operational InteractionRun lost its exact bound WorkUnit authority.",
+      );
+    }
+    this.#contracts.assertValid(
+      "interaction-replay-record",
+      "1.0.0",
+      dependent,
+    );
+    const replayContent = objectMember(
+      dependent,
+      "content",
+      "operational InteractionReplayRecord",
+    );
+    const replayRunRef = objectMember(
+      dependent,
+      "interaction_run_ref",
+      "operational InteractionReplayRecord",
+    );
+    const observation = objectMember(
+      replayContent,
+      "work_unit_observation",
+      "operational InteractionReplayRecord.content",
+    );
+    if (
+      canonicalHash(dependent) !== row.dependent_record_hash ||
+      canonicalHash(replayContent) !== dependent.content_hash ||
+      dependent.project_id !== projectId ||
+      replayRunRef.interaction_run_id !== interactionRun.interaction_run_id ||
+      replayRunRef.revision !== interactionRun.revision ||
+      replayRunRef.content_hash !== interactionRun.content_hash ||
+      observation.work_unit_id !== workUnitRef.work_unit_id
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "An InteractionReplayRecord lost its exact retained delivery authority chain.",
+      );
+    }
+    const replayId = stringMember(
+      dependent,
+      "interaction_replay_record_id",
+      "operational InteractionReplayRecord",
+    );
+    const interactionRunId = stringMember(
+      interactionRun,
+      "interaction_run_id",
+      "operational InteractionRun",
+    );
+    return {
+      semantic_key: "petra.interaction-replay-record",
+      object_id: replayId,
+      revision: numberMember(
+        dependent,
+        "revision",
+        "operational InteractionReplayRecord",
+      ),
+      schema_name: "petra.interaction-replay-record",
+      schema_version: "1.0.0",
+      content_hash: stringMember(
+        dependent,
+        "content_hash",
+        "operational InteractionReplayRecord",
+      ),
+      record_hash: row.dependent_record_hash,
+      posture: "immutable_revision",
+      relation: "delivers_interaction_for_work_using_exact_history_target",
+      relation_identity: `${relationPrefix}/run:${interactionRunId}/replay:${replayId}`,
+      work_unit_ref: workUnitRef,
+      input_binding_ref: inputBindingRef,
+      interaction_run_ref: {
+        interaction_run_id: interactionRunId,
+        revision: numberMember(
+          interactionRun,
+          "revision",
+          "operational InteractionRun",
+        ),
+        content_hash: stringMember(
+          interactionRun,
+          "content_hash",
+          "operational InteractionRun",
+        ),
+        record_hash: row.interaction_run_record_hash,
+      },
+    };
+  }
+
+  #operationalGroup(
+    adapterKind: ProjectHistoryOperationalAdapterGroup["adapter_kind"],
+    authoritySource: ProjectHistoryOperationalAdapterGroup["authority_source"],
+    refs: ProjectHistoryOperationalDependentRef[],
+    totalCountValue: string | undefined,
+  ): ProjectHistoryOperationalAdapterGroup {
+    const totalCount =
+      totalCountValue === undefined
+        ? 0
+        : this.#safeImpactPosition(
+            totalCountValue,
+            `${adapterKind} operational dependency total`,
+            true,
+          );
+    if (totalCount > 1_000_000 || refs.length > totalCount) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "An operational dependency group exceeds Petra's bounded contract.",
+      );
+    }
+    return {
+      adapter_kind: adapterKind,
+      authority_source: authoritySource,
+      relation_scope: "exact_target_record_binding",
+      total_count: totalCount,
+      returned_count: refs.length,
+      coverage: totalCount > refs.length ? "truncated" : "complete",
+      refs,
+    } as ProjectHistoryOperationalAdapterGroup;
   }
 
   async #semanticTargetAssessment(

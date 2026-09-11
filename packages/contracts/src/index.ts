@@ -185,6 +185,20 @@ export type {
   UnavailableAssessment as ProjectHistoryUnavailableTargetAssessmentV12,
 } from "./generated/project-history-impact-view-v1-2.js";
 export type {
+  ImpactContent as ProjectHistoryImpactContentV13,
+  InputBindingRef as ProjectHistoryOperationalInputBindingRefV13,
+  InteractionRunRef as ProjectHistoryOperationalInteractionRunRefV13,
+  OperationalAdapterGroup as ProjectHistoryOperationalAdapterGroupV13,
+  OperationalDependencyImpact as ProjectHistoryOperationalDependencyImpactV13,
+  OperationalDependentRef as ProjectHistoryOperationalDependentRefV13,
+  OperationalTargetAssessment as ProjectHistoryOperationalTargetAssessmentV13,
+  PetraProjectHistoryImpactViewV13,
+  RegisteredOperationalAssessment as ProjectHistoryRegisteredOperationalAssessmentV13,
+  ResolvedTargetRecord as ProjectHistoryResolvedTargetRecordV13,
+  UnavailableOperationalAssessment as ProjectHistoryUnavailableOperationalAssessmentV13,
+  WorkUnitRef as ProjectHistoryOperationalWorkUnitRefV13,
+} from "./generated/project-history-impact-view-v1-3.js";
+export type {
   Assessment as ProjectHistoryRecoveryAssessment,
   AssessmentBlocker as ProjectHistoryRecoveryAssessmentBlocker,
   CausalImpactBasis as ProjectHistoryRecoveryCausalImpactBasis,
