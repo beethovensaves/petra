@@ -1,19 +1,28 @@
 import { createHash } from "node:crypto";
 
 import type {
+  PetraProjectDefinition,
   PetraReviewSessionLifecycleReceipt,
+  PetraReviewSessionRefreshReceipt,
   PetraReviewSessionRecord,
+  PetraReviewSessionV110,
+  PetraWorkingCandidate,
+  PetraWorkingRelationship,
   ReviewSessionLifecycleExactRef,
   ReviewSessionMemberV110,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   ReviewSessionLifecycleAuthorityError,
+  ReviewSessionRefreshAuthorityError,
   derivePetraId,
   type ReviewSessionAuthorityRepository,
   type ReviewSessionLifecycleAuthorityRepository,
   type ReviewSessionLifecycleCommandEnvelope,
   type ReviewSessionLifecycleCommandResult,
+  type ReviewSessionRefreshAuthorityRepository,
+  type ReviewSessionRefreshCommandEnvelope,
+  type ReviewSessionRefreshCommandResult,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
@@ -66,13 +75,31 @@ interface PgError {
   message?: string;
 }
 
+interface AuthorityPositionRow {
+  event_position: string;
+  stream_revision: string | null;
+}
+
+interface CurrentDefinitionRow extends StoredRow {
+  definition_family: string;
+}
+
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
+
+const workingContentHash = (value: {
+  readonly content_hash: string;
+}): string => {
+  const projection = clone(value) as unknown as Record<string, unknown>;
+  delete projection.content_hash;
+  return canonicalHash(projection);
+};
 
 const clone = <Value>(value: Value): Value => structuredClone(value);
 
 const commandFingerprint = (
-  envelope: ReviewSessionLifecycleCommandEnvelope,
+  envelope:
+    ReviewSessionLifecycleCommandEnvelope | ReviewSessionRefreshCommandEnvelope,
 ): string => {
   const { correlation_id, submitted_at, ...governedCommand } = envelope;
   void correlation_id;
@@ -103,7 +130,8 @@ const evidenceKind = (recordId: string): "claim" | "assertion" => {
 export class PostgresReviewSessionAuthorityRepository
   implements
     ReviewSessionAuthorityRepository,
-    ReviewSessionLifecycleAuthorityRepository
+    ReviewSessionLifecycleAuthorityRepository,
+    ReviewSessionRefreshAuthorityRepository
 {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
@@ -308,7 +336,7 @@ export class PostgresReviewSessionAuthorityRepository
         await client.query("COMMIT");
         return replay;
       }
-      await this.#requireLifecycleContext(client, envelope);
+      await this.#requireReviewCommandContext(client, envelope, "lifecycle");
 
       const currentRow = await this.#currentSessionForLifecycle(
         client,
@@ -431,6 +459,199 @@ export class PostgresReviewSessionAuthorityRepository
     }
   }
 
+  async executeReviewSessionRefreshCommand(
+    envelope: ReviewSessionRefreshCommandEnvelope,
+  ): Promise<ReviewSessionRefreshCommandResult> {
+    this.#contracts.assertValid("command-envelope", "1.5.0", envelope);
+    if (envelope.command.command_name !== "RefreshReviewSession") {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_INCOMPATIBLE_REVISION",
+        "The ReviewSession refresh boundary accepts only RefreshReviewSession.",
+      );
+    }
+    const fingerprint = commandFingerprint(envelope);
+    const client = await this.#pool.connect();
+    try {
+      await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
+      await this.#lockRefreshCommand(client, envelope);
+      if (
+        this.#commandAuthorizer === undefined ||
+        !(await this.#commandAuthorizer.authorize(
+          {
+            actor: envelope.actor,
+            capabilityGrantId: envelope.capability_grant_id,
+            commandName: "RefreshReviewSession",
+            projectId: envelope.project_id,
+          },
+          client,
+        ))
+      ) {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_COMMAND_NOT_AUTHORIZED",
+          `Capability ${envelope.capability_grant_id} does not authorize RefreshReviewSession.`,
+        );
+      }
+      const replay = await this.#replayRefreshCommand(
+        client,
+        envelope,
+        fingerprint,
+      );
+      if (replay !== undefined) {
+        await client.query("COMMIT");
+        return replay;
+      }
+      await this.#requireReviewCommandContext(client, envelope, "refresh");
+
+      const currentRow = await this.#currentSessionForLifecycle(
+        client,
+        envelope.command.expected_review_session_ref.review_session_id,
+      );
+      if (currentRow === undefined) {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_SESSION_NOT_FOUND",
+          "The requested ReviewSession is not registered.",
+        );
+      }
+      const current = this.#stored(currentRow);
+      if (current.project_id !== envelope.project_id) {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_PROJECT_MISMATCH",
+          "The ReviewSession and refresh command must belong to the same Project.",
+        );
+      }
+      const expected = envelope.command.expected_review_session_ref;
+      if (
+        current.review_session_id !== expected.review_session_id ||
+        current.revision !== expected.revision ||
+        current.content_hash !== expected.content_hash ||
+        current.content.lifecycle !== expected.lifecycle
+      ) {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_STALE_SESSION",
+          "Refresh must name the exact current ReviewSession identity, revision, content hash, and lifecycle.",
+        );
+      }
+      if (current.content.lifecycle !== "open") {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_LIFECYCLE_INVALID",
+          "Refresh requires an open ReviewSession; deferred Reviews must be reopened first and completed Reviews cannot be refreshed.",
+        );
+      }
+      if (current.schema_version !== "1.1.0") {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_PROFILE_UNSUPPORTED",
+          "Refresh currently supports only ReviewSession 1.1 working-state membership.",
+        );
+      }
+
+      const authority = await this.#refreshAuthorityPosition(
+        client,
+        current.project_id,
+      );
+      const definition = await this.#requireRefreshDefinition(client, current);
+      await this.#requireRefreshObjective(client, current);
+      const members: ReviewSessionMemberV110[] = [];
+      for (const member of current.content.members) {
+        members.push(
+          await this.#refreshMember(client, current, definition, member),
+        );
+      }
+      const unchangedMembers = members.every(
+        (member, index) =>
+          canonicalize(member) === canonicalize(current.content.members[index]),
+      );
+      if (
+        unchangedMembers &&
+        current.content.snapshot.event_position === authority.event_position &&
+        current.content.snapshot.stream_revision === authority.stream_revision
+      ) {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_NOT_REQUIRED",
+          "The exact ReviewSession already binds the current Project authority and current working heads.",
+        );
+      }
+
+      const recordedAt = this.#now();
+      const next = clone(current);
+      next.revision += 1;
+      next.content.snapshot = {
+        ...clone(authority),
+        captured_at: recordedAt,
+      };
+      next.content.members =
+        members as PetraReviewSessionV110["content"]["members"];
+      next.content_hash = canonicalHash(next.content);
+      next.updated_at = recordedAt;
+      this.#contracts.assertValid("review-session", "1.1.0", next);
+      this.#assertBindings(next);
+      const nextRecordHash = canonicalHash(next);
+      const receipt = this.#refreshReceipt(
+        envelope,
+        fingerprint,
+        current,
+        currentRow.record_hash,
+        next,
+        nextRecordHash,
+        recordedAt,
+      );
+
+      await this.#insertRefreshCommandExecution(
+        client,
+        envelope,
+        fingerprint,
+        receipt,
+        recordedAt,
+      );
+      await this.#insertRevision(client, next, nextRecordHash);
+      const advanced = await client.query(
+        `UPDATE petra.review_sessions
+            SET current_revision = $2
+          WHERE review_session_id = $1
+            AND project_id = $3
+            AND current_revision = $4`,
+        [
+          next.review_session_id,
+          next.revision,
+          next.project_id,
+          current.revision,
+        ],
+      );
+      if (advanced.rowCount !== 1) {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_STALE_SESSION",
+          "The ReviewSession head changed before refresh could commit.",
+        );
+      }
+      await client.query("COMMIT");
+      return {
+        receipt: clone(receipt),
+        reviewSession: clone(next),
+        applied: true,
+      };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      if (error instanceof ReviewSessionRefreshAuthorityError) throw error;
+      const pgError = error as PgError;
+      if (pgError.code === "23514" || pgError.code === "23503") {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_INCOMPATIBLE_REVISION",
+          pgError.message ??
+            "The refreshed ReviewSession no longer satisfies its exact registered bindings.",
+        );
+      }
+      if (pgError.code === "40001" || pgError.code === "23505") {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_STALE_SESSION",
+          pgError.message ??
+            "The ReviewSession refresh conflicted with current state.",
+        );
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   async getReviewSessionLifecycleReceipt(
     commandId: string,
   ): Promise<PetraReviewSessionLifecycleReceipt | undefined> {
@@ -478,6 +699,497 @@ export class PostgresReviewSessionAuthorityRepository
       [projectId],
     );
     return result.rows.map((row) => this.#stored(row));
+  }
+
+  async #lockRefreshCommand(
+    client: PoolClient,
+    envelope: ReviewSessionRefreshCommandEnvelope,
+  ): Promise<void> {
+    const keys = [
+      `command:${envelope.command_id}`,
+      `idempotency:${envelope.idempotency_key}`,
+      `project:${envelope.project_id}`,
+      `review-session:${envelope.command.expected_review_session_ref.review_session_id}`,
+    ].sort();
+    for (const key of keys) {
+      await client.query(
+        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+        [key],
+      );
+    }
+  }
+
+  async #replayRefreshCommand(
+    client: PoolClient,
+    envelope: ReviewSessionRefreshCommandEnvelope,
+    fingerprint: string,
+  ): Promise<ReviewSessionRefreshCommandResult | undefined> {
+    const byIdempotency = await client.query<CommandExecutionRow>(
+      `SELECT command_id, command_fingerprint, result
+         FROM petra.command_executions
+        WHERE idempotency_key = $1`,
+      [envelope.idempotency_key],
+    );
+    const idempotent = byIdempotency.rows[0];
+    if (idempotent !== undefined) {
+      if (idempotent.command_fingerprint !== fingerprint) {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_IDEMPOTENCY_KEY_REUSED",
+          "The idempotency key is already bound to different command content.",
+        );
+      }
+      return this.#replayedRefreshResult(client, idempotent);
+    }
+    const byCommand = await client.query<CommandExecutionRow>(
+      `SELECT command_id, command_fingerprint, result
+         FROM petra.command_executions
+        WHERE command_id = $1`,
+      [envelope.command_id],
+    );
+    const command = byCommand.rows[0];
+    if (command === undefined) return undefined;
+    if (command.command_fingerprint !== fingerprint) {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_COMMAND_ID_REUSED",
+        "The command identity is already bound to different command content.",
+      );
+    }
+    return this.#replayedRefreshResult(client, command);
+  }
+
+  async #replayedRefreshResult(
+    client: PoolClient,
+    row: CommandExecutionRow,
+  ): Promise<ReviewSessionRefreshCommandResult> {
+    const receipt = this.#storedRefreshReceipt(row.result);
+    if (receipt.content.command_ref.command_id !== row.command_id) {
+      throw this.#refreshCorrupt(
+        "A retained ReviewSession refresh result has a different command identity.",
+      );
+    }
+    const expected = receipt.content.resulting_review_session_ref;
+    const sessionRow = await this.#sessionRevision(
+      client,
+      expected.review_session_id,
+      expected.revision,
+    );
+    if (sessionRow === undefined) {
+      throw this.#refreshCorrupt(
+        "A persisted ReviewSession refresh command lost its resulting revision.",
+      );
+    }
+    const reviewSession = this.#stored(sessionRow);
+    if (
+      reviewSession.schema_version !== "1.1.0" ||
+      reviewSession.project_id !== receipt.project_id ||
+      reviewSession.content_hash !== expected.content_hash ||
+      reviewSession.content.lifecycle !== "open" ||
+      sessionRow.record_hash !== expected.record_hash
+    ) {
+      throw this.#refreshCorrupt(
+        "The retained refresh result no longer resolves its exact ReviewSession revision.",
+      );
+    }
+    return { receipt, reviewSession, applied: false };
+  }
+
+  async #refreshAuthorityPosition(
+    client: PoolClient,
+    projectId: string,
+  ): Promise<{ event_position: number; stream_revision: number }> {
+    const result = await client.query<AuthorityPositionRow>(
+      `SELECT authority.event_position::text,
+              stream.current_stream_revision::text AS stream_revision
+         FROM petra.authority_positions AS authority
+         LEFT JOIN petra.project_event_stream_heads AS stream
+           ON stream.project_id = $1
+        WHERE authority.singleton
+        FOR SHARE OF authority`,
+      [projectId],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw this.#refreshCorrupt(
+        "The PostgreSQL authority position is unavailable for Review refresh.",
+      );
+    }
+    return {
+      event_position: Number(row.event_position),
+      stream_revision: Number(row.stream_revision ?? 0),
+    };
+  }
+
+  async #requireRefreshDefinition(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+  ): Promise<PetraProjectDefinition> {
+    const ref = session.project_definition_ref;
+    const result = await client.query<CurrentDefinitionRow>(
+      `SELECT revision.payload, revision.record_hash,
+              head.definition_family
+         FROM petra.project_definitions AS head
+         JOIN petra.project_definition_revisions AS revision
+           ON revision.project_definition_id = head.project_definition_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND head.project_definition_id = $2
+          AND head.current_revision = $3
+          AND revision.content_hash = $4
+        FOR SHARE OF head`,
+      [
+        session.project_id,
+        ref.project_definition_id,
+        ref.revision,
+        ref.content_hash,
+      ],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_INCOMPATIBLE_REVISION",
+        "Refresh requires the ReviewSession's exact ProjectDefinition to remain current.",
+      );
+    }
+    if (row.definition_family !== "petra.scientific-evidence") {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_PROFILE_UNSUPPORTED",
+        "The first Review refresh adapter supports only the registered scientific-evidence profile.",
+      );
+    }
+    this.#contracts.assertValid("project-definition", "1.0.0", row.payload);
+    const definition = clone(row.payload as PetraProjectDefinition);
+    if (
+      row.record_hash !== canonicalHash(definition) ||
+      definition.content_hash !== canonicalHash(definition.content) ||
+      definition.project_id !== session.project_id ||
+      definition.project_definition_id !== ref.project_definition_id ||
+      definition.revision !== ref.revision ||
+      definition.content_hash !== ref.content_hash ||
+      definition.definition_family !== row.definition_family
+    ) {
+      throw this.#refreshCorrupt(
+        "The current ProjectDefinition does not match its exact ReviewSession binding.",
+      );
+    }
+    return definition;
+  }
+
+  async #requireRefreshObjective(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+  ): Promise<void> {
+    const ref = session.content.objective_ref;
+    const result = await client.query(
+      `SELECT true
+         FROM petra.project_objectives AS head
+         JOIN petra.project_objective_revisions AS revision
+           ON revision.objective_id = head.objective_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND head.objective_id = $2
+          AND head.current_revision = $3
+          AND revision.content_hash = $4
+        FOR SHARE OF head`,
+      [session.project_id, ref.objective_id, ref.revision, ref.content_hash],
+    );
+    if (result.rowCount !== 1) {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_INCOMPATIBLE_REVISION",
+        "Refresh requires the ReviewSession's exact Objective to remain current.",
+      );
+    }
+  }
+
+  async #refreshMember(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+    definition: PetraProjectDefinition,
+    member: ReviewSessionMemberV110,
+  ): Promise<ReviewSessionMemberV110> {
+    if (
+      member.working_state.relationship_refs.length !== 1 ||
+      member.candidate_bindings.length !== 2
+    ) {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_PROFILE_UNSUPPORTED",
+        "The first Review refresh adapter requires one WorkingCandidate and one ASSERTS relationship per member.",
+      );
+    }
+    const candidate = await this.#currentWorkingCandidate(
+      client,
+      session.project_id,
+      member.working_state.candidate_ref.working_candidate_id,
+    );
+    const relationship = await this.#currentWorkingRelationship(
+      client,
+      session.project_id,
+      member.working_state.relationship_refs[0].working_relationship_id,
+    );
+    this.#requireRefreshMemberCompatibility(
+      session,
+      definition,
+      member,
+      candidate,
+      relationship,
+    );
+    await this.#requireCurrentProfileRecord(
+      client,
+      candidate.profile_object.object_record_ref,
+      "claim",
+    );
+    await this.#requireCurrentProfileRecord(
+      client,
+      relationship.profile_relationship.relationship_record_ref,
+      "assertion",
+    );
+
+    const candidateBinding = member.candidate_bindings.find(
+      ({ binding_role }) => binding_role === "candidate",
+    );
+    const relationshipBinding = member.candidate_bindings.find(
+      ({ binding_role }) => binding_role === "relationship",
+    );
+    if (candidateBinding === undefined || relationshipBinding === undefined) {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_PROFILE_UNSUPPORTED",
+        "The registered scientific refresh adapter requires exact candidate and relationship bindings.",
+      );
+    }
+    const refreshed = clone(member);
+    refreshed.working_state = {
+      candidate_ref: {
+        working_candidate_id: candidate.working_candidate_id,
+        revision: candidate.revision,
+        content_hash: candidate.content_hash,
+      },
+      relationship_refs: [
+        {
+          working_relationship_id: relationship.working_relationship_id,
+          revision: relationship.revision,
+          content_hash: relationship.content_hash,
+        },
+      ],
+    };
+    refreshed.candidate_bindings = member.candidate_bindings.map((binding) =>
+      binding.binding_role === "candidate"
+        ? {
+            ...clone(binding),
+            record_ref: {
+              record_id: candidate.profile_object.object_record_ref.record_id,
+              revision: candidate.profile_object.object_record_ref.revision,
+              record_hash:
+                candidate.profile_object.object_record_ref.record_hash,
+            },
+          }
+        : {
+            ...clone(binding),
+            record_ref: {
+              record_id:
+                relationship.profile_relationship.relationship_record_ref
+                  .record_id,
+              revision:
+                relationship.profile_relationship.relationship_record_ref
+                  .revision,
+              record_hash:
+                relationship.profile_relationship.relationship_record_ref
+                  .record_hash,
+            },
+          },
+    ) as ReviewSessionMemberV110["candidate_bindings"];
+    return refreshed;
+  }
+
+  async #currentWorkingCandidate(
+    client: PoolClient,
+    projectId: string,
+    workingCandidateId: string,
+  ): Promise<PetraWorkingCandidate> {
+    const result = await client.query<StoredRow>(
+      `SELECT revision.payload, revision.record_hash
+         FROM petra.working_candidates AS head
+         JOIN petra.working_candidate_revisions AS revision
+           ON revision.working_candidate_id = head.working_candidate_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND head.working_candidate_id = $2
+        FOR SHARE OF head`,
+      [projectId, workingCandidateId],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_INCOMPATIBLE_REVISION",
+        "A retained Review member no longer resolves to a current WorkingCandidate head.",
+      );
+    }
+    return this.#storedWorking<PetraWorkingCandidate>("working-candidate", row);
+  }
+
+  async #currentWorkingRelationship(
+    client: PoolClient,
+    projectId: string,
+    workingRelationshipId: string,
+  ): Promise<PetraWorkingRelationship> {
+    const result = await client.query<StoredRow>(
+      `SELECT revision.payload, revision.record_hash
+         FROM petra.working_relationships AS head
+         JOIN petra.working_relationship_revisions AS revision
+           ON revision.working_relationship_id = head.working_relationship_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND head.working_relationship_id = $2
+        FOR SHARE OF head`,
+      [projectId, workingRelationshipId],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_INCOMPATIBLE_REVISION",
+        "A retained Review member no longer resolves to a current WorkingRelationship head.",
+      );
+    }
+    return this.#storedWorking<PetraWorkingRelationship>(
+      "working-relationship",
+      row,
+    );
+  }
+
+  #storedWorking<
+    Value extends PetraWorkingCandidate | PetraWorkingRelationship,
+  >(
+    schemaName: "working-candidate" | "working-relationship",
+    row: StoredRow,
+  ): Value {
+    this.#contracts.assertValid(schemaName, "1.0.0", row.payload);
+    const record = clone(row.payload as Value);
+    if (
+      row.record_hash !== canonicalHash(record) ||
+      record.content_hash !== workingContentHash(record)
+    ) {
+      throw this.#refreshCorrupt(
+        `A current ${schemaName} record does not match its canonical hashes.`,
+      );
+    }
+    return record;
+  }
+
+  #requireRefreshMemberCompatibility(
+    session: PetraReviewSessionV110,
+    definition: PetraProjectDefinition,
+    member: ReviewSessionMemberV110,
+    candidate: PetraWorkingCandidate,
+    relationship: PetraWorkingRelationship,
+  ): void {
+    const candidateBinding = member.candidate_bindings.find(
+      ({ binding_role }) => binding_role === "candidate",
+    );
+    const relationshipBinding = member.candidate_bindings.find(
+      ({ binding_role }) => binding_role === "relationship",
+    );
+    const sameDefinition = (
+      ref: PetraWorkingCandidate["project_definition_ref"],
+    ): boolean =>
+      ref.project_definition_id ===
+        session.project_definition_ref.project_definition_id &&
+      ref.revision === session.project_definition_ref.revision &&
+      ref.content_hash === session.project_definition_ref.content_hash &&
+      ref.definition_family === definition.definition_family;
+    const registered = (
+      registration:
+        | PetraWorkingCandidate["profile_object"]["registration"]
+        | PetraWorkingRelationship["profile_relationship"]["registration"],
+    ): boolean =>
+      definition.content.registrations.some(
+        (entry) =>
+          entry.registration_kind === registration.registration_kind &&
+          entry.semantic_key === registration.semantic_key &&
+          entry.contract.name === registration.contract.name &&
+          entry.contract.version === registration.contract.version &&
+          entry.contract.content_hash === registration.contract.content_hash,
+      );
+    if (
+      candidateBinding === undefined ||
+      relationshipBinding === undefined ||
+      candidate.project_id !== session.project_id ||
+      relationship.project_id !== session.project_id ||
+      !sameDefinition(candidate.project_definition_ref) ||
+      !sameDefinition(relationship.project_definition_ref) ||
+      candidate.profile_object.registration.registration_kind !==
+        "object_schema" ||
+      candidate.profile_object.registration.semantic_key !==
+        candidateBinding.semantic_key ||
+      candidate.profile_object.registration.contract.name !== "petra.claim" ||
+      candidate.profile_object.registration.contract.version !== "1.0.0" ||
+      candidate.profile_object.object_record_ref.schema_name !==
+        "petra.claim" ||
+      candidate.profile_object.object_record_ref.schema_version !== "1.0.0" ||
+      candidate.validation.target_record_hash !==
+        candidate.profile_object.object_record_ref.record_hash ||
+      relationship.profile_relationship.registration.registration_kind !==
+        "relationship_schema" ||
+      relationship.profile_relationship.registration.semantic_key !==
+        relationshipBinding.semantic_key ||
+      relationship.profile_relationship.registration.contract.name !==
+        "petra.assertion" ||
+      relationship.profile_relationship.registration.contract.version !==
+        "1.0.0" ||
+      relationship.profile_relationship.predicate !== "ASSERTS" ||
+      relationship.profile_relationship.relationship_record_ref.schema_name !==
+        "petra.assertion" ||
+      relationship.profile_relationship.relationship_record_ref
+        .schema_version !== "1.0.0" ||
+      relationship.validation.target_record_hash !==
+        relationship.profile_relationship.relationship_record_ref.record_hash ||
+      !registered(candidate.profile_object.registration) ||
+      !registered(relationship.profile_relationship.registration) ||
+      relationship.endpoints.object.endpoint_kind !== "working_candidate" ||
+      relationship.endpoints.object.candidate_ref.working_candidate_id !==
+        candidate.working_candidate_id ||
+      relationship.endpoints.object.candidate_ref.revision !==
+        candidate.revision ||
+      relationship.endpoints.object.candidate_ref.content_hash !==
+        candidate.content_hash ||
+      canonicalize(relationship.task_context) !==
+        canonicalize(candidate.task_context) ||
+      canonicalize(relationship.input_snapshot.snapshot_ref) !==
+        canonicalize(candidate.input_snapshot.snapshot_ref)
+    ) {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_INCOMPATIBLE_REVISION",
+        "The current working heads cannot recompose the same registered Review member without changing its identity or profile meaning.",
+      );
+    }
+  }
+
+  async #requireCurrentProfileRecord(
+    client: PoolClient,
+    ref: {
+      readonly record_id: string;
+      readonly revision: number;
+      readonly record_hash: string;
+    },
+    evidenceKind: "claim" | "assertion",
+  ): Promise<void> {
+    const result = await client.query(
+      `SELECT true
+         FROM petra.evidence_entities AS head
+         JOIN petra.evidence_entity_revisions AS revision
+           ON revision.evidence_id = head.evidence_id
+          AND revision.evidence_kind = head.evidence_kind
+          AND revision.revision = head.current_revision
+        WHERE head.evidence_id = $1
+          AND head.evidence_kind = $2
+          AND head.current_revision = $3
+          AND revision.record_hash = $4
+        FOR SHARE OF head`,
+      [ref.record_id, evidenceKind, ref.revision, ref.record_hash],
+    );
+    if (result.rowCount !== 1) {
+      throw this.#refreshError(
+        "REVIEW_SESSION_REFRESH_INCOMPATIBLE_REVISION",
+        "A current working head does not bind the exact current registered profile record.",
+      );
+    }
   }
 
   async #lockLifecycleCommand(
@@ -583,9 +1295,12 @@ export class PostgresReviewSessionAuthorityRepository
     return { receipt, reviewSession, applied: false };
   }
 
-  async #requireLifecycleContext(
+  async #requireReviewCommandContext(
     client: PoolClient,
-    envelope: ReviewSessionLifecycleCommandEnvelope,
+    envelope:
+      | ReviewSessionLifecycleCommandEnvelope
+      | ReviewSessionRefreshCommandEnvelope,
+    boundary: "lifecycle" | "refresh",
   ): Promise<void> {
     const result = await client.query<{ actor_kind: string }>(
       `SELECT actor.actor_kind
@@ -595,6 +1310,12 @@ export class PostgresReviewSessionAuthorityRepository
       [envelope.project_id, envelope.actor.actor_id],
     );
     if (result.rows[0]?.actor_kind !== envelope.actor.actor_kind) {
+      if (boundary === "refresh") {
+        throw this.#refreshError(
+          "REVIEW_SESSION_REFRESH_PROJECT_MISMATCH",
+          "The refresh Project and Actor must resolve exactly in local authority.",
+        );
+      }
       throw this.#lifecycleError(
         "REVIEW_SESSION_LIFECYCLE_PROJECT_MISMATCH",
         "The command Project and Actor must resolve exactly in local authority.",
@@ -631,6 +1352,150 @@ export class PostgresReviewSessionAuthorityRepository
       [reviewSessionId, revision],
     );
     return result.rows[0];
+  }
+
+  #refreshReceipt(
+    envelope: ReviewSessionRefreshCommandEnvelope,
+    fingerprint: string,
+    prior: PetraReviewSessionV110,
+    priorRecordHash: string,
+    resulting: PetraReviewSessionV110,
+    resultingRecordHash: string,
+    recordedAt: string,
+  ): PetraReviewSessionRefreshReceipt {
+    const content: PetraReviewSessionRefreshReceipt["content"] = {
+      command_ref: {
+        command_id: envelope.command_id,
+        idempotency_key: envelope.idempotency_key,
+        command_name: "RefreshReviewSession",
+        command_fingerprint: fingerprint,
+        actor: clone(envelope.actor),
+        capability_grant_id: envelope.capability_grant_id,
+        correlation_id: envelope.correlation_id,
+      },
+      prior_review_session_ref: {
+        review_session_id: prior.review_session_id,
+        revision: prior.revision,
+        content_hash: prior.content_hash,
+        record_hash: priorRecordHash,
+        lifecycle: "open",
+      },
+      resulting_review_session_ref: {
+        review_session_id: resulting.review_session_id,
+        revision: resulting.revision,
+        content_hash: resulting.content_hash,
+        record_hash: resultingRecordHash,
+        lifecycle: "open",
+      },
+      transition: "refreshed",
+      refresh_basis: {
+        selection_basis: "same_review_members_current_working_heads",
+        prior_snapshot: {
+          event_position: prior.content.snapshot.event_position,
+          stream_revision: prior.content.snapshot.stream_revision,
+          captured_at: prior.content.snapshot.captured_at,
+        },
+        resulting_snapshot: {
+          event_position: resulting.content.snapshot.event_position,
+          stream_revision: resulting.content.snapshot.stream_revision,
+          captured_at: resulting.content.snapshot.captured_at,
+        },
+        members: resulting.content.members.map((member) => ({
+          review_member_id: member.review_member_id,
+          candidate_ref: clone(member.working_state.candidate_ref),
+          relationship_refs: clone(member.working_state.relationship_refs),
+        })) as PetraReviewSessionRefreshReceipt["content"]["refresh_basis"]["members"],
+      },
+      preservation: {
+        stale_review_revision: "retained",
+        review_members: "retained_same_identity",
+        working_candidates: "retained",
+        working_relationships: "retained",
+        validation_records: "retained_unchanged",
+        change_sets: "retained_unchanged",
+        approvals: "retained_unchanged",
+        command_events: "retained_unchanged",
+        projection_receipts: "retained_unchanged",
+      },
+      authority_boundary: {
+        review_decision: "none",
+        domain_authority: "unchanged",
+        candidate_authority: "none",
+        validation_authority: "none",
+        change_set_authority: "none",
+        approval_authority: "none",
+        domain_event_effect: "none",
+        projection_effect: "none",
+      },
+    };
+    const receipt: PetraReviewSessionRefreshReceipt = {
+      schema_name: "petra.review-session-refresh-receipt",
+      schema_version: "1.0.0",
+      review_session_refresh_receipt_id: derivePetraId(
+        "review_session_refresh_receipt",
+        envelope.command_id,
+      ),
+      revision: 1,
+      project_id: envelope.project_id,
+      content,
+      content_hash: canonicalHash(content),
+      recorded_at: recordedAt,
+    };
+    this.#contracts.assertValid(
+      "review-session-refresh-receipt",
+      "1.0.0",
+      receipt,
+    );
+    return receipt;
+  }
+
+  async #insertRefreshCommandExecution(
+    client: PoolClient,
+    envelope: ReviewSessionRefreshCommandEnvelope,
+    fingerprint: string,
+    receipt: PetraReviewSessionRefreshReceipt,
+    completedAt: string,
+  ): Promise<void> {
+    await client.query(
+      `INSERT INTO petra.command_executions (
+         command_id, idempotency_key, project_id, actor_id, actor_kind,
+         capability_grant_id, correlation_id, submitted_at, command_name,
+         command_fingerprint, envelope, outcome_kind, result, error_code,
+         error_message, completed_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9, $10,
+                 $11::jsonb, 'success', $12::jsonb, NULL, NULL,
+                 $13::timestamptz)`,
+      [
+        envelope.command_id,
+        envelope.idempotency_key,
+        envelope.project_id,
+        envelope.actor.actor_id,
+        envelope.actor.actor_kind,
+        envelope.capability_grant_id,
+        envelope.correlation_id,
+        envelope.submitted_at,
+        envelope.command.command_name,
+        fingerprint,
+        JSON.stringify(envelope),
+        JSON.stringify(receipt),
+        completedAt,
+      ],
+    );
+  }
+
+  #storedRefreshReceipt(value: unknown): PetraReviewSessionRefreshReceipt {
+    this.#contracts.assertValid(
+      "review-session-refresh-receipt",
+      "1.0.0",
+      value,
+    );
+    const receipt = clone(value as PetraReviewSessionRefreshReceipt);
+    if (receipt.content_hash !== canonicalHash(receipt.content)) {
+      throw this.#refreshCorrupt(
+        "A retained ReviewSession refresh result does not match its canonical content hash.",
+      );
+    }
+    return receipt;
   }
 
   #lifecycleReceipt(
@@ -817,6 +1682,20 @@ export class PostgresReviewSessionAuthorityRepository
   #lifecycleCorrupt(message: string): ReviewSessionLifecycleAuthorityError {
     return this.#lifecycleError(
       "REVIEW_SESSION_LIFECYCLE_STORED_RECORD_CORRUPT",
+      message,
+    );
+  }
+
+  #refreshError(
+    code: ConstructorParameters<typeof ReviewSessionRefreshAuthorityError>[0],
+    message: string,
+  ): ReviewSessionRefreshAuthorityError {
+    return new ReviewSessionRefreshAuthorityError(code, message);
+  }
+
+  #refreshCorrupt(message: string): ReviewSessionRefreshAuthorityError {
+    return this.#refreshError(
+      "REVIEW_SESSION_REFRESH_STORED_RECORD_CORRUPT",
       message,
     );
   }

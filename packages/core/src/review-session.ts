@@ -1,9 +1,12 @@
 import type {
   DeferReviewSession,
   PetraCommandEnvelopeV140,
+  PetraCommandEnvelopeV150,
   PetraProjectReviewViewRecord,
   PetraReviewSessionLifecycleReceipt,
+  PetraReviewSessionRefreshReceipt,
   PetraReviewSessionRecord,
+  RefreshReviewSession,
   ReopenReviewSession,
 } from "@petra/contracts";
 
@@ -82,4 +85,53 @@ export interface ReviewSessionLifecycleAuthorityRepository {
   getReviewSessionLifecycleReceipt(
     commandId: string,
   ): Promise<PetraReviewSessionLifecycleReceipt | undefined>;
+}
+
+export type ReviewSessionRefreshCommandEnvelope = Omit<
+  PetraCommandEnvelopeV150,
+  "command"
+> & {
+  command: RefreshReviewSession;
+};
+
+export interface ReviewSessionRefreshCommandResult {
+  readonly receipt: PetraReviewSessionRefreshReceipt;
+  readonly reviewSession: PetraReviewSessionRecord;
+  /** False only when the exact command was replayed idempotently. */
+  readonly applied: boolean;
+}
+
+export type ReviewSessionRefreshAuthorityErrorCode =
+  | "REVIEW_SESSION_REFRESH_COMMAND_NOT_AUTHORIZED"
+  | "REVIEW_SESSION_REFRESH_COMMAND_ID_REUSED"
+  | "REVIEW_SESSION_REFRESH_IDEMPOTENCY_KEY_REUSED"
+  | "REVIEW_SESSION_REFRESH_PROJECT_MISMATCH"
+  | "REVIEW_SESSION_REFRESH_SESSION_NOT_FOUND"
+  | "REVIEW_SESSION_REFRESH_STALE_SESSION"
+  | "REVIEW_SESSION_REFRESH_LIFECYCLE_INVALID"
+  | "REVIEW_SESSION_REFRESH_PROFILE_UNSUPPORTED"
+  | "REVIEW_SESSION_REFRESH_INCOMPATIBLE_REVISION"
+  | "REVIEW_SESSION_REFRESH_NOT_REQUIRED"
+  | "REVIEW_SESSION_REFRESH_STORED_RECORD_CORRUPT";
+
+export class ReviewSessionRefreshAuthorityError extends Error {
+  readonly code: ReviewSessionRefreshAuthorityErrorCode;
+
+  constructor(code: ReviewSessionRefreshAuthorityErrorCode, message: string) {
+    super(message);
+    this.name = "ReviewSessionRefreshAuthorityError";
+    this.code = code;
+  }
+}
+
+/**
+ * Refreshes one exact open ReviewSession in place by appending a revision bound
+ * to current authority and the current heads of its existing working members.
+ * The operation reuses the canonical command ledger and creates no decision,
+ * ChangeSet, Approval, domain event, outbox record, or projection instruction.
+ */
+export interface ReviewSessionRefreshAuthorityRepository {
+  executeReviewSessionRefreshCommand(
+    envelope: ReviewSessionRefreshCommandEnvelope,
+  ): Promise<ReviewSessionRefreshCommandResult>;
 }

@@ -78,6 +78,17 @@
       "typescript_path": "src/generated/capability-grant-v1-3.ts"
     },
     {
+      "name": "capability-grant",
+      "version": "1.4.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.4.0/schema.json",
+      "path": "schemas/capability-grant/1.4.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-review-session-refresh-command",
+      "canonical_sha256": "sha256:7f35eeba96fb0387c6b48f5c9e71c8f782cb9e5d7bb000936410d80abb2d7e93",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-4.ts"
+    },
+    {
       "name": "capability-grant-revocation",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/capability-grant-revocation/1.0.0/schema.json",
@@ -661,6 +672,17 @@
       "typescript_path": "src/generated/review-session-lifecycle-receipt.ts"
     },
     {
+      "name": "review-session-refresh-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-session-refresh-receipt/1.0.0/schema.json",
+      "path": "schemas/review-session-refresh-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-authenticated-review-session-refresh-receipt",
+      "canonical_sha256": "sha256:5aa2c0b84ef1f0ced43d2966eb656f0cbb1156c0850314f142b472a439f702de",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-session-refresh-receipt.ts"
+    },
+    {
       "name": "project-relationship-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-relationship-view/1.0.0/schema.json",
@@ -1032,6 +1054,17 @@
       "canonical_sha256": "sha256:71cf200d50b0ad4d338a1b56c47c0f4b3c7c43e8ed84f9e98ac3e0b9f1df8ad2",
       "generate_typescript": true,
       "typescript_path": "src/generated/command-envelope-v1-4.ts"
+    },
+    {
+      "name": "command-envelope",
+      "version": "1.5.0",
+      "$id": "https://petra.local/schemas/command-envelope/1.5.0/schema.json",
+      "path": "schemas/command-envelope/1.5.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-review-session-refresh-command",
+      "canonical_sha256": "sha256:b27eb93ed6222d363811862a4bc88968c73e06ce50ffc982463ccac8f90f448a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/command-envelope-v1-5.ts"
     },
     {
       "name": "domain-event",

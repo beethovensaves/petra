@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-session-refresh-receipt/1.0.0/schema.json",
+  "title": "PetraReviewSessionRefreshReceipt",
+  "description": "The immutable result retained in the canonical command ledger for one authenticated ReviewSession refresh. It binds the prior and resulting revisions, exact refreshed working membership, current authority snapshot, preservation, and no-authority boundary.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "review_session_refresh_receipt_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.review-session-refresh-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "review_session_refresh_receipt_id": {
+      "type": "string",
+      "pattern": "^review_session_refresh_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ReceiptContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ActorRef": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "CommandRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "idempotency_key",
+        "command_name",
+        "command_fingerprint",
+        "actor",
+        "capability_grant_id",
+        "correlation_id"
+      ],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "idempotency_key": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+        },
+        "command_name": { "const": "RefreshReviewSession" },
+        "command_fingerprint": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "actor": { "$ref": "#/$defs/ActorRef" },
+        "capability_grant_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+        },
+        "correlation_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+        }
+      }
+    },
+    "ExactReviewSessionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_session_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "lifecycle"
+      ],
+      "properties": {
+        "review_session_id": {
+          "type": "string",
+          "pattern": "^review_session_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "lifecycle": { "const": "open" }
+      }
+    },
+    "Snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_position", "stream_revision", "captured_at"],
+      "properties": {
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "captured_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "WorkingCandidateRef": {
+      "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/WorkingCandidateRef"
+    },
+    "WorkingRelationshipRef": {
+      "$ref": "../../working-relationship/1.0.0/schema.json#/$defs/WorkingRelationshipRef"
+    },
+    "RefreshedMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["review_member_id", "candidate_ref", "relationship_refs"],
+      "properties": {
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "candidate_ref": { "$ref": "#/$defs/WorkingCandidateRef" },
+        "relationship_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/WorkingRelationshipRef" }
+        }
+      }
+    },
+    "RefreshBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection_basis",
+        "prior_snapshot",
+        "resulting_snapshot",
+        "members"
+      ],
+      "properties": {
+        "selection_basis": {
+          "const": "same_review_members_current_working_heads"
+        },
+        "prior_snapshot": { "$ref": "#/$defs/Snapshot" },
+        "resulting_snapshot": { "$ref": "#/$defs/Snapshot" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/RefreshedMember" }
+        }
+      }
+    },
+    "Preservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stale_review_revision",
+        "review_members",
+        "working_candidates",
+        "working_relationships",
+        "validation_records",
+        "change_sets",
+        "approvals",
+        "command_events",
+        "projection_receipts"
+      ],
+      "properties": {
+        "stale_review_revision": { "const": "retained" },
+        "review_members": { "const": "retained_same_identity" },
+        "working_candidates": { "const": "retained" },
+        "working_relationships": { "const": "retained" },
+        "validation_records": { "const": "retained_unchanged" },
+        "change_sets": { "const": "retained_unchanged" },
+        "approvals": { "const": "retained_unchanged" },
+        "command_events": { "const": "retained_unchanged" },
+        "projection_receipts": { "const": "retained_unchanged" }
+      }
+    },
+    "AuthorityBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_decision",
+        "domain_authority",
+        "candidate_authority",
+        "validation_authority",
+        "change_set_authority",
+        "approval_authority",
+        "domain_event_effect",
+        "projection_effect"
+      ],
+      "properties": {
+        "review_decision": { "const": "none" },
+        "domain_authority": { "const": "unchanged" },
+        "candidate_authority": { "const": "none" },
+        "validation_authority": { "const": "none" },
+        "change_set_authority": { "const": "none" },
+        "approval_authority": { "const": "none" },
+        "domain_event_effect": { "const": "none" },
+        "projection_effect": { "const": "none" }
+      }
+    },
+    "ReceiptContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_ref",
+        "prior_review_session_ref",
+        "resulting_review_session_ref",
+        "transition",
+        "refresh_basis",
+        "preservation",
+        "authority_boundary"
+      ],
+      "properties": {
+        "command_ref": { "$ref": "#/$defs/CommandRef" },
+        "prior_review_session_ref": {
+          "$ref": "#/$defs/ExactReviewSessionRef"
+        },
+        "resulting_review_session_ref": {
+          "$ref": "#/$defs/ExactReviewSessionRef"
+        },
+        "transition": { "const": "refreshed" },
+        "refresh_basis": { "$ref": "#/$defs/RefreshBasis" },
+        "preservation": { "$ref": "#/$defs/Preservation" },
+        "authority_boundary": { "$ref": "#/$defs/AuthorityBoundary" }
+      }
+    }
+  }
+}

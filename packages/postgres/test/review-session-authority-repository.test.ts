@@ -8,9 +8,11 @@ import type {
   PetraAssertion,
   PetraAuthor,
   PetraCapabilityGrantV130,
+  PetraCapabilityGrantV140,
   PetraClaim,
   PetraCommandEnvelope,
   PetraCommandEnvelopeV140,
+  PetraCommandEnvelopeV150,
   PetraParsedDocument,
   PetraProject,
   PetraProjectDefinition,
@@ -37,6 +39,8 @@ import type {
 import type {
   ReviewSessionLifecycleAuthorityError,
   ReviewSessionLifecycleCommandEnvelope,
+  ReviewSessionRefreshAuthorityError,
+  ReviewSessionRefreshCommandEnvelope,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
@@ -641,6 +645,58 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
     ) satisfies PetraCommandEnvelopeV140;
   };
 
+  const registerRefreshGrant = async (
+    project: PetraProject,
+    actor: PetraActor,
+  ): Promise<PetraCapabilityGrantV140> => {
+    const content: PetraCapabilityGrantV140["content"] = {
+      scope_kind: "project_commands",
+      allowed_commands: ["RefreshReviewSession"],
+      valid_from: "2026-09-01T00:00:00.000Z",
+      reason: "Allow the Project author to refresh an exact open Review.",
+    };
+    const grant: PetraCapabilityGrantV140 = {
+      schema_name: "petra.capability-grant",
+      schema_version: "1.4.0",
+      capability_grant_id: "capability_grant_01K4D000000000000000000080",
+      revision: 1,
+      project_id: project.project_id,
+      grantee: { actor_id: actor.actor_id, actor_kind: "human" },
+      content,
+      content_hash: canonicalHash(content),
+      issued_by: { actor_id: actor.actor_id, actor_kind: "human" },
+      issued_at: "2026-09-01T00:00:00.000Z",
+    };
+    await capabilities.registerCapabilityGrant(grant);
+    return grant;
+  };
+
+  const refreshEnvelope = (
+    session: PetraReviewSessionV110,
+    grant: PetraCapabilityGrantV140,
+    identity: string,
+  ): ReviewSessionRefreshCommandEnvelope =>
+    ({
+      schema_name: "petra.command-envelope",
+      schema_version: "1.5.0",
+      command_id: `command_01K4D0000000000000000000${identity}`,
+      idempotency_key: `review-session:001:refresh:${identity}`,
+      project_id: session.project_id,
+      actor: structuredClone(grant.grantee),
+      capability_grant_id: grant.capability_grant_id,
+      correlation_id: `trace_01K4D0000000000000000000${identity}`,
+      submitted_at: "2026-09-12T18:59:59.000Z",
+      command: {
+        command_name: "RefreshReviewSession",
+        expected_review_session_ref: {
+          review_session_id: session.review_session_id,
+          revision: session.revision,
+          content_hash: session.content_hash,
+          lifecycle: "open",
+        },
+      },
+    }) satisfies PetraCommandEnvelopeV150;
+
   it("persists exact task-sized working membership and composes its non-authoritative Review roles", async () => {
     const { project, session, candidate, relationship } =
       await setupWorkingReview();
@@ -902,6 +958,366 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
       domain_events: "0",
       outbox_records: "0",
     });
+  });
+
+  it("refreshes one exact stale Review in place and retains every authority ledger", async () => {
+    const { project, session, actor } = await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const grant = await registerRefreshGrant(project, actor);
+    await submitChangeSet();
+
+    const retainedCountSql = `SELECT
+         (SELECT count(*) FROM petra.review_sessions)::text AS reviews,
+         (SELECT count(*) FROM petra.working_candidate_revisions)::text
+           AS candidates,
+         (SELECT count(*) FROM petra.working_relationship_revisions)::text
+           AS relationships,
+         (SELECT count(*) FROM petra.change_sets)::text AS change_sets,
+         (SELECT count(*) FROM petra.approvals)::text AS approvals,
+         (SELECT count(*) FROM petra.domain_events)::text AS events,
+         (SELECT count(*) FROM petra.outbox_records)::text AS outbox,
+         (SELECT count(*) FROM petra.projection_checkpoints)::text AS projections`;
+    const before = await pool.query<{
+      reviews: string;
+      candidates: string;
+      relationships: string;
+      change_sets: string;
+      approvals: string;
+      events: string;
+      outbox: string;
+      projections: string;
+    }>(retainedCountSql);
+    const stale = await views.getProjectReviewView(
+      session.project_id,
+      session.review_session_id,
+    );
+    expect(stale?.content.session).toMatchObject({
+      revision: 1,
+      snapshot_state: "stale",
+    });
+
+    const unauthorized = refreshEnvelope(session, grant, "81");
+    unauthorized.capability_grant_id =
+      "capability_grant_01K4D000000000000000000099";
+    await expect(
+      sessions.executeReviewSessionRefreshCommand(unauthorized),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewSessionRefreshAuthorityError>>({
+        code: "REVIEW_SESSION_REFRESH_COMMAND_NOT_AUTHORIZED",
+      }),
+    );
+
+    const refresh = refreshEnvelope(session, grant, "82");
+    const refreshed =
+      await sessions.executeReviewSessionRefreshCommand(refresh);
+    expect(refreshed).toMatchObject({
+      applied: true,
+      reviewSession: {
+        review_session_id: session.review_session_id,
+        revision: 2,
+        content: {
+          lifecycle: "open",
+          snapshot: { stream_revision: 1 },
+          members: [
+            {
+              review_member_id: session.content.members[0]?.review_member_id,
+              working_state: session.content.members[0]?.working_state,
+            },
+          ],
+        },
+      },
+      receipt: {
+        content: {
+          transition: "refreshed",
+          refresh_basis: {
+            selection_basis: "same_review_members_current_working_heads",
+            prior_snapshot: { stream_revision: 0 },
+            resulting_snapshot: { stream_revision: 1 },
+          },
+          preservation: {
+            stale_review_revision: "retained",
+            review_members: "retained_same_identity",
+            validation_records: "retained_unchanged",
+            change_sets: "retained_unchanged",
+            approvals: "retained_unchanged",
+            command_events: "retained_unchanged",
+            projection_receipts: "retained_unchanged",
+          },
+          authority_boundary: {
+            review_decision: "none",
+            domain_authority: "unchanged",
+            candidate_authority: "none",
+            validation_authority: "none",
+            change_set_authority: "none",
+            approval_authority: "none",
+            domain_event_effect: "none",
+            projection_effect: "none",
+          },
+        },
+      },
+    });
+    expect(
+      await sessions.getReviewSession(
+        session.project_id,
+        session.review_session_id,
+        1,
+      ),
+    ).toEqual(session);
+    const currentView = await views.getProjectReviewView(
+      session.project_id,
+      session.review_session_id,
+    );
+    expect(currentView?.content.session).toMatchObject({
+      revision: 2,
+      snapshot_state: "current",
+    });
+
+    const replay = structuredClone(refresh);
+    replay.correlation_id = "trace_01K4D000000000000000000083";
+    replay.submitted_at = "2026-09-12T19:00:01.000Z";
+    await expect(
+      sessions.executeReviewSessionRefreshCommand(replay),
+    ).resolves.toEqual({ ...refreshed, applied: false });
+
+    const reusedKey = refreshEnvelope(session, grant, "84");
+    reusedKey.idempotency_key = refresh.idempotency_key;
+    await expect(
+      sessions.executeReviewSessionRefreshCommand(reusedKey),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewSessionRefreshAuthorityError>>({
+        code: "REVIEW_SESSION_REFRESH_IDEMPOTENCY_KEY_REUSED",
+      }),
+    );
+    await expect(
+      sessions.executeReviewSessionRefreshCommand(
+        refreshEnvelope(session, grant, "85"),
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewSessionRefreshAuthorityError>>({
+        code: "REVIEW_SESSION_REFRESH_STALE_SESSION",
+      }),
+    );
+    await expect(
+      sessions.executeReviewSessionRefreshCommand(
+        refreshEnvelope(
+          refreshed.reviewSession as PetraReviewSessionV110,
+          grant,
+          "86",
+        ),
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewSessionRefreshAuthorityError>>({
+        code: "REVIEW_SESSION_REFRESH_NOT_REQUIRED",
+      }),
+    );
+
+    const after = await pool.query(retainedCountSql);
+    expect(after.rows[0]).toEqual(before.rows[0]);
+    const refreshCounts = await pool.query<{
+      reviews: string;
+      review_revisions: string;
+      refresh_commands: string;
+      lifecycle_receipts: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.review_sessions)::text AS reviews,
+         (SELECT count(*) FROM petra.review_session_revisions)::text
+           AS review_revisions,
+         (SELECT count(*) FROM petra.command_executions
+           WHERE command_name = 'RefreshReviewSession')::text
+           AS refresh_commands,
+         (SELECT count(*) FROM petra.review_session_lifecycle_receipts)::text
+           AS lifecycle_receipts`,
+    );
+    expect(refreshCounts.rows[0]).toEqual({
+      reviews: "1",
+      review_revisions: "2",
+      refresh_commands: "1",
+      lifecycle_receipts: "0",
+    });
+  });
+
+  it("rebinds the same Review member to compatible current working heads", async () => {
+    const { project, session, candidate, relationship, actor } =
+      await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const grant = await registerRefreshGrant(project, actor);
+
+    const correctedClaim = readFixture<PetraClaim>("claim-working-correction");
+    correctedClaim.created_by = {
+      actor_id: actor.actor_id,
+      actor_kind: "human",
+    };
+    if (correctedClaim.basis.basis_kind !== "source") {
+      throw new Error("Expected a source-grounded corrected Claim fixture.");
+    }
+    correctedClaim.basis.proposed_by = structuredClone(
+      correctedClaim.created_by,
+    );
+    const correctedCandidate = structuredClone(candidate);
+    correctedCandidate.revision = 2;
+    correctedCandidate.profile_object.object_record_ref = exactRef(
+      correctedClaim.schema_name,
+      correctedClaim.claim_id,
+      correctedClaim.revision,
+      correctedClaim,
+    );
+    correctedCandidate.validation.target_record_hash =
+      canonicalHash(correctedClaim);
+    correctedCandidate.lineage = {
+      lineage_kind: "supersession",
+      supersedes: {
+        working_candidate_id: candidate.working_candidate_id,
+        revision: candidate.revision,
+        content_hash: candidate.content_hash,
+      },
+      change_kind: "material_revision",
+      reason: "Narrow the candidate while preserving its exact material basis.",
+    };
+    correctedCandidate.recorded_at = "2026-09-12T18:50:00.000Z";
+    correctedCandidate.content_hash = workingContentHash(correctedCandidate);
+    await working.admitWorkingCandidateRevision({
+      candidate: correctedCandidate,
+      profileRecord: correctedClaim,
+    });
+
+    const assertion = readFixture<PetraAssertion>("assertion");
+    assertion.created_by = {
+      actor_id: actor.actor_id,
+      actor_kind: "human",
+    };
+    const correctedRelationship = structuredClone(relationship);
+    correctedRelationship.revision = 2;
+    if (
+      correctedRelationship.endpoints.object.endpoint_kind !==
+      "working_candidate"
+    ) {
+      throw new Error("Expected a WorkingCandidate relationship endpoint.");
+    }
+    correctedRelationship.endpoints.object.candidate_ref = {
+      working_candidate_id: correctedCandidate.working_candidate_id,
+      revision: correctedCandidate.revision,
+      content_hash: correctedCandidate.content_hash,
+    };
+    correctedRelationship.lineage = {
+      lineage_kind: "supersession",
+      supersedes: {
+        working_relationship_id: relationship.working_relationship_id,
+        revision: relationship.revision,
+        content_hash: relationship.content_hash,
+      },
+      change_kind: "material_revision",
+      reason: "Rebind the relationship to the corrected candidate head.",
+    };
+    correctedRelationship.recorded_at = "2026-09-12T18:51:00.000Z";
+    correctedRelationship.content_hash = workingContentHash(
+      correctedRelationship,
+    );
+    await working.admitWorkingRelationshipRevision({
+      relationship: correctedRelationship,
+      profileRecord: assertion,
+    });
+
+    const result = await sessions.executeReviewSessionRefreshCommand(
+      refreshEnvelope(session, grant, "89"),
+    );
+    const member = result.reviewSession.content.members[0];
+    if (member === undefined || !("working_state" in member)) {
+      throw new Error("Expected refreshed working Review membership.");
+    }
+    expect(member.review_member_id).toBe(
+      session.content.members[0]?.review_member_id,
+    );
+    expect(member.working_state).toEqual({
+      candidate_ref: {
+        working_candidate_id: correctedCandidate.working_candidate_id,
+        revision: 2,
+        content_hash: correctedCandidate.content_hash,
+      },
+      relationship_refs: [
+        {
+          working_relationship_id:
+            correctedRelationship.working_relationship_id,
+          revision: 2,
+          content_hash: correctedRelationship.content_hash,
+        },
+      ],
+    });
+    expect(member.candidate_bindings).toEqual([
+      {
+        ...session.content.members[0]?.candidate_bindings[0],
+        record_ref: {
+          record_id: correctedClaim.claim_id,
+          revision: correctedClaim.revision,
+          record_hash: canonicalHash(correctedClaim),
+        },
+      },
+      session.content.members[0]?.candidate_bindings[1],
+    ]);
+    await expect(
+      working.getWorkingCandidate(
+        project.project_id,
+        candidate.working_candidate_id,
+        1,
+      ),
+    ).resolves.toEqual(candidate);
+    await expect(
+      working.getWorkingRelationship(
+        project.project_id,
+        relationship.working_relationship_id,
+        1,
+      ),
+    ).resolves.toEqual(relationship);
+  });
+
+  it("fails closed for unsupported Review profile and a changed ProjectDefinition", async () => {
+    const unsupported = await setupAuthority();
+    const actor = readFixture<PetraActor>("actor");
+    await sessions.registerReviewSessionRevision(unsupported.session);
+    const unsupportedGrant = await registerRefreshGrant(
+      unsupported.project,
+      actor,
+    );
+    await expect(
+      sessions.executeReviewSessionRefreshCommand(
+        refreshEnvelope(
+          unsupported.session as unknown as PetraReviewSessionV110,
+          unsupportedGrant,
+          "87",
+        ),
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewSessionRefreshAuthorityError>>({
+        code: "REVIEW_SESSION_REFRESH_PROFILE_UNSUPPORTED",
+      }),
+    );
+
+    await pool.query("TRUNCATE petra.actors CASCADE");
+    await pool.query(
+      `UPDATE petra.authority_positions
+          SET event_position = 0, outbox_position = 0
+        WHERE singleton`,
+    );
+    const current = await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(current.session);
+    const grant = await registerRefreshGrant(current.project, current.actor);
+    const changedDefinition = readFixture<PetraProjectDefinition>(
+      "project-definition-working-scientific",
+    );
+    changedDefinition.revision += 1;
+    changedDefinition.content.label = "Scientific evidence revised";
+    changedDefinition.content_hash = canonicalHash(changedDefinition.content);
+    await definitions.registerDefinitionRevision(changedDefinition);
+
+    await expect(
+      sessions.executeReviewSessionRefreshCommand(
+        refreshEnvelope(current.session, grant, "88"),
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewSessionRefreshAuthorityError>>({
+        code: "REVIEW_SESSION_REFRESH_INCOMPATIBLE_REVISION",
+      }),
+    );
   });
 
   it("preserves exception membership and rejects a stale root snapshot without partial Review state", async () => {

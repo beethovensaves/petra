@@ -38,6 +38,7 @@ import type {
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
   ReviewSessionLifecycleAuthorityRepository,
+  ReviewSessionRefreshAuthorityRepository,
   ProjectShellViewReader,
   ProjectSourceLifecycleViewReader,
   ProjectSourceLifecycleAuthorityRepository,
@@ -62,6 +63,7 @@ export interface ProjectShellPersistence {
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly reviewViews: ProjectReviewViewReader;
   readonly reviewSessionLifecycleAuthority: ReviewSessionLifecycleAuthorityRepository;
+  readonly reviewSessionRefreshAuthority: ReviewSessionRefreshAuthorityRepository;
   readonly workingStateSnapshots: ProjectWorkingStateSnapshotReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
   readonly relationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
@@ -278,6 +280,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         ),
         reviewViews: new PostgresProjectReviewViewReader(pool),
         reviewSessionLifecycleAuthority,
+        reviewSessionRefreshAuthority: reviewSessionLifecycleAuthority,
         workingStateSnapshots: new PostgresProjectWorkingStateSnapshotReader(
           pool,
           contracts,
@@ -347,6 +350,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),
     reviewSessionLifecycleAuthority,
+    reviewSessionRefreshAuthority: reviewSessionLifecycleAuthority,
     workingStateSnapshots: new PostgresProjectWorkingStateSnapshotReader(
       pool,
       contracts,

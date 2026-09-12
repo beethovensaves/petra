@@ -5,6 +5,7 @@ import { extname, resolve, sep } from "node:path";
 import type { Context } from "hono";
 import { Hono } from "hono";
 import { secureHeaders } from "hono/secure-headers";
+import { canonicalize } from "json-canonicalize";
 
 import {
   InteractionInputError,
@@ -37,6 +38,7 @@ import {
   ProjectSourceLifecycleAuthorityError,
   ProjectSourceReplacementCommandError,
   ReviewSessionLifecycleAuthorityError,
+  ReviewSessionRefreshAuthorityError,
   derivePetraId,
   type AuthenticatedCommandPrincipalResolver,
   type ReviewInterruptBoundary,
@@ -52,6 +54,8 @@ import {
   type ProjectReviewViewReader,
   type ReviewSessionLifecycleAuthorityRepository,
   type ReviewSessionLifecycleCommandEnvelope,
+  type ReviewSessionRefreshAuthorityRepository,
+  type ReviewSessionRefreshCommandEnvelope,
   type ProjectShellViewReader,
   type ProjectSourceLifecycleAction,
   type ProjectSourceLifecycleAuthorityRepository,
@@ -97,6 +101,7 @@ export interface PetraAppOptions {
   projectSourceReplacementAuthority?: ProjectSourceReplacementCommandAuthorityRepository;
   projectReviewViews?: ProjectReviewViewReader;
   reviewSessionLifecycleAuthority?: ReviewSessionLifecycleAuthorityRepository;
+  reviewSessionRefreshAuthority?: ReviewSessionRefreshAuthorityRepository;
   projectWorkingStateSnapshots?: ProjectWorkingStateSnapshotReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
   projectRelationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
@@ -3839,6 +3844,224 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The ReviewSession lifecycle command failed.",
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/reviews/:reviewSessionId/refresh",
+    async (context) => {
+      if (
+        options.commandPrincipalResolver === undefined ||
+        options.reviewSessionRefreshAuthority === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "REVIEW_SESSION_REFRESH_COMMAND_UNAVAILABLE",
+          "The authenticated ReviewSession refresh boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "ReviewSession refresh does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const reviewSessionId = context.req.param("reviewSessionId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "ReviewSession refresh requires a canonical Project identity.",
+          );
+        }
+        if (!REVIEW_SESSION_ID_PATTERN.test(reviewSessionId)) {
+          throw new InteractionInputError(
+            "ReviewSession refresh requires a canonical ReviewSession identity.",
+          );
+        }
+        const body = await readBoundedJson(context, maxBodyBytes);
+        if (!isRecord(body)) {
+          throw new InteractionInputError(
+            "The ReviewSession refresh command must be an object.",
+          );
+        }
+        assertExactKeys(
+          body,
+          new Set([
+            "command_id",
+            "idempotency_key",
+            "expected_review_session_ref",
+          ]),
+          "ReviewSession refresh command",
+        );
+        const commandId = requiredString(body, "command_id");
+        const idempotencyKey = requiredString(body, "idempotency_key");
+        if (!COMMAND_ID_PATTERN.test(commandId)) {
+          throw new InteractionInputError(
+            "command_id must be a canonical command-prefixed Petra ID.",
+          );
+        }
+        if (!IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) {
+          throw new InteractionInputError(
+            "idempotency_key must satisfy Petra's registered command key format.",
+          );
+        }
+        const expectedReviewSessionRef = reviewSessionLifecycleExpectedRef(
+          body.expected_review_session_ref,
+          reviewSessionId,
+          "open",
+        );
+        const commandName = "RefreshReviewSession" as const;
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName,
+          });
+        if (principal.state === "denied") {
+          if (principal.reason === "active_grant_not_found") {
+            return jsonError(
+              context,
+              403,
+              "REVIEW_SESSION_REFRESH_COMMAND_FORBIDDEN",
+              "The authenticated principal has no active grant for ReviewSession refresh.",
+            );
+          }
+          return jsonError(
+            context,
+            503,
+            principal.reason === "actor_not_registered"
+              ? "AUTHENTICATED_ACTOR_UNAVAILABLE"
+              : "PROJECT_COMMAND_AUTHORITY_AMBIGUOUS",
+            principal.reason === "actor_not_registered"
+              ? "The configured authenticated Actor is not registered."
+              : "More than one active grant matches authenticated ReviewSession refresh.",
+          );
+        }
+        const envelope: ReviewSessionRefreshCommandEnvelope = {
+          schema_name: "petra.command-envelope",
+          schema_version: "1.5.0",
+          command_id: commandId,
+          idempotency_key: idempotencyKey,
+          project_id: projectId,
+          actor: principal.actor,
+          capability_grant_id: principal.capabilityGrantId,
+          correlation_id: derivePetraId(
+            "trace",
+            `${context.get("requestId")}:${randomUUID()}`,
+          ),
+          submitted_at: new Date().toISOString(),
+          command: {
+            command_name: commandName,
+            expected_review_session_ref: expectedReviewSessionRef,
+          },
+        };
+        contracts.assertValid("command-envelope", "1.5.0", envelope);
+        const result =
+          await options.reviewSessionRefreshAuthority.executeReviewSessionRefreshCommand(
+            envelope,
+          );
+        contracts.assertValid(
+          "review-session-refresh-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid(
+          "review-session",
+          result.reviewSession.schema_version,
+          result.reviewSession,
+        );
+        const receipt = result.receipt.content;
+        const resultingRef = receipt.resulting_review_session_ref;
+        const receiptMembers = receipt.refresh_basis.members;
+        if (
+          result.receipt.project_id !== projectId ||
+          receipt.command_ref.command_id !== commandId ||
+          receipt.command_ref.idempotency_key !== idempotencyKey ||
+          receipt.command_ref.command_name !== commandName ||
+          receipt.command_ref.actor.actor_id !== principal.actor.actor_id ||
+          receipt.command_ref.actor.actor_kind !== principal.actor.actor_kind ||
+          receipt.command_ref.capability_grant_id !==
+            principal.capabilityGrantId ||
+          receipt.prior_review_session_ref.review_session_id !==
+            reviewSessionId ||
+          receipt.prior_review_session_ref.revision !==
+            expectedReviewSessionRef.revision ||
+          receipt.prior_review_session_ref.content_hash !==
+            expectedReviewSessionRef.content_hash ||
+          receipt.prior_review_session_ref.lifecycle !== "open" ||
+          receipt.transition !== "refreshed" ||
+          result.reviewSession.schema_version !== "1.1.0" ||
+          result.reviewSession.project_id !== projectId ||
+          result.reviewSession.review_session_id !== reviewSessionId ||
+          result.reviewSession.revision !== resultingRef.revision ||
+          result.reviewSession.content_hash !== resultingRef.content_hash ||
+          result.reviewSession.content.lifecycle !== "open" ||
+          receipt.refresh_basis.resulting_snapshot.event_position !==
+            result.reviewSession.content.snapshot.event_position ||
+          receipt.refresh_basis.resulting_snapshot.stream_revision !==
+            result.reviewSession.content.snapshot.stream_revision ||
+          receipt.refresh_basis.resulting_snapshot.captured_at !==
+            result.reviewSession.content.snapshot.captured_at ||
+          receiptMembers.length !==
+            result.reviewSession.content.members.length ||
+          receiptMembers.some((member, index) => {
+            const resultMember = result.reviewSession.content.members[index];
+            return (
+              resultMember === undefined ||
+              !("working_state" in resultMember) ||
+              member.review_member_id !== resultMember.review_member_id ||
+              canonicalize(member.candidate_ref) !==
+                canonicalize(resultMember.working_state.candidate_ref) ||
+              canonicalize(member.relationship_refs) !==
+                canonicalize(resultMember.working_state.relationship_refs)
+            );
+          }) ||
+          typeof result.applied !== "boolean"
+        ) {
+          throw new Error(
+            "The ReviewSession refresh authority returned a different command, Project, session, snapshot, or membership.",
+          );
+        }
+        return context.json({
+          receipt: result.receipt,
+          review_session: result.reviewSession,
+          applied: result.applied,
+        });
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            422,
+            "REVIEW_SESSION_REFRESH_COMMAND_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        if (error instanceof ReviewSessionRefreshAuthorityError) {
+          const status =
+            error.code === "REVIEW_SESSION_REFRESH_COMMAND_NOT_AUTHORIZED"
+              ? 403
+              : error.code === "REVIEW_SESSION_REFRESH_SESSION_NOT_FOUND"
+                ? 404
+                : error.code === "REVIEW_SESSION_REFRESH_PROFILE_UNSUPPORTED"
+                  ? 422
+                  : error.code ===
+                      "REVIEW_SESSION_REFRESH_STORED_RECORD_CORRUPT"
+                    ? 503
+                    : 409;
+          return jsonError(context, status, error.code, error.message);
+        }
+        return jsonError(
+          context,
+          503,
+          "REVIEW_SESSION_REFRESH_COMMAND_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The ReviewSession refresh command failed.",
         );
       }
     },

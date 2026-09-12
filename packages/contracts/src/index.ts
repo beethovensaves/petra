@@ -18,6 +18,10 @@ export type {
   PetraCapabilityGrantV130,
 } from "./generated/capability-grant-v1-3.js";
 export type {
+  GrantContent as CapabilityGrantContentV140,
+  PetraCapabilityGrantV140,
+} from "./generated/capability-grant-v1-4.js";
+export type {
   GrantRef as CapabilityGrantRevocationGrantRef,
   HumanActorRef as CapabilityGrantRevokerRef,
   PetraCapabilityGrantRevocation,
@@ -538,6 +542,17 @@ export type {
   Recovery as ReviewSessionLifecycleRecovery,
 } from "./generated/review-session-lifecycle-receipt.js";
 export type {
+  AuthorityBoundary as ReviewSessionRefreshAuthorityBoundary,
+  CommandRef as ReviewSessionRefreshCommandRef,
+  ExactReviewSessionRef as ReviewSessionRefreshExactRef,
+  PetraReviewSessionRefreshReceipt,
+  Preservation as ReviewSessionRefreshPreservation,
+  ReceiptContent as ReviewSessionRefreshReceiptContent,
+  RefreshedMember as ReviewSessionRefreshedMember,
+  RefreshBasis as ReviewSessionRefreshBasis,
+  Snapshot as ReviewSessionRefreshSnapshot,
+} from "./generated/review-session-refresh-receipt.js";
+export type {
   AuthorityPosition as ProjectReviewAuthorityPosition,
   BasisItem as ProjectReviewBasisItem,
   CandidateSummary as ProjectReviewCandidateSummary,
@@ -800,6 +815,12 @@ export type {
   PetraCommandEnvelopeV140,
   ReopenReviewSession,
 } from "./generated/command-envelope-v1-4.js";
+export type {
+  Command as PetraCommandV150,
+  ExactReviewSessionRef as CommandRefreshReviewSessionRef,
+  PetraCommandEnvelopeV150,
+  RefreshReviewSession,
+} from "./generated/command-envelope-v1-5.js";
 export type {
   ApprovalRecorded as ApprovalRecordedEvent,
   ChangeSetApplied as ChangeSetAppliedEvent,
@@ -1097,6 +1118,7 @@ import type { PetraCapabilityGrant } from "./generated/capability-grant.js";
 import type { PetraCapabilityGrantV110 } from "./generated/capability-grant-v1-1.js";
 import type { PetraCapabilityGrantV120 } from "./generated/capability-grant-v1-2.js";
 import type { PetraCapabilityGrantV130 } from "./generated/capability-grant-v1-3.js";
+import type { PetraCapabilityGrantV140 } from "./generated/capability-grant-v1-4.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
 import type { PetraDomainEvent } from "./generated/domain-event.js";
@@ -1120,7 +1142,8 @@ export type PetraCapabilityGrantRecord =
   | PetraCapabilityGrant
   | PetraCapabilityGrantV110
   | PetraCapabilityGrantV120
-  | PetraCapabilityGrantV130;
+  | PetraCapabilityGrantV130
+  | PetraCapabilityGrantV140;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =
