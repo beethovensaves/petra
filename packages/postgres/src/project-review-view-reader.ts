@@ -8,14 +8,27 @@ import type {
   PetraClaim,
   PetraProjectDefinition,
   PetraProjectObjective,
+  PetraProjectReviewViewRecord,
+  PetraProjectReviewViewV110,
   PetraProjectReviewView,
-  PetraReviewSession,
+  PetraProjectionCheckpoint,
+  PetraReviewSessionRecord,
+  PetraReviewSessionV110,
   PetraSourceSpan,
   PetraStructuralBlock,
+  PetraWorkingCandidate,
+  PetraWorkingRelationship,
+  ProjectReviewChangeSetSummaryV110,
   ProjectReviewChangeSetSummary,
+  ProjectReviewCommandTraceV110,
+  ProjectReviewEventTraceV110,
+  ProjectReviewMemberV110,
   ProjectReviewMember,
+  ProjectReviewProjectionStateV110,
   ProjectReviewValidationSummary,
+  ProjectReviewViewContentV110,
   ProjectReviewViewContent,
+  ReviewSessionMemberV110,
   ReviewSessionMember,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -78,8 +91,47 @@ interface PayloadRow {
   payload: unknown;
 }
 
+interface WorkingRecordRow {
+  payload: unknown;
+  record_hash: string;
+}
+
+interface CommandTraceRow {
+  command_id: string;
+  command_name: ProjectReviewCommandTraceV110["command_name"];
+  command_fingerprint: string;
+  outcome_kind: ProjectReviewCommandTraceV110["outcome"];
+  submitted_at: Date;
+  completed_at: Date;
+  error_code: string | null;
+  error_message: string | null;
+  envelope: unknown;
+}
+
+interface EventTraceRow {
+  event_id: string;
+  event_type: ProjectReviewEventTraceV110["event_type"];
+  event_position: string;
+  stream_revision: string;
+  command_id: string;
+  record_hash: string;
+  recorded_at: Date;
+  payload: unknown;
+}
+
+interface CheckpointRow {
+  payload: unknown;
+  record_hash: string;
+}
+
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
+
+const workingContentHash = (value: { content_hash: string }): string => {
+  const projection = clone(value) as Record<string, unknown>;
+  delete projection.content_hash;
+  return canonicalHash(projection);
+};
 
 const clone = <Value>(value: Value): Value => structuredClone(value);
 
@@ -90,7 +142,7 @@ const titleCase = (value: string): string =>
     .join(" ");
 
 const originLabel = (
-  kind: PetraReviewSession["content"]["origin"]["origin_kind"],
+  kind: PetraReviewSessionRecord["content"]["origin"]["origin_kind"],
 ): string =>
   ({
     direct_edit: "Direct author edit",
@@ -111,10 +163,10 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
 
   async listProjectReviewViews(
     projectId: string,
-  ): Promise<PetraProjectReviewView[]> {
+  ): Promise<PetraProjectReviewViewRecord[]> {
     return this.#readTransaction(async (client, readAt) => {
       const rows = await this.#selectSessionRows(client, projectId);
-      const views: PetraProjectReviewView[] = [];
+      const views: PetraProjectReviewViewRecord[] = [];
       for (const row of rows) {
         views.push(await this.#compose(client, row, readAt));
       }
@@ -125,7 +177,7 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
   async getProjectReviewView(
     projectId: string,
     reviewSessionId: string,
-  ): Promise<PetraProjectReviewView | undefined> {
+  ): Promise<PetraProjectReviewViewRecord | undefined> {
     return this.#readTransaction(async (client, readAt) => {
       const rows = await this.#selectSessionRows(
         client,
@@ -185,12 +237,8 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
     client: PoolClient,
     row: SessionRow,
     readAt: string,
-  ): Promise<PetraProjectReviewView> {
-    const session = this.#record<PetraReviewSession>(
-      "review-session",
-      "1.0.0",
-      row.session_payload,
-    );
+  ): Promise<PetraProjectReviewViewRecord> {
+    const session = this.#reviewSession(row.session_payload);
     const definition = this.#record<PetraProjectDefinition>(
       "project-definition",
       "1.0.0",
@@ -227,68 +275,95 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
     }
 
     const authority = await this.#authorityPosition(client, session.project_id);
-    const members: ProjectReviewMember[] = [];
-    for (const member of session.content.members) {
-      members.push(
-        await this.#member(
-          client,
-          session,
-          definition,
-          member,
-          authority.stream_revision,
-        ),
-      );
-    }
+    const members = await Promise.all(
+      session.content.members.map((member) =>
+        session.schema_version === "1.1.0"
+          ? this.#workingMember(
+              client,
+              session,
+              definition,
+              member as ReviewSessionMemberV110,
+              authority.stream_revision,
+            )
+          : this.#member(
+              client,
+              session,
+              definition,
+              member,
+              authority.stream_revision,
+            ),
+      ),
+    );
     const status = this.#sessionStatus(session, members);
-    const content: ProjectReviewViewContent = {
-      session: {
-        revision: session.revision,
-        content_hash: session.content_hash,
-        title: session.content.title,
-        objective_summary: session.content.objective_summary,
-        ...(objective === undefined
-          ? {}
-          : {
-              objective: {
-                objective_ref: {
-                  record_id: objective.objective_id,
-                  revision: objective.revision,
-                  content_hash: objective.content_hash,
-                },
-                objective_kind: objective.content.objective_kind,
-                statement: objective.content.statement,
+    const sessionSummary: ProjectReviewViewContent["session"] = {
+      revision: session.revision,
+      content_hash: session.content_hash,
+      title: session.content.title,
+      objective_summary: session.content.objective_summary,
+      ...(objective === undefined
+        ? {}
+        : {
+            objective: {
+              objective_ref: {
+                record_id: objective.objective_id,
+                revision: objective.revision,
+                content_hash: objective.content_hash,
               },
-            }),
-        status,
-        status_label:
-          status === "needs_decision"
-            ? "Needs your decision"
-            : status === "waiting"
-              ? "Waiting"
-              : "Completed",
-        responsible: {
-          actor_id: responsible.actor_id,
-          display_name: responsible.display_name,
-        },
-        project_definition_ref: {
-          record_id: definition.project_definition_id,
-          revision: definition.revision,
-          content_hash: definition.content_hash,
-        },
-        project_definition_label: definition.content.label,
-        snapshot: clone(session.content.snapshot),
-        snapshot_state:
-          session.content.snapshot.stream_revision === authority.stream_revision
-            ? "current"
-            : "stale",
-        origin: {
-          origin_kind: session.content.origin.origin_kind,
-          record_refs: clone(session.content.origin.record_refs),
-          label: originLabel(session.content.origin.origin_kind),
-          detail: session.content.origin.summary,
-        },
-        return_context: clone(session.content.return_context),
+              objective_kind: objective.content.objective_kind,
+              statement: objective.content.statement,
+            },
+          }),
+      status,
+      status_label:
+        status === "needs_decision"
+          ? "Needs your decision"
+          : status === "waiting"
+            ? "Waiting"
+            : "Completed",
+      responsible: {
+        actor_id: responsible.actor_id,
+        display_name: responsible.display_name,
       },
+      project_definition_ref: {
+        record_id: definition.project_definition_id,
+        revision: definition.revision,
+        content_hash: definition.content_hash,
+      },
+      project_definition_label: definition.content.label,
+      snapshot: clone(session.content.snapshot),
+      snapshot_state:
+        session.content.snapshot.stream_revision === authority.stream_revision
+          ? "current"
+          : "stale",
+      origin: {
+        origin_kind: session.content.origin.origin_kind,
+        record_refs: clone(session.content.origin.record_refs),
+        label: originLabel(session.content.origin.origin_kind),
+        detail: session.content.origin.summary,
+      },
+      return_context: clone(session.content.return_context),
+    };
+    if (session.schema_version === "1.1.0") {
+      const content: ProjectReviewViewContentV110 = {
+        session: sessionSummary,
+        members: members as ProjectReviewViewContentV110["members"],
+        authority,
+        projection: await this.#projection(client, session.project_id),
+      };
+      const view: PetraProjectReviewViewV110 = {
+        schema_name: "petra.project-review-view",
+        schema_version: "1.1.0",
+        project_id: session.project_id,
+        review_session_id: session.review_session_id,
+        content,
+        content_hash: canonicalHash(content),
+        read_at: readAt,
+      };
+      this.#contracts.assertValid("project-review-view", "1.1.0", view);
+      return view;
+    }
+    const content: ProjectReviewViewContent = {
+      session: sessionSummary,
       members: members as ProjectReviewViewContent["members"],
       authority,
     };
@@ -305,12 +380,83 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
     return view;
   }
 
+  #reviewSession(payload: unknown): PetraReviewSessionRecord {
+    const version = (payload as { schema_version?: unknown }).schema_version;
+    if (version !== "1.0.0" && version !== "1.1.0") {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The Review session uses an unsupported stored schema version.",
+      );
+    }
+    return this.#record<PetraReviewSessionRecord>(
+      "review-session",
+      version,
+      payload,
+    );
+  }
+
+  async #workingMember(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+    definition: PetraProjectDefinition,
+    member: ReviewSessionMemberV110,
+    currentStreamRevision: number,
+  ): Promise<ProjectReviewMemberV110> {
+    const working = await this.#workingState(client, session, member);
+    const base = await this.#member(
+      client,
+      session,
+      definition,
+      member,
+      currentStreamRevision,
+      working,
+    );
+    const producer = await this.#actor(
+      client,
+      working.candidate.producer.actor.actor_id,
+    );
+    if (producer.actor_kind !== working.candidate.producer.actor.actor_kind) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The WorkingCandidate producer does not resolve to its recorded Actor kind.",
+      );
+    }
+    return {
+      ...base,
+      candidate: {
+        ...base.candidate,
+        revision_label: `Working candidate revision ${working.candidate.revision} · ${working.relationships.length} exact working relationship${working.relationships.length === 1 ? "" : "s"}`,
+        origin_label: producer.display_name,
+        origin_detail: `${titleCase(working.candidate.origin.origin_kind)} · ${working.candidate.origin.summary}`,
+      },
+      working_state: {
+        candidate: working.candidate,
+        relationships: working.relationships as [
+          PetraWorkingRelationship,
+          ...PetraWorkingRelationship[],
+        ],
+        selection_basis: "exact_review_session_working_bindings",
+        authority_effect: "none",
+      },
+      change_sets: await Promise.all(
+        base.change_sets.map((changeSet) =>
+          this.#traceChangeSet(client, session.project_id, changeSet),
+        ),
+      ),
+    };
+  }
+
   async #member(
     client: PoolClient,
-    session: PetraReviewSession,
+    session: PetraReviewSessionRecord,
     definition: PetraProjectDefinition,
-    member: ReviewSessionMember,
+    member: ReviewSessionMember | ReviewSessionMemberV110,
     currentStreamRevision: number,
+    working?: {
+      candidate: PetraWorkingCandidate;
+      relationships: PetraWorkingRelationship[];
+      current: boolean;
+    },
   ): Promise<ProjectReviewMember> {
     const claimBinding = member.candidate_bindings.find(
       (binding) => binding.binding_role === "candidate",
@@ -389,6 +535,7 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
       changeSets,
       outcome,
       currentStreamRevision,
+      working,
     );
     const prior = await this.#priorAcceptedClaim(client, claim);
     const scopeDimensions = [
@@ -449,6 +596,392 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
       validation,
       consequences: consequences as ProjectReviewMember["consequences"],
       change_sets: changeSets,
+    };
+  }
+
+  async #workingState(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+    member: ReviewSessionMemberV110,
+  ): Promise<{
+    candidate: PetraWorkingCandidate;
+    relationships: PetraWorkingRelationship[];
+    current: boolean;
+  }> {
+    const candidateResult = await client.query<
+      WorkingRecordRow & { current_revision: string }
+    >(
+      `SELECT revision.payload, revision.record_hash,
+              head.current_revision::text
+         FROM petra.review_session_working_candidate_bindings AS binding
+         JOIN petra.working_candidate_revisions AS revision
+           ON revision.working_candidate_id = binding.working_candidate_id
+          AND revision.revision = binding.working_candidate_revision
+          AND revision.content_hash = binding.working_candidate_content_hash
+         JOIN petra.working_candidates AS head
+           ON head.working_candidate_id = revision.working_candidate_id
+        WHERE binding.review_session_id = $1
+          AND binding.review_session_revision = $2
+          AND binding.review_member_id = $3`,
+      [session.review_session_id, session.revision, member.review_member_id],
+    );
+    const candidateRow = candidateResult.rows[0];
+    if (candidateRow === undefined) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The Review member has no exact retained WorkingCandidate binding.",
+      );
+    }
+    const candidate = this.#workingRecord<PetraWorkingCandidate>(
+      "working-candidate",
+      candidateRow,
+    );
+    const candidateRef = member.working_state.candidate_ref;
+    if (
+      candidate.working_candidate_id !== candidateRef.working_candidate_id ||
+      candidate.revision !== candidateRef.revision ||
+      candidate.content_hash !== candidateRef.content_hash
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The retained WorkingCandidate does not match the ReviewSession member binding.",
+      );
+    }
+
+    const relationshipResult = await client.query<
+      WorkingRecordRow & { current_revision: string }
+    >(
+      `SELECT revision.payload, revision.record_hash,
+              head.current_revision::text
+         FROM petra.review_session_working_candidate_bindings AS candidate
+         JOIN petra.review_session_working_relationship_bindings AS binding
+           ON binding.review_session_id = candidate.review_session_id
+          AND binding.review_session_revision = candidate.review_session_revision
+          AND binding.member_position = candidate.member_position
+         JOIN petra.working_relationship_revisions AS revision
+           ON revision.working_relationship_id = binding.working_relationship_id
+          AND revision.revision = binding.working_relationship_revision
+          AND revision.content_hash = binding.working_relationship_content_hash
+         JOIN petra.working_relationships AS head
+           ON head.working_relationship_id = revision.working_relationship_id
+        WHERE candidate.review_session_id = $1
+          AND candidate.review_session_revision = $2
+          AND candidate.review_member_id = $3
+        ORDER BY binding.relationship_position`,
+      [session.review_session_id, session.revision, member.review_member_id],
+    );
+    const relationships = relationshipResult.rows.map((row) =>
+      this.#workingRecord<PetraWorkingRelationship>(
+        "working-relationship",
+        row,
+      ),
+    );
+    if (
+      relationships.length !== member.working_state.relationship_refs.length ||
+      relationships.length === 0
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The retained WorkingRelationship membership does not match the ReviewSession.",
+      );
+    }
+    for (const [index, relationship] of relationships.entries()) {
+      const ref = member.working_state.relationship_refs[index];
+      if (
+        ref === undefined ||
+        relationship.working_relationship_id !== ref.working_relationship_id ||
+        relationship.revision !== ref.revision ||
+        relationship.content_hash !== ref.content_hash
+      ) {
+        throw new PostgresProjectReviewViewError(
+          "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+          "An exact WorkingRelationship does not match its ordered ReviewSession binding.",
+        );
+      }
+    }
+
+    const claimBinding = member.candidate_bindings.find(
+      (binding) => binding.binding_role === "candidate",
+    );
+    const relationshipBinding = member.candidate_bindings.find(
+      (binding) => binding.binding_role === "relationship",
+    );
+    const relationship = relationships[0];
+    if (
+      claimBinding === undefined ||
+      relationshipBinding === undefined ||
+      relationship === undefined ||
+      relationships.length !== 1 ||
+      candidate.project_id !== session.project_id ||
+      relationship.project_id !== session.project_id ||
+      candidate.project_definition_ref.project_definition_id !==
+        session.project_definition_ref.project_definition_id ||
+      candidate.project_definition_ref.revision !==
+        session.project_definition_ref.revision ||
+      candidate.project_definition_ref.content_hash !==
+        session.project_definition_ref.content_hash ||
+      relationship.project_definition_ref.project_definition_id !==
+        session.project_definition_ref.project_definition_id ||
+      relationship.project_definition_ref.revision !==
+        session.project_definition_ref.revision ||
+      relationship.project_definition_ref.content_hash !==
+        session.project_definition_ref.content_hash ||
+      candidate.profile_object.registration.semantic_key !==
+        claimBinding.semantic_key ||
+      candidate.profile_object.object_record_ref.record_id !==
+        claimBinding.record_ref.record_id ||
+      candidate.profile_object.object_record_ref.revision !==
+        claimBinding.record_ref.revision ||
+      candidate.profile_object.object_record_ref.record_hash !==
+        claimBinding.record_ref.record_hash ||
+      relationship.profile_relationship.registration.semantic_key !==
+        relationshipBinding.semantic_key ||
+      relationship.profile_relationship.relationship_record_ref.record_id !==
+        relationshipBinding.record_ref.record_id ||
+      relationship.profile_relationship.relationship_record_ref.revision !==
+        relationshipBinding.record_ref.revision ||
+      relationship.profile_relationship.relationship_record_ref.record_hash !==
+        relationshipBinding.record_ref.record_hash ||
+      relationship.endpoints.object.endpoint_kind !== "working_candidate" ||
+      relationship.endpoints.object.candidate_ref.working_candidate_id !==
+        candidate.working_candidate_id ||
+      relationship.endpoints.object.candidate_ref.revision !==
+        candidate.revision ||
+      relationship.endpoints.object.candidate_ref.content_hash !==
+        candidate.content_hash ||
+      canonicalize(relationship.task_context) !==
+        canonicalize(candidate.task_context) ||
+      canonicalize(relationship.input_snapshot.snapshot_ref) !==
+        canonicalize(candidate.input_snapshot.snapshot_ref)
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_RENDERER_UNSUPPORTED",
+        "The scientific Review member does not preserve one exact task-aligned WorkingCandidate and ASSERTS relationship.",
+      );
+    }
+    const current =
+      Number(candidateRow.current_revision) === candidate.revision &&
+      relationshipResult.rows.every(
+        (row, index) =>
+          Number(row.current_revision) === relationships[index]?.revision,
+      );
+    return { candidate, relationships, current };
+  }
+
+  #workingRecord<
+    Value extends PetraWorkingCandidate | PetraWorkingRelationship,
+  >(schemaName: string, row: WorkingRecordRow): Value {
+    this.#contracts.assertValid(schemaName, "1.0.0", row.payload);
+    const record = row.payload as Value;
+    if (
+      canonicalHash(record) !== row.record_hash ||
+      workingContentHash(record) !== record.content_hash
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        `The retained ${schemaName} record has an invalid hash.`,
+      );
+    }
+    return clone(record);
+  }
+
+  async #traceChangeSet(
+    client: PoolClient,
+    projectId: string,
+    changeSet: ProjectReviewChangeSetSummary,
+  ): Promise<ProjectReviewChangeSetSummaryV110> {
+    const changeSetId = changeSet.change_set_ref.record_id;
+    const commands = await client.query<CommandTraceRow>(
+      `SELECT command_id, command_name, command_fingerprint, outcome_kind,
+              submitted_at, completed_at, error_code, error_message, envelope
+         FROM petra.command_executions
+        WHERE project_id = $1
+          AND (
+            (command_name = 'SubmitChangeSet'
+              AND envelope #>> '{command,change_set,change_set_id}' = $2)
+            OR (command_name = 'RecordApproval'
+              AND envelope #>> '{command,approval,subject,change_set_id}' = $2)
+            OR (command_name = 'ApplyChangeSet'
+              AND envelope #>> '{command,change_set_id}' = $2)
+          )
+        ORDER BY submitted_at, command_id`,
+      [projectId, changeSetId],
+    );
+    const commandTrace = commands.rows.map((row) => {
+      const version = (row.envelope as { schema_version?: unknown })
+        .schema_version;
+      if (version !== "1.0.0" && version !== "1.1.0" && version !== "1.2.0") {
+        throw new PostgresProjectReviewViewError(
+          "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+          "A Review command has an unsupported stored schema version.",
+        );
+      }
+      this.#contracts.assertValid("command-envelope", version, row.envelope);
+      return {
+        command_id: row.command_id,
+        command_name: row.command_name,
+        command_fingerprint: row.command_fingerprint,
+        outcome: row.outcome_kind,
+        submitted_at: row.submitted_at.toISOString(),
+        completed_at: row.completed_at.toISOString(),
+        ...(row.error_code === null ? {} : { error_code: row.error_code }),
+        ...(row.error_message === null
+          ? {}
+          : { error_message: row.error_message }),
+      } satisfies ProjectReviewCommandTraceV110;
+    });
+    const commandIds = commands.rows.map((row) => row.command_id);
+    const events =
+      commandIds.length === 0
+        ? { rows: [] as EventTraceRow[] }
+        : await client.query<EventTraceRow>(
+            `SELECT event_id, event_type, event_position::text,
+                    stream_revision::text, command_id, record_hash,
+                    recorded_at, payload
+               FROM petra.domain_events
+              WHERE project_id = $1 AND command_id = ANY($2::text[])
+              ORDER BY event_position`,
+            [projectId, commandIds],
+          );
+    const eventTrace = events.rows.map((row) => {
+      const version = (row.payload as { schema_version?: unknown })
+        .schema_version;
+      if (
+        (version !== "1.0.0" && version !== "1.1.0" && version !== "1.2.0") ||
+        canonicalHash(row.payload) !== row.record_hash
+      ) {
+        throw new PostgresProjectReviewViewError(
+          "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+          "A Review event has an unsupported version or invalid record hash.",
+        );
+      }
+      this.#contracts.assertValid("domain-event", version, row.payload);
+      return {
+        event_id: row.event_id,
+        event_type: row.event_type,
+        event_position: Number(row.event_position),
+        stream_revision: Number(row.stream_revision),
+        command_id: row.command_id,
+        record_hash: row.record_hash,
+        recorded_at: row.recorded_at.toISOString(),
+      } satisfies ProjectReviewEventTraceV110;
+    });
+    return { ...changeSet, commands: commandTrace, events: eventTrace };
+  }
+
+  async #projection(
+    client: PoolClient,
+    projectId: string,
+  ): Promise<ProjectReviewProjectionStateV110> {
+    const checkpointResult = await client.query<CheckpointRow>(
+      `SELECT revision.payload, revision.record_hash
+         FROM petra.projection_checkpoints AS head
+         JOIN petra.projection_checkpoint_revisions AS revision
+           ON revision.projection_checkpoint_id = head.projection_checkpoint_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND head.target = 'neo4j_graph'
+          AND head.projection_name = 'petra.authority_graph'
+        ORDER BY revision.recorded_at DESC
+        LIMIT 1`,
+      [projectId],
+    );
+    const checkpointRow = checkpointResult.rows[0];
+    if (checkpointRow === undefined) {
+      return {
+        state: "unavailable",
+        reason:
+          "No authoritative graph-projection checkpoint is registered for this Project.",
+      };
+    }
+    const checkpoint = this.#record<PetraProjectionCheckpoint>(
+      "projection-checkpoint",
+      "1.0.0",
+      checkpointRow.payload,
+    );
+    if (
+      canonicalHash(checkpoint) !== checkpointRow.record_hash ||
+      checkpoint.content_hash !== canonicalHash(checkpoint.content) ||
+      checkpoint.project_id !== projectId
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The Review graph-projection checkpoint is corrupt or cross-Project.",
+      );
+    }
+    const observedResult = await client.query<{
+      target_sequence: string;
+      event_position: string;
+      stream_revision: string;
+    }>(
+      `SELECT head.current_target_sequence::text AS target_sequence,
+              event.event_position::text, event.stream_revision::text
+         FROM petra.outbox_target_heads AS head
+         JOIN petra.outbox_records AS outbox
+           ON outbox.target = head.target
+          AND outbox.partition_key = head.project_id
+          AND outbox.target_sequence = head.current_target_sequence
+         JOIN petra.domain_events AS event
+           ON event.event_id = outbox.event_id
+          AND event.project_id = head.project_id
+        WHERE head.target = 'neo4j_graph' AND head.project_id = $1`,
+      [projectId],
+    );
+    const observedRow = observedResult.rows[0];
+    if (observedRow === undefined) {
+      if (checkpoint.content.position.position_kind === "advanced") {
+        throw new PostgresProjectReviewViewError(
+          "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+          "The graph checkpoint is advanced without an authoritative Project outbox head.",
+        );
+      }
+      return {
+        state: "unavailable",
+        reason:
+          "The graph checkpoint is empty because no authoritative graph event has been queued.",
+      };
+    }
+    const represented = checkpoint.content.position;
+    const representedEventPosition =
+      represented.position_kind === "empty" ? 0 : represented.event_position;
+    const representedStreamRevision =
+      represented.position_kind === "empty" ? 0 : represented.stream_revision;
+    const observedTargetSequence = Number(observedRow.target_sequence);
+    const observedEventPosition = Number(observedRow.event_position);
+    const observedStreamRevision = Number(observedRow.stream_revision);
+    if (
+      represented.target_sequence > observedTargetSequence ||
+      representedEventPosition > observedEventPosition ||
+      representedStreamRevision > observedStreamRevision
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The Review graph checkpoint is ahead of the authoritative outbox.",
+      );
+    }
+    const state =
+      checkpoint.content.freshness.state === "blocked"
+        ? "blocked"
+        : represented.target_sequence === observedTargetSequence
+          ? "current"
+          : "catching_up";
+    return {
+      state,
+      checkpoint_ref: {
+        record_id: checkpoint.projection_checkpoint_id,
+        revision: checkpoint.revision,
+        content_hash: checkpoint.content_hash,
+      },
+      represented_event_position: representedEventPosition,
+      represented_stream_revision: representedStreamRevision,
+      represented_target_sequence: represented.target_sequence,
+      observed_event_position: observedEventPosition,
+      observed_stream_revision: observedStreamRevision,
+      observed_target_sequence: observedTargetSequence,
+      pending_records: observedTargetSequence - represented.target_sequence,
+      ...(checkpoint.content.freshness.state === "blocked"
+        ? { failure_code: checkpoint.content.freshness.failure_code }
+        : {}),
     };
   }
 
@@ -712,12 +1245,17 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
   }
 
   #validation(
-    session: PetraReviewSession,
+    session: PetraReviewSessionRecord,
     claim: PetraClaim,
     basis: ProjectReviewMember["basis"],
     changeSets: readonly ProjectReviewChangeSetSummary[],
     outcome: ProjectReviewMember["outcome"],
     currentStreamRevision: number,
+    working?: {
+      candidate: PetraWorkingCandidate;
+      relationships: PetraWorkingRelationship[];
+      current: boolean;
+    },
   ): ProjectReviewValidationSummary {
     const pending = outcome === "awaiting_decision" || outcome === "waiting";
     if (
@@ -742,6 +1280,16 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
           "Refresh the candidate comparison and prepare a new exact ChangeSet.",
       };
     }
+    if (pending && working !== undefined && !working.current) {
+      return {
+        state: "blocked",
+        label: "Working candidate is stale",
+        detail:
+          "A newer WorkingCandidate or WorkingRelationship revision now exists. This Review still preserves the exact earlier member without rebinding it.",
+        recovery:
+          "Refresh the Review against the exact current working heads before deciding.",
+      };
+    }
     const sourceExcluded = basis.some(
       (item) => item.project_source_status === "excluded",
     );
@@ -755,14 +1303,57 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
           "Review the ProjectSource membership before preparing or applying a ChangeSet.",
       };
     }
+    if (
+      working !== undefined &&
+      (working.candidate.disposition !== "available" ||
+        working.relationships.some(
+          (relationship) => relationship.disposition !== "available",
+        ))
+    ) {
+      return {
+        state: "blocked",
+        label: "Working member is withdrawn",
+        detail:
+          "The exact working candidate or relationship is retained but no longer available for a decision.",
+        recovery:
+          "Refresh the Review or explicitly recover an eligible current working member.",
+      };
+    }
+    const workingValidation =
+      working === undefined
+        ? undefined
+        : [working.candidate, ...working.relationships].map(
+            (record) => record.validation,
+          );
+    if (
+      workingValidation?.some((validation) => validation.state === "pending")
+    ) {
+      return {
+        state: "blocked",
+        label: "Working validation is pending",
+        detail:
+          "At least one exact working record has no completed validation receipt. Pending validation does not authorize a decision.",
+        recovery:
+          "Run the registered checks and refresh the Review with their exact results.",
+      };
+    }
     const validators =
-      claim.basis.basis_kind === "source" ? claim.basis.validator_results : [];
-    const failures = validators.filter((result) => result.outcome === "fail");
+      workingValidation === undefined
+        ? claim.basis.basis_kind === "source"
+          ? claim.basis.validator_results
+          : []
+        : workingValidation.flatMap((validation) => validation.results);
+    const failures = validators.filter(
+      (result) =>
+        result.outcome === "fail" ||
+        result.outcome === "failed" ||
+        result.outcome === "blocked",
+    );
     if (failures.length > 0) {
       return {
         state: "blocked",
         label: "Applicable checks failed",
-        detail: `${failures.length} of ${validators.length} exact candidate checks failed. Validation does not permit a ChangeSet to be prepared or applied.`,
+        detail: `${failures.length} of ${validators.length} exact working checks failed or were blocked. No Review decision or authority follows from validation.`,
         recovery:
           "Correct the candidate or its basis, rerun the applicable checks, and open a fresh Review revision.",
       };
@@ -780,7 +1371,7 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
     return {
       state: "passed",
       label: "Applicable checks passed",
-      detail: `${validators.length} exact candidate ${validators.length === 1 ? "check passed" : "checks passed"}. This does not approve the candidate or establish scientific truth.`,
+      detail: `${validators.length} exact ${working === undefined ? "candidate" : "working"} ${validators.length === 1 ? "check passed" : "checks passed"}. This does not approve the candidate, grant mutation authority, or establish scientific truth.`,
     };
   }
 
@@ -829,8 +1420,8 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
   }
 
   #sessionStatus(
-    session: PetraReviewSession,
-    members: readonly ProjectReviewMember[],
+    session: PetraReviewSessionRecord,
+    members: readonly (ProjectReviewMember | ProjectReviewMemberV110)[],
   ): ProjectReviewViewContent["session"]["status"] {
     if (session.content.lifecycle === "deferred") return "waiting";
     if (

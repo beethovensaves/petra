@@ -21,6 +21,7 @@ import type {
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
+  PetraProjectReviewViewV110,
   PetraProjectWorkingStateSnapshot,
   PetraProjectShellView,
   PetraProjectShellViewV11,
@@ -261,6 +262,34 @@ const workingRelationshipFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectWorkingStateSnapshot["content"]["relationships"][number];
+
+const workingReviewFixture: PetraProjectReviewViewV110 = (() => {
+  const view = structuredClone(
+    reviewFixture,
+  ) as unknown as PetraProjectReviewViewV110;
+  view.schema_version = "1.1.0";
+  view.content.members[0].working_state = {
+    candidate: structuredClone(workingCandidateFixture),
+    relationships: [structuredClone(workingRelationshipFixture)],
+    selection_basis: "exact_review_session_working_bindings",
+    authority_effect: "none",
+  };
+  view.content.members[0].change_sets = view.content.members[0].change_sets.map(
+    (changeSet) => ({
+      ...changeSet,
+      commands: [],
+      events: [],
+    }),
+  );
+  view.content.projection = {
+    state: "unavailable",
+    reason: "No authoritative graph-projection checkpoint is registered.",
+  };
+  view.content_hash = `sha256:${createHash("sha256")
+    .update(canonicalize(view.content))
+    .digest("hex")}`;
+  return view;
+})();
 
 const workingStateContent: PetraProjectWorkingStateSnapshot["content"] = {
   project_definition_ref: workingCandidateFixture.project_definition_ref,
@@ -1998,6 +2027,41 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(body.error.code).toBe("PROJECT_REVIEW_NOT_FOUND");
+  });
+
+  it("returns the additive canonical-working Review view through the same authenticated API", async () => {
+    const reader: ProjectReviewViewReader = {
+      listProjectReviewViews: () =>
+        Promise.resolve([structuredClone(workingReviewFixture)]),
+      getProjectReviewView: () =>
+        Promise.resolve(structuredClone(workingReviewFixture)),
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectReviewViews: reader,
+    });
+
+    const collection = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${workingReviewFixture.project_id}/reviews`,
+      ),
+    );
+    expect(collection.status).toBe(200);
+    const body = (await collection.json()) as {
+      reviews: PetraProjectReviewViewV110[];
+    };
+    expect(body.reviews[0]?.schema_version).toBe("1.1.0");
+    expect(
+      body.reviews[0]?.content.members[0]?.working_state.authority_effect,
+    ).toBe("none");
+
+    const detail = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${workingReviewFixture.project_id}/reviews/${workingReviewFixture.review_session_id}`,
+      ),
+    );
+    expect(detail.status).toBe(200);
+    await expect(detail.json()).resolves.toEqual(workingReviewFixture);
   });
 
   it("authenticates the exact snapshot-consistent working-state query", async () => {

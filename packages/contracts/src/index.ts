@@ -14,6 +14,10 @@ export type {
   PetraCapabilityGrantV120,
 } from "./generated/capability-grant-v1-2.js";
 export type {
+  GrantContent as CapabilityGrantContentV130,
+  PetraCapabilityGrantV130,
+} from "./generated/capability-grant-v1-3.js";
+export type {
   GrantRef as CapabilityGrantRevocationGrantRef,
   HumanActorRef as CapabilityGrantRevokerRef,
   PetraCapabilityGrantRevocation,
@@ -516,6 +520,24 @@ export type {
   SessionContent as ReviewSessionContent,
 } from "./generated/review-session.js";
 export type {
+  CandidateBinding as ReviewSessionCandidateBindingV110,
+  PetraReviewSessionV110,
+  ReviewMember as ReviewSessionMemberV110,
+  SessionContent as ReviewSessionContentV110,
+  WorkingCandidateRef as ReviewSessionWorkingCandidateRef,
+  WorkingRelationshipRef as ReviewSessionWorkingRelationshipRef,
+  WorkingStateBinding as ReviewSessionWorkingStateBinding,
+} from "./generated/review-session-v1-1.js";
+export type {
+  AuthorityBoundary as ReviewSessionLifecycleAuthorityBoundary,
+  CommandRef as ReviewSessionLifecycleCommandRef,
+  ExactReviewSessionRecordRef as ReviewSessionLifecycleExactRef,
+  PetraReviewSessionLifecycleReceipt,
+  Preservation as ReviewSessionLifecyclePreservation,
+  ReceiptContent as ReviewSessionLifecycleReceiptContent,
+  Recovery as ReviewSessionLifecycleRecovery,
+} from "./generated/review-session-lifecycle-receipt.js";
+export type {
   AuthorityPosition as ProjectReviewAuthorityPosition,
   BasisItem as ProjectReviewBasisItem,
   CandidateSummary as ProjectReviewCandidateSummary,
@@ -531,6 +553,18 @@ export type {
   SessionSummary as ProjectReviewSessionSummary,
   ValidationSummary as ProjectReviewValidationSummary,
 } from "./generated/project-review-view.js";
+export type {
+  AvailableProjection as ProjectReviewAvailableProjectionV110,
+  ChangeSetSummary as ProjectReviewChangeSetSummaryV110,
+  CommandTrace as ProjectReviewCommandTraceV110,
+  EventTrace as ProjectReviewEventTraceV110,
+  PetraProjectReviewViewV110,
+  ProjectionState as ProjectReviewProjectionStateV110,
+  ReviewMember as ProjectReviewMemberV110,
+  ReviewViewContent as ProjectReviewViewContentV110,
+  UnavailableProjection as ProjectReviewUnavailableProjectionV110,
+  WorkingStateComposition as ProjectReviewWorkingStateCompositionV110,
+} from "./generated/project-review-view-v1-1.js";
 export type {
   AuthorityPosition as ProjectRelationshipAuthorityPosition,
   Capabilities as ProjectRelationshipCapabilities,
@@ -754,6 +788,13 @@ export type {
   PetraCommandEnvelopeV130,
   RetractProjectSourceReplacement,
 } from "./generated/command-envelope-v1-3.js";
+export type {
+  Command as PetraCommandV140,
+  DeferReviewSession,
+  ExactReviewSessionRef as CommandReviewSessionRef,
+  PetraCommandEnvelopeV140,
+  ReopenReviewSession,
+} from "./generated/command-envelope-v1-4.js";
 export type {
   ApprovalRecorded as ApprovalRecordedEvent,
   ChangeSetApplied as ChangeSetAppliedEvent,
@@ -1050,6 +1091,7 @@ import type { PetraChangeSetV110 } from "./generated/change-set-v1-1.js";
 import type { PetraCapabilityGrant } from "./generated/capability-grant.js";
 import type { PetraCapabilityGrantV110 } from "./generated/capability-grant-v1-1.js";
 import type { PetraCapabilityGrantV120 } from "./generated/capability-grant-v1-2.js";
+import type { PetraCapabilityGrantV130 } from "./generated/capability-grant-v1-3.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
 import type { PetraDomainEvent } from "./generated/domain-event.js";
@@ -1058,6 +1100,10 @@ import type { PetraDomainEventV120 } from "./generated/domain-event-v1-2.js";
 import type { PetraOutboxRecord } from "./generated/outbox-record.js";
 import type { PetraOutboxRecordV110 } from "./generated/outbox-record-v1-1.js";
 import type { PetraOutboxRecordV120 } from "./generated/outbox-record-v1-2.js";
+import type { PetraProjectReviewViewV110 } from "./generated/project-review-view-v1-1.js";
+import type { PetraProjectReviewView } from "./generated/project-review-view.js";
+import type { PetraReviewSessionV110 } from "./generated/review-session-v1-1.js";
+import type { PetraReviewSession } from "./generated/review-session.js";
 import type {
   ActiveSourceRef as ProjectSourceReplacementActiveRef,
   ExcludedSourceRef as ProjectSourceReplacementExcludedRef,
@@ -1065,10 +1111,17 @@ import type {
 
 export type PetraChangeSetRecord = PetraChangeSet | PetraChangeSetV110;
 export type PetraCapabilityGrantRecord =
-  PetraCapabilityGrant | PetraCapabilityGrantV110 | PetraCapabilityGrantV120;
+  | PetraCapabilityGrant
+  | PetraCapabilityGrantV110
+  | PetraCapabilityGrantV120
+  | PetraCapabilityGrantV130;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =
   PetraDomainEvent | PetraDomainEventV110 | PetraDomainEventV120;
 export type PetraOutboxRecordRecord =
   PetraOutboxRecord | PetraOutboxRecordV110 | PetraOutboxRecordV120;
+export type PetraProjectReviewViewRecord =
+  PetraProjectReviewView | PetraProjectReviewViewV110;
+export type PetraReviewSessionRecord =
+  PetraReviewSession | PetraReviewSessionV110;

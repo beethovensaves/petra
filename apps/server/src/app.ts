@@ -36,6 +36,7 @@ import {
   ProjectHistoryViewRequestError,
   ProjectSourceLifecycleAuthorityError,
   ProjectSourceReplacementCommandError,
+  ReviewSessionLifecycleAuthorityError,
   derivePetraId,
   type AuthenticatedCommandPrincipalResolver,
   type ReviewInterruptBoundary,
@@ -49,6 +50,8 @@ import {
   type ProjectRelationshipOverlayViewReader,
   type ProjectRelationshipViewReader,
   type ProjectReviewViewReader,
+  type ReviewSessionLifecycleAuthorityRepository,
+  type ReviewSessionLifecycleCommandEnvelope,
   type ProjectShellViewReader,
   type ProjectSourceLifecycleAction,
   type ProjectSourceLifecycleAuthorityRepository,
@@ -93,6 +96,7 @@ export interface PetraAppOptions {
   projectSourceLifecycleAuthority?: ProjectSourceLifecycleAuthorityRepository;
   projectSourceReplacementAuthority?: ProjectSourceReplacementCommandAuthorityRepository;
   projectReviewViews?: ProjectReviewViewReader;
+  reviewSessionLifecycleAuthority?: ReviewSessionLifecycleAuthorityRepository;
   projectWorkingStateSnapshots?: ProjectWorkingStateSnapshotReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
   projectRelationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
@@ -120,6 +124,7 @@ const PROJECT_ID_PATTERN = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_SOURCE_ID_PATTERN = /^project_source_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_SOURCE_REPLACEMENT_ID_PATTERN =
   /^project_source_replacement_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const REVIEW_SESSION_ID_PATTERN = /^review_session_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_SOURCE_LIFECYCLE_RECEIPT_ID_PATTERN =
   /^project_source_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const COMMAND_ID_PATTERN = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -226,6 +231,7 @@ const PROJECT_SOURCE_REPLACEMENT_KINDS = [
   "preferred_copy_changed",
   "project_role_replacement",
 ] as const;
+const REVIEW_SESSION_LIFECYCLE_ACTIONS = ["defer", "reopen"] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -288,6 +294,55 @@ const canonicalHashMember = (
     throw new InteractionInputError(`${key} must be a canonical SHA-256 hash.`);
   }
   return member;
+};
+
+const reviewSessionLifecycleExpectedRef = <
+  Lifecycle extends "open" | "deferred",
+>(
+  value: unknown,
+  reviewSessionId: string,
+  expectedLifecycle: Lifecycle,
+): {
+  review_session_id: string;
+  revision: number;
+  content_hash: string;
+  lifecycle: Lifecycle;
+} => {
+  if (!isRecord(value)) {
+    throw new InteractionInputError(
+      "expected_review_session_ref must be an exact ReviewSession reference.",
+    );
+  }
+  assertExactKeys(
+    value,
+    new Set(["review_session_id", "revision", "content_hash", "lifecycle"]),
+    "expected_review_session_ref",
+  );
+  const expectedReviewSessionId = requiredString(value, "review_session_id");
+  if (
+    expectedReviewSessionId !== reviewSessionId ||
+    !REVIEW_SESSION_ID_PATTERN.test(expectedReviewSessionId)
+  ) {
+    throw new InteractionInputError(
+      "expected_review_session_ref must name the ReviewSession in the route.",
+    );
+  }
+  const lifecycle = optionalEnum(value, "lifecycle", [
+    "open",
+    "deferred",
+    "completed",
+  ] as const);
+  if (lifecycle !== expectedLifecycle) {
+    throw new InteractionInputError(
+      `expected_review_session_ref.lifecycle must be ${expectedLifecycle}.`,
+    );
+  }
+  return {
+    review_session_id: expectedReviewSessionId,
+    revision: positiveSafeInteger(value, "revision"),
+    content_hash: canonicalHashMember(value, "content_hash"),
+    lifecycle: expectedLifecycle,
+  };
 };
 
 const projectSourceReplacementSourceRef = <
@@ -3456,7 +3511,11 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         context.req.param("projectId"),
       );
       for (const review of reviews) {
-        contracts.assertValid("project-review-view", "1.0.0", review);
+        contracts.assertValid(
+          "project-review-view",
+          review.schema_version,
+          review,
+        );
       }
       return context.json({ reviews });
     } catch (error) {
@@ -3535,7 +3594,11 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The requested Review session is not bound to this Project.",
           );
         }
-        contracts.assertValid("project-review-view", "1.0.0", review);
+        contracts.assertValid(
+          "project-review-view",
+          review.schema_version,
+          review,
+        );
         return context.json(review);
       } catch (error) {
         return jsonError(
@@ -3545,6 +3608,237 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project Review view is unavailable.",
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/reviews/:reviewSessionId/lifecycle",
+    async (context) => {
+      if (
+        options.commandPrincipalResolver === undefined ||
+        options.reviewSessionLifecycleAuthority === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "REVIEW_SESSION_LIFECYCLE_COMMAND_UNAVAILABLE",
+          "The authenticated ReviewSession lifecycle command boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "ReviewSession lifecycle commands do not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const reviewSessionId = context.req.param("reviewSessionId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "ReviewSession lifecycle commands require a canonical Project identity.",
+          );
+        }
+        if (!REVIEW_SESSION_ID_PATTERN.test(reviewSessionId)) {
+          throw new InteractionInputError(
+            "ReviewSession lifecycle commands require a canonical ReviewSession identity.",
+          );
+        }
+        const body = await readBoundedJson(context, maxBodyBytes);
+        if (!isRecord(body)) {
+          throw new InteractionInputError(
+            "The ReviewSession lifecycle command must be an object.",
+          );
+        }
+        assertExactKeys(
+          body,
+          new Set([
+            "command_id",
+            "idempotency_key",
+            "requested_action",
+            "expected_review_session_ref",
+            "rationale",
+          ]),
+          "ReviewSession lifecycle command",
+        );
+        const commandId = requiredString(body, "command_id");
+        const idempotencyKey = requiredString(body, "idempotency_key");
+        const requestedAction = optionalEnum(
+          body,
+          "requested_action",
+          REVIEW_SESSION_LIFECYCLE_ACTIONS,
+        );
+        if (!COMMAND_ID_PATTERN.test(commandId)) {
+          throw new InteractionInputError(
+            "command_id must be a canonical command-prefixed Petra ID.",
+          );
+        }
+        if (!IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) {
+          throw new InteractionInputError(
+            "idempotency_key must satisfy Petra's registered command key format.",
+          );
+        }
+        if (requestedAction === undefined) {
+          throw new InteractionInputError("requested_action is required.");
+        }
+        const rationale =
+          body.rationale === undefined
+            ? undefined
+            : requiredString(body, "rationale");
+        if (rationale !== undefined && rationale.length > 4_000) {
+          throw new InteractionInputError(
+            "rationale must contain at most 4000 characters.",
+          );
+        }
+        const command =
+          requestedAction === "defer"
+            ? {
+                command_name: "DeferReviewSession" as const,
+                expected_review_session_ref: reviewSessionLifecycleExpectedRef(
+                  body.expected_review_session_ref,
+                  reviewSessionId,
+                  "open",
+                ),
+                ...(rationale === undefined ? {} : { rationale }),
+              }
+            : {
+                command_name: "ReopenReviewSession" as const,
+                expected_review_session_ref: reviewSessionLifecycleExpectedRef(
+                  body.expected_review_session_ref,
+                  reviewSessionId,
+                  "deferred",
+                ),
+                ...(rationale === undefined ? {} : { rationale }),
+              };
+        const commandName = command.command_name;
+        const expectedReviewSessionRef = command.expected_review_session_ref;
+        const expectedLifecycle = expectedReviewSessionRef.lifecycle;
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName,
+          });
+        if (principal.state === "denied") {
+          if (principal.reason === "active_grant_not_found") {
+            return jsonError(
+              context,
+              403,
+              "REVIEW_SESSION_LIFECYCLE_COMMAND_FORBIDDEN",
+              "The authenticated principal has no active grant for this ReviewSession command.",
+            );
+          }
+          return jsonError(
+            context,
+            503,
+            principal.reason === "actor_not_registered"
+              ? "AUTHENTICATED_ACTOR_UNAVAILABLE"
+              : "PROJECT_COMMAND_AUTHORITY_AMBIGUOUS",
+            principal.reason === "actor_not_registered"
+              ? "The configured authenticated Actor is not registered."
+              : "More than one active grant matches the authenticated Project command.",
+          );
+        }
+        const envelope: ReviewSessionLifecycleCommandEnvelope = {
+          schema_name: "petra.command-envelope",
+          schema_version: "1.4.0",
+          command_id: commandId,
+          idempotency_key: idempotencyKey,
+          project_id: projectId,
+          actor: principal.actor,
+          capability_grant_id: principal.capabilityGrantId,
+          correlation_id: derivePetraId(
+            "trace",
+            `${context.get("requestId")}:${randomUUID()}`,
+          ),
+          submitted_at: new Date().toISOString(),
+          command,
+        };
+        contracts.assertValid("command-envelope", "1.4.0", envelope);
+        const result =
+          await options.reviewSessionLifecycleAuthority.executeReviewSessionLifecycleCommand(
+            envelope,
+          );
+        contracts.assertValid(
+          "review-session-lifecycle-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid(
+          "review-session",
+          result.reviewSession.schema_version,
+          result.reviewSession,
+        );
+        const receipt = result.receipt.content;
+        const resultingRef = receipt.resulting_review_session_ref;
+        if (
+          result.receipt.project_id !== projectId ||
+          receipt.command_ref.command_id !== commandId ||
+          receipt.command_ref.idempotency_key !== idempotencyKey ||
+          receipt.command_ref.command_name !== commandName ||
+          receipt.command_ref.actor.actor_id !== principal.actor.actor_id ||
+          receipt.command_ref.actor.actor_kind !== principal.actor.actor_kind ||
+          receipt.command_ref.capability_grant_id !==
+            principal.capabilityGrantId ||
+          receipt.prior_review_session_ref.review_session_id !==
+            reviewSessionId ||
+          receipt.prior_review_session_ref.revision !==
+            expectedReviewSessionRef.revision ||
+          receipt.prior_review_session_ref.content_hash !==
+            expectedReviewSessionRef.content_hash ||
+          receipt.prior_review_session_ref.lifecycle !== expectedLifecycle ||
+          receipt.transition !==
+            (requestedAction === "defer" ? "deferred" : "reopened") ||
+          receipt.rationale !== rationale ||
+          result.reviewSession.project_id !== projectId ||
+          result.reviewSession.review_session_id !== reviewSessionId ||
+          result.reviewSession.revision !== resultingRef.revision ||
+          result.reviewSession.content_hash !== resultingRef.content_hash ||
+          result.reviewSession.content.lifecycle !== resultingRef.lifecycle ||
+          resultingRef.lifecycle !==
+            (requestedAction === "defer" ? "deferred" : "open") ||
+          typeof result.applied !== "boolean"
+        ) {
+          throw new Error(
+            "The ReviewSession lifecycle authority returned a different command, Project, session, or transition.",
+          );
+        }
+        return context.json({
+          receipt: result.receipt,
+          review_session: result.reviewSession,
+          applied: result.applied,
+        });
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            422,
+            "REVIEW_SESSION_LIFECYCLE_COMMAND_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        if (error instanceof ReviewSessionLifecycleAuthorityError) {
+          const status =
+            error.code === "REVIEW_SESSION_LIFECYCLE_COMMAND_NOT_AUTHORIZED"
+              ? 403
+              : error.code === "REVIEW_SESSION_LIFECYCLE_SESSION_NOT_FOUND"
+                ? 404
+                : error.code ===
+                    "REVIEW_SESSION_LIFECYCLE_STORED_RECORD_CORRUPT"
+                  ? 503
+                  : 409;
+          return jsonError(context, status, error.code, error.message);
+        }
+        return jsonError(
+          context,
+          503,
+          "REVIEW_SESSION_LIFECYCLE_COMMAND_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The ReviewSession lifecycle command failed.",
         );
       }
     },

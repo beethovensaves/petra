@@ -1,0 +1,88 @@
+{
+  "schema_name": "petra.review-session",
+  "schema_version": "1.1.0",
+  "review_session_id": "review_session_01K4D000000000000000000004",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_definition_ref": {
+    "project_definition_id": "project_definition_01K4C000000000000000000001",
+    "revision": 2,
+    "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133"
+  },
+  "content": {
+    "title": "Review the source-grounded working candidate",
+    "objective_summary": "Decide whether the exact working Claim and ASSERTS relationship should enter trusted Project state.",
+    "objective_ref": {
+      "objective_id": "objective_01K4C000000000000000000005",
+      "revision": 2,
+      "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+    },
+    "lifecycle": "open",
+    "responsible": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "human"
+    },
+    "snapshot": {
+      "event_position": 42,
+      "stream_revision": 7,
+      "captured_at": "2026-09-12T14:13:00.000Z"
+    },
+    "origin": {
+      "origin_kind": "work_result",
+      "record_refs": ["work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"],
+      "summary": "Opened from the exact task that retained the canonical working candidate and relationship."
+    },
+    "return_context": {
+      "place": "work",
+      "object_ref": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "label": "Extract supported claims"
+    },
+    "members": [
+      {
+        "review_member_id": "review_member_01K4D000000000000000000005",
+        "member_role": "ordinary",
+        "working_state": {
+          "candidate_ref": {
+            "working_candidate_id": "working_candidate_01K4D000000000000000000002",
+            "revision": 1,
+            "content_hash": "sha256:0f2d388fead6dffda0030333186a7c2f653bf275c8c1ef28ba0ed0caecaed3e1"
+          },
+          "relationship_refs": [
+            {
+              "working_relationship_id": "working_relationship_01K4D000000000000000000003",
+              "revision": 1,
+              "content_hash": "sha256:429f46f0e8823d0f0c7aba65d8b8fb81fabd01349e6d86d86ca6dcc8369b479e"
+            }
+          ]
+        },
+        "candidate_bindings": [
+          {
+            "semantic_key": "scientific.claim",
+            "binding_role": "candidate",
+            "record_ref": {
+              "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "revision": 1,
+              "record_hash": "sha256:037b05d18954bd81029717fb0ff00c9f21e14895db98e4c2dfb2691aaf501db3"
+            }
+          },
+          {
+            "semantic_key": "scientific.assertion",
+            "binding_role": "relationship",
+            "record_ref": {
+              "record_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "revision": 1,
+              "record_hash": "sha256:70ec8b8bc12777b67628ea35be16dcdaf6a071746fed64d3d1e8005c72c73d80"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "content_hash": "sha256:6808a067d3f5a8e170c9445d86106b4067a98e6883155cf39790dbd910b54098",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-12T14:13:00.000Z",
+  "updated_at": "2026-09-12T14:13:00.000Z"
+}

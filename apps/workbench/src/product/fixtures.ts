@@ -285,6 +285,10 @@ export const REFERENCE_REVIEWS: ReviewSession[] = [
   {
     id: "review-service-link",
     projectId: "inlet-cycle",
+    exactRef: {
+      revision: 2,
+      contentHash: `sha256:${"a".repeat(64)}`,
+    },
     title: "Service-event relationship",
     objective:
       "Decide whether the working relationship is ready to enter the accepted Project state.",
@@ -293,6 +297,7 @@ export const REFERENCE_REVIEWS: ReviewSession[] = [
     responsible: "Project author",
     snapshot: "Snapshot 18",
     returnLabel: "Inlet cycle review",
+    returnPath: "/projects/inlet-cycle/brief#attention-source-depth",
     candidate: {
       id: "candidate-service-link",
       revision: "Candidate revision 2",

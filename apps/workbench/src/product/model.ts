@@ -131,6 +131,10 @@ export type ValidationState = "passed" | "needs_judgment" | "blocked";
 export type ReviewSession = {
   id: string;
   projectId: string;
+  exactRef: {
+    revision: number;
+    contentHash: string;
+  };
   title: string;
   objective: string;
   status: ReviewStatus;
@@ -138,6 +142,7 @@ export type ReviewSession = {
   responsible: string;
   snapshot: string;
   returnLabel: string;
+  returnPath: string;
   candidate: {
     id: string;
     revision: string;

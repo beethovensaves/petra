@@ -11,8 +11,14 @@ import {
 import { GraphSurface } from "./GraphSurface.js";
 import type { GraphQuestion } from "./model.js";
 import {
+  ProjectDataError,
+  createReviewSessionDeferCommandInput,
+} from "./project-data.js";
+import {
   ReviewCollectionSurface,
+  ReviewLifecycleNotice,
   ReviewSessionSurface,
+  reviewLifecycleFailureState,
 } from "./ReviewSurface.js";
 
 const render = (node: React.ReactNode): string =>
@@ -62,16 +68,104 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain("?from=review&amp;reviewId=review-service-link");
   });
 
-  it("does not let local Review controls imply authority", () => {
+  it("enables only the exact defer command without implying other authority", () => {
     const markup = render(
       <ReviewSessionSurface project={project} review={review} />,
     );
 
-    expect(markup).toContain("no local control can record authority");
-    expect(markup.match(/aria-disabled="true"/g)).toHaveLength(3);
+    expect(markup).toContain("the server rechecks lifecycle and authority");
+    expect(markup.match(/aria-disabled="true"/g)).toHaveLength(2);
     expect(markup).toContain("Apply 1 change");
     expect(markup).toContain("Reject candidate");
     expect(markup).toContain("Decide later");
+    expect(markup).toContain('data-operation="defer_review_session"');
+    expect(markup).toContain("Reason for deciding later (optional)");
+    expect(markup).toContain("A scheduled revisit time is not supported yet");
+    expect(markup).toContain(
+      'href="/projects/inlet-cycle/brief#attention-source-depth"',
+    );
+  });
+
+  it("does not infer reopen eligibility from an ambiguous Waiting state", () => {
+    const waiting = structuredClone(review);
+    waiting.status = "waiting";
+    waiting.statusLabel = "Waiting";
+    const markup = render(
+      <ReviewSessionSurface project={project} review={waiting} />,
+    );
+
+    expect(markup).toContain("Reopen remains unavailable");
+    expect(markup).toContain("does not distinguish a deferred session");
+    expect(markup.match(/aria-disabled="true"/g)).toHaveLength(3);
+    expect(markup).not.toContain("Reason for deciding later (optional)");
+  });
+
+  it("keeps retry, reconciliation, stale, unauthorized, and return states explicit", () => {
+    const input = createReviewSessionDeferCommandInput(review, {
+      commandId: "command_01K4D000000000000000000071",
+      idempotencyKey: "review-session:001:defer:surface:v1",
+    });
+    const uncertain = reviewLifecycleFailureState(
+      new TypeError("connection closed"),
+      input,
+    );
+    const stale = reviewLifecycleFailureState(
+      new ProjectDataError("stale", 409),
+      input,
+    );
+    const unauthorized = reviewLifecycleFailureState(
+      new ProjectDataError("forbidden", 403),
+      input,
+    );
+
+    const pendingMarkup = render(
+      <ReviewLifecycleNotice
+        review={review}
+        lifecycle={{ state: "pending", input }}
+        onRetry={() => undefined}
+      />,
+    );
+    const uncertainMarkup = render(
+      <ReviewLifecycleNotice
+        review={review}
+        lifecycle={uncertain}
+        onRetry={() => undefined}
+      />,
+    );
+    const staleMarkup = render(
+      <ReviewLifecycleNotice
+        review={review}
+        lifecycle={stale}
+        onRetry={() => undefined}
+        onRefresh={() => undefined}
+      />,
+    );
+    const unauthorizedMarkup = render(
+      <ReviewLifecycleNotice
+        review={review}
+        lifecycle={unauthorized}
+        onRetry={() => undefined}
+      />,
+    );
+    const successMarkup = render(
+      <ReviewLifecycleNotice
+        review={review}
+        lifecycle={{ state: "success", applied: false, input }}
+        onRetry={() => undefined}
+      />,
+    );
+
+    expect(pendingMarkup).toContain('role="status"');
+    expect(pendingMarkup).toContain("No decision is shown as recorded yet");
+    expect(uncertainMarkup).toContain('role="alert"');
+    expect(uncertainMarkup).toContain("Retry exact command");
+    expect(uncertainMarkup).toContain("without applying it again");
+    expect(staleMarkup).toContain("Refresh Review");
+    expect(staleMarkup).toContain("Nothing is shown as deferred");
+    expect(unauthorizedMarkup).toContain("was not authorized");
+    expect(successMarkup).toContain("retained result for this exact command");
+    expect(successMarkup).toContain("Return to Inlet cycle review");
+    expect(successMarkup).not.toContain(input.commandId);
   });
 
   it("states the represented position instead of mixing projection generations", () => {

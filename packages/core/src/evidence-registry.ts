@@ -154,7 +154,9 @@ export interface CommandAuthorizationRequest {
     | "RestoreProjectSource"
     | "CreateProjectSourceReplacement"
     | "RetractProjectSourceReplacement"
-    | "InvokeSuggestedAction";
+    | "InvokeSuggestedAction"
+    | "DeferReviewSession"
+    | "ReopenReviewSession";
   readonly projectId: string;
 }
 

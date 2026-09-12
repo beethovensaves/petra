@@ -21,7 +21,9 @@ import type {
   PetraProjectObjectLocationView,
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
-  PetraProjectReviewView,
+  PetraProjectReviewViewRecord,
+  PetraReviewSessionLifecycleReceipt,
+  PetraReviewSessionRecord,
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraSuggestedActionView,
@@ -36,6 +38,7 @@ import type {
   PetraProjectThreadView,
   PetraProjectWorkView,
   ProjectDefinitionTerm,
+  CommandReviewSessionRef,
   ProjectSourceLifecycleExactSourceRef,
   ProjectSourceReplacementActiveSourceRef,
   ProjectSourceReplacementContent,
@@ -1396,11 +1399,11 @@ const sourceView = (value: unknown): PetraProjectSourceView => {
   return value as unknown as PetraProjectSourceView;
 };
 
-const reviewView = (value: unknown): PetraProjectReviewView => {
+const reviewView = (value: unknown): PetraProjectReviewViewRecord => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-review-view" ||
-    value.schema_version !== "1.0.0" ||
+    (value.schema_version !== "1.0.0" && value.schema_version !== "1.1.0") ||
     typeof value.project_id !== "string" ||
     typeof value.review_session_id !== "string" ||
     !isRecord(value.content) ||
@@ -1412,7 +1415,7 @@ const reviewView = (value: unknown): PetraProjectReviewView => {
       502,
     );
   }
-  return value as unknown as PetraProjectReviewView;
+  return value as unknown as PetraProjectReviewViewRecord;
 };
 
 const relationshipView = (value: unknown): PetraProjectRelationshipView => {
@@ -1834,6 +1837,34 @@ export interface RetractProjectSourceReplacementResponse {
   readonly applied: boolean;
 }
 
+interface ReviewSessionLifecycleCommandInputBase {
+  readonly projectId: string;
+  readonly reviewSessionId: string;
+  readonly commandId: string;
+  readonly idempotencyKey: string;
+  readonly rationale?: string;
+}
+
+export type ReviewSessionLifecycleCommandInput =
+  | (ReviewSessionLifecycleCommandInputBase & {
+      readonly requestedAction: "defer";
+      readonly expectedReviewSessionRef: CommandReviewSessionRef & {
+        readonly lifecycle: "open";
+      };
+    })
+  | (ReviewSessionLifecycleCommandInputBase & {
+      readonly requestedAction: "reopen";
+      readonly expectedReviewSessionRef: CommandReviewSessionRef & {
+        readonly lifecycle: "deferred";
+      };
+    });
+
+export interface ReviewSessionLifecycleCommandResponse {
+  readonly receipt: PetraReviewSessionLifecycleReceipt;
+  readonly reviewSession: PetraReviewSessionRecord;
+  readonly applied: boolean;
+}
+
 const projectSourceLifecycleCommandResponse = (
   value: unknown,
   input: ProjectSourceLifecycleCommandInput,
@@ -1889,6 +1920,118 @@ const projectSourceLifecycleCommandResponse = (
   return {
     receipt: value.receipt as unknown as PetraProjectSourceLifecycleReceipt,
     projectSource: value.project_source as unknown as PetraProjectSource,
+    applied: value.applied,
+  };
+};
+
+const reviewSessionLifecycleCommandResponse = (
+  value: unknown,
+  input: ReviewSessionLifecycleCommandInput,
+): ReviewSessionLifecycleCommandResponse => {
+  if (
+    !isRecord(value) ||
+    typeof value.applied !== "boolean" ||
+    !isRecord(value.receipt) ||
+    value.receipt.schema_name !== "petra.review-session-lifecycle-receipt" ||
+    value.receipt.schema_version !== "1.0.0" ||
+    value.receipt.project_id !== input.projectId ||
+    !isRecord(value.receipt.content) ||
+    !isRecord(value.receipt.content.command_ref) ||
+    value.receipt.content.command_ref.command_id !== input.commandId ||
+    value.receipt.content.command_ref.idempotency_key !==
+      input.idempotencyKey ||
+    value.receipt.content.command_ref.command_name !==
+      (input.requestedAction === "defer"
+        ? "DeferReviewSession"
+        : "ReopenReviewSession") ||
+    !isRecord(value.receipt.content.prior_review_session_ref) ||
+    value.receipt.content.prior_review_session_ref.review_session_id !==
+      input.reviewSessionId ||
+    value.receipt.content.prior_review_session_ref.revision !==
+      input.expectedReviewSessionRef.revision ||
+    value.receipt.content.prior_review_session_ref.content_hash !==
+      input.expectedReviewSessionRef.content_hash ||
+    value.receipt.content.prior_review_session_ref.lifecycle !==
+      input.expectedReviewSessionRef.lifecycle ||
+    value.receipt.content.transition !==
+      (input.requestedAction === "defer" ? "deferred" : "reopened") ||
+    value.receipt.content.rationale !== input.rationale ||
+    !isRecord(value.receipt.content.resulting_review_session_ref) ||
+    value.receipt.content.resulting_review_session_ref.review_session_id !==
+      input.reviewSessionId ||
+    value.receipt.content.resulting_review_session_ref.revision !==
+      input.expectedReviewSessionRef.revision + 1 ||
+    typeof value.receipt.content.resulting_review_session_ref.content_hash !==
+      "string" ||
+    !CONTENT_HASH.test(
+      value.receipt.content.resulting_review_session_ref.content_hash,
+    ) ||
+    typeof value.receipt.content.resulting_review_session_ref.record_hash !==
+      "string" ||
+    !CONTENT_HASH.test(
+      value.receipt.content.resulting_review_session_ref.record_hash,
+    ) ||
+    value.receipt.content.resulting_review_session_ref.lifecycle !==
+      (input.requestedAction === "defer" ? "deferred" : "open") ||
+    !isRecord(value.receipt.content.preservation) ||
+    value.receipt.content.preservation.review_history !== "retained" ||
+    value.receipt.content.preservation.working_candidates !== "retained" ||
+    value.receipt.content.preservation.working_relationships !== "retained" ||
+    value.receipt.content.preservation.change_sets !== "retained" ||
+    value.receipt.content.preservation.approvals !== "retained" ||
+    value.receipt.content.preservation.command_events !==
+      "retained_unchanged" ||
+    value.receipt.content.preservation.projection_receipts !==
+      "retained_unchanged" ||
+    !isRecord(value.receipt.content.authority_boundary) ||
+    value.receipt.content.authority_boundary.review_decision !== "none" ||
+    value.receipt.content.authority_boundary.domain_authority !== "unchanged" ||
+    value.receipt.content.authority_boundary.change_set_authority !== "none" ||
+    value.receipt.content.authority_boundary.validation_authority !== "none" ||
+    value.receipt.content.authority_boundary.domain_event_effect !== "none" ||
+    value.receipt.content.authority_boundary.projection_effect !== "none" ||
+    !isRecord(value.receipt.content.recovery) ||
+    value.receipt.content.recovery.state !== "available" ||
+    value.receipt.content.recovery.inverse_command_name !==
+      (input.requestedAction === "defer"
+        ? "ReopenReviewSession"
+        : "DeferReviewSession") ||
+    !isRecord(value.receipt.content.recovery.expected_review_session_ref) ||
+    value.receipt.content.recovery.expected_review_session_ref
+      .review_session_id !== input.reviewSessionId ||
+    value.receipt.content.recovery.expected_review_session_ref.revision !==
+      value.receipt.content.resulting_review_session_ref.revision ||
+    value.receipt.content.recovery.expected_review_session_ref.content_hash !==
+      value.receipt.content.resulting_review_session_ref.content_hash ||
+    value.receipt.content.recovery.expected_review_session_ref.record_hash !==
+      value.receipt.content.resulting_review_session_ref.record_hash ||
+    value.receipt.content.recovery.expected_review_session_ref.lifecycle !==
+      value.receipt.content.resulting_review_session_ref.lifecycle ||
+    !isRecord(value.review_session) ||
+    value.review_session.schema_name !== "petra.review-session" ||
+    (value.review_session.schema_version !== "1.0.0" &&
+      value.review_session.schema_version !== "1.1.0") ||
+    value.review_session.project_id !== input.projectId ||
+    value.review_session.review_session_id !== input.reviewSessionId ||
+    !Number.isSafeInteger(value.review_session.revision) ||
+    value.review_session.revision !==
+      value.receipt.content.resulting_review_session_ref.revision ||
+    typeof value.review_session.content_hash !== "string" ||
+    !CONTENT_HASH.test(value.review_session.content_hash) ||
+    value.review_session.content_hash !==
+      value.receipt.content.resulting_review_session_ref.content_hash ||
+    !isRecord(value.review_session.content) ||
+    value.review_session.content.lifecycle !==
+      value.receipt.content.resulting_review_session_ref.lifecycle
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid ReviewSession lifecycle command result.",
+      502,
+    );
+  }
+  return {
+    receipt: value.receipt as unknown as PetraReviewSessionLifecycleReceipt,
+    reviewSession: value.review_session as unknown as PetraReviewSessionRecord,
     applied: value.applied,
   };
 };
@@ -2505,8 +2648,45 @@ export const sourceRecordFromView = (
   };
 };
 
+const reviewReturnPath = (view: PetraProjectReviewViewRecord): string => {
+  const projectRoot = `/projects/${encodeURIComponent(view.project_id)}`;
+  const context = view.content.session.return_context;
+  const objectRef =
+    context.object_ref === undefined
+      ? undefined
+      : encodeURIComponent(context.object_ref);
+
+  if (context.place === "brief") return `${projectRoot}/brief`;
+  if (context.place === "sources") {
+    return objectRef === undefined
+      ? `${projectRoot}/sources`
+      : `${projectRoot}/sources/${objectRef}`;
+  }
+  if (context.place === "review") {
+    return objectRef === undefined
+      ? `${projectRoot}/review`
+      : `${projectRoot}/review/${objectRef}`;
+  }
+  if (context.place === "work") {
+    return objectRef === undefined
+      ? `${projectRoot}/work`
+      : `${projectRoot}/work/${objectRef}`;
+  }
+  if (context.place === "composition") {
+    return objectRef === undefined
+      ? `${projectRoot}/composition`
+      : `${projectRoot}/composition/${objectRef}`;
+  }
+  if (context.place === "profile_tool") {
+    return objectRef === undefined
+      ? `${projectRoot}/brief`
+      : `${projectRoot}/tools/${objectRef}`;
+  }
+  return `${projectRoot}/${context.place}`;
+};
+
 export const reviewSessionFromView = (
-  view: PetraProjectReviewView,
+  view: PetraProjectReviewViewRecord,
 ): ReviewSession => {
   if (view.content.members.length !== 1) {
     throw new ProjectDataError(
@@ -2528,6 +2708,10 @@ export const reviewSessionFromView = (
   return {
     id: view.review_session_id,
     projectId: view.project_id,
+    exactRef: {
+      revision: view.content.session.revision,
+      contentHash: view.content.session.content_hash,
+    },
     title: view.content.session.title,
     objective: view.content.session.objective_summary,
     status: view.content.session.status,
@@ -2535,6 +2719,7 @@ export const reviewSessionFromView = (
     responsible: view.content.session.responsible.display_name,
     snapshot: `Authority event ${view.content.session.snapshot.event_position} · Project stream ${view.content.session.snapshot.stream_revision}${view.content.session.snapshot_state === "stale" ? " · stale" : ""}`,
     returnLabel: view.content.session.return_context.label,
+    returnPath: reviewReturnPath(view),
     candidate: {
       id: member.candidate.candidate_id,
       revision: member.candidate.revision_label,
@@ -4106,6 +4291,41 @@ export const executeProjectSourceLifecycleCommand = async (
   return projectSourceLifecycleCommandResponse(value, input);
 };
 
+export const executeReviewSessionLifecycleCommand = async (
+  input: ReviewSessionLifecycleCommandInput,
+): Promise<ReviewSessionLifecycleCommandResponse> => {
+  if (
+    input.expectedReviewSessionRef.review_session_id !==
+      input.reviewSessionId ||
+    (input.requestedAction === "defer" &&
+      input.expectedReviewSessionRef.lifecycle !== "open") ||
+    (input.requestedAction === "reopen" &&
+      input.expectedReviewSessionRef.lifecycle !== "deferred")
+  ) {
+    throw new ProjectDataError(
+      "A ReviewSession lifecycle command must bind the route session's exact eligible state.",
+      400,
+    );
+  }
+  const value = await requestJson(
+    `/api/commands/projects/${encodeURIComponent(input.projectId)}/reviews/${encodeURIComponent(input.reviewSessionId)}/lifecycle`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        command_id: input.commandId,
+        idempotency_key: input.idempotencyKey,
+        requested_action: input.requestedAction,
+        expected_review_session_ref: input.expectedReviewSessionRef,
+        ...(input.rationale === undefined
+          ? {}
+          : { rationale: input.rationale }),
+      }),
+    },
+  );
+  return reviewSessionLifecycleCommandResponse(value, input);
+};
+
 export const createProjectSourceReplacement = async (
   input: CreateProjectSourceReplacementInput,
 ): Promise<CreateProjectSourceReplacementResponse> => {
@@ -4302,6 +4522,41 @@ const randomUlidPayload = (): string => {
     value >>= 5n;
   }
   return payload;
+};
+
+export interface ReviewSessionDeferCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+  readonly rationale?: string;
+}
+
+/**
+ * Creates only caller-owned DeferReviewSession input from the exact session
+ * reference returned by the authenticated Review read. The server still
+ * resolves authority and rechecks the current lifecycle.
+ */
+export const createReviewSessionDeferCommandInput = (
+  review: ReviewSession,
+  options: ReviewSessionDeferCommandOptions = {},
+): ReviewSessionLifecycleCommandInput => {
+  const identity = randomUlidPayload();
+  return {
+    projectId: review.projectId,
+    reviewSessionId: review.id,
+    commandId: options.commandId ?? `command_${identity}`,
+    idempotencyKey:
+      options.idempotencyKey ?? `review-session:${identity}:defer`,
+    requestedAction: "defer",
+    expectedReviewSessionRef: {
+      review_session_id: review.id,
+      revision: review.exactRef.revision,
+      content_hash: review.exactRef.contentHash,
+      lifecycle: "open",
+    },
+    ...(options.rationale === undefined
+      ? {}
+      : { rationale: options.rationale }),
+  };
 };
 
 export interface SuggestedActionInvocationRequestOptions {

@@ -19,6 +19,9 @@ import type {
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
+  PetraProjectReviewViewV110,
+  PetraReviewSessionLifecycleReceipt,
+  PetraReviewSessionV110,
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraSuggestedActionView,
@@ -33,6 +36,8 @@ import type {
   PetraSuggestedActionViewV11,
   PetraProjectThreadView,
   PetraProjectWorkView,
+  PetraWorkingCandidate,
+  PetraWorkingRelationship,
 } from "@petra/contracts";
 import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -40,11 +45,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   cancelProjectSuggestedActionWork,
   composeProjectHistoryCompensationPlan,
+  createReviewSessionDeferCommandInput,
   createSuggestedActionInvocationRequest,
   createSuggestedActionInteractionReplayRequest,
   createSuggestedActionWorkCancellationRequest,
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
+  executeReviewSessionLifecycleCommand,
   executeProjectHistoryCompensationPlan,
   getRecentProjectHistory,
   getProjectSuggestedAction,
@@ -309,6 +316,36 @@ const reviewView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectReviewView;
+
+const reviewSessionRecord = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/review-session-working-candidate.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraReviewSessionV110;
+
+const reviewWorkingCandidate = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/working-candidate.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraWorkingCandidate;
+
+const reviewWorkingRelationship = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/working-relationship.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraWorkingRelationship;
 
 const relationshipView = JSON.parse(
   readFileSync(
@@ -2207,6 +2244,183 @@ describe("Project shell workbench adapter", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
+  it("sends one exact ReviewSession defer command without client-carried authority", async () => {
+    const resultingSession: PetraReviewSessionV110 = {
+      ...structuredClone(reviewSessionRecord),
+      revision: reviewSessionRecord.revision + 1,
+      content: {
+        ...structuredClone(reviewSessionRecord.content),
+        lifecycle: "deferred",
+      },
+      content_hash: `sha256:${"1".repeat(64)}`,
+      updated_at: "2026-09-12T19:00:00.000Z",
+    };
+    const resultingRef = {
+      review_session_id: reviewSessionRecord.review_session_id,
+      revision: resultingSession.revision,
+      content_hash: resultingSession.content_hash,
+      record_hash: `sha256:${"2".repeat(64)}`,
+      lifecycle: "deferred" as const,
+    };
+    const receipt = {
+      schema_name: "petra.review-session-lifecycle-receipt",
+      schema_version: "1.0.0",
+      review_session_lifecycle_receipt_id:
+        "review_session_lifecycle_receipt_01K4D000000000000000000060",
+      revision: 1,
+      project_id: reviewSessionRecord.project_id,
+      content: {
+        command_ref: {
+          command_id: "command_01K4D000000000000000000061",
+          idempotency_key: "review-session:001:defer:client:v1",
+          command_name: "DeferReviewSession",
+          command_fingerprint: `sha256:${"3".repeat(64)}`,
+          actor: structuredClone(reviewSessionRecord.created_by),
+          capability_grant_id: "capability_grant_01K4D000000000000000000062",
+          correlation_id: "trace_01K4D000000000000000000063",
+        },
+        prior_review_session_ref: {
+          review_session_id: reviewSessionRecord.review_session_id,
+          revision: reviewSessionRecord.revision,
+          content_hash: reviewSessionRecord.content_hash,
+          record_hash: `sha256:${"4".repeat(64)}`,
+          lifecycle: "open",
+        },
+        resulting_review_session_ref: resultingRef,
+        transition: "deferred",
+        rationale: "Wait for the author to check the limitation.",
+        preservation: {
+          review_history: "retained",
+          working_candidates: "retained",
+          working_relationships: "retained",
+          change_sets: "retained",
+          approvals: "retained",
+          command_events: "retained_unchanged",
+          projection_receipts: "retained_unchanged",
+        },
+        authority_boundary: {
+          review_decision: "none",
+          domain_authority: "unchanged",
+          change_set_authority: "none",
+          validation_authority: "none",
+          domain_event_effect: "none",
+          projection_effect: "none",
+        },
+        recovery: {
+          state: "available",
+          inverse_command_name: "ReopenReviewSession",
+          expected_review_session_ref: resultingRef,
+        },
+      },
+      content_hash: `sha256:${"5".repeat(64)}`,
+      recorded_at: resultingSession.updated_at,
+    } as const satisfies PetraReviewSessionLifecycleReceipt;
+    const fetch = vi.fn(
+      (requestInput: RequestInfo | URL, init?: RequestInit) => {
+        void requestInput;
+        void init;
+        return Promise.resolve(
+          Response.json({
+            receipt,
+            review_session: resultingSession,
+            applied: true,
+          }),
+        );
+      },
+    );
+    vi.stubGlobal("fetch", fetch);
+    const input = {
+      projectId: reviewSessionRecord.project_id,
+      reviewSessionId: reviewSessionRecord.review_session_id,
+      commandId: receipt.content.command_ref.command_id,
+      idempotencyKey: receipt.content.command_ref.idempotency_key,
+      requestedAction: "defer" as const,
+      expectedReviewSessionRef: {
+        review_session_id: reviewSessionRecord.review_session_id,
+        revision: reviewSessionRecord.revision,
+        content_hash: reviewSessionRecord.content_hash,
+        lifecycle: "open" as const,
+      },
+      rationale: receipt.content.rationale,
+    };
+
+    await expect(executeReviewSessionLifecycleCommand(input)).resolves.toEqual({
+      receipt,
+      reviewSession: resultingSession,
+      applied: true,
+    });
+    const [requestPath, requestInit] = fetch.mock.calls[0]!;
+    expect(requestPath).toBe(
+      `/api/commands/projects/${input.projectId}/reviews/${input.reviewSessionId}/lifecycle`,
+    );
+    if (typeof requestInit?.body !== "string") {
+      throw new Error("Expected a JSON request body.");
+    }
+    const sent = JSON.parse(requestInit.body) as Record<string, unknown>;
+    expect(sent).toEqual({
+      command_id: input.commandId,
+      idempotency_key: input.idempotencyKey,
+      requested_action: input.requestedAction,
+      expected_review_session_ref: input.expectedReviewSessionRef,
+      rationale: input.rationale,
+    });
+    expect(sent).not.toHaveProperty("actor");
+    expect(sent).not.toHaveProperty("capability_grant_id");
+    expect(sent).not.toHaveProperty("project_id");
+
+    fetch.mockResolvedValueOnce(
+      Response.json({
+        receipt,
+        review_session: resultingSession,
+        applied: false,
+      }),
+    );
+    await expect(executeReviewSessionLifecycleCommand(input)).resolves.toEqual({
+      receipt,
+      reviewSession: resultingSession,
+      applied: false,
+    });
+    const retryBody = fetch.mock.calls[1]?.[1]?.body;
+    expect(retryBody).toBe(requestInit.body);
+
+    const corruptedReceipt = structuredClone(receipt) as unknown as {
+      content: { authority_boundary: { domain_authority: string } };
+    };
+    corruptedReceipt.content.authority_boundary.domain_authority = "changed";
+    fetch.mockResolvedValueOnce(
+      Response.json({
+        receipt: corruptedReceipt,
+        review_session: resultingSession,
+        applied: true,
+      }),
+    );
+    await expect(executeReviewSessionLifecycleCommand(input)).rejects.toThrow(
+      "invalid ReviewSession lifecycle command result",
+    );
+  });
+
+  it("rejects a ReviewSession lifecycle direction mismatch before transport", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", fetch);
+
+    await expect(
+      executeReviewSessionLifecycleCommand({
+        projectId: reviewSessionRecord.project_id,
+        reviewSessionId: reviewSessionRecord.review_session_id,
+        commandId: "command_01K4D000000000000000000064",
+        idempotencyKey: "review-session:001:defer:invalid:v1",
+        requestedAction: "defer",
+        expectedReviewSessionRef: {
+          review_session_id: "review_session_01K4D000000000000000000099",
+          revision: reviewSessionRecord.revision,
+          content_hash: reviewSessionRecord.content_hash,
+          lifecycle: "open",
+        },
+      }),
+    ).rejects.toThrow("route session's exact eligible state");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("sends exact replacement creation input without client-selected authority", async () => {
     const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       void input;
@@ -2339,6 +2553,13 @@ describe("Project shell workbench adapter", () => {
 
     expect(review.id).toBe("review_session_01K4D000000000000000000001");
     expect(review.status).toBe("needs_decision");
+    expect(review.exactRef).toEqual({
+      revision: reviewView.content.session.revision,
+      contentHash: reviewView.content.session.content_hash,
+    });
+    expect(review.returnPath).toBe(
+      "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources/project_source_01K4C000000000000000000007",
+    );
     expect(review.candidate.proposed).toBe(
       "The study reports a measurable improvement.",
     );
@@ -2359,7 +2580,57 @@ describe("Project shell workbench adapter", () => {
     expect(review.basis[0]?.sourceId).toBe(
       "project_source_01K4C000000000000000000007",
     );
+    expect(
+      createReviewSessionDeferCommandInput(review, {
+        commandId: "command_01K4D000000000000000000061",
+        idempotencyKey: "review-session:001:defer:client:v1",
+        rationale: "Wait for an exact source check.",
+      }),
+    ).toEqual({
+      projectId: review.projectId,
+      reviewSessionId: review.id,
+      commandId: "command_01K4D000000000000000000061",
+      idempotencyKey: "review-session:001:defer:client:v1",
+      requestedAction: "defer",
+      expectedReviewSessionRef: {
+        review_session_id: review.id,
+        revision: review.exactRef.revision,
+        content_hash: review.exactRef.contentHash,
+        lifecycle: "open",
+      },
+      rationale: "Wait for an exact source check.",
+    });
     expect(reviewView).toEqual(before);
+  });
+
+  it("maps the additive working Review composition without changing the frozen Review model", () => {
+    const workingView = structuredClone(
+      reviewView,
+    ) as unknown as PetraProjectReviewViewV110;
+    workingView.schema_version = "1.1.0";
+    workingView.content.members[0].working_state = {
+      candidate: structuredClone(reviewWorkingCandidate),
+      relationships: [structuredClone(reviewWorkingRelationship)],
+      selection_basis: "exact_review_session_working_bindings",
+      authority_effect: "none",
+    };
+    workingView.content.members[0].change_sets =
+      workingView.content.members[0].change_sets.map((changeSet) => ({
+        ...changeSet,
+        commands: [],
+        events: [],
+      }));
+    workingView.content.projection = {
+      state: "unavailable",
+      reason: "No projection receipt exists for the submitted ChangeSet.",
+    };
+
+    expect(reviewSessionFromView(workingView)).toEqual(
+      reviewSessionFromView(reviewView),
+    );
+    expect(workingView.content.members[0].working_state.authority_effect).toBe(
+      "none",
+    );
   });
 
   it("maps one bounded current provenance path without inventing unavailable graph layers", () => {

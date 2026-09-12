@@ -153,7 +153,9 @@ describe("M1.9 interface recovery assertions", () => {
     expect(markup).toContain(
       "Refresh the comparison and prepare a new ChangeSet from current authority",
     );
-    expect(markup.match(/aria-disabled="true"/gu)).toHaveLength(3);
+    expect(markup.match(/aria-disabled="true"/gu)).toHaveLength(2);
+    expect(markup).toContain('data-operation="defer_review_session"');
+    expect(markup).toContain("server rechecks lifecycle and authority");
   });
 
   it("shows only the coherent represented Graph when projection is blocked", () => {

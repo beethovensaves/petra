@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/command-envelope/1.4.0/schema.json",
+  "title": "PetraCommandEnvelopeV140",
+  "description": "The adapter-neutral command envelope extended with explicit ReviewSession defer and reopen transitions. Neither transition grants approval or domain mutation authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "correlation_id",
+    "submitted_at",
+    "command"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.command-envelope" },
+    "schema_version": { "const": "1.4.0" },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+    "capability_grant_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+    },
+    "correlation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+    },
+    "causation_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "command": { "$ref": "#/$defs/Command" }
+  },
+  "$defs": {
+    "Command": {
+      "oneOf": [
+        { "$ref": "../../command-envelope/1.3.0/schema.json#/$defs/Command" },
+        { "$ref": "#/$defs/DeferReviewSession" },
+        { "$ref": "#/$defs/ReopenReviewSession" }
+      ]
+    },
+    "ExactReviewSessionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_session_id",
+        "revision",
+        "content_hash",
+        "lifecycle"
+      ],
+      "properties": {
+        "review_session_id": {
+          "type": "string",
+          "pattern": "^review_session_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "lifecycle": { "enum": ["open", "deferred", "completed"] }
+      }
+    },
+    "DeferReviewSession": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_name", "expected_review_session_ref"],
+      "properties": {
+        "command_name": { "const": "DeferReviewSession" },
+        "expected_review_session_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/ExactReviewSessionRef" },
+            {
+              "type": "object",
+              "properties": { "lifecycle": { "const": "open" } }
+            }
+          ]
+        },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "ReopenReviewSession": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_name", "expected_review_session_ref"],
+      "properties": {
+        "command_name": { "const": "ReopenReviewSession" },
+        "expected_review_session_ref": {
+          "allOf": [
+            { "$ref": "#/$defs/ExactReviewSessionRef" },
+            {
+              "type": "object",
+              "properties": { "lifecycle": { "const": "deferred" } }
+            }
+          ]
+        },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    }
+  }
+}
