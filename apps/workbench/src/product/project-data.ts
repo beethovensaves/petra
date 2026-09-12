@@ -2655,6 +2655,338 @@ export const graphQuestionFromView = (
   };
 };
 
+const overlayGraphPosition = (index: number): { x: number; y: number } => ({
+  x: 17 + (index % 4) * 22,
+  y: 16 + Math.floor(index / 4) * 22,
+});
+
+const overlayGraphError = (): ProjectDataError =>
+  new ProjectDataError(
+    "Petra returned a relationship overlay whose rendered and textual members do not match.",
+    502,
+  );
+
+const overlayExclusionLabel = (
+  exclusion: PetraProjectRelationshipOverlayView["content"]["completeness"]["exclusions"][number],
+): string =>
+  exclusion.reason === "not_referenced_by_selected_relationship"
+    ? "Working candidates excluded because no selected relationship references them"
+    : "Working relationships excluded because they are outside the authoritative path";
+
+export const graphQuestionFromOverlayView = (
+  view: PetraProjectRelationshipOverlayView,
+): GraphQuestion => {
+  const nodeByKey = new Map(
+    view.content.nodes.map((node) => [node.node_key, node]),
+  );
+  const relationshipByKey = new Map(
+    view.content.relationships.map((relationship) => [
+      relationship.relationship_key,
+      relationship,
+    ]),
+  );
+  const focusNode = view.content.nodes.find(
+    (node) =>
+      node.layer === "current" &&
+      node.owner.record_ref.record_id ===
+        view.content.query.authoritative_focus_ref.record_id &&
+      node.owner.record_ref.revision ===
+        view.content.query.authoritative_focus_ref.revision &&
+      node.owner.record_ref.record_hash ===
+        view.content.query.authoritative_focus_ref.record_hash,
+  );
+  const boundary = view.content.authority_boundary;
+  const hasExactMembers =
+    nodeByKey.size === view.content.nodes.length &&
+    relationshipByKey.size === view.content.relationships.length &&
+    view.content.completeness.returned_nodes === view.content.nodes.length &&
+    view.content.completeness.returned_relationships ===
+      view.content.relationships.length &&
+    view.content.completeness.returned_nodes ===
+      view.content.completeness.authoritative_nodes +
+        view.content.completeness.returned_working_candidate_revisions &&
+    view.content.completeness.returned_relationships ===
+      view.content.completeness.authoritative_relationships +
+        view.content.completeness.returned_working_relationships &&
+    view.content.textual_peer.nodes.length === view.content.nodes.length &&
+    view.content.textual_peer.relationships.length ===
+      view.content.relationships.length;
+  const hasExactBoundary =
+    boundary.working_domain_authority === false &&
+    boundary.working_review_decision === false &&
+    boundary.working_mutation_authority === false &&
+    boundary.validation_grants_authority === false &&
+    boundary.visibility_grants_authority === false &&
+    boundary.selection_grants_authority === false &&
+    boundary.projection_grants_authority === false &&
+    boundary.promotion_requires_review === true &&
+    boundary.layout_client_local === true &&
+    boundary.focus_client_local === true &&
+    boundary.disclosure_client_local === true &&
+    boundary.comparison_selection_client_local === true &&
+    boundary.navigation_history_client_local === true;
+
+  if (focusNode === undefined || !hasExactMembers || !hasExactBoundary) {
+    throw overlayGraphError();
+  }
+
+  for (const relationship of view.content.relationships) {
+    const source = nodeByKey.get(relationship.source_node_key);
+    const target = nodeByKey.get(relationship.target_node_key);
+    if (source === undefined || target === undefined) {
+      throw overlayGraphError();
+    }
+    if (
+      relationship.layer === "working" &&
+      (target.layer !== "working" ||
+        target.endpoint_posture !== relationship.target_endpoint_posture)
+    ) {
+      throw overlayGraphError();
+    }
+  }
+
+  for (const textNode of view.content.textual_peer.nodes) {
+    const node = nodeByKey.get(textNode.node_key);
+    if (
+      node === undefined ||
+      node.layer !== textNode.layer ||
+      node.object_term !== textNode.object_term ||
+      node.label !== textNode.label ||
+      node.summary !== textNode.summary ||
+      node.basis !== textNode.basis
+    ) {
+      throw overlayGraphError();
+    }
+  }
+
+  for (const textRelationship of view.content.textual_peer.relationships) {
+    const relationship = relationshipByKey.get(
+      textRelationship.relationship_key,
+    );
+    const source = nodeByKey.get(textRelationship.source_node_key);
+    const target = nodeByKey.get(textRelationship.target_node_key);
+    if (
+      relationship === undefined ||
+      source === undefined ||
+      target === undefined ||
+      relationship.layer !== textRelationship.layer ||
+      relationship.source_node_key !== textRelationship.source_node_key ||
+      relationship.target_node_key !== textRelationship.target_node_key ||
+      relationship.direction !== textRelationship.direction ||
+      relationship.label !== textRelationship.label ||
+      relationship.summary !== textRelationship.summary ||
+      relationship.meaning !== textRelationship.meaning ||
+      relationship.scope !== textRelationship.scope ||
+      relationship.basis !== textRelationship.basis ||
+      source.label !== textRelationship.source_label ||
+      target.label !== textRelationship.target_label
+    ) {
+      throw overlayGraphError();
+    }
+  }
+
+  const { authoritative, working } = view.content.positions;
+  const projection = authoritative.projection;
+  const unavailableHistorical =
+    "Historical authority is unavailable in this result.";
+  const endpointLabels = view.content.profile.endpoint_posture_labels;
+  return {
+    id: view.content.query.request_hash,
+    projectId: view.project_id,
+    question: view.content.query.question,
+    focusNodeId: focusNode.node_key,
+    scope: view.content.query.scope,
+    completeness: view.content.completeness.scope,
+    authoritativeSnapshot: `Authority event ${authoritative.authority.event_position} · Project stream ${authoritative.authority.stream_revision}`,
+    representedSnapshot: `Projection ${projection.state} · represented event ${projection.represented_event_position} · Project stream ${projection.represented_stream_revision} · graph target ${projection.represented_target_sequence} · observed event ${projection.observed_event_position} · observed stream ${projection.observed_stream_revision} · observed graph target ${projection.observed_target_sequence} · checkpoint ${projection.checkpoint_ref.record_id} revision ${projection.checkpoint_ref.revision} · ${projection.pending_records} pending`,
+    historicalSnapshot: unavailableHistorical,
+    workingRevision: `Working snapshot ${working.snapshot_ref.content_hash} · read ${working.snapshot_ref.read_at} · based on authority event ${working.base_authority.event_position} · Project stream ${working.base_authority.stream_revision}`,
+    projectionState:
+      projection.state === "blocked" ? "unavailable" : projection.state,
+    projectionDetail: projection.detail,
+    layerLabels: {
+      current: view.content.profile.layer_labels.current,
+      working: view.content.profile.layer_labels.working,
+      historical: "Historical",
+    },
+    positionLabels: {
+      current: `Represented event ${projection.represented_event_position} · Project stream ${projection.represented_stream_revision}`,
+      working: `Working snapshot · based on authority event ${working.base_authority.event_position} · Project stream ${working.base_authority.stream_revision}`,
+      historical: unavailableHistorical,
+    },
+    layerCounts: {
+      current: {
+        objects: view.content.completeness.authoritative_nodes,
+        relationships: view.content.completeness.authoritative_relationships,
+        objectLayers: {
+          current: view.content.completeness.authoritative_nodes,
+        },
+      },
+      working: {
+        objects: view.content.completeness.returned_nodes,
+        relationships: view.content.completeness.returned_relationships,
+        objectLayers: {
+          current: view.content.completeness.authoritative_nodes,
+          working:
+            view.content.completeness.returned_working_candidate_revisions,
+        },
+      },
+      historical: { objects: 0, relationships: 0 },
+    },
+    layerAvailability: {
+      current: {
+        available: view.content.capabilities.current === "available",
+        label: view.content.profile.layer_labels.current,
+      },
+      working: {
+        available: view.content.capabilities.working === "available",
+        label: view.content.profile.layer_labels.working,
+      },
+      historical: { available: false, label: unavailableHistorical },
+    },
+    resultCounts: [
+      {
+        label: "Authoritative objects",
+        value: view.content.completeness.authoritative_nodes,
+      },
+      {
+        label: "Authoritative relationships",
+        value: view.content.completeness.authoritative_relationships,
+      },
+      {
+        label: "Current working candidate heads",
+        value: view.content.completeness.current_working_candidate_heads,
+      },
+      {
+        label: "Current working relationship heads",
+        value: view.content.completeness.current_working_relationship_heads,
+      },
+      {
+        label: "Returned working candidate revisions",
+        value: view.content.completeness.returned_working_candidate_revisions,
+      },
+      {
+        label: "Returned working relationships",
+        value: view.content.completeness.returned_working_relationships,
+      },
+      {
+        label: "Referenced earlier working candidate revisions",
+        value:
+          view.content.completeness
+            .referenced_non_current_working_candidate_revisions,
+      },
+      {
+        label: "Returned objects",
+        value: view.content.completeness.returned_nodes,
+      },
+      {
+        label: "Returned relationships",
+        value: view.content.completeness.returned_relationships,
+      },
+      ...view.content.completeness.exclusions.map((exclusion) => ({
+        label: overlayExclusionLabel(exclusion),
+        value: exclusion.count,
+      })),
+    ],
+    omissions: [...view.content.completeness.omissions],
+    limitations: [...view.content.limitations],
+    authorityBoundary:
+      "Working records are not Project authority. Validation, visibility, selection, and projection do not grant authority; promotion requires Review.",
+    nodes: view.content.nodes.map((node, index) => ({
+      id: node.node_key,
+      label: node.label,
+      kind: node.object_term,
+      summary: node.summary,
+      basis: node.basis,
+      ...(node.layer === "current" && node.source_destination !== undefined
+        ? { sourceId: node.source_destination.project_source_id }
+        : {}),
+      semanticLayer: node.layer,
+      ...(node.layer === "working"
+        ? {
+            endpointPosture: endpointLabels[node.endpoint_posture],
+            validationSummary: node.validation_summary,
+          }
+        : {}),
+      layers: node.layer === "current" ? ["current", "working"] : ["working"],
+      position: overlayGraphPosition(index),
+    })),
+    edges: view.content.relationships.map((relationship) => ({
+      id: relationship.relationship_key,
+      from: relationship.source_node_key,
+      to: relationship.target_node_key,
+      label: relationship.label,
+      summary: relationship.summary,
+      basis: relationship.basis,
+      meaning: relationship.meaning,
+      scope: relationship.scope,
+      direction: relationship.direction,
+      semanticLayer: relationship.layer,
+      ...(relationship.layer === "working"
+        ? {
+            endpointPosture:
+              endpointLabels[relationship.target_endpoint_posture],
+            validationSummary: relationship.validation_summary,
+          }
+        : {}),
+      layers:
+        relationship.layer === "current" ? ["current", "working"] : ["working"],
+      tone: relationship.layer === "working" ? "working" : "neutral",
+    })),
+    textualPeer: {
+      title: view.content.textual_peer.title,
+      scope: view.content.textual_peer.scope,
+      completeness: view.content.textual_peer.completeness,
+      nodes: view.content.textual_peer.nodes.map((textNode) => {
+        const node = nodeByKey.get(textNode.node_key)!;
+        return {
+          id: textNode.node_key,
+          layer: textNode.layer,
+          kind: textNode.object_term,
+          label: textNode.label,
+          summary: textNode.summary,
+          basis: textNode.basis,
+          ...(node.layer === "working"
+            ? {
+                endpointPosture: endpointLabels[node.endpoint_posture],
+                validationSummary: node.validation_summary,
+              }
+            : {}),
+        };
+      }),
+      relationships: view.content.textual_peer.relationships.map(
+        (textRelationship) => {
+          const relationship = relationshipByKey.get(
+            textRelationship.relationship_key,
+          )!;
+          return {
+            id: textRelationship.relationship_key,
+            layer: textRelationship.layer,
+            from: textRelationship.source_node_key,
+            fromLabel: textRelationship.source_label,
+            direction: textRelationship.direction,
+            label: textRelationship.label,
+            to: textRelationship.target_node_key,
+            toLabel: textRelationship.target_label,
+            summary: textRelationship.summary,
+            meaning: textRelationship.meaning,
+            scope: textRelationship.scope,
+            basis: textRelationship.basis,
+            ...(relationship.layer === "working"
+              ? {
+                  endpointPosture:
+                    endpointLabels[relationship.target_endpoint_posture],
+                  validationSummary: relationship.validation_summary,
+                }
+              : {}),
+          };
+        },
+      ),
+      omissions: [...view.content.textual_peer.omissions],
+    },
+  };
+};
+
 export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
   const value = await requestJson("/api/queries/projects");
   if (!isRecord(value) || !Array.isArray(value.projects)) {
@@ -4909,6 +5241,17 @@ export const loadProjectRelationshipOverlay = async (
     );
   }
   return view;
+};
+
+export const loadProjectRelationshipOverlayGraph = async ({
+  params,
+  ...args
+}: LoaderFunctionArgs): Promise<GraphQuestion | undefined> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const view = await loadProjectRelationshipOverlay(projectId);
+  return view === undefined
+    ? loadProjectRelationshipView({ params, ...args })
+    : graphQuestionFromOverlayView(view);
 };
 
 const exactSelection = (

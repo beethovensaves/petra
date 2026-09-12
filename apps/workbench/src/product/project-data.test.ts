@@ -55,8 +55,10 @@ import {
   getProjectSuggestedActionInvocation,
   getProjectSuggestedWorkAction,
   getRetainedProjectHistory,
+  graphQuestionFromOverlayView,
   graphQuestionFromView,
   loadProjectRelationshipOverlay,
+  loadProjectRelationshipOverlayGraph,
   loadProjectObjectLocationRedirect,
   loadProjectBrief,
   loadProjectPetra,
@@ -358,6 +360,365 @@ const relationshipOverlayView = {
     ],
   },
   content_hash: `sha256:${"3".repeat(64)}`,
+  read_at: "2026-09-12T14:30:00.000Z",
+} as unknown as PetraProjectRelationshipOverlayView;
+
+const overlayDefinitionRef = {
+  project_definition_id: "project_definition_01K4C000000000000000000001",
+  revision: 2,
+  content_hash: `sha256:${"1".repeat(64)}`,
+  record_hash: `sha256:${"2".repeat(64)}`,
+  definition_family: "petra.scientific-evidence",
+};
+const overlayWorkNodeKey =
+  "current:work_version_01K4D000000000000000000001:1:sha256:1111111111111111111111111111111111111111111111111111111111111111";
+const overlayClaimNodeKey =
+  "current:claim_01K4D000000000000000000001:1:sha256:2222222222222222222222222222222222222222222222222222222222222222";
+const overlayCandidateHeadNodeKey =
+  "working:working_candidate_01K4D000000000000000000002:2:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+const overlayCandidateEarlierNodeKey =
+  "working:working_candidate_01K4D000000000000000000002:1:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const overlayCurrentRelationshipKey =
+  "current:assertion_01K4D000000000000000000001:1";
+const overlayWorkingRelationshipKey =
+  "working:working_relationship_01K4D000000000000000000003:1";
+
+const overlayNodes = [
+  {
+    node_key: overlayWorkNodeKey,
+    layer: "current",
+    owner: {
+      owner_kind: "authoritative_record",
+      record_ref: {
+        record_id: "work_version_01K4D000000000000000000001",
+        revision: 1,
+        record_hash: `sha256:${"1".repeat(64)}`,
+      },
+    },
+    object_kind: "work_version",
+    object_term: "Work version",
+    label: "Evidence extraction · version 1",
+    summary: "The exact authoritative Work version on the selected path.",
+    basis: "Accepted Work record.",
+    lifecycle: "represented",
+  },
+  {
+    node_key: overlayClaimNodeKey,
+    layer: "current",
+    owner: {
+      owner_kind: "authoritative_record",
+      record_ref: {
+        record_id: "claim_01K4D000000000000000000001",
+        revision: 1,
+        record_hash: `sha256:${"2".repeat(64)}`,
+      },
+    },
+    object_kind: "claim",
+    object_term: "Claim",
+    label: "Current reported improvement",
+    summary: "The current authoritative Claim on the selected path.",
+    basis: "Accepted Claim revision 1.",
+    lifecycle: "represented",
+  },
+  {
+    node_key: overlayCandidateHeadNodeKey,
+    layer: "working",
+    owner: {
+      owner_kind: "working_candidate",
+      working_candidate_ref: {
+        working_candidate_id: "working_candidate_01K4D000000000000000000002",
+        revision: 2,
+        content_hash: `sha256:${"b".repeat(64)}`,
+        record_hash: `sha256:${"b".repeat(64)}`,
+      },
+    },
+    profile_record_ref: {
+      record_id: "claim_01K4D000000000000000000002",
+      revision: 2,
+      record_hash: `sha256:${"b".repeat(64)}`,
+    },
+    object_term: "Claim",
+    label: "Narrowed working Claim",
+    summary: "The current working candidate head after a material correction.",
+    basis: "Human correction in ProjectThread turn 9.",
+    validation_summary: "Validation pending for revision 2.",
+    endpoint_posture: "current_working_head",
+  },
+  {
+    node_key: overlayCandidateEarlierNodeKey,
+    layer: "working",
+    owner: {
+      owner_kind: "working_candidate",
+      working_candidate_ref: {
+        working_candidate_id: "working_candidate_01K4D000000000000000000002",
+        revision: 1,
+        content_hash: `sha256:${"a".repeat(64)}`,
+        record_hash: `sha256:${"a".repeat(64)}`,
+      },
+    },
+    profile_record_ref: {
+      record_id: "claim_01K4D000000000000000000002",
+      revision: 1,
+      record_hash: `sha256:${"a".repeat(64)}`,
+    },
+    object_term: "Claim",
+    label: "Earlier working Claim",
+    summary:
+      "The exact earlier revision referenced by the working relationship.",
+    basis: "Model extraction from the bounded source span.",
+    validation_summary:
+      "Validation completed: two passed; validation does not grant authority.",
+    endpoint_posture: "non_current_working_endpoint",
+  },
+];
+
+const overlayRelationships = [
+  {
+    relationship_key: overlayCurrentRelationshipKey,
+    layer: "current",
+    owner: {
+      owner_kind: "authoritative_relationship",
+      relationship_ref: {
+        element_id: "assertion_01K4D000000000000000000001",
+        revision: 1,
+        record_hash: `sha256:${"3".repeat(64)}`,
+      },
+    },
+    source_node_key: overlayWorkNodeKey,
+    target_node_key: overlayClaimNodeKey,
+    direction: "outgoing",
+    relation_class: "representation",
+    label: "asserts",
+    summary: "The Work version records the current Claim.",
+    meaning: "This is the accepted representation relationship.",
+    scope: "The exact authoritative path in this result.",
+    basis: "Accepted Assertion revision 1.",
+  },
+  {
+    relationship_key: overlayWorkingRelationshipKey,
+    layer: "working",
+    owner: {
+      owner_kind: "working_relationship",
+      working_relationship_ref: {
+        working_relationship_id:
+          "working_relationship_01K4D000000000000000000003",
+        revision: 1,
+        content_hash: `sha256:${"4".repeat(64)}`,
+        record_hash: `sha256:${"4".repeat(64)}`,
+      },
+    },
+    profile_record_ref: {
+      record_id: "assertion_01K4D000000000000000000002",
+      revision: 1,
+      record_hash: `sha256:${"4".repeat(64)}`,
+    },
+    source_node_key: overlayWorkNodeKey,
+    target_node_key: overlayCandidateEarlierNodeKey,
+    target_endpoint_posture: "non_current_working_endpoint",
+    direction: "outgoing",
+    relation_class: "representation",
+    relationship_term: "Evidence relationship",
+    label: "asserts",
+    summary:
+      "The exact working relationship still targets candidate revision 1.",
+    meaning:
+      "This is working source representation, not authority or approval.",
+    scope: "The exact working input snapshot.",
+    basis: "Working relationship revision 1.",
+    validation_summary:
+      "Validation completed: one passed; validation does not grant authority.",
+  },
+];
+
+const relationshipOverlayGraphView = {
+  schema_name: "petra.project-relationship-overlay-view",
+  schema_version: "1.0.0",
+  project_id: relationshipView.project_id,
+  content: {
+    query: {
+      request_hash: `sha256:${"0".repeat(64)}`,
+      query_kind: "scientific_provenance_working_overlay",
+      question: "Which exact Work version supports this Claim?",
+      scope: "One bounded provenance path and its relevant working overlay.",
+      authoritative_focus_ref: {
+        record_id: "claim_01K4D000000000000000000001",
+        revision: 1,
+        record_hash: `sha256:${"2".repeat(64)}`,
+      },
+      maximum_authoritative_depth: 3,
+      working_selection:
+        "current_relationship_heads_on_authoritative_path_with_exact_candidate_endpoints",
+    },
+    profile: {
+      project_definition_ref: overlayDefinitionRef,
+      label: "Scientific evidence",
+      object_term: {
+        semantic_key: "scientific.claim",
+        singular: "Claim",
+        plural: "Claims",
+        definition: "A bounded evidence statement.",
+      },
+      relationship_term: {
+        semantic_key: "scientific.assertion",
+        singular: "Evidence relationship",
+        plural: "Evidence relationships",
+        definition: "A recorded evidence relationship.",
+      },
+      source_term: {
+        semantic_key: "scientific.literature",
+        singular: "Source",
+        plural: "Sources",
+        definition: "A registered scientific source.",
+      },
+      layer_labels: {
+        current: "Current authority",
+        working: "Working — not authoritative",
+      },
+      endpoint_posture_labels: {
+        current_working_head: "Current working revision",
+        non_current_working_endpoint:
+          "Referenced earlier working revision — not current",
+      },
+    },
+    capabilities: {
+      current: "available",
+      working: "available",
+      historical_authority: "unavailable",
+      historical_working_endpoints: "exact_references_only",
+      comparison: "unavailable",
+      expansion: "unavailable",
+      continuation: "unavailable",
+      text_peer: "available",
+    },
+    positions: {
+      isolation:
+        "repeatable_read_working_with_exact_authoritative_projection_guard",
+      authoritative: {
+        source_view_ref: {
+          schema_name: "petra.project-relationship-view",
+          schema_version: "1.0.0",
+          content_hash: `sha256:${"5".repeat(64)}`,
+          read_at: "2026-09-12T14:29:59.000Z",
+        },
+        authority: { event_position: 42, stream_revision: 7 },
+        projection: {
+          checkpoint_ref: {
+            record_id: "projection_checkpoint_01K4D000000000000000000001",
+            revision: 3,
+            content_hash: `sha256:${"6".repeat(64)}`,
+          },
+          state: "current",
+          represented_event_position: 42,
+          represented_stream_revision: 7,
+          represented_target_sequence: 12,
+          observed_event_position: 42,
+          observed_stream_revision: 7,
+          observed_target_sequence: 12,
+          pending_records: 0,
+          detail:
+            "The projection represents the current authoritative position.",
+        },
+      },
+      working: {
+        snapshot_ref: {
+          schema_name: "petra.project-working-state-snapshot",
+          schema_version: "1.0.0",
+          content_hash: `sha256:${"7".repeat(64)}`,
+          read_at: "2026-09-12T14:30:00.000Z",
+        },
+        base_authority: { event_position: 42, stream_revision: 7 },
+        project_definition_ref: overlayDefinitionRef,
+        selection_kind: "current_heads_plus_exact_referenced_working_revisions",
+        historical_working_revisions_included: "referenced_only",
+        authoritative_records_included: false,
+      },
+    },
+    nodes: overlayNodes,
+    relationships: overlayRelationships,
+    completeness: {
+      state:
+        "complete_for_selected_authoritative_path_and_relevant_working_heads",
+      scope:
+        "Complete for the selected authoritative path and exact relevant working records.",
+      authoritative_nodes: 2,
+      authoritative_relationships: 1,
+      current_working_candidate_heads: 1,
+      current_working_relationship_heads: 1,
+      returned_working_candidate_revisions: 2,
+      returned_working_relationships: 1,
+      referenced_non_current_working_candidate_revisions: 1,
+      returned_nodes: 4,
+      returned_relationships: 2,
+      exclusions: [
+        {
+          member_kind: "working_candidate",
+          reason: "not_referenced_by_selected_relationship",
+          count: 0,
+        },
+        {
+          member_kind: "working_relationship",
+          reason: "outside_authoritative_path",
+          count: 0,
+        },
+      ],
+      omissions: [
+        "Historical authoritative state and whole-Project traversal are not included.",
+      ],
+    },
+    textual_peer: {
+      title: "Scientific evidence inquiry: relationship layers",
+      scope: "Textual peer for every returned node and relationship.",
+      completeness: "complete_for_every_returned_node_and_relationship",
+      nodes: overlayNodes.map((node) => ({
+        node_key: node.node_key,
+        layer: node.layer,
+        object_term: node.object_term,
+        label: node.label,
+        summary: node.summary,
+        basis: node.basis,
+      })),
+      relationships: overlayRelationships.map((relationship) => ({
+        relationship_key: relationship.relationship_key,
+        layer: relationship.layer,
+        source_node_key: relationship.source_node_key,
+        source_label: overlayNodes.find(
+          (node) => node.node_key === relationship.source_node_key,
+        )!.label,
+        direction: relationship.direction,
+        label: relationship.label,
+        target_node_key: relationship.target_node_key,
+        target_label: overlayNodes.find(
+          (node) => node.node_key === relationship.target_node_key,
+        )!.label,
+        summary: relationship.summary,
+        meaning: relationship.meaning,
+        scope: relationship.scope,
+        basis: relationship.basis,
+      })),
+      omissions: [
+        "Historical authoritative state and whole-Project traversal are not included.",
+      ],
+    },
+    authority_boundary: {
+      working_domain_authority: false,
+      working_review_decision: false,
+      working_mutation_authority: false,
+      validation_grants_authority: false,
+      visibility_grants_authority: false,
+      selection_grants_authority: false,
+      projection_grants_authority: false,
+      promotion_requires_review: true,
+      layout_client_local: true,
+      focus_client_local: true,
+      disclosure_client_local: true,
+      comparison_selection_client_local: true,
+      navigation_history_client_local: true,
+    },
+    limitations: [
+      "The first adapter is limited to one registered scientific profile.",
+    ],
+  },
+  content_hash: `sha256:${"8".repeat(64)}`,
   read_at: "2026-09-12T14:30:00.000Z",
 } as unknown as PetraProjectRelationshipOverlayView;
 
@@ -2027,6 +2388,141 @@ describe("Project shell workbench adapter", () => {
       graph.nodes.find((node) => node.kind === "Source Span")?.sourceId,
     ).toBe("project_source_01K4C000000000000000000007");
     expect(relationshipView).toEqual(before);
+  });
+
+  it("maps the runtime overlay into distinct authoritative and working layers without rebinding an earlier endpoint", () => {
+    const before = structuredClone(relationshipOverlayGraphView);
+    const graph = graphQuestionFromOverlayView(relationshipOverlayGraphView);
+
+    expect(graph.focusNodeId).toBe(overlayClaimNodeKey);
+    expect(graph.layerLabels).toEqual({
+      current: "Current authority",
+      working: "Working — not authoritative",
+      historical: "Historical",
+    });
+    expect(graph.authoritativeSnapshot).toBe(
+      "Authority event 42 · Project stream 7",
+    );
+    expect(graph.representedSnapshot).toContain(
+      "Projection current · represented event 42",
+    );
+    expect(graph.workingRevision).toContain(
+      "Working snapshot sha256:7777777777777777777777777777777777777777777777777777777777777777",
+    );
+    const currentNodeInWorkingOverlay = graph.nodes.find(
+      (node) => node.id === overlayWorkNodeKey,
+    );
+    expect(currentNodeInWorkingOverlay).toEqual(
+      expect.objectContaining({
+        semanticLayer: "current",
+        layers: ["current", "working"],
+      }),
+    );
+    const workingEdge = graph.edges.find(
+      (edge) => edge.id === overlayWorkingRelationshipKey,
+    );
+    expect(workingEdge).toEqual(
+      expect.objectContaining({
+        to: overlayCandidateEarlierNodeKey,
+        semanticLayer: "working",
+        endpointPosture: "Referenced earlier working revision — not current",
+      }),
+    );
+    expect(workingEdge?.to).not.toBe(overlayCandidateHeadNodeKey);
+    expect(
+      graph.textualPeer?.relationships.find(
+        (relationship) => relationship.id === overlayWorkingRelationshipKey,
+      )?.to,
+    ).toBe(overlayCandidateEarlierNodeKey);
+    expect(graph.resultCounts).toContainEqual({
+      label: "Referenced earlier working candidate revisions",
+      value: 1,
+    });
+    expect(graph.layerCounts?.working).toEqual({
+      objects: 4,
+      relationships: 2,
+      objectLayers: { current: 2, working: 2 },
+    });
+    expect(relationshipOverlayGraphView).toEqual(before);
+  });
+
+  it("fails closed when overlay text or exact working endpoint posture diverges", () => {
+    const textMismatch = structuredClone(relationshipOverlayGraphView);
+    const textWorkingRelationship =
+      textMismatch.content.textual_peer.relationships.find(
+        (relationship) => relationship.layer === "working",
+      );
+    if (textWorkingRelationship === undefined) {
+      throw new Error("The overlay fixture requires a working text peer.");
+    }
+    textWorkingRelationship.target_label = "Current working head";
+    expect(() => graphQuestionFromOverlayView(textMismatch)).toThrow(
+      "rendered and textual members do not match",
+    );
+
+    const postureMismatch = structuredClone(relationshipOverlayGraphView);
+    const workingRelationship = postureMismatch.content.relationships.find(
+      (relationship) => relationship.layer === "working",
+    );
+    if (workingRelationship === undefined) {
+      throw new Error("The overlay fixture requires a working relationship.");
+    }
+    workingRelationship.target_endpoint_posture = "current_working_head";
+    expect(() => graphQuestionFromOverlayView(postureMismatch)).toThrow(
+      "rendered and textual members do not match",
+    );
+  });
+
+  it("loads the production Graph route from the authenticated overlay without fixture fallback", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      void input;
+      return Promise.resolve(Response.json(relationshipOverlayGraphView));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.test/projects/${relationshipOverlayGraphView.project_id}/graph`,
+    );
+
+    const graph = await loadProjectRelationshipOverlayGraph({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/graph",
+      params: { projectId: relationshipOverlayGraphView.project_id },
+      context: new RouterContextProvider(),
+    });
+
+    expect(graph?.edges).toHaveLength(2);
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${relationshipOverlayGraphView.project_id}/relationship-overlay`,
+    );
+  });
+
+  it("keeps the existing current-authority runtime view when no overlay exists", async () => {
+    const fetch = vi
+      .fn((input: RequestInfo | URL) => {
+        void input;
+        return Promise.resolve(Response.json(relationshipView));
+      })
+      .mockResolvedValueOnce(new Response(null, { status: 404 }));
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.test/projects/${relationshipView.project_id}/graph`,
+    );
+
+    const graph = await loadProjectRelationshipOverlayGraph({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/graph",
+      params: { projectId: relationshipView.project_id },
+      context: new RouterContextProvider(),
+    });
+
+    expect(graph?.layerAvailability?.working.available).toBe(false);
+    expect(fetch.mock.calls.map(([path]) => path)).toEqual([
+      `/api/queries/projects/${relationshipView.project_id}/relationship-overlay`,
+      `/api/queries/projects/${relationshipView.project_id}/relationship-view`,
+    ]);
   });
 
   it("reads the renderer-neutral overlay without retargeting a non-current working endpoint", async () => {

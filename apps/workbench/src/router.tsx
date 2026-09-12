@@ -36,7 +36,7 @@ import {
   loadProjectBrief,
   loadProjectObjectLocationRedirect,
   loadProjectPetra,
-  loadProjectRelationshipView,
+  loadProjectRelationshipOverlayGraph,
   loadProjectRecord,
   loadProjectReviewCollection,
   loadProjectReviewSession,
@@ -107,7 +107,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "graph",
-            loader: loadProjectRelationshipView,
+            loader: loadProjectRelationshipOverlayGraph,
             element: <GraphRoute />,
           },
           {

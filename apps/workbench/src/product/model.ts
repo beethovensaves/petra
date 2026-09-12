@@ -182,6 +182,9 @@ export type GraphNodeRecord = {
   summary: string;
   basis: string;
   sourceId?: string;
+  semanticLayer?: GraphLayer;
+  endpointPosture?: string;
+  validationSummary?: string;
   layers: GraphLayer[];
   position: { x: number; y: number };
 };
@@ -193,8 +196,42 @@ export type GraphEdgeRecord = {
   label: string;
   summary: string;
   basis: string;
+  meaning?: string;
+  scope?: string;
+  direction?: "outgoing";
+  semanticLayer?: GraphLayer;
+  endpointPosture?: string;
+  validationSummary?: string;
   layers: GraphLayer[];
   tone: "neutral" | "positive" | "caution" | "working";
+};
+
+export type GraphTextNodeRecord = {
+  id: string;
+  layer: Exclude<GraphLayer, "historical">;
+  kind: string;
+  label: string;
+  summary: string;
+  basis: string;
+  endpointPosture?: string;
+  validationSummary?: string;
+};
+
+export type GraphTextRelationshipRecord = {
+  id: string;
+  layer: Exclude<GraphLayer, "historical">;
+  from: string;
+  fromLabel: string;
+  direction: "outgoing";
+  label: string;
+  to: string;
+  toLabel: string;
+  summary: string;
+  meaning: string;
+  scope: string;
+  basis: string;
+  endpointPosture?: string;
+  validationSummary?: string;
 };
 
 export type GraphQuestion = {
@@ -210,7 +247,29 @@ export type GraphQuestion = {
   workingRevision: string;
   projectionState: ProjectionState;
   projectionDetail: string;
+  layerLabels?: Record<GraphLayer, string>;
+  positionLabels?: Record<GraphLayer, string>;
+  layerCounts?: Record<
+    GraphLayer,
+    {
+      objects: number;
+      relationships: number;
+      objectLayers?: Partial<Record<GraphLayer, number>>;
+    }
+  >;
   layerAvailability?: Record<GraphLayer, { available: boolean; label: string }>;
+  resultCounts?: Array<{ label: string; value: number }>;
+  omissions?: string[];
+  limitations?: string[];
+  authorityBoundary?: string;
+  textualPeer?: {
+    title: string;
+    scope: string;
+    completeness: string;
+    nodes: GraphTextNodeRecord[];
+    relationships: GraphTextRelationshipRecord[];
+    omissions: string[];
+  };
   recommendation?: {
     branchNodeId: string;
     label: string;

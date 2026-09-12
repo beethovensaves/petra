@@ -15,16 +15,21 @@ import { useProjectRecord } from "./ReferenceWorkbench.js";
 
 type GraphLayout = "neighborhood" | "dependency";
 
-const LAYER_LABELS: Record<GraphLayer, string> = {
+const FALLBACK_LAYER_LABELS: Record<GraphLayer, string> = {
   current: "Current",
   working: "Working changes",
   historical: "Historical",
 };
 
+const layerLabel = (graph: GraphQuestion, layer: GraphLayer): string =>
+  graph.layerLabels?.[layer] ?? FALLBACK_LAYER_LABELS[layer];
+
 const layerPositionLabel = (
   graph: GraphQuestion,
   layer: GraphLayer,
 ): string => {
+  const conciseLabel = graph.positionLabels?.[layer];
+  if (conciseLabel !== undefined) return conciseLabel;
   if (layer === "working") return graph.workingRevision;
   if (layer === "historical") return graph.historicalSnapshot;
   return graph.representedSnapshot;
@@ -47,12 +52,18 @@ const nodePosition = (
   };
 };
 
-const GraphStatus = ({ layer }: { layer: GraphLayer }) => (
+const GraphStatus = ({
+  graph,
+  layer,
+}: {
+  graph: GraphQuestion;
+  layer: GraphLayer;
+}) => (
   <span className="graph-state" data-layer={layer}>
     <span aria-hidden="true">
       {layer === "current" ? "C" : layer === "working" ? "W" : "H"}
     </span>
-    {LAYER_LABELS[layer]}
+    {layerLabel(graph, layer)}
   </span>
 );
 
@@ -62,6 +73,9 @@ const buildSceneDescription = (
   nodes: GraphNodeRecord[],
   edges: GraphEdgeRecord[],
 ): string => {
+  const suppliedCounts = graph.layerCounts?.[layer];
+  const objectCount = suppliedCounts?.objects ?? nodes.length;
+  const relationshipCount = suppliedCounts?.relationships ?? edges.length;
   const relationships = edges
     .map((edge) => {
       const from =
@@ -71,7 +85,22 @@ const buildSceneDescription = (
     })
     .join("; ");
 
-  return `${LAYER_LABELS[layer]} at ${layerPositionLabel(graph, layer)} contains ${nodes.length} objects and ${edges.length} recorded relationships. ${relationships}. Position groups the answer for inspection and does not encode authority, strength, or causal order.`;
+  const semanticCounts = (["current", "working", "historical"] as const)
+    .map((semanticLayer) => ({
+      semanticLayer,
+      count:
+        suppliedCounts?.objectLayers?.[semanticLayer] ??
+        nodes.filter((node) => (node.semanticLayer ?? layer) === semanticLayer)
+          .length,
+    }))
+    .filter(({ count }) => count > 0)
+    .map(
+      ({ semanticLayer, count }) =>
+        `${count} ${layerLabel(graph, semanticLayer)} ${count === 1 ? "object" : "objects"}`,
+    )
+    .join("; ");
+
+  return `${layerLabel(graph, layer)} at ${layerPositionLabel(graph, layer)} contains ${objectCount} objects and ${relationshipCount} recorded relationships${semanticCounts.length === 0 ? "" : ` (${semanticCounts})`}. ${relationships}. Position groups the answer for inspection and does not encode authority, strength, or causal order.`;
 };
 
 export const GraphSurface = ({
@@ -79,16 +108,18 @@ export const GraphSurface = ({
   graph,
   initialLayer = "current",
   initialSelectedNodeId,
+  initialViewMode = "graph",
 }: {
   project: ProjectRecord;
   graph: GraphQuestion;
   initialLayer?: GraphLayer;
   initialSelectedNodeId?: string | undefined;
+  initialViewMode?: GraphViewMode;
 }): React.JSX.Element => {
   const [layer, setLayer] = useState<GraphLayer>(() =>
     layerAvailable(graph, initialLayer) ? initialLayer : "current",
   );
-  const [viewMode, setViewMode] = useState<GraphViewMode>("graph");
+  const [viewMode, setViewMode] = useState<GraphViewMode>(initialViewMode);
   const [layout, setLayout] = useState<GraphLayout>("neighborhood");
   const [history, setHistory] = useState<string[]>([
     initialSelectedNodeId ?? graph.focusNodeId,
@@ -124,6 +155,15 @@ export const GraphSurface = ({
     visibleNodes,
     visibleEdges,
   );
+  const visibleTextNodes = graph.textualPeer?.nodes.filter(
+    (node) =>
+      node.layer === layer || (layer === "working" && node.layer === "current"),
+  );
+  const visibleTextRelationships = graph.textualPeer?.relationships.filter(
+    (relationship) =>
+      relationship.layer === layer ||
+      (layer === "working" && relationship.layer === "current"),
+  );
 
   const selectNode = (nodeId: string): void => {
     if (nodeId === selectedNode?.id) return;
@@ -151,7 +191,7 @@ export const GraphSurface = ({
           <h1>{graph.question}</h1>
           <p className="reference-lede">{graph.scope}</p>
         </div>
-        <GraphStatus layer={layer} />
+        <GraphStatus graph={graph} layer={layer} />
       </header>
 
       {graph.projectionState !== "current" ? (
@@ -226,28 +266,30 @@ export const GraphSurface = ({
 
         <div className="graph-controls">
           <PetraButtonGroup label="Semantic layer">
-            {(Object.keys(LAYER_LABELS) as GraphLayer[]).map((layerId) => (
-              <PetraButton
-                key={layerId}
-                density="compact"
-                variant={layer === layerId ? "secondary" : "quiet"}
-                aria-pressed={layer === layerId}
-                aria-disabled={!layerAvailable(graph, layerId)}
-                aria-label={
-                  layerAvailable(graph, layerId)
-                    ? LAYER_LABELS[layerId]
-                    : `${LAYER_LABELS[layerId]}: ${graph.layerAvailability?.[layerId].label ?? "Unavailable"}`
-                }
-                title={
-                  layerAvailable(graph, layerId)
-                    ? undefined
-                    : graph.layerAvailability?.[layerId].label
-                }
-                onClick={() => selectLayer(layerId)}
-              >
-                {LAYER_LABELS[layerId]}
-              </PetraButton>
-            ))}
+            {(Object.keys(FALLBACK_LAYER_LABELS) as GraphLayer[]).map(
+              (layerId) => (
+                <PetraButton
+                  key={layerId}
+                  density="compact"
+                  variant={layer === layerId ? "secondary" : "quiet"}
+                  aria-pressed={layer === layerId}
+                  aria-disabled={!layerAvailable(graph, layerId)}
+                  aria-label={
+                    layerAvailable(graph, layerId)
+                      ? layerLabel(graph, layerId)
+                      : `${layerLabel(graph, layerId)}: ${graph.layerAvailability?.[layerId].label ?? "Unavailable"}`
+                  }
+                  title={
+                    layerAvailable(graph, layerId)
+                      ? undefined
+                      : graph.layerAvailability?.[layerId].label
+                  }
+                  onClick={() => selectLayer(layerId)}
+                >
+                  {layerLabel(graph, layerId)}
+                </PetraButton>
+              ),
+            )}
           </PetraButtonGroup>
           <PetraButtonGroup label="Representation">
             {(["graph", "text"] as GraphViewMode[]).map((mode) => (
@@ -317,7 +359,7 @@ export const GraphSurface = ({
               <div
                 className="graph-canvas"
                 data-layout={layout}
-                aria-label={`${LAYER_LABELS[layer]} visual graph. Use the node controls to inspect an object; the complete relationship text follows the canvas.`}
+                aria-label={`${layerLabel(graph, layer)} visual graph. Use the node controls to inspect an object; the complete relationship text follows the canvas.`}
               >
                 <svg
                   viewBox="0 0 100 100"
@@ -349,6 +391,8 @@ export const GraphSurface = ({
                       <g
                         key={edge.id}
                         className={`graph-edge graph-edge--${edge.tone}`}
+                        data-layer={edge.semanticLayer ?? layer}
+                        data-endpoint-posture={edge.endpointPosture}
                       >
                         <line
                           x1={start.x}
@@ -374,6 +418,8 @@ export const GraphSurface = ({
                       key={node.id}
                       className="graph-node"
                       data-kind={node.kind}
+                      data-layer={node.semanticLayer ?? layer}
+                      data-endpoint-posture={node.endpointPosture}
                       data-selected={selectedNode?.id === node.id || undefined}
                       style={{ left: `${position.x}%`, top: `${position.y}%` }}
                       type="button"
@@ -381,6 +427,9 @@ export const GraphSurface = ({
                     >
                       <span>{node.kind}</span>
                       <strong>{node.label}</strong>
+                      {node.endpointPosture === undefined ? null : (
+                        <small>{node.endpointPosture}</small>
+                      )}
                     </button>
                   );
                 })}
@@ -392,7 +441,22 @@ export const GraphSurface = ({
                     const to = visibleNodes.find((node) => node.id === edge.to);
                     return (
                       <li key={edge.id}>
-                        {from?.label} {edge.label} {to?.label}. {edge.summary}
+                        {layerLabel(graph, edge.semanticLayer ?? layer)}.{" "}
+                        {from?.label} {edge.label} {to?.label}. Direction:{" "}
+                        {edge.direction ?? "outgoing"}. {edge.summary}
+                        {edge.meaning === undefined
+                          ? ""
+                          : ` Meaning: ${edge.meaning}`}
+                        {edge.scope === undefined
+                          ? ""
+                          : ` Scope: ${edge.scope}`}
+                        {` Basis: ${edge.basis}`}
+                        {edge.endpointPosture === undefined
+                          ? ""
+                          : ` Endpoint: ${edge.endpointPosture}`}
+                        {edge.validationSummary === undefined
+                          ? ""
+                          : ` Validation: ${edge.validationSummary}`}
                       </li>
                     );
                   })}
@@ -403,34 +467,138 @@ export const GraphSurface = ({
                 className="graph-text-view"
                 aria-labelledby="graph-text-title"
               >
-                <h3 id="graph-text-title">Text view of the complete result</h3>
-                <ol>
-                  {visibleEdges.map((edge) => {
-                    const from = visibleNodes.find(
-                      (node) => node.id === edge.from,
-                    );
-                    const to = visibleNodes.find((node) => node.id === edge.to);
-                    return (
-                      <li key={edge.id} data-tone={edge.tone}>
-                        <button
-                          type="button"
-                          onClick={() => selectNode(edge.from)}
-                        >
-                          {from?.label}
-                        </button>
-                        <span>{edge.label}</span>
-                        <button
-                          type="button"
-                          onClick={() => selectNode(edge.to)}
-                        >
-                          {to?.label}
-                        </button>
-                        <p>{edge.summary}</p>
-                        <small>Basis: {edge.basis}</small>
-                      </li>
-                    );
-                  })}
-                </ol>
+                <h3 id="graph-text-title">
+                  {graph.textualPeer?.title ??
+                    "Text view of the complete result"}
+                </h3>
+                {graph.textualPeer === undefined ? (
+                  <ol>
+                    {visibleEdges.map((edge) => {
+                      const from = visibleNodes.find(
+                        (node) => node.id === edge.from,
+                      );
+                      const to = visibleNodes.find(
+                        (node) => node.id === edge.to,
+                      );
+                      return (
+                        <li key={edge.id} data-tone={edge.tone}>
+                          <button
+                            type="button"
+                            onClick={() => selectNode(edge.from)}
+                          >
+                            {from?.label}
+                          </button>
+                          <span>{edge.label}</span>
+                          <button
+                            type="button"
+                            onClick={() => selectNode(edge.to)}
+                          >
+                            {to?.label}
+                          </button>
+                          <p>{edge.summary}</p>
+                          <small>Basis: {edge.basis}</small>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                ) : (
+                  <>
+                    <p className="graph-text-view__scope">
+                      {graph.textualPeer.scope}
+                    </p>
+                    <section aria-labelledby="graph-text-nodes-title">
+                      <h4 id="graph-text-nodes-title">Objects</h4>
+                      <ol className="graph-text-view__nodes">
+                        {(visibleTextNodes ?? []).map((node) => (
+                          <li key={node.id} data-layer={node.layer}>
+                            <div className="graph-text-view__node-heading">
+                              <button
+                                type="button"
+                                onClick={() => selectNode(node.id)}
+                              >
+                                {node.label}
+                              </button>
+                              <span>
+                                {node.kind} · {layerLabel(graph, node.layer)}
+                              </span>
+                            </div>
+                            <p>{node.summary}</p>
+                            <small>Basis: {node.basis}</small>
+                            {node.endpointPosture === undefined ? null : (
+                              <small>Endpoint: {node.endpointPosture}</small>
+                            )}
+                            {node.validationSummary === undefined ? null : (
+                              <small>
+                                Validation: {node.validationSummary}
+                              </small>
+                            )}
+                          </li>
+                        ))}
+                      </ol>
+                    </section>
+                    <section aria-labelledby="graph-text-relationships-title">
+                      <h4 id="graph-text-relationships-title">Relationships</h4>
+                      <ol>
+                        {(visibleTextRelationships ?? []).map(
+                          (relationship) => (
+                            <li
+                              key={relationship.id}
+                              data-tone={
+                                relationship.layer === "working"
+                                  ? "working"
+                                  : "neutral"
+                              }
+                              data-layer={relationship.layer}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => selectNode(relationship.from)}
+                              >
+                                {relationship.fromLabel}
+                              </button>
+                              <span>
+                                {relationship.label} · {relationship.direction}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => selectNode(relationship.to)}
+                              >
+                                {relationship.toLabel}
+                              </button>
+                              <p>{relationship.summary}</p>
+                              <p>Meaning: {relationship.meaning}</p>
+                              <p>Scope: {relationship.scope}</p>
+                              <small>Basis: {relationship.basis}</small>
+                              {relationship.endpointPosture ===
+                              undefined ? null : (
+                                <small>
+                                  Endpoint: {relationship.endpointPosture}
+                                </small>
+                              )}
+                              {relationship.validationSummary ===
+                              undefined ? null : (
+                                <small>
+                                  Validation: {relationship.validationSummary}
+                                </small>
+                              )}
+                            </li>
+                          ),
+                        )}
+                      </ol>
+                    </section>
+                    <section
+                      className="graph-text-view__omissions"
+                      aria-labelledby="graph-text-omissions-title"
+                    >
+                      <h4 id="graph-text-omissions-title">Omissions</h4>
+                      <ul>
+                        {graph.textualPeer.omissions.map((omission) => (
+                          <li key={omission}>{omission}</li>
+                        ))}
+                      </ul>
+                    </section>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -463,11 +631,27 @@ export const GraphSurface = ({
                   <dd>{selectedNode.basis}</dd>
                 </div>
                 <div>
-                  <dt>Layer</dt>
+                  <dt>Record layer</dt>
                   <dd>
-                    {LAYER_LABELS[layer]} · {layerPositionLabel(graph, layer)}
+                    {layerLabel(graph, selectedNode.semanticLayer ?? layer)}
                   </dd>
                 </div>
+                <div>
+                  <dt>View position</dt>
+                  <dd>{layerPositionLabel(graph, layer)}</dd>
+                </div>
+                {selectedNode.endpointPosture === undefined ? null : (
+                  <div>
+                    <dt>Working endpoint</dt>
+                    <dd>{selectedNode.endpointPosture}</dd>
+                  </div>
+                )}
+                {selectedNode.validationSummary === undefined ? null : (
+                  <div>
+                    <dt>Validation</dt>
+                    <dd>{selectedNode.validationSummary}</dd>
+                  </div>
+                )}
               </dl>
               <div className="graph-details__actions">
                 {selectedNode.sourceId === undefined ? null : (
@@ -500,12 +684,62 @@ export const GraphSurface = ({
         </div>
 
         <footer className="graph-scope">
-          <div>
+          <div className="graph-scope__positions">
+            <strong>Exact positions</strong>
+            <dl>
+              <div>
+                <dt>Current authority</dt>
+                <dd>{graph.authoritativeSnapshot}</dd>
+              </div>
+              <div>
+                <dt>Graph projection</dt>
+                <dd>{graph.representedSnapshot}</dd>
+              </div>
+              <div>
+                <dt>Working snapshot and base</dt>
+                <dd>{graph.workingRevision}</dd>
+              </div>
+            </dl>
+          </div>
+          <div className="graph-scope__result">
             <strong>Scope and omissions</strong>
             <p>{graph.completeness}</p>
+            {graph.omissions === undefined ? null : (
+              <ul>
+                {graph.omissions.map((omission) => (
+                  <li key={omission}>{omission}</li>
+                ))}
+              </ul>
+            )}
+            {graph.limitations === undefined ? null : (
+              <>
+                <strong>Limitations</strong>
+                <ul>
+                  {graph.limitations.map((limitation) => (
+                    <li key={limitation}>{limitation}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
+          {graph.resultCounts === undefined ? null : (
+            <div className="graph-scope__counts">
+              <strong>Returned and excluded counts</strong>
+              <dl>
+                {graph.resultCounts.map((count) => (
+                  <div key={count.label}>
+                    <dt>{count.label}</dt>
+                    <dd>{count.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
           <div>
-            <strong>Visual meaning</strong>
+            <strong>Authority and visual meaning</strong>
+            {graph.authorityBoundary === undefined ? null : (
+              <p>{graph.authorityBoundary}</p>
+            )}
             <p>
               Labels and arrows carry relationship meaning. Position and line
               length do not express confidence, importance, or authority.

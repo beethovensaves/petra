@@ -113,6 +113,156 @@ describe("reference Review and Graph packets", () => {
     );
   });
 
+  it("renders exact earlier working endpoints and keeps runtime positions separate", () => {
+    const runtimeGraph = structuredClone(graph);
+    runtimeGraph.focusNodeId = "current-work";
+    runtimeGraph.authoritativeSnapshot =
+      "Authority event 42 · Project stream 7";
+    runtimeGraph.representedSnapshot =
+      "Projection current · represented event 42 · observed event 42";
+    runtimeGraph.workingRevision =
+      "Working snapshot sha256:7777 · based on authority event 42 · Project stream 7";
+    runtimeGraph.layerLabels = {
+      current: "Current authority",
+      working: "Working — not authoritative",
+      historical: "Historical",
+    };
+    runtimeGraph.authorityBoundary =
+      "Working records are not Project authority. Validation, visibility, selection, and projection do not grant authority; promotion requires Review.";
+    runtimeGraph.resultCounts = [
+      { label: "Referenced earlier working candidate revisions", value: 1 },
+    ];
+    runtimeGraph.omissions = [
+      "Historical authoritative state is not included.",
+    ];
+    runtimeGraph.limitations = [
+      "The first adapter is limited to one registered scientific profile.",
+    ];
+    runtimeGraph.nodes = [
+      {
+        id: "current-work",
+        label: "Evidence extraction · version 1",
+        kind: "Work version",
+        summary: "The authoritative Work version.",
+        basis: "Accepted Work record.",
+        semanticLayer: "current",
+        layers: ["current", "working"],
+        position: { x: 25, y: 25 },
+      },
+      {
+        id: "candidate-revision-2",
+        label: "Narrowed working Claim",
+        kind: "Claim",
+        summary: "The current working head.",
+        basis: "Human correction.",
+        semanticLayer: "working",
+        endpointPosture: "Current working revision",
+        validationSummary: "Validation pending for revision 2.",
+        layers: ["working"],
+        position: { x: 50, y: 50 },
+      },
+      {
+        id: "candidate-revision-1",
+        label: "Earlier working Claim",
+        kind: "Claim",
+        summary: "The exact earlier referenced revision.",
+        basis: "Model extraction.",
+        semanticLayer: "working",
+        endpointPosture: "Referenced earlier working revision — not current",
+        validationSummary:
+          "Validation completed; validation does not grant authority.",
+        layers: ["working"],
+        position: { x: 75, y: 75 },
+      },
+    ];
+    runtimeGraph.edges = [
+      {
+        id: "working-relationship-1",
+        from: "current-work",
+        to: "candidate-revision-1",
+        label: "asserts",
+        summary: "The exact relationship still targets revision 1.",
+        meaning: "Working source representation, not authority or approval.",
+        scope: "The exact working input snapshot.",
+        basis: "Working relationship revision 1.",
+        direction: "outgoing",
+        semanticLayer: "working",
+        endpointPosture: "Referenced earlier working revision — not current",
+        validationSummary:
+          "Validation completed; validation does not grant authority.",
+        layers: ["working"],
+        tone: "working",
+      },
+    ];
+    runtimeGraph.textualPeer = {
+      title: "Scientific evidence inquiry: relationship layers",
+      scope: "Textual peer for every returned node and relationship.",
+      completeness: "complete_for_every_returned_node_and_relationship",
+      nodes: runtimeGraph.nodes.map((node) => ({
+        id: node.id,
+        layer: node.semanticLayer === "working" ? "working" : "current",
+        kind: node.kind,
+        label: node.label,
+        summary: node.summary,
+        basis: node.basis,
+        ...(node.endpointPosture === undefined
+          ? {}
+          : { endpointPosture: node.endpointPosture }),
+        ...(node.validationSummary === undefined
+          ? {}
+          : { validationSummary: node.validationSummary }),
+      })),
+      relationships: [
+        {
+          id: "working-relationship-1",
+          layer: "working",
+          from: "current-work",
+          fromLabel: "Evidence extraction · version 1",
+          direction: "outgoing",
+          label: "asserts",
+          to: "candidate-revision-1",
+          toLabel: "Earlier working Claim",
+          summary: "The exact relationship still targets revision 1.",
+          meaning: "Working source representation, not authority or approval.",
+          scope: "The exact working input snapshot.",
+          basis: "Working relationship revision 1.",
+          endpointPosture: "Referenced earlier working revision — not current",
+          validationSummary:
+            "Validation completed; validation does not grant authority.",
+        },
+      ],
+      omissions: ["Historical authoritative state is not included."],
+    };
+
+    const markup = render(
+      <GraphSurface
+        project={project}
+        graph={runtimeGraph}
+        initialLayer="working"
+        initialSelectedNodeId="candidate-revision-1"
+        initialViewMode="text"
+      />,
+    );
+
+    expect(markup).toContain("Working — not authoritative");
+    expect(markup).toContain(
+      "Referenced earlier working revision — not current",
+    );
+    expect(markup).toContain(
+      "Working source representation, not authority or approval.",
+    );
+    expect(markup).toContain(
+      "Validation completed; validation does not grant authority.",
+    );
+    expect(markup).toContain("Current authority</dt><dd>Authority event 42");
+    expect(markup).toContain("Graph projection</dt><dd>Projection current");
+    expect(markup).toContain(
+      "Working snapshot and base</dt><dd>Working snapshot",
+    );
+    expect(markup).toContain("Referenced earlier working candidate revisions");
+    expect(markup).not.toContain("to: candidate-revision-2");
+  });
+
   it("keeps the branch recommendation advisory and explains its context", () => {
     const markup = render(
       <GraphSurface project={project} graph={graph} initialLayer="current" />,
