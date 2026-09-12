@@ -58,6 +58,7 @@
     "test:m1:cumulative": "node scripts/test-m1-cumulative-integration.mjs",
     "test:m1:interface-recovery": "node scripts/test-m1-interface-recovery.mjs",
     "test:m1:recovery": "node scripts/test-m1-recovery-integration.mjs",
+    "test:wave3:cumulative": "npm run build:packages && node scripts/test-wave3-cumulative-integration.mjs",
     "test:docling:integration": "node scripts/test-docling-integration.mjs",
     "test:codex-app-server:integration": "npm run build:packages && node scripts/test-codex-app-server-integration.mjs",
     "test:codex-synthesist:certification": "npm run build:packages && node experiments/model-certification/run-codex-synthesist.mjs",
