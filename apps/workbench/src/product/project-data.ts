@@ -1403,12 +1403,23 @@ const reviewView = (value: unknown): PetraProjectReviewViewRecord => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-review-view" ||
-    (value.schema_version !== "1.0.0" && value.schema_version !== "1.1.0") ||
+    (value.schema_version !== "1.0.0" &&
+      value.schema_version !== "1.1.0" &&
+      value.schema_version !== "1.2.0") ||
     typeof value.project_id !== "string" ||
     typeof value.review_session_id !== "string" ||
     !isRecord(value.content) ||
     typeof value.content_hash !== "string" ||
-    typeof value.read_at !== "string"
+    typeof value.read_at !== "string" ||
+    (value.schema_version === "1.2.0" &&
+      (!isRecord(value.content.session) ||
+        !Number.isSafeInteger(value.content.session.revision) ||
+        Number(value.content.session.revision) < 1 ||
+        typeof value.content.session.content_hash !== "string" ||
+        !CONTENT_HASH.test(value.content.session.content_hash) ||
+        (value.content.session.lifecycle !== "open" &&
+          value.content.session.lifecycle !== "deferred" &&
+          value.content.session.lifecycle !== "completed")))
   ) {
     throw new ProjectDataError(
       "Petra returned an invalid Project Review view.",
@@ -2716,6 +2727,9 @@ export const reviewSessionFromView = (
     objective: view.content.session.objective_summary,
     status: view.content.session.status,
     statusLabel: view.content.session.status_label,
+    ...(view.schema_version === "1.2.0"
+      ? { lifecycle: view.content.session.lifecycle }
+      : {}),
     responsible: view.content.session.responsible.display_name,
     snapshot: `Authority event ${view.content.session.snapshot.event_position} · Project stream ${view.content.session.snapshot.stream_revision}${view.content.session.snapshot_state === "stale" ? " · stale" : ""}`,
     returnLabel: view.content.session.return_context.label,

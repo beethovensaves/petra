@@ -126,6 +126,7 @@ export type ProjectPlace =
   | "profile_tool";
 
 export type ReviewStatus = "needs_decision" | "waiting" | "completed";
+export type ReviewSessionLifecycle = "open" | "deferred" | "completed";
 export type ValidationState = "passed" | "needs_judgment" | "blocked";
 
 export type ReviewSession = {
@@ -139,6 +140,7 @@ export type ReviewSession = {
   objective: string;
   status: ReviewStatus;
   statusLabel: string;
+  lifecycle?: ReviewSessionLifecycle;
   responsible: string;
   snapshot: string;
   returnLabel: string;

@@ -566,6 +566,11 @@ export type {
   WorkingStateComposition as ProjectReviewWorkingStateCompositionV110,
 } from "./generated/project-review-view-v1-1.js";
 export type {
+  PetraProjectReviewViewV120,
+  ReviewViewContent as ProjectReviewViewContentV120,
+  SessionSummary as ProjectReviewSessionSummaryV120,
+} from "./generated/project-review-view-v1-2.js";
+export type {
   AuthorityPosition as ProjectRelationshipAuthorityPosition,
   Capabilities as ProjectRelationshipCapabilities,
   Completeness as ProjectRelationshipCompleteness,
@@ -1101,6 +1106,7 @@ import type { PetraOutboxRecord } from "./generated/outbox-record.js";
 import type { PetraOutboxRecordV110 } from "./generated/outbox-record-v1-1.js";
 import type { PetraOutboxRecordV120 } from "./generated/outbox-record-v1-2.js";
 import type { PetraProjectReviewViewV110 } from "./generated/project-review-view-v1-1.js";
+import type { PetraProjectReviewViewV120 } from "./generated/project-review-view-v1-2.js";
 import type { PetraProjectReviewView } from "./generated/project-review-view.js";
 import type { PetraReviewSessionV110 } from "./generated/review-session-v1-1.js";
 import type { PetraReviewSession } from "./generated/review-session.js";
@@ -1122,6 +1128,8 @@ export type PetraDomainEventRecord =
 export type PetraOutboxRecordRecord =
   PetraOutboxRecord | PetraOutboxRecordV110 | PetraOutboxRecordV120;
 export type PetraProjectReviewViewRecord =
-  PetraProjectReviewView | PetraProjectReviewViewV110;
+  | PetraProjectReviewView
+  | PetraProjectReviewViewV110
+  | PetraProjectReviewViewV120;
 export type PetraReviewSessionRecord =
   PetraReviewSession | PetraReviewSessionV110;

@@ -9,7 +9,7 @@ import type {
   PetraProjectDefinition,
   PetraProjectObjective,
   PetraProjectReviewViewRecord,
-  PetraProjectReviewViewV110,
+  PetraProjectReviewViewV120,
   PetraProjectReviewView,
   PetraProjectionCheckpoint,
   PetraReviewSessionRecord,
@@ -25,8 +25,9 @@ import type {
   ProjectReviewMemberV110,
   ProjectReviewMember,
   ProjectReviewProjectionStateV110,
+  ProjectReviewSessionSummaryV120,
   ProjectReviewValidationSummary,
-  ProjectReviewViewContentV110,
+  ProjectReviewViewContentV120,
   ProjectReviewViewContent,
   ReviewSessionMemberV110,
   ReviewSessionMember,
@@ -344,22 +345,26 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
       return_context: clone(session.content.return_context),
     };
     if (session.schema_version === "1.1.0") {
-      const content: ProjectReviewViewContentV110 = {
-        session: sessionSummary,
-        members: members as ProjectReviewViewContentV110["members"],
+      const lifecycleSession = {
+        ...sessionSummary,
+        lifecycle: session.content.lifecycle,
+      } satisfies ProjectReviewSessionSummaryV120;
+      const content: ProjectReviewViewContentV120 = {
+        session: lifecycleSession,
+        members: members as ProjectReviewViewContentV120["members"],
         authority,
         projection: await this.#projection(client, session.project_id),
       };
-      const view: PetraProjectReviewViewV110 = {
+      const view: PetraProjectReviewViewV120 = {
         schema_name: "petra.project-review-view",
-        schema_version: "1.1.0",
+        schema_version: "1.2.0",
         project_id: session.project_id,
         review_session_id: session.review_session_id,
         content,
         content_hash: canonicalHash(content),
         read_at: readAt,
       };
-      this.#contracts.assertValid("project-review-view", "1.1.0", view);
+      this.#contracts.assertValid("project-review-view", "1.2.0", view);
       return view;
     }
     const content: ProjectReviewViewContent = {

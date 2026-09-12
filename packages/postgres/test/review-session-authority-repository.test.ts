@@ -656,13 +656,14 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
       project.project_id,
       session.review_session_id,
     );
-    if (view?.schema_version !== "1.1.0") {
+    if (view?.schema_version !== "1.2.0") {
       throw new Error("Expected the working Review view contract.");
     }
     expect(view).toMatchObject({
       project_id: project.project_id,
       content: {
         session: {
+          lifecycle: "open",
           status: "needs_decision",
           snapshot_state: "current",
           return_context: {
@@ -771,6 +772,15 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
     expect(
       await sessions.getReviewSessionLifecycleReceipt(defer.command_id),
     ).toEqual(deferred.receipt);
+    const deferredView = await views.getProjectReviewView(
+      session.project_id,
+      session.review_session_id,
+    );
+    expect(deferredView?.content.session).toMatchObject({
+      revision: 2,
+      lifecycle: "deferred",
+      status: "waiting",
+    });
 
     const replayEnvelope = structuredClone(defer);
     replayEnvelope.correlation_id = "trace_01K4D000000000000000000073";
@@ -856,6 +866,7 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
     );
     expect(view?.content.session).toMatchObject({
       revision: 3,
+      lifecycle: "open",
       status: "needs_decision",
       snapshot_state: "current",
     });
@@ -1017,7 +1028,7 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
       session.project_id,
       session.review_session_id,
     );
-    if (view?.schema_version !== "1.1.0") {
+    if (view?.schema_version !== "1.2.0") {
       throw new Error("Expected the working Review view contract.");
     }
     const changeSet = view.content.members[0]?.change_sets[0];

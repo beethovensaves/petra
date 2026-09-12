@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import type {
   PetraProjectReviewView,
   PetraProjectReviewViewV110,
+  PetraProjectReviewViewV120,
   PetraReviewSessionV110,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
@@ -141,5 +142,69 @@ describe("working ReviewSession composition contracts", () => {
     expect(view.content.members[0]?.working_state.authority_effect).toBe(
       "none",
     );
+  });
+
+  it("exposes exact lifecycle without inventing operation eligibility", () => {
+    const legacy = readFixture<PetraProjectReviewView>("project-review-view");
+    const legacyMember = legacy.content.members[0];
+    if (legacyMember === undefined) {
+      throw new Error("Expected the scientific Review fixture member.");
+    }
+    const content: PetraProjectReviewViewV120["content"] = {
+      ...structuredClone(legacy.content),
+      session: {
+        ...structuredClone(legacy.content.session),
+        lifecycle: "deferred",
+        status: "waiting",
+        status_label: "Waiting",
+      },
+      members: [
+        {
+          ...structuredClone(legacyMember),
+          working_state: {
+            candidate,
+            relationships: [relationship],
+            selection_basis: "exact_review_session_working_bindings",
+            authority_effect: "none",
+          },
+          change_sets: legacyMember.change_sets.map((changeSet) => ({
+            ...structuredClone(changeSet),
+            commands: [],
+            events: [],
+          })),
+        },
+      ],
+      projection: {
+        state: "unavailable",
+        reason:
+          "No authoritative graph-projection checkpoint is registered for this Project.",
+      },
+    };
+    const view: PetraProjectReviewViewV120 = {
+      schema_name: "petra.project-review-view",
+      schema_version: "1.2.0",
+      project_id: legacy.project_id,
+      review_session_id: session.review_session_id,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: legacy.read_at,
+    };
+    contracts.assertValid("project-review-view", "1.2.0", view);
+
+    const missingLifecycle = structuredClone(view) as unknown as {
+      content: { session: { lifecycle?: unknown } };
+    };
+    delete missingLifecycle.content.session.lifecycle;
+    expect(
+      contracts.isValid("project-review-view", "1.2.0", missingLifecycle),
+    ).toBe(false);
+
+    const inventedEligibility = structuredClone(view) as unknown as {
+      content: { session: Record<string, unknown> };
+    };
+    inventedEligibility.content.session.eligible_operation = "reopen";
+    expect(
+      contracts.isValid("project-review-view", "1.2.0", inventedEligibility),
+    ).toBe(false);
   });
 });
