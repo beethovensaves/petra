@@ -5,6 +5,7 @@ import type {
   PetraCapabilityGrantV150,
   PetraClaim,
   PetraCommandEnvelopeV160,
+  PetraCommandEnvelopeV170,
   PetraReviewCandidateCorrectionReceipt,
   PetraReviewSessionV110,
   PetraWorkingCandidate,
@@ -73,6 +74,43 @@ const command: PetraCommandEnvelopeV160 = {
     },
     corrected_candidate: structuredClone(correctedCandidate),
     corrected_profile_record: structuredClone(correctedClaim),
+  },
+};
+
+const humanEditCommand: PetraCommandEnvelopeV170 = {
+  schema_name: "petra.command-envelope",
+  schema_version: "1.7.0",
+  command_id: "command_01K4D000000000000000000105",
+  idempotency_key: "review-session:001:candidate-correction:human-edit:v1",
+  project_id: review.project_id,
+  actor: structuredClone(review.content.responsible),
+  capability_grant_id: "capability_grant_01K4D000000000000000000102",
+  correlation_id: "trace_01K4D000000000000000000103",
+  submitted_at: "2026-09-12T21:00:00.000Z",
+  command: {
+    command_name: "CorrectReviewCandidate",
+    expected_review_session_ref: {
+      review_session_id: review.review_session_id,
+      revision: review.revision,
+      content_hash: review.content_hash,
+      lifecycle: "open",
+    },
+    review_member_id: member.review_member_id,
+    expected_working_candidate_ref: {
+      working_candidate_id: priorCandidate.working_candidate_id,
+      revision: priorCandidate.revision,
+      content_hash: priorCandidate.content_hash,
+    },
+    expected_working_relationship_ref: {
+      working_relationship_id: priorRelationship.working_relationship_id,
+      revision: priorRelationship.revision,
+      content_hash: priorRelationship.content_hash,
+    },
+    correction_input: {
+      input_kind: "human_scientific_claim_text_edit",
+      canonical_text:
+        "The study reports a measurable improvement on its defined evaluation task.",
+    },
   },
 };
 
@@ -234,6 +272,34 @@ describe("Review candidate-correction contracts", () => {
         receipt,
       ),
     ).not.toThrow();
+  });
+
+  it("accepts only the registered human Claim text field for server composition", () => {
+    expect(() =>
+      contracts.assertValid("command-envelope", "1.7.0", humanEditCommand),
+    ).not.toThrow();
+
+    const extraField = structuredClone(humanEditCommand) as unknown as Record<
+      string,
+      unknown
+    >;
+    const extraCommand = extraField.command as Record<string, unknown>;
+    (extraCommand.correction_input as Record<string, unknown>).scope =
+      correctedClaim.scope;
+    const blankText = structuredClone(humanEditCommand) as unknown as Record<
+      string,
+      unknown
+    >;
+    const blankCommand = blankText.command as Record<string, unknown>;
+    blankCommand.correction_input = {
+      input_kind: "human_scientific_claim_text_edit",
+      canonical_text: "   ",
+    };
+    for (const invalid of [extraField, blankText]) {
+      expect(() =>
+        contracts.assertValid("command-envelope", "1.7.0", invalid),
+      ).toThrow(ContractRegistryError);
+    }
   });
 
   it("rejects implicit authority and incomplete exact references", () => {

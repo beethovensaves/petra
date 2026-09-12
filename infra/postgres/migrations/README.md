@@ -190,3 +190,10 @@ no domain event. Profile registration, reference, task, producer, validator,
 lineage, and endpoint checks remain in the scientific adapter, while the
 snapshot reader selects current heads in a read-only repeatable-read
 transaction.
+
+`V038__server_composed_review_candidate_correction.sql` admits command envelope
+1.7 in the existing canonical command ledger. The additive envelope accepts one
+human-authored scientific Claim text field while the existing serialized
+candidate-correction authority composes exact profile authorship, retained
+source basis, working provenance and lineage, validation reset, and hashes. It
+creates no preparation, candidate, Review, decision, or recovery ledger.

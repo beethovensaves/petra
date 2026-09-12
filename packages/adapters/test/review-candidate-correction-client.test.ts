@@ -14,6 +14,7 @@ import { describe, expect, it } from "vitest";
 import {
   ReviewCandidateCorrectionClient,
   ReviewCandidateCorrectionClientError,
+  type ReviewCandidateCorrectionFromHumanEditRequest,
   type ReviewCandidateCorrectionRequest,
   type ReviewCandidateCorrectionResult,
 } from "../src/review-candidate-correction-client.js";
@@ -67,6 +68,24 @@ const request: ReviewCandidateCorrectionRequest = {
   },
   corrected_candidate: structuredClone(candidate),
   corrected_profile_record: structuredClone(profileRecord),
+};
+const humanEditRequest: ReviewCandidateCorrectionFromHumanEditRequest = {
+  command_id: request.command_id,
+  idempotency_key: request.idempotency_key,
+  expected_review_session_ref: structuredClone(
+    request.expected_review_session_ref,
+  ),
+  review_member_id: request.review_member_id,
+  expected_working_candidate_ref: structuredClone(
+    request.expected_working_candidate_ref,
+  ),
+  expected_working_relationship_ref: structuredClone(
+    request.expected_working_relationship_ref,
+  ),
+  correction_input: {
+    input_kind: "human_scientific_claim_text_edit",
+    canonical_text: profileRecord.canonical_text,
+  },
 };
 
 const relationship = structuredClone(priorRelationship);
@@ -273,6 +292,39 @@ describe("ReviewCandidateCorrectionClient", () => {
       `/api/commands/projects/${priorReview.project_id}/reviews/${priorReview.review_session_id}/candidate-correction`,
     );
     expect(sentBody).toEqual(request);
+  });
+
+  it("sends only the human Claim text field to server-owned preparation", async () => {
+    let sentBody: unknown;
+    const client = new ReviewCandidateCorrectionClient({
+      baseUrl: "http://petra.local",
+      token: "correction-token",
+      fetch: (_input, init) => {
+        if (typeof init?.body !== "string") {
+          throw new Error("Expected a JSON string request body.");
+        }
+        sentBody = JSON.parse(init.body);
+        return Promise.resolve(Response.json(result));
+      },
+    });
+
+    await expect(
+      client.correctFromHumanEdit(priorReview.project_id, humanEditRequest),
+    ).resolves.toEqual(result);
+    expect(sentBody).toEqual(humanEditRequest);
+
+    const unsupported = structuredClone(humanEditRequest) as unknown as Record<
+      string,
+      unknown
+    >;
+    (unsupported.correction_input as Record<string, unknown>).scope =
+      profileRecord.scope;
+    await expect(
+      client.correctFromHumanEdit(
+        priorReview.project_id,
+        unsupported as unknown as ReviewCandidateCorrectionFromHumanEditRequest,
+      ),
+    ).rejects.toBeInstanceOf(TypeError);
   });
 
   it("fails locally on incomplete exact input", async () => {

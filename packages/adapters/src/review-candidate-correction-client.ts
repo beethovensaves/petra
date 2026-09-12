@@ -18,7 +18,7 @@ const COMMAND_ID = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$/u;
 const CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
 
-export interface ReviewCandidateCorrectionRequest {
+export interface ReviewCandidateCorrectionExactRequest {
   readonly command_id: string;
   readonly idempotency_key: string;
   readonly expected_review_session_ref: {
@@ -38,8 +38,18 @@ export interface ReviewCandidateCorrectionRequest {
     readonly revision: number;
     readonly content_hash: string;
   };
+}
+
+export interface ReviewCandidateCorrectionRequest extends ReviewCandidateCorrectionExactRequest {
   readonly corrected_candidate: PetraWorkingCandidate;
   readonly corrected_profile_record: PetraClaim;
+}
+
+export interface ReviewCandidateCorrectionFromHumanEditRequest extends ReviewCandidateCorrectionExactRequest {
+  readonly correction_input: {
+    readonly input_kind: "human_scientific_claim_text_edit";
+    readonly canonical_text: string;
+  };
 }
 
 export interface ReviewCandidateCorrectionResult {
@@ -89,10 +99,9 @@ const hasExactKeys = (
 const validRevision = (value: number): boolean =>
   Number.isSafeInteger(value) && value >= 1;
 
-const assertRequest = (
+const assertExactRequest = (
   projectId: string,
-  request: ReviewCandidateCorrectionRequest,
-  contracts: PetraContractRegistry,
+  request: ReviewCandidateCorrectionExactRequest,
 ): void => {
   const session = request.expected_review_session_ref;
   const candidate = request.expected_working_candidate_ref;
@@ -117,12 +126,6 @@ const assertRequest = (
       "Review candidate correction requires canonical Project, command, Review, member, candidate, relationship, and idempotency identities.",
     );
   }
-  contracts.assertValid(
-    "working-candidate",
-    "1.0.0",
-    request.corrected_candidate,
-  );
-  contracts.assertValid("claim", "1.0.0", request.corrected_profile_record);
 };
 
 export class ReviewCandidateCorrectionClient {
@@ -138,7 +141,58 @@ export class ReviewCandidateCorrectionClient {
     projectId: string,
     request: ReviewCandidateCorrectionRequest,
   ): Promise<ReviewCandidateCorrectionResult> {
-    assertRequest(projectId, request, this.#contracts);
+    assertExactRequest(projectId, request);
+    this.#contracts.assertValid(
+      "working-candidate",
+      "1.0.0",
+      request.corrected_candidate,
+    );
+    this.#contracts.assertValid(
+      "claim",
+      "1.0.0",
+      request.corrected_profile_record,
+    );
+    return this.#execute(projectId, request);
+  }
+
+  async correctFromHumanEdit(
+    projectId: string,
+    request: ReviewCandidateCorrectionFromHumanEditRequest,
+  ): Promise<ReviewCandidateCorrectionResult> {
+    assertExactRequest(projectId, request);
+    if (
+      !hasExactKeys(request as unknown as Record<string, unknown>, [
+        "command_id",
+        "idempotency_key",
+        "expected_review_session_ref",
+        "review_member_id",
+        "expected_working_candidate_ref",
+        "expected_working_relationship_ref",
+        "correction_input",
+      ]) ||
+      !isRecord(request.correction_input) ||
+      !hasExactKeys(request.correction_input, [
+        "input_kind",
+        "canonical_text",
+      ]) ||
+      request.correction_input.input_kind !==
+        "human_scientific_claim_text_edit" ||
+      request.correction_input.canonical_text.trim().length === 0 ||
+      request.correction_input.canonical_text.length > 20000
+    ) {
+      throw new TypeError(
+        "Review candidate correction accepts only one non-empty human-authored scientific Claim text field.",
+      );
+    }
+    return this.#execute(projectId, request);
+  }
+
+  async #execute(
+    projectId: string,
+    request:
+      | ReviewCandidateCorrectionRequest
+      | ReviewCandidateCorrectionFromHumanEditRequest,
+  ): Promise<ReviewCandidateCorrectionResult> {
     const endpoint = new URL(
       `/api/commands/projects/${encodeURIComponent(projectId)}/reviews/${encodeURIComponent(request.expected_review_session_ref.review_session_id)}/candidate-correction`,
       this.#options.baseUrl,
@@ -196,6 +250,7 @@ export class ReviewCandidateCorrectionClient {
     const result = body as unknown as ReviewCandidateCorrectionResult;
     const receipt = result.receipt.content;
     const candidateRef = receipt.resulting_candidate_ref;
+    const profileRecordRef = receipt.resulting_profile_record_ref;
     const relationshipRef = receipt.resulting_relationship_ref;
     const reviewRef = receipt.resulting_review_session_ref;
     const member = result.review_session.content.members[0];
@@ -223,13 +278,19 @@ export class ReviewCandidateCorrectionClient {
         request.expected_working_relationship_ref.revision ||
       receipt.prior_relationship_ref.content_hash !==
         request.expected_working_relationship_ref.content_hash ||
-      canonicalize(result.candidate) !==
-        canonicalize(request.corrected_candidate) ||
-      canonicalize(result.profile_record) !==
-        canonicalize(request.corrected_profile_record) ||
       result.candidate.working_candidate_id !== candidateRef.record_id ||
       result.candidate.revision !== candidateRef.revision ||
       result.candidate.content_hash !== candidateRef.content_hash ||
+      result.profile_record.claim_id !== profileRecordRef.record_id ||
+      result.profile_record.revision !== profileRecordRef.revision ||
+      result.candidate.profile_object.object_record_ref.record_id !==
+        profileRecordRef.record_id ||
+      result.candidate.profile_object.object_record_ref.revision !==
+        profileRecordRef.revision ||
+      result.candidate.profile_object.object_record_ref.record_hash !==
+        profileRecordRef.record_hash ||
+      result.candidate.validation.target_record_hash !==
+        profileRecordRef.record_hash ||
       result.relationship.working_relationship_id !==
         relationshipRef.record_id ||
       result.relationship.revision !== relationshipRef.revision ||
@@ -253,7 +314,16 @@ export class ReviewCandidateCorrectionClient {
       member.working_state.relationship_refs[0]?.revision !==
         result.relationship.revision ||
       member.working_state.relationship_refs[0]?.content_hash !==
-        result.relationship.content_hash
+        result.relationship.content_hash ||
+      ("corrected_candidate" in request &&
+        canonicalize(result.candidate) !==
+          canonicalize(request.corrected_candidate)) ||
+      ("corrected_profile_record" in request &&
+        canonicalize(result.profile_record) !==
+          canonicalize(request.corrected_profile_record)) ||
+      ("correction_input" in request &&
+        result.profile_record.canonical_text !==
+          request.correction_input.canonical_text)
     ) {
       throw new ReviewCandidateCorrectionClientError(
         "Petra returned a mismatched Review candidate-correction result.",

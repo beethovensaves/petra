@@ -239,11 +239,17 @@ export const createProjectShellPersistenceFromEnvironment = async (
             WHERE conname = 'command_executions_command_name_check'
               AND pg_get_constraintdef(oid) LIKE '%CorrectReviewCandidate%'
           )
+          AND EXISTS (
+            SELECT 1
+            FROM pg_constraint
+            WHERE conname = 'command_executions_schema_version_check'
+              AND pg_get_constraintdef(oid) LIKE '%1.7.0%'
+          )
           AS ready`,
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the V037 Review candidate-correction authority boundary is unavailable.",
+        "PostgreSQL is reachable, but the V038 server-composed Review candidate-correction boundary is unavailable.",
       );
     }
     const neo4jConfigured = [

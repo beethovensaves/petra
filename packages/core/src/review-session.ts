@@ -1,9 +1,11 @@
 import type {
   CorrectReviewCandidate,
+  CorrectReviewCandidateFromHumanEdit,
   DeferReviewSession,
   PetraCommandEnvelopeV140,
   PetraCommandEnvelopeV150,
   PetraCommandEnvelopeV160,
+  PetraCommandEnvelopeV170,
   PetraReviewCandidateCorrectionReceipt,
   PetraProjectReviewViewRecord,
   PetraClaim,
@@ -149,6 +151,17 @@ export type ReviewCandidateCorrectionCommandEnvelope = Omit<
   command: CorrectReviewCandidate;
 };
 
+export type ReviewCandidateCorrectionFromHumanEditCommandEnvelope = Omit<
+  PetraCommandEnvelopeV170,
+  "command"
+> & {
+  command: CorrectReviewCandidateFromHumanEdit;
+};
+
+export type ReviewCandidateCorrectionAuthorityCommandEnvelope =
+  | ReviewCandidateCorrectionCommandEnvelope
+  | ReviewCandidateCorrectionFromHumanEditCommandEnvelope;
+
 export interface ReviewCandidateCorrectionCommandResult {
   readonly receipt: PetraReviewCandidateCorrectionReceipt;
   readonly candidate: PetraWorkingCandidate;
@@ -194,6 +207,6 @@ export class ReviewCandidateCorrectionAuthorityError extends Error {
  */
 export interface ReviewCandidateCorrectionAuthorityRepository {
   executeReviewCandidateCorrectionCommand(
-    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    envelope: ReviewCandidateCorrectionAuthorityCommandEnvelope,
   ): Promise<ReviewCandidateCorrectionCommandResult>;
 }

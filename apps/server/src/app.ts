@@ -55,8 +55,8 @@ import {
   type ProjectRelationshipOverlayViewReader,
   type ProjectRelationshipViewReader,
   type ProjectReviewViewReader,
+  type ReviewCandidateCorrectionAuthorityCommandEnvelope,
   type ReviewCandidateCorrectionAuthorityRepository,
-  type ReviewCandidateCorrectionCommandEnvelope,
   type ReviewSessionLifecycleAuthorityRepository,
   type ReviewSessionLifecycleCommandEnvelope,
   type ReviewSessionRefreshAuthorityRepository,
@@ -4161,6 +4161,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The Review candidate-correction command must be an object.",
           );
         }
+        const fromHumanEdit = "correction_input" in body;
         assertExactKeys(
           body,
           new Set([
@@ -4170,8 +4171,9 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "review_member_id",
             "expected_working_candidate_ref",
             "expected_working_relationship_ref",
-            "corrected_candidate",
-            "corrected_profile_record",
+            ...(fromHumanEdit
+              ? ["correction_input"]
+              : ["corrected_candidate", "corrected_profile_record"]),
           ]),
           "Review candidate-correction command",
         );
@@ -4206,32 +4208,63 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           body.expected_working_relationship_ref,
           "relationship",
         );
-        try {
-          contracts.assertValid(
-            "working-candidate",
-            "1.0.0",
-            body.corrected_candidate,
-          );
-          contracts.assertValid(
-            "claim",
-            "1.0.0",
-            body.corrected_profile_record,
-          );
-        } catch (error) {
-          if (error instanceof ContractRegistryError) {
+        let canonicalText: string | undefined;
+        if (fromHumanEdit) {
+          if (!isRecord(body.correction_input)) {
             throw new InteractionInputError(
-              "The corrected candidate or scientific Claim does not satisfy its registered contract.",
-              error.validationErrors.map((issue) => issue.instancePath),
+              "correction_input must be the registered human scientific Claim text edit.",
+              ["correction_input"],
             );
           }
-          throw error;
+          assertExactKeys(
+            body.correction_input,
+            new Set(["input_kind", "canonical_text"]),
+            "Review candidate-correction input",
+          );
+          if (
+            requiredString(body.correction_input, "input_kind") !==
+            "human_scientific_claim_text_edit"
+          ) {
+            throw new InteractionInputError(
+              "correction_input.input_kind is not supported.",
+              ["correction_input.input_kind"],
+            );
+          }
+          canonicalText = requiredString(
+            body.correction_input,
+            "canonical_text",
+          );
+          if (
+            canonicalText.trim().length === 0 ||
+            canonicalText.length > 20000
+          ) {
+            throw new InteractionInputError(
+              "correction_input.canonical_text must contain between 1 and 20000 characters of Claim text.",
+              ["correction_input.canonical_text"],
+            );
+          }
+        } else {
+          try {
+            contracts.assertValid(
+              "working-candidate",
+              "1.0.0",
+              body.corrected_candidate,
+            );
+            contracts.assertValid(
+              "claim",
+              "1.0.0",
+              body.corrected_profile_record,
+            );
+          } catch (error) {
+            if (error instanceof ContractRegistryError) {
+              throw new InteractionInputError(
+                "The corrected candidate or scientific Claim does not satisfy its registered contract.",
+                error.validationErrors.map((issue) => issue.instancePath),
+              );
+            }
+            throw error;
+          }
         }
-        const correctedCandidate = structuredClone(
-          body.corrected_candidate as PetraWorkingCandidate,
-        );
-        const correctedProfileRecord = structuredClone(
-          body.corrected_profile_record as PetraClaim,
-        );
         const commandName = "CorrectReviewCandidate" as const;
         const principal =
           await options.commandPrincipalResolver.resolveCommandPrincipal({
@@ -4258,30 +4291,67 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
               : "More than one active grant matches authenticated Review candidate correction.",
           );
         }
-        const envelope: ReviewCandidateCorrectionCommandEnvelope = {
-          schema_name: "petra.command-envelope",
-          schema_version: "1.6.0",
-          command_id: commandId,
-          idempotency_key: idempotencyKey,
-          project_id: projectId,
-          actor: principal.actor,
-          capability_grant_id: principal.capabilityGrantId,
-          correlation_id: derivePetraId(
-            "trace",
-            `${context.get("requestId")}:${randomUUID()}`,
-          ),
-          submitted_at: new Date().toISOString(),
-          command: {
-            command_name: commandName,
-            expected_review_session_ref: expectedReviewSessionRef,
-            review_member_id: reviewMemberId,
-            expected_working_candidate_ref: expectedWorkingCandidateRef,
-            expected_working_relationship_ref: expectedWorkingRelationshipRef,
-            corrected_candidate: correctedCandidate,
-            corrected_profile_record: correctedProfileRecord,
-          },
-        };
-        contracts.assertValid("command-envelope", "1.6.0", envelope);
+        const envelope: ReviewCandidateCorrectionAuthorityCommandEnvelope =
+          fromHumanEdit
+            ? {
+                schema_name: "petra.command-envelope",
+                schema_version: "1.7.0",
+                command_id: commandId,
+                idempotency_key: idempotencyKey,
+                project_id: projectId,
+                actor: principal.actor,
+                capability_grant_id: principal.capabilityGrantId,
+                correlation_id: derivePetraId(
+                  "trace",
+                  `${context.get("requestId")}:${randomUUID()}`,
+                ),
+                submitted_at: new Date().toISOString(),
+                command: {
+                  command_name: commandName,
+                  expected_review_session_ref: expectedReviewSessionRef,
+                  review_member_id: reviewMemberId,
+                  expected_working_candidate_ref: expectedWorkingCandidateRef,
+                  expected_working_relationship_ref:
+                    expectedWorkingRelationshipRef,
+                  correction_input: {
+                    input_kind: "human_scientific_claim_text_edit",
+                    canonical_text: canonicalText as string,
+                  },
+                },
+              }
+            : {
+                schema_name: "petra.command-envelope",
+                schema_version: "1.6.0",
+                command_id: commandId,
+                idempotency_key: idempotencyKey,
+                project_id: projectId,
+                actor: principal.actor,
+                capability_grant_id: principal.capabilityGrantId,
+                correlation_id: derivePetraId(
+                  "trace",
+                  `${context.get("requestId")}:${randomUUID()}`,
+                ),
+                submitted_at: new Date().toISOString(),
+                command: {
+                  command_name: commandName,
+                  expected_review_session_ref: expectedReviewSessionRef,
+                  review_member_id: reviewMemberId,
+                  expected_working_candidate_ref: expectedWorkingCandidateRef,
+                  expected_working_relationship_ref:
+                    expectedWorkingRelationshipRef,
+                  corrected_candidate: structuredClone(
+                    body.corrected_candidate as PetraWorkingCandidate,
+                  ),
+                  corrected_profile_record: structuredClone(
+                    body.corrected_profile_record as PetraClaim,
+                  ),
+                },
+              };
+        contracts.assertValid(
+          "command-envelope",
+          envelope.schema_version,
+          envelope,
+        );
         const result =
           await options.reviewCandidateCorrectionAuthority.executeReviewCandidateCorrectionCommand(
             envelope,
@@ -4340,9 +4410,15 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           result.candidate.revision !== resultingCandidateRef.revision ||
           result.candidate.content_hash !==
             resultingCandidateRef.content_hash ||
-          canonicalize(result.candidate) !== canonicalize(correctedCandidate) ||
-          canonicalize(result.profileRecord) !==
-            canonicalize(correctedProfileRecord) ||
+          ("corrected_candidate" in envelope.command &&
+            canonicalize(result.candidate) !==
+              canonicalize(envelope.command.corrected_candidate)) ||
+          ("corrected_profile_record" in envelope.command &&
+            canonicalize(result.profileRecord) !==
+              canonicalize(envelope.command.corrected_profile_record)) ||
+          ("correction_input" in envelope.command &&
+            result.profileRecord.canonical_text !==
+              envelope.command.correction_input.canonical_text) ||
           result.relationship.working_relationship_id !==
             resultingRelationshipRef.record_id ||
           result.relationship.revision !== resultingRelationshipRef.revision ||

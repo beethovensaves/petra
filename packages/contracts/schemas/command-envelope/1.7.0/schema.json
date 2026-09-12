@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/command-envelope/1.7.0/schema.json",
+  "title": "PetraCommandEnvelopeV170",
+  "description": "The adapter-neutral command envelope extended with a server-composed human text correction for one exact scientific Review member. The caller supplies only the permitted Claim text edit; profile semantics, provenance, hashes, and non-authoritative working revisions are composed inside the existing correction authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "correlation_id",
+    "submitted_at",
+    "command"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.command-envelope" },
+    "schema_version": { "const": "1.7.0" },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+    "capability_grant_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+    },
+    "correlation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+    },
+    "causation_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "command": { "$ref": "#/$defs/Command" }
+  },
+  "$defs": {
+    "Command": {
+      "oneOf": [
+        { "$ref": "../../command-envelope/1.6.0/schema.json#/$defs/Command" },
+        { "$ref": "#/$defs/CorrectReviewCandidateFromHumanEdit" }
+      ]
+    },
+    "CorrectReviewCandidateFromHumanEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_name",
+        "expected_review_session_ref",
+        "review_member_id",
+        "expected_working_candidate_ref",
+        "expected_working_relationship_ref",
+        "correction_input"
+      ],
+      "properties": {
+        "command_name": { "const": "CorrectReviewCandidate" },
+        "expected_review_session_ref": {
+          "$ref": "../../command-envelope/1.5.0/schema.json#/$defs/ExactReviewSessionRef"
+        },
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "expected_working_candidate_ref": {
+          "$ref": "../../command-envelope/1.6.0/schema.json#/$defs/ExactWorkingCandidateRef"
+        },
+        "expected_working_relationship_ref": {
+          "$ref": "../../command-envelope/1.6.0/schema.json#/$defs/ExactWorkingRelationshipRef"
+        },
+        "correction_input": {
+          "$ref": "#/$defs/HumanScientificClaimTextEdit"
+        }
+      }
+    },
+    "HumanScientificClaimTextEdit": {
+      "description": "The only human-authored profile field accepted by this preparation boundary. Scope, kind, source identity, stance, attribution, modality, uncertainty, validators, authority, authorship, timestamps, lineage, provenance, and hashes are retained or composed by server authority.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_kind", "canonical_text"],
+      "properties": {
+        "input_kind": {
+          "const": "human_scientific_claim_text_edit"
+        },
+        "canonical_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20000,
+          "pattern": "\\S"
+        }
+      }
+    }
+  }
+}

@@ -845,6 +845,12 @@ export type {
   PetraCommandEnvelopeV160,
 } from "./generated/command-envelope-v1-6.js";
 export type {
+  Command as PetraCommandV170,
+  CorrectReviewCandidateFromHumanEdit,
+  HumanScientificClaimTextEdit,
+  PetraCommandEnvelopeV170,
+} from "./generated/command-envelope-v1-7.js";
+export type {
   ApprovalRecorded as ApprovalRecordedEvent,
   ChangeSetApplied as ChangeSetAppliedEvent,
   ChangeSetConflicted as ChangeSetConflictedEvent,

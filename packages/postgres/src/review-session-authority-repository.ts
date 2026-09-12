@@ -20,8 +20,8 @@ import {
   ReviewSessionLifecycleAuthorityError,
   ReviewSessionRefreshAuthorityError,
   derivePetraId,
+  type ReviewCandidateCorrectionAuthorityCommandEnvelope,
   type ReviewCandidateCorrectionAuthorityRepository,
-  type ReviewCandidateCorrectionCommandEnvelope,
   type ReviewCandidateCorrectionCommandResult,
   type ReviewSessionAuthorityRepository,
   type ReviewSessionLifecycleAuthorityRepository,
@@ -112,7 +112,7 @@ const commandFingerprint = (
   envelope:
     | ReviewSessionLifecycleCommandEnvelope
     | ReviewSessionRefreshCommandEnvelope
-    | ReviewCandidateCorrectionCommandEnvelope,
+    | ReviewCandidateCorrectionAuthorityCommandEnvelope,
 ): string => {
   const { correlation_id, submitted_at, ...governedCommand } = envelope;
   void correlation_id;
@@ -672,9 +672,13 @@ export class PostgresReviewSessionAuthorityRepository
   }
 
   async executeReviewCandidateCorrectionCommand(
-    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    envelope: ReviewCandidateCorrectionAuthorityCommandEnvelope,
   ): Promise<ReviewCandidateCorrectionCommandResult> {
-    this.#contracts.assertValid("command-envelope", "1.6.0", envelope);
+    this.#contracts.assertValid(
+      "command-envelope",
+      envelope.schema_version,
+      envelope,
+    );
     if (envelope.command.command_name !== "CorrectReviewCandidate") {
       throw this.#correctionError(
         "REVIEW_CANDIDATE_CORRECTION_LINEAGE_INVALID",
@@ -823,8 +827,15 @@ export class PostgresReviewSessionAuthorityRepository
         current.project_id,
         priorRelationship.profile_relationship.relationship_record_ref,
       );
-      this.#assertCorrectionInput(
+      const prepared = this.#prepareCorrectionRecords(
         envelope,
+        priorCandidate,
+        priorCandidateRow.record_hash,
+        priorProfile,
+      );
+      this.#assertCorrectionInput(
+        prepared.candidate,
+        prepared.profileRecord,
         current,
         member,
         priorCandidate,
@@ -837,8 +848,8 @@ export class PostgresReviewSessionAuthorityRepository
         await this.#workingState.admitWorkingCandidateRevisionInTransaction(
           client,
           {
-            candidate: envelope.command.corrected_candidate,
-            profileRecord: envelope.command.corrected_profile_record,
+            candidate: prepared.candidate,
+            profileRecord: prepared.profileRecord,
           },
         );
       const recordedAt = this.#now();
@@ -951,7 +962,7 @@ export class PostgresReviewSessionAuthorityRepository
       return {
         receipt: clone(receipt),
         candidate: clone(candidate),
-        profileRecord: clone(envelope.command.corrected_profile_record),
+        profileRecord: clone(prepared.profileRecord),
         relationship: clone(relationship),
         reviewSession: clone(next),
         applied: true,
@@ -1126,7 +1137,7 @@ export class PostgresReviewSessionAuthorityRepository
 
   async #lockCorrectionCommand(
     client: PoolClient,
-    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    envelope: ReviewCandidateCorrectionAuthorityCommandEnvelope,
   ): Promise<void> {
     const keys = [
       `command:${envelope.command_id}`,
@@ -1147,7 +1158,7 @@ export class PostgresReviewSessionAuthorityRepository
 
   async #replayCorrectionCommand(
     client: PoolClient,
-    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    envelope: ReviewCandidateCorrectionAuthorityCommandEnvelope,
     fingerprint: string,
   ): Promise<ReviewCandidateCorrectionCommandResult | undefined> {
     const byIdempotency = await client.query<CommandExecutionRow>(
@@ -1436,8 +1447,131 @@ export class PostgresReviewSessionAuthorityRepository
     return assertion;
   }
 
+  #prepareCorrectionRecords(
+    envelope: ReviewCandidateCorrectionAuthorityCommandEnvelope,
+    priorCandidate: PetraWorkingCandidate,
+    priorCandidateRecordHash: string,
+    priorProfile: PetraClaim,
+  ): {
+    candidate: PetraWorkingCandidate;
+    profileRecord: PetraClaim;
+  } {
+    if ("corrected_candidate" in envelope.command) {
+      return {
+        candidate: clone(envelope.command.corrected_candidate),
+        profileRecord: clone(envelope.command.corrected_profile_record),
+      };
+    }
+    if (envelope.actor.actor_kind !== "human") {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_PROVENANCE_INVALID",
+        "Server-composed candidate text correction requires an authenticated human Actor.",
+      );
+    }
+    if (priorProfile.basis.basis_kind !== "source") {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED",
+        "Server-composed candidate text correction supports source-grounded scientific Claims only.",
+      );
+    }
+    const canonicalText = envelope.command.correction_input.canonical_text;
+    if (canonicalText === priorProfile.canonical_text) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_LINEAGE_INVALID",
+        "Candidate text correction must change the exact current Claim text.",
+      );
+    }
+
+    const profileRecord = clone(priorProfile);
+    profileRecord.revision += 1;
+    profileRecord.canonical_text = canonicalText;
+    profileRecord.basis = {
+      ...clone(priorProfile.basis),
+      derivation: {
+        derivation_kind: "human_extraction",
+        derivation_ref: envelope.command_id,
+      },
+      proposed_by: clone(envelope.actor),
+      proposed_at: envelope.submitted_at,
+    };
+    delete profileRecord.basis.extraction_confidence;
+    profileRecord.authority = {
+      zone: "quarantine",
+      review_state: "unreviewed",
+    };
+    profileRecord.supersedes_claim_id = priorProfile.claim_id;
+    profileRecord.created_by = clone(envelope.actor);
+    profileRecord.created_at = envelope.submitted_at;
+    this.#contracts.assertValid("claim", "1.0.0", profileRecord);
+
+    const exactPriorCandidateRecord = {
+      schema_name: "petra.working-candidate" as const,
+      schema_version: "1.0.0" as const,
+      record_id: priorCandidate.working_candidate_id,
+      revision: priorCandidate.revision,
+      record_hash: priorCandidateRecordHash,
+    };
+    const profileRecordHash = canonicalHash(profileRecord);
+    const candidate = clone(priorCandidate);
+    candidate.revision += 1;
+    candidate.profile_object.object_record_ref = {
+      schema_name: profileRecord.schema_name,
+      schema_version: profileRecord.schema_version,
+      record_id: profileRecord.claim_id,
+      revision: profileRecord.revision,
+      record_hash: profileRecordHash,
+    };
+    candidate.producer = {
+      producer_kind: "human",
+      actor: {
+        actor_id: envelope.actor.actor_id,
+        actor_kind: "human",
+      },
+      contribution_kind: "direct_edit",
+    };
+    candidate.input_snapshot.input_record_refs = [
+      ...clone(priorCandidate.input_snapshot.input_record_refs),
+      exactPriorCandidateRecord,
+    ];
+    candidate.origin = {
+      origin_kind: "direct_edit",
+      source_record_refs: [exactPriorCandidateRecord],
+      summary:
+        "The authenticated human author corrected the candidate text while Petra retained its exact scientific source basis.",
+    };
+    candidate.provenance = [
+      {
+        provenance_role: "prior_revision",
+        record_ref: exactPriorCandidateRecord,
+        statement:
+          "This revision retains the exact prior WorkingCandidate as its correction input and provenance.",
+      },
+    ];
+    candidate.validation = {
+      state: "pending",
+      target_record_hash: profileRecordHash,
+      results: [],
+    };
+    candidate.lineage = {
+      lineage_kind: "supersession",
+      supersedes: {
+        working_candidate_id: priorCandidate.working_candidate_id,
+        revision: priorCandidate.revision,
+        content_hash: priorCandidate.content_hash,
+      },
+      change_kind: "material_revision",
+      reason:
+        "The authenticated human author corrected the candidate text during Review.",
+    };
+    candidate.recorded_at = envelope.submitted_at;
+    candidate.content_hash = workingContentHash(candidate);
+    this.#contracts.assertValid("working-candidate", "1.0.0", candidate);
+    return { candidate, profileRecord };
+  }
+
   #assertCorrectionInput(
-    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    candidate: PetraWorkingCandidate,
+    profile: PetraClaim,
     session: PetraReviewSessionV110,
     member: ReviewSessionMemberV110,
     priorCandidate: PetraWorkingCandidate,
@@ -1445,8 +1579,6 @@ export class PostgresReviewSessionAuthorityRepository
     priorRelationship: PetraWorkingRelationship,
     priorProfile: PetraClaim,
   ): void {
-    const candidate = envelope.command.corrected_candidate;
-    const profile = envelope.command.corrected_profile_record;
     const sameActor = (
       left: { actor_id: string; actor_kind: string },
       right: { actor_id: string; actor_kind: string },
@@ -2229,7 +2361,7 @@ export class PostgresReviewSessionAuthorityRepository
     envelope:
       | ReviewSessionLifecycleCommandEnvelope
       | ReviewSessionRefreshCommandEnvelope
-      | ReviewCandidateCorrectionCommandEnvelope,
+      | ReviewCandidateCorrectionAuthorityCommandEnvelope,
     boundary: "lifecycle" | "refresh" | "correction",
   ): Promise<void> {
     const result = await client.query<{ actor_kind: string }>(
@@ -2291,7 +2423,7 @@ export class PostgresReviewSessionAuthorityRepository
   }
 
   #correctionReceipt(
-    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    envelope: ReviewCandidateCorrectionAuthorityCommandEnvelope,
     fingerprint: string,
     priorSession: PetraReviewSessionV110,
     priorSessionRecordHash: string,
@@ -2433,7 +2565,7 @@ export class PostgresReviewSessionAuthorityRepository
 
   async #insertCorrectionCommandExecution(
     client: PoolClient,
-    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    envelope: ReviewCandidateCorrectionAuthorityCommandEnvelope,
     fingerprint: string,
     receipt: PetraReviewCandidateCorrectionReceipt,
     completedAt: string,

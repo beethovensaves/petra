@@ -1100,6 +1100,17 @@
       "typescript_path": "src/generated/command-envelope-v1-6.ts"
     },
     {
+      "name": "command-envelope",
+      "version": "1.7.0",
+      "$id": "https://petra.local/schemas/command-envelope/1.7.0/schema.json",
+      "path": "schemas/command-envelope/1.7.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-server-composed-review-candidate-text-correction",
+      "canonical_sha256": "sha256:e4df7d42ffdc4c13c5d06db2c41a6889e88e1c0d169819a350ad791873a4cca4",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/command-envelope-v1-7.ts"
+    },
+    {
       "name": "domain-event",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/domain-event/1.0.0/schema.json",

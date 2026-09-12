@@ -12,8 +12,8 @@ import {
   ReviewCandidateCorrectionAuthorityError,
   type AuthenticatedCommandPrincipalResolver,
   type ReviewCandidateCorrectionAuthorityErrorCode,
+  type ReviewCandidateCorrectionAuthorityCommandEnvelope,
   type ReviewCandidateCorrectionAuthorityRepository,
-  type ReviewCandidateCorrectionCommandEnvelope,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import { describe, expect, it } from "vitest";
@@ -66,6 +66,24 @@ const body = {
   expected_working_relationship_ref: structuredClone(memberRelationship),
   corrected_candidate: structuredClone(candidate),
   corrected_profile_record: structuredClone(profileRecord),
+} as const;
+const humanEditBody = {
+  command_id: body.command_id,
+  idempotency_key: body.idempotency_key,
+  expected_review_session_ref: structuredClone(
+    body.expected_review_session_ref,
+  ),
+  review_member_id: body.review_member_id,
+  expected_working_candidate_ref: structuredClone(
+    body.expected_working_candidate_ref,
+  ),
+  expected_working_relationship_ref: structuredClone(
+    body.expected_working_relationship_ref,
+  ),
+  correction_input: {
+    input_kind: "human_scientific_claim_text_edit",
+    canonical_text: profileRecord.canonical_text,
+  },
 } as const;
 
 const relationship = structuredClone(priorRelationship);
@@ -263,7 +281,8 @@ const authorityResult = () => ({
 describe("Review candidate-correction command route", () => {
   it("builds authority from authentication and returns the exact composed result", async () => {
     let resolvedInput: { projectId: string; commandName: string } | undefined;
-    let executedEnvelope: ReviewCandidateCorrectionCommandEnvelope | undefined;
+    let executedEnvelope:
+      ReviewCandidateCorrectionAuthorityCommandEnvelope | undefined;
     const authority: ReviewCandidateCorrectionAuthorityRepository = {
       executeReviewCandidateCorrectionCommand: (envelope) => {
         executedEnvelope = structuredClone(envelope);
@@ -317,6 +336,52 @@ describe("Review candidate-correction command route", () => {
       review_session: correctedSession,
       applied: true,
     });
+  });
+
+  it("passes only registered human Claim text to server-owned profile composition", async () => {
+    let executedEnvelope:
+      ReviewCandidateCorrectionAuthorityCommandEnvelope | undefined;
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      commandPrincipalResolver: resolvedPrincipal,
+      reviewCandidateCorrectionAuthority: {
+        executeReviewCandidateCorrectionCommand: (envelope) => {
+          executedEnvelope = structuredClone(envelope);
+          const result = authorityResult();
+          result.receipt.content.command_ref.correlation_id =
+            envelope.correlation_id;
+          result.receipt.content.command_ref.actor = structuredClone(
+            envelope.actor,
+          );
+          result.receipt.content_hash = canonicalHash(result.receipt.content);
+          return Promise.resolve(result);
+        },
+      },
+    });
+
+    const response = await petra.app.request(request(humanEditBody));
+
+    expect(response.status).toBe(200);
+    expect(executedEnvelope).toMatchObject({
+      schema_name: "petra.command-envelope",
+      schema_version: "1.7.0",
+      command: {
+        command_name: "CorrectReviewCandidate",
+        correction_input: humanEditBody.correction_input,
+      },
+    });
+    expect(executedEnvelope?.command).not.toHaveProperty("corrected_candidate");
+    expect(executedEnvelope?.command).not.toHaveProperty(
+      "corrected_profile_record",
+    );
+
+    const unsupported = structuredClone(humanEditBody) as unknown as Record<
+      string,
+      unknown
+    >;
+    (unsupported.correction_input as Record<string, unknown>).scope =
+      profileRecord.scope;
+    expect((await petra.app.request(request(unsupported))).status).toBe(422);
   });
 
   it("rejects request-carried authority, incomplete references, and query controls", async () => {
