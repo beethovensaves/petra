@@ -7,8 +7,10 @@ import type {
   PetraArtifactManifest,
   PetraAssertion,
   PetraAuthor,
+  PetraCapabilityGrantV130,
   PetraClaim,
   PetraCommandEnvelope,
+  PetraCommandEnvelopeV140,
   PetraParsedDocument,
   PetraProject,
   PetraProjectDefinition,
@@ -27,15 +29,24 @@ import type {
   PetraWorkUnit,
   PetraWorkVersion,
 } from "@petra/contracts";
+import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
   PersistDocumentBundleInput,
   PersistVerifiedArtifactInput,
+} from "@petra/core";
+import type {
+  ReviewSessionLifecycleAuthorityError,
+  ReviewSessionLifecycleCommandEnvelope,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
+import {
+  PostgresCapabilityGrantAuthorityRepository,
+  PostgresCapabilityGrantCommandAuthorizer,
+} from "../src/capability-grant-authority-repository.js";
 import { PostgresChangeControlAuthorityRepository } from "../src/change-control-authority-repository.js";
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
@@ -109,7 +120,17 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
   const projectSources = new PostgresProjectSourceAuthorityRepository(pool);
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
   const working = new PostgresWorkingStateAuthorityRepository(pool);
-  const sessions = new PostgresReviewSessionAuthorityRepository(pool);
+  const contracts = new PetraContractRegistry();
+  const capabilities = new PostgresCapabilityGrantAuthorityRepository(
+    pool,
+    contracts,
+  );
+  const sessions = new PostgresReviewSessionAuthorityRepository(
+    pool,
+    contracts,
+    new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    () => "2026-09-12T19:00:00.000Z",
+  );
   const views = new PostgresProjectReviewViewReader(pool);
   const projections = new PostgresGraphProjectionAuthorityRepository(pool);
   const historyViews = new PostgresProjectHistoryViewReader(pool);
@@ -541,6 +562,85 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
     session.content_hash = canonicalHash(session.content);
   };
 
+  const registerLifecycleGrant = async (
+    project: PetraProject,
+    actor: PetraActor,
+  ): Promise<PetraCapabilityGrantV130> => {
+    const content: PetraCapabilityGrantV130["content"] = {
+      scope_kind: "project_commands",
+      allowed_commands: ["DeferReviewSession", "ReopenReviewSession"],
+      valid_from: "2026-09-01T00:00:00.000Z",
+      reason: "Allow the Project author to defer and reopen exact Reviews.",
+    };
+    const grant: PetraCapabilityGrantV130 = {
+      schema_name: "petra.capability-grant",
+      schema_version: "1.3.0",
+      capability_grant_id: "capability_grant_01K4D000000000000000000070",
+      revision: 1,
+      project_id: project.project_id,
+      grantee: { actor_id: actor.actor_id, actor_kind: "human" },
+      content,
+      content_hash: canonicalHash(content),
+      issued_by: { actor_id: actor.actor_id, actor_kind: "human" },
+      issued_at: "2026-09-01T00:00:00.000Z",
+    };
+    await capabilities.registerCapabilityGrant(grant);
+    return grant;
+  };
+
+  const lifecycleEnvelope = (
+    session: PetraReviewSessionV110,
+    grant: PetraCapabilityGrantV130,
+    action: "defer" | "reopen",
+    identity: string,
+  ): ReviewSessionLifecycleCommandEnvelope => {
+    const expectedLifecycle = action === "defer" ? "open" : "deferred";
+    if (session.content.lifecycle !== expectedLifecycle) {
+      throw new Error(
+        `Expected ${expectedLifecycle} ReviewSession for ${action}.`,
+      );
+    }
+    const base = {
+      schema_name: "petra.command-envelope" as const,
+      schema_version: "1.4.0" as const,
+      command_id: `command_01K4D0000000000000000000${identity}`,
+      idempotency_key: `review-session:001:${action}:${identity}`,
+      project_id: session.project_id,
+      actor: structuredClone(grant.grantee),
+      capability_grant_id: grant.capability_grant_id,
+      correlation_id: `trace_01K4D0000000000000000000${identity}`,
+      submitted_at: "2026-09-12T18:59:59.000Z",
+    };
+    return (
+      action === "defer"
+        ? {
+            ...base,
+            command: {
+              command_name: "DeferReviewSession" as const,
+              expected_review_session_ref: {
+                review_session_id: session.review_session_id,
+                revision: session.revision,
+                content_hash: session.content_hash,
+                lifecycle: "open" as const,
+              },
+              rationale: "Decide after checking the material limitation.",
+            },
+          }
+        : {
+            ...base,
+            command: {
+              command_name: "ReopenReviewSession" as const,
+              expected_review_session_ref: {
+                review_session_id: session.review_session_id,
+                revision: session.revision,
+                content_hash: session.content_hash,
+                lifecycle: "deferred" as const,
+              },
+            },
+          }
+    ) satisfies PetraCommandEnvelopeV140;
+  };
+
   it("persists exact task-sized working membership and composes its non-authoritative Review roles", async () => {
     const { project, session, candidate, relationship } =
       await setupWorkingReview();
@@ -626,6 +726,170 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
       candidate_bindings: "1",
       relationship_bindings: "1",
       domain_events: "0",
+    });
+  });
+
+  it("defers and reopens one exact Review through authenticated idempotent commands without authority effects", async () => {
+    const { project, session, actor } = await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const grant = await registerLifecycleGrant(project, actor);
+
+    const directRevision = structuredClone(session);
+    directRevision.revision = 2;
+    directRevision.content.lifecycle = "deferred";
+    directRevision.content_hash = canonicalHash(directRevision.content);
+    directRevision.updated_at = "2026-09-12T18:30:00.000Z";
+    await expect(
+      sessions.registerReviewSessionRevision(directRevision),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<PostgresReviewSessionError>>({
+        code: "REVIEW_SESSION_LIFECYCLE_COMMAND_REQUIRED",
+      }),
+    );
+
+    const defer = lifecycleEnvelope(session, grant, "defer", "71");
+    const deferred = await sessions.executeReviewSessionLifecycleCommand(defer);
+    expect(deferred).toMatchObject({
+      applied: true,
+      reviewSession: { revision: 2, content: { lifecycle: "deferred" } },
+      receipt: {
+        content: {
+          transition: "deferred",
+          rationale: "Decide after checking the material limitation.",
+          authority_boundary: {
+            review_decision: "none",
+            domain_authority: "unchanged",
+            change_set_authority: "none",
+            validation_authority: "none",
+            domain_event_effect: "none",
+            projection_effect: "none",
+          },
+          recovery: { inverse_command_name: "ReopenReviewSession" },
+        },
+      },
+    });
+    expect(
+      await sessions.getReviewSessionLifecycleReceipt(defer.command_id),
+    ).toEqual(deferred.receipt);
+
+    const replayEnvelope = structuredClone(defer);
+    replayEnvelope.correlation_id = "trace_01K4D000000000000000000073";
+    replayEnvelope.submitted_at = "2026-09-12T19:00:01.000Z";
+    await expect(
+      sessions.executeReviewSessionLifecycleCommand(replayEnvelope),
+    ).resolves.toEqual({
+      ...deferred,
+      applied: false,
+    });
+
+    const reusedIdempotencyKey = lifecycleEnvelope(
+      session,
+      grant,
+      "defer",
+      "72",
+    );
+    reusedIdempotencyKey.idempotency_key = defer.idempotency_key;
+    await expect(
+      sessions.executeReviewSessionLifecycleCommand(reusedIdempotencyKey),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewSessionLifecycleAuthorityError>>({
+        code: "REVIEW_SESSION_LIFECYCLE_IDEMPOTENCY_KEY_REUSED",
+      }),
+    );
+
+    const reusedCommandId = lifecycleEnvelope(session, grant, "defer", "73");
+    reusedCommandId.command_id = defer.command_id;
+    await expect(
+      sessions.executeReviewSessionLifecycleCommand(reusedCommandId),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewSessionLifecycleAuthorityError>>({
+        code: "REVIEW_SESSION_LIFECYCLE_COMMAND_ID_REUSED",
+      }),
+    );
+
+    const unauthorized = lifecycleEnvelope(
+      deferred.reviewSession as PetraReviewSessionV110,
+      grant,
+      "reopen",
+      "74",
+    );
+    unauthorized.capability_grant_id =
+      "capability_grant_01K4D000000000000000000099";
+    await expect(
+      sessions.executeReviewSessionLifecycleCommand(unauthorized),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewSessionLifecycleAuthorityError>>({
+        code: "REVIEW_SESSION_LIFECYCLE_COMMAND_NOT_AUTHORIZED",
+      }),
+    );
+
+    const staleDefer = lifecycleEnvelope(session, grant, "defer", "75");
+    await expect(
+      sessions.executeReviewSessionLifecycleCommand(staleDefer),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewSessionLifecycleAuthorityError>>({
+        code: "REVIEW_SESSION_LIFECYCLE_STALE_SESSION",
+      }),
+    );
+
+    const reopen = lifecycleEnvelope(
+      deferred.reviewSession as PetraReviewSessionV110,
+      grant,
+      "reopen",
+      "76",
+    );
+    const reopened =
+      await sessions.executeReviewSessionLifecycleCommand(reopen);
+    expect(reopened).toMatchObject({
+      applied: true,
+      reviewSession: { revision: 3, content: { lifecycle: "open" } },
+      receipt: {
+        content: {
+          transition: "reopened",
+          recovery: { inverse_command_name: "DeferReviewSession" },
+        },
+      },
+    });
+    const view = await views.getProjectReviewView(
+      session.project_id,
+      session.review_session_id,
+    );
+    expect(view?.content.session).toMatchObject({
+      revision: 3,
+      status: "needs_decision",
+      snapshot_state: "current",
+    });
+
+    const counts = await pool.query<{
+      revisions: string;
+      receipts: string;
+      commands: string;
+      candidate_bindings: string;
+      relationship_bindings: string;
+      domain_events: string;
+      outbox_records: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.review_session_revisions)::text
+           AS revisions,
+         (SELECT count(*) FROM petra.review_session_lifecycle_receipts)::text
+           AS receipts,
+         (SELECT count(*) FROM petra.command_executions)::text AS commands,
+         (SELECT count(*) FROM petra.review_session_working_candidate_bindings)::text
+           AS candidate_bindings,
+         (SELECT count(*) FROM petra.review_session_working_relationship_bindings)::text
+           AS relationship_bindings,
+         (SELECT count(*) FROM petra.domain_events)::text AS domain_events,
+         (SELECT count(*) FROM petra.outbox_records)::text AS outbox_records`,
+    );
+    expect(counts.rows[0]).toEqual({
+      revisions: "3",
+      receipts: "2",
+      commands: "2",
+      candidate_bindings: "3",
+      relationship_bindings: "3",
+      domain_events: "0",
+      outbox_records: "0",
     });
   });
 

@@ -1,7 +1,8 @@
 # UX-REQ-012 canonical working ReviewSession composition
 
-Status: bounded Wave 4 scientific composition complete; typed Review operations
-and profile-neutral conformance remain open
+Status: bounded Wave 4 scientific composition and authenticated defer/reopen
+backend operation complete; other typed Review operations and profile-neutral
+conformance remain open
 
 ## Result
 
@@ -90,40 +91,88 @@ version and maps 1.1 into the unchanged frozen Review model. No React component,
 CSS, browser route, fixture-backed presentation fallback, or client-side
 semantic calculation changed in this slice.
 
+## Authenticated defer and reopen boundary
+
+Command envelope 1.4 and CapabilityGrant 1.3 add only
+`DeferReviewSession` and `ReopenReviewSession`. The authenticated route accepts
+one command identity, idempotency key, requested transition, exact current
+ReviewSession revision, content hash and lifecycle, plus an optional rationale.
+It resolves the Actor and exact active grant on the server. Request-carried
+Actor, grant, conversation approval, query controls, and arbitrary lifecycle
+commands fail before execution.
+
+V035 executes each transition in one serializable transaction. A successful
+defer appends `open` to `deferred`; a successful reopen appends `deferred` to
+`open`. The transaction retains the complete ReviewSession content and exact
+working bindings, stores the governed command execution, advances the session
+head, and stores an immutable lifecycle receipt. Generic ReviewSession
+registration refuses a lifecycle-changing revision, so callers cannot bypass
+the command boundary.
+
+The receipt names the prior and resulting session revisions and record hashes,
+the Actor, grant, command fingerprint, transition, optional rationale, retained
+records, and inverse command. It also fixes the authority effect: no Review
+decision, Approval, ChangeSet, validation authority, domain event, outbox
+record, or projection instruction is created. Deferral and reopen coordinate
+Review only; commitment remains in the existing ChangeSet path.
+
+An exact retry returns the stored receipt and resulting revision without a
+second write. Reused command or idempotency identities, missing authorization,
+stale session input, an invalid direction, a Project mismatch, corrupt stored
+state, and a failed relational invariant fail closed. Reopen rechecks V034's
+exact retained working bindings and snapshot constraints as it inserts the new
+revision. It does not rerun an external profile validator or refresh a stale
+Review snapshot; the existing read continues to report stale state and block
+unsafe commitment until the separate refresh operation exists.
+
+The renderer-neutral workbench client sends only the caller-owned command
+identity, idempotency key, transition, exact Review reference, and optional
+rationale. It rejects a mismatched result before presentation. No frozen React
+component, CSS, browser route, or presentation fixture changed.
+
 ## Verification
 
 Pinned Node 24.20.0 focused contract checks validate ReviewSession and Project
 Review view 1.1, including exact working membership and rejection of missing or
-injected authority. The renderer-neutral workbench test passes all 45 cases and
-proves that the additive server detail does not change the frozen Review model.
+injected authority. Three lifecycle contract cases validate both transitions,
+the no-authority receipt, and rejection of conversation-carried authority. Four
+server-route cases cover server-resolved authority, request and route mismatch,
+invalid direction, missing grants, and error mapping. The renderer-neutral
+workbench test passes all 47 cases, including exact request/response identity
+and mismatch rejection before transport or presentation.
 
-A fresh PostgreSQL 18.6 store applies Flyway migrations V001 through V034 and
-passes all 118 PostgreSQL tests across 16 files. The new integration cases cover
+A fresh PostgreSQL 18.6 store applies Flyway migrations V001 through V035 and
+passes all 119 PostgreSQL tests across 16 files. The integration cases cover
 ordinary and exception membership, idempotent retry, durable cardinality, no
 domain event from Review registration, exact working validation, a mismatched
 working reference, stale root authority, no partial persistence, the complete
 SubmitChangeSet–RecordApproval–ApplyChangeSet path, applied member outcome,
-command and event traces, and a separate catching-up projection receipt.
+command and event traces, and a separate catching-up projection receipt. The
+new lifecycle case additionally covers a blocked direct transition, authenticated
+defer and reopen, exact replay, reused identities, unauthorized and stale
+attempts, the current composed view, and atomic counts: three session revisions,
+two receipts, two command executions, three copies of each immutable working
+binding, and no domain event or outbox record.
 
 The complete `npm run verify` gate passes generated-contract and fixture checks,
 the retrieval floor, formatting, lint, TypeScript and Python typechecks, and the
-production workbench build. Its test totals are 468 contract tests, 216 core
+production workbench build. Its test totals are 474 contract tests, 216 core
 tests, 31 adapter tests, 15 retrieval tests, 3 Neo4j tests with 1
-integration-only skip, 3 S3 tests with 6 integration-only skips, 69 server
-tests, 129 workbench tests, 25 Python tests, and 8 handoff automation tests. The
+integration-only skip, 3 S3 tests with 6 integration-only skips, 73 server
+tests, 131 workbench tests, 25 Python tests, and 8 handoff automation tests. The
 production build retains the existing non-failing chunk-size advisory.
 
 ## Remaining boundary
 
 This slice composes one task-sized Review over the registered scientific
-Claim–ASSERTS specialization. It does not add correction or material-basis
-revision, defer/reopen, refresh, separation, or member-recovery operations;
-those are the next backend-owned slice. It also does not establish a second
+Claim–ASSERTS specialization and adds defer/reopen only. It does not add a
+scheduled revisit time, correction or material-basis revision, refresh,
+separation, or member-recovery operations. It also does not establish a second
 profile, multi-member frozen presentation, Brief, communication, direct/model
 entry convergence, or the cumulative Wave 4 exit proof.
 
 The Wave 4 exit gate is therefore not complete. The next safe design boundary
-is a bounded review of the production Review route against the 1.1 view and the
-accepted frozen information hierarchy. The next safe backend boundary after
-that handoff is default-order item 5: add only the missing typed Review
-operations needed by the exit trace through explicit commands.
+is a bounded conformance review of how the existing Review controls should map
+the new typed defer/reopen client without weakening the frozen information
+hierarchy. The next safe backend boundary after that handoff is one other
+smallest default-order item 5 operation required by the exit trace.

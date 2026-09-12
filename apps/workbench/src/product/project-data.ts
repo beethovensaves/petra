@@ -22,6 +22,8 @@ import type {
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewViewRecord,
+  PetraReviewSessionLifecycleReceipt,
+  PetraReviewSessionRecord,
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraSuggestedActionView,
@@ -36,6 +38,7 @@ import type {
   PetraProjectThreadView,
   PetraProjectWorkView,
   ProjectDefinitionTerm,
+  CommandReviewSessionRef,
   ProjectSourceLifecycleExactSourceRef,
   ProjectSourceReplacementActiveSourceRef,
   ProjectSourceReplacementContent,
@@ -1834,6 +1837,34 @@ export interface RetractProjectSourceReplacementResponse {
   readonly applied: boolean;
 }
 
+interface ReviewSessionLifecycleCommandInputBase {
+  readonly projectId: string;
+  readonly reviewSessionId: string;
+  readonly commandId: string;
+  readonly idempotencyKey: string;
+  readonly rationale?: string;
+}
+
+export type ReviewSessionLifecycleCommandInput =
+  | (ReviewSessionLifecycleCommandInputBase & {
+      readonly requestedAction: "defer";
+      readonly expectedReviewSessionRef: CommandReviewSessionRef & {
+        readonly lifecycle: "open";
+      };
+    })
+  | (ReviewSessionLifecycleCommandInputBase & {
+      readonly requestedAction: "reopen";
+      readonly expectedReviewSessionRef: CommandReviewSessionRef & {
+        readonly lifecycle: "deferred";
+      };
+    });
+
+export interface ReviewSessionLifecycleCommandResponse {
+  readonly receipt: PetraReviewSessionLifecycleReceipt;
+  readonly reviewSession: PetraReviewSessionRecord;
+  readonly applied: boolean;
+}
+
 const projectSourceLifecycleCommandResponse = (
   value: unknown,
   input: ProjectSourceLifecycleCommandInput,
@@ -1889,6 +1920,69 @@ const projectSourceLifecycleCommandResponse = (
   return {
     receipt: value.receipt as unknown as PetraProjectSourceLifecycleReceipt,
     projectSource: value.project_source as unknown as PetraProjectSource,
+    applied: value.applied,
+  };
+};
+
+const reviewSessionLifecycleCommandResponse = (
+  value: unknown,
+  input: ReviewSessionLifecycleCommandInput,
+): ReviewSessionLifecycleCommandResponse => {
+  if (
+    !isRecord(value) ||
+    typeof value.applied !== "boolean" ||
+    !isRecord(value.receipt) ||
+    value.receipt.schema_name !== "petra.review-session-lifecycle-receipt" ||
+    value.receipt.schema_version !== "1.0.0" ||
+    value.receipt.project_id !== input.projectId ||
+    !isRecord(value.receipt.content) ||
+    !isRecord(value.receipt.content.command_ref) ||
+    value.receipt.content.command_ref.command_id !== input.commandId ||
+    value.receipt.content.command_ref.idempotency_key !==
+      input.idempotencyKey ||
+    value.receipt.content.command_ref.command_name !==
+      (input.requestedAction === "defer"
+        ? "DeferReviewSession"
+        : "ReopenReviewSession") ||
+    !isRecord(value.receipt.content.prior_review_session_ref) ||
+    value.receipt.content.prior_review_session_ref.review_session_id !==
+      input.reviewSessionId ||
+    value.receipt.content.prior_review_session_ref.revision !==
+      input.expectedReviewSessionRef.revision ||
+    value.receipt.content.prior_review_session_ref.content_hash !==
+      input.expectedReviewSessionRef.content_hash ||
+    value.receipt.content.prior_review_session_ref.lifecycle !==
+      input.expectedReviewSessionRef.lifecycle ||
+    value.receipt.content.transition !==
+      (input.requestedAction === "defer" ? "deferred" : "reopened") ||
+    value.receipt.content.rationale !== input.rationale ||
+    !isRecord(value.receipt.content.resulting_review_session_ref) ||
+    value.receipt.content.resulting_review_session_ref.review_session_id !==
+      input.reviewSessionId ||
+    value.receipt.content.resulting_review_session_ref.lifecycle !==
+      (input.requestedAction === "defer" ? "deferred" : "open") ||
+    !isRecord(value.review_session) ||
+    value.review_session.schema_name !== "petra.review-session" ||
+    (value.review_session.schema_version !== "1.0.0" &&
+      value.review_session.schema_version !== "1.1.0") ||
+    value.review_session.project_id !== input.projectId ||
+    value.review_session.review_session_id !== input.reviewSessionId ||
+    value.review_session.revision !==
+      value.receipt.content.resulting_review_session_ref.revision ||
+    value.review_session.content_hash !==
+      value.receipt.content.resulting_review_session_ref.content_hash ||
+    !isRecord(value.review_session.content) ||
+    value.review_session.content.lifecycle !==
+      value.receipt.content.resulting_review_session_ref.lifecycle
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid ReviewSession lifecycle command result.",
+      502,
+    );
+  }
+  return {
+    receipt: value.receipt as unknown as PetraReviewSessionLifecycleReceipt,
+    reviewSession: value.review_session as unknown as PetraReviewSessionRecord,
     applied: value.applied,
   };
 };
@@ -3772,6 +3866,41 @@ export const executeProjectSourceLifecycleCommand = async (
     },
   );
   return projectSourceLifecycleCommandResponse(value, input);
+};
+
+export const executeReviewSessionLifecycleCommand = async (
+  input: ReviewSessionLifecycleCommandInput,
+): Promise<ReviewSessionLifecycleCommandResponse> => {
+  if (
+    input.expectedReviewSessionRef.review_session_id !==
+      input.reviewSessionId ||
+    (input.requestedAction === "defer" &&
+      input.expectedReviewSessionRef.lifecycle !== "open") ||
+    (input.requestedAction === "reopen" &&
+      input.expectedReviewSessionRef.lifecycle !== "deferred")
+  ) {
+    throw new ProjectDataError(
+      "A ReviewSession lifecycle command must bind the route session's exact eligible state.",
+      400,
+    );
+  }
+  const value = await requestJson(
+    `/api/commands/projects/${encodeURIComponent(input.projectId)}/reviews/${encodeURIComponent(input.reviewSessionId)}/lifecycle`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        command_id: input.commandId,
+        idempotency_key: input.idempotencyKey,
+        requested_action: input.requestedAction,
+        expected_review_session_ref: input.expectedReviewSessionRef,
+        ...(input.rationale === undefined
+          ? {}
+          : { rationale: input.rationale }),
+      }),
+    },
+  );
+  return reviewSessionLifecycleCommandResponse(value, input);
 };
 
 export const createProjectSourceReplacement = async (

@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-session-lifecycle-receipt/1.0.0/schema.json",
+  "title": "PetraReviewSessionLifecycleReceipt",
+  "description": "An immutable receipt for one authenticated, idempotent ReviewSession defer or reopen transition. The transition changes Review coordination state only and grants no approval, ChangeSet, domain-event, or projection authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "review_session_lifecycle_receipt_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.review-session-lifecycle-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "review_session_lifecycle_receipt_id": {
+      "type": "string",
+      "pattern": "^review_session_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ReceiptContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "CommandRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "idempotency_key",
+        "command_name",
+        "command_fingerprint",
+        "actor",
+        "capability_grant_id",
+        "correlation_id"
+      ],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "idempotency_key": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+        },
+        "command_name": {
+          "enum": ["DeferReviewSession", "ReopenReviewSession"]
+        },
+        "command_fingerprint": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+        "capability_grant_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+        },
+        "correlation_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+        }
+      }
+    },
+    "ExactReviewSessionRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_session_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "lifecycle"
+      ],
+      "properties": {
+        "review_session_id": {
+          "type": "string",
+          "pattern": "^review_session_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "lifecycle": { "enum": ["open", "deferred", "completed"] }
+      }
+    },
+    "Preservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_history",
+        "working_candidates",
+        "working_relationships",
+        "change_sets",
+        "approvals",
+        "command_events",
+        "projection_receipts"
+      ],
+      "properties": {
+        "review_history": { "const": "retained" },
+        "working_candidates": { "const": "retained" },
+        "working_relationships": { "const": "retained" },
+        "change_sets": { "const": "retained" },
+        "approvals": { "const": "retained" },
+        "command_events": { "const": "retained_unchanged" },
+        "projection_receipts": { "const": "retained_unchanged" }
+      }
+    },
+    "AuthorityBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_decision",
+        "domain_authority",
+        "change_set_authority",
+        "validation_authority",
+        "domain_event_effect",
+        "projection_effect"
+      ],
+      "properties": {
+        "review_decision": { "const": "none" },
+        "domain_authority": { "const": "unchanged" },
+        "change_set_authority": { "const": "none" },
+        "validation_authority": { "const": "none" },
+        "domain_event_effect": { "const": "none" },
+        "projection_effect": { "const": "none" }
+      }
+    },
+    "Recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "inverse_command_name",
+        "expected_review_session_ref"
+      ],
+      "properties": {
+        "state": { "const": "available" },
+        "inverse_command_name": {
+          "enum": ["DeferReviewSession", "ReopenReviewSession"]
+        },
+        "expected_review_session_ref": {
+          "$ref": "#/$defs/ExactReviewSessionRecordRef"
+        }
+      }
+    },
+    "ReceiptContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_ref",
+        "prior_review_session_ref",
+        "resulting_review_session_ref",
+        "transition",
+        "preservation",
+        "authority_boundary",
+        "recovery"
+      ],
+      "properties": {
+        "command_ref": { "$ref": "#/$defs/CommandRef" },
+        "prior_review_session_ref": {
+          "$ref": "#/$defs/ExactReviewSessionRecordRef"
+        },
+        "resulting_review_session_ref": {
+          "$ref": "#/$defs/ExactReviewSessionRecordRef"
+        },
+        "transition": { "enum": ["deferred", "reopened"] },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "preservation": { "$ref": "#/$defs/Preservation" },
+        "authority_boundary": { "$ref": "#/$defs/AuthorityBoundary" },
+        "recovery": { "$ref": "#/$defs/Recovery" }
+      }
+    }
+  }
+}

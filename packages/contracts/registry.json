@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.78.0",
+  "registry_version": "1.79.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -65,6 +65,17 @@
       "canonical_sha256": "sha256:104a7b5389bb2bddb2740c833f1760838c61cb05a598d4fe4778e540746c9caf",
       "generate_typescript": true,
       "typescript_path": "src/generated/capability-grant-v1-2.ts"
+    },
+    {
+      "name": "capability-grant",
+      "version": "1.3.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.3.0/schema.json",
+      "path": "schemas/capability-grant/1.3.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-review-session-lifecycle-commands",
+      "canonical_sha256": "sha256:478c7202f451010e976160b2b09c23b0a6909ab44fd94d828a42b50de9c5bd9d",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-3.ts"
     },
     {
       "name": "capability-grant-revocation",
@@ -628,6 +639,17 @@
       "typescript_path": "src/generated/project-review-view-v1-1.ts"
     },
     {
+      "name": "review-session-lifecycle-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-session-lifecycle-receipt/1.0.0/schema.json",
+      "path": "schemas/review-session-lifecycle-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-authenticated-review-session-defer-reopen-receipt",
+      "canonical_sha256": "sha256:0eb565d1ea797a880c8c761ccc407f11a3173fb5d5499fc52481f6e1e0bd2c37",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-session-lifecycle-receipt.ts"
+    },
+    {
       "name": "project-relationship-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-relationship-view/1.0.0/schema.json",
@@ -988,6 +1010,17 @@
       "canonical_sha256": "sha256:c976e6277617dc1efa8532a66a6afe5bf7d92c746e2dff9e307559fe94b1c5a1",
       "generate_typescript": true,
       "typescript_path": "src/generated/command-envelope-v1-3.ts"
+    },
+    {
+      "name": "command-envelope",
+      "version": "1.4.0",
+      "$id": "https://petra.local/schemas/command-envelope/1.4.0/schema.json",
+      "path": "schemas/command-envelope/1.4.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-review-session-lifecycle-commands",
+      "canonical_sha256": "sha256:71cf200d50b0ad4d338a1b56c47c0f4b3c7c43e8ed84f9e98ac3e0b9f1df8ad2",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/command-envelope-v1-4.ts"
     },
     {
       "name": "domain-event",
