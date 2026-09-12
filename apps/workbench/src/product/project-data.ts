@@ -22,8 +22,10 @@ import type {
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewViewRecord,
+  PetraReviewSessionRefreshReceipt,
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionRecord,
+  PetraReviewSessionV110,
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraSuggestedActionView,
@@ -1876,6 +1878,25 @@ export interface ReviewSessionLifecycleCommandResponse {
   readonly applied: boolean;
 }
 
+export interface ReviewSessionRefreshCommandInput {
+  readonly projectId: string;
+  readonly reviewSessionId: string;
+  readonly commandId: string;
+  readonly idempotencyKey: string;
+  readonly expectedReviewSessionRef: {
+    readonly review_session_id: string;
+    readonly revision: number;
+    readonly content_hash: string;
+    readonly lifecycle: "open";
+  };
+}
+
+export interface ReviewSessionRefreshCommandResponse {
+  readonly receipt: PetraReviewSessionRefreshReceipt;
+  readonly reviewSession: PetraReviewSessionV110;
+  readonly applied: boolean;
+}
+
 const projectSourceLifecycleCommandResponse = (
   value: unknown,
   input: ProjectSourceLifecycleCommandInput,
@@ -2043,6 +2064,164 @@ const reviewSessionLifecycleCommandResponse = (
   return {
     receipt: value.receipt as unknown as PetraReviewSessionLifecycleReceipt,
     reviewSession: value.review_session as unknown as PetraReviewSessionRecord,
+    applied: value.applied,
+  };
+};
+
+const sameWorkingCandidateRef = (left: unknown, right: unknown): boolean =>
+  isRecord(left) &&
+  isRecord(right) &&
+  left.working_candidate_id === right.working_candidate_id &&
+  left.revision === right.revision &&
+  left.content_hash === right.content_hash;
+
+const sameWorkingRelationshipRefs = (left: unknown, right: unknown): boolean =>
+  Array.isArray(left) &&
+  Array.isArray(right) &&
+  left.length === right.length &&
+  left.every((leftRef, index) => {
+    const rightRef: unknown = right[index];
+    return (
+      isRecord(leftRef) &&
+      isRecord(rightRef) &&
+      leftRef.working_relationship_id === rightRef.working_relationship_id &&
+      leftRef.revision === rightRef.revision &&
+      leftRef.content_hash === rightRef.content_hash
+    );
+  });
+
+const refreshMembersMatch = (left: unknown, right: unknown): boolean =>
+  Array.isArray(left) &&
+  Array.isArray(right) &&
+  left.length > 0 &&
+  left.length === right.length &&
+  left.every((receiptMember, index) => {
+    const reviewMember: unknown = right[index];
+    return (
+      isRecord(receiptMember) &&
+      isRecord(reviewMember) &&
+      receiptMember.review_member_id === reviewMember.review_member_id &&
+      isRecord(reviewMember.working_state) &&
+      sameWorkingCandidateRef(
+        receiptMember.candidate_ref,
+        reviewMember.working_state.candidate_ref,
+      ) &&
+      sameWorkingRelationshipRefs(
+        receiptMember.relationship_refs,
+        reviewMember.working_state.relationship_refs,
+      )
+    );
+  });
+
+const reviewSessionRefreshCommandResponse = (
+  value: unknown,
+  input: ReviewSessionRefreshCommandInput,
+): ReviewSessionRefreshCommandResponse => {
+  if (
+    !isRecord(value) ||
+    !hasExactKeys(value, ["receipt", "review_session", "applied"]) ||
+    typeof value.applied !== "boolean" ||
+    !isRecord(value.receipt) ||
+    value.receipt.schema_name !== "petra.review-session-refresh-receipt" ||
+    value.receipt.schema_version !== "1.0.0" ||
+    value.receipt.project_id !== input.projectId ||
+    typeof value.receipt.content_hash !== "string" ||
+    !CONTENT_HASH.test(value.receipt.content_hash) ||
+    !isRecord(value.receipt.content) ||
+    value.receipt.content.transition !== "refreshed" ||
+    !isRecord(value.receipt.content.command_ref) ||
+    value.receipt.content.command_ref.command_id !== input.commandId ||
+    value.receipt.content.command_ref.idempotency_key !==
+      input.idempotencyKey ||
+    value.receipt.content.command_ref.command_name !== "RefreshReviewSession" ||
+    !isRecord(value.receipt.content.prior_review_session_ref) ||
+    value.receipt.content.prior_review_session_ref.review_session_id !==
+      input.reviewSessionId ||
+    value.receipt.content.prior_review_session_ref.revision !==
+      input.expectedReviewSessionRef.revision ||
+    value.receipt.content.prior_review_session_ref.content_hash !==
+      input.expectedReviewSessionRef.content_hash ||
+    value.receipt.content.prior_review_session_ref.lifecycle !== "open" ||
+    typeof value.receipt.content.prior_review_session_ref.record_hash !==
+      "string" ||
+    !CONTENT_HASH.test(
+      value.receipt.content.prior_review_session_ref.record_hash,
+    ) ||
+    !isRecord(value.receipt.content.resulting_review_session_ref) ||
+    value.receipt.content.resulting_review_session_ref.review_session_id !==
+      input.reviewSessionId ||
+    value.receipt.content.resulting_review_session_ref.revision !==
+      input.expectedReviewSessionRef.revision + 1 ||
+    typeof value.receipt.content.resulting_review_session_ref.content_hash !==
+      "string" ||
+    !CONTENT_HASH.test(
+      value.receipt.content.resulting_review_session_ref.content_hash,
+    ) ||
+    typeof value.receipt.content.resulting_review_session_ref.record_hash !==
+      "string" ||
+    !CONTENT_HASH.test(
+      value.receipt.content.resulting_review_session_ref.record_hash,
+    ) ||
+    value.receipt.content.resulting_review_session_ref.lifecycle !== "open" ||
+    !isRecord(value.receipt.content.refresh_basis) ||
+    value.receipt.content.refresh_basis.selection_basis !==
+      "same_review_members_current_working_heads" ||
+    !isRecord(value.receipt.content.refresh_basis.resulting_snapshot) ||
+    !Array.isArray(value.receipt.content.refresh_basis.members) ||
+    !isRecord(value.receipt.content.preservation) ||
+    value.receipt.content.preservation.stale_review_revision !== "retained" ||
+    value.receipt.content.preservation.review_members !==
+      "retained_same_identity" ||
+    value.receipt.content.preservation.working_candidates !== "retained" ||
+    value.receipt.content.preservation.working_relationships !== "retained" ||
+    value.receipt.content.preservation.validation_records !==
+      "retained_unchanged" ||
+    value.receipt.content.preservation.change_sets !== "retained_unchanged" ||
+    value.receipt.content.preservation.approvals !== "retained_unchanged" ||
+    value.receipt.content.preservation.command_events !==
+      "retained_unchanged" ||
+    value.receipt.content.preservation.projection_receipts !==
+      "retained_unchanged" ||
+    !isRecord(value.receipt.content.authority_boundary) ||
+    value.receipt.content.authority_boundary.review_decision !== "none" ||
+    value.receipt.content.authority_boundary.domain_authority !== "unchanged" ||
+    value.receipt.content.authority_boundary.candidate_authority !== "none" ||
+    value.receipt.content.authority_boundary.validation_authority !== "none" ||
+    value.receipt.content.authority_boundary.change_set_authority !== "none" ||
+    value.receipt.content.authority_boundary.approval_authority !== "none" ||
+    value.receipt.content.authority_boundary.domain_event_effect !== "none" ||
+    value.receipt.content.authority_boundary.projection_effect !== "none" ||
+    !isRecord(value.review_session) ||
+    value.review_session.schema_name !== "petra.review-session" ||
+    value.review_session.schema_version !== "1.1.0" ||
+    value.review_session.project_id !== input.projectId ||
+    value.review_session.review_session_id !== input.reviewSessionId ||
+    value.review_session.revision !==
+      value.receipt.content.resulting_review_session_ref.revision ||
+    value.review_session.content_hash !==
+      value.receipt.content.resulting_review_session_ref.content_hash ||
+    !isRecord(value.review_session.content) ||
+    value.review_session.content.lifecycle !== "open" ||
+    !isRecord(value.review_session.content.snapshot) ||
+    value.review_session.content.snapshot.event_position !==
+      value.receipt.content.refresh_basis.resulting_snapshot.event_position ||
+    value.review_session.content.snapshot.stream_revision !==
+      value.receipt.content.refresh_basis.resulting_snapshot.stream_revision ||
+    value.review_session.content.snapshot.captured_at !==
+      value.receipt.content.refresh_basis.resulting_snapshot.captured_at ||
+    !refreshMembersMatch(
+      value.receipt.content.refresh_basis.members,
+      value.review_session.content.members,
+    )
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid ReviewSession refresh command result.",
+      502,
+    );
+  }
+  return {
+    receipt: value.receipt as unknown as PetraReviewSessionRefreshReceipt,
+    reviewSession: value.review_session as unknown as PetraReviewSessionV110,
     applied: value.applied,
   };
 };
@@ -2732,6 +2911,7 @@ export const reviewSessionFromView = (
       : {}),
     responsible: view.content.session.responsible.display_name,
     snapshot: `Authority event ${view.content.session.snapshot.event_position} · Project stream ${view.content.session.snapshot.stream_revision}${view.content.session.snapshot_state === "stale" ? " · stale" : ""}`,
+    snapshotState: view.content.session.snapshot_state,
     returnLabel: view.content.session.return_context.label,
     returnPath: reviewReturnPath(view),
     candidate: {
@@ -4340,6 +4520,34 @@ export const executeReviewSessionLifecycleCommand = async (
   return reviewSessionLifecycleCommandResponse(value, input);
 };
 
+export const executeReviewSessionRefreshCommand = async (
+  input: ReviewSessionRefreshCommandInput,
+): Promise<ReviewSessionRefreshCommandResponse> => {
+  if (
+    input.expectedReviewSessionRef.review_session_id !==
+      input.reviewSessionId ||
+    input.expectedReviewSessionRef.lifecycle !== "open"
+  ) {
+    throw new ProjectDataError(
+      "A ReviewSession refresh command must bind the route session's exact open lifecycle.",
+      400,
+    );
+  }
+  const value = await requestJson(
+    `/api/commands/projects/${encodeURIComponent(input.projectId)}/reviews/${encodeURIComponent(input.reviewSessionId)}/refresh`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        command_id: input.commandId,
+        idempotency_key: input.idempotencyKey,
+        expected_review_session_ref: input.expectedReviewSessionRef,
+      }),
+    },
+  );
+  return reviewSessionRefreshCommandResponse(value, input);
+};
+
 export const createProjectSourceReplacement = async (
   input: CreateProjectSourceReplacementInput,
 ): Promise<CreateProjectSourceReplacementResponse> => {
@@ -4547,6 +4755,11 @@ export interface ReviewSessionLifecycleCommandOptions {
 export type ReviewSessionDeferCommandOptions =
   ReviewSessionLifecycleCommandOptions;
 
+export interface ReviewSessionRefreshCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+}
+
 /**
  * Creates only caller-owned DeferReviewSession input from the exact session
  * reference returned by the authenticated Review read. The server still
@@ -4608,6 +4821,37 @@ export const createReviewSessionReopenCommandInput = (
     ...(options.rationale === undefined
       ? {}
       : { rationale: options.rationale }),
+  };
+};
+
+/**
+ * Creates only caller-owned RefreshReviewSession input when the authenticated
+ * Review read supplied the exact open lifecycle. The server still decides
+ * whether refresh is required and authorized and selects compatible heads.
+ */
+export const createReviewSessionRefreshCommandInput = (
+  review: ReviewSession,
+  options: ReviewSessionRefreshCommandOptions = {},
+): ReviewSessionRefreshCommandInput => {
+  if (review.lifecycle !== "open") {
+    throw new ProjectDataError(
+      "A ReviewSession refresh command requires an exact open lifecycle from the authenticated Review read.",
+      400,
+    );
+  }
+  const identity = randomUlidPayload();
+  return {
+    projectId: review.projectId,
+    reviewSessionId: review.id,
+    commandId: options.commandId ?? `command_${identity}`,
+    idempotencyKey:
+      options.idempotencyKey ?? `review-session:${identity}:refresh`,
+    expectedReviewSessionRef: {
+      review_session_id: review.id,
+      revision: review.exactRef.revision,
+      content_hash: review.exactRef.contentHash,
+      lifecycle: review.lifecycle,
+    },
   };
 };
 

@@ -13,13 +13,16 @@ import type { GraphQuestion } from "./model.js";
 import {
   ProjectDataError,
   createReviewSessionDeferCommandInput,
+  createReviewSessionRefreshCommandInput,
   createReviewSessionReopenCommandInput,
 } from "./project-data.js";
 import {
   ReviewCollectionSurface,
   ReviewLifecycleNotice,
+  ReviewRefreshNotice,
   ReviewSessionSurface,
   reviewLifecycleFailureState,
+  reviewRefreshFailureState,
 } from "./ReviewSurface.js";
 
 const render = (node: React.ReactNode): string =>
@@ -120,6 +123,124 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain('data-operation="reopen_review_session"');
     expect(markup.match(/aria-disabled="true"/g)).toHaveLength(2);
     expect(markup).not.toContain("Reason for deciding later (optional)");
+  });
+
+  it("presents Refresh only from the runtime-supplied stale and open state", () => {
+    const stale = structuredClone(review);
+    stale.snapshotState = "stale";
+    stale.lifecycle = "open";
+    const markup = render(
+      <ReviewSessionSurface project={project} review={stale} />,
+    );
+
+    expect(markup).toContain("Refresh Review");
+    expect(markup).toContain('data-operation="refresh_review_session"');
+    expect(markup).toContain(
+      "sends only the exact Review identity, revision, content hash, and open lifecycle",
+    );
+    expect(markup).toContain("does not establish eligibility or authorization");
+    expect(markup).toContain(
+      "does not approve, reject, apply, or separate anything and does not edit any candidate or basis record",
+    );
+    expect(markup).toContain(stale.candidate.current);
+    expect(markup).toContain(stale.candidate.proposed);
+
+    const withoutLifecycle = structuredClone(stale);
+    delete withoutLifecycle.lifecycle;
+    const unavailableMarkup = render(
+      <ReviewSessionSurface project={project} review={withoutLifecycle} />,
+    );
+    expect(unavailableMarkup).toContain("Refresh Review is unavailable");
+    expect(unavailableMarkup).not.toContain(
+      'data-operation="refresh_review_session"',
+    );
+  });
+
+  it("keeps Refresh pending, exact retry, conflict, authorization, and retained success explicit", () => {
+    const stale = structuredClone(review);
+    stale.snapshotState = "stale";
+    stale.lifecycle = "open";
+    const input = createReviewSessionRefreshCommandInput(stale, {
+      commandId: "command_01K4D000000000000000000078",
+      idempotencyKey: "review-session:001:refresh:surface:v1",
+    });
+    const conflict = reviewRefreshFailureState(
+      new ProjectDataError("stale", 409),
+      input,
+    );
+    const unauthorized = reviewRefreshFailureState(
+      new ProjectDataError("forbidden", 403),
+      input,
+    );
+    const uncertain = reviewRefreshFailureState(
+      new TypeError("connection closed"),
+      input,
+    );
+
+    const pendingMarkup = render(
+      <ReviewRefreshNotice
+        review={stale}
+        refresh={{ state: "pending", input }}
+        onRetry={() => undefined}
+      />,
+    );
+    const appliedMarkup = render(
+      <ReviewRefreshNotice
+        review={stale}
+        refresh={{ state: "success", applied: true, input }}
+        onRetry={() => undefined}
+      />,
+    );
+    const retainedMarkup = render(
+      <ReviewRefreshNotice
+        review={stale}
+        refresh={{ state: "success", applied: false, input }}
+        onRetry={() => undefined}
+      />,
+    );
+    const conflictMarkup = render(
+      <ReviewRefreshNotice
+        review={stale}
+        refresh={conflict}
+        onRetry={() => undefined}
+        onReload={() => undefined}
+      />,
+    );
+    const unauthorizedMarkup = render(
+      <ReviewRefreshNotice
+        review={stale}
+        refresh={unauthorized}
+        onRetry={() => undefined}
+      />,
+    );
+    const uncertainMarkup = render(
+      <ReviewRefreshNotice
+        review={stale}
+        refresh={uncertain}
+        onRetry={() => undefined}
+      />,
+    );
+
+    expect(pendingMarkup).toContain("stale comparison remains visible");
+    expect(pendingMarkup).toContain("Nothing is shown as refreshed yet");
+    expect(appliedMarkup).toContain("Review refreshed");
+    expect(appliedMarkup).toContain(
+      "did not approve, reject, apply, or separate anything",
+    );
+    expect(appliedMarkup).toContain(
+      "did not edit any candidate or basis record",
+    );
+    expect(retainedMarkup).toContain("Review refresh already confirmed");
+    expect(retainedMarkup).toContain("retained result for this exact command");
+    expect(conflictMarkup).toContain("Review changed before refresh");
+    expect(conflictMarkup).toContain("Nothing is shown as refreshed");
+    expect(conflictMarkup).toContain("Reload Review");
+    expect(conflictMarkup).not.toContain("Retry exact refresh");
+    expect(unauthorizedMarkup).toContain("was not authorized");
+    expect(unauthorizedMarkup).not.toContain("Retry exact refresh");
+    expect(uncertainMarkup).toContain("Retry exact refresh");
+    expect(uncertainMarkup).toContain("retained result");
+    expect(retainedMarkup).not.toContain(input.commandId);
   });
 
   it("keeps retry, reconciliation, stale, unauthorized, and return states explicit", () => {

@@ -11,9 +11,12 @@ import type { ProjectRecord, ReviewSession } from "./model.js";
 import {
   ProjectDataError,
   createReviewSessionDeferCommandInput,
+  createReviewSessionRefreshCommandInput,
   createReviewSessionReopenCommandInput,
   executeReviewSessionLifecycleCommand,
+  executeReviewSessionRefreshCommand,
   type ReviewSessionLifecycleCommandInput,
+  type ReviewSessionRefreshCommandInput,
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 
@@ -182,6 +185,125 @@ export const ReviewLifecycleNotice = ({
   );
 };
 
+export type ReviewRefreshPresentationState =
+  | { readonly state: "idle" }
+  | {
+      readonly state: "pending";
+      readonly input: ReviewSessionRefreshCommandInput;
+    }
+  | {
+      readonly state: "success";
+      readonly applied: boolean;
+      readonly input: ReviewSessionRefreshCommandInput;
+    }
+  | {
+      readonly state: "conflict" | "unauthorized" | "uncertain" | "failed";
+      readonly input: ReviewSessionRefreshCommandInput;
+    };
+
+export const reviewRefreshFailureState = (
+  error: unknown,
+  input: ReviewSessionRefreshCommandInput,
+): ReviewRefreshPresentationState => {
+  if (error instanceof ProjectDataError && error.status === 409) {
+    return { state: "conflict", input };
+  }
+  if (
+    error instanceof ProjectDataError &&
+    (error.status === 401 || error.status === 403)
+  ) {
+    return { state: "unauthorized", input };
+  }
+  if (
+    !(error instanceof ProjectDataError) ||
+    error.status >= 500 ||
+    error.status === 408
+  ) {
+    return { state: "uncertain", input };
+  }
+  return { state: "failed", input };
+};
+
+export const ReviewRefreshNotice = ({
+  review,
+  refresh,
+  onRetry,
+  onReload,
+}: {
+  review: ReviewSession;
+  refresh: ReviewRefreshPresentationState;
+  onRetry: (input: ReviewSessionRefreshCommandInput) => void;
+  onReload?: (() => void | Promise<void>) | undefined;
+}): React.JSX.Element | null => {
+  if (refresh.state === "idle") return null;
+
+  const conflict = refresh.state === "conflict";
+  const unauthorized = refresh.state === "unauthorized";
+  const uncertain = refresh.state === "uncertain";
+  const failed = refresh.state === "failed";
+  const success = refresh.state === "success";
+  const title =
+    refresh.state === "pending"
+      ? "Refreshing this Review…"
+      : success
+        ? refresh.applied
+          ? "Review refreshed"
+          : "Review refresh already confirmed"
+        : conflict
+          ? "Review changed before refresh"
+          : unauthorized
+            ? "Review refresh was not authorized"
+            : uncertain
+              ? "Refresh result is not yet confirmed"
+              : "Review was not refreshed";
+  const detail =
+    refresh.state === "pending"
+      ? "Petra is checking the exact Review revision and open lifecycle. The stale comparison remains visible until a result is validated. Nothing is shown as refreshed yet."
+      : success
+        ? refresh.applied
+          ? "Petra refreshed the Review against the current Project position and compatible working heads. Refresh did not approve, reject, apply, or separate anything and did not edit any candidate or basis record."
+          : "Petra returned the retained result for this exact command. Refresh was not applied again; it did not approve, reject, apply, or separate anything and did not edit any candidate or basis record."
+        : conflict
+          ? "The exact Review changed, a compatible refresh could not be composed, or refresh is no longer required. Nothing is shown as refreshed; reload the authenticated Review before choosing another action."
+          : unauthorized
+            ? "Petra did not grant this refresh command. The stale comparison remains visible, and nothing is shown as refreshed."
+            : uncertain
+              ? "Petra could not verify whether refresh took effect. Retry the exact command to reconcile; if it already succeeded, Petra will return its retained result without refreshing again."
+              : "Petra rejected the refresh before a verified result was returned. The stale comparison remains visible, and nothing is shown as refreshed.";
+
+  return (
+    <section
+      className="review-lifecycle-notice review-refresh-notice"
+      data-state={refresh.state}
+      role={
+        conflict || unauthorized || uncertain || failed ? "alert" : "status"
+      }
+      aria-live={
+        conflict || unauthorized || uncertain || failed ? "assertive" : "polite"
+      }
+      tabIndex={-1}
+    >
+      <strong>{title}</strong>
+      <p>{detail}</p>
+      {success || unauthorized || failed ? (
+        <Link className="reference-text-link" to={review.returnPath}>
+          Return to {review.returnLabel}
+        </Link>
+      ) : null}
+      {uncertain ? (
+        <PetraButton variant="secondary" onClick={() => onRetry(refresh.input)}>
+          Retry exact refresh
+        </PetraButton>
+      ) : null}
+      {conflict ? (
+        <PetraButton variant="secondary" onClick={() => void onReload?.()}>
+          Reload Review
+        </PetraButton>
+      ) : null}
+    </section>
+  );
+};
+
 export const ReviewCollectionSurface = ({
   project,
   reviews,
@@ -341,8 +463,13 @@ export const ReviewSessionSurface = ({
   const [lifecycle, setLifecycle] = useState<ReviewLifecyclePresentationState>({
     state: "idle",
   });
+  const [refresh, setRefresh] = useState<ReviewRefreshPresentationState>({
+    state: "idle",
+  });
   const decisionRef = useRef<HTMLElement>(null);
-  const pending = lifecycle.state === "pending";
+  const lifecyclePending = lifecycle.state === "pending";
+  const refreshPending = refresh.state === "pending";
+  const commandPending = lifecyclePending || refreshPending;
   const deferPresented =
     review.status === "needs_decision" &&
     review.lifecycle !== "deferred" &&
@@ -350,6 +477,14 @@ export const ReviewSessionSurface = ({
     lifecycle.state !== "success";
   const reopenPresented =
     review.lifecycle === "deferred" && lifecycle.state !== "success";
+  const refreshControlPresented =
+    review.snapshotState === "stale" &&
+    (refresh.state === "idle" || refresh.state === "pending");
+  const refreshAvailable =
+    refresh.state === "idle" &&
+    review.snapshotState === "stale" &&
+    review.lifecycle === "open" &&
+    !lifecyclePending;
 
   useEffect(() => {
     if (lifecycle.state !== "idle" && lifecycle.state !== "pending") {
@@ -358,6 +493,14 @@ export const ReviewSessionSurface = ({
         ?.focus();
     }
   }, [lifecycle.state]);
+
+  useEffect(() => {
+    if (refresh.state !== "idle" && refresh.state !== "pending") {
+      decisionRef.current
+        ?.querySelector<HTMLElement>(".review-refresh-notice")
+        ?.focus();
+    }
+  }, [refresh.state]);
 
   const runLifecycleCommand = (
     input: ReviewSessionLifecycleCommandInput,
@@ -389,12 +532,32 @@ export const ReviewSessionSurface = ({
     runLifecycleCommand(createReviewSessionReopenCommandInput(review));
   };
 
-  const refreshReview = async (): Promise<void> => {
+  const reloadReview = async (): Promise<void> => {
     if (onReviewChange !== undefined) await onReviewChange();
     setLifecycle({ state: "idle" });
+    setRefresh({ state: "idle" });
   };
 
-  const decisionBoundary =
+  const runRefreshCommand = (input: ReviewSessionRefreshCommandInput): void => {
+    setRefresh({ state: "pending", input });
+    void executeReviewSessionRefreshCommand(input).then(
+      (result) => {
+        setRefresh({ state: "success", applied: result.applied, input });
+        if (onReviewChange !== undefined) {
+          void Promise.resolve(onReviewChange()).catch(() => undefined);
+        }
+      },
+      (error: unknown) => {
+        setRefresh(reviewRefreshFailureState(error, input));
+      },
+    );
+  };
+
+  const refreshReview = (): void => {
+    runRefreshCommand(createReviewSessionRefreshCommandInput(review));
+  };
+
+  const lifecycleBoundary =
     review.lifecycle === "deferred"
       ? "This Review is deferred. Reopen review sends this exact Review revision to Petra. The server rechecks current lifecycle and authority; seeing Deferred here does not mean the command is eligible or authorized."
       : review.status === "needs_decision"
@@ -404,6 +567,13 @@ export const ReviewSessionSurface = ({
             ? "This Review is waiting for another reason; its exact lifecycle is open. Reopen is unavailable, and the client does not treat Waiting as Deferred."
             : "This Review is waiting. This retained Review read does not supply an exact deferred lifecycle, so Reopen is unavailable."
           : "This Review is completed. No Review lifecycle action is available from this presentation.";
+  const refreshBoundary =
+    review.snapshotState !== "stale"
+      ? ""
+      : review.lifecycle === "open"
+        ? " This authenticated Review read marks the comparison stale and supplies its exact open lifecycle. Refresh Review sends only the exact Review identity, revision, content hash, and open lifecycle. Seeing Stale and Open here does not establish eligibility or authorization; the server rechecks both. Refresh does not approve, reject, apply, or separate anything and does not edit any candidate or basis record."
+        : " This authenticated Review read marks the comparison stale but does not supply the exact open lifecycle required by RefreshReviewSession. Refresh Review is unavailable; the client does not infer lifecycle or eligibility.";
+  const decisionBoundary = `${lifecycleBoundary}${refreshBoundary}`;
 
   return (
     <main className="reference-surface review-session" id="reference-main">
@@ -620,7 +790,7 @@ export const ReviewSessionSurface = ({
               rows={3}
               maxLength={4000}
               value={rationale}
-              disabled={pending}
+              disabled={commandPending}
               onChange={(event) => setRationale(event.currentTarget.value)}
             />
           </div>
@@ -643,11 +813,13 @@ export const ReviewSessionSurface = ({
           </PetraButton>
           <PetraButton
             variant="quiet"
-            busy={pending}
+            busy={lifecyclePending}
             busyLabel={
               reopenPresented ? "Reopening Review…" : "Deferring Review…"
             }
-            aria-disabled={!(deferPresented || reopenPresented)}
+            aria-disabled={
+              refreshPending || !(deferPresented || reopenPresented)
+            }
             aria-describedby="review-decision-boundary"
             data-operation={
               reopenPresented ? "reopen_review_session" : "defer_review_session"
@@ -656,12 +828,35 @@ export const ReviewSessionSurface = ({
           >
             {reopenPresented ? "Reopen review" : "Decide later"}
           </PetraButton>
+          {refreshControlPresented ? (
+            <PetraButton
+              variant="secondary"
+              busy={refreshPending}
+              busyLabel="Refreshing Review…"
+              aria-disabled={!refreshAvailable}
+              aria-describedby="review-decision-boundary"
+              data-operation={
+                review.lifecycle === "open"
+                  ? "refresh_review_session"
+                  : undefined
+              }
+              onClick={refreshReview}
+            >
+              Refresh Review
+            </PetraButton>
+          ) : null}
         </PetraButtonGroup>
         <ReviewLifecycleNotice
           review={review}
           lifecycle={lifecycle}
           onRetry={runLifecycleCommand}
-          onRefresh={refreshReview}
+          onRefresh={reloadReview}
+        />
+        <ReviewRefreshNotice
+          review={review}
+          refresh={refresh}
+          onRetry={runRefreshCommand}
+          onReload={reloadReview}
         />
         <div className="review-decision__alternatives">
           <Link

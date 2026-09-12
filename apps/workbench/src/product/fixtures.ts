@@ -296,6 +296,7 @@ export const REFERENCE_REVIEWS: ReviewSession[] = [
     statusLabel: "Needs your decision",
     responsible: "Project author",
     snapshot: "Snapshot 18",
+    snapshotState: "current",
     returnLabel: "Inlet cycle review",
     returnPath: "/projects/inlet-cycle/brief#attention-source-depth",
     candidate: {

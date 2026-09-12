@@ -462,6 +462,7 @@
 }
 
 .review-lifecycle-notice[data-state="stale"],
+.review-lifecycle-notice[data-state="conflict"],
 .review-lifecycle-notice[data-state="uncertain"] {
   border-color: var(--petra-tone-caution);
   background: var(--petra-tone-caution-soft);

@@ -143,6 +143,7 @@ export type ReviewSession = {
   lifecycle?: ReviewSessionLifecycle;
   responsible: string;
   snapshot: string;
+  snapshotState: "current" | "stale";
   returnLabel: string;
   returnPath: string;
   candidate: {
