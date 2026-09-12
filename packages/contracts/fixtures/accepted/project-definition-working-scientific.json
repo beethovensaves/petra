@@ -1,0 +1,129 @@
+{
+  "schema_name": "petra.project-definition",
+  "schema_version": "1.0.0",
+  "project_definition_id": "project_definition_01K4C000000000000000000001",
+  "revision": 2,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "definition_family": "petra.scientific-evidence",
+  "origin": {
+    "origin_kind": "project_authored"
+  },
+  "content": {
+    "label": "Scientific evidence inquiry with working records",
+    "description": "Organizes research questions, claims, relationships, literature, working-state validation, review, and provenance without changing Petra's shared authority rules.",
+    "kernel_compatibility": "petra.project-kernel@1.0.0",
+    "registrations": [
+      {
+        "registration_kind": "objective_schema",
+        "semantic_key": "scientific.research-question",
+        "contract": {
+          "name": "petra.project-objective",
+          "version": "1.0.0",
+          "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      {
+        "registration_kind": "object_schema",
+        "semantic_key": "scientific.claim",
+        "contract": {
+          "name": "petra.claim",
+          "version": "1.0.0",
+          "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      {
+        "registration_kind": "relationship_schema",
+        "semantic_key": "scientific.assertion",
+        "contract": {
+          "name": "petra.assertion",
+          "version": "1.0.0",
+          "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      },
+      {
+        "registration_kind": "validator",
+        "semantic_key": "scientific.source-span-resolution",
+        "contract": {
+          "name": "petra.validator.source-span-resolution",
+          "version": "1.0.0",
+          "content_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+      },
+      {
+        "registration_kind": "validator",
+        "semantic_key": "scientific.scope-preservation",
+        "contract": {
+          "name": "petra.validator.scope-preservation",
+          "version": "1.0.0",
+          "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      },
+      {
+        "registration_kind": "model_role",
+        "semantic_key": "scientific.evidence-extractor",
+        "contract": {
+          "name": "petra.model-role.evidence-extractor",
+          "version": "1.0.0",
+          "content_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      {
+        "registration_kind": "source_role",
+        "semantic_key": "scientific.literature",
+        "contract": {
+          "name": "petra.rights-decision",
+          "version": "1.0.0",
+          "content_hash": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+        }
+      }
+    ],
+    "terms": [
+      {
+        "semantic_key": "scientific.research-question",
+        "singular": "Research question",
+        "plural": "Research questions",
+        "definition": "A bounded question the Project is trying to answer.",
+        "generic_family": "focus"
+      },
+      {
+        "semantic_key": "scientific.claim",
+        "singular": "Claim",
+        "plural": "Claims",
+        "definition": "A proposition with explicit scope, basis, and authority state.",
+        "generic_family": "finding"
+      },
+      {
+        "semantic_key": "scientific.assertion",
+        "singular": "Evidence relationship",
+        "plural": "Evidence relationships",
+        "definition": "A typed relationship whose exact predicate and provenance remain profile-owned.",
+        "generic_family": "relationship"
+      },
+      {
+        "semantic_key": "scientific.literature",
+        "singular": "Source",
+        "plural": "Sources",
+        "definition": "A versioned and rights-governed basis available to the Project.",
+        "generic_family": "reference"
+      }
+    ],
+    "supported_places": [
+      "brief",
+      "sources",
+      "review",
+      "graph",
+      "work",
+      "petra",
+      "composition",
+      "history",
+      "settings"
+    ],
+    "omitted_flows": ["External filesystem editing", "Multi-user collaboration"]
+  },
+  "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-12T14:00:00.000Z"
+}

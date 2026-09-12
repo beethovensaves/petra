@@ -1,0 +1,202 @@
+{
+  "schema_name": "petra.working-candidate",
+  "schema_version": "1.0.0",
+  "working_candidate_id": "working_candidate_01K4D000000000000000000002",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_definition_ref": {
+    "project_definition_id": "project_definition_01K4C000000000000000000001",
+    "revision": 2,
+    "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133",
+    "definition_family": "petra.scientific-evidence"
+  },
+  "profile_object": {
+    "registration": {
+      "registration_kind": "object_schema",
+      "semantic_key": "scientific.claim",
+      "contract": {
+        "name": "petra.claim",
+        "version": "1.0.0",
+        "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    "object_record_ref": {
+      "schema_name": "petra.claim",
+      "schema_version": "1.0.0",
+      "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+      "revision": 1,
+      "record_hash": "sha256:037b05d18954bd81029717fb0ff00c9f21e14895db98e4c2dfb2691aaf501db3"
+    },
+    "candidate_operation": "create"
+  },
+  "producer": {
+    "producer_kind": "model",
+    "actor": {
+      "actor_id": "actor_01K4D000000000000000000010",
+      "actor_kind": "model"
+    },
+    "contribution_kind": "model_output",
+    "model_role_ref": {
+      "name": "petra.model-role.evidence-extractor",
+      "version": "1.0.0",
+      "content_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    "model_call_ref": {
+      "schema_name": "petra.model-call",
+      "schema_version": "1.0.0",
+      "record_id": "model_call_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+      "revision": 1,
+      "record_hash": "sha256:56c3ae8943aa68db8c96de972ab50fccf83922039b49090bcf19f8bd6690a2c9"
+    }
+  },
+  "task_context": {
+    "task_kind": "work_unit",
+    "objective_ref": {
+      "schema_name": "petra.project-objective",
+      "schema_version": "1.0.0",
+      "record_id": "objective_01K4C000000000000000000005",
+      "revision": 2,
+      "record_hash": "sha256:679fbd4abd8025990a13ef4c3144bc07547d26c9479b9b4f03b21c214cf24ca5"
+    },
+    "work_unit_ref": {
+      "schema_name": "petra.work-unit",
+      "schema_version": "1.0.0",
+      "record_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "revision": 4,
+      "record_hash": "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab"
+    }
+  },
+  "input_snapshot": {
+    "snapshot_ref": {
+      "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+      "revision": 1,
+      "event_position": 42,
+      "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "context_packet_ref": {
+      "schema_name": "petra.context-packet",
+      "schema_version": "1.0.0",
+      "record_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+      "revision": 1,
+      "record_hash": "sha256:dff14daf59c830c3a0be3fd473aca7236cc3e1e32074d45e01a999016f086637"
+    },
+    "input_record_refs": [
+      {
+        "schema_name": "petra.evidence-proposal-bundle",
+        "schema_version": "1.0.0",
+        "record_id": "evidence_proposal_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+        "revision": 1,
+        "record_hash": "sha256:fd9f2f1902110f6333b7fdb127fb1f6a39169a8f8f45c8277eaa3dc3a1e35ccd"
+      }
+    ]
+  },
+  "origin": {
+    "origin_kind": "extraction",
+    "source_record_refs": [
+      {
+        "schema_name": "petra.evidence-proposal-bundle",
+        "schema_version": "1.0.0",
+        "record_id": "evidence_proposal_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+        "revision": 1,
+        "record_hash": "sha256:fd9f2f1902110f6333b7fdb127fb1f6a39169a8f8f45c8277eaa3dc3a1e35ccd"
+      }
+    ],
+    "summary": "The registered evidence-extractor role produced this candidate from the exact source passage."
+  },
+  "basis": [
+    {
+      "basis_role": "source",
+      "record_ref": {
+        "schema_name": "petra.source-span",
+        "schema_version": "1.0.0",
+        "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+        "revision": 1,
+        "record_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+      },
+      "summary": "The exact full-text passage states the scoped result."
+    }
+  ],
+  "provenance": [
+    {
+      "provenance_role": "model_call",
+      "record_ref": {
+        "schema_name": "petra.model-call",
+        "schema_version": "1.0.0",
+        "record_id": "model_call_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+        "revision": 1,
+        "record_hash": "sha256:56c3ae8943aa68db8c96de972ab50fccf83922039b49090bcf19f8bd6690a2c9"
+      },
+      "statement": "This exact model call produced the structured extraction output."
+    }
+  ],
+  "qualifications": {
+    "assessment_state": "stated",
+    "statements": [
+      {
+        "qualification_kind": "limitation",
+        "statement": "The candidate is limited to the study-defined task and does not establish broader generalization.",
+        "basis_ref": {
+          "schema_name": "petra.source-span",
+          "schema_version": "1.0.0",
+          "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          "revision": 1,
+          "record_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+        }
+      }
+    ]
+  },
+  "validation": {
+    "state": "completed",
+    "target_record_hash": "sha256:037b05d18954bd81029717fb0ff00c9f21e14895db98e4c2dfb2691aaf501db3",
+    "results": [
+      {
+        "validator_ref": {
+          "name": "petra.validator.source-span-resolution",
+          "version": "1.0.0",
+          "content_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "outcome": "passed",
+        "code": "SPAN_RESOLVED",
+        "statement": "The cited SourceSpan resolves under the bound snapshot.",
+        "validated_by": {
+          "actor_id": "actor_01K4D000000000000000000011",
+          "actor_kind": "service"
+        },
+        "validated_at": "2026-09-12T14:12:00.000Z"
+      },
+      {
+        "validator_ref": {
+          "name": "petra.validator.scope-preservation",
+          "version": "1.0.0",
+          "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "outcome": "passed",
+        "code": "SCOPE_PRESERVED",
+        "statement": "The candidate retains the source's stated scope and unreported dimensions.",
+        "validated_by": {
+          "actor_id": "actor_01K4D000000000000000000011",
+          "actor_kind": "service"
+        },
+        "validated_at": "2026-09-12T14:12:00.000Z"
+      }
+    ]
+  },
+  "lineage": {
+    "lineage_kind": "root"
+  },
+  "disposition": "available",
+  "authority_boundary": {
+    "domain_authority": false,
+    "review_decision": false,
+    "mutation_authority": false,
+    "validation_grants_authority": false,
+    "promotion_requires_review": true
+  },
+  "content_hash": "sha256:0f2d388fead6dffda0030333186a7c2f653bf275c8c1ef28ba0ed0caecaed3e1",
+  "created_by": {
+    "actor_id": "actor_01K4D000000000000000000011",
+    "actor_kind": "service"
+  },
+  "created_at": "2026-09-12T14:10:00.000Z",
+  "recorded_at": "2026-09-12T14:12:00.000Z"
+}

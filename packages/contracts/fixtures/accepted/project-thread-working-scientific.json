@@ -1,0 +1,140 @@
+{
+  "schema_name": "petra.project-thread",
+  "schema_version": "1.0.0",
+  "project_thread_id": "project_thread_01K4D000000000000000000201",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_definition_ref": {
+    "project_definition_id": "project_definition_01K4C000000000000000000001",
+    "revision": 2,
+    "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133",
+    "definition_family": "petra.scientific-evidence"
+  },
+  "lineage": {
+    "lineage_kind": "root"
+  },
+  "content": {
+    "title": "Correct the working Claim",
+    "task": "Narrow the working Claim to the exact scope reported by the source passage.",
+    "lifecycle": "open",
+    "origin": {
+      "origin_kind": "root"
+    },
+    "turns": [
+      {
+        "project_turn_id": "project_turn_01K4D000000000000000000202",
+        "sequence": 1,
+        "project_definition_ref": {
+          "project_definition_id": "project_definition_01K4C000000000000000000001",
+          "revision": 2,
+          "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133",
+          "definition_family": "petra.scientific-evidence"
+        },
+        "objective_ref": {
+          "objective_id": "objective_01K4C000000000000000000005",
+          "revision": 2,
+          "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+        },
+        "input": {
+          "retention_state": "hash_only",
+          "input_hash": "sha256:3030303030303030303030303030303030303030303030303030303030303030",
+          "source_message_id": "user-message-wave4-correction",
+          "limitation": "This contract fixture retains the exact input hash but not message bytes."
+        },
+        "context": {
+          "context_record_ref": {
+            "schema_name": "petra.context-packet",
+            "schema_version": "1.0.0",
+            "record_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+            "revision": 1,
+            "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df"
+          },
+          "snapshot_ref": {
+            "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+            "snapshot_revision": 1,
+            "event_position": 42,
+            "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "included_object_count": 3,
+          "omission_count": 1,
+          "coverage_state": "bounded",
+          "coverage_statement": "Coverage is limited to the working Claim, its source passage, and its current Project objective."
+        },
+        "execution": {
+          "interaction_run_ref": {
+            "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+            "revision": 2,
+            "content_hash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+          },
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+            "revision": 4,
+            "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+          }
+        },
+        "authority_context": {
+          "actor": {
+            "actor_id": "actor_01K4D000000000000000000012",
+            "actor_kind": "human"
+          },
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FDF",
+          "privacy_profile_ref": {
+            "record_id": "privacy_profile_01ARZ3NDEKTSV4RRFFQ69G5FDG",
+            "revision": 1,
+            "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "budget_profile_ref": {
+            "record_id": "budget_profile_01ARZ3NDEKTSV4RRFFQ69G5FDH",
+            "revision": 1,
+            "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "review_policy": {
+            "state": "unavailable",
+            "reason": "ProjectThread 1.0 does not retain an effective ReviewPolicy record."
+          }
+        },
+        "response": {
+          "state": "completed",
+          "result_record_ref": {
+            "schema_name": "petra.claim",
+            "schema_version": "1.0.0",
+            "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "revision": 2,
+            "content_hash": "sha256:05c08d6b0eb2d3d2f6aaf890ddfd13b4ce30b174a6955e81c60144db258d677f"
+          },
+          "response_artifact_ref": {
+            "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+            "content_hash": "sha256:a3e333de83c3db20f94853d7e125356afd6ef02991687e47803f64a0e6eb3758",
+            "byte_size": 143,
+            "media_type": "application/json"
+          },
+          "force": "proposal",
+          "authority_effect": "none"
+        },
+        "compaction": {
+          "state": "unmodified"
+        },
+        "proposal_decision_linkage": {
+          "state": "unavailable",
+          "reason": "The shared WorkingCandidate record owns the proposal binding; ProjectThread 1.0 has no duplicate linkage field."
+        },
+        "presentation_context": {
+          "state": "unavailable",
+          "reason": "Presentation-state capture remains outside this contract slice."
+        },
+        "recorded_at": "2026-09-12T14:20:00.000Z"
+      }
+    ],
+    "retention": {
+      "state": "retained",
+      "limitation": "The exact input hash and all material record bindings are retained; message bytes are not part of this fixture."
+    }
+  },
+  "content_hash": "sha256:9ed48c4a0676e61a080e758b8568268452683d5638c7216ed8396af95f2a1c24",
+  "created_by": {
+    "actor_id": "actor_01K4D000000000000000000012",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-12T14:20:00.000Z",
+  "updated_at": "2026-09-12T14:20:00.000Z"
+}

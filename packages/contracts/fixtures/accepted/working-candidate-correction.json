@@ -1,0 +1,155 @@
+{
+  "schema_name": "petra.working-candidate",
+  "schema_version": "1.0.0",
+  "working_candidate_id": "working_candidate_01K4D000000000000000000002",
+  "revision": 2,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_definition_ref": {
+    "project_definition_id": "project_definition_01K4C000000000000000000001",
+    "revision": 2,
+    "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133",
+    "definition_family": "petra.scientific-evidence"
+  },
+  "profile_object": {
+    "registration": {
+      "registration_kind": "object_schema",
+      "semantic_key": "scientific.claim",
+      "contract": {
+        "name": "petra.claim",
+        "version": "1.0.0",
+        "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    "object_record_ref": {
+      "schema_name": "petra.claim",
+      "schema_version": "1.0.0",
+      "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+      "revision": 2,
+      "record_hash": "sha256:05c08d6b0eb2d3d2f6aaf890ddfd13b4ce30b174a6955e81c60144db258d677f"
+    },
+    "candidate_operation": "create"
+  },
+  "producer": {
+    "producer_kind": "human",
+    "actor": {
+      "actor_id": "actor_01K4D000000000000000000012",
+      "actor_kind": "human"
+    },
+    "contribution_kind": "direct_edit"
+  },
+  "task_context": {
+    "task_kind": "thread_turn",
+    "objective_ref": {
+      "schema_name": "petra.project-objective",
+      "schema_version": "1.0.0",
+      "record_id": "objective_01K4C000000000000000000005",
+      "revision": 2,
+      "record_hash": "sha256:679fbd4abd8025990a13ef4c3144bc07547d26c9479b9b4f03b21c214cf24ca5"
+    },
+    "thread_binding": {
+      "project_thread_ref": {
+        "schema_name": "petra.project-thread",
+        "schema_version": "1.0.0",
+        "record_id": "project_thread_01K4D000000000000000000201",
+        "revision": 1,
+        "record_hash": "sha256:665342f405e724a3d7a4a03a4b26388cdc92123c01d488dd92ffb77803e7c2fd"
+      },
+      "project_turn_id": "project_turn_01K4D000000000000000000202"
+    }
+  },
+  "input_snapshot": {
+    "snapshot_ref": {
+      "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+      "revision": 1,
+      "event_position": 42,
+      "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "input_record_refs": [
+      {
+        "schema_name": "petra.working-candidate",
+        "schema_version": "1.0.0",
+        "record_id": "working_candidate_01K4D000000000000000000002",
+        "revision": 1,
+        "record_hash": "sha256:c03eee00183eaef0544dcd326730921317f1a0f2154c9b92f0f2bd0916eaa3e5"
+      }
+    ]
+  },
+  "origin": {
+    "origin_kind": "direct_edit",
+    "source_record_refs": [
+      {
+        "schema_name": "petra.project-thread",
+        "schema_version": "1.0.0",
+        "record_id": "project_thread_01K4D000000000000000000201",
+        "revision": 1,
+        "record_hash": "sha256:665342f405e724a3d7a4a03a4b26388cdc92123c01d488dd92ffb77803e7c2fd"
+      }
+    ],
+    "summary": "The human author narrowed the wording while retaining the exact source basis."
+  },
+  "basis": [
+    {
+      "basis_role": "source",
+      "record_ref": {
+        "schema_name": "petra.source-span",
+        "schema_version": "1.0.0",
+        "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+        "revision": 1,
+        "record_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+      },
+      "summary": "The correction keeps the exact full-text passage as its source basis."
+    }
+  ],
+  "provenance": [
+    {
+      "provenance_role": "prior_revision",
+      "record_ref": {
+        "schema_name": "petra.working-candidate",
+        "schema_version": "1.0.0",
+        "record_id": "working_candidate_01K4D000000000000000000002",
+        "revision": 1,
+        "record_hash": "sha256:c03eee00183eaef0544dcd326730921317f1a0f2154c9b92f0f2bd0916eaa3e5"
+      },
+      "statement": "Revision 2 retains revision 1 as its exact superseded working record."
+    }
+  ],
+  "qualifications": {
+    "assessment_state": "stated",
+    "statements": [
+      {
+        "qualification_kind": "uncertainty",
+        "statement": "Generalization beyond the study-defined task remains unreported."
+      }
+    ]
+  },
+  "validation": {
+    "state": "pending",
+    "target_record_hash": "sha256:05c08d6b0eb2d3d2f6aaf890ddfd13b4ce30b174a6955e81c60144db258d677f",
+    "results": []
+  },
+  "lineage": {
+    "lineage_kind": "supersession",
+    "supersedes": {
+      "working_candidate_id": "working_candidate_01K4D000000000000000000002",
+      "revision": 1,
+      "content_hash": "sha256:0f2d388fead6dffda0030333186a7c2f653bf275c8c1ef28ba0ed0caecaed3e1"
+    },
+    "change_kind": "material_revision",
+    "reason": "The author narrowed the candidate to the study-defined evaluation task."
+  },
+  "disposition": "available",
+  "authority_boundary": {
+    "domain_authority": false,
+    "review_decision": false,
+    "mutation_authority": false,
+    "validation_grants_authority": false,
+    "promotion_requires_review": true
+  },
+  "content_hash": "sha256:7cef54239af8299a848569a75d2e31906ae6bdcaa603c06cc1a5688a70077c1d",
+  "created_by": {
+    "actor_id": "actor_01K4D000000000000000000011",
+    "actor_kind": "service"
+  },
+  "created_at": "2026-09-12T14:10:00.000Z",
+  "recorded_at": "2026-09-12T14:20:00.000Z"
+}

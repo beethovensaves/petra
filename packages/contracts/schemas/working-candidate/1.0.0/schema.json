@@ -1,0 +1,673 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/working-candidate/1.0.0/schema.json",
+  "title": "PetraWorkingCandidate",
+  "description": "An additive Project-scoped working revision that binds one exact profile-registered object record to its producer, task, input snapshot, basis, provenance, qualifications, and validation. It is durable working state and never domain authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "working_candidate_id",
+    "revision",
+    "project_id",
+    "project_definition_ref",
+    "profile_object",
+    "producer",
+    "task_context",
+    "input_snapshot",
+    "origin",
+    "basis",
+    "provenance",
+    "qualifications",
+    "validation",
+    "lineage",
+    "disposition",
+    "authority_boundary",
+    "content_hash",
+    "created_by",
+    "created_at",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.working-candidate" },
+    "schema_version": { "const": "1.0.0" },
+    "working_candidate_id": { "$ref": "#/$defs/WorkingCandidateId" },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "project_definition_ref": { "$ref": "#/$defs/ProjectDefinitionRef" },
+    "profile_object": { "$ref": "#/$defs/ProfileObjectBinding" },
+    "producer": { "$ref": "#/$defs/Producer" },
+    "task_context": { "$ref": "#/$defs/TaskContext" },
+    "input_snapshot": { "$ref": "#/$defs/InputSnapshot" },
+    "origin": { "$ref": "#/$defs/Origin" },
+    "basis": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": { "$ref": "#/$defs/BasisItem" }
+    },
+    "provenance": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "items": { "$ref": "#/$defs/ProvenanceItem" }
+    },
+    "qualifications": { "$ref": "#/$defs/Qualifications" },
+    "validation": { "$ref": "#/$defs/Validation" },
+    "lineage": { "$ref": "#/$defs/CandidateLineage" },
+    "disposition": { "enum": ["available", "withdrawn"] },
+    "authority_boundary": { "$ref": "#/$defs/AuthorityBoundary" },
+    "content_hash": {
+      "description": "The RFC 8785 SHA-256 identity of this working revision with the content_hash member omitted.",
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_by": { "$ref": "#/$defs/ActorRef" },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "revision": { "const": 1 } },
+        "required": ["revision"]
+      },
+      "then": {
+        "properties": { "lineage": { "$ref": "#/$defs/RootLineage" } }
+      },
+      "else": {
+        "properties": {
+          "lineage": { "$ref": "#/$defs/SupersessionLineage" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "WorkingCandidateId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^working_candidate_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "enum": ["human", "service", "model"] }
+      }
+    },
+    "HumanActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "human" }
+      }
+    },
+    "ServiceActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "service" }
+      }
+    },
+    "ModelActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "model" }
+      }
+    },
+    "NamedVersionHash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "content_hash"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ProjectDefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_id",
+        "revision",
+        "content_hash",
+        "definition_family"
+      ],
+      "properties": {
+        "project_definition_id": {
+          "type": "string",
+          "pattern": "^project_definition_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "definition_family": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]{2,127}$"
+        }
+      }
+    },
+    "ExactTypedRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "record_id",
+        "revision",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_name": {
+          "type": "string",
+          "pattern": "^petra\\.[a-z][a-z0-9.-]{1,127}$"
+        },
+        "schema_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "WorkingCandidateRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["working_candidate_id", "revision", "content_hash"],
+      "properties": {
+        "working_candidate_id": { "$ref": "#/$defs/WorkingCandidateId" },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ProfileRegistration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["registration_kind", "semantic_key", "contract"],
+      "properties": {
+        "registration_kind": { "const": "object_schema" },
+        "semantic_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "contract": { "$ref": "#/$defs/NamedVersionHash" }
+      }
+    },
+    "ProfileObjectBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["registration", "object_record_ref", "candidate_operation"],
+      "properties": {
+        "registration": { "$ref": "#/$defs/ProfileRegistration" },
+        "object_record_ref": { "$ref": "#/$defs/ExactTypedRecordRef" },
+        "candidate_operation": { "enum": ["create", "revise"] },
+        "current_authoritative_ref": {
+          "$ref": "#/$defs/ExactTypedRecordRef"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "candidate_operation": { "const": "revise" } },
+            "required": ["candidate_operation"]
+          },
+          "then": {
+            "properties": {
+              "current_authoritative_ref": {
+                "$ref": "#/$defs/ExactTypedRecordRef"
+              }
+            },
+            "required": ["current_authoritative_ref"]
+          },
+          "else": { "properties": { "current_authoritative_ref": false } }
+        }
+      ]
+    },
+    "HumanProducer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer_kind", "actor", "contribution_kind"],
+      "properties": {
+        "producer_kind": { "const": "human" },
+        "actor": { "$ref": "#/$defs/HumanActorRef" },
+        "contribution_kind": { "enum": ["direct_edit", "human_extraction"] }
+      }
+    },
+    "ServiceProducer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "producer_kind",
+        "actor",
+        "contribution_kind",
+        "service_role_ref"
+      ],
+      "properties": {
+        "producer_kind": { "const": "service" },
+        "actor": { "$ref": "#/$defs/ServiceActorRef" },
+        "contribution_kind": {
+          "enum": ["tool_output", "import", "deterministic_mapping"]
+        },
+        "service_role_ref": { "$ref": "#/$defs/NamedVersionHash" }
+      }
+    },
+    "ModelProducer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "producer_kind",
+        "actor",
+        "contribution_kind",
+        "model_role_ref",
+        "model_call_ref"
+      ],
+      "properties": {
+        "producer_kind": { "const": "model" },
+        "actor": { "$ref": "#/$defs/ModelActorRef" },
+        "contribution_kind": { "const": "model_output" },
+        "model_role_ref": { "$ref": "#/$defs/NamedVersionHash" },
+        "model_call_ref": { "$ref": "#/$defs/ExactTypedRecordRef" }
+      }
+    },
+    "Producer": {
+      "oneOf": [
+        { "$ref": "#/$defs/HumanProducer" },
+        { "$ref": "#/$defs/ServiceProducer" },
+        { "$ref": "#/$defs/ModelProducer" }
+      ]
+    },
+    "ThreadBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_thread_ref", "project_turn_id"],
+      "properties": {
+        "project_thread_ref": { "$ref": "#/$defs/ExactTypedRecordRef" },
+        "project_turn_id": {
+          "type": "string",
+          "pattern": "^project_turn_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      }
+    },
+    "ThreadTurnTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_kind", "objective_ref", "thread_binding"],
+      "properties": {
+        "task_kind": { "const": "thread_turn" },
+        "objective_ref": { "$ref": "#/$defs/ExactTypedRecordRef" },
+        "thread_binding": { "$ref": "#/$defs/ThreadBinding" }
+      }
+    },
+    "WorkUnitTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_kind", "objective_ref", "work_unit_ref"],
+      "properties": {
+        "task_kind": { "const": "work_unit" },
+        "objective_ref": { "$ref": "#/$defs/ExactTypedRecordRef" },
+        "work_unit_ref": { "$ref": "#/$defs/ExactTypedRecordRef" }
+      }
+    },
+    "InteractionWorkTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_kind",
+        "objective_ref",
+        "thread_binding",
+        "work_unit_ref",
+        "interaction_run_ref"
+      ],
+      "properties": {
+        "task_kind": { "const": "interaction_work" },
+        "objective_ref": { "$ref": "#/$defs/ExactTypedRecordRef" },
+        "thread_binding": { "$ref": "#/$defs/ThreadBinding" },
+        "work_unit_ref": { "$ref": "#/$defs/ExactTypedRecordRef" },
+        "interaction_run_ref": { "$ref": "#/$defs/ExactTypedRecordRef" }
+      }
+    },
+    "TaskContext": {
+      "oneOf": [
+        { "$ref": "#/$defs/ThreadTurnTask" },
+        { "$ref": "#/$defs/WorkUnitTask" },
+        { "$ref": "#/$defs/InteractionWorkTask" }
+      ]
+    },
+    "ProjectSnapshotRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["snapshot_id", "revision", "event_position", "content_hash"],
+      "properties": {
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^snapshot_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "InputSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["snapshot_ref", "input_record_refs"],
+      "properties": {
+        "snapshot_ref": { "$ref": "#/$defs/ProjectSnapshotRef" },
+        "context_packet_ref": { "$ref": "#/$defs/ExactTypedRecordRef" },
+        "input_record_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/ExactTypedRecordRef" }
+        }
+      }
+    },
+    "Origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin_kind", "source_record_refs", "summary"],
+      "properties": {
+        "origin_kind": {
+          "enum": [
+            "direct_edit",
+            "model_output",
+            "tool_output",
+            "import",
+            "extraction",
+            "work_result"
+          ]
+        },
+        "source_record_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ExactTypedRecordRef" }
+        },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "BasisItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["basis_role", "record_ref", "summary"],
+      "properties": {
+        "basis_role": {
+          "enum": [
+            "source",
+            "current_state",
+            "instruction",
+            "constraint",
+            "prior_work",
+            "author_judgment"
+          ]
+        },
+        "record_ref": { "$ref": "#/$defs/ExactTypedRecordRef" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "ProvenanceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance_role", "record_ref", "statement"],
+      "properties": {
+        "provenance_role": {
+          "enum": [
+            "derivation",
+            "input",
+            "output",
+            "model_call",
+            "interaction",
+            "work_result",
+            "prior_revision"
+          ]
+        },
+        "record_ref": { "$ref": "#/$defs/ExactTypedRecordRef" },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "QualificationStatement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["qualification_kind", "statement"],
+      "properties": {
+        "qualification_kind": { "enum": ["uncertainty", "limitation"] },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "basis_ref": { "$ref": "#/$defs/ExactTypedRecordRef" }
+      }
+    },
+    "Qualifications": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assessment_state", "statements"],
+      "properties": {
+        "assessment_state": { "enum": ["stated", "none_recorded"] },
+        "statements": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/QualificationStatement" }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "assessment_state": { "const": "stated" } },
+            "required": ["assessment_state"]
+          },
+          "then": {
+            "properties": {
+              "statements": { "type": "array", "minItems": 1 }
+            }
+          },
+          "else": {
+            "properties": {
+              "statements": { "type": "array", "maxItems": 0 }
+            }
+          }
+        }
+      ]
+    },
+    "ValidationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "validator_ref",
+        "outcome",
+        "code",
+        "statement",
+        "validated_by",
+        "validated_at"
+      ],
+      "properties": {
+        "validator_ref": { "$ref": "#/$defs/NamedVersionHash" },
+        "outcome": { "enum": ["passed", "warning", "failed", "blocked"] },
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "validated_by": { "$ref": "#/$defs/ActorRef" },
+        "validated_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "Validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "target_record_hash", "results"],
+      "properties": {
+        "state": { "enum": ["pending", "completed", "blocked"] },
+        "target_record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "results": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/ValidationResult" }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "state": { "const": "pending" } },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": { "results": { "type": "array", "maxItems": 0 } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "state": { "const": "completed" } },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": { "results": { "type": "array", "minItems": 1 } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "state": { "const": "blocked" } },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "results": {
+                "type": "array",
+                "minItems": 1,
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "outcome": { "enum": ["failed", "blocked"] }
+                  },
+                  "required": ["outcome"]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RootLineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lineage_kind"],
+      "properties": { "lineage_kind": { "const": "root" } }
+    },
+    "SupersessionLineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lineage_kind", "supersedes", "change_kind", "reason"],
+      "properties": {
+        "lineage_kind": { "const": "supersession" },
+        "supersedes": { "$ref": "#/$defs/WorkingCandidateRef" },
+        "change_kind": {
+          "enum": [
+            "mechanical_correction",
+            "basis_revision",
+            "material_revision",
+            "withdrawal"
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "CandidateLineage": {
+      "oneOf": [
+        { "$ref": "#/$defs/RootLineage" },
+        { "$ref": "#/$defs/SupersessionLineage" }
+      ]
+    },
+    "AuthorityBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain_authority",
+        "review_decision",
+        "mutation_authority",
+        "validation_grants_authority",
+        "promotion_requires_review"
+      ],
+      "properties": {
+        "domain_authority": { "const": false },
+        "review_decision": { "const": false },
+        "mutation_authority": { "const": false },
+        "validation_grants_authority": { "const": false },
+        "promotion_requires_review": { "const": true }
+      }
+    }
+  }
+}

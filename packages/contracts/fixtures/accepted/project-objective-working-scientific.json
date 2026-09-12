@@ -1,0 +1,25 @@
+{
+  "schema_name": "petra.project-objective",
+  "schema_version": "1.0.0",
+  "objective_id": "objective_01K4C000000000000000000005",
+  "revision": 2,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_definition_ref": {
+    "project_definition_id": "project_definition_01K4C000000000000000000001",
+    "revision": 2,
+    "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133"
+  },
+  "content": {
+    "objective_kind": "scientific.research-question",
+    "statement": "Determine which claims in the selected source are supported by exact inspectable passages.",
+    "status": "active",
+    "dependency_refs": []
+  },
+  "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-08T14:10:00.000Z",
+  "updated_at": "2026-09-12T14:05:00.000Z"
+}

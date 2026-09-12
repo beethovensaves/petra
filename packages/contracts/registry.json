@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.74.0",
+  "registry_version": "1.75.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -549,6 +549,28 @@
       "canonical_sha256": "sha256:3e2dd5670478473f371d86ec955cf1167e87ba673ef7cc4e5131d97bc6e44c08",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-lifecycle-receipt.ts"
+    },
+    {
+      "name": "working-candidate",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/working-candidate/1.0.0/schema.json",
+      "path": "schemas/working-candidate/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-profile-registered-non-authoritative-working-object-revision",
+      "canonical_sha256": "sha256:2baf43d7656e2442b9b9c48c4b17e7cb750a04e6ca33ecb170a11694d29d5d94",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/working-candidate.ts"
+    },
+    {
+      "name": "working-relationship",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/working-relationship/1.0.0/schema.json",
+      "path": "schemas/working-relationship/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-profile-registered-non-authoritative-working-relationship-revision",
+      "canonical_sha256": "sha256:2abd4b39bdb0683b6d7bfab3b75e5b95ce181e42bf97888f07933596bd846185",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/working-relationship.ts"
     },
     {
       "name": "review-session",

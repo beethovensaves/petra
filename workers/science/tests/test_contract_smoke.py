@@ -4031,6 +4031,323 @@ class PetraProjectSourceLifecycleView(PetraModel):
     read_at: str
 
 
+class WorkingNamedVersionHash(PetraModel):
+    name: str
+    version: str
+    content_hash: str
+
+
+class WorkingProjectDefinitionRef(PetraModel):
+    project_definition_id: str
+    revision: int
+    content_hash: str
+    definition_family: str
+
+
+class WorkingExactTypedRecordRef(PetraModel):
+    schema_name: str
+    schema_version: str
+    record_id: str
+    revision: int
+    record_hash: str
+
+
+class WorkingCandidateRef(PetraModel):
+    working_candidate_id: str
+    revision: int
+    content_hash: str
+
+
+class WorkingProfileObjectRegistration(PetraModel):
+    registration_kind: Literal["object_schema"]
+    semantic_key: str
+    contract: WorkingNamedVersionHash
+
+
+class WorkingProfileObjectBinding(PetraModel):
+    registration: WorkingProfileObjectRegistration
+    object_record_ref: WorkingExactTypedRecordRef
+    candidate_operation: Literal["create", "revise"]
+    current_authoritative_ref: WorkingExactTypedRecordRef | None = None
+
+
+class WorkingHumanActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["human"]
+
+
+class WorkingServiceActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["service"]
+
+
+class WorkingModelActorRef(PetraModel):
+    actor_id: str
+    actor_kind: Literal["model"]
+
+
+class WorkingHumanProducer(PetraModel):
+    producer_kind: Literal["human"]
+    actor: WorkingHumanActorRef
+    contribution_kind: Literal["direct_edit", "human_extraction"]
+
+
+class WorkingServiceProducer(PetraModel):
+    producer_kind: Literal["service"]
+    actor: WorkingServiceActorRef
+    contribution_kind: Literal["tool_output", "import", "deterministic_mapping"]
+    service_role_ref: WorkingNamedVersionHash
+
+
+class WorkingModelProducer(PetraModel):
+    producer_kind: Literal["model"]
+    actor: WorkingModelActorRef
+    contribution_kind: Literal["model_output"]
+    model_role_ref: WorkingNamedVersionHash
+    model_call_ref: WorkingExactTypedRecordRef
+
+
+class WorkingThreadBinding(PetraModel):
+    project_thread_ref: WorkingExactTypedRecordRef
+    project_turn_id: str
+
+
+class WorkingThreadTurnTask(PetraModel):
+    task_kind: Literal["thread_turn"]
+    objective_ref: WorkingExactTypedRecordRef
+    thread_binding: WorkingThreadBinding
+
+
+class WorkingWorkUnitTask(PetraModel):
+    task_kind: Literal["work_unit"]
+    objective_ref: WorkingExactTypedRecordRef
+    work_unit_ref: WorkingExactTypedRecordRef
+
+
+class WorkingInteractionWorkTask(PetraModel):
+    task_kind: Literal["interaction_work"]
+    objective_ref: WorkingExactTypedRecordRef
+    thread_binding: WorkingThreadBinding
+    work_unit_ref: WorkingExactTypedRecordRef
+    interaction_run_ref: WorkingExactTypedRecordRef
+
+
+class WorkingProjectSnapshotRef(PetraModel):
+    snapshot_id: str
+    revision: int
+    event_position: int
+    content_hash: str
+
+
+class WorkingInputSnapshot(PetraModel):
+    snapshot_ref: WorkingProjectSnapshotRef
+    context_packet_ref: WorkingExactTypedRecordRef | None = None
+    input_record_refs: list[WorkingExactTypedRecordRef]
+
+
+class WorkingOrigin(PetraModel):
+    origin_kind: Literal[
+        "direct_edit",
+        "model_output",
+        "tool_output",
+        "import",
+        "extraction",
+        "work_result",
+    ]
+    source_record_refs: list[WorkingExactTypedRecordRef]
+    summary: str
+
+
+class WorkingBasisItem(PetraModel):
+    basis_role: Literal[
+        "source",
+        "current_state",
+        "instruction",
+        "constraint",
+        "prior_work",
+        "author_judgment",
+    ]
+    record_ref: WorkingExactTypedRecordRef
+    summary: str
+
+
+class WorkingProvenanceItem(PetraModel):
+    provenance_role: Literal[
+        "derivation",
+        "input",
+        "output",
+        "model_call",
+        "interaction",
+        "work_result",
+        "prior_revision",
+    ]
+    record_ref: WorkingExactTypedRecordRef
+    statement: str
+
+
+class WorkingQualificationStatement(PetraModel):
+    qualification_kind: Literal["uncertainty", "limitation"]
+    statement: str
+    basis_ref: WorkingExactTypedRecordRef | None = None
+
+
+class WorkingQualifications(PetraModel):
+    assessment_state: Literal["stated", "none_recorded"]
+    statements: list[WorkingQualificationStatement]
+
+
+class WorkingValidationResult(PetraModel):
+    validator_ref: WorkingNamedVersionHash
+    outcome: Literal["passed", "warning", "failed", "blocked"]
+    code: str
+    statement: str
+    validated_by: ActorRef
+    validated_at: str
+
+
+class WorkingValidation(PetraModel):
+    state: Literal["pending", "completed", "blocked"]
+    target_record_hash: str
+    results: list[WorkingValidationResult]
+
+
+class WorkingRootLineage(PetraModel):
+    lineage_kind: Literal["root"]
+
+
+class WorkingCandidateSupersessionLineage(PetraModel):
+    lineage_kind: Literal["supersession"]
+    supersedes: WorkingCandidateRef
+    change_kind: Literal[
+        "mechanical_correction",
+        "basis_revision",
+        "material_revision",
+        "withdrawal",
+    ]
+    reason: str
+
+
+class WorkingAuthorityBoundary(PetraModel):
+    domain_authority: Literal[False]
+    review_decision: Literal[False]
+    mutation_authority: Literal[False]
+    validation_grants_authority: Literal[False]
+    promotion_requires_review: Literal[True]
+
+
+class PetraWorkingCandidate(PetraModel):
+    schema_name: Literal["petra.working-candidate"]
+    schema_version: Literal["1.0.0"]
+    working_candidate_id: str
+    revision: int
+    project_id: str
+    project_definition_ref: WorkingProjectDefinitionRef
+    profile_object: WorkingProfileObjectBinding
+    producer: WorkingHumanProducer | WorkingServiceProducer | WorkingModelProducer
+    task_context: (
+        WorkingThreadTurnTask | WorkingWorkUnitTask | WorkingInteractionWorkTask
+    )
+    input_snapshot: WorkingInputSnapshot
+    origin: WorkingOrigin
+    basis: list[WorkingBasisItem]
+    provenance: list[WorkingProvenanceItem]
+    qualifications: WorkingQualifications
+    validation: WorkingValidation
+    lineage: WorkingRootLineage | WorkingCandidateSupersessionLineage
+    disposition: Literal["available", "withdrawn"]
+    authority_boundary: WorkingAuthorityBoundary
+    content_hash: str
+    created_by: ActorRef
+    created_at: str
+    recorded_at: str
+
+
+class WorkingRelationshipRef(PetraModel):
+    working_relationship_id: str
+    revision: int
+    content_hash: str
+
+
+class WorkingProfileRelationshipRegistration(PetraModel):
+    registration_kind: Literal["relationship_schema"]
+    semantic_key: str
+    contract: WorkingNamedVersionHash
+
+
+class WorkingProfileRelationshipBinding(PetraModel):
+    registration: WorkingProfileRelationshipRegistration
+    predicate: str
+    relationship_record_ref: WorkingExactTypedRecordRef
+    candidate_operation: Literal["create", "revise"]
+    current_authoritative_ref: WorkingExactTypedRecordRef | None = None
+
+
+class WorkingProfileRecordEndpoint(PetraModel):
+    endpoint_kind: Literal["profile_record"]
+    record_ref: WorkingExactTypedRecordRef
+
+
+class WorkingCandidateEndpoint(PetraModel):
+    endpoint_kind: Literal["working_candidate"]
+    candidate_ref: WorkingCandidateRef
+
+
+class WorkingLiteralEndpoint(PetraModel):
+    endpoint_kind: Literal["literal"]
+    literal_type: Literal["string", "boolean", "integer", "decimal", "timestamp"]
+    value_hash: str
+
+
+WorkingEndpoint = (
+    WorkingProfileRecordEndpoint | WorkingCandidateEndpoint | WorkingLiteralEndpoint
+)
+
+
+class WorkingRelationshipEndpoints(PetraModel):
+    subject: WorkingEndpoint
+    object: WorkingEndpoint
+
+
+class WorkingRelationshipSupersessionLineage(PetraModel):
+    lineage_kind: Literal["supersession"]
+    supersedes: WorkingRelationshipRef
+    change_kind: Literal[
+        "mechanical_correction",
+        "basis_revision",
+        "material_revision",
+        "withdrawal",
+    ]
+    reason: str
+
+
+class PetraWorkingRelationship(PetraModel):
+    schema_name: Literal["petra.working-relationship"]
+    schema_version: Literal["1.0.0"]
+    working_relationship_id: str
+    revision: int
+    project_id: str
+    project_definition_ref: WorkingProjectDefinitionRef
+    profile_relationship: WorkingProfileRelationshipBinding
+    endpoints: WorkingRelationshipEndpoints
+    producer: WorkingHumanProducer | WorkingServiceProducer | WorkingModelProducer
+    task_context: (
+        WorkingThreadTurnTask | WorkingWorkUnitTask | WorkingInteractionWorkTask
+    )
+    input_snapshot: WorkingInputSnapshot
+    origin: WorkingOrigin
+    basis: list[WorkingBasisItem]
+    provenance: list[WorkingProvenanceItem]
+    qualifications: WorkingQualifications
+    validation: WorkingValidation
+    lineage: WorkingRootLineage | WorkingRelationshipSupersessionLineage
+    disposition: Literal["available", "withdrawn"]
+    authority_boundary: WorkingAuthorityBoundary
+    content_hash: str
+    created_by: ActorRef
+    created_at: str
+    recorded_at: str
+
+
 class ReviewSessionHumanActorRef(PetraModel):
     actor_id: str
     actor_kind: Literal["human"]
@@ -10597,6 +10914,8 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "project-source-view": PetraProjectSourceView,
     "project-source-lifecycle-view": PetraProjectSourceLifecycleView,
     "project-source-lifecycle-receipt": PetraProjectSourceLifecycleReceipt,
+    "working-candidate": PetraWorkingCandidate,
+    "working-relationship": PetraWorkingRelationship,
     "review-session": PetraReviewSession,
     "project-review-view": PetraProjectReviewView,
     "project-relationship-view": PetraProjectRelationshipView,
