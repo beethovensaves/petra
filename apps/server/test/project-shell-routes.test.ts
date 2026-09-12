@@ -1,4 +1,7 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+
+import { canonicalize } from "json-canonicalize";
 
 import type {
   PetraProjectEffectiveControlsView,
@@ -17,6 +20,7 @@ import type {
   PetraProjectObjectLocationView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
+  PetraProjectWorkingStateSnapshot,
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectSourceLifecycleView,
@@ -35,6 +39,7 @@ import type {
   ProjectObjectLocationViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
+  ProjectWorkingStateSnapshotReader,
   ProjectShellSelectionRequest,
   ProjectShellViewReader,
   ProjectSourceLifecycleViewReader,
@@ -234,6 +239,54 @@ const relationshipFixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectRelationshipView;
+
+const workingCandidateFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/working-candidate.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkingStateSnapshot["content"]["candidates"][number];
+
+const workingRelationshipFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/working-relationship.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkingStateSnapshot["content"]["relationships"][number];
+
+const workingStateContent: PetraProjectWorkingStateSnapshot["content"] = {
+  project_definition_ref: workingCandidateFixture.project_definition_ref,
+  authority: {
+    isolation: "repeatable_read",
+    event_position: 42,
+    stream_revision: 7,
+  },
+  selection_boundary: {
+    selection_kind: "current_working_heads",
+    historical_working_revisions_included: false,
+    authoritative_records_included: false,
+    graph_overlay_composed: false,
+  },
+  candidates: [workingCandidateFixture],
+  relationships: [workingRelationshipFixture],
+};
+
+const workingStateFixture: PetraProjectWorkingStateSnapshot = {
+  schema_name: "petra.project-working-state-snapshot",
+  schema_version: "1.0.0",
+  project_id: workingCandidateFixture.project_id,
+  content: workingStateContent,
+  content_hash: `sha256:${createHash("sha256")
+    .update(canonicalize(workingStateContent))
+    .digest("hex")}`,
+  read_at: "2026-09-12T14:20:00.000Z",
+};
 
 const locationFixture = JSON.parse(
   readFileSync(
@@ -461,6 +514,15 @@ const reviewReader: ProjectReviewViewReader = {
       projectId === reviewFixture.project_id &&
         reviewSessionId === reviewFixture.review_session_id
         ? structuredClone(reviewFixture)
+        : undefined,
+    ),
+};
+
+const workingStateReader: ProjectWorkingStateSnapshotReader = {
+  getProjectWorkingStateSnapshot: (projectId) =>
+    Promise.resolve(
+      projectId === workingStateFixture.project_id
+        ? structuredClone(workingStateFixture)
         : undefined,
     ),
 };
@@ -1615,6 +1677,36 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(body.error.code).toBe("PROJECT_REVIEW_NOT_FOUND");
+  });
+
+  it("authenticates the exact snapshot-consistent working-state query", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectWorkingStateSnapshots: workingStateReader,
+    });
+    const unauthorized = await petra.app.request(
+      `/api/queries/projects/${workingStateFixture.project_id}/working-state`,
+    );
+    expect(unauthorized.status).toBe(401);
+
+    const current = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${workingStateFixture.project_id}/working-state`,
+      ),
+    );
+    expect(current.status).toBe(200);
+    await expect(current.json()).resolves.toEqual(workingStateFixture);
+
+    const crossProject = await petra.app.request(
+      authorized(
+        "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/working-state",
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    const body = JSON.parse(await crossProject.text()) as {
+      error: { code: string };
+    };
+    expect(body.error.code).toBe("PROJECT_WORKING_STATE_NOT_FOUND");
   });
 
   it("returns only the bounded relationship view authorized for the exact Project", async () => {

@@ -483,6 +483,12 @@ export type {
   WorkingRelationshipRef,
 } from "./generated/working-relationship.js";
 export type {
+  AuthorityPosition as ProjectWorkingStateAuthorityPosition,
+  PetraProjectWorkingStateSnapshot,
+  SelectionBoundary as ProjectWorkingStateSelectionBoundary,
+  SnapshotContent as ProjectWorkingStateSnapshotContent,
+} from "./generated/project-working-state-snapshot.js";
+export type {
   AuthorityPosition as ProjectSourceAuthorityPosition,
   BindingSummary as ProjectSourceBindingSummary,
   CopySummary as ProjectSourceCopySummary,

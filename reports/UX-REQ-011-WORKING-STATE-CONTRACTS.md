@@ -1,8 +1,8 @@
 # UX-REQ-011 WorkingCandidate and WorkingRelationship contracts
 
-Status: bounded Wave 4 contract foundation passed; persistence, admission,
-correction commands, authenticated reads, and working-graph projection remain
-open
+Status: bounded Wave 4 contract and authority foundation passed; working-graph
+overlay, Review composition and operations, paired-profile conformance, and
+frozen-interface integration remain open
 Date: 2026-09-12
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -23,6 +23,21 @@ Assertion record and binds its `ASSERTS` predicate, exact WorkVersion subject,
 and exact WorkingCandidate object. Claim and Assertion remain the profile-owned
 content records; the new contracts supply the shared working-state identity and
 lineage needed by later admission and read boundaries.
+
+PostgreSQL migration V033 and the scientific working-state adapter now persist
+stable WorkingCandidate and WorkingRelationship heads with immutable additive
+revisions. Claim and Assertion payloads remain in the existing evidence ledger;
+V033 adds only a non-authoritative `working_correction` admission kind for a
+contiguous quarantine correction. It does not add a second profile-content,
+Review, command, event, projection, or History ledger.
+
+The server now exposes
+`GET /api/queries/projects/:projectId/working-state` behind the existing bearer
+authentication middleware. Its reader uses a read-only repeatable-read
+transaction and returns the exact current working heads, current
+ProjectDefinition reference, event and stream positions, and an explicit
+selection boundary. That boundary says the response contains no authoritative
+records, historical working revisions, or composed graph overlay.
 
 ## Exact working context
 
@@ -53,8 +68,12 @@ exact superseded working identity, revision, and content hash, plus whether the
 change is a mechanical correction, basis revision, material revision, or
 withdrawal. A `revise` intent must also carry an exact reference to the
 authoritative profile record it proposes to change. These contract requirements
-do not establish that the referenced record is current or that a correction is
-admissible; that remains runtime work.
+are now backed by runtime checks: revision admission requires the exact current
+ProjectDefinition, exact registered profile and validator contracts, exact
+current task records, registered Actors and producer roles, and resolvable
+Project-scoped references. A `revise` base must be the exact current trusted
+profile revision. Working corrections must be contiguous with the current
+working head and the current quarantine profile revision.
 
 The fixture retains a model-produced root Claim candidate with completed
 profile-registered validation. A separate human ProjectThread turn narrows its
@@ -103,38 +122,44 @@ a later revision with root lineage, an injected domain-authority value,
 completed validation without results, a relationship using an object-schema
 registration, and a revise intent without an exact authoritative base.
 
+Runtime tests additionally cover idempotent root admission, idempotent retry
+after later head movement, a human material correction, an exact ASSERTS
+relationship, current and historical working reads, and snapshot composition.
+They reject stale task references, unknown profile registrations, unknown
+validator versions, and mismatched relationship endpoints without leaving
+partial working rows. Working admission and correction emit no domain events.
+
 ## Verification
 
-Pinned Node 24.20.0 focused contract validation passes 10 tests across the new
-working-state suite and the complete runtime-registry suite. Generated
-TypeScript declarations, the contracts test typecheck, strict Python/Pydantic
-round-trip parity, and focused TypeScript and Python lint also pass.
+Pinned Node 24.20.0 typechecking and the focused contract/server suite pass. The
+focused suite covers 30 tests, including contract rejection and authenticated,
+exact-Project route behavior.
 
-The complete `npm run verify` repository gate passes generated-contract and
-fixture checks, the retrieval floor, formatting, lint, TypeScript and Python
-typechecks, the production workbench build, 456 contract tests, 216 core tests,
-31 adapter tests, 15 retrieval tests, 3 Neo4j tests with 1 integration-only skip,
-3 S3 tests with 6 integration-only skips, 65 server tests, 126 workbench tests,
-25 Python tests, and 7 handoff automation tests. The production build retains
-the existing non-failing chunk-size advisory. This slice changes no PostgreSQL
-schema or behavior, so a new real PostgreSQL integration run is not required by
-the Wave 4 packet.
+A fresh PostgreSQL 18.6 store applies Flyway migrations V001 through V033 and
+passes all 113 PostgreSQL tests across 16 files. The two working-state tests
+exercise success, retry, correction, stale and mismatched references,
+unsupported profile and validator registrations, exact current-head queries,
+durable cardinality, and the absence of domain events from working-state
+admission.
+
+The complete `npm run verify` gate also passes generated-contract and fixture
+checks, the retrieval floor, formatting, lint, TypeScript and Python typechecks,
+and the production workbench build. Its test totals are 458 contract tests, 216
+core tests, 31 adapter tests, 15 retrieval tests, 3 Neo4j tests with 1
+integration-only skip, 3 S3 tests with 6 integration-only skips, 66 server
+tests, 126 workbench tests, 25 Python tests, and 8 handoff automation tests. The
+production build retains the existing non-failing chunk-size advisory.
 
 ## Remaining boundary
 
-This slice establishes record shape, generated types, accepted fixtures, and
-contract-level invariants only. JSON Schema cannot prove that a supplied
-ProjectDefinition is current, that a semantic key and contract hash resolve to
-its registration, that a profile record satisfies that registered contract,
-that endpoints match the relationship record, that referenced records exist in
-the same Project and snapshot, or that a validator is executable and permitted.
-The conformance tests prove those relationships only for the scientific
-fixtures.
+This slice proves the persistence and query boundary for the registered
+scientific Claim–ASSERTS adapter only. It does not establish profile neutrality,
+compose authoritative and working records into a graph overlay, or make the
+snapshot a graph-renderer contract. It also exposes no client mutation endpoint;
+later Review operations must continue through typed commands rather than
+conversation or graph selection.
 
-The next backend slice must add canonical persistence, idempotent admission and
-correction, exact-current and reference guards, profile and validator
-resolution, and an authenticated snapshot-consistent query. Unknown profile
-types, predicates, references, validators, and incompatible revisions must fail
-closed there. Working-graph projection, Review composition and commands, Brief,
-communication, paired-profile conformance, and frozen-interface mapping remain
-later Wave 4 work.
+The next slice may expose the accepted working state as a bounded working-graph
+overlay with a complete textual peer. Review composition and operations, Brief,
+communication, a materially different ProjectDefinition, paired-profile
+conformance, and frozen-interface runtime mapping remain later Wave 4 work.

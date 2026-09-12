@@ -16,6 +16,7 @@ import {
   PostgresProjectSourceViewReader,
   PostgresProjectThreadViewReader,
   PostgresProjectWorkViewReader,
+  PostgresProjectWorkingStateSnapshotReader,
   PostgresSuggestedActionViewReader,
   PostgresSuggestedActionInvocationAuthorityRepository,
 } from "@petra/postgres";
@@ -40,6 +41,7 @@ import type {
   ProjectSourceViewReader,
   ProjectThreadViewReader,
   ProjectWorkViewReader,
+  ProjectWorkingStateSnapshotReader,
   SuggestedActionViewReader,
   SuggestedActionInvocationAuthorityRepository,
 } from "@petra/core";
@@ -55,6 +57,7 @@ export interface ProjectShellPersistence {
   readonly sourceViews: ProjectSourceViewReader;
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly reviewViews: ProjectReviewViewReader;
+  readonly workingStateSnapshots: ProjectWorkingStateSnapshotReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
   readonly objectLocations: ProjectObjectLocationViewReader;
   readonly workViews: ProjectWorkViewReader;
@@ -212,11 +215,12 @@ export const createProjectShellPersistenceFromEnvironment = async (
       `SELECT to_regclass('petra.capability_grants') IS NOT NULL
           AND to_regclass('petra.project_source_replacement_receipts') IS NOT NULL
           AND to_regclass('petra.suggested_action_invocations') IS NOT NULL
+          AND to_regclass('petra.working_candidate_revisions') IS NOT NULL
           AS ready`,
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but V032 SuggestedAction command authority is unavailable.",
+        "PostgreSQL is reachable, but the V033 working-state authority boundary is unavailable.",
       );
     }
     const neo4jConfigured = [
@@ -255,6 +259,10 @@ export const createProjectShellPersistenceFromEnvironment = async (
           pool,
         ),
         reviewViews: new PostgresProjectReviewViewReader(pool),
+        workingStateSnapshots: new PostgresProjectWorkingStateSnapshotReader(
+          pool,
+          contracts,
+        ),
         objectLocations: new PostgresProjectObjectLocationViewReader(pool),
         workViews: new PostgresProjectWorkViewReader(pool),
         threadViews: new PostgresProjectThreadViewReader(pool),
@@ -316,6 +324,10 @@ export const createProjectShellPersistenceFromEnvironment = async (
     sourceViews: new PostgresProjectSourceViewReader(pool),
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),
+    workingStateSnapshots: new PostgresProjectWorkingStateSnapshotReader(
+      pool,
+      contracts,
+    ),
     objectLocations: new PostgresProjectObjectLocationViewReader(pool),
     workViews: new PostgresProjectWorkViewReader(pool),
     threadViews: new PostgresProjectThreadViewReader(pool),

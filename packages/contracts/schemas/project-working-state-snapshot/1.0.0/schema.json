@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-working-state-snapshot/1.0.0/schema.json",
+  "title": "PetraProjectWorkingStateSnapshot",
+  "description": "A read-only, snapshot-consistent Project query over the current durable non-authoritative WorkingCandidate and WorkingRelationship heads. It does not compose an authoritative or renderer-specific graph.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-working-state-snapshot" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/SnapshotContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "AuthorityPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isolation", "event_position", "stream_revision"],
+      "properties": {
+        "isolation": { "const": "repeatable_read" },
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "SelectionBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection_kind",
+        "historical_working_revisions_included",
+        "authoritative_records_included",
+        "graph_overlay_composed"
+      ],
+      "properties": {
+        "selection_kind": { "const": "current_working_heads" },
+        "historical_working_revisions_included": { "const": false },
+        "authoritative_records_included": { "const": false },
+        "graph_overlay_composed": { "const": false }
+      }
+    },
+    "SnapshotContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_ref",
+        "authority",
+        "selection_boundary",
+        "candidates",
+        "relationships"
+      ],
+      "properties": {
+        "project_definition_ref": {
+          "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ProjectDefinitionRef"
+        },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" },
+        "selection_boundary": { "$ref": "#/$defs/SelectionBoundary" },
+        "candidates": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "../../working-candidate/1.0.0/schema.json"
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "../../working-relationship/1.0.0/schema.json"
+          }
+        }
+      }
+    }
+  }
+}

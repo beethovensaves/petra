@@ -365,8 +365,7 @@ const sourceSpanIds = (assertion: PetraAssertion): string[] =>
       : [],
   );
 
-/** Validate one initial Claim proposal without storing it. */
-export const validateClaimProposal = (
+const validateClaimSemantics = (
   claim: PetraClaim,
   resolver: EvidenceProposalResolver,
 ): void => {
@@ -376,7 +375,6 @@ export const validateClaimProposal = (
       "Claims may enter the evidence registry only as quarantine proposals; promotion is a separate reviewed command.",
     );
   }
-  validateInitialRevision(claim.revision);
   validateScopeAccounting(claim.scope);
 
   if (claim.basis.basis_kind === "source") {
@@ -455,8 +453,30 @@ export const validateClaimProposal = (
   }
 };
 
-/** Validate one initial Assertion proposal without storing it. */
-export const validateAssertionProposal = (
+/** Validate one initial Claim proposal without storing it. */
+export const validateClaimProposal = (
+  claim: PetraClaim,
+  resolver: EvidenceProposalResolver,
+): void => {
+  validateInitialRevision(claim.revision);
+  validateClaimSemantics(claim, resolver);
+};
+
+/** Validate one additive quarantine Claim correction without storing it. */
+export const validateWorkingClaimRevision = (
+  claim: PetraClaim,
+  resolver: EvidenceProposalResolver,
+): void => {
+  if (claim.revision <= 1) {
+    throw new EvidenceProposalError(
+      "INITIAL_REVISION_REQUIRED",
+      "A working Claim correction must advance an existing quarantine revision.",
+    );
+  }
+  validateClaimSemantics(claim, resolver);
+};
+
+const validateAssertionSemantics = (
   assertion: PetraAssertion,
   resolver: EvidenceProposalResolver,
 ): void => {
@@ -466,7 +486,6 @@ export const validateAssertionProposal = (
       "Assertions may enter the evidence registry only as quarantine proposals; promotion is a separate reviewed command.",
     );
   }
-  validateInitialRevision(assertion.revision);
   validateScopeAccounting(assertion.scope);
 
   const spanIds = sourceSpanIds(assertion);
@@ -561,6 +580,29 @@ export const validateAssertionProposal = (
       `${assertion.predicate} requires exact source or experimental provenance.`,
     );
   }
+};
+
+/** Validate one initial Assertion proposal without storing it. */
+export const validateAssertionProposal = (
+  assertion: PetraAssertion,
+  resolver: EvidenceProposalResolver,
+): void => {
+  validateInitialRevision(assertion.revision);
+  validateAssertionSemantics(assertion, resolver);
+};
+
+/** Validate one additive quarantine Assertion correction without storing it. */
+export const validateWorkingAssertionRevision = (
+  assertion: PetraAssertion,
+  resolver: EvidenceProposalResolver,
+): void => {
+  if (assertion.revision <= 1) {
+    throw new EvidenceProposalError(
+      "INITIAL_REVISION_REQUIRED",
+      "A working Assertion correction must advance an existing quarantine revision.",
+    );
+  }
+  validateAssertionSemantics(assertion, resolver);
 };
 
 export class InMemoryEvidenceRegistry {

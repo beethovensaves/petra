@@ -180,3 +180,13 @@ Claim–`ASSERTS` pair only, verifies its registered ProjectDefinition semantics
 and ProjectSource basis, and leaves other profile payloads to additive authority
 resolvers. A ReviewSession may exist before any ChangeSet; it does not itself
 approve or apply domain authority.
+
+`V033__working_state_authority.sql` adds stable WorkingCandidate and
+WorkingRelationship heads with immutable additive revisions. Exact foreign keys
+retain ProjectDefinition and existing evidence-record identities. A guarded
+`working_correction` admission advances only a contiguous quarantine Claim or
+Assertion revision; it does not require or imitate ChangeSet authority and emits
+no domain event. Profile registration, reference, task, producer, validator,
+lineage, and endpoint checks remain in the scientific adapter, while the
+snapshot reader selects current heads in a read-only repeatable-read
+transaction.

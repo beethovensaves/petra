@@ -17,6 +17,7 @@ export * from "./project-effective-controls-view-reader.js";
 export * from "./project-history-view-reader.js";
 export * from "./project-history-compensation-executor.js";
 export * from "./project-work-view-reader.js";
+export * from "./project-working-state-snapshot-reader.js";
 export * from "./suggested-action-view-reader.js";
 export * from "./suggested-action-invocation-authority-repository.js";
 export * from "./project-thread-authority-repository.js";
@@ -38,5 +39,6 @@ export * from "./scholarly-identity-repository.js";
 export * from "./single-user-command-principal-resolver.js";
 export * from "./synthesist-execution-repository.js";
 export * from "./work-unit-authority-repository.js";
+export * from "./working-state-authority-repository.js";
 
 export const PETRA_POSTGRES_BOUNDARY = "petra-postgres" as const;

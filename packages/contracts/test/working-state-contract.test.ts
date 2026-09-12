@@ -8,6 +8,7 @@ import type {
   PetraAssertion,
   PetraClaim,
   PetraProjectDefinition,
+  PetraProjectWorkingStateSnapshot,
   PetraProjectThread,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
@@ -265,6 +266,52 @@ describe("WorkingCandidate and WorkingRelationship contracts", () => {
     unboundRevision.profile_object.candidate_operation = "revise";
     expect(
       registry.isValid("working-candidate", "1.0.0", unboundRevision),
+    ).toBe(false);
+  });
+
+  it("keeps the snapshot-consistent query textual and explicitly non-authoritative", () => {
+    const content: PetraProjectWorkingStateSnapshot["content"] = {
+      project_definition_ref: candidate.project_definition_ref,
+      authority: {
+        isolation: "repeatable_read",
+        event_position: 42,
+        stream_revision: 7,
+      },
+      selection_boundary: {
+        selection_kind: "current_working_heads",
+        historical_working_revisions_included: false,
+        authoritative_records_included: false,
+        graph_overlay_composed: false,
+      },
+      candidates: [correction],
+      relationships: [relationship],
+    };
+    const snapshot: PetraProjectWorkingStateSnapshot = {
+      schema_name: "petra.project-working-state-snapshot",
+      schema_version: "1.0.0",
+      project_id: candidate.project_id,
+      content,
+      content_hash: recordHash(content),
+      read_at: "2026-09-12T14:20:00.000Z",
+    };
+    registry.assertValid("project-working-state-snapshot", "1.0.0", snapshot);
+    expect(snapshot.content.selection_boundary).toStrictEqual({
+      selection_kind: "current_working_heads",
+      historical_working_revisions_included: false,
+      authoritative_records_included: false,
+      graph_overlay_composed: false,
+    });
+
+    const implicitOverlay = structuredClone(snapshot) as unknown as {
+      content: { selection_boundary: { graph_overlay_composed: boolean } };
+    };
+    implicitOverlay.content.selection_boundary.graph_overlay_composed = true;
+    expect(
+      registry.isValid(
+        "project-working-state-snapshot",
+        "1.0.0",
+        implicitOverlay,
+      ),
     ).toBe(false);
   });
 });

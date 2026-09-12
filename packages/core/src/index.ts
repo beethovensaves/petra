@@ -67,5 +67,6 @@ export * from "./synthesist-execution-repository.js";
 export * from "./synthesist-role-certification.js";
 export * from "./work-unit-registry.js";
 export * from "./work-unit-authority-repository.js";
+export * from "./working-state.js";
 
 export const PETRA_CORE_BOUNDARY = "petra-core" as const;

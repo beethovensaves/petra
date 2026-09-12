@@ -60,6 +60,7 @@ import {
   type ProjectThreadViewReader,
   type ProjectWorkStateFilter,
   type ProjectWorkViewReader,
+  type ProjectWorkingStateSnapshotReader,
   type SuggestedActionViewReader,
   type SuggestedActionInvocationCoordinator,
   type SuggestedActionInvocationAuthorityRepository,
@@ -91,6 +92,7 @@ export interface PetraAppOptions {
   projectSourceLifecycleAuthority?: ProjectSourceLifecycleAuthorityRepository;
   projectSourceReplacementAuthority?: ProjectSourceReplacementCommandAuthorityRepository;
   projectReviewViews?: ProjectReviewViewReader;
+  projectWorkingStateSnapshots?: ProjectWorkingStateSnapshotReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
   projectObjectLocations?: ProjectObjectLocationViewReader;
   projectWorkViews?: ProjectWorkViewReader;
@@ -3463,6 +3465,46 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         error instanceof Error
           ? error.message
           : "The Project Review collection is unavailable.",
+      );
+    }
+  });
+
+  app.get("/api/queries/projects/:projectId/working-state", async (context) => {
+    if (options.projectWorkingStateSnapshots === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_WORKING_STATE_UNAVAILABLE",
+        "The authenticated Project working-state read boundary is not configured.",
+      );
+    }
+    try {
+      const snapshot =
+        await options.projectWorkingStateSnapshots.getProjectWorkingStateSnapshot(
+          context.req.param("projectId"),
+        );
+      if (snapshot === undefined) {
+        return jsonError(
+          context,
+          404,
+          "PROJECT_WORKING_STATE_NOT_FOUND",
+          "The requested Project working-state boundary was not found.",
+        );
+      }
+      contracts.assertValid(
+        "project-working-state-snapshot",
+        "1.0.0",
+        snapshot,
+      );
+      return context.json(snapshot);
+    } catch (error) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_WORKING_STATE_READ_FAILED",
+        error instanceof Error
+          ? error.message
+          : "The Project working-state snapshot is unavailable.",
       );
     }
   });
