@@ -1,8 +1,8 @@
 # UX-REQ-011 WorkingCandidate and WorkingRelationship contracts
 
-Status: bounded Wave 4 contract and authority foundation passed; working-graph
-overlay, Review composition and operations, paired-profile conformance, and
-frozen-interface integration remain open
+Status: bounded Wave 4 contract, authority, and scientific relationship-overlay
+foundation passed; Review composition and operations, paired-profile
+conformance, and frozen-interface integration remain open
 Date: 2026-09-12
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -38,6 +38,53 @@ transaction and returns the exact current working heads, current
 ProjectDefinition reference, event and stream positions, and an explicit
 selection boundary. That boundary says the response contains no authoritative
 records, historical working revisions, or composed graph overlay.
+
+The additive `petra.project-relationship-overlay-view@1.0.0` now composes that
+working state with the existing bounded authoritative provenance path through
+`GET /api/queries/projects/:projectId/relationship-overlay`. It does not change
+the frozen current-only `petra.project-relationship-view@1.0.0`. The new reader
+requires the same exact Project, current ProjectDefinition, authority position,
+and coherent authoritative projection position before returning either layer.
+The renderer-neutral typed fetch returns the contract unchanged and checks the
+Project, definition, and authority bindings; no React component, CSS, browser
+route, graph layout, or navigation state changed in this slice.
+
+## Composed relationship boundary
+
+The overlay returns each authoritative node and relationship with its current
+layer and exact owning record or graph-element identity, revision, and hash. It
+returns relevant working candidates and relationships with their working layer,
+exact owner reference, server-resolved label, summary, direction, meaning,
+scope, basis, validation summary, and complete underlying WorkingCandidate or
+WorkingRelationship record. Those embedded records retain producer and Actor,
+model or service role, task and Work/thread/run bindings where applicable,
+input snapshot, origin, basis, provenance, qualifications, validation,
+disposition, lineage, authoritative base, and fixed non-authority constants.
+
+Selection is bounded to current WorkingRelationship heads whose exact
+profile-record subject occurs in the authoritative provenance path. The response
+counts all current candidate and relationship heads, returned revisions,
+non-current referenced endpoints, and candidates or relationships excluded by
+the two declared selection reasons. It also supplies a textual peer for every
+returned node and relationship, with the same layer, endpoint, direction,
+meaning, scope, and basis information. Historical authoritative state,
+whole-Project traversal, expansion, continuation, and comparison selection
+remain explicit omissions.
+
+A current WorkingRelationship may continue to reference an earlier
+WorkingCandidate revision after that candidate identity advances. The reader
+loads that exact referenced revision, labels it `non_current_working_endpoint`,
+and separately returns the current working head. It never retargets the edge.
+Unavailable or hash-mismatched endpoints fail the read; unrelated current
+working relationships are excluded with the exact supplied reason and count.
+
+The authoritative projection position and working snapshot/base position remain
+separate. The working position names the current-head snapshot hash and exact
+base authority position, while the authoritative position retains the source
+relationship-view hash, read time, checkpoint, represented and observed
+positions, and projection state. Visibility, validation, selection, and
+projection do not grant authority. Layout, focus, disclosure, comparison
+selection, and navigation history remain client-local.
 
 ## Exact working context
 
@@ -129,37 +176,48 @@ They reject stale task references, unknown profile registrations, unknown
 validator versions, and mismatched relationship endpoints without leaving
 partial working rows. Working admission and correction emit no domain events.
 
+Overlay tests additionally reject mismatched ProjectDefinition, authority,
+projection, source-view hash, and route Project boundaries. The success trace
+advances a WorkingCandidate from revision 1 to revision 2 after a current
+WorkingRelationship has bound revision 1. It proves that both revisions remain
+distinct, the relationship still targets revision 1, the textual peer covers
+every returned member, and the current-head snapshot hash is retained
+separately from the authoritative projection position.
+
 ## Verification
 
-Pinned Node 24.20.0 typechecking and the focused contract/server suite pass. The
-focused suite covers 30 tests, including contract rejection and authenticated,
-exact-Project route behavior.
+Pinned Node 24.20.0 typechecking and the focused contract, PostgreSQL reader,
+server-route, and renderer-neutral client checks pass. The focused files cover
+contract rejection, exact non-current endpoint retention, definition/authority/
+projection/hash failures, bearer authentication, cross-Project rejection, and
+typed-client boundary checks.
 
 A fresh PostgreSQL 18.6 store applies Flyway migrations V001 through V033 and
-passes all 113 PostgreSQL tests across 16 files. The two working-state tests
+passes all 115 PostgreSQL tests across 16 files. The working-state tests
 exercise success, retry, correction, stale and mismatched references,
 unsupported profile and validator registrations, exact current-head queries,
-durable cardinality, and the absence of domain events from working-state
-admission.
+durable cardinality, the exact non-current relationship endpoint, overlay
+failure guards, and the absence of domain events from working-state admission.
 
 The complete `npm run verify` gate also passes generated-contract and fixture
 checks, the retrieval floor, formatting, lint, TypeScript and Python typechecks,
-and the production workbench build. Its test totals are 458 contract tests, 216
+and the production workbench build. Its test totals are 462 contract tests, 216
 core tests, 31 adapter tests, 15 retrieval tests, 3 Neo4j tests with 1
-integration-only skip, 3 S3 tests with 6 integration-only skips, 66 server
-tests, 126 workbench tests, 25 Python tests, and 8 handoff automation tests. The
+integration-only skip, 3 S3 tests with 6 integration-only skips, 68 server
+tests, 128 workbench tests, 25 Python tests, and 8 handoff automation tests. The
 production build retains the existing non-failing chunk-size advisory.
 
 ## Remaining boundary
 
-This slice proves the persistence and query boundary for the registered
-scientific Claim–ASSERTS adapter only. It does not establish profile neutrality,
-compose authoritative and working records into a graph overlay, or make the
-snapshot a graph-renderer contract. It also exposes no client mutation endpoint;
-later Review operations must continue through typed commands rather than
-conversation or graph selection.
+This slice proves the persistence, query, and composed relationship boundary for
+the registered scientific Claim–ASSERTS adapter only. It does not establish
+profile neutrality, whole-Project graph traversal, historical authoritative
+composition, or frozen-interface integration. It exposes no client mutation
+endpoint; later Review operations must continue through typed commands rather
+than conversation or graph selection.
 
-The next slice may expose the accepted working state as a bounded working-graph
-overlay with a complete textual peer. Review composition and operations, Brief,
+The next safe backend slice is default-order item 4: one durable task-sized
+ReviewSession composed over the canonical working candidates, validation,
+ChangeSets, Approvals, commands, events, and projection state. Brief,
 communication, a materially different ProjectDefinition, paired-profile
 conformance, and frozen-interface runtime mapping remain later Wave 4 work.

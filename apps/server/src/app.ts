@@ -46,6 +46,7 @@ import {
   type ProjectInquiryAuthoredStatus,
   type ProjectInquiryViewReader,
   type ProjectObjectLocationViewReader,
+  type ProjectRelationshipOverlayViewReader,
   type ProjectRelationshipViewReader,
   type ProjectReviewViewReader,
   type ProjectShellViewReader,
@@ -94,6 +95,7 @@ export interface PetraAppOptions {
   projectReviewViews?: ProjectReviewViewReader;
   projectWorkingStateSnapshots?: ProjectWorkingStateSnapshotReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
+  projectRelationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
   projectObjectLocations?: ProjectObjectLocationViewReader;
   projectWorkViews?: ProjectWorkViewReader;
   projectThreadViews?: ProjectThreadViewReader;
@@ -3582,6 +3584,54 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project relationship view is unavailable.",
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/relationship-overlay",
+    async (context) => {
+      if (options.projectRelationshipOverlayViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_RELATIONSHIP_OVERLAY_UNAVAILABLE",
+          "The authorized Project relationship overlay read boundary is not configured.",
+        );
+      }
+      try {
+        const view =
+          await options.projectRelationshipOverlayViews.getProjectRelationshipOverlayView(
+            context.req.param("projectId"),
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_RELATIONSHIP_OVERLAY_NOT_FOUND",
+            "No supported authoritative path and working overlay are available for this Project.",
+          );
+        }
+        if (view.project_id !== context.req.param("projectId")) {
+          throw new Error(
+            "The relationship overlay reader returned another Project boundary.",
+          );
+        }
+        contracts.assertValid(
+          "project-relationship-overlay-view",
+          "1.0.0",
+          view,
+        );
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_RELATIONSHIP_OVERLAY_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project relationship overlay is unavailable.",
         );
       }
     },

@@ -12,6 +12,7 @@ import type {
   PetraProject,
   PetraProjectDefinition,
   PetraProjectObjective,
+  PetraProjectRelationshipView,
   PetraProjectSource,
   PetraRightsDecision,
   PetraSourceSpan,
@@ -35,6 +36,8 @@ import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-r
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
+import type { PostgresProjectRelationshipOverlayViewError } from "../src/project-relationship-overlay-view-reader.js";
+import { PostgresProjectRelationshipOverlayViewReader } from "../src/project-relationship-overlay-view-reader.js";
 import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
 import { PostgresProjectWorkingStateSnapshotReader } from "../src/project-working-state-snapshot-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
@@ -78,6 +81,17 @@ const expectWorkingCode = async (
 ): Promise<void> => {
   await expect(operation()).rejects.toEqual(
     expect.objectContaining<Partial<PostgresWorkingStateError>>({ code }),
+  );
+};
+
+const expectOverlayCode = async (
+  operation: () => Promise<unknown>,
+  code: PostgresProjectRelationshipOverlayViewError["code"],
+): Promise<void> => {
+  await expect(operation()).rejects.toEqual(
+    expect.objectContaining<
+      Partial<PostgresProjectRelationshipOverlayViewError>
+    >({ code }),
   );
 };
 
@@ -481,6 +495,26 @@ describePostgres("PostgreSQL working-state authority", () => {
     return { candidate: record, claim };
   };
 
+  const authoritativeView = (
+    fixture: AuthorityFixture,
+  ): PetraProjectRelationshipView => {
+    const view = readFixture<PetraProjectRelationshipView>(
+      "project-relationship-view",
+    );
+    view.project_id = fixture.project.project_id;
+    view.content.profile.project_definition_ref = {
+      record_id: fixture.definition.project_definition_id,
+      revision: fixture.definition.revision,
+      content_hash: fixture.definition.content_hash,
+    };
+    view.content.position.authority = {
+      event_position: 3,
+      stream_revision: 3,
+    };
+    view.content_hash = canonicalHash(view.content);
+    return view;
+  };
+
   it("atomically admits and corrects current scientific working state with stable retries and a repeatable-read query", async () => {
     const fixture = await setupAuthority();
     const root = candidate(fixture);
@@ -591,6 +625,179 @@ describePostgres("PostgreSQL working-state authority", () => {
       correction_admissions: "1",
       domain_events: "0",
     });
+  });
+
+  it("composes the authoritative path with an exact superseded working endpoint and its distinct current head", async () => {
+    const fixture = await setupAuthority();
+    const root = candidate(fixture);
+    const edge = relationship(fixture, root);
+    const revised = correction(fixture, root);
+    await working.admitWorkingCandidateRevision({
+      candidate: root,
+      profileRecord: fixture.claim,
+    });
+    await working.admitWorkingRelationshipRevision({
+      relationship: edge,
+      profileRecord: fixture.assertion,
+    });
+    await working.admitWorkingCandidateRevision({
+      candidate: revised.candidate,
+      profileRecord: revised.claim,
+    });
+    await pool.query(
+      "UPDATE petra.authority_positions SET event_position = 3 WHERE singleton",
+    );
+    await pool.query(
+      `INSERT INTO petra.project_event_stream_heads (
+         project_id, current_stream_revision
+       ) VALUES ($1, 3)`,
+      [fixture.project.project_id],
+    );
+
+    const authoritative = authoritativeView(fixture);
+    const overlays = new PostgresProjectRelationshipOverlayViewReader(pool, {
+      getProjectRelationshipView: (projectId) =>
+        Promise.resolve(
+          projectId === fixture.project.project_id
+            ? structuredClone(authoritative)
+            : undefined,
+        ),
+    });
+    const overlay = await overlays.getProjectRelationshipOverlayView(
+      fixture.project.project_id,
+    );
+    expect(overlay).toBeDefined();
+    expect(overlay?.content.positions.authoritative.authority).toEqual({
+      event_position: 3,
+      stream_revision: 3,
+    });
+    expect(overlay?.content.positions.working.base_authority).toEqual({
+      event_position: 3,
+      stream_revision: 3,
+    });
+    expect(overlay?.content.completeness).toMatchObject({
+      current_working_candidate_heads: 1,
+      current_working_relationship_heads: 1,
+      returned_working_candidate_revisions: 2,
+      returned_working_relationships: 1,
+      referenced_non_current_working_candidate_revisions: 1,
+      exclusions: [
+        {
+          member_kind: "working_candidate",
+          reason: "not_referenced_by_selected_relationship",
+          count: 0,
+        },
+        {
+          member_kind: "working_relationship",
+          reason: "outside_authoritative_path",
+          count: 0,
+        },
+      ],
+    });
+    const workingNodes = overlay?.content.nodes.filter(
+      (node) => node.layer === "working",
+    );
+    expect(workingNodes).toHaveLength(2);
+    expect(
+      workingNodes?.map((node) => ({
+        revision: node.owner.working_candidate_ref.revision,
+        posture: node.endpoint_posture,
+        label: node.label,
+      })),
+    ).toEqual([
+      {
+        revision: 1,
+        posture: "non_current_working_endpoint",
+        label: fixture.claim.canonical_text,
+      },
+      {
+        revision: 2,
+        posture: "current_working_head",
+        label: revised.claim.canonical_text,
+      },
+    ]);
+    const workingEdge = overlay?.content.relationships.find(
+      (item) => item.layer === "working",
+    );
+    expect(workingEdge).toMatchObject({
+      target_endpoint_posture: "non_current_working_endpoint",
+      working_record: {
+        working_relationship_id: edge.working_relationship_id,
+        endpoints: {
+          object: {
+            candidate_ref: {
+              revision: 1,
+              content_hash: root.content_hash,
+            },
+          },
+        },
+      },
+    });
+    expect(workingEdge?.target_node_key).toContain(
+      `${root.working_candidate_id}:1:`,
+    );
+    expect(workingEdge?.target_node_key).not.toContain(
+      `${root.working_candidate_id}:2:`,
+    );
+    expect(overlay?.content.textual_peer.nodes).toHaveLength(
+      overlay?.content.nodes.length ?? 0,
+    );
+    expect(overlay?.content.textual_peer.relationships).toHaveLength(
+      overlay?.content.relationships.length ?? 0,
+    );
+    expect(overlay?.content_hash).toBe(canonicalHash(overlay?.content));
+  });
+
+  it("fails closed on definition, authority, projection, and source-view hash mismatches", async () => {
+    const fixture = await setupAuthority();
+    await pool.query(
+      "UPDATE petra.authority_positions SET event_position = 3 WHERE singleton",
+    );
+    await pool.query(
+      `INSERT INTO petra.project_event_stream_heads (
+         project_id, current_stream_revision
+       ) VALUES ($1, 3)`,
+      [fixture.project.project_id],
+    );
+    const source = authoritativeView(fixture);
+    let supplied = structuredClone(source);
+    const overlays = new PostgresProjectRelationshipOverlayViewReader(pool, {
+      getProjectRelationshipView: () => Promise.resolve(supplied),
+    });
+
+    supplied.content.profile.project_definition_ref.content_hash = `sha256:${"0".repeat(64)}`;
+    supplied.content_hash = canonicalHash(supplied.content);
+    await expectOverlayCode(
+      () =>
+        overlays.getProjectRelationshipOverlayView(fixture.project.project_id),
+      "PROJECT_RELATIONSHIP_OVERLAY_DEFINITION_MISMATCH",
+    );
+
+    supplied = structuredClone(source);
+    supplied.content.position.authority.event_position = 4;
+    supplied.content_hash = canonicalHash(supplied.content);
+    await expectOverlayCode(
+      () =>
+        overlays.getProjectRelationshipOverlayView(fixture.project.project_id),
+      "PROJECT_RELATIONSHIP_OVERLAY_AUTHORITY_MISMATCH",
+    );
+
+    supplied = structuredClone(source);
+    supplied.content.position.projection.pending_records = 1;
+    supplied.content_hash = canonicalHash(supplied.content);
+    await expectOverlayCode(
+      () =>
+        overlays.getProjectRelationshipOverlayView(fixture.project.project_id),
+      "PROJECT_RELATIONSHIP_OVERLAY_PROJECTION_MISMATCH",
+    );
+
+    supplied = structuredClone(source);
+    supplied.content_hash = `sha256:${"9".repeat(64)}`;
+    await expectOverlayCode(
+      () =>
+        overlays.getProjectRelationshipOverlayView(fixture.project.project_id),
+      "PROJECT_RELATIONSHIP_OVERLAY_CORRUPT",
+    );
   });
 
   it("fails closed for stale, mismatched, unknown-profile, and unknown-validator inputs without partial working rows", async () => {

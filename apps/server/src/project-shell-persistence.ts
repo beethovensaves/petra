@@ -9,6 +9,7 @@ import {
   PostgresProjectHistoryViewReader,
   PostgresProjectInquiryViewReader,
   PostgresProjectObjectLocationViewReader,
+  PostgresProjectRelationshipOverlayViewReader,
   PostgresProjectRelationshipViewReader,
   PostgresProjectReviewViewReader,
   PostgresProjectShellViewReader,
@@ -32,6 +33,7 @@ import type {
   ProjectHistoryCompensationExecutionBoundary,
   ProjectInquiryViewReader,
   ProjectObjectLocationViewReader,
+  ProjectRelationshipOverlayViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
   ProjectShellViewReader,
@@ -59,6 +61,7 @@ export interface ProjectShellPersistence {
   readonly reviewViews: ProjectReviewViewReader;
   readonly workingStateSnapshots: ProjectWorkingStateSnapshotReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
+  readonly relationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
   readonly objectLocations: ProjectObjectLocationViewReader;
   readonly workViews: ProjectWorkViewReader;
   readonly threadViews: ProjectThreadViewReader;
@@ -249,6 +252,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
           : {}),
       });
       await graph.prepare();
+      const relationshipViews = new PostgresProjectRelationshipViewReader(
+        pool,
+        graph,
+        contracts,
+      );
       return {
         views: new PostgresProjectShellViewReader(pool),
         effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
@@ -299,10 +307,13 @@ export const createProjectShellPersistenceFromEnvironment = async (
             pool,
             new PostgresCapabilityGrantCommandAuthorizer(),
           ),
-        relationshipViews: new PostgresProjectRelationshipViewReader(
-          pool,
-          graph,
-        ),
+        relationshipViews,
+        relationshipOverlayViews:
+          new PostgresProjectRelationshipOverlayViewReader(
+            pool,
+            relationshipViews,
+            contracts,
+          ),
         close,
       };
     }

@@ -1,0 +1,858 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-relationship-overlay-view/1.0.0/schema.json",
+  "title": "PetraProjectRelationshipOverlayView",
+  "description": "A renderer-neutral, Project-scoped composition of one exact authoritative provenance path and the relevant durable non-authoritative working structure. Exact authoritative projection and working-base positions remain separate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-relationship-overlay-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ViewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ExactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "record_hash"],
+      "properties": {
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "GraphElementRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["element_id", "revision", "record_hash"],
+      "properties": {
+        "element_id": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ProjectDefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "definition_family"
+      ],
+      "properties": {
+        "project_definition_id": {
+          "type": "string",
+          "pattern": "^project_definition_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "definition_family": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]{2,127}$"
+        }
+      }
+    },
+    "WorkingCandidateRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "working_candidate_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "working_candidate_id": {
+          "type": "string",
+          "pattern": "^working_candidate_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "WorkingRelationshipRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "working_relationship_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "working_relationship_id": {
+          "type": "string",
+          "pattern": "^working_relationship_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Term": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["semantic_key", "singular", "plural", "definition"],
+      "properties": {
+        "semantic_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "singular": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "plural": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "definition": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "Profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_ref",
+        "label",
+        "object_term",
+        "relationship_term",
+        "source_term",
+        "layer_labels",
+        "endpoint_posture_labels"
+      ],
+      "properties": {
+        "project_definition_ref": { "$ref": "#/$defs/ProjectDefinitionRef" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "object_term": { "$ref": "#/$defs/Term" },
+        "relationship_term": { "$ref": "#/$defs/Term" },
+        "source_term": { "$ref": "#/$defs/Term" },
+        "layer_labels": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["current", "working"],
+          "properties": {
+            "current": { "const": "Current authority" },
+            "working": { "const": "Working — not authoritative" }
+          }
+        },
+        "endpoint_posture_labels": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["current_working_head", "non_current_working_endpoint"],
+          "properties": {
+            "current_working_head": { "const": "Current working revision" },
+            "non_current_working_endpoint": {
+              "const": "Referenced earlier working revision — not current"
+            }
+          }
+        }
+      }
+    },
+    "Query": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_hash",
+        "query_kind",
+        "question",
+        "scope",
+        "authoritative_focus_ref",
+        "maximum_authoritative_depth",
+        "working_selection"
+      ],
+      "properties": {
+        "request_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "query_kind": { "const": "scientific_provenance_working_overlay" },
+        "question": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "scope": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "authoritative_focus_ref": { "$ref": "#/$defs/ExactRef" },
+        "maximum_authoritative_depth": { "const": 3 },
+        "working_selection": {
+          "const": "current_relationship_heads_on_authoritative_path_with_exact_candidate_endpoints"
+        }
+      }
+    },
+    "Capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "current",
+        "working",
+        "historical_authority",
+        "historical_working_endpoints",
+        "comparison",
+        "expansion",
+        "continuation",
+        "text_peer"
+      ],
+      "properties": {
+        "current": { "const": "available" },
+        "working": { "const": "available" },
+        "historical_authority": { "const": "unavailable" },
+        "historical_working_endpoints": { "const": "exact_references_only" },
+        "comparison": { "const": "unavailable" },
+        "expansion": { "const": "unavailable" },
+        "continuation": { "const": "unavailable" },
+        "text_peer": { "const": "available" }
+      }
+    },
+    "AuthorityPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_position", "stream_revision"],
+      "properties": {
+        "event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "ProjectionPosition": {
+      "$ref": "../../project-relationship-view/1.0.0/schema.json#/$defs/ProjectionPosition"
+    },
+    "AuthoritativePosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_view_ref", "authority", "projection"],
+      "properties": {
+        "source_view_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_name",
+            "schema_version",
+            "content_hash",
+            "read_at"
+          ],
+          "properties": {
+            "schema_name": { "const": "petra.project-relationship-view" },
+            "schema_version": { "const": "1.0.0" },
+            "content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "read_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            }
+          }
+        },
+        "authority": { "$ref": "#/$defs/AuthorityPosition" },
+        "projection": { "$ref": "#/$defs/ProjectionPosition" }
+      }
+    },
+    "WorkingPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot_ref",
+        "base_authority",
+        "project_definition_ref",
+        "selection_kind",
+        "historical_working_revisions_included",
+        "authoritative_records_included"
+      ],
+      "properties": {
+        "snapshot_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_name",
+            "schema_version",
+            "content_hash",
+            "read_at"
+          ],
+          "properties": {
+            "schema_name": { "const": "petra.project-working-state-snapshot" },
+            "schema_version": { "const": "1.0.0" },
+            "content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "read_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            }
+          }
+        },
+        "base_authority": { "$ref": "#/$defs/AuthorityPosition" },
+        "project_definition_ref": { "$ref": "#/$defs/ProjectDefinitionRef" },
+        "selection_kind": {
+          "const": "current_heads_plus_exact_referenced_working_revisions"
+        },
+        "historical_working_revisions_included": { "const": "referenced_only" },
+        "authoritative_records_included": { "const": false }
+      }
+    },
+    "Positions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isolation", "authoritative", "working"],
+      "properties": {
+        "isolation": {
+          "const": "repeatable_read_working_with_exact_authoritative_projection_guard"
+        },
+        "authoritative": { "$ref": "#/$defs/AuthoritativePosition" },
+        "working": { "$ref": "#/$defs/WorkingPosition" }
+      }
+    },
+    "CurrentOwner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner_kind", "record_ref"],
+      "properties": {
+        "owner_kind": { "const": "authoritative_record" },
+        "record_ref": { "$ref": "#/$defs/ExactRef" }
+      }
+    },
+    "WorkingOwner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner_kind", "working_candidate_ref"],
+      "properties": {
+        "owner_kind": { "const": "working_candidate" },
+        "working_candidate_ref": { "$ref": "#/$defs/WorkingCandidateRef" }
+      }
+    },
+    "CurrentNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_key",
+        "layer",
+        "owner",
+        "object_kind",
+        "object_term",
+        "label",
+        "summary",
+        "basis",
+        "lifecycle"
+      ],
+      "properties": {
+        "node_key": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "layer": { "const": "current" },
+        "owner": { "$ref": "#/$defs/CurrentOwner" },
+        "object_kind": {
+          "enum": ["work", "work_version", "claim", "source_span", "artifact"]
+        },
+        "object_term": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "label": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "basis": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "lifecycle": { "const": "represented" },
+        "source_destination": {
+          "$ref": "../../project-relationship-view/1.0.0/schema.json#/$defs/SourceDestination"
+        }
+      }
+    },
+    "WorkingNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_key",
+        "layer",
+        "owner",
+        "profile_record_ref",
+        "object_term",
+        "label",
+        "summary",
+        "basis",
+        "validation_summary",
+        "endpoint_posture",
+        "working_record"
+      ],
+      "properties": {
+        "node_key": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "layer": { "const": "working" },
+        "owner": { "$ref": "#/$defs/WorkingOwner" },
+        "profile_record_ref": { "$ref": "#/$defs/ExactRef" },
+        "object_term": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "label": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "basis": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "validation_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "endpoint_posture": {
+          "enum": ["current_working_head", "non_current_working_endpoint"]
+        },
+        "working_record": {
+          "$ref": "../../working-candidate/1.0.0/schema.json"
+        }
+      }
+    },
+    "Node": {
+      "oneOf": [
+        { "$ref": "#/$defs/CurrentNode" },
+        { "$ref": "#/$defs/WorkingNode" }
+      ]
+    },
+    "CurrentRelationshipOwner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner_kind", "relationship_ref"],
+      "properties": {
+        "owner_kind": { "const": "authoritative_relationship" },
+        "relationship_ref": { "$ref": "#/$defs/GraphElementRef" }
+      }
+    },
+    "WorkingRelationshipOwner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner_kind", "working_relationship_ref"],
+      "properties": {
+        "owner_kind": { "const": "working_relationship" },
+        "working_relationship_ref": { "$ref": "#/$defs/WorkingRelationshipRef" }
+      }
+    },
+    "CurrentRelationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relationship_key",
+        "layer",
+        "owner",
+        "source_node_key",
+        "target_node_key",
+        "direction",
+        "relation_class",
+        "label",
+        "summary",
+        "meaning",
+        "scope",
+        "basis"
+      ],
+      "properties": {
+        "relationship_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "layer": { "const": "current" },
+        "owner": { "$ref": "#/$defs/CurrentRelationshipOwner" },
+        "source_node_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "target_node_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "direction": { "const": "outgoing" },
+        "relation_class": {
+          "enum": ["structural", "provenance", "representation"]
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "meaning": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "scope": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "basis": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "WorkingRelationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relationship_key",
+        "layer",
+        "owner",
+        "profile_record_ref",
+        "source_node_key",
+        "target_node_key",
+        "target_endpoint_posture",
+        "direction",
+        "relation_class",
+        "relationship_term",
+        "label",
+        "summary",
+        "meaning",
+        "scope",
+        "basis",
+        "validation_summary",
+        "working_record"
+      ],
+      "properties": {
+        "relationship_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "layer": { "const": "working" },
+        "owner": { "$ref": "#/$defs/WorkingRelationshipOwner" },
+        "profile_record_ref": { "$ref": "#/$defs/ExactRef" },
+        "source_node_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "target_node_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "target_endpoint_posture": {
+          "enum": ["current_working_head", "non_current_working_endpoint"]
+        },
+        "direction": { "const": "outgoing" },
+        "relation_class": { "const": "representation" },
+        "relationship_term": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "meaning": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "scope": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "basis": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "validation_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "working_record": {
+          "$ref": "../../working-relationship/1.0.0/schema.json"
+        }
+      }
+    },
+    "Relationship": {
+      "oneOf": [
+        { "$ref": "#/$defs/CurrentRelationship" },
+        { "$ref": "#/$defs/WorkingRelationship" }
+      ]
+    },
+    "Exclusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["member_kind", "reason", "count"],
+      "properties": {
+        "member_kind": {
+          "enum": ["working_candidate", "working_relationship"]
+        },
+        "reason": {
+          "enum": [
+            "not_referenced_by_selected_relationship",
+            "outside_authoritative_path"
+          ]
+        },
+        "count": { "type": "integer", "minimum": 0, "maximum": 10000 }
+      }
+    },
+    "Completeness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "authoritative_nodes",
+        "authoritative_relationships",
+        "current_working_candidate_heads",
+        "current_working_relationship_heads",
+        "returned_working_candidate_revisions",
+        "returned_working_relationships",
+        "referenced_non_current_working_candidate_revisions",
+        "returned_nodes",
+        "returned_relationships",
+        "exclusions",
+        "omissions"
+      ],
+      "properties": {
+        "state": {
+          "const": "complete_for_selected_authoritative_path_and_relevant_working_heads"
+        },
+        "scope": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "authoritative_nodes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "authoritative_relationships": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "current_working_candidate_heads": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "current_working_relationship_heads": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "returned_working_candidate_revisions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "returned_working_relationships": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "referenced_non_current_working_candidate_revisions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "returned_nodes": { "type": "integer", "minimum": 1, "maximum": 10000 },
+        "returned_relationships": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "exclusions": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/Exclusion" }
+        },
+        "omissions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "TextNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_key",
+        "layer",
+        "object_term",
+        "label",
+        "summary",
+        "basis"
+      ],
+      "properties": {
+        "node_key": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "layer": { "enum": ["current", "working"] },
+        "object_term": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "label": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "basis": { "type": "string", "minLength": 1, "maxLength": 8000 }
+      }
+    },
+    "TextRelationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relationship_key",
+        "layer",
+        "source_node_key",
+        "source_label",
+        "direction",
+        "label",
+        "target_node_key",
+        "target_label",
+        "summary",
+        "meaning",
+        "scope",
+        "basis"
+      ],
+      "properties": {
+        "relationship_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "layer": { "enum": ["current", "working"] },
+        "source_node_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "source_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20000
+        },
+        "direction": { "const": "outgoing" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "target_node_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "target_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20000
+        },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "meaning": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "scope": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "basis": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "TextPeer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "scope",
+        "completeness",
+        "nodes",
+        "relationships",
+        "omissions"
+      ],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "scope": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "completeness": {
+          "const": "complete_for_every_returned_node_and_relationship"
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/TextNode" }
+        },
+        "relationships": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/TextRelationship" }
+        },
+        "omissions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "AuthorityBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "working_domain_authority",
+        "working_review_decision",
+        "working_mutation_authority",
+        "validation_grants_authority",
+        "visibility_grants_authority",
+        "selection_grants_authority",
+        "projection_grants_authority",
+        "promotion_requires_review",
+        "layout_client_local",
+        "focus_client_local",
+        "disclosure_client_local",
+        "comparison_selection_client_local",
+        "navigation_history_client_local"
+      ],
+      "properties": {
+        "working_domain_authority": { "const": false },
+        "working_review_decision": { "const": false },
+        "working_mutation_authority": { "const": false },
+        "validation_grants_authority": { "const": false },
+        "visibility_grants_authority": { "const": false },
+        "selection_grants_authority": { "const": false },
+        "projection_grants_authority": { "const": false },
+        "promotion_requires_review": { "const": true },
+        "layout_client_local": { "const": true },
+        "focus_client_local": { "const": true },
+        "disclosure_client_local": { "const": true },
+        "comparison_selection_client_local": { "const": true },
+        "navigation_history_client_local": { "const": true }
+      }
+    },
+    "ViewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "query",
+        "profile",
+        "capabilities",
+        "positions",
+        "nodes",
+        "relationships",
+        "completeness",
+        "textual_peer",
+        "authority_boundary",
+        "limitations"
+      ],
+      "properties": {
+        "query": { "$ref": "#/$defs/Query" },
+        "profile": { "$ref": "#/$defs/Profile" },
+        "capabilities": { "$ref": "#/$defs/Capabilities" },
+        "positions": { "$ref": "#/$defs/Positions" },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/Node" }
+        },
+        "relationships": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/Relationship" }
+        },
+        "completeness": { "$ref": "#/$defs/Completeness" },
+        "textual_peer": { "$ref": "#/$defs/TextPeer" },
+        "authority_boundary": { "$ref": "#/$defs/AuthorityBoundary" },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    }
+  }
+}

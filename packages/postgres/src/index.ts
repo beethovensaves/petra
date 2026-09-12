@@ -32,6 +32,7 @@ export * from "./project-source-view-reader.js";
 export * from "./review-session-authority-repository.js";
 export * from "./project-review-view-reader.js";
 export * from "./project-relationship-view-reader.js";
+export * from "./project-relationship-overlay-view-reader.js";
 export * from "./project-object-location-view-reader.js";
 export * from "./research-scope-repository.js";
 export * from "./rendered-artifact-authority-repository.js";

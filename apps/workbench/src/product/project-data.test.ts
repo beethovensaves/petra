@@ -16,6 +16,7 @@ import type {
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
+  PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
@@ -55,6 +56,7 @@ import {
   getProjectSuggestedWorkAction,
   getRetainedProjectHistory,
   graphQuestionFromView,
+  loadProjectRelationshipOverlay,
   loadProjectObjectLocationRedirect,
   loadProjectBrief,
   loadProjectPetra,
@@ -315,6 +317,49 @@ const relationshipView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectRelationshipView;
+
+const relationshipOverlayView = {
+  schema_name: "petra.project-relationship-overlay-view",
+  schema_version: "1.0.0",
+  project_id: relationshipView.project_id,
+  content: {
+    profile: {
+      project_definition_ref: {
+        project_definition_id: "project_definition_01K4C000000000000000000001",
+        revision: 2,
+        content_hash: `sha256:${"1".repeat(64)}`,
+        record_hash: `sha256:${"2".repeat(64)}`,
+        definition_family: "petra.scientific-evidence",
+      },
+    },
+    positions: {
+      authoritative: {
+        authority: { event_position: 42, stream_revision: 7 },
+      },
+      working: {
+        base_authority: { event_position: 42, stream_revision: 7 },
+        project_definition_ref: {
+          project_definition_id:
+            "project_definition_01K4C000000000000000000001",
+          revision: 2,
+          content_hash: `sha256:${"1".repeat(64)}`,
+          record_hash: `sha256:${"2".repeat(64)}`,
+          definition_family: "petra.scientific-evidence",
+        },
+      },
+    },
+    relationships: [
+      {
+        layer: "working",
+        target_endpoint_posture: "non_current_working_endpoint",
+        target_node_key:
+          "working:working_candidate_01K4D000000000000000000002:1:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      },
+    ],
+  },
+  content_hash: `sha256:${"3".repeat(64)}`,
+  read_at: "2026-09-12T14:30:00.000Z",
+} as unknown as PetraProjectRelationshipOverlayView;
 
 const locationView = JSON.parse(
   readFileSync(
@@ -1982,6 +2027,56 @@ describe("Project shell workbench adapter", () => {
       graph.nodes.find((node) => node.kind === "Source Span")?.sourceId,
     ).toBe("project_source_01K4C000000000000000000007");
     expect(relationshipView).toEqual(before);
+  });
+
+  it("reads the renderer-neutral overlay without retargeting a non-current working endpoint", async () => {
+    const before = structuredClone(relationshipOverlayView);
+    const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return Promise.resolve(Response.json(before));
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await loadProjectRelationshipOverlay(before.project_id);
+
+    expect(result).toEqual(before);
+    const workingRelationship = result?.content.relationships.find(
+      (relationship) => relationship.layer === "working",
+    );
+    expect(workingRelationship?.target_endpoint_posture).toBe(
+      "non_current_working_endpoint",
+    );
+    expect(workingRelationship?.target_node_key).toContain(
+      "working_candidate_01K4D000000000000000000002:1:",
+    );
+    const [requestPath, requestInit] = fetch.mock.calls[0]!;
+    expect(requestPath).toBe(
+      `/api/queries/projects/${before.project_id}/relationship-overlay`,
+    );
+    expect(new Headers(requestInit?.headers).get("authorization")).toBe(
+      "Bearer petra-local-development",
+    );
+    expect(relationshipOverlayView).toEqual(before);
+  });
+
+  it("rejects a relationship overlay with mismatched authority or definition boundaries", async () => {
+    const mismatch = structuredClone(relationshipOverlayView);
+    mismatch.content.positions.working.base_authority.stream_revision = 8;
+    const fetch = vi.fn(() => Promise.resolve(Response.json(mismatch)));
+    vi.stubGlobal("fetch", fetch);
+    await expect(
+      loadProjectRelationshipOverlay(mismatch.project_id),
+    ).rejects.toThrow("mismatched Project, definition, or authority positions");
+
+    const definitionMismatch = structuredClone(relationshipOverlayView);
+    definitionMismatch.content.positions.working.project_definition_ref.revision = 3;
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(definitionMismatch)),
+    );
+    await expect(
+      loadProjectRelationshipOverlay(definitionMismatch.project_id),
+    ).rejects.toThrow("mismatched Project, definition, or authority positions");
   });
 
   it("maps bounded Work collection and detail without inventing stages, inquiry links, or usable outputs", () => {

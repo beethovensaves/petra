@@ -19,6 +19,7 @@ import type {
   PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
+  PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectShellView,
@@ -1430,6 +1431,26 @@ const relationshipView = (value: unknown): PetraProjectRelationshipView => {
     );
   }
   return value as unknown as PetraProjectRelationshipView;
+};
+
+const relationshipOverlayView = (
+  value: unknown,
+): PetraProjectRelationshipOverlayView => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-relationship-overlay-view" ||
+    value.schema_version !== "1.0.0" ||
+    typeof value.project_id !== "string" ||
+    !isRecord(value.content) ||
+    typeof value.content_hash !== "string" ||
+    typeof value.read_at !== "string"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid Project relationship overlay.",
+      502,
+    );
+  }
+  return value as unknown as PetraProjectRelationshipOverlayView;
 };
 
 const objectLocationView = (value: unknown): PetraProjectObjectLocationView => {
@@ -4848,6 +4869,46 @@ export const loadProjectRelationshipView = async ({
     );
   }
   return graphQuestionFromView(view);
+};
+
+export const loadProjectRelationshipOverlay = async (
+  projectId: string,
+): Promise<PetraProjectRelationshipOverlayView | undefined> => {
+  const exactProjectId = requiredRouteIdentity(projectId, "A Project ID");
+  let value: unknown;
+  try {
+    value = await requestJson(
+      `/api/queries/projects/${encodeURIComponent(exactProjectId)}/relationship-overlay`,
+    );
+  } catch (error) {
+    if (error instanceof ProjectDataError && error.status === 404) {
+      return undefined;
+    }
+    throw error;
+  }
+  const view = relationshipOverlayView(value);
+  if (
+    view.project_id !== exactProjectId ||
+    view.content.profile.project_definition_ref.project_definition_id !==
+      view.content.positions.working.project_definition_ref
+        .project_definition_id ||
+    view.content.profile.project_definition_ref.revision !==
+      view.content.positions.working.project_definition_ref.revision ||
+    view.content.profile.project_definition_ref.content_hash !==
+      view.content.positions.working.project_definition_ref.content_hash ||
+    view.content.profile.project_definition_ref.record_hash !==
+      view.content.positions.working.project_definition_ref.record_hash ||
+    view.content.positions.authoritative.authority.event_position !==
+      view.content.positions.working.base_authority.event_position ||
+    view.content.positions.authoritative.authority.stream_revision !==
+      view.content.positions.working.base_authority.stream_revision
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a relationship overlay with mismatched Project, definition, or authority positions.",
+      502,
+    );
+  }
+  return view;
 };
 
 const exactSelection = (

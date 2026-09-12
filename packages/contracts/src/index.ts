@@ -550,6 +550,25 @@ export type {
   ViewContent as ProjectRelationshipViewContent,
 } from "./generated/project-relationship-view.js";
 export type {
+  AuthorityBoundary1 as ProjectRelationshipOverlayAuthorityBoundary,
+  AuthorityPosition as ProjectRelationshipOverlayAuthorityPosition,
+  Capabilities as ProjectRelationshipOverlayCapabilities,
+  Completeness as ProjectRelationshipOverlayCompleteness,
+  CurrentNode as ProjectRelationshipOverlayCurrentNode,
+  CurrentRelationship as ProjectRelationshipOverlayCurrentRelationship,
+  Exclusion as ProjectRelationshipOverlayExclusion,
+  Node as ProjectRelationshipOverlayNode,
+  PetraProjectRelationshipOverlayView,
+  Positions as ProjectRelationshipOverlayPositions,
+  Profile as ProjectRelationshipOverlayProfile,
+  Query as ProjectRelationshipOverlayQuery,
+  Relationship as ProjectRelationshipOverlayRelationship,
+  TextPeer as ProjectRelationshipOverlayTextPeer,
+  ViewContent as ProjectRelationshipOverlayViewContent,
+  WorkingNode as ProjectRelationshipOverlayWorkingNode,
+  WorkingRelationship as ProjectRelationshipOverlayWorkingRelationship,
+} from "./generated/project-relationship-overlay-view.js";
+export type {
   AuthorityPosition as ProjectObjectLocationAuthorityPosition,
   DefinitionRef as ProjectObjectLocationDefinitionRef,
   Destination as ProjectObjectDestination,

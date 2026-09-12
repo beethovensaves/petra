@@ -308,6 +308,18 @@ export const startPetraServer = async (
               projectRelationshipViews:
                 options.projectShellPersistence.relationshipViews,
             }),
+      ...(options.projectRelationshipOverlayViews !== undefined
+        ? {
+            projectRelationshipOverlayViews:
+              options.projectRelationshipOverlayViews,
+          }
+        : options.projectShellPersistence?.relationshipOverlayViews ===
+            undefined
+          ? {}
+          : {
+              projectRelationshipOverlayViews:
+                options.projectShellPersistence.relationshipOverlayViews,
+            }),
       ...(options.projectObjectLocations !== undefined
         ? { projectObjectLocations: options.projectObjectLocations }
         : options.projectShellPersistence === undefined

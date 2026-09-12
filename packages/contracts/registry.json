@@ -617,6 +617,17 @@
       "typescript_path": "src/generated/project-relationship-view.ts"
     },
     {
+      "name": "project-relationship-overlay-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-relationship-overlay-view/1.0.0/schema.json",
+      "path": "schemas/project-relationship-overlay-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-current-authority-and-working-structure-overlay",
+      "canonical_sha256": "sha256:b24b72678a8474194bd027984b026a78c9d1035c733c0308eaa03a9eb672285b",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-relationship-overlay-view.ts"
+    },
+    {
       "name": "project-object-location-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-object-location-view/1.0.0/schema.json",

@@ -18,6 +18,7 @@ import type {
   PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
+  PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectWorkingStateSnapshot,
@@ -37,6 +38,7 @@ import type {
   ProjectHistoryViewReader,
   ProjectInquiryViewReader,
   ProjectObjectLocationViewReader,
+  ProjectRelationshipOverlayViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
   ProjectWorkingStateSnapshotReader,
@@ -288,6 +290,316 @@ const workingStateFixture: PetraProjectWorkingStateSnapshot = {
   read_at: "2026-09-12T14:20:00.000Z",
 };
 
+const relationshipOverlayFixture: PetraProjectRelationshipOverlayView = (() => {
+  const currentNodes = relationshipFixture.content.nodes.map((node) => ({
+    node_key: `current:${node.node_ref.record_id}:${node.node_ref.revision}:${node.node_ref.record_hash}`,
+    layer: "current" as const,
+    owner: {
+      owner_kind: "authoritative_record" as const,
+      record_ref: node.node_ref,
+    },
+    object_kind: node.object_kind,
+    object_term:
+      node.object_kind === "claim"
+        ? "Claim"
+        : node.object_kind === "source_span"
+          ? "Source passage"
+          : node.object_kind.replace("_", " "),
+    label: node.label,
+    summary: node.summary,
+    basis: node.basis,
+    lifecycle: "represented" as const,
+    ...(node.source_destination === undefined
+      ? {}
+      : { source_destination: node.source_destination }),
+  }));
+  const currentById = new Map(
+    currentNodes.map((node) => [node.owner.record_ref.record_id, node]),
+  );
+  const currentRelationships = relationshipFixture.content.relationships.map(
+    (relationship) => ({
+      relationship_key: `current:${relationship.relationship_ref.element_id}:${relationship.relationship_ref.revision}:${relationship.relationship_ref.record_hash}`,
+      layer: "current" as const,
+      owner: {
+        owner_kind: "authoritative_relationship" as const,
+        relationship_ref: relationship.relationship_ref,
+      },
+      source_node_key: currentById.get(relationship.source_id)!.node_key,
+      target_node_key: currentById.get(relationship.target_id)!.node_key,
+      direction: "outgoing" as const,
+      relation_class: relationship.relation_class,
+      label: relationship.label,
+      summary: relationship.summary,
+      meaning: "Server-resolved exact relationship meaning.",
+      scope: relationshipFixture.content.completeness.scope,
+      basis: relationship.basis,
+    }),
+  );
+  const candidateRecordHash = `sha256:${createHash("sha256")
+    .update(canonicalize(workingCandidateFixture))
+    .digest("hex")}`;
+  const candidateKey = `working:${workingCandidateFixture.working_candidate_id}:${workingCandidateFixture.revision}:${candidateRecordHash}`;
+  const workingNode = {
+    node_key: candidateKey,
+    layer: "working" as const,
+    owner: {
+      owner_kind: "working_candidate" as const,
+      working_candidate_ref: {
+        working_candidate_id: workingCandidateFixture.working_candidate_id,
+        revision: workingCandidateFixture.revision,
+        content_hash: workingCandidateFixture.content_hash,
+        record_hash: candidateRecordHash,
+      },
+    },
+    profile_record_ref: {
+      record_id:
+        workingCandidateFixture.profile_object.object_record_ref.record_id,
+      revision:
+        workingCandidateFixture.profile_object.object_record_ref.revision,
+      record_hash:
+        workingCandidateFixture.profile_object.object_record_ref.record_hash,
+    },
+    object_term: "Claim",
+    label: "The study reports a measurable improvement.",
+    summary: "Model-produced working Claim revision 1.",
+    basis: workingCandidateFixture.basis[0].summary,
+    validation_summary:
+      "Validation completed: 2 passed; validation does not grant authority.",
+    endpoint_posture: "current_working_head" as const,
+    working_record: workingCandidateFixture,
+  };
+  if (
+    workingRelationshipFixture.endpoints.subject.endpoint_kind !==
+    "profile_record"
+  ) {
+    throw new Error("Expected a profile-record relationship subject.");
+  }
+  const source = currentById.get(
+    workingRelationshipFixture.endpoints.subject.record_ref.record_id,
+  )!;
+  const relationshipRecordHash = `sha256:${createHash("sha256")
+    .update(canonicalize(workingRelationshipFixture))
+    .digest("hex")}`;
+  const workingRelationship = {
+    relationship_key: `working:${workingRelationshipFixture.working_relationship_id}:${workingRelationshipFixture.revision}:${relationshipRecordHash}`,
+    layer: "working" as const,
+    owner: {
+      owner_kind: "working_relationship" as const,
+      working_relationship_ref: {
+        working_relationship_id:
+          workingRelationshipFixture.working_relationship_id,
+        revision: workingRelationshipFixture.revision,
+        content_hash: workingRelationshipFixture.content_hash,
+        record_hash: relationshipRecordHash,
+      },
+    },
+    profile_record_ref: {
+      record_id:
+        workingRelationshipFixture.profile_relationship.relationship_record_ref
+          .record_id,
+      revision:
+        workingRelationshipFixture.profile_relationship.relationship_record_ref
+          .revision,
+      record_hash:
+        workingRelationshipFixture.profile_relationship.relationship_record_ref
+          .record_hash,
+    },
+    source_node_key: source.node_key,
+    target_node_key: candidateKey,
+    target_endpoint_posture: "current_working_head" as const,
+    direction: "outgoing" as const,
+    relation_class: "representation" as const,
+    relationship_term: "Evidence relationship",
+    label: "asserts",
+    summary:
+      "The exact working relationship connects the source to the candidate Claim.",
+    meaning: "This records representation, not truth, approval, or authority.",
+    scope: "Bound to the exact working input snapshot.",
+    basis: workingRelationshipFixture.basis[0].summary,
+    validation_summary:
+      "Validation completed: 1 passed; validation does not grant authority.",
+    working_record: workingRelationshipFixture,
+  };
+  const nodes = [...currentNodes, workingNode];
+  const relationships = [...currentRelationships, workingRelationship];
+  const nodeByKey = new Map(nodes.map((node) => [node.node_key, node]));
+  const definitionRef = {
+    project_definition_id:
+      workingCandidateFixture.project_definition_ref.project_definition_id,
+    revision: workingCandidateFixture.project_definition_ref.revision,
+    content_hash: workingCandidateFixture.project_definition_ref.content_hash,
+    record_hash: `sha256:${"0".repeat(64)}`,
+    definition_family:
+      workingCandidateFixture.project_definition_ref.definition_family,
+  };
+  const query = {
+    request_hash: `sha256:${"1".repeat(64)}`,
+    query_kind: "scientific_provenance_working_overlay" as const,
+    question: relationshipFixture.content.query.question,
+    scope: relationshipFixture.content.query.scope,
+    authoritative_focus_ref: relationshipFixture.content.query.focus_ref,
+    maximum_authoritative_depth: 3 as const,
+    working_selection:
+      "current_relationship_heads_on_authoritative_path_with_exact_candidate_endpoints" as const,
+  };
+  const content: PetraProjectRelationshipOverlayView["content"] = {
+    query,
+    profile: {
+      project_definition_ref: definitionRef,
+      label: "Scientific evidence inquiry with working records",
+      object_term: {
+        semantic_key: "scientific.claim",
+        singular: "Claim",
+        plural: "Claims",
+        definition: "A proposition with explicit scope and basis.",
+      },
+      relationship_term: {
+        semantic_key: "scientific.assertion",
+        singular: "Evidence relationship",
+        plural: "Evidence relationships",
+        definition: "A typed relationship with exact provenance.",
+      },
+      source_term: {
+        semantic_key: "scientific.literature",
+        singular: "Source",
+        plural: "Sources",
+        definition: "A versioned basis available to the Project.",
+      },
+      layer_labels: {
+        current: "Current authority",
+        working: "Working — not authoritative",
+      },
+      endpoint_posture_labels: {
+        current_working_head: "Current working revision",
+        non_current_working_endpoint:
+          "Referenced earlier working revision — not current",
+      },
+    },
+    capabilities: {
+      current: "available",
+      working: "available",
+      historical_authority: "unavailable",
+      historical_working_endpoints: "exact_references_only",
+      comparison: "unavailable",
+      expansion: "unavailable",
+      continuation: "unavailable",
+      text_peer: "available",
+    },
+    positions: {
+      isolation:
+        "repeatable_read_working_with_exact_authoritative_projection_guard",
+      authoritative: {
+        source_view_ref: {
+          schema_name: "petra.project-relationship-view",
+          schema_version: "1.0.0",
+          content_hash: relationshipFixture.content_hash,
+          read_at: relationshipFixture.read_at,
+        },
+        authority: relationshipFixture.content.position.authority,
+        projection: relationshipFixture.content.position.projection,
+      },
+      working: {
+        snapshot_ref: {
+          schema_name: "petra.project-working-state-snapshot",
+          schema_version: "1.0.0",
+          content_hash: workingStateFixture.content_hash,
+          read_at: workingStateFixture.read_at,
+        },
+        base_authority: relationshipFixture.content.position.authority,
+        project_definition_ref: definitionRef,
+        selection_kind: "current_heads_plus_exact_referenced_working_revisions",
+        historical_working_revisions_included: "referenced_only",
+        authoritative_records_included: false,
+      },
+    },
+    nodes: nodes as PetraProjectRelationshipOverlayView["content"]["nodes"],
+    relationships:
+      relationships as PetraProjectRelationshipOverlayView["content"]["relationships"],
+    completeness: {
+      state:
+        "complete_for_selected_authoritative_path_and_relevant_working_heads",
+      scope:
+        "Complete for the selected authoritative path and relevant working heads.",
+      authoritative_nodes: currentNodes.length,
+      authoritative_relationships: currentRelationships.length,
+      current_working_candidate_heads: 1,
+      current_working_relationship_heads: 1,
+      returned_working_candidate_revisions: 1,
+      returned_working_relationships: 1,
+      referenced_non_current_working_candidate_revisions: 0,
+      returned_nodes: nodes.length,
+      returned_relationships: relationships.length,
+      exclusions: [
+        {
+          member_kind: "working_candidate",
+          reason: "not_referenced_by_selected_relationship",
+          count: 0,
+        },
+        {
+          member_kind: "working_relationship",
+          reason: "outside_authoritative_path",
+          count: 0,
+        },
+      ],
+      omissions: ["Historical authoritative state is not included."],
+    },
+    textual_peer: {
+      title: "Scientific evidence inquiry: relationship layers",
+      scope: "Textual peer for every returned node and relationship.",
+      completeness: "complete_for_every_returned_node_and_relationship",
+      nodes: nodes.map((node) => ({
+        node_key: node.node_key,
+        layer: node.layer,
+        object_term: node.object_term,
+        label: node.label,
+        summary: node.summary,
+        basis: node.basis,
+      })) as PetraProjectRelationshipOverlayView["content"]["textual_peer"]["nodes"],
+      relationships: relationships.map((relationship) => ({
+        relationship_key: relationship.relationship_key,
+        layer: relationship.layer,
+        source_node_key: relationship.source_node_key,
+        source_label: nodeByKey.get(relationship.source_node_key)!.label,
+        direction: "outgoing",
+        label: relationship.label,
+        target_node_key: relationship.target_node_key,
+        target_label: nodeByKey.get(relationship.target_node_key)!.label,
+        summary: relationship.summary,
+        meaning: relationship.meaning,
+        scope: relationship.scope,
+        basis: relationship.basis,
+      })) as PetraProjectRelationshipOverlayView["content"]["textual_peer"]["relationships"],
+      omissions: ["Historical authoritative state is not included."],
+    },
+    authority_boundary: {
+      working_domain_authority: false,
+      working_review_decision: false,
+      working_mutation_authority: false,
+      validation_grants_authority: false,
+      visibility_grants_authority: false,
+      selection_grants_authority: false,
+      projection_grants_authority: false,
+      promotion_requires_review: true,
+      layout_client_local: true,
+      focus_client_local: true,
+      disclosure_client_local: true,
+      comparison_selection_client_local: true,
+      navigation_history_client_local: true,
+    },
+    limitations: ["The first adapter supports one scientific profile."],
+  };
+  return {
+    schema_name: "petra.project-relationship-overlay-view",
+    schema_version: "1.0.0",
+    project_id: relationshipFixture.project_id,
+    content,
+    content_hash: `sha256:${createHash("sha256")
+      .update(canonicalize(content))
+      .digest("hex")}`,
+    read_at: "2026-09-12T14:30:00.000Z",
+  };
+})();
+
 const locationFixture = JSON.parse(
   readFileSync(
     new URL(
@@ -532,6 +844,15 @@ const relationshipReader: ProjectRelationshipViewReader = {
     Promise.resolve(
       projectId === relationshipFixture.project_id
         ? structuredClone(relationshipFixture)
+        : undefined,
+    ),
+};
+
+const relationshipOverlayReader: ProjectRelationshipOverlayViewReader = {
+  getProjectRelationshipOverlayView: (projectId) =>
+    Promise.resolve(
+      projectId === relationshipOverlayFixture.project_id
+        ? structuredClone(relationshipOverlayFixture)
         : undefined,
     ),
 };
@@ -1732,6 +2053,57 @@ describe("authorized Project shell query routes", () => {
       error: { code: string };
     };
     expect(body.error.code).toBe("PROJECT_RELATIONSHIP_NOT_FOUND");
+  });
+
+  it("authenticates the exact Project relationship overlay and rejects cross-Project reads", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectRelationshipOverlayViews: relationshipOverlayReader,
+    });
+    const unauthorized = await petra.app.request(
+      `/api/queries/projects/${relationshipOverlayFixture.project_id}/relationship-overlay`,
+    );
+    expect(unauthorized.status).toBe(401);
+
+    const current = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${relationshipOverlayFixture.project_id}/relationship-overlay`,
+      ),
+    );
+    expect(current.status).toBe(200);
+    await expect(current.json()).resolves.toEqual(relationshipOverlayFixture);
+
+    const crossProject = await petra.app.request(
+      authorized(
+        "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/relationship-overlay",
+      ),
+    );
+    expect(crossProject.status).toBe(404);
+    const body = JSON.parse(await crossProject.text()) as {
+      error: { code: string };
+    };
+    expect(body.error.code).toBe("PROJECT_RELATIONSHIP_OVERLAY_NOT_FOUND");
+  });
+
+  it("fails closed when the relationship overlay reader crosses the route Project boundary", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectRelationshipOverlayViews: {
+        getProjectRelationshipOverlayView: () =>
+          Promise.resolve(structuredClone(relationshipOverlayFixture)),
+      },
+    });
+    const response = await petra.app.request(
+      authorized(
+        "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FZZ/relationship-overlay",
+      ),
+    );
+    expect(response.status).toBe(503);
+    const body = JSON.parse(await response.text()) as {
+      error: { code: string; message: string };
+    };
+    expect(body.error.code).toBe("PROJECT_RELATIONSHIP_OVERLAY_READ_FAILED");
+    expect(body.error.message).toContain("another Project boundary");
   });
 
   it("returns semantic roles without client routes and validates bounded query input", async () => {
