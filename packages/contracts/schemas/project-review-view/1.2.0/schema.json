@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-review-view/1.2.0/schema.json",
+  "title": "PetraProjectReviewViewV120",
+  "description": "An additive Review read that preserves the 1.1 canonical composition and exposes the exact stored ReviewSession lifecycle beside its revision and content hash. Lifecycle is coordination state only; it does not express command eligibility, validation force, Review decision, completion, or mutation authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "review_session_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-review-view" },
+    "schema_version": { "const": "1.2.0" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "review_session_id": {
+      "type": "string",
+      "pattern": "^review_session_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "content": { "$ref": "#/$defs/ReviewViewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "SessionSummary": {
+      "type": "object",
+      "description": "The exact canonical ReviewSession record position and its separately derived display summary. Lifecycle does not imply that a transition is eligible or authorized.",
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "content_hash",
+        "lifecycle",
+        "title",
+        "objective_summary",
+        "status",
+        "status_label",
+        "responsible",
+        "project_definition_ref",
+        "project_definition_label",
+        "snapshot",
+        "snapshot_state",
+        "origin",
+        "return_context"
+      ],
+      "properties": {
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "lifecycle": {
+          "description": "The lifecycle stored on this exact ReviewSession revision. It is not an operation descriptor or an authority grant.",
+          "enum": ["open", "deferred", "completed"]
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "objective_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "objective": {
+          "$ref": "../1.0.0/schema.json#/$defs/ObjectiveSummary"
+        },
+        "status": { "enum": ["needs_decision", "waiting", "completed"] },
+        "status_label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "responsible": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["actor_id", "display_name"],
+          "properties": {
+            "actor_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+            },
+            "display_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            }
+          }
+        },
+        "project_definition_ref": {
+          "$ref": "../1.0.0/schema.json#/$defs/DefinitionRef"
+        },
+        "project_definition_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "snapshot": {
+          "$ref": "../1.0.0/schema.json#/$defs/ProjectSnapshot"
+        },
+        "snapshot_state": { "enum": ["current", "stale"] },
+        "origin": { "$ref": "../1.0.0/schema.json#/$defs/OriginSummary" },
+        "return_context": {
+          "$ref": "../1.0.0/schema.json#/$defs/ReturnContext"
+        }
+      }
+    },
+    "ReviewViewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session", "members", "authority", "projection"],
+      "properties": {
+        "session": { "$ref": "#/$defs/SessionSummary" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "../1.1.0/schema.json#/$defs/ReviewMember"
+          }
+        },
+        "authority": {
+          "$ref": "../1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "projection": {
+          "$ref": "../1.1.0/schema.json#/$defs/ProjectionState"
+        }
+      }
+    }
+  }
+}

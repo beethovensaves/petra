@@ -20,6 +20,7 @@ import type {
   PetraProjectRelationshipView,
   PetraProjectReviewView,
   PetraProjectReviewViewV110,
+  PetraProjectReviewViewV120,
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionV110,
   PetraProjectShellView,
@@ -63,6 +64,7 @@ import {
   getRetainedProjectHistory,
   graphQuestionFromView,
   loadProjectRelationshipOverlay,
+  loadProjectReviewSession,
   loadProjectObjectLocationRedirect,
   loadProjectBrief,
   loadProjectPetra,
@@ -2211,6 +2213,81 @@ describe("Project shell workbench adapter", () => {
     );
     expect(workingView.content.members[0].working_state.authority_effect).toBe(
       "none",
+    );
+  });
+
+  it("maps and validates the exact ReviewSession lifecycle read independently of Waiting", async () => {
+    const lifecycleView = structuredClone(
+      reviewView,
+    ) as unknown as PetraProjectReviewViewV120;
+    lifecycleView.schema_version = "1.2.0";
+    lifecycleView.content.session.lifecycle = "deferred";
+    lifecycleView.content.session.status = "waiting";
+    lifecycleView.content.session.status_label = "Waiting";
+    lifecycleView.content.members[0].working_state = {
+      candidate: structuredClone(reviewWorkingCandidate),
+      relationships: [structuredClone(reviewWorkingRelationship)],
+      selection_basis: "exact_review_session_working_bindings",
+      authority_effect: "none",
+    };
+    lifecycleView.content.members[0].change_sets =
+      lifecycleView.content.members[0].change_sets.map((changeSet) => ({
+        ...changeSet,
+        commands: [],
+        events: [],
+      }));
+    lifecycleView.content.projection = {
+      state: "unavailable",
+      reason: "No projection receipt exists for the submitted ChangeSet.",
+    };
+
+    expect(reviewSessionFromView(lifecycleView)).toMatchObject({
+      id: lifecycleView.review_session_id,
+      status: "waiting",
+      lifecycle: "deferred",
+    });
+    const aggregateWaitingView = structuredClone(lifecycleView);
+    aggregateWaitingView.content.session.lifecycle = "open";
+    expect(reviewSessionFromView(aggregateWaitingView)).toMatchObject({
+      status: "waiting",
+      lifecycle: "open",
+    });
+
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(lifecycleView))
+      .mockResolvedValueOnce(
+        Response.json({
+          ...structuredClone(lifecycleView),
+          content: {
+            ...structuredClone(lifecycleView.content),
+            session: {
+              ...structuredClone(lifecycleView.content.session),
+              lifecycle: "eligible_to_reopen",
+            },
+          },
+        }),
+      );
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.local/projects/${lifecycleView.project_id}/reviews/${lifecycleView.review_session_id}`,
+    );
+    const args: LoaderFunctionArgs = {
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/reviews/:reviewId",
+      params: {
+        projectId: lifecycleView.project_id,
+        reviewId: lifecycleView.review_session_id,
+      },
+      context: new RouterContextProvider(),
+    };
+
+    await expect(loadProjectReviewSession(args)).resolves.toMatchObject({
+      lifecycle: "deferred",
+    });
+    await expect(loadProjectReviewSession(args)).rejects.toThrow(
+      "invalid Project Review view",
     );
   });
 

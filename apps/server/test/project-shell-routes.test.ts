@@ -21,7 +21,7 @@ import type {
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
-  PetraProjectReviewViewV110,
+  PetraProjectReviewViewV120,
   PetraProjectWorkingStateSnapshot,
   PetraProjectShellView,
   PetraProjectShellViewV11,
@@ -263,11 +263,12 @@ const workingRelationshipFixture = JSON.parse(
   ),
 ) as PetraProjectWorkingStateSnapshot["content"]["relationships"][number];
 
-const workingReviewFixture: PetraProjectReviewViewV110 = (() => {
+const workingReviewFixture: PetraProjectReviewViewV120 = (() => {
   const view = structuredClone(
     reviewFixture,
-  ) as unknown as PetraProjectReviewViewV110;
-  view.schema_version = "1.1.0";
+  ) as unknown as PetraProjectReviewViewV120;
+  view.schema_version = "1.2.0";
+  view.content.session.lifecycle = "open";
   view.content.members[0].working_state = {
     candidate: structuredClone(workingCandidateFixture),
     relationships: [structuredClone(workingRelationshipFixture)],
@@ -2048,9 +2049,10 @@ describe("authorized Project shell query routes", () => {
     );
     expect(collection.status).toBe(200);
     const body = (await collection.json()) as {
-      reviews: PetraProjectReviewViewV110[];
+      reviews: PetraProjectReviewViewV120[];
     };
-    expect(body.reviews[0]?.schema_version).toBe("1.1.0");
+    expect(body.reviews[0]?.schema_version).toBe("1.2.0");
+    expect(body.reviews[0]?.content.session.lifecycle).toBe("open");
     expect(
       body.reviews[0]?.content.members[0]?.working_state.authority_effect,
     ).toBe("none");
@@ -2062,6 +2064,33 @@ describe("authorized Project shell query routes", () => {
     );
     expect(detail.status).toBe(200);
     await expect(detail.json()).resolves.toEqual(workingReviewFixture);
+  });
+
+  it("fails a lifecycle Review read closed when exact lifecycle is missing", async () => {
+    const invalid = structuredClone(workingReviewFixture) as unknown as {
+      content: { session: { lifecycle?: unknown } };
+    };
+    delete invalid.content.session.lifecycle;
+    const reader: ProjectReviewViewReader = {
+      listProjectReviewViews: () =>
+        Promise.resolve([invalid as unknown as PetraProjectReviewViewV120]),
+      getProjectReviewView: () =>
+        Promise.resolve(invalid as unknown as PetraProjectReviewViewV120),
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectReviewViews: reader,
+    });
+
+    const detail = await petra.app.request(
+      authorized(
+        `/api/queries/projects/${workingReviewFixture.project_id}/reviews/${workingReviewFixture.review_session_id}`,
+      ),
+    );
+    expect(detail.status).toBe(503);
+    await expect(detail.json()).resolves.toMatchObject({
+      error: { code: "PROJECT_REVIEW_READ_FAILED" },
+    });
   });
 
   it("authenticates the exact snapshot-consistent working-state query", async () => {
