@@ -7,6 +7,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 import {
   buildCodexExecArguments,
   buildWorkerPrompt,
+  initialHandoff,
   parseArguments,
   parsePorcelainZ,
   unexpectedChanges,
@@ -23,6 +24,12 @@ test("uses automatic approval review without a conflicting sandbox flag", () => 
 });
 
 test("parses worker options with a bounded slice count", () => {
+  assert.deepEqual(parseArguments(["doctor"]), {
+    command: "doctor",
+    role: undefined,
+    wave: "4",
+    maxSlices: 32,
+  });
   assert.deepEqual(
     parseArguments([
       "worker",
@@ -39,6 +46,13 @@ test("parses worker options with a bounded slice count", () => {
     () => parseArguments(["worker", "--max-slices", "0"]),
     /1 through 100/,
   );
+});
+
+test("builds a wave-specific initial handoff without prior-wave instructions", () => {
+  const handoff = initialHandoff("4", "a".repeat(40), "b".repeat(40));
+  assert.match(handoff, /Wave 4 packet/);
+  assert.match(handoff, /first incomplete item/);
+  assert.doesNotMatch(handoff, /Wave 3|SuggestedAction|episode 1\.2/);
 });
 
 test("permits only the two exact untracked design assets", () => {
@@ -129,12 +143,14 @@ test("the handoff output schema accepts the complete result", () => {
 test("worker prompt fixes one-slice, commit, role, and stop boundaries", () => {
   const prompt = buildWorkerPrompt({
     role: "design",
-    wave: "3",
+    wave: "4",
     ownCommit: "a".repeat(40),
     counterpartCommit: "b".repeat(40),
     handoff: "Map the exact backend slice.",
     plan: "Exit gate evidence.",
   });
+  assert.match(prompt, /unattended design worker for Wave 4/);
+  assert.doesNotMatch(prompt, /design worker for backend Wave/);
   assert.match(prompt, /exactly ONE bounded slice/);
   assert.match(prompt, /Commit and push/);
   assert.match(prompt, /Do not edit backend contracts/);

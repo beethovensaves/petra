@@ -45,7 +45,7 @@ const sleep = (milliseconds) =>
 
 export function parseArguments(argv) {
   const [command = "help", ...rest] = argv;
-  const options = { command, wave: "3", role: undefined, maxSlices: 32 };
+  const options = { command, wave: "4", role: undefined, maxSlices: 32 };
 
   for (let index = 0; index < rest.length; index += 1) {
     const argument = rest[index];
@@ -229,8 +229,8 @@ function planDigest(plan) {
   return `sha256:${createHash("sha256").update(plan).digest("hex")}`;
 }
 
-function initialHandoff(backendCommit, designCommit) {
-  return `Resume after backend ${backendCommit} and design ${designCommit}. The episode 1.2 freeze-conformance mapping is complete, and no supported History event-target family justifies widening the historical-destination registry. Review the Wave 3 packet and implement exactly the first smallest server-owned SuggestedAction preview/readiness slice. It must be Project-scoped, authenticated, revisioned, derived from existing authority, and read-only: do not start Work or change the frozen interface in this slice. If repository evidence exposes a prerequisite or consequential unresolved architecture choice, stop with needs_user rather than inventing it.`;
+export function initialHandoff(wave, backendCommit, designCommit) {
+  return `Resume after backend ${backendCommit} and design ${designCommit}. Review the Wave ${wave} packet and implement exactly the smallest coherent backend-owned slice from the first incomplete item in its default implementation order. Preserve the packet's dependency order, authority boundaries, and role ownership; do not pull later work into this slice. If repository evidence exposes a prerequisite or consequential unresolved architecture choice, stop with needs_user rather than inventing it.`;
 }
 
 function createInitialState(wave, maxSlices) {
@@ -255,7 +255,7 @@ function createInitialState(wave, maxSlices) {
     max_slices: maxSlices,
     plan_digest: planDigest(plan),
     commits: { backend: backend.head, design: design.head },
-    handoff_prompt: initialHandoff(backend.head, design.head),
+    handoff_prompt: initialHandoff(wave, backend.head, design.head),
     active: null,
     history: [],
     created_at: now,
@@ -333,7 +333,7 @@ export function buildWorkerPrompt({
       ? "You own backend runtime contracts, authority, persistence, APIs, typed clients, tests, and implementation reports on main. Do not modify frozen React components, CSS, or browser routes unless the design handoff explicitly authorizes one bounded integration. You may update renderer-neutral typed client code and its tests when required."
       : "You own freeze-conformance reports and, only when the handoff explicitly requests integration, frozen frontend components, routes, fixtures, accessibility, and interaction tests on design/m1-ux. Do not edit backend contracts, server code, persistence, migrations, or backend authority. Leave the known untracked image and PDF untouched.";
 
-  return `You are Petra's unattended ${role} worker for backend Wave ${wave}.
+  return `You are Petra's unattended ${role} worker for Wave ${wave}.
 
 Current ${role} commit: ${ownCommit}
 Exact counterpart commit: ${counterpartCommit}
@@ -762,10 +762,10 @@ async function stop(wave) {
 
 function printHelp() {
   process.stdout.write(`Usage:
-  node scripts/wave-handoff.mjs worker --role backend|design [--wave 3] [--max-slices 32]
-  node scripts/wave-handoff.mjs doctor [--wave 3]
-  node scripts/wave-handoff.mjs status [--wave 3]
-  node scripts/wave-handoff.mjs stop [--wave 3]
+  node scripts/wave-handoff.mjs worker --role backend|design [--wave 4] [--max-slices 32]
+  node scripts/wave-handoff.mjs doctor [--wave 4]
+  node scripts/wave-handoff.mjs status [--wave 4]
+  node scripts/wave-handoff.mjs stop [--wave 4]
 
 The backend worker initializes missing state. Start one worker in each worktree.
 Runtime state and logs are written under .codex-wave-handoff/ and are ignored by Git.

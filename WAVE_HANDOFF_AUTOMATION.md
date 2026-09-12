@@ -26,7 +26,7 @@ ignored by Git.
 Run the read-only doctor before the first launch:
 
 ```sh
-/usr/bin/env PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run wave:doctor -- --wave 3
+/usr/bin/env PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run wave:doctor -- --wave 4
 ```
 
 ## Start the two workers
@@ -35,17 +35,17 @@ In the backend terminal:
 
 ```sh
 cd /Users/felipe.casadei/vscode/graphRAG/petra
-/usr/bin/env PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run wave:backend -- --wave 3
+/usr/bin/env PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run wave:backend -- --wave 4
 ```
 
 In the design terminal:
 
 ```sh
 cd /Users/felipe.casadei/vscode/graphRAG/petra-design
-/usr/bin/env PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin node ../petra/scripts/wave-handoff.mjs worker --role design --wave 3
+/usr/bin/env PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin node ../petra/scripts/wave-handoff.mjs worker --role design --wave 4
 ```
 
-The backend worker initializes a new Wave 3 run when no state exists. Either
+The backend worker initializes a new Wave 4 run when no state exists. Either
 terminal may be started first; the design worker waits for initialization. Both
 processes exit at the wave gate or a fail-closed stop.
 
@@ -54,13 +54,13 @@ processes exit at the wave gate or a fail-closed stop.
 From the backend worktree:
 
 ```sh
-npm run wave:status -- --wave 3
-npm run wave:stop -- --wave 3
+npm run wave:status -- --wave 4
+npm run wave:stop -- --wave 4
 ```
 
 `wave:stop` refuses to overwrite an active worker. Interrupt the active terminal
 first, then record the stop. If a worker exits unexpectedly, inspect
-`.codex-wave-handoff/wave-3/runs/` and the status before resuming manually.
+`.codex-wave-handoff/wave-4/runs/` and the status before resuming manually.
 
 ## Safety boundary
 
@@ -80,6 +80,6 @@ service, authorization or usage limit, unexpected file, branch divergence,
 push failure, or merge conflict. It does not silently recover by deleting,
 resetting, stashing, or rebasing work.
 
-The Wave 3 execution packet is
-[`scripts/wave-handoff-wave-3.md`](scripts/wave-handoff-wave-3.md). A future wave
-requires its own reviewed packet before it can be initialized.
+The current Wave 4 execution packet is
+[`scripts/wave-handoff-wave-4.md`](scripts/wave-handoff-wave-4.md). Every future
+wave requires its own reviewed packet before it can be initialized.
