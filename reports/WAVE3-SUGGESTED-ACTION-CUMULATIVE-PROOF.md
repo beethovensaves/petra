@@ -1,10 +1,10 @@
 # Wave 3 SuggestedAction cumulative backend proof
 
-Status: backend cumulative lifecycle passed; frozen-interface runtime closure
-remains open
+Status: backend cumulative lifecycle and renderer-neutral cancellation binding
+passed; frozen-interface cancellation and replay closure remains open
 Date: 2026-09-11
-Backend basis: `01c8b479f05ca31b8f1455d81b3e79a024554936`
-Exact design counterpart: `b295ade37e17f6182d7b47758aa22e11d608c6f4`
+Backend proof basis: `03cb39341f5503abbcaa5c3a13d3a68f2c5aba04`
+Exact design counterpart: `d32175d288ee0effb8df524d6781d6160e95a06f`
 Design boundary: `UX-DESIGN-FREEZE-01`
 
 ## Result
@@ -68,6 +68,45 @@ manifest that reuses an existing GroundedResponse and verifies the returned
 result reference, all four canonical Work revisions, and terminal recovery
 eligibility.
 
+## Renderer-neutral cancellation boundary
+
+The existing accepted M1.7 boundary is sufficient for this SuggestedAction
+family without a new authority decision. `POST /api/work-units/:runId/cancel`
+is bearer-authenticated, resolves one active protocol run to its exact durable
+WorkUnit, commits the idempotent `CancelWorkUnit` receipt and cancelled Work
+revision before provider interruption, and preserves cancelled interaction
+presentation for replay. Its cancellation command is executed by the existing
+service identity with the WorkUnit's exact capability. This slice therefore
+does not add a second cancellation endpoint, reinterpret the human
+`InvokeSuggestedAction` grant as a `CancelWorkUnit` grant, or introduce generic
+cancellation of Work that may be shared.
+
+The renderer-neutral Project client now exposes:
+
+- `createSuggestedActionWorkCancellationRequest`, which creates only the
+  caller-owned canonical command ID and optional readable reason; and
+- `cancelProjectSuggestedActionWork`, which fresh-reads the exact invocation,
+  consumes the server-owned cancellation assessment, derives the
+  InteractionRun and WorkUnit identities from that view, calls the accepted
+  cancellation route, validates the durable cancellation identity and hash,
+  and rereads the invocation after the command.
+
+The post-command reread must retain the exact Project, immutable invocation
+receipt, invoking human Actor, capability grant, command, InteractionRun, and
+History destinations. It must also contain the exact cancelled Work revision
+returned by the command and mark cancellation ineligible. Any identity
+substitution or incomplete durable response fails closed. Only the cancellation
+command ID and optional reason cross from the browser; Project, Actor,
+capability, trace, InteractionRun, WorkUnit, receipt, and History identities are
+never accepted from client command input.
+
+The fresh assessment supports presentation but is not a client-side authority
+calculation. The authenticated runtime remains the final authority for a
+completion/cancellation race and exact command redelivery, including a lost
+first HTTP response. No React component, CSS, browser route, generated
+contract, server authority implementation, or persistence behavior changed in
+this slice.
+
 ## Reproducible evidence
 
 The passing deterministic proof produced:
@@ -92,19 +131,19 @@ certification gate.
 
 No React component, CSS, browser route, or presentation fixture changed in this
 backend slice. Inspection of exact counterpart
-`b295ade37e17f6182d7b47758aa22e11d608c6f4` confirms three presentation-only
-boundaries that this proof cannot close without crossing design authority:
+`d32175d288ee0effb8df524d6781d6160e95a06f` confirms that the action's supplied
+History destination is now authenticated and runtime-backed. Two
+presentation-only boundaries remain and cannot be closed without crossing
+design authority:
 
-- the action's History destination preserves the server-supplied Work semantic
-  identity in its URL, but the destination still renders fixture-backed
-  History;
 - action refresh rereads the exact invocation and does not initiate the
   contract's InteractionRun replay; and
 - cancellation eligibility is rendered from the server assessment, but the
-  action region does not bind the existing authorized cancellation command.
+  frozen action region does not yet bind the new renderer-neutral client to its
+  existing control.
 
 The Wave 3 exit gate therefore remains open. Design must bind the accepted
-runtime History and eligible recovery/reconnect behavior through the frozen
+cancellation client and InteractionRun replay behavior through the frozen
 interface, without fixture fallback or client-side authority calculations, and
 run the mapped cumulative live proof. This backend proof is the handoff evidence
 for that bounded design integration.
@@ -115,9 +154,13 @@ for that bounded design integration.
   stores after all 32 migrations.
 - `npm run test:postgres:integration`: passed all 111 PostgreSQL tests across 15
   files after all 32 migrations.
+- Focused pinned-Node checks for this slice passed the workbench typecheck, all
+  100 workbench tests, both interaction-runtime cancellation tests, and all 19
+  server conformance tests. The server suite required its ordinary loopback
+  permission.
 - `npm run verify`: passed generated-contract and fixture checks, the retrieval
   floor, repository formatting and lint, TypeScript and Python typechecks, the
-  production build, 873 passing JavaScript/TypeScript tests with seven
+  production build, 875 passing JavaScript/TypeScript tests with seven
   integration-only skips, 25 Python tests, and all six handoff automation
   tests. The production build retained the existing non-failing chunk-size
   advisory.

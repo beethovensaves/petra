@@ -60,6 +60,11 @@ import type {
 const DEVELOPMENT_TOKEN = "petra-local-development";
 const TOKEN_STORAGE_KEY = "petra.auth.token";
 const API_REQUEST_ID = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/u;
+const COMMAND_ID = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const WORK_UNIT_ID = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const WORK_UNIT_CANCELLATION_ID =
+  /^work_unit_cancellation_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
 const HISTORY_CONTINUATION_FAILURE_MESSAGE =
   "This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.";
 
@@ -1519,6 +1524,57 @@ const suggestedActionInvocationView = (
     );
   }
   return value as unknown as PetraSuggestedActionInvocationView;
+};
+
+export interface SuggestedActionWorkCancellationResult {
+  readonly applied: boolean;
+  readonly commandId: string;
+  readonly effectId: string;
+  readonly runId: string;
+  readonly workUnitId: string;
+  readonly workUnitRevision: number;
+  readonly workUnitCancellationId: string;
+  readonly cancellationHash: string;
+}
+
+const suggestedActionWorkCancellationResult = (
+  value: unknown,
+): SuggestedActionWorkCancellationResult => {
+  if (
+    !isRecord(value) ||
+    !hasExactKeys(value, [
+      "applied",
+      "commandId",
+      "effectId",
+      "runId",
+      "workUnitId",
+      "workUnitRevision",
+      "workUnitCancellationId",
+      "cancellationHash",
+    ]) ||
+    typeof value.applied !== "boolean" ||
+    typeof value.commandId !== "string" ||
+    !COMMAND_ID.test(value.commandId) ||
+    typeof value.effectId !== "string" ||
+    typeof value.runId !== "string" ||
+    value.runId.length === 0 ||
+    value.runId.length > 200 ||
+    typeof value.workUnitId !== "string" ||
+    !WORK_UNIT_ID.test(value.workUnitId) ||
+    !Number.isSafeInteger(value.workUnitRevision) ||
+    (value.workUnitRevision as number) < 1 ||
+    typeof value.workUnitCancellationId !== "string" ||
+    !WORK_UNIT_CANCELLATION_ID.test(value.workUnitCancellationId) ||
+    value.effectId !== value.workUnitCancellationId ||
+    typeof value.cancellationHash !== "string" ||
+    !CONTENT_HASH.test(value.cancellationHash)
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an invalid durable Work cancellation result.",
+      502,
+    );
+  }
+  return value as unknown as SuggestedActionWorkCancellationResult;
 };
 
 const projectThreadView = (value: unknown): PetraProjectThreadView => {
@@ -3520,6 +3576,52 @@ export interface ProjectWorkDetailData {
   unit: WorkUnit;
 }
 
+const CROCKFORD_BASE32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+const randomUlidPayload = (): string => {
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  let timestamp = BigInt(Date.now());
+  for (let index = 5; index >= 0; index -= 1) {
+    bytes[index] = Number(timestamp & 255n);
+    timestamp >>= 8n;
+  }
+  let value = 0n;
+  for (const byte of bytes) value = (value << 8n) | BigInt(byte);
+  let payload = "";
+  for (let index = 0; index < 26; index += 1) {
+    payload = CROCKFORD_BASE32[Number(value & 31n)] + payload;
+    value >>= 5n;
+  }
+  return payload;
+};
+
+export interface SuggestedActionWorkCancellationRequest {
+  readonly commandId: string;
+  readonly reason?: string;
+}
+
+export interface SuggestedActionWorkCancellationRequestOptions {
+  readonly commandId?: string;
+  readonly reason?: string;
+}
+
+export interface ProjectSuggestedActionWorkCancellation {
+  readonly cancellation: SuggestedActionWorkCancellationResult;
+  readonly invocation: PetraSuggestedActionInvocationView;
+}
+
+/**
+ * Builds only caller-owned cancellation input. Project, Actor, capability,
+ * InteractionRun, WorkUnit, trace, and cancellation identities stay absent and
+ * are resolved by the authenticated runtime boundary.
+ */
+export const createSuggestedActionWorkCancellationRequest = (
+  options: SuggestedActionWorkCancellationRequestOptions = {},
+): SuggestedActionWorkCancellationRequest => ({
+  commandId: options.commandId ?? `command_${randomUlidPayload()}`,
+  ...(options.reason === undefined ? {} : { reason: options.reason }),
+});
+
 /**
  * Renderer-neutral boundary for the single Work-starting action family. The
  * caller must retain the exact action ref and pass it back unchanged when it
@@ -3603,6 +3705,152 @@ export const getProjectSuggestedActionInvocation = async (
     );
   }
   return view;
+};
+
+const sameSuggestedActionInvocationAuthority = (
+  before: PetraSuggestedActionInvocationView,
+  after: PetraSuggestedActionInvocationView,
+): boolean => {
+  const beforeInvocation = before.content.invocation_ref;
+  const afterInvocation = after.content.invocation_ref;
+  const beforeCommand = before.content.invocation.content.command_ref;
+  const afterCommand = after.content.invocation.content.command_ref;
+  const beforeHistory = before.content.history.command_receipt_ref;
+  const afterHistory = after.content.history.command_receipt_ref;
+  return (
+    beforeInvocation.suggested_action_invocation_id ===
+      afterInvocation.suggested_action_invocation_id &&
+    beforeInvocation.revision === afterInvocation.revision &&
+    beforeInvocation.content_hash === afterInvocation.content_hash &&
+    beforeInvocation.record_hash === afterInvocation.record_hash &&
+    beforeCommand.command_id === afterCommand.command_id &&
+    beforeCommand.command_name === afterCommand.command_name &&
+    beforeCommand.idempotency_key === afterCommand.idempotency_key &&
+    beforeCommand.command_fingerprint === afterCommand.command_fingerprint &&
+    beforeCommand.capability_grant_id === afterCommand.capability_grant_id &&
+    beforeCommand.actor.actor_id === afterCommand.actor.actor_id &&
+    beforeCommand.actor.actor_kind === afterCommand.actor.actor_kind &&
+    beforeCommand.correlation_id === afterCommand.correlation_id &&
+    beforeCommand.submitted_at === afterCommand.submitted_at &&
+    beforeHistory.suggested_action_invocation_id ===
+      afterHistory.suggested_action_invocation_id &&
+    beforeHistory.revision === afterHistory.revision &&
+    beforeHistory.content_hash === afterHistory.content_hash &&
+    beforeHistory.record_hash === afterHistory.record_hash &&
+    JSON.stringify(before.content.history.destinations) ===
+      JSON.stringify(after.content.history.destinations) &&
+    before.content.interaction.protocol_thread_id ===
+      after.content.interaction.protocol_thread_id &&
+    before.content.interaction.protocol_run_id ===
+      after.content.interaction.protocol_run_id
+  );
+};
+
+/**
+ * Authenticated renderer-neutral binding to Petra's existing exact
+ * CancelWorkUnit route. Eligibility and target resolution come from a fresh
+ * server invocation read; the client supplies only one retained command ID and
+ * an optional researcher-readable reason.
+ */
+export const cancelProjectSuggestedActionWork = async (
+  projectId: string,
+  invocationCommandId: string,
+  request: SuggestedActionWorkCancellationRequest,
+): Promise<ProjectSuggestedActionWorkCancellation> => {
+  if (!COMMAND_ID.test(invocationCommandId)) {
+    throw new ProjectDataError(
+      "SuggestedAction cancellation requires the exact invocation command identity.",
+      400,
+    );
+  }
+  if (
+    !COMMAND_ID.test(request.commandId) ||
+    (request.reason !== undefined &&
+      (request.reason.trim().length === 0 || request.reason.length > 4_000))
+  ) {
+    throw new ProjectDataError(
+      "SuggestedAction cancellation requires a canonical command ID and an optional reason of 1 through 4000 characters.",
+      400,
+    );
+  }
+
+  const current = await getProjectSuggestedActionInvocation(
+    projectId,
+    invocationCommandId,
+  );
+  const cancellationAction = current.content.recovery.actions.find(
+    (action) => action.operation === "cancel_work",
+  );
+  if (
+    cancellationAction === undefined ||
+    (cancellationAction.eligibility === "eligible" &&
+      cancellationAction.command_name !== "CancelWorkUnit") ||
+    (cancellationAction.eligibility === "ineligible" &&
+      cancellationAction.command_name !== undefined)
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an inconsistent server-owned cancellation assessment.",
+      502,
+    );
+  }
+  if (current.content.work.state !== "available") {
+    throw new ProjectDataError(cancellationAction.reason, 409);
+  }
+
+  const runId = current.content.interaction.protocol_run_id;
+  const workUnitId = current.content.work.work_unit_ref.work_unit_id;
+  const cancellation = suggestedActionWorkCancellationResult(
+    await requestJson(`/api/work-units/${encodeURIComponent(runId)}/cancel`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        commandId: request.commandId,
+        ...(request.reason === undefined ? {} : { reason: request.reason }),
+      }),
+    }),
+  );
+  if (
+    cancellation.commandId !== request.commandId ||
+    cancellation.runId !== runId ||
+    cancellation.workUnitId !== workUnitId
+  ) {
+    throw new ProjectDataError(
+      "Petra cancelled a different command, InteractionRun, or WorkUnit.",
+      502,
+    );
+  }
+
+  const updated = await getProjectSuggestedActionInvocation(
+    projectId,
+    invocationCommandId,
+  );
+  const updatedCancellationAction = updated.content.recovery.actions.find(
+    (action) => action.operation === "cancel_work",
+  );
+  const cancelledRevision = updated.content.history.work_revisions.find(
+    (revision) =>
+      revision.work_unit_ref.work_unit_id === cancellation.workUnitId &&
+      revision.work_unit_ref.revision === cancellation.workUnitRevision,
+  );
+  if (
+    !sameSuggestedActionInvocationAuthority(current, updated) ||
+    updated.content.operation_state !== "cancelled" ||
+    updated.content.work.state !== "available" ||
+    updated.content.work.work_unit_ref.work_unit_id !==
+      cancellation.workUnitId ||
+    updated.content.work.work_unit_ref.revision !==
+      cancellation.workUnitRevision ||
+    updated.content.work.execution_state !== "cancelled" ||
+    cancelledRevision?.state !== "cancelled" ||
+    updatedCancellationAction?.eligibility !== "ineligible" ||
+    updatedCancellationAction.command_name !== undefined
+  ) {
+    throw new ProjectDataError(
+      "Petra did not preserve the exact invocation authority and cancelled Work History.",
+      502,
+    );
+  }
+  return { cancellation, invocation: updated };
 };
 
 export const loadProjectWorkDetail = async ({
