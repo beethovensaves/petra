@@ -58,6 +58,7 @@ import {
   loadProjectPetraThread,
   loadProjectRecord,
   loadProjectSettings,
+  loadProjectSuggestedActionHistory,
   loadProjectWorkCollection,
   loadProjectWorkDetail,
   invokeProjectSuggestedAction,
@@ -2131,6 +2132,90 @@ describe("Project shell workbench adapter", () => {
       `/api/queries/projects/${projectId}/suggested-action-invocations/${commandId}`,
       `/api/queries/projects/${projectId}/threads/${threadId}`,
     ]);
+  });
+
+  it("binds an exact SuggestedAction Work destination to authenticated runtime History", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(suggestedActionInvocationView));
+    vi.stubGlobal("fetch", fetch);
+    const projectId = suggestedActionInvocationView.project_id;
+    const commandId =
+      suggestedActionInvocationView.content.invocation.content.command_ref
+        .command_id;
+    const workId =
+      suggestedActionInvocationView.content.invocation.content
+        .expected_work_unit_id;
+    const url = new URL(
+      `http://petra.test/projects/${projectId}/history?target_semantic_key=petra.work-unit&target_object_id=${workId}&suggested_action_command_id=${commandId}`,
+    );
+
+    const data = await loadProjectSuggestedActionHistory({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/history",
+      params: { projectId },
+      context: new RouterContextProvider(),
+    });
+
+    expect(data).toEqual({
+      invocation: suggestedActionInvocationView,
+      historyDestination:
+        suggestedActionInvocationView.content.history.destinations[1],
+      workDestination:
+        suggestedActionInvocationView.content.history.destinations[0],
+    });
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${projectId}/suggested-action-invocations/${commandId}`,
+    );
+    const headers = fetch.mock.calls[0]?.[1]?.headers;
+    expect(headers).toBeInstanceOf(Headers);
+    expect((headers as Headers).get("authorization")).toBe(
+      "Bearer petra-local-development",
+    );
+  });
+
+  it("fails closed on incomplete or substituted runtime Work History identities", async () => {
+    const projectId = suggestedActionInvocationView.project_id;
+    const commandId =
+      suggestedActionInvocationView.content.invocation.content.command_ref
+        .command_id;
+    const workId =
+      suggestedActionInvocationView.content.invocation.content
+        .expected_work_unit_id;
+    const partialUrl = new URL(
+      `http://petra.test/projects/${projectId}/history?target_semantic_key=petra.work-unit&target_object_id=${workId}`,
+    );
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(suggestedActionInvocationView));
+    vi.stubGlobal("fetch", fetch);
+
+    await expect(
+      loadProjectSuggestedActionHistory({
+        request: new Request(partialUrl),
+        url: partialUrl,
+        pattern: "/projects/:projectId/history",
+        params: { projectId },
+        context: new RouterContextProvider(),
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(fetch).not.toHaveBeenCalled();
+
+    const substitutedUrl = new URL(
+      `http://petra.test/projects/${projectId}/history?target_semantic_key=petra.work-unit&target_object_id=work_unit_01K4C000000000000000000099&suggested_action_command_id=${commandId}`,
+    );
+    await expect(
+      loadProjectSuggestedActionHistory({
+        request: new Request(substitutedUrl),
+        url: substitutedUrl,
+        pattern: "/projects/:projectId/history",
+        params: { projectId },
+        context: new RouterContextProvider(),
+      }),
+    ).rejects.toMatchObject({ status: 502 });
+    expect(fetch).toHaveBeenCalledOnce();
   });
 
   it("maps and loads one exact live Project thread without inventing message bytes", async () => {

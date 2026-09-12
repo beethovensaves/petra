@@ -254,6 +254,10 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain("exact interaction replay");
     expect(markup).toContain('data-place-role="work"');
     expect(markup).toContain('data-place-role="history"');
+    expect(markup).toContain("target_semantic_key=petra.work-unit");
+    expect(markup).toContain(
+      `suggested_action_command_id=${suggestedActionInvocationView.content.invocation.content.command_ref.command_id}`,
+    );
     expect(markup).toContain('data-operation="retry_exact_start"');
     expect(markup).toContain('data-operation="reconnect_delivery"');
     expect(markup).toContain('data-operation="cancel_work"');

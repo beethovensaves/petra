@@ -4008,6 +4008,125 @@ export const getProjectSuggestedActionInvocation = async (
   return view;
 };
 
+type SuggestedActionHistoryDestination =
+  PetraSuggestedActionInvocationView["content"]["history"]["destinations"][number];
+
+export interface ProjectSuggestedActionHistoryData {
+  readonly invocation: PetraSuggestedActionInvocationView;
+  readonly historyDestination: SuggestedActionHistoryDestination;
+  readonly workDestination: SuggestedActionHistoryDestination;
+}
+
+/**
+ * Resolves only the runtime Work History deep link supplied by an exact
+ * SuggestedAction invocation. Other frozen History routes keep their existing
+ * provider until their separately accepted mappings are integrated.
+ */
+export const loadProjectSuggestedActionHistory = async ({
+  params,
+  request,
+}: LoaderFunctionArgs): Promise<
+  ProjectSuggestedActionHistoryData | undefined
+> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const incoming = new URL(request.url).searchParams;
+  const semanticKeys = incoming.getAll("target_semantic_key");
+  const objectIds = incoming.getAll("target_object_id");
+  const commandIds = incoming.getAll("suggested_action_command_id");
+  const hasRuntimeHistoryIdentity =
+    semanticKeys.length > 0 || objectIds.length > 0 || commandIds.length > 0;
+  if (!hasRuntimeHistoryIdentity) return undefined;
+  if (
+    semanticKeys.length !== 1 ||
+    objectIds.length !== 1 ||
+    commandIds.length !== 1
+  ) {
+    throw new ProjectDataError(
+      "Runtime Work History requires one exact semantic key, WorkUnit, and SuggestedAction command receipt.",
+      400,
+    );
+  }
+  const semanticKey = semanticKeys[0];
+  const objectId = objectIds[0];
+  const commandId = commandIds[0];
+  if (
+    semanticKey !== "petra.work-unit" ||
+    objectId === undefined ||
+    !objectId.startsWith("work_unit_") ||
+    !API_REQUEST_ID.test(objectId) ||
+    commandId === undefined ||
+    !commandId.startsWith("command_") ||
+    !API_REQUEST_ID.test(commandId)
+  ) {
+    throw new ProjectDataError(
+      "The runtime Work History destination contains an unsupported or invalid identity.",
+      400,
+    );
+  }
+  const invocation = await getProjectSuggestedActionInvocation(
+    projectId,
+    commandId,
+  );
+  const { content } = invocation;
+  const historyDestinations = content.history.destinations.filter(
+    (destination) =>
+      destination.place_role === "history" &&
+      destination.task_intent === "view_history" &&
+      destination.object_ref.semantic_key === semanticKey &&
+      destination.object_ref.object_id === objectId,
+  );
+  const workDestinations = content.history.destinations.filter(
+    (destination) =>
+      destination.place_role === "work" &&
+      destination.task_intent === "continue_work" &&
+      destination.object_ref.semantic_key === semanticKey &&
+      destination.object_ref.object_id === objectId,
+  );
+  const historyDestination = historyDestinations[0];
+  const workDestination = workDestinations[0];
+  const invocationRef = content.invocation_ref;
+  const receiptRef = content.history.command_receipt_ref;
+  const expectedWorkId = content.invocation.content.expected_work_unit_id;
+  const routedWorkId =
+    content.work.state === "available"
+      ? content.work.work_unit_ref.work_unit_id
+      : content.work.expected_work_unit_id;
+  let previousRevision = 0;
+  const revisionsAreExact = content.history.work_revisions.every((entry) => {
+    const exact =
+      entry.work_unit_ref.work_unit_id === objectId &&
+      entry.work_unit_ref.revision > previousRevision;
+    previousRevision = entry.work_unit_ref.revision;
+    return exact;
+  });
+  const currentRevisionMatches =
+    content.work.state === "pending_registration"
+      ? content.history.work_revisions.length === 0
+      : content.history.work_revisions.at(-1)?.work_unit_ref.revision ===
+        content.work.work_unit_ref.revision;
+  if (
+    historyDestinations.length !== 1 ||
+    workDestinations.length !== 1 ||
+    historyDestination === undefined ||
+    workDestination === undefined ||
+    expectedWorkId !== objectId ||
+    routedWorkId !== objectId ||
+    receiptRef.suggested_action_invocation_id !==
+      invocationRef.suggested_action_invocation_id ||
+    receiptRef.revision !== invocationRef.revision ||
+    receiptRef.content_hash !== invocationRef.content_hash ||
+    receiptRef.record_hash !== invocationRef.record_hash ||
+    !revisionsAreExact ||
+    !currentRevisionMatches
+  ) {
+    throw new ProjectDataError(
+      "Petra returned runtime History for a different command receipt, WorkUnit, or canonical revision sequence.",
+      502,
+    );
+  }
+  return { invocation, historyDestination, workDestination };
+};
+
 export const loadProjectWorkDetail = async ({
   params,
 }: LoaderFunctionArgs): Promise<ProjectWorkDetailData> => {

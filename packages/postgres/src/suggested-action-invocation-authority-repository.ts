@@ -7,6 +7,7 @@ import type {
   PetraSuggestedActionInvocationView,
   PetraWorkUnit,
   PetraWorkerInputManifest,
+  PetraWorkerOutputManifest,
   SuggestedActionAuthorityPosition,
   SuggestedActionInvocationHistoryEntry,
   SuggestedActionInvocationRecoveryAction,
@@ -313,7 +314,7 @@ export class PostgresSuggestedActionInvocationAuthorityRepository implements Sug
         work === undefined
           ? undefined
           : await this.#inputManifest(client, work);
-      const result = await this.#result(client, projectId, invocation);
+      const result = await this.#result(client, projectId, invocation, work);
       const interaction = await this.#interaction(
         client,
         projectId,
@@ -663,6 +664,7 @@ export class PostgresSuggestedActionInvocationAuthorityRepository implements Sug
     client: PoolClient,
     projectId: string,
     invocation: PetraSuggestedActionInvocation,
+    work: PetraWorkUnit | undefined,
   ): Promise<
     | {
         record: PetraGroundedResponse;
@@ -677,7 +679,7 @@ export class PostgresSuggestedActionInvocationAuthorityRepository implements Sug
       }
     | undefined
   > {
-    const result = await client.query<StoredRow>(
+    const direct = await client.query<StoredRow>(
       `SELECT revision.payload, revision.record_hash
          FROM petra.grounded_responses AS head
          JOIN petra.grounded_response_revisions AS revision
@@ -686,8 +688,108 @@ export class PostgresSuggestedActionInvocationAuthorityRepository implements Sug
         WHERE head.project_id = $1 AND head.work_unit_id = $2`,
       [projectId, invocation.content.expected_work_unit_id],
     );
-    const row = result.rows[0];
-    if (row === undefined) return undefined;
+    const directRow = direct.rows[0];
+    if (directRow !== undefined) {
+      return this.#groundedResponseResult(directRow);
+    }
+    if (
+      work?.status.state !== "completed" ||
+      work.status.terminal_outcome !== "succeeded" ||
+      work.status.output_manifest_ref === undefined
+    ) {
+      return undefined;
+    }
+    const manifestResult = await client.query<StoredRow>(
+      `SELECT payload, record_hash
+         FROM petra.worker_output_manifests
+        WHERE project_id = $1 AND work_unit_id = $2
+          AND worker_output_manifest_id = $3`,
+      [
+        projectId,
+        work.work_unit_id,
+        work.status.output_manifest_ref.worker_output_manifest_id,
+      ],
+    );
+    const manifestRow = manifestResult.rows[0];
+    if (manifestRow === undefined) {
+      throw this.#corrupt(
+        "The completed SuggestedAction Work lost its exact output manifest.",
+      );
+    }
+    const manifest = this.#record<PetraWorkerOutputManifest>(
+      "worker-output-manifest",
+      manifestRow,
+    );
+    if (
+      manifest.work_unit_id !== work.work_unit_id ||
+      manifest.project_id !== projectId ||
+      manifest.content_hash !== work.status.output_manifest_ref.content_hash ||
+      manifest.content.outcome.outcome_kind !== "succeeded"
+    ) {
+      throw this.#corrupt(
+        "The completed SuggestedAction Work output manifest conflicts with its terminal revision.",
+      );
+    }
+    const output = manifest.content.outcome.produced_outputs.find(
+      (candidate) =>
+        candidate.output_name === "grounded_response" &&
+        candidate.output_role === "result",
+    );
+    if (output === undefined) {
+      throw this.#corrupt(
+        "The completed SuggestedAction Work has no exact grounded-response result output.",
+      );
+    }
+    const exact = invocation.content.exact_inputs;
+    const reused = await client.query<StoredRow>(
+      `SELECT revision.payload, revision.record_hash
+         FROM petra.grounded_responses AS head
+         JOIN petra.grounded_response_revisions AS revision
+           ON revision.grounded_response_id = head.grounded_response_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND head.response_artifact_hash = $2
+          AND head.response_artifact_byte_size = $3
+          AND head.context_packet_id = $4 AND head.context_packet_hash = $5
+          AND head.evidence_packet_id = $6 AND head.evidence_packet_hash = $7
+          AND head.snapshot_id = $8 AND head.snapshot_revision = $9
+          AND head.snapshot_event_position = $10 AND head.snapshot_hash = $11
+        ORDER BY head.grounded_response_id
+        LIMIT 2`,
+      [
+        projectId,
+        output.content_hash,
+        output.byte_size,
+        exact.context_packet_ref.record_id,
+        exact.context_packet_ref.content_hash,
+        exact.evidence_packet_ref.record_id,
+        exact.evidence_packet_ref.content_hash,
+        exact.snapshot_ref.snapshot_id,
+        exact.snapshot_ref.snapshot_revision,
+        exact.snapshot_ref.event_position,
+        exact.snapshot_ref.content_hash,
+      ],
+    );
+    if (reused.rows.length > 1) {
+      throw this.#corrupt(
+        "The completed SuggestedAction Work output resolves to more than one canonical GroundedResponse.",
+      );
+    }
+    const row = reused.rows[0];
+    return row === undefined ? undefined : this.#groundedResponseResult(row);
+  }
+
+  #groundedResponseResult(row: StoredRow): {
+    record: PetraGroundedResponse;
+    ref: {
+      schema_name: "petra.grounded-response";
+      schema_version: "1.0.0";
+      record_id: string;
+      revision: number;
+      content_hash: string;
+      record_hash: string;
+    };
+  } {
     const record = this.#record<PetraGroundedResponse>(
       "grounded-response",
       row,

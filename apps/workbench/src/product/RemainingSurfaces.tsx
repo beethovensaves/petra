@@ -23,7 +23,10 @@ import type {
   ProfileToolTask,
   ProjectRecord,
 } from "./model.js";
-import type { ProjectSettingsData } from "./project-data.js";
+import type {
+  ProjectSettingsData,
+  ProjectSuggestedActionHistoryData,
+} from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 
 export const CompositionCollectionSurface = ({
@@ -607,9 +610,224 @@ export const HistorySurface = ({
   );
 };
 
+const runtimeHistoryLabel = (value: string): string =>
+  value
+    .replaceAll("_", " ")
+    .replace(/^./u, (character) => character.toLocaleUpperCase());
+
+export const SuggestedActionWorkHistorySurface = ({
+  project,
+  data,
+}: {
+  project: ProjectRecord;
+  data: ProjectSuggestedActionHistoryData;
+}): React.JSX.Element => {
+  const { invocation, historyDestination, workDestination } = data;
+  const { content } = invocation;
+  const { command_ref: commandRef } = content.invocation.content;
+  const revisions = content.history.work_revisions;
+  const workId = historyDestination.object_ref.object_id;
+  const result = content.result;
+
+  return (
+    <main
+      className="reference-surface"
+      id="reference-main"
+      data-contract-name={invocation.schema_name}
+      data-runtime-history="authenticated"
+      data-history-source={content.history.source}
+    >
+      <header className="reference-surface-heading">
+        <div>
+          <p className="reference-eyebrow">History · authenticated runtime</p>
+          <h1>Work History</h1>
+          <p className="reference-lede">
+            Inspect the canonical WorkUnit revisions and current server-owned
+            recovery posture for this exact SuggestedAction command receipt.
+          </p>
+        </div>
+        <Link
+          className="reference-context-back"
+          to={`/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(workDestination.object_ref.object_id)}`}
+          data-place-role={workDestination.place_role}
+          data-task-intent={workDestination.task_intent}
+        >
+          Open exact Work
+        </Link>
+      </header>
+
+      <div className="history-layout">
+        <section
+          className="history-episodes"
+          aria-labelledby="runtime-work-revisions-title"
+        >
+          <header>
+            <h2 id="runtime-work-revisions-title">Canonical Work revisions</h2>
+            <span>{revisions.length}</span>
+          </header>
+          {revisions.length === 0 ? (
+            <div className="history-runtime-empty">
+              <strong>Pending registration</strong>
+              <p>No canonical Work revision is registered yet.</p>
+            </div>
+          ) : (
+            <ol>
+              {revisions.map((entry, index) => (
+                <li
+                  key={`${entry.work_unit_ref.work_unit_id}:${entry.work_unit_ref.revision}`}
+                  data-selected={index === revisions.length - 1 || undefined}
+                >
+                  <div className="history-runtime-revision">
+                    <span>{entry.recorded_at}</span>
+                    <strong>Revision {entry.work_unit_ref.revision}</strong>
+                    <p>
+                      {runtimeHistoryLabel(entry.state)}
+                      {entry.terminal_outcome === undefined
+                        ? ""
+                        : ` · ${runtimeHistoryLabel(entry.terminal_outcome)}`}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+
+        <article
+          className="history-detail"
+          aria-labelledby="runtime-work-history-title"
+        >
+          <header>
+            <p className="reference-panel-kicker">
+              Server-owned operational History
+            </p>
+            <h2 id="runtime-work-history-title">Exact invocation</h2>
+            <p>
+              This route reread the authenticated invocation and matched its
+              supplied History destination before showing any Work state.
+            </p>
+          </header>
+
+          <dl className="history-facts">
+            <div>
+              <dt>Command receipt</dt>
+              <dd>
+                <code>{commandRef.command_id}</code> · {commandRef.command_name}
+              </dd>
+            </div>
+            <div>
+              <dt>Work identity</dt>
+              <dd>
+                <code>{workId}</code> ·{" "}
+                {runtimeHistoryLabel(content.operation_state)}
+              </dd>
+            </div>
+            <div>
+              <dt>Interaction</dt>
+              <dd>
+                <code>{content.interaction.protocol_run_id}</code> ·{" "}
+                {runtimeHistoryLabel(content.interaction.durable_state)}
+              </dd>
+            </div>
+            <div>
+              <dt>Read position</dt>
+              <dd>
+                Authority event {content.authority.event_position} ·{" "}
+                {invocation.read_at}
+              </dd>
+            </div>
+          </dl>
+
+          <section>
+            <h3>Result</h3>
+            {result.state === "available" ? (
+              <p>
+                <code>{result.result_ref.record_id}</code> · revision{" "}
+                {result.result_ref.revision} · authority effect{" "}
+                {result.authority_effect}
+              </p>
+            ) : (
+              <p>
+                {runtimeHistoryLabel(result.state)} · {result.reason}
+              </p>
+            )}
+          </section>
+
+          <section>
+            <h3>Interruption and reconnect</h3>
+            <p>
+              Delivery abort cancels Work{" "}
+              {content.interrupt.delivery_abort_cancels_work ? "yes" : "no"} ·
+              reconnect {runtimeHistoryLabel(content.interrupt.reconnect)}.
+            </p>
+          </section>
+
+          <section>
+            <h3>Current recovery</h3>
+            <p>{runtimeHistoryLabel(content.recovery.assessment)}</p>
+            <ul className="history-runtime-recovery">
+              {content.recovery.actions.map((action) => (
+                <li
+                  key={action.operation}
+                  data-operation={action.operation}
+                  data-eligibility={action.eligibility}
+                >
+                  <strong>{runtimeHistoryLabel(action.operation)}</strong> ·{" "}
+                  {runtimeHistoryLabel(action.eligibility)}
+                  <p>{action.reason}</p>
+                  {action.command_name === undefined ? null : (
+                    <code>{action.command_name}</code>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section>
+            <h3>Authority and limitations</h3>
+            <ul>
+              {content.limitations.map((limitation) => (
+                <li key={limitation}>{limitation}</li>
+              ))}
+            </ul>
+          </section>
+
+          <section>
+            <h3>Exact destinations</h3>
+            <p>
+              <Link
+                className="reference-text-link"
+                to={`/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(workDestination.object_ref.object_id)}`}
+                data-place-role={workDestination.place_role}
+                data-task-intent={workDestination.task_intent}
+              >
+                Open Work · {workDestination.object_ref.object_id}
+              </Link>
+            </p>
+            <p aria-current="page">
+              History · {historyDestination.object_ref.object_id}
+            </p>
+          </section>
+        </article>
+      </div>
+    </main>
+  );
+};
+
 export const HistoryRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
+  const runtimeHistory = useLoaderData<
+    ProjectSuggestedActionHistoryData | undefined
+  >();
   const { episodeId } = useParams();
+  if (runtimeHistory !== undefined) {
+    return (
+      <SuggestedActionWorkHistorySurface
+        project={project}
+        data={runtimeHistory}
+      />
+    );
+  }
   const episodes = getProjectHistory(project.id);
   const selected =
     episodeId === undefined

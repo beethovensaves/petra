@@ -25,6 +25,7 @@ const titleLabel = (value: string): string =>
 
 const destinationHref = (
   projectId: string,
+  commandId: string,
   destination: PetraSuggestedActionInvocationView["content"]["history"]["destinations"][number],
 ): string => {
   const objectId = encodeURIComponent(destination.object_ref.object_id);
@@ -34,6 +35,7 @@ const destinationHref = (
   const query = new URLSearchParams({
     target_semantic_key: destination.object_ref.semantic_key,
     target_object_id: destination.object_ref.object_id,
+    suggested_action_command_id: commandId,
   });
   return `/projects/${encodeURIComponent(projectId)}/history?${query}`;
 };
@@ -499,7 +501,11 @@ export const SuggestedActionInvocationResult = ({
             <Link
               className="reference-text-link"
               key={`${destination.place_role}:${destination.object_ref.object_id}`}
-              to={destinationHref(view.project_id, destination)}
+              to={destinationHref(
+                view.project_id,
+                commandRef.command_id,
+                destination,
+              )}
               data-place-role={destination.place_role}
               data-task-intent={destination.task_intent}
             >

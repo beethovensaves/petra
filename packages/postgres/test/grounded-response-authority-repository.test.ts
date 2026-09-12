@@ -1559,6 +1559,15 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       invocationWork.workUnit.work_unit_id;
     invocationWork.inputManifest.project_id = objective.project_id;
     invocationWork.inputManifest.issued_by = structuredClone(envelope.actor);
+    invocationWork.inputManifest.content.expected_outputs = [
+      {
+        output_name: "grounded_response",
+        output_role: "result",
+        required: true,
+        media_type: "text/markdown",
+        max_bytes: 4_000_000,
+      },
+    ];
     invocationWork.inputManifest.content_hash = canonicalHash(
       invocationWork.inputManifest.content,
     );
@@ -1598,6 +1607,85 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     expect(runningInvocation.content.history.work_revisions[0]?.state).toBe(
       "requested",
     );
+
+    const invocationOutput = invocationWork.outputManifest;
+    invocationOutput.worker_output_manifest_id = derivePetraId(
+      "worker_output_manifest",
+      request.command_id,
+    );
+    invocationOutput.work_unit_id = invocationWork.workUnit.work_unit_id;
+    invocationOutput.project_id = objective.project_id;
+    invocationOutput.worker_input_manifest_id =
+      invocationWork.inputManifest.worker_input_manifest_id;
+    invocationOutput.worker_input_manifest_hash =
+      invocationWork.inputManifest.content_hash;
+    invocationOutput.content.worker = structuredClone(
+      invocationWork.inputManifest.content.worker,
+    );
+    invocationOutput.content.started_at = "2026-09-11T18:40:02.000Z";
+    invocationOutput.content.completed_at = "2026-09-11T18:40:04.000Z";
+    invocationOutput.reported_at = invocationOutput.content.completed_at;
+    invocationOutput.content.outcome = {
+      outcome_kind: "succeeded",
+      produced_outputs: [
+        {
+          output_name: "grounded_response",
+          output_role: "result",
+          output_handle: "output:reused-grounded-response",
+          content_hash: response.content.response_artifact_ref.content_hash,
+          byte_size: response.content.response_artifact_ref.byte_size,
+          media_type: "text/markdown",
+        },
+      ],
+    };
+    invocationOutput.content_hash = canonicalHash(invocationOutput.content);
+    const invocationQueued = await workUnits.queue(
+      invocationWork.workUnit.work_unit_id,
+      1,
+      "2026-09-11T18:40:01.000Z",
+    );
+    const invocationRunning = await workUnits.start(
+      invocationWork.workUnit.work_unit_id,
+      invocationQueued.revision,
+      1,
+      "2026-09-11T18:40:02.000Z",
+    );
+    await workUnits.complete(invocationOutput, invocationRunning.revision);
+    const completedInvocation =
+      await invocations.getSuggestedActionInvocationView(
+        objective.project_id,
+        request.command_id,
+      );
+    expect(completedInvocation?.content.operation_state).toBe("completed");
+    expect(completedInvocation?.content.result).toEqual({
+      state: "available",
+      result_ref: {
+        schema_name: response.schema_name,
+        schema_version: response.schema_version,
+        record_id: response.grounded_response_id,
+        revision: response.revision,
+        content_hash: response.content_hash,
+        record_hash: canonicalHash(response),
+      },
+      authority_effect: "none",
+    });
+    expect(
+      completedInvocation?.content.history.work_revisions.map(
+        (revision) => revision.state,
+      ),
+    ).toEqual(["requested", "queued", "running", "completed"]);
+    expect(
+      completedInvocation?.content.recovery.actions.map((action) => [
+        action.operation,
+        action.eligibility,
+      ]),
+    ).toEqual([
+      ["retry_exact_start", "ineligible"],
+      ["reconnect_delivery", "eligible"],
+      ["cancel_work", "ineligible"],
+      ["inspect_work", "eligible"],
+      ["inspect_result", "eligible"],
+    ]);
     expect(
       await suggestedActions.getSuggestedActionViewForInquiryResult(
         "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",

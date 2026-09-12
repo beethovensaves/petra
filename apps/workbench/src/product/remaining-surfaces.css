@@ -426,6 +426,24 @@
   text-decoration: none;
 }
 
+.history-runtime-revision,
+.history-runtime-empty {
+  display: grid;
+  gap: var(--petra-space-1);
+  padding: var(--petra-space-4);
+}
+
+.history-runtime-empty p,
+.history-runtime-recovery p {
+  margin: 0;
+  color: var(--petra-text-secondary);
+}
+
+.history-runtime-recovery {
+  display: grid;
+  gap: var(--petra-space-3);
+}
+
 .history-episodes li span {
   color: var(--petra-text-tertiary);
   font-size: var(--petra-font-size-caption);

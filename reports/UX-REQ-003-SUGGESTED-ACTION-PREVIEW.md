@@ -1,7 +1,8 @@
 # UX-REQ-003 SuggestedAction preview and exact Work invocation
 
-Status: backend Work-starting action family, exact invocation, and frozen
-interface mapping passed; cumulative live Wave 3 exit proof remains open
+Status: backend Work-starting action family, exact invocation, frozen action
+mapping, and authenticated runtime Work History destination passed; replay and
+cancellation-control Wave 3 exit evidence remains open
 Date: 2026-09-11
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -140,8 +141,14 @@ this slice does not add another cancellation command.
 The Petra route accepts the exact inquiry-result link and optional invocation
 command in its URL, rereads both runtime views, and rejects cross-action
 composition. The History destination retains the supplied Work semantic
-identity in the browser URL. The current History presentation remains
-fixture-backed, so that destination is not yet cumulative live proof.
+identity and immutable invocation command receipt in the browser URL. The
+History loader rereads that invocation through the authenticated typed client,
+accepts only its exact Work and History destinations, receipt, Work head, and
+strictly ordered canonical revision sequence, and fails closed without fixture
+fallback on partial or substituted identity. The frozen History regions render
+those revisions with the supplied result, InteractionRun, recovery, and
+limitation state; they do not derive authority or eligibility. Other History
+entry paths retain their separately owned provider.
 
 ## Authenticated APIs and typed client
 
@@ -173,16 +180,17 @@ build, 879 JavaScript/TypeScript tests with seven integration-only skips, and
 25 Python tests.
 
 The frozen-interface mapping passes the pinned Node 24 workbench typecheck and
-all 113 workbench tests. Its focused action evidence covers exact request
+all 116 workbench tests. Its focused action evidence covers exact request
 construction and transport, direct and conversational presentation convergence,
 ready/stale/unavailable previews, server regeneration, pending/completed/
 cancelled invocation states, deterministic Work identity, result and History
-mapping, current recovery eligibility, reconnect rereads, accessibility, and
+mapping, authenticated Work History destination matching, no-fallback identity
+failures, current recovery passthrough, reconnect rereads, accessibility, and
 narrow responsive reflow.
 
 The complete `npm run verify` gate also passes generated-contract and fixture
 checks, the retrieval floor, repository formatting and lint, TypeScript and
-Python typechecks, the production build, 895 JavaScript/TypeScript tests with
+Python typechecks, the production build, 898 JavaScript/TypeScript tests with
 seven integration-only skips, all 25 Python tests, and all six handoff
 automation tests. The production build retains the existing non-failing chunk
 size advisory.
@@ -195,10 +203,12 @@ across 15 files.
 ## Remaining UX-REQ-003 work
 
 This mapping slice does not close `UX-REQ-003` or the Wave 3 exit gate. The
-cumulative clean-start proof must still use the runtime interface to invoke one
-exact action, observe bounded Work through interruption-safe delivery, reach a
-terminal GroundedResponse, open canonical Work and History state, and verify
-the then-current eligible recovery actions without fixture fallback. The
-History route and cancellation control remain outside this action card's live
-command boundary. Other action families, adjustable depth, priority, steering,
-pause/resume, and generalized budget or cost policy remain out of scope.
+cumulative backend proof invokes one exact action, preserves interrupted
+delivery, reaches a terminal GroundedResponse, and exposes canonical Work,
+History, and current recovery. The action-owned History destination now reaches
+that authenticated runtime state without fixture fallback. The interface still
+needs to exercise exact InteractionRun replay rather than invocation reread and
+bind the separately authorized `CancelWorkUnit` command while its supplied
+assessment is eligible. Other action families, adjustable depth, priority,
+steering, pause/resume, and generalized budget or cost policy remain out of
+scope.
