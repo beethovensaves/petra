@@ -11,10 +11,14 @@ import {
   ProjectDataError,
   cancelProjectSuggestedActionWork,
   createSuggestedActionInvocationRequest,
+  createSuggestedActionInteractionReplayRequest,
   createSuggestedActionWorkCancellationRequest,
   getProjectSuggestedActionInvocation,
   invokeProjectSuggestedAction,
+  replayProjectSuggestedActionInteraction,
+  type ProjectSuggestedActionInteractionReplay,
   type ProjectSuggestedActionWorkCancellation,
+  type SuggestedActionInteractionReplayRequest,
   type SuggestedActionWorkCancellationRequest,
 } from "./project-data.js";
 
@@ -63,6 +67,15 @@ interface SuggestedActionCancellationDependencies {
   readonly cancelWork?: typeof cancelProjectSuggestedActionWork;
 }
 
+interface RetainedInteractionReplayRequest {
+  current: SuggestedActionInteractionReplayRequest | undefined;
+}
+
+interface SuggestedActionInteractionReplayDependencies {
+  readonly createRequest?: () => SuggestedActionInteractionReplayRequest;
+  readonly replayInteraction?: typeof replayProjectSuggestedActionInteraction;
+}
+
 /**
  * Retains one caller-owned cancellation command across exact retries and only
  * publishes invocation state returned by the client's verified post-command
@@ -90,6 +103,34 @@ export const attemptSuggestedActionWorkCancellation = async (
   return result;
 };
 
+/**
+ * Retains one caller-owned replay connection across uncertain delivery retries
+ * and publishes only the SDK response plus invocation verified by the exact
+ * post-replay client reread.
+ */
+export const attemptSuggestedActionInteractionReplay = async (
+  projectId: string,
+  invocationCommandId: string,
+  retainedRequest: RetainedInteractionReplayRequest,
+  publishVerifiedReplay: (
+    result: ProjectSuggestedActionInteractionReplay,
+  ) => void,
+  dependencies: SuggestedActionInteractionReplayDependencies = {},
+): Promise<ProjectSuggestedActionInteractionReplay> => {
+  const request =
+    retainedRequest.current ??
+    (
+      dependencies.createRequest ??
+      createSuggestedActionInteractionReplayRequest
+    )();
+  retainedRequest.current = request;
+  const result = await (
+    dependencies.replayInteraction ?? replayProjectSuggestedActionInteraction
+  )(projectId, invocationCommandId, request);
+  publishVerifiedReplay(result);
+  return result;
+};
+
 export const SuggestedWorkAction = ({
   projectId,
   actionView: suppliedActionView,
@@ -103,7 +144,11 @@ export const SuggestedWorkAction = ({
 }): React.JSX.Element => {
   const [actionView, setActionView] = useState(suppliedActionView);
   const [invocation, setInvocation] = useState(initialInvocation);
-  const [busy, setBusy] = useState<"invoke" | "refresh" | "cancel">();
+  const [replayedResponse, setReplayedResponse] =
+    useState<ProjectSuggestedActionInteractionReplay["replay"]>();
+  const [busy, setBusy] = useState<
+    "invoke" | "refresh" | "replay" | "cancel"
+  >();
   const [message, setMessage] = useState<string>();
   const retainedRequest = useRef<
     PetraSuggestedActionInvocationRequest | undefined
@@ -111,12 +156,17 @@ export const SuggestedWorkAction = ({
   const retainedCancellationRequest = useRef<
     SuggestedActionWorkCancellationRequest | undefined
   >(undefined);
+  const retainedReplayRequest = useRef<
+    SuggestedActionInteractionReplayRequest | undefined
+  >(undefined);
   useEffect(() => {
     setActionView(suppliedActionView);
     setInvocation(initialInvocation);
+    setReplayedResponse(undefined);
     setMessage(undefined);
     retainedRequest.current = undefined;
     retainedCancellationRequest.current = undefined;
+    retainedReplayRequest.current = undefined;
   }, [suppliedActionView, initialInvocation]);
   const { action, action_ref: actionRef, readiness } = actionView.content;
   const linkId = action.basis.inquiry_result_link_ref.project_inquiry_link_id;
@@ -144,6 +194,8 @@ export const SuggestedWorkAction = ({
         request,
       );
       setInvocation(next);
+      setReplayedResponse(undefined);
+      retainedReplayRequest.current = undefined;
       setMessage(
         "The exact invocation was accepted. Work and delivery state remain server-owned.",
       );
@@ -198,6 +250,34 @@ export const SuggestedWorkAction = ({
     }
   };
 
+  const replay = async (): Promise<void> => {
+    if (busy !== undefined || invocationCommandId === undefined) return;
+    setBusy("replay");
+    setMessage(undefined);
+    try {
+      await attemptSuggestedActionInteractionReplay(
+        projectId,
+        invocationCommandId,
+        retainedReplayRequest,
+        (verified) => {
+          setInvocation(verified.invocation);
+          setReplayedResponse(verified.replay);
+        },
+      );
+      setMessage(
+        "The exact retained response was replayed and verified against the post-delivery invocation reread.",
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "The exact retained response replay could not be confirmed.",
+      );
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
   const cancel = async (): Promise<void> => {
     if (busy !== undefined || invocationCommandId === undefined) return;
     setBusy("cancel");
@@ -209,6 +289,7 @@ export const SuggestedWorkAction = ({
         retainedCancellationRequest,
         setInvocation,
       );
+      setReplayedResponse(undefined);
       setMessage(
         `Cancellation ${result.cancellation.workUnitCancellationId} was confirmed from the exact post-command server reread.`,
       );
@@ -447,8 +528,12 @@ export const SuggestedWorkAction = ({
       {invocation === undefined ? null : (
         <SuggestedActionInvocationResult
           view={invocation}
-          {...(busy === "refresh" || busy === "cancel" ? { busy } : {})}
+          {...(replayedResponse === undefined ? {} : { replayedResponse })}
+          {...(busy === "refresh" || busy === "replay" || busy === "cancel"
+            ? { busy }
+            : {})}
           onRefresh={() => void refresh()}
+          onReplay={() => void replay()}
           onCancel={() => void cancel()}
         />
       )}
@@ -458,13 +543,17 @@ export const SuggestedWorkAction = ({
 
 export const SuggestedActionInvocationResult = ({
   view,
+  replayedResponse,
   busy,
   onRefresh,
+  onReplay,
   onCancel,
 }: {
   view: PetraSuggestedActionInvocationView;
-  busy?: "refresh" | "cancel";
+  replayedResponse?: ProjectSuggestedActionInteractionReplay["replay"];
+  busy?: "refresh" | "replay" | "cancel";
   onRefresh?: () => void;
+  onReplay?: () => void;
   onCancel?: () => void;
 }): React.JSX.Element => {
   const { content } = view;
@@ -478,6 +567,12 @@ export const SuggestedActionInvocationResult = ({
       recovery.operation === "cancel_work" &&
       recovery.eligibility === "eligible" &&
       recovery.command_name === "CancelWorkUnit",
+  );
+  const replayControl = content.recovery.actions.find(
+    (recovery) =>
+      recovery.operation === "reconnect_delivery" &&
+      recovery.eligibility === "eligible" &&
+      recovery.command_name === undefined,
   );
   return (
     <section
@@ -497,7 +592,8 @@ export const SuggestedActionInvocationResult = ({
           variant="quiet"
           busy={busy === "refresh"}
           busyLabel="Refreshing…"
-          aria-disabled={busy === "cancel" || undefined}
+          aria-disabled={busy === "replay" || busy === "cancel" || undefined}
+          data-operation="refresh_exact_state"
           onClick={onRefresh}
         >
           Refresh exact state
@@ -558,6 +654,36 @@ export const SuggestedActionInvocationResult = ({
         </div>
       </dl>
 
+      {replayedResponse === undefined ? null : (
+        <section
+          className="reference-suggested-action__replay"
+          aria-labelledby="suggested-action-replayed-response-title"
+          data-source="petra-interaction-sdk"
+        >
+          <h5 id="suggested-action-replayed-response-title">
+            Exact retained response
+          </h5>
+          <p>
+            Replayed from the verified InteractionRun without resubmitting the
+            prompt, command, or Work.
+          </p>
+          <ol>
+            {replayedResponse.messages.map((message) => (
+              <li
+                key={message.id}
+                data-message-id={message.id}
+                data-message-role={message.role}
+              >
+                <strong>{titleLabel(message.role)}</strong>
+                {message.content === undefined ? null : (
+                  <p>{message.content}</p>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       <section aria-labelledby="suggested-action-history-title">
         <h5 id="suggested-action-history-title">Work History</h5>
         <p>{plainLabel(content.history.source)}</p>
@@ -603,6 +729,8 @@ export const SuggestedActionInvocationResult = ({
             const reasonId = `suggested-action-recovery-${recovery.operation}`;
             const exposesCancellation =
               recovery === cancellationControl && onCancel !== undefined;
+            const exposesReplay =
+              recovery === replayControl && onReplay !== undefined;
             return (
               <li
                 key={recovery.operation}
@@ -621,12 +749,32 @@ export const SuggestedActionInvocationResult = ({
                       variant="danger"
                       busy={busy === "cancel"}
                       busyLabel="Cancelling exact Work…"
-                      aria-disabled={busy === "refresh" || undefined}
+                      aria-disabled={
+                        busy === "refresh" || busy === "replay" || undefined
+                      }
                       aria-describedby={reasonId}
                       data-command-name="CancelWorkUnit"
                       onClick={onCancel}
                     >
                       Cancel exact Work
+                    </PetraButton>
+                  </div>
+                ) : null}
+                {exposesReplay ? (
+                  <div className="reference-suggested-action__recovery-action">
+                    <PetraButton
+                      variant="secondary"
+                      busy={busy === "replay"}
+                      busyLabel="Replaying exact response…"
+                      aria-disabled={
+                        busy === "refresh" || busy === "cancel" || undefined
+                      }
+                      aria-describedby={reasonId}
+                      data-replay-kind="full-response"
+                      data-after-sequence="0"
+                      onClick={onReplay}
+                    >
+                      Replay exact response
                     </PetraButton>
                   </div>
                 ) : null}

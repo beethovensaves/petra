@@ -40,6 +40,7 @@ import {
   cancelProjectSuggestedActionWork,
   composeProjectHistoryCompensationPlan,
   createSuggestedActionInvocationRequest,
+  createSuggestedActionInteractionReplayRequest,
   createSuggestedActionWorkCancellationRequest,
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
@@ -66,6 +67,7 @@ import {
   invokeProjectSuggestedAction,
   projectRecordFromShellView,
   retractProjectSourceReplacement,
+  replayProjectSuggestedActionInteraction,
   petraThreadFromView,
   reviewSessionFromView,
   sourceRecordFromView,
@@ -403,6 +405,166 @@ const suggestedActionInvocationView = JSON.parse(
     "utf8",
   ),
 ) as PetraSuggestedActionInvocationView;
+
+const completedSuggestedActionInvocationView =
+  (): PetraSuggestedActionInvocationView => {
+    const completed = structuredClone(suggestedActionInvocationView);
+    if (completed.content.work.state !== "pending_registration") {
+      throw new TypeError("Expected the pending SuggestedAction Work fixture.");
+    }
+    const workUnitId = completed.content.work.expected_work_unit_id;
+    const workUnitRef = {
+      work_unit_id: workUnitId,
+      revision: 4,
+      spec_hash:
+        "sha256:2121212121212121212121212121212121212121212121212121212121212121",
+      record_hash:
+        "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    };
+    completed.content.operation_state = "completed";
+    completed.content.work = {
+      state: "available",
+      work_unit_ref: workUnitRef,
+      input_manifest_ref: {
+        record_id: "worker_input_manifest_01K4C000000000000000000062",
+        revision: 1,
+        content_hash:
+          "sha256:2323232323232323232323232323232323232323232323232323232323232323",
+        record_hash:
+          "sha256:2424242424242424242424242424242424242424242424242424242424242424",
+      },
+      execution_state: "completed",
+      terminal_outcome: "succeeded",
+    };
+    completed.content.result = {
+      state: "available",
+      result_ref: {
+        schema_name: "petra.grounded-response",
+        schema_version: "1.0.0",
+        record_id: "grounded_response_01K4C000000000000000000062",
+        revision: 1,
+        content_hash:
+          "sha256:2525252525252525252525252525252525252525252525252525252525252525",
+        record_hash:
+          "sha256:2626262626262626262626262626262626262626262626262626262626262626",
+      },
+      authority_effect: "none",
+    };
+    completed.content.interaction = {
+      ...completed.content.interaction,
+      durable_state: "available",
+      interaction_run_ref: {
+        record_id: "interaction_run_01K4C000000000000000000062",
+        revision: 3,
+        content_hash:
+          "sha256:2727272727272727272727272727272727272727272727272727272727272727",
+        record_hash:
+          "sha256:2828282828282828282828282828282828282828282828282828282828282828",
+      },
+    };
+    completed.content.history.work_revisions = [
+      {
+        work_unit_ref: workUnitRef,
+        state: "completed",
+        terminal_outcome: "succeeded",
+        recorded_at: "2026-09-11T18:40:03.000Z",
+      },
+    ];
+    for (const action of completed.content.recovery.actions) {
+      delete action.command_name;
+      action.eligibility =
+        action.operation === "reconnect_delivery" ||
+        action.operation === "inspect_work" ||
+        action.operation === "inspect_result"
+          ? "eligible"
+          : "ineligible";
+    }
+    return completed;
+  };
+
+const suggestedActionReplayWire = (
+  invocation: PetraSuggestedActionInvocationView,
+  workUnitId = invocation.content.invocation.content.expected_work_unit_id,
+): string => {
+  if (
+    invocation.content.work.state !== "available" ||
+    invocation.content.result.state !== "available" ||
+    invocation.content.interaction.interaction_run_ref === undefined
+  ) {
+    throw new TypeError("Expected a completed SuggestedAction invocation.");
+  }
+  const correlation = invocation.content.interaction;
+  const command = invocation.content.invocation.content.command_ref;
+  const metadata = (sequence: number) => ({
+    petra: {
+      sequence,
+      requestId: "request_01K4C000000000000000000062",
+      traceId: command.correlation_id,
+      workUnitId,
+      modelRequestId: "model_request_01K4C000000000000000000062",
+    },
+  });
+  const events = [
+    {
+      type: "RUN_STARTED",
+      threadId: correlation.protocol_thread_id,
+      runId: correlation.protocol_run_id,
+      timestamp: 1,
+      metadata: metadata(1),
+    },
+    {
+      type: "TEXT_MESSAGE_START",
+      messageId: "message_suggested_action_replay",
+      role: "assistant",
+      timestamp: 2,
+      metadata: metadata(2),
+    },
+    {
+      type: "TEXT_MESSAGE_CONTENT",
+      messageId: "message_suggested_action_replay",
+      delta: "The exact retained grounded response.",
+      timestamp: 3,
+      metadata: metadata(3),
+    },
+    {
+      type: "TEXT_MESSAGE_END",
+      messageId: "message_suggested_action_replay",
+      timestamp: 4,
+      metadata: metadata(4),
+    },
+    {
+      type: "RUN_FINISHED",
+      threadId: correlation.protocol_thread_id,
+      runId: correlation.protocol_run_id,
+      result: {
+        authorityEffect: "none",
+        terminalBinding: {
+          grounded_response_id: invocation.content.result.result_ref.record_id,
+          grounded_response_revision:
+            invocation.content.result.result_ref.revision,
+          grounded_response_hash:
+            invocation.content.result.result_ref.content_hash,
+          response_artifact_id: "artifact_01K4C000000000000000000062",
+          response_artifact_hash:
+            "sha256:2929292929292929292929292929292929292929292929292929292929292929",
+          interaction_run_id:
+            invocation.content.interaction.interaction_run_ref.record_id,
+          interaction_run_revision: 2,
+          interaction_run_hash:
+            "sha256:3030303030303030303030303030303030303030303030303030303030303030",
+          work_unit_id: invocation.content.work.work_unit_ref.work_unit_id,
+          work_unit_revision: invocation.content.work.work_unit_ref.revision,
+          work_unit_spec_hash: invocation.content.work.work_unit_ref.spec_hash,
+          persisted_at: "2026-09-11T18:40:03.000Z",
+        },
+      },
+      outcome: { type: "success" },
+      timestamp: 5,
+      metadata: metadata(5),
+    },
+  ];
+  return events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join("");
+};
 
 const threadCollectionView = JSON.parse(
   readFileSync(
@@ -2218,6 +2380,158 @@ describe("Project shell workbench adapter", () => {
       }),
     ).rejects.toMatchObject({ status: 502 });
     expect(fetch).toHaveBeenCalledOnce();
+  });
+
+  it("replays one server-eligible SuggestedAction InteractionRun without command input", async () => {
+    const completed = completedSuggestedActionInvocationView();
+    const request = createSuggestedActionInteractionReplayRequest({
+      connectionId: "interaction_connection_01K4C000000000000000000099",
+    });
+    const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      if (path.startsWith("/api/interactions/")) {
+        return Promise.resolve(
+          new Response(suggestedActionReplayWire(completed), {
+            headers: { "content-type": "text/event-stream" },
+          }),
+        );
+      }
+      void init;
+      return Promise.resolve(Response.json(completed));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const projectId = completed.project_id;
+    const command = completed.content.invocation.content.command_ref;
+    const correlation = completed.content.interaction;
+    if (
+      completed.content.result.state !== "available" ||
+      completed.content.interaction.interaction_run_ref === undefined
+    ) {
+      throw new TypeError("Expected exact completed replay identities.");
+    }
+
+    const result = await replayProjectSuggestedActionInteraction(
+      projectId,
+      command.command_id,
+      request,
+    );
+
+    expect(result.invocation).toEqual(completed);
+    expect(result.replay.messages).toContainEqual({
+      id: "message_suggested_action_replay",
+      role: "assistant",
+      content: "The exact retained grounded response.",
+    });
+    expect(result.replay.events.at(-1)).toMatchObject({
+      type: "RUN_FINISHED",
+      payload: {
+        threadId: correlation.protocol_thread_id,
+        runId: correlation.protocol_run_id,
+        result: {
+          authorityEffect: "none",
+          terminalBinding: {
+            grounded_response_id: completed.content.result.result_ref.record_id,
+            interaction_run_id:
+              completed.content.interaction.interaction_run_ref.record_id,
+            work_unit_id:
+              completed.content.invocation.content.expected_work_unit_id,
+          },
+        },
+      },
+    });
+    expect(fetch.mock.calls.map(([path]) => path)).toEqual([
+      `/api/queries/projects/${projectId}/suggested-action-invocations/${command.command_id}`,
+      `/api/interactions/${encodeURIComponent(correlation.protocol_run_id)}?thread=${encodeURIComponent(correlation.protocol_thread_id)}&connection=${request.connectionId}&after=0`,
+      `/api/queries/projects/${projectId}/suggested-action-invocations/${command.command_id}`,
+    ]);
+    const replayInit = fetch.mock.calls[1]?.[1];
+    expect(replayInit?.method).toBe("GET");
+    expect(replayInit?.body).toBeUndefined();
+    expect(new Headers(replayInit?.headers).get("authorization")).toBe(
+      "Bearer petra-local-development",
+    );
+    expect(request).toEqual({
+      connectionId: "interaction_connection_01K4C000000000000000000099",
+      afterSequence: 0,
+    });
+    expect(request).not.toHaveProperty("projectId");
+    expect(request).not.toHaveProperty("commandId");
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capabilityGrantId");
+    expect(request).not.toHaveProperty("runId");
+    expect(request).not.toHaveProperty("workUnitId");
+  });
+
+  it("fails closed when replay is ineligible or the delivered Work identity is substituted", async () => {
+    const completed = completedSuggestedActionInvocationView();
+    const ineligible = structuredClone(completed);
+    const reconnect = ineligible.content.recovery.actions.find(
+      (action) => action.operation === "reconnect_delivery",
+    );
+    if (reconnect === undefined) {
+      throw new TypeError("Expected replay recovery authority.");
+    }
+    reconnect.eligibility = "ineligible";
+    reconnect.reason = "No durable interaction delivery can be replayed.";
+    const request = createSuggestedActionInteractionReplayRequest({
+      connectionId: "interaction_connection_01K4C000000000000000000099",
+    });
+    const ineligibleFetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(ineligible));
+    vi.stubGlobal("fetch", ineligibleFetch);
+
+    await expect(
+      replayProjectSuggestedActionInteraction(
+        ineligible.project_id,
+        ineligible.content.invocation.content.command_ref.command_id,
+        request,
+      ),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(ineligibleFetch).toHaveBeenCalledOnce();
+
+    const substitutedFetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      return Promise.resolve(
+        path.startsWith("/api/interactions/")
+          ? new Response(
+              suggestedActionReplayWire(
+                completed,
+                "work_unit_01K4C000000000000000000099",
+              ),
+              { headers: { "content-type": "text/event-stream" } },
+            )
+          : Response.json(completed),
+      );
+    });
+    vi.stubGlobal("fetch", substitutedFetch);
+    await expect(
+      replayProjectSuggestedActionInteraction(
+        completed.project_id,
+        completed.content.invocation.content.command_ref.command_id,
+        request,
+      ),
+    ).rejects.toMatchObject({ status: 502 });
+    expect(substitutedFetch).toHaveBeenCalledTimes(3);
+
+    await expect(
+      replayProjectSuggestedActionInteraction(
+        completed.project_id,
+        completed.content.invocation.content.command_ref.command_id,
+        { ...request, afterSequence: 1 as 0 },
+      ),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(substitutedFetch).toHaveBeenCalledTimes(3);
   });
 
   it("cancels only the exact server-eligible SuggestedAction Work and rereads its History", async () => {

@@ -685,12 +685,11 @@ const actionProof = async (environment, seedPool) => {
       token,
       traceId: "trace_wave3_reconnect",
     });
-    const replay = await replayClient.run({
+    const replay = await replayClient.replay({
       threadId: correlation.protocol_thread_id,
       runId: correlation.protocol_run_id,
-      prompt: preview.content.action.execution.prompt,
-      workflow: "grounded_synthesis",
       connectionId: interruptedConnectionId,
+      afterSequence: 0,
     });
     progress("terminal interaction replayed after restart");
     const replayTerminal = replay.events.find(

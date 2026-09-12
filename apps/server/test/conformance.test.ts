@@ -435,6 +435,71 @@ describe("D014 Hono conformance", () => {
     });
   });
 
+  test("D014-HC04: the typed client replays through the authenticated read boundary only", async () => {
+    const threadId = "thread_hc04_typed_replay";
+    const runId = "run_hc04_typed_replay";
+    const initial = new PetraInteractionClient({
+      endpoint: `${server.url}/api/interactions/run`,
+      token: TOKEN,
+      traceId: "trace_hc04_typed_replay",
+    });
+    await initial.run({
+      threadId,
+      runId,
+      prompt: "Replay this exact persisted response.",
+    });
+    const before = server.runtime.snapshot(runId);
+    const requests: Array<{ input: RequestInfo | URL; init?: RequestInit }> =
+      [];
+    const observedFetch: typeof fetch = (input, init) => {
+      requests.push({ input, ...(init === undefined ? {} : { init }) });
+      return fetch(input, init);
+    };
+    const replayClient = new PetraInteractionClient({
+      endpoint: `${server.url}/api/interactions/run`,
+      token: TOKEN,
+      traceId: "trace_hc04_typed_replay",
+      fetch: observedFetch,
+    });
+
+    const replay = await replayClient.replay({
+      threadId,
+      runId,
+      connectionId: "interaction_connection_01ARZ3NDEKTSV4RRFFQ69G5FDP",
+      afterSequence: 0,
+    });
+
+    const after = server.runtime.snapshot(runId);
+    expect(requests).toHaveLength(1);
+    const replayInput = requests[0]?.input;
+    const replayPath =
+      typeof replayInput === "string"
+        ? replayInput
+        : replayInput instanceof URL
+          ? replayInput.href
+          : replayInput?.url;
+    expect(replayPath).toBe(
+      `${server.url}/api/interactions/${runId}?thread=${threadId}&connection=interaction_connection_01ARZ3NDEKTSV4RRFFQ69G5FDP&after=0`,
+    );
+    expect(requests[0]?.init?.method).toBe("GET");
+    expect(requests[0]?.init?.body).toBeUndefined();
+    expect(new Headers(requests[0]?.init?.headers).get("authorization")).toBe(
+      `Bearer ${TOKEN}`,
+    );
+    expect(replay.events.at(0)?.type).toBe(EventType.RUN_STARTED);
+    expect(replay.events.at(-1)?.type).toBe(EventType.RUN_FINISHED);
+    expect(replay.messages.at(-1)?.content).toContain(
+      "H01 — The current working explanation",
+    );
+    expect(after).toEqual({
+      ...before,
+      delivery: {
+        ...before.delivery,
+        completed: before.delivery.completed + 1,
+      },
+    });
+  });
+
   test("M1.6-W18: grounded synthesis streams retrieval, packet, model, validation, answer, and exact terminal provenance", async () => {
     const runtime = new PetraInteractionRuntime({
       groundedSynthesisExecutor: await completedGroundedExecutor(),

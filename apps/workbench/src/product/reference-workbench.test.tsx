@@ -25,6 +25,7 @@ import {
 import {
   SuggestedActionInvocationResult,
   SuggestedWorkAction,
+  attemptSuggestedActionInteractionReplay,
   attemptSuggestedActionWorkCancellation,
 } from "./SuggestedAction.js";
 
@@ -264,12 +265,209 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain('data-operation="cancel_work"');
     expect(markup).toContain('data-eligibility="eligible"');
     expect(markup).toContain("Refresh exact state");
+    expect(markup).not.toContain("Replay exact response");
     expect(markup).not.toContain("Cancel exact Work");
     expect(markup).toContain('aria-live="polite"');
     expect(markup).toContain(
       'aria-labelledby="suggested-action-invocation-title"',
     );
     expect(markup).toContain("Invocation has no scientific authority effect");
+  });
+
+  it("exposes replay in both presentations only from the eligible reconnect_delivery assessment", () => {
+    const eligible = structuredClone(suggestedActionInvocationView);
+    const reconnect = eligible.content.recovery.actions.find(
+      (recovery) => recovery.operation === "reconnect_delivery",
+    );
+    if (reconnect === undefined) {
+      throw new Error("The reconnect recovery assessment is missing.");
+    }
+    reconnect.eligibility = "eligible";
+    reconnect.reason =
+      "The exact retained InteractionRun response is eligible for replay.";
+
+    const directMarkup = render(
+      <SuggestedWorkAction
+        projectId={eligible.project_id}
+        actionView={suggestedWorkActionView}
+        initialInvocation={eligible}
+        presentationPath="direct"
+      />,
+    );
+    const conversationalMarkup = render(
+      <SuggestedWorkAction
+        projectId={eligible.project_id}
+        actionView={suggestedWorkActionView}
+        initialInvocation={eligible}
+        presentationPath="conversational"
+      />,
+    );
+    const commandBound = structuredClone(eligible);
+    const commandBoundReconnect = commandBound.content.recovery.actions.find(
+      (recovery) => recovery.operation === "reconnect_delivery",
+    );
+    if (commandBoundReconnect === undefined) {
+      throw new Error("The reconnect recovery assessment is missing.");
+    }
+    commandBoundReconnect.command_name = "CancelWorkUnit";
+    const commandBoundMarkup = render(
+      <SuggestedActionInvocationResult
+        view={commandBound}
+        onReplay={() => undefined}
+      />,
+    );
+    const ineligibleMarkup = render(
+      <SuggestedActionInvocationResult
+        view={suggestedActionInvocationView}
+        onReplay={() => undefined}
+      />,
+    );
+    const unboundMarkup = render(
+      <SuggestedActionInvocationResult view={eligible} />,
+    );
+
+    for (const markup of [directMarkup, conversationalMarkup]) {
+      expect(markup.match(/Replay exact response/g)).toHaveLength(1);
+      expect(markup).toContain('data-replay-kind="full-response"');
+      expect(markup).toContain('data-after-sequence="0"');
+      expect(markup).toContain(
+        'aria-describedby="suggested-action-recovery-reconnect_delivery"',
+      );
+      expect(markup).toContain(
+        'id="suggested-action-recovery-reconnect_delivery"',
+      );
+      expect(markup).toContain("Refresh exact state");
+      expect(markup).toContain('data-operation="refresh_exact_state"');
+      expect(markup).not.toContain("Resume");
+    }
+    expect(directMarkup).toContain('data-presentation-path="direct"');
+    expect(conversationalMarkup).toContain(
+      'data-presentation-path="conversational"',
+    );
+    expect(commandBoundMarkup).not.toContain("Replay exact response");
+    expect(ineligibleMarkup).not.toContain("Replay exact response");
+    expect(unboundMarkup).not.toContain("Replay exact response");
+  });
+
+  it("retains one replay connection across uncertain retries and publishes only verified SDK state", async () => {
+    const request = {
+      connectionId: "interaction_connection_01K4C000000000000000000099",
+      afterSequence: 0 as const,
+    };
+    const retained = { current: undefined };
+    const createRequest = vi.fn(() => request);
+    const publishVerifiedReplay = vi.fn();
+    const verifiedInvocation = structuredClone(suggestedActionInvocationView);
+    const result = {
+      invocation: verifiedInvocation,
+      replay: {
+        events: [{ type: "RUN_FINISHED", payload: {} }],
+        messages: [
+          {
+            id: "message_suggested_action_replay",
+            role: "assistant",
+            content: "The exact SDK-derived retained response.",
+          },
+        ],
+        state: {},
+        pendingInterrupts: [],
+      },
+    };
+    const replayInteraction = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Replay delivery was not confirmed."))
+      .mockResolvedValueOnce(result);
+    const invocationCommandId =
+      suggestedActionInvocationView.content.invocation.content.command_ref
+        .command_id;
+    const dependencies = { createRequest, replayInteraction };
+
+    await expect(
+      attemptSuggestedActionInteractionReplay(
+        suggestedActionInvocationView.project_id,
+        invocationCommandId,
+        retained,
+        publishVerifiedReplay,
+        dependencies,
+      ),
+    ).rejects.toThrow("Replay delivery was not confirmed.");
+    expect(retained.current).toBe(request);
+    expect(publishVerifiedReplay).not.toHaveBeenCalled();
+
+    await expect(
+      attemptSuggestedActionInteractionReplay(
+        suggestedActionInvocationView.project_id,
+        invocationCommandId,
+        retained,
+        publishVerifiedReplay,
+        dependencies,
+      ),
+    ).resolves.toBe(result);
+
+    expect(createRequest).toHaveBeenCalledOnce();
+    expect(replayInteraction).toHaveBeenCalledTimes(2);
+    expect(replayInteraction.mock.calls[0]?.[2]).toBe(request);
+    expect(replayInteraction.mock.calls[1]?.[2]).toBe(request);
+    expect(request).toEqual({
+      connectionId: "interaction_connection_01K4C000000000000000000099",
+      afterSequence: 0,
+    });
+    expect(request).not.toHaveProperty("prompt");
+    expect(request).not.toHaveProperty("commandId");
+    expect(request).not.toHaveProperty("workUnitId");
+    expect(publishVerifiedReplay).toHaveBeenCalledOnce();
+    expect(publishVerifiedReplay).toHaveBeenCalledWith(result);
+  });
+
+  it("renders only the exact SDK replay messages in an accessible retained-response region", () => {
+    const eligible = structuredClone(suggestedActionInvocationView);
+    const reconnect = eligible.content.recovery.actions.find(
+      (recovery) => recovery.operation === "reconnect_delivery",
+    );
+    if (reconnect === undefined) {
+      throw new Error("The reconnect recovery assessment is missing.");
+    }
+    reconnect.eligibility = "eligible";
+    const replayedResponse = {
+      events: [{ type: "RUN_FINISHED", payload: {} }],
+      messages: [
+        {
+          id: "message_suggested_action_replay",
+          role: "assistant",
+          content:
+            "The exact retained response from the authenticated InteractionRun.",
+        },
+      ],
+      state: {},
+      pendingInterrupts: [],
+    };
+    const markup = render(
+      <SuggestedActionInvocationResult
+        view={eligible}
+        replayedResponse={replayedResponse}
+        busy="replay"
+        onRefresh={() => undefined}
+        onReplay={() => undefined}
+      />,
+    );
+
+    expect(markup).toContain('data-source="petra-interaction-sdk"');
+    expect(markup).toContain(
+      'aria-labelledby="suggested-action-replayed-response-title"',
+    );
+    expect(markup).toContain('id="suggested-action-replayed-response-title"');
+    expect(markup).toContain(
+      'data-message-id="message_suggested_action_replay"',
+    );
+    expect(markup).toContain('data-message-role="assistant"');
+    expect(markup).toContain(
+      "The exact retained response from the authenticated InteractionRun.",
+    );
+    expect(markup).toContain("Replaying exact response…");
+    expect(markup).toContain('aria-busy="true"');
+    expect(markup).not.toContain(
+      "What does the selected study report, and what limits the claim?",
+    );
   });
 
   it("exposes exact Work cancellation only from the supplied eligible CancelWorkUnit assessment", () => {
@@ -512,6 +710,11 @@ describe("neutral Petra reference workbench", () => {
     expect(referenceWorkbenchCss).toContain(
       ".reference-suggested-action__invocation > header",
     );
+    expect(referenceWorkbenchCss).toContain(
+      ".reference-suggested-action__replay li p",
+    );
+    expect(referenceWorkbenchCss).toContain("white-space: pre-wrap");
+    expect(referenceWorkbenchCss).toContain("overflow-wrap: anywhere");
   });
 
   it("separates source identity, extent, rights, and downstream use", () => {

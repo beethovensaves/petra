@@ -490,6 +490,42 @@ export interface PetraInteractionClientOptions {
   fetch?: typeof fetch;
 }
 
+type PetraHttpAgentRunParameters = NonNullable<
+  Parameters<HttpAgent["runAgent"]>[0]
+>;
+
+const collectInteractionResult = async (
+  agent: HttpAgent,
+  parameters: PetraHttpAgentRunParameters,
+): Promise<PetraInteractionResult> => {
+  const events: PetraClientEvent[] = [];
+  await agent.runAgent(parameters, {
+    onEvent: ({ event }) => {
+      const { type, ...payload } = event;
+      events.push({ type, payload });
+    },
+  });
+
+  return {
+    events,
+    messages: agent.messages.map((message) => ({
+      id: message.id,
+      role: message.role,
+      ...("content" in message && typeof message.content === "string"
+        ? { content: message.content }
+        : {}),
+    })),
+    state: agent.state,
+    pendingInterrupts: agent.pendingInterrupts.map((interrupt) => ({
+      id: interrupt.id,
+      reason: interrupt.reason,
+      ...(interrupt.message === undefined
+        ? {}
+        : { message: interrupt.message }),
+    })),
+  };
+};
+
 export class PetraInteractionClient {
   readonly #options: PetraInteractionClientOptions;
 
@@ -537,7 +573,6 @@ export class PetraInteractionClient {
     connectionId?: string;
     abortController?: AbortController;
   }): Promise<PetraInteractionResult> {
-    const events: PetraClientEvent[] = [];
     const agent = new HttpAgent({
       url: this.#options.endpoint,
       agentId: "petra-research-assistant",
@@ -561,52 +596,91 @@ export class PetraInteractionClient {
         : { fetch: this.#options.fetch }),
     });
 
-    await agent.runAgent(
-      {
-        runId: parameters.runId,
-        tools: [],
-        context: [],
-        forwardedProps: {
-          petra: {
-            workflow: parameters.workflow ?? "fixture",
-            ...((parameters.workflow ?? "fixture") === "grounded_synthesis"
-              ? {}
-              : { fixtureMode: parameters.fixtureMode ?? "success" }),
-            afterSequence: parameters.afterSequence ?? 0,
-            ...(parameters.connectionId === undefined
-              ? {}
-              : { connectionId: parameters.connectionId }),
-          },
-        },
-        ...(parameters.abortController === undefined
-          ? {}
-          : { abortController: parameters.abortController }),
-      },
-      {
-        onEvent: ({ event }) => {
-          const { type, ...payload } = event;
-          events.push({ type, payload });
+    return collectInteractionResult(agent, {
+      runId: parameters.runId,
+      tools: [],
+      context: [],
+      forwardedProps: {
+        petra: {
+          workflow: parameters.workflow ?? "fixture",
+          ...((parameters.workflow ?? "fixture") === "grounded_synthesis"
+            ? {}
+            : { fixtureMode: parameters.fixtureMode ?? "success" }),
+          afterSequence: parameters.afterSequence ?? 0,
+          ...(parameters.connectionId === undefined
+            ? {}
+            : { connectionId: parameters.connectionId }),
         },
       },
-    );
+      ...(parameters.abortController === undefined
+        ? {}
+        : { abortController: parameters.abortController }),
+    });
+  }
 
-    return {
-      events,
-      messages: agent.messages.map((message) => ({
-        id: message.id,
-        role: message.role,
-        ...("content" in message && typeof message.content === "string"
-          ? { content: message.content }
-          : {}),
-      })),
-      state: agent.state,
-      pendingInterrupts: agent.pendingInterrupts.map((interrupt) => ({
-        id: interrupt.id,
-        reason: interrupt.reason,
-        ...(interrupt.message === undefined
-          ? {}
-          : { message: interrupt.message }),
-      })),
-    };
+  /**
+   * Replays persisted events for one exact durable InteractionRun through the
+   * authenticated read boundary. This creates only a delivery attempt; it
+   * cannot submit interaction input, start Work, or reapply a Petra command.
+   */
+  async replay(parameters: {
+    threadId: string;
+    runId: string;
+    connectionId: string;
+    afterSequence?: number;
+    abortController?: AbortController;
+  }): Promise<PetraInteractionResult> {
+    const afterSequence = parameters.afterSequence ?? 0;
+    if (!Number.isSafeInteger(afterSequence) || afterSequence < 0) {
+      throw new InteractionInputError(
+        "The replay checkpoint must be a non-negative safe integer.",
+      );
+    }
+    const runEndpointSuffix = "run";
+    if (!this.#options.endpoint.endsWith(`/${runEndpointSuffix}`)) {
+      throw new InteractionInputError(
+        "The Petra interaction endpoint must end with /run to derive its replay boundary.",
+      );
+    }
+    const query = new URLSearchParams({
+      thread: parameters.threadId,
+      connection: parameters.connectionId,
+      after: String(afterSequence),
+    });
+    const endpoint = `${this.#options.endpoint.slice(0, -runEndpointSuffix.length)}${encodeURIComponent(parameters.runId)}?${query}`;
+    const request = this.#options.fetch ?? fetch;
+    const agent = new HttpAgent({
+      url: endpoint,
+      agentId: "petra-research-assistant",
+      threadId: parameters.threadId,
+      initialState: {},
+      initialMessages: [],
+      headers: {
+        accept: "text/event-stream",
+        authorization: `Bearer ${this.#options.token}`,
+        "x-petra-trace-id":
+          this.#options.traceId ?? `trace_${parameters.runId}`,
+      },
+      fetch: async (url, init) => {
+        const headers = new Headers(init.headers);
+        headers.delete("content-type");
+        return request(url, {
+          method: "GET",
+          headers,
+          ...(init.signal === undefined || init.signal === null
+            ? {}
+            : { signal: init.signal }),
+        });
+      },
+    });
+
+    return collectInteractionResult(agent, {
+      runId: parameters.runId,
+      tools: [],
+      context: [],
+      ...(parameters.abortController === undefined
+        ? {}
+        : { abortController: parameters.abortController }),
+    });
   }
 }
