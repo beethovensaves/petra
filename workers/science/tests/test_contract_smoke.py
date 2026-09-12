@@ -4443,6 +4443,44 @@ class PetraReviewSession(PetraModel):
     updated_at: str
 
 
+class ReviewSessionWorkingStateBinding(PetraModel):
+    candidate_ref: WorkingCandidateRef
+    relationship_refs: list[WorkingRelationshipRef]
+
+
+class ReviewSessionMemberV110(PetraModel):
+    review_member_id: str
+    member_role: Literal["ordinary", "exception"]
+    working_state: ReviewSessionWorkingStateBinding
+    candidate_bindings: list[ReviewSessionCandidateBinding]
+
+
+class ReviewSessionContentV110(PetraModel):
+    title: str
+    objective_summary: str
+    objective_ref: ReviewSessionObjectiveRef
+    lifecycle: Literal["open", "deferred", "completed"]
+    responsible: ReviewSessionHumanActorRef
+    snapshot: ReviewSessionProjectSnapshot
+    origin: ReviewSessionOrigin
+    return_context: ReviewSessionReturnContext
+    members: list[ReviewSessionMemberV110]
+
+
+class PetraReviewSessionV110(PetraModel):
+    schema_name: Literal["petra.review-session"]
+    schema_version: Literal["1.1.0"]
+    review_session_id: str
+    revision: int
+    project_id: str
+    project_definition_ref: ReviewSessionDefinitionRef
+    content: ReviewSessionContentV110
+    content_hash: str
+    created_by: ReviewSessionHumanActorRef
+    created_at: str
+    updated_at: str
+
+
 class ProjectReviewExactRef(PetraModel):
     record_id: str
     revision: int
@@ -11034,6 +11072,7 @@ PYDANTIC_MODELS.update(
             "project-history-impact-view",
             "1.4.0",
         ): PetraProjectHistoryImpactViewV140,
+        ("review-session", "1.1.0"): PetraReviewSessionV110,
         ("suggested-action-view", "1.1.0"): PetraSuggestedActionViewV110,
     }
 )

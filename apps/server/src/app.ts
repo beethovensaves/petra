@@ -3456,7 +3456,11 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         context.req.param("projectId"),
       );
       for (const review of reviews) {
-        contracts.assertValid("project-review-view", "1.0.0", review);
+        contracts.assertValid(
+          "project-review-view",
+          review.schema_version,
+          review,
+        );
       }
       return context.json({ reviews });
     } catch (error) {
@@ -3535,7 +3539,11 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The requested Review session is not bound to this Project.",
           );
         }
-        contracts.assertValid("project-review-view", "1.0.0", review);
+        contracts.assertValid(
+          "project-review-view",
+          review.schema_version,
+          review,
+        );
         return context.json(review);
       } catch (error) {
         return jsonError(

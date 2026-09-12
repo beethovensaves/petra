@@ -216,8 +216,13 @@ composition, or frozen-interface integration. It exposes no client mutation
 endpoint; later Review operations must continue through typed commands rather
 than conversation or graph selection.
 
-The next safe backend slice is default-order item 4: one durable task-sized
-ReviewSession composed over the canonical working candidates, validation,
-ChangeSets, Approvals, commands, events, and projection state. Brief,
-communication, a materially different ProjectDefinition, paired-profile
-conformance, and frozen-interface runtime mapping remain later Wave 4 work.
+ReviewSession and Project Review view 1.1 now compose this canonical working
+state with validation, ChangeSets, Approvals, commands, events, member outcomes,
+and separate authority and projection positions, as recorded in
+`UX-REQ-012-WORKING-REVIEW-COMPOSITION.md`.
+
+The next safe backend slice is default-order item 5: add only the missing typed
+Review operations for correction or material-basis revision, defer/reopen,
+refresh, explicit separation, and member recovery. Brief, communication, a
+materially different ProjectDefinition, paired-profile conformance, and full
+frozen-interface runtime evidence remain later Wave 4 work.

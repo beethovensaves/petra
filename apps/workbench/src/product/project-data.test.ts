@@ -19,6 +19,7 @@ import type {
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
+  PetraProjectReviewViewV110,
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraSuggestedActionView,
@@ -33,6 +34,8 @@ import type {
   PetraSuggestedActionViewV11,
   PetraProjectThreadView,
   PetraProjectWorkView,
+  PetraWorkingCandidate,
+  PetraWorkingRelationship,
 } from "@petra/contracts";
 import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -307,6 +310,26 @@ const reviewView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectReviewView;
+
+const reviewWorkingCandidate = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/working-candidate.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraWorkingCandidate;
+
+const reviewWorkingRelationship = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/working-relationship.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraWorkingRelationship;
 
 const relationshipView = JSON.parse(
   readFileSync(
@@ -1999,6 +2022,36 @@ describe("Project shell workbench adapter", () => {
       "project_source_01K4C000000000000000000007",
     );
     expect(reviewView).toEqual(before);
+  });
+
+  it("maps the additive working Review composition without changing the frozen Review model", () => {
+    const workingView = structuredClone(
+      reviewView,
+    ) as unknown as PetraProjectReviewViewV110;
+    workingView.schema_version = "1.1.0";
+    workingView.content.members[0].working_state = {
+      candidate: structuredClone(reviewWorkingCandidate),
+      relationships: [structuredClone(reviewWorkingRelationship)],
+      selection_basis: "exact_review_session_working_bindings",
+      authority_effect: "none",
+    };
+    workingView.content.members[0].change_sets =
+      workingView.content.members[0].change_sets.map((changeSet) => ({
+        ...changeSet,
+        commands: [],
+        events: [],
+      }));
+    workingView.content.projection = {
+      state: "unavailable",
+      reason: "No projection receipt exists for the submitted ChangeSet.",
+    };
+
+    expect(reviewSessionFromView(workingView)).toEqual(
+      reviewSessionFromView(reviewView),
+    );
+    expect(workingView.content.members[0].working_state.authority_effect).toBe(
+      "none",
+    );
   });
 
   it("maps one bounded current provenance path without inventing unavailable graph layers", () => {

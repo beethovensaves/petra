@@ -21,7 +21,7 @@ import type {
   PetraProjectObjectLocationView,
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
-  PetraProjectReviewView,
+  PetraProjectReviewViewRecord,
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraSuggestedActionView,
@@ -1396,11 +1396,11 @@ const sourceView = (value: unknown): PetraProjectSourceView => {
   return value as unknown as PetraProjectSourceView;
 };
 
-const reviewView = (value: unknown): PetraProjectReviewView => {
+const reviewView = (value: unknown): PetraProjectReviewViewRecord => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-review-view" ||
-    value.schema_version !== "1.0.0" ||
+    (value.schema_version !== "1.0.0" && value.schema_version !== "1.1.0") ||
     typeof value.project_id !== "string" ||
     typeof value.review_session_id !== "string" ||
     !isRecord(value.content) ||
@@ -1412,7 +1412,7 @@ const reviewView = (value: unknown): PetraProjectReviewView => {
       502,
     );
   }
-  return value as unknown as PetraProjectReviewView;
+  return value as unknown as PetraProjectReviewViewRecord;
 };
 
 const relationshipView = (value: unknown): PetraProjectRelationshipView => {
@@ -2506,7 +2506,7 @@ export const sourceRecordFromView = (
 };
 
 export const reviewSessionFromView = (
-  view: PetraProjectReviewView,
+  view: PetraProjectReviewViewRecord,
 ): ReviewSession => {
   if (view.content.members.length !== 1) {
     throw new ProjectDataError(

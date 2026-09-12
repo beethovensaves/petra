@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-session/1.1.0/schema.json",
+  "title": "PetraReviewSessionV110",
+  "description": "A durable, revisioned, profile-neutral decision context whose members bind exact canonical working-state revisions and exact profile-registered candidate records. Review composition grants no domain or mutation authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "review_session_id",
+    "revision",
+    "project_id",
+    "project_definition_ref",
+    "content",
+    "content_hash",
+    "created_by",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.review-session" },
+    "schema_version": { "const": "1.1.0" },
+    "review_session_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^review_session_" }
+      ]
+    },
+    "revision": { "$ref": "../../common/1.0.0/schema.json#/$defs/Revision" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "project_definition_ref": {
+      "$ref": "../1.0.0/schema.json#/$defs/DefinitionRef"
+    },
+    "content": { "$ref": "#/$defs/SessionContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_by": { "$ref": "../1.0.0/schema.json#/$defs/HumanActorRef" },
+    "created_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" },
+    "updated_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "WorkingCandidateRef": {
+      "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/WorkingCandidateRef"
+    },
+    "WorkingRelationshipRef": {
+      "$ref": "../../working-relationship/1.0.0/schema.json#/$defs/WorkingRelationshipRef"
+    },
+    "WorkingStateBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_ref", "relationship_refs"],
+      "properties": {
+        "candidate_ref": { "$ref": "#/$defs/WorkingCandidateRef" },
+        "relationship_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/WorkingRelationshipRef" }
+        }
+      }
+    },
+    "ReviewMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_member_id",
+        "member_role",
+        "working_state",
+        "candidate_bindings"
+      ],
+      "properties": {
+        "review_member_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^review_member_" }
+          ]
+        },
+        "member_role": { "enum": ["ordinary", "exception"] },
+        "working_state": { "$ref": "#/$defs/WorkingStateBinding" },
+        "candidate_bindings": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "../1.0.0/schema.json#/$defs/CandidateBinding"
+          }
+        }
+      }
+    },
+    "SessionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "objective_summary",
+        "objective_ref",
+        "lifecycle",
+        "responsible",
+        "snapshot",
+        "origin",
+        "return_context",
+        "members"
+      ],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "objective_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "objective_ref": {
+          "$ref": "../1.0.0/schema.json#/$defs/ObjectiveRef"
+        },
+        "lifecycle": { "enum": ["open", "deferred", "completed"] },
+        "responsible": {
+          "$ref": "../1.0.0/schema.json#/$defs/HumanActorRef"
+        },
+        "snapshot": {
+          "$ref": "../1.0.0/schema.json#/$defs/ProjectSnapshot"
+        },
+        "origin": { "$ref": "../1.0.0/schema.json#/$defs/Origin" },
+        "return_context": {
+          "$ref": "../1.0.0/schema.json#/$defs/ReturnContext"
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ReviewMember" }
+        }
+      }
+    }
+  }
+}

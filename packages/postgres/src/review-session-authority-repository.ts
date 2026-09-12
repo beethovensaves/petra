@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
 
-import type { PetraReviewSession } from "@petra/contracts";
+import type {
+  PetraReviewSessionRecord,
+  ReviewSessionMemberV110,
+} from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type { ReviewSessionAuthorityRepository } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -67,9 +70,13 @@ export class PostgresReviewSessionAuthorityRepository implements ReviewSessionAu
   }
 
   async registerReviewSessionRevision(
-    session: PetraReviewSession,
-  ): Promise<PetraReviewSession> {
-    this.#contracts.assertValid("review-session", "1.0.0", session);
+    session: PetraReviewSessionRecord,
+  ): Promise<PetraReviewSessionRecord> {
+    this.#contracts.assertValid(
+      "review-session",
+      session.schema_version,
+      session,
+    );
     if (session.content_hash !== canonicalHash(session.content)) {
       throw new PostgresReviewSessionError(
         "REVIEW_SESSION_CONTENT_HASH_MISMATCH",
@@ -190,7 +197,7 @@ export class PostgresReviewSessionAuthorityRepository implements ReviewSessionAu
     projectId: string,
     reviewSessionId: string,
     revision?: number,
-  ): Promise<PetraReviewSession | undefined> {
+  ): Promise<PetraReviewSessionRecord | undefined> {
     const result = await this.#pool.query<StoredRow>(
       `SELECT record.payload, record.record_hash
          FROM petra.review_sessions AS session
@@ -205,7 +212,9 @@ export class PostgresReviewSessionAuthorityRepository implements ReviewSessionAu
       : this.#stored(result.rows[0]);
   }
 
-  async listReviewSessions(projectId: string): Promise<PetraReviewSession[]> {
+  async listReviewSessions(
+    projectId: string,
+  ): Promise<PetraReviewSessionRecord[]> {
     const result = await this.#pool.query<StoredRow>(
       `SELECT record.payload, record.record_hash
          FROM petra.review_sessions AS session
@@ -219,7 +228,7 @@ export class PostgresReviewSessionAuthorityRepository implements ReviewSessionAu
     return result.rows.map((row) => this.#stored(row));
   }
 
-  #assertBindings(session: PetraReviewSession): void {
+  #assertBindings(session: PetraReviewSessionRecord): void {
     const memberIds = session.content.members.map(
       (member) => member.review_member_id,
     );
@@ -244,11 +253,34 @@ export class PostgresReviewSessionAuthorityRepository implements ReviewSessionAu
         evidenceKind(binding.record_ref.record_id);
       }
     }
+    if (session.schema_version === "1.1.0") {
+      const candidateRefs = session.content.members.map(
+        (member) => member.working_state.candidate_ref.working_candidate_id,
+      );
+      if (new Set(candidateRefs).size !== candidateRefs.length) {
+        throw new PostgresReviewSessionError(
+          "REVIEW_SESSION_RELATION_INVALID",
+          "A WorkingCandidate revision can belong to only one Review member in a session revision.",
+        );
+      }
+      const relationshipRefs = session.content.members.flatMap((member) =>
+        member.working_state.relationship_refs.map(
+          (relationship) =>
+            `${relationship.working_relationship_id}:${relationship.revision}`,
+        ),
+      );
+      if (new Set(relationshipRefs).size !== relationshipRefs.length) {
+        throw new PostgresReviewSessionError(
+          "REVIEW_SESSION_RELATION_INVALID",
+          "A WorkingRelationship revision can belong to only one Review member in a session revision.",
+        );
+      }
+    }
   }
 
   async #insertRevision(
     client: PoolClient,
-    session: PetraReviewSession,
+    session: PetraReviewSessionRecord,
     recordHash: string,
   ): Promise<void> {
     const content = session.content;
@@ -319,12 +351,74 @@ export class PostgresReviewSessionAuthorityRepository implements ReviewSessionAu
           ],
         );
       }
+      if (session.schema_version === "1.1.0") {
+        await this.#insertWorkingBindings(
+          client,
+          session,
+          memberIndex,
+          member as ReviewSessionMemberV110,
+        );
+      }
     }
   }
 
-  #stored(row: StoredRow): PetraReviewSession {
-    this.#contracts.assertValid("review-session", "1.0.0", row.payload);
-    const session = row.payload as PetraReviewSession;
+  async #insertWorkingBindings(
+    client: PoolClient,
+    session: PetraReviewSessionRecord & { schema_version: "1.1.0" },
+    memberIndex: number,
+    member: ReviewSessionMemberV110,
+  ): Promise<void> {
+    const candidate = member.working_state.candidate_ref;
+    await client.query(
+      `INSERT INTO petra.review_session_working_candidate_bindings (
+         review_session_id, review_session_revision, member_position,
+         review_member_id, working_candidate_id,
+         working_candidate_revision, working_candidate_content_hash
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        session.review_session_id,
+        session.revision,
+        memberIndex + 1,
+        member.review_member_id,
+        candidate.working_candidate_id,
+        candidate.revision,
+        candidate.content_hash,
+      ],
+    );
+    for (const [
+      relationshipIndex,
+      relationship,
+    ] of member.working_state.relationship_refs.entries()) {
+      await client.query(
+        `INSERT INTO petra.review_session_working_relationship_bindings (
+           review_session_id, review_session_revision, member_position,
+           relationship_position, working_relationship_id,
+           working_relationship_revision, working_relationship_content_hash
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          session.review_session_id,
+          session.revision,
+          memberIndex + 1,
+          relationshipIndex + 1,
+          relationship.working_relationship_id,
+          relationship.revision,
+          relationship.content_hash,
+        ],
+      );
+    }
+  }
+
+  #stored(row: StoredRow): PetraReviewSessionRecord {
+    const version = (row.payload as { schema_version?: unknown })
+      .schema_version;
+    if (version !== "1.0.0" && version !== "1.1.0") {
+      throw new PostgresReviewSessionError(
+        "REVIEW_SESSION_STORED_RECORD_CORRUPT",
+        "Stored ReviewSession schema version is unsupported.",
+      );
+    }
+    this.#contracts.assertValid("review-session", version, row.payload);
+    const session = row.payload as PetraReviewSessionRecord;
     if (
       row.record_hash !== canonicalHash(session) ||
       session.content_hash !== canonicalHash(session.content)

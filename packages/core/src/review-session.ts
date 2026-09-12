@@ -1,6 +1,6 @@
 import type {
-  PetraProjectReviewView,
-  PetraReviewSession,
+  PetraProjectReviewViewRecord,
+  PetraReviewSessionRecord,
 } from "@petra/contracts";
 
 /**
@@ -9,21 +9,23 @@ import type {
  */
 export interface ReviewSessionAuthorityRepository {
   registerReviewSessionRevision(
-    session: PetraReviewSession,
-  ): Promise<PetraReviewSession>;
+    session: PetraReviewSessionRecord,
+  ): Promise<PetraReviewSessionRecord>;
   getReviewSession(
     projectId: string,
     reviewSessionId: string,
     revision?: number,
-  ): Promise<PetraReviewSession | undefined>;
-  listReviewSessions(projectId: string): Promise<PetraReviewSession[]>;
+  ): Promise<PetraReviewSessionRecord | undefined>;
+  listReviewSessions(projectId: string): Promise<PetraReviewSessionRecord[]>;
 }
 
 /** Snapshot-consistent, authorized Review collection and detail reads. */
 export interface ProjectReviewViewReader {
-  listProjectReviewViews(projectId: string): Promise<PetraProjectReviewView[]>;
+  listProjectReviewViews(
+    projectId: string,
+  ): Promise<PetraProjectReviewViewRecord[]>;
   getProjectReviewView(
     projectId: string,
     reviewSessionId: string,
-  ): Promise<PetraProjectReviewView | undefined>;
+  ): Promise<PetraProjectReviewViewRecord | undefined>;
 }

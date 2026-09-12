@@ -1,0 +1,342 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-review-view/1.1.0/schema.json",
+  "title": "PetraProjectReviewViewV110",
+  "description": "A read-only, snapshot-consistent Review-session composition over exact canonical working records and the existing scientific ChangeSet authority path. It preserves command, event, Approval, and graph-projection receipts without granting authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "review_session_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-review-view" },
+    "schema_version": { "const": "1.1.0" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "review_session_id": {
+      "type": "string",
+      "pattern": "^review_session_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "content": { "$ref": "#/$defs/ReviewViewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "WorkingStateComposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate",
+        "relationships",
+        "selection_basis",
+        "authority_effect"
+      ],
+      "properties": {
+        "candidate": {
+          "$ref": "../../working-candidate/1.0.0/schema.json"
+        },
+        "relationships": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "../../working-relationship/1.0.0/schema.json"
+          }
+        },
+        "selection_basis": {
+          "const": "exact_review_session_working_bindings"
+        },
+        "authority_effect": { "const": "none" }
+      }
+    },
+    "CommandTrace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "command_name",
+        "command_fingerprint",
+        "outcome",
+        "submitted_at",
+        "completed_at"
+      ],
+      "properties": {
+        "command_id": {
+          "type": "string",
+          "pattern": "^command_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "command_name": {
+          "enum": ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"]
+        },
+        "command_fingerprint": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "outcome": { "enum": ["success", "failure"] },
+        "submitted_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "completed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "error_code": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "error_message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    },
+    "EventTrace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_type",
+        "event_position",
+        "stream_revision",
+        "command_id",
+        "record_hash",
+        "recorded_at"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "pattern": "^event_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "event_type": {
+          "enum": [
+            "change_set.submitted",
+            "approval.recorded",
+            "change_set.applied",
+            "change_set.conflicted"
+          ]
+        },
+        "event_position": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "command_id": {
+          "type": "string",
+          "pattern": "^command_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "recorded_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "ChangeSetSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "change_set_ref",
+        "state",
+        "atomicity",
+        "changes",
+        "protected",
+        "impact_summary",
+        "commands",
+        "events"
+      ],
+      "properties": {
+        "change_set_ref": {
+          "$ref": "../1.0.0/schema.json#/$defs/ExactRef"
+        },
+        "state": {
+          "enum": ["submitted", "approved", "rejected", "applied", "conflicted"]
+        },
+        "atomicity": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "changes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        },
+        "protected": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        },
+        "impact_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "approval_ref": {
+          "$ref": "../1.0.0/schema.json#/$defs/ExactRecordRef"
+        },
+        "commands": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/CommandTrace" }
+        },
+        "events": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/EventTrace" }
+        }
+      }
+    },
+    "ReviewMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_member_id",
+        "member_role",
+        "outcome",
+        "candidate",
+        "working_state",
+        "basis",
+        "validation",
+        "consequences",
+        "change_sets"
+      ],
+      "properties": {
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "member_role": { "enum": ["ordinary", "exception"] },
+        "outcome": {
+          "enum": [
+            "awaiting_decision",
+            "waiting",
+            "applied",
+            "rejected",
+            "conflicted"
+          ]
+        },
+        "candidate": {
+          "$ref": "../1.0.0/schema.json#/$defs/CandidateSummary"
+        },
+        "working_state": { "$ref": "#/$defs/WorkingStateComposition" },
+        "basis": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/BasisItem" }
+        },
+        "validation": {
+          "$ref": "../1.0.0/schema.json#/$defs/ValidationSummary"
+        },
+        "consequences": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        },
+        "change_sets": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ChangeSetSummary" }
+        }
+      }
+    },
+    "UnavailableProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "AvailableProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "checkpoint_ref",
+        "represented_event_position",
+        "represented_stream_revision",
+        "represented_target_sequence",
+        "observed_event_position",
+        "observed_stream_revision",
+        "observed_target_sequence",
+        "pending_records"
+      ],
+      "properties": {
+        "state": { "enum": ["current", "catching_up", "blocked"] },
+        "checkpoint_ref": {
+          "$ref": "../1.0.0/schema.json#/$defs/ExactRef"
+        },
+        "represented_event_position": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "represented_stream_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "represented_target_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "observed_event_position": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "observed_stream_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "observed_target_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "pending_records": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "failure_code": { "type": "string", "minLength": 1, "maxLength": 200 }
+      }
+    },
+    "ProjectionState": {
+      "oneOf": [
+        { "$ref": "#/$defs/UnavailableProjection" },
+        { "$ref": "#/$defs/AvailableProjection" }
+      ]
+    },
+    "ReviewViewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session", "members", "authority", "projection"],
+      "properties": {
+        "session": { "$ref": "../1.0.0/schema.json#/$defs/SessionSummary" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ReviewMember" }
+        },
+        "authority": {
+          "$ref": "../1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "projection": { "$ref": "#/$defs/ProjectionState" }
+      }
+    }
+  }
+}
