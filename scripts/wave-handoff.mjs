@@ -342,7 +342,7 @@ ${roleBoundary}
 
 Process exactly ONE bounded slice. Inspect the repository and the exact counterpart commit before acting. Follow accepted decisions and frozen requirements; this automation packet is coordination guidance only. Do not spawn additional agents. Use the pinned Node 24 toolchain. Preserve unrelated work and never use destructive Git commands.
 
-For a completed slice, run proportionate focused checks, the complete repository verification gate, and real PostgreSQL integration when persistence or PostgreSQL behavior changes. Commit and push the coherent slice before responding. Confirm that your HEAD equals its remote tracking branch and that the worktree is clean except for the two explicitly known design assets. Do not continue to a second slice yourself.
+For a completed slice, run proportionate focused checks, the complete repository verification gate, and real PostgreSQL integration when persistence or PostgreSQL behavior changes. If the slice changes repository files, commit and push the coherent change before responding. If a bounded role-owned review finds no safe repository change, return a handoff from the unchanged clean and pushed commit and say so explicitly; do not fabricate a file change merely to create a commit. Confirm that your HEAD equals its remote tracking branch and that the worktree is clean except for the two explicitly known design assets. Do not continue to a second slice yourself.
 
 If a consequential product, architecture, authority, information-hierarchy, or freeze decision is unresolved, make no partial commit and return needs_user. If a required gate, service, authorization, push, branch, worktree, or usage limit prevents safe completion, return blocked. Never label partial or unverified work complete.
 
@@ -353,6 +353,19 @@ ${handoff}
 
 WAVE ${wave} PACKET
 ${plan}`;
+}
+
+export function validateCommitTransition(
+  disposition,
+  beforeCommit,
+  afterCommit,
+) {
+  const completed = ["handoff", "wave_complete"].includes(disposition);
+  const changed = afterCommit !== beforeCommit;
+  if (!completed && changed) {
+    throw new Error(`Worker changed or committed work despite ${disposition}.`);
+  }
+  return changed;
 }
 
 function codexExecutable() {
@@ -571,14 +584,11 @@ async function finalizeTurn(wave, role, claimedState, worker) {
   }
 
   const completed = ["handoff", "wave_complete"].includes(result.disposition);
-  if (completed && own.head === claimedState.commits[role]) {
-    throw new Error(`${role} reported completion without a new commit.`);
-  }
-  if (!completed && own.head !== claimedState.commits[role]) {
-    throw new Error(
-      `${role} changed or committed work despite ${result.disposition}.`,
-    );
-  }
+  const commitChanged = validateCommitTransition(
+    result.disposition,
+    claimedState.commits[role],
+    own.head,
+  );
 
   await withStateLock(wave, () => {
     const state = readState(wave);
@@ -604,6 +614,7 @@ async function finalizeTurn(wave, role, claimedState, worker) {
       next_safe_boundary: result.next_safe_boundary,
       wave_exit_assessment: result.wave_exit_assessment,
       user_attention: result.user_attention,
+      commit_changed: commitChanged,
       run_id: worker.runId,
       completed_at: timestamp,
     });

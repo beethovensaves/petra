@@ -90,8 +90,11 @@ report authority.
 
 ## Permanent constraints
 
-- Process exactly one bounded slice per worker turn, verify it, commit it, push
-  it, and hand off.
+- Process exactly one bounded implementation or role-owned review slice per
+  worker turn and verify it. Commit and push every repository change. A
+  bounded review that finds no safe role-owned change may hand off from the
+  unchanged clean and pushed commit; never fabricate a change to satisfy the
+  alternation.
 - Never let model output, Work completion, conversation, graph selection,
   similarity, validation success, or presentation state become Project
   authority.

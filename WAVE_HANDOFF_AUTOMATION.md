@@ -71,7 +71,8 @@ schema. It never uses the dangerous sandbox bypass. Every handoff verifies:
 - expected branch and exact counterpart commit;
 - no concurrent counterpart change;
 - clean allowed worktree state;
-- a new coherent commit for completed work;
+- a new coherent commit whenever repository files change, or an explicit
+  verified no-change handoff from the unchanged pushed commit;
 - local HEAD equality with the remote branch; and
 - a structured next boundary, exit assessment, or exact stop reason.
 

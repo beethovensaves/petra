@@ -11,6 +11,7 @@ import {
   parseArguments,
   parsePorcelainZ,
   unexpectedChanges,
+  validateCommitTransition,
   validateWorkerResult,
 } from "./wave-handoff.mjs";
 
@@ -113,6 +114,21 @@ test("rejects an incomplete or cross-commit worker handoff", () => {
   );
 });
 
+test("accepts verified no-change handoffs but rejects stopped work changes", () => {
+  const before = "a".repeat(40);
+  const after = "b".repeat(40);
+  assert.equal(validateCommitTransition("handoff", before, before), false);
+  assert.equal(validateCommitTransition("handoff", before, after), true);
+  assert.equal(
+    validateCommitTransition("wave_complete", before, before),
+    false,
+  );
+  assert.throws(
+    () => validateCommitTransition("blocked", before, after),
+    /despite blocked/,
+  );
+});
+
 test("the handoff output schema accepts the complete result", () => {
   const schema = JSON.parse(
     readFileSync(
@@ -152,7 +168,8 @@ test("worker prompt fixes one-slice, commit, role, and stop boundaries", () => {
   assert.match(prompt, /unattended design worker for Wave 4/);
   assert.doesNotMatch(prompt, /design worker for backend Wave/);
   assert.match(prompt, /exactly ONE bounded slice/);
-  assert.match(prompt, /Commit and push/);
+  assert.match(prompt, /commit and push/);
+  assert.match(prompt, /unchanged clean and pushed commit/);
   assert.match(prompt, /Do not edit backend contracts/);
   assert.match(prompt, /return needs_user/);
   assert.match(prompt, /Map the exact backend slice/);
