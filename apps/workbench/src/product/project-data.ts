@@ -1,3 +1,7 @@
+import {
+  PetraInteractionClient,
+  type PetraInteractionResult,
+} from "@petra/adapters/ag-ui";
 import type {
   PetraProjectHistoryCompensationExecutionRequest,
   PetraProjectHistoryCompensationExecutionView,
@@ -64,6 +68,8 @@ const COMMAND_ID = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const WORK_UNIT_ID = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const WORK_UNIT_CANCELLATION_ID =
   /^work_unit_cancellation_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const INTERACTION_CONNECTION_ID =
+  /^interaction_connection_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
 const HISTORY_CONTINUATION_FAILURE_MESSAGE =
   "This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.";
@@ -3605,8 +3611,22 @@ export interface SuggestedActionWorkCancellationRequestOptions {
   readonly reason?: string;
 }
 
+export interface SuggestedActionInteractionReplayRequest {
+  readonly connectionId: string;
+  readonly afterSequence: 0;
+}
+
+export interface SuggestedActionInteractionReplayRequestOptions {
+  readonly connectionId?: string;
+}
+
 export interface ProjectSuggestedActionWorkCancellation {
   readonly cancellation: SuggestedActionWorkCancellationResult;
+  readonly invocation: PetraSuggestedActionInvocationView;
+}
+
+export interface ProjectSuggestedActionInteractionReplay {
+  readonly replay: PetraInteractionResult;
   readonly invocation: PetraSuggestedActionInvocationView;
 }
 
@@ -3620,6 +3640,19 @@ export const createSuggestedActionWorkCancellationRequest = (
 ): SuggestedActionWorkCancellationRequest => ({
   commandId: options.commandId ?? `command_${randomUlidPayload()}`,
   ...(options.reason === undefined ? {} : { reason: options.reason }),
+});
+
+/**
+ * Creates one caller-owned delivery identity for a full persisted response
+ * replay. The Project, command, Work, Actor, capability, InteractionRun, and
+ * result identities are deliberately absent and come from a fresh server read.
+ */
+export const createSuggestedActionInteractionReplayRequest = (
+  options: SuggestedActionInteractionReplayRequestOptions = {},
+): SuggestedActionInteractionReplayRequest => ({
+  connectionId:
+    options.connectionId ?? `interaction_connection_${randomUlidPayload()}`,
+  afterSequence: 0,
 });
 
 /**
@@ -3718,6 +3751,9 @@ const sameSuggestedActionInvocationAuthority = (
   const beforeHistory = before.content.history.command_receipt_ref;
   const afterHistory = after.content.history.command_receipt_ref;
   return (
+    before.project_id === after.project_id &&
+    JSON.stringify(before.content.invocation) ===
+      JSON.stringify(after.content.invocation) &&
     beforeInvocation.suggested_action_invocation_id ===
       afterInvocation.suggested_action_invocation_id &&
     beforeInvocation.revision === afterInvocation.revision &&
@@ -3744,6 +3780,188 @@ const sameSuggestedActionInvocationAuthority = (
     before.content.interaction.protocol_run_id ===
       after.content.interaction.protocol_run_id
   );
+};
+
+const suggestedActionReplayMatches = (
+  replay: PetraInteractionResult,
+  invocation: PetraSuggestedActionInvocationView,
+  connection: SuggestedActionInteractionReplayRequest,
+): boolean => {
+  if (
+    replay.events.length === 0 ||
+    replay.events[0]?.type !== "RUN_STARTED" ||
+    replay.pendingInterrupts.length !== 0 ||
+    connection.afterSequence !== 0
+  ) {
+    return false;
+  }
+  const correlation = invocation.content.interaction;
+  const command = invocation.content.invocation.content.command_ref;
+  const work = invocation.content.work;
+  const interactionRunRef = correlation.interaction_run_ref;
+  if (work.state !== "available" || interactionRunRef === undefined) {
+    return false;
+  }
+  let sequence = 0;
+  for (const event of replay.events) {
+    const payload = event.payload;
+    const metadata = isRecord(payload.metadata)
+      ? payload.metadata.petra
+      : undefined;
+    if (
+      !isRecord(metadata) ||
+      !Number.isSafeInteger(metadata.sequence) ||
+      Number(metadata.sequence) < 1 ||
+      Number(metadata.sequence) < sequence ||
+      Number(metadata.sequence) > sequence + 1 ||
+      metadata.workUnitId !== work.work_unit_ref.work_unit_id ||
+      metadata.traceId !== command.correlation_id ||
+      (payload.threadId !== undefined &&
+        payload.threadId !== correlation.protocol_thread_id) ||
+      (payload.runId !== undefined &&
+        payload.runId !== correlation.protocol_run_id)
+    ) {
+      return false;
+    }
+    sequence = Number(metadata.sequence);
+  }
+  const terminal = replay.events.at(-1);
+  if (terminal?.type === "RUN_ERROR") {
+    return (
+      invocation.content.operation_state === "failed" ||
+      invocation.content.operation_state === "cancelled"
+    );
+  }
+  if (
+    terminal?.type !== "RUN_FINISHED" ||
+    terminal.payload.threadId !== correlation.protocol_thread_id ||
+    terminal.payload.runId !== correlation.protocol_run_id ||
+    invocation.content.operation_state !== "completed" ||
+    invocation.content.result.state !== "available" ||
+    !isRecord(terminal.payload.result) ||
+    !isRecord(terminal.payload.result.terminalBinding)
+  ) {
+    return false;
+  }
+  const binding = terminal.payload.result.terminalBinding;
+  return (
+    binding.grounded_response_id ===
+      invocation.content.result.result_ref.record_id &&
+    binding.grounded_response_revision ===
+      invocation.content.result.result_ref.revision &&
+    binding.grounded_response_hash ===
+      invocation.content.result.result_ref.content_hash &&
+    binding.interaction_run_id === interactionRunRef.record_id &&
+    binding.work_unit_id === work.work_unit_ref.work_unit_id &&
+    binding.work_unit_revision === work.work_unit_ref.revision &&
+    binding.work_unit_spec_hash === work.work_unit_ref.spec_hash
+  );
+};
+
+/**
+ * Replays one exact SuggestedAction InteractionRun through Petra's
+ * authenticated presentation boundary. Server-owned recovery eligibility is
+ * reread before delivery, and the immutable invocation plus canonical Work,
+ * result, InteractionRun, and History identities are verified afterwards.
+ */
+export const replayProjectSuggestedActionInteraction = async (
+  projectId: string,
+  invocationCommandId: string,
+  request: SuggestedActionInteractionReplayRequest,
+): Promise<ProjectSuggestedActionInteractionReplay> => {
+  if (
+    !COMMAND_ID.test(invocationCommandId) ||
+    !isRecord(request) ||
+    !hasExactKeys(request, ["connectionId", "afterSequence"]) ||
+    !INTERACTION_CONNECTION_ID.test(request.connectionId) ||
+    request.afterSequence !== 0
+  ) {
+    throw new ProjectDataError(
+      "SuggestedAction replay requires one canonical delivery connection and the exact full-response checkpoint.",
+      400,
+    );
+  }
+  const current = await getProjectSuggestedActionInvocation(
+    projectId,
+    invocationCommandId,
+  );
+  const reconnect = current.content.recovery.actions.find(
+    (action) => action.operation === "reconnect_delivery",
+  );
+  if (reconnect === undefined || reconnect.command_name !== undefined) {
+    throw new ProjectDataError(
+      "Petra returned an inconsistent server-owned replay assessment.",
+      502,
+    );
+  }
+  if (reconnect.eligibility !== "eligible") {
+    throw new ProjectDataError(reconnect.reason, 409);
+  }
+  if (
+    current.content.interaction.durable_state !== "available" ||
+    current.content.work.state !== "available"
+  ) {
+    throw new ProjectDataError(
+      "Petra marked replay eligible without a durable InteractionRun and WorkUnit.",
+      502,
+    );
+  }
+  const correlation = current.content.interaction;
+  let replay: PetraInteractionResult;
+  try {
+    replay = await new PetraInteractionClient({
+      endpoint: "/api/interactions/run",
+      token: apiToken(),
+      traceId: current.content.invocation.content.command_ref.correlation_id,
+    }).replay({
+      threadId: correlation.protocol_thread_id,
+      runId: correlation.protocol_run_id,
+      connectionId: request.connectionId,
+      afterSequence: request.afterSequence,
+    });
+  } catch (error) {
+    throw new ProjectDataError(
+      error instanceof Error
+        ? error.message
+        : "The exact SuggestedAction interaction could not be replayed.",
+      502,
+    );
+  }
+
+  const updated = await getProjectSuggestedActionInvocation(
+    projectId,
+    invocationCommandId,
+  );
+  const currentRevisions = current.content.history.work_revisions;
+  const updatedRevisions = updated.content.history.work_revisions;
+  const updatedWork = updated.content.work;
+  const currentWork = current.content.work;
+  const currentInteractionRunRef =
+    current.content.interaction.interaction_run_ref;
+  const updatedInteractionRunRef =
+    updated.content.interaction.interaction_run_ref;
+  if (
+    !sameSuggestedActionInvocationAuthority(current, updated) ||
+    currentWork.state !== "available" ||
+    updatedWork.state !== "available" ||
+    updatedWork.work_unit_ref.work_unit_id !==
+      currentWork.work_unit_ref.work_unit_id ||
+    updated.content.interaction.durable_state !== "available" ||
+    currentInteractionRunRef === undefined ||
+    updatedInteractionRunRef === undefined ||
+    updatedInteractionRunRef.record_id !== currentInteractionRunRef.record_id ||
+    currentRevisions.some(
+      (revision, index) =>
+        JSON.stringify(revision) !== JSON.stringify(updatedRevisions[index]),
+    ) ||
+    !suggestedActionReplayMatches(replay, updated, request)
+  ) {
+    throw new ProjectDataError(
+      "Petra replay did not preserve the exact invocation, InteractionRun, Work, result, and History identities.",
+      502,
+    );
+  }
+  return { replay, invocation: updated };
 };
 
 /**

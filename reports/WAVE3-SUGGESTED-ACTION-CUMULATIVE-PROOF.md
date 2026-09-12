@@ -1,10 +1,11 @@
 # Wave 3 SuggestedAction cumulative backend proof
 
-Status: backend cumulative lifecycle and renderer-neutral cancellation binding
-passed; frozen-interface cancellation and replay closure remains open
+Status: backend cumulative lifecycle, renderer-neutral cancellation, and exact
+InteractionRun replay bindings passed; frozen-interface replay closure and the
+Wave 3 exit assessment remain open
 Date: 2026-09-11
-Backend proof basis: `03cb39341f5503abbcaa5c3a13d3a68f2c5aba04`
-Exact design counterpart: `d32175d288ee0effb8df524d6781d6160e95a06f`
+Backend replay predecessor: `5d9eb5270f1c1764019f80e968bc222297888e38`
+Exact design counterpart: `011b9583653dfbd728672a77bb4bc6ec03329645`
 Design boundary: `UX-DESIGN-FREEZE-01`
 
 ## Result
@@ -39,10 +40,12 @@ ineligible, while delivery reconnect, Work inspection, and result inspection
 are eligible.
 
 The proof restarts the Petra server against the retained stores and reconnects
-the same InteractionRun and connection. The terminal response is replayed as
-delivery attempt two with no provider or model request and the same result and
-Work identities. Final persistence cardinalities are exactly one invocation
-receipt, one WorkUnit, four Work revisions, and two delivery records.
+the same InteractionRun and connection through the authenticated GET replay
+boundary. The terminal response is replayed as delivery attempt two with no
+provider or model request and the same result and Work identities. No prompt,
+command, action input, or workflow instruction crosses that replay request.
+Final persistence cardinalities are exactly one invocation receipt, one
+WorkUnit, four Work revisions, and two delivery records.
 
 ## Result resolution found by the proof
 
@@ -107,6 +110,42 @@ first HTTP response. No React component, CSS, browser route, generated
 contract, server authority implementation, or persistence behavior changed in
 this slice.
 
+## Renderer-neutral InteractionRun replay boundary
+
+The existing authenticated `GET /api/interactions/:runId` boundary already
+restores one durable InteractionRun by exact protocol thread and run
+correlation, streams only its retained logical events through the official
+AG-UI client, and records an immutable delivery attempt. An `after=0` request is
+an explicit full response replay. It does not carry the original prompt or any
+command input, call `InvokeSuggestedAction`, start or retry Work, apply domain
+authority, or cancel Work.
+
+`PetraInteractionClient.replay` now exposes that existing read boundary without
+hand-parsing protocol events. The SuggestedAction-specific renderer-neutral
+client adds the narrower frozen-action contract:
+
+- `createSuggestedActionInteractionReplayRequest` creates only a caller-owned
+  canonical connection identity and fixes the full-response checkpoint at
+  zero;
+- `replayProjectSuggestedActionInteraction` fresh-reads the exact immutable
+  invocation, consumes only its server-owned `reconnect_delivery` eligibility,
+  and derives Project-independent protocol run/thread and Work identities from
+  that view;
+- the delivery request is an authenticated GET with no body, prompt, command,
+  Actor, capability, Work, result, or History input; and
+- the post-delivery reread must preserve the immutable invocation, invoking
+  Actor, capability grant, command and receipt, InteractionRun, WorkUnit,
+  result, retained Work-revision prefix, and History destinations. The replayed
+  AG-UI event sequence, trace, Work identity, terminal result, and protocol
+  correlation must match those server records or the client fails closed.
+
+The connection request is retained by presentation across uncertain delivery
+retries; the runtime remains the sole owner of monotonically numbered delivery
+attempts and immutable `InteractionReplayRecord` receipts. This is replay, not
+generic Work resume. Ordinary invocation refresh remains a separate read and
+does not become replay. No new replay, Work, command, result, recovery, or
+History ledger was introduced.
+
 ## Reproducible evidence
 
 The passing deterministic proof produced:
@@ -131,36 +170,35 @@ certification gate.
 
 No React component, CSS, browser route, or presentation fixture changed in this
 backend slice. Inspection of exact counterpart
-`d32175d288ee0effb8df524d6781d6160e95a06f` confirms that the action's supplied
-History destination is now authenticated and runtime-backed. Two
-presentation-only boundaries remain and cannot be closed without crossing
-design authority:
+`011b9583653dfbd728672a77bb4bc6ec03329645` confirms that the action's supplied
+History destination is authenticated and runtime-backed and that the frozen
+action region binds the exact retry-stable `CancelWorkUnit` client. One
+presentation-only boundary remains and cannot be closed without crossing
+design authority: **Refresh exact state** correctly remains an ordinary
+invocation reread, but the frozen action region does not yet expose the separate
+eligible InteractionRun replay client.
 
-- action refresh rereads the exact invocation and does not initiate the
-  contract's InteractionRun replay; and
-- cancellation eligibility is rendered from the server assessment, but the
-  frozen action region does not yet bind the new renderer-neutral client to its
-  existing control.
-
-The Wave 3 exit gate therefore remains open. Design must bind the accepted
-cancellation client and InteractionRun replay behavior through the frozen
-interface, without fixture fallback or client-side authority calculations, and
-run the mapped cumulative live proof. This backend proof is the handoff evidence
-for that bounded design integration.
+The Wave 3 exit gate therefore remains open. Design must bind this exact replay
+behavior through the frozen interface without fixture fallback or client-side
+authority calculations, retain ordinary refresh as reread-only, and run the
+mapped cumulative live proof plus the full exit assessment. This backend proof
+is the handoff evidence for that bounded design integration.
 
 ## Verification
 
-- `npm run test:wave3:cumulative`: passed on clean PostgreSQL 18.6 and SeaweedFS
-  stores after all 32 migrations.
+- `npm run test:wave3:cumulative`: passed through the authenticated GET replay
+  client on clean PostgreSQL 18.6 and SeaweedFS stores after all 32 migrations;
+  the retained cardinalities remained one invocation, one WorkUnit, four Work
+  revisions, and two exact delivery attempts.
 - `npm run test:postgres:integration`: passed all 111 PostgreSQL tests across 15
-  files after all 32 migrations.
-- Focused pinned-Node checks for this slice passed the workbench typecheck, all
-  100 workbench tests, both interaction-runtime cancellation tests, and all 19
-  server conformance tests. The server suite required its ordinary loopback
-  permission.
+  files after all 32 migrations in the preceding persistence-changing backend
+  slice; this read/client-only slice changes no persistence behavior.
+- Focused pinned-Node checks pass the package build, workbench and server
+  typechecks, all 31 adapter tests, all 102 workbench tests, and all 65 server
+  tests. The server suite requires its ordinary loopback permission.
 - `npm run verify`: passed generated-contract and fixture checks, the retrieval
   floor, repository formatting and lint, TypeScript and Python typechecks, the
-  production build, 875 passing JavaScript/TypeScript tests with seven
+  production build, 878 passing JavaScript/TypeScript tests with seven
   integration-only skips, 25 Python tests, and all six handoff automation
   tests. The production build retained the existing non-failing chunk-size
   advisory.
