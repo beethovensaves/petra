@@ -1,10 +1,12 @@
 # Wave 3 SuggestedAction cumulative proof
 
-Status: backend cumulative lifecycle and frozen runtime Work History destination
-passed; replay and cancellation-control closure remains open
+Status: backend cumulative lifecycle, renderer-neutral cancellation client,
+frozen runtime Work History destination, and frozen cancellation control passed;
+InteractionRun replay and the Wave 3 exit assessment remain open
 Date: 2026-09-11
-Backend proof commit: `03cb39341f5503abbcaa5c3a13d3a68f2c5aba04`
-Design integration basis: `b295ade37e17f6182d7b47758aa22e11d608c6f4`
+Backend proof basis: `03cb39341f5503abbcaa5c3a13d3a68f2c5aba04`
+Backend cancellation counterpart: `5d9eb5270f1c1764019f80e968bc222297888e38`
+Design integration basis: `d32175d288ee0effb8df524d6781d6160e95a06f`
 Design boundary: `UX-DESIGN-FREEZE-01`
 
 ## Result
@@ -68,6 +70,45 @@ manifest that reuses an existing GroundedResponse and verifies the returned
 result reference, all four canonical Work revisions, and terminal recovery
 eligibility.
 
+## Renderer-neutral cancellation boundary
+
+The existing accepted M1.7 boundary is sufficient for this SuggestedAction
+family without a new authority decision. `POST /api/work-units/:runId/cancel`
+is bearer-authenticated, resolves one active protocol run to its exact durable
+WorkUnit, commits the idempotent `CancelWorkUnit` receipt and cancelled Work
+revision before provider interruption, and preserves cancelled interaction
+presentation for replay. Its cancellation command is executed by the existing
+service identity with the WorkUnit's exact capability. This slice therefore
+does not add a second cancellation endpoint, reinterpret the human
+`InvokeSuggestedAction` grant as a `CancelWorkUnit` grant, or introduce generic
+cancellation of Work that may be shared.
+
+The renderer-neutral Project client now exposes:
+
+- `createSuggestedActionWorkCancellationRequest`, which creates only the
+  caller-owned canonical command ID and optional readable reason; and
+- `cancelProjectSuggestedActionWork`, which fresh-reads the exact invocation,
+  consumes the server-owned cancellation assessment, derives the
+  InteractionRun and WorkUnit identities from that view, calls the accepted
+  cancellation route, validates the durable cancellation identity and hash,
+  and rereads the invocation after the command.
+
+The post-command reread must retain the exact Project, immutable invocation
+receipt, invoking human Actor, capability grant, command, InteractionRun, and
+History destinations. It must also contain the exact cancelled Work revision
+returned by the command and mark cancellation ineligible. Any identity
+substitution or incomplete durable response fails closed. Only the cancellation
+command ID and optional reason cross from the browser; Project, Actor,
+capability, trace, InteractionRun, WorkUnit, receipt, and History identities are
+never accepted from client command input.
+
+The fresh assessment supports presentation but is not a client-side authority
+calculation. The authenticated runtime remains the final authority for a
+completion/cancellation race and exact command redelivery, including a lost
+first HTTP response. That backend slice changed no React component, CSS,
+browser route, generated contract, server authority implementation, or
+persistence behavior.
+
 ## Reproducible evidence
 
 The passing deterministic proof produced:
@@ -117,31 +158,65 @@ matching, canonical revision order and current-head matching, no-fallback
 failure behavior, semantic link identity, recovery passthrough, landmark and
 heading associations, and frozen narrow-layout reuse.
 
+## Frozen-interface cancellation binding
+
+The shared direct and conversational `SuggestedWorkAction` presentation now
+exposes **Cancel exact Work** only inside the returned `cancel_work` recovery
+item when that exact item is `eligible` and names `CancelWorkUnit`. The control
+does not infer eligibility from Work state, action state, time, or any other
+client-visible field. Ineligible, commandless, or unbound recovery items create
+no cancellation control or keyboard stop.
+
+The control calls `createSuggestedActionWorkCancellationRequest` once and
+retains that exact caller-owned command across uncertain retries. It then calls
+`cancelProjectSuggestedActionWork` with the immutable invocation command. The
+presentation replaces its invocation state only with the client result, whose
+post-command invocation reread has already verified Project, Actor, capability,
+invocation receipt and command, InteractionRun, WorkUnit, cancellation, and
+History identities. A rejected or unverified attempt leaves the displayed
+invocation unchanged and reports only the returned failure; it never claims
+that cancellation occurred.
+
+The cancellation button uses the existing destructive-action treatment, names
+the exact command in machine-readable markup, takes its accessible description
+from the server-supplied eligibility reason, exposes a busy label, and prevents
+concurrent refresh. No route, fixture fallback, shared-Work cancellation,
+client-side capability calculation, or backend authority changed. Ordinary
+**Refresh exact state** still only rereads the invocation and does not claim
+InteractionRun replay.
+
 ## Remaining frozen-interface evidence
 
-The exact backend proof and runtime History mapping leave two distinct
-presentation controls open:
-
-- action refresh rereads the exact invocation and does not initiate the
-  contract's InteractionRun replay; and
-- cancellation eligibility is rendered from the server assessment, but the
-  action region does not bind the existing authorized cancellation command.
-
-The Wave 3 exit gate therefore remains open. Design must bind the accepted
-eligible recovery/reconnect behavior through the frozen interface without
-client-side authority calculations, then extend the cumulative live proof
-through those exact interface controls. The route intentionally does not make
-an invocation reread look like replay and does not turn a server eligibility
-assessment into an unbound cancellation button.
+The exact backend proof, runtime History mapping, and cancellation binding leave
+one separate presentation behavior open: **Refresh exact state** rereads the
+exact invocation and does not initiate the contract's InteractionRun replay.
+The Wave 3 exit gate therefore remains open pending the separate replay and
+cumulative live exit-gate assessment. This slice intentionally does not make an
+invocation reread look like replay.
 
 ## Verification
 
-- `npm run test:wave3:cumulative`: passed on clean PostgreSQL 18.6 and SeaweedFS
-  stores after all 32 migrations.
-- `npm run test:postgres:integration`: passed all 111 PostgreSQL tests across 15
-  files after all 32 migrations.
-- `npm run verify`: passed generated-contract and fixture checks, the retrieval
-  floor, repository formatting and lint, TypeScript and Python typechecks, the
-  production build, 898 JavaScript/TypeScript tests with seven integration-only
-  skips, 25 Python tests, and all six handoff automation tests. The production
-  build retained the existing non-failing chunk-size advisory.
+The integrated backend proof retains these exact counterpart results:
+
+- `npm run test:wave3:cumulative` passed on clean PostgreSQL 18.6 and SeaweedFS
+  stores after all 32 migrations;
+- `npm run test:postgres:integration` passed all 111 PostgreSQL tests across 15
+  files after all 32 migrations; and
+- the cancellation-client slice passed its workbench typecheck, all 100 then-
+  current workbench tests, both interaction-runtime cancellation tests, all 19
+  server conformance tests, and its complete repository gate.
+
+The current frozen-interface integration passes:
+
+- pinned Node 24.20.0 and npm 11.19.0;
+- the focused renderer-neutral client and frozen action tests, 55 total;
+- the workbench TypeScript check and all 120 workbench tests; and
+- `npm run verify`, including generated-contract and fixture checks, the
+  retrieval floor, formatting and lint, TypeScript and Python typechecks, the
+  production build, 901 passing JavaScript/TypeScript tests plus seven
+  integration-only skips, 25 Python tests, and all six handoff automation
+  tests. The production build retains the existing non-failing chunk-size
+  advisory.
+
+This integration changes no persistence or PostgreSQL behavior, so it does not
+rerun the counterpart's already-passing disposable PostgreSQL proof.

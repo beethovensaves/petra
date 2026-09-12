@@ -37,8 +37,10 @@ import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  cancelProjectSuggestedActionWork,
   composeProjectHistoryCompensationPlan,
   createSuggestedActionInvocationRequest,
+  createSuggestedActionWorkCancellationRequest,
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
   executeProjectHistoryCompensationPlan,
@@ -2216,6 +2218,200 @@ describe("Project shell workbench adapter", () => {
       }),
     ).rejects.toMatchObject({ status: 502 });
     expect(fetch).toHaveBeenCalledOnce();
+  });
+
+  it("cancels only the exact server-eligible SuggestedAction Work and rereads its History", async () => {
+    const running = structuredClone(suggestedActionInvocationView);
+    if (running.content.work.state !== "pending_registration") {
+      throw new TypeError("Expected the pending fixture Work identity.");
+    }
+    const workUnitId = running.content.work.expected_work_unit_id;
+    const specHash =
+      "sha256:2121212121212121212121212121212121212121212121212121212121212121";
+    const runningWorkRef = {
+      work_unit_id: workUnitId,
+      revision: 3,
+      spec_hash: specHash,
+      record_hash:
+        "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    };
+    running.content.operation_state = "running";
+    running.content.work = {
+      state: "available",
+      work_unit_ref: runningWorkRef,
+      input_manifest_ref: {
+        record_id: "worker_input_manifest_01K4C000000000000000000062",
+        revision: 1,
+        content_hash:
+          "sha256:2323232323232323232323232323232323232323232323232323232323232323",
+        record_hash:
+          "sha256:2424242424242424242424242424242424242424242424242424242424242424",
+      },
+      execution_state: "running",
+    };
+    running.content.history.work_revisions = [
+      {
+        work_unit_ref: runningWorkRef,
+        state: "running",
+        recorded_at: "2026-09-11T18:40:02.000Z",
+      },
+    ];
+    const runningCancellation = running.content.recovery.actions.find(
+      (action) => action.operation === "cancel_work",
+    );
+    if (runningCancellation === undefined) {
+      throw new TypeError("Expected the cancellation recovery operation.");
+    }
+    runningCancellation.eligibility = "eligible";
+    runningCancellation.command_name = "CancelWorkUnit";
+    runningCancellation.reason =
+      "The registered Work is active and explicitly cancellable.";
+
+    const cancelled = structuredClone(running);
+    const cancelledWorkRef = {
+      ...runningWorkRef,
+      revision: 4,
+      record_hash:
+        "sha256:2525252525252525252525252525252525252525252525252525252525252525",
+    };
+    cancelled.content.operation_state = "cancelled";
+    if (cancelled.content.work.state !== "available") {
+      throw new TypeError("Expected the running exact WorkUnit.");
+    }
+    cancelled.content.work.work_unit_ref = cancelledWorkRef;
+    cancelled.content.work.execution_state = "cancelled";
+    cancelled.content.work.terminal_outcome = "cancelled";
+    cancelled.content.history.work_revisions.push({
+      work_unit_ref: cancelledWorkRef,
+      state: "cancelled",
+      terminal_outcome: "cancelled",
+      recorded_at: "2026-09-11T18:40:03.000Z",
+    });
+    const cancelledRecovery = cancelled.content.recovery.actions.find(
+      (action) => action.operation === "cancel_work",
+    );
+    if (cancelledRecovery === undefined) {
+      throw new TypeError("Expected the cancellation recovery operation.");
+    }
+    cancelledRecovery.eligibility = "ineligible";
+    delete cancelledRecovery.command_name;
+    cancelledRecovery.reason =
+      "Cancellation is available only while the exact Work is active.";
+
+    const request = createSuggestedActionWorkCancellationRequest({
+      commandId: "command_01K4C000000000000000000099",
+      reason: "Stop this exact bounded synthesis.",
+    });
+    const cancellation = {
+      applied: true,
+      commandId: request.commandId,
+      effectId: "work_unit_cancellation_01K4C000000000000000000099",
+      runId: running.content.interaction.protocol_run_id,
+      workUnitId,
+      workUnitRevision: 4,
+      workUnitCancellationId:
+        "work_unit_cancellation_01K4C000000000000000000099",
+      cancellationHash:
+        "sha256:2626262626262626262626262626262626262626262626262626262626262626",
+    };
+    let reads = 0;
+    const fetch = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        return Promise.resolve(Response.json(cancellation));
+      }
+      reads += 1;
+      return Promise.resolve(Response.json(reads === 1 ? running : cancelled));
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    const projectId = running.project_id;
+    const invocationCommandId =
+      running.content.invocation.content.command_ref.command_id;
+    await expect(
+      cancelProjectSuggestedActionWork(projectId, invocationCommandId, request),
+    ).resolves.toEqual({ cancellation, invocation: cancelled });
+
+    expect(fetch.mock.calls.map((call) => call[0])).toEqual([
+      `/api/queries/projects/${projectId}/suggested-action-invocations/${invocationCommandId}`,
+      `/api/work-units/${encodeURIComponent(cancellation.runId)}/cancel`,
+      `/api/queries/projects/${projectId}/suggested-action-invocations/${invocationCommandId}`,
+    ]);
+    const cancelInit = fetch.mock.calls[1]?.[1];
+    expect(cancelInit?.method).toBe("POST");
+    if (typeof cancelInit?.body !== "string") {
+      throw new TypeError("Expected a serialized cancellation request.");
+    }
+    expect(JSON.parse(cancelInit.body)).toEqual(request);
+    expect(new Headers(cancelInit.headers).get("authorization")).toBe(
+      "Bearer petra-local-development",
+    );
+    expect(JSON.parse(cancelInit.body)).not.toHaveProperty("projectId");
+    expect(JSON.parse(cancelInit.body)).not.toHaveProperty("actor");
+    expect(JSON.parse(cancelInit.body)).not.toHaveProperty("capabilityGrantId");
+    expect(JSON.parse(cancelInit.body)).not.toHaveProperty("runId");
+    expect(JSON.parse(cancelInit.body)).not.toHaveProperty("workUnitId");
+  });
+
+  it("leaves the final cancellation race decision to the authenticated server", async () => {
+    let reads = 0;
+    const fetch = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        return Promise.resolve(
+          Response.json(
+            {
+              error: {
+                code: "CANCELLATION_REJECTED",
+                message: "A terminal interaction run cannot be cancelled.",
+              },
+            },
+            { status: 409 },
+          ),
+        );
+      }
+      reads += 1;
+      const ineligible = structuredClone(suggestedActionInvocationView);
+      ineligible.content.work = {
+        state: "available",
+        work_unit_ref: {
+          work_unit_id: "work_unit_01K4C000000000000000000062",
+          revision: 4,
+          spec_hash:
+            "sha256:2121212121212121212121212121212121212121212121212121212121212121",
+          record_hash:
+            "sha256:2525252525252525252525252525252525252525252525252525252525252525",
+        },
+        input_manifest_ref: {
+          record_id: "worker_input_manifest_01K4C000000000000000000062",
+          revision: 1,
+          content_hash:
+            "sha256:2323232323232323232323232323232323232323232323232323232323232323",
+          record_hash:
+            "sha256:2424242424242424242424242424242424242424242424242424242424242424",
+        },
+        execution_state: "completed",
+        terminal_outcome: "succeeded",
+      };
+      return Promise.resolve(Response.json(ineligible));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const invocationCommandId =
+      suggestedActionInvocationView.content.invocation.content.command_ref
+        .command_id;
+
+    await expect(
+      cancelProjectSuggestedActionWork(
+        suggestedActionInvocationView.project_id,
+        invocationCommandId,
+        createSuggestedActionWorkCancellationRequest({
+          commandId: "command_01K4C000000000000000000099",
+        }),
+      ),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(reads).toBe(1);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch.mock.calls[1]?.[0]).toBe(
+      `/api/work-units/${encodeURIComponent(suggestedActionInvocationView.content.interaction.protocol_run_id)}/cancel`,
+    );
   });
 
   it("maps and loads one exact live Project thread without inventing message bytes", async () => {

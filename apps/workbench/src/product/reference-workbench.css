@@ -927,6 +927,10 @@
   margin: var(--petra-space-1) 0;
 }
 
+.reference-suggested-action__recovery-action {
+  margin-top: var(--petra-space-3);
+}
+
 .reference-decision-list {
   counter-reset: decision;
 }

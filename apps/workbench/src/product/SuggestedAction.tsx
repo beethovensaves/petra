@@ -9,9 +9,13 @@ import { Link } from "react-router";
 import { PetraButton } from "../design-system/primitives.js";
 import {
   ProjectDataError,
+  cancelProjectSuggestedActionWork,
   createSuggestedActionInvocationRequest,
+  createSuggestedActionWorkCancellationRequest,
   getProjectSuggestedActionInvocation,
   invokeProjectSuggestedAction,
+  type ProjectSuggestedActionWorkCancellation,
+  type SuggestedActionWorkCancellationRequest,
 } from "./project-data.js";
 
 export type SuggestedActionPresentationPath = "direct" | "conversational";
@@ -50,6 +54,42 @@ const regenerationMatchesSelection = (
     current.content.action.basis.inquiry_result_link_ref
       .project_inquiry_link_id;
 
+interface RetainedCancellationRequest {
+  current: SuggestedActionWorkCancellationRequest | undefined;
+}
+
+interface SuggestedActionCancellationDependencies {
+  readonly createRequest?: () => SuggestedActionWorkCancellationRequest;
+  readonly cancelWork?: typeof cancelProjectSuggestedActionWork;
+}
+
+/**
+ * Retains one caller-owned cancellation command across exact retries and only
+ * publishes invocation state returned by the client's verified post-command
+ * reread.
+ */
+export const attemptSuggestedActionWorkCancellation = async (
+  projectId: string,
+  invocationCommandId: string,
+  retainedRequest: RetainedCancellationRequest,
+  publishVerifiedInvocation: (
+    invocation: PetraSuggestedActionInvocationView,
+  ) => void,
+  dependencies: SuggestedActionCancellationDependencies = {},
+): Promise<ProjectSuggestedActionWorkCancellation> => {
+  const request =
+    retainedRequest.current ??
+    (
+      dependencies.createRequest ?? createSuggestedActionWorkCancellationRequest
+    )();
+  retainedRequest.current = request;
+  const result = await (
+    dependencies.cancelWork ?? cancelProjectSuggestedActionWork
+  )(projectId, invocationCommandId, request);
+  publishVerifiedInvocation(result.invocation);
+  return result;
+};
+
 export const SuggestedWorkAction = ({
   projectId,
   actionView: suppliedActionView,
@@ -63,16 +103,20 @@ export const SuggestedWorkAction = ({
 }): React.JSX.Element => {
   const [actionView, setActionView] = useState(suppliedActionView);
   const [invocation, setInvocation] = useState(initialInvocation);
-  const [busy, setBusy] = useState<"invoke" | "refresh">();
+  const [busy, setBusy] = useState<"invoke" | "refresh" | "cancel">();
   const [message, setMessage] = useState<string>();
   const retainedRequest = useRef<
     PetraSuggestedActionInvocationRequest | undefined
+  >(undefined);
+  const retainedCancellationRequest = useRef<
+    SuggestedActionWorkCancellationRequest | undefined
   >(undefined);
   useEffect(() => {
     setActionView(suppliedActionView);
     setInvocation(initialInvocation);
     setMessage(undefined);
     retainedRequest.current = undefined;
+    retainedCancellationRequest.current = undefined;
   }, [suppliedActionView, initialInvocation]);
   const { action, action_ref: actionRef, readiness } = actionView.content;
   const linkId = action.basis.inquiry_result_link_ref.project_inquiry_link_id;
@@ -148,6 +192,31 @@ export const SuggestedWorkAction = ({
         error instanceof Error
           ? error.message
           : "The exact SuggestedAction invocation could not be refreshed.",
+      );
+    } finally {
+      setBusy(undefined);
+    }
+  };
+
+  const cancel = async (): Promise<void> => {
+    if (busy !== undefined || invocationCommandId === undefined) return;
+    setBusy("cancel");
+    setMessage(undefined);
+    try {
+      const result = await attemptSuggestedActionWorkCancellation(
+        projectId,
+        invocationCommandId,
+        retainedCancellationRequest,
+        setInvocation,
+      );
+      setMessage(
+        `Cancellation ${result.cancellation.workUnitCancellationId} was confirmed from the exact post-command server reread.`,
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "The exact Work cancellation could not be confirmed.",
       );
     } finally {
       setBusy(undefined);
@@ -378,8 +447,9 @@ export const SuggestedWorkAction = ({
       {invocation === undefined ? null : (
         <SuggestedActionInvocationResult
           view={invocation}
-          busy={busy === "refresh"}
+          {...(busy === "refresh" || busy === "cancel" ? { busy } : {})}
           onRefresh={() => void refresh()}
+          onCancel={() => void cancel()}
         />
       )}
     </article>
@@ -388,12 +458,14 @@ export const SuggestedWorkAction = ({
 
 export const SuggestedActionInvocationResult = ({
   view,
-  busy = false,
+  busy,
   onRefresh,
+  onCancel,
 }: {
   view: PetraSuggestedActionInvocationView;
-  busy?: boolean;
+  busy?: "refresh" | "cancel";
   onRefresh?: () => void;
+  onCancel?: () => void;
 }): React.JSX.Element => {
   const { content } = view;
   const { command_ref: commandRef } = content.invocation.content;
@@ -401,12 +473,18 @@ export const SuggestedActionInvocationResult = ({
     content.work.state === "available"
       ? content.work.work_unit_ref.work_unit_id
       : content.work.expected_work_unit_id;
+  const cancellationControl = content.recovery.actions.find(
+    (recovery) =>
+      recovery.operation === "cancel_work" &&
+      recovery.eligibility === "eligible" &&
+      recovery.command_name === "CancelWorkUnit",
+  );
   return (
     <section
       className="reference-suggested-action__invocation"
       aria-labelledby="suggested-action-invocation-title"
       aria-live="polite"
-      aria-busy={busy || undefined}
+      aria-busy={busy !== undefined || undefined}
     >
       <header>
         <div>
@@ -417,8 +495,9 @@ export const SuggestedActionInvocationResult = ({
         </div>
         <PetraButton
           variant="quiet"
-          busy={busy}
+          busy={busy === "refresh"}
           busyLabel="Refreshing…"
+          aria-disabled={busy === "cancel" || undefined}
           onClick={onRefresh}
         >
           Refresh exact state
@@ -520,20 +599,40 @@ export const SuggestedActionInvocationResult = ({
         <h5 id="suggested-action-recovery-title">Current recovery</h5>
         <p>{plainLabel(content.recovery.assessment)}</p>
         <ul className="reference-suggested-action__recovery">
-          {content.recovery.actions.map((recovery) => (
-            <li
-              key={recovery.operation}
-              data-operation={recovery.operation}
-              data-eligibility={recovery.eligibility}
-            >
-              <strong>{titleLabel(recovery.operation)}</strong>
-              <span>{titleLabel(recovery.eligibility)}</span>
-              <p>{recovery.reason}</p>
-              {recovery.command_name === undefined ? null : (
-                <code>{recovery.command_name}</code>
-              )}
-            </li>
-          ))}
+          {content.recovery.actions.map((recovery) => {
+            const reasonId = `suggested-action-recovery-${recovery.operation}`;
+            const exposesCancellation =
+              recovery === cancellationControl && onCancel !== undefined;
+            return (
+              <li
+                key={recovery.operation}
+                data-operation={recovery.operation}
+                data-eligibility={recovery.eligibility}
+              >
+                <strong>{titleLabel(recovery.operation)}</strong>
+                <span>{titleLabel(recovery.eligibility)}</span>
+                <p id={reasonId}>{recovery.reason}</p>
+                {recovery.command_name === undefined ? null : (
+                  <code>{recovery.command_name}</code>
+                )}
+                {exposesCancellation ? (
+                  <div className="reference-suggested-action__recovery-action">
+                    <PetraButton
+                      variant="danger"
+                      busy={busy === "cancel"}
+                      busyLabel="Cancelling exact Work…"
+                      aria-disabled={busy === "refresh" || undefined}
+                      aria-describedby={reasonId}
+                      data-command-name="CancelWorkUnit"
+                      onClick={onCancel}
+                    >
+                      Cancel exact Work
+                    </PetraButton>
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       </section>
 

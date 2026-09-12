@@ -1,8 +1,8 @@
 # UX-REQ-003 SuggestedAction preview and exact Work invocation
 
 Status: backend Work-starting action family, exact invocation, frozen action
-mapping, and authenticated runtime Work History destination passed; replay and
-cancellation-control Wave 3 exit evidence remains open
+mapping, authenticated runtime Work History destination, and exact cancellation
+control passed; InteractionRun replay and Wave 3 exit evidence remain open
 Date: 2026-09-11
 Design boundary: `UX-DESIGN-FREEZE-01`
 
@@ -134,9 +134,19 @@ or current Work identity, operation state, result reference and authority
 effect, InteractionRun delivery posture, canonical Work revisions, Work and
 History destinations, and all five supplied recovery assessments. The client
 does not recompute eligibility. A refresh rereads the exact invocation command;
-it does not claim to perform InteractionRun replay. Cancellation is shown only
-through the action consequence and current server-owned recovery assessment;
-this slice does not add another cancellation command.
+it does not claim to perform InteractionRun replay.
+
+The shared action presentation exposes **Cancel exact Work** only when the
+returned `cancel_work` assessment is `eligible` and names `CancelWorkUnit`.
+It does not infer eligibility from Work or action state. The component creates
+one caller-owned cancellation command, retains it across exact retries, and
+calls the existing authenticated cancellation route through
+`cancelProjectSuggestedActionWork`. The displayed invocation changes only to
+the client's verified post-command reread. Failures leave the prior invocation
+visible and do not claim cancellation. The exact Project, Actor, capability,
+invocation command and receipt, InteractionRun, WorkUnit, cancellation, and
+History identities stay bound to runtime authority; no generic shared-Work
+cancellation was introduced.
 
 The Petra route accepts the exact inquiry-result link and optional invocation
 command in its URL, rereads both runtime views, and rejects cross-action
@@ -157,9 +167,11 @@ The authenticated boundaries are:
 - `GET /api/queries/projects/:projectId/suggested-actions?inquiry_result_link_id=:linkId&action_kind=run_grounded_synthesis`
 - `POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke`
 - `GET /api/queries/projects/:projectId/suggested-action-invocations/:commandId`
+- `POST /api/work-units/:runId/cancel`
 
 The renderer-neutral workbench client verifies the returned Project, link,
-action, and command identities. It passes the exact action reference back
+action, command, cancellation, InteractionRun, WorkUnit, receipt, capability,
+Actor, and History identities. It passes the exact action reference back
 unchanged and contains no authority calculation. The frozen Brief and Petra
 presentations share that client boundary.
 
@@ -180,25 +192,28 @@ build, 879 JavaScript/TypeScript tests with seven integration-only skips, and
 25 Python tests.
 
 The frozen-interface mapping passes the pinned Node 24 workbench typecheck and
-all 116 workbench tests. Its focused action evidence covers exact request
+all 120 workbench tests. Its focused action evidence covers exact request
 construction and transport, direct and conversational presentation convergence,
 ready/stale/unavailable previews, server regeneration, pending/completed/
 cancelled invocation states, deterministic Work identity, result and History
 mapping, authenticated Work History destination matching, no-fallback identity
-failures, current recovery passthrough, reconnect rereads, accessibility, and
-narrow responsive reflow.
+failures, current recovery passthrough, cancellation request retention and
+post-command state replacement, server-owned control exposure, failure posture,
+reconnect rereads, accessibility, and narrow responsive reflow.
 
 The complete `npm run verify` gate also passes generated-contract and fixture
 checks, the retrieval floor, repository formatting and lint, TypeScript and
-Python typechecks, the production build, 898 JavaScript/TypeScript tests with
-seven integration-only skips, all 25 Python tests, and all six handoff
+Python typechecks, the production build, 901 passing JavaScript/TypeScript tests
+plus seven integration-only skips, all 25 Python tests, and all six handoff
 automation tests. The production build retains the existing non-failing chunk
 size advisory.
 
-Because this design commit merges the exact persistence-changing counterpart,
-the real disposable PostgreSQL 18.6 integration was rerun. Flyway validated and
-applied all 32 migrations through V032, and all 111 PostgreSQL tests passed
-across 15 files.
+The preceding runtime History integration merged the persistence-changing
+backend proof and reran its real disposable PostgreSQL 18.6 integration. Flyway
+validated and applied all 32 migrations through V032, and all 111 PostgreSQL
+tests passed across 15 files. This cancellation-control integration changes no
+persistence or PostgreSQL behavior, so it retains that evidence without another
+database run.
 
 ## Remaining UX-REQ-003 work
 
@@ -206,9 +221,9 @@ This mapping slice does not close `UX-REQ-003` or the Wave 3 exit gate. The
 cumulative backend proof invokes one exact action, preserves interrupted
 delivery, reaches a terminal GroundedResponse, and exposes canonical Work,
 History, and current recovery. The action-owned History destination now reaches
-that authenticated runtime state without fixture fallback. The interface still
-needs to exercise exact InteractionRun replay rather than invocation reread and
-bind the separately authorized `CancelWorkUnit` command while its supplied
-assessment is eligible. Other action families, adjustable depth, priority,
-steering, pause/resume, and generalized budget or cost policy remain out of
-scope.
+that authenticated runtime state without fixture fallback, and the separately
+authorized `CancelWorkUnit` command is bound only while its supplied assessment
+is eligible. The interface still needs to exercise exact InteractionRun replay
+rather than invocation reread. Other action families, adjustable depth,
+priority, steering, pause/resume, and generalized budget or cost policy remain
+out of scope.

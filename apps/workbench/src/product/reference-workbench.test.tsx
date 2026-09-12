@@ -8,7 +8,7 @@ import type {
 } from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   REFERENCE_PROJECTS,
@@ -25,6 +25,7 @@ import {
 import {
   SuggestedActionInvocationResult,
   SuggestedWorkAction,
+  attemptSuggestedActionWorkCancellation,
 } from "./SuggestedAction.js";
 
 const render = (node: React.ReactNode): string =>
@@ -263,11 +264,129 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain('data-operation="cancel_work"');
     expect(markup).toContain('data-eligibility="eligible"');
     expect(markup).toContain("Refresh exact state");
+    expect(markup).not.toContain("Cancel exact Work");
     expect(markup).toContain('aria-live="polite"');
     expect(markup).toContain(
       'aria-labelledby="suggested-action-invocation-title"',
     );
     expect(markup).toContain("Invocation has no scientific authority effect");
+  });
+
+  it("exposes exact Work cancellation only from the supplied eligible CancelWorkUnit assessment", () => {
+    const running = structuredClone(suggestedActionInvocationView);
+    const cancellation = running.content.recovery.actions.find(
+      (recovery) => recovery.operation === "cancel_work",
+    );
+    if (cancellation === undefined) {
+      throw new Error("The cancellation recovery assessment is missing.");
+    }
+    cancellation.eligibility = "eligible";
+    cancellation.command_name = "CancelWorkUnit";
+    cancellation.reason =
+      "The exact active Work is eligible for explicit cancellation.";
+
+    const eligibleMarkup = render(
+      <SuggestedActionInvocationResult
+        view={running}
+        onCancel={() => undefined}
+      />,
+    );
+    const commandless = structuredClone(running);
+    const commandlessCancellation = commandless.content.recovery.actions.find(
+      (recovery) => recovery.operation === "cancel_work",
+    );
+    if (commandlessCancellation === undefined) {
+      throw new Error("The cancellation recovery assessment is missing.");
+    }
+    delete commandlessCancellation.command_name;
+    const commandlessMarkup = render(
+      <SuggestedActionInvocationResult
+        view={commandless}
+        onCancel={() => undefined}
+      />,
+    );
+    const ineligibleMarkup = render(
+      <SuggestedActionInvocationResult
+        view={suggestedActionInvocationView}
+        onCancel={() => undefined}
+      />,
+    );
+
+    expect(eligibleMarkup).toContain("Cancel exact Work");
+    expect(eligibleMarkup).toContain('data-command-name="CancelWorkUnit"');
+    expect(eligibleMarkup).toContain(
+      'aria-describedby="suggested-action-recovery-cancel_work"',
+    );
+    expect(eligibleMarkup).toContain(
+      'id="suggested-action-recovery-cancel_work"',
+    );
+    expect(commandlessMarkup).not.toContain("Cancel exact Work");
+    expect(ineligibleMarkup).not.toContain("Cancel exact Work");
+  });
+
+  it("retains one cancellation request across retries and publishes only the verified reread", async () => {
+    const request = {
+      commandId: "command_01K4C000000000000000000099",
+      reason: "Stop this exact bounded synthesis.",
+    };
+    const retained = { current: undefined };
+    const publishVerifiedInvocation = vi.fn();
+    const createRequest = vi.fn(() => request);
+    const verifiedCancelled = structuredClone(suggestedActionInvocationView);
+    verifiedCancelled.content.operation_state = "cancelled";
+    const result = {
+      cancellation: {
+        applied: true,
+        commandId: request.commandId,
+        effectId: "work_unit_cancellation_01K4C000000000000000000099",
+        runId: verifiedCancelled.content.interaction.protocol_run_id,
+        workUnitId:
+          verifiedCancelled.content.invocation.content.expected_work_unit_id,
+        workUnitRevision: 4,
+        workUnitCancellationId:
+          "work_unit_cancellation_01K4C000000000000000000099",
+        cancellationHash:
+          "sha256:2626262626262626262626262626262626262626262626262626262626262626",
+      },
+      invocation: verifiedCancelled,
+    };
+    const cancelWork = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Cancellation was not confirmed."))
+      .mockResolvedValueOnce(result);
+    const invocationCommandId =
+      suggestedActionInvocationView.content.invocation.content.command_ref
+        .command_id;
+    const dependencies = { createRequest, cancelWork };
+
+    await expect(
+      attemptSuggestedActionWorkCancellation(
+        suggestedActionInvocationView.project_id,
+        invocationCommandId,
+        retained,
+        publishVerifiedInvocation,
+        dependencies,
+      ),
+    ).rejects.toThrow("Cancellation was not confirmed.");
+    expect(retained.current).toBe(request);
+    expect(publishVerifiedInvocation).not.toHaveBeenCalled();
+
+    await expect(
+      attemptSuggestedActionWorkCancellation(
+        suggestedActionInvocationView.project_id,
+        invocationCommandId,
+        retained,
+        publishVerifiedInvocation,
+        dependencies,
+      ),
+    ).resolves.toBe(result);
+
+    expect(createRequest).toHaveBeenCalledOnce();
+    expect(cancelWork).toHaveBeenCalledTimes(2);
+    expect(cancelWork.mock.calls[0]?.[2]).toBe(request);
+    expect(cancelWork.mock.calls[1]?.[2]).toBe(request);
+    expect(publishVerifiedInvocation).toHaveBeenCalledOnce();
+    expect(publishVerifiedInvocation).toHaveBeenCalledWith(verifiedCancelled);
   });
 
   it("maps terminal result and canonical Work revisions without inventing result bytes", () => {
