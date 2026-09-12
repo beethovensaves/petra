@@ -58,6 +58,17 @@ const regenerationMatchesSelection = (
     current.content.action.basis.inquiry_result_link_ref
       .project_inquiry_link_id;
 
+interface RetainedInvocationRequest {
+  current: PetraSuggestedActionInvocationRequest | undefined;
+}
+
+interface SuggestedActionInvocationDependencies {
+  readonly createRequest?: (
+    actionView: PetraSuggestedActionViewV11,
+  ) => PetraSuggestedActionInvocationRequest;
+  readonly invokeAction?: typeof invokeProjectSuggestedAction;
+}
+
 interface RetainedCancellationRequest {
   current: SuggestedActionWorkCancellationRequest | undefined;
 }
@@ -75,6 +86,34 @@ interface SuggestedActionInteractionReplayDependencies {
   readonly createRequest?: () => SuggestedActionInteractionReplayRequest;
   readonly replayInteraction?: typeof replayProjectSuggestedActionInteraction;
 }
+
+/**
+ * Retains one caller-owned invocation command across uncertain retries. Both
+ * direct and conversational presentation variants call this boundary, while
+ * the server remains authoritative for Actor, grant, Project, Work,
+ * interaction, trace, result, History, and recovery identity.
+ */
+export const attemptSuggestedActionInvocation = async (
+  projectId: string,
+  actionView: PetraSuggestedActionViewV11,
+  retainedRequest: RetainedInvocationRequest,
+  publishVerifiedInvocation: (
+    invocation: PetraSuggestedActionInvocationView,
+  ) => void,
+  dependencies: SuggestedActionInvocationDependencies = {},
+): Promise<PetraSuggestedActionInvocationView> => {
+  const request =
+    retainedRequest.current ??
+    (dependencies.createRequest ?? createSuggestedActionInvocationRequest)(
+      actionView,
+    );
+  retainedRequest.current = request;
+  const invocation = await (
+    dependencies.invokeAction ?? invokeProjectSuggestedAction
+  )(projectId, actionView.content.action_ref.suggested_action_id, request);
+  publishVerifiedInvocation(invocation);
+  return invocation;
+};
 
 /**
  * Retains one caller-owned cancellation command across exact retries and only
@@ -183,17 +222,13 @@ export const SuggestedWorkAction = ({
     if (busy !== undefined || readiness.state !== "ready") return;
     setBusy("invoke");
     setMessage(undefined);
-    const request =
-      retainedRequest.current ??
-      createSuggestedActionInvocationRequest(actionView);
-    retainedRequest.current = request;
     try {
-      const next = await invokeProjectSuggestedAction(
+      await attemptSuggestedActionInvocation(
         projectId,
-        actionRef.suggested_action_id,
-        request,
+        actionView,
+        retainedRequest,
+        setInvocation,
       );
-      setInvocation(next);
       setReplayedResponse(undefined);
       retainedReplayRequest.current = undefined;
       setMessage(
@@ -486,22 +521,24 @@ export const SuggestedWorkAction = ({
       </details>
 
       <div className="reference-suggested-action__actions">
-        <PetraButton
-          variant="primary"
-          busy={busy === "invoke"}
-          busyLabel="Starting exact Work…"
-          {...(readiness.state === "ready"
-            ? {}
-            : {
-                unavailable: {
-                  reason: readiness.reason,
-                  prerequisite: readiness.missing_prerequisites.join(" "),
-                },
-              })}
-          onClick={() => void invoke()}
-        >
-          Start exact Work
-        </PetraButton>
+        {invocation === undefined ? (
+          <PetraButton
+            variant="primary"
+            busy={busy === "invoke"}
+            busyLabel="Starting exact Work…"
+            {...(readiness.state === "ready"
+              ? {}
+              : {
+                  unavailable: {
+                    reason: readiness.reason,
+                    prerequisite: readiness.missing_prerequisites.join(" "),
+                  },
+                })}
+            onClick={() => void invoke()}
+          >
+            Start exact Work
+          </PetraButton>
+        ) : null}
         {presentationPath === "direct" ? (
           <Link
             className="reference-text-link"

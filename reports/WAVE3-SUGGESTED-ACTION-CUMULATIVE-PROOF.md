@@ -1,8 +1,9 @@
 # Wave 3 SuggestedAction cumulative proof
 
-Status: full Wave 3 exit rule demonstrated across the live runtime and frozen
-interface; cumulative verification passed
-Date: 2026-09-11
+Status: full Wave 3 exit rule demonstrated in one cumulative live runtime,
+production workbench client/controller, and frozen React rendering proof;
+cumulative verification passed
+Date: 2026-09-12
 Backend replay counterpart: `f1d32ffdae8515956859ff4be2b19b87da8c6e05`
 Exact design predecessor: `011b9583653dfbd728672a77bb4bc6ec03329645`
 Design boundary: `UX-DESIGN-FREEZE-01`
@@ -15,12 +16,14 @@ SeaweedFS S3 artifact store. Flyway validates and applies all 32 migrations
 through V032 before the proof starts.
 
 The proof establishes an authenticated Project and retained inquiry result over
-the existing authority repositories. It then exercises the exact
-`petra.suggested-action-view@1.1.0` preview and the single
-`InvokeSuggestedAction` command used by direct and conversational
-presentations. Both presentations converge on one immutable invocation receipt
-and one deterministic WorkUnit; no presentation-specific command or Work path
-is introduced.
+the existing authority repositories. Vite then loads the production workbench
+data client, shared `SuggestedWorkAction` controller, and frozen React
+components. The client reads the live `petra.suggested-action-view@1.1.0`
+preview, and both presentation variants render the same shared component. The
+proof then calls that component's invocation controller twice with one retained
+`InvokeSuggestedAction` request. The attempts converge on one immutable
+invocation receipt and one deterministic WorkUnit; no presentation-specific
+command or Work path is introduced.
 
 The action executor is paused only after canonical Work registration. While the
 Work remains running, the proof starts and aborts an AG-UI delivery, verifies
@@ -38,19 +41,30 @@ then-current recovery assessment: exact-start retry and cancellation are
 ineligible, while delivery reconnect, Work inspection, and result inspection
 are eligible.
 
-The proof restarts the Petra server against the retained stores and reconnects
-the same InteractionRun and connection through the authenticated GET replay
-boundary. The terminal response is replayed as delivery attempt two with no
-provider or model request and the same result and Work identities. No prompt,
-command, action input, or workflow instruction crosses that replay request.
-Final persistence cardinalities are exactly one invocation receipt, one
-WorkUnit, four Work revisions, and two delivery records.
+The proof restarts the Petra server against the retained stores and calls the
+production workbench replay controller. That controller rereads current
+recovery, reconnects the same InteractionRun and connection through the
+authenticated GET replay boundary, verifies the SDK result against the
+post-delivery invocation reread, and publishes only that verified pair. The
+terminal response is replayed as delivery attempt two with no provider or model
+request and the same result and Work identities. No prompt, command, action
+input, or workflow instruction crosses that replay request. Final persistence
+cardinalities are exactly one invocation receipt, one WorkUnit, four Work
+revisions, and two delivery records.
 
-The shared frozen direct and conversational action region now binds that exact
-replay boundary separately from ordinary invocation refresh. It renders only
-the replay messages returned by the AG-UI SDK after the client verifies the
-post-delivery invocation reread. No prompt, invocation command, Work request,
-or fixture response is resubmitted or substituted by the presentation.
+The proof renders the shared frozen direct and conversational action region
+from the live ready preview and again from the terminal invocation. It verifies
+the exact command, Work History, Work and History destinations, and current
+recovery in both presentations. It also renders the retained SDK messages and
+terminal result in the labelled replay region. No prompt, invocation command,
+Work request, or fixture response is resubmitted or substituted by the
+presentation.
+
+The live interface portion executes production React modules under Vite
+server-side rendering. It does not drive a browser DOM or pointer event. The
+workbench interaction suite separately checks controller retries, adverse
+states, control exposure, accessibility markup, and narrow-layout behavior; the
+production build verifies browser bundling.
 
 ## Result resolution found by the proof
 
@@ -166,6 +180,12 @@ The passing deterministic proof produced:
 - exact durable counts of 1 invocation, 1 Work, 4 Work revisions, and 2
   deliveries.
 
+The same process also recorded that the production workbench
+`getProjectSuggestedWorkAction`, `attemptSuggestedActionInvocation`, and
+`attemptSuggestedActionInteractionReplay` boundaries executed successfully;
+both frozen presentations rendered live ready and terminal state; and the
+retained response rendered from the verified SDK replay.
+
 The provider in this proof is a deterministic double constrained to the exact
 certified model catalog and recorded output. This proves Petra's runtime and
 persistence contracts; it does not replace the separate managed-provider
@@ -275,15 +295,17 @@ The authoritative exit rule is satisfied:
 > result, and expose its history and eligible recovery without client-side
 > authority calculations.
 
-The cumulative live proof starts one deterministic WorkUnit through the same
-`InvokeSuggestedAction` command used by direct and conversational presentation,
+The cumulative live proof starts one deterministic WorkUnit through the shared
+workbench `InvokeSuggestedAction` controller used by direct and conversational
+presentation,
 retains an aborted delivery without cancelling or reexecuting Work, advances the
 same Work through four canonical revisions, returns its exact retained
 GroundedResponse, and replays the terminal response after a server restart. The
 runtime reread supplies the Work and History destinations plus exact recovery
-assessment. The frozen interface maps those server-owned values and delegates
-replay and cancellation validation to their renderer-neutral clients; it adds
-no authority calculation or fixture fallback for the demonstrated path.
+assessment. The frozen interface is rendered from those live values and
+delegates replay and cancellation validation to its renderer-neutral clients;
+it adds no authority calculation or fixture fallback for the demonstrated
+path.
 
 The exact live cardinalities remain one invocation receipt, one WorkUnit, four
 Work revisions, and two immutable delivery attempts. The separate
@@ -296,19 +318,22 @@ open.
 
 - Pinned Node 24.20.0 and npm 11.19.0 were used for every JavaScript and
   TypeScript check.
-- The focused package build, workbench typecheck, all 31 adapter tests, and 60
+- The focused package build, workbench typecheck, all 31 adapter tests, and 61
   targeted renderer-neutral client and frozen action tests passed.
 - `npm run verify` passed generated-contract and fixture checks, the retrieval
   floor, repository formatting and lint, TypeScript and Python typechecks, the
-  production build, 907 passing JavaScript/TypeScript tests with seven
+  production build, 908 passing JavaScript/TypeScript tests with seven
   integration-only skips, 25 Python tests, and all six handoff automation
   tests. The production build retained the existing non-failing chunk-size
   advisory.
 - `npm run test:wave3:cumulative` passed on clean PostgreSQL 18.6 and SeaweedFS
-  stores after all 32 migrations. It demonstrated exact direct/conversational
-  command convergence, retained delivery interruption, server restart, full
-  terminal replay, no Work reexecution, four canonical Work revisions, runtime
-  History destinations, and server-owned recovery eligibility.
+  stores after all 32 migrations. It executed the production workbench preview,
+  shared invocation and replay controllers, and frozen React renderers against
+  that live runtime. It demonstrated the shared direct/conversational command
+  boundary, exact retained-request convergence, delivery interruption, server
+  restart, full terminal replay, no Work reexecution, four canonical Work
+  revisions, runtime History destinations, and server-owned recovery
+  eligibility.
 - The preceding persistence-changing backend slice passed all 111 PostgreSQL
   integration tests across 15 files. This replay integration changes no
   persistence or PostgreSQL behavior; the current cumulative proof nevertheless

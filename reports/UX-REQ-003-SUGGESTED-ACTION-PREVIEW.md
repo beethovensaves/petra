@@ -1,9 +1,10 @@
 # UX-REQ-003 SuggestedAction preview and exact Work invocation
 
-Status: backend Work-starting action family, exact invocation, frozen action
-mapping, authenticated runtime Work History destination, and exact cancellation
-control passed; InteractionRun replay and Wave 3 exit evidence remain open
-Date: 2026-09-11
+Status: bounded Wave 3 Work-starting action, exact invocation, frozen action
+mapping, authenticated runtime Work History destination, cancellation,
+InteractionRun replay, and cumulative exit evidence passed; broader action
+families remain outside this increment
+Date: 2026-09-12
 Design boundary: `UX-DESIGN-FREEZE-01`
 
 ## Result
@@ -120,8 +121,10 @@ derives authority, grant, readiness, priority, reversibility, recovery, or
 Project meaning.
 
 The shared `SuggestedWorkAction` component supplies both the direct Brief and
-conversational Petra presentations. Both call `invokeProjectSuggestedAction`
-with the same `InvokeSuggestedAction` request contract. The request builder
+conversational Petra presentations. Both call
+`attemptSuggestedActionInvocation`, which retains one request while delegating
+to `invokeProjectSuggestedAction` with the same `InvokeSuggestedAction`
+contract. The request builder
 creates only the caller-owned command ID, idempotency key, submission time, and
 exact action fields; it does not send Actor, grant, Project, Work, interaction,
 or trace authority. An uncertain retry retains the same request identity. A
@@ -167,6 +170,7 @@ The authenticated boundaries are:
 - `GET /api/queries/projects/:projectId/suggested-actions?inquiry_result_link_id=:linkId&action_kind=run_grounded_synthesis`
 - `POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke`
 - `GET /api/queries/projects/:projectId/suggested-action-invocations/:commandId`
+- `GET /api/interactions/:runId?thread_id=:threadId&connection_id=:connectionId&after=0`
 - `POST /api/work-units/:runId/cancel`
 
 The renderer-neutral workbench client verifies the returned Project, link,
@@ -177,53 +181,38 @@ presentations share that client boundary.
 
 ## Verification
 
-The focused contract suite passed 443 tests, core passed 216, the server route
-suite passed 24, the renderer-neutral client suite passed 29, and the Python
-contract mirror passed 11. Those checks cover exact preview derivation,
-authorization, stale regeneration, idempotency, command receipt immutability,
-input registration, interaction correlation, result/History/recovery
-composition, and client identity guards.
-
-The disposable PostgreSQL 18.6 integration applied all 32 migrations and
-passed 111 persistence tests across 15 files. The complete `npm run verify`
-gate then passed generation and fixture checks, the retrieval floor,
-formatting, lint, TypeScript and Python typechecks, the workbench production
-build, 879 JavaScript/TypeScript tests with seven integration-only skips, and
-25 Python tests.
-
-The frozen-interface mapping passes the pinned Node 24 workbench typecheck and
-all 120 workbench tests. Its focused action evidence covers exact request
-construction and transport, direct and conversational presentation convergence,
-ready/stale/unavailable previews, server regeneration, pending/completed/
-cancelled invocation states, deterministic Work identity, result and History
-mapping, authenticated Work History destination matching, no-fallback identity
-failures, current recovery passthrough, cancellation request retention and
-post-command state replacement, server-owned control exposure, failure posture,
-reconnect rereads, accessibility, and narrow responsive reflow.
-
-The complete `npm run verify` gate also passes generated-contract and fixture
+Pinned Node 24.20.0 `npm run verify` passes generated-contract and fixture
 checks, the retrieval floor, repository formatting and lint, TypeScript and
-Python typechecks, the production build, 901 passing JavaScript/TypeScript tests
-plus seven integration-only skips, all 25 Python tests, and all six handoff
-automation tests. The production build retains the existing non-failing chunk
-size advisory.
+Python typechecks, the production build, 908 JavaScript/TypeScript tests with
+seven integration-only skips, 25 Python tests, and all six handoff automation
+tests. The workbench contributes 126 passing tests, including one focused test
+that verifies the shared invocation controller retains the exact request across
+presentation attempts. The production build retains the existing non-failing
+chunk-size advisory.
 
-The preceding runtime History integration merged the persistence-changing
-backend proof and reran its real disposable PostgreSQL 18.6 integration. Flyway
-validated and applied all 32 migrations through V032, and all 111 PostgreSQL
-tests passed across 15 files. This cancellation-control integration changes no
-persistence or PostgreSQL behavior, so it retains that evidence without another
-database run.
+The disposable PostgreSQL 18.6 integration previously passed all 111
+persistence tests across 15 files after applying V001 through V032. The current
+cumulative proof applies the same 32 migrations to fresh PostgreSQL and
+SeaweedFS stores and exercises the live workbench preview, invocation, reread,
+interruption, restart, replay, History, recovery, and rendering path. This
+closure change does not alter persistence behavior.
 
-## Remaining UX-REQ-003 work
+## Closure and remaining scope
 
-This mapping slice does not close `UX-REQ-003` or the Wave 3 exit gate. The
-cumulative backend proof invokes one exact action, preserves interrupted
-delivery, reaches a terminal GroundedResponse, and exposes canonical Work,
-History, and current recovery. The action-owned History destination now reaches
-that authenticated runtime state without fixture fallback, and the separately
-authorized `CancelWorkUnit` command is bound only while its supplied assessment
-is eligible. The interface still needs to exercise exact InteractionRun replay
-rather than invocation reread. Other action families, adjustable depth,
+The bounded Wave 3 `UX-REQ-003` increment and the Wave 3 exit gate are closed.
+The cumulative proof now loads the production workbench client and shared
+`SuggestedWorkAction` controller through Vite, reads the live preview, invokes
+the shared controller with one retained exact retry, renders both frozen
+presentation variants from live ready and terminal authority, and replays the exact
+InteractionRun through the presentation's replay controller after a server
+restart. The retained response, canonical Work History, destinations, and
+server-owned recovery state are rendered without fixture fallback or client
+authority calculation.
+
+This executable interface check uses the production React modules under Vite
+server-side rendering; it does not drive a browser DOM or pointer event. The
+workbench interaction tests separately exercise controller behavior, adverse
+states, accessible control binding, and responsive markup, while the production
+build verifies browser bundling. Other action families, adjustable depth,
 priority, steering, pause/resume, and generalized budget or cost policy remain
-out of scope.
+outside this bounded Wave 3 increment.

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraProjectInquiryView,
+  PetraSuggestedActionInvocationRequest,
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionView,
   PetraSuggestedActionViewV11,
@@ -25,9 +26,11 @@ import {
 import {
   SuggestedActionInvocationResult,
   SuggestedWorkAction,
+  attemptSuggestedActionInvocation,
   attemptSuggestedActionInteractionReplay,
   attemptSuggestedActionWorkCancellation,
 } from "./SuggestedAction.js";
+import { createSuggestedActionInvocationRequest } from "./project-data.js";
 
 const render = (node: React.ReactNode): string =>
   renderToStaticMarkup(<MemoryRouter>{node}</MemoryRouter>);
@@ -154,6 +157,56 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain("InvokeSuggestedAction");
     expect(markup).toContain('data-presentation-path="direct"');
     expect(markup).toContain('data-command-name="InvokeSuggestedAction"');
+  });
+
+  it("retains one exact invocation command across uncertain retries", async () => {
+    const request = createSuggestedActionInvocationRequest(
+      suggestedWorkActionView,
+      {
+        commandId:
+          suggestedActionInvocationView.content.invocation.content.command_ref
+            .command_id,
+        idempotencyKey: "suggested-action:shared-presentation-attempt",
+        submittedAt: "2026-09-11T20:00:00.000Z",
+      },
+    );
+    const retained = { current: undefined };
+    const createRequest = vi.fn(() => request);
+    const invokedRequests: PetraSuggestedActionInvocationRequest[] = [];
+    const invokeAction = vi.fn(
+      (
+        _projectId: string,
+        _suggestedActionId: string,
+        invocationRequest: PetraSuggestedActionInvocationRequest,
+      ) => {
+        invokedRequests.push(invocationRequest);
+        return Promise.resolve(suggestedActionInvocationView);
+      },
+    );
+    const published: PetraSuggestedActionInvocationView[] = [];
+
+    await attemptSuggestedActionInvocation(
+      suggestedWorkActionView.project_id,
+      suggestedWorkActionView,
+      retained,
+      (invocation) => published.push(invocation),
+      { createRequest, invokeAction },
+    );
+    await attemptSuggestedActionInvocation(
+      suggestedWorkActionView.project_id,
+      suggestedWorkActionView,
+      retained,
+      (invocation) => published.push(invocation),
+      { createRequest, invokeAction },
+    );
+
+    expect(createRequest).toHaveBeenCalledOnce();
+    expect(invokeAction).toHaveBeenCalledTimes(2);
+    expect(invokedRequests).toEqual([request, request]);
+    expect(published).toEqual([
+      suggestedActionInvocationView,
+      suggestedActionInvocationView,
+    ]);
   });
 
   it("fails closed on a stale action and exposes server prerequisites", () => {
@@ -328,6 +381,7 @@ describe("neutral Petra reference workbench", () => {
 
     for (const markup of [directMarkup, conversationalMarkup]) {
       expect(markup.match(/Replay exact response/g)).toHaveLength(1);
+      expect(markup).not.toContain("Start exact Work");
       expect(markup).toContain('data-replay-kind="full-response"');
       expect(markup).toContain('data-after-sequence="0"');
       expect(markup).toContain(

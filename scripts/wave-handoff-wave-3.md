@@ -24,9 +24,14 @@ The authoritative exit gate is:
 - The design branch has mapped `project-history-episode-view@1.2.0` into the
   frozen History regions. The currently supported episode-event union has no
   additional target family that justifies widening that destination registry.
-- Fixture-backed frozen History integration, SuggestedAction, Work steering,
-  typed Project-control transitions, and the cumulative Wave 3 exit proof remain
-  open.
+- The bounded Wave 3 SuggestedAction increment is complete. One exact action
+  starts bounded Work, preserves an interrupted delivery, returns its exact
+  result, exposes canonical Work History and server-owned recovery, and replays
+  the retained response after restart through the production workbench client
+  and shared frozen presentation controllers.
+- The cumulative proof renders the direct and conversational action regions
+  from live ready and terminal runtime authority without fixture fallback.
+  Broader action families and controls remain governed by later accepted work.
 
 ## Default implementation order
 

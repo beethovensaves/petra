@@ -19,12 +19,16 @@ import {
 } from "@petra/server";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router";
+import { createServer as createViteServer } from "vite";
 
 const { Pool } = pg;
 const root = resolve(import.meta.dirname, "..");
 const composeFile = resolve(root, "infra/recovery/integration.compose.yaml");
 const projectName = `petra-wave3-cumulative-${process.pid}-${Date.now()}`;
-const token = "petra-wave3-cumulative-token";
+const token = "petra-local-development";
 const postgresPassword = "petra-recovery-only";
 const humanActorId = "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV";
 const projectId = "project_01ARZ3NDEKTSV4RRFFQ69G5FAW";
@@ -264,22 +268,6 @@ const waitFor = async (description, read, accept, timeoutMs = 15_000) => {
   throw new Error(`${description} did not converge: ${JSON.stringify(last)}`);
 };
 
-const authorizedHeaders = {
-  authorization: `Bearer ${token}`,
-  accept: "application/json",
-};
-
-const readHttpJson = async (url, options = {}) => {
-  const response = await fetch(url, options);
-  const body = await response.json();
-  if (!response.ok) {
-    throw new Error(
-      `${options.method ?? "GET"} ${url} failed (${response.status}): ${JSON.stringify(body)}`,
-    );
-  }
-  return { body, status: response.status };
-};
-
 const seedActionAuthority = async (pool, terminal) => {
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const inquiries = new PostgresProjectInquiryAuthorityRepository(pool);
@@ -363,33 +351,6 @@ const seedActionAuthority = async (pool, terminal) => {
   return { grant, link, objective };
 };
 
-const invocationPath = (serverUrl, actionId) =>
-  `${serverUrl}/api/commands/projects/${projectId}/suggested-actions/${actionId}/invoke`;
-
-const invokeFromPresentation = async (
-  presentation,
-  serverUrl,
-  actionId,
-  request,
-) => {
-  const result = await readHttpJson(invocationPath(serverUrl, actionId), {
-    method: "POST",
-    headers: {
-      ...authorizedHeaders,
-      "content-type": "application/json",
-      "x-petra-trace-id": `wave3-${presentation}`,
-    },
-    body: JSON.stringify(request),
-  });
-  return { presentation, ...result };
-};
-
-const invocationRead = (serverUrl, commandId) =>
-  readHttpJson(
-    `${serverUrl}/api/queries/projects/${projectId}/suggested-action-invocations/${commandId}`,
-    { headers: authorizedHeaders },
-  ).then(({ body }) => body);
-
 const actionProof = async (environment, seedPool) => {
   const provider = new DeterministicCertifiedProvider({
     // The initial source run checks the account once while planning and once
@@ -398,6 +359,15 @@ const actionProof = async (environment, seedPool) => {
     pauseAccountRead: 3,
   });
   let active;
+  let vite;
+  const nativeFetch = globalThis.fetch;
+  globalThis.fetch = (input, init) => {
+    const resolvedInput =
+      typeof input === "string" && input.startsWith("/")
+        ? new URL(input, active?.server.url ?? "http://petra.invalid")
+        : input;
+    return nativeFetch(resolvedInput, init);
+  };
 
   const launch = async (launchProvider) => {
     const grounded =
@@ -427,6 +397,45 @@ const actionProof = async (environment, seedPool) => {
   try {
     active = await launch(provider);
     progress("server started on clean migrated stores");
+    vite = await createViteServer({
+      root,
+      appType: "custom",
+      logLevel: "silent",
+      server: { middlewareMode: true },
+    });
+    const suggestedActionModule = await vite.ssrLoadModule(
+      "/apps/workbench/src/product/SuggestedAction.tsx",
+    );
+    const projectDataModule = await vite.ssrLoadModule(
+      "/apps/workbench/src/product/project-data.ts",
+    );
+    const {
+      SuggestedActionInvocationResult,
+      SuggestedWorkAction,
+      attemptSuggestedActionInteractionReplay,
+      attemptSuggestedActionInvocation,
+    } = suggestedActionModule;
+    const {
+      createSuggestedActionInteractionReplayRequest,
+      createSuggestedActionInvocationRequest,
+      getProjectSuggestedActionInvocation,
+      getProjectSuggestedWorkAction,
+    } = projectDataModule;
+    const renderWorkAction = (presentationPath, actionView, invocation) =>
+      renderToStaticMarkup(
+        createElement(
+          MemoryRouter,
+          { initialEntries: ["/"] },
+          createElement(SuggestedWorkAction, {
+            projectId,
+            actionView,
+            presentationPath,
+            ...(invocation === undefined
+              ? {}
+              : { initialInvocation: invocation }),
+          }),
+        ),
+      );
     const sourceClient = new PetraInteractionClient({
       endpoint: `${active.server.url}/api/interactions/run`,
       token,
@@ -468,10 +477,11 @@ const actionProof = async (environment, seedPool) => {
       unauthorizedPreview.status === 401,
       "The Work-starting preview was readable without authentication.",
     );
-    const { body: preview } = await readHttpJson(previewUrl, {
-      headers: authorizedHeaders,
-    });
-    progress("authenticated SuggestedAction 1.1 preview read");
+    const preview = await getProjectSuggestedWorkAction(
+      projectId,
+      seeded.link.project_inquiry_link_id,
+    );
+    progress("live workbench client read authenticated SuggestedAction 1.1");
     assert(
       preview.schema_name === "petra.suggested-action-view" &&
         preview.schema_version === "1.1.0" &&
@@ -482,52 +492,78 @@ const actionProof = async (environment, seedPool) => {
       "The authenticated 1.1 preview did not carry exact server readiness.",
     );
 
-    const actionId = preview.content.action_ref.suggested_action_id;
+    const initialInterfaceMarkup = Object.fromEntries(
+      ["direct", "conversational"].map((presentationPath) => [
+        presentationPath,
+        renderWorkAction(presentationPath, preview),
+      ]),
+    );
+    for (const presentationPath of ["direct", "conversational"]) {
+      const markup = initialInterfaceMarkup[presentationPath];
+      assert(
+        markup.includes(`data-presentation-path="${presentationPath}"`) &&
+          markup.includes("Start exact Work") &&
+          markup.includes(preview.content.action_ref.suggested_action_id) &&
+          markup.includes("Work starts only after this exact command"),
+        `The live ${presentationPath} workbench presentation lost the exact ready action.`,
+      );
+    }
+    progress("live SuggestedAction rendered in both frozen presentations");
+
     const commandId = derivePetraId(
       "command",
       "wave3-cumulative-invoke-suggested-action",
     );
-    const request = {
-      schema_name: "petra.suggested-action-invocation-request",
-      schema_version: "1.0.0",
-      command_id: commandId,
-      idempotency_key: `wave3-suggested-action:${commandId}`,
-      inquiry_result_link_id: seeded.link.project_inquiry_link_id,
-      expected_action_ref: clone(preview.content.action_ref),
-      response_depth: "current_graph",
-      submitted_at: "2026-09-11T20:00:00.000Z",
-    };
-
-    const direct = await invokeFromPresentation(
-      "direct",
-      active.server.url,
-      actionId,
-      request,
+    const request = createSuggestedActionInvocationRequest(preview, {
+      commandId,
+      idempotencyKey: `wave3-suggested-action:${commandId}`,
+      submittedAt: "2026-09-11T20:00:00.000Z",
+    });
+    const retainedInvocationRequest = { current: request };
+    let publishedInvocation;
+    const firstInvocation = await attemptSuggestedActionInvocation(
+      projectId,
+      preview,
+      retainedInvocationRequest,
+      (invocation) => {
+        publishedInvocation = invocation;
+      },
     );
-    progress("direct invocation accepted with durable Work registration");
+    assert(
+      publishedInvocation === firstInvocation,
+      "The workbench controller did not publish its verified invocation.",
+    );
+    progress("workbench invocation accepted with durable Work registration");
     await provider.actionPlan.promise;
     progress("action execution paused after durable Work registration");
-    const conversational = await invokeFromPresentation(
-      "conversational",
-      active.server.url,
-      actionId,
-      request,
+    const exactRetry = await attemptSuggestedActionInvocation(
+      projectId,
+      preview,
+      retainedInvocationRequest,
+      (invocation) => {
+        publishedInvocation = invocation;
+      },
     );
-    progress("conversational invocation converged on the exact command");
+    progress("retained workbench retry converged on the exact command");
     assert(
-      canonicalize(direct.body.content.invocation) ===
-        canonicalize(conversational.body.content.invocation),
-      "Direct and conversational invocation did not converge on one receipt.",
+      retainedInvocationRequest.current === request &&
+        publishedInvocation === exactRetry &&
+        canonicalize(firstInvocation.content.invocation) ===
+          canonicalize(exactRetry.content.invocation),
+      "The retained invocation retry did not converge on one receipt.",
     );
     assert(
-      direct.body.content.invocation.content.path_convergence ===
+      firstInvocation.content.invocation.content.path_convergence ===
         "direct_and_conversational_same_command" &&
-        direct.body.content.invocation.content.command_ref.command_name ===
+        firstInvocation.content.invocation.content.command_ref.command_name ===
           "InvokeSuggestedAction",
       "The accepted receipt lost its exact shared-command declaration.",
     );
 
-    const running = await invocationRead(active.server.url, commandId);
+    const running = await getProjectSuggestedActionInvocation(
+      projectId,
+      commandId,
+    );
     const runningRecovery = Object.fromEntries(
       running.content.recovery.actions.map((action) => [
         action.operation,
@@ -576,8 +612,8 @@ const actionProof = async (environment, seedPool) => {
       abortController.signal.aborted,
       "The delivery interruption was not exercised.",
     );
-    const retainedWhileInterrupted = await invocationRead(
-      active.server.url,
+    const retainedWhileInterrupted = await getProjectSuggestedActionInvocation(
+      projectId,
       commandId,
     );
     assert(
@@ -591,7 +627,7 @@ const actionProof = async (environment, seedPool) => {
     provider.releaseActionPlan();
     const completed = await waitFor(
       "SuggestedAction terminal result",
-      () => invocationRead(active.server.url, commandId),
+      () => getProjectSuggestedActionInvocation(projectId, commandId),
       (view) => view.content.operation_state === "completed",
     );
     progress("terminal invocation view reached completed Work");
@@ -680,18 +716,26 @@ const actionProof = async (environment, seedPool) => {
     const replayProvider = new DeterministicCertifiedProvider();
     active = await launch(replayProvider);
     progress("server restarted against the retained stores");
-    const replayClient = new PetraInteractionClient({
-      endpoint: `${active.server.url}/api/interactions/run`,
-      token,
-      traceId: "trace_wave3_reconnect",
-    });
-    const replay = await replayClient.replay({
-      threadId: correlation.protocol_thread_id,
-      runId: correlation.protocol_run_id,
-      connectionId: interruptedConnectionId,
-      afterSequence: 0,
-    });
-    progress("terminal interaction replayed after restart");
+    const retainedReplayRequest = {
+      current: createSuggestedActionInteractionReplayRequest({
+        connectionId: interruptedConnectionId,
+      }),
+    };
+    let publishedReplay;
+    const replayResult = await attemptSuggestedActionInteractionReplay(
+      projectId,
+      commandId,
+      retainedReplayRequest,
+      (verified) => {
+        publishedReplay = verified;
+      },
+    );
+    assert(
+      publishedReplay === replayResult,
+      "The workbench replay controller did not publish its verified replay.",
+    );
+    const replay = replayResult.replay;
+    progress("terminal interaction replayed through the live workbench client");
     const replayTerminal = replay.events.find(
       (event) => event.type === "RUN_FINISHED",
     )?.payload.result?.terminalBinding;
@@ -712,7 +756,7 @@ const actionProof = async (environment, seedPool) => {
         ),
       (attempt) => attempt === 2,
     );
-    const reread = await invocationRead(active.server.url, commandId);
+    const reread = replayResult.invocation;
     assert(
       canonicalize(reread.content.invocation) ===
         canonicalize(completed.content.invocation) &&
@@ -723,6 +767,42 @@ const actionProof = async (environment, seedPool) => {
           canonicalize(completed.content.recovery.actions),
       "Invocation reread after restart lost exact receipt, History, or recovery state.",
     );
+
+    const terminalInterfaceMarkup = Object.fromEntries(
+      ["direct", "conversational"].map((presentationPath) => [
+        presentationPath,
+        renderWorkAction(presentationPath, preview, reread),
+      ]),
+    );
+    for (const presentationPath of ["direct", "conversational"]) {
+      const markup = terminalInterfaceMarkup[presentationPath];
+      assert(
+        markup.includes(commandId) &&
+          markup.includes("Work History") &&
+          markup.includes("Current recovery") &&
+          markup.includes('data-place-role="work"') &&
+          markup.includes('data-place-role="history"') &&
+          !markup.includes("Start exact Work"),
+        `The live ${presentationPath} workbench presentation lost terminal Work, History, or recovery authority.`,
+      );
+    }
+    const replayMarkup = renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ["/"] },
+        createElement(SuggestedActionInvocationResult, {
+          view: reread,
+          replayedResponse: replay,
+        }),
+      ),
+    );
+    assert(
+      replayMarkup.includes("Exact retained response") &&
+        replayMarkup.includes('data-source="petra-interaction-sdk"') &&
+        replayMarkup.includes(completed.content.result.result_ref.record_id),
+      "The frozen interface did not render the exact live replay and terminal result.",
+    );
+    progress("live terminal state and replay rendered in the frozen interface");
 
     const counts = await seedPool.query(
       `SELECT
@@ -781,6 +861,14 @@ const actionProof = async (environment, seedPool) => {
         delivery_abort_cancelled_work: false,
         work_reexecuted_on_replay: false,
       },
+      live_interface: {
+        preview_client: "getProjectSuggestedWorkAction",
+        invocation_controller: "attemptSuggestedActionInvocation",
+        replay_controller: "attemptSuggestedActionInteractionReplay",
+        rendered_presentations: ["direct", "conversational"],
+        rendered_terminal_work_history_and_recovery: true,
+        rendered_retained_response: true,
+      },
       history: {
         revisions: reread.content.history.work_revisions.map((revision) => ({
           revision: revision.work_unit_ref.revision,
@@ -792,7 +880,8 @@ const actionProof = async (environment, seedPool) => {
       durable_counts: counts.rows[0],
     };
   } finally {
-    await active?.server.shutdown();
+    globalThis.fetch = nativeFetch;
+    await Promise.all([vite?.close(), active?.server.shutdown()]);
   }
 };
 
