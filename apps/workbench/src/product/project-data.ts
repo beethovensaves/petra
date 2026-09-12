@@ -4538,11 +4538,14 @@ const randomUlidPayload = (): string => {
   return payload;
 };
 
-export interface ReviewSessionDeferCommandOptions {
+export interface ReviewSessionLifecycleCommandOptions {
   readonly commandId?: string;
   readonly idempotencyKey?: string;
   readonly rationale?: string;
 }
+
+export type ReviewSessionDeferCommandOptions =
+  ReviewSessionLifecycleCommandOptions;
 
 /**
  * Creates only caller-owned DeferReviewSession input from the exact session
@@ -4551,7 +4554,7 @@ export interface ReviewSessionDeferCommandOptions {
  */
 export const createReviewSessionDeferCommandInput = (
   review: ReviewSession,
-  options: ReviewSessionDeferCommandOptions = {},
+  options: ReviewSessionLifecycleCommandOptions = {},
 ): ReviewSessionLifecycleCommandInput => {
   const identity = randomUlidPayload();
   return {
@@ -4566,6 +4569,41 @@ export const createReviewSessionDeferCommandInput = (
       revision: review.exactRef.revision,
       content_hash: review.exactRef.contentHash,
       lifecycle: "open",
+    },
+    ...(options.rationale === undefined
+      ? {}
+      : { rationale: options.rationale }),
+  };
+};
+
+/**
+ * Creates only caller-owned ReopenReviewSession input when the authenticated
+ * Review read returned the exact deferred lifecycle. The server still resolves
+ * authority and rechecks the current lifecycle.
+ */
+export const createReviewSessionReopenCommandInput = (
+  review: ReviewSession,
+  options: ReviewSessionLifecycleCommandOptions = {},
+): ReviewSessionLifecycleCommandInput => {
+  if (review.lifecycle !== "deferred") {
+    throw new ProjectDataError(
+      "A ReviewSession reopen command requires an exact deferred lifecycle from the authenticated Review read.",
+      400,
+    );
+  }
+  const identity = randomUlidPayload();
+  return {
+    projectId: review.projectId,
+    reviewSessionId: review.id,
+    commandId: options.commandId ?? `command_${identity}`,
+    idempotencyKey:
+      options.idempotencyKey ?? `review-session:${identity}:reopen`,
+    requestedAction: "reopen",
+    expectedReviewSessionRef: {
+      review_session_id: review.id,
+      revision: review.exactRef.revision,
+      content_hash: review.exactRef.contentHash,
+      lifecycle: review.lifecycle,
     },
     ...(options.rationale === undefined
       ? {}

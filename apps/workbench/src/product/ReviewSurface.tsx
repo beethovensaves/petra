@@ -11,6 +11,7 @@ import type { ProjectRecord, ReviewSession } from "./model.js";
 import {
   ProjectDataError,
   createReviewSessionDeferCommandInput,
+  createReviewSessionReopenCommandInput,
   executeReviewSessionLifecycleCommand,
   type ReviewSessionLifecycleCommandInput,
 } from "./project-data.js";
@@ -99,34 +100,53 @@ export const ReviewLifecycleNotice = ({
   const unauthorized = lifecycle.state === "unauthorized";
   const failed = lifecycle.state === "failed";
   const success = lifecycle.state === "success";
+  const reopening = lifecycle.input.requestedAction === "reopen";
   const title =
     lifecycle.state === "pending"
-      ? "Deferring this Review…"
+      ? reopening
+        ? "Reopening this Review…"
+        : "Deferring this Review…"
       : success
         ? lifecycle.applied
-          ? "Review deferred"
-          : "Review deferral confirmed"
+          ? reopening
+            ? "Review reopened"
+            : "Review deferred"
+          : reopening
+            ? "Review already reopened"
+            : "Review deferral confirmed"
         : stale
           ? "Review needs refresh"
           : unauthorized
-            ? "Decide later was not authorized"
+            ? reopening
+              ? "Reopen review was not authorized"
+              : "Decide later was not authorized"
             : uncertain
               ? "Command result is not yet confirmed"
-              : "Review was not deferred";
+              : reopening
+                ? "Review was not reopened"
+                : "Review was not deferred";
   const detail =
     lifecycle.state === "pending"
-      ? "Petra is checking the exact Review revision and command authority. No decision is shown as recorded yet."
+      ? reopening
+        ? "Petra is checking the exact Review revision and command authority. The Review is not shown as open again yet."
+        : "Petra is checking the exact Review revision and command authority. No decision is shown as recorded yet."
       : success
         ? lifecycle.applied
-          ? "The Review is waiting. No candidate was approved, rejected, or applied."
-          : "Petra returned the retained result for this exact command. The Review is waiting, and no candidate was approved, rejected, or applied."
+          ? reopening
+            ? "The Review is open again. No candidate was approved, rejected, or applied."
+            : "The Review is waiting. No candidate was approved, rejected, or applied."
+          : reopening
+            ? "Petra returned the retained result for this exact command. The Review is open again, and no candidate was approved, rejected, or applied."
+            : "Petra returned the retained result for this exact command. The Review is waiting, and no candidate was approved, rejected, or applied."
         : stale
-          ? "This Review changed or no longer accepts this transition. Nothing is shown as deferred; refresh the Review before deciding again."
+          ? reopening
+            ? "This Review changed or no longer accepts this transition. Nothing is shown as reopened; refresh the Review before trying again."
+            : "This Review changed or no longer accepts this transition. Nothing is shown as deferred; refresh the Review before deciding again."
           : unauthorized
             ? "Petra did not grant this Review command. The Review remains unchanged in this view."
             : uncertain
               ? "Petra could not verify whether the command took effect. Retry the exact command to reconcile; if it already succeeded, Petra will return its retained result without applying it again."
-              : "Petra rejected the command before a verified result was returned. The Review remains unchanged in this view.";
+              : `Petra rejected the command before a verified result was returned. The Review is not shown as ${reopening ? "reopened" : "deferred"} in this view.`;
 
   return (
     <section
@@ -324,7 +344,12 @@ export const ReviewSessionSurface = ({
   const decisionRef = useRef<HTMLElement>(null);
   const pending = lifecycle.state === "pending";
   const deferPresented =
-    review.status === "needs_decision" && lifecycle.state !== "success";
+    review.status === "needs_decision" &&
+    review.lifecycle !== "deferred" &&
+    review.lifecycle !== "completed" &&
+    lifecycle.state !== "success";
+  const reopenPresented =
+    review.lifecycle === "deferred" && lifecycle.state !== "success";
 
   useEffect(() => {
     if (lifecycle.state !== "idle" && lifecycle.state !== "pending") {
@@ -360,17 +385,25 @@ export const ReviewSessionSurface = ({
     );
   };
 
+  const reopenReview = (): void => {
+    runLifecycleCommand(createReviewSessionReopenCommandInput(review));
+  };
+
   const refreshReview = async (): Promise<void> => {
     if (onReviewChange !== undefined) await onReviewChange();
     setLifecycle({ state: "idle" });
   };
 
   const decisionBoundary =
-    review.status === "needs_decision"
-      ? "Apply and Reject remain unavailable until their Review command boundaries are connected. Decide later sends the exact Review revision to Petra; the server rechecks lifecycle and authority before changing coordination state."
-      : review.status === "waiting"
-        ? "This Review is waiting. Reopen remains unavailable because the authenticated Review read does not distinguish a deferred session from other waiting state; the client will not infer lifecycle."
-        : "This Review is completed. No Review lifecycle action is available from this presentation.";
+    review.lifecycle === "deferred"
+      ? "This Review is deferred. Reopen review sends this exact Review revision to Petra. The server rechecks current lifecycle and authority; seeing Deferred here does not mean the command is eligible or authorized."
+      : review.status === "needs_decision"
+        ? "Apply and Reject remain unavailable until their Review command boundaries are connected. Decide later sends the exact Review revision to Petra; the server rechecks lifecycle and authority before changing coordination state."
+        : review.status === "waiting"
+          ? review.lifecycle === "open"
+            ? "This Review is waiting for another reason; its exact lifecycle is open. Reopen is unavailable, and the client does not treat Waiting as Deferred."
+            : "This Review is waiting. This retained Review read does not supply an exact deferred lifecycle, so Reopen is unavailable."
+          : "This Review is completed. No Review lifecycle action is available from this presentation.";
 
   return (
     <main className="reference-surface review-session" id="reference-main">
@@ -611,13 +644,17 @@ export const ReviewSessionSurface = ({
           <PetraButton
             variant="quiet"
             busy={pending}
-            busyLabel="Deferring Review…"
-            aria-disabled={!deferPresented}
+            busyLabel={
+              reopenPresented ? "Reopening Review…" : "Deferring Review…"
+            }
+            aria-disabled={!(deferPresented || reopenPresented)}
             aria-describedby="review-decision-boundary"
-            data-operation="defer_review_session"
-            onClick={deferReview}
+            data-operation={
+              reopenPresented ? "reopen_review_session" : "defer_review_session"
+            }
+            onClick={reopenPresented ? reopenReview : deferReview}
           >
-            Decide later
+            {reopenPresented ? "Reopen review" : "Decide later"}
           </PetraButton>
         </PetraButtonGroup>
         <ReviewLifecycleNotice

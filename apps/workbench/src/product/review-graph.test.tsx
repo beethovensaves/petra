@@ -13,6 +13,7 @@ import type { GraphQuestion } from "./model.js";
 import {
   ProjectDataError,
   createReviewSessionDeferCommandInput,
+  createReviewSessionReopenCommandInput,
 } from "./project-data.js";
 import {
   ReviewCollectionSurface,
@@ -90,13 +91,34 @@ describe("reference Review and Graph packets", () => {
     const waiting = structuredClone(review);
     waiting.status = "waiting";
     waiting.statusLabel = "Waiting";
+    waiting.lifecycle = "open";
     const markup = render(
       <ReviewSessionSurface project={project} review={waiting} />,
     );
 
-    expect(markup).toContain("Reopen remains unavailable");
-    expect(markup).toContain("does not distinguish a deferred session");
+    expect(markup).toContain("Reopen is unavailable");
+    expect(markup).toContain("exact lifecycle is open");
     expect(markup.match(/aria-disabled="true"/g)).toHaveLength(3);
+    expect(markup).not.toContain('data-operation="reopen_review_session"');
+    expect(markup).not.toContain("Reason for deciding later (optional)");
+  });
+
+  it("presents Reopen only for the exact deferred lifecycle without implying authority", () => {
+    const deferred = structuredClone(review);
+    deferred.status = "waiting";
+    deferred.statusLabel = "Waiting";
+    deferred.lifecycle = "deferred";
+    const markup = render(
+      <ReviewSessionSurface project={project} review={deferred} />,
+    );
+
+    expect(markup).toContain("This Review is deferred");
+    expect(markup).toContain(
+      "seeing Deferred here does not mean the command is eligible or authorized",
+    );
+    expect(markup).toContain("Reopen review");
+    expect(markup).toContain('data-operation="reopen_review_session"');
+    expect(markup.match(/aria-disabled="true"/g)).toHaveLength(2);
     expect(markup).not.toContain("Reason for deciding later (optional)");
   });
 
@@ -166,6 +188,68 @@ describe("reference Review and Graph packets", () => {
     expect(successMarkup).toContain("retained result for this exact command");
     expect(successMarkup).toContain("Return to Inlet cycle review");
     expect(successMarkup).not.toContain(input.commandId);
+  });
+
+  it("keeps Reopen pending, reconciliation, failure, and no-authority language explicit", () => {
+    const deferred = structuredClone(review);
+    deferred.status = "waiting";
+    deferred.statusLabel = "Waiting";
+    deferred.lifecycle = "deferred";
+    const input = createReviewSessionReopenCommandInput(deferred, {
+      commandId: "command_01K4D000000000000000000072",
+      idempotencyKey: "review-session:001:reopen:surface:v1",
+    });
+    const stale = reviewLifecycleFailureState(
+      new ProjectDataError("stale", 409),
+      input,
+    );
+    const unauthorized = reviewLifecycleFailureState(
+      new ProjectDataError("forbidden", 403),
+      input,
+    );
+
+    const pendingMarkup = render(
+      <ReviewLifecycleNotice
+        review={deferred}
+        lifecycle={{ state: "pending", input }}
+        onRetry={() => undefined}
+      />,
+    );
+    const retainedSuccessMarkup = render(
+      <ReviewLifecycleNotice
+        review={deferred}
+        lifecycle={{ state: "success", applied: false, input }}
+        onRetry={() => undefined}
+      />,
+    );
+    const staleMarkup = render(
+      <ReviewLifecycleNotice
+        review={deferred}
+        lifecycle={stale}
+        onRetry={() => undefined}
+        onRefresh={() => undefined}
+      />,
+    );
+    const unauthorizedMarkup = render(
+      <ReviewLifecycleNotice
+        review={deferred}
+        lifecycle={unauthorized}
+        onRetry={() => undefined}
+      />,
+    );
+
+    expect(pendingMarkup).toContain("Reopening this Review");
+    expect(pendingMarkup).toContain("Review is not shown as open again yet");
+    expect(retainedSuccessMarkup).toContain("Review already reopened");
+    expect(retainedSuccessMarkup).toContain("retained result");
+    expect(retainedSuccessMarkup).toContain("Review is open again");
+    expect(retainedSuccessMarkup).toContain(
+      "no candidate was approved, rejected, or applied",
+    );
+    expect(staleMarkup).toContain("Nothing is shown as reopened");
+    expect(staleMarkup).toContain("Refresh Review");
+    expect(unauthorizedMarkup).toContain("Reopen review was not authorized");
+    expect(retainedSuccessMarkup).not.toContain(input.commandId);
   });
 
   it("states the represented position instead of mixing projection generations", () => {
