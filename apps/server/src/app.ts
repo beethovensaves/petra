@@ -17,6 +17,8 @@ import {
   type CodexSubscriptionProviderPort,
 } from "@petra/adapters/server";
 import type {
+  PetraClaim,
+  PetraWorkingCandidate,
   PetraSuggestedActionInvocationRequest,
   PetraProjectHistoryCompensationExecutionRequest,
   PetraProjectHistoryCompensationPlanRequest,
@@ -37,6 +39,7 @@ import {
   ProjectHistoryViewRequestError,
   ProjectSourceLifecycleAuthorityError,
   ProjectSourceReplacementCommandError,
+  ReviewCandidateCorrectionAuthorityError,
   ReviewSessionLifecycleAuthorityError,
   ReviewSessionRefreshAuthorityError,
   derivePetraId,
@@ -52,6 +55,8 @@ import {
   type ProjectRelationshipOverlayViewReader,
   type ProjectRelationshipViewReader,
   type ProjectReviewViewReader,
+  type ReviewCandidateCorrectionAuthorityRepository,
+  type ReviewCandidateCorrectionCommandEnvelope,
   type ReviewSessionLifecycleAuthorityRepository,
   type ReviewSessionLifecycleCommandEnvelope,
   type ReviewSessionRefreshAuthorityRepository,
@@ -102,6 +107,7 @@ export interface PetraAppOptions {
   projectReviewViews?: ProjectReviewViewReader;
   reviewSessionLifecycleAuthority?: ReviewSessionLifecycleAuthorityRepository;
   reviewSessionRefreshAuthority?: ReviewSessionRefreshAuthorityRepository;
+  reviewCandidateCorrectionAuthority?: ReviewCandidateCorrectionAuthorityRepository;
   projectWorkingStateSnapshots?: ProjectWorkingStateSnapshotReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
   projectRelationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
@@ -130,6 +136,11 @@ const PROJECT_SOURCE_ID_PATTERN = /^project_source_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_SOURCE_REPLACEMENT_ID_PATTERN =
   /^project_source_replacement_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const REVIEW_SESSION_ID_PATTERN = /^review_session_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const REVIEW_MEMBER_ID_PATTERN = /^review_member_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const WORKING_CANDIDATE_ID_PATTERN =
+  /^working_candidate_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const WORKING_RELATIONSHIP_ID_PATTERN =
+  /^working_relationship_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_SOURCE_LIFECYCLE_RECEIPT_ID_PATTERN =
   /^project_source_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const COMMAND_ID_PATTERN = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -348,6 +359,49 @@ const reviewSessionLifecycleExpectedRef = <
     content_hash: canonicalHashMember(value, "content_hash"),
     lifecycle: expectedLifecycle,
   };
+};
+
+const reviewWorkingExpectedRef = <Kind extends "candidate" | "relationship">(
+  value: unknown,
+  kind: Kind,
+): Kind extends "candidate"
+  ? {
+      working_candidate_id: string;
+      revision: number;
+      content_hash: string;
+    }
+  : {
+      working_relationship_id: string;
+      revision: number;
+      content_hash: string;
+    } => {
+  if (!isRecord(value)) {
+    throw new InteractionInputError(
+      `expected_working_${kind}_ref must be an exact working reference.`,
+    );
+  }
+  const idKey =
+    kind === "candidate" ? "working_candidate_id" : "working_relationship_id";
+  assertExactKeys(
+    value,
+    new Set([idKey, "revision", "content_hash"]),
+    `expected_working_${kind}_ref`,
+  );
+  const id = requiredString(value, idKey);
+  const pattern =
+    kind === "candidate"
+      ? WORKING_CANDIDATE_ID_PATTERN
+      : WORKING_RELATIONSHIP_ID_PATTERN;
+  if (!pattern.test(id)) {
+    throw new InteractionInputError(
+      `${idKey} must be a canonical ${kind === "candidate" ? "WorkingCandidate" : "WorkingRelationship"} identity.`,
+    );
+  }
+  return {
+    [idKey]: id,
+    revision: positiveSafeInteger(value, "revision"),
+    content_hash: canonicalHashMember(value, "content_hash"),
+  } as never;
 };
 
 const projectSourceReplacementSourceRef = <
@@ -4062,6 +4116,307 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The ReviewSession refresh command failed.",
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-correction",
+    async (context) => {
+      if (
+        options.commandPrincipalResolver === undefined ||
+        options.reviewCandidateCorrectionAuthority === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "REVIEW_CANDIDATE_CORRECTION_COMMAND_UNAVAILABLE",
+          "The authenticated Review candidate-correction boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Review candidate correction does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const reviewSessionId = context.req.param("reviewSessionId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "Review candidate correction requires a canonical Project identity.",
+          );
+        }
+        if (!REVIEW_SESSION_ID_PATTERN.test(reviewSessionId)) {
+          throw new InteractionInputError(
+            "Review candidate correction requires a canonical ReviewSession identity.",
+          );
+        }
+        const body = await readBoundedJson(context, maxBodyBytes);
+        if (!isRecord(body)) {
+          throw new InteractionInputError(
+            "The Review candidate-correction command must be an object.",
+          );
+        }
+        assertExactKeys(
+          body,
+          new Set([
+            "command_id",
+            "idempotency_key",
+            "expected_review_session_ref",
+            "review_member_id",
+            "expected_working_candidate_ref",
+            "expected_working_relationship_ref",
+            "corrected_candidate",
+            "corrected_profile_record",
+          ]),
+          "Review candidate-correction command",
+        );
+        const commandId = requiredString(body, "command_id");
+        const idempotencyKey = requiredString(body, "idempotency_key");
+        const reviewMemberId = requiredString(body, "review_member_id");
+        if (!COMMAND_ID_PATTERN.test(commandId)) {
+          throw new InteractionInputError(
+            "command_id must be a canonical command-prefixed Petra ID.",
+          );
+        }
+        if (!IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) {
+          throw new InteractionInputError(
+            "idempotency_key must satisfy Petra's registered command key format.",
+          );
+        }
+        if (!REVIEW_MEMBER_ID_PATTERN.test(reviewMemberId)) {
+          throw new InteractionInputError(
+            "review_member_id must be a canonical Review member identity.",
+          );
+        }
+        const expectedReviewSessionRef = reviewSessionLifecycleExpectedRef(
+          body.expected_review_session_ref,
+          reviewSessionId,
+          "open",
+        );
+        const expectedWorkingCandidateRef = reviewWorkingExpectedRef(
+          body.expected_working_candidate_ref,
+          "candidate",
+        );
+        const expectedWorkingRelationshipRef = reviewWorkingExpectedRef(
+          body.expected_working_relationship_ref,
+          "relationship",
+        );
+        try {
+          contracts.assertValid(
+            "working-candidate",
+            "1.0.0",
+            body.corrected_candidate,
+          );
+          contracts.assertValid(
+            "claim",
+            "1.0.0",
+            body.corrected_profile_record,
+          );
+        } catch (error) {
+          if (error instanceof ContractRegistryError) {
+            throw new InteractionInputError(
+              "The corrected candidate or scientific Claim does not satisfy its registered contract.",
+              error.validationErrors.map((issue) => issue.instancePath),
+            );
+          }
+          throw error;
+        }
+        const correctedCandidate = structuredClone(
+          body.corrected_candidate as PetraWorkingCandidate,
+        );
+        const correctedProfileRecord = structuredClone(
+          body.corrected_profile_record as PetraClaim,
+        );
+        const commandName = "CorrectReviewCandidate" as const;
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName,
+          });
+        if (principal.state === "denied") {
+          if (principal.reason === "active_grant_not_found") {
+            return jsonError(
+              context,
+              403,
+              "REVIEW_CANDIDATE_CORRECTION_COMMAND_FORBIDDEN",
+              "The authenticated principal has no active grant for Review candidate correction.",
+            );
+          }
+          return jsonError(
+            context,
+            503,
+            principal.reason === "actor_not_registered"
+              ? "AUTHENTICATED_ACTOR_UNAVAILABLE"
+              : "PROJECT_COMMAND_AUTHORITY_AMBIGUOUS",
+            principal.reason === "actor_not_registered"
+              ? "The configured authenticated Actor is not registered."
+              : "More than one active grant matches authenticated Review candidate correction.",
+          );
+        }
+        const envelope: ReviewCandidateCorrectionCommandEnvelope = {
+          schema_name: "petra.command-envelope",
+          schema_version: "1.6.0",
+          command_id: commandId,
+          idempotency_key: idempotencyKey,
+          project_id: projectId,
+          actor: principal.actor,
+          capability_grant_id: principal.capabilityGrantId,
+          correlation_id: derivePetraId(
+            "trace",
+            `${context.get("requestId")}:${randomUUID()}`,
+          ),
+          submitted_at: new Date().toISOString(),
+          command: {
+            command_name: commandName,
+            expected_review_session_ref: expectedReviewSessionRef,
+            review_member_id: reviewMemberId,
+            expected_working_candidate_ref: expectedWorkingCandidateRef,
+            expected_working_relationship_ref: expectedWorkingRelationshipRef,
+            corrected_candidate: correctedCandidate,
+            corrected_profile_record: correctedProfileRecord,
+          },
+        };
+        contracts.assertValid("command-envelope", "1.6.0", envelope);
+        const result =
+          await options.reviewCandidateCorrectionAuthority.executeReviewCandidateCorrectionCommand(
+            envelope,
+          );
+        contracts.assertValid(
+          "review-candidate-correction-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid("working-candidate", "1.0.0", result.candidate);
+        contracts.assertValid("claim", "1.0.0", result.profileRecord);
+        contracts.assertValid(
+          "working-relationship",
+          "1.0.0",
+          result.relationship,
+        );
+        contracts.assertValid(
+          "review-session",
+          result.reviewSession.schema_version,
+          result.reviewSession,
+        );
+        const receipt = result.receipt.content;
+        const resultingSessionRef = receipt.resulting_review_session_ref;
+        const resultingCandidateRef = receipt.resulting_candidate_ref;
+        const resultingRelationshipRef = receipt.resulting_relationship_ref;
+        const resultingMember = result.reviewSession.content.members[0];
+        if (
+          result.receipt.project_id !== projectId ||
+          receipt.command_ref.command_id !== commandId ||
+          receipt.command_ref.idempotency_key !== idempotencyKey ||
+          receipt.command_ref.command_name !== commandName ||
+          receipt.command_ref.actor.actor_id !== principal.actor.actor_id ||
+          receipt.command_ref.actor.actor_kind !== principal.actor.actor_kind ||
+          receipt.command_ref.capability_grant_id !==
+            principal.capabilityGrantId ||
+          receipt.review_member_id !== reviewMemberId ||
+          canonicalize(receipt.prior_review_session_ref) !==
+            canonicalize({
+              ...expectedReviewSessionRef,
+              record_hash: receipt.prior_review_session_ref.record_hash,
+            }) ||
+          receipt.prior_candidate_ref.record_id !==
+            expectedWorkingCandidateRef.working_candidate_id ||
+          receipt.prior_candidate_ref.revision !==
+            expectedWorkingCandidateRef.revision ||
+          receipt.prior_candidate_ref.content_hash !==
+            expectedWorkingCandidateRef.content_hash ||
+          receipt.prior_relationship_ref.record_id !==
+            expectedWorkingRelationshipRef.working_relationship_id ||
+          receipt.prior_relationship_ref.revision !==
+            expectedWorkingRelationshipRef.revision ||
+          receipt.prior_relationship_ref.content_hash !==
+            expectedWorkingRelationshipRef.content_hash ||
+          result.candidate.working_candidate_id !==
+            resultingCandidateRef.record_id ||
+          result.candidate.revision !== resultingCandidateRef.revision ||
+          result.candidate.content_hash !==
+            resultingCandidateRef.content_hash ||
+          canonicalize(result.candidate) !== canonicalize(correctedCandidate) ||
+          canonicalize(result.profileRecord) !==
+            canonicalize(correctedProfileRecord) ||
+          result.relationship.working_relationship_id !==
+            resultingRelationshipRef.record_id ||
+          result.relationship.revision !== resultingRelationshipRef.revision ||
+          result.relationship.content_hash !==
+            resultingRelationshipRef.content_hash ||
+          result.reviewSession.schema_version !== "1.1.0" ||
+          result.reviewSession.review_session_id !== reviewSessionId ||
+          result.reviewSession.revision !== resultingSessionRef.revision ||
+          result.reviewSession.content_hash !==
+            resultingSessionRef.content_hash ||
+          result.reviewSession.content.lifecycle !== "open" ||
+          result.reviewSession.content.members.length !== 1 ||
+          resultingMember === undefined ||
+          !("working_state" in resultingMember) ||
+          resultingMember.review_member_id !== reviewMemberId ||
+          resultingMember.working_state.candidate_ref.working_candidate_id !==
+            result.candidate.working_candidate_id ||
+          resultingMember.working_state.candidate_ref.revision !==
+            result.candidate.revision ||
+          resultingMember.working_state.candidate_ref.content_hash !==
+            result.candidate.content_hash ||
+          resultingMember.working_state.relationship_refs[0]
+            ?.working_relationship_id !==
+            result.relationship.working_relationship_id ||
+          resultingMember.working_state.relationship_refs[0]?.revision !==
+            result.relationship.revision ||
+          resultingMember.working_state.relationship_refs[0]?.content_hash !==
+            result.relationship.content_hash ||
+          typeof result.applied !== "boolean"
+        ) {
+          throw new Error(
+            "The Review candidate-correction authority returned a different command, Project, member, candidate, relationship, or ReviewSession.",
+          );
+        }
+        return context.json({
+          receipt: result.receipt,
+          candidate: result.candidate,
+          profile_record: result.profileRecord,
+          relationship: result.relationship,
+          review_session: result.reviewSession,
+          applied: result.applied,
+        });
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            422,
+            "REVIEW_CANDIDATE_CORRECTION_COMMAND_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        if (error instanceof ReviewCandidateCorrectionAuthorityError) {
+          const status =
+            error.code === "REVIEW_CANDIDATE_CORRECTION_COMMAND_NOT_AUTHORIZED"
+              ? 403
+              : error.code === "REVIEW_CANDIDATE_CORRECTION_SESSION_NOT_FOUND"
+                ? 404
+                : error.code ===
+                    "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED"
+                  ? 422
+                  : error.code ===
+                      "REVIEW_CANDIDATE_CORRECTION_STORED_RECORD_CORRUPT"
+                    ? 503
+                    : 409;
+          return jsonError(context, status, error.code, error.message);
+        }
+        return jsonError(
+          context,
+          503,
+          "REVIEW_CANDIDATE_CORRECTION_COMMAND_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Review candidate-correction command failed.",
         );
       }
     },

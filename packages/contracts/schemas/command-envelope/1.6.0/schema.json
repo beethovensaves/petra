@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/command-envelope/1.6.0/schema.json",
+  "title": "PetraCommandEnvelopeV160",
+  "description": "The adapter-neutral command envelope extended with an exact non-authoritative correction of the existing WorkingCandidate in one open scientific Review member.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "correlation_id",
+    "submitted_at",
+    "command"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.command-envelope" },
+    "schema_version": { "const": "1.6.0" },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+    "capability_grant_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+    },
+    "correlation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+    },
+    "causation_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "command": { "$ref": "#/$defs/Command" }
+  },
+  "$defs": {
+    "Command": {
+      "oneOf": [
+        { "$ref": "../../command-envelope/1.5.0/schema.json#/$defs/Command" },
+        { "$ref": "#/$defs/CorrectReviewCandidate" }
+      ]
+    },
+    "ExactWorkingCandidateRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["working_candidate_id", "revision", "content_hash"],
+      "properties": {
+        "working_candidate_id": {
+          "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/WorkingCandidateId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ExactWorkingRelationshipRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["working_relationship_id", "revision", "content_hash"],
+      "properties": {
+        "working_relationship_id": {
+          "$ref": "../../working-relationship/1.0.0/schema.json#/$defs/WorkingRelationshipId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "CorrectReviewCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_name",
+        "expected_review_session_ref",
+        "review_member_id",
+        "expected_working_candidate_ref",
+        "expected_working_relationship_ref",
+        "corrected_candidate",
+        "corrected_profile_record"
+      ],
+      "properties": {
+        "command_name": { "const": "CorrectReviewCandidate" },
+        "expected_review_session_ref": {
+          "$ref": "../../command-envelope/1.5.0/schema.json#/$defs/ExactReviewSessionRef"
+        },
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "expected_working_candidate_ref": {
+          "$ref": "#/$defs/ExactWorkingCandidateRef"
+        },
+        "expected_working_relationship_ref": {
+          "$ref": "#/$defs/ExactWorkingRelationshipRef"
+        },
+        "corrected_candidate": {
+          "$ref": "../../working-candidate/1.0.0/schema.json"
+        },
+        "corrected_profile_record": {
+          "$ref": "../../claim/1.0.0/schema.json"
+        }
+      }
+    }
+  }
+}

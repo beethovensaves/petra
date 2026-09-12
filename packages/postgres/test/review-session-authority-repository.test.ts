@@ -9,10 +9,12 @@ import type {
   PetraAuthor,
   PetraCapabilityGrantV130,
   PetraCapabilityGrantV140,
+  PetraCapabilityGrantV150,
   PetraClaim,
   PetraCommandEnvelope,
   PetraCommandEnvelopeV140,
   PetraCommandEnvelopeV150,
+  PetraCommandEnvelopeV160,
   PetraParsedDocument,
   PetraProject,
   PetraProjectDefinition,
@@ -37,6 +39,8 @@ import type {
   PersistVerifiedArtifactInput,
 } from "@petra/core";
 import type {
+  ReviewCandidateCorrectionAuthorityError,
+  ReviewCandidateCorrectionCommandEnvelope,
   ReviewSessionLifecycleAuthorityError,
   ReviewSessionLifecycleCommandEnvelope,
   ReviewSessionRefreshAuthorityError,
@@ -696,6 +700,450 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
         },
       },
     }) satisfies PetraCommandEnvelopeV150;
+
+  const registerCorrectionGrant = async (
+    project: PetraProject,
+    actor: PetraActor,
+  ): Promise<PetraCapabilityGrantV150> => {
+    const content: PetraCapabilityGrantV150["content"] = {
+      scope_kind: "project_commands",
+      allowed_commands: ["CorrectReviewCandidate"],
+      valid_from: "2026-09-01T00:00:00.000Z",
+      reason:
+        "Allow the Project author to correct an exact non-authoritative Review candidate.",
+    };
+    const grant: PetraCapabilityGrantV150 = {
+      schema_name: "petra.capability-grant",
+      schema_version: "1.5.0",
+      capability_grant_id: "capability_grant_01K4D000000000000000000100",
+      revision: 1,
+      project_id: project.project_id,
+      grantee: { actor_id: actor.actor_id, actor_kind: "human" },
+      content,
+      content_hash: canonicalHash(content),
+      issued_by: { actor_id: actor.actor_id, actor_kind: "human" },
+      issued_at: "2026-09-01T00:00:00.000Z",
+    };
+    await capabilities.registerCapabilityGrant(grant);
+    return grant;
+  };
+
+  const correction = (
+    candidate: PetraWorkingCandidate,
+    actor: PetraActor,
+  ): { candidate: PetraWorkingCandidate; profile: PetraClaim } => {
+    const profile = readFixture<PetraClaim>("claim-working-correction");
+    profile.created_by = { actor_id: actor.actor_id, actor_kind: "human" };
+    if (profile.basis.basis_kind !== "source") {
+      throw new Error("Expected a source-grounded corrected Claim fixture.");
+    }
+    profile.basis.proposed_by = structuredClone(profile.created_by);
+
+    const next = structuredClone(candidate);
+    const priorRef = {
+      schema_name: "petra.working-candidate" as const,
+      schema_version: "1.0.0" as const,
+      record_id: candidate.working_candidate_id,
+      revision: candidate.revision,
+      record_hash: canonicalHash(candidate),
+    };
+    next.revision += 1;
+    next.profile_object.object_record_ref = exactRef(
+      profile.schema_name,
+      profile.claim_id,
+      profile.revision,
+      profile,
+    );
+    next.input_snapshot.input_record_refs.push(priorRef);
+    next.provenance.push({
+      provenance_role: "prior_revision",
+      record_ref: priorRef,
+      statement:
+        "The correction retains the exact prior WorkingCandidate revision.",
+    });
+    next.validation = {
+      state: "pending",
+      target_record_hash: canonicalHash(profile),
+      results: [],
+    };
+    next.lineage = {
+      lineage_kind: "supersession",
+      supersedes: {
+        working_candidate_id: candidate.working_candidate_id,
+        revision: candidate.revision,
+        content_hash: candidate.content_hash,
+      },
+      change_kind: "material_revision",
+      reason:
+        "Narrow the Claim wording without changing its exact source basis.",
+    };
+    next.recorded_at = "2026-09-12T20:59:59.000Z";
+    next.content_hash = workingContentHash(next);
+    return { candidate: next, profile };
+  };
+
+  const correctionEnvelope = (
+    session: PetraReviewSessionV110,
+    grant: PetraCapabilityGrantV150,
+    corrected: { candidate: PetraWorkingCandidate; profile: PetraClaim },
+    identity: string,
+  ): ReviewCandidateCorrectionCommandEnvelope => {
+    const member = session.content.members[0];
+    if (
+      member === undefined ||
+      member.working_state.relationship_refs[0] === undefined
+    ) {
+      throw new Error("Expected one exact working Review member.");
+    }
+    return {
+      schema_name: "petra.command-envelope",
+      schema_version: "1.6.0",
+      command_id: `command_01K4D000000000000000000${identity}`,
+      idempotency_key: `review-session:001:candidate-correction:${identity}`,
+      project_id: session.project_id,
+      actor: structuredClone(grant.grantee),
+      capability_grant_id: grant.capability_grant_id,
+      correlation_id: `trace_01K4D000000000000000000${identity}`,
+      submitted_at: "2026-09-12T21:00:00.000Z",
+      command: {
+        command_name: "CorrectReviewCandidate",
+        expected_review_session_ref: {
+          review_session_id: session.review_session_id,
+          revision: session.revision,
+          content_hash: session.content_hash,
+          lifecycle: "open",
+        },
+        review_member_id: member.review_member_id,
+        expected_working_candidate_ref: structuredClone(
+          member.working_state.candidate_ref,
+        ),
+        expected_working_relationship_ref: structuredClone(
+          member.working_state.relationship_refs[0],
+        ),
+        corrected_candidate: structuredClone(corrected.candidate),
+        corrected_profile_record: structuredClone(corrected.profile),
+      },
+    } satisfies PetraCommandEnvelopeV160;
+  };
+
+  it("atomically corrects the same candidate, relationship, member, and Review with exact replay", async () => {
+    const { project, session, candidate, relationship, actor } =
+      await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const grant = await registerCorrectionGrant(project, actor);
+    const corrected = correction(candidate, actor);
+    const envelope = correctionEnvelope(session, grant, corrected, "101");
+
+    const first =
+      await sessions.executeReviewCandidateCorrectionCommand(envelope);
+    expect(first).toMatchObject({
+      applied: true,
+      candidate: {
+        working_candidate_id: candidate.working_candidate_id,
+        revision: 2,
+        authority_boundary: {
+          domain_authority: false,
+          review_decision: false,
+          mutation_authority: false,
+        },
+      },
+      relationship: {
+        working_relationship_id: relationship.working_relationship_id,
+        revision: 2,
+      },
+      reviewSession: {
+        review_session_id: session.review_session_id,
+        revision: 2,
+        content: { lifecycle: "open" },
+      },
+      receipt: {
+        content: {
+          review_member_id: session.content.members[0]?.review_member_id,
+          correction_kind: "material_revision",
+          basis_transition: "retained_exact_scientific_source",
+          preservation: {
+            review_decision: "none",
+            change_sets: "unchanged",
+            approvals: "unchanged",
+            domain_events: "none",
+            projection: "unchanged",
+            history: "unchanged",
+          },
+          authority_boundary: {
+            candidate_authority: "working_only",
+            review_decision: "none",
+            domain_authority: "unchanged",
+            conversation_authority: "none",
+            model_output_authority: "none",
+          },
+        },
+      },
+    });
+    expect(first.relationship.endpoints.object).toEqual({
+      endpoint_kind: "working_candidate",
+      candidate_ref: {
+        working_candidate_id: first.candidate.working_candidate_id,
+        revision: first.candidate.revision,
+        content_hash: first.candidate.content_hash,
+      },
+    });
+    const resultingMember = first.reviewSession.content.members[0];
+    expect(resultingMember?.review_member_id).toBe(
+      session.content.members[0]?.review_member_id,
+    );
+    expect(
+      resultingMember && "working_state" in resultingMember
+        ? resultingMember.working_state
+        : undefined,
+    ).toEqual({
+      candidate_ref: {
+        working_candidate_id: first.candidate.working_candidate_id,
+        revision: first.candidate.revision,
+        content_hash: first.candidate.content_hash,
+      },
+      relationship_refs: [
+        {
+          working_relationship_id: first.relationship.working_relationship_id,
+          revision: first.relationship.revision,
+          content_hash: first.relationship.content_hash,
+        },
+      ],
+    });
+
+    const replay = await sessions.executeReviewCandidateCorrectionCommand(
+      structuredClone(envelope),
+    );
+    expect(replay).toEqual({ ...first, applied: false });
+    await expect(
+      working.getWorkingCandidate(
+        project.project_id,
+        candidate.working_candidate_id,
+        1,
+      ),
+    ).resolves.toEqual(candidate);
+    await expect(
+      working.getWorkingRelationship(
+        project.project_id,
+        relationship.working_relationship_id,
+        1,
+      ),
+    ).resolves.toEqual(relationship);
+
+    const counts = await pool.query<{
+      candidates: string;
+      candidate_revisions: string;
+      relationships: string;
+      relationship_revisions: string;
+      reviews: string;
+      review_revisions: string;
+      correction_commands: string;
+      domain_events: string;
+      outbox: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.working_candidates)::text AS candidates,
+         (SELECT count(*) FROM petra.working_candidate_revisions)::text
+           AS candidate_revisions,
+         (SELECT count(*) FROM petra.working_relationships)::text
+           AS relationships,
+         (SELECT count(*) FROM petra.working_relationship_revisions)::text
+           AS relationship_revisions,
+         (SELECT count(*) FROM petra.review_sessions)::text AS reviews,
+         (SELECT count(*) FROM petra.review_session_revisions)::text
+           AS review_revisions,
+         (SELECT count(*) FROM petra.command_executions
+           WHERE command_name = 'CorrectReviewCandidate')::text
+           AS correction_commands,
+         (SELECT count(*) FROM petra.domain_events)::text AS domain_events,
+         (SELECT count(*) FROM petra.outbox_records)::text AS outbox`,
+    );
+    expect(counts.rows[0]).toEqual({
+      candidates: "1",
+      candidate_revisions: "2",
+      relationships: "1",
+      relationship_revisions: "2",
+      reviews: "1",
+      review_revisions: "2",
+      correction_commands: "1",
+      domain_events: "0",
+      outbox: "0",
+    });
+  });
+
+  it("fails closed for unauthorized, stale, mismatched, invalid lineage, basis, provenance, and retry content", async () => {
+    const { project, session, candidate, actor } = await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const grant = await registerCorrectionGrant(project, actor);
+    const corrected = correction(candidate, actor);
+    const envelope = correctionEnvelope(session, grant, corrected, "102");
+    const expectCode = async (
+      input: ReviewCandidateCorrectionCommandEnvelope,
+      code: ReviewCandidateCorrectionAuthorityError["code"],
+    ) => {
+      await expect(
+        sessions.executeReviewCandidateCorrectionCommand(input),
+      ).rejects.toEqual(expect.objectContaining({ code }));
+    };
+
+    await expectCode(
+      {
+        ...envelope,
+        capability_grant_id: "capability_grant_01K4D000000000000000000199",
+      },
+      "REVIEW_CANDIDATE_CORRECTION_COMMAND_NOT_AUTHORIZED",
+    );
+    const stale = structuredClone(envelope);
+    stale.command.expected_review_session_ref.content_hash = `sha256:${"0".repeat(64)}`;
+    await expectCode(stale, "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE");
+    const memberMismatch = structuredClone(envelope);
+    memberMismatch.command.review_member_id =
+      "review_member_01K4D000000000000000000199";
+    await expectCode(
+      memberMismatch,
+      "REVIEW_CANDIDATE_CORRECTION_MEMBER_MISMATCH",
+    );
+    const lineage = structuredClone(envelope);
+    if (
+      lineage.command.corrected_candidate.lineage.lineage_kind !==
+      "supersession"
+    ) {
+      throw new Error("Expected correction lineage.");
+    }
+    lineage.command.corrected_candidate.lineage.supersedes.content_hash = `sha256:${"0".repeat(64)}`;
+    lineage.command.corrected_candidate.content_hash = workingContentHash(
+      lineage.command.corrected_candidate,
+    );
+    await expectCode(lineage, "REVIEW_CANDIDATE_CORRECTION_LINEAGE_INVALID");
+    const basis = structuredClone(envelope);
+    if (basis.command.corrected_profile_record.basis.basis_kind !== "source") {
+      throw new Error("Expected source basis.");
+    }
+    basis.command.corrected_profile_record.basis.source_stance = "qualifies";
+    basis.command.corrected_candidate.profile_object.object_record_ref.record_hash =
+      canonicalHash(basis.command.corrected_profile_record);
+    basis.command.corrected_candidate.validation.target_record_hash =
+      canonicalHash(basis.command.corrected_profile_record);
+    basis.command.corrected_candidate.content_hash = workingContentHash(
+      basis.command.corrected_candidate,
+    );
+    await expectCode(basis, "REVIEW_CANDIDATE_CORRECTION_BASIS_INCOMPATIBLE");
+    const provenance = structuredClone(envelope);
+    provenance.command.corrected_candidate.provenance =
+      provenance.command.corrected_candidate.provenance.filter(
+        (item) => item.provenance_role !== "prior_revision",
+      ) as PetraWorkingCandidate["provenance"];
+    provenance.command.corrected_candidate.content_hash = workingContentHash(
+      provenance.command.corrected_candidate,
+    );
+    await expectCode(
+      provenance,
+      "REVIEW_CANDIDATE_CORRECTION_PROVENANCE_INVALID",
+    );
+
+    const beforeSuccess = await pool.query<{
+      candidate_revisions: string;
+      relationship_revisions: string;
+      review_revisions: string;
+      correction_commands: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.working_candidate_revisions)::text
+           AS candidate_revisions,
+         (SELECT count(*) FROM petra.working_relationship_revisions)::text
+           AS relationship_revisions,
+         (SELECT count(*) FROM petra.review_session_revisions)::text
+           AS review_revisions,
+         (SELECT count(*) FROM petra.command_executions
+           WHERE command_name = 'CorrectReviewCandidate')::text
+           AS correction_commands`,
+    );
+    expect(beforeSuccess.rows[0]).toEqual({
+      candidate_revisions: "1",
+      relationship_revisions: "1",
+      review_revisions: "1",
+      correction_commands: "0",
+    });
+
+    await sessions.executeReviewCandidateCorrectionCommand(envelope);
+    const retryMismatch = structuredClone(envelope);
+    retryMismatch.command.corrected_profile_record.canonical_text +=
+      " Different retry content.";
+    retryMismatch.command.corrected_candidate.profile_object.object_record_ref.record_hash =
+      canonicalHash(retryMismatch.command.corrected_profile_record);
+    retryMismatch.command.corrected_candidate.validation.target_record_hash =
+      canonicalHash(retryMismatch.command.corrected_profile_record);
+    retryMismatch.command.corrected_candidate.content_hash = workingContentHash(
+      retryMismatch.command.corrected_candidate,
+    );
+    await expectCode(
+      retryMismatch,
+      "REVIEW_CANDIDATE_CORRECTION_IDEMPOTENCY_KEY_REUSED",
+    );
+  });
+
+  it("fails closed for a Review without registered working scientific membership", async () => {
+    const unsupported = await setupAuthority();
+    await sessions.registerReviewSessionRevision(unsupported.session);
+    const actor = readFixture<PetraActor>("actor");
+    const grant = await registerCorrectionGrant(unsupported.project, actor);
+    const candidate = readFixture<PetraWorkingCandidate>(
+      "working-candidate-correction",
+    );
+    const profile = readFixture<PetraClaim>("claim-working-correction");
+    const member = unsupported.session.content.members[0];
+    if (member === undefined) throw new Error("Expected one Review member.");
+    const envelope: ReviewCandidateCorrectionCommandEnvelope = {
+      schema_name: "petra.command-envelope",
+      schema_version: "1.6.0",
+      command_id: "command_01K4D000000000000000000103",
+      idempotency_key:
+        "review-session:001:candidate-correction:unsupported:103",
+      project_id: unsupported.project.project_id,
+      actor: structuredClone(grant.grantee),
+      capability_grant_id: grant.capability_grant_id,
+      correlation_id: "trace_01K4D000000000000000000103",
+      submitted_at: "2026-09-12T21:00:00.000Z",
+      command: {
+        command_name: "CorrectReviewCandidate",
+        expected_review_session_ref: {
+          review_session_id: unsupported.session.review_session_id,
+          revision: unsupported.session.revision,
+          content_hash: unsupported.session.content_hash,
+          lifecycle: "open",
+        },
+        review_member_id: member.review_member_id,
+        expected_working_candidate_ref: {
+          working_candidate_id: candidate.working_candidate_id,
+          revision: 1,
+          content_hash: `sha256:${"1".repeat(64)}`,
+        },
+        expected_working_relationship_ref: {
+          working_relationship_id:
+            "working_relationship_01K4D000000000000000000003",
+          revision: 1,
+          content_hash: `sha256:${"2".repeat(64)}`,
+        },
+        corrected_candidate: candidate,
+        corrected_profile_record: profile,
+      },
+    };
+
+    await expect(
+      sessions.executeReviewCandidateCorrectionCommand(envelope),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ReviewCandidateCorrectionAuthorityError>>(
+        {
+          code: "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED",
+        },
+      ),
+    );
+    expect(
+      await sessions.getReviewSession(
+        unsupported.project.project_id,
+        unsupported.session.review_session_id,
+      ),
+    ).toEqual(unsupported.session);
+  });
 
   it("persists exact task-sized working membership and composes its non-authoritative Review roles", async () => {
     const { project, session, candidate, relationship } =

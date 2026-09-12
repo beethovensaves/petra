@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 
 import type {
+  PetraAssertion,
+  PetraClaim,
   PetraProjectDefinition,
+  PetraReviewCandidateCorrectionReceipt,
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionRefreshReceipt,
   PetraReviewSessionRecord,
@@ -13,9 +16,13 @@ import type {
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
+  ReviewCandidateCorrectionAuthorityError,
   ReviewSessionLifecycleAuthorityError,
   ReviewSessionRefreshAuthorityError,
   derivePetraId,
+  type ReviewCandidateCorrectionAuthorityRepository,
+  type ReviewCandidateCorrectionCommandEnvelope,
+  type ReviewCandidateCorrectionCommandResult,
   type ReviewSessionAuthorityRepository,
   type ReviewSessionLifecycleAuthorityRepository,
   type ReviewSessionLifecycleCommandEnvelope,
@@ -28,6 +35,10 @@ import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
 
 import type { PostgresCommandAuthorizer } from "./command-authorizer.js";
+import {
+  PostgresWorkingStateAuthorityRepository,
+  PostgresWorkingStateError,
+} from "./working-state-authority-repository.js";
 
 export type PostgresReviewSessionErrorCode =
   | "REVIEW_SESSION_CONTENT_HASH_MISMATCH"
@@ -99,7 +110,9 @@ const clone = <Value>(value: Value): Value => structuredClone(value);
 
 const commandFingerprint = (
   envelope:
-    ReviewSessionLifecycleCommandEnvelope | ReviewSessionRefreshCommandEnvelope,
+    | ReviewSessionLifecycleCommandEnvelope
+    | ReviewSessionRefreshCommandEnvelope
+    | ReviewCandidateCorrectionCommandEnvelope,
 ): string => {
   const { correlation_id, submitted_at, ...governedCommand } = envelope;
   void correlation_id;
@@ -131,12 +144,14 @@ export class PostgresReviewSessionAuthorityRepository
   implements
     ReviewSessionAuthorityRepository,
     ReviewSessionLifecycleAuthorityRepository,
-    ReviewSessionRefreshAuthorityRepository
+    ReviewSessionRefreshAuthorityRepository,
+    ReviewCandidateCorrectionAuthorityRepository
 {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
   readonly #commandAuthorizer: PostgresCommandAuthorizer | undefined;
   readonly #now: () => string;
+  readonly #workingState: PostgresWorkingStateAuthorityRepository;
 
   constructor(
     pool: Pool,
@@ -148,6 +163,10 @@ export class PostgresReviewSessionAuthorityRepository
     this.#contracts = contracts;
     this.#commandAuthorizer = commandAuthorizer;
     this.#now = now;
+    this.#workingState = new PostgresWorkingStateAuthorityRepository(
+      pool,
+      contracts,
+    );
   }
 
   async registerReviewSessionRevision(
@@ -652,6 +671,318 @@ export class PostgresReviewSessionAuthorityRepository
     }
   }
 
+  async executeReviewCandidateCorrectionCommand(
+    envelope: ReviewCandidateCorrectionCommandEnvelope,
+  ): Promise<ReviewCandidateCorrectionCommandResult> {
+    this.#contracts.assertValid("command-envelope", "1.6.0", envelope);
+    if (envelope.command.command_name !== "CorrectReviewCandidate") {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_LINEAGE_INVALID",
+        "The Review candidate-correction boundary accepts only CorrectReviewCandidate.",
+      );
+    }
+    const fingerprint = commandFingerprint(envelope);
+    const client = await this.#pool.connect();
+    try {
+      await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
+      await this.#lockCorrectionCommand(client, envelope);
+      if (
+        this.#commandAuthorizer === undefined ||
+        !(await this.#commandAuthorizer.authorize(
+          {
+            actor: envelope.actor,
+            capabilityGrantId: envelope.capability_grant_id,
+            commandName: "CorrectReviewCandidate",
+            projectId: envelope.project_id,
+          },
+          client,
+        ))
+      ) {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_COMMAND_NOT_AUTHORIZED",
+          `Capability ${envelope.capability_grant_id} does not authorize CorrectReviewCandidate.`,
+        );
+      }
+      const replay = await this.#replayCorrectionCommand(
+        client,
+        envelope,
+        fingerprint,
+      );
+      if (replay !== undefined) {
+        await client.query("COMMIT");
+        return replay;
+      }
+      await this.#requireReviewCommandContext(client, envelope, "correction");
+
+      const currentRow = await this.#currentSessionForLifecycle(
+        client,
+        envelope.command.expected_review_session_ref.review_session_id,
+      );
+      if (currentRow === undefined) {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_SESSION_NOT_FOUND",
+          "The requested ReviewSession is not registered.",
+        );
+      }
+      const current = this.#stored(currentRow);
+      if (current.project_id !== envelope.project_id) {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_PROJECT_MISMATCH",
+          "The ReviewSession and candidate-correction command must belong to the same Project.",
+        );
+      }
+      const expectedSession = envelope.command.expected_review_session_ref;
+      if (
+        current.review_session_id !== expectedSession.review_session_id ||
+        current.revision !== expectedSession.revision ||
+        current.content_hash !== expectedSession.content_hash ||
+        current.content.lifecycle !== expectedSession.lifecycle
+      ) {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE",
+          "Candidate correction must name the exact current ReviewSession identity, revision, content hash, and lifecycle.",
+        );
+      }
+      if (current.content.lifecycle !== "open") {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_LIFECYCLE_INVALID",
+          "Candidate correction requires an open ReviewSession.",
+        );
+      }
+      if (
+        current.schema_version !== "1.1.0" ||
+        current.content.members.length !== 1
+      ) {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED",
+          "The first candidate-correction adapter supports one working-state member in ReviewSession 1.1 only.",
+        );
+      }
+      const member = current.content.members[0];
+      if (
+        member === undefined ||
+        member.review_member_id !== envelope.command.review_member_id ||
+        member.working_state.relationship_refs.length !== 1 ||
+        member.candidate_bindings.length !== 2
+      ) {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_MEMBER_MISMATCH",
+          "Candidate correction must name the one exact scientific Review member.",
+        );
+      }
+      const memberCandidate = member.working_state.candidate_ref;
+      const memberRelationship = member.working_state.relationship_refs[0];
+      const expectedCandidate = envelope.command.expected_working_candidate_ref;
+      const expectedRelationship =
+        envelope.command.expected_working_relationship_ref;
+      if (
+        memberRelationship === undefined ||
+        canonicalize(memberCandidate) !== canonicalize(expectedCandidate) ||
+        canonicalize(memberRelationship) !== canonicalize(expectedRelationship)
+      ) {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE",
+          "Candidate correction must bind the Review member's exact current WorkingCandidate and WorkingRelationship revisions.",
+        );
+      }
+
+      const priorCandidateRow = await this.#correctionWorkingRecord(
+        client,
+        "candidate",
+        current.project_id,
+        expectedCandidate.working_candidate_id,
+        expectedCandidate.revision,
+      );
+      const priorRelationshipRow = await this.#correctionWorkingRecord(
+        client,
+        "relationship",
+        current.project_id,
+        expectedRelationship.working_relationship_id,
+        expectedRelationship.revision,
+      );
+      const priorCandidate = this.#storedCorrectionCandidate(priorCandidateRow);
+      const priorRelationship =
+        this.#storedCorrectionRelationship(priorRelationshipRow);
+      if (
+        priorCandidate.content_hash !== expectedCandidate.content_hash ||
+        priorRelationship.content_hash !== expectedRelationship.content_hash
+      ) {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE",
+          "The expected working references do not match their exact retained content.",
+        );
+      }
+
+      const priorProfile = await this.#correctionClaim(
+        client,
+        current.project_id,
+        priorCandidate.profile_object.object_record_ref,
+      );
+      const assertion = await this.#correctionAssertion(
+        client,
+        current.project_id,
+        priorRelationship.profile_relationship.relationship_record_ref,
+      );
+      this.#assertCorrectionInput(
+        envelope,
+        current,
+        member,
+        priorCandidate,
+        priorCandidateRow.record_hash,
+        priorRelationship,
+        priorProfile,
+      );
+
+      const candidate =
+        await this.#workingState.admitWorkingCandidateRevisionInTransaction(
+          client,
+          {
+            candidate: envelope.command.corrected_candidate,
+            profileRecord: envelope.command.corrected_profile_record,
+          },
+        );
+      const recordedAt = this.#now();
+      const relationship = this.#correctedRelationship(
+        candidate,
+        priorRelationship,
+        priorRelationshipRow.record_hash,
+        recordedAt,
+      );
+      await this.#workingState.admitWorkingRelationshipRevisionInTransaction(
+        client,
+        { relationship, profileRecord: assertion },
+      );
+
+      const authority = await this.#correctionAuthorityPosition(
+        client,
+        current.project_id,
+      );
+      const next = clone(current);
+      next.revision += 1;
+      next.content.snapshot = {
+        ...clone(authority),
+        captured_at: recordedAt,
+      };
+      const nextMember = next.content.members[0];
+      if (nextMember === undefined) {
+        throw this.#correctionCorrupt(
+          "The retained single-member ReviewSession lost its member.",
+        );
+      }
+      nextMember.working_state = {
+        candidate_ref: {
+          working_candidate_id: candidate.working_candidate_id,
+          revision: candidate.revision,
+          content_hash: candidate.content_hash,
+        },
+        relationship_refs: [
+          {
+            working_relationship_id: relationship.working_relationship_id,
+            revision: relationship.revision,
+            content_hash: relationship.content_hash,
+          },
+        ],
+      };
+      nextMember.candidate_bindings = nextMember.candidate_bindings.map(
+        (binding) =>
+          binding.binding_role === "candidate"
+            ? {
+                ...clone(binding),
+                record_ref: {
+                  record_id:
+                    candidate.profile_object.object_record_ref.record_id,
+                  revision: candidate.profile_object.object_record_ref.revision,
+                  record_hash:
+                    candidate.profile_object.object_record_ref.record_hash,
+                },
+              }
+            : clone(binding),
+      ) as ReviewSessionMemberV110["candidate_bindings"];
+      next.content_hash = canonicalHash(next.content);
+      next.updated_at = recordedAt;
+      this.#contracts.assertValid("review-session", "1.1.0", next);
+      this.#assertBindings(next);
+      const nextRecordHash = canonicalHash(next);
+      const receipt = this.#correctionReceipt(
+        envelope,
+        fingerprint,
+        current,
+        currentRow.record_hash,
+        priorCandidate,
+        priorCandidateRow.record_hash,
+        candidate,
+        priorRelationship,
+        priorRelationshipRow.record_hash,
+        relationship,
+        priorProfile,
+        next,
+        nextRecordHash,
+        recordedAt,
+      );
+
+      await this.#insertRevision(client, next, nextRecordHash);
+      const advanced = await client.query(
+        `UPDATE petra.review_sessions
+            SET current_revision = $2
+          WHERE review_session_id = $1
+            AND project_id = $3
+            AND current_revision = $4`,
+        [
+          next.review_session_id,
+          next.revision,
+          next.project_id,
+          current.revision,
+        ],
+      );
+      if (advanced.rowCount !== 1) {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE",
+          "The ReviewSession head changed before candidate correction could commit.",
+        );
+      }
+      await this.#insertCorrectionCommandExecution(
+        client,
+        envelope,
+        fingerprint,
+        receipt,
+        recordedAt,
+      );
+      await client.query("COMMIT");
+      return {
+        receipt: clone(receipt),
+        candidate: clone(candidate),
+        profileRecord: clone(envelope.command.corrected_profile_record),
+        relationship: clone(relationship),
+        reviewSession: clone(next),
+        applied: true,
+      };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      if (error instanceof ReviewCandidateCorrectionAuthorityError) throw error;
+      if (error instanceof PostgresWorkingStateError) {
+        throw this.#mappedWorkingCorrectionError(error);
+      }
+      const pgError = error as PgError;
+      if (pgError.code === "23514" || pgError.code === "23503") {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_LINEAGE_INVALID",
+          pgError.message ??
+            "The corrected records do not satisfy their exact registered bindings.",
+        );
+      }
+      if (pgError.code === "40001" || pgError.code === "23505") {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE",
+          pgError.message ??
+            "Candidate correction conflicted with current state.",
+        );
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   async getReviewSessionLifecycleReceipt(
     commandId: string,
   ): Promise<PetraReviewSessionLifecycleReceipt | undefined> {
@@ -791,6 +1122,604 @@ export class PostgresReviewSessionAuthorityRepository
       );
     }
     return { receipt, reviewSession, applied: false };
+  }
+
+  async #lockCorrectionCommand(
+    client: PoolClient,
+    envelope: ReviewCandidateCorrectionCommandEnvelope,
+  ): Promise<void> {
+    const keys = [
+      `command:${envelope.command_id}`,
+      `idempotency:${envelope.idempotency_key}`,
+      `project:${envelope.project_id}`,
+      `review-session:${envelope.command.expected_review_session_ref.review_session_id}`,
+      envelope.command.expected_working_candidate_ref.working_candidate_id,
+      envelope.command.expected_working_relationship_ref
+        .working_relationship_id,
+    ].sort();
+    for (const key of keys) {
+      await client.query(
+        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+        [key],
+      );
+    }
+  }
+
+  async #replayCorrectionCommand(
+    client: PoolClient,
+    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    fingerprint: string,
+  ): Promise<ReviewCandidateCorrectionCommandResult | undefined> {
+    const byIdempotency = await client.query<CommandExecutionRow>(
+      `SELECT command_id, command_fingerprint, result
+         FROM petra.command_executions
+        WHERE idempotency_key = $1`,
+      [envelope.idempotency_key],
+    );
+    const idempotent = byIdempotency.rows[0];
+    if (idempotent !== undefined) {
+      if (idempotent.command_fingerprint !== fingerprint) {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_IDEMPOTENCY_KEY_REUSED",
+          "The idempotency key is already bound to different correction content.",
+        );
+      }
+      return this.#replayedCorrectionResult(client, idempotent);
+    }
+    const byCommand = await client.query<CommandExecutionRow>(
+      `SELECT command_id, command_fingerprint, result
+         FROM petra.command_executions
+        WHERE command_id = $1`,
+      [envelope.command_id],
+    );
+    const command = byCommand.rows[0];
+    if (command === undefined) return undefined;
+    if (command.command_fingerprint !== fingerprint) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_COMMAND_ID_REUSED",
+        "The command identity is already bound to different correction content.",
+      );
+    }
+    return this.#replayedCorrectionResult(client, command);
+  }
+
+  async #replayedCorrectionResult(
+    client: PoolClient,
+    row: CommandExecutionRow,
+  ): Promise<ReviewCandidateCorrectionCommandResult> {
+    const receipt = this.#storedCorrectionReceipt(row.result);
+    if (receipt.content.command_ref.command_id !== row.command_id) {
+      throw this.#correctionCorrupt(
+        "A retained candidate-correction result has a different command identity.",
+      );
+    }
+    const sessionRef = receipt.content.resulting_review_session_ref;
+    const sessionRow = await this.#sessionRevision(
+      client,
+      sessionRef.review_session_id,
+      sessionRef.revision,
+    );
+    const candidateRef = receipt.content.resulting_candidate_ref;
+    const candidateRow = await this.#correctionWorkingRecord(
+      client,
+      "candidate",
+      receipt.project_id,
+      candidateRef.record_id,
+      candidateRef.revision,
+      false,
+    );
+    const relationshipRef = receipt.content.resulting_relationship_ref;
+    const relationshipRow = await this.#correctionWorkingRecord(
+      client,
+      "relationship",
+      receipt.project_id,
+      relationshipRef.record_id,
+      relationshipRef.revision,
+      false,
+    );
+    const profileRecord = await this.#correctionClaim(
+      client,
+      receipt.project_id,
+      receipt.content.resulting_profile_record_ref,
+      false,
+    );
+    if (sessionRow === undefined) {
+      throw this.#correctionCorrupt(
+        "A persisted candidate correction lost its resulting ReviewSession revision.",
+      );
+    }
+    const reviewSession = this.#stored(sessionRow);
+    const candidate = this.#storedCorrectionCandidate(candidateRow);
+    const relationship = this.#storedCorrectionRelationship(relationshipRow);
+    if (
+      reviewSession.schema_version !== "1.1.0" ||
+      reviewSession.project_id !== receipt.project_id ||
+      reviewSession.content_hash !== sessionRef.content_hash ||
+      sessionRow.record_hash !== sessionRef.record_hash ||
+      candidate.content_hash !== candidateRef.content_hash ||
+      candidateRow.record_hash !== candidateRef.record_hash ||
+      relationship.content_hash !== relationshipRef.content_hash ||
+      relationshipRow.record_hash !== relationshipRef.record_hash ||
+      canonicalHash(profileRecord) !==
+        receipt.content.resulting_profile_record_ref.record_hash
+    ) {
+      throw this.#correctionCorrupt(
+        "The retained correction result no longer resolves its exact working and Review revisions.",
+      );
+    }
+    return {
+      receipt,
+      candidate,
+      profileRecord,
+      relationship,
+      reviewSession,
+      applied: false,
+    };
+  }
+
+  async #correctionWorkingRecord(
+    client: PoolClient,
+    kind: "candidate" | "relationship",
+    projectId: string,
+    id: string,
+    revision: number,
+    requireCurrent = true,
+  ): Promise<StoredRow> {
+    const headTable =
+      kind === "candidate" ? "working_candidates" : "working_relationships";
+    const revisionTable =
+      kind === "candidate"
+        ? "working_candidate_revisions"
+        : "working_relationship_revisions";
+    const idColumn =
+      kind === "candidate" ? "working_candidate_id" : "working_relationship_id";
+    const result = await client.query<StoredRow>(
+      `SELECT revision.payload, revision.record_hash
+         FROM petra.${headTable} AS head
+         JOIN petra.${revisionTable} AS revision
+           ON revision.${idColumn} = head.${idColumn}
+          AND revision.revision = $3
+        WHERE head.project_id = $1
+          AND head.${idColumn} = $2
+          AND ($4::boolean = false OR head.current_revision = $3)
+        FOR UPDATE OF head`,
+      [projectId, id, revision, requireCurrent],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE",
+        `The expected Working${kind === "candidate" ? "Candidate" : "Relationship"} revision is missing or no longer current.`,
+      );
+    }
+    return row;
+  }
+
+  #storedCorrectionCandidate(row: StoredRow): PetraWorkingCandidate {
+    this.#contracts.assertValid("working-candidate", "1.0.0", row.payload);
+    const candidate = clone(row.payload as PetraWorkingCandidate);
+    if (
+      row.record_hash !== canonicalHash(candidate) ||
+      candidate.content_hash !== workingContentHash(candidate)
+    ) {
+      throw this.#correctionCorrupt(
+        "A stored WorkingCandidate does not match its canonical hashes.",
+      );
+    }
+    return candidate;
+  }
+
+  #storedCorrectionRelationship(row: StoredRow): PetraWorkingRelationship {
+    this.#contracts.assertValid("working-relationship", "1.0.0", row.payload);
+    const relationship = clone(row.payload as PetraWorkingRelationship);
+    if (
+      row.record_hash !== canonicalHash(relationship) ||
+      relationship.content_hash !== workingContentHash(relationship)
+    ) {
+      throw this.#correctionCorrupt(
+        "A stored WorkingRelationship does not match its canonical hashes.",
+      );
+    }
+    return relationship;
+  }
+
+  async #correctionClaim(
+    client: PoolClient,
+    projectId: string,
+    ref: {
+      schema_name: string;
+      schema_version: string;
+      record_id: string;
+      revision: number;
+      record_hash: string;
+    },
+    requireCurrent = true,
+  ): Promise<PetraClaim> {
+    if (ref.schema_name !== "petra.claim" || ref.schema_version !== "1.0.0") {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED",
+        "The first candidate-correction adapter accepts a registered scientific Claim only.",
+      );
+    }
+    const result = await client.query<StoredRow>(
+      `SELECT revision.payload, revision.record_hash
+         FROM petra.evidence_entities AS head
+         JOIN petra.evidence_entity_revisions AS revision
+           ON revision.evidence_id = head.evidence_id
+          AND revision.evidence_kind = head.evidence_kind
+          AND revision.revision = $3
+        WHERE head.evidence_id = $1
+          AND revision.evidence_kind = 'claim'
+          AND revision.record_hash = $2
+          AND ($4::boolean = false OR head.current_revision = $3)
+          AND EXISTS (
+            SELECT 1
+              FROM petra.claim_revisions AS claim
+              JOIN petra.project_source_revisions AS source
+                ON source.work_version_id = claim.source_work_version_id
+             WHERE claim.claim_id = revision.evidence_id
+               AND claim.revision = revision.revision
+               AND source.project_id = $5
+          )
+        FOR SHARE OF head`,
+      [ref.record_id, ref.record_hash, ref.revision, requireCurrent, projectId],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE",
+        "The exact Project-scoped scientific Claim is missing, mismatched, or no longer current.",
+      );
+    }
+    this.#contracts.assertValid("claim", "1.0.0", row.payload);
+    const claim = clone(row.payload as PetraClaim);
+    if (row.record_hash !== canonicalHash(claim)) {
+      throw this.#correctionCorrupt(
+        "A stored scientific Claim does not match its canonical record hash.",
+      );
+    }
+    return claim;
+  }
+
+  async #correctionAssertion(
+    client: PoolClient,
+    projectId: string,
+    ref: PetraWorkingRelationship["profile_relationship"]["relationship_record_ref"],
+  ): Promise<PetraAssertion> {
+    if (
+      ref.schema_name !== "petra.assertion" ||
+      ref.schema_version !== "1.0.0"
+    ) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED",
+        "The first candidate-correction adapter requires the registered scientific ASSERTS record.",
+      );
+    }
+    const result = await client.query<StoredRow>(
+      `SELECT revision.payload, revision.record_hash
+         FROM petra.evidence_entities AS head
+         JOIN petra.evidence_entity_revisions AS revision
+           ON revision.evidence_id = head.evidence_id
+          AND revision.evidence_kind = head.evidence_kind
+          AND revision.revision = head.current_revision
+        WHERE head.evidence_id = $1
+          AND revision.evidence_kind = 'assertion'
+          AND revision.revision = $2
+          AND revision.record_hash = $3
+          AND EXISTS (
+            SELECT 1
+              FROM petra.assertion_revisions AS assertion
+              JOIN petra.project_source_revisions AS source
+                ON source.work_version_id = assertion.subject_id
+             WHERE assertion.assertion_id = revision.evidence_id
+               AND assertion.revision = revision.revision
+               AND assertion.predicate = 'ASSERTS'
+               AND source.project_id = $4
+          )
+        FOR SHARE OF head`,
+      [ref.record_id, ref.revision, ref.record_hash, projectId],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE",
+        "The Review member's exact Project-scoped ASSERTS record is missing, mismatched, or no longer current.",
+      );
+    }
+    this.#contracts.assertValid("assertion", "1.0.0", row.payload);
+    const assertion = clone(row.payload as PetraAssertion);
+    if (row.record_hash !== canonicalHash(assertion)) {
+      throw this.#correctionCorrupt(
+        "A stored scientific Assertion does not match its canonical record hash.",
+      );
+    }
+    return assertion;
+  }
+
+  #assertCorrectionInput(
+    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    session: PetraReviewSessionV110,
+    member: ReviewSessionMemberV110,
+    priorCandidate: PetraWorkingCandidate,
+    priorCandidateRecordHash: string,
+    priorRelationship: PetraWorkingRelationship,
+    priorProfile: PetraClaim,
+  ): void {
+    const candidate = envelope.command.corrected_candidate;
+    const profile = envelope.command.corrected_profile_record;
+    const sameActor = (
+      left: { actor_id: string; actor_kind: string },
+      right: { actor_id: string; actor_kind: string },
+    ): boolean =>
+      left.actor_id === right.actor_id && left.actor_kind === right.actor_kind;
+    const exactPriorCandidateRecord = {
+      schema_name: "petra.working-candidate",
+      schema_version: "1.0.0",
+      record_id: priorCandidate.working_candidate_id,
+      revision: priorCandidate.revision,
+      record_hash: priorCandidateRecordHash,
+    };
+    const hasPriorInput = candidate.input_snapshot.input_record_refs.some(
+      (ref) => canonicalize(ref) === canonicalize(exactPriorCandidateRecord),
+    );
+    const hasPriorProvenance = candidate.provenance.some(
+      (item) =>
+        item.provenance_role === "prior_revision" &&
+        canonicalize(item.record_ref) ===
+          canonicalize(exactPriorCandidateRecord),
+    );
+    const candidateBinding = member.candidate_bindings.find(
+      ({ binding_role }) => binding_role === "candidate",
+    );
+    const relationshipBinding = member.candidate_bindings.find(
+      ({ binding_role }) => binding_role === "relationship",
+    );
+    const relationshipEndpoint = priorRelationship.endpoints.object;
+    if (
+      candidate.project_id !== session.project_id ||
+      candidate.project_definition_ref.project_definition_id !==
+        session.project_definition_ref.project_definition_id ||
+      candidate.project_definition_ref.revision !==
+        session.project_definition_ref.revision ||
+      candidate.project_definition_ref.content_hash !==
+        session.project_definition_ref.content_hash ||
+      candidate.project_definition_ref.definition_family !==
+        "petra.scientific-evidence" ||
+      candidate.working_candidate_id !== priorCandidate.working_candidate_id ||
+      candidate.revision !== priorCandidate.revision + 1 ||
+      candidate.lineage.lineage_kind !== "supersession" ||
+      candidate.lineage.supersedes.working_candidate_id !==
+        priorCandidate.working_candidate_id ||
+      candidate.lineage.supersedes.revision !== priorCandidate.revision ||
+      candidate.lineage.supersedes.content_hash !==
+        priorCandidate.content_hash ||
+      !["mechanical_correction", "material_revision"].includes(
+        candidate.lineage.change_kind,
+      ) ||
+      candidate.disposition !== "available" ||
+      candidate.task_context.objective_ref.record_id !==
+        session.content.objective_ref.objective_id ||
+      candidate.task_context.objective_ref.revision !==
+        session.content.objective_ref.revision ||
+      candidate.profile_object.registration.semantic_key !==
+        priorCandidate.profile_object.registration.semantic_key ||
+      canonicalize(candidate.profile_object.registration.contract) !==
+        canonicalize(priorCandidate.profile_object.registration.contract) ||
+      candidate.profile_object.candidate_operation !==
+        priorCandidate.profile_object.candidate_operation ||
+      canonicalize(candidate.profile_object.current_authoritative_ref) !==
+        canonicalize(priorCandidate.profile_object.current_authoritative_ref) ||
+      profile.claim_id !== priorProfile.claim_id ||
+      profile.revision !== priorProfile.revision + 1 ||
+      profile.supersedes_claim_id !== priorProfile.claim_id ||
+      profile.authority.zone !== "quarantine" ||
+      candidate.profile_object.object_record_ref.record_id !==
+        profile.claim_id ||
+      candidate.profile_object.object_record_ref.revision !==
+        profile.revision ||
+      candidate.profile_object.object_record_ref.record_hash !==
+        canonicalHash(profile) ||
+      candidate.validation.target_record_hash !== canonicalHash(profile)
+    ) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_LINEAGE_INVALID",
+        "The correction must advance the same exact scientific WorkingCandidate and Claim once without changing its ProjectDefinition, profile registration, operation, authority boundary, or Objective.",
+      );
+    }
+    if (
+      candidateBinding === undefined ||
+      relationshipBinding === undefined ||
+      candidateBinding.semantic_key !==
+        priorCandidate.profile_object.registration.semantic_key ||
+      candidateBinding.record_ref.record_id !== priorProfile.claim_id ||
+      candidateBinding.record_ref.revision !== priorProfile.revision ||
+      candidateBinding.record_ref.record_hash !== canonicalHash(priorProfile) ||
+      relationshipBinding.semantic_key !==
+        priorRelationship.profile_relationship.registration.semantic_key ||
+      relationshipBinding.record_ref.record_id !==
+        priorRelationship.profile_relationship.relationship_record_ref
+          .record_id ||
+      relationshipBinding.record_ref.revision !==
+        priorRelationship.profile_relationship.relationship_record_ref
+          .revision ||
+      relationshipBinding.record_ref.record_hash !==
+        priorRelationship.profile_relationship.relationship_record_ref
+          .record_hash ||
+      relationshipEndpoint.endpoint_kind !== "working_candidate" ||
+      relationshipEndpoint.candidate_ref.working_candidate_id !==
+        priorCandidate.working_candidate_id ||
+      relationshipEndpoint.candidate_ref.revision !== priorCandidate.revision ||
+      relationshipEndpoint.candidate_ref.content_hash !==
+        priorCandidate.content_hash
+    ) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_MEMBER_MISMATCH",
+        "The Review member does not retain the exact registered Claim, ASSERTS, WorkingCandidate, and WorkingRelationship composition required for correction.",
+      );
+    }
+    if (!hasPriorInput || !hasPriorProvenance) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_PROVENANCE_INVALID",
+        "The corrected candidate must retain the exact prior WorkingCandidate record as input and prior-revision provenance.",
+      );
+    }
+    if (
+      profile.basis.basis_kind !== "source" ||
+      priorProfile.basis.basis_kind !== "source"
+    ) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED",
+        "The first candidate-correction adapter supports source-grounded scientific Claims only.",
+      );
+    }
+    const basisIdentity = (claim: PetraClaim) => {
+      if (claim.basis.basis_kind !== "source") return undefined;
+      return {
+        work_version_id: claim.basis.work_version_id,
+        source_scope: claim.basis.source_scope,
+        detail_level: claim.basis.detail_level,
+        source_span_ids: claim.basis.source_span_ids,
+        source_stance: claim.basis.source_stance,
+        attribution: claim.basis.attribution,
+        modality: claim.basis.modality,
+        negated: claim.basis.negated,
+      };
+    };
+    const workingBasisIdentity = (working: PetraWorkingCandidate) =>
+      working.basis.map(({ basis_role, record_ref }) => ({
+        basis_role,
+        record_ref,
+      }));
+    const candidateSourceSpanIds = candidate.basis
+      .filter(
+        ({ basis_role, record_ref }) =>
+          basis_role === "source" &&
+          record_ref.schema_name === "petra.source-span",
+      )
+      .map(({ record_ref }) => record_ref.record_id);
+    if (
+      canonicalize(basisIdentity(profile)) !==
+        canonicalize(basisIdentity(priorProfile)) ||
+      canonicalize(workingBasisIdentity(candidate)) !==
+        canonicalize(workingBasisIdentity(priorCandidate)) ||
+      canonicalize(candidateSourceSpanIds) !==
+        canonicalize(profile.basis.source_span_ids)
+    ) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_BASIS_INCOMPATIBLE",
+        "Candidate correction must retain the exact scientific source, span, stance, and working-basis identities; material basis change uses a separate operation.",
+      );
+    }
+    const proposedBy = profile.basis.proposed_by;
+    if (
+      !sameActor(candidate.producer.actor, profile.created_by) ||
+      !sameActor(candidate.producer.actor, proposedBy) ||
+      (candidate.producer.producer_kind === "human" &&
+        candidate.origin.origin_kind !== "direct_edit") ||
+      (candidate.producer.producer_kind === "model" &&
+        candidate.origin.origin_kind !== "model_output")
+    ) {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_PROVENANCE_INVALID",
+        "The corrected Claim authorship, producer, source proposal, and origin must identify the same exact human or model contribution.",
+      );
+    }
+  }
+
+  #correctedRelationship(
+    candidate: PetraWorkingCandidate,
+    prior: PetraWorkingRelationship,
+    priorRecordHash: string,
+    recordedAt: string,
+  ): PetraWorkingRelationship {
+    const next = clone(prior);
+    next.revision += 1;
+    next.producer = clone(candidate.producer);
+    next.task_context = clone(candidate.task_context);
+    next.input_snapshot = clone(candidate.input_snapshot);
+    next.input_snapshot.input_record_refs.push({
+      schema_name: "petra.working-relationship",
+      schema_version: "1.0.0",
+      record_id: prior.working_relationship_id,
+      revision: prior.revision,
+      record_hash: priorRecordHash,
+    });
+    next.origin = clone(candidate.origin);
+    next.basis = clone(candidate.basis);
+    next.provenance = [
+      ...clone(candidate.provenance),
+      {
+        provenance_role: "prior_revision",
+        record_ref: {
+          schema_name: "petra.working-relationship",
+          schema_version: "1.0.0",
+          record_id: prior.working_relationship_id,
+          revision: prior.revision,
+          record_hash: priorRecordHash,
+        },
+        statement:
+          "The relationship revision retains the exact prior working relationship while rebinding its object endpoint to the corrected candidate.",
+      },
+    ];
+    next.qualifications = clone(candidate.qualifications);
+    next.validation = {
+      state: "pending",
+      target_record_hash:
+        prior.profile_relationship.relationship_record_ref.record_hash,
+      results: [],
+    };
+    if (next.endpoints.object.endpoint_kind !== "working_candidate") {
+      throw this.#correctionError(
+        "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED",
+        "The scientific ASSERTS working relationship must target a WorkingCandidate.",
+      );
+    }
+    next.endpoints.object.candidate_ref = {
+      working_candidate_id: candidate.working_candidate_id,
+      revision: candidate.revision,
+      content_hash: candidate.content_hash,
+    };
+    next.lineage = {
+      lineage_kind: "supersession",
+      supersedes: {
+        working_relationship_id: prior.working_relationship_id,
+        revision: prior.revision,
+        content_hash: prior.content_hash,
+      },
+      change_kind: "mechanical_correction",
+      reason:
+        "Rebind the existing scientific working relationship to the corrected WorkingCandidate revision.",
+    };
+    next.recorded_at = recordedAt;
+    next.content_hash = workingContentHash(next);
+    this.#contracts.assertValid("working-relationship", "1.0.0", next);
+    return next;
+  }
+
+  async #correctionAuthorityPosition(
+    client: PoolClient,
+    projectId: string,
+  ): Promise<{ event_position: number; stream_revision: number }> {
+    const result = await client.query<AuthorityPositionRow>(
+      `SELECT authority.event_position::text,
+              stream.current_stream_revision::text AS stream_revision
+         FROM petra.authority_positions AS authority
+         LEFT JOIN petra.project_event_stream_heads AS stream
+           ON stream.project_id = $1
+        WHERE authority.singleton
+        FOR SHARE OF authority`,
+      [projectId],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw this.#correctionCorrupt(
+        "The PostgreSQL authority position is unavailable for candidate correction.",
+      );
+    }
+    return {
+      event_position: Number(row.event_position),
+      stream_revision: Number(row.stream_revision ?? 0),
+    };
   }
 
   async #refreshAuthorityPosition(
@@ -1299,8 +2228,9 @@ export class PostgresReviewSessionAuthorityRepository
     client: PoolClient,
     envelope:
       | ReviewSessionLifecycleCommandEnvelope
-      | ReviewSessionRefreshCommandEnvelope,
-    boundary: "lifecycle" | "refresh",
+      | ReviewSessionRefreshCommandEnvelope
+      | ReviewCandidateCorrectionCommandEnvelope,
+    boundary: "lifecycle" | "refresh" | "correction",
   ): Promise<void> {
     const result = await client.query<{ actor_kind: string }>(
       `SELECT actor.actor_kind
@@ -1310,6 +2240,12 @@ export class PostgresReviewSessionAuthorityRepository
       [envelope.project_id, envelope.actor.actor_id],
     );
     if (result.rows[0]?.actor_kind !== envelope.actor.actor_kind) {
+      if (boundary === "correction") {
+        throw this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_PROJECT_MISMATCH",
+          "The correction Project and Actor must resolve exactly in local authority.",
+        );
+      }
       if (boundary === "refresh") {
         throw this.#refreshError(
           "REVIEW_SESSION_REFRESH_PROJECT_MISMATCH",
@@ -1352,6 +2288,226 @@ export class PostgresReviewSessionAuthorityRepository
       [reviewSessionId, revision],
     );
     return result.rows[0];
+  }
+
+  #correctionReceipt(
+    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    fingerprint: string,
+    priorSession: PetraReviewSessionV110,
+    priorSessionRecordHash: string,
+    priorCandidate: PetraWorkingCandidate,
+    priorCandidateRecordHash: string,
+    candidate: PetraWorkingCandidate,
+    priorRelationship: PetraWorkingRelationship,
+    priorRelationshipRecordHash: string,
+    relationship: PetraWorkingRelationship,
+    priorProfile: PetraClaim,
+    resultingSession: PetraReviewSessionV110,
+    resultingSessionRecordHash: string,
+    recordedAt: string,
+  ): PetraReviewCandidateCorrectionReceipt {
+    if (candidate.lineage.lineage_kind !== "supersession") {
+      throw this.#correctionCorrupt(
+        "The admitted correction lost its supersession lineage.",
+      );
+    }
+    const content: PetraReviewCandidateCorrectionReceipt["content"] = {
+      command_ref: {
+        command_id: envelope.command_id,
+        idempotency_key: envelope.idempotency_key,
+        command_name: "CorrectReviewCandidate",
+        command_fingerprint: fingerprint,
+        actor: clone(envelope.actor),
+        capability_grant_id: envelope.capability_grant_id,
+        correlation_id: envelope.correlation_id,
+      },
+      review_member_id: envelope.command.review_member_id,
+      prior_review_session_ref: {
+        ...sessionRef(priorSession, priorSessionRecordHash),
+        lifecycle: "open",
+      },
+      resulting_review_session_ref: {
+        ...sessionRef(resultingSession, resultingSessionRecordHash),
+        lifecycle: "open",
+      },
+      prior_candidate_ref: {
+        schema_name: "petra.working-candidate",
+        schema_version: "1.0.0",
+        record_id: priorCandidate.working_candidate_id,
+        revision: priorCandidate.revision,
+        content_hash: priorCandidate.content_hash,
+        record_hash: priorCandidateRecordHash,
+      },
+      resulting_candidate_ref: {
+        schema_name: "petra.working-candidate",
+        schema_version: "1.0.0",
+        record_id: candidate.working_candidate_id,
+        revision: candidate.revision,
+        content_hash: candidate.content_hash,
+        record_hash: canonicalHash(candidate),
+      },
+      prior_relationship_ref: {
+        schema_name: "petra.working-relationship",
+        schema_version: "1.0.0",
+        record_id: priorRelationship.working_relationship_id,
+        revision: priorRelationship.revision,
+        content_hash: priorRelationship.content_hash,
+        record_hash: priorRelationshipRecordHash,
+      },
+      resulting_relationship_ref: {
+        schema_name: "petra.working-relationship",
+        schema_version: "1.0.0",
+        record_id: relationship.working_relationship_id,
+        revision: relationship.revision,
+        content_hash: relationship.content_hash,
+        record_hash: canonicalHash(relationship),
+      },
+      prior_profile_record_ref: {
+        schema_name: "petra.claim",
+        schema_version: "1.0.0",
+        record_id: priorProfile.claim_id,
+        revision: priorProfile.revision,
+        record_hash: canonicalHash(priorProfile),
+      },
+      resulting_profile_record_ref: {
+        schema_name: "petra.claim",
+        schema_version: "1.0.0",
+        record_id: candidate.profile_object.object_record_ref.record_id,
+        revision: candidate.profile_object.object_record_ref.revision,
+        record_hash: candidate.profile_object.object_record_ref.record_hash,
+      },
+      correction_kind: candidate.lineage.change_kind as
+        "mechanical_correction" | "material_revision",
+      basis_transition: "retained_exact_scientific_source",
+      validation: {
+        state: candidate.validation.state,
+        target_record_hash: candidate.validation.target_record_hash,
+        validator_refs: candidate.validation.results.map((result) =>
+          clone(result.validator_ref),
+        ),
+      },
+      preservation: {
+        candidate_identity: "retained",
+        prior_candidate_revision: "retained",
+        relationship_identity: "retained",
+        prior_relationship_revision: "retained",
+        review_session_identity: "retained",
+        review_member_identity: "retained",
+        review_decision: "none",
+        change_sets: "unchanged",
+        approvals: "unchanged",
+        domain_events: "none",
+        projection: "unchanged",
+        history: "unchanged",
+      },
+      authority_boundary: {
+        candidate_authority: "working_only",
+        review_decision: "none",
+        domain_authority: "unchanged",
+        validation_authority: "none",
+        mutation_authority: "capability_command_only",
+        conversation_authority: "none",
+        model_output_authority: "none",
+      },
+    };
+    const receipt: PetraReviewCandidateCorrectionReceipt = {
+      schema_name: "petra.review-candidate-correction-receipt",
+      schema_version: "1.0.0",
+      review_candidate_correction_receipt_id: derivePetraId(
+        "review_correction_receipt",
+        envelope.command_id,
+      ),
+      revision: 1,
+      project_id: envelope.project_id,
+      content,
+      content_hash: canonicalHash(content),
+      recorded_at: recordedAt,
+    };
+    this.#contracts.assertValid(
+      "review-candidate-correction-receipt",
+      "1.0.0",
+      receipt,
+    );
+    return receipt;
+  }
+
+  async #insertCorrectionCommandExecution(
+    client: PoolClient,
+    envelope: ReviewCandidateCorrectionCommandEnvelope,
+    fingerprint: string,
+    receipt: PetraReviewCandidateCorrectionReceipt,
+    completedAt: string,
+  ): Promise<void> {
+    await client.query(
+      `INSERT INTO petra.command_executions (
+         command_id, idempotency_key, project_id, actor_id, actor_kind,
+         capability_grant_id, correlation_id, submitted_at, command_name,
+         command_fingerprint, envelope, outcome_kind, result, error_code,
+         error_message, completed_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9, $10,
+                 $11::jsonb, 'success', $12::jsonb, NULL, NULL,
+                 $13::timestamptz)`,
+      [
+        envelope.command_id,
+        envelope.idempotency_key,
+        envelope.project_id,
+        envelope.actor.actor_id,
+        envelope.actor.actor_kind,
+        envelope.capability_grant_id,
+        envelope.correlation_id,
+        envelope.submitted_at,
+        envelope.command.command_name,
+        fingerprint,
+        JSON.stringify(envelope),
+        JSON.stringify(receipt),
+        completedAt,
+      ],
+    );
+  }
+
+  #storedCorrectionReceipt(
+    value: unknown,
+  ): PetraReviewCandidateCorrectionReceipt {
+    this.#contracts.assertValid(
+      "review-candidate-correction-receipt",
+      "1.0.0",
+      value,
+    );
+    const receipt = clone(value as PetraReviewCandidateCorrectionReceipt);
+    if (receipt.content_hash !== canonicalHash(receipt.content)) {
+      throw this.#correctionCorrupt(
+        "A stored candidate-correction receipt does not match its canonical content hash.",
+      );
+    }
+    return receipt;
+  }
+
+  #mappedWorkingCorrectionError(
+    error: PostgresWorkingStateError,
+  ): ReviewCandidateCorrectionAuthorityError {
+    switch (error.code) {
+      case "WORKING_STATE_PROFILE_UNSUPPORTED":
+        return this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED",
+          error.message,
+        );
+      case "WORKING_STATE_STALE":
+      case "WORKING_STATE_CONFLICT":
+        return this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE",
+          error.message,
+        );
+      case "WORKING_STATE_REFERENCE_MISSING":
+        return this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_PROVENANCE_INVALID",
+          error.message,
+        );
+      case "WORKING_STATE_RELATION_INVALID":
+        return this.#correctionError(
+          "REVIEW_CANDIDATE_CORRECTION_LINEAGE_INVALID",
+          error.message,
+        );
+    }
   }
 
   #refreshReceipt(
@@ -1696,6 +2852,22 @@ export class PostgresReviewSessionAuthorityRepository
   #refreshCorrupt(message: string): ReviewSessionRefreshAuthorityError {
     return this.#refreshError(
       "REVIEW_SESSION_REFRESH_STORED_RECORD_CORRUPT",
+      message,
+    );
+  }
+
+  #correctionError(
+    code: ConstructorParameters<
+      typeof ReviewCandidateCorrectionAuthorityError
+    >[0],
+    message: string,
+  ): ReviewCandidateCorrectionAuthorityError {
+    return new ReviewCandidateCorrectionAuthorityError(code, message);
+  }
+
+  #correctionCorrupt(message: string): ReviewCandidateCorrectionAuthorityError {
+    return this.#correctionError(
+      "REVIEW_CANDIDATE_CORRECTION_STORED_RECORD_CORRUPT",
       message,
     );
   }

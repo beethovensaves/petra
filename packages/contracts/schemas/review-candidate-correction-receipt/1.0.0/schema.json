@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-candidate-correction-receipt/1.0.0/schema.json",
+  "title": "PetraReviewCandidateCorrectionReceipt",
+  "description": "An immutable receipt for one authorized, non-authoritative candidate correction that advances the same scientific WorkingCandidate, WorkingRelationship, Review member, and ReviewSession identities.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "review_candidate_correction_receipt_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.review-candidate-correction-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "review_candidate_correction_receipt_id": {
+      "type": "string",
+      "pattern": "^review_correction_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ReceiptContent" },
+    "content_hash": {
+      "description": "The RFC 8785 SHA-256 identity of content.",
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ExactTypedRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "record_id",
+        "revision",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_name": { "const": "petra.claim" },
+        "schema_version": { "const": "1.0.0" },
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "WorkingCandidateRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "record_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_name": { "const": "petra.working-candidate" },
+        "schema_version": { "const": "1.0.0" },
+        "record_id": {
+          "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/WorkingCandidateId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "WorkingRelationshipRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "record_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_name": { "const": "petra.working-relationship" },
+        "schema_version": { "const": "1.0.0" },
+        "record_id": {
+          "$ref": "../../working-relationship/1.0.0/schema.json#/$defs/WorkingRelationshipId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ExactReviewSessionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_session_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "lifecycle"
+      ],
+      "properties": {
+        "review_session_id": {
+          "type": "string",
+          "pattern": "^review_session_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "lifecycle": { "const": "open" }
+      }
+    },
+    "CommandRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "idempotency_key",
+        "command_name",
+        "command_fingerprint",
+        "actor",
+        "capability_grant_id",
+        "correlation_id"
+      ],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "idempotency_key": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+        },
+        "command_name": { "const": "CorrectReviewCandidate" },
+        "command_fingerprint": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "actor": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "capability_grant_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+        },
+        "correlation_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+        }
+      }
+    },
+    "ValidationBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "target_record_hash", "validator_refs"],
+      "properties": {
+        "state": { "enum": ["pending", "completed", "blocked"] },
+        "target_record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "validator_refs": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/NamedVersionHash"
+          }
+        }
+      }
+    },
+    "Preservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_identity",
+        "prior_candidate_revision",
+        "relationship_identity",
+        "prior_relationship_revision",
+        "review_session_identity",
+        "review_member_identity",
+        "review_decision",
+        "change_sets",
+        "approvals",
+        "domain_events",
+        "projection",
+        "history"
+      ],
+      "properties": {
+        "candidate_identity": { "const": "retained" },
+        "prior_candidate_revision": { "const": "retained" },
+        "relationship_identity": { "const": "retained" },
+        "prior_relationship_revision": { "const": "retained" },
+        "review_session_identity": { "const": "retained" },
+        "review_member_identity": { "const": "retained" },
+        "review_decision": { "const": "none" },
+        "change_sets": { "const": "unchanged" },
+        "approvals": { "const": "unchanged" },
+        "domain_events": { "const": "none" },
+        "projection": { "const": "unchanged" },
+        "history": { "const": "unchanged" }
+      }
+    },
+    "AuthorityBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_authority",
+        "review_decision",
+        "domain_authority",
+        "validation_authority",
+        "mutation_authority",
+        "conversation_authority",
+        "model_output_authority"
+      ],
+      "properties": {
+        "candidate_authority": { "const": "working_only" },
+        "review_decision": { "const": "none" },
+        "domain_authority": { "const": "unchanged" },
+        "validation_authority": { "const": "none" },
+        "mutation_authority": { "const": "capability_command_only" },
+        "conversation_authority": { "const": "none" },
+        "model_output_authority": { "const": "none" }
+      }
+    },
+    "ReceiptContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_ref",
+        "review_member_id",
+        "prior_review_session_ref",
+        "resulting_review_session_ref",
+        "prior_candidate_ref",
+        "resulting_candidate_ref",
+        "prior_relationship_ref",
+        "resulting_relationship_ref",
+        "prior_profile_record_ref",
+        "resulting_profile_record_ref",
+        "correction_kind",
+        "basis_transition",
+        "validation",
+        "preservation",
+        "authority_boundary"
+      ],
+      "properties": {
+        "command_ref": { "$ref": "#/$defs/CommandRef" },
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "prior_review_session_ref": { "$ref": "#/$defs/ExactReviewSessionRef" },
+        "resulting_review_session_ref": {
+          "$ref": "#/$defs/ExactReviewSessionRef"
+        },
+        "prior_candidate_ref": { "$ref": "#/$defs/WorkingCandidateRecordRef" },
+        "resulting_candidate_ref": {
+          "$ref": "#/$defs/WorkingCandidateRecordRef"
+        },
+        "prior_relationship_ref": {
+          "$ref": "#/$defs/WorkingRelationshipRecordRef"
+        },
+        "resulting_relationship_ref": {
+          "$ref": "#/$defs/WorkingRelationshipRecordRef"
+        },
+        "prior_profile_record_ref": { "$ref": "#/$defs/ExactTypedRecordRef" },
+        "resulting_profile_record_ref": {
+          "$ref": "#/$defs/ExactTypedRecordRef"
+        },
+        "correction_kind": {
+          "enum": ["mechanical_correction", "material_revision"]
+        },
+        "basis_transition": { "const": "retained_exact_scientific_source" },
+        "validation": { "$ref": "#/$defs/ValidationBinding" },
+        "preservation": { "$ref": "#/$defs/Preservation" },
+        "authority_boundary": { "$ref": "#/$defs/AuthorityBoundary" }
+      }
+    }
+  }
+}

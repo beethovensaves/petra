@@ -157,7 +157,8 @@ export interface CommandAuthorizationRequest {
     | "InvokeSuggestedAction"
     | "DeferReviewSession"
     | "ReopenReviewSession"
-    | "RefreshReviewSession";
+    | "RefreshReviewSession"
+    | "CorrectReviewCandidate";
   readonly projectId: string;
 }
 

@@ -1,11 +1,17 @@
 import type {
+  CorrectReviewCandidate,
   DeferReviewSession,
   PetraCommandEnvelopeV140,
   PetraCommandEnvelopeV150,
+  PetraCommandEnvelopeV160,
+  PetraReviewCandidateCorrectionReceipt,
   PetraProjectReviewViewRecord,
+  PetraClaim,
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionRefreshReceipt,
   PetraReviewSessionRecord,
+  PetraWorkingCandidate,
+  PetraWorkingRelationship,
   RefreshReviewSession,
   ReopenReviewSession,
 } from "@petra/contracts";
@@ -134,4 +140,60 @@ export interface ReviewSessionRefreshAuthorityRepository {
   executeReviewSessionRefreshCommand(
     envelope: ReviewSessionRefreshCommandEnvelope,
   ): Promise<ReviewSessionRefreshCommandResult>;
+}
+
+export type ReviewCandidateCorrectionCommandEnvelope = Omit<
+  PetraCommandEnvelopeV160,
+  "command"
+> & {
+  command: CorrectReviewCandidate;
+};
+
+export interface ReviewCandidateCorrectionCommandResult {
+  readonly receipt: PetraReviewCandidateCorrectionReceipt;
+  readonly candidate: PetraWorkingCandidate;
+  readonly profileRecord: PetraClaim;
+  readonly relationship: PetraWorkingRelationship;
+  readonly reviewSession: PetraReviewSessionRecord;
+  /** False only when the exact command was replayed idempotently. */
+  readonly applied: boolean;
+}
+
+export type ReviewCandidateCorrectionAuthorityErrorCode =
+  | "REVIEW_CANDIDATE_CORRECTION_COMMAND_NOT_AUTHORIZED"
+  | "REVIEW_CANDIDATE_CORRECTION_COMMAND_ID_REUSED"
+  | "REVIEW_CANDIDATE_CORRECTION_IDEMPOTENCY_KEY_REUSED"
+  | "REVIEW_CANDIDATE_CORRECTION_PROJECT_MISMATCH"
+  | "REVIEW_CANDIDATE_CORRECTION_SESSION_NOT_FOUND"
+  | "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE"
+  | "REVIEW_CANDIDATE_CORRECTION_LIFECYCLE_INVALID"
+  | "REVIEW_CANDIDATE_CORRECTION_MEMBER_MISMATCH"
+  | "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED"
+  | "REVIEW_CANDIDATE_CORRECTION_LINEAGE_INVALID"
+  | "REVIEW_CANDIDATE_CORRECTION_BASIS_INCOMPATIBLE"
+  | "REVIEW_CANDIDATE_CORRECTION_PROVENANCE_INVALID"
+  | "REVIEW_CANDIDATE_CORRECTION_STORED_RECORD_CORRUPT";
+
+export class ReviewCandidateCorrectionAuthorityError extends Error {
+  readonly code: ReviewCandidateCorrectionAuthorityErrorCode;
+
+  constructor(
+    code: ReviewCandidateCorrectionAuthorityErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ReviewCandidateCorrectionAuthorityError";
+    this.code = code;
+  }
+}
+
+/**
+ * Appends one correction to the existing WorkingCandidate, mechanically
+ * rebinds its existing scientific working relationship, and advances the same
+ * open single-member ReviewSession. It grants no Review or domain authority.
+ */
+export interface ReviewCandidateCorrectionAuthorityRepository {
+  executeReviewCandidateCorrectionCommand(
+    envelope: ReviewCandidateCorrectionCommandEnvelope,
+  ): Promise<ReviewCandidateCorrectionCommandResult>;
 }

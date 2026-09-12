@@ -159,6 +159,34 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     return this.#admit(input.relationship, input.profileRecord);
   }
 
+  /**
+   * Composes canonical candidate admission into a caller-owned transaction.
+   * The caller is responsible for BEGIN/COMMIT/ROLLBACK; every ordinary
+   * admission continues to use the same validation and persistence path.
+   */
+  admitWorkingCandidateRevisionInTransaction(
+    client: PoolClient,
+    input: ScientificWorkingCandidateAdmission,
+  ): Promise<PetraWorkingCandidate> {
+    return this.#admitInTransaction(
+      client,
+      input.candidate,
+      input.profileRecord,
+    );
+  }
+
+  /** Transaction-composed counterpart for a working relationship revision. */
+  admitWorkingRelationshipRevisionInTransaction(
+    client: PoolClient,
+    input: ScientificWorkingRelationshipAdmission,
+  ): Promise<PetraWorkingRelationship> {
+    return this.#admitInTransaction(
+      client,
+      input.relationship,
+      input.profileRecord,
+    );
+  }
+
   getWorkingCandidate(
     projectId: string,
     workingCandidateId: string,
@@ -192,6 +220,29 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
   }
 
   async #admit<RecordType extends WorkingRecord>(
+    record: RecordType,
+    profileRecord: ProfileRecord,
+  ): Promise<RecordType> {
+    const client = await this.#pool.connect();
+    try {
+      await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
+      const admitted = await this.#admitInTransaction(
+        client,
+        record,
+        profileRecord,
+      );
+      await client.query("COMMIT");
+      return admitted;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw this.#mappedError(error);
+    } finally {
+      client.release();
+    }
+  }
+
+  async #admitInTransaction<RecordType extends WorkingRecord>(
+    client: PoolClient,
     record: RecordType,
     profileRecord: ProfileRecord,
   ): Promise<RecordType> {
@@ -230,89 +281,78 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
       );
     }
 
-    const client = await this.#pool.connect();
-    try {
-      await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
-      await client.query(
-        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
-        [working.id],
-      );
+    await client.query(
+      "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+      [working.id],
+    );
 
-      const retry = await client.query<StoredPayloadRow>(
-        `SELECT record_hash, payload
+    const retry = await client.query<StoredPayloadRow>(
+      `SELECT record_hash, payload
            FROM petra.${working.revisionTable}
           WHERE ${working.idColumn} = $1 AND revision = $2`,
-        [working.id, record.revision],
-      );
-      if (retry.rows[0] !== undefined) {
-        if (retry.rows[0].record_hash !== canonicalHash(record)) {
-          throw new PostgresWorkingStateError(
-            "WORKING_STATE_CONFLICT",
-            "The working ID and revision are already bound to different canonical content.",
-          );
-        }
-        this.#contracts.assertValid(
-          working.contractName,
-          "1.0.0",
-          retry.rows[0].payload,
-        );
-        await client.query("COMMIT");
-        return clone(retry.rows[0].payload as RecordType);
-      }
-
-      const definition = await this.#requireCurrentDefinition(client, record);
-      this.#requireRegisteredProfile(record, definition);
-      await this.#validateAuthoritativeBase(client, record);
-      await this.#validateProfileProjectScope(client, record, profileRecord);
-      await this.#validateActors(client, record, profileRecord);
-      await this.#validateProducer(client, record, definition);
-      await this.#validateTaskAndSnapshot(client, record);
-      await this.#validateRecordReferences(client, record);
-      await this.#validateWorkingLineage(client, record);
-      await this.#persistProfileRevision(client, record, profileRecord);
-      if (record.schema_name === "petra.working-relationship") {
-        await this.#validateRelationshipEndpoints(
-          client,
-          record,
-          profileRecord as PetraAssertion,
-        );
-      }
-      await this.#insertWorkingRevision(client, record);
-      await client.query("COMMIT");
-      return clone(record);
-    } catch (error) {
-      await client.query("ROLLBACK");
-      if (
-        error instanceof PostgresWorkingStateError ||
-        !(error instanceof Error)
-      ) {
-        throw error;
-      }
-      const pgCode = (error as Error & { code?: string }).code;
-      if (pgCode === "23503") {
-        throw new PostgresWorkingStateError(
-          "WORKING_STATE_REFERENCE_MISSING",
-          error.message,
-        );
-      }
-      if (pgCode === "23505") {
+      [working.id, record.revision],
+    );
+    if (retry.rows[0] !== undefined) {
+      if (retry.rows[0].record_hash !== canonicalHash(record)) {
         throw new PostgresWorkingStateError(
           "WORKING_STATE_CONFLICT",
-          error.message,
+          "The working ID and revision are already bound to different canonical content.",
         );
       }
-      if (["23514", "40001", "55000"].includes(pgCode ?? "")) {
-        throw new PostgresWorkingStateError(
-          pgCode === "40001"
-            ? "WORKING_STATE_STALE"
-            : "WORKING_STATE_RELATION_INVALID",
-          error.message,
-        );
-      }
-      throw error;
-    } finally {
-      client.release();
+      this.#contracts.assertValid(
+        working.contractName,
+        "1.0.0",
+        retry.rows[0].payload,
+      );
+      return clone(retry.rows[0].payload as RecordType);
     }
+
+    const definition = await this.#requireCurrentDefinition(client, record);
+    this.#requireRegisteredProfile(record, definition);
+    await this.#validateAuthoritativeBase(client, record);
+    await this.#validateProfileProjectScope(client, record, profileRecord);
+    await this.#validateActors(client, record, profileRecord);
+    await this.#validateProducer(client, record, definition);
+    await this.#validateTaskAndSnapshot(client, record);
+    await this.#validateRecordReferences(client, record);
+    await this.#validateWorkingLineage(client, record);
+    await this.#persistProfileRevision(client, record, profileRecord);
+    if (record.schema_name === "petra.working-relationship") {
+      await this.#validateRelationshipEndpoints(
+        client,
+        record,
+        profileRecord as PetraAssertion,
+      );
+    }
+    await this.#insertWorkingRevision(client, record);
+    return clone(record);
+  }
+
+  #mappedError(error: unknown): unknown {
+    if (error instanceof PostgresWorkingStateError || !(error instanceof Error))
+      return error;
+    const pgCode = (error as Error & { code?: string }).code;
+    if (pgCode === "23503") {
+      return new PostgresWorkingStateError(
+        "WORKING_STATE_REFERENCE_MISSING",
+        error.message,
+      );
+    }
+    if (pgCode === "23505") {
+      return new PostgresWorkingStateError(
+        "WORKING_STATE_CONFLICT",
+        error.message,
+      );
+    }
+    if (["23514", "40001", "55000"].includes(pgCode ?? "")) {
+      return new PostgresWorkingStateError(
+        pgCode === "40001"
+          ? "WORKING_STATE_STALE"
+          : "WORKING_STATE_RELATION_INVALID",
+        error.message,
+      );
+    }
+    return error;
   }
 
   async #requireCurrentDefinition(
