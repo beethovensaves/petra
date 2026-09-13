@@ -3,6 +3,10 @@ import {
   type PetraInteractionResult,
 } from "@petra/adapters/ag-ui";
 import type {
+  ReviewCandidateCorrectionFromHumanEditRequest,
+  ReviewCandidateCorrectionResult,
+} from "@petra/adapters";
+import type {
   PetraProjectHistoryCompensationExecutionRequest,
   PetraProjectHistoryCompensationExecutionView,
   PetraProjectHistoryCompensationPlanRequest,
@@ -112,6 +116,9 @@ const apiToken = (): string => {
   if (typeof window === "undefined") return DEVELOPMENT_TOKEN;
   return window.sessionStorage.getItem(TOKEN_STORAGE_KEY) ?? DEVELOPMENT_TOKEN;
 };
+
+const apiBaseUrl = (): string =>
+  typeof window === "undefined" ? "http://petra.local" : window.location.origin;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1897,6 +1904,19 @@ export interface ReviewSessionRefreshCommandResponse {
   readonly applied: boolean;
 }
 
+export interface ReviewCandidateCorrectionCommandInput {
+  readonly projectId: string;
+  readonly reviewSessionId: string;
+  readonly request: ReviewCandidateCorrectionFromHumanEditRequest;
+}
+
+export interface ReviewCandidateCorrectionTransport {
+  correctFromHumanEdit(
+    projectId: string,
+    request: ReviewCandidateCorrectionFromHumanEditRequest,
+  ): Promise<ReviewCandidateCorrectionResult>;
+}
+
 const projectSourceLifecycleCommandResponse = (
   value: unknown,
   input: ProjectSourceLifecycleCommandInput,
@@ -2895,6 +2915,33 @@ export const reviewSessionFromView = (
     );
   }
   const changeSet = member.change_sets[0];
+  let candidateCorrection: ReviewSession["candidateCorrection"] | undefined;
+  if (view.schema_version === "1.2.0") {
+    const composedMember = view.content.members[0];
+    const relationship = composedMember?.working_state.relationships[0];
+    if (
+      composedMember !== undefined &&
+      composedMember.candidate.profile_payload.payload_kind ===
+        "scientific_evidence_pair" &&
+      composedMember.working_state.relationships.length === 1 &&
+      relationship !== undefined
+    ) {
+      candidateCorrection = {
+        reviewMemberId: composedMember.review_member_id,
+        expectedWorkingCandidateRef: {
+          working_candidate_id:
+            composedMember.working_state.candidate.working_candidate_id,
+          revision: composedMember.working_state.candidate.revision,
+          content_hash: composedMember.working_state.candidate.content_hash,
+        },
+        expectedWorkingRelationshipRef: {
+          working_relationship_id: relationship.working_relationship_id,
+          revision: relationship.revision,
+          content_hash: relationship.content_hash,
+        },
+      };
+    }
+  }
   return {
     id: view.review_session_id,
     projectId: view.project_id,
@@ -2924,6 +2971,7 @@ export const reviewSessionFromView = (
       origin: member.candidate.origin_label,
       originDetail: member.candidate.origin_detail,
     },
+    ...(candidateCorrection === undefined ? {} : { candidateCorrection }),
     basis: member.basis.map((basis) => ({
       id: basis.basis_id,
       label: basis.label,
@@ -4548,6 +4596,32 @@ export const executeReviewSessionRefreshCommand = async (
   return reviewSessionRefreshCommandResponse(value, input);
 };
 
+export const executeReviewCandidateCorrectionCommand = async (
+  input: ReviewCandidateCorrectionCommandInput,
+  transport?: ReviewCandidateCorrectionTransport,
+): Promise<ReviewCandidateCorrectionResult> => {
+  if (
+    input.reviewSessionId !==
+      input.request.expected_review_session_ref.review_session_id ||
+    input.request.expected_review_session_ref.lifecycle !== "open"
+  ) {
+    throw new ProjectDataError(
+      "A candidate correction must bind the route session's exact open Review reference.",
+      400,
+    );
+  }
+  const correctionTransport =
+    transport ??
+    new (await import("@petra/adapters")).ReviewCandidateCorrectionClient({
+      baseUrl: apiBaseUrl(),
+      token: apiToken(),
+    });
+  return correctionTransport.correctFromHumanEdit(
+    input.projectId,
+    input.request,
+  );
+};
+
 export const createProjectSourceReplacement = async (
   input: CreateProjectSourceReplacementInput,
 ): Promise<CreateProjectSourceReplacementResponse> => {
@@ -4760,6 +4834,11 @@ export interface ReviewSessionRefreshCommandOptions {
   readonly idempotencyKey?: string;
 }
 
+export interface ReviewCandidateCorrectionCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+}
+
 /**
  * Creates only caller-owned DeferReviewSession input from the exact session
  * reference returned by the authenticated Review read. The server still
@@ -4851,6 +4930,62 @@ export const createReviewSessionRefreshCommandInput = (
       revision: review.exactRef.revision,
       content_hash: review.exactRef.contentHash,
       lifecycle: review.lifecycle,
+    },
+  };
+};
+
+/**
+ * Creates the compact human Claim-text correction from exact references in the
+ * authenticated Review read. Profile records and working revisions remain
+ * server-composed.
+ */
+export const createReviewCandidateCorrectionCommandInput = (
+  review: ReviewSession,
+  canonicalText: string,
+  options: ReviewCandidateCorrectionCommandOptions = {},
+): ReviewCandidateCorrectionCommandInput => {
+  if (review.lifecycle !== "open" || review.candidateCorrection === undefined) {
+    throw new ProjectDataError(
+      "A candidate correction requires exact scientific working references and an open lifecycle from the authenticated Review read.",
+      400,
+    );
+  }
+  if (
+    canonicalText.trim().length === 0 ||
+    canonicalText.length > 20_000 ||
+    canonicalText === review.candidate.proposed
+  ) {
+    throw new ProjectDataError(
+      "A candidate correction requires changed Claim text between 1 and 20000 characters.",
+      400,
+    );
+  }
+  const identity = randomUlidPayload();
+  return {
+    projectId: review.projectId,
+    reviewSessionId: review.id,
+    request: {
+      command_id: options.commandId ?? `command_${identity}`,
+      idempotency_key:
+        options.idempotencyKey ??
+        `review-session:${identity}:candidate-correction`,
+      expected_review_session_ref: {
+        review_session_id: review.id,
+        revision: review.exactRef.revision,
+        content_hash: review.exactRef.contentHash,
+        lifecycle: review.lifecycle,
+      },
+      review_member_id: review.candidateCorrection.reviewMemberId,
+      expected_working_candidate_ref: {
+        ...review.candidateCorrection.expectedWorkingCandidateRef,
+      },
+      expected_working_relationship_ref: {
+        ...review.candidateCorrection.expectedWorkingRelationshipRef,
+      },
+      correction_input: {
+        input_kind: "human_scientific_claim_text_edit",
+        canonical_text: canonicalText,
+      },
     },
   };
 };

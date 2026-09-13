@@ -156,6 +156,19 @@ export type ReviewSession = {
     origin: string;
     originDetail: string;
   };
+  candidateCorrection?: {
+    reviewMemberId: string;
+    expectedWorkingCandidateRef: {
+      working_candidate_id: string;
+      revision: number;
+      content_hash: string;
+    };
+    expectedWorkingRelationshipRef: {
+      working_relationship_id: string;
+      revision: number;
+      content_hash: string;
+    };
+  };
   basis: Array<{
     id: string;
     label: string;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState, type FormEvent } from "react";
 import { Link, useLoaderData, useRevalidator } from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
@@ -10,11 +10,14 @@ import {
 import type { ProjectRecord, ReviewSession } from "./model.js";
 import {
   ProjectDataError,
+  createReviewCandidateCorrectionCommandInput,
   createReviewSessionDeferCommandInput,
   createReviewSessionRefreshCommandInput,
   createReviewSessionReopenCommandInput,
+  executeReviewCandidateCorrectionCommand,
   executeReviewSessionLifecycleCommand,
   executeReviewSessionRefreshCommand,
+  type ReviewCandidateCorrectionCommandInput,
   type ReviewSessionLifecycleCommandInput,
   type ReviewSessionRefreshCommandInput,
 } from "./project-data.js";
@@ -304,6 +307,279 @@ export const ReviewRefreshNotice = ({
   );
 };
 
+export type ReviewCandidateCorrectionPresentationState =
+  | { readonly state: "idle" }
+  | {
+      readonly state: "pending";
+      readonly input: ReviewCandidateCorrectionCommandInput;
+    }
+  | {
+      readonly state: "success";
+      readonly applied: boolean;
+      readonly input: ReviewCandidateCorrectionCommandInput;
+    }
+  | {
+      readonly state:
+        | "stale"
+        | "unauthorized"
+        | "unsupported_profile"
+        | "invalid_response"
+        | "retry_mismatch"
+        | "uncertain"
+        | "failed";
+      readonly input: ReviewCandidateCorrectionCommandInput;
+    };
+
+export interface ReviewCandidateEditorState {
+  readonly expanded: boolean;
+  readonly draft: string;
+  readonly correction: ReviewCandidateCorrectionPresentationState;
+}
+
+export type ReviewCandidateEditorAction =
+  | { readonly type: "toggle" }
+  | { readonly type: "draft_changed"; readonly draft: string }
+  | {
+      readonly type: "correction_started";
+      readonly input: ReviewCandidateCorrectionCommandInput;
+    }
+  | {
+      readonly type: "correction_succeeded";
+      readonly input: ReviewCandidateCorrectionCommandInput;
+      readonly applied: boolean;
+    }
+  | {
+      readonly type: "correction_failed";
+      readonly correction: Exclude<
+        ReviewCandidateCorrectionPresentationState,
+        { readonly state: "idle" | "pending" | "success" }
+      >;
+    }
+  | { readonly type: "review_reloaded" };
+
+export const createReviewCandidateEditorState = (
+  draft: string,
+  expanded = false,
+): ReviewCandidateEditorState => ({
+  expanded,
+  draft,
+  correction: { state: "idle" },
+});
+
+const correctionDraftIsLocked = (
+  correction: ReviewCandidateCorrectionPresentationState,
+): boolean =>
+  correction.state === "pending" ||
+  correction.state === "success" ||
+  correction.state === "stale" ||
+  correction.state === "invalid_response" ||
+  correction.state === "retry_mismatch" ||
+  correction.state === "uncertain";
+
+export const reviewCandidateEditorReducer = (
+  state: ReviewCandidateEditorState,
+  action: ReviewCandidateEditorAction,
+): ReviewCandidateEditorState => {
+  if (action.type === "toggle") {
+    return { ...state, expanded: !state.expanded };
+  }
+  if (action.type === "draft_changed") {
+    if (correctionDraftIsLocked(state.correction)) return state;
+    return {
+      ...state,
+      draft: action.draft,
+      correction: { state: "idle" },
+    };
+  }
+  if (action.type === "correction_started") {
+    return {
+      ...state,
+      correction: { state: "pending", input: action.input },
+    };
+  }
+  if (action.type === "correction_succeeded") {
+    return {
+      ...state,
+      correction: {
+        state: "success",
+        input: action.input,
+        applied: action.applied,
+      },
+    };
+  }
+  if (action.type === "correction_failed") {
+    return { ...state, correction: action.correction };
+  }
+  return { ...state, correction: { state: "idle" } };
+};
+
+const isReviewCandidateCorrectionClientError = (
+  error: unknown,
+): error is Error & { readonly status: number; readonly response: unknown } =>
+  error instanceof Error &&
+  error.name === "ReviewCandidateCorrectionClientError" &&
+  typeof (error as { readonly status?: unknown }).status === "number" &&
+  "response" in error;
+
+const correctionErrorCode = (error: unknown): string | undefined => {
+  if (!isReviewCandidateCorrectionClientError(error)) {
+    return undefined;
+  }
+  const response = error.response;
+  if (
+    typeof response !== "object" ||
+    response === null ||
+    !("error" in response) ||
+    typeof response.error !== "object" ||
+    response.error === null ||
+    !("code" in response.error) ||
+    typeof response.error.code !== "string"
+  ) {
+    return undefined;
+  }
+  return response.error.code;
+};
+
+export const reviewCandidateCorrectionFailureState = (
+  error: unknown,
+  input: ReviewCandidateCorrectionCommandInput,
+): ReviewCandidateCorrectionPresentationState => {
+  const code = correctionErrorCode(error);
+  if (
+    code === "REVIEW_CANDIDATE_CORRECTION_COMMAND_ID_REUSED" ||
+    code === "REVIEW_CANDIDATE_CORRECTION_IDEMPOTENCY_KEY_REUSED"
+  ) {
+    return { state: "retry_mismatch", input };
+  }
+  if (code === "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED") {
+    return { state: "unsupported_profile", input };
+  }
+  if (
+    isReviewCandidateCorrectionClientError(error) &&
+    (error.status === 401 || error.status === 403)
+  ) {
+    return { state: "unauthorized", input };
+  }
+  if (
+    isReviewCandidateCorrectionClientError(error) &&
+    (error.status === 404 || error.status === 409)
+  ) {
+    return { state: "stale", input };
+  }
+  if (
+    (isReviewCandidateCorrectionClientError(error) &&
+      error.status >= 200 &&
+      error.status < 300) ||
+    (error instanceof Error &&
+      (error.name === "ContractRegistryError" || error instanceof SyntaxError))
+  ) {
+    return { state: "invalid_response", input };
+  }
+  if (
+    !isReviewCandidateCorrectionClientError(error) ||
+    error.status === 408 ||
+    error.status >= 500
+  ) {
+    return { state: "uncertain", input };
+  }
+  return { state: "failed", input };
+};
+
+export const ReviewCandidateCorrectionNotice = ({
+  review,
+  correction,
+  onRetry,
+  onReload,
+}: {
+  review: ReviewSession;
+  correction: ReviewCandidateCorrectionPresentationState;
+  onRetry: (input: ReviewCandidateCorrectionCommandInput) => void;
+  onReload?: (() => void | Promise<void>) | undefined;
+}): React.JSX.Element | null => {
+  if (correction.state === "idle") return null;
+
+  const success = correction.state === "success";
+  const stale = correction.state === "stale";
+  const unauthorized = correction.state === "unauthorized";
+  const unsupported = correction.state === "unsupported_profile";
+  const invalidResponse = correction.state === "invalid_response";
+  const retryMismatch = correction.state === "retry_mismatch";
+  const uncertain = correction.state === "uncertain";
+  const failed = correction.state === "failed";
+  const title =
+    correction.state === "pending"
+      ? "Saving a working correction…"
+      : success
+        ? correction.applied
+          ? "Working correction confirmed"
+          : "Exact correction result recovered"
+        : stale
+          ? "Review changed before correction"
+          : unauthorized
+            ? "Candidate correction was not authorized"
+            : unsupported
+              ? "This Review profile cannot use Claim-text correction"
+              : invalidResponse
+                ? "Correction response could not be verified"
+                : retryMismatch
+                  ? "Command identity belongs to another correction"
+                  : uncertain
+                    ? "Correction result is not yet confirmed"
+                    : "Candidate correction was not accepted";
+  const detail =
+    correction.state === "pending"
+      ? "Petra is checking the exact open Review, member, candidate, relationship, and command authority. The candidate shown above remains the loaded revision; nothing is shown as validated, decided, or applied."
+      : success
+        ? correction.applied
+          ? "Petra returned a matching new working revision. The authenticated Review read is being reloaded. This did not approve, reject, apply, report validation success, or create domain authority."
+          : "Petra returned the retained matching result for this exact command without applying it again. The authenticated Review read is being reloaded. This was not a Review decision, validation success, application, or domain change."
+        : stale
+          ? "The Review or one of its exact working references changed. Nothing is shown as corrected. Reload the authenticated Review before creating another command; your draft remains on this page."
+          : unauthorized
+            ? "Petra did not grant this correction command. The loaded candidate and Review remain unchanged in this view, and the draft remains local."
+            : unsupported
+              ? "Server authority does not support this exact Review profile for human Claim-text correction. No working revision or Review decision is shown, and the draft remains local."
+              : invalidResponse
+                ? "The response did not match the typed command and resulting Review identities. This view does not accept it as success. The exact request is retained for reconciliation."
+                : retryMismatch
+                  ? "The command or idempotency identity is bound to different correction content. Nothing is shown as corrected. Reload the authenticated Review before preparing another command."
+                  : uncertain
+                    ? "Petra could not verify whether the correction took effect. Retry the exact retained request to reconcile; a completed command returns its stored result without creating another revision."
+                    : "Petra rejected the correction before a matching result was returned. The loaded candidate and Review remain unchanged in this view.";
+  const alert = !success && correction.state !== "pending";
+
+  return (
+    <section
+      className="review-lifecycle-notice review-correction-notice"
+      data-state={correction.state}
+      role={alert ? "alert" : "status"}
+      aria-live={alert ? "assertive" : "polite"}
+      tabIndex={-1}
+    >
+      <strong>{title}</strong>
+      <p>{detail}</p>
+      {success || unauthorized || unsupported || failed ? (
+        <Link className="reference-text-link" to={review.returnPath}>
+          Return to {review.returnLabel}
+        </Link>
+      ) : null}
+      {invalidResponse || uncertain ? (
+        <PetraButton
+          variant="secondary"
+          onClick={() => onRetry(correction.input)}
+        >
+          Retry exact correction
+        </PetraButton>
+      ) : null}
+      {stale || retryMismatch ? (
+        <PetraButton variant="secondary" onClick={() => void onReload?.()}>
+          Reload Review
+        </PetraButton>
+      ) : null}
+    </section>
+  );
+};
+
 export const ReviewCollectionSurface = ({
   project,
   reviews,
@@ -454,10 +730,12 @@ export const ReviewSessionSurface = ({
   project,
   review,
   onReviewChange,
+  initialCandidateEditOpen = false,
 }: {
   project: ProjectRecord;
   review: ReviewSession;
   onReviewChange?: (() => void | Promise<void>) | undefined;
+  initialCandidateEditOpen?: boolean;
 }): React.JSX.Element => {
   const [rationale, setRationale] = useState("");
   const [lifecycle, setLifecycle] = useState<ReviewLifecyclePresentationState>({
@@ -466,10 +744,24 @@ export const ReviewSessionSurface = ({
   const [refresh, setRefresh] = useState<ReviewRefreshPresentationState>({
     state: "idle",
   });
+  const [candidateEditor, dispatchCandidateEditor] = useReducer(
+    reviewCandidateEditorReducer,
+    createReviewCandidateEditorState(
+      review.candidate.proposed,
+      initialCandidateEditOpen,
+    ),
+  );
   const decisionRef = useRef<HTMLElement>(null);
+  const correctionRef = useRef<HTMLElement>(null);
+  const correctionToggleRef = useRef<HTMLDivElement>(null);
+  const candidateEditorWasExpanded = useRef(initialCandidateEditOpen);
   const lifecyclePending = lifecycle.state === "pending";
   const refreshPending = refresh.state === "pending";
-  const commandPending = lifecyclePending || refreshPending;
+  const correctionPending = candidateEditor.correction.state === "pending";
+  const commandPending =
+    lifecyclePending ||
+    refreshPending ||
+    correctionDraftIsLocked(candidateEditor.correction);
   const deferPresented =
     review.status === "needs_decision" &&
     review.lifecycle !== "deferred" &&
@@ -484,7 +776,21 @@ export const ReviewSessionSurface = ({
     refresh.state === "idle" &&
     review.snapshotState === "stale" &&
     review.lifecycle === "open" &&
-    !lifecyclePending;
+    !lifecyclePending &&
+    !correctionDraftIsLocked(candidateEditor.correction);
+
+  useEffect(() => {
+    if (candidateEditor.expanded) {
+      correctionRef.current
+        ?.querySelector<HTMLTextAreaElement>("textarea")
+        ?.focus();
+    } else if (candidateEditorWasExpanded.current) {
+      correctionToggleRef.current
+        ?.querySelector<HTMLButtonElement>("button")
+        ?.focus();
+    }
+    candidateEditorWasExpanded.current = candidateEditor.expanded;
+  }, [candidateEditor.expanded]);
 
   useEffect(() => {
     if (lifecycle.state !== "idle" && lifecycle.state !== "pending") {
@@ -501,6 +807,17 @@ export const ReviewSessionSurface = ({
         ?.focus();
     }
   }, [refresh.state]);
+
+  useEffect(() => {
+    if (
+      candidateEditor.correction.state !== "idle" &&
+      candidateEditor.correction.state !== "pending"
+    ) {
+      correctionRef.current
+        ?.querySelector<HTMLElement>(".review-correction-notice")
+        ?.focus();
+    }
+  }, [candidateEditor.correction.state]);
 
   const runLifecycleCommand = (
     input: ReviewSessionLifecycleCommandInput,
@@ -556,6 +873,64 @@ export const ReviewSessionSurface = ({
   const refreshReview = (): void => {
     runRefreshCommand(createReviewSessionRefreshCommandInput(review));
   };
+
+  const runCandidateCorrection = (
+    input: ReviewCandidateCorrectionCommandInput,
+  ): void => {
+    dispatchCandidateEditor({ type: "correction_started", input });
+    void executeReviewCandidateCorrectionCommand(input).then(
+      (result) => {
+        dispatchCandidateEditor({
+          type: "correction_succeeded",
+          input,
+          applied: result.applied,
+        });
+        if (onReviewChange !== undefined) {
+          void Promise.resolve(onReviewChange()).catch(() => undefined);
+        }
+      },
+      (error: unknown) => {
+        const correction = reviewCandidateCorrectionFailureState(error, input);
+        if (
+          correction.state === "idle" ||
+          correction.state === "pending" ||
+          correction.state === "success"
+        ) {
+          return;
+        }
+        dispatchCandidateEditor({ type: "correction_failed", correction });
+      },
+    );
+  };
+
+  const submitCandidateCorrection = (
+    event: FormEvent<HTMLFormElement>,
+  ): void => {
+    event.preventDefault();
+    runCandidateCorrection(
+      createReviewCandidateCorrectionCommandInput(
+        review,
+        candidateEditor.draft,
+      ),
+    );
+  };
+
+  const reloadCandidateReview = async (): Promise<void> => {
+    if (onReviewChange !== undefined) await onReviewChange();
+    dispatchCandidateEditor({ type: "review_reloaded" });
+  };
+
+  const candidateTextError =
+    candidateEditor.draft.trim().length === 0
+      ? "Enter Claim text."
+      : candidateEditor.draft.length > 20_000
+        ? "Claim text must contain no more than 20000 characters."
+        : candidateEditor.draft === review.candidate.proposed
+          ? "Change the Claim text before saving."
+          : undefined;
+  const candidateEditorLocked = correctionDraftIsLocked(
+    candidateEditor.correction,
+  );
 
   const lifecycleBoundary =
     review.lifecycle === "deferred"
@@ -633,6 +1008,7 @@ export const ReviewSessionSurface = ({
       </section>
 
       <section
+        ref={correctionRef}
         className="review-comparison"
         aria-labelledby="review-comparison-title"
       >
@@ -650,8 +1026,113 @@ export const ReviewSessionSurface = ({
             <p>Candidate · working</p>
             <h3>{review.candidate.proposed}</h3>
             <span>{review.candidate.revision}</span>
+            {review.candidateCorrection === undefined ? null : (
+              <div
+                className="review-candidate-edit__toggle"
+                ref={correctionToggleRef}
+              >
+                <PetraButton
+                  variant="secondary"
+                  density="compact"
+                  aria-expanded={candidateEditor.expanded}
+                  aria-controls="review-candidate-editor"
+                  data-operation="edit_review_candidate"
+                  {...(review.lifecycle === "open"
+                    ? {}
+                    : {
+                        unavailable: {
+                          reason:
+                            "The authenticated Review read does not supply the exact open lifecycle required for correction.",
+                        },
+                      })}
+                  onClick={() => dispatchCandidateEditor({ type: "toggle" })}
+                >
+                  Edit candidate
+                </PetraButton>
+              </div>
+            )}
           </article>
         </div>
+        {review.candidateCorrection === undefined ||
+        !candidateEditor.expanded ? null : (
+          <section
+            className="review-candidate-edit"
+            id="review-candidate-editor"
+            aria-labelledby="review-candidate-editor-title"
+          >
+            <header>
+              <div>
+                <p className="reference-panel-kicker">Local edit</p>
+                <h3 id="review-candidate-editor-title">
+                  Edit working Claim text
+                </h3>
+              </div>
+              <span>Not a Review decision</span>
+            </header>
+            <form onSubmit={submitCandidateCorrection}>
+              <PetraTextArea
+                id="review-candidate-canonical-text"
+                label="Candidate Claim text"
+                hint="Along with caller-owned command identity and exact server-supplied Review references, this is the only editable content sent. Petra composes scope, basis, authorship, producer, task, provenance, validation, lineage, and hashes on the server."
+                {...(candidateTextError === undefined
+                  ? {}
+                  : { error: candidateTextError })}
+                rows={6}
+                maxLength={20_000}
+                required
+                value={candidateEditor.draft}
+                disabled={
+                  candidateEditorLocked || lifecyclePending || refreshPending
+                }
+                onChange={(event) =>
+                  dispatchCandidateEditor({
+                    type: "draft_changed",
+                    draft: event.currentTarget.value,
+                  })
+                }
+              />
+              <p
+                className="review-candidate-edit__local-note"
+                id="review-candidate-edit-local-note"
+              >
+                {candidateEditor.draft.length} of 20000 characters. Closing the
+                editor keeps this unsent text on this page. Saving can create a
+                new non-authoritative working revision; it does not approve,
+                reject, apply, or report validation success.
+              </p>
+              <PetraButtonGroup label="Candidate edit">
+                <PetraButton
+                  type="submit"
+                  variant="primary"
+                  busy={correctionPending}
+                  busyLabel="Saving correction…"
+                  aria-disabled={
+                    candidateTextError !== undefined ||
+                    candidateEditorLocked ||
+                    lifecyclePending ||
+                    refreshPending
+                  }
+                  aria-describedby="review-candidate-edit-local-note"
+                  data-operation="correct_review_candidate"
+                >
+                  Save working correction
+                </PetraButton>
+                <PetraButton
+                  variant="quiet"
+                  onClick={() => dispatchCandidateEditor({ type: "toggle" })}
+                >
+                  Close editor
+                </PetraButton>
+              </PetraButtonGroup>
+            </form>
+          </section>
+        )}
+        <ReviewCandidateCorrectionNotice
+          review={review}
+          correction={candidateEditor.correction}
+          onRetry={runCandidateCorrection}
+          onReload={reloadCandidateReview}
+        />
         <div className="review-difference">
           <strong>Material difference</strong>
           <p>{review.candidate.difference}</p>
@@ -818,7 +1299,9 @@ export const ReviewSessionSurface = ({
               reopenPresented ? "Reopening Review…" : "Deferring Review…"
             }
             aria-disabled={
-              refreshPending || !(deferPresented || reopenPresented)
+              refreshPending ||
+              correctionDraftIsLocked(candidateEditor.correction) ||
+              !(deferPresented || reopenPresented)
             }
             aria-describedby="review-decision-boundary"
             data-operation={

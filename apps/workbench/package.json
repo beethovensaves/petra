@@ -14,6 +14,8 @@
     "@petra/contracts": "0.0.0",
     "@primer/octicons-react": "^19.33.0",
     "@primer/primitives": "^11.10.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
     "cytoscape": "^3.34.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",

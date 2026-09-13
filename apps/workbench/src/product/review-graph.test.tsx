@@ -1,3 +1,4 @@
+import { ReviewCandidateCorrectionClientError } from "@petra/adapters";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
@@ -9,18 +10,23 @@ import {
   getReferenceReview,
 } from "./fixtures.js";
 import { GraphSurface } from "./GraphSurface.js";
-import type { GraphQuestion } from "./model.js";
+import type { GraphQuestion, ReviewSession } from "./model.js";
 import {
   ProjectDataError,
+  createReviewCandidateCorrectionCommandInput,
   createReviewSessionDeferCommandInput,
   createReviewSessionRefreshCommandInput,
   createReviewSessionReopenCommandInput,
 } from "./project-data.js";
 import {
+  ReviewCandidateCorrectionNotice,
   ReviewCollectionSurface,
   ReviewLifecycleNotice,
   ReviewRefreshNotice,
   ReviewSessionSurface,
+  createReviewCandidateEditorState,
+  reviewCandidateCorrectionFailureState,
+  reviewCandidateEditorReducer,
   reviewLifecycleFailureState,
   reviewRefreshFailureState,
 } from "./ReviewSurface.js";
@@ -36,6 +42,25 @@ describe("reference Review and Graph packets", () => {
   if (project === undefined || review === undefined || graph === undefined) {
     throw new Error("Review and Graph conformance fixtures are incomplete.");
   }
+
+  const correctionReview = (): ReviewSession => ({
+    ...structuredClone(review),
+    lifecycle: "open",
+    candidateCorrection: {
+      reviewMemberId: "review_member_01K4D000000000000000000201",
+      expectedWorkingCandidateRef: {
+        working_candidate_id: "working_candidate_01K4D000000000000000000202",
+        revision: 1,
+        content_hash: `sha256:${"2".repeat(64)}`,
+      },
+      expectedWorkingRelationshipRef: {
+        working_relationship_id:
+          "working_relationship_01K4D000000000000000000203",
+        revision: 1,
+        content_hash: `sha256:${"3".repeat(64)}`,
+      },
+    },
+  });
 
   it("keeps the Review queue exception-led and decision-sized", () => {
     const markup = render(
@@ -88,6 +113,223 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain(
       'href="/projects/inlet-cycle/brief#attention-source-depth"',
     );
+  });
+
+  it("keeps the frozen Edit candidate disclosure local and text-only", () => {
+    const correctable = correctionReview();
+    const markup = render(
+      <ReviewSessionSurface
+        project={project}
+        review={correctable}
+        initialCandidateEditOpen
+      />,
+    );
+
+    expect(markup).toContain("Edit candidate");
+    expect(markup).toContain('aria-expanded="true"');
+    expect(markup).toContain('aria-controls="review-candidate-editor"');
+    expect(markup).toContain('id="review-candidate-canonical-text"');
+    expect(markup).toContain("Candidate Claim text");
+    expect(markup).toContain("this is the only editable content sent");
+    expect(markup).toContain(
+      "Petra composes scope, basis, authorship, producer, task, provenance, validation, lineage, and hashes on the server",
+    );
+    expect(markup).toContain(
+      "Closing the editor keeps this unsent text on this page",
+    );
+    expect(markup).toContain("Not a Review decision");
+    expect(markup).toContain('data-operation="correct_review_candidate"');
+    expect(markup).toContain("Change the Claim text before saving");
+    expect(markup).toContain("required");
+  });
+
+  it("retains local draft, disclosure, and the exact uncertain request", () => {
+    const correctable = correctionReview();
+    const input = createReviewCandidateCorrectionCommandInput(
+      correctable,
+      "The corrected Claim keeps a narrower source-grounded statement.",
+      {
+        commandId: "command_01K4D000000000000000000204",
+        idempotencyKey: "review-session:001:correction:surface:v1",
+      },
+    );
+    let editor = createReviewCandidateEditorState(
+      correctable.candidate.proposed,
+    );
+    editor = reviewCandidateEditorReducer(editor, { type: "toggle" });
+    editor = reviewCandidateEditorReducer(editor, {
+      type: "draft_changed",
+      draft: input.request.correction_input.canonical_text,
+    });
+    editor = reviewCandidateEditorReducer(editor, { type: "toggle" });
+    editor = reviewCandidateEditorReducer(editor, { type: "toggle" });
+    expect(editor).toMatchObject({
+      expanded: true,
+      draft: input.request.correction_input.canonical_text,
+    });
+
+    editor = reviewCandidateEditorReducer(editor, {
+      type: "correction_started",
+      input,
+    });
+    const uncertain = reviewCandidateCorrectionFailureState(
+      new TypeError("connection closed"),
+      input,
+    );
+    if (
+      uncertain.state === "idle" ||
+      uncertain.state === "pending" ||
+      uncertain.state === "success"
+    ) {
+      throw new Error("Expected an uncertain candidate-correction state.");
+    }
+    editor = reviewCandidateEditorReducer(editor, {
+      type: "correction_failed",
+      correction: uncertain,
+    });
+    const locked = reviewCandidateEditorReducer(editor, {
+      type: "draft_changed",
+      draft: "A different draft must not replace the uncertain request.",
+    });
+    expect(locked).toBe(editor);
+    expect(locked.correction).toEqual({ state: "uncertain", input });
+    expect(locked.draft).toBe(input.request.correction_input.canonical_text);
+
+    const reloaded = reviewCandidateEditorReducer(locked, {
+      type: "review_reloaded",
+    });
+    expect(reloaded).toMatchObject({
+      expanded: true,
+      draft: input.request.correction_input.canonical_text,
+      correction: { state: "idle" },
+    });
+  });
+
+  it("presents every material correction failure without claiming authority", () => {
+    const correctable = correctionReview();
+    const input = createReviewCandidateCorrectionCommandInput(
+      correctable,
+      "A source-grounded Claim correction for failure presentation.",
+      {
+        commandId: "command_01K4D000000000000000000205",
+        idempotencyKey: "review-session:001:correction:surface:v2",
+      },
+    );
+    const clientError = (
+      status: number,
+      code: string,
+    ): ReviewCandidateCorrectionClientError =>
+      new ReviewCandidateCorrectionClientError("rejected", status, {
+        error: { code },
+      });
+    const states = [
+      reviewCandidateCorrectionFailureState(
+        clientError(409, "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE"),
+        input,
+      ),
+      reviewCandidateCorrectionFailureState(
+        clientError(403, "REVIEW_CANDIDATE_CORRECTION_COMMAND_NOT_AUTHORIZED"),
+        input,
+      ),
+      reviewCandidateCorrectionFailureState(
+        clientError(422, "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED"),
+        input,
+      ),
+      reviewCandidateCorrectionFailureState(
+        clientError(409, "REVIEW_CANDIDATE_CORRECTION_COMMAND_ID_REUSED"),
+        input,
+      ),
+      reviewCandidateCorrectionFailureState(
+        new ReviewCandidateCorrectionClientError("invalid result", 200, {}),
+        input,
+      ),
+      reviewCandidateCorrectionFailureState(
+        new TypeError("connection closed"),
+        input,
+      ),
+      reviewCandidateCorrectionFailureState(
+        clientError(422, "REVIEW_CANDIDATE_CORRECTION_COMMAND_INVALID"),
+        input,
+      ),
+    ];
+    expect(states.map((state) => state.state)).toEqual([
+      "stale",
+      "unauthorized",
+      "unsupported_profile",
+      "retry_mismatch",
+      "invalid_response",
+      "uncertain",
+      "failed",
+    ]);
+
+    const markups = states.map((correction) =>
+      render(
+        <ReviewCandidateCorrectionNotice
+          review={correctable}
+          correction={correction}
+          onRetry={() => undefined}
+          onReload={() => undefined}
+        />,
+      ),
+    );
+    expect(markups[0]).toContain("Review changed before correction");
+    expect(markups[0]).toContain("Reload Review");
+    expect(markups[1]).toContain("was not authorized");
+    expect(markups[2]).toContain("cannot use Claim-text correction");
+    expect(markups[3]).toContain(
+      "Command identity belongs to another correction",
+    );
+    expect(markups[3]).toContain("Reload Review");
+    expect(markups[4]).toContain("could not be verified");
+    expect(markups[4]).toContain("Retry exact correction");
+    expect(markups[5]).toContain("result is not yet confirmed");
+    expect(markups[5]).toContain("Retry exact correction");
+    expect(markups[6]).toContain("was not accepted");
+    for (const markup of markups) {
+      expect(markup).toContain('role="alert"');
+      expect(markup).toContain('tabindex="-1"');
+      expect(markup).not.toContain("Review approved");
+      expect(markup).not.toContain("Validation passed");
+      expect(markup).not.toContain("Applied to Project");
+    }
+  });
+
+  it("separates matching new and retained correction results from Review success", () => {
+    const correctable = correctionReview();
+    const input = createReviewCandidateCorrectionCommandInput(
+      correctable,
+      "The corrected Claim remains working material.",
+      {
+        commandId: "command_01K4D000000000000000000206",
+        idempotencyKey: "review-session:001:correction:surface:v3",
+      },
+    );
+    const appliedMarkup = render(
+      <ReviewCandidateCorrectionNotice
+        review={correctable}
+        correction={{ state: "success", applied: true, input }}
+        onRetry={() => undefined}
+      />,
+    );
+    const retainedMarkup = render(
+      <ReviewCandidateCorrectionNotice
+        review={correctable}
+        correction={{ state: "success", applied: false, input }}
+        onRetry={() => undefined}
+      />,
+    );
+
+    expect(appliedMarkup).toContain("Working correction confirmed");
+    expect(appliedMarkup).toContain(
+      "authenticated Review read is being reloaded",
+    );
+    expect(appliedMarkup).toContain(
+      "did not approve, reject, apply, report validation success, or create domain authority",
+    );
+    expect(retainedMarkup).toContain("Exact correction result recovered");
+    expect(retainedMarkup).toContain("without applying it again");
+    expect(retainedMarkup).toContain("not a Review decision");
+    expect(retainedMarkup).not.toContain(input.request.command_id);
   });
 
   it("does not infer reopen eligibility from an ambiguous Waiting state", () => {

@@ -8,6 +8,14 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      "@petra/contracts/validator": resolve(
+        root,
+        "src/product/browser-contract-registry.ts",
+      ),
+    },
+  },
   build: {
     outDir: resolve(root, "../server/public"),
     emptyOutDir: true,

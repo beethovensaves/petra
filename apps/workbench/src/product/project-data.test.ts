@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 
+import type { ReviewCandidateCorrectionResult } from "@petra/adapters";
 import type {
   PetraProject,
   PetraProjectDefinition,
@@ -44,9 +45,11 @@ import type {
 import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { PetraContractRegistry as BrowserContractRegistry } from "./browser-contract-registry.js";
 import {
   cancelProjectSuggestedActionWork,
   composeProjectHistoryCompensationPlan,
+  createReviewCandidateCorrectionCommandInput,
   createReviewSessionDeferCommandInput,
   createReviewSessionRefreshCommandInput,
   createReviewSessionReopenCommandInput,
@@ -55,6 +58,7 @@ import {
   createSuggestedActionWorkCancellationRequest,
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
+  executeReviewCandidateCorrectionCommand,
   executeReviewSessionLifecycleCommand,
   executeReviewSessionRefreshCommand,
   executeProjectHistoryCompensationPlan,
@@ -1040,6 +1044,36 @@ afterEach(() => {
 });
 
 describe("Project shell workbench adapter", () => {
+  it("bundles the exact candidate-correction response validators for the browser", () => {
+    const contracts = new BrowserContractRegistry();
+    expect(() =>
+      contracts.assertValid(
+        "working-candidate",
+        "1.0.0",
+        reviewWorkingCandidate,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid(
+        "working-relationship",
+        "1.0.0",
+        reviewWorkingRelationship,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid("review-session", "1.1.0", reviewSessionRecord),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid("working-candidate", "1.0.0", {
+        ...reviewWorkingCandidate,
+        authority_boundary: {
+          ...reviewWorkingCandidate.authority_boundary,
+          domain_authority: true,
+        },
+      }),
+    ).toThrow("does not satisfy working-candidate@1.0.0");
+  });
+
   it("maps exact definition terminology and projection attention without mutating the view", () => {
     const before = structuredClone(view);
     const project = projectRecordFromShellView(view);
@@ -3026,6 +3060,21 @@ describe("Project shell workbench adapter", () => {
       status: "waiting",
       lifecycle: "open",
       snapshotState: "stale",
+      candidateCorrection: {
+        reviewMemberId:
+          aggregateWaitingView.content.members[0].review_member_id,
+        expectedWorkingCandidateRef: {
+          working_candidate_id: reviewWorkingCandidate.working_candidate_id,
+          revision: reviewWorkingCandidate.revision,
+          content_hash: reviewWorkingCandidate.content_hash,
+        },
+        expectedWorkingRelationshipRef: {
+          working_relationship_id:
+            reviewWorkingRelationship.working_relationship_id,
+          revision: reviewWorkingRelationship.revision,
+          content_hash: reviewWorkingRelationship.content_hash,
+        },
+      },
     });
     expect(
       createReviewSessionRefreshCommandInput(aggregateWaitingReview, {
@@ -3050,6 +3099,77 @@ describe("Project shell workbench adapter", () => {
     expect(() =>
       createReviewSessionRefreshCommandInput(deferredReview),
     ).toThrow("requires an exact open lifecycle");
+
+    const correctionInput = createReviewCandidateCorrectionCommandInput(
+      aggregateWaitingReview,
+      "The study reports a bounded measurable improvement.",
+      {
+        commandId: "command_01K4D000000000000000000081",
+        idempotencyKey: "review-session:001:correction:workbench:v1",
+      },
+    );
+    expect(correctionInput).toEqual({
+      projectId: aggregateWaitingReview.projectId,
+      reviewSessionId: aggregateWaitingReview.id,
+      request: {
+        command_id: "command_01K4D000000000000000000081",
+        idempotency_key: "review-session:001:correction:workbench:v1",
+        expected_review_session_ref: {
+          review_session_id: aggregateWaitingReview.id,
+          revision: aggregateWaitingReview.exactRef.revision,
+          content_hash: aggregateWaitingReview.exactRef.contentHash,
+          lifecycle: "open",
+        },
+        review_member_id:
+          aggregateWaitingView.content.members[0].review_member_id,
+        expected_working_candidate_ref: {
+          working_candidate_id: reviewWorkingCandidate.working_candidate_id,
+          revision: reviewWorkingCandidate.revision,
+          content_hash: reviewWorkingCandidate.content_hash,
+        },
+        expected_working_relationship_ref: {
+          working_relationship_id:
+            reviewWorkingRelationship.working_relationship_id,
+          revision: reviewWorkingRelationship.revision,
+          content_hash: reviewWorkingRelationship.content_hash,
+        },
+        correction_input: {
+          input_kind: "human_scientific_claim_text_edit",
+          canonical_text: "The study reports a bounded measurable improvement.",
+        },
+      },
+    });
+    expect(correctionInput.request).not.toHaveProperty("corrected_candidate");
+    expect(correctionInput.request).not.toHaveProperty(
+      "corrected_profile_record",
+    );
+    const correctionResult = {} as ReviewCandidateCorrectionResult;
+    const correctFromHumanEdit = vi
+      .fn()
+      .mockResolvedValueOnce(correctionResult);
+    await expect(
+      executeReviewCandidateCorrectionCommand(correctionInput, {
+        correctFromHumanEdit,
+      }),
+    ).resolves.toBe(correctionResult);
+    expect(correctFromHumanEdit).toHaveBeenCalledExactlyOnceWith(
+      correctionInput.projectId,
+      correctionInput.request,
+    );
+    expect(() =>
+      createReviewCandidateCorrectionCommandInput(
+        aggregateWaitingReview,
+        aggregateWaitingReview.candidate.proposed,
+      ),
+    ).toThrow("requires changed Claim text");
+    expect(() =>
+      createReviewCandidateCorrectionCommandInput(
+        deferredReview,
+        "A changed Claim that must not bypass deferred lifecycle.",
+      ),
+    ).toThrow(
+      "requires exact scientific working references and an open lifecycle",
+    );
 
     const fetch = vi
       .fn<typeof globalThis.fetch>()
