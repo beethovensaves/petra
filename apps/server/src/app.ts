@@ -1,4 +1,10 @@
 import {
+  CommunicationPlanError,
+  validateCommunicationRequest,
+  type CommunicationPlanReader,
+  type CommunicationPlanRequest,
+} from "@petra/core";
+import {
   ProjectBriefError,
   type ProjectBriefViewReader,
   type ProjectBriefRequest,
@@ -121,6 +127,7 @@ export interface PetraAppOptions {
   publicDir?: string;
   codexProvider?: CodexSubscriptionProviderPort;
   codexWorkspaceRoot?: string;
+  communicationPlans?: CommunicationPlanReader;
   projectBriefViews?: ProjectBriefViewReader;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
@@ -1070,6 +1077,71 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         error instanceof Error
           ? error.message
           : "The Project shell collection is unavailable.",
+      );
+    }
+  });
+
+  app.get("/api/queries/projects/:projectId/communication", async (context) => {
+    if (!options.communicationPlans)
+      return jsonError(
+        context,
+        503,
+        "COMMUNICATION_UNAVAILABLE",
+        "The communication reader is not configured.",
+      );
+    try {
+      const parameters = new URL(context.req.url).searchParams;
+      const allowed = [
+        "response_id",
+        "response_revision",
+        "response_content_hash",
+        "response_record_hash",
+        "command_id",
+        "locale",
+        "expected_definition_hash",
+      ];
+      if (
+        [...parameters.keys()].some(
+          (key) =>
+            !allowed.includes(key) || parameters.getAll(key).length !== 1,
+        )
+      )
+        throw new CommunicationPlanError(
+          "Communication reads accept only exact registered controls.",
+        );
+      const request = {
+        ...Object.fromEntries(parameters),
+        response_revision: Number(parameters.get("response_revision")),
+        locale: parameters.get("locale") ?? "en",
+      } as CommunicationPlanRequest;
+      const projectId = context.req.param("projectId");
+      validateCommunicationRequest(projectId, request);
+      const plan = await options.communicationPlans.getCommunicationPlan(
+        projectId,
+        request,
+      );
+      if (!plan)
+        return jsonError(
+          context,
+          404,
+          "COMMUNICATION_NOT_FOUND",
+          "The exact response is unavailable in this Project.",
+        );
+      contracts.assertValid("communication-plan", "1.0.0", plan);
+      if (plan.project_id !== projectId)
+        throw new CommunicationPlanError(
+          "The communication reader crossed a Project boundary.",
+        );
+      context.header("Cache-Control", "no-store");
+      return context.json(plan);
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof CommunicationPlanError ? 422 : 503,
+        "COMMUNICATION_READ_FAILED",
+        error instanceof Error
+          ? error.message
+          : "Communication is unavailable.",
       );
     }
   });

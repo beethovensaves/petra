@@ -1,0 +1,428 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/communication-plan/1.0.0/schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content_hash",
+    "read_at",
+    "content"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.communication-plan",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "read_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "composition_definition",
+        "profile",
+        "source_response",
+        "current_response",
+        "context_packet",
+        "evidence_packet",
+        "model_call",
+        "artifact",
+        "actors",
+        "source_records",
+        "thread",
+        "project_turn_id",
+        "invocation",
+        "delivery",
+        "segments",
+        "validation",
+        "reference_labels",
+        "composition_binding",
+        "source_time_binding",
+        "authority",
+        "history_coverage",
+        "limitations",
+        "current_invocation_delivery"
+      ],
+      "properties": {
+        "composition_definition": {
+          "$ref": "../../project-definition/1.0.0/schema.json"
+        },
+        "profile": {
+          "$ref": "../../scientific-communication-payload/1.0.0/schema.json"
+        },
+        "source_response": {
+          "$ref": "../../grounded-response/1.0.0/schema.json"
+        },
+        "current_response": {
+          "$ref": "../../grounded-response/1.0.0/schema.json"
+        },
+        "context_packet": {
+          "$ref": "../../context-packet/1.0.0/schema.json"
+        },
+        "evidence_packet": {
+          "$ref": "../../evidence-packet/1.0.0/schema.json"
+        },
+        "model_call": {
+          "$ref": "../../model-call/1.1.0/schema.json"
+        },
+        "artifact": {
+          "$ref": "../../artifact/1.0.0/schema.json"
+        },
+        "actors": {
+          "type": "array",
+          "items": {
+            "$ref": "../../actor/1.0.0/schema.json"
+          },
+          "maxItems": 10000
+        },
+        "source_records": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "../../claim/1.0.0/schema.json"
+              },
+              {
+                "$ref": "../../assertion/1.0.0/schema.json"
+              },
+              {
+                "$ref": "../../source-span/1.0.0/schema.json"
+              },
+              {
+                "$ref": "../../work-version/1.0.0/schema.json"
+              }
+            ]
+          },
+          "maxItems": 10000
+        },
+        "thread": {
+          "anyOf": [
+            {
+              "$ref": "../../project-thread/1.0.0/schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "project_turn_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "invocation": {
+          "anyOf": [
+            {
+              "$ref": "../../suggested-action-invocation-view/1.0.0/schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "delivery": {
+          "$ref": "../../interaction-run/1.0.0/schema.json"
+        },
+        "segments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "segment_key",
+              "order",
+              "family",
+              "original_statement",
+              "preservation",
+              "findings",
+              "force",
+              "conditions",
+              "presentation_depth",
+              "language_validation"
+            ],
+            "properties": {
+              "segment_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "order": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "family": {
+                "type": "string",
+                "enum": [
+                  "attributed_report",
+                  "petra_assessment",
+                  "inference",
+                  "action_report"
+                ]
+              },
+              "original_statement": {
+                "anyOf": [
+                  {
+                    "$ref": "../../model-synthesist-output/1.0.0/schema.json#/properties/statements/items"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "preservation": {
+                "type": "string",
+                "enum": ["passed", "blocked"]
+              },
+              "findings": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 10000
+              },
+              "force": {
+                "const": "unavailable_as_structured_source_data",
+                "type": "string"
+              },
+              "conditions": {
+                "const": "unavailable_as_structured_source_data",
+                "type": "string"
+              },
+              "presentation_depth": {
+                "const": "material",
+                "type": "string"
+              },
+              "language_validation": {
+                "const": "not_performed",
+                "type": "string"
+              }
+            },
+            "title": "CommunicationSegment"
+          },
+          "maxItems": 10000
+        },
+        "validation": {
+          "$ref": "../../communication-validation-receipt/1.0.0/schema.json"
+        },
+        "reference_labels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "canonical_id",
+              "revision",
+              "content_hash",
+              "semantic_key",
+              "first_reference",
+              "later_reference",
+              "text_alternative",
+              "limitations",
+              "source_language"
+            ],
+            "properties": {
+              "canonical_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "content_hash": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "semantic_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "first_reference": {
+                "type": "string",
+                "minLength": 1
+              },
+              "later_reference": {
+                "type": "string",
+                "minLength": 1
+              },
+              "text_alternative": {
+                "type": "string",
+                "minLength": 1
+              },
+              "limitations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 10000
+              },
+              "source_language": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "composition_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "plan_contract_hash",
+            "validator_contract_hash",
+            "profile_contract_hash",
+            "locale",
+            "renderer"
+          ],
+          "properties": {
+            "plan_contract_hash": {
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "validator_contract_hash": {
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "profile_contract_hash": {
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            },
+            "locale": {
+              "const": "en",
+              "type": "string"
+            },
+            "renderer": {
+              "const": "not_implemented",
+              "type": "string"
+            }
+          }
+        },
+        "source_time_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "communication",
+            "renderer",
+            "terminology",
+            "definition",
+            "prompt",
+            "validators"
+          ],
+          "properties": {
+            "communication": {
+              "const": "not_recorded",
+              "type": "string"
+            },
+            "renderer": {
+              "const": "not_recorded",
+              "type": "string"
+            },
+            "terminology": {
+              "const": "not_recorded",
+              "type": "string"
+            },
+            "definition": {
+              "type": "string",
+              "enum": ["exact_thread_turn_binding", "unavailable"]
+            },
+            "prompt": {
+              "const": "exact_model_call_prompt_profile",
+              "type": "string"
+            },
+            "validators": {
+              "const": "exact_model_call_validation_records",
+              "type": "string"
+            }
+          }
+        },
+        "authority": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "isolation",
+            "event_position",
+            "stream_revision",
+            "effect",
+            "projection"
+          ],
+          "properties": {
+            "isolation": {
+              "const": "repeatable_read",
+              "type": "string"
+            },
+            "event_position": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "stream_revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "effect": {
+              "const": "none",
+              "type": "string"
+            },
+            "projection": {
+              "const": "not_observed",
+              "type": "string"
+            }
+          }
+        },
+        "history_coverage": {
+          "const": "invocation_work_revisions_first_100_when_linked",
+          "type": "string"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxItems": 10000
+        },
+        "current_invocation_delivery": {
+          "anyOf": [
+            {
+              "$ref": "../../interaction-run/1.0.0/schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "title": "PetraCommunicationPlan"
+}

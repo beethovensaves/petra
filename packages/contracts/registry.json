@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.85.0",
+  "registry_version": "1.86.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -1637,6 +1637,28 @@
       "canonical_sha256": "sha256:c32fbcc062c28b100babf7ca372a62d9eeb25fb7446f49b6491d8fab61d4882a",
       "generate_typescript": true,
       "typescript_path": "src/generated/scientific-communication-payload.ts"
+    },
+    {
+      "name": "communication-validation-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/communication-validation-receipt/1.0.0/schema.json",
+      "path": "schemas/communication-validation-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-scientific-communication",
+      "canonical_sha256": "sha256:93889738972355d70b7085472b0070a357e19bb459efc0bb6091e5d3d19ca066",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/communication-validation-receipt.ts"
+    },
+    {
+      "name": "communication-plan",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/communication-plan/1.0.0/schema.json",
+      "path": "schemas/communication-plan/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-scientific-communication",
+      "canonical_sha256": "sha256:19f7b88210d5fce73a584e1bfcdd59c4a23826126dbf9ae0c30eb07a3e3e9466",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/communication-plan.ts"
     }
   ]
 }

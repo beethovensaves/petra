@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.56.0",
+  "fixture_manifest_version": "1.57.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -595,6 +595,16 @@
     {
       "schema": "work-unit-cancellation",
       "path": "fixtures/accepted/work-unit-cancellation.json"
+    },
+    {
+      "schema": "communication-plan",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/communication-plan.json"
+    },
+    {
+      "schema": "communication-validation-receipt",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/communication-validation-receipt.json"
     }
   ],
   "rejected": [

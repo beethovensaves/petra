@@ -1263,3 +1263,12 @@ export type {
 import type { PetraProjectBriefView as BriefV10 } from "./generated/project-brief-view.js";
 import type { PetraProjectBriefView as BriefV11 } from "./generated/project-brief-view-v1-1.js";
 export type PetraProjectBriefReadView = BriefV10 | BriefV11;
+
+export type {
+  PetraCommunicationPlan,
+  CommunicationSegment,
+} from "./generated/communication-plan.js";
+export type {
+  PetraCommunicationValidationReceipt,
+  CommunicationCheck,
+} from "./generated/communication-validation-receipt.js";

@@ -7,7 +7,15 @@ from typing import Any, Literal
 
 import rfc8785
 from jsonschema import Draft202012Validator, FormatChecker
-from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    SerializerFunctionWrapHandler,
+    model_serializer,
+    model_validator,
+)
 from referencing import Registry, Resource
 
 PETRA_ROOT = Path(__file__).resolve().parents[3]
@@ -10912,7 +10920,128 @@ class PetraSuggestedActionInvocationView(PetraModel):
     read_at: str
 
 
+class CommunicationModel(PetraModel):
+    # Explicit unavailability remains required data under exclude_none reads.
+    @model_serializer(mode="wrap")
+    def preserve_required_nulls(
+        self, handler: SerializerFunctionWrapHandler
+    ) -> dict[str, Any]:
+        result: dict[str, Any] = handler(self)
+        for name, field in type(self).model_fields.items():
+            if field.is_required() and getattr(self, name) is None:
+                result[name] = None
+        return result
+
+
+class CommunicationCheck(PetraModel):
+    check: str
+    status: Literal["passed", "blocked", "not_performed"]
+    findings: list[str]
+
+
+class PetraCommunicationValidationReceipt(CommunicationModel):
+    schema_name: Literal["petra.communication-validation-receipt"]
+    schema_version: Literal["1.0.0"]
+    scope: Literal["structured_preservation_and_reference_fidelity"]
+    outcome: Literal["blocked"]
+    checks: list[CommunicationCheck]
+    language_validation: Literal["incomplete"]
+    repair_provenance: None
+    limitations: list[str]
+
+
+class CommunicationSegment(CommunicationModel):
+    segment_key: str
+    order: int
+    family: Literal[
+        "attributed_report", "petra_assessment", "inference", "action_report"
+    ]
+    original_statement: dict[str, Any] | None
+    preservation: Literal["passed", "blocked"]
+    findings: list[str]
+    force: Literal["unavailable_as_structured_source_data"]
+    conditions: Literal["unavailable_as_structured_source_data"]
+    presentation_depth: Literal["material"]
+    language_validation: Literal["not_performed"]
+
+
+class CommunicationReferenceLabel(CommunicationModel):
+    canonical_id: str
+    revision: int
+    content_hash: str
+    semantic_key: str
+    first_reference: str
+    later_reference: str
+    text_alternative: str
+    limitations: list[str]
+    source_language: str | None
+
+
+class CommunicationCompositionBinding(PetraModel):
+    plan_contract_hash: str
+    validator_contract_hash: str
+    profile_contract_hash: str
+    locale: Literal["en"]
+    renderer: Literal["not_implemented"]
+
+
+class CommunicationSourceTimeBinding(PetraModel):
+    communication: Literal["not_recorded"]
+    renderer: Literal["not_recorded"]
+    terminology: Literal["not_recorded"]
+    definition: Literal["exact_thread_turn_binding", "unavailable"]
+    prompt: Literal["exact_model_call_prompt_profile"]
+    validators: Literal["exact_model_call_validation_records"]
+
+
+class CommunicationAuthority(PetraModel):
+    isolation: Literal["repeatable_read"]
+    event_position: int
+    stream_revision: int
+    effect: Literal["none"]
+    projection: Literal["not_observed"]
+
+
+class CommunicationPlanContent(CommunicationModel):
+    composition_definition: PetraProjectDefinition
+    profile: dict[str, Any]
+    source_response: PetraGroundedResponse
+    current_response: PetraGroundedResponse
+    context_packet: PetraContextPacket
+    evidence_packet: PetraEvidencePacket
+    model_call: PetraSynthesistModelCall
+    artifact: PetraArtifact
+    actors: list[PetraActor]
+    source_records: list[
+        PetraClaim | PetraAssertion | PetraSourceSpan | PetraWorkVersion
+    ]
+    thread: PetraProjectThread | None
+    project_turn_id: str | None
+    invocation: PetraSuggestedActionInvocationView | None
+    delivery: PetraInteractionRun
+    current_invocation_delivery: PetraInteractionRun | None
+    segments: list[CommunicationSegment]
+    validation: PetraCommunicationValidationReceipt
+    reference_labels: list[CommunicationReferenceLabel]
+    composition_binding: CommunicationCompositionBinding
+    source_time_binding: CommunicationSourceTimeBinding
+    authority: CommunicationAuthority
+    history_coverage: Literal["invocation_work_revisions_first_100_when_linked"]
+    limitations: list[str]
+
+
+class PetraCommunicationPlan(PetraModel):
+    schema_name: Literal["petra.communication-plan"]
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    content_hash: str
+    read_at: str
+    content: CommunicationPlanContent
+
+
 PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
+    "communication-plan": PetraCommunicationPlan,
+    "communication-validation-receipt": PetraCommunicationValidationReceipt,
     "contract-smoke": ContractSmoke,
     "actor": PetraActor,
     "capability-grant": PetraCapabilityGrant,

@@ -274,180 +274,12 @@ export class PostgresSuggestedActionInvocationAuthorityRepository implements Sug
     const client = await this.#pool.connect();
     try {
       await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
-      const timestamp = await client.query<{ read_at: Date }>(
-        "SELECT transaction_timestamp() AS read_at",
-      );
-      const readAt = timestamp.rows[0]?.read_at.toISOString();
-      if (readAt === undefined) {
-        throw new Error("PostgreSQL did not provide a transaction timestamp.");
-      }
-      const receiptResult = await client.query<StoredRow>(
-        `SELECT payload, record_hash
-           FROM petra.suggested_action_invocations
-          WHERE project_id = $1 AND command_id = $2`,
-        [projectId, commandId],
-      );
-      const receiptRow = receiptResult.rows[0];
-      if (receiptRow === undefined) {
-        await client.query("COMMIT");
-        return undefined;
-      }
-      const invocation = this.#record<PetraSuggestedActionInvocation>(
-        "suggested-action-invocation",
-        receiptRow,
-      );
-      const workRows = await client.query<StoredRow>(
-        `SELECT revision.payload, revision.record_hash
-           FROM petra.work_units AS head
-           JOIN petra.work_unit_revisions AS revision
-             ON revision.work_unit_id = head.work_unit_id
-            AND revision.revision = head.current_revision
-          WHERE head.project_id = $1 AND head.work_unit_id = $2`,
-        [projectId, invocation.content.expected_work_unit_id],
-      );
-      const workRow = workRows.rows[0];
-      const work =
-        workRow === undefined
-          ? undefined
-          : this.#record<PetraWorkUnit>("work-unit", workRow);
-      const input =
-        work === undefined
-          ? undefined
-          : await this.#inputManifest(client, work);
-      const result = await this.#result(client, projectId, invocation, work);
-      const interaction = await this.#interaction(
+      const view = await this.readSuggestedActionInvocationView(
         client,
         projectId,
-        invocation,
+        commandId,
       );
-      const history = await this.#history(
-        client,
-        projectId,
-        invocation.content.expected_work_unit_id,
-      );
-      const invocationRef = {
-        suggested_action_invocation_id:
-          invocation.suggested_action_invocation_id,
-        revision: 1 as const,
-        content_hash: invocation.content_hash,
-        record_hash: receiptRow.record_hash,
-      };
-      const operationState: PetraSuggestedActionInvocationView["content"]["operation_state"] =
-        work === undefined
-          ? "accepted"
-          : work.status.state === "cancelled"
-            ? "cancelled"
-            : work.status.state !== "completed"
-              ? "running"
-              : work.status.terminal_outcome === "succeeded"
-                ? "completed"
-                : "failed";
-      const content: PetraSuggestedActionInvocationView["content"] = {
-        view_kind: "invocation",
-        invocation_ref: invocationRef,
-        invocation,
-        operation_state: operationState,
-        work:
-          work === undefined || input === undefined || workRow === undefined
-            ? {
-                state: "pending_registration",
-                expected_work_unit_id: invocation.content.expected_work_unit_id,
-              }
-            : {
-                state: "available",
-                work_unit_ref: {
-                  work_unit_id: work.work_unit_id,
-                  revision: work.revision,
-                  spec_hash: work.spec_hash,
-                  record_hash: workRow.record_hash,
-                },
-                input_manifest_ref: input.ref,
-                execution_state: work.status.state,
-                ...("terminal_outcome" in work.status
-                  ? { terminal_outcome: work.status.terminal_outcome }
-                  : {}),
-              },
-        result:
-          result === undefined
-            ? work !== undefined && terminal(work)
-              ? {
-                  state: "unavailable",
-                  reason:
-                    "The terminal Work did not produce a durable GroundedResponse.",
-                }
-              : {
-                  state: "pending",
-                  reason:
-                    "The exact Work has not yet produced a durable GroundedResponse.",
-                }
-            : {
-                state: "available",
-                result_ref: result.ref,
-                authority_effect: "none",
-              },
-        interaction:
-          interaction === undefined
-            ? {
-                ...clone(invocation.content.interaction),
-                durable_state: "pending_terminal",
-              }
-            : {
-                ...clone(invocation.content.interaction),
-                durable_state: "available",
-                interaction_run_ref: interaction.ref,
-              },
-        interrupt: {
-          state: "none_expected",
-          delivery_abort_cancels_work: false,
-          reconnect: "exact_interaction_replay",
-        },
-        history: {
-          source: "canonical_command_receipt_and_work_unit_revisions",
-          command_receipt_ref: clone(invocationRef),
-          work_revisions: history,
-          destinations: [
-            {
-              place_role: "work",
-              task_intent: "continue_work",
-              object_ref: {
-                semantic_key: "petra.work-unit",
-                object_id: invocation.content.expected_work_unit_id,
-              },
-            },
-            {
-              place_role: "history",
-              task_intent: "view_history",
-              object_ref: {
-                semantic_key: "petra.work-unit",
-                object_id: invocation.content.expected_work_unit_id,
-              },
-            },
-          ],
-        },
-        recovery: {
-          assessment: "current_server_owned",
-          actions: this.#recovery(work, result !== undefined),
-        },
-        authority: await this.#authority(client, projectId),
-        limitations: [
-          "SuggestedAction invocation has no scientific or inquiry-resolution authority effect.",
-          "Work activity is recorded in canonical WorkUnit revisions rather than duplicated in the Project domain-event stream.",
-          "Generic resume is unavailable; recovery exposes only exact retry, replay, cancellation, and inspection operations that are currently eligible.",
-        ],
-      };
-      const view: PetraSuggestedActionInvocationView = {
-        schema_name: "petra.suggested-action-invocation-view",
-        schema_version: "1.0.0",
-        project_id: projectId,
-        content,
-        content_hash: canonicalHash(content),
-        read_at: readAt,
-      };
-      this.#contracts.assertValid(
-        "suggested-action-invocation-view",
-        "1.0.0",
-        view,
-      );
+
       await client.query("COMMIT");
       return view;
     } catch (error) {
@@ -456,6 +288,181 @@ export class PostgresSuggestedActionInvocationAuthorityRepository implements Sug
     } finally {
       client.release();
     }
+  }
+
+  /** Compose in an existing repeatable-read, read-only transaction. Caller owns its lifecycle. */
+  async readSuggestedActionInvocationView(
+    client: PoolClient,
+    projectId: string,
+    commandId: string,
+  ): Promise<PetraSuggestedActionInvocationView | undefined> {
+    const timestamp = await client.query<{ read_at: Date }>(
+      "SELECT transaction_timestamp() AS read_at",
+    );
+    const readAt = timestamp.rows[0]?.read_at.toISOString();
+    if (readAt === undefined) {
+      throw new Error("PostgreSQL did not provide a transaction timestamp.");
+    }
+    const receiptResult = await client.query<StoredRow>(
+      `SELECT payload, record_hash
+       FROM petra.suggested_action_invocations
+      WHERE project_id = $1 AND command_id = $2`,
+      [projectId, commandId],
+    );
+    const receiptRow = receiptResult.rows[0];
+    if (receiptRow === undefined) {
+      return undefined;
+    }
+    const invocation = this.#record<PetraSuggestedActionInvocation>(
+      "suggested-action-invocation",
+      receiptRow,
+    );
+    const workRows = await client.query<StoredRow>(
+      `SELECT revision.payload, revision.record_hash
+       FROM petra.work_units AS head
+       JOIN petra.work_unit_revisions AS revision
+         ON revision.work_unit_id = head.work_unit_id
+        AND revision.revision = head.current_revision
+      WHERE head.project_id = $1 AND head.work_unit_id = $2`,
+      [projectId, invocation.content.expected_work_unit_id],
+    );
+    const workRow = workRows.rows[0];
+    const work =
+      workRow === undefined
+        ? undefined
+        : this.#record<PetraWorkUnit>("work-unit", workRow);
+    const input =
+      work === undefined ? undefined : await this.#inputManifest(client, work);
+    const result = await this.#result(client, projectId, invocation, work);
+    const interaction = await this.#interaction(client, projectId, invocation);
+    const history = await this.#history(
+      client,
+      projectId,
+      invocation.content.expected_work_unit_id,
+    );
+    const invocationRef = {
+      suggested_action_invocation_id: invocation.suggested_action_invocation_id,
+      revision: 1 as const,
+      content_hash: invocation.content_hash,
+      record_hash: receiptRow.record_hash,
+    };
+    const operationState: PetraSuggestedActionInvocationView["content"]["operation_state"] =
+      work === undefined
+        ? "accepted"
+        : work.status.state === "cancelled"
+          ? "cancelled"
+          : work.status.state !== "completed"
+            ? "running"
+            : work.status.terminal_outcome === "succeeded"
+              ? "completed"
+              : "failed";
+    const content: PetraSuggestedActionInvocationView["content"] = {
+      view_kind: "invocation",
+      invocation_ref: invocationRef,
+      invocation,
+      operation_state: operationState,
+      work:
+        work === undefined || input === undefined || workRow === undefined
+          ? {
+              state: "pending_registration",
+              expected_work_unit_id: invocation.content.expected_work_unit_id,
+            }
+          : {
+              state: "available",
+              work_unit_ref: {
+                work_unit_id: work.work_unit_id,
+                revision: work.revision,
+                spec_hash: work.spec_hash,
+                record_hash: workRow.record_hash,
+              },
+              input_manifest_ref: input.ref,
+              execution_state: work.status.state,
+              ...("terminal_outcome" in work.status
+                ? { terminal_outcome: work.status.terminal_outcome }
+                : {}),
+            },
+      result:
+        result === undefined
+          ? work !== undefined && terminal(work)
+            ? {
+                state: "unavailable",
+                reason:
+                  "The terminal Work did not produce a durable GroundedResponse.",
+              }
+            : {
+                state: "pending",
+                reason:
+                  "The exact Work has not yet produced a durable GroundedResponse.",
+              }
+          : {
+              state: "available",
+              result_ref: result.ref,
+              authority_effect: "none",
+            },
+      interaction:
+        interaction === undefined
+          ? {
+              ...clone(invocation.content.interaction),
+              durable_state: "pending_terminal",
+            }
+          : {
+              ...clone(invocation.content.interaction),
+              durable_state: "available",
+              interaction_run_ref: interaction.ref,
+            },
+      interrupt: {
+        state: "none_expected",
+        delivery_abort_cancels_work: false,
+        reconnect: "exact_interaction_replay",
+      },
+      history: {
+        source: "canonical_command_receipt_and_work_unit_revisions",
+        command_receipt_ref: clone(invocationRef),
+        work_revisions: history,
+        destinations: [
+          {
+            place_role: "work",
+            task_intent: "continue_work",
+            object_ref: {
+              semantic_key: "petra.work-unit",
+              object_id: invocation.content.expected_work_unit_id,
+            },
+          },
+          {
+            place_role: "history",
+            task_intent: "view_history",
+            object_ref: {
+              semantic_key: "petra.work-unit",
+              object_id: invocation.content.expected_work_unit_id,
+            },
+          },
+        ],
+      },
+      recovery: {
+        assessment: "current_server_owned",
+        actions: this.#recovery(work, result !== undefined),
+      },
+      authority: await this.#authority(client, projectId),
+      limitations: [
+        "SuggestedAction invocation has no scientific or inquiry-resolution authority effect.",
+        "Work activity is recorded in canonical WorkUnit revisions rather than duplicated in the Project domain-event stream.",
+        "Generic resume is unavailable; recovery exposes only exact retry, replay, cancellation, and inspection operations that are currently eligible.",
+      ],
+    };
+    const view: PetraSuggestedActionInvocationView = {
+      schema_name: "petra.suggested-action-invocation-view",
+      schema_version: "1.0.0",
+      project_id: projectId,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: readAt,
+    };
+    this.#contracts.assertValid(
+      "suggested-action-invocation-view",
+      "1.0.0",
+      view,
+    );
+    return view;
   }
 
   #validateEnvelope(envelope: SuggestedActionInvocationEnvelope): void {

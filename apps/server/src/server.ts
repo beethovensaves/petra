@@ -204,6 +204,13 @@ export const startPetraServer = async (
       ...(runtime === undefined ? {} : { runtime }),
       ...(codexProvider === undefined ? {} : { codexProvider }),
       ...(codexWorkspaceRoot === undefined ? {} : { codexWorkspaceRoot }),
+      ...((options.communicationPlans ??
+        options.projectShellPersistence?.communicationPlans) === undefined
+        ? {}
+        : {
+            communicationPlans: (options.communicationPlans ??
+              options.projectShellPersistence?.communicationPlans)!,
+          }),
       ...(options.projectBriefViews !== undefined
         ? { projectBriefViews: options.projectBriefViews }
         : options.projectShellPersistence === undefined
