@@ -1972,6 +1972,14 @@ rewriting, and origin classification remain excluded.
   identified before submission; runtime results retain every applied,
   rejected, failed, and unapplied member. No aggregate status may convert a
   partly completed session into whole success.
+- **Accepted member-recovery boundary:** D020 defines a Review member as one
+  proposed change with a stable identity and exact candidate revision, origin,
+  basis, provenance, validation, difference, consequences, outcome, and
+  associated ChangeSet. The member is the inspection unit; the ChangeSet is
+  the atomic execution unit. Recovery begins with a read-only canonical
+  assessment and exact member/ChangeSet manifest. Any later operation comes
+  from an existing typed owner, which rechecks current authority and state.
+  Members sharing one ChangeSet cannot recover individually.
 - **AG-UI boundary:** do not add actor, capability, Approval, command, graph
   operation, or authority fields to the accepted review-interrupt response.
   Its existing exact accept/reject path remains valid. Other Review operations
@@ -1988,13 +1996,16 @@ rewriting, and origin classification remain excluded.
   view and command path into the shared session roles without weakening its
   exact source semantics. Add a versioned Review-session query and only the
   missing commands needed for defer, refresh, correction/basis revision,
-  separation, and member recovery. Profile expansion follows `UX-REQ-004`
-  rather than adding a generic client-defined object payload.
+  and separation. Add D020's read-only member recovery assessment and atomic
+  manifest before any separately accepted execution behavior. Profile
+  expansion follows `UX-REQ-004` rather than adding a generic client-defined
+  object payload.
 - **Decision dependencies:** candidate/profile meaning depends on
   `UX-REQ-004` and `UX-REQ-011`; thread linkage on `UX-REQ-006`; reversal on
   `UX-REQ-007`; origin and return resolution on `UX-REQ-008`.
 - **Owner and status:** product architecture and implementation track; UX
-  requirement accepted, runtime read and missing-command shape `proposed`.
+  requirement accepted, with the Review-member assessment and atomicity
+  boundary accepted in D020. Broader runtime composition remains `proposed`.
 
 ### `UX-REQ-013` — bounded, profile-resolved relationship-view query
 
@@ -3025,6 +3036,12 @@ rewriting, and origin classification remain excluded.
   required input/authorization/confirmation, and success/failure destination.
   The assessment cannot execute the action, synthesize a generic command, or
   treat a model recommendation as eligibility.
+- **Accepted first application:** D020 applies this contract to the current
+  scientific Review profile. Wave 4 may add only the read-only canonical
+  assessment, preservation inventory, per-member outcomes, and exact
+  ChangeSet-grouped manifest. It executes nothing and may return no action when
+  an existing typed owner cannot prove eligibility. General cross-module
+  RecoveryAssessment composition remains later work.
 - **Ordering and primary-action behavior:** select a suggested primary action
   only from current eligible descriptors using a versioned product rule and
   explain why it is safest for the author's task. Reading/checking status precedes
@@ -3082,21 +3099,23 @@ rewriting, and origin classification remain excluded.
   eligible existing actions, and exact return without adding a universal mutation
   endpoint. Expand subject families only as their owning reads and commands can
   supply truthful state.
-- **Provisional post-freeze boundary:** a synthetic application provider may
-  produce versioned recovery assessments and registered action descriptors for
-  `UX-FX41`–`43`. It must label unavailable runtime fields and delegate every
-  action to a named synthetic owning adapter. Feature components and models
-  cannot calculate authority or fabricate receipts. This request creates no
-  schema, command, fixture, backend implementation, or product surface.
+- **Provisional post-freeze boundary:** outside D020's accepted scientific
+  Review-member slice, a synthetic application provider may produce versioned
+  recovery assessments and registered action descriptors for `UX-FX41`–`43`.
+  It must label unavailable runtime fields and delegate every action to a named
+  synthetic owning adapter. Feature components and models cannot calculate
+  authority or fabricate receipts. This request creates no broader schema,
+  command, fixture, backend implementation, or product surface.
 - **Dependencies:** `UX-REQ-004` profile semantics, `UX-REQ-006` interaction
   context, `UX-REQ-007` History/reversal, `UX-REQ-008` destinations,
   `UX-REQ-009`/`010` source state, `UX-REQ-012` Review, `UX-REQ-014`/`015` Work,
   `UX-REQ-017`–`019` Composition/edit/export, `UX-REQ-020` Project controls,
   `UX-REQ-021` language/validation, existing command/event/capability/artifact/
   projection/replay/cancellation contracts, and operational restore evidence.
-- **Owner and status:** product architecture and implementation track; DB17
-  reconciliation/preservation/return direction accepted, recovery-assessment
-  and action-composition shape `proposed`.
+- **Owner and status:** product architecture and implementation track; D020's
+  scientific Review-member assessment and atomic manifest accepted for Wave 4.
+  Broader DB17 recovery-assessment and action-composition shape remains
+  `proposed` for Wave 6.
 
 ## DB18 request-ledger closure
 
@@ -3136,7 +3155,7 @@ They are the shared authorial mechanics, regardless of Project profile:
 | Immutable source and exact revision identity | Artifact, ArtifactManifest, source hashes, and additive revision records from `M1.1`/`M1.2` |
 | Proposal, correction, exact preview, Apply, conflict, and Revert | ChangeSet, Approval, ReviewBatch, and additive event path in `M1.5` |
 | Durable conversation-derived working candidates and relationships | Proposed `UX-REQ-011`; existing bounded model records and evidence candidates remain inputs, not a generic working graph contract |
-| Profile-neutral Review session, comparison, deferment, separation, and member recovery | Proposed `UX-REQ-012`; current M1.5 evidence review remains the scientific contract foundation |
+| Profile-neutral Review session, comparison, deferment, separation, and member recovery | `UX-REQ-012` Review composition, lifecycle, correction, basis revision, and separation are implemented for the scientific profile; D020 accepts the first read-only member-recovery assessment while broader profile conformance remains open |
 | Presentation history and authorized Project History | Implemented bounded Recent changes, exact event-selected causal episodes, signed snapshot-stable filtered retained traversal with complete query binding, same-snapshot authorized Actor/target option catalogues, and stable non-disclosing continuation failures, four-group direct dependency impact, nine registered exact semantic-target adapters through ProjectSource/replacement authority, three separately bounded exact Work/input, output-manifest, and interaction-replay groups with a same-snapshot exact current-Work destination and explicit output/replay non-destinations, read-only exact ChangeSet recovery assessment, five-minute revision-bound compensation preview, confirmed non-persisted command-plan composition, and separately authorized exact execution with retained-prefix recovery under `UX-REQ-007`; the frozen History integration mapping is accepted, graph exploration and exact History return context remain client-local, and an exact retained ProjectDefinition authority reference is the next backend prerequisite for historical interpretation |
 | Semantic object location, replacement, and safe fallback | Proposed `UX-REQ-008`; the client retains route and layout ownership |
 | Project source collection and exact-inspection read composition | Proposed `UX-REQ-009`; existing Artifact, rights, parse, and selector records retain authority |
