@@ -1986,6 +1986,13 @@ rewriting, and origin classification remain excluded.
   use their canonical typed command adapters unless a separately reviewed
   protocol version is later required; conversational text alone never
   authorizes them.
+- **Accepted manual Apply boundary:** D021 applies D005's human-decision path to
+  the first ReviewSession checkpoint. The authenticated human's exact Apply
+  action authorizes only the displayed commitment and composes the existing
+  ChangeSet, Approval, and command owners. ReviewPolicy is not applicable to
+  this manual path. Delegated Apply remains unavailable until a versioned
+  policy owner exists; the server cannot invent one or ask for duplicate human
+  approval of the same commitment.
 - **Authority and persistence:** Review composition is a read and orchestration
   boundary over canonical candidates, validation, ChangeSets, Approvals,
   commands, events, and projections. The browser cannot infer eligibility,

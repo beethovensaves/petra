@@ -63,20 +63,24 @@ components, routes, CSS, or presentation fixtures in that backend slice.
    context. Preserve applicable Work, run, producer, Actor, snapshot, basis,
    provenance, and lineage references from canonical records.
 2. Bind exact member, WorkingCandidate, WorkingRelationship, target, basis,
-   validation, rule, policy, and dependency revisions. Recheck current state and
-   commitment readiness at execution. Stale, conflicted, unvalidated, unsupported,
-   or mismatched inputs fail closed; client selection or a passed validation
-   label cannot establish eligibility.
+   validation, applicable rule, and dependency revisions. Under D021's first
+   manual path, bind the authorization basis to the exact human checkpoint and
+   report ReviewPolicy as not applicable. Recheck current state and commitment
+   readiness at execution. Stale, conflicted, unvalidated, unsupported, or
+   mismatched inputs fail closed; client selection or a passed validation label
+   cannot establish eligibility.
 3. Bind each exact ChangeSet revision/hash and its complete member/operation
    manifest to the displayed preview. One ChangeSet executes atomically. A
    bounded first path may apply one complete eligible ChangeSet while retaining
    all other session members and outcomes; it must disclose that scope and
    cannot split a shared ChangeSet or silently claim the whole Review completed.
-4. Resolve the authenticated Actor, capabilities, policy, Approval, and command
+4. Resolve the authenticated Actor, capabilities, Approval, and command
    envelopes on the server using existing owners. Treat the checkpoint as exact
-   human command input. Conversation, model output, Work completion, and client
-   state confer no authority; direct and model-mediated presentation must bind
-   the same checkpoint identities.
+   human command input. Do not fabricate a policy identity or version. Delegated
+   Apply remains unavailable until a versioned ReviewPolicy owner exists.
+   Conversation, model output, Work completion, and client state confer no
+   authority; direct and model-mediated presentation must bind the same
+   checkpoint identities.
 5. Return a validated result bound to the exact request and resulting canonical
    identities. Retain submit, Approval, Apply, event, and member outcomes through
    existing records, including a retained prefix when later execution fails.

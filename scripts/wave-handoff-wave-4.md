@@ -69,7 +69,10 @@ The authoritative exit gate is:
    Approval, command, event, and projection path. One ChangeSet remains atomic;
    a ReviewSession may contain independently atomic ChangeSets and must retain
    every applied, rejected, failed, and unapplied member without reporting
-   partial completion as whole success.
+   partial completion as whole success. D021's first ReviewSession checkpoint
+   is manual: the authenticated human's exact Apply action supplies the decision,
+   and ReviewPolicy is explicitly not applicable. Delegated or automatic Apply
+   remains unavailable until a versioned policy owner exists.
 7. Add a read-only, snapshot-bound ProjectBriefView with one registered profile
    payload. It must compose exact current Objective, orientation and basis,
    attention, relevant Work, comparison, recent decision, and SuggestedAction
@@ -129,6 +132,10 @@ report authority.
   applicable; do not duplicate its rules, grant checks, or History facts.
 - A structured human checkpoint authorizes an exact commitment. Ordinary assent
   in conversation never substitutes for that checkpoint.
+- The manual checkpoint reuses existing ChangeSet, Approval, and command owners
+  and current capability grants. It must not invent a ReviewPolicy identity,
+  infer policy eligibility, or ask the author to approve the same exact
+  commitment twice.
 - Preserve exact Project, Actor, definition, thread, task, run, Work, snapshot,
   candidate, relationship, basis, validation, Review, ChangeSet, Approval,
   command, event, projection, Brief, communication, result, and History

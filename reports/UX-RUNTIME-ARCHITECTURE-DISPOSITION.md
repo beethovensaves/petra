@@ -985,6 +985,13 @@ It executes nothing, creates no recovery command or ledger, and returns action
 descriptors only when an existing typed owner proves current eligibility.
 Broader cross-module recovery remains in Wave 6.
 
+D021 resolves the following Apply checkpoint boundary through D005's existing
+human-decision authority. The first ReviewSession Apply path binds an exact
+authenticated human checkpoint and reports ReviewPolicy as not applicable. It
+reuses the current ChangeSet, Approval, command, event, projection, History,
+capability, and recovery owners. Delegated or automatic Apply remains
+unavailable until a versioned ReviewPolicy owner exists.
+
 Similarity-based batch suggestions remain advisory. Material application uses
 the existing ChangeSet/approval path, with dependency-coupled atomicity and
 independent member receipts.

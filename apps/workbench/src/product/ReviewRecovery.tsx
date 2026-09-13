@@ -1,4 +1,3 @@
-import { ReviewRecoveryAssessmentClientError } from "@petra/adapters";
 import type { PetraReviewRecoveryAssessment } from "@petra/contracts";
 import { useEffect, useRef, useState } from "react";
 
@@ -7,10 +6,17 @@ import type { ReviewSession } from "./model.js";
 import { getReviewRecoveryAssessment } from "./project-data.js";
 
 export const reviewRecoveryFailure = (error: unknown): string => {
-  if (error instanceof ReviewRecoveryAssessmentClientError) {
-    if (error.status === 409)
+  const status =
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    typeof error.status === "number"
+      ? error.status
+      : undefined;
+  if (status !== undefined) {
+    if (status === 409)
       return "Recovery assessment needs refresh. Reload this Review before checking again.";
-    if (error.status === 401 || error.status === 403)
+    if (status === 401 || status === 403)
       return "Recovery assessment was not authorized. No assessment is shown.";
   }
   return "Recovery assessment is unavailable or inconsistent. No effect or recovery permission can be established from this read.";
