@@ -22,6 +22,7 @@ import type {
   PetraProjectRelationshipView,
   PetraProjectSource,
   PetraRightsDecision,
+  PetraReviewSessionV110,
   PetraSourceSpan,
   PetraStructuralBlock,
   PetraWorkerInputManifest,
@@ -49,6 +50,8 @@ import { PostgresProjectRelationshipOverlayViewReader } from "../src/project-rel
 import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
 import { PostgresProjectWorkingStateSnapshotReader } from "../src/project-working-state-snapshot-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
+import { PostgresReviewSessionAuthorityRepository } from "../src/review-session-authority-repository.js";
+import { PostgresProjectReviewViewReader } from "../src/project-review-view-reader.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
 import type {
@@ -185,6 +188,8 @@ describePostgres("PostgreSQL working-state authority", () => {
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
   const working = new PostgresWorkingStateAuthorityRepository(pool);
   const snapshots = new PostgresProjectWorkingStateSnapshotReader(pool);
+  const reviewSessions = new PostgresReviewSessionAuthorityRepository(pool);
+  const reviewViews = new PostgresProjectReviewViewReader(pool);
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -1183,6 +1188,230 @@ describePostgres("PostgreSQL working-state authority", () => {
         profileRecord: governing,
       }),
     ).toEqual(relationshipRecord);
+
+    const authoritySnapshot = async (projectId: string) => {
+      const result = await pool.query<{
+        event_position: string;
+        stream_revision: string;
+      }>(
+        `SELECT authority.event_position::text,
+                COALESCE(stream.current_stream_revision, 0)::text AS stream_revision
+           FROM petra.authority_positions AS authority
+           LEFT JOIN petra.project_event_stream_heads AS stream
+             ON stream.project_id = $1
+          WHERE authority.singleton`,
+        [projectId],
+      );
+      const row = result.rows[0];
+      if (row === undefined) throw new Error("Expected authority position.");
+      return {
+        event_position: Number(row.event_position),
+        stream_revision: Number(row.stream_revision),
+        captured_at: "2026-09-13T14:04:00.000Z",
+      };
+    };
+    const controlledSession = readFixture<PetraReviewSessionV110>(
+      "review-session-working-candidate",
+    );
+    controlledSession.review_session_id =
+      "review_session_01K4E000000000000000000023";
+    controlledSession.project_id = project.project_id;
+    controlledSession.project_definition_ref = {
+      project_definition_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+    };
+    controlledSession.content.title =
+      "Review the controlled-writing Requirement";
+    controlledSession.content.objective_summary =
+      "Inspect the exact Requirement and governing relationship without implying a writing Apply path.";
+    controlledSession.content.objective_ref = {
+      objective_id: objective.objective_id,
+      revision: objective.revision,
+      content_hash: objective.content_hash,
+    };
+    controlledSession.content.snapshot = await authoritySnapshot(
+      project.project_id,
+    );
+    controlledSession.content.origin = {
+      origin_kind: "direct_edit",
+      record_refs: [registeredWorkUnit.work_unit_id],
+      summary:
+        "Opened from the exact human-authored controlled-writing working records.",
+    };
+    controlledSession.content.return_context = {
+      place: "work",
+      object_ref: registeredWorkUnit.work_unit_id,
+      label: "Requirement proposal work",
+    };
+    controlledSession.content.members = [
+      {
+        review_member_id: "review_member_01K4E000000000000000000024",
+        member_role: "ordinary",
+        working_state: {
+          candidate_ref: {
+            working_candidate_id: candidateRecord.working_candidate_id,
+            revision: candidateRecord.revision,
+            content_hash: candidateRecord.content_hash,
+          },
+          relationship_refs: [
+            {
+              working_relationship_id:
+                relationshipRecord.working_relationship_id,
+              revision: relationshipRecord.revision,
+              content_hash: relationshipRecord.content_hash,
+            },
+          ],
+        },
+        candidate_bindings: [
+          {
+            semantic_key:
+              candidateRecord.profile_object.registration.semantic_key,
+            binding_role: "candidate",
+            record_ref: {
+              record_id: requirement.requirement_id,
+              revision: requirement.revision,
+              record_hash: canonicalHash(requirement),
+            },
+          },
+          {
+            semantic_key:
+              relationshipRecord.profile_relationship.registration.semantic_key,
+            binding_role: "relationship",
+            record_ref: {
+              record_id: governing.governing_relationship_id,
+              revision: governing.revision,
+              record_hash: canonicalHash(governing),
+            },
+          },
+        ],
+      },
+    ];
+    controlledSession.content_hash = canonicalHash(controlledSession.content);
+    controlledSession.created_at = "2026-09-13T14:05:00.000Z";
+    controlledSession.updated_at = controlledSession.created_at;
+
+    await reviewSessions.registerReviewSessionRevision(controlledSession);
+    await reviewSessions.registerReviewSessionRevision(
+      structuredClone(controlledSession),
+    );
+    const controlledDirectReview = await reviewViews.getProjectReviewView(
+      project.project_id,
+      controlledSession.review_session_id,
+    );
+    const controlledModelMediatedReview =
+      await new PostgresProjectReviewViewReader(pool).getProjectReviewView(
+        project.project_id,
+        controlledSession.review_session_id,
+      );
+    expect(controlledDirectReview?.schema_version).toBe("1.3.0");
+    if (controlledDirectReview?.schema_version !== "1.3.0") {
+      throw new Error("Expected the controlled-writing Review view contract.");
+    }
+    expect(controlledDirectReview.content.members[0]).toMatchObject({
+      outcome: "awaiting_decision",
+      candidate: {
+        kind_label: "Requirement and governing link",
+        current:
+          "No authoritative controlled-writing representation is installed",
+        proposed: requirement.content.statement,
+        profile_payload: {
+          payload_kind: "controlled_writing_requirement",
+          requirement_ref: requirementRef,
+          governing_relationship_ref: governingRef,
+          authority_source_ref: sourceRef,
+          requirement_kind: "constraint",
+          relationship_predicate: "GOVERNS",
+          apply_available: false,
+        },
+      },
+      validation: { state: "needs_judgment" },
+      working_state: {
+        candidate: candidateRecord,
+        relationships: [relationshipRecord],
+        selection_basis: "exact_review_session_working_bindings",
+        authority_effect: "none",
+      },
+      change_sets: [],
+    });
+    expect(controlledDirectReview.content.members[0]?.consequences).toContain(
+      "No controlled-writing ChangeSet operation, Approval, or Apply path is installed.",
+    );
+    expect(controlledDirectReview.content).toEqual(
+      controlledModelMediatedReview?.content,
+    );
+    expect(controlledDirectReview.content_hash).toBe(
+      controlledModelMediatedReview?.content_hash,
+    );
+    expect(
+      controlledDirectReview.content.members[0]?.candidate.profile_payload
+        .payload_kind,
+    ).not.toBe("scientific_evidence_pair");
+
+    const mismatchedRecord = structuredClone(controlledSession);
+    mismatchedRecord.review_session_id =
+      "review_session_01K4E000000000000000000025";
+    mismatchedRecord.content.members[0].review_member_id =
+      "review_member_01K4E000000000000000000026";
+    const mismatchedGoverningBinding =
+      mismatchedRecord.content.members[0].candidate_bindings[1];
+    if (mismatchedGoverningBinding === undefined) {
+      throw new Error("Expected the controlled-writing relationship binding.");
+    }
+    mismatchedGoverningBinding.record_ref.record_hash = `sha256:${"f".repeat(64)}`;
+    mismatchedRecord.content_hash = canonicalHash(mismatchedRecord.content);
+    await expect(
+      reviewSessions.registerReviewSessionRevision(mismatchedRecord),
+    ).rejects.toMatchObject({ code: "REVIEW_SESSION_RELATION_INVALID" });
+    expect(
+      await reviewSessions.getReviewSession(
+        project.project_id,
+        mismatchedRecord.review_session_id,
+      ),
+    ).toBeUndefined();
+
+    const crossProfile = structuredClone(controlledSession);
+    crossProfile.review_session_id =
+      "review_session_01K4E000000000000000000027";
+    crossProfile.content.members[0].review_member_id =
+      "review_member_01K4E000000000000000000028";
+    crossProfile.content.members[0].candidate_bindings[0] = {
+      semantic_key: "scientific.claim",
+      binding_role: "candidate",
+      record_ref: {
+        record_id: modelClaim.claim_id,
+        revision: modelClaim.revision,
+        record_hash: canonicalHash(modelClaim),
+      },
+    };
+    crossProfile.content_hash = canonicalHash(crossProfile.content);
+    await expect(
+      reviewSessions.registerReviewSessionRevision(crossProfile),
+    ).rejects.toMatchObject({ code: "REVIEW_SESSION_RELATION_INVALID" });
+    expect(
+      await reviewSessions.getReviewSession(
+        project.project_id,
+        crossProfile.review_session_id,
+      ),
+    ).toBeUndefined();
+
+    const unsupportedProfile = structuredClone(controlledSession);
+    unsupportedProfile.review_session_id =
+      "review_session_01K4E000000000000000000029";
+    unsupportedProfile.content.members[0].review_member_id =
+      "review_member_01K4E000000000000000000030";
+    unsupportedProfile.content.members[0].candidate_bindings[0].record_ref.record_id =
+      "draft_01K4E000000000000000000031";
+    unsupportedProfile.content_hash = canonicalHash(unsupportedProfile.content);
+    await expect(
+      reviewSessions.registerReviewSessionRevision(unsupportedProfile),
+    ).rejects.toMatchObject({ code: "REVIEW_SESSION_BINDING_UNSUPPORTED" });
+    expect(
+      await reviewSessions.getReviewSession(
+        project.project_id,
+        unsupportedProfile.review_session_id,
+      ),
+    ).toBeUndefined();
     expect(
       await working.getWorkingCandidate(
         project.project_id,
@@ -1374,6 +1603,9 @@ describePostgres("PostgreSQL working-state authority", () => {
       working_relationships: string;
       evidence_rows: string;
       reviews: string;
+      change_sets: string;
+      approvals: string;
+      commands: string;
       domain_events: string;
     }>(
       `SELECT
@@ -1387,6 +1619,14 @@ describePostgres("PostgreSQL working-state authority", () => {
            WHERE evidence_id IN ($1, $2))::text AS evidence_rows,
          (SELECT count(*) FROM petra.review_sessions
            WHERE project_id = $3)::text AS reviews,
+         (SELECT count(*) FROM petra.change_sets
+           WHERE project_id = $3)::text AS change_sets,
+         (SELECT count(*) FROM petra.approvals
+           WHERE change_set_id IN (
+             SELECT change_set_id FROM petra.change_sets WHERE project_id = $3
+           ))::text AS approvals,
+         (SELECT count(*) FROM petra.command_executions
+           WHERE project_id = $3)::text AS commands,
          (SELECT count(*) FROM petra.domain_events
            WHERE project_id = $3)::text AS domain_events`,
       [
@@ -1401,7 +1641,10 @@ describePostgres("PostgreSQL working-state authority", () => {
       working_candidates: "1",
       working_relationships: "1",
       evidence_rows: "0",
-      reviews: "0",
+      reviews: "1",
+      change_sets: "0",
+      approvals: "0",
+      commands: "0",
       domain_events: "0",
     });
   });

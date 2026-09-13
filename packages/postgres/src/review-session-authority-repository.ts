@@ -180,12 +180,42 @@ const openSessionRef = (
   };
 };
 
-const evidenceKind = (recordId: string): "claim" | "assertion" => {
-  if (recordId.startsWith("claim_")) return "claim";
-  if (recordId.startsWith("assertion_")) return "assertion";
+type ReviewProfileRecordDescriptor =
+  | { schemaName: "petra.claim"; evidenceKind: "claim" }
+  | { schemaName: "petra.assertion"; evidenceKind: "assertion" }
+  | {
+      schemaName: "petra.controlled-writing-requirement";
+      evidenceKind: undefined;
+    }
+  | {
+      schemaName: "petra.controlled-writing-governing-relationship";
+      evidenceKind: undefined;
+    };
+
+const reviewProfileRecord = (
+  recordId: string,
+): ReviewProfileRecordDescriptor => {
+  if (recordId.startsWith("claim_")) {
+    return { schemaName: "petra.claim", evidenceKind: "claim" };
+  }
+  if (recordId.startsWith("assertion_")) {
+    return { schemaName: "petra.assertion", evidenceKind: "assertion" };
+  }
+  if (recordId.startsWith("requirement_")) {
+    return {
+      schemaName: "petra.controlled-writing-requirement",
+      evidenceKind: undefined,
+    };
+  }
+  if (recordId.startsWith("governing_relationship_")) {
+    return {
+      schemaName: "petra.controlled-writing-governing-relationship",
+      evidenceKind: undefined,
+    };
+  }
   throw new PostgresReviewSessionError(
     "REVIEW_SESSION_BINDING_UNSUPPORTED",
-    "V021 Review persistence supports exact Claim and Assertion bindings only; another profile record needs an additive authority resolver.",
+    "Review persistence has no installed profile-record resolver for this candidate binding.",
   );
 };
 
@@ -5502,7 +5532,7 @@ export class PostgresReviewSessionAuthorityRepository
         );
       }
       for (const binding of member.candidate_bindings) {
-        evidenceKind(binding.record_ref.record_id);
+        reviewProfileRecord(binding.record_ref.record_id);
       }
     }
     if (session.schema_version === "1.1.0") {
@@ -5578,14 +5608,17 @@ export class PostgresReviewSessionAuthorityRepository
         bindingIndex,
         binding,
       ] of member.candidate_bindings.entries()) {
+        const profileRecord = reviewProfileRecord(binding.record_ref.record_id);
         await client.query(
           `INSERT INTO petra.review_session_candidate_bindings (
              review_session_id, review_session_revision, member_position,
              review_member_id, member_role, binding_position, semantic_key,
              binding_role, evidence_id, evidence_kind, evidence_revision,
-             evidence_record_hash
+             evidence_record_hash, profile_record_schema_name,
+             profile_record_id, profile_record_revision, profile_record_hash
            ) VALUES (
-             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+             $13, $14, $15, $16
            )`,
           [
             session.review_session_id,
@@ -5596,8 +5629,18 @@ export class PostgresReviewSessionAuthorityRepository
             bindingIndex + 1,
             binding.semantic_key,
             binding.binding_role,
+            profileRecord.evidenceKind === undefined
+              ? null
+              : binding.record_ref.record_id,
+            profileRecord.evidenceKind ?? null,
+            profileRecord.evidenceKind === undefined
+              ? null
+              : binding.record_ref.revision,
+            profileRecord.evidenceKind === undefined
+              ? null
+              : binding.record_ref.record_hash,
+            profileRecord.schemaName,
             binding.record_ref.record_id,
-            evidenceKind(binding.record_ref.record_id),
             binding.record_ref.revision,
             binding.record_ref.record_hash,
           ],

@@ -716,6 +716,17 @@
       "typescript_path": "src/generated/project-review-view-v1-2.ts"
     },
     {
+      "name": "project-review-view",
+      "version": "1.3.0",
+      "$id": "https://petra.local/schemas/project-review-view/1.3.0/schema.json",
+      "path": "schemas/project-review-view/1.3.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-paired-profile-controlled-writing-review-read",
+      "canonical_sha256": "sha256:5fd643c7d0827caadbecc8ff73b6bb5f76c25297afc408245ffd8ed1daeee88a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-review-view-v1-3.ts"
+    },
+    {
       "name": "review-session-lifecycle-receipt",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/review-session-lifecycle-receipt/1.0.0/schema.json",

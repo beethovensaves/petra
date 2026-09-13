@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-review-view/1.3.0/schema.json",
+  "title": "PetraProjectReviewViewV130",
+  "description": "An additive paired-profile Review read that preserves the exact 1.2 lifecycle and 1.1 working-state composition while allowing only installed scientific evidence or controlled-writing Requirement-GOVERNS payloads. The controlled-writing payload is non-authoritative and exposes no ChangeSet operation, Approval, or Apply path.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "review_session_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-review-view" },
+    "schema_version": { "const": "1.3.0" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "review_session_id": {
+      "type": "string",
+      "pattern": "^review_session_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "content": { "$ref": "#/$defs/ReviewViewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "ControlledWritingPayload": {
+      "type": "object",
+      "description": "The exact registered controlled-writing Requirement and GOVERNS records selected for Review. Their inclusion grants no mutation or domain authority.",
+      "additionalProperties": false,
+      "required": [
+        "payload_kind",
+        "requirement_ref",
+        "governing_relationship_ref",
+        "authority_source_ref",
+        "requirement_kind",
+        "relationship_predicate",
+        "apply_available"
+      ],
+      "properties": {
+        "payload_kind": { "const": "controlled_writing_requirement" },
+        "requirement_ref": {
+          "$ref": "#/$defs/RequirementRef"
+        },
+        "governing_relationship_ref": {
+          "$ref": "#/$defs/GoverningRelationshipRef"
+        },
+        "authority_source_ref": {
+          "$ref": "#/$defs/AuthoritySourceRef"
+        },
+        "requirement_kind": { "enum": ["obligation", "constraint"] },
+        "relationship_predicate": { "const": "GOVERNS" },
+        "apply_available": { "const": false }
+      }
+    },
+    "RequirementRef": {
+      "allOf": [
+        {
+          "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ExactTypedRecordRef"
+        },
+        {
+          "type": "object",
+          "required": ["schema_name", "schema_version"],
+          "properties": {
+            "schema_name": { "const": "petra.controlled-writing-requirement" },
+            "schema_version": { "const": "1.0.0" }
+          }
+        }
+      ]
+    },
+    "GoverningRelationshipRef": {
+      "allOf": [
+        {
+          "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ExactTypedRecordRef"
+        },
+        {
+          "type": "object",
+          "required": ["schema_name", "schema_version"],
+          "properties": {
+            "schema_name": {
+              "const": "petra.controlled-writing-governing-relationship"
+            },
+            "schema_version": { "const": "1.0.0" }
+          }
+        }
+      ]
+    },
+    "AuthoritySourceRef": {
+      "allOf": [
+        {
+          "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ExactTypedRecordRef"
+        },
+        {
+          "type": "object",
+          "required": ["schema_name", "schema_version"],
+          "properties": {
+            "schema_name": { "const": "petra.project-source" },
+            "schema_version": { "const": "1.0.0" }
+          }
+        }
+      ]
+    },
+    "CandidateSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "revision_label",
+        "kind_label",
+        "current",
+        "proposed",
+        "difference",
+        "origin_label",
+        "origin_detail",
+        "profile_payload"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "kind_label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "current": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "proposed": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "difference": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "origin_label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "origin_detail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "profile_payload": {
+          "oneOf": [
+            { "$ref": "../1.0.0/schema.json#/$defs/ScientificEvidencePayload" },
+            { "$ref": "#/$defs/ControlledWritingPayload" }
+          ]
+        }
+      }
+    },
+    "ReviewMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_member_id",
+        "member_role",
+        "outcome",
+        "candidate",
+        "working_state",
+        "basis",
+        "validation",
+        "consequences",
+        "change_sets"
+      ],
+      "properties": {
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "member_role": { "enum": ["ordinary", "exception"] },
+        "outcome": {
+          "enum": [
+            "awaiting_decision",
+            "waiting",
+            "applied",
+            "rejected",
+            "conflicted"
+          ]
+        },
+        "candidate": { "$ref": "#/$defs/CandidateSummary" },
+        "working_state": {
+          "$ref": "../1.1.0/schema.json#/$defs/WorkingStateComposition"
+        },
+        "basis": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/BasisItem" }
+        },
+        "validation": {
+          "$ref": "../1.0.0/schema.json#/$defs/ValidationSummary"
+        },
+        "consequences": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        },
+        "change_sets": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "../1.1.0/schema.json#/$defs/ChangeSetSummary" }
+        }
+      }
+    },
+    "ReviewViewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session", "members", "authority", "projection"],
+      "properties": {
+        "session": { "$ref": "../1.2.0/schema.json#/$defs/SessionSummary" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ReviewMember" }
+        },
+        "authority": {
+          "$ref": "../1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "projection": {
+          "$ref": "../1.1.0/schema.json#/$defs/ProjectionState"
+        }
+      }
+    }
+  }
+}
