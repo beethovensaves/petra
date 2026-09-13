@@ -8,6 +8,7 @@ import type {
   PetraProjectReviewView,
   PetraProjectReviewViewV110,
   PetraProjectReviewViewV120,
+  PetraProjectReviewViewV130,
   PetraReviewSessionV110,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
@@ -205,6 +206,135 @@ describe("working ReviewSession composition contracts", () => {
     inventedEligibility.content.session.eligible_operation = "reopen";
     expect(
       contracts.isValid("project-review-view", "1.2.0", inventedEligibility),
+    ).toBe(false);
+  });
+
+  it("keeps the registered controlled-writing Review payload distinct and non-applicable", () => {
+    const legacy = readFixture<PetraProjectReviewView>("project-review-view");
+    const legacyMember = legacy.content.members[0];
+    if (legacyMember === undefined) {
+      throw new Error("Expected the scientific Review fixture member.");
+    }
+    const content: PetraProjectReviewViewV130["content"] = {
+      ...structuredClone(legacy.content),
+      session: {
+        ...structuredClone(legacy.content.session),
+        lifecycle: "open",
+        project_definition_label: "Controlled writing",
+      },
+      members: [
+        {
+          ...structuredClone(legacyMember),
+          candidate: {
+            ...structuredClone(legacyMember.candidate),
+            kind_label: "Requirement and governing link",
+            current:
+              "No authoritative controlled-writing representation is installed",
+            proposed:
+              "The operating procedure must identify the exact authority source for each mandatory step.",
+            difference:
+              "Adds one non-authoritative Requirement and its exact GOVERNS relationship to Review. No controlled-writing mutation operation or Apply path is installed.",
+            profile_payload: {
+              payload_kind: "controlled_writing_requirement",
+              requirement_ref: {
+                schema_name: "petra.controlled-writing-requirement",
+                schema_version: "1.0.0",
+                record_id: "requirement_01K4E000000000000000000004",
+                revision: 1,
+                record_hash: `sha256:${"1".repeat(64)}`,
+              },
+              governing_relationship_ref: {
+                schema_name: "petra.controlled-writing-governing-relationship",
+                schema_version: "1.0.0",
+                record_id: "governing_relationship_01K4E000000000000000000005",
+                revision: 1,
+                record_hash: `sha256:${"2".repeat(64)}`,
+              },
+              authority_source_ref: {
+                schema_name: "petra.project-source",
+                schema_version: "1.0.0",
+                record_id: "project_source_01K4E000000000000000000006",
+                revision: 1,
+                record_hash: `sha256:${"3".repeat(64)}`,
+              },
+              requirement_kind: "constraint",
+              relationship_predicate: "GOVERNS",
+              apply_available: false,
+            },
+          },
+          working_state: {
+            candidate,
+            relationships: [relationship],
+            selection_basis: "exact_review_session_working_bindings",
+            authority_effect: "none",
+          },
+          validation: {
+            state: "needs_judgment",
+            label: "Validation pending",
+            detail:
+              "Review inclusion does not approve the Requirement or create an Apply path.",
+          },
+          consequences: [
+            "No controlled-writing ChangeSet operation, Approval, or Apply path is installed.",
+          ],
+          change_sets: [],
+        },
+      ],
+      projection: {
+        state: "unavailable",
+        reason:
+          "No authoritative graph-projection checkpoint is registered for this Project.",
+      },
+    };
+    const view: PetraProjectReviewViewV130 = {
+      schema_name: "petra.project-review-view",
+      schema_version: "1.3.0",
+      project_id: legacy.project_id,
+      review_session_id: session.review_session_id,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: legacy.read_at,
+    };
+    contracts.assertValid("project-review-view", "1.3.0", view);
+
+    const inventedApply = structuredClone(view) as unknown as {
+      content: {
+        members: Array<{
+          candidate: { profile_payload: { apply_available: boolean } };
+        }>;
+      };
+    };
+    inventedApply.content.members[0]!.candidate.profile_payload.apply_available = true;
+    expect(
+      contracts.isValid("project-review-view", "1.3.0", inventedApply),
+    ).toBe(false);
+
+    const arbitraryProfile = structuredClone(view) as unknown as {
+      content: {
+        members: Array<{
+          candidate: { profile_payload: { payload_kind: string } };
+        }>;
+      };
+    };
+    arbitraryProfile.content.members[0]!.candidate.profile_payload.payload_kind =
+      "client_defined";
+    expect(
+      contracts.isValid("project-review-view", "1.3.0", arbitraryProfile),
+    ).toBe(false);
+
+    const resealedRequirement = structuredClone(view) as unknown as {
+      content: {
+        members: Array<{
+          candidate: {
+            profile_payload: { requirement_ref: { schema_name: string } };
+          };
+        }>;
+      };
+    };
+    resealedRequirement.content.members[0]!.candidate.profile_payload.requirement_ref.schema_name =
+      "petra.claim";
+    expect(
+      contracts.isValid("project-review-view", "1.3.0", resealedRequirement),
     ).toBe(false);
   });
 });

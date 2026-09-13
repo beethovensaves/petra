@@ -200,6 +200,12 @@ export class PostgresProjectBriefViewReader implements ProjectBriefViewReader {
             "PROJECT_BRIEF_STALE",
             "An open Review is bound to a different Objective revision. Refresh or revise it through its owning Review boundary.",
           );
+        if (composed.view.schema_version === "1.3.0") {
+          throw new ProjectBriefError(
+            "PROJECT_BRIEF_UNSUPPORTED",
+            "Open this controlled-writing Review through the Review read. Project Brief cannot include it until a registered controlled-writing Brief payload is installed.",
+          );
+        }
         reviews.push(composed.view);
         if (composed.view.content.session.status !== "completed")
           attention.push({

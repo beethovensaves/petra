@@ -6,10 +6,14 @@ import type {
   PetraAssertion,
   PetraChangeSetRecord,
   PetraClaim,
+  PetraControlledWritingGoverningRelationship,
+  PetraControlledWritingRequirement,
   PetraProjectDefinition,
   PetraProjectObjective,
   PetraProjectReviewViewRecord,
+  PetraProjectReviewViewV130,
   PetraProjectReviewViewV120,
+  PetraProjectSource,
   PetraProjectReviewView,
   PetraProjectionCheckpoint,
   PetraReviewSessionRecord,
@@ -23,11 +27,13 @@ import type {
   ProjectReviewCommandTraceV110,
   ProjectReviewEventTraceV110,
   ProjectReviewMemberV110,
+  ProjectReviewMemberV130,
   ProjectReviewMember,
   ProjectReviewProjectionStateV110,
   ProjectReviewSessionSummaryV120,
   ProjectReviewValidationSummary,
   ProjectReviewViewContentV120,
+  ProjectReviewViewContentV130,
   ProjectReviewViewContent,
   ReviewSessionMemberV110,
   ReviewSessionMember,
@@ -95,6 +101,11 @@ interface PayloadRow {
 interface WorkingRecordRow {
   payload: unknown;
   record_hash: string;
+}
+
+interface ControlledWritingSourceRow extends WorkingRecordRow {
+  status: "active" | "excluded";
+  source_role: string;
 }
 
 interface CommandTraceRow {
@@ -373,6 +384,25 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
         ...sessionSummary,
         lifecycle: session.content.lifecycle,
       } satisfies ProjectReviewSessionSummaryV120;
+      if (definition.definition_family === "petra.controlled-writing") {
+        const content: ProjectReviewViewContentV130 = {
+          session: lifecycleSession,
+          members: members as ProjectReviewViewContentV130["members"],
+          authority,
+          projection: await this.#projection(client, session.project_id),
+        };
+        const view: PetraProjectReviewViewV130 = {
+          schema_name: "petra.project-review-view",
+          schema_version: "1.3.0",
+          project_id: session.project_id,
+          review_session_id: session.review_session_id,
+          content,
+          content_hash: canonicalHash(content),
+          read_at: readAt,
+        };
+        this.#contracts.assertValid("project-review-view", "1.3.0", view);
+        return view;
+      }
       const content: ProjectReviewViewContentV120 = {
         session: lifecycleSession,
         members: members as ProjectReviewViewContentV120["members"],
@@ -430,16 +460,8 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
     definition: PetraProjectDefinition,
     member: ReviewSessionMemberV110,
     currentStreamRevision: number,
-  ): Promise<ProjectReviewMemberV110> {
+  ): Promise<ProjectReviewMemberV110 | ProjectReviewMemberV130> {
     const working = await this.#workingState(client, session, member);
-    const base = await this.#member(
-      client,
-      session,
-      definition,
-      member,
-      currentStreamRevision,
-      working,
-    );
     const producer = await this.#actor(
       client,
       working.candidate.producer.actor.actor_id,
@@ -450,6 +472,42 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
         "The WorkingCandidate producer does not resolve to its recorded Actor kind.",
       );
     }
+    const workingState = {
+      candidate: working.candidate,
+      relationships: working.relationships as [
+        PetraWorkingRelationship,
+        ...PetraWorkingRelationship[],
+      ],
+      selection_basis: "exact_review_session_working_bindings" as const,
+      authority_effect: "none" as const,
+    };
+    if (definition.definition_family === "petra.controlled-writing") {
+      const base = await this.#controlledWritingMember(
+        client,
+        session,
+        definition,
+        member,
+        working,
+      );
+      return {
+        ...base,
+        candidate: {
+          ...base.candidate,
+          revision_label: `Working candidate revision ${working.candidate.revision} · ${working.relationships.length} exact working relationship${working.relationships.length === 1 ? "" : "s"}`,
+          origin_label: producer.display_name,
+          origin_detail: `${titleCase(working.candidate.origin.origin_kind)} · ${working.candidate.origin.summary}`,
+        },
+        working_state: workingState,
+      };
+    }
+    const base = await this.#member(
+      client,
+      session,
+      definition,
+      member,
+      currentStreamRevision,
+      working,
+    );
     return {
       ...base,
       candidate: {
@@ -458,20 +516,255 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
         origin_label: producer.display_name,
         origin_detail: `${titleCase(working.candidate.origin.origin_kind)} · ${working.candidate.origin.summary}`,
       },
-      working_state: {
-        candidate: working.candidate,
-        relationships: working.relationships as [
-          PetraWorkingRelationship,
-          ...PetraWorkingRelationship[],
-        ],
-        selection_basis: "exact_review_session_working_bindings",
-        authority_effect: "none",
-      },
+      working_state: workingState,
       change_sets: await Promise.all(
         base.change_sets.map((changeSet) =>
           this.#traceChangeSet(client, session.project_id, changeSet),
         ),
       ),
+    };
+  }
+
+  async #controlledWritingMember(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+    definition: PetraProjectDefinition,
+    member: ReviewSessionMemberV110,
+    working: {
+      candidate: PetraWorkingCandidate;
+      relationships: PetraWorkingRelationship[];
+      current: boolean;
+    },
+  ): Promise<Omit<ProjectReviewMemberV130, "working_state">> {
+    const requirementBinding = member.candidate_bindings.find(
+      (binding) => binding.binding_role === "candidate",
+    );
+    const governingBinding = member.candidate_bindings.find(
+      (binding) => binding.binding_role === "relationship",
+    );
+    const workingRelationship = working.relationships[0];
+    if (
+      requirementBinding === undefined ||
+      governingBinding === undefined ||
+      member.candidate_bindings.length !== 2 ||
+      workingRelationship === undefined ||
+      working.relationships.length !== 1
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_RENDERER_UNSUPPORTED",
+        "The controlled-writing Review read requires one Requirement and one governing relationship binding per member.",
+      );
+    }
+    this.#assertRegistration(
+      definition,
+      requirementBinding.semantic_key,
+      "object_schema",
+      "petra.controlled-writing-requirement",
+    );
+    this.#assertRegistration(
+      definition,
+      governingBinding.semantic_key,
+      "relationship_schema",
+      "petra.controlled-writing-governing-relationship",
+    );
+    const requirement =
+      await this.#controlledWritingRecord<PetraControlledWritingRequirement>(
+        client,
+        "controlled_writing_requirement_records",
+        "requirement_id",
+        "controlled-writing-requirement",
+        session.project_id,
+        requirementBinding.record_ref,
+      );
+    const governing =
+      await this.#controlledWritingRecord<PetraControlledWritingGoverningRelationship>(
+        client,
+        "controlled_writing_governing_relationship_records",
+        "governing_relationship_id",
+        "controlled-writing-governing-relationship",
+        session.project_id,
+        governingBinding.record_ref,
+      );
+    const sourceResult = await client.query<ControlledWritingSourceRow>(
+      `SELECT revision.payload, revision.record_hash,
+              revision.status, revision.source_role
+         FROM petra.project_source_revisions AS revision
+         JOIN petra.project_sources AS head
+           ON head.project_source_id = revision.project_source_id
+          AND head.project_id = revision.project_id
+          AND head.current_revision = revision.revision
+        WHERE revision.project_id = $1
+          AND revision.project_source_id = $2
+          AND revision.revision = $3
+          AND revision.record_hash = $4`,
+      [
+        session.project_id,
+        governing.content.authority_source_ref.record_id,
+        governing.content.authority_source_ref.revision,
+        governing.content.authority_source_ref.record_hash,
+      ],
+    );
+    const sourceRow = sourceResult.rows[0];
+    if (sourceRow === undefined) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The controlled-writing governing relationship does not resolve to its exact current ProjectSource.",
+      );
+    }
+    const source = this.#record<PetraProjectSource>(
+      "project-source",
+      "1.0.0",
+      sourceRow.payload,
+    );
+    if (
+      canonicalHash(source) !== sourceRow.record_hash ||
+      source.content_hash !== canonicalHash(source.content) ||
+      sourceRow.status !== "active" ||
+      sourceRow.source_role !== "writing.authority-source" ||
+      requirement.project_id !== session.project_id ||
+      governing.project_id !== session.project_id ||
+      requirement.project_definition_ref.project_definition_id !==
+        definition.project_definition_id ||
+      requirement.project_definition_ref.revision !== definition.revision ||
+      requirement.project_definition_ref.content_hash !==
+        definition.content_hash ||
+      governing.project_definition_ref.project_definition_id !==
+        definition.project_definition_id ||
+      governing.project_definition_ref.revision !== definition.revision ||
+      governing.project_definition_ref.content_hash !==
+        definition.content_hash ||
+      governing.content.predicate !== "GOVERNS" ||
+      governing.content.requirement_ref.record_id !==
+        requirement.requirement_id ||
+      governing.content.requirement_ref.revision !== requirement.revision ||
+      governing.content.requirement_ref.record_hash !==
+        requirementBinding.record_ref.record_hash ||
+      working.candidate.profile_object.object_record_ref.schema_name !==
+        "petra.controlled-writing-requirement" ||
+      working.candidate.profile_object.object_record_ref.schema_version !==
+        "1.0.0" ||
+      workingRelationship.profile_relationship.relationship_record_ref
+        .schema_name !== "petra.controlled-writing-governing-relationship" ||
+      workingRelationship.profile_relationship.relationship_record_ref
+        .schema_version !== "1.0.0" ||
+      workingRelationship.profile_relationship.predicate !== "GOVERNS" ||
+      governing.content.authority_source_ref.schema_name !==
+        "petra.project-source" ||
+      governing.content.authority_source_ref.schema_version !== "1.0.0" ||
+      source.project_source_id !==
+        governing.content.authority_source_ref.record_id
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The controlled-writing Review member does not preserve its exact registered Requirement-GOVERNS semantics.",
+      );
+    }
+
+    const validations = [
+      working.candidate.validation,
+      workingRelationship.validation,
+    ];
+    const results = validations.flatMap((validation) => validation.results);
+    const blocked =
+      validations.some((validation) => validation.state === "blocked") ||
+      results.some(
+        (result) => result.outcome === "failed" || result.outcome === "blocked",
+      );
+    const passed =
+      validations.every((validation) => validation.state === "completed") &&
+      results.length > 0 &&
+      results.every((result) => result.outcome === "passed");
+    const validation: ProjectReviewMemberV130["validation"] = blocked
+      ? {
+          state: "blocked",
+          label: "Validation blocked",
+          detail:
+            "At least one exact controlled-writing working record is blocked or failed validation. Validation grants no Review decision or mutation authority.",
+        }
+      : passed
+        ? {
+            state: "passed",
+            label: "Validation passed",
+            detail: `${results.length} exact controlled-writing working ${results.length === 1 ? "check passed" : "checks passed"}. This does not approve the Requirement or grant mutation authority.`,
+          }
+        : {
+            state: "needs_judgment",
+            label: "Validation pending",
+            detail:
+              "The exact controlled-writing working records remain pending validation. Review inclusion does not approve the Requirement or create an Apply path.",
+          };
+    const requirementTerm = definition.content.terms.find(
+      (term) => term.semantic_key === requirementBinding.semantic_key,
+    );
+    const relationshipTerm = definition.content.terms.find(
+      (term) => term.semantic_key === governingBinding.semantic_key,
+    );
+    const sourceTerm = definition.content.terms.find(
+      (term) => term.semantic_key === "writing.authority-source",
+    );
+    const outcome: ProjectReviewMemberV130["outcome"] =
+      session.content.lifecycle === "deferred"
+        ? "waiting"
+        : working.current
+          ? "awaiting_decision"
+          : "conflicted";
+    return {
+      review_member_id: member.review_member_id,
+      member_role: member.member_role,
+      outcome,
+      candidate: {
+        candidate_id: member.review_member_id,
+        revision_label: `Requirement revision ${requirement.revision} · Governing relationship revision ${governing.revision}`,
+        kind_label: `${requirementTerm?.singular ?? "Requirement"} and ${relationshipTerm?.singular.toLocaleLowerCase() ?? "governing relationship"}`,
+        current:
+          "No authoritative controlled-writing representation is installed",
+        proposed: requirement.content.statement,
+        difference:
+          "Adds one non-authoritative Requirement and its exact GOVERNS relationship to Review. No controlled-writing mutation operation or Apply path is installed.",
+        origin_label: requirement.created_by.actor_id,
+        origin_detail: `Direct edit · ${working.candidate.origin.summary}`,
+        profile_payload: {
+          payload_kind: "controlled_writing_requirement",
+          requirement_ref: {
+            ...clone(working.candidate.profile_object.object_record_ref),
+            schema_name: "petra.controlled-writing-requirement",
+            schema_version: "1.0.0",
+          },
+          governing_relationship_ref: {
+            ...clone(
+              workingRelationship.profile_relationship.relationship_record_ref,
+            ),
+            schema_name: "petra.controlled-writing-governing-relationship",
+            schema_version: "1.0.0",
+          },
+          authority_source_ref: {
+            ...clone(governing.content.authority_source_ref),
+            schema_name: "petra.project-source",
+            schema_version: "1.0.0",
+          },
+          requirement_kind: requirement.content.requirement_kind,
+          relationship_predicate: "GOVERNS",
+          apply_available: false,
+        },
+      },
+      basis: [
+        {
+          basis_id: source.project_source_id,
+          label: sourceTerm?.singular ?? "Authority source",
+          relation: relationshipTerm?.singular ?? "Governing relationship",
+          extent: titleCase(requirement.content.requirement_kind),
+          detail: governing.content.rationale,
+          project_source_id: source.project_source_id,
+          project_source_status: "active",
+        },
+      ],
+      validation,
+      consequences: [
+        `The exact ${requirementTerm?.singular ?? "Requirement"} remains non-authoritative working state.`,
+        "No controlled-writing ChangeSet operation, Approval, or Apply path is installed.",
+        "Review composition leaves the authority source, producer provenance, and Project authority unchanged.",
+      ],
+      change_sets: [],
     };
   }
 
@@ -785,7 +1078,7 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
     ) {
       throw new PostgresProjectReviewViewError(
         "PROJECT_REVIEW_VIEW_RENDERER_UNSUPPORTED",
-        "The scientific Review member does not preserve one exact task-aligned WorkingCandidate and ASSERTS relationship.",
+        "The Review member does not preserve one exact task-aligned WorkingCandidate and registered relationship.",
       );
     }
     const current =
@@ -1018,7 +1311,11 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
     definition: PetraProjectDefinition,
     semanticKey: string,
     registrationKind: "object_schema" | "relationship_schema",
-    contractName: "petra.claim" | "petra.assertion",
+    contractName:
+      | "petra.claim"
+      | "petra.assertion"
+      | "petra.controlled-writing-requirement"
+      | "petra.controlled-writing-governing-relationship",
   ): void {
     const matches = definition.content.registrations.filter(
       (registration) =>
@@ -1060,6 +1357,54 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
       throw new PostgresProjectReviewViewError(
         "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
         `Review candidate ${id} has an invalid stored record hash.`,
+      );
+    }
+    return record;
+  }
+
+  async #controlledWritingRecord<
+    Value extends
+      | PetraControlledWritingRequirement
+      | PetraControlledWritingGoverningRelationship,
+  >(
+    client: PoolClient,
+    table:
+      | "controlled_writing_requirement_records"
+      | "controlled_writing_governing_relationship_records",
+    idColumn: "requirement_id" | "governing_relationship_id",
+    contractName:
+      | "controlled-writing-requirement"
+      | "controlled-writing-governing-relationship",
+    projectId: string,
+    ref: {
+      readonly record_id: string;
+      readonly revision: number;
+      readonly record_hash: string;
+    },
+  ): Promise<Value> {
+    const result = await client.query<WorkingRecordRow>(
+      `SELECT payload, record_hash
+         FROM petra.${table}
+        WHERE project_id = $1
+          AND ${idColumn} = $2
+          AND revision = $3`,
+      [projectId, ref.record_id, ref.revision],
+    );
+    const row = result.rows[0];
+    if (row === undefined || row.record_hash !== ref.record_hash) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        `Controlled-writing Review candidate ${ref.record_id} does not resolve to its exact retained revision.`,
+      );
+    }
+    const record = this.#record<Value>(contractName, "1.0.0", row.payload);
+    if (
+      canonicalHash(record) !== row.record_hash ||
+      record.content_hash !== canonicalHash(record.content)
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        `Controlled-writing Review candidate ${ref.record_id} has an invalid stored hash.`,
       );
     }
     return record;
@@ -1450,7 +1795,9 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
 
   #sessionStatus(
     session: PetraReviewSessionRecord,
-    members: readonly (ProjectReviewMember | ProjectReviewMemberV110)[],
+    members: readonly (
+      ProjectReviewMember | ProjectReviewMemberV110 | ProjectReviewMemberV130
+    )[],
   ): ProjectReviewViewContent["session"]["status"] {
     if (session.content.lifecycle === "deferred") return "waiting";
     if (
