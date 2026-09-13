@@ -35,6 +35,13 @@ import {
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 
+import {
+  createReviewApplyController,
+  ReviewApplyNotice,
+  ReviewApplyPreview,
+  type ReviewApplyState,
+} from "./ReviewApply.js";
+
 import { ReviewRecovery } from "./ReviewRecovery.js";
 
 const ReviewState = ({ review }: { review: ReviewSession }) => (
@@ -1412,6 +1419,10 @@ const ReviewMemberNavigation = ({
 const ReviewSessionMemberSurface = ({
   project,
   review,
+  applyState,
+  onPrepareApply,
+  onApply,
+  onDiscardApply,
   onReviewChange,
   memberNavigation,
   separation,
@@ -1424,6 +1435,10 @@ const ReviewSessionMemberSurface = ({
 }: {
   project: ProjectRecord;
   review: ReviewSession;
+  applyState: ReviewApplyState;
+  onPrepareApply: () => void;
+  onApply: () => void;
+  onDiscardApply: () => void;
   onReviewChange?: (() => void | Promise<void>) | undefined;
   memberNavigation?: React.ReactNode;
   separation: ReviewSessionSeparationPresentationState;
@@ -1459,6 +1474,20 @@ const ReviewSessionMemberSurface = ({
   const basisToggleRef = useRef<HTMLDivElement>(null);
   const candidateEditorWasExpanded = useRef(initialCandidateEditOpen);
   const basisEditorWasExpanded = useRef(initialBasisEditOpen);
+  const applyBusy =
+    applyState.kind === "preparing" || applyState.kind === "applying";
+  const applyLocked =
+    applyBusy ||
+    applyState.kind === "ready" ||
+    applyState.kind === "uncertain" ||
+    (applyState.kind === "result" &&
+      applyState.result.outcome === "reconciliation_required");
+  const applyCheckpoint =
+    "checkpoint" in applyState
+      ? applyState.checkpoint
+      : applyState.kind === "result"
+        ? applyState.result.request.checkpoint
+        : undefined;
   const lifecyclePending = lifecycle.state === "pending";
   const refreshPending = refresh.state === "pending";
   const correctionPending = candidateEditor.correction.state === "pending";
@@ -1472,6 +1501,7 @@ const ReviewSessionMemberSurface = ({
     separation.state === "retry_mismatch" ||
     separation.state === "uncertain";
   const commandPending =
+    applyLocked ||
     lifecyclePending ||
     refreshPending ||
     correctionDraftIsLocked(candidateEditor.correction) ||
@@ -1488,6 +1518,7 @@ const ReviewSessionMemberSurface = ({
     review.snapshotState === "stale" &&
     (refresh.state === "idle" || refresh.state === "pending");
   const refreshAvailable =
+    !applyLocked &&
     refresh.state === "idle" &&
     review.snapshotState === "stale" &&
     review.lifecycle === "open" &&
@@ -1500,6 +1531,7 @@ const ReviewSessionMemberSurface = ({
     review.reviewMemberId !== undefined &&
     (separation.state === "idle" || separation.state === "pending");
   const separationAvailable =
+    !applyLocked &&
     separation.state === "idle" &&
     review.lifecycle === "open" &&
     !lifecyclePending &&
@@ -1507,16 +1539,16 @@ const ReviewSessionMemberSurface = ({
     !correctionDraftIsLocked(candidateEditor.correction) &&
     !basisRevisionIsLocked(basisEditor.revision);
 
+  const basisDraftHasInput =
+    basisEditor.draft.sourceScope !== "" ||
+    basisEditor.draft.detailLevel !== "" ||
+    basisEditor.draft.sourceStance !== "" ||
+    basisEditor.draft.attribution.length > 0 ||
+    basisEditor.draft.modality !== "" ||
+    basisEditor.draft.negated ||
+    basisEditor.draft.uncertainty.length > 0 ||
+    basisEditor.draft.reason.length > 0;
   useEffect(() => {
-    const basisDraftHasInput =
-      basisEditor.draft.sourceScope !== "" ||
-      basisEditor.draft.detailLevel !== "" ||
-      basisEditor.draft.sourceStance !== "" ||
-      basisEditor.draft.attribution.length > 0 ||
-      basisEditor.draft.modality !== "" ||
-      basisEditor.draft.negated ||
-      basisEditor.draft.uncertainty.length > 0 ||
-      basisEditor.draft.reason.length > 0;
     onMemberSelectionLockChange(
       candidateEditor.draft !== review.candidate.proposed ||
         candidateEditor.correction.state !== "idle" ||
@@ -1526,7 +1558,7 @@ const ReviewSessionMemberSurface = ({
         refresh.state !== "idle",
     );
   }, [
-    basisEditor.draft,
+    basisDraftHasInput,
     basisEditor.revision.state,
     candidateEditor.correction.state,
     candidateEditor.draft,
@@ -1810,7 +1842,7 @@ const ReviewSessionMemberSurface = ({
     review.lifecycle === "deferred"
       ? "This Review is deferred. Reopen review sends this exact Review revision to Petra. The server rechecks current lifecycle and authority; seeing Deferred here does not mean the command is eligible or authorized."
       : review.status === "needs_decision"
-        ? "Apply and Reject remain unavailable until their Review command boundaries are connected. Decide later sends the exact Review revision to Petra; the server rechecks lifecycle and authority before changing coordination state."
+        ? "Apply requires the exact server-prepared commitment above and one explicit human decision. Reject remains unavailable. Decide later sends the exact Review revision to Petra; the server rechecks lifecycle and authority before changing coordination state."
         : review.status === "waiting"
           ? review.lifecycle === "open"
             ? "This Review is waiting for another reason; its exact lifecycle is open. Reopen is unavailable, and the client does not treat Waiting as Deferred."
@@ -1928,6 +1960,7 @@ const ReviewSessionMemberSurface = ({
                         },
                       })}
                   aria-disabled={
+                    applyLocked ||
                     lifecyclePending ||
                     refreshPending ||
                     basisRevisionIsLocked(basisEditor.revision) ||
@@ -1971,6 +2004,7 @@ const ReviewSessionMemberSurface = ({
                 value={candidateEditor.draft}
                 disabled={
                   candidateEditorLocked ||
+                  applyLocked ||
                   lifecyclePending ||
                   refreshPending ||
                   basisRevisionIsLocked(basisEditor.revision) ||
@@ -2001,6 +2035,7 @@ const ReviewSessionMemberSurface = ({
                   aria-disabled={
                     candidateTextError !== undefined ||
                     candidateEditorLocked ||
+                    applyLocked ||
                     lifecyclePending ||
                     refreshPending ||
                     basisRevisionIsLocked(basisEditor.revision) ||
@@ -2073,6 +2108,7 @@ const ReviewSessionMemberSurface = ({
                         unavailable: { reason: basisUnavailableReason },
                       })}
                   aria-disabled={
+                    applyLocked ||
                     lifecyclePending ||
                     refreshPending ||
                     correctionDraftIsLocked(candidateEditor.correction) ||
@@ -2380,9 +2416,18 @@ const ReviewSessionMemberSurface = ({
             <p className="reference-panel-kicker">Commitment preview</p>
             <h2 id="review-changeset-title">Changes to apply</h2>
           </div>
-          <span>{review.changeSet?.atomicity ?? "No ChangeSet prepared"}</span>
+          <span>
+            {applyCheckpoint !== undefined
+              ? "One complete atomic ChangeSet"
+              : (review.changeSet?.atomicity ?? "No ChangeSet prepared")}
+          </span>
         </header>
-        {review.changeSet === undefined ? (
+        {applyCheckpoint !== undefined ? (
+          <ReviewApplyPreview
+            checkpoint={applyCheckpoint}
+            focus={applyState.kind === "ready"}
+          />
+        ) : review.changeSet === undefined ? (
           <p>
             This durable Review session exists before commitment. Petra must
             prepare and validate an exact ChangeSet before anything can be
@@ -2419,6 +2464,41 @@ const ReviewSessionMemberSurface = ({
             </div>
           </>
         )}
+        {applyState.kind === "idle" ||
+        applyState.kind === "unavailable" ||
+        applyState.kind === "preparing" ? (
+          <PetraButton
+            variant="secondary"
+            busy={applyState.kind === "preparing"}
+            busyLabel="Preparing changes…"
+            aria-disabled={
+              commandPending ||
+              review.lifecycle !== "open" ||
+              review.reviewMemberId === undefined ||
+              review.changeSet !== undefined ||
+              review.snapshotState !== "current" ||
+              candidateEditor.expanded ||
+              basisEditor.expanded ||
+              basisDraftHasInput ||
+              candidateEditor.draft !== review.candidate.proposed
+            }
+            aria-describedby="review-apply-scope"
+            onClick={onPrepareApply}
+          >
+            Prepare changes to apply
+          </PetraButton>
+        ) : null}
+        {applyState.kind === "ready" ? (
+          <PetraButton variant="quiet" onClick={onDiscardApply}>
+            Discard prepared preview
+          </PetraButton>
+        ) : null}
+        <p id="review-apply-scope">
+          Preparation reads the exact commitment without approving it. This path
+          supports fresh candidates without an existing ChangeSet; the server
+          checks profile support and current authority. Targets already bound to
+          a ChangeSet require Recovery reconciliation.
+        </p>
       </section>
 
       <section
@@ -2452,12 +2532,15 @@ const ReviewSessionMemberSurface = ({
         <PetraButtonGroup label="Review decision">
           <PetraButton
             variant="primary"
-            aria-disabled="true"
-            aria-describedby="review-decision-boundary"
+            aria-disabled={applyState.kind !== "ready"}
+            busy={applyState.kind === "applying"}
+            busyLabel="Applying commitment…"
+            aria-describedby="review-decision-boundary review-apply-scope"
+            onClick={onApply}
           >
-            {review.changeSet === undefined
-              ? "Apply unavailable"
-              : `Apply ${review.changeSet.changes.length} changes`}
+            {applyState.kind === "ready"
+              ? "Apply displayed ChangeSet"
+              : "Apply unavailable"}
           </PetraButton>
           <PetraButton
             aria-disabled="true"
@@ -2472,6 +2555,7 @@ const ReviewSessionMemberSurface = ({
               reopenPresented ? "Reopening Review…" : "Deferring Review…"
             }
             aria-disabled={
+              applyLocked ||
               refreshPending ||
               correctionDraftIsLocked(candidateEditor.correction) ||
               basisRevisionIsLocked(basisEditor.revision) ||
@@ -2521,10 +2605,11 @@ const ReviewSessionMemberSurface = ({
             </PetraButton>
           ) : null}
         </PetraButtonGroup>
+        <ReviewApplyNotice state={applyState} onReload={onReviewChange} />
         <ReviewRecovery
-          key={`${review.projectId}:${review.id}:${review.exactRef.revision}:${review.exactRef.contentHash}:${lifecycle.state}:${refresh.state}:${candidateEditor.correction.state}:${basisEditor.revision.state}:${separation.state}`}
+          key={`${review.projectId}:${review.id}:${review.exactRef.revision}:${review.exactRef.contentHash}:${lifecycle.state}:${refresh.state}:${candidateEditor.correction.state}:${basisEditor.revision.state}:${separation.state}:${applyState.kind}`}
           review={review}
-          disabled={commandPending}
+          disabled={applyBusy || (commandPending && !applyLocked)}
           onReload={onReviewChange}
         />
         <ReviewLifecycleNotice
@@ -2575,6 +2660,23 @@ export const ReviewSessionSurface = ({
   initialCandidateEditOpen?: boolean;
   initialBasisEditOpen?: boolean;
 }): React.JSX.Element => {
+  const [applyState, setApplyState] = useState<ReviewApplyState>({
+    kind: "idle",
+  });
+  useEffect(() => {
+    if (["unavailable", "uncertain", "result"].includes(applyState.kind)) {
+      document.getElementById("review-apply-observation")?.focus();
+    }
+  }, [applyState.kind]);
+  const reloadApplyRef = useRef(onReviewChange);
+  useEffect(() => {
+    reloadApplyRef.current = onReviewChange;
+  }, [onReviewChange]);
+  const [applyController] = useState(() =>
+    createReviewApplyController(setApplyState, () =>
+      reloadApplyRef.current?.(),
+    ),
+  );
   const [activeMemberId, setActiveMemberId] = useState(
     review.reviewMemberId ?? review.members?.[0]?.reviewMemberId ?? "",
   );
@@ -2590,7 +2692,21 @@ export const ReviewSessionSurface = ({
     activeMember === undefined
       ? review
       : reviewSessionWithMember(review, activeMember);
+  useEffect(() => {
+    applyController.invalidatePreparation();
+    return () => applyController.invalidatePreparation();
+  }, [
+    applyController,
+    review.projectId,
+    review.id,
+    review.exactRef.revision,
+    review.exactRef.contentHash,
+    activeMemberId,
+  ]);
   const memberSelectionLocked =
+    applyState.kind === "preparing" ||
+    applyState.kind === "ready" ||
+    applyState.kind === "applying" ||
     separation.state === "pending" ||
     separation.state === "success" ||
     separation.state === "stale" ||
@@ -2640,6 +2756,10 @@ export const ReviewSessionSurface = ({
       key={selectedReview.reviewMemberId ?? selectedReview.id}
       project={project}
       review={selectedReview}
+      applyState={applyState}
+      onPrepareApply={() => void applyController.prepare(selectedReview)}
+      onApply={() => void applyController.apply(selectedReview)}
+      onDiscardApply={() => applyController.invalidatePreparation()}
       onReviewChange={onReviewChange}
       memberNavigation={
         members.length > 1 ? (
@@ -2678,6 +2798,7 @@ export const ReviewSessionRoute = (): React.JSX.Element => {
   const revalidator = useRevalidator();
   return (
     <ReviewSessionSurface
+      key={`${project.id}:${review.id}`}
       project={project}
       review={review}
       onReviewChange={() => revalidator.revalidate()}

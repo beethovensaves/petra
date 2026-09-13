@@ -1,3 +1,9 @@
+import assertionSchema from "../../../../packages/contracts/schemas/assertion/1.0.0/schema.json";
+import projectSourceSchema from "../../../../packages/contracts/schemas/project-source/1.0.0/schema.json";
+import projectDefinitionSchema from "../../../../packages/contracts/schemas/project-definition/1.0.0/schema.json";
+import applyResultSchema from "../../../../packages/contracts/schemas/review-session-apply-result/1.0.0/schema.json";
+import applyRequestSchema from "../../../../packages/contracts/schemas/review-session-apply-request/1.0.0/schema.json";
+import applyCheckpointSchema from "../../../../packages/contracts/schemas/review-session-apply-checkpoint/1.0.0/schema.json";
 import Ajv2020, { type ValidateFunction } from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
@@ -28,6 +34,9 @@ import historyImpactSchema from "../../../../packages/contracts/schemas/project-
 import historyImpactV12Schema from "../../../../packages/contracts/schemas/project-history-impact-view/1.2.0/schema.json";
 
 type BrowserContractName =
+  | "review-session-apply-checkpoint@1.0.0"
+  | "review-session-apply-request@1.0.0"
+  | "review-session-apply-result@1.0.0"
   | "review-recovery-assessment@1.0.0"
   | "claim@1.0.0"
   | "review-candidate-basis-revision-receipt@1.0.0"
@@ -52,6 +61,12 @@ const definitionDependency = <
 });
 
 const schemas = [
+  applyCheckpointSchema,
+  applyRequestSchema,
+  applyResultSchema,
+  projectDefinitionSchema,
+  projectSourceSchema,
+  assertionSchema,
   recoveryAssessmentSchema,
   definitionDependency(reviewViewSchema),
   definitionDependency(reviewViewV11Schema),
@@ -61,11 +76,11 @@ const schemas = [
   approvalSchema,
   definitionDependency(historyRecoverySchema),
   definitionDependency(historyViewSchema),
-  definitionDependency(domainEventSchema),
+  domainEventSchema,
   definitionDependency(historyImpactSchema),
   definitionDependency(historyImpactV12Schema),
   commonSchema,
-  definitionDependency(commandEnvelopeSchema),
+  commandEnvelopeSchema,
   definitionDependency(commandEnvelopeV18Schema),
   claimSchema,
   workingCandidateSchema,
@@ -79,6 +94,9 @@ const schemas = [
 ] as const;
 
 const contractIds: Record<BrowserContractName, string> = {
+  "review-session-apply-checkpoint@1.0.0": applyCheckpointSchema.$id,
+  "review-session-apply-request@1.0.0": applyRequestSchema.$id,
+  "review-session-apply-result@1.0.0": applyResultSchema.$id,
   "review-recovery-assessment@1.0.0": recoveryAssessmentSchema.$id,
   "claim@1.0.0": claimSchema.$id,
   "review-candidate-basis-revision-receipt@1.0.0":
@@ -102,7 +120,7 @@ export class ContractRegistryError extends Error {
 
 /**
  * Browser-only validator for the exact response contracts consumed by the
- * Review candidate correction, basis-revision, member-separation, and recovery-assessment clients.
+ * Review candidate correction, basis-revision, member-separation, recovery-assessment, and manual Apply clients.
  * Vite aliases the Node filesystem-backed registry to this bundled schema set;
  * server and package consumers keep the canonical registry implementation.
  */

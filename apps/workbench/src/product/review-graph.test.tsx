@@ -212,8 +212,8 @@ describe("reference Review and Graph packets", () => {
     );
 
     expect(markup).toContain("the server rechecks lifecycle and authority");
-    expect(markup.match(/aria-disabled="true"/g)).toHaveLength(2);
-    expect(markup).toContain("Apply 1 change");
+    expect(markup.match(/aria-disabled="true"/g)).toHaveLength(3);
+    expect(markup).toContain("Apply unavailable");
     expect(markup).toContain("Reject candidate");
     expect(markup).toContain("Decide later");
     expect(markup).toContain('data-operation="defer_review_session"');
@@ -888,7 +888,7 @@ describe("reference Review and Graph packets", () => {
 
     expect(markup).toContain("Reopen is unavailable");
     expect(markup).toContain("exact lifecycle is open");
-    expect(markup.match(/aria-disabled="true"/g)).toHaveLength(3);
+    expect(markup.match(/aria-disabled="true"/g)).toHaveLength(4);
     expect(markup).not.toContain('data-operation="reopen_review_session"');
     expect(markup).not.toContain("Reason for deciding later (optional)");
   });
@@ -908,7 +908,7 @@ describe("reference Review and Graph packets", () => {
     );
     expect(markup).toContain("Reopen review");
     expect(markup).toContain('data-operation="reopen_review_session"');
-    expect(markup.match(/aria-disabled="true"/g)).toHaveLength(2);
+    expect(markup.match(/aria-disabled="true"/g)).toHaveLength(3);
     expect(markup).not.toContain("Reason for deciding later (optional)");
   });
 

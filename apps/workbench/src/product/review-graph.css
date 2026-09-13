@@ -1276,3 +1276,25 @@
 .review-recovery ul {
   padding-inline-start: var(--petra-space-4);
 }
+
+.review-apply-preview,
+.review-apply-notice {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.review-apply-preview dl,
+.review-apply-notice dl {
+  display: block;
+}
+
+.review-apply-preview dd,
+.review-apply-notice dd {
+  min-width: 0;
+  margin-inline-start: var(--petra-space-3);
+}
+
+.review-apply-preview :is(ol, ul),
+.review-apply-notice :is(ol, ul) {
+  padding-inline-start: var(--petra-space-4);
+}

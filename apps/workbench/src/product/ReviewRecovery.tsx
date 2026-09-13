@@ -25,7 +25,11 @@ export const reviewRecoveryFailure = (error: unknown): string => {
 const label = (value: string): string => value.replaceAll("_", " ");
 
 /** Lossless textual disclosure of supplied observations; never interprets eligibility. */
-const Observation = ({ value }: { value: unknown }): React.JSX.Element => {
+export const Observation = ({
+  value,
+}: {
+  value: unknown;
+}): React.JSX.Element => {
   if (Array.isArray(value))
     return value.length === 0 ? (
       <span>None supplied</span>
