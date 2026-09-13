@@ -6,7 +6,7 @@ import type {
   PetraEvidenceProposalBundle,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { buildDeterministicEvidenceProposalBundle } from "../src/deterministic-evidence-extraction.js";
 import { admitEvidenceProposalBundle } from "../src/evidence-proposal-admission.js";
@@ -93,6 +93,137 @@ const decisionPlan = (
   });
 
 describe("evidence review projection and commands", () => {
+  it.each([
+    ["submitted", "command_id"],
+    ["submitted", "change_set_id"],
+    ["submitted", "change_set_state"],
+    ["approval_recorded", "command_id"],
+    ["approval_recorded", "change_set_id"],
+    ["approval_recorded", "approval_id"],
+    ["approval_recorded", "change_set_state"],
+    ["applied", "command_id"],
+    ["applied", "change_set_id"],
+    ["applied", "approval_id"],
+    ["applied", "change_set_state"],
+    ["applied", "claim_id"],
+    ["applied", "claim_revision"],
+    ["applied", "assertion_id"],
+    ["applied", "assertion_revision"],
+    ["applied", "applied_at"],
+  ])(
+    "stops on a mismatched %s %s without claiming no effect",
+    async (outcome, field) => {
+      const { registry, candidate } = setup();
+      const plan = decisionPlan(candidate, "accepted");
+      const executeCommand = vi.fn(
+        (envelope: Parameters<typeof registry.executeCommand>[0]) => {
+          const result = registry.executeCommand(envelope);
+          return result.outcome === outcome
+            ? {
+                ...result,
+                [field]: field.endsWith("revision") ? 99 : "mismatched",
+              }
+            : result;
+        },
+      );
+      await expect(
+        executeReviewDecisionPlan({ executeCommand }, plan),
+      ).rejects.toMatchObject({
+        code: "REVIEW_COMMAND_RESULT_MISMATCH",
+        message: expect.stringContaining("may have taken effect") as unknown,
+      });
+      expect(executeCommand).toHaveBeenCalledTimes(
+        outcome === "submitted" ? 1 : outcome === "approval_recorded" ? 2 : 3,
+      );
+      expect(registry.getChangeSetState(plan.change_set.change_set_id)).toBe(
+        outcome === "submitted"
+          ? "submitted"
+          : outcome === "approval_recorded"
+            ? "approved"
+            : "applied",
+      );
+      // Reconciliation through the same owning idempotency contract returns the
+      // retained prefix and completes only the commands that did not run.
+      const reconciled = await executeReviewDecisionPlan(registry, plan);
+      expect(reconciled.outcome).toBe("applied");
+      expect(registry.getEvents()).toHaveLength(3);
+      expect(registry.getClaim(candidate.claim.claim_id)?.revision).toBe(2);
+    },
+  );
+
+  it("never reports rejection from an approval result for another decision", async () => {
+    const { registry, candidate } = setup();
+    const plan = decisionPlan(candidate, "rejected");
+    await expect(
+      executeReviewDecisionPlan(
+        {
+          executeCommand: (envelope) => {
+            const result = registry.executeCommand(envelope);
+            return result.outcome === "approval_recorded"
+              ? { ...result, change_set_state: "approved" }
+              : result;
+          },
+        },
+        plan,
+      ),
+    ).rejects.toMatchObject({ code: "REVIEW_COMMAND_RESULT_MISMATCH" });
+    expect(registry.getClaim(candidate.claim.claim_id)?.authority.zone).toBe(
+      "quarantine",
+    );
+  });
+
+  it.each(["submit", "approval", "apply", "partial", "rejected_with_apply"])(
+    "rejects a rebound or incomplete %s plan before sending any command",
+    async (fault) => {
+      const { registry, candidate } = setup();
+      const plan = structuredClone(decisionPlan(candidate, "accepted"));
+      if (fault === "submit") plan.submit.project_id = "project_mismatch";
+      if (
+        fault === "approval" &&
+        plan.review.command.command_name === "RecordApproval"
+      ) {
+        plan.review.command.approval.subject.change_set_content_hash =
+          "sha256:mismatch";
+      }
+      if (
+        fault === "apply" &&
+        plan.apply?.command.command_name === "ApplyChangeSet"
+      ) {
+        plan.apply.command.approval_id = "approval_mismatch";
+      }
+      if (fault === "partial") plan.change_set.content.operations.pop();
+      const input =
+        fault === "rejected_with_apply"
+          ? { ...plan, decision: "rejected" as const }
+          : plan;
+      const executeCommand = vi.fn(registry.executeCommand.bind(registry));
+      await expect(
+        executeReviewDecisionPlan({ executeCommand }, input),
+      ).rejects.toMatchObject({
+        code: "REVIEW_COMMAND_PLAN_MISMATCH",
+      });
+      expect(executeCommand).not.toHaveBeenCalled();
+      expect(registry.getEvents()).toHaveLength(0);
+    },
+  );
+
+  it("captures the exact plan before an executor yields", async () => {
+    const { registry, candidate } = setup();
+    const plan = structuredClone(decisionPlan(candidate, "accepted"));
+    const applyId = plan.apply?.command_id;
+    const executeCommand = vi.fn(
+      async (envelope: Parameters<typeof registry.executeCommand>[0]) => {
+        await Promise.resolve();
+        if (plan.apply !== undefined) plan.apply.command_id = "command_rebound";
+        return registry.executeCommand(envelope);
+      },
+    );
+    await expect(
+      executeReviewDecisionPlan({ executeCommand }, plan),
+    ).resolves.toMatchObject({ outcome: "applied" });
+    expect(executeCommand.mock.calls[2]?.[0].command_id).toBe(applyId);
+  });
+
   it("shows source, scope, origin, and validation in one immutable review item", () => {
     const { source, proposal, admission } = setup();
 
@@ -243,98 +374,126 @@ describe("evidence review projection and commands", () => {
     });
   });
 
-  it("continues a review batch when one independent member is stale", async () => {
-    const source = readFixture<PetraDocumentParseBundle>(
-      "document-parse-bundle",
-    );
-    const claim = readFixture<PetraClaim>("claim");
-    const proposal = buildDeterministicEvidenceProposalBundle(source, {
-      recipe_name: "petra-review-batch-test",
-      recipe_version: "1.0.0",
-      project_id: PROJECT,
-      created_by: claim.created_by,
-      created_at: "2026-08-28T18:12:00.000Z",
-      candidates: [
-        {
-          candidate_key: "first",
-          proposal_role: "primary",
-          source: {
-            selection_kind: "exact_text",
-            exact_text: "The study reports a measurable improvement.",
-            page_number: 1,
+  it.each(["stale", "mismatched_result"])(
+    "retains independent batch outcomes after %s",
+    async (failure) => {
+      const source = readFixture<PetraDocumentParseBundle>(
+        "document-parse-bundle",
+      );
+      const claim = readFixture<PetraClaim>("claim");
+      const proposal = buildDeterministicEvidenceProposalBundle(source, {
+        recipe_name: "petra-review-batch-test",
+        recipe_version: "1.0.0",
+        project_id: PROJECT,
+        created_by: claim.created_by,
+        created_at: "2026-08-28T18:12:00.000Z",
+        candidates: [
+          {
+            candidate_key: "first",
+            proposal_role: "primary",
+            source: {
+              selection_kind: "exact_text",
+              exact_text: "The study reports a measurable improvement.",
+              page_number: 1,
+            },
+            canonical_text: "The study reports a measurable improvement.",
+            claim_kind: "descriptive",
+            scope: claim.scope,
+            detail_level: "detailed",
+            source_stance: "reports",
+            attribution: "The study authors",
+            modality: "asserted",
+            negated: false,
           },
-          canonical_text: "The study reports a measurable improvement.",
-          claim_kind: "descriptive",
-          scope: claim.scope,
-          detail_level: "detailed",
-          source_stance: "reports",
-          attribution: "The study authors",
-          modality: "asserted",
-          negated: false,
-        },
-        {
-          candidate_key: "second",
-          proposal_role: "qualification",
-          source: {
-            selection_kind: "exact_text",
-            exact_text: "The study reports a measurable improvement.",
-            page_number: 1,
+          {
+            candidate_key: "second",
+            proposal_role: "qualification",
+            source: {
+              selection_kind: "exact_text",
+              exact_text: "The study reports a measurable improvement.",
+              page_number: 1,
+            },
+            canonical_text:
+              "The reported improvement is scoped to the study-defined evaluation.",
+            claim_kind: "descriptive",
+            scope: claim.scope,
+            detail_level: "detailed",
+            source_stance: "qualifies",
+            attribution: "The study authors",
+            modality: "asserted",
+            negated: false,
           },
-          canonical_text:
-            "The reported improvement is scoped to the study-defined evaluation.",
-          claim_kind: "descriptive",
-          scope: claim.scope,
-          detail_level: "detailed",
-          source_stance: "qualifies",
-          attribution: "The study authors",
-          modality: "asserted",
-          negated: false,
+        ],
+      });
+      const registry = evidenceRegistry(source);
+      const admission = admitEvidenceProposalBundle(proposal, source, registry);
+      expect(admission.admitted_count).toBe(2);
+      const first = proposal.content.candidates[0];
+      const second = proposal.content.candidates[1];
+      if (second === undefined) throw new Error("Bad batch fixture");
+      const stalePlan = decisionPlan(first, "accepted", 16);
+      const independentPlan = decisionPlan(second, "accepted", 17);
+      if (failure === "stale") {
+        await executeReviewDecisionPlan(
+          registry,
+          decisionPlan(
+            first,
+            "accepted",
+            18,
+            "A competing decision promotes this pair first.",
+          ),
+        );
+      }
+
+      const result = await executeReviewBatch(
+        {
+          executeCommand: (envelope) => {
+            const result = registry.executeCommand(envelope);
+            return failure === "mismatched_result" &&
+              result.outcome === "applied" &&
+              result.change_set_id === stalePlan.change_set.change_set_id
+              ? { ...result, assertion_revision: 999 }
+              : result;
+          },
         },
-      ],
-    });
-    const registry = evidenceRegistry(source);
-    const admission = admitEvidenceProposalBundle(proposal, source, registry);
-    expect(admission.admitted_count).toBe(2);
-    const first = proposal.content.candidates[0];
-    const second = proposal.content.candidates[1];
-    if (second === undefined) throw new Error("Bad batch fixture");
-    const stalePlan = decisionPlan(first, "accepted", 16);
-    const independentPlan = decisionPlan(second, "accepted", 17);
-    await executeReviewDecisionPlan(
-      registry,
-      decisionPlan(
-        first,
-        "accepted",
-        18,
-        "A competing decision promotes this pair first.",
-      ),
-    );
+        [stalePlan, independentPlan],
+      );
 
-    const result = await executeReviewBatch(registry, [
-      stalePlan,
-      independentPlan,
-    ]);
-
-    expect(result).toMatchObject({
-      member_count: 2,
-      applied_count: 1,
-      failed_count: 1,
-    });
-    expect(result.members).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          candidate_id: first.candidate_id,
-          outcome: "failed",
-          error_code: "STALE_TARGET_REVISION",
-        }),
-        expect.objectContaining({
-          candidate_id: second.candidate_id,
-          outcome: "applied",
-        }),
-      ]),
-    );
-    expect(registry.getClaim(second.claim.claim_id)?.authority.zone).toBe(
-      "trusted",
-    );
-  });
+      expect(result).toMatchObject({
+        member_count: 2,
+        applied_count: 1,
+        failed_count: 1,
+      });
+      expect(result.members).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            candidate_id: first.candidate_id,
+            outcome: "failed",
+            error_code:
+              failure === "stale"
+                ? "STALE_TARGET_REVISION"
+                : "REVIEW_COMMAND_RESULT_MISMATCH",
+          }),
+          expect.objectContaining({
+            candidate_id: second.candidate_id,
+            outcome: "applied",
+          }),
+        ]),
+      );
+      expect(registry.getClaim(second.claim.claim_id)?.authority.zone).toBe(
+        "trusted",
+      );
+      if (failure === "mismatched_result") {
+        // A failed result check is not evidence of no effect. Both operations
+        // remain committed, and the independent ChangeSet also completed.
+        expect(result.members[0]).toMatchObject({
+          message: expect.stringContaining("may have taken effect") as unknown,
+        });
+        expect(registry.getClaim(first.claim.claim_id)?.revision).toBe(2);
+        expect(
+          registry.getAssertion(first.assertion.assertion_id)?.revision,
+        ).toBe(2);
+      }
+    },
+  );
 });

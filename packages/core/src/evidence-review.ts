@@ -107,6 +107,17 @@ export interface ReviewCommandExecutor {
   ): ChangeControlCommandResult | Promise<ChangeControlCommandResult>;
 }
 
+export class EvidenceReviewExecutionError extends Error {
+  constructor(
+    readonly code:
+      "REVIEW_COMMAND_PLAN_MISMATCH" | "REVIEW_COMMAND_RESULT_MISMATCH",
+    message: string,
+  ) {
+    super(message);
+    this.name = "EvidenceReviewExecutionError";
+  }
+}
+
 export interface CompensatingReversalCommandPlan {
   readonly change_set: PetraChangeSetV110;
   readonly submit: PetraCommandEnvelopeV110;
@@ -836,12 +847,81 @@ export const executeReviewDecisionPlan = async (
   executor: ReviewCommandExecutor,
   plan: ReviewDecisionCommandPlan,
 ): Promise<ReviewDecisionExecutionResult> => {
-  await executor.executeCommand(plan.submit);
+  // Capture one immutable input before yielding to an external executor.
+  plan = immutableCopy(plan);
+  const changeSet = plan.change_set;
+  const approvalCommand = plan.review.command;
+  const applyCommand = plan.apply?.command;
+  const claim = changeSet.content.operations.find(
+    (operation) => operation.operation_kind === "promote_claim",
+  );
+  const assertion = changeSet.content.operations.find(
+    (operation) => operation.operation_kind === "promote_assertion",
+  );
+  const expectedState = plan.decision === "accepted" ? "approved" : "rejected";
+  if (
+    canonicalHash(changeSet.content) !== changeSet.content_hash ||
+    changeSet.content.operations.length !== 2 ||
+    claim === undefined ||
+    assertion === undefined ||
+    plan.submit.command.command_name !== "SubmitChangeSet" ||
+    canonicalize(plan.submit.command.change_set) !== canonicalize(changeSet) ||
+    [
+      plan.submit,
+      plan.review,
+      ...(plan.apply === undefined ? [] : [plan.apply]),
+    ].some(
+      (envelope) => envelope.project_id !== changeSet.content.project_id,
+    ) ||
+    approvalCommand.command_name !== "RecordApproval" ||
+    approvalCommand.approval.subject.change_set_id !==
+      changeSet.change_set_id ||
+    approvalCommand.approval.subject.change_set_revision !==
+      changeSet.revision ||
+    approvalCommand.approval.subject.change_set_content_hash !==
+      changeSet.content_hash ||
+    approvalCommand.approval.decision !== expectedState ||
+    canonicalize(approvalCommand.approval.decided_by) !==
+      canonicalize(plan.review.actor) ||
+    (plan.decision === "rejected"
+      ? plan.apply !== undefined
+      : applyCommand?.command_name !== "ApplyChangeSet" ||
+        applyCommand.change_set_id !== changeSet.change_set_id ||
+        applyCommand.change_set_revision !== changeSet.revision ||
+        applyCommand.change_set_content_hash !== changeSet.content_hash ||
+        applyCommand.approval_id !== approvalCommand.approval.approval_id ||
+        applyCommand.approval_revision !== approvalCommand.approval.revision ||
+        canonicalize(plan.apply?.actor) !== canonicalize(plan.review.actor))
+  ) {
+    throw new EvidenceReviewExecutionError(
+      "REVIEW_COMMAND_PLAN_MISMATCH",
+      "The Review plan must bind one complete scientific promotion ChangeSet and its exact decision and commands. No command was sent.",
+    );
+  }
+  const mismatch = (): never => {
+    throw new EvidenceReviewExecutionError(
+      "REVIEW_COMMAND_RESULT_MISMATCH",
+      "The command result does not match the exact Review plan. A command may have taken effect; reconcile canonical command and event records before another attempt.",
+    );
+  };
+  const submitted = await executor.executeCommand(plan.submit);
+  if (
+    submitted.outcome !== "submitted" ||
+    submitted.command_id !== plan.submit.command_id ||
+    submitted.change_set_id !== changeSet.change_set_id ||
+    submitted.change_set_state !== "submitted"
+  )
+    mismatch();
   const review = await executor.executeCommand(plan.review);
+  if (
+    review.outcome !== "approval_recorded" ||
+    review.command_id !== plan.review.command_id ||
+    review.change_set_id !== changeSet.change_set_id ||
+    review.change_set_state !== expectedState ||
+    review.approval_id !== approvalCommand.approval.approval_id
+  )
+    return mismatch();
   if (plan.decision === "rejected") {
-    if (review.outcome !== "approval_recorded") {
-      throw new Error("Review command did not record its rejection.");
-    }
     return immutableCopy({
       outcome: "rejected",
       candidate_id: plan.candidate_id,
@@ -853,9 +933,19 @@ export const executeReviewDecisionPlan = async (
     throw new Error("An accepted review plan is missing ApplyChangeSet.");
   }
   const applied = await executor.executeCommand(plan.apply);
-  if (applied.outcome !== "applied") {
-    throw new Error("ApplyChangeSet did not return an applied result.");
-  }
+  if (
+    applied.outcome !== "applied" ||
+    applied.command_id !== plan.apply.command_id ||
+    applied.change_set_id !== changeSet.change_set_id ||
+    applied.change_set_state !== "applied" ||
+    applied.approval_id !== approvalCommand.approval.approval_id ||
+    applied.claim_id !== claim.target_id ||
+    applied.claim_revision !== claim.base_revision + 1 ||
+    applied.assertion_id !== assertion.target_id ||
+    applied.assertion_revision !== assertion.base_revision + 1 ||
+    applied.applied_at !== plan.apply.submitted_at
+  )
+    return mismatch();
   return immutableCopy({
     outcome: "applied",
     candidate_id: plan.candidate_id,
