@@ -186,6 +186,79 @@ report authority.
   complete textual parity, keyboard/focus behavior, text scaling, touch,
   forced colors, reduced motion, and non-color meaning.
 
+## Fixed closure sequence after slice 39
+
+The verified anchors are backend `eb5cbbe0179d6b1b52069861a14498648e4fdb10`
+and design `99ddbb0ef53e9545a208385ebe323de3f474576e`. Finish the wave in
+the following order. Each numbered item is one bounded worker slice. Do not
+rediscover the order, combine adjacent items, or pull a later proof into an
+earlier implementation slice.
+
+40. **Design — communication consistency closeout.** Reproduce the exact
+    typed-client rejection of resealed family, order, key, and action-report
+    contradictions. Confirm that valid complete and partial-preservation plans
+    remain readable with the full-language receipt blocked. Commit one
+    conformance report and authorize only the later communication presentation
+    slice if the prerequisite passes.
+41. **Backend — controlled-writing working-state adapter.** Add installed,
+    versioned controlled-writing Requirement and governing-relationship
+    contracts with real registry hashes. Admit and query their exact records
+    through the existing WorkingCandidate and WorkingRelationship persistence
+    and snapshot owners. Keep them non-authoritative; do not add writing Apply
+    or reuse Claim/Assertion semantics. Prove direct and model-mediated reads
+    converge on each exact stored identity while human and model producer
+    provenance stays distinct on a fresh PostgreSQL store.
+42. **Design — communication presentation.** Map the validated scientific
+    CommunicationPlan through the frozen workbench using the production typed
+    client. Preserve ordered families, exact references, partial preservation,
+    blocked validation, source/current delivery, action outcome, limitations,
+    and textual parity. Run browser keyboard, focus, touch, 200% text, forced
+    colors, and reduced-motion checks. Do not turn a blocked receipt into an
+    ordinary validated answer.
+43. **Backend — paired-profile Review composition.** Compose the registered
+    controlled-writing candidate and governing relationship through the same
+    durable ReviewSession kernel used by the scientific member. Generalize only
+    registration and reference resolution needed for the read. Do not invent a
+    writing mutation command, ChangeSet operation, approval, or Apply path.
+    Prove scientific and writing semantics stay distinct on a fresh store.
+44. **Design — paired-profile working and Review mapping.** Run both registered
+    ProjectDefinitions through the production working-graph/textual-peer and
+    Review renderers. Use definition-resolved terms and generic fallbacks; keep
+    shared selection, warning, decision, status, authority, and recovery meaning
+    unchanged. Record browser and accessibility evidence without claiming a
+    controlled-writing Apply path.
+45. **Backend — cumulative live exit trace.** On fresh stores, exercise the
+    production server routes and typed clients for one scientific human- or
+    model-produced candidate from admission through working overlay, resumable
+    Review, exact manual checkpoint Apply, resulting Brief, and retained History.
+    Prove direct and model-mediated identity convergence, exact durable
+    cardinalities, provenance, restart replay, independent member outcomes, and
+    absence of duplicate effects. Include the controlled-writing
+    candidate-to-Review path as paired-profile evidence; stop before Apply.
+46. **Design — cumulative production browser trace.** Exercise the frozen
+    workbench against the production clients/controllers and live server-route
+    responses for the cumulative trace, with no fixture fallback on the
+    demonstrated path. Cover ordinary and exception Review, partial outcomes,
+    return/focus, complete textual parity, keyboard, touch, text scaling, forced
+    colors, reduced motion, and non-color meaning. State the exact browser/server
+    transport boundary.
+47. **Backend — final adversarial authority audit.** Review the cumulative
+    evidence for implicit authority, lost provenance, cross-Project leakage,
+    duplicate ledgers/effects, stale replay, scientific hard-coding, fixture
+    fallback, and unsupported completeness. Fix material backend findings only.
+    Rerun the complete gate and fresh PostgreSQL integration. Hand off a precise
+    closure assessment; do not declare completion if a required proof is absent.
+48. **Design — final UX, Felicity, and exit audit.** Re-run the material browser
+    checks, inspect every Wave 4 report and user-facing claim with Felicity, and
+    verify the authoritative exit trace against `UX1.4-EV01`–`EV06`. Fix material
+    design findings only. Declare `wave_complete` only when both branches are
+    pushed, the exact exit gate is live, and every remaining limitation belongs
+    to later-wave scope rather than this wave.
+
+If a slice finishes without changing its role-owned files, commit its required
+conformance or evidence report. The report must name exact commits, executed
+checks, and limits; it must not serve as a substitute for an unexecuted proof.
+
 ## Stop conditions
 
 Return `needs_user` instead of guessing when a choice would change product
