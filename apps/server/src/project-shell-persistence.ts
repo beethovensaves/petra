@@ -1,3 +1,5 @@
+import { PostgresCommunicationPlanReader } from "@petra/postgres";
+import type { CommunicationPlanReader } from "@petra/core";
 import { PostgresProjectBriefViewReader } from "@petra/postgres";
 import type { ProjectBriefViewReader } from "@petra/core";
 import {
@@ -64,6 +66,7 @@ import { parsePetraId } from "@petra/core";
 const { Pool } = pg;
 
 export interface ProjectShellPersistence {
+  readonly communicationPlans?: CommunicationPlanReader;
   readonly briefViews: ProjectBriefViewReader;
   readonly views: ProjectShellViewReader;
   readonly effectiveControls: ProjectEffectiveControlsViewReader;
@@ -306,6 +309,10 @@ export const createProjectShellPersistenceFromEnvironment = async (
       return {
         views: new PostgresProjectShellViewReader(pool),
         briefViews: new PostgresProjectBriefViewReader(pool, contracts),
+        communicationPlans: new PostgresCommunicationPlanReader(
+          pool,
+          contracts,
+        ),
         effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
         historyViews,
         historyCompensationExecution,
@@ -388,6 +395,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
   return {
     views: new PostgresProjectShellViewReader(pool),
     briefViews: new PostgresProjectBriefViewReader(pool, contracts),
+    communicationPlans: new PostgresCommunicationPlanReader(pool, contracts),
     effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
     historyViews,
     historyCompensationExecution,

@@ -48,3 +48,4 @@ export * from "./review-recovery-assessment-reader.js";
 export * from "./review-session-apply.js";
 
 export * from "./project-brief-view-reader.js";
+export * from "./communication-plan-reader.js";

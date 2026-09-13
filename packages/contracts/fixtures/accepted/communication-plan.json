@@ -1,0 +1,1377 @@
+{
+  "schema_name": "petra.communication-plan",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "composition_definition": {
+      "schema_name": "petra.project-definition",
+      "schema_version": "1.0.0",
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "definition_family": "petra.scientific-evidence",
+      "origin": {
+        "origin_kind": "project_authored"
+      },
+      "content": {
+        "label": "Scientific evidence inquiry",
+        "description": "Organizes research questions, claims, relationships, literature, review, and provenance without changing Petra's shared authority rules.",
+        "kernel_compatibility": "petra.project-kernel@1.0.0",
+        "registrations": [
+          {
+            "registration_kind": "objective_schema",
+            "semantic_key": "scientific.research-question",
+            "contract": {
+              "name": "petra.project-objective",
+              "version": "1.0.0",
+              "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          },
+          {
+            "registration_kind": "extension",
+            "semantic_key": "scientific.communication",
+            "contract": {
+              "name": "petra.scientific-communication-payload",
+              "version": "1.0.0",
+              "content_hash": "sha256:c32fbcc062c28b100babf7ca372a62d9eeb25fb7446f49b6491d8fab61d4882a"
+            }
+          },
+          {
+            "registration_kind": "terminology",
+            "semantic_key": "scientific.communication-terms",
+            "contract": {
+              "name": "petra.scientific-communication-payload",
+              "version": "1.0.0",
+              "content_hash": "sha256:c32fbcc062c28b100babf7ca372a62d9eeb25fb7446f49b6491d8fab61d4882a"
+            }
+          },
+          {
+            "registration_kind": "validator",
+            "semantic_key": "scientific.communication-resolution",
+            "contract": {
+              "name": "petra.scientific-communication-payload",
+              "version": "1.0.0",
+              "content_hash": "sha256:c32fbcc062c28b100babf7ca372a62d9eeb25fb7446f49b6491d8fab61d4882a"
+            }
+          },
+          {
+            "registration_kind": "output",
+            "semantic_key": "scientific.synthesis",
+            "contract": {
+              "name": "petra.model-synthesist-output",
+              "version": "1.0.0",
+              "content_hash": "sha256:c9feeb397df01f2772c81c53fd2edadf7154c836a273df87a8e47806b500164b"
+            }
+          },
+          {
+            "registration_kind": "extension",
+            "semantic_key": "petra.communication-invocation",
+            "contract": {
+              "name": "petra.suggested-action-invocation",
+              "version": "1.0.0",
+              "content_hash": "sha256:dc5c0b6719f08f2b8ecae0509d845f70502247b61cc7300c2e48890bc0a9800c"
+            }
+          },
+          {
+            "registration_kind": "extension",
+            "semantic_key": "petra.communication-invocation-view",
+            "contract": {
+              "name": "petra.suggested-action-invocation-view",
+              "version": "1.0.0",
+              "content_hash": "sha256:f820c8fa92962fc0ea53eb16fc8d9a8f99dad75a2c28c778d69f6430977cf302"
+            }
+          },
+          {
+            "registration_kind": "extension",
+            "semantic_key": "petra.communication-work",
+            "contract": {
+              "name": "petra.work-unit",
+              "version": "1.0.0",
+              "content_hash": "sha256:6009a3c4ec45df4f7073189f8ef111e59428392a9c8fec1ee14508aeca04c316"
+            }
+          },
+          {
+            "semantic_key": "scientific.claim",
+            "registration_kind": "object_schema",
+            "contract": {
+              "name": "petra.claim",
+              "version": "1.0.0",
+              "content_hash": "sha256:1cb1f7910202af21e0f8e610c0dcab605db50f8c8466a9c38f0acf69778db196"
+            }
+          },
+          {
+            "semantic_key": "scientific.assertion",
+            "registration_kind": "relationship_schema",
+            "contract": {
+              "name": "petra.assertion",
+              "version": "1.0.0",
+              "content_hash": "sha256:2c58656a9a93052112b26a9080c37811e570000de35d0f9240180da1742c8c91"
+            }
+          },
+          {
+            "semantic_key": "scientific.source-span",
+            "registration_kind": "object_schema",
+            "contract": {
+              "name": "petra.source-span",
+              "version": "1.0.0",
+              "content_hash": "sha256:c83b2cbb7c5d224f794f0fc9591edcfcef04fffdcd97e6ff0be07cd2f34db79d"
+            }
+          },
+          {
+            "semantic_key": "scientific.work-version",
+            "registration_kind": "object_schema",
+            "contract": {
+              "name": "petra.work-version",
+              "version": "1.0.0",
+              "content_hash": "sha256:3a7c3133086af08c3434b1a83243fda095e8a47adbbc69fd4bc4090ac423aca3"
+            }
+          },
+          {
+            "semantic_key": "scientific.grounded-response",
+            "registration_kind": "output",
+            "contract": {
+              "name": "petra.grounded-response",
+              "version": "1.0.0",
+              "content_hash": "sha256:f3124ac0fe817fcce8d2c9937d73d16a6aa0aa91c648016a019d964c4cba2e3a"
+            }
+          }
+        ],
+        "terms": [
+          {
+            "semantic_key": "scientific.research-question",
+            "singular": "Research question",
+            "plural": "Research questions",
+            "definition": "A bounded question the Project is trying to answer.",
+            "generic_family": "focus"
+          },
+          {
+            "semantic_key": "scientific.claim",
+            "singular": "Claim",
+            "plural": "Claims",
+            "definition": "A proposition with explicit scope, basis, and authority state.",
+            "generic_family": "finding"
+          },
+          {
+            "semantic_key": "scientific.literature",
+            "singular": "Source",
+            "plural": "Sources",
+            "definition": "A versioned and rights-governed basis available to the Project.",
+            "generic_family": "reference"
+          }
+        ],
+        "supported_places": [
+          "brief",
+          "sources",
+          "review",
+          "graph",
+          "work",
+          "petra",
+          "composition",
+          "history",
+          "settings"
+        ],
+        "omitted_flows": [
+          "External filesystem editing",
+          "Multi-user collaboration"
+        ]
+      },
+      "content_hash": "sha256:2fc93ea2c222a03ae2adc0a9c25ba5d5da10d8ff6116424aebb695cf2e86ea74",
+      "created_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "created_at": "2026-09-08T14:00:00.000Z"
+    },
+    "source_response": {
+      "schema_name": "petra.grounded-response",
+      "schema_version": "1.0.0",
+      "grounded_response_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+      "revision": 1,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "lineage": {
+        "lineage_kind": "root"
+      },
+      "content": {
+        "response_artifact_ref": {
+          "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+          "content_hash": "sha256:a3e333de83c3db20f94853d7e125356afd6ef02991687e47803f64a0e6eb3758",
+          "byte_size": 143,
+          "media_type": "text/markdown; charset=utf-8"
+        },
+        "context_packet_ref": {
+          "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+          "revision": 1,
+          "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df"
+        },
+        "evidence_packet_ref": {
+          "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+          "revision": 1,
+          "content_hash": "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64"
+        },
+        "snapshot_ref": {
+          "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+          "snapshot_revision": 1,
+          "event_position": 3,
+          "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "execution_ref": {
+          "model_request_id": "model_request_01ARZ3NDEKTSV4RRFFQ69G5FE4",
+          "model_call_id": "model_call_01ARZ3NDEKTSV4RRFFQ69G5FE5",
+          "model_deployment_id": "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FE1",
+          "role_certification_id": "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FE0"
+        },
+        "interaction_ref": {
+          "interaction_run_ref": {
+            "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+            "revision": 1,
+            "content_hash": "sha256:02d27860e005264b03709b6ad7f5c71746bc0619315af040b08180fa1232f1ba"
+          },
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+            "revision": 4,
+            "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+          }
+        },
+        "dependencies": [
+          {
+            "dependency_role": "selected_evidence",
+            "object_ref": {
+              "object_kind": "claim",
+              "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "object_revision": 2,
+              "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+            }
+          },
+          {
+            "dependency_role": "selected_evidence",
+            "object_ref": {
+              "object_kind": "assertion",
+              "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "object_revision": 2,
+              "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+            }
+          },
+          {
+            "dependency_role": "selected_evidence",
+            "object_ref": {
+              "object_kind": "source_span",
+              "object_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+              "object_revision": 1,
+              "object_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+            }
+          }
+        ],
+        "model_output_hash": "sha256:a439054881abab4fc9d38f89626a6d724256f4fb9bb0efbf28be191707fee553",
+        "cache": {
+          "state": "reusable",
+          "cache_key": "grounded-response:v1:09ec617810a1abfd12105de41a10c3df428f3ae70f6e434a34898ab0bbe35047",
+          "checked_at": "2026-09-04T02:00:00.000Z"
+        },
+        "terminal": {
+          "state": "completed",
+          "persisted_at": "2026-09-04T02:00:00.000Z",
+          "authority_effect": "none"
+        }
+      },
+      "content_hash": "sha256:59e03b7a47be051a3881e37dc451451835885902286646527c22e127c50d6d0b",
+      "recorded_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "service"
+      },
+      "recorded_at": "2026-09-04T02:00:00.000Z"
+    },
+    "current_response": {
+      "schema_name": "petra.grounded-response",
+      "schema_version": "1.0.0",
+      "grounded_response_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+      "revision": 1,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "lineage": {
+        "lineage_kind": "root"
+      },
+      "content": {
+        "response_artifact_ref": {
+          "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+          "content_hash": "sha256:a3e333de83c3db20f94853d7e125356afd6ef02991687e47803f64a0e6eb3758",
+          "byte_size": 143,
+          "media_type": "text/markdown; charset=utf-8"
+        },
+        "context_packet_ref": {
+          "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+          "revision": 1,
+          "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df"
+        },
+        "evidence_packet_ref": {
+          "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+          "revision": 1,
+          "content_hash": "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64"
+        },
+        "snapshot_ref": {
+          "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+          "snapshot_revision": 1,
+          "event_position": 3,
+          "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "execution_ref": {
+          "model_request_id": "model_request_01ARZ3NDEKTSV4RRFFQ69G5FE4",
+          "model_call_id": "model_call_01ARZ3NDEKTSV4RRFFQ69G5FE5",
+          "model_deployment_id": "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FE1",
+          "role_certification_id": "role_certification_01ARZ3NDEKTSV4RRFFQ69G5FE0"
+        },
+        "interaction_ref": {
+          "interaction_run_ref": {
+            "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+            "revision": 1,
+            "content_hash": "sha256:02d27860e005264b03709b6ad7f5c71746bc0619315af040b08180fa1232f1ba"
+          },
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+            "revision": 4,
+            "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+          }
+        },
+        "dependencies": [
+          {
+            "dependency_role": "selected_evidence",
+            "object_ref": {
+              "object_kind": "claim",
+              "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "object_revision": 2,
+              "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+            }
+          },
+          {
+            "dependency_role": "selected_evidence",
+            "object_ref": {
+              "object_kind": "assertion",
+              "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "object_revision": 2,
+              "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+            }
+          },
+          {
+            "dependency_role": "selected_evidence",
+            "object_ref": {
+              "object_kind": "source_span",
+              "object_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+              "object_revision": 1,
+              "object_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+            }
+          }
+        ],
+        "model_output_hash": "sha256:a439054881abab4fc9d38f89626a6d724256f4fb9bb0efbf28be191707fee553",
+        "cache": {
+          "state": "reusable",
+          "cache_key": "grounded-response:v1:09ec617810a1abfd12105de41a10c3df428f3ae70f6e434a34898ab0bbe35047",
+          "checked_at": "2026-09-04T02:00:00.000Z"
+        },
+        "terminal": {
+          "state": "completed",
+          "persisted_at": "2026-09-04T02:00:00.000Z",
+          "authority_effect": "none"
+        }
+      },
+      "content_hash": "sha256:59e03b7a47be051a3881e37dc451451835885902286646527c22e127c50d6d0b",
+      "recorded_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "service"
+      },
+      "recorded_at": "2026-09-04T02:00:00.000Z"
+    },
+    "context_packet": {
+      "schema_name": "petra.context-packet",
+      "schema_version": "1.0.0",
+      "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+      "revision": 1,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "snapshot_ref": {
+        "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+        "snapshot_revision": 1,
+        "event_position": 3,
+        "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "recipe_ref": {
+        "context_recipe_id": "context_recipe_01ARZ3NDEKTSV4RRFFQ69G5FCF",
+        "revision": 1,
+        "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "content": {
+        "objective": {
+          "objective_kind": "answer",
+          "statement": "What does the selected study report, and what limits the claim?",
+          "target_refs": [
+            {
+              "object_kind": "claim",
+              "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "object_revision": 2,
+              "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+            }
+          ]
+        },
+        "included_objects": [
+          {
+            "selection_order": 1,
+            "object_ref": {
+              "object_kind": "claim",
+              "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "object_revision": 2,
+              "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+            },
+            "evidence_roles": ["relevant", "supporting"],
+            "authority": {
+              "zone": "trusted",
+              "review_state": "human_accepted"
+            },
+            "source_access": "full_text_analyzed",
+            "source_span_refs": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+            "selection": {
+              "route": "deterministic_graph",
+              "rank": 1,
+              "score": "1.0",
+              "reason": "The Claim is the explicit target of the objective."
+            },
+            "estimated_tokens": 120
+          },
+          {
+            "selection_order": 2,
+            "object_ref": {
+              "object_kind": "assertion",
+              "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "object_revision": 2,
+              "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+            },
+            "evidence_roles": ["supporting"],
+            "authority": {
+              "zone": "trusted",
+              "review_state": "human_accepted"
+            },
+            "source_access": "full_text_analyzed",
+            "source_span_refs": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+            "selection": {
+              "route": "graph_expansion",
+              "rank": 2,
+              "score": "1.0",
+              "reason": "The trusted ASSERTS relation connects the WorkVersion to the target Claim."
+            },
+            "estimated_tokens": 80
+          },
+          {
+            "selection_order": 3,
+            "object_ref": {
+              "object_kind": "source_span",
+              "object_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+              "object_revision": 1,
+              "object_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+            },
+            "evidence_roles": ["source_location"],
+            "authority": {
+              "zone": "source_record",
+              "review_state": "not_applicable"
+            },
+            "source_access": "full_text_structured",
+            "source_span_refs": [],
+            "selection": {
+              "route": "deterministic_graph",
+              "rank": 3,
+              "reason": "The SourceSpan grounds both selected scientific records."
+            },
+            "estimated_tokens": 60
+          }
+        ],
+        "omissions": [
+          {
+            "omission_kind": "search_boundary",
+            "boundary": "No new literature discovery was performed for this packet.",
+            "reason": "not_retrieved",
+            "material": true,
+            "detail": "The packet describes the selected Project snapshot, not the full literature."
+          }
+        ],
+        "coverage": {
+          "state": "bounded",
+          "statement": "Coverage is limited to the selected Claim and its recorded source path.",
+          "contrary_evidence_checked": true
+        },
+        "budget": {
+          "max_input_tokens": 2000,
+          "max_objects": 10,
+          "max_source_spans": 5,
+          "estimated_input_tokens": 260,
+          "included_object_count": 3,
+          "included_source_span_count": 1,
+          "truncated": false
+        },
+        "dependencies": [
+          {
+            "dependency_kind": "schema",
+            "name": "petra.context-packet",
+            "version": "1.0.0",
+            "content_hash": "sha256:a15938cf28bc5c14ecb51807f38fc03eaa5070393285f25a80c83baeb4c6efd7"
+          },
+          {
+            "dependency_kind": "projection",
+            "name": "petra.authority_graph",
+            "version": "1.0.0",
+            "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ]
+      },
+      "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df",
+      "compiled_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "service"
+      },
+      "compiled_at": "2026-08-29T15:00:00.000Z"
+    },
+    "evidence_packet": {
+      "schema_name": "petra.evidence-packet",
+      "schema_version": "1.0.0",
+      "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+      "revision": 1,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "snapshot_ref": {
+        "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+        "snapshot_revision": 1,
+        "event_position": 3,
+        "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "content": {
+        "context_packet_ref": {
+          "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+          "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df"
+        },
+        "composition_objective": "Explain the selected study report while preserving its recorded scope and evidence boundary.",
+        "temporal_perspective": {
+          "perspective": "current",
+          "as_of": "2026-08-29T15:00:01.000Z"
+        },
+        "selected_evidence": [
+          {
+            "context_selection_order": 1,
+            "object_ref": {
+              "object_kind": "claim",
+              "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "object_revision": 2,
+              "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+            },
+            "bearing": "supporting",
+            "source_span_selection_orders": [3],
+            "inclusion_reason": "This is the scoped proposition the composition will describe.",
+            "use_limitations": [
+              "Do not generalize beyond the study-defined task and reported outcome."
+            ]
+          },
+          {
+            "context_selection_order": 2,
+            "object_ref": {
+              "object_kind": "assertion",
+              "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "object_revision": 2,
+              "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+            },
+            "bearing": "supporting",
+            "source_span_selection_orders": [3],
+            "inclusion_reason": "The Assertion records that the exact WorkVersion reports the Claim.",
+            "use_limitations": [
+              "The trusted relation represents reviewed source attribution, not independent proof that the Claim is true."
+            ]
+          },
+          {
+            "context_selection_order": 3,
+            "object_ref": {
+              "object_kind": "source_span",
+              "object_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+              "object_revision": 1,
+              "object_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+            },
+            "bearing": "background",
+            "source_span_selection_orders": [3],
+            "inclusion_reason": "This is the inspectable source location for the selected Claim and Assertion.",
+            "use_limitations": []
+          }
+        ],
+        "exclusions": [],
+        "coverage": {
+          "state": "complete_for_context",
+          "statement": "Every object in the bounded ContextPacket is accounted for; this is not a claim of literature completeness.",
+          "contrary_evidence_status": "checked_none_in_context",
+          "qualifying_evidence_status": "checked_none_in_context"
+        },
+        "freshness": {
+          "state": "current_for_snapshot",
+          "checked_at": "2026-08-29T15:00:01.000Z"
+        }
+      },
+      "content_hash": "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64",
+      "compiled_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "service"
+      },
+      "compiled_at": "2026-08-29T15:00:01.000Z"
+    },
+    "model_call": {
+      "schema_name": "petra.model-call",
+      "schema_version": "1.1.0",
+      "model_call_id": "model_call_01ARZ3NDEKTSV4RRFFQ69G5FE5",
+      "revision": 1,
+      "content": {
+        "model_request_id": "model_request_01ARZ3NDEKTSV4RRFFQ69G5FE4",
+        "attempt": 1,
+        "attempt_kind": "initial",
+        "deployment": {
+          "model_deployment_id": "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FE1",
+          "provider_id": "provider_01ARZ3NDEKTSV4RRFFQ69G5FE2",
+          "provider_kind": "fixture",
+          "provider_model": "petra-synthesist-fixture",
+          "observed_revision": "fixture-v1",
+          "replayability": "exact",
+          "endpoint_fingerprint": "sha256:abababababababababababababababababababababababababababababababab"
+        },
+        "prompt_profile": {
+          "name": "petra-grounded-synthesist",
+          "version": "1.0.0",
+          "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "parameters_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "output_contract": {
+          "schema_name": "model-synthesist-output",
+          "schema_version": "1.0.0",
+          "schema_hash": "sha256:c9feeb397df01f2772c81c53fd2edadf7154c836a273df87a8e47806b500164b"
+        },
+        "input": {
+          "context_packet_ref": {
+            "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+            "content_hash": "sha256:d78e5ebed5060507812eeeede6154f82e8f9bbfb19897bd8ade82909088432df"
+          },
+          "evidence_packet_ref": {
+            "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+            "content_hash": "sha256:e3d7679bec56bc80f2bbb9702398526ca69edac1c10836132efc365c36393d64"
+          },
+          "messages": [
+            {
+              "role": "system",
+              "content": "Synthesize only from the immutable EvidencePacket. Separate source reports, Petra synthesis, and unresolved inference."
+            },
+            {
+              "role": "user",
+              "content": "Explain the selected report and its recorded limits."
+            }
+          ],
+          "context_selections": [
+            {
+              "context_selection_order": 1,
+              "object_ref": {
+                "object_kind": "claim",
+                "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                "object_revision": 2,
+                "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+              },
+              "rendered_content": "Claim: The study reports a measurable improvement on its evaluation task.",
+              "source_span_selection_orders": [3]
+            },
+            {
+              "context_selection_order": 2,
+              "object_ref": {
+                "object_kind": "assertion",
+                "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                "object_revision": 2,
+                "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d"
+              },
+              "rendered_content": "Assertion: The selected WorkVersion ASSERTS the selected Claim.",
+              "source_span_selection_orders": [3]
+            },
+            {
+              "context_selection_order": 3,
+              "object_ref": {
+                "object_kind": "source_span",
+                "object_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                "object_revision": 1,
+                "object_hash": "sha256:4767af515647f5ae6602c3d54b813d2d226a8bcc9f333374a4e73e6aaa3ba565"
+              },
+              "rendered_content": "SourceSpan: The study reports a measurable improvement.",
+              "source_span_selection_orders": [3]
+            }
+          ],
+          "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "provider_request_id": "fixture-synthesis-1",
+        "outcome": "success",
+        "raw_output": {
+          "schema_name": "petra.model-synthesist-output",
+          "schema_version": "1.0.0",
+          "statements": [
+            {
+              "statement_key": "source_report_1",
+              "origin": "source_report",
+              "text": "The selected WorkVersion reports the bounded Claim.",
+              "evidence_refs": [
+                {
+                  "context_selection_order": 2,
+                  "object_kind": "assertion",
+                  "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                  "object_revision": 2,
+                  "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d",
+                  "source_span_selection_orders": [3]
+                }
+              ],
+              "limitations": [
+                "This is source attribution, not independent proof of truth."
+              ]
+            }
+          ],
+          "coverage": {
+            "state": "complete_for_context",
+            "statement": "Every selected context object is accounted for, but the packet is not literature-complete.",
+            "material_omissions_acknowledged": true,
+            "abstract_only_sources_used": false,
+            "contrary_evidence_status": "checked_none_in_context",
+            "qualifying_evidence_status": "checked_none_in_context"
+          }
+        },
+        "output": {
+          "schema_name": "petra.model-synthesist-output",
+          "schema_version": "1.0.0",
+          "statements": [
+            {
+              "statement_key": "source_report_1",
+              "origin": "source_report",
+              "text": "The selected WorkVersion reports the bounded Claim.",
+              "evidence_refs": [
+                {
+                  "context_selection_order": 2,
+                  "object_kind": "assertion",
+                  "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                  "object_revision": 2,
+                  "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d",
+                  "source_span_selection_orders": [3]
+                }
+              ],
+              "limitations": [
+                "This reports the source attribution represented by ASSERTS; it is not independent proof of truth."
+              ]
+            },
+            {
+              "statement_key": "synthesis_1",
+              "origin": "petra_synthesis",
+              "text": "Within the recorded context, the Claim is inspectably linked to the source passage.",
+              "evidence_refs": [
+                {
+                  "context_selection_order": 1,
+                  "object_kind": "claim",
+                  "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                  "object_revision": 2,
+                  "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa",
+                  "source_span_selection_orders": [3]
+                },
+                {
+                  "context_selection_order": 2,
+                  "object_kind": "assertion",
+                  "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                  "object_revision": 2,
+                  "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d",
+                  "source_span_selection_orders": [3]
+                }
+              ],
+              "limitations": [
+                "The ContextPacket did not perform new literature discovery."
+              ]
+            },
+            {
+              "statement_key": "unresolved_1",
+              "origin": "unresolved_inference",
+              "text": "Whether the reported relationship generalizes beyond the recorded scope remains unresolved.",
+              "evidence_refs": [],
+              "limitations": [
+                "No generalization evidence is present in the packet."
+              ],
+              "resolution_requirement": "Retrieve and evaluate direct replication or external-validation evidence."
+            }
+          ],
+          "coverage": {
+            "state": "complete_for_context",
+            "statement": "Every selected context object is accounted for, but the packet is not literature-complete.",
+            "material_omissions_acknowledged": true,
+            "abstract_only_sources_used": false,
+            "contrary_evidence_status": "checked_none_in_context",
+            "qualifying_evidence_status": "checked_none_in_context"
+          }
+        },
+        "validation": [
+          {
+            "validator_name": "model-output-schema",
+            "validator_version": "1.0.0",
+            "outcome": "pass",
+            "code": "SCHEMA_VALID"
+          },
+          {
+            "validator_name": "grounded-synthesis",
+            "validator_version": "1.0.0",
+            "outcome": "pass",
+            "code": "EVIDENCE_REFS_RESOLVED"
+          }
+        ],
+        "timing": {
+          "queue_ms": 0,
+          "first_token_ms": 2,
+          "total_ms": 4,
+          "validation_ms": 1
+        },
+        "usage": {
+          "accounting": "provider_reported",
+          "input_tokens": 240,
+          "output_tokens": 120
+        },
+        "cost": {
+          "amount": "0",
+          "currency": "USD",
+          "accounting": "computed",
+          "pricing_source": "Local fixture deployment; no marginal token charge."
+        }
+      },
+      "content_hash": "sha256:8581f8c685402b056a59c43e91cdab68298e915643450b283e2467e716d2b459",
+      "started_at": "2026-09-03T18:31:00.000Z",
+      "completed_at": "2026-09-03T18:31:00.004Z"
+    },
+    "artifact": {
+      "schema_name": "petra.artifact",
+      "schema_version": "1.0.0",
+      "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FEA",
+      "revision": 1,
+      "artifact_kind": "pdf",
+      "media_type": "text/markdown; charset=utf-8",
+      "content_hash": "sha256:a3e333de83c3db20f94853d7e125356afd6ef02991687e47803f64a0e6eb3758",
+      "byte_size": 143,
+      "created_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "service"
+      },
+      "created_at": "2026-08-28T18:10:00.000Z"
+    },
+    "delivery": {
+      "schema_name": "petra.interaction-run",
+      "schema_version": "1.0.0",
+      "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+      "revision": 1,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "feature_manifest_ref": {
+        "interaction_feature_manifest_id": "interaction_feature_manifest_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+        "revision": 1,
+        "content_hash": "sha256:de62e60659942bb8bf1b2e9e3c3918f32075f2830631994aa380a211b28f77f7"
+      },
+      "lineage": {
+        "lineage_kind": "root"
+      },
+      "content": {
+        "correlation": {
+          "protocol_thread_id": "thread-m1-fixture",
+          "protocol_run_id": "run-m1-fixture",
+          "request_id": "request_01ARZ3NDEKTSV4RRFFQ69G5FDD",
+          "trace_id": "trace_01ARZ3NDEKTSV4RRFFQ69G5FDE",
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+            "revision": 1,
+            "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+          },
+          "model_request_id": "model_request_01ARZ3NDEKTSV4RRFFQ69G5FCV"
+        },
+        "authority_context": {
+          "actor": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAA",
+            "actor_kind": "human"
+          },
+          "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FDF",
+          "privacy_profile_ref": {
+            "record_id": "privacy_profile_01ARZ3NDEKTSV4RRFFQ69G5FDG",
+            "revision": 1,
+            "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "budget_profile_ref": {
+            "record_id": "budget_profile_01ARZ3NDEKTSV4RRFFQ69G5FDH",
+            "revision": 1,
+            "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          }
+        },
+        "input": {
+          "input_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "source_message_id": "user-message-m1-fixture"
+        },
+        "lifecycle": {
+          "state": "running",
+          "started_at": "2026-08-29T16:00:01.000Z"
+        },
+        "stream_head": {
+          "state": "empty",
+          "event_count": 0
+        },
+        "authority_boundary": {
+          "interaction_state_is_authoritative": false,
+          "events_are_domain_ledger": false,
+          "connection_abort_cancels_work": false
+        }
+      },
+      "content_hash": "sha256:02d27860e005264b03709b6ad7f5c71746bc0619315af040b08180fa1232f1ba",
+      "created_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "created_at": "2026-08-29T16:00:01.000Z",
+      "updated_at": "2026-08-29T16:00:01.000Z"
+    },
+    "current_invocation_delivery": null,
+    "actors": [
+      {
+        "schema_name": "petra.actor",
+        "schema_version": "1.0.0",
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "service",
+        "display_name": "Researcher",
+        "created_at": "2026-08-28T18:00:00.000Z"
+      },
+      {
+        "schema_name": "petra.actor",
+        "schema_version": "1.0.0",
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAA",
+        "actor_kind": "human",
+        "display_name": "Researcher",
+        "created_at": "2026-08-28T18:00:00.000Z"
+      }
+    ],
+    "source_records": [],
+    "thread": null,
+    "project_turn_id": null,
+    "invocation": null,
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 5,
+      "stream_revision": 2,
+      "effect": "none",
+      "projection": "not_observed"
+    },
+    "profile": {
+      "schema_name": "petra.scientific-communication-payload",
+      "schema_version": "1.0.0",
+      "profile": {
+        "definition_family": "petra.scientific-evidence",
+        "locale": {
+          "supported": ["en"],
+          "unsupported": "closed",
+          "source_language": "retain_exact_without_translation",
+          "english_coverage": "registered_terms_and_reference_rules_only"
+        },
+        "origins": {
+          "source_report": "attributed_report",
+          "petra_synthesis": "petra_assessment",
+          "unresolved_inference": "inference"
+        },
+        "structured_fields": {
+          "force": "unavailable_in_source_schema",
+          "conditions": "unavailable_in_source_schema",
+          "inference_rule": "unavailable_in_source_schema",
+          "author_decision": "unavailable_in_source_schema",
+          "pronunciation": "unavailable",
+          "relation_force_vocabulary": "unsupported"
+        },
+        "preservation": [
+          "statement_key",
+          "statement_order",
+          "original_text_bytes",
+          "original_origin_subtype",
+          "producer_and_attribution",
+          "evidence_refs",
+          "source_span_selections",
+          "limitations",
+          "resolution_requirement",
+          "packet_coverage",
+          "artifact_bytes_and_hashes",
+          "evidence_snapshot",
+          "source_time_versions"
+        ],
+        "reference_rules": {
+          "first": "registered_singular_and_canonical_id_and_revision",
+          "later": "same_as_first",
+          "ambiguity": "retain_full_canonical_identity_never_guess",
+          "fallback": "generic_family_and_canonical_id_and_revision_with_visible_limitation",
+          "replacement": "separate_current_observation_preserve_original",
+          "quoted_bytes": "never_rewrite"
+        },
+        "reference_owners": [
+          {
+            "semantic_key": "scientific.claim",
+            "registration_kind": "object_schema",
+            "contract": {
+              "name": "petra.claim",
+              "version": "1.0.0",
+              "content_hash": "sha256:1cb1f7910202af21e0f8e610c0dcab605db50f8c8466a9c38f0acf69778db196"
+            },
+            "canonical_kind": "claim",
+            "generic_family": "finding",
+            "singular": "Claim",
+            "plural": "Claims",
+            "revision_policy": "positive_revision"
+          },
+          {
+            "semantic_key": "scientific.assertion",
+            "registration_kind": "relationship_schema",
+            "contract": {
+              "name": "petra.assertion",
+              "version": "1.0.0",
+              "content_hash": "sha256:2c58656a9a93052112b26a9080c37811e570000de35d0f9240180da1742c8c91"
+            },
+            "canonical_kind": "assertion",
+            "generic_family": "relationship",
+            "singular": "Assertion",
+            "plural": "Assertions",
+            "revision_policy": "positive_revision"
+          },
+          {
+            "semantic_key": "scientific.source-span",
+            "registration_kind": "object_schema",
+            "contract": {
+              "name": "petra.source-span",
+              "version": "1.0.0",
+              "content_hash": "sha256:c83b2cbb7c5d224f794f0fc9591edcfcef04fffdcd97e6ff0be07cd2f34db79d"
+            },
+            "canonical_kind": "source_span",
+            "generic_family": "reference",
+            "singular": "Source span",
+            "plural": "Source spans",
+            "revision_policy": "immutable_revision_one"
+          },
+          {
+            "semantic_key": "scientific.work-version",
+            "registration_kind": "object_schema",
+            "contract": {
+              "name": "petra.work-version",
+              "version": "1.0.0",
+              "content_hash": "sha256:3a7c3133086af08c3434b1a83243fda095e8a47adbbc69fd4bc4090ac423aca3"
+            },
+            "canonical_kind": "work_version",
+            "generic_family": "reference",
+            "singular": "Work version",
+            "plural": "Work versions",
+            "revision_policy": "positive_revision"
+          },
+          {
+            "semantic_key": "scientific.grounded-response",
+            "registration_kind": "output",
+            "contract": {
+              "name": "petra.grounded-response",
+              "version": "1.0.0",
+              "content_hash": "sha256:f3124ac0fe817fcce8d2c9937d73d16a6aa0aa91c648016a019d964c4cba2e3a"
+            },
+            "canonical_kind": "grounded_response",
+            "generic_family": "output",
+            "singular": "Grounded response",
+            "plural": "Grounded responses",
+            "revision_policy": "positive_revision"
+          }
+        ],
+        "response_schema": {
+          "name": "petra.model-synthesist-output",
+          "version": "1.0.0",
+          "content_hash": "sha256:c9feeb397df01f2772c81c53fd2edadf7154c836a273df87a8e47806b500164b"
+        },
+        "action_report": {
+          "family": "action_report",
+          "invocation_schema": {
+            "name": "petra.suggested-action-invocation",
+            "version": "1.0.0",
+            "content_hash": "sha256:dc5c0b6719f08f2b8ecae0509d845f70502247b61cc7300c2e48890bc0a9800c"
+          },
+          "invocation_view_schema": {
+            "name": "petra.suggested-action-invocation-view",
+            "version": "1.0.0",
+            "content_hash": "sha256:f820c8fa92962fc0ea53eb16fc8d9a8f99dad75a2c28c778d69f6430977cf302"
+          },
+          "work_schema": {
+            "name": "petra.work-unit",
+            "version": "1.0.0",
+            "content_hash": "sha256:6009a3c4ec45df4f7073189f8ef111e59428392a9c8fec1ee14508aeca04c316"
+          },
+          "rules": {
+            "link": "exact_response_result_match",
+            "command": "immutable_acceptance_receipt_not_execution",
+            "work": "execution_state_and_terminal_outcome_separate",
+            "result": "availability_not_delivery",
+            "history": "canonical_command_and_work_revisions_coverage_bounded_at_100",
+            "authority": "no_scientific_or_inquiry_resolution_effect",
+            "recovery": "current_server_owned_assessment_only",
+            "retry_exact_start": "before_work_registration_only_never_terminal_failed_work",
+            "stop_response": "delivery_only_not_work_cancellation",
+            "recommendation": "unsupported_without_alternatives_and_preference_basis"
+          }
+        },
+        "validation": {
+          "scope": "profile_registration_and_reference_resolution_only",
+          "response_language_receipt": "not_implemented",
+          "existing_synthesis_checks": [
+            "model-output-schema@1.0.0",
+            "grounded-synthesis@1.0.0",
+            "statement-origin-separation@1.0.0"
+          ],
+          "existing_checks_meaning": "retain_original_scope_never_full_language_validation",
+          "draft_felicity_receipt": "not_applicable_to_response",
+          "future_required_checks": [
+            "family_obligations",
+            "reference_fidelity",
+            "origin_and_producer",
+            "force_preservation",
+            "conditions_and_limitations",
+            "action_fidelity",
+            "progressive_and_terminal_state",
+            "equivalent_textual_meaning"
+          ],
+          "repair": "unsupported"
+        },
+        "version_rules": {
+          "composition": "new_binding_not_source_time_evidence",
+          "historical": "retain_exact_original_versions_or_explicit_unavailable",
+          "prompt": "retain_exact_model_call_prompt_profile",
+          "renderer": "unavailable_until_versioned_composition",
+          "terminology_reference_discourse": "this_exact_payload_registration"
+        },
+        "prohibited_conflations": [
+          "origin_as_force",
+          "source_report_as_accepted_finding",
+          "synthesis_as_author_judgment",
+          "validation_as_authority",
+          "command_acceptance_as_work_completion",
+          "failed_terminal_work_as_success",
+          "result_available_as_delivered",
+          "historical_recovery_as_current_permission",
+          "inspect_reason_as_preferred_recommendation"
+        ],
+        "textual_equivalence": "same_references_origin_basis_conditions_limitations_state_consequence_and_recovery",
+        "unsupported_scope": [
+          "other_profile_payloads",
+          "non_english_realization",
+          "full_language_validation",
+          "language_repair",
+          "plan_composition",
+          "receipt_composition",
+          "authentication_and_snapshot_reads",
+          "renderer_and_accessibility_conformance"
+        ]
+      }
+    },
+    "segments": [
+      {
+        "segment_key": "source_report_1",
+        "order": 1,
+        "family": "attributed_report",
+        "original_statement": {
+          "statement_key": "source_report_1",
+          "origin": "source_report",
+          "text": "The selected WorkVersion reports the bounded Claim.",
+          "evidence_refs": [
+            {
+              "context_selection_order": 2,
+              "object_kind": "assertion",
+              "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "object_revision": 2,
+              "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d",
+              "source_span_selection_orders": [3]
+            }
+          ],
+          "limitations": [
+            "This reports the source attribution represented by ASSERTS; it is not independent proof of truth."
+          ]
+        },
+        "preservation": "blocked",
+        "findings": [
+          "The exact original evidence selection 2 could not be verified.",
+          "SourceSpan selection 3 could not be verified.",
+          "Source attribution requires an exact ASSERTS record."
+        ],
+        "force": "unavailable_as_structured_source_data",
+        "conditions": "unavailable_as_structured_source_data",
+        "presentation_depth": "material",
+        "language_validation": "not_performed"
+      },
+      {
+        "segment_key": "synthesis_1",
+        "order": 2,
+        "family": "petra_assessment",
+        "original_statement": {
+          "statement_key": "synthesis_1",
+          "origin": "petra_synthesis",
+          "text": "Within the recorded context, the Claim is inspectably linked to the source passage.",
+          "evidence_refs": [
+            {
+              "context_selection_order": 1,
+              "object_kind": "claim",
+              "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "object_revision": 2,
+              "object_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa",
+              "source_span_selection_orders": [3]
+            },
+            {
+              "context_selection_order": 2,
+              "object_kind": "assertion",
+              "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+              "object_revision": 2,
+              "object_hash": "sha256:80dcb2c8926d758f99a45d9ca84b720e23f4583c45583586d28998b9bc013f8d",
+              "source_span_selection_orders": [3]
+            }
+          ],
+          "limitations": [
+            "The ContextPacket did not perform new literature discovery."
+          ]
+        },
+        "preservation": "blocked",
+        "findings": [
+          "The exact original evidence selection 1 could not be verified.",
+          "SourceSpan selection 3 could not be verified.",
+          "The exact original evidence selection 2 could not be verified.",
+          "SourceSpan selection 3 could not be verified."
+        ],
+        "force": "unavailable_as_structured_source_data",
+        "conditions": "unavailable_as_structured_source_data",
+        "presentation_depth": "material",
+        "language_validation": "not_performed"
+      },
+      {
+        "segment_key": "unresolved_1",
+        "order": 3,
+        "family": "inference",
+        "original_statement": {
+          "statement_key": "unresolved_1",
+          "origin": "unresolved_inference",
+          "text": "Whether the reported relationship generalizes beyond the recorded scope remains unresolved.",
+          "evidence_refs": [],
+          "limitations": [
+            "No generalization evidence is present in the packet."
+          ],
+          "resolution_requirement": "Retrieve and evaluate direct replication or external-validation evidence."
+        },
+        "preservation": "passed",
+        "findings": [],
+        "force": "unavailable_as_structured_source_data",
+        "conditions": "unavailable_as_structured_source_data",
+        "presentation_depth": "material",
+        "language_validation": "not_performed"
+      }
+    ],
+    "reference_labels": [],
+    "composition_binding": {
+      "plan_contract_hash": "sha256:19f7b88210d5fce73a584e1bfcdd59c4a23826126dbf9ae0c30eb07a3e3e9466",
+      "validator_contract_hash": "sha256:93889738972355d70b7085472b0070a357e19bb459efc0bb6091e5d3d19ca066",
+      "profile_contract_hash": "sha256:c32fbcc062c28b100babf7ca372a62d9eeb25fb7446f49b6491d8fab61d4882a",
+      "locale": "en",
+      "renderer": "not_implemented"
+    },
+    "source_time_binding": {
+      "communication": "not_recorded",
+      "renderer": "not_recorded",
+      "terminology": "not_recorded",
+      "definition": "unavailable",
+      "prompt": "exact_model_call_prompt_profile",
+      "validators": "exact_model_call_validation_records"
+    },
+    "validation": {
+      "schema_name": "petra.communication-validation-receipt",
+      "schema_version": "1.0.0",
+      "scope": "structured_preservation_and_reference_fidelity",
+      "outcome": "blocked",
+      "language_validation": "incomplete",
+      "repair_provenance": null,
+      "checks": [
+        {
+          "check": "canonical_owner_identity_and_record_hashes",
+          "status": "passed",
+          "findings": []
+        },
+        {
+          "check": "ordered_original_structured_content_preservation",
+          "status": "blocked",
+          "findings": [
+            "The exact original evidence selection 2 could not be verified.",
+            "SourceSpan selection 3 could not be verified.",
+            "Source attribution requires an exact ASSERTS record.",
+            "The exact original evidence selection 1 could not be verified.",
+            "SourceSpan selection 3 could not be verified.",
+            "The exact original evidence selection 2 could not be verified.",
+            "SourceSpan selection 3 could not be verified."
+          ]
+        },
+        {
+          "check": "exact_invocation_result_link",
+          "status": "not_performed",
+          "findings": ["No exact invocation was supplied."]
+        },
+        {
+          "check": "family_obligations",
+          "status": "not_performed",
+          "findings": [
+            "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+          ]
+        },
+        {
+          "check": "reference_fidelity",
+          "status": "not_performed",
+          "findings": [
+            "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+          ]
+        },
+        {
+          "check": "origin_and_producer",
+          "status": "not_performed",
+          "findings": [
+            "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+          ]
+        },
+        {
+          "check": "force_preservation",
+          "status": "not_performed",
+          "findings": [
+            "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+          ]
+        },
+        {
+          "check": "conditions_and_limitations",
+          "status": "not_performed",
+          "findings": [
+            "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+          ]
+        },
+        {
+          "check": "action_fidelity",
+          "status": "not_performed",
+          "findings": [
+            "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+          ]
+        },
+        {
+          "check": "progressive_and_terminal_state",
+          "status": "not_performed",
+          "findings": [
+            "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+          ]
+        },
+        {
+          "check": "equivalent_textual_meaning",
+          "status": "not_performed",
+          "findings": [
+            "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+          ]
+        }
+      ],
+      "limitations": [
+        "Original gateway checks retain their original scope. No response-language pass or repair is claimed."
+      ]
+    },
+    "history_coverage": "invocation_work_revisions_first_100_when_linked",
+    "limitations": [
+      "Original response bytes remain addressed by the exact Artifact hash and byte size. This read does not fetch or re-render those bytes.",
+      "The original evidence snapshot and current composition position are separate observations; neither reusable cache state nor Work success resolves the inquiry.",
+      "Structured force, conditions, inference rule, and author decision are unavailable; original statements, limitations and resolution requirements remain inspectable.",
+      "Model-call identity supplies model provenance. The recording service Actor is not the source author or an approving human.",
+      "Reference source language is unavailable here; no translation validation is claimed.",
+      "No unique exact product thread and turn linkage was found. Protocol thread identity cannot supply it.",
+      "No linked invocation action report is available. Similar text and ambient actions cannot supply the join.",
+      "This plan is a read-only composition with no command, Review, domain, or recovery execution authority. Rendering and accessibility conformance remain unimplemented."
+    ]
+  },
+  "content_hash": "sha256:3fb02ee5186d34ba33843b55c3f4678c84a5ca2d2ab6d4b36175cf0dc6d7c3d8",
+  "read_at": "2026-09-13T12:00:00.000Z"
+}

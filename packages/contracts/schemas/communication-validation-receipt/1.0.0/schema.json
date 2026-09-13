@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/communication-validation-receipt/1.0.0/schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "scope",
+    "outcome",
+    "checks",
+    "language_validation",
+    "repair_provenance",
+    "limitations"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.communication-validation-receipt",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "type": "string"
+    },
+    "scope": {
+      "const": "structured_preservation_and_reference_fidelity",
+      "type": "string"
+    },
+    "outcome": {
+      "const": "blocked",
+      "type": "string"
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check", "status", "findings"],
+        "properties": {
+          "check": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": ["passed", "blocked", "not_performed"]
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "maxItems": 10000
+          }
+        },
+        "title": "CommunicationCheck"
+      },
+      "maxItems": 10000
+    },
+    "language_validation": {
+      "const": "incomplete",
+      "type": "string"
+    },
+    "repair_provenance": {
+      "type": "null"
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "maxItems": 10000
+    }
+  },
+  "title": "PetraCommunicationValidationReceipt"
+}

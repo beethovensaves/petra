@@ -1,0 +1,92 @@
+{
+  "schema_name": "petra.communication-validation-receipt",
+  "schema_version": "1.0.0",
+  "scope": "structured_preservation_and_reference_fidelity",
+  "outcome": "blocked",
+  "language_validation": "incomplete",
+  "repair_provenance": null,
+  "checks": [
+    {
+      "check": "canonical_owner_identity_and_record_hashes",
+      "status": "passed",
+      "findings": []
+    },
+    {
+      "check": "ordered_original_structured_content_preservation",
+      "status": "blocked",
+      "findings": [
+        "The exact original evidence selection 2 could not be verified.",
+        "SourceSpan selection 3 could not be verified.",
+        "Source attribution requires an exact ASSERTS record.",
+        "The exact original evidence selection 1 could not be verified.",
+        "SourceSpan selection 3 could not be verified.",
+        "The exact original evidence selection 2 could not be verified.",
+        "SourceSpan selection 3 could not be verified."
+      ]
+    },
+    {
+      "check": "exact_invocation_result_link",
+      "status": "not_performed",
+      "findings": ["No exact invocation was supplied."]
+    },
+    {
+      "check": "family_obligations",
+      "status": "not_performed",
+      "findings": [
+        "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+      ]
+    },
+    {
+      "check": "reference_fidelity",
+      "status": "not_performed",
+      "findings": [
+        "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+      ]
+    },
+    {
+      "check": "origin_and_producer",
+      "status": "not_performed",
+      "findings": [
+        "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+      ]
+    },
+    {
+      "check": "force_preservation",
+      "status": "not_performed",
+      "findings": [
+        "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+      ]
+    },
+    {
+      "check": "conditions_and_limitations",
+      "status": "not_performed",
+      "findings": [
+        "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+      ]
+    },
+    {
+      "check": "action_fidelity",
+      "status": "not_performed",
+      "findings": [
+        "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+      ]
+    },
+    {
+      "check": "progressive_and_terminal_state",
+      "status": "not_performed",
+      "findings": [
+        "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+      ]
+    },
+    {
+      "check": "equivalent_textual_meaning",
+      "status": "not_performed",
+      "findings": [
+        "Full response-language validation for this obligation is not implemented; structured preservation checks have narrower scope."
+      ]
+    }
+  ],
+  "limitations": [
+    "Original gateway checks retain their original scope. No response-language pass or repair is claimed."
+  ]
+}

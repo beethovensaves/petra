@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.85.0",
+  "registry_version": "1.88.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -604,6 +604,28 @@
       "canonical_sha256": "sha256:3e2dd5670478473f371d86ec955cf1167e87ba673ef7cc4e5131d97bc6e44c08",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-lifecycle-receipt.ts"
+    },
+    {
+      "name": "controlled-writing-requirement",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/controlled-writing-requirement/1.0.0/schema.json",
+      "path": "schemas/controlled-writing-requirement/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-non-authoritative-controlled-writing-requirement-payload",
+      "canonical_sha256": "sha256:5a6d449b44078f2df1c2f29fe15164d22b0c4151a05c6f35dd8718964c3c3f1e",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/controlled-writing-requirement.ts"
+    },
+    {
+      "name": "controlled-writing-governing-relationship",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/controlled-writing-governing-relationship/1.0.0/schema.json",
+      "path": "schemas/controlled-writing-governing-relationship/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-non-authoritative-controlled-writing-governing-relationship-payload",
+      "canonical_sha256": "sha256:8875324fac5a6911a90aaf833289d0cc5ae2141c10f023d087a1cd876bd9e896",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/controlled-writing-governing-relationship.ts"
     },
     {
       "name": "working-candidate",
@@ -1626,6 +1648,39 @@
       "canonical_sha256": "sha256:050ff98d83476b55b25de5964e20f305ddd50845cb3ce7829309569a93e29161",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-brief-view-v1-1.ts"
+    },
+    {
+      "name": "scientific-communication-payload",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/scientific-communication-payload/1.0.0/schema.json",
+      "path": "schemas/scientific-communication-payload/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-scientific-communication-resolution-prerequisite",
+      "canonical_sha256": "sha256:c32fbcc062c28b100babf7ca372a62d9eeb25fb7446f49b6491d8fab61d4882a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/scientific-communication-payload.ts"
+    },
+    {
+      "name": "communication-validation-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/communication-validation-receipt/1.0.0/schema.json",
+      "path": "schemas/communication-validation-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-scientific-communication",
+      "canonical_sha256": "sha256:93889738972355d70b7085472b0070a357e19bb459efc0bb6091e5d3d19ca066",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/communication-validation-receipt.ts"
+    },
+    {
+      "name": "communication-plan",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/communication-plan/1.0.0/schema.json",
+      "path": "schemas/communication-plan/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-scientific-communication",
+      "canonical_sha256": "sha256:19f7b88210d5fce73a584e1bfcdd59c4a23826126dbf9ae0c30eb07a3e3e9466",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/communication-plan.ts"
     }
   ]
 }

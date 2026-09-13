@@ -4,6 +4,8 @@ import type {
   ActorRef,
   PetraAssertion,
   PetraClaim,
+  PetraControlledWritingGoverningRelationship,
+  PetraControlledWritingRequirement,
   PetraProjectDefinition,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
@@ -18,8 +20,8 @@ import {
 } from "@petra/core";
 import type {
   EvidenceProposalResolver,
-  ScientificWorkingCandidateAdmission,
-  ScientificWorkingRelationshipAdmission,
+  WorkingCandidateAdmission,
+  WorkingRelationshipAdmission,
   WorkingStateAuthorityRepository,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -45,7 +47,19 @@ export class PostgresWorkingStateError extends Error {
 }
 
 type WorkingRecord = PetraWorkingCandidate | PetraWorkingRelationship;
-type ProfileRecord = PetraClaim | PetraAssertion;
+type ProfileRecord =
+  | PetraClaim
+  | PetraAssertion
+  | PetraControlledWritingRequirement
+  | PetraControlledWritingGoverningRelationship;
+
+const isControlledWritingProfileRecord = (
+  record: ProfileRecord,
+): record is
+  | PetraControlledWritingRequirement
+  | PetraControlledWritingGoverningRelationship =>
+  record.schema_name === "petra.controlled-writing-requirement" ||
+  record.schema_name === "petra.controlled-writing-governing-relationship";
 
 interface StoredPayloadRow {
   payload: unknown;
@@ -90,16 +104,34 @@ const profileRecordDescriptor = (record: ProfileRecord) =>
   record.schema_name === "petra.claim"
     ? {
         id: record.claim_id,
-        kind: "claim" as const,
+        contractName: "claim" as const,
+        evidenceKind: "claim" as const,
         revision: record.revision,
         recordedAt: record.created_at,
       }
-    : {
-        id: record.assertion_id,
-        kind: "assertion" as const,
-        revision: record.revision,
-        recordedAt: record.recorded_at,
-      };
+    : record.schema_name === "petra.assertion"
+      ? {
+          id: record.assertion_id,
+          contractName: "assertion" as const,
+          evidenceKind: "assertion" as const,
+          revision: record.revision,
+          recordedAt: record.recorded_at,
+        }
+      : record.schema_name === "petra.controlled-writing-requirement"
+        ? {
+            id: record.requirement_id,
+            contractName: "controlled-writing-requirement" as const,
+            evidenceKind: undefined,
+            revision: record.revision,
+            recordedAt: record.created_at,
+          }
+        : {
+            id: record.governing_relationship_id,
+            contractName: "controlled-writing-governing-relationship" as const,
+            evidenceKind: undefined,
+            revision: record.revision,
+            recordedAt: record.created_at,
+          };
 
 const basisActor = (claim: PetraClaim): ActorRef => {
   switch (claim.basis.basis_kind) {
@@ -134,9 +166,9 @@ const workingDescriptor = (record: WorkingRecord) =>
       };
 
 /**
- * Scientific adapter for the shared working-state kernel. Profile payloads
- * remain in the canonical evidence ledger; this repository only adds durable
- * working bindings and their additive lineage.
+ * Installed-profile adapter for the shared working-state kernel. Profile
+ * payloads remain in their canonical profile storage; this repository adds
+ * only durable working bindings and their additive lineage.
  */
 export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuthorityRepository {
   readonly #pool: Pool;
@@ -148,13 +180,13 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
   }
 
   admitWorkingCandidateRevision(
-    input: ScientificWorkingCandidateAdmission,
+    input: WorkingCandidateAdmission,
   ): Promise<PetraWorkingCandidate> {
     return this.#admit(input.candidate, input.profileRecord);
   }
 
   admitWorkingRelationshipRevision(
-    input: ScientificWorkingRelationshipAdmission,
+    input: WorkingRelationshipAdmission,
   ): Promise<PetraWorkingRelationship> {
     return this.#admit(input.relationship, input.profileRecord);
   }
@@ -166,7 +198,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
    */
   admitWorkingCandidateRevisionInTransaction(
     client: PoolClient,
-    input: ScientificWorkingCandidateAdmission,
+    input: WorkingCandidateAdmission,
   ): Promise<PetraWorkingCandidate> {
     return this.#admitInTransaction(
       client,
@@ -178,7 +210,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
   /** Transaction-composed counterpart for a working relationship revision. */
   admitWorkingRelationshipRevisionInTransaction(
     client: PoolClient,
-    input: ScientificWorkingRelationshipAdmission,
+    input: WorkingRelationshipAdmission,
   ): Promise<PetraWorkingRelationship> {
     return this.#admitInTransaction(
       client,
@@ -249,7 +281,16 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     const working = workingDescriptor(record);
     const profile = profileRecordDescriptor(profileRecord);
     this.#contracts.assertValid(working.contractName, "1.0.0", record);
-    this.#contracts.assertValid(profile.kind, "1.0.0", profileRecord);
+    this.#contracts.assertValid(profile.contractName, "1.0.0", profileRecord);
+    if (
+      isControlledWritingProfileRecord(profileRecord) &&
+      profileRecord.content_hash !== canonicalHash(profileRecord.content)
+    ) {
+      throw new PostgresWorkingStateError(
+        "WORKING_STATE_CONFLICT",
+        "The controlled-writing profile record content_hash is not its exact canonical content projection.",
+      );
+    }
     if (record.content_hash !== contentHash(record)) {
       throw new PostgresWorkingStateError(
         "WORKING_STATE_CONFLICT",
@@ -269,15 +310,20 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
         "The profile binding and validation target must name the exact supplied profile record.",
       );
     }
-    if (
+    const profilePairIsSupported =
       (record.schema_name === "petra.working-candidate" &&
-        profileRecord.schema_name !== "petra.claim") ||
+        ["petra.claim", "petra.controlled-writing-requirement"].includes(
+          profileRecord.schema_name,
+        )) ||
       (record.schema_name === "petra.working-relationship" &&
-        profileRecord.schema_name !== "petra.assertion")
-    ) {
+        [
+          "petra.assertion",
+          "petra.controlled-writing-governing-relationship",
+        ].includes(profileRecord.schema_name));
+    if (!profilePairIsSupported) {
       throw new PostgresWorkingStateError(
         "WORKING_STATE_PROFILE_UNSUPPORTED",
-        "The registered scientific candidate and relationship adapters accept Claim and Assertion records respectively.",
+        "The WorkingCandidate or WorkingRelationship does not match an installed profile-record adapter.",
       );
     }
 
@@ -318,11 +364,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     await this.#validateWorkingLineage(client, record);
     await this.#persistProfileRevision(client, record, profileRecord);
     if (record.schema_name === "petra.working-relationship") {
-      await this.#validateRelationshipEndpoints(
-        client,
-        record,
-        profileRecord as PetraAssertion,
-      );
+      await this.#validateRelationshipEndpoints(client, record, profileRecord);
     }
     await this.#insertWorkingRevision(client, record);
     return clone(record);
@@ -385,10 +427,14 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     }
     this.#contracts.assertValid("project-definition", "1.0.0", row.payload);
     const definition = row.payload as PetraProjectDefinition;
-    if (definition.definition_family !== "petra.scientific-evidence") {
+    if (
+      !["petra.scientific-evidence", "petra.controlled-writing"].includes(
+        definition.definition_family,
+      )
+    ) {
       throw new PostgresWorkingStateError(
         "WORKING_STATE_PROFILE_UNSUPPORTED",
-        "This adapter accepts only a registered scientific ProjectDefinition family.",
+        "No installed working-state adapter supports the current ProjectDefinition family.",
       );
     }
     return definition;
@@ -409,15 +455,42 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
         candidate.semantic_key === binding.registration.semantic_key &&
         sameNamedRef(candidate.contract, binding.registration.contract),
     );
+    const contract = binding.registration.contract;
+    if (contract.name !== workingDescriptor(record).profileRecord.schema_name) {
+      throw new PostgresWorkingStateError(
+        "WORKING_STATE_PROFILE_UNSUPPORTED",
+        "The working profile record schema does not match its exact registered contract.",
+      );
+    }
+    const installed = this.#contracts.entries.find(
+      (entry) =>
+        `petra.${entry.name}` === contract.name &&
+        entry.version === contract.version &&
+        entry.canonical_sha256 === contract.content_hash,
+    );
     const supported =
       record.schema_name === "petra.working-candidate"
-        ? binding.registration.semantic_key === "scientific.claim" &&
-          binding.registration.contract.name === "petra.claim" &&
-          binding.registration.contract.version === "1.0.0"
-        : binding.registration.semantic_key === "scientific.assertion" &&
-          binding.registration.contract.name === "petra.assertion" &&
-          binding.registration.contract.version === "1.0.0" &&
-          record.profile_relationship.predicate === "ASSERTS";
+        ? (definition.definition_family === "petra.scientific-evidence" &&
+            binding.registration.semantic_key === "scientific.claim" &&
+            contract.name === "petra.claim" &&
+            contract.version === "1.0.0") ||
+          (definition.definition_family === "petra.controlled-writing" &&
+            binding.registration.semantic_key === "writing.requirement" &&
+            contract.name === "petra.controlled-writing-requirement" &&
+            contract.version === "1.0.0" &&
+            installed?.name === "controlled-writing-requirement")
+        : (definition.definition_family === "petra.scientific-evidence" &&
+            binding.registration.semantic_key === "scientific.assertion" &&
+            contract.name === "petra.assertion" &&
+            contract.version === "1.0.0" &&
+            record.profile_relationship.predicate === "ASSERTS") ||
+          (definition.definition_family === "petra.controlled-writing" &&
+            binding.registration.semantic_key === "writing.governs" &&
+            contract.name ===
+              "petra.controlled-writing-governing-relationship" &&
+            contract.version === "1.0.0" &&
+            installed?.name === "controlled-writing-governing-relationship" &&
+            record.profile_relationship.predicate === "GOVERNS");
     if (registration === undefined || !supported) {
       throw new PostgresWorkingStateError(
         "WORKING_STATE_PROFILE_UNSUPPORTED",
@@ -449,6 +522,15 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
         : record.profile_relationship;
     if (binding.candidate_operation === "create") return;
     const ref = binding.current_authoritative_ref;
+    if (
+      binding.registration.semantic_key === "writing.requirement" ||
+      binding.registration.semantic_key === "writing.governs"
+    ) {
+      throw new PostgresWorkingStateError(
+        "WORKING_STATE_PROFILE_UNSUPPORTED",
+        "Controlled-writing admission is candidate-only; no authoritative revision or Apply path is installed.",
+      );
+    }
     const expectedSchema =
       record.schema_name === "petra.working-candidate"
         ? "petra.claim"
@@ -522,6 +604,56 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     record: WorkingRecord,
     profileRecord: ProfileRecord,
   ): Promise<void> {
+    if (isControlledWritingProfileRecord(profileRecord)) {
+      const definition = profileRecord.project_definition_ref;
+      if (
+        profileRecord.project_id !== record.project_id ||
+        definition.project_definition_id !==
+          record.project_definition_ref.project_definition_id ||
+        definition.revision !== record.project_definition_ref.revision ||
+        definition.content_hash !==
+          record.project_definition_ref.content_hash ||
+        definition.definition_family !== "petra.controlled-writing" ||
+        profileRecord.revision !== 1
+      ) {
+        throw new PostgresWorkingStateError(
+          "WORKING_STATE_RELATION_INVALID",
+          "The controlled-writing profile payload must bind the same exact Project and current ProjectDefinition as its working record.",
+        );
+      }
+      const refs =
+        profileRecord.schema_name === "petra.controlled-writing-requirement"
+          ? profileRecord.content.applies_to_refs
+          : [
+              profileRecord.content.authority_source_ref,
+              profileRecord.content.requirement_ref,
+            ];
+      if (
+        profileRecord.schema_name ===
+          "petra.controlled-writing-governing-relationship" &&
+        (profileRecord.content.authority_source_ref.schema_name !==
+          "petra.project-source" ||
+          profileRecord.content.authority_source_ref.schema_version !==
+            "1.0.0" ||
+          profileRecord.content.requirement_ref.schema_name !==
+            "petra.controlled-writing-requirement" ||
+          profileRecord.content.requirement_ref.schema_version !== "1.0.0")
+      ) {
+        throw new PostgresWorkingStateError(
+          "WORKING_STATE_PROFILE_UNSUPPORTED",
+          "A controlled-writing GOVERNS payload requires an exact ProjectSource and controlled-writing Requirement.",
+        );
+      }
+      for (const ref of refs) {
+        await this.#requireExactRecordRef(
+          client,
+          record.project_id,
+          ref,
+          false,
+        );
+      }
+      return;
+    }
     const workVersionId =
       profileRecord.schema_name === "petra.claim"
         ? profileRecord.basis.basis_kind === "source"
@@ -567,7 +699,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     ];
     if (profileRecord.schema_name === "petra.claim") {
       actors.push(basisActor(profileRecord));
-    } else {
+    } else if (profileRecord.schema_name === "petra.assertion") {
       for (const provenance of profileRecord.provenance_refs) {
         if (provenance.provenance_kind === "actor")
           actors.push(provenance.actor);
@@ -612,15 +744,6 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
       );
     }
     if (record.producer.producer_kind === "model") {
-      if (
-        record.producer.model_role_ref.name !==
-        "petra.model-role.evidence-extractor"
-      ) {
-        throw new PostgresWorkingStateError(
-          "WORKING_STATE_PROFILE_UNSUPPORTED",
-          "The first scientific adapter supports the registered evidence-extractor model role only.",
-        );
-      }
       await this.#requireExactRecordRef(
         client,
         record.project_id,
@@ -933,6 +1056,20 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
           projectId,
         );
         break;
+      case "petra.controlled-writing-requirement":
+        query = `SELECT true
+                   FROM petra.controlled_writing_requirement_records
+                  WHERE requirement_id = $1 AND revision = $2
+                    AND record_hash = $3 AND project_id = $4`;
+        values.push(projectId);
+        break;
+      case "petra.controlled-writing-governing-relationship":
+        query = `SELECT true
+                   FROM petra.controlled_writing_governing_relationship_records
+                  WHERE governing_relationship_id = $1 AND revision = $2
+                    AND record_hash = $3 AND project_id = $4`;
+        values.push(projectId);
+        break;
       case "petra.working-candidate":
         query = `SELECT true FROM petra.working_candidate_revisions
                   WHERE working_candidate_id = $1 AND revision = $2
@@ -948,7 +1085,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
       default:
         throw new PostgresWorkingStateError(
           "WORKING_STATE_PROFILE_UNSUPPORTED",
-          `Exact working reference schema ${ref.schema_name} is not registered by the first scientific adapter.`,
+          `Exact working reference schema ${ref.schema_name} has no installed working-state resolver.`,
         );
     }
     if (ref.schema_version !== "1.0.0") {
@@ -1039,6 +1176,14 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     record: WorkingRecord,
     profileRecord: ProfileRecord,
   ): Promise<void> {
+    if (isControlledWritingProfileRecord(profileRecord)) {
+      await this.#persistControlledWritingProfileRecord(
+        client,
+        record,
+        profileRecord,
+      );
+      return;
+    }
     const descriptor = profileRecordDescriptor(profileRecord);
     const current = await client.query<EvidenceRow>(
       `SELECT revision.evidence_kind, revision.revision,
@@ -1055,7 +1200,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     if (
       head !== undefined &&
       Number(head.revision) === descriptor.revision &&
-      head.evidence_kind === descriptor.kind &&
+      head.evidence_kind === descriptor.evidenceKind &&
       head.record_hash === canonicalHash(profileRecord)
     ) {
       return;
@@ -1063,7 +1208,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     if (
       descriptor.revision <= 1 ||
       head === undefined ||
-      head.evidence_kind !== descriptor.kind ||
+      head.evidence_kind !== descriptor.evidenceKind ||
       head.authority_zone !== "quarantine" ||
       Number(head.revision) + 1 !== descriptor.revision
     ) {
@@ -1113,9 +1258,115 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     );
   }
 
+  async #persistControlledWritingProfileRecord(
+    client: PoolClient,
+    workingRecord: WorkingRecord,
+    profileRecord:
+      | PetraControlledWritingRequirement
+      | PetraControlledWritingGoverningRelationship,
+  ): Promise<void> {
+    if (
+      workingRecord.revision !== 1 ||
+      profileRecord.revision !== 1 ||
+      (workingRecord.schema_name === "petra.working-candidate"
+        ? workingRecord.profile_object.candidate_operation !== "create"
+        : workingRecord.profile_relationship.candidate_operation !== "create")
+    ) {
+      throw new PostgresWorkingStateError(
+        "WORKING_STATE_PROFILE_UNSUPPORTED",
+        "Controlled-writing profile storage accepts root candidates only; no correction or Apply path is installed.",
+      );
+    }
+    const descriptor = profileRecordDescriptor(profileRecord);
+    const table =
+      profileRecord.schema_name === "petra.controlled-writing-requirement"
+        ? "controlled_writing_requirement_records"
+        : "controlled_writing_governing_relationship_records";
+    const idColumn =
+      profileRecord.schema_name === "petra.controlled-writing-requirement"
+        ? "requirement_id"
+        : "governing_relationship_id";
+    const existing = await client.query<StoredPayloadRow>(
+      `SELECT record_hash, payload
+         FROM petra.${table}
+        WHERE ${idColumn} = $1 AND revision = $2`,
+      [descriptor.id, descriptor.revision],
+    );
+    if (existing.rows[0] !== undefined) {
+      if (existing.rows[0].record_hash !== canonicalHash(profileRecord)) {
+        throw new PostgresWorkingStateError(
+          "WORKING_STATE_CONFLICT",
+          "The controlled-writing profile record identity is already bound to different canonical content.",
+        );
+      }
+      return;
+    }
+    const commonValues = [
+      descriptor.id,
+      descriptor.revision,
+      profileRecord.project_id,
+      profileRecord.project_definition_ref.project_definition_id,
+      profileRecord.project_definition_ref.revision,
+      profileRecord.project_definition_ref.content_hash,
+    ];
+    if (profileRecord.schema_name === "petra.controlled-writing-requirement") {
+      await client.query(
+        `INSERT INTO petra.controlled_writing_requirement_records (
+           requirement_id, revision, project_id, project_definition_id,
+           project_definition_revision, project_definition_content_hash,
+           content_hash, record_hash, created_by_actor_id,
+           created_by_actor_kind, created_at, schema_name, schema_version,
+           payload
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+           $11::timestamptz, $12, $13, $14::jsonb
+         )`,
+        [
+          ...commonValues,
+          profileRecord.content_hash,
+          canonicalHash(profileRecord),
+          profileRecord.created_by.actor_id,
+          profileRecord.created_by.actor_kind,
+          profileRecord.created_at,
+          profileRecord.schema_name,
+          profileRecord.schema_version,
+          JSON.stringify(profileRecord),
+        ],
+      );
+      return;
+    }
+    await client.query(
+      `INSERT INTO petra.controlled_writing_governing_relationship_records (
+         governing_relationship_id, revision, project_id,
+         project_definition_id, project_definition_revision,
+         project_definition_content_hash, requirement_id,
+         requirement_revision, requirement_record_hash, content_hash,
+         record_hash, created_by_actor_id, created_by_actor_kind, created_at,
+         schema_name, schema_version, payload
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+         $13, $14::timestamptz, $15, $16, $17::jsonb
+       )`,
+      [
+        ...commonValues,
+        profileRecord.content.requirement_ref.record_id,
+        profileRecord.content.requirement_ref.revision,
+        profileRecord.content.requirement_ref.record_hash,
+        profileRecord.content_hash,
+        canonicalHash(profileRecord),
+        profileRecord.created_by.actor_id,
+        profileRecord.created_by.actor_kind,
+        profileRecord.created_at,
+        profileRecord.schema_name,
+        profileRecord.schema_version,
+        JSON.stringify(profileRecord),
+      ],
+    );
+  }
+
   async #buildEvidenceResolver(
     client: PoolClient,
-    record: ProfileRecord,
+    record: PetraClaim | PetraAssertion,
   ): Promise<EvidenceProposalResolver> {
     const sourceSpanIds = new Set<string>();
     const claimIds = new Set<string>();
@@ -1235,8 +1486,95 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
   async #validateRelationshipEndpoints(
     client: PoolClient,
     relationship: PetraWorkingRelationship,
-    assertion: PetraAssertion,
+    profileRecord: ProfileRecord,
   ): Promise<void> {
+    if (
+      profileRecord.schema_name ===
+      "petra.controlled-writing-governing-relationship"
+    ) {
+      if (
+        relationship.profile_relationship.predicate !== "GOVERNS" ||
+        profileRecord.content.predicate !== "GOVERNS" ||
+        relationship.endpoints.subject.endpoint_kind !== "profile_record" ||
+        relationship.endpoints.object.endpoint_kind !== "working_candidate"
+      ) {
+        throw new PostgresWorkingStateError(
+          "WORKING_STATE_RELATION_INVALID",
+          "The registered controlled-writing adapter requires an exact authority-source subject and WorkingCandidate Requirement object.",
+        );
+      }
+      await this.#requireExactRecordRef(
+        client,
+        relationship.project_id,
+        relationship.endpoints.subject.record_ref,
+        false,
+      );
+      const authoritySource = await client.query<{ source_role: string }>(
+        `SELECT source_role
+           FROM petra.project_source_revisions
+          WHERE project_source_id = $1
+            AND revision = $2
+            AND record_hash = $3
+            AND project_id = $4
+            AND status = 'active'`,
+        [
+          profileRecord.content.authority_source_ref.record_id,
+          profileRecord.content.authority_source_ref.revision,
+          profileRecord.content.authority_source_ref.record_hash,
+          relationship.project_id,
+        ],
+      );
+      const candidate = await client.query<{
+        content_hash: string;
+        profile_record_schema_name: string;
+        profile_record_id: string;
+        profile_record_revision: string;
+        profile_record_hash: string;
+      }>(
+        `SELECT content_hash, profile_record_schema_name, profile_record_id,
+                profile_record_revision, profile_record_hash
+           FROM petra.working_candidate_revisions
+          WHERE working_candidate_id = $1 AND revision = $2
+            AND project_id = $3`,
+        [
+          relationship.endpoints.object.candidate_ref.working_candidate_id,
+          relationship.endpoints.object.candidate_ref.revision,
+          relationship.project_id,
+        ],
+      );
+      const sourceRef = profileRecord.content.authority_source_ref;
+      const requirementRef = profileRecord.content.requirement_ref;
+      const subjectRef = relationship.endpoints.subject.record_ref;
+      const target = candidate.rows[0];
+      if (
+        subjectRef.schema_name !== sourceRef.schema_name ||
+        subjectRef.schema_version !== sourceRef.schema_version ||
+        subjectRef.record_id !== sourceRef.record_id ||
+        subjectRef.revision !== sourceRef.revision ||
+        subjectRef.record_hash !== sourceRef.record_hash ||
+        authoritySource.rows[0]?.source_role !== "writing.authority-source" ||
+        target === undefined ||
+        target.content_hash !==
+          relationship.endpoints.object.candidate_ref.content_hash ||
+        target.profile_record_schema_name !== requirementRef.schema_name ||
+        target.profile_record_id !== requirementRef.record_id ||
+        Number(target.profile_record_revision) !== requirementRef.revision ||
+        target.profile_record_hash !== requirementRef.record_hash
+      ) {
+        throw new PostgresWorkingStateError(
+          "WORKING_STATE_RELATION_INVALID",
+          "The controlled-writing working endpoints must match the exact governing authority source and candidate-bound Requirement.",
+        );
+      }
+      return;
+    }
+    if (profileRecord.schema_name !== "petra.assertion") {
+      throw new PostgresWorkingStateError(
+        "WORKING_STATE_PROFILE_UNSUPPORTED",
+        "The supplied profile record is not an installed WorkingRelationship payload.",
+      );
+    }
+    const assertion = profileRecord;
     if (
       relationship.profile_relationship.predicate !== "ASSERTS" ||
       assertion.predicate !== "ASSERTS" ||
@@ -1309,8 +1647,13 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
         ],
       );
     }
+    const profileSchemaName = descriptor.profileRecord.schema_name;
     const profileKind =
-      record.schema_name === "petra.working-candidate" ? "claim" : "assertion";
+      profileSchemaName === "petra.claim"
+        ? "claim"
+        : profileSchemaName === "petra.assertion"
+          ? "assertion"
+          : null;
     const predicate =
       record.schema_name === "petra.working-relationship"
         ? record.profile_relationship.predicate
@@ -1329,6 +1672,8 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
          project_definition_id, project_definition_revision,
          project_definition_content_hash, definition_family,
          ${columns}
+         profile_record_schema_name, profile_record_id,
+         profile_record_revision, profile_record_hash,
          profile_evidence_id, profile_evidence_kind,
          profile_evidence_revision, profile_evidence_record_hash,
          producer_actor_id, producer_actor_kind, task_kind,
@@ -1345,8 +1690,9 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
          $${15 + values.length}, $${16 + values.length}, $${17 + values.length},
          $${18 + values.length}, $${19 + values.length}, $${20 + values.length},
          $${21 + values.length}, $${22 + values.length}, $${23 + values.length},
-         $${24 + values.length}, $${25 + values.length}::jsonb,
-         $${26 + values.length}::timestamptz
+         $${24 + values.length}, $${25 + values.length}, $${26 + values.length},
+         $${27 + values.length}, $${28 + values.length},
+         $${29 + values.length}::jsonb, $${30 + values.length}::timestamptz
        )`,
       [
         descriptor.id,
@@ -1357,10 +1703,14 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
         record.project_definition_ref.content_hash,
         record.project_definition_ref.definition_family,
         ...values,
+        profileSchemaName,
         descriptor.profileRecord.record_id,
-        profileKind,
         descriptor.profileRecord.revision,
         descriptor.profileRecord.record_hash,
+        profileKind === null ? null : descriptor.profileRecord.record_id,
+        profileKind,
+        profileKind === null ? null : descriptor.profileRecord.revision,
+        profileKind === null ? null : descriptor.profileRecord.record_hash,
         record.producer.actor.actor_id,
         record.producer.actor.actor_kind,
         record.task_context.task_kind,

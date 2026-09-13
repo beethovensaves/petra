@@ -26,27 +26,27 @@
         "registration_kind": "object_schema",
         "semantic_key": "writing.requirement",
         "contract": {
-          "name": "writing.requirement",
+          "name": "petra.controlled-writing-requirement",
           "version": "1.0.0",
-          "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          "content_hash": "sha256:5a6d449b44078f2df1c2f29fe15164d22b0c4151a05c6f35dd8718964c3c3f1e"
         }
       },
       {
         "registration_kind": "relationship_schema",
         "semantic_key": "writing.governs",
         "contract": {
-          "name": "writing.governs",
+          "name": "petra.controlled-writing-governing-relationship",
           "version": "1.0.0",
-          "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          "content_hash": "sha256:8875324fac5a6911a90aaf833289d0cc5ae2141c10f023d087a1cd876bd9e896"
         }
       },
       {
         "registration_kind": "source_role",
         "semantic_key": "writing.authority-source",
         "contract": {
-          "name": "petra.project-source",
+          "name": "petra.rights-decision",
           "version": "1.0.0",
-          "content_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          "content_hash": "sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94"
         }
       }
     ],
@@ -93,7 +93,7 @@
     ],
     "omitted_flows": ["External filesystem editing", "Multi-user collaboration"]
   },
-  "content_hash": "sha256:fcc8376cdec84154d8364ef9dbf1f4835827878727533a6be3b282b6e687415b",
+  "content_hash": "sha256:06f4c6fbf6cd356d74d904106fc1fd79248a0d2619b3b1bac771d1df41e9619d",
   "created_by": {
     "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
     "actor_kind": "human"

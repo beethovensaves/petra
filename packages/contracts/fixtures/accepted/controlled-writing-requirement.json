@@ -1,0 +1,38 @@
+{
+  "schema_name": "petra.controlled-writing-requirement",
+  "schema_version": "1.0.0",
+  "requirement_id": "requirement_01K4E000000000000000000004",
+  "revision": 1,
+  "project_id": "project_01K4E000000000000000000001",
+  "project_definition_ref": {
+    "project_definition_id": "project_definition_01K4E000000000000000000002",
+    "revision": 1,
+    "content_hash": "sha256:06f4c6fbf6cd356d74d904106fc1fd79248a0d2619b3b1bac771d1df41e9619d",
+    "definition_family": "petra.controlled-writing"
+  },
+  "content": {
+    "requirement_kind": "constraint",
+    "statement": "The operating procedure must identify the exact authority source for each mandatory step.",
+    "applies_to_refs": [
+      {
+        "schema_name": "petra.project-objective",
+        "schema_version": "1.0.0",
+        "record_id": "objective_01K4E000000000000000000003",
+        "revision": 1,
+        "record_hash": "sha256:aa187f3bd61b982c14ac953cd3c02f08813b2071b39a00785277dca0639334f5"
+      }
+    ]
+  },
+  "content_hash": "sha256:395e28385176dd080ac56b08b7c3960382bcbf91303c8b566c03008f48cc06cf",
+  "authority_boundary": {
+    "domain_authority": false,
+    "review_decision": false,
+    "mutation_authority": false,
+    "apply_path": false
+  },
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-13T14:00:00.000Z"
+}

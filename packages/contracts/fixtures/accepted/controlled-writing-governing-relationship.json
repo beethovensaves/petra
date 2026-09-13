@@ -1,0 +1,43 @@
+{
+  "schema_name": "petra.controlled-writing-governing-relationship",
+  "schema_version": "1.0.0",
+  "governing_relationship_id": "governing_relationship_01K4E000000000000000000005",
+  "revision": 1,
+  "project_id": "project_01K4E000000000000000000001",
+  "project_definition_ref": {
+    "project_definition_id": "project_definition_01K4E000000000000000000002",
+    "revision": 1,
+    "content_hash": "sha256:06f4c6fbf6cd356d74d904106fc1fd79248a0d2619b3b1bac771d1df41e9619d",
+    "definition_family": "petra.controlled-writing"
+  },
+  "content": {
+    "predicate": "GOVERNS",
+    "authority_source_ref": {
+      "schema_name": "petra.project-source",
+      "schema_version": "1.0.0",
+      "record_id": "project_source_01K4E000000000000000000006",
+      "revision": 1,
+      "record_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "requirement_ref": {
+      "schema_name": "petra.controlled-writing-requirement",
+      "schema_version": "1.0.0",
+      "record_id": "requirement_01K4E000000000000000000004",
+      "revision": 1,
+      "record_hash": "sha256:92d10794b8e04471dd1efc6ca6cf98aab8973bd2ad679dad04ab712eef067080"
+    },
+    "rationale": "The named authority source is the recorded basis for this proposed requirement."
+  },
+  "content_hash": "sha256:4c16588d47a6d8e497d1f8158938c6d8f13dc064ea6821c18260a6c8c164ba78",
+  "authority_boundary": {
+    "domain_authority": false,
+    "review_decision": false,
+    "mutation_authority": false,
+    "apply_path": false
+  },
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-09-13T14:01:00.000Z"
+}

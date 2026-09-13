@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/controlled-writing-requirement/1.0.0/schema.json",
+  "title": "PetraControlledWritingRequirement",
+  "description": "A non-authoritative controlled-writing Requirement payload proposed through the shared WorkingCandidate boundary. The record states an obligation or constraint and cannot authorize, approve, apply, or publish it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "requirement_id",
+    "revision",
+    "project_id",
+    "project_definition_ref",
+    "content",
+    "content_hash",
+    "authority_boundary",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.controlled-writing-requirement" },
+    "schema_version": { "const": "1.0.0" },
+    "requirement_id": { "$ref": "#/$defs/RequirementId" },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "project_definition_ref": {
+      "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ProjectDefinitionRef"
+    },
+    "content": { "$ref": "#/$defs/RequirementContent" },
+    "content_hash": {
+      "description": "The RFC 8785 SHA-256 identity of content.",
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "authority_boundary": { "$ref": "#/$defs/AuthorityBoundary" },
+    "created_by": {
+      "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "RequirementId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^requirement_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ExactRecordRef": {
+      "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ExactTypedRecordRef"
+    },
+    "RequirementContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirement_kind", "statement", "applies_to_refs"],
+      "properties": {
+        "requirement_kind": { "enum": ["obligation", "constraint"] },
+        "statement": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "applies_to_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ExactRecordRef" }
+        }
+      }
+    },
+    "AuthorityBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain_authority",
+        "review_decision",
+        "mutation_authority",
+        "apply_path"
+      ],
+      "properties": {
+        "domain_authority": { "const": false },
+        "review_decision": { "const": false },
+        "mutation_authority": { "const": false },
+        "apply_path": { "const": false }
+      }
+    }
+  }
+}

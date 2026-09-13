@@ -1,3 +1,5 @@
+import { ProfileCommunicationResolver } from "@petra/core";
+import { PostgresCommunicationPlanReader } from "../src/communication-plan-reader.js";
 import { projectBriefSnapshotMaterial } from "@petra/core";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import { ProjectBriefClient } from "@petra/adapters";
@@ -812,6 +814,150 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       },
     };
   };
+
+  const installCommunicationDefinition = async () => {
+    const definition = readFixture<PetraProjectDefinition>(
+      "project-definition-scientific",
+    );
+    definition.revision = 2;
+    definition.created_at = "2026-09-13T14:00:00.000Z";
+    definition.content.registrations = [
+      definition.content.registrations[0],
+      ...new ProfileCommunicationResolver(
+        new PetraContractRegistry(),
+      ).requiredRegistrations(),
+    ];
+    definition.content_hash = canonicalHash(definition.content);
+    await definitions.registerDefinitionRevision(definition);
+    return definition;
+  };
+  const communicationRequest = (response: PetraGroundedResponse) => ({
+    response_id: response.grounded_response_id,
+    response_revision: response.revision,
+    response_content_hash: response.content_hash,
+    response_record_hash: canonicalHash(response),
+    locale: "en",
+  });
+
+  it("composes communication from exact canonical owners with repeatable reads and no new authority records", async () => {
+    const promotion = await registerReviewedPromotion();
+    const terminal = await persistTerminal(
+      [promotion.claim, promotion.assertion, promotion.span],
+      true,
+    );
+    const response = await new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      terminal.packets,
+    ).register(terminal.input);
+    const thread = projectThread(terminal, response);
+    await new PostgresProjectThreadAuthorityRepository(
+      pool,
+    ).registerProjectThreadRevision(thread);
+    const definition = await installCommunicationDefinition();
+    const reader = new PostgresCommunicationPlanReader(pool);
+    const counts = async () =>
+      (
+        await pool.query<{
+          responses: string;
+          work: string;
+          invocations: string;
+          definitions: string;
+        }>(
+          `SELECT (SELECT count(*) FROM petra.grounded_response_revisions) AS responses, (SELECT count(*) FROM petra.work_unit_revisions) AS work, (SELECT count(*) FROM petra.suggested_action_invocations) AS invocations, (SELECT count(*) FROM petra.project_definition_revisions) AS definitions`,
+        )
+      ).rows;
+    const before = await counts();
+    const request = communicationRequest(response);
+    const plan = await reader.getCommunicationPlan(
+      response.project_id,
+      request,
+    );
+    expect(plan?.content.composition_definition).toEqual(definition);
+    expect(plan?.content.thread).toEqual(thread);
+    expect(plan?.content.source_time_binding.definition).toBe(
+      "exact_thread_turn_binding",
+    );
+    expect(
+      plan?.content.thread?.content.turns[0]?.project_definition_ref.revision,
+    ).toBe(1);
+    expect(plan?.content.source_response).toEqual(response);
+    expect(
+      plan?.content.segments.map((segment) => segment.preservation),
+    ).toEqual(["passed", "passed", "passed"]);
+    expect(plan?.content.validation.outcome).toBe("blocked");
+    expect(plan?.content.model_call.content.output).toEqual(
+      terminal.input.modelCall.content.output,
+    );
+    expect(plan?.content.source_time_binding.terminology).toBe("not_recorded");
+    const repeated = await new PostgresCommunicationPlanReader(
+      pool,
+    ).getCommunicationPlan(response.project_id, request);
+    expect(repeated?.content).toEqual(plan?.content);
+    expect(repeated?.content_hash).toBe(plan?.content_hash);
+    expect(await counts()).toEqual(before);
+    expect(
+      await reader.getCommunicationPlan(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        request,
+      ),
+    ).toBeUndefined();
+    expect(
+      await reader.getCommunicationPlan(response.project_id, {
+        ...request,
+        response_content_hash: `sha256:${"0".repeat(64)}`,
+      }),
+    ).toBeUndefined();
+    await expect(
+      reader.getCommunicationPlan(response.project_id, {
+        ...request,
+        expected_definition_hash: `sha256:${"0".repeat(64)}`,
+      }),
+    ).rejects.toThrow();
+    await expect(
+      reader.getCommunicationPlan(response.project_id, {
+        ...request,
+        command_id: "command_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+      }),
+    ).rejects.toThrow();
+    await expect(
+      reader.getCommunicationPlan(response.project_id, {
+        ...request,
+        locale: "en-US",
+      }),
+    ).rejects.toThrow();
+    // A concurrent definition revision after the first response read cannot enter this snapshot.
+    const transactionClient = await pool.connect();
+    const originalQuery = transactionClient.query.bind(transactionClient);
+    let changed = false;
+    transactionClient.query = (async (sql: string, values?: unknown[]) => {
+      const result = await originalQuery<Record<string, unknown>>(sql, values);
+      if (!changed && sql.includes("FROM petra.grounded_response_revisions")) {
+        changed = true;
+        const unsupported = structuredClone(definition);
+        unsupported.revision = 3;
+        unsupported.created_at = "2026-09-13T15:00:00.000Z";
+        unsupported.content.registrations.splice(1);
+        unsupported.content_hash = canonicalHash(unsupported.content);
+        await definitions.registerDefinitionRevision(unsupported);
+      }
+      return result;
+    }) as typeof transactionClient.query;
+    const snapshotPool = {
+      connect: () => Promise.resolve(transactionClient),
+    } as unknown as pg.Pool;
+    try {
+      const concurrent = await new PostgresCommunicationPlanReader(
+        snapshotPool,
+      ).getCommunicationPlan(response.project_id, request);
+      expect(changed).toBe(true);
+      expect(concurrent?.content.composition_definition).toEqual(definition);
+    } finally {
+      transactionClient.query = originalQuery;
+    }
+    await expect(
+      reader.getCommunicationPlan(response.project_id, request),
+    ).rejects.toThrow();
+  });
 
   const projectThread = (
     terminal: Awaited<ReturnType<typeof persistTerminal>>,
@@ -1741,6 +1887,26 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     expect(staleAction?.content.action_ref).toEqual(action.content.action_ref);
     expect(staleAction?.content.action).toEqual(action.content.action);
     expect(staleAction?.content_hash).not.toBe(action.content_hash);
+    await installCommunicationDefinition();
+    const communication = await new PostgresCommunicationPlanReader(
+      pool,
+    ).getCommunicationPlan(response.project_id, {
+      ...communicationRequest(response),
+      command_id: request.command_id,
+    });
+    expect(communication?.content.invocation?.content.operation_state).toBe(
+      "completed",
+    );
+    expect(communication?.content.segments.at(-1)?.family).toBe(
+      "action_report",
+    );
+    expect(
+      communication?.content.invocation?.content.recovery.actions.find(
+        (action) => action.operation === "retry_exact_start",
+      )?.eligibility,
+    ).toBe("ineligible");
+    expect(communication?.content.source_response).toEqual(response);
+    expect(communication?.content.validation.outcome).toBe("blocked");
   });
 
   it("persists immutable Project threads, revisions, and exact branch origins", async () => {

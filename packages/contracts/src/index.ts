@@ -1,4 +1,5 @@
 export type { PetraActor } from "./generated/actor.js";
+export type { PetraScientificCommunicationPayload } from "./generated/scientific-communication-payload.js";
 export type {
   ActorRef as CapabilityGrantActorRef,
   GrantContent as CapabilityGrantContent,
@@ -508,6 +509,17 @@ export type {
   SelectionBoundary as ProjectWorkingStateSelectionBoundary,
   SnapshotContent as ProjectWorkingStateSnapshotContent,
 } from "./generated/project-working-state-snapshot.js";
+export type {
+  AuthorityBoundary as ControlledWritingRequirementAuthorityBoundary,
+  PetraControlledWritingRequirement,
+  RequirementContent as ControlledWritingRequirementContent,
+  RequirementId as ControlledWritingRequirementId,
+} from "./generated/controlled-writing-requirement.js";
+export type {
+  GoverningRelationshipContent as ControlledWritingGoverningRelationshipContent,
+  GoverningRelationshipId as ControlledWritingGoverningRelationshipId,
+  PetraControlledWritingGoverningRelationship,
+} from "./generated/controlled-writing-governing-relationship.js";
 export type {
   AuthorityPosition as ProjectSourceAuthorityPosition,
   BindingSummary as ProjectSourceBindingSummary,
@@ -1262,3 +1274,12 @@ export type {
 import type { PetraProjectBriefView as BriefV10 } from "./generated/project-brief-view.js";
 import type { PetraProjectBriefView as BriefV11 } from "./generated/project-brief-view-v1-1.js";
 export type PetraProjectBriefReadView = BriefV10 | BriefV11;
+
+export type {
+  PetraCommunicationPlan,
+  CommunicationSegment,
+} from "./generated/communication-plan.js";
+export type {
+  PetraCommunicationValidationReceipt,
+  CommunicationCheck,
+} from "./generated/communication-validation-receipt.js";
