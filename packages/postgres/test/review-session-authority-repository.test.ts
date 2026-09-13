@@ -290,7 +290,7 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
   };
 
   const setupAuthority = async (
-    brief = false,
+    brief: boolean | "1.1.0" = false,
   ): Promise<{
     project: PetraProject;
     session: PetraReviewSession;
@@ -313,9 +313,11 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
         semantic_key: "scientific.research-brief",
         contract: {
           name: "petra.research-brief-payload",
-          version: "1.0.0",
+          version: brief === "1.1.0" ? brief : "1.0.0",
           content_hash: contracts.entries.find(
-            (entry) => entry.name === "research-brief-payload",
+            (entry) =>
+              entry.name === "research-brief-payload" &&
+              entry.version === (brief === "1.1.0" ? brief : "1.0.0"),
           )!.canonical_sha256,
         },
       });
@@ -4300,130 +4302,146 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
       (await pool.query("SELECT * FROM petra.command_executions")).rowCount,
     ).toBe(0);
   });
-  it("composes an authenticated Brief with complete Review and source basis, stable retry, and no new authority", async () => {
-    const { project, session } = await setupAuthority(true);
-    await sessions.registerReviewSessionRevision(session);
-    const reader = new PostgresProjectBriefViewReader(pool, contracts);
-    const app = createPetraApp({
-      authToken: "brief-test",
-      projectBriefViews: reader,
-    }).app;
-    const transport: typeof fetch = async (input, init) =>
-      app.request(input instanceof Request ? input : input.toString(), init);
-    const client = new ProjectBriefClient({
-      registeredProfileSchemaHash: contracts.entries.find(
-        (entry) =>
-          entry.name === "research-brief-payload" && entry.version === "1.0.0",
-      )!.canonical_sha256,
-      baseUrl: "http://petra.test",
-      token: "brief-test",
-      fetch: transport,
-      contracts,
-    });
-    const before = await pool.query(
-      "SELECT (SELECT count(*) FROM petra.domain_events)::text AS events, (SELECT count(*) FROM petra.command_executions)::text AS commands",
-    );
-    const view = await client.read(project.project_id);
-    expect(view.content.reviews).toHaveLength(1);
-    expect(view.content.reviews[0]?.content.members).toHaveLength(1);
-    expect(view.content.profile_payload.sources).toHaveLength(1);
-    expect(view.content.attention[0]?.owner).toBe("review");
-    expect(view.content.coverage.state).toBe("partial");
-    expect(view.content.comparison.state).toBe("current_only");
-    const replay = await client.read(project.project_id, {
-      expected_snapshot_hash: view.snapshot_hash,
-    });
-    expect(replay.snapshot_hash).toBe(view.snapshot_hash);
-    expect(
-      (
-        await new PostgresProjectBriefViewReader(
-          pool,
-          contracts,
-        ).getProjectBriefView(project.project_id)
-      )?.snapshot_hash,
-    ).toBe(view.snapshot_hash);
-    expect(
-      (
-        await pool.query(
-          "SELECT (SELECT count(*) FROM petra.domain_events)::text AS events, (SELECT count(*) FROM petra.command_executions)::text AS commands",
-        )
-      ).rows,
-    ).toEqual(before.rows);
-    expect(
-      (await app.request(`/api/queries/projects/${project.project_id}/brief`))
-        .status,
-    ).toBe(401);
-    for (const suffix of [
-      "?actor=human",
-      "?expected_snapshot_hash=a&expected_snapshot_hash=b",
-      "?baseline_event_id=invalid",
-    ])
-      expect(
-        (
-          await app.request(
-            `/api/queries/projects/${project.project_id}/brief${suffix}`,
-            { headers: { authorization: "Bearer brief-test" } },
-          )
-        ).status,
-      ).toBe(422);
-    await expect(
-      reader.getProjectBriefView(project.project_id, {
-        expected_snapshot_hash: `sha256:${"a".repeat(64)}`,
-      }),
-    ).rejects.toMatchObject({ code: "PROJECT_BRIEF_STALE" });
-    await expect(
-      reader.getProjectBriefView(project.project_id, {
-        baseline_event_id: "event_01ARZ3NDEKTSV4RRFFQ69G5FBH",
-        baseline_record_hash: `sha256:${"a".repeat(64)}`,
-      }),
-    ).rejects.toMatchObject({ code: "PROJECT_BRIEF_BASELINE_UNAVAILABLE" });
-    for (const mutate of [
-      (value: typeof view) => {
-        value.content.objective.project_id =
-          "project_01ARZ3NDEKTSV4RRFFQ69G5FAX";
-      },
-      (value: typeof view) => {
-        value.content.shell.content.authority.event_position += 1;
-        value.content.shell.content_hash = canonicalHash(
-          value.content.shell.content,
-        );
-      },
-      (value: typeof view) => {
-        value.content.reviews = [];
-      },
-      (value: typeof view) => {
-        value.content.profile_payload.sources[0]!.read_at =
-          "2026-01-01T00:00:00.000Z";
-      },
-      (value: typeof view) => {
-        value.content.definition.content.registrations.find(
-          (r) => r.semantic_key === "scientific.research-brief",
-        )!.contract.content_hash = `sha256:${"f".repeat(64)}`;
-        value.content.definition.content_hash = canonicalHash(
-          value.content.definition.content,
-        );
-      },
-    ]) {
-      const changed = structuredClone(view);
-      mutate(changed);
-      changed.content_hash = canonicalHash(changed.content);
-      changed.snapshot_hash = canonicalHash(
-        projectBriefSnapshotMaterial(changed.content),
+  it.each(["1.0.0", "1.1.0"] as const)(
+    "composes authenticated Brief %s with complete Review and source basis, stable retry, and no new authority",
+    async (version) => {
+      const { project, session } = await setupAuthority(
+        version === "1.1.0" ? version : true,
       );
-      const corrupt = new ProjectBriefClient({
+      await sessions.registerReviewSessionRevision(session);
+      const reader = new PostgresProjectBriefViewReader(pool, contracts);
+      const app = createPetraApp({
+        authToken: "brief-test",
+        projectBriefViews: reader,
+      }).app;
+      const transport: typeof fetch = async (input, init) =>
+        app.request(input instanceof Request ? input : input.toString(), init);
+      const client = new ProjectBriefClient({
         registeredProfileSchemaHash: contracts.entries.find(
           (entry) =>
             entry.name === "research-brief-payload" &&
-            entry.version === "1.0.0",
+            entry.version === version,
         )!.canonical_sha256,
         baseUrl: "http://petra.test",
         token: "brief-test",
+        fetch: transport,
         contracts,
-        fetch: () => Promise.resolve(Response.json(changed)),
       });
-      await expect(corrupt.read(project.project_id)).rejects.toThrow();
-    }
-  });
+      const before = await pool.query(
+        "SELECT (SELECT count(*) FROM petra.domain_events)::text AS events, (SELECT count(*) FROM petra.command_executions)::text AS commands",
+      );
+      const view = await client.read(project.project_id);
+      expect(view.schema_version).toBe(version);
+      if (view.content.profile_payload.schema_version === "1.1.0") {
+        expect(view.content.profile_payload.current_state.syntheses).toEqual(
+          [],
+        );
+        expect(view.content.profile_payload.current_state.coverage.state).toBe(
+          "complete",
+        );
+        expect(view.content.coverage.state).toBe("partial");
+      }
+      expect(view.content.reviews).toHaveLength(1);
+      expect(view.content.reviews[0]?.content.members).toHaveLength(1);
+      expect(view.content.profile_payload.sources).toHaveLength(1);
+      expect(view.content.attention[0]?.owner).toBe("review");
+      expect(view.content.coverage.state).toBe("partial");
+      expect(view.content.comparison.state).toBe("current_only");
+      const replay = await client.read(project.project_id, {
+        expected_snapshot_hash: view.snapshot_hash,
+      });
+      expect(replay.snapshot_hash).toBe(view.snapshot_hash);
+      expect(
+        (
+          await new PostgresProjectBriefViewReader(
+            pool,
+            contracts,
+          ).getProjectBriefView(project.project_id)
+        )?.snapshot_hash,
+      ).toBe(view.snapshot_hash);
+      expect(
+        (
+          await pool.query(
+            "SELECT (SELECT count(*) FROM petra.domain_events)::text AS events, (SELECT count(*) FROM petra.command_executions)::text AS commands",
+          )
+        ).rows,
+      ).toEqual(before.rows);
+      expect(
+        (await app.request(`/api/queries/projects/${project.project_id}/brief`))
+          .status,
+      ).toBe(401);
+      for (const suffix of [
+        "?actor=human",
+        "?expected_snapshot_hash=a&expected_snapshot_hash=b",
+        "?baseline_event_id=invalid",
+      ])
+        expect(
+          (
+            await app.request(
+              `/api/queries/projects/${project.project_id}/brief${suffix}`,
+              { headers: { authorization: "Bearer brief-test" } },
+            )
+          ).status,
+        ).toBe(422);
+      await expect(
+        reader.getProjectBriefView(project.project_id, {
+          expected_snapshot_hash: `sha256:${"a".repeat(64)}`,
+        }),
+      ).rejects.toMatchObject({ code: "PROJECT_BRIEF_STALE" });
+      await expect(
+        reader.getProjectBriefView(project.project_id, {
+          baseline_event_id: "event_01ARZ3NDEKTSV4RRFFQ69G5FBH",
+          baseline_record_hash: `sha256:${"a".repeat(64)}`,
+        }),
+      ).rejects.toMatchObject({ code: "PROJECT_BRIEF_BASELINE_UNAVAILABLE" });
+      for (const mutate of [
+        (value: typeof view) => {
+          value.content.objective.project_id =
+            "project_01ARZ3NDEKTSV4RRFFQ69G5FAX";
+        },
+        (value: typeof view) => {
+          value.content.shell.content.authority.event_position += 1;
+          value.content.shell.content_hash = canonicalHash(
+            value.content.shell.content,
+          );
+        },
+        (value: typeof view) => {
+          value.content.reviews = [];
+        },
+        (value: typeof view) => {
+          value.content.profile_payload.sources[0]!.read_at =
+            "2026-01-01T00:00:00.000Z";
+        },
+        (value: typeof view) => {
+          value.content.definition.content.registrations.find(
+            (r) => r.semantic_key === "scientific.research-brief",
+          )!.contract.content_hash = `sha256:${"f".repeat(64)}`;
+          value.content.definition.content_hash = canonicalHash(
+            value.content.definition.content,
+          );
+        },
+      ]) {
+        const changed = structuredClone(view);
+        mutate(changed);
+        changed.content_hash = canonicalHash(changed.content);
+        changed.snapshot_hash = canonicalHash(
+          projectBriefSnapshotMaterial(changed.content),
+        );
+        const corrupt = new ProjectBriefClient({
+          registeredProfileSchemaHash: contracts.entries.find(
+            (entry) =>
+              entry.name === "research-brief-payload" &&
+              entry.version === version,
+          )!.canonical_sha256,
+          baseUrl: "http://petra.test",
+          token: "brief-test",
+          contracts,
+          fetch: () => Promise.resolve(Response.json(changed)),
+        });
+        await expect(corrupt.read(project.project_id)).rejects.toThrow();
+      }
+    },
+  );
 
   it("updates Brief and canonical event comparison after an atomic application without treating the interval as a historical snapshot", async () => {
     const { project, session } = await setupAuthority(true);

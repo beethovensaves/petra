@@ -1250,3 +1250,15 @@ export type {
   PetraProjectBriefView,
   ProjectBriefContent,
 } from "./generated/project-brief-view.js";
+
+export type {
+  PetraProjectBriefView as PetraProjectBriefViewV11,
+  ProjectBriefContent as ProjectBriefContentV11,
+} from "./generated/project-brief-view-v1-1.js";
+export type {
+  PetraResearchBriefPayload as PetraResearchBriefPayloadV11,
+  RetainedSynthesis as ResearchBriefRetainedSynthesis,
+} from "./generated/research-brief-payload-v1-1.js";
+import type { PetraProjectBriefView as BriefV10 } from "./generated/project-brief-view.js";
+import type { PetraProjectBriefView as BriefV11 } from "./generated/project-brief-view-v1-1.js";
+export type PetraProjectBriefReadView = BriefV10 | BriefV11;

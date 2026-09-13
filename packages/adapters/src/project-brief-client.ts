@@ -1,4 +1,4 @@
-import type { PetraProjectBriefView } from "@petra/contracts";
+import type { PetraProjectBriefReadView } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   assertProjectBriefIntegrity,
@@ -29,7 +29,7 @@ export class ProjectBriefClient {
   async read(
     projectId: string,
     request: ProjectBriefRequest = {},
-  ): Promise<PetraProjectBriefView> {
+  ): Promise<PetraProjectBriefReadView> {
     if (
       !/^project_[0-9A-HJKMNP-TV-Z]{26}$/u.test(projectId) ||
       Object.keys(request).some(
@@ -64,8 +64,15 @@ export class ProjectBriefClient {
       throw new Error(`Project Brief read failed (${response.status}).`);
     const body: unknown = await response.json();
     const contracts = this.options.contracts ?? new PetraContractRegistry();
-    contracts.assertValid("project-brief-view", "1.0.0", body);
-    const view = body as PetraProjectBriefView;
+    const version = (body as { schema_version?: unknown } | null)
+      ?.schema_version;
+    if (version !== "1.0.0" && version !== "1.1.0")
+      throw new ProjectBriefError(
+        "PROJECT_BRIEF_UNSUPPORTED",
+        "The Brief schema version is unsupported.",
+      );
+    contracts.assertValid("project-brief-view", version, body);
+    const view = body as PetraProjectBriefReadView;
     await assertProjectBriefIntegrity(
       view,
       projectId,

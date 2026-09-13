@@ -2,11 +2,12 @@ import { createHash } from "node:crypto";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
 import type {
-  PetraProjectBriefView,
+  PetraProjectBriefReadView,
   PetraProjectInquiryLink,
   PetraProjectDefinition,
   PetraProjectObjective,
   ProjectBriefContent,
+  ProjectBriefContentV11,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
@@ -16,6 +17,7 @@ import {
   type ProjectBriefRequest,
   type ProjectBriefViewReader,
 } from "@petra/core";
+import { readResearchBriefSynthesis } from "./research-brief-synthesis-reader.js";
 import { PostgresProjectShellViewReader } from "./project-shell-view-reader.js";
 import { PostgresProjectSourceViewReader } from "./project-source-view-reader.js";
 import { PostgresProjectReviewViewReader } from "./project-review-view-reader.js";
@@ -37,7 +39,7 @@ export class PostgresProjectBriefViewReader implements ProjectBriefViewReader {
   async getProjectBriefView(
     projectId: string,
     request: ProjectBriefRequest = {},
-  ): Promise<PetraProjectBriefView | undefined> {
+  ): Promise<PetraProjectBriefReadView | undefined> {
     if (
       !/^project_[0-9A-HJKMNP-TV-Z]{26}$/u.test(projectId) ||
       Object.keys(request).some(
@@ -109,7 +111,7 @@ export class PostgresProjectBriefViewReader implements ProjectBriefViewReader {
       this.contracts.assertValid("project-objective", "1.0.0", row.objective);
       const definition = row.definition as PetraProjectDefinition;
       const objective = row.objective as PetraProjectObjective;
-      this.assertProfile(definition, objective, projectId);
+      const version = this.assertProfile(definition, objective, projectId);
       const history = await new PostgresProjectHistoryViewReader(
         this.pool,
         this.contracts,
@@ -311,7 +313,26 @@ export class PostgresProjectBriefViewReader implements ProjectBriefViewReader {
           order[a.consequence_class] - order[b.consequence_class] ||
           a.item_id.localeCompare(b.item_id),
       );
-      const content: ProjectBriefContent = {
+      const retainedLinks = links.rows
+        .slice(0, LIMIT)
+        .map((row) => row.payload) as ProjectBriefContent["inquiry_links"];
+      const profilePayload:
+        | ProjectBriefContent["profile_payload"]
+        | ProjectBriefContentV11["profile_payload"] =
+        version === "1.0.0"
+          ? sources
+          : {
+              ...sources,
+              schema_version: "1.1.0",
+              current_state: await readResearchBriefSynthesis(
+                client,
+                this.contracts,
+                projectId,
+                retainedLinks,
+                links.rows.length > LIMIT ? "partial" : "complete",
+              ),
+            };
+      const content = {
         shell,
         definition,
         objective,
@@ -337,7 +358,7 @@ export class PostgresProjectBriefViewReader implements ProjectBriefViewReader {
         next_steps: nextSteps as ProjectBriefContent["next_steps"],
         recent_decisions: history,
         comparison,
-        profile_payload: sources,
+        profile_payload: profilePayload,
         profile_registration: definition.content.registrations.find(
           (entry) =>
             entry.registration_kind === "extension" &&
@@ -353,18 +374,18 @@ export class PostgresProjectBriefViewReader implements ProjectBriefViewReader {
             "Recent decisions preserve the canonical recent-ten History window, including its effect and recovery limits. The event interval does not reconstruct historical Work or Brief state. No acknowledgment or deferral is persisted by this read.",
           ],
         },
-      };
+      } as ProjectBriefContent | ProjectBriefContentV11;
       // Time-dependent owner observations retain their exact read_at. Hashes bind this complete read.
-      const view: PetraProjectBriefView = {
+      const view = {
         schema_name: "petra.project-brief-view",
-        schema_version: "1.0.0",
+        schema_version: version,
         project_id: projectId,
         content,
         content_hash: hash(content),
         snapshot_hash: hash(projectBriefSnapshotMaterial(content)),
         read_at: readAt,
-      };
-      this.contracts.assertValid("project-brief-view", "1.0.0", view);
+      } as PetraProjectBriefReadView;
+      this.contracts.assertValid("project-brief-view", version, view);
       await assertProjectBriefIntegrity(
         view,
         projectId,
@@ -372,7 +393,7 @@ export class PostgresProjectBriefViewReader implements ProjectBriefViewReader {
         this.contracts.entries.find(
           (entry) =>
             entry.name === "research-brief-payload" &&
-            entry.version === "1.0.0",
+            entry.version === version,
         )!.canonical_sha256,
       );
       if (
@@ -397,22 +418,24 @@ export class PostgresProjectBriefViewReader implements ProjectBriefViewReader {
     definition: PetraProjectDefinition,
     objective: PetraProjectObjective,
     projectId: string,
-  ): void {
-    const registered = this.contracts.entries.find(
-      (entry) =>
-        entry.name === "research-brief-payload" && entry.version === "1.0.0",
-    )!;
+  ): "1.0.0" | "1.1.0" {
     const bindings = definition.content.registrations.filter(
       (entry) =>
         entry.registration_kind === "extension" &&
         entry.semantic_key === "scientific.research-brief",
     );
+    const version = bindings[0]?.contract.version;
+    const registered = this.contracts.entries.find(
+      (entry) =>
+        entry.name === "research-brief-payload" && entry.version === version,
+    );
     if (
+      (version !== "1.0.0" && version !== "1.1.0") ||
+      registered === undefined ||
       definition.definition_family !== "petra.scientific-evidence" ||
       !definition.content.supported_places.includes("brief") ||
       bindings.length !== 1 ||
       bindings[0]!.contract.name !== "petra.research-brief-payload" ||
-      bindings[0]!.contract.version !== "1.0.0" ||
       bindings[0]!.contract.content_hash !== registered.canonical_sha256 ||
       objective.content.objective_kind !== "scientific.research-question"
     )
@@ -434,6 +457,7 @@ export class PostgresProjectBriefViewReader implements ProjectBriefViewReader {
         "PROJECT_BRIEF_STALE",
         "The current Objective must bind the exact current ProjectDefinition.",
       );
+    return version;
   }
 
   private async readScientificSources(

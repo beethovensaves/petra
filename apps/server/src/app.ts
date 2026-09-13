@@ -1112,7 +1112,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           "PROJECT_NOT_FOUND",
           "The requested Project is unavailable.",
         );
-      contracts.assertValid("project-brief-view", "1.0.0", view);
+      contracts.assertValid("project-brief-view", view.schema_version, view);
       if (view.project_id !== projectId)
         throw new ProjectBriefError(
           "PROJECT_BRIEF_CORRUPT",

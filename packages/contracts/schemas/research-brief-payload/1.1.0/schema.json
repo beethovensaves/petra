@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/research-brief-payload/1.1.0/schema.json",
+  "title": "PetraResearchBriefPayload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "sources",
+    "source_coverage",
+    "limitations",
+    "current_state"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.research-brief-payload"
+    },
+    "schema_version": {
+      "const": "1.1.0"
+    },
+    "sources": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "../../project-source-view/1.0.0/schema.json"
+      }
+    },
+    "source_coverage": {
+      "enum": ["complete", "partial"]
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      }
+    },
+    "current_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["syntheses", "coverage", "limitations"],
+      "properties": {
+        "syntheses": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/RetainedSynthesis"
+          }
+        },
+        "coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scope", "state", "link_limit"],
+          "properties": {
+            "scope": {
+              "const": "addressing_results_in_returned_current_objective_links"
+            },
+            "state": {
+              "enum": ["complete", "partial"]
+            },
+            "link_limit": {
+              "const": 20
+            }
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "RetainedSynthesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_inquiry_link_id",
+        "linked_response",
+        "current_response",
+        "context_packet",
+        "evidence_packet",
+        "output"
+      ],
+      "properties": {
+        "project_inquiry_link_id": {
+          "type": "string",
+          "pattern": "^project_inquiry_link_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "linked_response": {
+          "$ref": "../../grounded-response/1.0.0/schema.json"
+        },
+        "current_response": {
+          "$ref": "../../grounded-response/1.0.0/schema.json"
+        },
+        "context_packet": {
+          "$ref": "../../context-packet/1.0.0/schema.json"
+        },
+        "evidence_packet": {
+          "$ref": "../../evidence-packet/1.0.0/schema.json"
+        },
+        "output": {
+          "$ref": "../../model-synthesist-output/1.0.0/schema.json"
+        }
+      }
+    }
+  }
+}

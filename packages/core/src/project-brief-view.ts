@@ -1,4 +1,4 @@
-import type { PetraProjectBriefView } from "@petra/contracts";
+import type { PetraProjectBriefReadView } from "@petra/contracts";
 
 export interface ProjectBriefRequest {
   readonly expected_snapshot_hash?: string;
@@ -11,7 +11,7 @@ export interface ProjectBriefViewReader {
   getProjectBriefView(
     projectId: string,
     request?: ProjectBriefRequest,
-  ): Promise<PetraProjectBriefView | undefined>;
+  ): Promise<PetraProjectBriefReadView | undefined>;
 }
 
 export class ProjectBriefError extends Error {
@@ -31,7 +31,7 @@ export class ProjectBriefError extends Error {
 
 /** Stable identity of canonical owner observations; elapsed time and read timestamps are excluded. */
 export const projectBriefSnapshotMaterial = (
-  content: PetraProjectBriefView["content"],
+  content: PetraProjectBriefReadView["content"],
 ): unknown => ({
   shell: content.shell.content_hash,
   definition: content.definition.content_hash,
@@ -60,6 +60,9 @@ export const projectBriefSnapshotMaterial = (
       hash: view.content_hash,
     })),
     coverage: content.profile_payload.source_coverage,
+    ...(content.profile_payload.schema_version === "1.1.0"
+      ? { current_state: content.profile_payload.current_state }
+      : {}),
   },
   history: content.recent_decisions.content_hash,
   comparison: content.comparison,
@@ -67,7 +70,7 @@ export const projectBriefSnapshotMaterial = (
 
 /** Validates identity and evidence bindings; does not calculate presentation or action eligibility. */
 export const assertProjectBriefIntegrity = async (
-  view: PetraProjectBriefView,
+  view: PetraProjectBriefReadView,
   projectId: string,
   digest: (value: unknown) => Promise<string>,
   profileSchemaHash: string,
@@ -99,6 +102,7 @@ export const assertProjectBriefIntegrity = async (
     c.orientation.statement !== o.content.statement
   )
     fail();
+  if (view.schema_version !== c.profile_payload.schema_version) fail();
   const registrations = d.content.registrations.filter(
     (r) =>
       r.registration_kind === "extension" &&
@@ -215,6 +219,8 @@ export const assertProjectBriefIntegrity = async (
     )
       fail();
   }
+  if (c.profile_payload.schema_version === "1.1.0")
+    await assertResearchBriefSynthesisBindings(c, projectId, digest);
   for (const item of c.attention) {
     const owner =
       item.owner === "shell"
@@ -250,5 +256,151 @@ export const assertProjectBriefIntegrity = async (
         ))
     )
       fail();
+  }
+};
+
+/** Reproduces retained output identity and basis; it grants no scientific or execution authority. */
+export const assertResearchBriefSynthesisBindings = async (
+  content: PetraProjectBriefReadView["content"],
+  projectId: string,
+  digest: (value: unknown) => Promise<string>,
+): Promise<void> => {
+  if (content.profile_payload.schema_version !== "1.1.0") return;
+  const fail = (): never => {
+    throw new ProjectBriefError(
+      "PROJECT_BRIEF_CORRUPT",
+      "The retained synthesis lost its exact inquiry, output, response, or evidence snapshot binding.",
+    );
+  };
+  const state = content.profile_payload.current_state;
+  const links = content.inquiry_links.filter(
+    (link) =>
+      link.content.target.target_kind === "result" &&
+      link.content.target.bearing === "addresses",
+  );
+  const ids = state.syntheses.map((s) => s.project_inquiry_link_id);
+  if (new Set(ids).size !== ids.length || ids.length !== links.length) fail();
+  for (const synthesis of state.syntheses) {
+    const link = links.find(
+      (l) => l.project_inquiry_link_id === synthesis.project_inquiry_link_id,
+    );
+    const target = link?.content.target;
+    if (target?.target_kind !== "result") return fail();
+    const {
+      linked_response: response,
+      current_response: current,
+      context_packet: context,
+      evidence_packet: evidence,
+      output,
+    } = synthesis;
+    const ref = target.result_ref;
+    if (
+      ref.schema_name !== response.schema_name ||
+      ref.schema_version !== response.schema_version ||
+      ref.record_id !== response.grounded_response_id ||
+      ref.revision !== response.revision ||
+      ref.content_hash !== response.content_hash ||
+      ref.record_hash !== (await digest(response)) ||
+      current.grounded_response_id !== response.grounded_response_id ||
+      current.revision < response.revision ||
+      (await digest(output)) !== response.content.model_output_hash
+    )
+      fail();
+    for (const record of [response, current, context, evidence]) {
+      if (
+        record.project_id !== projectId ||
+        (await digest(record.content)) !== record.content_hash
+      )
+        fail();
+    }
+    // Invalidation changes cache observations only; retained scientific/execution basis stays exact.
+    const { cache: linkedCache, ...linkedContent } = response.content;
+    const { cache: currentCache, ...currentContent } = current.content;
+    if (
+      (await digest(linkedContent)) !== (await digest(currentContent)) ||
+      (current.revision === response.revision &&
+        (await digest(current)) !== (await digest(response))) ||
+      (linkedCache.state === "invalidated" &&
+        currentCache.state !== "invalidated")
+    )
+      fail();
+    if (
+      response.content.context_packet_ref.context_packet_id !==
+        context.context_packet_id ||
+      response.content.context_packet_ref.content_hash !==
+        context.content_hash ||
+      response.content.evidence_packet_ref.evidence_packet_id !==
+        evidence.evidence_packet_id ||
+      response.content.evidence_packet_ref.content_hash !==
+        evidence.content_hash ||
+      evidence.content.context_packet_ref.context_packet_id !==
+        context.context_packet_id ||
+      evidence.content.context_packet_ref.content_hash !==
+        context.content_hash ||
+      (await digest(response.content.snapshot_ref)) !==
+        (await digest(context.snapshot_ref)) ||
+      (await digest(context.snapshot_ref)) !==
+        (await digest(evidence.snapshot_ref))
+    )
+      fail();
+    const work = target.produced_by_work_ref;
+    const produced = response.content.interaction_ref.work_unit_ref;
+    if (
+      work === undefined ||
+      work.work_unit_id !== produced.work_unit_id ||
+      work.revision !== produced.revision ||
+      work.spec_hash !== produced.spec_hash
+    )
+      fail();
+    const selections = evidence.content.selected_evidence;
+    const keys = output.statements.map((statement) => statement.statement_key);
+    if (new Set(keys).size !== keys.length) fail();
+    for (const statement of output.statements) {
+      for (const basis of statement.evidence_refs) {
+        const selected = selections.find(
+          (s) => s.context_selection_order === basis.context_selection_order,
+        );
+        const included = context.content.included_objects.find(
+          (s) => s.selection_order === basis.context_selection_order,
+        );
+        const object = {
+          object_kind: basis.object_kind,
+          object_id: basis.object_id,
+          object_revision: basis.object_revision,
+          object_hash: basis.object_hash,
+        };
+        if (
+          selected === undefined ||
+          included === undefined ||
+          (await digest(selected.object_ref)) !== (await digest(object)) ||
+          (await digest(included.object_ref)) !== (await digest(object)) ||
+          (await digest([...selected.source_span_selection_orders].sort())) !==
+            (await digest([...basis.source_span_selection_orders].sort())) ||
+          !response.content.dependencies.some(
+            (d) =>
+              d.object_ref.object_id === object.object_id &&
+              d.object_ref.object_revision === object.object_revision &&
+              d.object_ref.object_hash === object.object_hash &&
+              d.object_ref.object_kind === object.object_kind,
+          )
+        )
+          fail();
+        for (const order of basis.source_span_selection_orders) {
+          const span = selections.find(
+            (s) => s.context_selection_order === order,
+          );
+          const spanContext = context.content.included_objects.find(
+            (s) => s.selection_order === order,
+          );
+          if (
+            span?.object_ref.object_kind !== "source_span" ||
+            spanContext === undefined ||
+            (await digest(span.object_ref)) !==
+              (await digest(spanContext.object_ref))
+          )
+            fail();
+        }
+      }
+    }
   }
 };
