@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-session-apply-request/1.0.0/schema.json",
+  "title": "PetraReviewSessionApplyRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_name", "schema_version", "checkpoint", "decided_at"],
+  "properties": {
+    "schema_name": {
+      "const": "petra.review-session-apply-request"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "checkpoint": {
+      "$ref": "../../review-session-apply-checkpoint/1.0.0/schema.json"
+    },
+    "decided_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

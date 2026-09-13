@@ -1,3 +1,4 @@
+import type { PetraReviewSessionApplyRequest } from "@petra/contracts";
 import { createHash, randomBytes } from "node:crypto";
 
 import type {
@@ -11,7 +12,12 @@ import type {
   PetraClaim,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import { ChangeControlError, createPetraId, petraIdKind } from "@petra/core";
+import {
+  ChangeControlError,
+  createPetraId,
+  petraIdKind,
+  buildReviewApplyPlan,
+} from "@petra/core";
 import type {
   ChangeControlAuthorityRepository,
   ChangeControlCommandResult,
@@ -173,19 +179,45 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
 
   async executeCommand(
     envelope: PetraCommandEnvelopeRecord,
+    checkpointGuard?: {
+      readonly request: PetraReviewSessionApplyRequest;
+      readonly lockKeys: readonly string[];
+      readonly recheck: (client: PoolClient) => Promise<void>;
+      readonly onReplay?: () => void;
+    },
   ): Promise<ChangeControlCommandResult> {
     this.#contracts.assertValid(
       "command-envelope",
       envelope.schema_version,
       envelope,
     );
+    if (checkpointGuard !== undefined) {
+      this.#contracts.assertValid(
+        "review-session-apply-request",
+        "1.0.0",
+        checkpointGuard.request,
+      );
+      const plan = buildReviewApplyPlan(checkpointGuard.request);
+      if (
+        ![plan.submit, plan.review, plan.apply].some(
+          (step) =>
+            step !== undefined &&
+            canonicalHash(step) === canonicalHash(envelope),
+        )
+      ) {
+        throw new ChangeControlError(
+          "COMMAND_NOT_AUTHORIZED",
+          "The command does not bind the exact authenticated human checkpoint.",
+        );
+      }
+    }
     const fingerprint = canonicalHash(envelope);
     const client = await this.#pool.connect();
     let transactionOpen = false;
     try {
       await client.query("BEGIN");
       transactionOpen = true;
-      await this.#lockCommandScope(client, envelope);
+      await this.#lockCommandScope(client, envelope, checkpointGuard?.lockKeys);
       if (
         !(await this.#commandAuthorizer.authorize(
           {
@@ -207,10 +239,23 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       if (replay !== undefined) {
         await client.query("COMMIT");
         transactionOpen = false;
+        checkpointGuard?.onReplay?.();
         return this.#replay(replay);
       }
 
       await this.#requireCommandContext(client, envelope);
+      if (
+        envelope.idempotency_key.startsWith("review-checkpoint:") &&
+        checkpointGuard === undefined
+      ) {
+        throw new ChangeControlError(
+          "COMMAND_NOT_AUTHORIZED",
+          "New Review checkpoint commands require the registered checkpoint owner's current-state guards.",
+        );
+      }
+      // A server-composed checkpoint adds guards to this owner's transaction;
+      // it never replaces current authorization or the owner's replay rules.
+      await checkpointGuard?.recheck(client);
       const plan = await this.#executeUnseenCommand(client, envelope);
       const recordedAt = this.#domainRecordFactory.now();
       await this.#appendEventAndOutbox(
@@ -227,6 +272,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
         fingerprint,
         plan,
         recordedAt,
+        checkpointGuard?.request,
       );
       await client.query("COMMIT");
       transactionOpen = false;
@@ -322,8 +368,10 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
   async #lockCommandScope(
     client: PoolClient,
     envelope: PetraCommandEnvelopeRecord,
+    checkpointLockKeys: readonly string[] = [],
   ): Promise<void> {
     const keys = new Set<string>([
+      ...checkpointLockKeys,
       "authority:positions",
       `command:${envelope.command_id}`,
       `idempotency:${envelope.idempotency_key}`,
@@ -1613,6 +1661,7 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
     fingerprint: string,
     plan: CommandPlan,
     completedAt: string,
+    reviewApplyRequest?: PetraReviewSessionApplyRequest,
   ): Promise<void> {
     const failed = "failure" in plan;
     await client.query(
@@ -1620,10 +1669,10 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
          command_id, idempotency_key, project_id, actor_id, actor_kind,
          capability_grant_id, correlation_id, submitted_at, command_name,
          command_fingerprint, envelope, outcome_kind, result, error_code,
-         error_message, completed_at
+         error_message, completed_at, review_apply_request
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9, $10,
                  $11::jsonb, $12, $13::jsonb, $14, $15,
-                 $16::timestamptz)`,
+                 $16::timestamptz, $17::jsonb)`,
       [
         envelope.command_id,
         envelope.idempotency_key,
@@ -1641,6 +1690,9 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
         failed ? plan.failure.code : null,
         failed ? plan.failure.message : null,
         completedAt,
+        reviewApplyRequest === undefined
+          ? null
+          : JSON.stringify(reviewApplyRequest),
       ],
     );
   }

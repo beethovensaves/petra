@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.83.0",
+  "registry_version": "1.84.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -1549,6 +1549,39 @@
       "canonical_sha256": "sha256:70596e4f401bc2f0911f49ff9129e1ff24d40154adb21d4f18706b1d96382817",
       "generate_typescript": true,
       "typescript_path": "src/generated/review-recovery-assessment.ts"
+    },
+    {
+      "name": "review-session-apply-checkpoint",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-session-apply-checkpoint/1.0.0/schema.json",
+      "path": "schemas/review-session-apply-checkpoint/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-manual-review-apply-checkpoint",
+      "canonical_sha256": "sha256:c03be29105dda683659b891d8e35cb88350faf5cbce0f8d1ed725e0b3530b4ee",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-session-apply-checkpoint.ts"
+    },
+    {
+      "name": "review-session-apply-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-session-apply-request/1.0.0/schema.json",
+      "path": "schemas/review-session-apply-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-manual-review-apply-checkpoint",
+      "canonical_sha256": "sha256:f07e65479240a24a29c240d10f44b280f238975e1d23ba73bd891e5f8ab49edf",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-session-apply-request.ts"
+    },
+    {
+      "name": "review-session-apply-result",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-session-apply-result/1.0.0/schema.json",
+      "path": "schemas/review-session-apply-result/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-manual-review-apply-checkpoint",
+      "canonical_sha256": "sha256:9b215bf6867aa2dd4e402687204bc3034b22487dd34aaa31f0d809f35e761860",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-session-apply-result.ts"
     }
   ]
 }

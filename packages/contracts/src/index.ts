@@ -1240,3 +1240,6 @@ export type PetraReviewSessionRecord =
   PetraReviewSession | PetraReviewSessionV110;
 
 export type { PetraReviewRecoveryAssessment } from "./generated/review-recovery-assessment.js";
+export type { PetraReviewSessionApplyCheckpoint } from "./generated/review-session-apply-checkpoint.js";
+export type { PetraReviewSessionApplyResult } from "./generated/review-session-apply-result.js";
+export type { PetraReviewSessionApplyRequest } from "./generated/review-session-apply-request.js";

@@ -815,6 +815,13 @@ export class InMemoryEvidenceRegistry {
       );
     }
 
+    if (envelope.idempotency_key.startsWith("review-checkpoint:")) {
+      throw new ChangeControlError(
+        "COMMAND_NOT_AUTHORIZED",
+        "Manual ReviewSession checkpoint commands require their registered current-state authority owner.",
+      );
+    }
+
     const fingerprint = canonicalHash(envelope);
     const idempotent = this.#commandByIdempotencyKey.get(
       envelope.idempotency_key,

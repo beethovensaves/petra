@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-session-apply-result/1.0.0/schema.json",
+  "title": "PetraReviewSessionApplyResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "outcome",
+    "steps",
+    "assessment",
+    "request"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.review-session-apply-result"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "outcome": {
+      "enum": ["applied", "reconciliation_required"]
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["envelope", "observation"],
+        "properties": {
+          "envelope": {
+            "$ref": "../../command-envelope/1.0.0/schema.json"
+          },
+          "observation": {
+            "enum": [
+              "executed",
+              "replayed",
+              "unattempted",
+              "unverified",
+              "failed"
+            ]
+          },
+          "event": {
+            "$ref": "../../domain-event/1.0.0/schema.json"
+          },
+          "error_code": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "assessment": {
+      "$ref": "../../review-recovery-assessment/1.0.0/schema.json"
+    },
+    "request": {
+      "$ref": "../../review-session-apply-request/1.0.0/schema.json"
+    }
+  }
+}

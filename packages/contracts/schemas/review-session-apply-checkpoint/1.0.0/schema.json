@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-session-apply-checkpoint/1.0.0/schema.json",
+  "title": "PetraReviewSessionApplyCheckpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "binding",
+    "displayed_commitment_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.review-session-apply-checkpoint"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "review_session",
+        "project_definition",
+        "selected_review_member_id",
+        "atomic_member_ids",
+        "members",
+        "claim",
+        "assertion",
+        "sources",
+        "change_set",
+        "prepared_at",
+        "authorization_basis",
+        "review_policy",
+        "capability_grants",
+        "scope",
+        "consequences"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "review_session": {
+          "$ref": "../../review-session/1.1.0/schema.json"
+        },
+        "project_definition": {
+          "$ref": "../../project-definition/1.0.0/schema.json"
+        },
+        "selected_review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "atomic_member_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+          },
+          "minItems": 1,
+          "maxItems": 10000,
+          "uniqueItems": true
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "review_member_id",
+              "candidate",
+              "working_state",
+              "basis"
+            ],
+            "properties": {
+              "review_member_id": {
+                "$ref": "../../project-review-view/1.1.0/schema.json#/$defs/ReviewMember/properties/review_member_id"
+              },
+              "candidate": {
+                "$ref": "../../project-review-view/1.1.0/schema.json#/$defs/ReviewMember/properties/candidate"
+              },
+              "working_state": {
+                "$ref": "../../project-review-view/1.1.0/schema.json#/$defs/ReviewMember/properties/working_state"
+              },
+              "basis": {
+                "$ref": "../../project-review-view/1.1.0/schema.json#/$defs/ReviewMember/properties/basis"
+              }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 10000,
+          "uniqueItems": true
+        },
+        "claim": {
+          "$ref": "../../claim/1.0.0/schema.json"
+        },
+        "assertion": {
+          "$ref": "../../assertion/1.0.0/schema.json"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "../../project-source/1.0.0/schema.json"
+          },
+          "minItems": 1,
+          "maxItems": 10000,
+          "uniqueItems": true
+        },
+        "change_set": {
+          "$ref": "../../change-set/1.0.0/schema.json"
+        },
+        "prepared_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "authorization_basis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "decision", "actor"],
+          "properties": {
+            "kind": {
+              "const": "authenticated_human_checkpoint"
+            },
+            "decision": {
+              "const": "apply"
+            },
+            "actor": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["actor_id", "actor_kind"],
+              "properties": {
+                "actor_id": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+                },
+                "actor_kind": {
+                  "const": "human"
+                }
+              }
+            }
+          }
+        },
+        "review_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["applicability"],
+          "properties": {
+            "applicability": {
+              "const": "not_applicable"
+            }
+          }
+        },
+        "capability_grants": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["SubmitChangeSet", "RecordApproval", "ApplyChangeSet"],
+          "properties": {
+            "SubmitChangeSet": {
+              "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+            },
+            "RecordApproval": {
+              "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+            },
+            "ApplyChangeSet": {
+              "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+            }
+          }
+        },
+        "scope": {
+          "const": "one_complete_change_set"
+        },
+        "consequences": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "displayed_commitment_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  }
+}

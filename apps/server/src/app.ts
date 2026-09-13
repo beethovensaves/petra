@@ -1,4 +1,14 @@
 import {
+  ReviewSessionApplyError,
+  type ReviewSessionApplyBoundary,
+  type ReviewApplyAuthority,
+} from "@petra/core";
+import type { PetraReviewSessionApplyRequest } from "@petra/contracts";
+import {
+  validateReviewApplyCheckpoint,
+  validateReviewApplyResult,
+} from "@petra/adapters";
+import {
   ReviewRecoveryAssessmentError,
   type ReviewRecoveryAssessmentReader,
 } from "@petra/core";
@@ -117,6 +127,7 @@ export interface PetraAppOptions {
   projectSourceReplacementAuthority?: ProjectSourceReplacementCommandAuthorityRepository;
   projectReviewViews?: ProjectReviewViewReader;
   reviewRecoveryAssessments?: ReviewRecoveryAssessmentReader;
+  reviewSessionApply?: ReviewSessionApplyBoundary;
   reviewSessionLifecycleAuthority?: ReviewSessionLifecycleAuthorityRepository;
   reviewSessionRefreshAuthority?: ReviewSessionRefreshAuthorityRepository;
   reviewCandidateBasisRevisionAuthority?: ReviewCandidateBasisRevisionAuthorityRepository;
@@ -818,6 +829,198 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     }
     await next();
   });
+
+  const resolveApplyAuthority = async (
+    projectId: string,
+  ): Promise<ReviewApplyAuthority> => {
+    if (options.commandPrincipalResolver === undefined)
+      throw new ReviewSessionApplyError(
+        "REVIEW_APPLY_DENIED",
+        "Authenticated command authority is unavailable.",
+      );
+    const commands = [
+      "SubmitChangeSet",
+      "RecordApproval",
+      "ApplyChangeSet",
+    ] as const;
+    const resolved = await Promise.all(
+      commands.map((commandName) =>
+        options.commandPrincipalResolver!.resolveCommandPrincipal({
+          projectId,
+          commandName,
+        }),
+      ),
+    );
+    const first = resolved[0];
+    if (
+      first?.state !== "resolved" ||
+      first.actor.actor_kind !== "human" ||
+      resolved.some(
+        (r) =>
+          r.state !== "resolved" ||
+          canonicalize(r.actor) !== canonicalize(first.actor),
+      )
+    ) {
+      throw new ReviewSessionApplyError(
+        "REVIEW_APPLY_DENIED",
+        "One authenticated human must hold current grants for SubmitChangeSet, RecordApproval, and ApplyChangeSet.",
+      );
+    }
+    const grants = Object.fromEntries(
+      resolved.map((r, i): [string, string] => [
+        commands[i]!,
+        r.state === "resolved" ? r.capabilityGrantId : "",
+      ]),
+    );
+    return {
+      authorization_basis: {
+        kind: "authenticated_human_checkpoint",
+        decision: "apply",
+        actor: { actor_id: first.actor.actor_id, actor_kind: "human" },
+      },
+      capability_grants: grants as ReviewApplyAuthority["capability_grants"],
+    };
+  };
+  const applyError = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ) => {
+    if (error instanceof ReviewSessionApplyError) {
+      const status =
+        error.code === "REVIEW_APPLY_DENIED"
+          ? 403
+          : error.code === "REVIEW_APPLY_UNSUPPORTED"
+            ? 422
+            : error.code === "REVIEW_APPLY_CORRUPT"
+              ? 503
+              : 409;
+      return jsonError(context, status, error.code, error.message);
+    }
+    if (
+      error instanceof ContractRegistryError ||
+      error instanceof SyntaxError ||
+      error instanceof TypeError
+    )
+      return jsonError(
+        context,
+        422,
+        "REVIEW_APPLY_INVALID",
+        "The exact versioned Apply checkpoint request is invalid.",
+      );
+    return jsonError(
+      context,
+      503,
+      "REVIEW_APPLY_RECONCILE",
+      "The Apply observation is unavailable. Effects may exist; reconcile canonical Review status through D020 before another attempt.",
+    );
+  };
+  app.get(
+    "/api/queries/projects/:projectId/reviews/:reviewSessionId/apply-checkpoint",
+    async (context) => {
+      if (options.reviewSessionApply === undefined)
+        return jsonError(
+          context,
+          503,
+          "REVIEW_APPLY_UNAVAILABLE",
+          "ReviewSession Apply authority is unavailable.",
+        );
+      try {
+        const projectId = context.req.param("projectId");
+        const sessionId = context.req.param("reviewSessionId");
+        const params = new URL(context.req.url).searchParams;
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !REVIEW_SESSION_ID_PATTERN.test(sessionId) ||
+          [...params.keys()].sort().join(",") !==
+            "expected_content_hash,expected_revision,selected_review_member_id"
+        )
+          throw new TypeError("Invalid Apply selection.");
+        const selection = {
+          project_id: projectId,
+          review_session_id: sessionId,
+          expected_revision: Number(params.get("expected_revision")),
+          expected_content_hash: params.get("expected_content_hash")!,
+          selected_review_member_id: params.get("selected_review_member_id")!,
+        };
+        if (
+          !Number.isSafeInteger(selection.expected_revision) ||
+          selection.expected_revision < 1 ||
+          !/^sha256:[0-9a-f]{64}$/u.test(selection.expected_content_hash) ||
+          !/^review_member_[0-9A-HJKMNP-TV-Z]{26}$/u.test(
+            selection.selected_review_member_id,
+          )
+        )
+          throw new TypeError("Invalid exact Review selection.");
+        const authority = await resolveApplyAuthority(projectId);
+        const result = await options.reviewSessionApply.prepareReviewApply(
+          selection,
+          authority,
+        );
+        await validateReviewApplyCheckpoint(result, selection);
+        if (
+          canonicalize(result.binding.authorization_basis) !==
+            canonicalize(authority.authorization_basis) ||
+          canonicalize(result.binding.capability_grants) !==
+            canonicalize(authority.capability_grants)
+        )
+          throw new Error("Mismatched authenticated checkpoint.");
+        return context.json(result);
+      } catch (error) {
+        return applyError(context, error);
+      }
+    },
+  );
+  app.post(
+    "/api/commands/projects/:projectId/reviews/:reviewSessionId/apply",
+    async (context) => {
+      if (options.reviewSessionApply === undefined)
+        return jsonError(
+          context,
+          503,
+          "REVIEW_APPLY_UNAVAILABLE",
+          "ReviewSession Apply authority is unavailable.",
+        );
+      try {
+        const projectId = context.req.param("projectId");
+        const sessionId = context.req.param("reviewSessionId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !REVIEW_SESSION_ID_PATTERN.test(sessionId) ||
+          new URL(context.req.url).search !== ""
+        )
+          throw new TypeError("Invalid Apply route binding.");
+        const body: unknown = await context.req.json();
+        contracts.assertValid("review-session-apply-request", "1.0.0", body);
+        const request = body as PetraReviewSessionApplyRequest;
+        if (
+          request.checkpoint.binding.project_id !== projectId ||
+          request.checkpoint.binding.review_session.review_session_id !==
+            sessionId
+        )
+          throw new TypeError("Mismatched Apply route binding.");
+        const authority = await resolveApplyAuthority(projectId);
+        if (
+          canonicalize(authority.authorization_basis) !==
+            canonicalize(request.checkpoint.binding.authorization_basis) ||
+          canonicalize(authority.capability_grants) !==
+            canonicalize(request.checkpoint.binding.capability_grants)
+        )
+          throw new ReviewSessionApplyError(
+            "REVIEW_APPLY_DENIED",
+            "The checkpoint does not bind the authenticated human's exact current grants.",
+          );
+        await validateReviewApplyCheckpoint(request.checkpoint);
+        const result = await options.reviewSessionApply.executeReviewApply(
+          request,
+          authority,
+        );
+        await validateReviewApplyResult(result, request);
+        return context.json(result);
+      } catch (error) {
+        return applyError(context, error);
+      }
+    },
+  );
 
   app.get("/health", (context) =>
     context.json({ ok: true, service: "petra", accepting: runtime.accepting }),

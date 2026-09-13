@@ -11,3 +11,4 @@ export * from "./review-session-separation-client.js";
 export const PETRA_ADAPTER_BOUNDARY = "petra-adapters" as const;
 
 export * from "./review-recovery-assessment-client.js";
+export * from "./review-session-apply-client.js";

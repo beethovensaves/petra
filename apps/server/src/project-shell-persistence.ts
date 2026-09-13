@@ -1,6 +1,7 @@
 import {
   PostgresCapabilityGrantCommandAuthorizer,
   PostgresChangeControlAuthorityRepository,
+  PostgresReviewSessionApplyBoundary,
   PostgresProjectHistoryCompensationExecutor,
   PostgresProjectSourceLifecycleAuthorityRepository,
   PostgresProjectSourceReplacementCommandAuthorityRepository,
@@ -42,6 +43,7 @@ import type {
   ReviewCandidateBasisRevisionAuthorityRepository,
   ReviewCandidateCorrectionAuthorityRepository,
   ReviewSessionLifecycleAuthorityRepository,
+  ReviewSessionApplyBoundary,
   ReviewSessionRefreshAuthorityRepository,
   ReviewSessionSeparationAuthorityRepository,
   ProjectShellViewReader,
@@ -68,6 +70,7 @@ export interface ProjectShellPersistence {
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly reviewViews: ProjectReviewViewReader;
   readonly reviewRecoveryAssessments: ReviewRecoveryAssessmentReader;
+  readonly reviewSessionApply: ReviewSessionApplyBoundary;
   readonly reviewSessionLifecycleAuthority: ReviewSessionLifecycleAuthorityRepository;
   readonly reviewSessionRefreshAuthority: ReviewSessionRefreshAuthorityRepository;
   readonly reviewCandidateBasisRevisionAuthority: ReviewCandidateBasisRevisionAuthorityRepository;
@@ -211,6 +214,13 @@ export const createProjectShellPersistenceFromEnvironment = async (
     undefined,
     contracts,
   );
+  const reviewSessionApply = new PostgresReviewSessionApplyBoundary(
+    pool,
+    new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    changeControlAuthority,
+    contracts,
+    new PostgresReviewRecoveryAssessmentReader(pool, contracts, historyViews),
+  );
   const reviewSessionLifecycleAuthority =
     new PostgresReviewSessionAuthorityRepository(
       pool,
@@ -305,6 +315,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           contracts,
           historyViews,
         ),
+        reviewSessionApply,
         reviewSessionLifecycleAuthority,
         reviewSessionRefreshAuthority: reviewSessionLifecycleAuthority,
         reviewCandidateBasisRevisionAuthority: reviewSessionLifecycleAuthority,
@@ -383,6 +394,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
       contracts,
       historyViews,
     ),
+    reviewSessionApply,
     reviewSessionLifecycleAuthority,
     reviewSessionRefreshAuthority: reviewSessionLifecycleAuthority,
     reviewCandidateBasisRevisionAuthority: reviewSessionLifecycleAuthority,

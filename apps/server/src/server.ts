@@ -309,6 +309,14 @@ export const startPetraServer = async (
               reviewSessionLifecycleAuthority:
                 options.projectShellPersistence.reviewSessionLifecycleAuthority,
             }),
+      ...(options.reviewSessionApply !== undefined
+        ? { reviewSessionApply: options.reviewSessionApply }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              reviewSessionApply:
+                options.projectShellPersistence.reviewSessionApply,
+            }),
       ...(options.reviewSessionRefreshAuthority !== undefined
         ? {
             reviewSessionRefreshAuthority:

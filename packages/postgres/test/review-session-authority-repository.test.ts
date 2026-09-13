@@ -1,3 +1,17 @@
+import type { PostgresCommandAuthorizer } from "../src/command-authorizer.js";
+import type { ReviewApplyAuthority } from "@petra/core";
+import type {
+  PetraCapabilityGrant,
+  PetraReviewSessionApplyCheckpoint,
+  PetraReviewSessionApplyRequest,
+} from "@petra/contracts";
+import { PostgresReviewSessionApplyBoundary } from "../src/review-session-apply.js";
+import { PostgresSingleUserCommandPrincipalResolver } from "../src/single-user-command-principal-resolver.js";
+import { createPetraApp } from "../../../apps/server/src/app.js";
+import {
+  ReviewSessionApplyClient,
+  validateReviewApplyResult,
+} from "@petra/adapters";
 import { PostgresReviewRecoveryAssessmentReader } from "../src/review-recovery-assessment-reader.js";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -3648,5 +3662,600 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
         session.review_session_id,
       ),
     ).toBeUndefined();
+  });
+  const applySetup = async (secondMember = false) => {
+    const setup = await setupWorkingReview();
+    if (secondMember)
+      await addSecondWorkingReviewMember(
+        setup.session,
+        setup.candidate,
+        setup.relationship,
+        setup.actor,
+      );
+    await sessions.registerReviewSessionRevision(setup.session);
+    const grant = readFixture<PetraCapabilityGrant>("capability-grant");
+    await capabilities.registerCapabilityGrant(grant);
+    const authorizer = new PostgresCapabilityGrantCommandAuthorizer(contracts);
+    const authority: ReviewApplyAuthority = {
+      authorization_basis: {
+        kind: "authenticated_human_checkpoint",
+        decision: "apply",
+        actor: { actor_id: setup.actor.actor_id, actor_kind: "human" },
+      },
+      capability_grants: {
+        SubmitChangeSet: grant.capability_grant_id,
+        RecordApproval: grant.capability_grant_id,
+        ApplyChangeSet: grant.capability_grant_id,
+      },
+    };
+    const boundary = new PostgresReviewSessionApplyBoundary(pool, authorizer);
+    const selection = {
+      project_id: setup.session.project_id,
+      review_session_id: setup.session.review_session_id,
+      expected_revision: setup.session.revision,
+      expected_content_hash: setup.session.content_hash,
+      selected_review_member_id:
+        setup.session.content.members[0].review_member_id,
+    };
+    return { ...setup, authority, boundary, authorizer, selection };
+  };
+  const applyRequest = (
+    checkpoint: PetraReviewSessionApplyCheckpoint,
+  ): PetraReviewSessionApplyRequest => ({
+    schema_name: "petra.review-session-apply-request",
+    schema_version: "1.0.0",
+    checkpoint,
+    decided_at: new Date().toISOString(),
+  });
+
+  it("applies one complete manual checkpoint through the production route and validated client, retaining independent members and exact restart replay", async () => {
+    const { boundary, authority, selection, actor } = await applySetup(true);
+    const petra = createPetraApp({
+      authToken: "apply-test",
+      reviewSessionApply: boundary,
+      commandPrincipalResolver: new PostgresSingleUserCommandPrincipalResolver(
+        pool,
+        { actor_id: actor.actor_id, actor_kind: "human" },
+      ),
+    });
+    const client = new ReviewSessionApplyClient({
+      baseUrl: "http://petra.local",
+      token: "apply-test",
+      fetch: async (url, init) =>
+        petra.app.request(
+          new Request(url instanceof Request ? url : String(url), init),
+        ),
+    });
+    const checkpoint = await client.prepare(selection);
+    expect(checkpoint.binding.review_policy).toEqual({
+      applicability: "not_applicable",
+    });
+    expect(checkpoint.binding.authorization_basis).toEqual(
+      authority.authorization_basis,
+    );
+    expect(checkpoint.binding.members).toHaveLength(2);
+    const request = applyRequest(checkpoint);
+    const plan = (await import("@petra/core")).buildReviewApplyPlan(request);
+    await expect(
+      new PostgresChangeControlAuthorityRepository(
+        pool,
+        new PostgresCapabilityGrantCommandAuthorizer(contracts),
+      ).executeCommand(plan.submit),
+    ).rejects.toMatchObject({ code: "COMMAND_NOT_AUTHORIZED" });
+    const result = await client.apply(request);
+    expect(result.outcome).toBe("applied");
+    expect(result.steps.map((step) => step.observation)).toEqual([
+      "executed",
+      "executed",
+      "executed",
+    ]);
+    expect(
+      result.assessment.content.review.members.map((m) => m.outcome),
+    ).toEqual(["applied", "awaiting_decision"]);
+    expect(result.assessment.content.review.session.status).toBe(
+      "needs_decision",
+    );
+    expect(result.assessment.content.actions).toEqual([]);
+    expect(result.assessment.content.review.projection.state).toBe(
+      "unavailable",
+    );
+    const graphOutbox = (
+      await changes.getOutboxRecords({
+        projectId: selection.project_id,
+        target: "neo4j_graph",
+      })
+    )[0]!;
+    const projectedEvent = graphOutbox.message.event;
+    const projection = readFixture<PetraProjectionCheckpoint>(
+      "projection-checkpoint-catching-up",
+    );
+    projection.content.observed_head = {
+      target_sequence: graphOutbox.target_sequence,
+      outbox_id: graphOutbox.outbox_id,
+      outbox_position: graphOutbox.outbox_position,
+      event_id: projectedEvent.event_id,
+      event_position: projectedEvent.event_position,
+      stream_revision: projectedEvent.stream_revision,
+      observed_at: projectedEvent.recorded_at,
+    };
+    projection.content.freshness = {
+      state: "catching_up",
+      pending_records: graphOutbox.target_sequence,
+    };
+    projection.content_hash = canonicalHash(projection.content);
+    projection.recorded_at = projectedEvent.recorded_at;
+    projection.recorded_by = {
+      actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+      actor_kind: "service",
+    };
+    await projections.register(projection);
+    const restarted = new PostgresReviewSessionApplyBoundary(
+      pool,
+      new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    );
+    const replay = await restarted.executeReviewApply(request, authority);
+    await validateReviewApplyResult(replay, request);
+    expect(replay.assessment.content.review.projection.state).toBe(
+      "catching_up",
+    );
+    expect(replay.steps.map((step) => step.observation)).toEqual([
+      "replayed",
+      "replayed",
+      "replayed",
+    ]);
+    const counts = await pool.query<{
+      commands: string;
+      approvals: string;
+      changes: string;
+      events: string;
+    }>(
+      "SELECT (SELECT count(*)::text FROM petra.command_executions) AS commands, (SELECT count(*)::text FROM petra.approvals) AS approvals, (SELECT count(*)::text FROM petra.change_sets) AS changes, (SELECT count(*)::text FROM petra.domain_events) AS events",
+    );
+    expect(counts.rows[0]).toEqual({
+      commands: "3",
+      approvals: "1",
+      changes: "1",
+      events: "3",
+    });
+    const retainedRequests = await pool.query<{ request: unknown }>(
+      "SELECT review_apply_request AS request FROM petra.command_executions ORDER BY command_id",
+    );
+    expect(retainedRequests.rows.map((r) => r.request)).toEqual([
+      request,
+      request,
+      request,
+    ]);
+    let attempts = 0;
+    const disconnected = new ReviewSessionApplyClient({
+      baseUrl: "http://petra.local",
+      token: "apply-test",
+      fetch: () => {
+        attempts += 1;
+        return Promise.reject(new Error("Connection lost after dispatch"));
+      },
+    });
+    await expect(disconnected.apply(request)).rejects.toThrow(
+      "Effects may exist",
+    );
+    expect(attempts).toBe(1);
+
+    for (const mutate of [
+      (r: typeof result) => {
+        r.request.checkpoint.binding.review_policy = {
+          applicability: "not_applicable",
+          policy_id: "fabricated",
+        } as typeof r.request.checkpoint.binding.review_policy;
+      },
+      (r: typeof result) => {
+        r.steps[2].envelope.command_id = r.steps[0].envelope.command_id;
+      },
+      (r: typeof result) => {
+        r.assessment.content.groups[0]!.member_ids =
+          [] as unknown as (typeof r.assessment.content.groups)[0]["member_ids"];
+      },
+      (r: typeof result) => {
+        const event = r.steps[2].event!;
+        if (event.event.event_type === "change_set.applied")
+          event.event.payload.claim.revision += 1;
+      },
+    ]) {
+      const changed = structuredClone(result);
+      mutate(changed);
+      await expect(
+        validateReviewApplyResult(changed, request),
+      ).rejects.toThrow();
+    }
+  });
+
+  it("rejects unsupported Review profiles and denied manual authority before preparing or executing commands", async () => {
+    const { session } = await setupAuthority();
+    await sessions.registerReviewSessionRevision(session);
+    const boundary = new PostgresReviewSessionApplyBoundary(pool, {
+      authorize: () => true,
+    });
+    const grant = readFixture<PetraCapabilityGrant>("capability-grant");
+    const authority: ReviewApplyAuthority = {
+      authorization_basis: {
+        kind: "authenticated_human_checkpoint",
+        decision: "apply",
+        actor: grant.grantee as { actor_id: string; actor_kind: "human" },
+      },
+      capability_grants: {
+        SubmitChangeSet: grant.capability_grant_id,
+        RecordApproval: grant.capability_grant_id,
+        ApplyChangeSet: grant.capability_grant_id,
+      },
+    };
+    const selection = {
+      project_id: session.project_id,
+      review_session_id: session.review_session_id,
+      expected_revision: session.revision,
+      expected_content_hash: session.content_hash,
+      selected_review_member_id: session.content.members[0].review_member_id,
+    };
+    await expect(
+      boundary.prepareReviewApply(selection, authority),
+    ).rejects.toMatchObject({ code: "REVIEW_APPLY_UNSUPPORTED" });
+    await expect(
+      new PostgresReviewSessionApplyBoundary(pool, {
+        authorize: () => false,
+      }).prepareReviewApply(selection, authority),
+    ).rejects.toMatchObject({ code: "REVIEW_APPLY_DENIED" });
+    expect(
+      (await pool.query("SELECT * FROM petra.command_executions")).rowCount,
+    ).toBe(0);
+  });
+
+  it("fails closed for rebound snapshots, validation, provenance, consequences, target operations, atomic membership, and human identity", async () => {
+    const { boundary, selection, authority } = await applySetup();
+    const checkpoint = await boundary.prepareReviewApply(selection, authority);
+    const mutations: ((b: typeof checkpoint.binding) => void)[] = [
+      (b) => {
+        b.review_session.content.snapshot.stream_revision += 1;
+      },
+      (b) => {
+        b.members[0].working_state.candidate.validation.results[0]!.validator_ref.version =
+          "9.9.9";
+      },
+      (b) => {
+        b.members[0].working_state.candidate.provenance[0].statement +=
+          " changed";
+      },
+      (b) => {
+        b.consequences[0] += " changed";
+      },
+      (b) => {
+        b.change_set.content.operations.pop();
+        b.change_set.content_hash = canonicalHash(b.change_set.content);
+      },
+      (b) => {
+        b.atomic_member_ids = ["review_member_01K4F000000000000000000099"];
+      },
+    ];
+    for (const mutate of mutations) {
+      const changed = structuredClone(checkpoint);
+      mutate(changed.binding);
+      changed.displayed_commitment_hash = canonicalHash(changed.binding);
+      const request = applyRequest(changed);
+      const result = await boundary.executeReviewApply(request, authority);
+      expect(result.outcome).toBe("reconciliation_required");
+      expect(result.steps.filter((s) => s.event !== undefined)).toHaveLength(0);
+      expect(
+        (await pool.query("SELECT * FROM petra.command_executions")).rowCount,
+      ).toBe(0);
+    }
+    const denied = structuredClone(authority);
+    denied.authorization_basis.actor.actor_id =
+      "actor_01K4F000000000000000000099";
+    await expect(
+      boundary.executeReviewApply(applyRequest(checkpoint), denied),
+    ).rejects.toMatchObject({ code: "REVIEW_APPLY_DENIED" });
+  });
+
+  it("retains submit and Approval when current authority denies Apply, and exact replay sends no missing suffix", async () => {
+    const { boundary, selection, authority, authorizer } = await applySetup();
+    const checkpoint = await boundary.prepareReviewApply(selection, authority);
+    let denyApply = false;
+    const guardedAuthorizer: PostgresCommandAuthorizer = {
+      authorize: (input, transaction) =>
+        denyApply && input.commandName === "ApplyChangeSet"
+          ? false
+          : authorizer.authorize(input, transaction),
+    };
+    class InterruptAfterApproval extends PostgresChangeControlAuthorityRepository {
+      override async executeCommand(
+        ...args: Parameters<
+          PostgresChangeControlAuthorityRepository["executeCommand"]
+        >
+      ) {
+        const result = await super.executeCommand(...args);
+        if (args[0].command.command_name === "RecordApproval") denyApply = true;
+        return result;
+      }
+    }
+    const interrupted = new PostgresReviewSessionApplyBoundary(
+      pool,
+      guardedAuthorizer,
+      new InterruptAfterApproval(pool, guardedAuthorizer),
+    );
+    const request = applyRequest(checkpoint);
+    const result = await interrupted.executeReviewApply(request, authority);
+    await validateReviewApplyResult(result, request);
+    expect(result.outcome).toBe("reconciliation_required");
+    expect(result.steps.map((s) => s.observation)).toEqual([
+      "executed",
+      "executed",
+      "unverified",
+    ]);
+    expect(result.assessment.content.groups[0]!.state).toBe("approved");
+    expect(result.assessment.content.actions).toEqual([]);
+    denyApply = false;
+    const replay = await interrupted.executeReviewApply(request, authority);
+    expect(replay.steps.map((s) => s.observation)).toEqual([
+      "replayed",
+      "replayed",
+      "unattempted",
+    ]);
+    expect(
+      (await pool.query("SELECT * FROM petra.command_executions")).rowCount,
+    ).toBe(2);
+    expect((await pool.query("SELECT * FROM petra.approvals")).rowCount).toBe(
+      1,
+    );
+  });
+
+  it("rechecks an actually superseded Review inside execution without issuing commands", async () => {
+    const { boundary, selection, authority, session } = await applySetup();
+    const checkpoint = await boundary.prepareReviewApply(selection, authority);
+    const next = structuredClone(session);
+    next.revision += 1;
+    next.content.title += " revised";
+    next.content_hash = canonicalHash(next.content);
+    next.updated_at = new Date().toISOString();
+    await sessions.registerReviewSessionRevision(next);
+    await expect(
+      boundary.executeReviewApply(applyRequest(checkpoint), authority),
+    ).rejects.toMatchObject({ code: "REVIEW_RECOVERY_STALE" });
+    expect(
+      (await pool.query("SELECT * FROM petra.command_executions")).rowCount,
+    ).toBe(0);
+    await expect(
+      boundary.prepareReviewApply(selection, authority),
+    ).rejects.toMatchObject({ code: "REVIEW_APPLY_STALE" });
+  });
+
+  it("cannot narrow a shared atomic ChangeSet by selecting one inspection member", async () => {
+    const setup = await setupWorkingReview();
+    const { candidate, relationship, session } = setup;
+    const otherCandidate = structuredClone(candidate);
+    otherCandidate.working_candidate_id =
+      "working_candidate_01K4F000000000000000000087";
+    otherCandidate.content_hash = workingContentHash(otherCandidate);
+    const otherRelationship = structuredClone(relationship);
+    otherRelationship.working_relationship_id =
+      "working_relationship_01K4F000000000000000000088";
+    otherRelationship.endpoints.object = {
+      endpoint_kind: "working_candidate",
+      candidate_ref: {
+        working_candidate_id: otherCandidate.working_candidate_id,
+        revision: 1,
+        content_hash: otherCandidate.content_hash,
+      },
+    };
+    otherRelationship.content_hash = workingContentHash(otherRelationship);
+    const claimRow = await pool.query<{ payload: PetraClaim }>(
+      "SELECT payload FROM petra.evidence_entity_revisions WHERE evidence_id = $1 AND revision = 1",
+      [candidate.profile_object.object_record_ref.record_id],
+    );
+    const assertionRow = await pool.query<{ payload: PetraAssertion }>(
+      "SELECT payload FROM petra.evidence_entity_revisions WHERE evidence_id = $1 AND revision = 1",
+      [relationship.profile_relationship.relationship_record_ref.record_id],
+    );
+    await working.admitWorkingCandidateRevision({
+      candidate: otherCandidate,
+      profileRecord: claimRow.rows[0]!.payload,
+    });
+    await working.admitWorkingRelationshipRevision({
+      relationship: otherRelationship,
+      profileRecord: assertionRow.rows[0]!.payload,
+    });
+    const member = structuredClone(session.content.members[0]);
+    member.review_member_id = "review_member_01K4F000000000000000000089";
+    member.working_state = {
+      candidate_ref: {
+        working_candidate_id: otherCandidate.working_candidate_id,
+        revision: 1,
+        content_hash: otherCandidate.content_hash,
+      },
+      relationship_refs: [
+        {
+          working_relationship_id: otherRelationship.working_relationship_id,
+          revision: 1,
+          content_hash: otherRelationship.content_hash,
+        },
+      ],
+    };
+    session.content.members.push(member);
+    session.content_hash = canonicalHash(session.content);
+    await sessions.registerReviewSessionRevision(session);
+    const grant = readFixture<PetraCapabilityGrant>("capability-grant");
+    await capabilities.registerCapabilityGrant(grant);
+    const authority: ReviewApplyAuthority = {
+      authorization_basis: {
+        kind: "authenticated_human_checkpoint",
+        decision: "apply",
+        actor: { actor_id: setup.actor.actor_id, actor_kind: "human" },
+      },
+      capability_grants: {
+        SubmitChangeSet: grant.capability_grant_id,
+        RecordApproval: grant.capability_grant_id,
+        ApplyChangeSet: grant.capability_grant_id,
+      },
+    };
+    const boundary = new PostgresReviewSessionApplyBoundary(
+      pool,
+      new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    );
+    const selection = {
+      project_id: session.project_id,
+      review_session_id: session.review_session_id,
+      expected_revision: session.revision,
+      expected_content_hash: session.content_hash,
+      selected_review_member_id: member.review_member_id,
+    };
+    const checkpoint = await boundary.prepareReviewApply(selection, authority);
+    expect(checkpoint.binding.atomic_member_ids).toEqual(
+      session.content.members.map((m) => m.review_member_id),
+    );
+    const narrowed = structuredClone(checkpoint);
+    narrowed.binding.atomic_member_ids = [member.review_member_id];
+    narrowed.displayed_commitment_hash = canonicalHash(narrowed.binding);
+    expect(
+      (await boundary.executeReviewApply(applyRequest(narrowed), authority))
+        .outcome,
+    ).toBe("reconciliation_required");
+    expect(
+      (await pool.query("SELECT * FROM petra.command_executions")).rowCount,
+    ).toBe(0);
+    const request = applyRequest(checkpoint);
+    const result = await boundary.executeReviewApply(request, authority);
+    await validateReviewApplyResult(result, request);
+    expect(result.outcome).toBe("applied");
+    expect(
+      result.assessment.content.groups[0]!.member_outcomes.map(
+        (m) => m.review_outcome,
+      ),
+    ).toEqual(["applied", "applied"]);
+    expect(result.assessment.content.groups[0]!.operation_count).toBe(2);
+    expect((await pool.query("SELECT * FROM petra.approvals")).rowCount).toBe(
+      1,
+    );
+  });
+
+  it("preserves an independent rejected member while applying the selected complete ChangeSet", async () => {
+    const { session, candidate, relationship, actor } =
+      await setupWorkingReview();
+    const second = await addSecondWorkingReviewMember(
+      session,
+      candidate,
+      relationship,
+      actor,
+    );
+    const submit = await submitChangeSet();
+    if (submit.command.command_name !== "SubmitChangeSet")
+      throw new Error("Expected submit");
+    const approval = readFixture<PetraCommandEnvelope>(
+      "command-record-approval",
+    );
+    if (approval.command.command_name !== "RecordApproval")
+      throw new Error("Expected Approval");
+    approval.command.approval.subject.change_set_content_hash =
+      submit.command.change_set.content_hash;
+    approval.command.approval.decision = "rejected";
+    await changes.executeCommand(approval);
+    await bindCurrentSnapshot(session);
+    await sessions.registerReviewSessionRevision(session);
+    const grant = readFixture<PetraCapabilityGrant>("capability-grant");
+    await capabilities.registerCapabilityGrant(grant);
+    const authority: ReviewApplyAuthority = {
+      authorization_basis: {
+        kind: "authenticated_human_checkpoint",
+        decision: "apply",
+        actor: { actor_id: actor.actor_id, actor_kind: "human" },
+      },
+      capability_grants: {
+        SubmitChangeSet: grant.capability_grant_id,
+        RecordApproval: grant.capability_grant_id,
+        ApplyChangeSet: grant.capability_grant_id,
+      },
+    };
+    const boundary = new PostgresReviewSessionApplyBoundary(
+      pool,
+      new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    );
+    const checkpoint = await boundary.prepareReviewApply(
+      {
+        project_id: session.project_id,
+        review_session_id: session.review_session_id,
+        expected_revision: session.revision,
+        expected_content_hash: session.content_hash,
+        selected_review_member_id: second.reviewMemberId,
+      },
+      authority,
+    );
+    const request = applyRequest(checkpoint);
+    const result = await boundary.executeReviewApply(request, authority);
+    await validateReviewApplyResult(result, request);
+    expect(result.outcome).toBe("applied");
+    expect(
+      result.assessment.content.review.members.map((m) => m.outcome),
+    ).toEqual(["rejected", "applied"]);
+    expect(result.assessment.content.groups.map((g) => g.state).sort()).toEqual(
+      ["applied", "rejected"],
+    );
+    expect(result.assessment.content.actions).toEqual([]);
+  });
+
+  it("serializes concurrent exact checkpoints without duplicate effects or falsely calling a replay new execution", async () => {
+    const { boundary, selection, authority } = await applySetup();
+    const request = applyRequest(
+      await boundary.prepareReviewApply(selection, authority),
+    );
+    const results = await Promise.all([
+      boundary.executeReviewApply(request, authority),
+      boundary.executeReviewApply(request, authority),
+    ]);
+    expect(results.some((r) => r.outcome === "applied")).toBe(true);
+    for (const result of results)
+      await validateReviewApplyResult(result, request);
+    expect(
+      results
+        .flatMap((r) => r.steps)
+        .filter((s) => s.observation === "executed"),
+    ).toHaveLength(3);
+    expect(
+      (await pool.query("SELECT * FROM petra.command_executions")).rowCount,
+    ).toBe(3);
+    expect(
+      (await pool.query("SELECT * FROM petra.domain_events")).rowCount,
+    ).toBe(3);
+    expect((await pool.query("SELECT * FROM petra.approvals")).rowCount).toBe(
+      1,
+    );
+  });
+
+  it("rechecks a WorkingCandidate head superseded after preparation and retains the earlier Review without mutation", async () => {
+    const { boundary, selection, authority, candidate } = await applySetup();
+    const checkpoint = await boundary.prepareReviewApply(selection, authority);
+    const withdrawn = structuredClone(candidate);
+    withdrawn.revision += 1;
+    withdrawn.disposition = "withdrawn";
+    withdrawn.lineage = {
+      lineage_kind: "supersession",
+      supersedes: {
+        working_candidate_id: candidate.working_candidate_id,
+        revision: candidate.revision,
+        content_hash: candidate.content_hash,
+      },
+      change_kind: "withdrawal",
+      reason: "Withdraw the candidate before Apply.",
+    };
+    withdrawn.recorded_at = new Date().toISOString();
+    withdrawn.content_hash = workingContentHash(withdrawn);
+    await working.admitWorkingCandidateRevision({
+      candidate: withdrawn,
+      profileRecord: checkpoint.binding.claim,
+    });
+    const request = applyRequest(checkpoint);
+    const result = await boundary.executeReviewApply(request, authority);
+    await validateReviewApplyResult(result, request);
+    expect(result.outcome).toBe("reconciliation_required");
+    expect(result.steps[0].error_code).toBe("REVIEW_APPLY_STALE");
+    expect(result.assessment.content.freshness.members[0].working_heads).toBe(
+      "superseded",
+    );
+    expect(
+      (await pool.query("SELECT * FROM petra.command_executions")).rowCount,
+    ).toBe(0);
   });
 });
