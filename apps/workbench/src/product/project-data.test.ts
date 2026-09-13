@@ -86,7 +86,7 @@ import {
   loadProjectRelationshipOverlayGraph,
   loadProjectReviewSession,
   loadProjectObjectLocationRedirect,
-  loadProjectBrief,
+  loadProjectBriefAction as loadProjectBrief,
   loadProjectPetra,
   loadProjectPetraThread,
   loadProjectRecord,

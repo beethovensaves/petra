@@ -1,3 +1,24 @@
+import briefWorkerOutputManifestV100Schema from "../../../../packages/contracts/schemas/worker-output-manifest/1.0.0/schema.json";
+import briefWorkerInputManifestV100Schema from "../../../../packages/contracts/schemas/worker-input-manifest/1.0.0/schema.json";
+import briefWorkUnitV100Schema from "../../../../packages/contracts/schemas/work-unit/1.0.0/schema.json";
+import briefSuggestedActionViewV100Schema from "../../../../packages/contracts/schemas/suggested-action-view/1.0.0/schema.json";
+import briefResearchBriefPayloadV110Schema from "../../../../packages/contracts/schemas/research-brief-payload/1.1.0/schema.json";
+import briefResearchBriefPayloadV100Schema from "../../../../packages/contracts/schemas/research-brief-payload/1.0.0/schema.json";
+import briefProjectWorkViewV100Schema from "../../../../packages/contracts/schemas/project-work-view/1.0.0/schema.json";
+import briefProjectSourceViewV100Schema from "../../../../packages/contracts/schemas/project-source-view/1.0.0/schema.json";
+import briefProjectShellViewV110Schema from "../../../../packages/contracts/schemas/project-shell-view/1.1.0/schema.json";
+import briefProjectShellViewV100Schema from "../../../../packages/contracts/schemas/project-shell-view/1.0.0/schema.json";
+import briefProjectObjectiveV100Schema from "../../../../packages/contracts/schemas/project-objective/1.0.0/schema.json";
+import briefProjectObjectLocationViewV100Schema from "../../../../packages/contracts/schemas/project-object-location-view/1.0.0/schema.json";
+import briefProjectInquiryLinkV100Schema from "../../../../packages/contracts/schemas/project-inquiry-link/1.0.0/schema.json";
+import briefProjectBriefViewV110Schema from "../../../../packages/contracts/schemas/project-brief-view/1.1.0/schema.json";
+import briefProjectBriefViewV100Schema from "../../../../packages/contracts/schemas/project-brief-view/1.0.0/schema.json";
+import briefModelSynthesistOutputV100Schema from "../../../../packages/contracts/schemas/model-synthesist-output/1.0.0/schema.json";
+import briefInteractionRunV100Schema from "../../../../packages/contracts/schemas/interaction-run/1.0.0/schema.json";
+import briefInteractionEventRecordV100Schema from "../../../../packages/contracts/schemas/interaction-event-record/1.0.0/schema.json";
+import briefGroundedResponseV100Schema from "../../../../packages/contracts/schemas/grounded-response/1.0.0/schema.json";
+import briefEvidencePacketV100Schema from "../../../../packages/contracts/schemas/evidence-packet/1.0.0/schema.json";
+import briefContextPacketV100Schema from "../../../../packages/contracts/schemas/context-packet/1.0.0/schema.json";
 import assertionSchema from "../../../../packages/contracts/schemas/assertion/1.0.0/schema.json";
 import projectSourceSchema from "../../../../packages/contracts/schemas/project-source/1.0.0/schema.json";
 import projectDefinitionSchema from "../../../../packages/contracts/schemas/project-definition/1.0.0/schema.json";
@@ -34,6 +55,10 @@ import historyImpactSchema from "../../../../packages/contracts/schemas/project-
 import historyImpactV12Schema from "../../../../packages/contracts/schemas/project-history-impact-view/1.2.0/schema.json";
 
 type BrowserContractName =
+  | "research-brief-payload@1.1.0"
+  | "research-brief-payload@1.0.0"
+  | "project-brief-view@1.1.0"
+  | "project-brief-view@1.0.0"
   | "review-session-apply-checkpoint@1.0.0"
   | "review-session-apply-request@1.0.0"
   | "review-session-apply-result@1.0.0"
@@ -61,6 +86,27 @@ const definitionDependency = <
 });
 
 const schemas = [
+  briefContextPacketV100Schema,
+  briefEvidencePacketV100Schema,
+  briefGroundedResponseV100Schema,
+  briefInteractionEventRecordV100Schema,
+  briefInteractionRunV100Schema,
+  briefModelSynthesistOutputV100Schema,
+  briefProjectBriefViewV100Schema,
+  briefProjectBriefViewV110Schema,
+  briefProjectInquiryLinkV100Schema,
+  briefProjectObjectLocationViewV100Schema,
+  briefProjectObjectiveV100Schema,
+  briefProjectShellViewV100Schema,
+  briefProjectShellViewV110Schema,
+  briefProjectSourceViewV100Schema,
+  briefProjectWorkViewV100Schema,
+  briefResearchBriefPayloadV100Schema,
+  briefResearchBriefPayloadV110Schema,
+  briefSuggestedActionViewV100Schema,
+  briefWorkUnitV100Schema,
+  briefWorkerInputManifestV100Schema,
+  briefWorkerOutputManifestV100Schema,
   applyCheckpointSchema,
   applyRequestSchema,
   applyResultSchema,
@@ -68,14 +114,14 @@ const schemas = [
   projectSourceSchema,
   assertionSchema,
   recoveryAssessmentSchema,
-  definitionDependency(reviewViewSchema),
-  definitionDependency(reviewViewV11Schema),
-  definitionDependency(reviewViewV12Schema),
+  reviewViewSchema,
+  reviewViewV11Schema,
+  reviewViewV12Schema,
   changeSetSchema,
   changeSetV11Schema,
   approvalSchema,
   definitionDependency(historyRecoverySchema),
-  definitionDependency(historyViewSchema),
+  historyViewSchema,
   domainEventSchema,
   definitionDependency(historyImpactSchema),
   definitionDependency(historyImpactV12Schema),
@@ -94,6 +140,10 @@ const schemas = [
 ] as const;
 
 const contractIds: Record<BrowserContractName, string> = {
+  "research-brief-payload@1.1.0": briefResearchBriefPayloadV110Schema.$id,
+  "research-brief-payload@1.0.0": briefResearchBriefPayloadV100Schema.$id,
+  "project-brief-view@1.1.0": briefProjectBriefViewV110Schema.$id,
+  "project-brief-view@1.0.0": briefProjectBriefViewV100Schema.$id,
   "review-session-apply-checkpoint@1.0.0": applyCheckpointSchema.$id,
   "review-session-apply-request@1.0.0": applyRequestSchema.$id,
   "review-session-apply-result@1.0.0": applyResultSchema.$id,
@@ -120,7 +170,7 @@ export class ContractRegistryError extends Error {
 
 /**
  * Browser-only validator for the exact response contracts consumed by the
- * Review candidate correction, basis-revision, member-separation, recovery-assessment, and manual Apply clients.
+ * Brief and Review clients, including the complete Brief schema dependency closure.
  * Vite aliases the Node filesystem-backed registry to this bundled schema set;
  * server and package consumers keep the canonical registry implementation.
  */

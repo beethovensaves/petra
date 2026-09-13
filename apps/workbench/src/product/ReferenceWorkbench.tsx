@@ -1,3 +1,4 @@
+import { ProjectBriefSurface } from "./ProjectBriefSurface.js";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type {
   PetraProjectInquiryView,
@@ -934,7 +935,28 @@ export const BriefSurface = ({
 
 export const BriefRoute = (): React.JSX.Element => {
   const data = useLoaderData<ProjectBriefData>();
-  return <BriefSurface project={useProjectRecord()} {...data} />;
+  if (data.briefView === undefined)
+    throw new Error("The Project Brief read is unavailable.");
+  return (
+    <ProjectBriefSurface
+      view={data.briefView}
+      {...(data.suggestedAction === undefined
+        ? {}
+        : {
+            selectedAction: (
+              <SuggestedActionPreview
+                actionView={data.suggestedAction}
+                {...(data.suggestedWorkAction === undefined
+                  ? {}
+                  : { workActionView: data.suggestedWorkAction })}
+                {...(data.invokedInquiry === undefined
+                  ? {}
+                  : { invokedInquiry: data.invokedInquiry })}
+              />
+            ),
+          })}
+    />
+  );
 };
 
 const sourceSearchText = (source: SourceRecord): string =>

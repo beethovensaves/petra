@@ -1,0 +1,40 @@
+.reference-surface.live-project-brief {
+  max-inline-size: 76ch;
+  overflow-wrap: anywhere;
+}
+
+.live-project-brief > section {
+  margin-block: 2rem;
+  border-block-start: 1px solid var(--rule);
+  padding-block-start: 1rem;
+}
+
+.live-project-brief article {
+  margin-block: 1.5rem;
+}
+
+.live-project-brief summary,
+.live-project-brief a {
+  min-block-size: 2.75rem;
+  padding-block: 0.5rem;
+  cursor: pointer;
+}
+
+.live-project-brief a {
+  display: inline-block;
+}
+
+.live-project-brief :is(summary, a):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.brief-record pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.875em;
+}
+
+.brief-statements > li {
+  margin-block: 1rem;
+}

@@ -1,3 +1,4 @@
+import { readProjectBrief } from "./brief-read.js";
 import {
   PetraInteractionClient,
   type PetraInteractionResult,
@@ -20,6 +21,7 @@ import type {
   PetraProjectSource,
   PetraProjectEffectiveControlsView,
   PetraProjectHistoryView,
+  PetraProjectBriefReadView,
   PetraProjectHistoryEpisodeViewV12,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
@@ -3710,6 +3712,7 @@ export const loadProjectRecord = async ({
 };
 
 export interface ProjectBriefData {
+  readonly briefView?: PetraProjectBriefReadView;
   readonly suggestedAction?: PetraSuggestedActionView;
   readonly suggestedWorkAction?: PetraSuggestedActionViewV11;
   readonly invokedInquiry?: PetraProjectInquiryView;
@@ -3815,7 +3818,38 @@ const invokedInquiryMatchesAction = (
     : inquiryWork !== undefined && exactWorkRefMatches(actionWork, inquiryWork);
 };
 
-export const loadProjectBrief = async ({
+export const loadProjectBrief = async (
+  args: LoaderFunctionArgs,
+): Promise<ProjectBriefData> => {
+  const projectId = requiredRouteIdentity(
+    args.params.projectId,
+    "A Project ID",
+  );
+  const query = new URL(args.request.url).searchParams;
+  if (
+    [...query.keys()].some(
+      (key) => !["inquiry_result_link_id", "invoke"].includes(key),
+    )
+  ) {
+    throw new ProjectDataError(
+      "This Brief route supports current observations and exact action selection only; comparison controls are unavailable here.",
+      400,
+    );
+  }
+  const briefView = await readProjectBrief({
+    projectId,
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    signal: args.request.signal,
+  });
+  const selected =
+    query.has("inquiry_result_link_id") || query.has("invoke")
+      ? await loadProjectBriefAction(args)
+      : {};
+  return { briefView, ...selected };
+};
+
+export const loadProjectBriefAction = async ({
   params,
   request,
 }: LoaderFunctionArgs): Promise<ProjectBriefData> => {
