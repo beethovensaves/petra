@@ -35,6 +35,8 @@ import {
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 
+import { ReviewRecovery } from "./ReviewRecovery.js";
+
 const ReviewState = ({ review }: { review: ReviewSession }) => (
   <span className="review-state" data-state={review.status}>
     <span aria-hidden="true">
@@ -2519,6 +2521,12 @@ const ReviewSessionMemberSurface = ({
             </PetraButton>
           ) : null}
         </PetraButtonGroup>
+        <ReviewRecovery
+          key={`${review.projectId}:${review.id}:${review.exactRef.revision}:${review.exactRef.contentHash}:${lifecycle.state}:${refresh.state}:${candidateEditor.correction.state}:${basisEditor.revision.state}:${separation.state}`}
+          review={review}
+          disabled={commandPending}
+          onReload={onReviewChange}
+        />
         <ReviewLifecycleNotice
           review={review}
           lifecycle={lifecycle}
