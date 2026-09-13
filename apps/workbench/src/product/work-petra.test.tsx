@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraCommunicationPlan,
   PetraProjectInquiryView,
   PetraProjectShellView,
   PetraProjectThreadView,
@@ -51,6 +52,16 @@ const suggestedActionInvocationView = JSON.parse(
     "utf8",
   ),
 ) as PetraSuggestedActionInvocationView;
+
+const communicationPlan = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/communication-plan.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraCommunicationPlan;
 
 describe("reference Work and Petra packets", () => {
   const project = getReferenceProject("inlet-cycle");
@@ -154,6 +165,83 @@ describe("reference Work and Petra packets", () => {
     expect(markup).toContain("No prompt will be sent");
     expect(markup).toContain('aria-disabled="true"');
     expect(markup).toContain("only the Work input adapter can resolve it");
+  });
+
+  it("renders the typed communication record without upgrading blocked language validation", () => {
+    const markup = render(
+      <PetraSurface project={project} communicationPlan={communicationPlan} />,
+    );
+
+    expect(markup).toContain("Language validation blocked");
+    expect(markup).toContain("This record is not a validated answer");
+    expect(markup).toContain("Structured preservation blocked");
+    expect(markup).toContain("Structured preservation passed");
+    expect(markup).toContain("Source and current delivery state");
+    expect(markup).toContain("Source response");
+    expect(markup).toContain("Current response observation");
+    expect(markup).toContain("Running · interaction_run_");
+    expect(markup).toContain("Source report");
+    expect(markup).toContain("Petra synthesis");
+    expect(markup).toContain("Unresolved inference");
+    expect(markup).toContain(
+      "This reports the source attribution represented by ASSERTS",
+    );
+    expect(markup).toContain("No generalization evidence is present");
+    expect(markup).toContain("Complete validation receipt · 11 checks");
+    expect(markup).toContain("Renderer binding");
+    expect(markup).toContain("Not implemented");
+    expect(markup).toContain("No exact product thread linked");
+    expect(markup.indexOf("Attributed report")).toBeLessThan(
+      markup.indexOf("Petra assessment"),
+    );
+    expect(markup.indexOf("Petra assessment")).toBeLessThan(
+      markup.indexOf("Inference"),
+    );
+  });
+
+  it("keeps the linked command outcome separate from Work, result, and delivery", () => {
+    const linked = structuredClone(communicationPlan);
+    linked.content.invocation = structuredClone(suggestedActionInvocationView);
+    const invocationCheck = linked.content.validation.checks.find(
+      (check) => check.check === "exact_invocation_result_link",
+    );
+    if (invocationCheck === undefined)
+      throw new Error("Communication invocation check is missing.");
+    invocationCheck.status = "passed";
+    invocationCheck.findings = [];
+    linked.content.limitations = linked.content.limitations.filter(
+      (limitation) =>
+        !limitation.startsWith(
+          "No linked invocation action report is available.",
+        ),
+    );
+    linked.content.segments.push({
+      segment_key: `command:${suggestedActionInvocationView.content.invocation.content.command_ref.command_id}`,
+      order: linked.content.segments.length + 1,
+      family: "action_report",
+      original_statement: null,
+      preservation: "passed",
+      findings: [],
+      force: "unavailable_as_structured_source_data",
+      conditions: "unavailable_as_structured_source_data",
+      presentation_depth: "material",
+      language_validation: "not_performed",
+    });
+    const markup = render(
+      <PetraSurface project={project} communicationPlan={linked} />,
+    );
+
+    expect(markup).toContain("Observed action outcome");
+    expect(markup).toContain("Accepted");
+    expect(markup).toContain("Pending registration");
+    expect(markup).toContain(
+      "The exact Work has not yet produced a durable GroundedResponse",
+    );
+    expect(markup).toContain("No current invocation delivery record is linked");
+    expect(markup).toContain("Current server-owned recovery assessment");
+    expect(markup).toContain("Exact retry converges on the same receipt");
+    expect(markup).toContain("Language validation blocked");
+    expect(markup).not.toContain("No exact invocation was supplied");
   });
 
   it("submits the exact same SuggestedAction command from Petra presentation", () => {

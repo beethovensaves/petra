@@ -580,6 +580,8 @@
 
 .petra-focus__layout {
   display: grid;
+  width: 100%;
+  min-width: 0;
   grid-template-columns: minmax(0, 3fr) minmax(18rem, 1fr);
   align-items: start;
   gap: var(--petra-space-4);
@@ -707,6 +709,212 @@
   text-decoration: none;
 }
 
+.communication-plan {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  gap: var(--petra-space-5);
+  padding: var(--petra-space-5);
+  border-bottom: var(--petra-rule-thin) solid var(--petra-border-default);
+  background: var(--petra-surface-panel);
+}
+
+.communication-plan__heading > :last-child,
+.communication-statements > header > :last-child,
+.communication-action-outcome > header > :last-child {
+  margin-bottom: 0;
+  color: var(--petra-text-secondary);
+}
+
+.communication-plan .petra-state-notice {
+  border: var(--petra-rule-thin) solid var(--petra-tone-danger);
+}
+
+.communication-delivery-state > div,
+.communication-action-outcome > dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-3);
+}
+
+.communication-delivery-state > div > section,
+.communication-action-outcome,
+.communication-plan__limitations {
+  min-width: 0;
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-inset);
+}
+
+.communication-delivery-state dl,
+.communication-action-outcome dl,
+.communication-plan__details dl,
+.communication-segment__bindings {
+  display: grid;
+  gap: var(--petra-space-2);
+  margin: var(--petra-space-3) 0 0;
+}
+
+.communication-delivery-state dl > div,
+.communication-action-outcome dl > div,
+.communication-plan__details dl > div,
+.communication-segment__bindings > div {
+  min-width: 0;
+  padding-top: var(--petra-space-2);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.communication-plan dt,
+.communication-plan h4,
+.communication-segment > article > header > div > span {
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.communication-plan dd {
+  margin: var(--petra-space-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.communication-plan code,
+.communication-references span,
+.communication-reference__alternative {
+  overflow-wrap: anywhere;
+}
+
+.communication-statements > ol {
+  display: grid;
+  gap: var(--petra-space-4);
+  margin: var(--petra-space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.petra-thread,
+.communication-statements,
+.communication-segment,
+.communication-segment > article,
+.communication-plan__details {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.communication-segment > article {
+  overflow: hidden;
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-inline-start: 3px solid var(--petra-tone-positive);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-overlay);
+}
+
+.communication-segment[data-preservation="blocked"] > article {
+  border-inline-start-color: var(--petra-tone-danger);
+}
+
+.communication-segment > article > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--petra-space-3);
+  padding: var(--petra-space-3) var(--petra-space-4);
+  border-bottom: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.communication-segment > article > header h3,
+.communication-action-outcome h3,
+.communication-delivery-state h4 {
+  margin-bottom: 0;
+}
+
+.communication-preservation {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--petra-space-2);
+  color: var(--petra-tone-positive);
+  font-size: var(--petra-font-size-caption);
+}
+
+.communication-segment[data-preservation="blocked"]
+  .communication-preservation {
+  color: var(--petra-tone-danger);
+}
+
+.communication-segment__origin,
+.communication-segment__text,
+.communication-segment > article > section,
+.communication-segment__bindings,
+.communication-resolution {
+  margin: 0;
+  padding: var(--petra-space-3) var(--petra-space-4) 0;
+}
+
+.communication-segment__origin {
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.communication-segment__text {
+  font-family: var(--petra-font-editorial);
+  font-size: var(--petra-font-size-body-large);
+  line-height: var(--petra-line-height-reading);
+}
+
+.communication-segment__bindings {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-bottom: var(--petra-space-4);
+}
+
+.communication-references {
+  display: grid;
+  gap: var(--petra-space-2);
+  padding-left: 1.25rem;
+}
+
+.communication-references > li {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.communication-references ul {
+  margin-top: var(--petra-space-1);
+}
+
+.communication-action-outcome > dl {
+  margin-bottom: var(--petra-space-4);
+}
+
+.communication-action-outcome > details,
+.communication-plan__details {
+  border-top: var(--petra-rule-thin) solid var(--petra-border-default);
+}
+
+.communication-action-outcome summary,
+.communication-plan__details > summary {
+  display: flex;
+  min-height: var(--petra-target-min);
+  align-items: center;
+  cursor: pointer;
+  font-weight: var(--petra-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.communication-action-outcome summary:focus-visible,
+.communication-plan__details > summary:focus-visible {
+  outline: 2px solid var(--petra-focus-ring);
+  outline-offset: 2px;
+}
+
+.communication-plan__details {
+  padding-top: var(--petra-space-2);
+}
+
+.communication-plan__details > :not(summary) {
+  margin-inline: var(--petra-space-3);
+}
+
 .petra-composer {
   padding: var(--petra-space-5);
   border-top: var(--petra-rule-thin) solid var(--petra-border-default);
@@ -797,7 +1005,10 @@
   .work-stage-detail > dl,
   .work-detail__columns,
   .work-controls,
-  .petra-context-columns {
+  .petra-context-columns,
+  .communication-delivery-state > div,
+  .communication-action-outcome > dl,
+  .communication-segment__bindings {
     grid-template-columns: 1fr;
   }
 
@@ -829,6 +1040,7 @@
   .work-plan > header,
   .work-results > header,
   .petra-message > header,
+  .communication-segment > article > header,
   .petra-composer > div:last-child {
     align-items: flex-start;
     flex-direction: column;
@@ -840,6 +1052,7 @@
   .work-controls,
   .petra-thread__context,
   .petra-messages,
+  .communication-plan,
   .petra-composer,
   .petra-task-context,
   .petra-suggested-action > header {
@@ -873,5 +1086,17 @@
   .work-required-input > span {
     color: Canvas;
     background: CanvasText;
+  }
+
+  .communication-plan .petra-state-notice,
+  .communication-segment > article,
+  .communication-delivery-state > div > section,
+  .communication-action-outcome,
+  .communication-plan__limitations {
+    border-color: CanvasText;
+  }
+
+  .communication-preservation {
+    color: CanvasText;
   }
 }

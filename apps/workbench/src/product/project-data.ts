@@ -4,6 +4,7 @@ import {
   type PetraInteractionResult,
 } from "@petra/adapters/ag-ui";
 import type {
+  CommunicationPlanClient,
   ReviewCandidateBasisRevisionRequest,
   ReviewCandidateBasisRevisionResult,
   ReviewCandidateCorrectionFromHumanEditRequest,
@@ -27,6 +28,7 @@ import type {
   PetraProjectHistoryRecoveryAssessmentView,
   PetraProjectHistoryRetainedContinuationFailure,
   PetraProjectHistoryRetainedViewV12,
+  PetraCommunicationPlan,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectRelationshipOverlayView,
@@ -90,6 +92,7 @@ const WORK_UNIT_CANCELLATION_ID =
 const INTERACTION_CONNECTION_ID =
   /^interaction_connection_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
+const GROUNDED_RESPONSE_ID = /^grounded_response_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const HISTORY_CONTINUATION_FAILURE_MESSAGE =
   "This Full History traversal can no longer continue from its verified snapshot. Start again with the same filters.";
 
@@ -6268,7 +6271,88 @@ export interface ProjectPetraData {
   readonly thread?: PetraThread;
   readonly suggestedWorkAction?: PetraSuggestedActionViewV11;
   readonly suggestedActionInvocation?: PetraSuggestedActionInvocationView;
+  readonly communicationPlan?: PetraCommunicationPlan;
 }
+
+type CommunicationReadRequest = Parameters<CommunicationPlanClient["read"]>[1];
+
+export const getProjectCommunicationPlan = async (
+  projectId: string,
+  request: CommunicationReadRequest,
+): Promise<PetraCommunicationPlan> => {
+  const { CommunicationPlanClient } = await import("@petra/adapters");
+  return new CommunicationPlanClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+  }).read(projectId, request);
+};
+
+const communicationRequestFromSearch = (
+  search: URLSearchParams,
+): CommunicationReadRequest | undefined => {
+  const names = [
+    "communication_response_id",
+    "communication_response_revision",
+    "communication_response_content_hash",
+    "communication_response_record_hash",
+    "communication_locale",
+    "communication_command_id",
+    "communication_definition_hash",
+  ] as const;
+  const values = Object.fromEntries(
+    names.map((name) => {
+      const matches = search.getAll(name);
+      if (matches.length > 1) {
+        throw new ProjectDataError(
+          "A communication read must bind each exact response control once.",
+          400,
+        );
+      }
+      return [name, matches[0]];
+    }),
+  ) as Record<(typeof names)[number], string | undefined>;
+  if (names.every((name) => values[name] === undefined)) return undefined;
+  const required = names.slice(0, 5);
+  if (required.some((name) => values[name] === undefined)) {
+    throw new ProjectDataError(
+      "A communication read requires the exact response identity, revision, hashes, and locale.",
+      400,
+    );
+  }
+  const responseId = values.communication_response_id!;
+  const revision = Number(values.communication_response_revision);
+  const responseContentHash = values.communication_response_content_hash!;
+  const responseRecordHash = values.communication_response_record_hash!;
+  const locale = values.communication_locale!;
+  const commandId = values.communication_command_id;
+  const definitionHash = values.communication_definition_hash;
+  if (
+    !GROUNDED_RESPONSE_ID.test(responseId) ||
+    !Number.isSafeInteger(revision) ||
+    revision < 1 ||
+    !CONTENT_HASH.test(responseContentHash) ||
+    !CONTENT_HASH.test(responseRecordHash) ||
+    locale !== "en" ||
+    (commandId !== undefined && !COMMAND_ID.test(commandId)) ||
+    (definitionHash !== undefined && !CONTENT_HASH.test(definitionHash))
+  ) {
+    throw new ProjectDataError(
+      "The communication response binding is invalid or unsupported.",
+      400,
+    );
+  }
+  return {
+    response_id: responseId,
+    response_revision: revision,
+    response_content_hash: responseContentHash,
+    response_record_hash: responseRecordHash,
+    locale,
+    ...(commandId === undefined ? {} : { command_id: commandId }),
+    ...(definitionHash === undefined
+      ? {}
+      : { expected_definition_hash: definitionHash }),
+  };
+};
 
 export const loadProjectPetra = async (
   args: LoaderFunctionArgs,
@@ -6278,6 +6362,7 @@ export const loadProjectPetra = async (
     "A Project ID",
   );
   const incoming = new URL(args.request.url).searchParams;
+  const communicationRequest = communicationRequestFromSearch(incoming);
   const linkIds = incoming.getAll("inquiry_result_link_id");
   const commandIds = incoming.getAll("suggested_action_command_id");
   if (linkIds.length > 1 || commandIds.length > 1) {
@@ -6288,6 +6373,15 @@ export const loadProjectPetra = async (
   }
   const linkId = linkIds[0];
   const commandId = commandIds[0];
+  if (
+    communicationRequest !== undefined &&
+    (linkId !== undefined || commandId !== undefined)
+  ) {
+    throw new ProjectDataError(
+      "An exact communication read cannot be combined with ambient SuggestedAction context.",
+      400,
+    );
+  }
   if (commandId !== undefined && linkId === undefined) {
     throw new ProjectDataError(
       "A SuggestedAction invocation requires its exact inquiry-result link.",
@@ -6303,16 +6397,25 @@ export const loadProjectPetra = async (
       400,
     );
   }
-  const [thread, suggestedWorkAction, suggestedActionInvocation] =
-    await Promise.all([
-      loadProjectPetraThread(args),
-      linkId === undefined
-        ? undefined
-        : getProjectSuggestedWorkAction(projectId, linkId),
-      commandId === undefined
-        ? undefined
-        : getProjectSuggestedActionInvocation(projectId, commandId),
-    ]);
+  const [
+    thread,
+    suggestedWorkAction,
+    suggestedActionInvocation,
+    communicationPlan,
+  ] = await Promise.all([
+    communicationRequest === undefined
+      ? loadProjectPetraThread(args)
+      : undefined,
+    linkId === undefined
+      ? undefined
+      : getProjectSuggestedWorkAction(projectId, linkId),
+    commandId === undefined
+      ? undefined
+      : getProjectSuggestedActionInvocation(projectId, commandId),
+    communicationRequest === undefined
+      ? undefined
+      : getProjectCommunicationPlan(projectId, communicationRequest),
+  ]);
   if (
     suggestedWorkAction !== undefined &&
     suggestedActionInvocation !== undefined &&
@@ -6331,6 +6434,7 @@ export const loadProjectPetra = async (
     ...(suggestedActionInvocation === undefined
       ? {}
       : { suggestedActionInvocation }),
+    ...(communicationPlan === undefined ? {} : { communicationPlan }),
   };
 };
 

@@ -19,6 +19,20 @@ import briefInteractionEventRecordV100Schema from "../../../../packages/contract
 import briefGroundedResponseV100Schema from "../../../../packages/contracts/schemas/grounded-response/1.0.0/schema.json";
 import briefEvidencePacketV100Schema from "../../../../packages/contracts/schemas/evidence-packet/1.0.0/schema.json";
 import briefContextPacketV100Schema from "../../../../packages/contracts/schemas/context-packet/1.0.0/schema.json";
+import actorSchema from "../../../../packages/contracts/schemas/actor/1.0.0/schema.json";
+import artifactSchema from "../../../../packages/contracts/schemas/artifact/1.0.0/schema.json";
+import communicationPlanSchema from "../../../../packages/contracts/schemas/communication-plan/1.0.0/schema.json";
+import communicationValidationReceiptSchema from "../../../../packages/contracts/schemas/communication-validation-receipt/1.0.0/schema.json";
+import modelCallV11Schema from "../../../../packages/contracts/schemas/model-call/1.1.0/schema.json";
+import modelRequestV11Schema from "../../../../packages/contracts/schemas/model-request/1.1.0/schema.json";
+import modelRuntimeCommonSchema from "../../../../packages/contracts/schemas/model-runtime-common/1.0.0/schema.json";
+import projectThreadSchema from "../../../../packages/contracts/schemas/project-thread/1.0.0/schema.json";
+import scientificCommunicationPayloadSchema from "../../../../packages/contracts/schemas/scientific-communication-payload/1.0.0/schema.json";
+import sourceSpanSchema from "../../../../packages/contracts/schemas/source-span/1.0.0/schema.json";
+import suggestedActionInvocationSchema from "../../../../packages/contracts/schemas/suggested-action-invocation/1.0.0/schema.json";
+import suggestedActionInvocationViewSchema from "../../../../packages/contracts/schemas/suggested-action-invocation-view/1.0.0/schema.json";
+import suggestedActionViewV11Schema from "../../../../packages/contracts/schemas/suggested-action-view/1.1.0/schema.json";
+import workVersionSchema from "../../../../packages/contracts/schemas/work-version/1.0.0/schema.json";
 import assertionSchema from "../../../../packages/contracts/schemas/assertion/1.0.0/schema.json";
 import projectSourceSchema from "../../../../packages/contracts/schemas/project-source/1.0.0/schema.json";
 import projectDefinitionSchema from "../../../../packages/contracts/schemas/project-definition/1.0.0/schema.json";
@@ -55,6 +69,7 @@ import historyImpactSchema from "../../../../packages/contracts/schemas/project-
 import historyImpactV12Schema from "../../../../packages/contracts/schemas/project-history-impact-view/1.2.0/schema.json";
 
 type BrowserContractName =
+  | "communication-plan@1.0.0"
   | "research-brief-payload@1.1.0"
   | "research-brief-payload@1.0.0"
   | "project-brief-view@1.1.0"
@@ -86,6 +101,19 @@ const definitionDependency = <
 });
 
 const schemas = [
+  actorSchema,
+  artifactSchema,
+  communicationValidationReceiptSchema,
+  modelCallV11Schema,
+  modelRequestV11Schema,
+  modelRuntimeCommonSchema,
+  projectThreadSchema,
+  scientificCommunicationPayloadSchema,
+  sourceSpanSchema,
+  suggestedActionInvocationSchema,
+  suggestedActionInvocationViewSchema,
+  suggestedActionViewV11Schema,
+  workVersionSchema,
   briefContextPacketV100Schema,
   briefEvidencePacketV100Schema,
   briefGroundedResponseV100Schema,
@@ -137,9 +165,11 @@ const schemas = [
   correctionReceiptSchema,
   basisRevisionReceiptSchema,
   separationReceiptSchema,
+  communicationPlanSchema,
 ] as const;
 
 const contractIds: Record<BrowserContractName, string> = {
+  "communication-plan@1.0.0": communicationPlanSchema.$id,
   "research-brief-payload@1.1.0": briefResearchBriefPayloadV110Schema.$id,
   "research-brief-payload@1.0.0": briefResearchBriefPayloadV100Schema.$id,
   "project-brief-view@1.1.0": briefProjectBriefViewV110Schema.$id,
@@ -176,6 +206,27 @@ export class ContractRegistryError extends Error {
  */
 export class PetraContractRegistry {
   readonly #validators = new Map<BrowserContractName, ValidateFunction>();
+
+  readonly entries = [
+    {
+      name: "communication-plan",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:19f7b88210d5fce73a584e1bfcdd59c4a23826126dbf9ae0c30eb07a3e3e9466",
+    },
+    {
+      name: "communication-validation-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:93889738972355d70b7085472b0070a357e19bb459efc0bb6091e5d3d19ca066",
+    },
+    {
+      name: "scientific-communication-payload",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:c32fbcc062c28b100babf7ca372a62d9eeb25fb7446f49b6491d8fab61d4882a",
+    },
+  ] as const;
 
   constructor() {
     const ajv = new Ajv2020({

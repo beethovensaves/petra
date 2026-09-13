@@ -6,6 +6,7 @@ import type {
   ReviewSessionSeparationResult,
 } from "@petra/adapters";
 import type {
+  PetraCommunicationPlan,
   PetraProject,
   PetraProjectDefinition,
   PetraProjectEffectiveControlsView,
@@ -1057,6 +1058,16 @@ const threadDetailView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectThreadView;
+
+const communicationPlan = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/communication-plan.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraCommunicationPlan;
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -3997,6 +4008,98 @@ describe("Project shell workbench adapter", () => {
       `/api/queries/projects/${projectId}/suggested-action-invocations/${commandId}`,
       `/api/queries/projects/${projectId}/threads/${threadId}`,
     ]);
+  });
+
+  it("loads an exactly bound communication plan through the production typed client", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      const value = path.includes("/communication?") ? communicationPlan : {};
+      void init;
+      return Promise.resolve(Response.json(value));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const projectId = communicationPlan.project_id;
+    const source = communicationPlan.content.source_response;
+    const query = new URLSearchParams({
+      communication_response_id: source.grounded_response_id,
+      communication_response_revision: String(source.revision),
+      communication_response_content_hash: source.content_hash,
+      communication_response_record_hash:
+        "sha256:2a844523f685bd10c44d76d03a52a8708a2b184641bb8d89008d90b2f1c55419",
+      communication_locale: "en",
+      communication_definition_hash:
+        communicationPlan.content.composition_definition.content_hash,
+    });
+    const url = new URL(
+      `http://petra.test/projects/${projectId}/petra?${query.toString()}`,
+    );
+
+    const data = await loadProjectPetra({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/petra",
+      params: { projectId },
+      context: new RouterContextProvider(),
+    });
+
+    expect(data.communicationPlan).toEqual(communicationPlan);
+    expect(data.thread).toBeUndefined();
+    expect(fetch).toHaveBeenCalledOnce();
+    const communicationCall = fetch.mock.calls.find(([input]) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      return path.includes("/communication?");
+    });
+    expect(communicationCall).toBeDefined();
+    if (communicationCall === undefined)
+      throw new Error("The exact communication read was not requested.");
+    const communicationInput = communicationCall[0];
+    const communicationUrl = new URL(
+      typeof communicationInput === "string"
+        ? communicationInput
+        : communicationInput instanceof URL
+          ? communicationInput.href
+          : communicationInput.url,
+    );
+    expect(communicationUrl.searchParams.get("response_id")).toBe(
+      source.grounded_response_id,
+    );
+    expect(communicationUrl.searchParams.get("response_revision")).toBe("1");
+    expect(communicationUrl.searchParams.get("expected_definition_hash")).toBe(
+      communicationPlan.content.composition_definition.content_hash,
+    );
+    expect(communicationCall[1]?.headers).toEqual({
+      authorization: "Bearer petra-local-development",
+    });
+  });
+
+  it("rejects partial communication route bindings before any authority read", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", fetch);
+    const projectId = communicationPlan.project_id;
+    const url = new URL(
+      `http://petra.test/projects/${projectId}/petra?communication_response_id=${communicationPlan.content.source_response.grounded_response_id}`,
+    );
+
+    await expect(
+      loadProjectPetra({
+        request: new Request(url),
+        url,
+        pattern: "/projects/:projectId/petra",
+        params: { projectId },
+        context: new RouterContextProvider(),
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("binds an exact SuggestedAction Work destination to authenticated runtime History", async () => {
