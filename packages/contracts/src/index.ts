@@ -30,6 +30,10 @@ export type {
   PetraCapabilityGrantV160,
 } from "./generated/capability-grant-v1-6.js";
 export type {
+  GrantContent as CapabilityGrantContentV170,
+  PetraCapabilityGrantV170,
+} from "./generated/capability-grant-v1-7.js";
+export type {
   GrantRef as CapabilityGrantRevocationGrantRef,
   HumanActorRef as CapabilityGrantRevokerRef,
   PetraCapabilityGrantRevocation,
@@ -589,6 +593,15 @@ export type {
   WorkingRelationshipRecordRef as ReviewCandidateBasisRevisionWorkingRelationshipRef,
 } from "./generated/review-candidate-basis-revision-receipt.js";
 export type {
+  AuthorityBoundary as ReviewSessionSeparationAuthorityBoundary,
+  CommandRef as ReviewSessionSeparationCommandRef,
+  ExactReviewSessionRef as ReviewSessionSeparationExactRef,
+  MemberPartition as ReviewSessionSeparationMemberPartition,
+  PetraReviewSessionSeparationReceipt,
+  Preservation as ReviewSessionSeparationPreservation,
+  ReceiptContent as ReviewSessionSeparationReceiptContent,
+} from "./generated/review-session-separation-receipt.js";
+export type {
   AuthorityPosition as ProjectReviewAuthorityPosition,
   BasisItem as ProjectReviewBasisItem,
   CandidateSummary as ProjectReviewCandidateSummary,
@@ -879,6 +892,11 @@ export type {
   PetraCommandEnvelopeV180,
   ReviseReviewCandidateBasis,
 } from "./generated/command-envelope-v1-8.js";
+export type {
+  Command as PetraCommandV190,
+  PetraCommandEnvelopeV190,
+  SeparateReviewSessionMember,
+} from "./generated/command-envelope-v1-9.js";
 export type {
   ApprovalRecorded as ApprovalRecordedEvent,
   ChangeSetApplied as ChangeSetAppliedEvent,
@@ -1179,6 +1197,7 @@ import type { PetraCapabilityGrantV130 } from "./generated/capability-grant-v1-3
 import type { PetraCapabilityGrantV140 } from "./generated/capability-grant-v1-4.js";
 import type { PetraCapabilityGrantV150 } from "./generated/capability-grant-v1-5.js";
 import type { PetraCapabilityGrantV160 } from "./generated/capability-grant-v1-6.js";
+import type { PetraCapabilityGrantV170 } from "./generated/capability-grant-v1-7.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
 import type { PetraDomainEvent } from "./generated/domain-event.js";
@@ -1205,7 +1224,8 @@ export type PetraCapabilityGrantRecord =
   | PetraCapabilityGrantV130
   | PetraCapabilityGrantV140
   | PetraCapabilityGrantV150
-  | PetraCapabilityGrantV160;
+  | PetraCapabilityGrantV160
+  | PetraCapabilityGrantV170;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =

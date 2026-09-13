@@ -7,6 +7,8 @@ import commandEnvelopeV18Schema from "../../../../packages/contracts/schemas/com
 import commonSchema from "../../../../packages/contracts/schemas/common/1.0.0/schema.json";
 import correctionReceiptSchema from "../../../../packages/contracts/schemas/review-candidate-correction-receipt/1.0.0/schema.json";
 import basisRevisionReceiptSchema from "../../../../packages/contracts/schemas/review-candidate-basis-revision-receipt/1.0.0/schema.json";
+import refreshReceiptSchema from "../../../../packages/contracts/schemas/review-session-refresh-receipt/1.0.0/schema.json";
+import separationReceiptSchema from "../../../../packages/contracts/schemas/review-session-separation-receipt/1.0.0/schema.json";
 import reviewSessionSchema from "../../../../packages/contracts/schemas/review-session/1.0.0/schema.json";
 import reviewSessionV11Schema from "../../../../packages/contracts/schemas/review-session/1.1.0/schema.json";
 import workingCandidateSchema from "../../../../packages/contracts/schemas/working-candidate/1.0.0/schema.json";
@@ -16,6 +18,7 @@ type BrowserContractName =
   | "claim@1.0.0"
   | "review-candidate-basis-revision-receipt@1.0.0"
   | "review-candidate-correction-receipt@1.0.0"
+  | "review-session-separation-receipt@1.0.0"
   | "review-session@1.1.0"
   | "working-candidate@1.0.0"
   | "working-relationship@1.0.0";
@@ -42,9 +45,11 @@ const schemas = [
   workingCandidateSchema,
   workingRelationshipSchema,
   definitionDependency(reviewSessionSchema),
+  definitionDependency(refreshReceiptSchema),
   reviewSessionV11Schema,
   correctionReceiptSchema,
   basisRevisionReceiptSchema,
+  separationReceiptSchema,
 ] as const;
 
 const contractIds: Record<BrowserContractName, string> = {
@@ -52,6 +57,7 @@ const contractIds: Record<BrowserContractName, string> = {
   "review-candidate-basis-revision-receipt@1.0.0":
     basisRevisionReceiptSchema.$id,
   "review-candidate-correction-receipt@1.0.0": correctionReceiptSchema.$id,
+  "review-session-separation-receipt@1.0.0": separationReceiptSchema.$id,
   "review-session@1.1.0": reviewSessionV11Schema.$id,
   "working-candidate@1.0.0": workingCandidateSchema.$id,
   "working-relationship@1.0.0": workingRelationshipSchema.$id,
@@ -69,9 +75,9 @@ export class ContractRegistryError extends Error {
 
 /**
  * Browser-only validator for the exact response contracts consumed by the
- * Review candidate correction and basis-revision clients. Vite aliases the
- * Node filesystem-backed registry to this bundled schema set; server and
- * package consumers keep the canonical registry implementation.
+ * Review candidate correction, basis-revision, and member-separation clients.
+ * Vite aliases the Node filesystem-backed registry to this bundled schema set;
+ * server and package consumers keep the canonical registry implementation.
  */
 export class PetraContractRegistry {
   readonly #validators = new Map<BrowserContractName, ValidateFunction>();

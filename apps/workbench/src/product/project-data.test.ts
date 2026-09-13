@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import type {
   ReviewCandidateBasisRevisionResult,
   ReviewCandidateCorrectionResult,
+  ReviewSessionSeparationResult,
 } from "@petra/adapters";
 import type {
   PetraProject,
@@ -58,6 +59,7 @@ import {
   createReviewSessionDeferCommandInput,
   createReviewSessionRefreshCommandInput,
   createReviewSessionReopenCommandInput,
+  createReviewSessionSeparationCommandInput,
   createSuggestedActionInvocationRequest,
   createSuggestedActionInteractionReplayRequest,
   createSuggestedActionWorkCancellationRequest,
@@ -67,6 +69,7 @@ import {
   executeReviewCandidateCorrectionCommand,
   executeReviewSessionLifecycleCommand,
   executeReviewSessionRefreshCommand,
+  executeReviewSessionSeparationCommand,
   executeProjectHistoryCompensationPlan,
   getRecentProjectHistory,
   getProjectSuggestedAction,
@@ -3017,6 +3020,102 @@ describe("Project shell workbench adapter", () => {
     expect(workingView.content.members[0].working_state.authority_effect).toBe(
       "none",
     );
+  });
+
+  it("maps every exact Review member and delegates only compact separation input", async () => {
+    const multiView = structuredClone(
+      reviewView,
+    ) as unknown as PetraProjectReviewViewV120;
+    multiView.schema_version = "1.2.0";
+    multiView.content.session.lifecycle = "open";
+    const first = multiView.content.members[0];
+    if (first === undefined) throw new Error("Expected a Review member.");
+    first.working_state = {
+      candidate: structuredClone(reviewWorkingCandidate),
+      relationships: [structuredClone(reviewWorkingRelationship)],
+      selection_basis: "exact_review_session_working_bindings",
+      authority_effect: "none",
+    };
+    first.change_sets = first.change_sets.map((changeSet) => ({
+      ...changeSet,
+      commands: [],
+      events: [],
+    }));
+    const second = structuredClone(first);
+    second.review_member_id = "review_member_01K4F000000000000000000501";
+    second.member_role = "exception";
+    second.candidate.candidate_id = "claim_01K4F000000000000000000502";
+    second.candidate.proposed =
+      "A second exact Claim remains independently inspectable.";
+    second.working_state.candidate.working_candidate_id =
+      "working_candidate_01K4F000000000000000000503";
+    second.working_state.relationships[0].working_relationship_id =
+      "working_relationship_01K4F000000000000000000504";
+    multiView.content.members = [first, second];
+    multiView.content.projection = {
+      state: "unavailable",
+      reason: "No projection receipt exists for this Review.",
+    };
+
+    const review = reviewSessionFromView(multiView);
+    expect(review.members).toHaveLength(2);
+    expect(review.members?.map((member) => member.reviewMemberId)).toEqual([
+      first.review_member_id,
+      second.review_member_id,
+    ]);
+    expect(review.members?.[1]?.candidate.proposed).toBe(
+      second.candidate.proposed,
+    );
+    const input = createReviewSessionSeparationCommandInput(
+      review,
+      second.review_member_id,
+      {
+        commandId: "command_01K4F000000000000000000505",
+        idempotencyKey: "review-session:001:separation:workbench:v1",
+      },
+    );
+    expect(input).toEqual({
+      projectId: review.projectId,
+      reviewSessionId: review.id,
+      request: {
+        command_id: "command_01K4F000000000000000000505",
+        idempotency_key: "review-session:001:separation:workbench:v1",
+        expected_review_session_ref: {
+          review_session_id: review.id,
+          revision: review.exactRef.revision,
+          content_hash: review.exactRef.contentHash,
+          lifecycle: "open",
+        },
+        review_member_id: second.review_member_id,
+      },
+    });
+    expect(input.request).not.toHaveProperty("actor");
+    expect(input.request).not.toHaveProperty("capability_grant_id");
+    expect(input.request).not.toHaveProperty("destination_review_session_id");
+    expect(input.request).not.toHaveProperty("validation");
+    expect(input.request).not.toHaveProperty("approval");
+
+    const result = {} as ReviewSessionSeparationResult;
+    const separate = vi.fn().mockResolvedValueOnce(result);
+    await expect(
+      executeReviewSessionSeparationCommand(input, { separate }),
+    ).resolves.toBe(result);
+    expect(separate).toHaveBeenCalledExactlyOnceWith(
+      input.projectId,
+      input.request,
+    );
+    expect(() =>
+      createReviewSessionSeparationCommandInput(
+        review,
+        "review_member_01K4F000000000000000000599",
+      ),
+    ).toThrow("one exact member");
+    expect(() =>
+      createReviewSessionSeparationCommandInput(
+        { ...review, members: [review.members![0]!] },
+        first.review_member_id,
+      ),
+    ).toThrow("open multi-member ReviewSession");
   });
 
   it("maps and validates the exact ReviewSession lifecycle read independently of Waiting", async () => {

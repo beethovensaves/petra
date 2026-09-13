@@ -336,6 +336,18 @@ export const startPetraServer = async (
                 options.projectShellPersistence
                   .reviewCandidateBasisRevisionAuthority,
             }),
+      ...(options.reviewSessionSeparationAuthority !== undefined
+        ? {
+            reviewSessionSeparationAuthority:
+              options.reviewSessionSeparationAuthority,
+          }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              reviewSessionSeparationAuthority:
+                options.projectShellPersistence
+                  .reviewSessionSeparationAuthority,
+            }),
       ...(options.projectWorkingStateSnapshots !== undefined
         ? {
             projectWorkingStateSnapshots: options.projectWorkingStateSnapshots,

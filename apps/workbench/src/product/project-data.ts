@@ -7,6 +7,8 @@ import type {
   ReviewCandidateBasisRevisionResult,
   ReviewCandidateCorrectionFromHumanEditRequest,
   ReviewCandidateCorrectionResult,
+  ReviewSessionSeparationRequest,
+  ReviewSessionSeparationResult,
 } from "@petra/adapters";
 import type {
   PetraProjectHistoryCompensationExecutionRequest,
@@ -68,6 +70,7 @@ import type {
   ProjectRecord,
   PetraThread,
   ReviewSession,
+  ReviewSessionMember,
   SourceRecord,
   WorkExecutionState,
   WorkProjectView,
@@ -1983,6 +1986,19 @@ export interface ReviewCandidateBasisRevisionTransport {
   ): Promise<ReviewCandidateBasisRevisionResult>;
 }
 
+export interface ReviewSessionSeparationCommandInput {
+  readonly projectId: string;
+  readonly reviewSessionId: string;
+  readonly request: ReviewSessionSeparationRequest;
+}
+
+export interface ReviewSessionSeparationTransport {
+  separate(
+    projectId: string,
+    request: ReviewSessionSeparationRequest,
+  ): Promise<ReviewSessionSeparationResult>;
+}
+
 const projectSourceLifecycleCommandResponse = (
   value: unknown,
   input: ProjectSourceLifecycleCommandInput,
@@ -2961,16 +2977,11 @@ const reviewReturnPath = (view: PetraProjectReviewViewRecord): string => {
   return `${projectRoot}/${context.place}`;
 };
 
-export const reviewSessionFromView = (
+const reviewMemberFromView = (
   view: PetraProjectReviewViewRecord,
-): ReviewSession => {
-  if (view.content.members.length !== 1) {
-    throw new ProjectDataError(
-      "The current frozen M1 Review surface requires one exact member per session; Petra did not hide or merge additional members.",
-      502,
-    );
-  }
-  const member = view.content.members[0];
+  memberIndex: number,
+): ReviewSessionMember => {
+  const member = view.content.members[memberIndex];
   if (member === undefined) {
     throw new ProjectDataError("The Review session has no member.", 502);
   }
@@ -2985,7 +2996,7 @@ export const reviewSessionFromView = (
   let candidateBasisRevision:
     ReviewSession["candidateBasisRevision"] | undefined;
   if (view.schema_version === "1.2.0") {
-    const composedMember = view.content.members[0];
+    const composedMember = view.content.members[memberIndex];
     const relationship = composedMember?.working_state.relationships[0];
     if (
       composedMember !== undefined &&
@@ -3100,24 +3111,9 @@ export const reviewSessionFromView = (
     }
   }
   return {
-    id: view.review_session_id,
-    projectId: view.project_id,
-    exactRef: {
-      revision: view.content.session.revision,
-      contentHash: view.content.session.content_hash,
-    },
-    title: view.content.session.title,
-    objective: view.content.session.objective_summary,
-    status: view.content.session.status,
-    statusLabel: view.content.session.status_label,
-    ...(view.schema_version === "1.2.0"
-      ? { lifecycle: view.content.session.lifecycle }
-      : {}),
-    responsible: view.content.session.responsible.display_name,
-    snapshot: `Authority event ${view.content.session.snapshot.event_position} · Project stream ${view.content.session.snapshot.stream_revision}${view.content.session.snapshot_state === "stale" ? " · stale" : ""}`,
-    snapshotState: view.content.session.snapshot_state,
-    returnLabel: view.content.session.return_context.label,
-    returnPath: reviewReturnPath(view),
+    reviewMemberId: member.review_member_id,
+    role: member.member_role,
+    outcome: member.outcome,
     candidate: {
       id: member.candidate.candidate_id,
       revision: member.candidate.revision_label,
@@ -3160,6 +3156,53 @@ export const reviewSessionFromView = (
             protected: [...changeSet.protected],
           },
         }),
+  };
+};
+
+export const reviewSessionFromView = (
+  view: PetraProjectReviewViewRecord,
+): ReviewSession => {
+  const members = view.content.members.map((_, index) =>
+    reviewMemberFromView(view, index),
+  );
+  const member = members[0];
+  if (member === undefined) {
+    throw new ProjectDataError("The Review session has no member.", 502);
+  }
+  return {
+    id: view.review_session_id,
+    projectId: view.project_id,
+    exactRef: {
+      revision: view.content.session.revision,
+      contentHash: view.content.session.content_hash,
+    },
+    title: view.content.session.title,
+    objective: view.content.session.objective_summary,
+    status: view.content.session.status,
+    statusLabel: view.content.session.status_label,
+    ...(view.schema_version === "1.2.0"
+      ? { lifecycle: view.content.session.lifecycle }
+      : {}),
+    responsible: view.content.session.responsible.display_name,
+    snapshot: `Authority event ${view.content.session.snapshot.event_position} · Project stream ${view.content.session.snapshot.stream_revision}${view.content.session.snapshot_state === "stale" ? " · stale" : ""}`,
+    snapshotState: view.content.session.snapshot_state,
+    returnLabel: view.content.session.return_context.label,
+    returnPath: reviewReturnPath(view),
+    reviewMemberId: member.reviewMemberId,
+    memberRole: member.role,
+    memberOutcome: member.outcome,
+    members,
+    candidate: member.candidate,
+    ...(member.candidateCorrection === undefined
+      ? {}
+      : { candidateCorrection: member.candidateCorrection }),
+    ...(member.candidateBasisRevision === undefined
+      ? {}
+      : { candidateBasisRevision: member.candidateBasisRevision }),
+    basis: member.basis,
+    validation: member.validation,
+    consequences: member.consequences,
+    ...(member.changeSet === undefined ? {} : { changeSet: member.changeSet }),
   };
 };
 
@@ -4804,6 +4847,29 @@ export const executeReviewCandidateBasisRevisionCommand = async (
   return revisionTransport.revise(input.projectId, input.request);
 };
 
+export const executeReviewSessionSeparationCommand = async (
+  input: ReviewSessionSeparationCommandInput,
+  transport?: ReviewSessionSeparationTransport,
+): Promise<ReviewSessionSeparationResult> => {
+  if (
+    input.reviewSessionId !==
+      input.request.expected_review_session_ref.review_session_id ||
+    input.request.expected_review_session_ref.lifecycle !== "open"
+  ) {
+    throw new ProjectDataError(
+      "A ReviewSession separation must bind the route session's exact open Review reference.",
+      400,
+    );
+  }
+  const separationTransport =
+    transport ??
+    new (await import("@petra/adapters")).ReviewSessionSeparationClient({
+      baseUrl: apiBaseUrl(),
+      token: apiToken(),
+    });
+  return separationTransport.separate(input.projectId, input.request);
+};
+
 export const createProjectSourceReplacement = async (
   input: CreateProjectSourceReplacementInput,
 ): Promise<CreateProjectSourceReplacementResponse> => {
@@ -4913,29 +4979,56 @@ export const loadProjectReviewSession = async ({
     );
   }
   const review = reviewSessionFromView(view);
-  const basisRevision = review.candidateBasisRevision;
-  if (review.lifecycle !== "open" || basisRevision === undefined) return review;
-  try {
-    const sourceValue = await requestJson(
-      `/api/queries/projects/${encodeURIComponent(projectId)}/sources/${encodeURIComponent(basisRevision.projectSourceId)}/lifecycle?requested_action=exclude_project_source`,
-    );
-    const expectedProjectSourceRef = reviewCandidateBasisRevisionSourceRef(
-      sourceValue,
-      projectId,
-      basisRevision.projectSourceId,
-    );
-    return {
-      ...review,
-      candidateBasisRevision: {
-        ...basisRevision,
-        expectedProjectSourceRef,
-      },
-    };
-  } catch {
-    // Review remains readable. The frozen Basis control presents the missing
-    // exact source authority as unavailable instead of inventing a reference.
+  if (review.lifecycle !== "open" || review.members === undefined)
     return review;
-  }
+  const members = await Promise.all(
+    review.members.map(async (member): Promise<ReviewSessionMember> => {
+      const basisRevision = member.candidateBasisRevision;
+      if (basisRevision === undefined) return member;
+      try {
+        const sourceValue = await requestJson(
+          `/api/queries/projects/${encodeURIComponent(projectId)}/sources/${encodeURIComponent(basisRevision.projectSourceId)}/lifecycle?requested_action=exclude_project_source`,
+        );
+        const expectedProjectSourceRef = reviewCandidateBasisRevisionSourceRef(
+          sourceValue,
+          projectId,
+          basisRevision.projectSourceId,
+        );
+        return {
+          ...member,
+          candidateBasisRevision: {
+            ...basisRevision,
+            expectedProjectSourceRef,
+          },
+        };
+      } catch {
+        // Review remains readable. The frozen Basis control presents the
+        // missing exact source authority as unavailable instead of inventing a
+        // reference.
+        return member;
+      }
+    }),
+  );
+  const first = members[0];
+  if (first === undefined) return review;
+  return {
+    ...review,
+    members,
+    reviewMemberId: first.reviewMemberId,
+    memberRole: first.role,
+    memberOutcome: first.outcome,
+    candidate: first.candidate,
+    ...(first.candidateCorrection === undefined
+      ? {}
+      : { candidateCorrection: first.candidateCorrection }),
+    ...(first.candidateBasisRevision === undefined
+      ? {}
+      : { candidateBasisRevision: first.candidateBasisRevision }),
+    basis: first.basis,
+    validation: first.validation,
+    consequences: first.consequences,
+    ...(first.changeSet === undefined ? {} : { changeSet: first.changeSet }),
+  };
 };
 
 export const loadProjectWorkCollection = async ({
@@ -5049,6 +5142,11 @@ export interface ReviewCandidateBasisRevisionCommandOptions {
   readonly idempotencyKey?: string;
 }
 
+export interface ReviewSessionSeparationCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+}
+
 /**
  * Creates only caller-owned DeferReviewSession input from the exact session
  * reference returned by the authenticated Review read. The server still
@@ -5140,6 +5238,46 @@ export const createReviewSessionRefreshCommandInput = (
       revision: review.exactRef.revision,
       content_hash: review.exactRef.contentHash,
       lifecycle: review.lifecycle,
+    },
+  };
+};
+
+/**
+ * Builds the compact separation request from one exact member and the exact
+ * open ReviewSession returned by the authenticated Review read. Server
+ * authority decides whether the member and its ChangeSets can be partitioned.
+ */
+export const createReviewSessionSeparationCommandInput = (
+  review: ReviewSession,
+  reviewMemberId: string,
+  options: ReviewSessionSeparationCommandOptions = {},
+): ReviewSessionSeparationCommandInput => {
+  if (
+    review.lifecycle !== "open" ||
+    review.members === undefined ||
+    review.members.length < 2 ||
+    !review.members.some((member) => member.reviewMemberId === reviewMemberId)
+  ) {
+    throw new ProjectDataError(
+      "Review separation requires one exact member of an authenticated open multi-member ReviewSession.",
+      400,
+    );
+  }
+  const identity = randomUlidPayload();
+  return {
+    projectId: review.projectId,
+    reviewSessionId: review.id,
+    request: {
+      command_id: options.commandId ?? `command_${identity}`,
+      idempotency_key:
+        options.idempotencyKey ?? `review-session:${identity}:separation`,
+      expected_review_session_ref: {
+        review_session_id: review.id,
+        revision: review.exactRef.revision,
+        content_hash: review.exactRef.contentHash,
+        lifecycle: review.lifecycle,
+      },
+      review_member_id: reviewMemberId,
     },
   };
 };

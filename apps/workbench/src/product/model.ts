@@ -129,6 +129,22 @@ export type ReviewStatus = "needs_decision" | "waiting" | "completed";
 export type ReviewSessionLifecycle = "open" | "deferred" | "completed";
 export type ValidationState = "passed" | "needs_judgment" | "blocked";
 
+export type ReviewSessionMember = Pick<
+  ReviewSession,
+  | "candidate"
+  | "candidateCorrection"
+  | "candidateBasisRevision"
+  | "basis"
+  | "validation"
+  | "consequences"
+  | "changeSet"
+> & {
+  reviewMemberId: string;
+  role: "ordinary" | "exception";
+  outcome:
+    "awaiting_decision" | "waiting" | "applied" | "rejected" | "conflicted";
+};
+
 export type ReviewSession = {
   id: string;
   projectId: string;
@@ -146,6 +162,10 @@ export type ReviewSession = {
   snapshotState: "current" | "stale";
   returnLabel: string;
   returnPath: string;
+  reviewMemberId?: string;
+  memberRole?: ReviewSessionMember["role"];
+  memberOutcome?: ReviewSessionMember["outcome"];
+  members?: ReviewSessionMember[];
   candidate: {
     id: string;
     revision: string;

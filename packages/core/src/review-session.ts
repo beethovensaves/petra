@@ -7,17 +7,20 @@ import type {
   PetraCommandEnvelopeV160,
   PetraCommandEnvelopeV170,
   PetraCommandEnvelopeV180,
+  PetraCommandEnvelopeV190,
   PetraReviewCandidateBasisRevisionReceipt,
   PetraReviewCandidateCorrectionReceipt,
   PetraProjectReviewViewRecord,
   PetraClaim,
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionRefreshReceipt,
+  PetraReviewSessionSeparationReceipt,
   PetraReviewSessionRecord,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
   RefreshReviewSession,
   ReviseReviewCandidateBasis,
+  SeparateReviewSessionMember,
   ReopenReviewSession,
 } from "@petra/contracts";
 
@@ -268,4 +271,61 @@ export interface ReviewCandidateBasisRevisionAuthorityRepository {
   executeReviewCandidateBasisRevisionCommand(
     envelope: ReviewCandidateBasisRevisionCommandEnvelope,
   ): Promise<ReviewCandidateBasisRevisionCommandResult>;
+}
+
+export type ReviewSessionSeparationCommandEnvelope = Omit<
+  PetraCommandEnvelopeV190,
+  "command"
+> & {
+  command: SeparateReviewSessionMember;
+};
+
+export interface ReviewSessionSeparationCommandResult {
+  readonly receipt: PetraReviewSessionSeparationReceipt;
+  readonly sourceReviewSession: PetraReviewSessionRecord;
+  readonly separatedReviewSession: PetraReviewSessionRecord;
+  /** False only when the exact command was replayed idempotently. */
+  readonly applied: boolean;
+}
+
+export type ReviewSessionSeparationAuthorityErrorCode =
+  | "REVIEW_SESSION_SEPARATION_COMMAND_NOT_AUTHORIZED"
+  | "REVIEW_SESSION_SEPARATION_COMMAND_ID_REUSED"
+  | "REVIEW_SESSION_SEPARATION_IDEMPOTENCY_KEY_REUSED"
+  | "REVIEW_SESSION_SEPARATION_PROJECT_MISMATCH"
+  | "REVIEW_SESSION_SEPARATION_SESSION_NOT_FOUND"
+  | "REVIEW_SESSION_SEPARATION_STALE_SESSION"
+  | "REVIEW_SESSION_SEPARATION_LIFECYCLE_INVALID"
+  | "REVIEW_SESSION_SEPARATION_MEMBER_NOT_FOUND"
+  | "REVIEW_SESSION_SEPARATION_MEMBER_NOT_SEPARABLE"
+  | "REVIEW_SESSION_SEPARATION_PROFILE_UNSUPPORTED"
+  | "REVIEW_SESSION_SEPARATION_INCOMPATIBLE_REVISION"
+  | "REVIEW_SESSION_SEPARATION_AMBIGUOUS_MEMBERSHIP"
+  | "REVIEW_SESSION_SEPARATION_ATOMICITY_INCOMPATIBLE"
+  | "REVIEW_SESSION_SEPARATION_DESTINATION_CONFLICT"
+  | "REVIEW_SESSION_SEPARATION_STORED_RECORD_CORRUPT";
+
+export class ReviewSessionSeparationAuthorityError extends Error {
+  readonly code: ReviewSessionSeparationAuthorityErrorCode;
+
+  constructor(
+    code: ReviewSessionSeparationAuthorityErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ReviewSessionSeparationAuthorityError";
+    this.code = code;
+  }
+}
+
+/**
+ * Explicitly moves one unchanged semantic member from an exact fresh open
+ * multi-member ReviewSession into a new canonical ReviewSession. The operation
+ * retains existing candidate and ChangeSet atomic boundaries and grants no
+ * decision, validation, domain, projection, or recovery authority.
+ */
+export interface ReviewSessionSeparationAuthorityRepository {
+  executeReviewSessionSeparationCommand(
+    envelope: ReviewSessionSeparationCommandEnvelope,
+  ): Promise<ReviewSessionSeparationCommandResult>;
 }

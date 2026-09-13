@@ -1,6 +1,7 @@
 import {
   ReviewCandidateBasisRevisionClientError,
   ReviewCandidateCorrectionClientError,
+  ReviewSessionSeparationClientError,
 } from "@petra/adapters";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
@@ -21,6 +22,7 @@ import {
   createReviewSessionDeferCommandInput,
   createReviewSessionRefreshCommandInput,
   createReviewSessionReopenCommandInput,
+  createReviewSessionSeparationCommandInput,
 } from "./project-data.js";
 import {
   ReviewCandidateBasisRevisionNotice,
@@ -29,6 +31,7 @@ import {
   ReviewLifecycleNotice,
   ReviewRefreshNotice,
   ReviewSessionSurface,
+  ReviewSessionSeparationNotice,
   createReviewCandidateBasisEditorState,
   createReviewCandidateEditorState,
   reviewCandidateBasisEditorReducer,
@@ -37,6 +40,8 @@ import {
   reviewCandidateEditorReducer,
   reviewLifecycleFailureState,
   reviewRefreshFailureState,
+  reviewSessionSeparationFailureState,
+  reviewSessionWithMember,
 } from "./ReviewSurface.js";
 
 const render = (node: React.ReactNode): string =>
@@ -117,6 +122,54 @@ describe("reference Review and Graph packets", () => {
       },
     },
   });
+
+  const multiMemberReview = (): ReviewSession => {
+    const base = basisReview();
+    if (
+      base.candidateCorrection === undefined ||
+      base.candidateBasisRevision === undefined ||
+      base.changeSet === undefined
+    ) {
+      throw new Error("Expected complete multi-member Review fixture fields.");
+    }
+    const first = {
+      reviewMemberId: "review_member_01K4F000000000000000000601",
+      role: "ordinary" as const,
+      outcome: "awaiting_decision" as const,
+      candidate: structuredClone(base.candidate),
+      candidateCorrection: structuredClone(base.candidateCorrection),
+      candidateBasisRevision: structuredClone(base.candidateBasisRevision),
+      basis: structuredClone(base.basis),
+      validation: structuredClone(base.validation),
+      consequences: structuredClone(base.consequences),
+      changeSet: structuredClone(base.changeSet),
+    };
+    const second = {
+      ...structuredClone(first),
+      reviewMemberId: "review_member_01K4F000000000000000000602",
+      role: "exception" as const,
+      candidate: {
+        ...structuredClone(first.candidate),
+        id: "candidate-second-member",
+        proposed:
+          "A second exact working Claim keeps its own validation and decision.",
+        difference: "Adds a second independently inspectable working position.",
+      },
+      validation: {
+        state: "needs_judgment" as const,
+        label: "Needs source judgment",
+        detail: "The exact source stance requires a responsible decision.",
+      },
+    };
+    return {
+      ...base,
+      lifecycle: "open",
+      reviewMemberId: first.reviewMemberId,
+      memberRole: first.role,
+      memberOutcome: first.outcome,
+      members: [first, second],
+    };
+  };
 
   it("keeps the Review queue exception-led and decision-sized", () => {
     const markup = render(
@@ -632,6 +685,196 @@ describe("reference Review and Graph packets", () => {
     expect(retainedMarkup).toContain("Exact basis result recovered");
     expect(retainedMarkup).toContain("without applying it again");
     expect(retainedMarkup).not.toContain(input.request.command_id);
+  });
+
+  it("places Separate changes in the accepted multi-member Review hierarchy", () => {
+    const multi = multiMemberReview();
+    const markup = render(
+      <ReviewSessionSurface project={project} review={multi} />,
+    );
+
+    expect(markup).toContain("Review members");
+    expect(markup).toContain("2 exact members");
+    expect(markup).toContain("Selection changes only this presentation");
+    expect(markup).toContain(multi.members?.[0]?.reviewMemberId ?? "missing");
+    expect(markup).toContain(multi.members?.[1]?.reviewMemberId ?? "missing");
+    expect(markup).toContain(
+      "A second exact working Claim keeps its own validation and decision",
+    );
+    expect(markup).toContain('aria-pressed="true"');
+    expect(markup).toContain('aria-pressed="false"');
+    expect(markup).toContain("Separate changes");
+    expect(markup).toContain('data-operation="separate_review_session_member"');
+    expect(markup).toContain("Separation changes only Review membership");
+    expect(markup).toContain(
+      "does not validate, approve, reject, apply, recover, or establish semantic compatibility",
+    );
+    expect(markup).not.toContain("compatible members");
+
+    const second = multi.members?.[1];
+    if (second === undefined) throw new Error("Expected a second member.");
+    const selected = reviewSessionWithMember(multi, second);
+    expect(selected.reviewMemberId).toBe(second.reviewMemberId);
+    expect(selected.candidate.proposed).toBe(second.candidate.proposed);
+    expect(selected.validation).toEqual(second.validation);
+    expect(selected.basis).toEqual(second.basis);
+    expect(selected.consequences).toEqual(second.consequences);
+  });
+
+  it("retains exact Review, member, command, and idempotency identities for separation", () => {
+    const multi = multiMemberReview();
+    const second = multi.members?.[1];
+    if (second === undefined) throw new Error("Expected a second member.");
+    const input = createReviewSessionSeparationCommandInput(
+      multi,
+      second.reviewMemberId,
+      {
+        commandId: "command_01K4F000000000000000000603",
+        idempotencyKey: "review-session:surface:separation:603",
+      },
+    );
+
+    expect(input.request).toEqual({
+      command_id: "command_01K4F000000000000000000603",
+      idempotency_key: "review-session:surface:separation:603",
+      expected_review_session_ref: {
+        review_session_id: multi.id,
+        revision: multi.exactRef.revision,
+        content_hash: multi.exactRef.contentHash,
+        lifecycle: "open",
+      },
+      review_member_id: second.reviewMemberId,
+    });
+    const uncertain = reviewSessionSeparationFailureState(
+      new TypeError("connection closed"),
+      input,
+    );
+    expect(uncertain).toEqual({ state: "uncertain", input });
+    const markup = render(
+      <ReviewSessionSeparationNotice
+        projectId={multi.projectId}
+        review={multi}
+        separation={uncertain}
+        onRetry={() => undefined}
+      />,
+    );
+    expect(markup).toContain("Retry exact separation");
+    expect(markup).toContain("exact retained request");
+    expect(markup).not.toContain(input.request.command_id);
+  });
+
+  it("presents every material separation outcome without claiming compatibility or authority", () => {
+    const multi = multiMemberReview();
+    const second = multi.members?.[1];
+    if (second === undefined) throw new Error("Expected a second member.");
+    const input = createReviewSessionSeparationCommandInput(
+      multi,
+      second.reviewMemberId,
+      {
+        commandId: "command_01K4F000000000000000000604",
+        idempotencyKey: "review-session:surface:separation:604",
+      },
+    );
+    const clientError = (
+      status: number,
+      code: string,
+    ): ReviewSessionSeparationClientError =>
+      new ReviewSessionSeparationClientError("rejected", status, {
+        error: { code },
+      });
+    const states = [
+      reviewSessionSeparationFailureState(
+        clientError(409, "REVIEW_SESSION_SEPARATION_STALE_SESSION"),
+        input,
+      ),
+      reviewSessionSeparationFailureState(
+        clientError(422, "REVIEW_SESSION_SEPARATION_MEMBER_NOT_FOUND"),
+        input,
+      ),
+      reviewSessionSeparationFailureState(
+        clientError(403, "REVIEW_SESSION_SEPARATION_COMMAND_NOT_AUTHORIZED"),
+        input,
+      ),
+      reviewSessionSeparationFailureState(
+        clientError(422, "REVIEW_SESSION_SEPARATION_PROFILE_UNSUPPORTED"),
+        input,
+      ),
+      reviewSessionSeparationFailureState(
+        clientError(422, "REVIEW_SESSION_SEPARATION_ATOMICITY_INCOMPATIBLE"),
+        input,
+      ),
+      reviewSessionSeparationFailureState(
+        clientError(409, "REVIEW_SESSION_SEPARATION_COMMAND_ID_REUSED"),
+        input,
+      ),
+      reviewSessionSeparationFailureState(
+        new ReviewSessionSeparationClientError("invalid result", 200, {}),
+        input,
+      ),
+    ];
+    expect(states.map((state) => state.state)).toEqual([
+      "stale",
+      "stale",
+      "unauthorized",
+      "unsupported_profile",
+      "not_separable",
+      "retry_mismatch",
+      "invalid_response",
+    ]);
+    const markups = states.map((separation) =>
+      render(
+        <ReviewSessionSeparationNotice
+          projectId={multi.projectId}
+          review={multi}
+          separation={separation}
+          onRetry={() => undefined}
+          onReload={() => undefined}
+        />,
+      ),
+    );
+    expect(markups[0]).toContain("Review changed before separation");
+    expect(markups[0]).toContain("Reload Review");
+    expect(markups[1]).toContain("Review changed before separation");
+    expect(markups[2]).toContain("was not authorized");
+    expect(markups[3]).toContain("cannot separate members");
+    expect(markups[4]).toContain("cannot be separated");
+    expect(markups[4]).toContain("existing ChangeSet boundaries");
+    expect(markups[5]).toContain(
+      "Command identity belongs to another separation",
+    );
+    expect(markups[6]).toContain("could not be verified");
+    expect(markups[6]).toContain("Retry exact separation");
+    for (const markup of markups) {
+      expect(markup).toContain('role="alert"');
+      expect(markup).not.toContain("Validation passed");
+      expect(markup).not.toContain("Review approved");
+      expect(markup).not.toContain("Applied to Project");
+      expect(markup).not.toContain("members are compatible");
+    }
+
+    const successMarkup = render(
+      <ReviewSessionSeparationNotice
+        projectId={multi.projectId}
+        review={multi}
+        separation={{
+          state: "success",
+          applied: true,
+          input,
+          sourceReviewSessionId: multi.id,
+          separatedReviewSessionId: "review_session_01K4F000000000000000000605",
+        }}
+        onRetry={() => undefined}
+      />,
+    );
+    expect(successMarkup).toContain("Review member separated");
+    expect(successMarkup).toContain("Open separated Review");
+    expect(successMarkup).toContain(
+      "/review/review_session_01K4F000000000000000000605",
+    );
+    expect(successMarkup).toContain(
+      "did not validate, approve, reject, apply, recover a member, grant graph or domain authority, or establish semantic compatibility",
+    );
+    expect(successMarkup).not.toContain(input.request.command_id);
   });
 
   it("does not infer reopen eligibility from an ambiguous Waiting state", () => {

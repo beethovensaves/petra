@@ -8,7 +8,11 @@ import {
   PetraTextArea,
   PetraTextField,
 } from "../design-system/primitives.js";
-import type { ProjectRecord, ReviewSession } from "./model.js";
+import type {
+  ProjectRecord,
+  ReviewSession,
+  ReviewSessionMember,
+} from "./model.js";
 import {
   ProjectDataError,
   createReviewCandidateBasisRevisionCommandInput,
@@ -16,15 +20,18 @@ import {
   createReviewSessionDeferCommandInput,
   createReviewSessionRefreshCommandInput,
   createReviewSessionReopenCommandInput,
+  createReviewSessionSeparationCommandInput,
   executeReviewCandidateBasisRevisionCommand,
   executeReviewCandidateCorrectionCommand,
   executeReviewSessionLifecycleCommand,
   executeReviewSessionRefreshCommand,
+  executeReviewSessionSeparationCommand,
   type ReviewCandidateBasisRevisionCommandInput,
   type ReviewCandidateBasisRevisionDraft,
   type ReviewCandidateCorrectionCommandInput,
   type ReviewSessionLifecycleCommandInput,
   type ReviewSessionRefreshCommandInput,
+  type ReviewSessionSeparationCommandInput,
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 
@@ -934,6 +941,225 @@ export const ReviewCandidateBasisRevisionNotice = ({
   );
 };
 
+export type ReviewSessionSeparationPresentationState =
+  | { readonly state: "idle" }
+  | {
+      readonly state: "pending";
+      readonly input: ReviewSessionSeparationCommandInput;
+    }
+  | {
+      readonly state: "success";
+      readonly applied: boolean;
+      readonly input: ReviewSessionSeparationCommandInput;
+      readonly sourceReviewSessionId: string;
+      readonly separatedReviewSessionId: string;
+    }
+  | {
+      readonly state:
+        | "stale"
+        | "unauthorized"
+        | "unsupported_profile"
+        | "not_separable"
+        | "invalid_response"
+        | "retry_mismatch"
+        | "uncertain"
+        | "failed";
+      readonly input: ReviewSessionSeparationCommandInput;
+    };
+
+const isReviewSessionSeparationClientError = (
+  error: unknown,
+): error is Error & { readonly status: number; readonly response: unknown } =>
+  error instanceof Error &&
+  error.name === "ReviewSessionSeparationClientError" &&
+  typeof (error as { readonly status?: unknown }).status === "number" &&
+  "response" in error;
+
+const separationErrorCode = (error: unknown): string | undefined => {
+  if (!isReviewSessionSeparationClientError(error)) return undefined;
+  const response = error.response;
+  if (typeof response !== "object" || response === null) return undefined;
+  if (
+    "error" in response &&
+    typeof response.error === "object" &&
+    response.error !== null &&
+    "code" in response.error &&
+    typeof response.error.code === "string"
+  ) {
+    return response.error.code;
+  }
+  return "error" in response && typeof response.error === "string"
+    ? response.error
+    : undefined;
+};
+
+export const reviewSessionSeparationFailureState = (
+  error: unknown,
+  input: ReviewSessionSeparationCommandInput,
+): ReviewSessionSeparationPresentationState => {
+  const code = separationErrorCode(error);
+  if (
+    code === "REVIEW_SESSION_SEPARATION_COMMAND_ID_REUSED" ||
+    code === "REVIEW_SESSION_SEPARATION_IDEMPOTENCY_KEY_REUSED"
+  ) {
+    return { state: "retry_mismatch", input };
+  }
+  if (code === "REVIEW_SESSION_SEPARATION_PROFILE_UNSUPPORTED") {
+    return { state: "unsupported_profile", input };
+  }
+  if (code === "REVIEW_SESSION_SEPARATION_MEMBER_NOT_FOUND") {
+    return { state: "stale", input };
+  }
+  if (
+    code === "REVIEW_SESSION_SEPARATION_MEMBER_NOT_SEPARABLE" ||
+    code === "REVIEW_SESSION_SEPARATION_ATOMICITY_INCOMPATIBLE" ||
+    code === "REVIEW_SESSION_SEPARATION_INCOMPATIBLE_REVISION" ||
+    code === "REVIEW_SESSION_SEPARATION_AMBIGUOUS_MEMBERSHIP" ||
+    code === "REVIEW_SESSION_SEPARATION_DESTINATION_CONFLICT"
+  ) {
+    return { state: "not_separable", input };
+  }
+  if (
+    isReviewSessionSeparationClientError(error) &&
+    (error.status === 401 || error.status === 403)
+  ) {
+    return { state: "unauthorized", input };
+  }
+  if (
+    isReviewSessionSeparationClientError(error) &&
+    (error.status === 404 || error.status === 409)
+  ) {
+    return { state: "stale", input };
+  }
+  if (
+    (isReviewSessionSeparationClientError(error) &&
+      error.status >= 200 &&
+      error.status < 300) ||
+    (error instanceof Error &&
+      (error.name === "ContractRegistryError" || error instanceof SyntaxError))
+  ) {
+    return { state: "invalid_response", input };
+  }
+  if (
+    !isReviewSessionSeparationClientError(error) ||
+    error.status === 408 ||
+    error.status >= 500
+  ) {
+    return { state: "uncertain", input };
+  }
+  return { state: "failed", input };
+};
+
+export const ReviewSessionSeparationNotice = ({
+  projectId,
+  review,
+  separation,
+  onRetry,
+  onReload,
+}: {
+  projectId: string;
+  review: ReviewSession;
+  separation: ReviewSessionSeparationPresentationState;
+  onRetry: (input: ReviewSessionSeparationCommandInput) => void;
+  onReload?: (() => void | Promise<void>) | undefined;
+}): React.JSX.Element | null => {
+  if (separation.state === "idle") return null;
+
+  const success = separation.state === "success";
+  const stale = separation.state === "stale";
+  const unauthorized = separation.state === "unauthorized";
+  const unsupported = separation.state === "unsupported_profile";
+  const notSeparable = separation.state === "not_separable";
+  const invalidResponse = separation.state === "invalid_response";
+  const retryMismatch = separation.state === "retry_mismatch";
+  const uncertain = separation.state === "uncertain";
+  const failed = separation.state === "failed";
+  const title =
+    separation.state === "pending"
+      ? "Separating this Review member…"
+      : success
+        ? separation.applied
+          ? "Review member separated"
+          : "Retained separation result confirmed"
+        : stale
+          ? "Review changed before separation"
+          : unauthorized
+            ? "Review separation was not authorized"
+            : unsupported
+              ? "This Review profile cannot separate members"
+              : notSeparable
+                ? "This member cannot be separated"
+                : invalidResponse
+                  ? "Separation response could not be verified"
+                  : retryMismatch
+                    ? "Command identity belongs to another separation"
+                    : uncertain
+                      ? "Separation result is not yet confirmed"
+                      : "Review member was not separated";
+  const detail =
+    separation.state === "pending"
+      ? "Petra is checking the exact open Review revision, selected member, command authority, and existing ChangeSet boundaries. All loaded Review membership positions remain unchanged until a matching result is verified."
+      : success
+        ? separation.applied
+          ? "Petra created a separate Review for the exact unchanged member. The authenticated source Review is now reloading. Candidate, relationship, basis, provenance, validation, ChangeSet, Approval, command, event, projection, and member-outcome records were retained. Separation did not validate, approve, reject, apply, recover a member, grant graph or domain authority, or establish semantic compatibility."
+          : "Petra returned the retained matching result for this exact command without separating the member again. The authenticated source Review is now reloading. This was not validation, approval, rejection, application, member recovery, a grant of graph or domain authority, or a compatibility finding."
+        : stale
+          ? "The Review, lifecycle, revision, or selected member changed. Nothing is shown as separated. Reload the authenticated Review before creating another command."
+          : unauthorized
+            ? "Petra did not grant this separation command. The loaded Review membership remains unchanged in this view."
+            : unsupported
+              ? "Server authority does not support separation for this exact Review profile. No Review membership or authority change is shown."
+              : notSeparable
+                ? "Server authority could not complete an exact member partition while retaining the existing ChangeSet boundaries. No Review membership, validation, decision, or authority record changed."
+                : invalidResponse
+                  ? "The response did not match the exact command, Review revision, member partition, and shared Review context. This view does not accept it as success; the exact request is retained for reconciliation."
+                  : retryMismatch
+                    ? "The command or idempotency identity is bound to different separation input. Nothing is shown as separated. Reload the authenticated Review before preparing another command."
+                    : uncertain
+                      ? "Petra could not verify whether separation took effect. Retry the exact retained request to reconcile; a completed command returns its stored partition without separating the member again."
+                      : "Petra rejected the separation before a matching result was returned. The loaded Review membership remains unchanged in this view.";
+  const alert = !success && separation.state !== "pending";
+
+  return (
+    <section
+      className="review-lifecycle-notice review-separation-notice"
+      data-state={separation.state}
+      role={alert ? "alert" : "status"}
+      aria-live={alert ? "assertive" : "polite"}
+      tabIndex={-1}
+    >
+      <strong>{title}</strong>
+      <p>{detail}</p>
+      {success ? (
+        <Link
+          className="reference-text-link"
+          to={`/projects/${encodeURIComponent(projectId)}/review/${encodeURIComponent(separation.separatedReviewSessionId)}`}
+        >
+          Open separated Review
+        </Link>
+      ) : null}
+      {success || unauthorized || unsupported || notSeparable || failed ? (
+        <Link className="reference-text-link" to={review.returnPath}>
+          Return to {review.returnLabel}
+        </Link>
+      ) : null}
+      {invalidResponse || uncertain ? (
+        <PetraButton
+          variant="secondary"
+          onClick={() => onRetry(separation.input)}
+        >
+          Retry exact separation
+        </PetraButton>
+      ) : null}
+      {stale || retryMismatch ? (
+        <PetraButton variant="secondary" onClick={() => void onReload?.()}>
+          Reload Review
+        </PetraButton>
+      ) : null}
+    </section>
+  );
+};
+
 export const ReviewCollectionSurface = ({
   project,
   reviews,
@@ -1080,16 +1306,129 @@ export const ReviewCollectionRoute = (): React.JSX.Element => {
   );
 };
 
-export const ReviewSessionSurface = ({
+export const reviewSessionWithMember = (
+  review: ReviewSession,
+  member: ReviewSessionMember,
+): ReviewSession => ({
+  id: review.id,
+  projectId: review.projectId,
+  exactRef: { ...review.exactRef },
+  title: review.title,
+  objective: review.objective,
+  status: review.status,
+  statusLabel: review.statusLabel,
+  ...(review.lifecycle === undefined ? {} : { lifecycle: review.lifecycle }),
+  responsible: review.responsible,
+  snapshot: review.snapshot,
+  snapshotState: review.snapshotState,
+  returnLabel: review.returnLabel,
+  returnPath: review.returnPath,
+  reviewMemberId: member.reviewMemberId,
+  memberRole: member.role,
+  memberOutcome: member.outcome,
+  ...(review.members === undefined ? {} : { members: review.members }),
+  candidate: member.candidate,
+  ...(member.candidateCorrection === undefined
+    ? {}
+    : { candidateCorrection: member.candidateCorrection }),
+  ...(member.candidateBasisRevision === undefined
+    ? {}
+    : { candidateBasisRevision: member.candidateBasisRevision }),
+  basis: member.basis,
+  validation: member.validation,
+  consequences: member.consequences,
+  ...(member.changeSet === undefined ? {} : { changeSet: member.changeSet }),
+});
+
+const ReviewMemberNavigation = ({
+  members,
+  activeMemberId,
+  locked,
+  focusSelected,
+  onSelect,
+}: {
+  members: ReviewSessionMember[];
+  activeMemberId: string;
+  locked: boolean;
+  focusSelected: boolean;
+  onSelect: (reviewMemberId: string) => void;
+}): React.JSX.Element => {
+  const selectedButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (focusSelected) selectedButtonRef.current?.focus();
+  }, [activeMemberId, focusSelected]);
+
+  return (
+    <section className="review-members" aria-labelledby="review-members-title">
+      <header>
+        <div>
+          <p className="reference-panel-kicker">Exact session membership</p>
+          <h2 id="review-members-title">Review members</h2>
+        </div>
+        <span>
+          {members.length} exact {members.length === 1 ? "member" : "members"}
+        </span>
+      </header>
+      <p id="review-members-help">
+        Choose a member to inspect its Current, Candidate, Origin, Basis,
+        Difference, Consequences, and available controls. Selection changes only
+        this presentation. Member selection pauses while local edits or exact
+        command reconciliation must be retained.
+      </p>
+      <ol aria-describedby="review-members-help">
+        {members.map((member, index) => {
+          const selected = member.reviewMemberId === activeMemberId;
+          return (
+            <li key={member.reviewMemberId}>
+              <button
+                ref={selected ? selectedButtonRef : undefined}
+                type="button"
+                className="review-member-selector"
+                aria-pressed={selected}
+                disabled={locked}
+                onClick={() => onSelect(member.reviewMemberId)}
+              >
+                <span>
+                  Member {index + 1} · {member.role}
+                </span>
+                <strong>{member.candidate.proposed}</strong>
+                <small>
+                  {member.validation.label} ·{" "}
+                  {member.outcome.replaceAll("_", " ")}
+                </small>
+                <code>{member.reviewMemberId}</code>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+};
+
+const ReviewSessionMemberSurface = ({
   project,
   review,
   onReviewChange,
+  memberNavigation,
+  separation,
+  onSeparate,
+  onSeparationRetry,
+  onSeparationReload,
+  onMemberSelectionLockChange,
   initialCandidateEditOpen = false,
   initialBasisEditOpen = false,
 }: {
   project: ProjectRecord;
   review: ReviewSession;
   onReviewChange?: (() => void | Promise<void>) | undefined;
+  memberNavigation?: React.ReactNode;
+  separation: ReviewSessionSeparationPresentationState;
+  onSeparate: () => void;
+  onSeparationRetry: (input: ReviewSessionSeparationCommandInput) => void;
+  onSeparationReload: () => void | Promise<void>;
+  onMemberSelectionLockChange: (locked: boolean) => void;
   initialCandidateEditOpen?: boolean;
   initialBasisEditOpen?: boolean;
 }): React.JSX.Element => {
@@ -1122,11 +1461,20 @@ export const ReviewSessionSurface = ({
   const refreshPending = refresh.state === "pending";
   const correctionPending = candidateEditor.correction.state === "pending";
   const basisRevisionPending = basisEditor.revision.state === "pending";
+  const separationPending = separation.state === "pending";
+  const separationIsLocked =
+    separation.state === "pending" ||
+    separation.state === "success" ||
+    separation.state === "stale" ||
+    separation.state === "invalid_response" ||
+    separation.state === "retry_mismatch" ||
+    separation.state === "uncertain";
   const commandPending =
     lifecyclePending ||
     refreshPending ||
     correctionDraftIsLocked(candidateEditor.correction) ||
-    basisRevisionIsLocked(basisEditor.revision);
+    basisRevisionIsLocked(basisEditor.revision) ||
+    separationIsLocked;
   const deferPresented =
     review.status === "needs_decision" &&
     review.lifecycle !== "deferred" &&
@@ -1143,7 +1491,48 @@ export const ReviewSessionSurface = ({
     review.lifecycle === "open" &&
     !lifecyclePending &&
     !correctionDraftIsLocked(candidateEditor.correction) &&
+    !basisRevisionIsLocked(basisEditor.revision) &&
+    !separationIsLocked;
+  const separationControlPresented =
+    (review.members?.length ?? 0) > 1 &&
+    review.reviewMemberId !== undefined &&
+    (separation.state === "idle" || separation.state === "pending");
+  const separationAvailable =
+    separation.state === "idle" &&
+    review.lifecycle === "open" &&
+    !lifecyclePending &&
+    !refreshPending &&
+    !correctionDraftIsLocked(candidateEditor.correction) &&
     !basisRevisionIsLocked(basisEditor.revision);
+
+  useEffect(() => {
+    const basisDraftHasInput =
+      basisEditor.draft.sourceScope !== "" ||
+      basisEditor.draft.detailLevel !== "" ||
+      basisEditor.draft.sourceStance !== "" ||
+      basisEditor.draft.attribution.length > 0 ||
+      basisEditor.draft.modality !== "" ||
+      basisEditor.draft.negated ||
+      basisEditor.draft.uncertainty.length > 0 ||
+      basisEditor.draft.reason.length > 0;
+    onMemberSelectionLockChange(
+      candidateEditor.draft !== review.candidate.proposed ||
+        candidateEditor.correction.state !== "idle" ||
+        basisDraftHasInput ||
+        basisEditor.revision.state !== "idle" ||
+        lifecycle.state !== "idle" ||
+        refresh.state !== "idle",
+    );
+  }, [
+    basisEditor.draft,
+    basisEditor.revision.state,
+    candidateEditor.correction.state,
+    candidateEditor.draft,
+    lifecycle.state,
+    onMemberSelectionLockChange,
+    refresh.state,
+    review.candidate.proposed,
+  ]);
 
   useEffect(() => {
     if (candidateEditor.expanded) {
@@ -1206,6 +1595,14 @@ export const ReviewSessionSurface = ({
         ?.focus();
     }
   }, [basisEditor.revision.state]);
+
+  useEffect(() => {
+    if (separation.state !== "idle" && separation.state !== "pending") {
+      decisionRef.current
+        ?.querySelector<HTMLElement>(".review-separation-notice")
+        ?.focus();
+    }
+  }, [separation.state]);
 
   const runLifecycleCommand = (
     input: ReviewSessionLifecycleCommandInput,
@@ -1423,7 +1820,13 @@ export const ReviewSessionSurface = ({
       : review.lifecycle === "open"
         ? " This authenticated Review read marks the comparison stale and supplies its exact open lifecycle. Refresh Review sends only the exact Review identity, revision, content hash, and open lifecycle. Seeing Stale and Open here does not establish eligibility or authorization; the server rechecks both. Refresh does not approve, reject, apply, or separate anything and does not edit any candidate or basis record."
         : " This authenticated Review read marks the comparison stale but does not supply the exact open lifecycle required by RefreshReviewSession. Refresh Review is unavailable; the client does not infer lifecycle or eligibility.";
-  const decisionBoundary = `${lifecycleBoundary}${refreshBoundary}`;
+  const separationBoundary =
+    (review.members?.length ?? 0) < 2 || review.reviewMemberId === undefined
+      ? ""
+      : review.lifecycle === "open"
+        ? " Separate changes sends this exact Review revision and selected member to Petra. The server rechecks authority and existing ChangeSet boundaries. Separation changes only Review membership; it does not validate, approve, reject, apply, recover, or establish semantic compatibility."
+        : " Separate changes is unavailable because this authenticated Review read does not supply an exact open multi-member lifecycle.";
+  const decisionBoundary = `${lifecycleBoundary}${refreshBoundary}${separationBoundary}`;
 
   return (
     <main className="reference-surface review-session" id="reference-main">
@@ -1461,6 +1864,8 @@ export const ReviewSessionSurface = ({
           </div>
         </dl>
       </header>
+
+      {memberNavigation}
 
       <section
         className="review-validation"
@@ -1523,7 +1928,8 @@ export const ReviewSessionSurface = ({
                   aria-disabled={
                     lifecyclePending ||
                     refreshPending ||
-                    basisRevisionIsLocked(basisEditor.revision)
+                    basisRevisionIsLocked(basisEditor.revision) ||
+                    separationIsLocked
                   }
                   onClick={() => dispatchCandidateEditor({ type: "toggle" })}
                 >
@@ -1565,7 +1971,8 @@ export const ReviewSessionSurface = ({
                   candidateEditorLocked ||
                   lifecyclePending ||
                   refreshPending ||
-                  basisRevisionIsLocked(basisEditor.revision)
+                  basisRevisionIsLocked(basisEditor.revision) ||
+                  separationIsLocked
                 }
                 onChange={(event) =>
                   dispatchCandidateEditor({
@@ -1594,7 +2001,8 @@ export const ReviewSessionSurface = ({
                     candidateEditorLocked ||
                     lifecyclePending ||
                     refreshPending ||
-                    basisRevisionIsLocked(basisEditor.revision)
+                    basisRevisionIsLocked(basisEditor.revision) ||
+                    separationIsLocked
                   }
                   aria-describedby="review-candidate-edit-local-note"
                   data-operation="correct_review_candidate"
@@ -1665,7 +2073,8 @@ export const ReviewSessionSurface = ({
                   aria-disabled={
                     lifecyclePending ||
                     refreshPending ||
-                    correctionDraftIsLocked(candidateEditor.correction)
+                    correctionDraftIsLocked(candidateEditor.correction) ||
+                    separationIsLocked
                   }
                   onClick={() => dispatchBasisEditor({ type: "toggle" })}
                 >
@@ -2064,6 +2473,7 @@ export const ReviewSessionSurface = ({
               refreshPending ||
               correctionDraftIsLocked(candidateEditor.correction) ||
               basisRevisionIsLocked(basisEditor.revision) ||
+              separationIsLocked ||
               !(deferPresented || reopenPresented)
             }
             aria-describedby="review-decision-boundary"
@@ -2091,6 +2501,23 @@ export const ReviewSessionSurface = ({
               Refresh Review
             </PetraButton>
           ) : null}
+          {separationControlPresented ? (
+            <PetraButton
+              variant="secondary"
+              busy={separationPending}
+              busyLabel="Separating changes…"
+              aria-disabled={!separationAvailable}
+              aria-describedby="review-decision-boundary"
+              data-operation={
+                review.lifecycle === "open"
+                  ? "separate_review_session_member"
+                  : undefined
+              }
+              onClick={onSeparate}
+            >
+              Separate changes
+            </PetraButton>
+          ) : null}
         </PetraButtonGroup>
         <ReviewLifecycleNotice
           review={review}
@@ -2103,6 +2530,13 @@ export const ReviewSessionSurface = ({
           refresh={refresh}
           onRetry={runRefreshCommand}
           onReload={reloadReview}
+        />
+        <ReviewSessionSeparationNotice
+          projectId={project.id}
+          review={review}
+          separation={separation}
+          onRetry={onSeparationRetry}
+          onReload={onSeparationReload}
         />
         <div className="review-decision__alternatives">
           <Link
@@ -2117,6 +2551,116 @@ export const ReviewSessionSurface = ({
         </div>
       </section>
     </main>
+  );
+};
+
+export const ReviewSessionSurface = ({
+  project,
+  review,
+  onReviewChange,
+  initialCandidateEditOpen = false,
+  initialBasisEditOpen = false,
+}: {
+  project: ProjectRecord;
+  review: ReviewSession;
+  onReviewChange?: (() => void | Promise<void>) | undefined;
+  initialCandidateEditOpen?: boolean;
+  initialBasisEditOpen?: boolean;
+}): React.JSX.Element => {
+  const [activeMemberId, setActiveMemberId] = useState(
+    review.reviewMemberId ?? review.members?.[0]?.reviewMemberId ?? "",
+  );
+  const [separation, setSeparation] =
+    useState<ReviewSessionSeparationPresentationState>({ state: "idle" });
+  const [memberInteractionLocked, setMemberInteractionLocked] = useState(false);
+  const memberSelectionFocus = useRef("");
+  const members = review.members ?? [];
+  const activeMember =
+    members.find((member) => member.reviewMemberId === activeMemberId) ??
+    members[0];
+  const selectedReview =
+    activeMember === undefined
+      ? review
+      : reviewSessionWithMember(review, activeMember);
+  const memberSelectionLocked =
+    separation.state === "pending" ||
+    separation.state === "success" ||
+    separation.state === "stale" ||
+    separation.state === "invalid_response" ||
+    separation.state === "retry_mismatch" ||
+    separation.state === "uncertain";
+
+  const runSeparation = (input: ReviewSessionSeparationCommandInput): void => {
+    setSeparation({ state: "pending", input });
+    void executeReviewSessionSeparationCommand(input).then(
+      (result) => {
+        setSeparation({
+          state: "success",
+          applied: result.applied,
+          input,
+          sourceReviewSessionId: result.source_review_session.review_session_id,
+          separatedReviewSessionId:
+            result.separated_review_session.review_session_id,
+        });
+        if (onReviewChange !== undefined) {
+          void Promise.resolve(onReviewChange()).catch(() => undefined);
+        }
+      },
+      (error: unknown) => {
+        setSeparation(reviewSessionSeparationFailureState(error, input));
+      },
+    );
+  };
+
+  const separateMember = (): void => {
+    if (selectedReview.reviewMemberId === undefined) return;
+    runSeparation(
+      createReviewSessionSeparationCommandInput(
+        selectedReview,
+        selectedReview.reviewMemberId,
+      ),
+    );
+  };
+
+  const reloadSeparationReview = async (): Promise<void> => {
+    if (onReviewChange !== undefined) await onReviewChange();
+    setSeparation({ state: "idle" });
+  };
+
+  return (
+    <ReviewSessionMemberSurface
+      key={selectedReview.reviewMemberId ?? selectedReview.id}
+      project={project}
+      review={selectedReview}
+      onReviewChange={onReviewChange}
+      memberNavigation={
+        members.length > 1 ? (
+          <ReviewMemberNavigation
+            members={members}
+            activeMemberId={
+              activeMember?.reviewMemberId ??
+              selectedReview.reviewMemberId ??
+              ""
+            }
+            locked={memberSelectionLocked || memberInteractionLocked}
+            focusSelected={
+              memberSelectionFocus.current === selectedReview.reviewMemberId
+            }
+            onSelect={(reviewMemberId) => {
+              memberSelectionFocus.current = reviewMemberId;
+              setActiveMemberId(reviewMemberId);
+            }}
+          />
+        ) : undefined
+      }
+      separation={separation}
+      onSeparate={separateMember}
+      onSeparationRetry={runSeparation}
+      onSeparationReload={reloadSeparationReview}
+      onMemberSelectionLockChange={setMemberInteractionLocked}
+      initialCandidateEditOpen={initialCandidateEditOpen}
+      initialBasisEditOpen={initialBasisEditOpen}
+    />
   );
 };
 
