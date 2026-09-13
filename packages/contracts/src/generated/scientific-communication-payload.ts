@@ -1,0 +1,213 @@
+/* eslint-disable */
+// Generated from the canonical Petra JSON Schema. Do not edit by hand.
+
+/**
+ * Installed non-executable scientific communication semantics. Registration resolves this exact immutable payload, not arbitrary client-defined rules or response language validation.
+ */
+export interface PetraScientificCommunicationPayload {
+  schema_name: "petra.scientific-communication-payload";
+  schema_version: "1.0.0";
+  profile: {
+    definition_family: "petra.scientific-evidence";
+    locale: {
+      supported: ["en"];
+      unsupported: "closed";
+      source_language: "retain_exact_without_translation";
+      english_coverage: "registered_terms_and_reference_rules_only";
+    };
+    origins: {
+      source_report: "attributed_report";
+      petra_synthesis: "petra_assessment";
+      unresolved_inference: "inference";
+    };
+    structured_fields: {
+      force: "unavailable_in_source_schema";
+      conditions: "unavailable_in_source_schema";
+      inference_rule: "unavailable_in_source_schema";
+      author_decision: "unavailable_in_source_schema";
+      pronunciation: "unavailable";
+      relation_force_vocabulary: "unsupported";
+    };
+    preservation: [
+      "statement_key",
+      "statement_order",
+      "original_text_bytes",
+      "original_origin_subtype",
+      "producer_and_attribution",
+      "evidence_refs",
+      "source_span_selections",
+      "limitations",
+      "resolution_requirement",
+      "packet_coverage",
+      "artifact_bytes_and_hashes",
+      "evidence_snapshot",
+      "source_time_versions",
+    ];
+    reference_rules: {
+      first: "registered_singular_and_canonical_id_and_revision";
+      later: "same_as_first";
+      ambiguity: "retain_full_canonical_identity_never_guess";
+      fallback: "generic_family_and_canonical_id_and_revision_with_visible_limitation";
+      replacement: "separate_current_observation_preserve_original";
+      quoted_bytes: "never_rewrite";
+    };
+    reference_owners: [
+      {
+        semantic_key: "scientific.claim";
+        registration_kind: "object_schema";
+        contract: {
+          name: "petra.claim";
+          version: "1.0.0";
+          content_hash: "sha256:1cb1f7910202af21e0f8e610c0dcab605db50f8c8466a9c38f0acf69778db196";
+        };
+        canonical_kind: "claim";
+        generic_family: "finding";
+        singular: "Claim";
+        plural: "Claims";
+        revision_policy: "positive_revision";
+      },
+      {
+        semantic_key: "scientific.assertion";
+        registration_kind: "relationship_schema";
+        contract: {
+          name: "petra.assertion";
+          version: "1.0.0";
+          content_hash: "sha256:2c58656a9a93052112b26a9080c37811e570000de35d0f9240180da1742c8c91";
+        };
+        canonical_kind: "assertion";
+        generic_family: "relationship";
+        singular: "Assertion";
+        plural: "Assertions";
+        revision_policy: "positive_revision";
+      },
+      {
+        semantic_key: "scientific.source-span";
+        registration_kind: "object_schema";
+        contract: {
+          name: "petra.source-span";
+          version: "1.0.0";
+          content_hash: "sha256:c83b2cbb7c5d224f794f0fc9591edcfcef04fffdcd97e6ff0be07cd2f34db79d";
+        };
+        canonical_kind: "source_span";
+        generic_family: "reference";
+        singular: "Source span";
+        plural: "Source spans";
+        revision_policy: "immutable_revision_one";
+      },
+      {
+        semantic_key: "scientific.work-version";
+        registration_kind: "object_schema";
+        contract: {
+          name: "petra.work-version";
+          version: "1.0.0";
+          content_hash: "sha256:3a7c3133086af08c3434b1a83243fda095e8a47adbbc69fd4bc4090ac423aca3";
+        };
+        canonical_kind: "work_version";
+        generic_family: "reference";
+        singular: "Work version";
+        plural: "Work versions";
+        revision_policy: "positive_revision";
+      },
+      {
+        semantic_key: "scientific.grounded-response";
+        registration_kind: "output";
+        contract: {
+          name: "petra.grounded-response";
+          version: "1.0.0";
+          content_hash: "sha256:f3124ac0fe817fcce8d2c9937d73d16a6aa0aa91c648016a019d964c4cba2e3a";
+        };
+        canonical_kind: "grounded_response";
+        generic_family: "output";
+        singular: "Grounded response";
+        plural: "Grounded responses";
+        revision_policy: "positive_revision";
+      },
+    ];
+    response_schema: {
+      name: "petra.model-synthesist-output";
+      version: "1.0.0";
+      content_hash: "sha256:c9feeb397df01f2772c81c53fd2edadf7154c836a273df87a8e47806b500164b";
+    };
+    action_report: {
+      family: "action_report";
+      invocation_schema: {
+        name: "petra.suggested-action-invocation";
+        version: "1.0.0";
+        content_hash: "sha256:dc5c0b6719f08f2b8ecae0509d845f70502247b61cc7300c2e48890bc0a9800c";
+      };
+      invocation_view_schema: {
+        name: "petra.suggested-action-invocation-view";
+        version: "1.0.0";
+        content_hash: "sha256:f820c8fa92962fc0ea53eb16fc8d9a8f99dad75a2c28c778d69f6430977cf302";
+      };
+      work_schema: {
+        name: "petra.work-unit";
+        version: "1.0.0";
+        content_hash: "sha256:6009a3c4ec45df4f7073189f8ef111e59428392a9c8fec1ee14508aeca04c316";
+      };
+      rules: {
+        link: "exact_response_result_match";
+        command: "immutable_acceptance_receipt_not_execution";
+        work: "execution_state_and_terminal_outcome_separate";
+        result: "availability_not_delivery";
+        history: "canonical_command_and_work_revisions_coverage_bounded_at_100";
+        authority: "no_scientific_or_inquiry_resolution_effect";
+        recovery: "current_server_owned_assessment_only";
+        retry_exact_start: "before_work_registration_only_never_terminal_failed_work";
+        stop_response: "delivery_only_not_work_cancellation";
+        recommendation: "unsupported_without_alternatives_and_preference_basis";
+      };
+    };
+    validation: {
+      scope: "profile_registration_and_reference_resolution_only";
+      response_language_receipt: "not_implemented";
+      existing_synthesis_checks: [
+        "model-output-schema@1.0.0",
+        "grounded-synthesis@1.0.0",
+        "statement-origin-separation@1.0.0",
+      ];
+      existing_checks_meaning: "retain_original_scope_never_full_language_validation";
+      draft_felicity_receipt: "not_applicable_to_response";
+      future_required_checks: [
+        "family_obligations",
+        "reference_fidelity",
+        "origin_and_producer",
+        "force_preservation",
+        "conditions_and_limitations",
+        "action_fidelity",
+        "progressive_and_terminal_state",
+        "equivalent_textual_meaning",
+      ];
+      repair: "unsupported";
+    };
+    version_rules: {
+      composition: "new_binding_not_source_time_evidence";
+      historical: "retain_exact_original_versions_or_explicit_unavailable";
+      prompt: "retain_exact_model_call_prompt_profile";
+      renderer: "unavailable_until_versioned_composition";
+      terminology_reference_discourse: "this_exact_payload_registration";
+    };
+    prohibited_conflations: [
+      "origin_as_force",
+      "source_report_as_accepted_finding",
+      "synthesis_as_author_judgment",
+      "validation_as_authority",
+      "command_acceptance_as_work_completion",
+      "failed_terminal_work_as_success",
+      "result_available_as_delivered",
+      "historical_recovery_as_current_permission",
+      "inspect_reason_as_preferred_recommendation",
+    ];
+    textual_equivalence: "same_references_origin_basis_conditions_limitations_state_consequence_and_recovery";
+    unsupported_scope: [
+      "other_profile_payloads",
+      "non_english_realization",
+      "full_language_validation",
+      "language_repair",
+      "plan_composition",
+      "receipt_composition",
+      "authentication_and_snapshot_reads",
+      "renderer_and_accessibility_conformance",
+    ];
+  };
+}

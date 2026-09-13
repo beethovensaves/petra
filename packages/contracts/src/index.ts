@@ -1,4 +1,5 @@
 export type { PetraActor } from "./generated/actor.js";
+export type { PetraScientificCommunicationPayload } from "./generated/scientific-communication-payload.js";
 export type {
   ActorRef as CapabilityGrantActorRef,
   GrantContent as CapabilityGrantContent,

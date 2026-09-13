@@ -1626,6 +1626,17 @@
       "canonical_sha256": "sha256:050ff98d83476b55b25de5964e20f305ddd50845cb3ce7829309569a93e29161",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-brief-view-v1-1.ts"
+    },
+    {
+      "name": "scientific-communication-payload",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/scientific-communication-payload/1.0.0/schema.json",
+      "path": "schemas/scientific-communication-payload/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-scientific-communication-resolution-prerequisite",
+      "canonical_sha256": "sha256:c32fbcc062c28b100babf7ca372a62d9eeb25fb7446f49b6491d8fab61d4882a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/scientific-communication-payload.ts"
     }
   ]
 }
