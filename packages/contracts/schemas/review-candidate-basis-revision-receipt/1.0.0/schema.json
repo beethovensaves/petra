@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-candidate-basis-revision-receipt/1.0.0/schema.json",
+  "title": "PetraReviewCandidateBasisRevisionReceipt",
+  "description": "An immutable receipt for one authorized, non-authoritative scientific source-basis revision that advances the same Claim, WorkingCandidate, WorkingRelationship, Review member, and ReviewSession identities while retaining prior revisions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "review_candidate_basis_revision_receipt_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.review-candidate-basis-revision-receipt"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "review_candidate_basis_revision_receipt_id": {
+      "type": "string",
+      "pattern": "^review_basis_revision_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ReceiptContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "CommandRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "idempotency_key",
+        "command_name",
+        "command_fingerprint",
+        "actor",
+        "capability_grant_id",
+        "correlation_id"
+      ],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "idempotency_key": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+        },
+        "command_name": { "const": "ReviseReviewCandidateBasis" },
+        "command_fingerprint": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+        "capability_grant_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+        },
+        "correlation_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+        }
+      }
+    },
+    "ProjectDefinitionRef": {
+      "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ProjectDefinitionRef"
+    },
+    "ProjectSourceRef": {
+      "$ref": "../../command-envelope/1.8.0/schema.json#/$defs/ExactProjectSourceRef"
+    },
+    "SourceSpanRef": {
+      "$ref": "../../command-envelope/1.8.0/schema.json#/$defs/ExactSourceSpanRef"
+    },
+    "SourceBasisSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basis_kind",
+        "project_source_ref",
+        "work_version_id",
+        "source_span_refs",
+        "source_scope",
+        "detail_level",
+        "source_stance",
+        "attribution",
+        "modality",
+        "negated"
+      ],
+      "properties": {
+        "basis_kind": { "const": "source" },
+        "project_source_ref": { "$ref": "#/$defs/ProjectSourceRef" },
+        "work_version_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/WorkVersionId"
+        },
+        "source_span_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/SourceSpanRef" }
+        },
+        "source_scope": { "enum": ["full_text", "abstract_only"] },
+        "detail_level": { "enum": ["broad", "detailed"] },
+        "source_stance": {
+          "enum": ["states", "hypothesizes", "reports", "qualifies", "rejects"]
+        },
+        "attribution": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "modality": {
+          "enum": ["asserted", "hedged", "conditional", "speculative"]
+        },
+        "negated": { "type": "boolean" },
+        "uncertainty": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "ValidationReset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "target_record_hash",
+        "required_validator_refs",
+        "completed_validator_refs"
+      ],
+      "properties": {
+        "state": { "const": "pending" },
+        "target_record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "required_validator_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/NamedVersionHash"
+          }
+        },
+        "completed_validator_refs": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {
+            "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/NamedVersionHash"
+          }
+        }
+      }
+    },
+    "ReceiptContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_ref",
+        "review_member_id",
+        "project_definition_ref",
+        "prior_review_session_ref",
+        "resulting_review_session_ref",
+        "prior_candidate_ref",
+        "resulting_candidate_ref",
+        "prior_relationship_ref",
+        "resulting_relationship_ref",
+        "prior_profile_record_ref",
+        "resulting_profile_record_ref",
+        "prior_basis",
+        "resulting_basis",
+        "basis_transition",
+        "validation_reset",
+        "preservation",
+        "authority_boundary"
+      ],
+      "properties": {
+        "command_ref": { "$ref": "#/$defs/CommandRef" },
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "project_definition_ref": { "$ref": "#/$defs/ProjectDefinitionRef" },
+        "prior_review_session_ref": {
+          "$ref": "../../review-candidate-correction-receipt/1.0.0/schema.json#/$defs/ExactReviewSessionRef"
+        },
+        "resulting_review_session_ref": {
+          "$ref": "../../review-candidate-correction-receipt/1.0.0/schema.json#/$defs/ExactReviewSessionRef"
+        },
+        "prior_candidate_ref": {
+          "$ref": "../../review-candidate-correction-receipt/1.0.0/schema.json#/$defs/WorkingCandidateRecordRef"
+        },
+        "resulting_candidate_ref": {
+          "$ref": "../../review-candidate-correction-receipt/1.0.0/schema.json#/$defs/WorkingCandidateRecordRef"
+        },
+        "prior_relationship_ref": {
+          "$ref": "../../review-candidate-correction-receipt/1.0.0/schema.json#/$defs/WorkingRelationshipRecordRef"
+        },
+        "resulting_relationship_ref": {
+          "$ref": "../../review-candidate-correction-receipt/1.0.0/schema.json#/$defs/WorkingRelationshipRecordRef"
+        },
+        "prior_profile_record_ref": {
+          "$ref": "../../review-candidate-correction-receipt/1.0.0/schema.json#/$defs/ExactTypedRecordRef"
+        },
+        "resulting_profile_record_ref": {
+          "$ref": "../../review-candidate-correction-receipt/1.0.0/schema.json#/$defs/ExactTypedRecordRef"
+        },
+        "prior_basis": { "$ref": "#/$defs/SourceBasisSnapshot" },
+        "resulting_basis": { "$ref": "#/$defs/SourceBasisSnapshot" },
+        "basis_transition": {
+          "const": "material_revision_within_exact_scientific_source"
+        },
+        "validation_reset": { "$ref": "#/$defs/ValidationReset" },
+        "preservation": {
+          "$ref": "../../review-candidate-correction-receipt/1.0.0/schema.json#/$defs/Preservation"
+        },
+        "authority_boundary": {
+          "$ref": "../../review-candidate-correction-receipt/1.0.0/schema.json#/$defs/AuthorityBoundary"
+        }
+      }
+    }
+  }
+}

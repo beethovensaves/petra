@@ -26,6 +26,10 @@ export type {
   PetraCapabilityGrantV150,
 } from "./generated/capability-grant-v1-5.js";
 export type {
+  GrantContent as CapabilityGrantContentV160,
+  PetraCapabilityGrantV160,
+} from "./generated/capability-grant-v1-6.js";
+export type {
   GrantRef as CapabilityGrantRevocationGrantRef,
   HumanActorRef as CapabilityGrantRevokerRef,
   PetraCapabilityGrantRevocation,
@@ -569,6 +573,22 @@ export type {
   WorkingRelationshipRecordRef as ReviewCandidateCorrectionWorkingRelationshipRef,
 } from "./generated/review-candidate-correction-receipt.js";
 export type {
+  AuthorityBoundary as ReviewCandidateBasisRevisionAuthorityBoundary,
+  CommandRef as ReviewCandidateBasisRevisionCommandRef,
+  ExactProjectSourceRef as ReviewCandidateBasisRevisionProjectSourceRef,
+  ExactReviewSessionRef as ReviewCandidateBasisRevisionReviewSessionRef,
+  ExactSourceSpanRef as ReviewCandidateBasisRevisionSourceSpanRef,
+  ExactTypedRecordRef as ReviewCandidateBasisRevisionProfileRecordRef,
+  PetraReviewCandidateBasisRevisionReceipt,
+  Preservation as ReviewCandidateBasisRevisionPreservation,
+  ProjectDefinitionRef as ReviewCandidateBasisRevisionProjectDefinitionRef,
+  ReceiptContent as ReviewCandidateBasisRevisionReceiptContent,
+  SourceBasisSnapshot as ReviewCandidateBasisRevisionSourceBasisSnapshot,
+  ValidationReset as ReviewCandidateBasisRevisionValidationReset,
+  WorkingCandidateRecordRef as ReviewCandidateBasisRevisionWorkingCandidateRef,
+  WorkingRelationshipRecordRef as ReviewCandidateBasisRevisionWorkingRelationshipRef,
+} from "./generated/review-candidate-basis-revision-receipt.js";
+export type {
   AuthorityPosition as ProjectReviewAuthorityPosition,
   BasisItem as ProjectReviewBasisItem,
   CandidateSummary as ProjectReviewCandidateSummary,
@@ -850,6 +870,15 @@ export type {
   HumanScientificClaimTextEdit,
   PetraCommandEnvelopeV170,
 } from "./generated/command-envelope-v1-7.js";
+export type {
+  Command as PetraCommandV180,
+  ExactClaimRef as CommandReviseReviewClaimRef,
+  ExactProjectSourceRef1 as CommandReviseReviewProjectSourceRef,
+  ExactSourceSpanRef as CommandReviseReviewSourceSpanRef,
+  HumanScientificSourceBasisRevision,
+  PetraCommandEnvelopeV180,
+  ReviseReviewCandidateBasis,
+} from "./generated/command-envelope-v1-8.js";
 export type {
   ApprovalRecorded as ApprovalRecordedEvent,
   ChangeSetApplied as ChangeSetAppliedEvent,
@@ -1149,6 +1178,7 @@ import type { PetraCapabilityGrantV120 } from "./generated/capability-grant-v1-2
 import type { PetraCapabilityGrantV130 } from "./generated/capability-grant-v1-3.js";
 import type { PetraCapabilityGrantV140 } from "./generated/capability-grant-v1-4.js";
 import type { PetraCapabilityGrantV150 } from "./generated/capability-grant-v1-5.js";
+import type { PetraCapabilityGrantV160 } from "./generated/capability-grant-v1-6.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
 import type { PetraDomainEvent } from "./generated/domain-event.js";
@@ -1174,7 +1204,8 @@ export type PetraCapabilityGrantRecord =
   | PetraCapabilityGrantV120
   | PetraCapabilityGrantV130
   | PetraCapabilityGrantV140
-  | PetraCapabilityGrantV150;
+  | PetraCapabilityGrantV150
+  | PetraCapabilityGrantV160;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =

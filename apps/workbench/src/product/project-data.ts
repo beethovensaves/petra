@@ -3,6 +3,8 @@ import {
   type PetraInteractionResult,
 } from "@petra/adapters/ag-ui";
 import type {
+  ReviewCandidateBasisRevisionRequest,
+  ReviewCandidateBasisRevisionResult,
   ReviewCandidateCorrectionFromHumanEditRequest,
   ReviewCandidateCorrectionResult,
 } from "@petra/adapters";
@@ -1408,6 +1410,45 @@ const sourceView = (value: unknown): PetraProjectSourceView => {
   return value as unknown as PetraProjectSourceView;
 };
 
+type ReviewCandidateBasisRevisionSourceRef = NonNullable<
+  NonNullable<
+    ReviewSession["candidateBasisRevision"]
+  >["expectedProjectSourceRef"]
+>;
+
+const reviewCandidateBasisRevisionSourceRef = (
+  value: unknown,
+  projectId: string,
+  projectSourceId: string,
+): ReviewCandidateBasisRevisionSourceRef => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-source-lifecycle-view" ||
+    value.schema_version !== "1.0.0" ||
+    value.project_id !== projectId ||
+    value.project_source_id !== projectSourceId ||
+    !isRecord(value.content) ||
+    value.content.requested_action !== "exclude_project_source" ||
+    !isRecord(value.content.source_ref) ||
+    value.content.source_ref.project_source_id !== projectSourceId ||
+    !Number.isSafeInteger(value.content.source_ref.revision) ||
+    Number(value.content.source_ref.revision) < 1 ||
+    typeof value.content.source_ref.content_hash !== "string" ||
+    !CONTENT_HASH.test(value.content.source_ref.content_hash) ||
+    typeof value.content.source_ref.record_hash !== "string" ||
+    !CONTENT_HASH.test(value.content.source_ref.record_hash) ||
+    value.content.source_ref.status !== "active"
+  ) {
+    throw new ProjectDataError(
+      "Petra did not return the exact active ProjectSource revision required for a Review basis change.",
+      502,
+    );
+  }
+  return structuredClone(
+    value.content.source_ref,
+  ) as ReviewCandidateBasisRevisionSourceRef;
+};
+
 const reviewView = (value: unknown): PetraProjectReviewViewRecord => {
   if (
     !isRecord(value) ||
@@ -1915,6 +1956,31 @@ export interface ReviewCandidateCorrectionTransport {
     projectId: string,
     request: ReviewCandidateCorrectionFromHumanEditRequest,
   ): Promise<ReviewCandidateCorrectionResult>;
+}
+
+export interface ReviewCandidateBasisRevisionDraft {
+  readonly sourceScope: "full_text" | "abstract_only";
+  readonly detailLevel: "broad" | "detailed";
+  readonly sourceStance:
+    "states" | "hypothesizes" | "reports" | "qualifies" | "rejects";
+  readonly attribution: string;
+  readonly modality: "asserted" | "hedged" | "conditional" | "speculative";
+  readonly negated: boolean;
+  readonly uncertainty?: string;
+  readonly reason: string;
+}
+
+export interface ReviewCandidateBasisRevisionCommandInput {
+  readonly projectId: string;
+  readonly reviewSessionId: string;
+  readonly request: ReviewCandidateBasisRevisionRequest;
+}
+
+export interface ReviewCandidateBasisRevisionTransport {
+  revise(
+    projectId: string,
+    request: ReviewCandidateBasisRevisionRequest,
+  ): Promise<ReviewCandidateBasisRevisionResult>;
 }
 
 const projectSourceLifecycleCommandResponse = (
@@ -2916,6 +2982,8 @@ export const reviewSessionFromView = (
   }
   const changeSet = member.change_sets[0];
   let candidateCorrection: ReviewSession["candidateCorrection"] | undefined;
+  let candidateBasisRevision:
+    ReviewSession["candidateBasisRevision"] | undefined;
   if (view.schema_version === "1.2.0") {
     const composedMember = view.content.members[0];
     const relationship = composedMember?.working_state.relationships[0];
@@ -2940,6 +3008,95 @@ export const reviewSessionFromView = (
           content_hash: relationship.content_hash,
         },
       };
+    }
+    if (
+      composedMember !== undefined &&
+      composedMember.candidate.profile_payload.payload_kind ===
+        "scientific_evidence_pair" &&
+      composedMember.working_state.relationships.length === 1 &&
+      relationship !== undefined
+    ) {
+      const candidate = composedMember.working_state.candidate;
+      const payload = composedMember.candidate.profile_payload;
+      const claimRef = candidate.profile_object.object_record_ref;
+      const sourceSpanRefs = candidate.basis.flatMap((basis) => {
+        const ref = basis.record_ref;
+        return ref.schema_name === "petra.source-span" &&
+          ref.schema_version === "1.0.0" &&
+          ref.revision === 1
+          ? [
+              {
+                schema_name: "petra.source-span" as const,
+                schema_version: "1.0.0" as const,
+                record_id: ref.record_id,
+                revision: 1 as const,
+                record_hash: ref.record_hash,
+              },
+            ]
+          : [];
+      });
+      const presentedSourceBasis = composedMember.basis.filter(
+        (basis) =>
+          basis.project_source_id !== undefined &&
+          basis.project_source_status === "active" &&
+          basis.source_span_ref !== undefined,
+      );
+      const projectSourceIds = new Set(
+        presentedSourceBasis.map((basis) => basis.project_source_id),
+      );
+      const presentedSourceSpanIds = new Set(
+        presentedSourceBasis.map((basis) => basis.source_span_ref?.record_id),
+      );
+      const projectSourceId = [...projectSourceIds][0];
+      const sameProjectDefinition =
+        candidate.project_definition_ref.project_definition_id ===
+          relationship.project_definition_ref.project_definition_id &&
+        candidate.project_definition_ref.revision ===
+          relationship.project_definition_ref.revision &&
+        candidate.project_definition_ref.content_hash ===
+          relationship.project_definition_ref.content_hash;
+      if (
+        candidate.project_id === view.project_id &&
+        relationship.project_id === view.project_id &&
+        candidate.project_definition_ref.definition_family ===
+          "petra.scientific-evidence" &&
+        sameProjectDefinition &&
+        claimRef.schema_name === "petra.claim" &&
+        claimRef.schema_version === "1.0.0" &&
+        claimRef.record_id === payload.claim_ref.record_id &&
+        claimRef.revision === payload.claim_ref.revision &&
+        claimRef.record_hash === payload.claim_ref.record_hash &&
+        sourceSpanRefs.length > 0 &&
+        projectSourceIds.size === 1 &&
+        projectSourceId !== undefined &&
+        sourceSpanRefs.every((ref) => presentedSourceSpanIds.has(ref.record_id))
+      ) {
+        candidateBasisRevision = {
+          reviewMemberId: composedMember.review_member_id,
+          expectedProjectDefinitionRef: structuredClone(
+            candidate.project_definition_ref,
+          ),
+          expectedWorkingCandidateRef: {
+            working_candidate_id: candidate.working_candidate_id,
+            revision: candidate.revision,
+            content_hash: candidate.content_hash,
+          },
+          expectedWorkingRelationshipRef: {
+            working_relationship_id: relationship.working_relationship_id,
+            revision: relationship.revision,
+            content_hash: relationship.content_hash,
+          },
+          expectedClaimRef: {
+            schema_name: "petra.claim",
+            schema_version: "1.0.0",
+            record_id: claimRef.record_id,
+            revision: claimRef.revision,
+            record_hash: claimRef.record_hash,
+          },
+          projectSourceId,
+          sourceSpanRefs,
+        };
+      }
     }
   }
   return {
@@ -2972,6 +3129,7 @@ export const reviewSessionFromView = (
       originDetail: member.candidate.origin_detail,
     },
     ...(candidateCorrection === undefined ? {} : { candidateCorrection }),
+    ...(candidateBasisRevision === undefined ? {} : { candidateBasisRevision }),
     basis: member.basis.map((basis) => ({
       id: basis.basis_id,
       label: basis.label,
@@ -4622,6 +4780,30 @@ export const executeReviewCandidateCorrectionCommand = async (
   );
 };
 
+export const executeReviewCandidateBasisRevisionCommand = async (
+  input: ReviewCandidateBasisRevisionCommandInput,
+  transport?: ReviewCandidateBasisRevisionTransport,
+): Promise<ReviewCandidateBasisRevisionResult> => {
+  if (
+    input.reviewSessionId !==
+      input.request.expected_review_session_ref.review_session_id ||
+    input.request.expected_review_session_ref.lifecycle !== "open" ||
+    input.request.basis_revision_input.project_source_ref.status !== "active"
+  ) {
+    throw new ProjectDataError(
+      "A candidate basis revision must bind the route session and exact active source from authenticated reads.",
+      400,
+    );
+  }
+  const revisionTransport =
+    transport ??
+    new (await import("@petra/adapters")).ReviewCandidateBasisRevisionClient({
+      baseUrl: apiBaseUrl(),
+      token: apiToken(),
+    });
+  return revisionTransport.revise(input.projectId, input.request);
+};
+
 export const createProjectSourceReplacement = async (
   input: CreateProjectSourceReplacementInput,
 ): Promise<CreateProjectSourceReplacementResponse> => {
@@ -4730,7 +4912,30 @@ export const loadProjectReviewSession = async ({
       502,
     );
   }
-  return reviewSessionFromView(view);
+  const review = reviewSessionFromView(view);
+  const basisRevision = review.candidateBasisRevision;
+  if (review.lifecycle !== "open" || basisRevision === undefined) return review;
+  try {
+    const sourceValue = await requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/sources/${encodeURIComponent(basisRevision.projectSourceId)}/lifecycle?requested_action=exclude_project_source`,
+    );
+    const expectedProjectSourceRef = reviewCandidateBasisRevisionSourceRef(
+      sourceValue,
+      projectId,
+      basisRevision.projectSourceId,
+    );
+    return {
+      ...review,
+      candidateBasisRevision: {
+        ...basisRevision,
+        expectedProjectSourceRef,
+      },
+    };
+  } catch {
+    // Review remains readable. The frozen Basis control presents the missing
+    // exact source authority as unavailable instead of inventing a reference.
+    return review;
+  }
 };
 
 export const loadProjectWorkCollection = async ({
@@ -4835,6 +5040,11 @@ export interface ReviewSessionRefreshCommandOptions {
 }
 
 export interface ReviewCandidateCorrectionCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+}
+
+export interface ReviewCandidateBasisRevisionCommandOptions {
   readonly commandId?: string;
   readonly idempotencyKey?: string;
 }
@@ -4985,6 +5195,93 @@ export const createReviewCandidateCorrectionCommandInput = (
       correction_input: {
         input_kind: "human_scientific_claim_text_edit",
         canonical_text: canonicalText,
+      },
+    },
+  };
+};
+
+/**
+ * Builds a material source-basis revision from exact authenticated Review and
+ * ProjectSource reads plus human-authored source semantics. The browser does
+ * not compose profile records, working revisions, validation, or authority.
+ */
+export const createReviewCandidateBasisRevisionCommandInput = (
+  review: ReviewSession,
+  draft: ReviewCandidateBasisRevisionDraft,
+  options: ReviewCandidateBasisRevisionCommandOptions = {},
+): ReviewCandidateBasisRevisionCommandInput => {
+  const basisRevision = review.candidateBasisRevision;
+  if (
+    review.lifecycle !== "open" ||
+    basisRevision === undefined ||
+    basisRevision.expectedProjectSourceRef === undefined ||
+    basisRevision.sourceSpanRefs.length === 0
+  ) {
+    throw new ProjectDataError(
+      "A basis revision requires exact scientific Review, working, Claim, active ProjectSource, and SourceSpan references from authenticated reads.",
+      400,
+    );
+  }
+  const attribution = draft.attribution.trim();
+  const reason = draft.reason.trim();
+  const uncertainty = draft.uncertainty?.trim();
+  if (
+    attribution.length === 0 ||
+    attribution.length > 4000 ||
+    reason.length === 0 ||
+    reason.length > 4000 ||
+    (uncertainty !== undefined && uncertainty.length > 4000)
+  ) {
+    throw new ProjectDataError(
+      "A basis revision requires bounded human attribution and a material reason.",
+      400,
+    );
+  }
+  const identity = randomUlidPayload();
+  return {
+    projectId: review.projectId,
+    reviewSessionId: review.id,
+    request: {
+      command_id: options.commandId ?? `command_${identity}`,
+      idempotency_key:
+        options.idempotencyKey ??
+        `review-session:${identity}:candidate-basis-revision`,
+      expected_review_session_ref: {
+        review_session_id: review.id,
+        revision: review.exactRef.revision,
+        content_hash: review.exactRef.contentHash,
+        lifecycle: review.lifecycle,
+      },
+      review_member_id: basisRevision.reviewMemberId,
+      expected_project_definition_ref: structuredClone(
+        basisRevision.expectedProjectDefinitionRef,
+      ),
+      expected_working_candidate_ref: structuredClone(
+        basisRevision.expectedWorkingCandidateRef,
+      ),
+      expected_working_relationship_ref: structuredClone(
+        basisRevision.expectedWorkingRelationshipRef,
+      ),
+      expected_claim_ref: structuredClone(basisRevision.expectedClaimRef),
+      basis_revision_input: {
+        input_kind: "human_scientific_source_basis_revision",
+        project_source_ref: structuredClone(
+          basisRevision.expectedProjectSourceRef,
+        ),
+        source_span_refs: structuredClone(basisRevision.sourceSpanRefs) as [
+          (typeof basisRevision.sourceSpanRefs)[number],
+          ...(typeof basisRevision.sourceSpanRefs)[number][],
+        ],
+        source_scope: draft.sourceScope,
+        detail_level: draft.detailLevel,
+        source_stance: draft.sourceStance,
+        attribution,
+        modality: draft.modality,
+        negated: draft.negated,
+        ...(uncertainty === undefined || uncertainty.length === 0
+          ? {}
+          : { uncertainty }),
+        reason,
       },
     },
   };

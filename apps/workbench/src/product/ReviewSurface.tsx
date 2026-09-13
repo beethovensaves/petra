@@ -6,17 +6,22 @@ import {
   PetraButton,
   PetraButtonGroup,
   PetraTextArea,
+  PetraTextField,
 } from "../design-system/primitives.js";
 import type { ProjectRecord, ReviewSession } from "./model.js";
 import {
   ProjectDataError,
+  createReviewCandidateBasisRevisionCommandInput,
   createReviewCandidateCorrectionCommandInput,
   createReviewSessionDeferCommandInput,
   createReviewSessionRefreshCommandInput,
   createReviewSessionReopenCommandInput,
+  executeReviewCandidateBasisRevisionCommand,
   executeReviewCandidateCorrectionCommand,
   executeReviewSessionLifecycleCommand,
   executeReviewSessionRefreshCommand,
+  type ReviewCandidateBasisRevisionCommandInput,
+  type ReviewCandidateBasisRevisionDraft,
   type ReviewCandidateCorrectionCommandInput,
   type ReviewSessionLifecycleCommandInput,
   type ReviewSessionRefreshCommandInput,
@@ -47,6 +52,45 @@ const ValidationState = ({ review }: { review: ReviewSession }) => (
     </span>
     {review.validation.label}
   </span>
+);
+
+const ReviewBasisSelect = ({
+  id,
+  label,
+  hint,
+  value,
+  disabled,
+  children,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  hint: string;
+  value: string;
+  disabled: boolean;
+  children: React.ReactNode;
+  onChange: React.ChangeEventHandler<HTMLSelectElement>;
+}): React.JSX.Element => (
+  <label className="petra-field" htmlFor={id}>
+    <span className="petra-field__label">
+      {label}
+      <span className="petra-field__required">Required</span>
+    </span>
+    <span className="petra-field__hint" id={`${id}-hint`}>
+      {hint}
+    </span>
+    <select
+      className="petra-field__control petra-control--comfortable"
+      id={id}
+      required
+      value={value}
+      disabled={disabled}
+      aria-describedby={`${id}-hint`}
+      onChange={onChange}
+    >
+      {children}
+    </select>
+  </label>
 );
 
 export type ReviewLifecyclePresentationState =
@@ -580,6 +624,316 @@ export const ReviewCandidateCorrectionNotice = ({
   );
 };
 
+export type ReviewCandidateBasisRevisionPresentationState =
+  | { readonly state: "idle" }
+  | {
+      readonly state: "pending";
+      readonly input: ReviewCandidateBasisRevisionCommandInput;
+    }
+  | {
+      readonly state: "success";
+      readonly applied: boolean;
+      readonly input: ReviewCandidateBasisRevisionCommandInput;
+    }
+  | {
+      readonly state:
+        | "stale"
+        | "unauthorized"
+        | "unsupported_profile"
+        | "incompatible_source"
+        | "no_material_change"
+        | "invalid_response"
+        | "retry_mismatch"
+        | "uncertain"
+        | "failed";
+      readonly input: ReviewCandidateBasisRevisionCommandInput;
+    };
+
+export interface ReviewCandidateBasisDraftState {
+  readonly sourceScope: "" | ReviewCandidateBasisRevisionDraft["sourceScope"];
+  readonly detailLevel: "" | ReviewCandidateBasisRevisionDraft["detailLevel"];
+  readonly sourceStance: "" | ReviewCandidateBasisRevisionDraft["sourceStance"];
+  readonly attribution: string;
+  readonly modality: "" | ReviewCandidateBasisRevisionDraft["modality"];
+  readonly negated: boolean;
+  readonly uncertainty: string;
+  readonly reason: string;
+}
+
+export interface ReviewCandidateBasisEditorState {
+  readonly expanded: boolean;
+  readonly draft: ReviewCandidateBasisDraftState;
+  readonly revision: ReviewCandidateBasisRevisionPresentationState;
+}
+
+export type ReviewCandidateBasisEditorAction =
+  | { readonly type: "toggle" }
+  | {
+      readonly type: "draft_changed";
+      readonly draft: ReviewCandidateBasisDraftState;
+    }
+  | {
+      readonly type: "revision_started";
+      readonly input: ReviewCandidateBasisRevisionCommandInput;
+    }
+  | {
+      readonly type: "revision_succeeded";
+      readonly input: ReviewCandidateBasisRevisionCommandInput;
+      readonly applied: boolean;
+    }
+  | {
+      readonly type: "revision_failed";
+      readonly revision: Exclude<
+        ReviewCandidateBasisRevisionPresentationState,
+        { readonly state: "idle" | "pending" | "success" }
+      >;
+    }
+  | { readonly type: "review_reloaded" };
+
+const emptyBasisDraft = (): ReviewCandidateBasisDraftState => ({
+  sourceScope: "",
+  detailLevel: "",
+  sourceStance: "",
+  attribution: "",
+  modality: "",
+  negated: false,
+  uncertainty: "",
+  reason: "",
+});
+
+export const createReviewCandidateBasisEditorState = (
+  expanded = false,
+): ReviewCandidateBasisEditorState => ({
+  expanded,
+  draft: emptyBasisDraft(),
+  revision: { state: "idle" },
+});
+
+const basisRevisionIsLocked = (
+  revision: ReviewCandidateBasisRevisionPresentationState,
+): boolean =>
+  revision.state === "pending" ||
+  revision.state === "success" ||
+  revision.state === "stale" ||
+  revision.state === "incompatible_source" ||
+  revision.state === "invalid_response" ||
+  revision.state === "retry_mismatch" ||
+  revision.state === "uncertain";
+
+export const reviewCandidateBasisEditorReducer = (
+  state: ReviewCandidateBasisEditorState,
+  action: ReviewCandidateBasisEditorAction,
+): ReviewCandidateBasisEditorState => {
+  if (action.type === "toggle") {
+    return { ...state, expanded: !state.expanded };
+  }
+  if (action.type === "draft_changed") {
+    if (basisRevisionIsLocked(state.revision)) return state;
+    return { ...state, draft: action.draft, revision: { state: "idle" } };
+  }
+  if (action.type === "revision_started") {
+    return {
+      ...state,
+      revision: { state: "pending", input: action.input },
+    };
+  }
+  if (action.type === "revision_succeeded") {
+    return {
+      ...state,
+      revision: {
+        state: "success",
+        input: action.input,
+        applied: action.applied,
+      },
+    };
+  }
+  if (action.type === "revision_failed") {
+    return { ...state, revision: action.revision };
+  }
+  return { ...state, revision: { state: "idle" } };
+};
+
+const isReviewCandidateBasisRevisionClientError = (
+  error: unknown,
+): error is Error & { readonly status: number; readonly response: unknown } =>
+  error instanceof Error &&
+  error.name === "ReviewCandidateBasisRevisionClientError" &&
+  typeof (error as { readonly status?: unknown }).status === "number" &&
+  "response" in error;
+
+const basisRevisionErrorCode = (error: unknown): string | undefined => {
+  if (!isReviewCandidateBasisRevisionClientError(error)) return undefined;
+  const response = error.response;
+  if (
+    typeof response !== "object" ||
+    response === null ||
+    !("error" in response) ||
+    typeof response.error !== "object" ||
+    response.error === null ||
+    !("code" in response.error) ||
+    typeof response.error.code !== "string"
+  ) {
+    return undefined;
+  }
+  return response.error.code;
+};
+
+export const reviewCandidateBasisRevisionFailureState = (
+  error: unknown,
+  input: ReviewCandidateBasisRevisionCommandInput,
+): ReviewCandidateBasisRevisionPresentationState => {
+  const code = basisRevisionErrorCode(error);
+  if (
+    code === "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_ID_REUSED" ||
+    code === "REVIEW_CANDIDATE_BASIS_REVISION_IDEMPOTENCY_KEY_REUSED"
+  ) {
+    return { state: "retry_mismatch", input };
+  }
+  if (code === "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED") {
+    return { state: "unsupported_profile", input };
+  }
+  if (code === "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE") {
+    return { state: "incompatible_source", input };
+  }
+  if (code === "REVIEW_CANDIDATE_BASIS_REVISION_NO_MATERIAL_CHANGE") {
+    return { state: "no_material_change", input };
+  }
+  if (
+    isReviewCandidateBasisRevisionClientError(error) &&
+    (error.status === 401 || error.status === 403)
+  ) {
+    return { state: "unauthorized", input };
+  }
+  if (
+    isReviewCandidateBasisRevisionClientError(error) &&
+    (error.status === 404 || error.status === 409)
+  ) {
+    return { state: "stale", input };
+  }
+  if (
+    (isReviewCandidateBasisRevisionClientError(error) &&
+      error.status >= 200 &&
+      error.status < 300) ||
+    (error instanceof Error &&
+      (error.name === "ContractRegistryError" || error instanceof SyntaxError))
+  ) {
+    return { state: "invalid_response", input };
+  }
+  if (
+    !isReviewCandidateBasisRevisionClientError(error) ||
+    error.status === 408 ||
+    error.status >= 500
+  ) {
+    return { state: "uncertain", input };
+  }
+  return { state: "failed", input };
+};
+
+export const ReviewCandidateBasisRevisionNotice = ({
+  review,
+  revision,
+  onRetry,
+  onReload,
+}: {
+  review: ReviewSession;
+  revision: ReviewCandidateBasisRevisionPresentationState;
+  onRetry: (input: ReviewCandidateBasisRevisionCommandInput) => void;
+  onReload?: (() => void | Promise<void>) | undefined;
+}): React.JSX.Element | null => {
+  if (revision.state === "idle") return null;
+
+  const success = revision.state === "success";
+  const stale = revision.state === "stale";
+  const unauthorized = revision.state === "unauthorized";
+  const unsupported = revision.state === "unsupported_profile";
+  const incompatible = revision.state === "incompatible_source";
+  const noMaterialChange = revision.state === "no_material_change";
+  const invalidResponse = revision.state === "invalid_response";
+  const retryMismatch = revision.state === "retry_mismatch";
+  const uncertain = revision.state === "uncertain";
+  const failed = revision.state === "failed";
+  const title =
+    revision.state === "pending"
+      ? "Saving a material basis revision…"
+      : success
+        ? revision.applied
+          ? "Working basis revision confirmed"
+          : "Exact basis result recovered"
+        : stale
+          ? "Review changed before the basis revision"
+          : unauthorized
+            ? "Basis revision was not authorized"
+            : unsupported
+              ? "This Review profile cannot revise source basis"
+              : incompatible
+                ? "Source basis is incompatible"
+                : noMaterialChange
+                  ? "No material basis change was recorded"
+                  : invalidResponse
+                    ? "Basis response could not be verified"
+                    : retryMismatch
+                      ? "Command identity belongs to another basis revision"
+                      : uncertain
+                        ? "Basis revision result is not yet confirmed"
+                        : "Basis revision was not accepted";
+  const detail =
+    revision.state === "pending"
+      ? "The exact loaded Review, member, ProjectDefinition, working records, Claim, active ProjectSource, SourceSpans, and command are being checked. Nothing is shown as revised, validated, decided, or applied yet."
+      : success
+        ? revision.applied
+          ? "A matching new working basis revision was returned, and the authenticated Review read is being reloaded. Validation was reset to pending; this did not approve, reject, apply, or create domain authority."
+          : "The retained matching result for this exact command was returned without applying it again, and the authenticated Review read is being reloaded. This was not a Review decision, validation success, application, or domain change."
+        : stale
+          ? "The Review or one of its exact records changed. Nothing is shown as revised. Reload the authenticated Review before creating another command; your unsent basis fields remain on this page."
+          : unauthorized
+            ? "The basis command was not granted. The loaded basis and Review remain unchanged in this view, and your fields remain local."
+            : unsupported
+              ? "Server authority does not support material source-basis revision for this exact Review profile. No working revision or Review decision is shown."
+              : incompatible
+                ? "The active source, SourceSpans, retained source coverage, or registered scientific source semantics are incompatible with this operation. Nothing is shown as revised; reload before preparing another command."
+                : noMaterialChange
+                  ? "Server authority found no material source-basis change. No working revision, validation reset, Review decision, application, or domain change is shown."
+                  : invalidResponse
+                    ? "The response did not match the typed command and resulting identities. This view does not accept it as success; the exact request is retained for reconciliation."
+                    : retryMismatch
+                      ? "The command or idempotency identity is bound to different basis content. Nothing is shown as revised. Reload the authenticated Review before preparing another command."
+                      : uncertain
+                        ? "The result could not be confirmed. Retry the exact retained request to reconcile; a completed command returns its stored result without creating another revision."
+                        : "The basis revision was rejected before a matching result was returned. The loaded basis and Review remain unchanged in this view.";
+  const alert = !success && revision.state !== "pending";
+
+  return (
+    <section
+      className="review-lifecycle-notice review-basis-revision-notice"
+      data-state={revision.state}
+      role={alert ? "alert" : "status"}
+      aria-live={alert ? "assertive" : "polite"}
+      tabIndex={-1}
+    >
+      <strong>{title}</strong>
+      <p>{detail}</p>
+      {success || unauthorized || unsupported || failed ? (
+        <Link className="reference-text-link" to={review.returnPath}>
+          Return to {review.returnLabel}
+        </Link>
+      ) : null}
+      {invalidResponse || uncertain ? (
+        <PetraButton
+          variant="secondary"
+          onClick={() => onRetry(revision.input)}
+        >
+          Retry exact basis revision
+        </PetraButton>
+      ) : null}
+      {stale || incompatible || retryMismatch ? (
+        <PetraButton variant="secondary" onClick={() => void onReload?.()}>
+          Reload Review
+        </PetraButton>
+      ) : null}
+    </section>
+  );
+};
+
 export const ReviewCollectionSurface = ({
   project,
   reviews,
@@ -731,11 +1085,13 @@ export const ReviewSessionSurface = ({
   review,
   onReviewChange,
   initialCandidateEditOpen = false,
+  initialBasisEditOpen = false,
 }: {
   project: ProjectRecord;
   review: ReviewSession;
   onReviewChange?: (() => void | Promise<void>) | undefined;
   initialCandidateEditOpen?: boolean;
+  initialBasisEditOpen?: boolean;
 }): React.JSX.Element => {
   const [rationale, setRationale] = useState("");
   const [lifecycle, setLifecycle] = useState<ReviewLifecyclePresentationState>({
@@ -751,17 +1107,26 @@ export const ReviewSessionSurface = ({
       initialCandidateEditOpen,
     ),
   );
+  const [basisEditor, dispatchBasisEditor] = useReducer(
+    reviewCandidateBasisEditorReducer,
+    createReviewCandidateBasisEditorState(initialBasisEditOpen),
+  );
   const decisionRef = useRef<HTMLElement>(null);
   const correctionRef = useRef<HTMLElement>(null);
   const correctionToggleRef = useRef<HTMLDivElement>(null);
+  const basisRef = useRef<HTMLElement>(null);
+  const basisToggleRef = useRef<HTMLDivElement>(null);
   const candidateEditorWasExpanded = useRef(initialCandidateEditOpen);
+  const basisEditorWasExpanded = useRef(initialBasisEditOpen);
   const lifecyclePending = lifecycle.state === "pending";
   const refreshPending = refresh.state === "pending";
   const correctionPending = candidateEditor.correction.state === "pending";
+  const basisRevisionPending = basisEditor.revision.state === "pending";
   const commandPending =
     lifecyclePending ||
     refreshPending ||
-    correctionDraftIsLocked(candidateEditor.correction);
+    correctionDraftIsLocked(candidateEditor.correction) ||
+    basisRevisionIsLocked(basisEditor.revision);
   const deferPresented =
     review.status === "needs_decision" &&
     review.lifecycle !== "deferred" &&
@@ -777,7 +1142,8 @@ export const ReviewSessionSurface = ({
     review.snapshotState === "stale" &&
     review.lifecycle === "open" &&
     !lifecyclePending &&
-    !correctionDraftIsLocked(candidateEditor.correction);
+    !correctionDraftIsLocked(candidateEditor.correction) &&
+    !basisRevisionIsLocked(basisEditor.revision);
 
   useEffect(() => {
     if (candidateEditor.expanded) {
@@ -791,6 +1157,17 @@ export const ReviewSessionSurface = ({
     }
     candidateEditorWasExpanded.current = candidateEditor.expanded;
   }, [candidateEditor.expanded]);
+
+  useEffect(() => {
+    if (basisEditor.expanded) {
+      basisRef.current?.querySelector<HTMLSelectElement>("select")?.focus();
+    } else if (basisEditorWasExpanded.current) {
+      basisToggleRef.current
+        ?.querySelector<HTMLButtonElement>("button")
+        ?.focus();
+    }
+    basisEditorWasExpanded.current = basisEditor.expanded;
+  }, [basisEditor.expanded]);
 
   useEffect(() => {
     if (lifecycle.state !== "idle" && lifecycle.state !== "pending") {
@@ -818,6 +1195,17 @@ export const ReviewSessionSurface = ({
         ?.focus();
     }
   }, [candidateEditor.correction.state]);
+
+  useEffect(() => {
+    if (
+      basisEditor.revision.state !== "idle" &&
+      basisEditor.revision.state !== "pending"
+    ) {
+      basisRef.current
+        ?.querySelector<HTMLElement>(".review-basis-revision-notice")
+        ?.focus();
+    }
+  }, [basisEditor.revision.state]);
 
   const runLifecycleCommand = (
     input: ReviewSessionLifecycleCommandInput,
@@ -920,6 +1308,86 @@ export const ReviewSessionSurface = ({
     dispatchCandidateEditor({ type: "review_reloaded" });
   };
 
+  const runCandidateBasisRevision = (
+    input: ReviewCandidateBasisRevisionCommandInput,
+  ): void => {
+    dispatchBasisEditor({ type: "revision_started", input });
+    void executeReviewCandidateBasisRevisionCommand(input).then(
+      (result) => {
+        dispatchBasisEditor({
+          type: "revision_succeeded",
+          input,
+          applied: result.applied,
+        });
+        if (onReviewChange !== undefined) {
+          void Promise.resolve(onReviewChange()).catch(() => undefined);
+        }
+      },
+      (error: unknown) => {
+        const revision = reviewCandidateBasisRevisionFailureState(error, input);
+        if (
+          revision.state === "idle" ||
+          revision.state === "pending" ||
+          revision.state === "success"
+        ) {
+          return;
+        }
+        dispatchBasisEditor({ type: "revision_failed", revision });
+      },
+    );
+  };
+
+  const basisDraftError =
+    basisEditor.draft.sourceScope === "" ||
+    basisEditor.draft.detailLevel === "" ||
+    basisEditor.draft.sourceStance === "" ||
+    basisEditor.draft.modality === ""
+      ? "Choose each required source-semantic field."
+      : basisEditor.draft.attribution.trim().length === 0
+        ? "Enter the source attribution."
+        : basisEditor.draft.attribution.length > 4000
+          ? "Source attribution must contain no more than 4000 characters."
+          : basisEditor.draft.reason.trim().length === 0
+            ? "Enter the material reason for this basis revision."
+            : basisEditor.draft.reason.length > 4000
+              ? "Material reason must contain no more than 4000 characters."
+              : basisEditor.draft.uncertainty.length > 4000
+                ? "Uncertainty must contain no more than 4000 characters."
+                : undefined;
+
+  const submitCandidateBasisRevision = (
+    event: FormEvent<HTMLFormElement>,
+  ): void => {
+    event.preventDefault();
+    const draft = basisEditor.draft;
+    if (
+      basisDraftError !== undefined ||
+      draft.sourceScope === "" ||
+      draft.detailLevel === "" ||
+      draft.sourceStance === "" ||
+      draft.modality === ""
+    ) {
+      return;
+    }
+    runCandidateBasisRevision(
+      createReviewCandidateBasisRevisionCommandInput(review, {
+        sourceScope: draft.sourceScope,
+        detailLevel: draft.detailLevel,
+        sourceStance: draft.sourceStance,
+        attribution: draft.attribution,
+        modality: draft.modality,
+        negated: draft.negated,
+        uncertainty: draft.uncertainty,
+        reason: draft.reason,
+      }),
+    );
+  };
+
+  const reloadBasisReview = async (): Promise<void> => {
+    if (onReviewChange !== undefined) await onReviewChange();
+    dispatchBasisEditor({ type: "review_reloaded" });
+  };
+
   const candidateTextError =
     candidateEditor.draft.trim().length === 0
       ? "Enter Claim text."
@@ -931,6 +1399,13 @@ export const ReviewSessionSurface = ({
   const candidateEditorLocked = correctionDraftIsLocked(
     candidateEditor.correction,
   );
+  const basisRevisionContext = review.candidateBasisRevision;
+  const basisUnavailableReason =
+    review.lifecycle !== "open"
+      ? "The authenticated Review read does not supply the exact open lifecycle required for a basis revision."
+      : basisRevisionContext?.expectedProjectSourceRef === undefined
+        ? "The authenticated reads do not supply the exact active ProjectSource revision required for this basis operation."
+        : undefined;
 
   const lifecycleBoundary =
     review.lifecycle === "deferred"
@@ -1045,6 +1520,11 @@ export const ReviewSessionSurface = ({
                             "The authenticated Review read does not supply the exact open lifecycle required for correction.",
                         },
                       })}
+                  aria-disabled={
+                    lifecyclePending ||
+                    refreshPending ||
+                    basisRevisionIsLocked(basisEditor.revision)
+                  }
                   onClick={() => dispatchCandidateEditor({ type: "toggle" })}
                 >
                   Edit candidate
@@ -1082,7 +1562,10 @@ export const ReviewSessionSurface = ({
                 required
                 value={candidateEditor.draft}
                 disabled={
-                  candidateEditorLocked || lifecyclePending || refreshPending
+                  candidateEditorLocked ||
+                  lifecyclePending ||
+                  refreshPending ||
+                  basisRevisionIsLocked(basisEditor.revision)
                 }
                 onChange={(event) =>
                   dispatchCandidateEditor({
@@ -1110,7 +1593,8 @@ export const ReviewSessionSurface = ({
                     candidateTextError !== undefined ||
                     candidateEditorLocked ||
                     lifecyclePending ||
-                    refreshPending
+                    refreshPending ||
+                    basisRevisionIsLocked(basisEditor.revision)
                   }
                   aria-describedby="review-candidate-edit-local-note"
                   data-operation="correct_review_candidate"
@@ -1155,10 +1639,40 @@ export const ReviewSessionSurface = ({
       </section>
 
       <div className="review-session__columns">
-        <section className="review-basis" aria-labelledby="review-basis-title">
-          <header>
-            <p className="reference-panel-kicker">Why and with what limits</p>
-            <h2 id="review-basis-title">Basis</h2>
+        <section
+          ref={basisRef}
+          className="review-basis"
+          aria-labelledby="review-basis-title"
+        >
+          <header className="review-basis__heading">
+            <div>
+              <p className="reference-panel-kicker">Why and with what limits</p>
+              <h2 id="review-basis-title">Basis</h2>
+            </div>
+            {basisRevisionContext === undefined ? null : (
+              <div ref={basisToggleRef}>
+                <PetraButton
+                  variant="secondary"
+                  density="compact"
+                  aria-expanded={basisEditor.expanded}
+                  aria-controls="review-basis-editor"
+                  data-operation="edit_review_candidate_basis"
+                  {...(basisUnavailableReason === undefined
+                    ? {}
+                    : {
+                        unavailable: { reason: basisUnavailableReason },
+                      })}
+                  aria-disabled={
+                    lifecyclePending ||
+                    refreshPending ||
+                    correctionDraftIsLocked(candidateEditor.correction)
+                  }
+                  onClick={() => dispatchBasisEditor({ type: "toggle" })}
+                >
+                  Change basis
+                </PetraButton>
+              </div>
+            )}
           </header>
           <ol>
             {review.basis.map((basis) => (
@@ -1180,6 +1694,254 @@ export const ReviewSessionSurface = ({
               </li>
             ))}
           </ol>
+          {basisRevisionContext === undefined ||
+          !basisEditor.expanded ? null : (
+            <section
+              className="review-candidate-edit review-basis-edit"
+              id="review-basis-editor"
+              aria-labelledby="review-basis-editor-title"
+            >
+              <header>
+                <div>
+                  <p className="reference-panel-kicker">Local source fields</p>
+                  <h3 id="review-basis-editor-title">
+                    Revise material source basis
+                  </h3>
+                </div>
+                <span>Separate from Claim-text correction</span>
+              </header>
+              <p className="review-basis-edit__exact-source">
+                Exact material: ProjectSource{" "}
+                <code>{basisRevisionContext.projectSourceId}</code> ·{" "}
+                {basisRevisionContext.sourceSpanRefs.length} SourceSpan
+                {basisRevisionContext.sourceSpanRefs.length === 1 ? "" : "s"}.
+              </p>
+              <form onSubmit={submitCandidateBasisRevision}>
+                <div className="review-basis-edit__fields">
+                  <ReviewBasisSelect
+                    id="review-basis-source-scope"
+                    label="Retained source coverage"
+                    hint="Restate the current coverage shown above. This operation cannot change it; server authority rejects incompatible coverage."
+                    value={basisEditor.draft.sourceScope}
+                    disabled={commandPending}
+                    onChange={(event) =>
+                      dispatchBasisEditor({
+                        type: "draft_changed",
+                        draft: {
+                          ...basisEditor.draft,
+                          sourceScope: event.currentTarget.value as
+                            | ""
+                            | ReviewCandidateBasisRevisionDraft["sourceScope"],
+                        },
+                      })
+                    }
+                  >
+                    <option value="">Choose coverage</option>
+                    <option value="full_text">Full text</option>
+                    <option value="abstract_only">Abstract only</option>
+                  </ReviewBasisSelect>
+                  <ReviewBasisSelect
+                    id="review-basis-detail-level"
+                    label="Detail level"
+                    hint="Describe how narrowly this source material supports the unchanged Claim text."
+                    value={basisEditor.draft.detailLevel}
+                    disabled={commandPending}
+                    onChange={(event) =>
+                      dispatchBasisEditor({
+                        type: "draft_changed",
+                        draft: {
+                          ...basisEditor.draft,
+                          detailLevel: event.currentTarget.value as
+                            | ""
+                            | ReviewCandidateBasisRevisionDraft["detailLevel"],
+                        },
+                      })
+                    }
+                  >
+                    <option value="">Choose detail</option>
+                    <option value="broad">Broad</option>
+                    <option value="detailed">Detailed</option>
+                  </ReviewBasisSelect>
+                  <ReviewBasisSelect
+                    id="review-basis-source-stance"
+                    label="Source stance"
+                    hint="Record the source's communicative stance; this is not Petra's judgment."
+                    value={basisEditor.draft.sourceStance}
+                    disabled={commandPending}
+                    onChange={(event) =>
+                      dispatchBasisEditor({
+                        type: "draft_changed",
+                        draft: {
+                          ...basisEditor.draft,
+                          sourceStance: event.currentTarget.value as
+                            | ""
+                            | ReviewCandidateBasisRevisionDraft["sourceStance"],
+                        },
+                      })
+                    }
+                  >
+                    <option value="">Choose stance</option>
+                    <option value="states">States</option>
+                    <option value="hypothesizes">Hypothesizes</option>
+                    <option value="reports">Reports</option>
+                    <option value="qualifies">Qualifies</option>
+                    <option value="rejects">Rejects</option>
+                  </ReviewBasisSelect>
+                  <ReviewBasisSelect
+                    id="review-basis-modality"
+                    label="Modality"
+                    hint="Record the force of the selected source statement."
+                    value={basisEditor.draft.modality}
+                    disabled={commandPending}
+                    onChange={(event) =>
+                      dispatchBasisEditor({
+                        type: "draft_changed",
+                        draft: {
+                          ...basisEditor.draft,
+                          modality: event.currentTarget.value as
+                            "" | ReviewCandidateBasisRevisionDraft["modality"],
+                        },
+                      })
+                    }
+                  >
+                    <option value="">Choose modality</option>
+                    <option value="asserted">Asserted</option>
+                    <option value="hedged">Hedged</option>
+                    <option value="conditional">Conditional</option>
+                    <option value="speculative">Speculative</option>
+                  </ReviewBasisSelect>
+                </div>
+                <PetraTextField
+                  id="review-basis-attribution"
+                  label="Source attribution"
+                  hint="Name who or what makes the source statement."
+                  maxLength={4000}
+                  required
+                  value={basisEditor.draft.attribution}
+                  disabled={commandPending}
+                  onChange={(event) =>
+                    dispatchBasisEditor({
+                      type: "draft_changed",
+                      draft: {
+                        ...basisEditor.draft,
+                        attribution: event.currentTarget.value,
+                      },
+                    })
+                  }
+                />
+                <label className="review-basis-edit__checkbox">
+                  <input
+                    type="checkbox"
+                    checked={basisEditor.draft.negated}
+                    disabled={commandPending}
+                    onChange={(event) =>
+                      dispatchBasisEditor({
+                        type: "draft_changed",
+                        draft: {
+                          ...basisEditor.draft,
+                          negated: event.currentTarget.checked,
+                        },
+                      })
+                    }
+                  />
+                  <span>
+                    <strong>Source statement is negated</strong>
+                    <small>
+                      Record only whether the selected source statement uses a
+                      negated proposition.
+                    </small>
+                  </span>
+                </label>
+                <PetraTextArea
+                  id="review-basis-uncertainty"
+                  label="Uncertainty (optional)"
+                  hint="Retain a material uncertainty expressed by or about this exact source basis."
+                  rows={3}
+                  maxLength={4000}
+                  value={basisEditor.draft.uncertainty}
+                  disabled={commandPending}
+                  onChange={(event) =>
+                    dispatchBasisEditor({
+                      type: "draft_changed",
+                      draft: {
+                        ...basisEditor.draft,
+                        uncertainty: event.currentTarget.value,
+                      },
+                    })
+                  }
+                />
+                <PetraTextArea
+                  id="review-basis-reason"
+                  label="Reason for material basis revision"
+                  hint="Explain why the unchanged Claim text needs this source-basis revision."
+                  rows={3}
+                  maxLength={4000}
+                  required
+                  value={basisEditor.draft.reason}
+                  disabled={commandPending}
+                  onChange={(event) =>
+                    dispatchBasisEditor({
+                      type: "draft_changed",
+                      draft: {
+                        ...basisEditor.draft,
+                        reason: event.currentTarget.value,
+                      },
+                    })
+                  }
+                />
+                <p
+                  className="review-candidate-edit__local-note"
+                  id="review-basis-edit-local-note"
+                >
+                  These unsent fields stay on this page when the editor closes.
+                  The exact ProjectSource and SourceSpan identities come from
+                  authenticated reads. Saving can create a new non-authoritative
+                  working revision and reset validation to pending; it does not
+                  change Claim text, decide the Review, or apply anything.
+                </p>
+                {basisDraftError === undefined ? null : (
+                  <p
+                    className="petra-field__error"
+                    id="review-basis-edit-error"
+                  >
+                    <span aria-hidden="true">!</span>
+                    {basisDraftError}
+                  </p>
+                )}
+                <PetraButtonGroup label="Material basis revision">
+                  <PetraButton
+                    type="submit"
+                    variant="primary"
+                    busy={basisRevisionPending}
+                    busyLabel="Saving basis revision…"
+                    aria-disabled={
+                      basisDraftError !== undefined || commandPending
+                    }
+                    aria-describedby={
+                      basisDraftError === undefined
+                        ? "review-basis-edit-local-note"
+                        : "review-basis-edit-local-note review-basis-edit-error"
+                    }
+                    data-operation="revise_review_candidate_basis"
+                  >
+                    Save working basis revision
+                  </PetraButton>
+                  <PetraButton
+                    variant="quiet"
+                    onClick={() => dispatchBasisEditor({ type: "toggle" })}
+                  >
+                    Close basis editor
+                  </PetraButton>
+                </PetraButtonGroup>
+              </form>
+            </section>
+          )}
+          <ReviewCandidateBasisRevisionNotice
+            review={review}
+            revision={basisEditor.revision}
+            onRetry={runCandidateBasisRevision}
+            onReload={reloadBasisReview}
+          />
         </section>
 
         <section
@@ -1301,6 +2063,7 @@ export const ReviewSessionSurface = ({
             aria-disabled={
               refreshPending ||
               correctionDraftIsLocked(candidateEditor.correction) ||
+              basisRevisionIsLocked(basisEditor.revision) ||
               !(deferPresented || reopenPresented)
             }
             aria-describedby="review-decision-boundary"

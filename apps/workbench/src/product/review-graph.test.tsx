@@ -1,4 +1,7 @@
-import { ReviewCandidateCorrectionClientError } from "@petra/adapters";
+import {
+  ReviewCandidateBasisRevisionClientError,
+  ReviewCandidateCorrectionClientError,
+} from "@petra/adapters";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
@@ -13,18 +16,23 @@ import { GraphSurface } from "./GraphSurface.js";
 import type { GraphQuestion, ReviewSession } from "./model.js";
 import {
   ProjectDataError,
+  createReviewCandidateBasisRevisionCommandInput,
   createReviewCandidateCorrectionCommandInput,
   createReviewSessionDeferCommandInput,
   createReviewSessionRefreshCommandInput,
   createReviewSessionReopenCommandInput,
 } from "./project-data.js";
 import {
+  ReviewCandidateBasisRevisionNotice,
   ReviewCandidateCorrectionNotice,
   ReviewCollectionSurface,
   ReviewLifecycleNotice,
   ReviewRefreshNotice,
   ReviewSessionSurface,
+  createReviewCandidateBasisEditorState,
   createReviewCandidateEditorState,
+  reviewCandidateBasisEditorReducer,
+  reviewCandidateBasisRevisionFailureState,
   reviewCandidateCorrectionFailureState,
   reviewCandidateEditorReducer,
   reviewLifecycleFailureState,
@@ -58,6 +66,54 @@ describe("reference Review and Graph packets", () => {
           "working_relationship_01K4D000000000000000000203",
         revision: 1,
         content_hash: `sha256:${"3".repeat(64)}`,
+      },
+    },
+  });
+
+  const basisReview = (): ReviewSession => ({
+    ...correctionReview(),
+    candidateBasisRevision: {
+      reviewMemberId: "review_member_01K4E000000000000000000301",
+      expectedProjectDefinitionRef: {
+        project_definition_id: "project_definition_01K4C000000000000000000001",
+        revision: 2,
+        content_hash: `sha256:${"1".repeat(64)}`,
+        definition_family: "petra.scientific-evidence",
+      },
+      expectedWorkingCandidateRef: {
+        working_candidate_id: "working_candidate_01K4E000000000000000000302",
+        revision: 2,
+        content_hash: `sha256:${"2".repeat(64)}`,
+      },
+      expectedWorkingRelationshipRef: {
+        working_relationship_id:
+          "working_relationship_01K4E000000000000000000303",
+        revision: 2,
+        content_hash: `sha256:${"3".repeat(64)}`,
+      },
+      expectedClaimRef: {
+        schema_name: "petra.claim",
+        schema_version: "1.0.0",
+        record_id: "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        revision: 2,
+        record_hash: `sha256:${"4".repeat(64)}`,
+      },
+      projectSourceId: "project_source_01K4C000000000000000000007",
+      sourceSpanRefs: [
+        {
+          schema_name: "petra.source-span",
+          schema_version: "1.0.0",
+          record_id: "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          revision: 1,
+          record_hash: `sha256:${"5".repeat(64)}`,
+        },
+      ],
+      expectedProjectSourceRef: {
+        project_source_id: "project_source_01K4C000000000000000000007",
+        revision: 1,
+        content_hash: `sha256:${"6".repeat(64)}`,
+        record_hash: `sha256:${"7".repeat(64)}`,
+        status: "active",
       },
     },
   });
@@ -329,6 +385,252 @@ describe("reference Review and Graph packets", () => {
     expect(retainedMarkup).toContain("Exact correction result recovered");
     expect(retainedMarkup).toContain("without applying it again");
     expect(retainedMarkup).toContain("not a Review decision");
+    expect(retainedMarkup).not.toContain(input.request.command_id);
+  });
+
+  it("places Change basis in the frozen Basis role and keeps Claim text separate", () => {
+    const reviewWithBasis = basisReview();
+    const markup = render(
+      <ReviewSessionSurface
+        project={project}
+        review={reviewWithBasis}
+        initialBasisEditOpen
+      />,
+    );
+
+    expect(markup).toContain("Edit candidate");
+    expect(markup).toContain("Change basis");
+    expect(markup).toContain('aria-controls="review-basis-editor"');
+    expect(markup).toContain("Revise material source basis");
+    expect(markup).toContain("Separate from Claim-text correction");
+    expect(markup).toContain("Retained source coverage");
+    expect(markup).toContain("Source stance");
+    expect(markup).toContain("Source attribution");
+    expect(markup).toContain("Modality");
+    expect(markup).toContain("Source statement is negated");
+    expect(markup).toContain("Reason for material basis revision");
+    expect(markup).toContain(
+      "This operation cannot change it; server authority rejects incompatible coverage",
+    );
+    expect(markup).toContain('data-operation="revise_review_candidate_basis"');
+    expect(markup).toContain(
+      reviewWithBasis.candidateBasisRevision?.projectSourceId ?? "missing",
+    );
+    expect(markup).toContain(
+      "does not change Claim text, decide the Review, or apply anything",
+    );
+    expect(markup.indexOf("Edit working Claim text")).toBeLessThan(
+      markup.indexOf("Revise material source basis"),
+    );
+
+    const withoutExactSource = basisReview();
+    if (withoutExactSource.candidateBasisRevision !== undefined) {
+      delete withoutExactSource.candidateBasisRevision.expectedProjectSourceRef;
+    }
+    const unavailableMarkup = render(
+      <ReviewSessionSurface project={project} review={withoutExactSource} />,
+    );
+    expect(unavailableMarkup).toContain("Change basis");
+    expect(unavailableMarkup).toContain(
+      "do not supply the exact active ProjectSource revision",
+    );
+    expect(unavailableMarkup).not.toContain(
+      'data-operation="revise_review_candidate_basis"',
+    );
+  });
+
+  it("retains local basis fields and the exact uncertain command", () => {
+    const reviewWithBasis = basisReview();
+    const draft = {
+      sourceScope: "full_text",
+      detailLevel: "broad",
+      sourceStance: "qualifies",
+      attribution: "The study authors",
+      modality: "hedged",
+      negated: false,
+      uncertainty: "The exact passage qualifies the result.",
+      reason: "Retain the material source qualification.",
+    } as const;
+    const input = createReviewCandidateBasisRevisionCommandInput(
+      reviewWithBasis,
+      draft,
+      {
+        commandId: "command_01K4E000000000000000000304",
+        idempotencyKey: "review-session:001:basis:surface:v1",
+      },
+    );
+    let editor = createReviewCandidateBasisEditorState();
+    editor = reviewCandidateBasisEditorReducer(editor, { type: "toggle" });
+    editor = reviewCandidateBasisEditorReducer(editor, {
+      type: "draft_changed",
+      draft,
+    });
+    editor = reviewCandidateBasisEditorReducer(editor, {
+      type: "revision_started",
+      input,
+    });
+    const uncertain = reviewCandidateBasisRevisionFailureState(
+      new TypeError("connection closed"),
+      input,
+    );
+    if (
+      uncertain.state === "idle" ||
+      uncertain.state === "pending" ||
+      uncertain.state === "success"
+    ) {
+      throw new Error("Expected an uncertain basis-revision state.");
+    }
+    editor = reviewCandidateBasisEditorReducer(editor, {
+      type: "revision_failed",
+      revision: uncertain,
+    });
+    const locked = reviewCandidateBasisEditorReducer(editor, {
+      type: "draft_changed",
+      draft: { ...draft, reason: "A different command must not replace it." },
+    });
+    expect(locked).toBe(editor);
+    expect(locked.revision).toEqual({ state: "uncertain", input });
+    expect(locked.draft).toEqual(draft);
+
+    const closed = reviewCandidateBasisEditorReducer(locked, {
+      type: "toggle",
+    });
+    const reopened = reviewCandidateBasisEditorReducer(closed, {
+      type: "toggle",
+    });
+    expect(reopened).toMatchObject({ expanded: true, draft });
+    const reloaded = reviewCandidateBasisEditorReducer(reopened, {
+      type: "review_reloaded",
+    });
+    expect(reloaded).toMatchObject({
+      expanded: true,
+      draft,
+      revision: { state: "idle" },
+    });
+  });
+
+  it("presents material basis outcomes without implying validation or authority", () => {
+    const reviewWithBasis = basisReview();
+    const input = createReviewCandidateBasisRevisionCommandInput(
+      reviewWithBasis,
+      {
+        sourceScope: "full_text",
+        detailLevel: "broad",
+        sourceStance: "qualifies",
+        attribution: "The study authors",
+        modality: "hedged",
+        negated: false,
+        reason: "Retain the material source qualification.",
+      },
+      {
+        commandId: "command_01K4E000000000000000000305",
+        idempotencyKey: "review-session:001:basis:surface:v2",
+      },
+    );
+    const clientError = (
+      status: number,
+      code: string,
+    ): ReviewCandidateBasisRevisionClientError =>
+      new ReviewCandidateBasisRevisionClientError("rejected", status, {
+        error: { code },
+      });
+    const states = [
+      reviewCandidateBasisRevisionFailureState(
+        clientError(409, "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE"),
+        input,
+      ),
+      reviewCandidateBasisRevisionFailureState(
+        clientError(
+          403,
+          "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_NOT_AUTHORIZED",
+        ),
+        input,
+      ),
+      reviewCandidateBasisRevisionFailureState(
+        clientError(422, "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED"),
+        input,
+      ),
+      reviewCandidateBasisRevisionFailureState(
+        clientError(409, "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE"),
+        input,
+      ),
+      reviewCandidateBasisRevisionFailureState(
+        clientError(422, "REVIEW_CANDIDATE_BASIS_REVISION_NO_MATERIAL_CHANGE"),
+        input,
+      ),
+      reviewCandidateBasisRevisionFailureState(
+        clientError(409, "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_ID_REUSED"),
+        input,
+      ),
+      reviewCandidateBasisRevisionFailureState(
+        new ReviewCandidateBasisRevisionClientError("invalid result", 200, {}),
+        input,
+      ),
+      reviewCandidateBasisRevisionFailureState(
+        new TypeError("connection closed"),
+        input,
+      ),
+    ];
+    expect(states.map((state) => state.state)).toEqual([
+      "stale",
+      "unauthorized",
+      "unsupported_profile",
+      "incompatible_source",
+      "no_material_change",
+      "retry_mismatch",
+      "invalid_response",
+      "uncertain",
+    ]);
+    const markups = states.map((revision) =>
+      render(
+        <ReviewCandidateBasisRevisionNotice
+          review={reviewWithBasis}
+          revision={revision}
+          onRetry={() => undefined}
+          onReload={() => undefined}
+        />,
+      ),
+    );
+    expect(markups[0]).toContain("Review changed before the basis revision");
+    expect(markups[1]).toContain("was not authorized");
+    expect(markups[2]).toContain("cannot revise source basis");
+    expect(markups[3]).toContain("Source basis is incompatible");
+    expect(markups[4]).toContain("No material basis change was recorded");
+    expect(markups[5]).toContain(
+      "Command identity belongs to another basis revision",
+    );
+    expect(markups[6]).toContain("could not be verified");
+    expect(markups[6]).toContain("Retry exact basis revision");
+    expect(markups[7]).toContain("result is not yet confirmed");
+    expect(markups[7]).toContain("Retry exact basis revision");
+    for (const markup of markups) {
+      expect(markup).toContain('role="alert"');
+      expect(markup).not.toContain("Review approved");
+      expect(markup).not.toContain("Validation passed");
+      expect(markup).not.toContain("Applied to Project");
+    }
+
+    const appliedMarkup = render(
+      <ReviewCandidateBasisRevisionNotice
+        review={reviewWithBasis}
+        revision={{ state: "success", applied: true, input }}
+        onRetry={() => undefined}
+      />,
+    );
+    const retainedMarkup = render(
+      <ReviewCandidateBasisRevisionNotice
+        review={reviewWithBasis}
+        revision={{ state: "success", applied: false, input }}
+        onRetry={() => undefined}
+      />,
+    );
+    expect(appliedMarkup).toContain("Working basis revision confirmed");
+    expect(appliedMarkup).toContain("Validation was reset to pending");
+    expect(appliedMarkup).toContain(
+      "did not approve, reject, apply, or create domain authority",
+    );
+    expect(retainedMarkup).toContain("Exact basis result recovered");
+    expect(retainedMarkup).toContain("without applying it again");
     expect(retainedMarkup).not.toContain(input.request.command_id);
   });
 

@@ -888,6 +888,19 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
                     AND revision.record_hash = $3 AND source.project_id = $4`;
         values.push(projectId);
         break;
+      case "petra.project-source":
+        query = `SELECT true
+                   FROM petra.project_source_revisions AS revision
+                   JOIN petra.project_sources AS head
+                     ON head.project_source_id = revision.project_source_id
+                  WHERE revision.project_source_id = $1
+                    AND revision.revision = $2
+                    AND revision.record_hash = $3
+                    AND revision.project_id = $4
+                    AND revision.status = 'active'
+                    AND ($5::boolean = false OR head.current_revision = revision.revision)`;
+        values.push(projectId, requireCurrent);
+        break;
       case "petra.claim":
       case "petra.assertion":
         query = `SELECT true

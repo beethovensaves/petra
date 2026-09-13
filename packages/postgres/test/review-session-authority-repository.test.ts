@@ -10,12 +10,14 @@ import type {
   PetraCapabilityGrantV130,
   PetraCapabilityGrantV140,
   PetraCapabilityGrantV150,
+  PetraCapabilityGrantV160,
   PetraClaim,
   PetraCommandEnvelope,
   PetraCommandEnvelopeV140,
   PetraCommandEnvelopeV150,
   PetraCommandEnvelopeV160,
   PetraCommandEnvelopeV170,
+  PetraCommandEnvelopeV180,
   PetraParsedDocument,
   PetraProject,
   PetraProjectDefinition,
@@ -41,6 +43,8 @@ import type {
 } from "@petra/core";
 import type {
   ReviewCandidateCorrectionAuthorityError,
+  ReviewCandidateBasisRevisionAuthorityError,
+  ReviewCandidateBasisRevisionCommandEnvelope,
   ReviewCandidateCorrectionCommandEnvelope,
   ReviewCandidateCorrectionFromHumanEditCommandEnvelope,
   ReviewSessionLifecycleAuthorityError,
@@ -873,6 +877,407 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
       },
     } satisfies PetraCommandEnvelopeV170;
   };
+
+  const registerBasisRevisionGrant = async (
+    project: PetraProject,
+    actor: PetraActor,
+  ): Promise<PetraCapabilityGrantV160> => {
+    const content: PetraCapabilityGrantV160["content"] = {
+      scope_kind: "project_commands",
+      allowed_commands: ["ReviseReviewCandidateBasis"],
+      valid_from: "2026-09-01T00:00:00.000Z",
+      reason:
+        "Allow the Project author to revise one exact non-authoritative Review candidate basis.",
+    };
+    const grant: PetraCapabilityGrantV160 = {
+      schema_name: "petra.capability-grant",
+      schema_version: "1.6.0",
+      capability_grant_id: "capability_grant_01K4E000000000000000000100",
+      revision: 1,
+      project_id: project.project_id,
+      grantee: { actor_id: actor.actor_id, actor_kind: "human" },
+      content,
+      content_hash: canonicalHash(content),
+      issued_by: { actor_id: actor.actor_id, actor_kind: "human" },
+      issued_at: "2026-09-01T00:00:00.000Z",
+    };
+    await capabilities.registerCapabilityGrant(grant);
+    return grant;
+  };
+
+  const basisRevisionEnvelope = async (
+    session: PetraReviewSessionV110,
+    candidate: PetraWorkingCandidate,
+    grant: PetraCapabilityGrantV160,
+    identity: string,
+  ): Promise<ReviewCandidateBasisRevisionCommandEnvelope> => {
+    const member = session.content.members[0];
+    const relationshipRef = member?.working_state.relationship_refs[0];
+    const sourceSpanRef = candidate.basis.find(
+      (item) => item.record_ref.schema_name === "petra.source-span",
+    )?.record_ref;
+    if (
+      member === undefined ||
+      relationshipRef === undefined ||
+      sourceSpanRef === undefined ||
+      sourceSpanRef.schema_name !== "petra.source-span" ||
+      sourceSpanRef.schema_version !== "1.0.0" ||
+      sourceSpanRef.revision !== 1
+    ) {
+      throw new Error("Expected one exact source-grounded Review member.");
+    }
+    const sourceResult = await pool.query<{
+      payload: PetraProjectSource;
+      record_hash: string;
+    }>(
+      `SELECT revision.payload, revision.record_hash
+         FROM petra.project_sources AS head
+         JOIN petra.project_source_revisions AS revision
+           ON revision.project_source_id = head.project_source_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1`,
+      [session.project_id],
+    );
+    const source = sourceResult.rows[0];
+    if (source === undefined)
+      throw new Error("Expected a current ProjectSource.");
+    const claimRef = candidate.profile_object.object_record_ref;
+    return {
+      schema_name: "petra.command-envelope",
+      schema_version: "1.8.0",
+      command_id: `command_01K4E000000000000000000${identity}`,
+      idempotency_key: `review-session:001:candidate-basis:${identity}`,
+      project_id: session.project_id,
+      actor: structuredClone(grant.grantee),
+      capability_grant_id: grant.capability_grant_id,
+      correlation_id: `trace_01K4E000000000000000000${identity}`,
+      submitted_at: "2026-09-12T22:00:00.000Z",
+      command: {
+        command_name: "ReviseReviewCandidateBasis",
+        expected_review_session_ref: {
+          review_session_id: session.review_session_id,
+          revision: session.revision,
+          content_hash: session.content_hash,
+          lifecycle: "open",
+        },
+        review_member_id: member.review_member_id,
+        expected_project_definition_ref: structuredClone(
+          candidate.project_definition_ref,
+        ),
+        expected_working_candidate_ref: structuredClone(
+          member.working_state.candidate_ref,
+        ),
+        expected_working_relationship_ref: structuredClone(relationshipRef),
+        expected_claim_ref: {
+          schema_name: "petra.claim",
+          schema_version: "1.0.0",
+          record_id: claimRef.record_id,
+          revision: claimRef.revision,
+          record_hash: claimRef.record_hash,
+        },
+        basis_revision_input: {
+          input_kind: "human_scientific_source_basis_revision",
+          project_source_ref: {
+            project_source_id: source.payload.project_source_id,
+            revision: source.payload.revision,
+            content_hash: source.payload.content_hash,
+            record_hash: source.record_hash,
+            status: "active",
+          },
+          source_span_refs: [
+            {
+              schema_name: "petra.source-span",
+              schema_version: "1.0.0",
+              record_id: sourceSpanRef.record_id,
+              revision: 1,
+              record_hash: sourceSpanRef.record_hash,
+            },
+          ],
+          source_scope: "full_text",
+          detail_level: "broad",
+          source_stance: "qualifies",
+          attribution: "The study authors",
+          modality: "hedged",
+          negated: false,
+          uncertainty:
+            "The exact source material qualifies the reported improvement.",
+          reason: "Retain the material qualification in the scientific basis.",
+        },
+      },
+    } satisfies PetraCommandEnvelopeV180;
+  };
+
+  it("atomically revises one exact scientific source basis and replays from the canonical command ledger", async () => {
+    const { project, session, candidate, relationship, actor } =
+      await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const grant = await registerBasisRevisionGrant(project, actor);
+    const envelope = await basisRevisionEnvelope(
+      session,
+      candidate,
+      grant,
+      "201",
+    );
+    const priorProfile = readFixture<PetraClaim>("claim");
+
+    const first =
+      await sessions.executeReviewCandidateBasisRevisionCommand(envelope);
+
+    expect(first.applied).toBe(true);
+    expect(first.profileRecord).toMatchObject({
+      claim_id: priorProfile.claim_id,
+      revision: priorProfile.revision + 1,
+      canonical_text: priorProfile.canonical_text,
+      claim_kind: priorProfile.claim_kind,
+      normalization_status: priorProfile.normalization_status,
+      scope: priorProfile.scope,
+      authority: { zone: "quarantine", review_state: "unreviewed" },
+      supersedes_claim_id: priorProfile.claim_id,
+      created_by: grant.grantee,
+      created_at: envelope.submitted_at,
+    });
+    if (first.profileRecord.basis.basis_kind !== "source") {
+      throw new Error("Expected a source-grounded revised Claim.");
+    }
+    expect(first.profileRecord.basis).toMatchObject({
+      work_version_id: first.receipt.content.resulting_basis.work_version_id,
+      source_scope: envelope.command.basis_revision_input.source_scope,
+      detail_level: envelope.command.basis_revision_input.detail_level,
+      source_span_ids:
+        envelope.command.basis_revision_input.source_span_refs.map(
+          (ref) => ref.record_id,
+        ),
+      source_stance: envelope.command.basis_revision_input.source_stance,
+      attribution: envelope.command.basis_revision_input.attribution,
+      modality: envelope.command.basis_revision_input.modality,
+      negated: envelope.command.basis_revision_input.negated,
+      uncertainty: envelope.command.basis_revision_input.uncertainty,
+      derivation: {
+        derivation_kind: "human_extraction",
+        derivation_ref: envelope.command_id,
+      },
+      proposed_by: grant.grantee,
+      proposed_at: envelope.submitted_at,
+    });
+    expect(first.profileRecord.basis.validator_results).toHaveLength(2);
+    expect(first.profileRecord.basis.validator_results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          outcome: "warning",
+          code: "REVALIDATION_REQUIRED",
+        }),
+      ]),
+    );
+    expect(first.candidate).toMatchObject({
+      working_candidate_id: candidate.working_candidate_id,
+      revision: candidate.revision + 1,
+      validation: {
+        state: "pending",
+        target_record_hash: canonicalHash(first.profileRecord),
+        results: [],
+      },
+      lineage: {
+        lineage_kind: "supersession",
+        change_kind: "basis_revision",
+      },
+      created_by: candidate.created_by,
+      created_at: candidate.created_at,
+    });
+    expect(first.relationship).toMatchObject({
+      working_relationship_id: relationship.working_relationship_id,
+      revision: relationship.revision + 1,
+      validation: { state: "pending", results: [] },
+      lineage: {
+        lineage_kind: "supersession",
+        change_kind: "basis_revision",
+      },
+    });
+    expect(first.reviewSession).toMatchObject({
+      review_session_id: session.review_session_id,
+      revision: session.revision + 1,
+      content: { lifecycle: "open" },
+    });
+    expect(first.receipt.content).toMatchObject({
+      review_member_id: session.content.members[0]?.review_member_id,
+      project_definition_ref: envelope.command.expected_project_definition_ref,
+      prior_basis: {
+        basis_kind: "source",
+        source_span_refs: [candidate.basis[0]?.record_ref],
+      },
+      resulting_basis: {
+        basis_kind: "source",
+        project_source_ref:
+          envelope.command.basis_revision_input.project_source_ref,
+        source_span_refs:
+          envelope.command.basis_revision_input.source_span_refs,
+      },
+      basis_transition: "material_revision_within_exact_scientific_source",
+      validation_reset: {
+        state: "pending",
+        completed_validator_refs: [],
+      },
+      preservation: {
+        review_decision: "none",
+        change_sets: "unchanged",
+        approvals: "unchanged",
+        domain_events: "none",
+        projection: "unchanged",
+        history: "unchanged",
+      },
+      authority_boundary: {
+        candidate_authority: "working_only",
+        review_decision: "none",
+        domain_authority: "unchanged",
+        validation_authority: "none",
+        conversation_authority: "none",
+        model_output_authority: "none",
+      },
+    });
+
+    const replayEnvelope = structuredClone(envelope);
+    replayEnvelope.correlation_id = "trace_01K4E000000000000000000202";
+    replayEnvelope.submitted_at = "2026-09-12T22:00:05.000Z";
+    const replay =
+      await sessions.executeReviewCandidateBasisRevisionCommand(replayEnvelope);
+    expect(replay).toEqual({ ...first, applied: false });
+
+    const cardinality = await pool.query<{
+      candidates: string;
+      relationships: string;
+      claims: string;
+      reviews: string;
+      commands: string;
+      changes: string;
+      approvals: string;
+      events: string;
+      outbox: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.working_candidate_revisions
+           WHERE working_candidate_id = $1)::text AS candidates,
+         (SELECT count(*) FROM petra.working_relationship_revisions
+           WHERE working_relationship_id = $2)::text AS relationships,
+         (SELECT count(*) FROM petra.claim_revisions
+           WHERE claim_id = $3)::text AS claims,
+         (SELECT count(*) FROM petra.review_session_revisions
+           WHERE review_session_id = $4)::text AS reviews,
+         (SELECT count(*) FROM petra.command_executions
+           WHERE command_id = $5)::text AS commands,
+         (SELECT count(*) FROM petra.change_sets)::text AS changes,
+         (SELECT count(*) FROM petra.approvals)::text AS approvals,
+         (SELECT count(*) FROM petra.domain_events)::text AS events,
+         (SELECT count(*) FROM petra.outbox_records)::text AS outbox`,
+      [
+        candidate.working_candidate_id,
+        relationship.working_relationship_id,
+        priorProfile.claim_id,
+        session.review_session_id,
+        envelope.command_id,
+      ],
+    );
+    expect(cardinality.rows[0]).toEqual({
+      candidates: "2",
+      relationships: "2",
+      claims: "2",
+      reviews: "2",
+      commands: "1",
+      changes: "0",
+      approvals: "0",
+      events: "0",
+      outbox: "0",
+    });
+  });
+
+  it("fails closed on unauthorized, stale, unsupported, incompatible, and retry-mismatch basis revisions", async () => {
+    const { project, session, candidate, actor } = await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const grant = await registerBasisRevisionGrant(project, actor);
+    const envelope = await basisRevisionEnvelope(
+      session,
+      candidate,
+      grant,
+      "203",
+    );
+
+    const unauthorized = structuredClone(envelope);
+    unauthorized.capability_grant_id =
+      "capability_grant_01K4E000000000000000000204";
+    await expect(
+      sessions.executeReviewCandidateBasisRevisionCommand(unauthorized),
+    ).rejects.toMatchObject({
+      code: "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_NOT_AUTHORIZED",
+    } satisfies Partial<ReviewCandidateBasisRevisionAuthorityError>);
+
+    const stale = structuredClone(envelope);
+    stale.command.expected_claim_ref.record_hash = `sha256:${"f".repeat(64)}`;
+    await expect(
+      sessions.executeReviewCandidateBasisRevisionCommand(stale),
+    ).rejects.toMatchObject({
+      code: "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+    } satisfies Partial<ReviewCandidateBasisRevisionAuthorityError>);
+
+    const unsupported = structuredClone(envelope);
+    unsupported.command.expected_project_definition_ref.definition_family =
+      "petra.unsupported-profile";
+    await expect(
+      sessions.executeReviewCandidateBasisRevisionCommand(unsupported),
+    ).rejects.toMatchObject({
+      code: "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+    } satisfies Partial<ReviewCandidateBasisRevisionAuthorityError>);
+
+    const incompatible = structuredClone(envelope);
+    incompatible.command.basis_revision_input.source_scope = "abstract_only";
+    await expect(
+      sessions.executeReviewCandidateBasisRevisionCommand(incompatible),
+    ).rejects.toMatchObject({
+      code: "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+    } satisfies Partial<ReviewCandidateBasisRevisionAuthorityError>);
+
+    const countsAfterFailure = await pool.query<{
+      candidates: string;
+      relationships: string;
+      claims: string;
+      reviews: string;
+      commands: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.working_candidate_revisions
+           WHERE working_candidate_id = $1)::text AS candidates,
+         (SELECT count(*) FROM petra.working_relationship_revisions
+           WHERE working_relationship_id = $2)::text AS relationships,
+         (SELECT count(*) FROM petra.claim_revisions
+           WHERE claim_id = $3)::text AS claims,
+         (SELECT count(*) FROM petra.review_session_revisions
+           WHERE review_session_id = $4)::text AS reviews,
+         (SELECT count(*) FROM petra.command_executions
+           WHERE command_id = $5)::text AS commands`,
+      [
+        candidate.working_candidate_id,
+        session.content.members[0]?.working_state.relationship_refs[0]
+          ?.working_relationship_id,
+        candidate.profile_object.object_record_ref.record_id,
+        session.review_session_id,
+        envelope.command_id,
+      ],
+    );
+    expect(countsAfterFailure.rows[0]).toEqual({
+      candidates: "1",
+      relationships: "1",
+      claims: "1",
+      reviews: "1",
+      commands: "0",
+    });
+
+    await sessions.executeReviewCandidateBasisRevisionCommand(envelope);
+    const mismatchedRetry = structuredClone(envelope);
+    mismatchedRetry.command.basis_revision_input.reason =
+      "A different material reason cannot reuse this retry identity.";
+    await expect(
+      sessions.executeReviewCandidateBasisRevisionCommand(mismatchedRetry),
+    ).rejects.toMatchObject({
+      code: "REVIEW_CANDIDATE_BASIS_REVISION_IDEMPOTENCY_KEY_REUSED",
+    } satisfies Partial<ReviewCandidateBasisRevisionAuthorityError>);
+  });
 
   it("composes an exact human Claim text edit inside idempotent correction authority", async () => {
     const { project, session, candidate, relationship, actor } =

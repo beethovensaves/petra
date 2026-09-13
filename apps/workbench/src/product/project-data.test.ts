@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 
-import type { ReviewCandidateCorrectionResult } from "@petra/adapters";
+import type {
+  ReviewCandidateBasisRevisionResult,
+  ReviewCandidateCorrectionResult,
+} from "@petra/adapters";
 import type {
   PetraProject,
   PetraProjectDefinition,
@@ -29,6 +32,7 @@ import type {
   PetraProjectShellViewV11,
   PetraSuggestedActionView,
   PetraProjectSource,
+  PetraProjectSourceLifecycleView,
   PetraProjectSourceLifecycleReceipt,
   PetraProjectSourceReplacement,
   PetraProjectSourceReplacementReceipt,
@@ -49,6 +53,7 @@ import { PetraContractRegistry as BrowserContractRegistry } from "./browser-cont
 import {
   cancelProjectSuggestedActionWork,
   composeProjectHistoryCompensationPlan,
+  createReviewCandidateBasisRevisionCommandInput,
   createReviewCandidateCorrectionCommandInput,
   createReviewSessionDeferCommandInput,
   createReviewSessionRefreshCommandInput,
@@ -58,6 +63,7 @@ import {
   createSuggestedActionWorkCancellationRequest,
   createProjectSourceReplacement,
   executeProjectSourceLifecycleCommand,
+  executeReviewCandidateBasisRevisionCommand,
   executeReviewCandidateCorrectionCommand,
   executeReviewSessionLifecycleCommand,
   executeReviewSessionRefreshCommand,
@@ -166,6 +172,16 @@ const sourceRecord = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectSource;
+
+const sourceLifecycleView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-source-lifecycle-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectSourceLifecycleView;
 
 const sourceLifecycleReceipt = JSON.parse(
   readFileSync(
@@ -1044,7 +1060,7 @@ afterEach(() => {
 });
 
 describe("Project shell workbench adapter", () => {
-  it("bundles the exact candidate-correction response validators for the browser", () => {
+  it("bundles the exact Review-correction and basis response validators for the browser", () => {
     const contracts = new BrowserContractRegistry();
     expect(() =>
       contracts.assertValid(
@@ -3206,6 +3222,154 @@ describe("Project shell workbench adapter", () => {
     });
     await expect(loadProjectReviewSession(args)).rejects.toThrow(
       "invalid Project Review view",
+    );
+  });
+
+  it("prepares and delegates one exact material basis revision without client authority", async () => {
+    const openView = structuredClone(
+      reviewView,
+    ) as unknown as PetraProjectReviewViewV120;
+    openView.schema_version = "1.2.0";
+    openView.content.session.lifecycle = "open";
+    openView.content.members[0].working_state = {
+      candidate: structuredClone(reviewWorkingCandidate),
+      relationships: [structuredClone(reviewWorkingRelationship)],
+      selection_basis: "exact_review_session_working_bindings",
+      authority_effect: "none",
+    };
+    openView.content.members[0].change_sets =
+      openView.content.members[0].change_sets.map((changeSet) => ({
+        ...changeSet,
+        commands: [],
+        events: [],
+      }));
+    openView.content.projection = {
+      state: "unavailable",
+      reason: "No projection receipt exists for the submitted ChangeSet.",
+    };
+    const reviewWithoutExactSource = reviewSessionFromView(openView);
+    expect(
+      reviewWithoutExactSource.candidateBasisRevision?.expectedProjectSourceRef,
+    ).toBeUndefined();
+    expect(() =>
+      createReviewCandidateBasisRevisionCommandInput(reviewWithoutExactSource, {
+        sourceScope: "full_text",
+        detailLevel: "broad",
+        sourceStance: "qualifies",
+        attribution: "The study authors",
+        modality: "hedged",
+        negated: false,
+        reason: "Retain the material qualification.",
+      }),
+    ).toThrow("requires exact scientific Review");
+    const exactSourceView = structuredClone(sourceLifecycleView);
+    exactSourceView.project_id = openView.project_id;
+    exactSourceView.project_source_id =
+      openView.content.members[0].basis[0].project_source_id ?? "";
+    exactSourceView.content.source_ref.project_source_id =
+      exactSourceView.project_source_id;
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(openView))
+      .mockResolvedValueOnce(Response.json(exactSourceView));
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.local/projects/${openView.project_id}/reviews/${openView.review_session_id}`,
+    );
+    const args: LoaderFunctionArgs = {
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/reviews/:reviewId",
+      params: {
+        projectId: openView.project_id,
+        reviewId: openView.review_session_id,
+      },
+      context: new RouterContextProvider(),
+    };
+
+    const review = await loadProjectReviewSession(args);
+    expect(fetch.mock.calls[1]?.[0]).toBe(
+      `/api/queries/projects/${openView.project_id}/sources/${exactSourceView.project_source_id}/lifecycle?requested_action=exclude_project_source`,
+    );
+    expect(review.candidateBasisRevision).toMatchObject({
+      reviewMemberId: openView.content.members[0].review_member_id,
+      expectedProjectDefinitionRef:
+        reviewWorkingCandidate.project_definition_ref,
+      expectedWorkingCandidateRef: {
+        working_candidate_id: reviewWorkingCandidate.working_candidate_id,
+        revision: reviewWorkingCandidate.revision,
+        content_hash: reviewWorkingCandidate.content_hash,
+      },
+      expectedWorkingRelationshipRef: {
+        working_relationship_id:
+          reviewWorkingRelationship.working_relationship_id,
+        revision: reviewWorkingRelationship.revision,
+        content_hash: reviewWorkingRelationship.content_hash,
+      },
+      expectedProjectSourceRef: exactSourceView.content.source_ref,
+    });
+
+    const input = createReviewCandidateBasisRevisionCommandInput(
+      review,
+      {
+        sourceScope: "full_text",
+        detailLevel: "broad",
+        sourceStance: "qualifies",
+        attribution: " The study authors ",
+        modality: "hedged",
+        negated: false,
+        uncertainty: " The exact passage qualifies the result. ",
+        reason: " Retain the material qualification in the source basis. ",
+      },
+      {
+        commandId: "command_01K4E000000000000000000301",
+        idempotencyKey: "review-session:001:basis:workbench:v1",
+      },
+    );
+    expect(input.request).toEqual({
+      command_id: "command_01K4E000000000000000000301",
+      idempotency_key: "review-session:001:basis:workbench:v1",
+      expected_review_session_ref: {
+        review_session_id: review.id,
+        revision: review.exactRef.revision,
+        content_hash: review.exactRef.contentHash,
+        lifecycle: "open",
+      },
+      review_member_id: review.candidateBasisRevision?.reviewMemberId,
+      expected_project_definition_ref:
+        reviewWorkingCandidate.project_definition_ref,
+      expected_working_candidate_ref:
+        review.candidateBasisRevision?.expectedWorkingCandidateRef,
+      expected_working_relationship_ref:
+        review.candidateBasisRevision?.expectedWorkingRelationshipRef,
+      expected_claim_ref: review.candidateBasisRevision?.expectedClaimRef,
+      basis_revision_input: {
+        input_kind: "human_scientific_source_basis_revision",
+        project_source_ref: exactSourceView.content.source_ref,
+        source_span_refs: review.candidateBasisRevision?.sourceSpanRefs,
+        source_scope: "full_text",
+        detail_level: "broad",
+        source_stance: "qualifies",
+        attribution: "The study authors",
+        modality: "hedged",
+        negated: false,
+        uncertainty: "The exact passage qualifies the result.",
+        reason: "Retain the material qualification in the source basis.",
+      },
+    });
+    expect(input.request).not.toHaveProperty("actor");
+    expect(input.request).not.toHaveProperty("capability_grant_id");
+    expect(input.request).not.toHaveProperty("validation");
+    expect(input.request).not.toHaveProperty("review_decision");
+
+    const result = {} as ReviewCandidateBasisRevisionResult;
+    const revise = vi.fn().mockResolvedValueOnce(result);
+    await expect(
+      executeReviewCandidateBasisRevisionCommand(input, { revise }),
+    ).resolves.toBe(result);
+    expect(revise).toHaveBeenCalledExactlyOnceWith(
+      input.projectId,
+      input.request,
     );
   });
 

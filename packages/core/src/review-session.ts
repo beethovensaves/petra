@@ -6,6 +6,8 @@ import type {
   PetraCommandEnvelopeV150,
   PetraCommandEnvelopeV160,
   PetraCommandEnvelopeV170,
+  PetraCommandEnvelopeV180,
+  PetraReviewCandidateBasisRevisionReceipt,
   PetraReviewCandidateCorrectionReceipt,
   PetraProjectReviewViewRecord,
   PetraClaim,
@@ -15,6 +17,7 @@ import type {
   PetraWorkingCandidate,
   PetraWorkingRelationship,
   RefreshReviewSession,
+  ReviseReviewCandidateBasis,
   ReopenReviewSession,
 } from "@petra/contracts";
 
@@ -209,4 +212,60 @@ export interface ReviewCandidateCorrectionAuthorityRepository {
   executeReviewCandidateCorrectionCommand(
     envelope: ReviewCandidateCorrectionAuthorityCommandEnvelope,
   ): Promise<ReviewCandidateCorrectionCommandResult>;
+}
+
+export type ReviewCandidateBasisRevisionCommandEnvelope = Omit<
+  PetraCommandEnvelopeV180,
+  "command"
+> & {
+  command: ReviseReviewCandidateBasis;
+};
+
+export interface ReviewCandidateBasisRevisionCommandResult {
+  readonly receipt: PetraReviewCandidateBasisRevisionReceipt;
+  readonly candidate: PetraWorkingCandidate;
+  readonly profileRecord: PetraClaim;
+  readonly relationship: PetraWorkingRelationship;
+  readonly reviewSession: PetraReviewSessionRecord;
+  /** False only when the exact command was replayed idempotently. */
+  readonly applied: boolean;
+}
+
+export type ReviewCandidateBasisRevisionAuthorityErrorCode =
+  | "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_NOT_AUTHORIZED"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_ID_REUSED"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_IDEMPOTENCY_KEY_REUSED"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_PROJECT_MISMATCH"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_SESSION_NOT_FOUND"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_LIFECYCLE_INVALID"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_MEMBER_MISMATCH"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_NO_MATERIAL_CHANGE"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_PROVENANCE_INVALID"
+  | "REVIEW_CANDIDATE_BASIS_REVISION_STORED_RECORD_CORRUPT";
+
+export class ReviewCandidateBasisRevisionAuthorityError extends Error {
+  readonly code: ReviewCandidateBasisRevisionAuthorityErrorCode;
+
+  constructor(
+    code: ReviewCandidateBasisRevisionAuthorityErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ReviewCandidateBasisRevisionAuthorityError";
+    this.code = code;
+  }
+}
+
+/**
+ * Appends one material source-basis revision to an exact scientific Review
+ * member. The operation retains all identities and prior revisions, resets
+ * validation, and grants no Review decision or domain authority.
+ */
+export interface ReviewCandidateBasisRevisionAuthorityRepository {
+  executeReviewCandidateBasisRevisionCommand(
+    envelope: ReviewCandidateBasisRevisionCommandEnvelope,
+  ): Promise<ReviewCandidateBasisRevisionCommandResult>;
 }

@@ -169,6 +169,47 @@ export type ReviewSession = {
       content_hash: string;
     };
   };
+  candidateBasisRevision?: {
+    reviewMemberId: string;
+    expectedProjectDefinitionRef: {
+      project_definition_id: string;
+      revision: number;
+      content_hash: string;
+      definition_family: string;
+    };
+    expectedWorkingCandidateRef: {
+      working_candidate_id: string;
+      revision: number;
+      content_hash: string;
+    };
+    expectedWorkingRelationshipRef: {
+      working_relationship_id: string;
+      revision: number;
+      content_hash: string;
+    };
+    expectedClaimRef: {
+      schema_name: "petra.claim";
+      schema_version: "1.0.0";
+      record_id: string;
+      revision: number;
+      record_hash: string;
+    };
+    projectSourceId: string;
+    sourceSpanRefs: Array<{
+      schema_name: "petra.source-span";
+      schema_version: "1.0.0";
+      record_id: string;
+      revision: 1;
+      record_hash: string;
+    }>;
+    expectedProjectSourceRef?: {
+      project_source_id: string;
+      revision: number;
+      content_hash: string;
+      record_hash: string;
+      status: "active";
+    };
+  };
   basis: Array<{
     id: string;
     label: string;
