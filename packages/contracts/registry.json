@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.82.0",
+  "registry_version": "1.83.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -1538,6 +1538,17 @@
       "canonical_sha256": "sha256:fe7f24c19f067d448a535bc0f22f337fc39871270944f5b85799a2f0ac6411b3",
       "generate_typescript": true,
       "typescript_path": "src/generated/interaction-replay-record.ts"
+    },
+    {
+      "name": "review-recovery-assessment",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-recovery-assessment/1.0.0/schema.json",
+      "path": "schemas/review-recovery-assessment/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-d020-scientific-review-assessment",
+      "canonical_sha256": "sha256:70596e4f401bc2f0911f49ff9129e1ff24d40154adb21d4f18706b1d96382817",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-recovery-assessment.ts"
     }
   ]
 }

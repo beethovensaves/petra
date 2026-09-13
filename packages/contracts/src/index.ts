@@ -1238,3 +1238,5 @@ export type PetraProjectReviewViewRecord =
   | PetraProjectReviewViewV120;
 export type PetraReviewSessionRecord =
   PetraReviewSession | PetraReviewSessionV110;
+
+export type { PetraReviewRecoveryAssessment } from "./generated/review-recovery-assessment.js";

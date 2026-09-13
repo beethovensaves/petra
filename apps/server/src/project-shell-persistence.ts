@@ -12,6 +12,7 @@ import {
   PostgresProjectRelationshipOverlayViewReader,
   PostgresProjectRelationshipViewReader,
   PostgresProjectReviewViewReader,
+  PostgresReviewRecoveryAssessmentReader,
   PostgresReviewSessionAuthorityRepository,
   PostgresProjectShellViewReader,
   PostgresProjectSourceLifecycleViewReader,
@@ -37,6 +38,7 @@ import type {
   ProjectRelationshipOverlayViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
+  ReviewRecoveryAssessmentReader,
   ReviewCandidateBasisRevisionAuthorityRepository,
   ReviewCandidateCorrectionAuthorityRepository,
   ReviewSessionLifecycleAuthorityRepository,
@@ -65,6 +67,7 @@ export interface ProjectShellPersistence {
   readonly sourceViews: ProjectSourceViewReader;
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly reviewViews: ProjectReviewViewReader;
+  readonly reviewRecoveryAssessments: ReviewRecoveryAssessmentReader;
   readonly reviewSessionLifecycleAuthority: ReviewSessionLifecycleAuthorityRepository;
   readonly reviewSessionRefreshAuthority: ReviewSessionRefreshAuthorityRepository;
   readonly reviewCandidateBasisRevisionAuthority: ReviewCandidateBasisRevisionAuthorityRepository;
@@ -297,6 +300,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
           pool,
         ),
         reviewViews: new PostgresProjectReviewViewReader(pool),
+        reviewRecoveryAssessments: new PostgresReviewRecoveryAssessmentReader(
+          pool,
+          contracts,
+          historyViews,
+        ),
         reviewSessionLifecycleAuthority,
         reviewSessionRefreshAuthority: reviewSessionLifecycleAuthority,
         reviewCandidateBasisRevisionAuthority: reviewSessionLifecycleAuthority,
@@ -370,6 +378,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
     sourceViews: new PostgresProjectSourceViewReader(pool),
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
     reviewViews: new PostgresProjectReviewViewReader(pool),
+    reviewRecoveryAssessments: new PostgresReviewRecoveryAssessmentReader(
+      pool,
+      contracts,
+      historyViews,
+    ),
     reviewSessionLifecycleAuthority,
     reviewSessionRefreshAuthority: reviewSessionLifecycleAuthority,
     reviewCandidateBasisRevisionAuthority: reviewSessionLifecycleAuthority,

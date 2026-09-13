@@ -1,3 +1,7 @@
+import {
+  ReviewRecoveryAssessmentError,
+  type ReviewRecoveryAssessmentReader,
+} from "@petra/core";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, resolve, sep } from "node:path";
@@ -9,6 +13,7 @@ import { canonicalize } from "json-canonicalize";
 
 import {
   InteractionInputError,
+  validateReviewRecoveryAssessment,
   encodeAgUiStream,
   parseAgUiRunInput,
 } from "@petra/adapters";
@@ -111,6 +116,7 @@ export interface PetraAppOptions {
   projectSourceLifecycleAuthority?: ProjectSourceLifecycleAuthorityRepository;
   projectSourceReplacementAuthority?: ProjectSourceReplacementCommandAuthorityRepository;
   projectReviewViews?: ProjectReviewViewReader;
+  reviewRecoveryAssessments?: ReviewRecoveryAssessmentReader;
   reviewSessionLifecycleAuthority?: ReviewSessionLifecycleAuthorityRepository;
   reviewSessionRefreshAuthority?: ReviewSessionRefreshAuthorityRepository;
   reviewCandidateBasisRevisionAuthority?: ReviewCandidateBasisRevisionAuthorityRepository;
@@ -3636,6 +3642,96 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       );
     }
   });
+
+  app.get(
+    "/api/queries/projects/:projectId/reviews/:reviewSessionId/recovery-assessment",
+    async (context) => {
+      if (options.reviewRecoveryAssessments === undefined) {
+        return jsonError(
+          context,
+          503,
+          "REVIEW_RECOVERY_UNAVAILABLE",
+          "The read-only Review recovery assessment is not configured.",
+        );
+      }
+      const parameters = new URL(context.req.url).searchParams;
+      const revision = parameters.get("expected_revision");
+      const contentHash = parameters.get("expected_content_hash");
+      const projectId = context.req.param("projectId");
+      const reviewSessionId = context.req.param("reviewSessionId");
+      if (
+        !PROJECT_ID_PATTERN.test(projectId) ||
+        !/^review_session_[0-9A-HJKMNP-TV-Z]{26}$/u.test(reviewSessionId) ||
+        revision === null ||
+        !/^[1-9][0-9]*$/u.test(revision) ||
+        !Number.isSafeInteger(Number(revision)) ||
+        contentHash === null ||
+        !/^sha256:[0-9a-f]{64}$/u.test(contentHash) ||
+        [...parameters.keys()].length !== 2 ||
+        parameters.getAll("expected_revision").length !== 1 ||
+        parameters.getAll("expected_content_hash").length !== 1
+      ) {
+        return jsonError(
+          context,
+          400,
+          "REVIEW_RECOVERY_INPUT_INVALID",
+          "Supply only the exact expected Review revision and content hash; member subsets and recovery instructions are not accepted.",
+        );
+      }
+      try {
+        const assessment =
+          await options.reviewRecoveryAssessments.getReviewRecoveryAssessment({
+            project_id: projectId,
+            review_session_id: reviewSessionId,
+            expected_revision: Number(revision),
+            expected_content_hash: contentHash,
+          });
+        if (assessment === undefined)
+          return jsonError(
+            context,
+            404,
+            "REVIEW_RECOVERY_NOT_FOUND",
+            "The exact Review is not available in this Project.",
+          );
+        contracts.assertValid(
+          "review-recovery-assessment",
+          "1.0.0",
+          assessment,
+        );
+        await validateReviewRecoveryAssessment(
+          assessment,
+          {
+            project_id: projectId,
+            review_session_id: reviewSessionId,
+            expected_revision: Number(revision),
+            expected_content_hash: contentHash,
+          },
+          contracts,
+        );
+        context.header("cache-control", "no-store");
+        return context.json(assessment);
+      } catch (error) {
+        if (error instanceof ReviewRecoveryAssessmentError) {
+          return jsonError(
+            context,
+            error.code === "REVIEW_RECOVERY_STALE"
+              ? 409
+              : error.code === "REVIEW_RECOVERY_UNSUPPORTED"
+                ? 422
+                : 503,
+            error.code,
+            error.message,
+          );
+        }
+        return jsonError(
+          context,
+          503,
+          "REVIEW_RECOVERY_READ_FAILED",
+          "Canonical Review recovery evidence could not be reconciled.",
+        );
+      }
+    },
+  );
 
   app.get(
     "/api/queries/projects/:projectId/reviews/:reviewSessionId",

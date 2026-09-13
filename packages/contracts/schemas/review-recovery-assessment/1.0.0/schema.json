@@ -1,0 +1,419 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-recovery-assessment/1.0.0/schema.json",
+  "title": "PetraReviewRecoveryAssessment",
+  "description": "D020 read-only scientific Review reconciliation. Content identity excludes read time. No action or recovery execution is registered in this version.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "assessment_id",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at",
+    "reconciled_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.review-recovery-assessment"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "assessment_id": {
+      "type": "string",
+      "pattern": "^review_recovery_sha256_[0-9a-f]{64}$"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": {
+      "$ref": "#/$defs/AssessmentContent"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "reconciled_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "AssessmentContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "producer",
+        "rule_version",
+        "privacy",
+        "review_session",
+        "review",
+        "groups",
+        "unbound_member_ids",
+        "coverage",
+        "preservation",
+        "limitations",
+        "actions",
+        "authority_effect",
+        "freshness",
+        "producer_version"
+      ],
+      "properties": {
+        "producer": {
+          "const": "petra.postgres.review-recovery"
+        },
+        "rule_version": {
+          "const": "d020.scientific.v1"
+        },
+        "privacy": {
+          "const": "authenticated_single_user_project"
+        },
+        "review_session": {
+          "$ref": "../../review-session/1.1.0/schema.json"
+        },
+        "review": {
+          "$ref": "../../project-review-view/1.2.0/schema.json#/$defs/ReviewViewContent"
+        },
+        "groups": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/AtomicGroup"
+          }
+        },
+        "unbound_member_ids": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+          }
+        },
+        "coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "review_members",
+            "assessed_members",
+            "atomic_change_sets",
+            "operations"
+          ],
+          "properties": {
+            "state": {
+              "const": "complete"
+            },
+            "review_members": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "assessed_members": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "atomic_change_sets": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "operations": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "preservation": {
+          "type": "array",
+          "minItems": 13,
+          "maxItems": 13,
+          "items": {
+            "$ref": "#/$defs/PreservationItem"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "actions": {
+          "type": "array",
+          "maxItems": 0,
+          "items": false
+        },
+        "authority_effect": {
+          "const": "none"
+        },
+        "freshness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "expected_review_identity",
+            "authority_snapshot",
+            "members"
+          ],
+          "properties": {
+            "expected_review_identity": {
+              "const": "current"
+            },
+            "authority_snapshot": {
+              "enum": ["current", "stale"]
+            },
+            "members": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 100,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["review_member_id", "working_heads"],
+                "properties": {
+                  "review_member_id": {
+                    "type": "string",
+                    "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+                  },
+                  "working_heads": {
+                    "enum": ["current", "superseded"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "producer_version": {
+          "const": "1.0.0"
+        }
+      }
+    },
+    "AtomicGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "change_set",
+        "record_hash",
+        "state",
+        "member_ids",
+        "operation_count",
+        "coverage",
+        "member_outcomes",
+        "effect",
+        "effect_basis",
+        "next_step",
+        "approvals",
+        "commands",
+        "events"
+      ],
+      "properties": {
+        "change_set": {
+          "oneOf": [
+            {
+              "$ref": "../../change-set/1.0.0/schema.json"
+            },
+            {
+              "$ref": "../../change-set/1.1.0/schema.json"
+            }
+          ]
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "state": {
+          "enum": ["submitted", "approved", "rejected", "applied", "conflicted"]
+        },
+        "member_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+          }
+        },
+        "operation_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "coverage": {
+          "const": "complete"
+        },
+        "member_outcomes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["review_member_id", "review_outcome"],
+            "properties": {
+              "review_member_id": {
+                "type": "string",
+                "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+              },
+              "review_outcome": {
+                "enum": [
+                  "awaiting_decision",
+                  "waiting",
+                  "applied",
+                  "rejected",
+                  "conflicted"
+                ]
+              }
+            }
+          }
+        },
+        "effect": {
+          "enum": ["applied", "no_effect", "unknown"]
+        },
+        "effect_basis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "next_step": {
+          "enum": [
+            "inspect",
+            "return_to_review",
+            "refresh_or_revise",
+            "reconcile_status"
+          ]
+        },
+        "approvals": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10000,
+          "items": {
+            "$ref": "../../approval/1.0.0/schema.json"
+          }
+        },
+        "commands": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/CommandObservation"
+          }
+        },
+        "events": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10000,
+          "items": {
+            "$ref": "../../project-review-view/1.1.0/schema.json#/$defs/EventTrace"
+          }
+        },
+        "history_assessment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["event_id", "content_hash", "content"],
+          "properties": {
+            "event_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "content": {
+              "$ref": "../../project-history-recovery-assessment-view/1.0.0/schema.json#/$defs/RecoveryAssessmentContent"
+            }
+          }
+        }
+      }
+    },
+    "CommandObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace",
+        "receipt_owner",
+        "receipt_hash",
+        "receipt_state",
+        "idempotency_key"
+      ],
+      "properties": {
+        "trace": {
+          "$ref": "../../project-review-view/1.1.0/schema.json#/$defs/CommandTrace"
+        },
+        "receipt_owner": {
+          "const": "petra.command_executions"
+        },
+        "receipt_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "receipt_state": {
+          "enum": ["success", "failure"]
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "PreservationItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "state", "record_ids", "record_hashes", "detail"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "review",
+            "working_candidate",
+            "working_relationship",
+            "candidate",
+            "basis",
+            "validation",
+            "approval",
+            "command",
+            "receipt",
+            "prior_authority",
+            "projection",
+            "task",
+            "return_context"
+          ]
+        },
+        "state": {
+          "enum": ["verified", "unavailable", "unverified"]
+        },
+        "record_ids": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "record_hashes": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 10000,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+          }
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    }
+  }
+}

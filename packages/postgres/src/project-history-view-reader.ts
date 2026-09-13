@@ -1926,9 +1926,20 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
     projectId: string,
     eventId: string,
   ): Promise<PetraProjectHistoryRecoveryAssessmentView | undefined> {
-    return this.#readTransaction(async (client, readAt) => {
-      const result = await client.query<HistoryRow>(
-        `SELECT event.payload AS event_payload,
+    return this.#readTransaction((client, readAt) =>
+      this.readRecoveryAssessmentInSnapshot(client, readAt, projectId, eventId),
+    );
+  }
+
+  /** Internal composition seam: caller owns a REPEATABLE READ READ ONLY transaction. */
+  async readRecoveryAssessmentInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    eventId: string,
+  ): Promise<PetraProjectHistoryRecoveryAssessmentView | undefined> {
+    const result = await client.query<HistoryRow>(
+      `SELECT event.payload AS event_payload,
                 event.record_hash AS event_record_hash,
                 execution.envelope AS command_envelope,
                 execution.command_fingerprint,
@@ -1945,158 +1956,158 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
            LEFT JOIN petra.project_source_replacement_receipts AS replacement
              ON replacement.command_id = event.command_id
           WHERE event.project_id = $1 AND event.event_id = $2`,
-        [projectId, eventId],
-      );
-      const row = result.rows[0];
-      if (row === undefined) return undefined;
+      [projectId, eventId],
+    );
+    const row = result.rows[0];
+    if (row === undefined) return undefined;
 
-      const selectedEvent = await this.#change(client, row);
-      const eventType = selectedEvent.event_ref.event_type;
-      if (
-        eventType !== "change_set.applied" &&
-        eventType !== "change_set.reverted"
-      ) {
-        throw new ProjectHistoryViewRequestError(
-          "A ChangeSet recovery assessment requires an exact change_set.applied or change_set.reverted event.",
-        );
-      }
-      const event = record(row.event_payload, "selected recovery event");
-      const eventFact = objectMember(event, "event", "selected recovery event");
-      const eventPayload = objectMember(
-        eventFact,
-        "payload",
-        "selected recovery event.event",
+    const selectedEvent = await this.#change(client, row);
+    const eventType = selectedEvent.event_ref.event_type;
+    if (
+      eventType !== "change_set.applied" &&
+      eventType !== "change_set.reverted"
+    ) {
+      throw new ProjectHistoryViewRequestError(
+        "A ChangeSet recovery assessment requires an exact change_set.applied or change_set.reverted event.",
       );
-      const selectedEventRole =
-        eventType === "change_set.reverted" ? "compensation" : "promotion";
-      const promotionChangeSetId =
-        eventType === "change_set.reverted"
-          ? stringMember(
-              eventPayload,
-              "compensates_change_set_id",
-              "selected recovery event payload",
-            )
-          : stringMember(
-              eventPayload,
-              "change_set_id",
-              "selected recovery event payload",
-            );
-      const selectedClaim = objectMember(
-        eventPayload,
-        "claim",
-        "selected recovery event payload",
-      );
-      const selectedAssertion = objectMember(
-        eventPayload,
-        "assertion",
-        "selected recovery event payload",
-      );
-      const claimId = stringMember(
-        selectedClaim,
-        "claim_id",
-        "selected recovery claim",
-      );
-      const assertionId = stringMember(
-        selectedAssertion,
-        "assertion_id",
-        "selected recovery assertion",
-      );
+    }
+    const event = record(row.event_payload, "selected recovery event");
+    const eventFact = objectMember(event, "event", "selected recovery event");
+    const eventPayload = objectMember(
+      eventFact,
+      "payload",
+      "selected recovery event.event",
+    );
+    const selectedEventRole =
+      eventType === "change_set.reverted" ? "compensation" : "promotion";
+    const promotionChangeSetId =
+      eventType === "change_set.reverted"
+        ? stringMember(
+            eventPayload,
+            "compensates_change_set_id",
+            "selected recovery event payload",
+          )
+        : stringMember(
+            eventPayload,
+            "change_set_id",
+            "selected recovery event payload",
+          );
+    const selectedClaim = objectMember(
+      eventPayload,
+      "claim",
+      "selected recovery event payload",
+    );
+    const selectedAssertion = objectMember(
+      eventPayload,
+      "assertion",
+      "selected recovery event payload",
+    );
+    const claimId = stringMember(
+      selectedClaim,
+      "claim_id",
+      "selected recovery claim",
+    );
+    const assertionId = stringMember(
+      selectedAssertion,
+      "assertion_id",
+      "selected recovery assertion",
+    );
 
-      const promotionResult = await client.query<RecoveryChangeSetRow>(
-        `SELECT payload, record_hash, current_state, applied_approval_id
+    const promotionResult = await client.query<RecoveryChangeSetRow>(
+      `SELECT payload, record_hash, current_state, applied_approval_id
            FROM petra.change_sets
           WHERE project_id = $1 AND change_set_id = $2`,
-        [projectId, promotionChangeSetId],
+      [projectId, promotionChangeSetId],
+    );
+    const promotionRow = promotionResult.rows[0];
+    if (promotionRow === undefined) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The selected recovery event does not resolve its promotion ChangeSet in this Project.",
       );
-      const promotionRow = promotionResult.rows[0];
-      if (promotionRow === undefined) {
-        throw new PostgresProjectHistoryViewError(
-          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
-          "The selected recovery event does not resolve its promotion ChangeSet in this Project.",
-        );
-      }
-      const promotion = this.#recoveryChangeSet(
-        promotionRow,
-        promotionChangeSetId,
-        "promotion ChangeSet",
+    }
+    const promotion = this.#recoveryChangeSet(
+      promotionRow,
+      promotionChangeSetId,
+      "promotion ChangeSet",
+    );
+    if (promotionRow.applied_approval_id === null) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The applied promotion ChangeSet has no exact Approval binding.",
       );
-      if (promotionRow.applied_approval_id === null) {
-        throw new PostgresProjectHistoryViewError(
-          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
-          "The applied promotion ChangeSet has no exact Approval binding.",
-        );
-      }
-      const approvalResult = await client.query<RecoveryApprovalRow>(
-        `SELECT payload, record_hash
+    }
+    const approvalResult = await client.query<RecoveryApprovalRow>(
+      `SELECT payload, record_hash
            FROM petra.approvals
           WHERE approval_id = $1
             AND change_set_id = $2
             AND change_set_revision = 1
             AND change_set_content_hash = $3`,
-        [
-          promotionRow.applied_approval_id,
-          promotionChangeSetId,
-          promotion.ref.content_hash,
-        ],
+      [
+        promotionRow.applied_approval_id,
+        promotionChangeSetId,
+        promotion.ref.content_hash,
+      ],
+    );
+    const approvalRow = approvalResult.rows[0];
+    if (approvalRow === undefined) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The applied promotion ChangeSet does not resolve its exact Approval.",
       );
-      const approvalRow = approvalResult.rows[0];
-      if (approvalRow === undefined) {
-        throw new PostgresProjectHistoryViewError(
-          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
-          "The applied promotion ChangeSet does not resolve its exact Approval.",
-        );
-      }
-      const approvalPayload = record(approvalRow.payload, "promotion Approval");
-      this.#contracts.assertValid("approval", "1.0.0", approvalPayload);
-      if (canonicalHash(approvalPayload) !== approvalRow.record_hash) {
-        throw new PostgresProjectHistoryViewError(
-          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
-          "The promotion Approval record hash does not match its immutable payload.",
-        );
-      }
-      const approvalSubject = objectMember(
+    }
+    const approvalPayload = record(approvalRow.payload, "promotion Approval");
+    this.#contracts.assertValid("approval", "1.0.0", approvalPayload);
+    if (canonicalHash(approvalPayload) !== approvalRow.record_hash) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The promotion Approval record hash does not match its immutable payload.",
+      );
+    }
+    const approvalSubject = objectMember(
+      approvalPayload,
+      "subject",
+      "promotion Approval",
+    );
+    if (
+      stringMember(approvalPayload, "decision", "promotion Approval") !==
+        "approved" ||
+      stringMember(
+        approvalSubject,
+        "change_set_id",
+        "promotion Approval subject",
+      ) !== promotionChangeSetId
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The applied Approval does not authorize the exact promotion ChangeSet.",
+      );
+    }
+    const appliedApproval = {
+      approval_id: stringMember(
         approvalPayload,
-        "subject",
+        "approval_id",
         "promotion Approval",
-      );
-      if (
-        stringMember(approvalPayload, "decision", "promotion Approval") !==
-          "approved" ||
-        stringMember(
-          approvalSubject,
-          "change_set_id",
-          "promotion Approval subject",
-        ) !== promotionChangeSetId
-      ) {
-        throw new PostgresProjectHistoryViewError(
-          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
-          "The applied Approval does not authorize the exact promotion ChangeSet.",
-        );
-      }
-      const appliedApproval = {
-        approval_id: stringMember(
-          approvalPayload,
-          "approval_id",
-          "promotion Approval",
-        ),
-        revision: 1 as const,
-        change_set_id: promotionChangeSetId,
-        change_set_revision: 1 as const,
-        change_set_content_hash: promotion.ref.content_hash,
-        decision: "approved" as const,
-        record_hash: approvalRow.record_hash,
-      };
+      ),
+      revision: 1 as const,
+      change_set_id: promotionChangeSetId,
+      change_set_revision: 1 as const,
+      change_set_content_hash: promotion.ref.content_hash,
+      decision: "approved" as const,
+      record_hash: approvalRow.record_hash,
+    };
 
-      const operationsResult = await client.query<RecoveryOperationRow>(
-        `SELECT position::text, operation_kind, target_id,
+    const operationsResult = await client.query<RecoveryOperationRow>(
+      `SELECT position::text, operation_kind, target_id,
                 base_revision::text, operation
            FROM petra.change_set_operations
           WHERE change_set_id = $1
           ORDER BY position`,
-        [promotionChangeSetId],
-      );
-      const evidenceResult = await client.query<RecoveryEvidenceRow>(
-        `SELECT entity.evidence_id, entity.evidence_kind,
+      [promotionChangeSetId],
+    );
+    const evidenceResult = await client.query<RecoveryEvidenceRow>(
+      `SELECT entity.evidence_id, entity.evidence_kind,
                 entity.current_revision::text,
                 revision.authority_zone, revision.review_state,
                 revision.admission_kind, revision.schema_name,
@@ -2109,187 +2120,186 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
             AND revision.revision = entity.current_revision
           WHERE entity.evidence_id = ANY($1::text[])
           ORDER BY CASE entity.evidence_kind WHEN 'claim' THEN 1 ELSE 2 END`,
-        [[claimId, assertionId]],
+      [[claimId, assertionId]],
+    );
+    if (evidenceResult.rows.length !== 2) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The exact recovery Claim–Assertion pair is unavailable in current authority.",
       );
-      if (evidenceResult.rows.length !== 2) {
-        throw new PostgresProjectHistoryViewError(
-          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
-          "The exact recovery Claim–Assertion pair is unavailable in current authority.",
-        );
-      }
-      const currentTargets = evidenceResult.rows.map((evidenceRow) =>
-        this.#recoveryEvidenceRef(evidenceRow),
-      ) as PetraProjectHistoryRecoveryAssessmentView["content"]["recovery_subject"]["current_targets"];
-      const claimRow = evidenceResult.rows.find(
-        ({ evidence_kind }) => evidence_kind === "claim",
+    }
+    const currentTargets = evidenceResult.rows.map((evidenceRow) =>
+      this.#recoveryEvidenceRef(evidenceRow),
+    ) as PetraProjectHistoryRecoveryAssessmentView["content"]["recovery_subject"]["current_targets"];
+    const claimRow = evidenceResult.rows.find(
+      ({ evidence_kind }) => evidence_kind === "claim",
+    );
+    const assertionRow = evidenceResult.rows.find(
+      ({ evidence_kind }) => evidence_kind === "assertion",
+    );
+    if (claimRow === undefined || assertionRow === undefined) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The recovery target authority does not contain one Claim and one Assertion.",
       );
-      const assertionRow = evidenceResult.rows.find(
-        ({ evidence_kind }) => evidence_kind === "assertion",
-      );
-      if (claimRow === undefined || assertionRow === undefined) {
-        throw new PostgresProjectHistoryViewError(
-          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
-          "The recovery target authority does not contain one Claim and one Assertion.",
-        );
-      }
+    }
 
-      const commandAuthority = await this.#recoveryCommandAuthority(
-        client,
-        projectId,
-        readAt,
-      );
-      const compensation = await this.#recoveryCompensation(
-        client,
-        projectId,
-        promotionChangeSetId,
-      );
+    const commandAuthority = await this.#recoveryCommandAuthority(
+      client,
+      projectId,
+      readAt,
+    );
+    const compensation = await this.#recoveryCompensation(
+      client,
+      projectId,
+      promotionChangeSetId,
+    );
 
-      const causalCommands = await this.#impactCausalCommands(
-        client,
-        projectId,
-        selectedEvent.command_ref.command_id,
-      );
-      const outboxRecords = await this.#impactOutboxRecords(
+    const causalCommands = await this.#impactCausalCommands(
+      client,
+      projectId,
+      selectedEvent.command_ref.command_id,
+    );
+    const outboxRecords = await this.#impactOutboxRecords(
+      client,
+      projectId,
+      selectedEvent.event_ref,
+      event,
+    );
+    const graphProjectionRecords = await this.#impactProjectionRecords(
+      client,
+      projectId,
+      selectedEvent.event_ref,
+    );
+    const groundedResponseInvalidations =
+      await this.#impactGroundedResponseInvalidations(
         client,
         projectId,
         selectedEvent.event_ref,
         event,
       );
-      const graphProjectionRecords = await this.#impactProjectionRecords(
-        client,
-        projectId,
-        selectedEvent.event_ref,
+    const directGroups = [
+      causalCommands,
+      outboxRecords,
+      graphProjectionRecords,
+      groundedResponseInvalidations,
+    ];
+    const directCount = directGroups.reduce(
+      (total, group) => total + group.total_count,
+      0,
+    );
+    if (!Number.isSafeInteger(directCount)) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The recovery dependency total exceeds Petra's safe integer range.",
       );
-      const groundedResponseInvalidations =
-        await this.#impactGroundedResponseInvalidations(
-          client,
-          projectId,
-          selectedEvent.event_ref,
-          event,
-        );
-      const directGroups = [
-        causalCommands,
-        outboxRecords,
-        graphProjectionRecords,
-        groundedResponseInvalidations,
-      ];
-      const directCount = directGroups.reduce(
-        (total, group) => total + group.total_count,
-        0,
-      );
-      if (!Number.isSafeInteger(directCount)) {
-        throw new PostgresProjectHistoryViewError(
-          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
-          "The recovery dependency total exceeds Petra's safe integer range.",
-        );
-      }
-      const semanticImpact = await this.#semanticTargetImpact(
-        client,
-        projectId,
-        selectedEvent.targets,
-      );
+    }
+    const semanticImpact = await this.#semanticTargetImpact(
+      client,
+      projectId,
+      selectedEvent.targets,
+    );
 
-      const assessment =
-        compensation === undefined
-          ? this.#recoveryEligibility(
-              promotion,
-              operationsResult.rows,
-              claimRow,
-              assertionRow,
-              selectedClaim,
-              selectedAssertion,
-              commandAuthority,
-            )
-          : {
-              state: "already_compensated" as const,
-              scope: "single_change_set_compensation" as const,
-              reason:
-                "The promotion has already been compensated by the exact retained reversal ChangeSet and event.",
-              blockers: [] as [],
-              compensation_change_set: compensation.changeSet,
-              compensation_approval: compensation.approval,
-              compensation_event_ref: compensation.eventRef,
-            };
-      if (
-        eventType === "change_set.reverted" &&
-        compensation?.changeSet.change_set_id !==
-          stringMember(
-            eventPayload,
-            "change_set_id",
-            "selected recovery event payload",
+    const assessment =
+      compensation === undefined
+        ? this.#recoveryEligibility(
+            promotion,
+            operationsResult.rows,
+            claimRow,
+            assertionRow,
+            selectedClaim,
+            selectedAssertion,
+            commandAuthority,
           )
-      ) {
-        throw new PostgresProjectHistoryViewError(
-          "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
-          "The selected compensation event is not the retained applied compensation for its promotion.",
-        );
-      }
-      const authority = await this.#authority(client, projectId);
-      const content: PetraProjectHistoryRecoveryAssessmentView["content"] = {
-        view_kind: "change_set_recovery_assessment",
-        authorization_scope: "authenticated_project",
-        selected_event: selectedEvent,
-        recovery_subject: {
-          selected_event_role: selectedEventRole,
-          promotion_change_set: promotion.ref,
-          applied_approval: appliedApproval,
-          current_targets: currentTargets,
-        },
-        command_authority: commandAuthority,
-        causal_impact_basis: {
-          source_event_id: eventId,
-          direct_dependency_summary: {
-            registered_group_count: 4,
-            total_count: directCount,
-            coverage: directGroups.some(
-              ({ coverage }) => coverage === "truncated",
-            )
-              ? "truncated"
-              : "complete",
-          },
-          semantic_dependency_summary: semanticImpact.summary,
-          dependent_effect: "not_inferred_from_reference",
-          unknowns: [
-            "unregistered_profile_specific_dependencies_may_exist",
-            "transitive_dependents_may_exist",
-            "external_system_dependents_are_not_observable",
-          ],
-        },
-        assessment,
-        decision_boundary: {
-          reversibility: "assessed_for_exact_change_set",
-          compensation_preview: "not_composed",
-          compensation_execution: "not_performed",
-          multi_step_compensation: "not_assessed",
-        },
-        authority: { isolation: "repeatable_read", ...authority },
-        omissions: [
-          "compensation_preview_not_composed",
-          "compensation_execution_not_performed",
-          "generic_undo_not_implemented",
-          "multi_step_compensation_not_assessed",
-          "historical_project_definition_not_interpreted",
-          "dependent_effect_not_inferred_from_reference",
-          "cross_family_total_order_not_asserted",
-        ],
-        graph_navigation_history: "client_local_separate",
-      };
-      const view: PetraProjectHistoryRecoveryAssessmentView = {
-        schema_name: "petra.project-history-recovery-assessment-view",
-        schema_version: "1.0.0",
-        project_id: projectId,
-        event_id: eventId,
-        content,
-        content_hash: canonicalHash(content),
-        read_at: readAt,
-      };
-      this.#contracts.assertValid(
-        "project-history-recovery-assessment-view",
-        "1.0.0",
-        view,
+        : {
+            state: "already_compensated" as const,
+            scope: "single_change_set_compensation" as const,
+            reason:
+              "The promotion has already been compensated by the exact retained reversal ChangeSet and event.",
+            blockers: [] as [],
+            compensation_change_set: compensation.changeSet,
+            compensation_approval: compensation.approval,
+            compensation_event_ref: compensation.eventRef,
+          };
+    if (
+      eventType === "change_set.reverted" &&
+      compensation?.changeSet.change_set_id !==
+        stringMember(
+          eventPayload,
+          "change_set_id",
+          "selected recovery event payload",
+        )
+    ) {
+      throw new PostgresProjectHistoryViewError(
+        "PROJECT_HISTORY_VIEW_STORED_RECORD_CORRUPT",
+        "The selected compensation event is not the retained applied compensation for its promotion.",
       );
-      return structuredClone(view);
-    });
+    }
+    const authority = await this.#authority(client, projectId);
+    const content: PetraProjectHistoryRecoveryAssessmentView["content"] = {
+      view_kind: "change_set_recovery_assessment",
+      authorization_scope: "authenticated_project",
+      selected_event: selectedEvent,
+      recovery_subject: {
+        selected_event_role: selectedEventRole,
+        promotion_change_set: promotion.ref,
+        applied_approval: appliedApproval,
+        current_targets: currentTargets,
+      },
+      command_authority: commandAuthority,
+      causal_impact_basis: {
+        source_event_id: eventId,
+        direct_dependency_summary: {
+          registered_group_count: 4,
+          total_count: directCount,
+          coverage: directGroups.some(
+            ({ coverage }) => coverage === "truncated",
+          )
+            ? "truncated"
+            : "complete",
+        },
+        semantic_dependency_summary: semanticImpact.summary,
+        dependent_effect: "not_inferred_from_reference",
+        unknowns: [
+          "unregistered_profile_specific_dependencies_may_exist",
+          "transitive_dependents_may_exist",
+          "external_system_dependents_are_not_observable",
+        ],
+      },
+      assessment,
+      decision_boundary: {
+        reversibility: "assessed_for_exact_change_set",
+        compensation_preview: "not_composed",
+        compensation_execution: "not_performed",
+        multi_step_compensation: "not_assessed",
+      },
+      authority: { isolation: "repeatable_read", ...authority },
+      omissions: [
+        "compensation_preview_not_composed",
+        "compensation_execution_not_performed",
+        "generic_undo_not_implemented",
+        "multi_step_compensation_not_assessed",
+        "historical_project_definition_not_interpreted",
+        "dependent_effect_not_inferred_from_reference",
+        "cross_family_total_order_not_asserted",
+      ],
+      graph_navigation_history: "client_local_separate",
+    };
+    const view: PetraProjectHistoryRecoveryAssessmentView = {
+      schema_name: "petra.project-history-recovery-assessment-view",
+      schema_version: "1.0.0",
+      project_id: projectId,
+      event_id: eventId,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: readAt,
+    };
+    this.#contracts.assertValid(
+      "project-history-recovery-assessment-view",
+      "1.0.0",
+      view,
+    );
+    return structuredClone(view);
   }
 
   async getProjectHistoryCompensationPreviewView(

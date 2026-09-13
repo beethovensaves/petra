@@ -72,3 +72,5 @@ export * from "./work-unit-authority-repository.js";
 export * from "./working-state.js";
 
 export const PETRA_CORE_BOUNDARY = "petra-core" as const;
+
+export * from "./review-recovery-assessment.js";

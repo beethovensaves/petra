@@ -283,6 +283,14 @@ export const startPetraServer = async (
               projectSourceReplacementAuthority:
                 options.projectShellPersistence.sourceReplacementAuthority,
             }),
+      ...(options.reviewRecoveryAssessments !== undefined
+        ? { reviewRecoveryAssessments: options.reviewRecoveryAssessments }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              reviewRecoveryAssessments:
+                options.projectShellPersistence.reviewRecoveryAssessments,
+            }),
       ...(options.projectReviewViews !== undefined
         ? { projectReviewViews: options.projectReviewViews }
         : options.projectShellPersistence === undefined

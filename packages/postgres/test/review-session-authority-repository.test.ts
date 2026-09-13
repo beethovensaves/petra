@@ -1,3 +1,4 @@
+import { PostgresReviewRecoveryAssessmentReader } from "../src/review-recovery-assessment-reader.js";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
@@ -172,6 +173,22 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
   afterAll(async () => {
     await pool.end();
   });
+
+  // Adversarial storage fixtures deliberately bypass append-only triggers in the disposable test database.
+  const corruptStoredRecord = async (sql: string, values: unknown[] = []) => {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("SET LOCAL session_replication_role = replica");
+      await client.query(sql, values);
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  };
 
   const sourceArtifactInput = (): PersistVerifiedArtifactInput => {
     const artifact = readFixture<PetraArtifact>("artifact");
@@ -2941,6 +2958,266 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
     ).toBeUndefined();
   });
 
+  it("assesses an exact unbound working Review without writing and converges across reads and restart", async () => {
+    const { session } = await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const request = {
+      project_id: session.project_id,
+      review_session_id: session.review_session_id,
+      expected_revision: session.revision,
+      expected_content_hash: session.content_hash,
+    };
+    const before = await pool.query(
+      "SELECT (SELECT count(*) FROM petra.command_executions) AS commands, (SELECT count(*) FROM petra.domain_events) AS events, (SELECT count(*) FROM petra.review_session_revisions) AS reviews",
+    );
+    const reader = new PostgresReviewRecoveryAssessmentReader(pool);
+    const direct = await reader.getReviewRecoveryAssessment(request);
+    const modelMediated = await reader.getReviewRecoveryAssessment(request);
+    const restarted = await new PostgresReviewRecoveryAssessmentReader(
+      pool,
+    ).getReviewRecoveryAssessment(request);
+    expect(direct).toMatchObject({
+      content: {
+        actions: [],
+        authority_effect: "none",
+        groups: [],
+        unbound_member_ids: [session.content.members[0].review_member_id],
+        coverage: {
+          state: "complete",
+          review_members: 1,
+          assessed_members: 1,
+          atomic_change_sets: 0,
+          operations: 0,
+        },
+      },
+    });
+    expect(direct?.content).toEqual(modelMediated?.content);
+    expect(direct?.assessment_id).toBe(restarted?.assessment_id);
+    expect(
+      (
+        await pool.query(
+          "SELECT (SELECT count(*) FROM petra.command_executions) AS commands, (SELECT count(*) FROM petra.domain_events) AS events, (SELECT count(*) FROM petra.review_session_revisions) AS reviews",
+        )
+      ).rows,
+    ).toEqual(before.rows);
+    await expect(
+      reader.getReviewRecoveryAssessment({ ...request, expected_revision: 2 }),
+    ).rejects.toMatchObject({ code: "REVIEW_RECOVERY_STALE" });
+    await expect(
+      reader.getReviewRecoveryAssessment({
+        ...request,
+        expected_content_hash: `sha256:${"f".repeat(64)}`,
+      }),
+    ).rejects.toMatchObject({ code: "REVIEW_RECOVERY_STALE" });
+    expect(
+      await reader.getReviewRecoveryAssessment({
+        ...request,
+        project_id: "project_01K4F000000000000000000999",
+      }),
+    ).toBeUndefined();
+    await corruptStoredRecord(
+      "UPDATE petra.working_candidate_revisions SET record_hash = $1",
+      [`sha256:${"f".repeat(64)}`],
+    );
+    await expect(reader.getReviewRecoveryAssessment(request)).rejects.toThrow();
+  });
+
+  it("rejects a legacy non-working Review assessment", async () => {
+    const { session } = await setupAuthority();
+    await sessions.registerReviewSessionRevision(session);
+    await expect(
+      new PostgresReviewRecoveryAssessmentReader(
+        pool,
+      ).getReviewRecoveryAssessment({
+        project_id: session.project_id,
+        review_session_id: session.review_session_id,
+        expected_revision: session.revision,
+        expected_content_hash: session.content_hash,
+      }),
+    ).rejects.toMatchObject({ code: "REVIEW_RECOVERY_UNSUPPORTED" });
+  });
+
+  it("retains ordinary and exception independent outcomes and never offers rejected-member retry", async () => {
+    const { session, candidate, relationship, actor } =
+      await setupWorkingReview();
+    const second = await addSecondWorkingReviewMember(
+      session,
+      candidate,
+      relationship,
+      actor,
+    );
+    session.content.members[1]!.member_role = "exception";
+    session.content_hash = canonicalHash(session.content);
+    await sessions.registerReviewSessionRevision(session);
+    const submit = await submitChangeSet();
+    if (submit.command.command_name !== "SubmitChangeSet")
+      throw new Error("Expected submit");
+    const reader = new PostgresReviewRecoveryAssessmentReader(pool);
+    const request = {
+      project_id: session.project_id,
+      review_session_id: session.review_session_id,
+      expected_revision: session.revision,
+      expected_content_hash: session.content_hash,
+    };
+    const submitted = await reader.getReviewRecoveryAssessment(request);
+    expect(submitted?.content.groups[0]).toMatchObject({
+      member_ids: [session.content.members[0].review_member_id],
+      operation_count: 2,
+      coverage: "complete",
+      effect: "unknown",
+      next_step: "refresh_or_revise",
+    });
+    expect(submitted?.content.groups[0]?.member_outcomes).toHaveLength(1);
+    expect(submitted?.content.unbound_member_ids).toEqual([
+      second.reviewMemberId,
+    ]);
+    expect(submitted?.content.coverage.review_members).toBe(2);
+    const reject = readFixture<PetraCommandEnvelope>("command-record-approval");
+    if (reject.command.command_name !== "RecordApproval")
+      throw new Error("Expected approval");
+    reject.command.approval.subject.change_set_content_hash =
+      submit.command.change_set.content_hash;
+    reject.command.approval.decision = "rejected";
+    await changes.executeCommand(reject);
+    const assessment = await reader.getReviewRecoveryAssessment(request);
+    expect(assessment?.content.actions).toEqual([]);
+    expect(assessment?.content.groups[0]).toMatchObject({
+      state: "rejected",
+      effect: "unknown",
+      next_step: "inspect",
+      member_outcomes: [
+        {
+          review_member_id: session.content.members[0].review_member_id,
+          review_outcome: "rejected",
+        },
+      ],
+    });
+    await corruptStoredRecord(
+      "UPDATE petra.command_executions SET command_fingerprint = $1",
+      [`sha256:${"f".repeat(64)}`],
+    );
+    await expect(
+      reader.getReviewRecoveryAssessment(request),
+    ).rejects.toMatchObject({ code: "REVIEW_RECOVERY_CORRUPT" });
+  });
+
+  it("fails closed when an atomic ChangeSet touches a Review without complete operation coverage", async () => {
+    const { session } = await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const submit = await submitChangeSet();
+    if (submit.command.command_name !== "SubmitChangeSet")
+      throw new Error("Expected submit");
+    const changed = structuredClone(submit.command.change_set);
+    changed.content.operations[1]!.target_id =
+      "assertion_01K4F000000000000000000997";
+    changed.content_hash = canonicalHash(changed.content);
+    await corruptStoredRecord(
+      "UPDATE petra.change_sets SET payload = $1, record_hash = $2, content_hash = $3 WHERE change_set_id = $4",
+      [
+        JSON.stringify(changed),
+        canonicalHash(changed),
+        changed.content_hash,
+        changed.change_set_id,
+      ],
+    );
+    await expect(
+      new PostgresReviewRecoveryAssessmentReader(
+        pool,
+      ).getReviewRecoveryAssessment({
+        project_id: session.project_id,
+        review_session_id: session.review_session_id,
+        expected_revision: session.revision,
+        expected_content_hash: session.content_hash,
+      }),
+    ).rejects.toMatchObject({ code: "REVIEW_RECOVERY_INCOMPLETE" });
+  });
+
+  it("separates a failed atomic no-effect attempt from an applied ChangeSet and offers no retry", async () => {
+    const { session } = await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const first = await submitChangeSet();
+    if (first.command.command_name !== "SubmitChangeSet")
+      throw new Error("Expected submit");
+    const second = structuredClone(first);
+    if (second.command.command_name !== "SubmitChangeSet")
+      throw new Error("Expected submit");
+    second.command_id = "command_01K4F000000000000000000990";
+    second.idempotency_key = "recovery:second:submit";
+    second.command.change_set.change_set_id =
+      "change_set_01K4F000000000000000000991";
+    await changes.executeCommand(second);
+    const approve = readFixture<PetraCommandEnvelope>(
+      "command-record-approval",
+    );
+    if (approve.command.command_name !== "RecordApproval")
+      throw new Error("Expected approval");
+    approve.command.approval.subject.change_set_content_hash =
+      first.command.change_set.content_hash;
+    await changes.executeCommand(approve);
+    const approveSecond = structuredClone(approve);
+    if (approveSecond.command.command_name !== "RecordApproval")
+      throw new Error("Expected approval");
+    approveSecond.command_id = "command_01K4F000000000000000000992";
+    approveSecond.idempotency_key = "recovery:second:approve";
+    approveSecond.command.approval.approval_id =
+      "approval_01K4F000000000000000000993";
+    approveSecond.command.approval.subject.change_set_id =
+      second.command.change_set.change_set_id;
+    await changes.executeCommand(approveSecond);
+    session.revision += 1;
+    await bindCurrentSnapshot(session);
+    await sessions.registerReviewSessionRevision(session);
+    const request = {
+      project_id: session.project_id,
+      review_session_id: session.review_session_id,
+      expected_revision: session.revision,
+      expected_content_hash: session.content_hash,
+    };
+    const reader = new PostgresReviewRecoveryAssessmentReader(pool);
+    const waiting = await reader.getReviewRecoveryAssessment(request);
+    expect(
+      waiting?.content.groups.map((g) => [g.state, g.effect, g.next_step]),
+    ).toEqual([
+      ["approved", "unknown", "reconcile_status"],
+      ["approved", "unknown", "reconcile_status"],
+    ]);
+    expect(waiting?.content.actions).toEqual([]);
+    const apply = readFixture<PetraCommandEnvelope>("command-apply-change-set");
+    if (apply.command.command_name !== "ApplyChangeSet")
+      throw new Error("Expected apply");
+    apply.command.change_set_content_hash =
+      first.command.change_set.content_hash;
+    await changes.executeCommand(apply);
+    const fail = structuredClone(apply);
+    if (fail.command.command_name !== "ApplyChangeSet")
+      throw new Error("Expected apply");
+    fail.command_id = "command_01K4F000000000000000000994";
+    fail.idempotency_key = "recovery:second:apply";
+    fail.command.change_set_id = second.command.change_set.change_set_id;
+    fail.command.approval_id = approveSecond.command.approval.approval_id;
+    await expect(changes.executeCommand(fail)).rejects.toMatchObject({
+      code: "STALE_TARGET_REVISION",
+    });
+    const assessed = await reader.getReviewRecoveryAssessment(request);
+    expect(assessed?.content.actions).toEqual([]);
+    expect(
+      assessed?.content.groups.map((g) => [g.state, g.effect, g.next_step]),
+    ).toEqual([
+      ["applied", "applied", "inspect"],
+      ["conflicted", "no_effect", "refresh_or_revise"],
+    ]);
+    expect(assessed?.content.coverage).toMatchObject({
+      review_members: 1,
+      atomic_change_sets: 2,
+      operations: 4,
+    });
+    const failed = assessed?.content.groups[1];
+    expect(failed?.commands.some((c) => c.receipt_state === "failure")).toBe(
+      true,
+    );
+    expect(failed?.member_outcomes[0]?.review_outcome).toBe("conflicted");
+  });
+
   it("composes exact ChangeSet, Approval, command, event, outcome, and projection receipts", async () => {
     const { session } = await setupWorkingReview();
     await sessions.registerReviewSessionRevision(session);
@@ -3033,6 +3310,80 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
       observed_target_sequence: 1,
       pending_records: 1,
     });
+    const assessment = await new PostgresReviewRecoveryAssessmentReader(
+      pool,
+    ).getReviewRecoveryAssessment({
+      project_id: session.project_id,
+      review_session_id: session.review_session_id,
+      expected_revision: session.revision,
+      expected_content_hash: session.content_hash,
+    });
+    expect(assessment?.content.actions).toEqual([]);
+    expect(assessment?.content.groups[0]).toMatchObject({
+      state: "applied",
+      effect: "applied",
+      next_step: "inspect",
+      history_assessment: {
+        content: {
+          decision_boundary: { compensation_execution: "not_performed" },
+        },
+      },
+    });
+    expect(assessment?.content.review.projection.state).toBe("catching_up");
+    expect(assessment?.content.groups[0]?.commands).toHaveLength(3);
+    expect(assessment?.content.groups[0]?.events).toHaveLength(3);
+    const priorRequest = {
+      project_id: session.project_id,
+      review_session_id: session.review_session_id,
+      expected_revision: session.revision,
+      expected_content_hash: session.content_hash,
+    };
+    class ConcurrentHistoryReader extends PostgresProjectHistoryViewReader {
+      override async readRecoveryAssessmentInSnapshot(
+        ...args: Parameters<
+          PostgresProjectHistoryViewReader["readRecoveryAssessmentInSnapshot"]
+        >
+      ) {
+        session.revision += 1;
+        await bindCurrentSnapshot(session);
+        await sessions.registerReviewSessionRevision(session);
+        const retained = await args[0].query<{ current_revision: string }>(
+          "SELECT current_revision::text FROM petra.review_sessions WHERE review_session_id = $1",
+          [session.review_session_id],
+        );
+        expect(retained.rows[0]?.current_revision).toBe(
+          String(priorRequest.expected_revision),
+        );
+        await expect(
+          args[0].query("SHOW transaction_read_only"),
+        ).resolves.toMatchObject({ rows: [{ transaction_read_only: "on" }] });
+        return super.readRecoveryAssessmentInSnapshot(...args);
+      }
+    }
+    const concurrent = await new PostgresReviewRecoveryAssessmentReader(
+      pool,
+      contracts,
+      new ConcurrentHistoryReader(pool),
+    ).getReviewRecoveryAssessment(priorRequest);
+    expect(concurrent?.assessment_id).toBe(assessment?.assessment_id);
+    await expect(
+      new PostgresReviewRecoveryAssessmentReader(
+        pool,
+      ).getReviewRecoveryAssessment(priorRequest),
+    ).rejects.toMatchObject({ code: "REVIEW_RECOVERY_STALE" });
+    await corruptStoredRecord(
+      "UPDATE petra.command_executions SET result = jsonb_set(result, '{outcome}', '\"submitted\"') WHERE command_name = 'ApplyChangeSet'",
+    );
+    await expect(
+      new PostgresReviewRecoveryAssessmentReader(
+        pool,
+      ).getReviewRecoveryAssessment({
+        project_id: session.project_id,
+        review_session_id: session.review_session_id,
+        expected_revision: session.revision,
+        expected_content_hash: session.content_hash,
+      }),
+    ).rejects.toMatchObject({ code: "REVIEW_RECOVERY_CORRUPT" });
   });
 
   it("persists a durable session before any ChangeSet and reads exact source basis", async () => {

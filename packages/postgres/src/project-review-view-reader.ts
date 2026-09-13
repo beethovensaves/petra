@@ -191,6 +191,30 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
     });
   }
 
+  /** Internal composition seam: caller owns a REPEATABLE READ READ ONLY transaction. */
+  async readReviewInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    reviewSessionId: string,
+  ): Promise<
+    | { session: PetraReviewSessionRecord; view: PetraProjectReviewViewRecord }
+    | undefined
+  > {
+    const rows = await this.#selectSessionRows(
+      client,
+      projectId,
+      reviewSessionId,
+    );
+    const row = rows[0];
+    return row === undefined
+      ? undefined
+      : {
+          session: this.#reviewSession(row.session_payload),
+          view: await this.#compose(client, row, readAt),
+        };
+  }
+
   async #selectSessionRows(
     client: PoolClient,
     projectId: string,
