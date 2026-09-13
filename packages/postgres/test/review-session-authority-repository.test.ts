@@ -11,6 +11,7 @@ import type {
   PetraCapabilityGrantV140,
   PetraCapabilityGrantV150,
   PetraCapabilityGrantV160,
+  PetraCapabilityGrantV170,
   PetraClaim,
   PetraCommandEnvelope,
   PetraCommandEnvelopeV140,
@@ -18,6 +19,7 @@ import type {
   PetraCommandEnvelopeV160,
   PetraCommandEnvelopeV170,
   PetraCommandEnvelopeV180,
+  PetraCommandEnvelopeV190,
   PetraParsedDocument,
   PetraProject,
   PetraProjectDefinition,
@@ -51,6 +53,8 @@ import type {
   ReviewSessionLifecycleCommandEnvelope,
   ReviewSessionRefreshAuthorityError,
   ReviewSessionRefreshCommandEnvelope,
+  ReviewSessionSeparationAuthorityError,
+  ReviewSessionSeparationCommandEnvelope,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
@@ -534,6 +538,106 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
     return { project, session, candidate, relationship, actor };
   };
 
+  const addSecondWorkingReviewMember = async (
+    session: PetraReviewSessionV110,
+    candidate: PetraWorkingCandidate,
+    relationship: PetraWorkingRelationship,
+    actor: PetraActor,
+  ): Promise<{
+    candidate: PetraWorkingCandidate;
+    relationship: PetraWorkingRelationship;
+    reviewMemberId: string;
+  }> => {
+    const claim = readFixture<PetraClaim>("claim");
+    claim.claim_id = "claim_01K4F000000000000000000010";
+    claim.created_by = { actor_id: actor.actor_id, actor_kind: "human" };
+    if (claim.basis.basis_kind !== "source") {
+      throw new Error("Expected a source-grounded Claim fixture.");
+    }
+    claim.basis.proposed_by = structuredClone(claim.created_by);
+    const assertion = readFixture<PetraAssertion>("assertion");
+    assertion.assertion_id = "assertion_01K4F000000000000000000011";
+    assertion.object = { object_kind: "entity", entity_id: claim.claim_id };
+    assertion.created_by = structuredClone(claim.created_by);
+    await evidence.proposeClaim(claim);
+    await evidence.proposeAssertion(assertion);
+
+    const secondCandidate = structuredClone(candidate);
+    secondCandidate.working_candidate_id =
+      "working_candidate_01K4F000000000000000000012";
+    secondCandidate.profile_object.object_record_ref = exactRef(
+      claim.schema_name,
+      claim.claim_id,
+      claim.revision,
+      claim,
+    );
+    secondCandidate.validation.target_record_hash = canonicalHash(claim);
+    secondCandidate.content_hash = workingContentHash(secondCandidate);
+
+    const secondRelationship = structuredClone(relationship);
+    secondRelationship.working_relationship_id =
+      "working_relationship_01K4F000000000000000000013";
+    secondRelationship.profile_relationship.relationship_record_ref = exactRef(
+      assertion.schema_name,
+      assertion.assertion_id,
+      assertion.revision,
+      assertion,
+    );
+    secondRelationship.endpoints.object = {
+      endpoint_kind: "working_candidate",
+      candidate_ref: {
+        working_candidate_id: secondCandidate.working_candidate_id,
+        revision: secondCandidate.revision,
+        content_hash: secondCandidate.content_hash,
+      },
+    };
+    secondRelationship.validation.target_record_hash = canonicalHash(assertion);
+    secondRelationship.content_hash = workingContentHash(secondRelationship);
+
+    await working.admitWorkingCandidateRevision({
+      candidate: secondCandidate,
+      profileRecord: claim,
+    });
+    await working.admitWorkingRelationshipRevision({
+      relationship: secondRelationship,
+      profileRecord: assertion,
+    });
+
+    const secondMember = structuredClone(session.content.members[0]);
+    secondMember.review_member_id = "review_member_01K4F000000000000000000014";
+    secondMember.working_state = {
+      candidate_ref: {
+        working_candidate_id: secondCandidate.working_candidate_id,
+        revision: secondCandidate.revision,
+        content_hash: secondCandidate.content_hash,
+      },
+      relationship_refs: [
+        {
+          working_relationship_id: secondRelationship.working_relationship_id,
+          revision: secondRelationship.revision,
+          content_hash: secondRelationship.content_hash,
+        },
+      ],
+    };
+    secondMember.candidate_bindings[0].record_ref = {
+      record_id: claim.claim_id,
+      revision: claim.revision,
+      record_hash: canonicalHash(claim),
+    };
+    secondMember.candidate_bindings[1]!.record_ref = {
+      record_id: assertion.assertion_id,
+      revision: assertion.revision,
+      record_hash: canonicalHash(assertion),
+    };
+    session.content.members.push(secondMember);
+    session.content_hash = canonicalHash(session.content);
+    return {
+      candidate: secondCandidate,
+      relationship: secondRelationship,
+      reviewMemberId: secondMember.review_member_id,
+    };
+  };
+
   const submitChangeSet = async (): Promise<PetraCommandEnvelope> => {
     const submit = readFixture<PetraCommandEnvelope>(
       "command-submit-change-set",
@@ -553,7 +657,7 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
   };
 
   const bindCurrentSnapshot = async (
-    session: PetraReviewSession,
+    session: PetraReviewSession | PetraReviewSessionV110,
   ): Promise<void> => {
     const position = await pool.query<{
       event_position: string;
@@ -1007,6 +1111,61 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
     } satisfies PetraCommandEnvelopeV180;
   };
 
+  const registerSeparationGrant = async (
+    project: PetraProject,
+    actor: PetraActor,
+  ): Promise<PetraCapabilityGrantV170> => {
+    const content: PetraCapabilityGrantV170["content"] = {
+      scope_kind: "project_commands",
+      allowed_commands: ["SeparateReviewSessionMember"],
+      valid_from: "2026-09-01T00:00:00.000Z",
+      reason:
+        "Allow the Project author to explicitly separate one exact Review member.",
+    };
+    const grant: PetraCapabilityGrantV170 = {
+      schema_name: "petra.capability-grant",
+      schema_version: "1.7.0",
+      capability_grant_id: "capability_grant_01K4F000000000000000000100",
+      revision: 1,
+      project_id: project.project_id,
+      grantee: { actor_id: actor.actor_id, actor_kind: "human" },
+      content,
+      content_hash: canonicalHash(content),
+      issued_by: { actor_id: actor.actor_id, actor_kind: "human" },
+      issued_at: "2026-09-01T00:00:00.000Z",
+    };
+    await capabilities.registerCapabilityGrant(grant);
+    return grant;
+  };
+
+  const separationEnvelope = (
+    session: PetraReviewSessionV110,
+    reviewMemberId: string,
+    grant: PetraCapabilityGrantV170,
+    identity: string,
+  ): ReviewSessionSeparationCommandEnvelope =>
+    ({
+      schema_name: "petra.command-envelope",
+      schema_version: "1.9.0",
+      command_id: `command_01K4F000000000000000000${identity}`,
+      idempotency_key: `review-session:001:separation:${identity}`,
+      project_id: session.project_id,
+      actor: structuredClone(grant.grantee),
+      capability_grant_id: grant.capability_grant_id,
+      correlation_id: `trace_01K4F000000000000000000${identity}`,
+      submitted_at: "2026-09-12T22:30:00.000Z",
+      command: {
+        command_name: "SeparateReviewSessionMember",
+        expected_review_session_ref: {
+          review_session_id: session.review_session_id,
+          revision: session.revision,
+          content_hash: session.content_hash,
+          lifecycle: "open",
+        },
+        review_member_id: reviewMemberId,
+      },
+    }) satisfies PetraCommandEnvelopeV190;
+
   it("atomically revises one exact scientific source basis and replays from the canonical command ledger", async () => {
     const { project, session, candidate, relationship, actor } =
       await setupWorkingReview();
@@ -1277,6 +1436,389 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
     ).rejects.toMatchObject({
       code: "REVIEW_CANDIDATE_BASIS_REVISION_IDEMPOTENCY_KEY_REUSED",
     } satisfies Partial<ReviewCandidateBasisRevisionAuthorityError>);
+  });
+
+  it("atomically separates one exact member while retaining candidates and ChangeSet atomicity", async () => {
+    const { project, session, candidate, relationship, actor } =
+      await setupWorkingReview();
+    const second = await addSecondWorkingReviewMember(
+      session,
+      candidate,
+      relationship,
+      actor,
+    );
+    await submitChangeSet();
+    await bindCurrentSnapshot(session);
+    await sessions.registerReviewSessionRevision(session);
+
+    const bypass = structuredClone(session);
+    bypass.revision += 1;
+    bypass.content.members = [structuredClone(session.content.members[0])];
+    bypass.content_hash = canonicalHash(bypass.content);
+    bypass.updated_at = "2026-09-12T22:29:00.000Z";
+    await expect(
+      sessions.registerReviewSessionRevision(bypass),
+    ).rejects.toMatchObject({
+      code: "REVIEW_SESSION_MEMBERSHIP_COMMAND_REQUIRED",
+    } satisfies Partial<PostgresReviewSessionError>);
+
+    const grant = await registerSeparationGrant(project, actor);
+    const envelope = separationEnvelope(
+      session,
+      second.reviewMemberId,
+      grant,
+      "221",
+    );
+    const before = await pool.query<{
+      candidates: string;
+      relationships: string;
+      claims: string;
+      assertions: string;
+      changes: string;
+      approvals: string;
+      events: string;
+      outbox: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.working_candidate_revisions)::text
+           AS candidates,
+         (SELECT count(*) FROM petra.working_relationship_revisions)::text
+           AS relationships,
+         (SELECT count(*) FROM petra.claim_revisions)::text AS claims,
+         (SELECT count(*) FROM petra.assertion_revisions)::text AS assertions,
+         (SELECT count(*) FROM petra.change_sets)::text AS changes,
+         (SELECT count(*) FROM petra.approvals)::text AS approvals,
+         (SELECT count(*) FROM petra.domain_events)::text AS events,
+         (SELECT count(*) FROM petra.outbox_records)::text AS outbox`,
+    );
+
+    const first =
+      await sessions.executeReviewSessionSeparationCommand(envelope);
+
+    expect(first.applied).toBe(true);
+    expect(first.sourceReviewSession).toMatchObject({
+      review_session_id: session.review_session_id,
+      revision: session.revision + 1,
+      content: {
+        lifecycle: "open",
+        members: [
+          { review_member_id: session.content.members[0]?.review_member_id },
+        ],
+      },
+    });
+    expect(first.separatedReviewSession).toMatchObject({
+      revision: 1,
+      project_id: session.project_id,
+      project_definition_ref: session.project_definition_ref,
+      content: {
+        lifecycle: "open",
+        objective_ref: session.content.objective_ref,
+        snapshot: session.content.snapshot,
+        origin: session.content.origin,
+        return_context: session.content.return_context,
+        members: [{ review_member_id: second.reviewMemberId }],
+      },
+    });
+    expect(first.separatedReviewSession.content.members[0]).toEqual(
+      session.content.members[1],
+    );
+    expect(first.receipt.content).toMatchObject({
+      partition: {
+        separated_review_member_id: second.reviewMemberId,
+        retained_review_member_ids: [
+          session.content.members[0]?.review_member_id,
+        ],
+        semantic_unit: "exact_review_member_unchanged",
+        atomicity: "existing_change_sets_retained_without_cross_partition_unit",
+      },
+      preservation: {
+        review_member_identities: "retained_exactly_once",
+        working_candidates: "retained_unchanged",
+        working_relationships: "retained_unchanged",
+        change_sets: "retained_unchanged_atomic_boundaries",
+      },
+      authority_boundary: {
+        review_membership: "separated_explicitly",
+        review_decision: "none",
+        candidate_authority: "none",
+        validation_authority: "none",
+        change_set_authority: "none",
+        approval_authority: "none",
+        domain_authority: "unchanged",
+        domain_event_effect: "none",
+        projection_effect: "none",
+        recovery_effect: "none",
+      },
+    });
+
+    const sourceView = await views.getProjectReviewView(
+      session.project_id,
+      session.review_session_id,
+    );
+    const separatedView = await views.getProjectReviewView(
+      session.project_id,
+      first.separatedReviewSession.review_session_id,
+    );
+    expect(sourceView?.content.members[0]?.change_sets).toHaveLength(1);
+    expect(separatedView?.content.members[0]?.change_sets).toHaveLength(0);
+
+    const replayEnvelope = structuredClone(envelope);
+    replayEnvelope.correlation_id = "trace_01K4F000000000000000000222";
+    replayEnvelope.submitted_at = "2026-09-12T22:30:05.000Z";
+    const replay =
+      await sessions.executeReviewSessionSeparationCommand(replayEnvelope);
+    expect(replay).toEqual({ ...first, applied: false });
+
+    const after = await pool.query<{
+      candidates: string;
+      relationships: string;
+      claims: string;
+      assertions: string;
+      changes: string;
+      approvals: string;
+      events: string;
+      outbox: string;
+      review_revisions: string;
+      review_heads: string;
+      commands: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.working_candidate_revisions)::text
+           AS candidates,
+         (SELECT count(*) FROM petra.working_relationship_revisions)::text
+           AS relationships,
+         (SELECT count(*) FROM petra.claim_revisions)::text AS claims,
+         (SELECT count(*) FROM petra.assertion_revisions)::text AS assertions,
+         (SELECT count(*) FROM petra.change_sets)::text AS changes,
+         (SELECT count(*) FROM petra.approvals)::text AS approvals,
+         (SELECT count(*) FROM petra.domain_events)::text AS events,
+         (SELECT count(*) FROM petra.outbox_records)::text AS outbox,
+         (SELECT count(*) FROM petra.review_session_revisions)::text
+           AS review_revisions,
+         (SELECT count(*) FROM petra.review_sessions)::text AS review_heads,
+         (SELECT count(*) FROM petra.command_executions
+           WHERE command_id = $1)::text AS commands`,
+      [envelope.command_id],
+    );
+    expect(after.rows[0]).toEqual({
+      ...before.rows[0],
+      review_revisions: "3",
+      review_heads: "2",
+      commands: "1",
+    });
+
+    const mismatchedRetry = structuredClone(envelope);
+    mismatchedRetry.command.review_member_id =
+      session.content.members[0].review_member_id;
+    await expect(
+      sessions.executeReviewSessionSeparationCommand(mismatchedRetry),
+    ).rejects.toMatchObject({
+      code: "REVIEW_SESSION_SEPARATION_IDEMPOTENCY_KEY_REUSED",
+    } satisfies Partial<ReviewSessionSeparationAuthorityError>);
+  });
+
+  it("rejects unauthorized, stale, unsupported, and non-separable Review partitions without writes", async () => {
+    const { project, session, actor } = await setupWorkingReview();
+    await sessions.registerReviewSessionRevision(session);
+    const grant = await registerSeparationGrant(project, actor);
+    const envelope = separationEnvelope(
+      session,
+      session.content.members[0].review_member_id,
+      grant,
+      "223",
+    );
+
+    const unauthorized = structuredClone(envelope);
+    unauthorized.capability_grant_id =
+      "capability_grant_01K4F000000000000000000224";
+    await expect(
+      sessions.executeReviewSessionSeparationCommand(unauthorized),
+    ).rejects.toMatchObject({
+      code: "REVIEW_SESSION_SEPARATION_COMMAND_NOT_AUTHORIZED",
+    } satisfies Partial<ReviewSessionSeparationAuthorityError>);
+
+    const stale = structuredClone(envelope);
+    stale.command.expected_review_session_ref.content_hash = `sha256:${"f".repeat(64)}`;
+    await expect(
+      sessions.executeReviewSessionSeparationCommand(stale),
+    ).rejects.toMatchObject({
+      code: "REVIEW_SESSION_SEPARATION_STALE_SESSION",
+    } satisfies Partial<ReviewSessionSeparationAuthorityError>);
+
+    await expect(
+      sessions.executeReviewSessionSeparationCommand(envelope),
+    ).rejects.toMatchObject({
+      code: "REVIEW_SESSION_SEPARATION_MEMBER_NOT_SEPARABLE",
+    } satisfies Partial<ReviewSessionSeparationAuthorityError>);
+
+    const legacy = readFixture<PetraReviewSession>("review-session");
+    legacy.review_session_id = "review_session_01K4F000000000000000000225";
+    legacy.project_definition_ref = {
+      project_definition_id:
+        session.project_definition_ref.project_definition_id,
+      revision: session.project_definition_ref.revision,
+      content_hash: session.project_definition_ref.content_hash,
+    };
+    legacy.content.objective_ref = {
+      objective_id: session.content.objective_ref.objective_id,
+      revision: session.content.objective_ref.revision,
+      content_hash: session.content.objective_ref.content_hash,
+    };
+    legacy.content.members[0].review_member_id =
+      "review_member_01K4F000000000000000000226";
+    legacy.content.members[0].candidate_bindings = structuredClone(
+      session.content.members[0].candidate_bindings,
+    );
+    await bindCurrentSnapshot(legacy);
+    await sessions.registerReviewSessionRevision(legacy);
+    const unsupported: ReviewSessionSeparationCommandEnvelope = {
+      ...structuredClone(envelope),
+      command_id: "command_01K4F000000000000000000227",
+      idempotency_key: "review-session:legacy:separation:227",
+      correlation_id: "trace_01K4F000000000000000000227",
+      command: {
+        command_name: "SeparateReviewSessionMember",
+        expected_review_session_ref: {
+          review_session_id: legacy.review_session_id,
+          revision: legacy.revision,
+          content_hash: legacy.content_hash,
+          lifecycle: "open",
+        },
+        review_member_id: legacy.content.members[0].review_member_id,
+      },
+    };
+    await expect(
+      sessions.executeReviewSessionSeparationCommand(unsupported),
+    ).rejects.toMatchObject({
+      code: "REVIEW_SESSION_SEPARATION_PROFILE_UNSUPPORTED",
+    } satisfies Partial<ReviewSessionSeparationAuthorityError>);
+
+    const counts = await pool.query<{ reviews: string; commands: string }>(
+      `SELECT
+         (SELECT count(*) FROM petra.review_session_revisions)::text AS reviews,
+         (SELECT count(*) FROM petra.command_executions
+           WHERE command_name = 'SeparateReviewSessionMember')::text
+           AS commands`,
+    );
+    expect(counts.rows[0]).toEqual({ reviews: "2", commands: "0" });
+  });
+
+  it("rejects a separation that would split one existing atomic ChangeSet", async () => {
+    const { project, session, candidate, relationship, actor } =
+      await setupWorkingReview();
+    const second = await addSecondWorkingReviewMember(
+      session,
+      candidate,
+      relationship,
+      actor,
+    );
+    const cross = readFixture<PetraCommandEnvelope>(
+      "command-submit-change-set",
+    );
+    if (cross.command.command_name !== "SubmitChangeSet") {
+      throw new Error("Expected SubmitChangeSet fixture.");
+    }
+    cross.actor.actor_kind = "human";
+    cross.command.change_set.change_set_id =
+      "change_set_01K4F000000000000000000229";
+    cross.command.change_set.content.proposed_by = structuredClone(cross.actor);
+    const selectedBindings = session.content.members[1]!.candidate_bindings;
+    cross.command.change_set.content.operations[1]!.target_id =
+      selectedBindings[1]!.record_ref.record_id;
+    cross.command.change_set.content.impact.affected_object_ids = [
+      cross.command.change_set.content.operations[0].target_id,
+      cross.command.change_set.content.operations[1]!.target_id,
+    ];
+    cross.command.change_set.content_hash = canonicalHash(
+      cross.command.change_set.content,
+    );
+    const changeSet = cross.command.change_set;
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(
+        `INSERT INTO petra.change_sets (
+           change_set_id, revision, project_id, origin,
+           proposed_by_actor_id, proposed_by_actor_kind, reason, impact,
+           risk_tier, content_hash, current_state, state_updated_at,
+           record_hash, payload, proposed_at
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10,
+           'submitted', $11::timestamptz, $12, $13::jsonb,
+           $14::timestamptz
+         )`,
+        [
+          changeSet.change_set_id,
+          changeSet.revision,
+          changeSet.content.project_id,
+          changeSet.content.origin,
+          changeSet.content.proposed_by.actor_id,
+          changeSet.content.proposed_by.actor_kind,
+          changeSet.content.reason,
+          JSON.stringify(changeSet.content.impact),
+          changeSet.content.risk_tier,
+          changeSet.content_hash,
+          changeSet.proposed_at,
+          canonicalHash(changeSet),
+          JSON.stringify(changeSet),
+          changeSet.proposed_at,
+        ],
+      );
+      for (const [index, operation] of changeSet.content.operations.entries()) {
+        await client.query(
+          `INSERT INTO petra.change_set_operations (
+             change_set_id, change_set_revision, position, operation_kind,
+             target_id, target_evidence_kind, base_revision, before_zone,
+             before_review_state, after_zone, after_review_state, operation
+           ) VALUES (
+             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb
+           )`,
+          [
+            changeSet.change_set_id,
+            changeSet.revision,
+            index + 1,
+            operation.operation_kind,
+            operation.target_id,
+            operation.operation_kind === "promote_claim"
+              ? "claim"
+              : "assertion",
+            operation.base_revision,
+            operation.before.zone,
+            operation.before.review_state,
+            operation.after.zone,
+            operation.after.review_state,
+            JSON.stringify(operation),
+          ],
+        );
+      }
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+    await bindCurrentSnapshot(session);
+    await sessions.registerReviewSessionRevision(session);
+    const grant = await registerSeparationGrant(project, actor);
+    const envelope = separationEnvelope(
+      session,
+      second.reviewMemberId,
+      grant,
+      "230",
+    );
+
+    await expect(
+      sessions.executeReviewSessionSeparationCommand(envelope),
+    ).rejects.toMatchObject({
+      code: "REVIEW_SESSION_SEPARATION_ATOMICITY_INCOMPATIBLE",
+    } satisfies Partial<ReviewSessionSeparationAuthorityError>);
+    expect(
+      await sessions.getReviewSession(
+        session.project_id,
+        session.review_session_id,
+      ),
+    ).toEqual(session);
   });
 
   it("composes an exact human Claim text edit inside idempotent correction authority", async () => {

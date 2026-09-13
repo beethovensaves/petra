@@ -43,6 +43,7 @@ import {
   ReviewCandidateCorrectionAuthorityError,
   ReviewSessionLifecycleAuthorityError,
   ReviewSessionRefreshAuthorityError,
+  ReviewSessionSeparationAuthorityError,
   derivePetraId,
   type AuthenticatedCommandPrincipalResolver,
   type ReviewInterruptBoundary,
@@ -64,6 +65,8 @@ import {
   type ReviewSessionLifecycleCommandEnvelope,
   type ReviewSessionRefreshAuthorityRepository,
   type ReviewSessionRefreshCommandEnvelope,
+  type ReviewSessionSeparationAuthorityRepository,
+  type ReviewSessionSeparationCommandEnvelope,
   type ProjectShellViewReader,
   type ProjectSourceLifecycleAction,
   type ProjectSourceLifecycleAuthorityRepository,
@@ -111,6 +114,7 @@ export interface PetraAppOptions {
   reviewSessionLifecycleAuthority?: ReviewSessionLifecycleAuthorityRepository;
   reviewSessionRefreshAuthority?: ReviewSessionRefreshAuthorityRepository;
   reviewCandidateBasisRevisionAuthority?: ReviewCandidateBasisRevisionAuthorityRepository;
+  reviewSessionSeparationAuthority?: ReviewSessionSeparationAuthorityRepository;
   reviewCandidateCorrectionAuthority?: ReviewCandidateCorrectionAuthorityRepository;
   projectWorkingStateSnapshots?: ProjectWorkingStateSnapshotReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
@@ -4844,6 +4848,278 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Review candidate basis-revision command failed.",
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/reviews/:reviewSessionId/separation",
+    async (context) => {
+      if (
+        options.commandPrincipalResolver === undefined ||
+        options.reviewSessionSeparationAuthority === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "REVIEW_SESSION_SEPARATION_COMMAND_UNAVAILABLE",
+          "The authenticated ReviewSession separation boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "ReviewSession separation does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const reviewSessionId = context.req.param("reviewSessionId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "ReviewSession separation requires a canonical Project identity.",
+          );
+        }
+        if (!REVIEW_SESSION_ID_PATTERN.test(reviewSessionId)) {
+          throw new InteractionInputError(
+            "ReviewSession separation requires a canonical ReviewSession identity.",
+          );
+        }
+        const body = await readBoundedJson(context, maxBodyBytes);
+        if (!isRecord(body)) {
+          throw new InteractionInputError(
+            "The ReviewSession separation command must be an object.",
+          );
+        }
+        assertExactKeys(
+          body,
+          new Set([
+            "command_id",
+            "idempotency_key",
+            "expected_review_session_ref",
+            "review_member_id",
+          ]),
+          "ReviewSession separation command",
+        );
+        const commandId = requiredString(body, "command_id");
+        const idempotencyKey = requiredString(body, "idempotency_key");
+        const reviewMemberId = requiredString(body, "review_member_id");
+        if (!COMMAND_ID_PATTERN.test(commandId)) {
+          throw new InteractionInputError(
+            "command_id must be a canonical command-prefixed Petra ID.",
+          );
+        }
+        if (!IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) {
+          throw new InteractionInputError(
+            "idempotency_key must satisfy Petra's registered command key format.",
+          );
+        }
+        if (!REVIEW_MEMBER_ID_PATTERN.test(reviewMemberId)) {
+          throw new InteractionInputError(
+            "review_member_id must be a canonical Review member identity.",
+          );
+        }
+        const expectedReviewSessionRef = reviewSessionLifecycleExpectedRef(
+          body.expected_review_session_ref,
+          reviewSessionId,
+          "open",
+        );
+        const commandName = "SeparateReviewSessionMember" as const;
+        try {
+          contracts.assertValid("command-envelope", "1.9.0", {
+            schema_name: "petra.command-envelope",
+            schema_version: "1.9.0",
+            command_id: commandId,
+            idempotency_key: idempotencyKey,
+            project_id: projectId,
+            actor: {
+              actor_id: "actor_00000000000000000000000000",
+              actor_kind: "human",
+            },
+            capability_grant_id: "capability_grant_00000000000000000000000000",
+            correlation_id: "trace_00000000000000000000000000",
+            submitted_at: new Date().toISOString(),
+            command: {
+              command_name: commandName,
+              expected_review_session_ref: expectedReviewSessionRef,
+              review_member_id: reviewMemberId,
+            },
+          });
+        } catch (error) {
+          if (error instanceof ContractRegistryError) {
+            throw new InteractionInputError(
+              "ReviewSession separation does not satisfy its registered exact-session and member contract.",
+              error.validationErrors.map((issue) => issue.instancePath),
+            );
+          }
+          throw error;
+        }
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName,
+          });
+        if (principal.state === "denied") {
+          if (principal.reason === "active_grant_not_found") {
+            return jsonError(
+              context,
+              403,
+              "REVIEW_SESSION_SEPARATION_COMMAND_FORBIDDEN",
+              "The authenticated principal has no active grant for ReviewSession separation.",
+            );
+          }
+          return jsonError(
+            context,
+            503,
+            principal.reason === "actor_not_registered"
+              ? "AUTHENTICATED_ACTOR_UNAVAILABLE"
+              : "PROJECT_COMMAND_AUTHORITY_AMBIGUOUS",
+            principal.reason === "actor_not_registered"
+              ? "The configured authenticated Actor is not registered."
+              : "More than one active grant matches authenticated ReviewSession separation.",
+          );
+        }
+        const envelope: ReviewSessionSeparationCommandEnvelope = {
+          schema_name: "petra.command-envelope",
+          schema_version: "1.9.0",
+          command_id: commandId,
+          idempotency_key: idempotencyKey,
+          project_id: projectId,
+          actor: principal.actor,
+          capability_grant_id: principal.capabilityGrantId,
+          correlation_id: derivePetraId(
+            "trace",
+            `${context.get("requestId")}:${randomUUID()}`,
+          ),
+          submitted_at: new Date().toISOString(),
+          command: {
+            command_name: commandName,
+            expected_review_session_ref: expectedReviewSessionRef,
+            review_member_id: reviewMemberId,
+          },
+        };
+        const result =
+          await options.reviewSessionSeparationAuthority.executeReviewSessionSeparationCommand(
+            envelope,
+          );
+        contracts.assertValid(
+          "review-session-separation-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid(
+          "review-session",
+          "1.1.0",
+          result.sourceReviewSession,
+        );
+        contracts.assertValid(
+          "review-session",
+          "1.1.0",
+          result.separatedReviewSession,
+        );
+        const receipt = result.receipt.content;
+        const sourceRef = receipt.source_resulting_review_session_ref;
+        const separatedRef = receipt.separated_review_session_ref;
+        const separatedMember =
+          result.separatedReviewSession.content.members[0];
+        const sourceMemberIds = result.sourceReviewSession.content.members.map(
+          (member) => member.review_member_id,
+        );
+        const sourceContext = structuredClone(
+          result.sourceReviewSession.content,
+        ) as unknown as Record<string, unknown>;
+        const separatedContext = structuredClone(
+          result.separatedReviewSession.content,
+        ) as unknown as Record<string, unknown>;
+        delete sourceContext.members;
+        delete separatedContext.members;
+        if (
+          result.receipt.project_id !== projectId ||
+          receipt.command_ref.command_id !== commandId ||
+          receipt.command_ref.idempotency_key !== idempotencyKey ||
+          receipt.command_ref.command_name !== commandName ||
+          receipt.source_prior_review_session_ref.review_session_id !==
+            reviewSessionId ||
+          receipt.source_prior_review_session_ref.revision !==
+            expectedReviewSessionRef.revision ||
+          receipt.source_prior_review_session_ref.content_hash !==
+            expectedReviewSessionRef.content_hash ||
+          receipt.partition.separated_review_member_id !== reviewMemberId ||
+          result.sourceReviewSession.project_id !== projectId ||
+          result.sourceReviewSession.review_session_id !== reviewSessionId ||
+          result.sourceReviewSession.revision !== sourceRef.revision ||
+          result.sourceReviewSession.content_hash !== sourceRef.content_hash ||
+          result.sourceReviewSession.content.lifecycle !== "open" ||
+          canonicalize(sourceMemberIds) !==
+            canonicalize(receipt.partition.retained_review_member_ids) ||
+          result.separatedReviewSession.project_id !== projectId ||
+          result.separatedReviewSession.review_session_id !==
+            separatedRef.review_session_id ||
+          result.separatedReviewSession.revision !== separatedRef.revision ||
+          result.separatedReviewSession.content_hash !==
+            separatedRef.content_hash ||
+          result.separatedReviewSession.content.lifecycle !== "open" ||
+          result.separatedReviewSession.content.members.length !== 1 ||
+          separatedMember === undefined ||
+          separatedMember.review_member_id !== reviewMemberId ||
+          canonicalize(sourceContext) !== canonicalize(separatedContext) ||
+          receipt.partition.semantic_unit !== "exact_review_member_unchanged" ||
+          receipt.partition.atomicity !==
+            "existing_change_sets_retained_without_cross_partition_unit" ||
+          typeof result.applied !== "boolean"
+        ) {
+          throw new Error(
+            "The ReviewSession separation authority returned a different command, Project, partition, semantic member, or ReviewSession result.",
+          );
+        }
+        return context.json({
+          receipt: result.receipt,
+          source_review_session: result.sourceReviewSession,
+          separated_review_session: result.separatedReviewSession,
+          applied: result.applied,
+        });
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            422,
+            "REVIEW_SESSION_SEPARATION_COMMAND_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        if (error instanceof ReviewSessionSeparationAuthorityError) {
+          const status =
+            error.code === "REVIEW_SESSION_SEPARATION_COMMAND_NOT_AUTHORIZED"
+              ? 403
+              : error.code === "REVIEW_SESSION_SEPARATION_SESSION_NOT_FOUND"
+                ? 404
+                : error.code ===
+                      "REVIEW_SESSION_SEPARATION_PROFILE_UNSUPPORTED" ||
+                    error.code ===
+                      "REVIEW_SESSION_SEPARATION_MEMBER_NOT_FOUND" ||
+                    error.code ===
+                      "REVIEW_SESSION_SEPARATION_MEMBER_NOT_SEPARABLE" ||
+                    error.code ===
+                      "REVIEW_SESSION_SEPARATION_INCOMPATIBLE_REVISION" ||
+                    error.code ===
+                      "REVIEW_SESSION_SEPARATION_ATOMICITY_INCOMPATIBLE"
+                  ? 422
+                  : error.code ===
+                      "REVIEW_SESSION_SEPARATION_STORED_RECORD_CORRUPT"
+                    ? 503
+                    : 409;
+          return jsonError(context, status, error.code, error.message);
+        }
+        return jsonError(
+          context,
+          503,
+          "REVIEW_SESSION_SEPARATION_COMMAND_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The ReviewSession separation command failed.",
         );
       }
     },

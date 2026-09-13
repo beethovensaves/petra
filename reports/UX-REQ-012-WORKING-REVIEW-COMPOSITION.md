@@ -1,8 +1,8 @@
 # UX-REQ-012 canonical working ReviewSession composition
 
-Status: bounded Wave 4 scientific composition and authenticated defer/reopen
-backend operation complete; other typed Review operations and profile-neutral
-conformance remain open
+Status: bounded Wave 4 scientific composition and authenticated Review
+operations through explicit separation complete; member recovery and
+profile-neutral conformance remain open
 
 ## Result
 
@@ -164,15 +164,16 @@ production build retains the existing non-failing chunk-size advisory.
 
 ## Remaining boundary
 
-This slice composes one task-sized Review over the registered scientific
-Claim–ASSERTS specialization and adds defer/reopen only. It does not add a
-scheduled revisit time, correction or material-basis revision, refresh,
-separation, or member-recovery operations. It also does not establish a second
-profile, multi-member frozen presentation, Brief, communication, direct/model
-entry convergence, or the cumulative Wave 4 exit proof.
+This report's original composition slice covers one task-sized Review over the
+registered scientific Claim–ASSERTS specialization. Later bounded operations
+now add defer/reopen, refresh, Claim-text correction, material-basis revision,
+and explicit member separation through the same Review authority. Member
+recovery and a scheduled external-validator rerun remain open. The accumulated
+work also does not establish a second profile, multi-member frozen
+presentation, Brief, communication, direct/model entry convergence, or the
+cumulative Wave 4 exit proof.
 
-The Wave 4 exit gate is therefore not complete. The next safe design boundary
-is a bounded conformance review of how the existing Review controls should map
-the new typed defer/reopen client without weakening the frozen information
-hierarchy. The next safe backend boundary after that handoff is one other
-smallest default-order item 5 operation required by the exit trace.
+The Wave 4 exit gate is therefore not complete. The operation-specific
+implementation reports identify the next safe design reviews. The next safe
+backend boundary after a design handoff is the smallest remaining default-order
+item 5 operation required by the exit trace.

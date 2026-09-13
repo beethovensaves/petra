@@ -206,3 +206,12 @@ member, and open ReviewSession while retaining prior revisions and resetting
 registered validation to pending. It accepts only exact material inside the
 current active ProjectSource and WorkVersion and creates no decision,
 ChangeSet, Approval, event, projection, or second ledger.
+
+`V040__review_session_member_separation_authority.sql` admits command envelope
+1.9, CapabilityGrant 1.7, and `SeparateReviewSessionMember` in the existing
+canonical command ledger. One serializable command moves one exact unchanged
+member from a fresh open multi-member ReviewSession into a new canonical
+ReviewSession while retaining the source revision and every candidate,
+relationship, basis, validation, ChangeSet, Approval, event, projection, and
+member-outcome identity. A ChangeSet that crosses the requested partition makes
+the member non-separable; separation emits no domain event or projection work.

@@ -6,5 +6,6 @@ export * from "./openai-responses-extractor.js";
 export * from "./review-session-refresh-client.js";
 export * from "./review-candidate-correction-client.js";
 export * from "./review-candidate-basis-revision-client.js";
+export * from "./review-session-separation-client.js";
 
 export const PETRA_ADAPTER_BOUNDARY = "petra-adapters" as const;

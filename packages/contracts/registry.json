@@ -111,6 +111,17 @@
       "typescript_path": "src/generated/capability-grant-v1-6.ts"
     },
     {
+      "name": "capability-grant",
+      "version": "1.7.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.7.0/schema.json",
+      "path": "schemas/capability-grant/1.7.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-review-session-member-separation-command",
+      "canonical_sha256": "sha256:781a8ab4ae0589d458cf2df83d9cec839fc80162ebe17995b08f588a56ec3294",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-7.ts"
+    },
+    {
       "name": "capability-grant-revocation",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/capability-grant-revocation/1.0.0/schema.json",
@@ -727,6 +738,17 @@
       "typescript_path": "src/generated/review-candidate-basis-revision-receipt.ts"
     },
     {
+      "name": "review-session-separation-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-session-separation-receipt/1.0.0/schema.json",
+      "path": "schemas/review-session-separation-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-authenticated-review-session-member-separation-receipt",
+      "canonical_sha256": "sha256:d344ca6f27f9fadf7740045ca333a5d0c68106d9510713ce0b6360487c0109f6",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-session-separation-receipt.ts"
+    },
+    {
       "name": "project-relationship-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-relationship-view/1.0.0/schema.json",
@@ -1142,6 +1164,17 @@
       "canonical_sha256": "sha256:7c07eb097e2456d6021aa3959e3da869ccea37a312e819b5f81ff70e382180d0",
       "generate_typescript": true,
       "typescript_path": "src/generated/command-envelope-v1-8.ts"
+    },
+    {
+      "name": "command-envelope",
+      "version": "1.9.0",
+      "$id": "https://petra.local/schemas/command-envelope/1.9.0/schema.json",
+      "path": "schemas/command-envelope/1.9.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-review-session-member-separation-command",
+      "canonical_sha256": "sha256:a0273c6c2f2782fbae4a66d554fae02ef403ef2c3cb9e3f769973efdeb28f680",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/command-envelope-v1-9.ts"
     },
     {
       "name": "domain-event",

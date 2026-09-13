@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import type {
   PetraAssertion,
+  PetraChangeSetRecord,
   PetraClaim,
   PetraProjectDefinition,
   PetraProjectSource,
@@ -9,6 +10,7 @@ import type {
   PetraReviewCandidateCorrectionReceipt,
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionRefreshReceipt,
+  PetraReviewSessionSeparationReceipt,
   PetraReviewSessionRecord,
   PetraReviewSessionV110,
   PetraWorkingCandidate,
@@ -22,6 +24,7 @@ import {
   ReviewCandidateBasisRevisionAuthorityError,
   ReviewSessionLifecycleAuthorityError,
   ReviewSessionRefreshAuthorityError,
+  ReviewSessionSeparationAuthorityError,
   derivePetraId,
   type ReviewCandidateBasisRevisionAuthorityRepository,
   type ReviewCandidateBasisRevisionCommandEnvelope,
@@ -36,6 +39,9 @@ import {
   type ReviewSessionRefreshAuthorityRepository,
   type ReviewSessionRefreshCommandEnvelope,
   type ReviewSessionRefreshCommandResult,
+  type ReviewSessionSeparationAuthorityRepository,
+  type ReviewSessionSeparationCommandEnvelope,
+  type ReviewSessionSeparationCommandResult,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
@@ -54,6 +60,7 @@ export type PostgresReviewSessionErrorCode =
   | "REVIEW_SESSION_BINDING_UNSUPPORTED"
   | "REVIEW_SESSION_RELATION_INVALID"
   | "REVIEW_SESSION_LIFECYCLE_COMMAND_REQUIRED"
+  | "REVIEW_SESSION_MEMBERSHIP_COMMAND_REQUIRED"
   | "REVIEW_SESSION_STORED_RECORD_CORRUPT";
 
 export class PostgresReviewSessionError extends Error {
@@ -134,7 +141,8 @@ const commandFingerprint = (
     | ReviewSessionLifecycleCommandEnvelope
     | ReviewSessionRefreshCommandEnvelope
     | ReviewCandidateCorrectionAuthorityCommandEnvelope
-    | ReviewCandidateBasisRevisionCommandEnvelope,
+    | ReviewCandidateBasisRevisionCommandEnvelope
+    | ReviewSessionSeparationCommandEnvelope,
 ): string => {
   const { correlation_id, submitted_at, ...governedCommand } = envelope;
   void correlation_id;
@@ -153,6 +161,25 @@ const sessionRef = (
   lifecycle: session.content.lifecycle,
 });
 
+const openSessionRef = (
+  session: PetraReviewSessionV110,
+  recordHash: string,
+): PetraReviewSessionSeparationReceipt["content"]["source_prior_review_session_ref"] => {
+  if (session.content.lifecycle !== "open") {
+    throw new PostgresReviewSessionError(
+      "REVIEW_SESSION_STORED_RECORD_CORRUPT",
+      "An explicit separation result must reference only open ReviewSessions.",
+    );
+  }
+  return {
+    review_session_id: session.review_session_id,
+    revision: session.revision,
+    content_hash: session.content_hash,
+    record_hash: recordHash,
+    lifecycle: "open",
+  };
+};
+
 const evidenceKind = (recordId: string): "claim" | "assertion" => {
   if (recordId.startsWith("claim_")) return "claim";
   if (recordId.startsWith("assertion_")) return "assertion";
@@ -168,7 +195,8 @@ export class PostgresReviewSessionAuthorityRepository
     ReviewSessionLifecycleAuthorityRepository,
     ReviewSessionRefreshAuthorityRepository,
     ReviewCandidateCorrectionAuthorityRepository,
-    ReviewCandidateBasisRevisionAuthorityRepository
+    ReviewCandidateBasisRevisionAuthorityRepository,
+    ReviewSessionSeparationAuthorityRepository
 {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
@@ -295,6 +323,19 @@ export class PostgresReviewSessionAuthorityRepository
           throw new PostgresReviewSessionError(
             "REVIEW_SESSION_LIFECYCLE_COMMAND_REQUIRED",
             "ReviewSession lifecycle changes require the authenticated defer or reopen command boundary.",
+          );
+        }
+        if (
+          canonicalize(
+            session.content.members.map((member) => member.review_member_id),
+          ) !==
+          canonicalize(
+            current.content.members.map((member) => member.review_member_id),
+          )
+        ) {
+          throw new PostgresReviewSessionError(
+            "REVIEW_SESSION_MEMBERSHIP_COMMAND_REQUIRED",
+            "ReviewSession member partitions and ordering require the authenticated separation command boundary.",
           );
         }
       }
@@ -686,6 +727,263 @@ export class PostgresReviewSessionAuthorityRepository
           "REVIEW_SESSION_REFRESH_STALE_SESSION",
           pgError.message ??
             "The ReviewSession refresh conflicted with current state.",
+        );
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async executeReviewSessionSeparationCommand(
+    envelope: ReviewSessionSeparationCommandEnvelope,
+  ): Promise<ReviewSessionSeparationCommandResult> {
+    this.#contracts.assertValid("command-envelope", "1.9.0", envelope);
+    if (envelope.command.command_name !== "SeparateReviewSessionMember") {
+      throw this.#separationError(
+        "REVIEW_SESSION_SEPARATION_INCOMPATIBLE_REVISION",
+        "The ReviewSession separation boundary accepts only SeparateReviewSessionMember.",
+      );
+    }
+    const fingerprint = commandFingerprint(envelope);
+    const separatedReviewSessionId = this.#separatedReviewSessionId(envelope);
+    const client = await this.#pool.connect();
+    try {
+      await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
+      await this.#lockSeparationCommand(
+        client,
+        envelope,
+        separatedReviewSessionId,
+      );
+      if (
+        envelope.actor.actor_kind !== "human" ||
+        this.#commandAuthorizer === undefined ||
+        !(await this.#commandAuthorizer.authorize(
+          {
+            actor: envelope.actor,
+            capabilityGrantId: envelope.capability_grant_id,
+            commandName: "SeparateReviewSessionMember",
+            projectId: envelope.project_id,
+          },
+          client,
+        ))
+      ) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_COMMAND_NOT_AUTHORIZED",
+          `Capability ${envelope.capability_grant_id} does not authorize human ReviewSession separation.`,
+        );
+      }
+      const replay = await this.#replaySeparationCommand(
+        client,
+        envelope,
+        fingerprint,
+      );
+      if (replay !== undefined) {
+        await client.query("COMMIT");
+        return replay;
+      }
+      await this.#requireSeparationCommandContext(client, envelope);
+
+      const currentRow = await this.#currentSessionForLifecycle(
+        client,
+        envelope.command.expected_review_session_ref.review_session_id,
+      );
+      if (currentRow === undefined) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_SESSION_NOT_FOUND",
+          "The requested ReviewSession is not registered.",
+        );
+      }
+      const current = this.#stored(currentRow);
+      if (current.project_id !== envelope.project_id) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_PROJECT_MISMATCH",
+          "The ReviewSession and separation command must belong to the same Project.",
+        );
+      }
+      const expected = envelope.command.expected_review_session_ref;
+      if (
+        current.review_session_id !== expected.review_session_id ||
+        current.revision !== expected.revision ||
+        current.content_hash !== expected.content_hash ||
+        current.content.lifecycle !== expected.lifecycle
+      ) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_STALE_SESSION",
+          "Separation must name the exact current ReviewSession identity, revision, content hash, and lifecycle.",
+        );
+      }
+      if (current.content.lifecycle !== "open") {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_LIFECYCLE_INVALID",
+          "Separation requires an open ReviewSession.",
+        );
+      }
+      if (current.schema_version !== "1.1.0") {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_PROFILE_UNSUPPORTED",
+          "Separation currently supports only ReviewSession 1.1 canonical working-state membership.",
+        );
+      }
+      if (current.content.members.length < 2) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_MEMBER_NOT_SEPARABLE",
+          "An independently reviewable partition requires at least two members in the source ReviewSession.",
+        );
+      }
+      const memberIndex = current.content.members.findIndex(
+        (member) =>
+          member.review_member_id === envelope.command.review_member_id,
+      );
+      if (memberIndex < 0) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_MEMBER_NOT_FOUND",
+          "The requested Review member does not belong to the exact ReviewSession revision.",
+        );
+      }
+
+      const authority = await this.#separationAuthorityPosition(
+        client,
+        current.project_id,
+      );
+      if (
+        current.content.snapshot.event_position !== authority.event_position ||
+        current.content.snapshot.stream_revision !== authority.stream_revision
+      ) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_STALE_SESSION",
+          "Separation requires a ReviewSession bound to the current Project authority; refresh it first.",
+        );
+      }
+      await this.#requireSeparationDefinition(client, current);
+      await this.#requireSeparationObjective(client, current);
+      this.#assertUnambiguousSeparationMembership(current);
+      await this.#assertSeparableChangeSets(client, current, memberIndex);
+
+      const existingDestination = await client.query(
+        `SELECT true
+           FROM petra.review_sessions
+          WHERE review_session_id = $1`,
+        [separatedReviewSessionId],
+      );
+      if (existingDestination.rowCount !== 0) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_DESTINATION_CONFLICT",
+          "The deterministic separated ReviewSession identity is already registered without this exact command result.",
+        );
+      }
+
+      const recordedAt = this.#now();
+      const selectedMember = clone(current.content.members[memberIndex]!);
+      const retainedMembers = current.content.members
+        .filter((_, index) => index !== memberIndex)
+        .map((member) => clone(member));
+
+      const source = clone(current);
+      source.revision += 1;
+      source.content.members =
+        retainedMembers as PetraReviewSessionV110["content"]["members"];
+      source.content_hash = canonicalHash(source.content);
+      source.updated_at = recordedAt;
+
+      const separated = clone(current);
+      separated.review_session_id = separatedReviewSessionId;
+      separated.revision = 1;
+      separated.content.members = [selectedMember];
+      separated.content_hash = canonicalHash(separated.content);
+      separated.created_by = {
+        actor_id: envelope.actor.actor_id,
+        actor_kind: "human",
+      };
+      separated.created_at = recordedAt;
+      separated.updated_at = recordedAt;
+
+      this.#contracts.assertValid("review-session", "1.1.0", separated);
+      this.#contracts.assertValid("review-session", "1.1.0", source);
+      this.#assertBindings(source);
+      this.#assertBindings(separated);
+      const sourceRecordHash = canonicalHash(source);
+      const separatedRecordHash = canonicalHash(separated);
+      const receipt = this.#separationReceipt(
+        envelope,
+        fingerprint,
+        current,
+        currentRow.record_hash,
+        source,
+        sourceRecordHash,
+        separated,
+        separatedRecordHash,
+        retainedMembers.map((member) => member.review_member_id),
+        recordedAt,
+      );
+
+      await this.#insertSeparationCommandExecution(
+        client,
+        envelope,
+        fingerprint,
+        receipt,
+        recordedAt,
+      );
+      await this.#insertRevision(client, source, sourceRecordHash);
+      await client.query(
+        `INSERT INTO petra.review_sessions (
+           review_session_id, project_id, current_revision,
+           created_by_actor_id, created_by_actor_kind, created_at
+         ) VALUES ($1, $2, 1, $3, $4, $5::timestamptz)`,
+        [
+          separated.review_session_id,
+          separated.project_id,
+          separated.created_by.actor_id,
+          separated.created_by.actor_kind,
+          separated.created_at,
+        ],
+      );
+      await this.#insertRevision(client, separated, separatedRecordHash);
+      const advanced = await client.query(
+        `UPDATE petra.review_sessions
+            SET current_revision = $2
+          WHERE review_session_id = $1
+            AND project_id = $3
+            AND current_revision = $4`,
+        [
+          source.review_session_id,
+          source.revision,
+          source.project_id,
+          current.revision,
+        ],
+      );
+      if (advanced.rowCount !== 1) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_STALE_SESSION",
+          "The source ReviewSession head changed before separation could commit.",
+        );
+      }
+      await client.query("COMMIT");
+      return {
+        receipt: clone(receipt),
+        sourceReviewSession: clone(source),
+        separatedReviewSession: clone(separated),
+        applied: true,
+      };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      if (error instanceof ReviewSessionSeparationAuthorityError) throw error;
+      if (error instanceof PostgresReviewSessionError) {
+        throw this.#separationCorrupt(error.message);
+      }
+      const pgError = error as PgError;
+      if (pgError.code === "23514" || pgError.code === "23503") {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_INCOMPATIBLE_REVISION",
+          pgError.message ??
+            "The separated ReviewSessions no longer satisfy their exact retained bindings.",
+        );
+      }
+      if (pgError.code === "40001" || pgError.code === "23505") {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_STALE_SESSION",
+          pgError.message ??
+            "ReviewSession separation conflicted with current state.",
         );
       }
       throw error;
@@ -1424,6 +1722,238 @@ export class PostgresReviewSessionAuthorityRepository
     return result.rows.map((row) => this.#stored(row));
   }
 
+  async #requireSeparationCommandContext(
+    client: PoolClient,
+    envelope: ReviewSessionSeparationCommandEnvelope,
+  ): Promise<void> {
+    const result = await client.query<{ actor_kind: string }>(
+      `SELECT actor.actor_kind
+         FROM petra.projects AS project
+         JOIN petra.actors AS actor ON actor.actor_id = $2
+        WHERE project.project_id = $1`,
+      [envelope.project_id, envelope.actor.actor_id],
+    );
+    if (
+      result.rows[0]?.actor_kind !== "human" ||
+      envelope.actor.actor_kind !== "human"
+    ) {
+      throw this.#separationError(
+        "REVIEW_SESSION_SEPARATION_PROJECT_MISMATCH",
+        "The separation Project and human Actor must resolve exactly in local authority.",
+      );
+    }
+  }
+
+  async #separationAuthorityPosition(
+    client: PoolClient,
+    projectId: string,
+  ): Promise<{ event_position: number; stream_revision: number }> {
+    const result = await client.query<AuthorityPositionRow>(
+      `SELECT authority.event_position,
+              stream.current_stream_revision AS stream_revision
+         FROM petra.authority_positions AS authority
+         LEFT JOIN petra.project_event_stream_heads AS stream
+           ON stream.project_id = $1
+        WHERE authority.singleton
+        FOR SHARE OF authority`,
+      [projectId],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw this.#separationCorrupt(
+        "The PostgreSQL authority position is unavailable for Review separation.",
+      );
+    }
+    return {
+      event_position: Number(row.event_position),
+      stream_revision: Number(row.stream_revision ?? 0),
+    };
+  }
+
+  async #requireSeparationDefinition(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+  ): Promise<void> {
+    const ref = session.project_definition_ref;
+    const result = await client.query<CurrentDefinitionRow>(
+      `SELECT revision.payload, revision.record_hash,
+              head.definition_family
+         FROM petra.project_definitions AS head
+         JOIN petra.project_definition_revisions AS revision
+           ON revision.project_definition_id = head.project_definition_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND head.project_definition_id = $2
+          AND head.current_revision = $3
+          AND revision.content_hash = $4
+        FOR SHARE OF head`,
+      [
+        session.project_id,
+        ref.project_definition_id,
+        ref.revision,
+        ref.content_hash,
+      ],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw this.#separationError(
+        "REVIEW_SESSION_SEPARATION_INCOMPATIBLE_REVISION",
+        "Separation requires the ReviewSession's exact ProjectDefinition to remain current.",
+      );
+    }
+    if (row.definition_family !== "petra.scientific-evidence") {
+      throw this.#separationError(
+        "REVIEW_SESSION_SEPARATION_PROFILE_UNSUPPORTED",
+        "The first persisted Review separation adapter supports only the registered scientific-evidence profile.",
+      );
+    }
+    this.#contracts.assertValid("project-definition", "1.0.0", row.payload);
+    const definition = clone(row.payload as PetraProjectDefinition);
+    if (
+      row.record_hash !== canonicalHash(definition) ||
+      definition.content_hash !== canonicalHash(definition.content) ||
+      definition.project_id !== session.project_id ||
+      definition.project_definition_id !== ref.project_definition_id ||
+      definition.revision !== ref.revision ||
+      definition.content_hash !== ref.content_hash ||
+      definition.definition_family !== row.definition_family
+    ) {
+      throw this.#separationCorrupt(
+        "The current ProjectDefinition does not match its exact ReviewSession binding.",
+      );
+    }
+  }
+
+  async #requireSeparationObjective(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+  ): Promise<void> {
+    const ref = session.content.objective_ref;
+    const result = await client.query(
+      `SELECT true
+         FROM petra.project_objectives AS head
+         JOIN petra.project_objective_revisions AS revision
+           ON revision.objective_id = head.objective_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND head.objective_id = $2
+          AND head.current_revision = $3
+          AND revision.content_hash = $4
+        FOR SHARE OF head`,
+      [session.project_id, ref.objective_id, ref.revision, ref.content_hash],
+    );
+    if (result.rowCount !== 1) {
+      throw this.#separationError(
+        "REVIEW_SESSION_SEPARATION_INCOMPATIBLE_REVISION",
+        "Separation requires the ReviewSession's exact Objective to remain current.",
+      );
+    }
+  }
+
+  #assertUnambiguousSeparationMembership(
+    session: PetraReviewSessionV110,
+  ): void {
+    const profileOwners = new Map<string, string>();
+    for (const member of session.content.members) {
+      for (const binding of member.candidate_bindings) {
+        const existing = profileOwners.get(binding.record_ref.record_id);
+        if (existing !== undefined && existing !== member.review_member_id) {
+          throw this.#separationError(
+            "REVIEW_SESSION_SEPARATION_AMBIGUOUS_MEMBERSHIP",
+            "One profile record is owned by more than one Review member, so Petra cannot separate an exact semantic unit.",
+          );
+        }
+        profileOwners.set(
+          binding.record_ref.record_id,
+          member.review_member_id,
+        );
+      }
+    }
+  }
+
+  async #assertSeparableChangeSets(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+    selectedMemberIndex: number,
+  ): Promise<void> {
+    const recordOwners = new Map<string, string>();
+    for (const member of session.content.members) {
+      for (const binding of member.candidate_bindings) {
+        recordOwners.set(binding.record_ref.record_id, member.review_member_id);
+      }
+    }
+    const selectedMemberId =
+      session.content.members[selectedMemberIndex]!.review_member_id;
+    const result = await client.query<StoredRow>(
+      `SELECT payload, record_hash
+         FROM petra.change_sets
+        WHERE project_id = $1
+        FOR SHARE`,
+      [session.project_id],
+    );
+    for (const row of result.rows) {
+      const version = (row.payload as { schema_version?: unknown })
+        .schema_version;
+      if (version !== "1.0.0" && version !== "1.1.0") {
+        throw this.#separationCorrupt(
+          "A stored ChangeSet has an unsupported schema version during Review separation.",
+        );
+      }
+      this.#contracts.assertValid("change-set", version, row.payload);
+      const changeSet = clone(row.payload as PetraChangeSetRecord);
+      if (
+        row.record_hash !== canonicalHash(changeSet) ||
+        changeSet.content_hash !== canonicalHash(changeSet.content)
+      ) {
+        throw this.#separationCorrupt(
+          "A stored ChangeSet has invalid canonical hashes during Review separation.",
+        );
+      }
+      const targetOwners = changeSet.content.operations.map((operation) =>
+        recordOwners.get(operation.target_id),
+      );
+      const representedOwners = new Set(
+        targetOwners.filter((owner): owner is string => owner !== undefined),
+      );
+      if (representedOwners.size === 0) continue;
+      if (
+        representedOwners.size > 1 ||
+        targetOwners.some((owner) => owner === undefined)
+      ) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_ATOMICITY_INCOMPATIBLE",
+          "An existing atomic ChangeSet crosses or extends beyond the requested Review-member partition.",
+        );
+      }
+      const owner = [...representedOwners][0]!;
+      const owningMember = session.content.members.find(
+        (member) => member.review_member_id === owner,
+      );
+      if (owningMember === undefined) {
+        throw this.#separationCorrupt(
+          "A ChangeSet owner disappeared from the exact ReviewSession membership.",
+        );
+      }
+      const ownedTargets = new Set(
+        owningMember.candidate_bindings.map(
+          (binding) => binding.record_ref.record_id,
+        ),
+      );
+      if (
+        changeSet.content.operations.length !== ownedTargets.size ||
+        changeSet.content.operations.some(
+          (operation) => !ownedTargets.has(operation.target_id),
+        )
+      ) {
+        const partition = owner === selectedMemberId ? "selected" : "retained";
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_ATOMICITY_INCOMPATIBLE",
+          `The ${partition} Review member does not own the complete existing ChangeSet semantic unit.`,
+        );
+      }
+    }
+  }
+
   async #lockRefreshCommand(
     client: PoolClient,
     envelope: ReviewSessionRefreshCommandEnvelope,
@@ -1514,6 +2044,143 @@ export class PostgresReviewSessionAuthorityRepository
       );
     }
     return { receipt, reviewSession, applied: false };
+  }
+
+  #separatedReviewSessionId(
+    envelope: ReviewSessionSeparationCommandEnvelope,
+  ): string {
+    const expected = envelope.command.expected_review_session_ref;
+    return derivePetraId(
+      "review_session",
+      `${expected.review_session_id}|${expected.revision}|${expected.content_hash}|${envelope.command.review_member_id}|separated`,
+    );
+  }
+
+  async #lockSeparationCommand(
+    client: PoolClient,
+    envelope: ReviewSessionSeparationCommandEnvelope,
+    separatedReviewSessionId: string,
+  ): Promise<void> {
+    const keys = [
+      `command:${envelope.command_id}`,
+      `idempotency:${envelope.idempotency_key}`,
+      `project:${envelope.project_id}`,
+      `review-session:${envelope.command.expected_review_session_ref.review_session_id}`,
+      `review-session:${separatedReviewSessionId}`,
+    ].sort();
+    for (const key of keys) {
+      await client.query(
+        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+        [key],
+      );
+    }
+  }
+
+  async #replaySeparationCommand(
+    client: PoolClient,
+    envelope: ReviewSessionSeparationCommandEnvelope,
+    fingerprint: string,
+  ): Promise<ReviewSessionSeparationCommandResult | undefined> {
+    const byIdempotency = await client.query<CommandExecutionRow>(
+      `SELECT command_id, command_fingerprint, result
+         FROM petra.command_executions
+        WHERE idempotency_key = $1`,
+      [envelope.idempotency_key],
+    );
+    const idempotent = byIdempotency.rows[0];
+    if (idempotent !== undefined) {
+      if (idempotent.command_fingerprint !== fingerprint) {
+        throw this.#separationError(
+          "REVIEW_SESSION_SEPARATION_IDEMPOTENCY_KEY_REUSED",
+          "The idempotency key is already bound to different separation content.",
+        );
+      }
+      return this.#replayedSeparationResult(client, idempotent);
+    }
+    const byCommand = await client.query<CommandExecutionRow>(
+      `SELECT command_id, command_fingerprint, result
+         FROM petra.command_executions
+        WHERE command_id = $1`,
+      [envelope.command_id],
+    );
+    const command = byCommand.rows[0];
+    if (command === undefined) return undefined;
+    if (command.command_fingerprint !== fingerprint) {
+      throw this.#separationError(
+        "REVIEW_SESSION_SEPARATION_COMMAND_ID_REUSED",
+        "The command identity is already bound to different separation content.",
+      );
+    }
+    return this.#replayedSeparationResult(client, command);
+  }
+
+  async #replayedSeparationResult(
+    client: PoolClient,
+    row: CommandExecutionRow,
+  ): Promise<ReviewSessionSeparationCommandResult> {
+    const receipt = this.#storedSeparationReceipt(row.result);
+    if (receipt.content.command_ref.command_id !== row.command_id) {
+      throw this.#separationCorrupt(
+        "A retained ReviewSession separation result has a different command identity.",
+      );
+    }
+    const sourceRef = receipt.content.source_resulting_review_session_ref;
+    const separatedRef = receipt.content.separated_review_session_ref;
+    const sourceRow = await this.#sessionRevision(
+      client,
+      sourceRef.review_session_id,
+      sourceRef.revision,
+    );
+    const separatedRow = await this.#sessionRevision(
+      client,
+      separatedRef.review_session_id,
+      separatedRef.revision,
+    );
+    if (sourceRow === undefined || separatedRow === undefined) {
+      throw this.#separationCorrupt(
+        "A persisted separation command lost one of its resulting ReviewSession revisions.",
+      );
+    }
+    const sourceReviewSession = this.#stored(sourceRow);
+    const separatedReviewSession = this.#stored(separatedRow);
+    if (
+      sourceReviewSession.schema_version !== "1.1.0" ||
+      separatedReviewSession.schema_version !== "1.1.0" ||
+      sourceReviewSession.project_id !== receipt.project_id ||
+      separatedReviewSession.project_id !== receipt.project_id ||
+      sourceReviewSession.content_hash !== sourceRef.content_hash ||
+      separatedReviewSession.content_hash !== separatedRef.content_hash ||
+      sourceReviewSession.content.lifecycle !== "open" ||
+      separatedReviewSession.content.lifecycle !== "open" ||
+      sourceRow.record_hash !== sourceRef.record_hash ||
+      separatedRow.record_hash !== separatedRef.record_hash
+    ) {
+      throw this.#separationCorrupt(
+        "The retained separation result no longer resolves its exact ReviewSession revisions.",
+      );
+    }
+    const separatedMemberId =
+      receipt.content.partition.separated_review_member_id;
+    if (
+      separatedReviewSession.content.members.length !== 1 ||
+      separatedReviewSession.content.members[0]?.review_member_id !==
+        separatedMemberId ||
+      canonicalize(
+        sourceReviewSession.content.members.map(
+          (member) => member.review_member_id,
+        ),
+      ) !== canonicalize(receipt.content.partition.retained_review_member_ids)
+    ) {
+      throw this.#separationCorrupt(
+        "The retained separation partition no longer matches its exact Review members.",
+      );
+    }
+    return {
+      receipt,
+      sourceReviewSession,
+      separatedReviewSession,
+      applied: false,
+    };
   }
 
   async #lockCorrectionCommand(
@@ -4280,6 +4947,143 @@ export class PostgresReviewSessionAuthorityRepository
     }
   }
 
+  #separationReceipt(
+    envelope: ReviewSessionSeparationCommandEnvelope,
+    fingerprint: string,
+    prior: PetraReviewSessionV110,
+    priorRecordHash: string,
+    source: PetraReviewSessionV110,
+    sourceRecordHash: string,
+    separated: PetraReviewSessionV110,
+    separatedRecordHash: string,
+    retainedMemberIds: string[],
+    recordedAt: string,
+  ): PetraReviewSessionSeparationReceipt {
+    const content: PetraReviewSessionSeparationReceipt["content"] = {
+      command_ref: {
+        command_id: envelope.command_id,
+        idempotency_key: envelope.idempotency_key,
+        command_name: "SeparateReviewSessionMember",
+        command_fingerprint: fingerprint,
+        actor: clone(envelope.actor),
+        capability_grant_id: envelope.capability_grant_id,
+        correlation_id: envelope.correlation_id,
+      },
+      source_prior_review_session_ref: openSessionRef(prior, priorRecordHash),
+      source_resulting_review_session_ref: openSessionRef(
+        source,
+        sourceRecordHash,
+      ),
+      separated_review_session_ref: openSessionRef(
+        separated,
+        separatedRecordHash,
+      ),
+      partition: {
+        separated_review_member_id: envelope.command.review_member_id,
+        retained_review_member_ids:
+          retainedMemberIds as PetraReviewSessionSeparationReceipt["content"]["partition"]["retained_review_member_ids"],
+        semantic_unit: "exact_review_member_unchanged",
+        atomicity: "existing_change_sets_retained_without_cross_partition_unit",
+      },
+      preservation: {
+        prior_review_revision: "retained",
+        review_member_identities: "retained_exactly_once",
+        working_candidates: "retained_unchanged",
+        working_relationships: "retained_unchanged",
+        profile_records: "retained_unchanged",
+        basis_and_provenance: "retained_unchanged",
+        validation_records: "retained_unchanged",
+        change_sets: "retained_unchanged_atomic_boundaries",
+        approvals: "retained_unchanged",
+        command_events: "retained_unchanged",
+        projection_receipts: "retained_unchanged",
+        member_outcomes: "retained_derived_from_existing_authority",
+      },
+      authority_boundary: {
+        review_membership: "separated_explicitly",
+        review_decision: "none",
+        candidate_authority: "none",
+        validation_authority: "none",
+        change_set_authority: "none",
+        approval_authority: "none",
+        domain_authority: "unchanged",
+        domain_event_effect: "none",
+        projection_effect: "none",
+        recovery_effect: "none",
+      },
+    };
+    const receipt: PetraReviewSessionSeparationReceipt = {
+      schema_name: "petra.review-session-separation-receipt",
+      schema_version: "1.0.0",
+      review_session_separation_receipt_id: derivePetraId(
+        "review_separation_receipt",
+        envelope.command_id,
+      ),
+      revision: 1,
+      project_id: envelope.project_id,
+      content,
+      content_hash: canonicalHash(content),
+      recorded_at: recordedAt,
+    };
+    this.#contracts.assertValid(
+      "review-session-separation-receipt",
+      "1.0.0",
+      receipt,
+    );
+    return receipt;
+  }
+
+  async #insertSeparationCommandExecution(
+    client: PoolClient,
+    envelope: ReviewSessionSeparationCommandEnvelope,
+    fingerprint: string,
+    receipt: PetraReviewSessionSeparationReceipt,
+    completedAt: string,
+  ): Promise<void> {
+    await client.query(
+      `INSERT INTO petra.command_executions (
+         command_id, idempotency_key, project_id, actor_id, actor_kind,
+         capability_grant_id, correlation_id, submitted_at, command_name,
+         command_fingerprint, envelope, outcome_kind, result, error_code,
+         error_message, completed_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9, $10,
+                 $11::jsonb, 'success', $12::jsonb, NULL, NULL,
+                 $13::timestamptz)`,
+      [
+        envelope.command_id,
+        envelope.idempotency_key,
+        envelope.project_id,
+        envelope.actor.actor_id,
+        envelope.actor.actor_kind,
+        envelope.capability_grant_id,
+        envelope.correlation_id,
+        envelope.submitted_at,
+        envelope.command.command_name,
+        fingerprint,
+        JSON.stringify(envelope),
+        JSON.stringify(receipt),
+        completedAt,
+      ],
+    );
+  }
+
+  #storedSeparationReceipt(
+    value: unknown,
+  ): PetraReviewSessionSeparationReceipt {
+    this.#contracts.assertValid(
+      "review-session-separation-receipt",
+      "1.0.0",
+      value,
+    );
+    const receipt = clone(value as PetraReviewSessionSeparationReceipt);
+    if (receipt.content_hash !== canonicalHash(receipt.content)) {
+      throw this.#separationCorrupt(
+        "A retained ReviewSession separation result does not match its canonical content hash.",
+      );
+    }
+    return receipt;
+  }
+
   #refreshReceipt(
     envelope: ReviewSessionRefreshCommandEnvelope,
     fingerprint: string,
@@ -4622,6 +5426,22 @@ export class PostgresReviewSessionAuthorityRepository
   #refreshCorrupt(message: string): ReviewSessionRefreshAuthorityError {
     return this.#refreshError(
       "REVIEW_SESSION_REFRESH_STORED_RECORD_CORRUPT",
+      message,
+    );
+  }
+
+  #separationError(
+    code: ConstructorParameters<
+      typeof ReviewSessionSeparationAuthorityError
+    >[0],
+    message: string,
+  ): ReviewSessionSeparationAuthorityError {
+    return new ReviewSessionSeparationAuthorityError(code, message);
+  }
+
+  #separationCorrupt(message: string): ReviewSessionSeparationAuthorityError {
+    return this.#separationError(
+      "REVIEW_SESSION_SEPARATION_STORED_RECORD_CORRUPT",
       message,
     );
   }
