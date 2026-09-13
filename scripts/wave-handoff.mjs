@@ -853,13 +853,20 @@ function doctor(wave) {
   requireCleanAndPushed("backend", backend);
   requireCleanAndPushed("design", design);
   const version = run(codexExecutable(), ["--version"], backendRoot);
+  const state = readState(wave);
+  const nextWorker =
+    state?.status === "waiting"
+      ? state.next_role
+      : state
+        ? `none (${state.status})`
+        : "backend";
   process.stdout.write(
     [
       `Wave ${wave} handoff is ready.`,
       `Codex: ${version}`,
       `Backend: ${backend.head}`,
       `Design: ${design.head}`,
-      "Next worker: backend",
+      `Next worker: ${nextWorker}`,
     ].join("\n") + "\n",
   );
 }
