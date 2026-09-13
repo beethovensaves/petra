@@ -19,8 +19,165 @@ const request = (plan: PetraCommunicationPlan) => ({
   response_record_hash: "sha256:placeholder",
   locale: "en",
 });
-import { communicationHash } from "@petra/core";
+import { communicationHash, composeCommunicationPlan } from "@petra/core";
+import { PetraContractRegistry } from "@petra/contracts/validator";
+const contracts = new PetraContractRegistry();
+const composed = (linked: boolean, complete = false) => {
+  const sources = fixture().content;
+  if (complete) {
+    const output = sources.model_call.content.output!;
+    output.statements = [output.statements[2]!];
+    sources.model_call.content_hash = communicationHash(
+      sources.model_call.content,
+    );
+    sources.source_response.content.model_output_hash =
+      communicationHash(output);
+    sources.source_response.content_hash = communicationHash(
+      sources.source_response.content,
+    );
+    sources.current_response = structuredClone(sources.source_response);
+  }
+  if (linked) {
+    const invocation = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../contracts/fixtures/accepted/suggested-action-invocation-view.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as NonNullable<typeof sources.invocation>;
+    invocation.content.invocation.content.command_ref.actor =
+      sources.delivery.content.authority_context.actor;
+    invocation.content.invocation.content_hash = communicationHash(
+      invocation.content.invocation.content,
+    );
+    invocation.content.invocation_ref.content_hash =
+      invocation.content.invocation.content_hash;
+    invocation.content.invocation_ref.record_hash = communicationHash(
+      invocation.content.invocation,
+    );
+    invocation.content.history.command_receipt_ref = structuredClone(
+      invocation.content.invocation_ref,
+    );
+    const current = sources.current_response;
+    invocation.content.result = {
+      state: "available",
+      result_ref: {
+        schema_name: "petra.grounded-response",
+        schema_version: "1.0.0",
+        record_id: current.grounded_response_id,
+        revision: current.revision,
+        content_hash: current.content_hash,
+        record_hash: communicationHash(current),
+      },
+      authority_effect: "none",
+    };
+    invocation.content_hash = communicationHash(invocation.content);
+    sources.invocation = invocation;
+  }
+  return composeCommunicationPlan(
+    sources,
+    "en",
+    "2026-09-13T12:00:00.000Z",
+    contracts,
+  );
+};
+const readPlan = (plan: PetraCommunicationPlan) =>
+  new CommunicationPlanClient({
+    baseUrl: "http://localhost",
+    token: "test-token",
+    contracts,
+    fetch: () => Promise.resolve(Response.json(plan)),
+  }).read(plan.project_id, {
+    ...request(plan),
+    response_record_hash: communicationHash(plan.content.source_response),
+    ...(plan.content.invocation
+      ? {
+          command_id:
+            plan.content.invocation.content.invocation.content.command_ref
+              .command_id,
+        }
+      : {}),
+  });
 describe("communication typed client", () => {
+  it.each([false, true])(
+    "retains complete and partial preservation with linked invocation %s",
+    async (linked) => {
+      for (const complete of [false, true]) {
+        const plan = composed(linked, complete);
+        const before = structuredClone(plan);
+        expect(
+          plan.content.segments.some(
+            (segment) => segment.preservation === "blocked",
+          ),
+        ).toBe(!complete);
+        expect(await readPlan(plan)).toEqual(before);
+        expect(plan).toEqual(before);
+        expect(plan.content.validation.outcome).toBe("blocked");
+        expect(plan.content.validation.language_validation).toBe("incomplete");
+        expect(plan.content.validation.repair_provenance).toBeNull();
+      }
+    },
+  );
+  it.each([
+    "source_family",
+    "synthesis_family",
+    "inference_family",
+    "duplicate_order",
+    "gapped_order",
+    "segment_key",
+    "fabricated_action",
+    "missing_action",
+    "duplicate_action",
+    "action_key",
+    "action_family",
+    "action_position",
+  ])("rejects resealed contradictory segment metadata: %s", async (kind) => {
+    const linked = [
+      "missing_action",
+      "duplicate_action",
+      "action_key",
+      "action_family",
+      "action_position",
+    ].includes(kind);
+    const plan = composed(linked);
+    const segments = plan.content.segments;
+    if (kind === "source_family") segments[0]!.family = "action_report";
+    if (kind === "synthesis_family") segments[1]!.family = "attributed_report";
+    if (kind === "inference_family") segments[2]!.family = "petra_assessment";
+    if (kind === "duplicate_order") segments[0]!.order = segments[1]!.order;
+    if (kind === "gapped_order") segments[2]!.order = 4;
+    if (kind === "segment_key")
+      segments[0]!.segment_key = segments[1]!.segment_key;
+    if (kind === "fabricated_action")
+      segments.push({
+        ...structuredClone(segments[0]!),
+        original_statement: null,
+        family: "action_report",
+        segment_key: "command:command_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        order: 4,
+      });
+    if (kind === "missing_action") segments.pop();
+    if (kind === "duplicate_action")
+      segments.push({ ...structuredClone(segments.at(-1)!), order: 5 });
+    if (kind === "action_key")
+      segments.at(-1)!.segment_key =
+        "command:command_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    if (kind === "action_family") segments.at(-1)!.family = "attributed_report";
+    if (kind === "action_position") {
+      segments.unshift(segments.pop()!);
+      segments.forEach((segment, index) => {
+        segment.order = index + 1;
+      });
+    }
+    plan.content_hash = communicationHash(plan.content);
+    // These are schema-valid contradictions, even with a recomputed envelope hash.
+    contracts.assertValid("communication-plan", "1.0.0", plan);
+    const before = structuredClone(plan);
+    await expect(readPlan(plan)).rejects.toThrow("segment metadata");
+    expect(plan).toEqual(before);
+  });
   it("reads one authenticated exact plan without changing its scoped receipt", async () => {
     const plan = fixture();
     let reads = 0;

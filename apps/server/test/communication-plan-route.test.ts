@@ -1,4 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import type { PetraCommunicationPlan } from "@petra/contracts";
+import { communicationHash } from "@petra/core";
+import { CommunicationPlanClient } from "@petra/adapters";
 import { createPetraApp } from "../src/app.js";
 const path =
   "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/communication";
@@ -42,7 +46,7 @@ describe("communication read authentication", () => {
       expect.objectContaining({ locale: "en", response_revision: 1 }),
     );
   });
-  it("keeps missing service, corrupt response and storage failures explicit", async () => {
+  it("keeps missing service and storage failures explicit", async () => {
     expect(
       (
         await createPetraApp({ authToken: "communication-test" }).app.request(
@@ -62,4 +66,52 @@ describe("communication read authentication", () => {
       503,
     );
   });
+  it.each(["valid", "family", "order"])(
+    "reads an authenticated endpoint through the typed client: %s",
+    async (kind) => {
+      const plan = JSON.parse(
+        readFileSync(
+          new URL(
+            "../../../packages/contracts/fixtures/accepted/communication-plan.json",
+            import.meta.url,
+          ),
+          "utf8",
+        ),
+      ) as PetraCommunicationPlan;
+      if (kind === "family") plan.content.segments[0]!.family = "action_report";
+      if (kind === "order") plan.content.segments[0]!.order = 2;
+      plan.content_hash = communicationHash(plan.content);
+      const read = vi.fn(() => Promise.resolve(plan));
+      const app = createPetraApp({
+        authToken: "communication-test",
+        communicationPlans: { getCommunicationPlan: read },
+      }).app;
+      const client = new CommunicationPlanClient({
+        baseUrl: "http://localhost",
+        token: "communication-test",
+        fetch: async (url, init) => {
+          const response = await app.request(
+            url instanceof Request ? url : String(url),
+            init,
+          );
+          expect(response.status).toBe(200);
+          expect(response.headers.get("Cache-Control")).toBe("no-store");
+          return response;
+        },
+      });
+      const request = {
+        response_id: plan.content.source_response.grounded_response_id,
+        response_revision: plan.content.source_response.revision,
+        response_content_hash: plan.content.source_response.content_hash,
+        response_record_hash: communicationHash(plan.content.source_response),
+        locale: "en",
+        expected_definition_hash:
+          plan.content.composition_definition.content_hash,
+      };
+      const result = client.read(plan.project_id, request);
+      if (kind === "valid") expect(await result).toEqual(plan);
+      else await expect(result).rejects.toThrow("segment metadata");
+      expect(read).toHaveBeenCalledExactlyOnceWith(plan.project_id, request);
+    },
+  );
 });

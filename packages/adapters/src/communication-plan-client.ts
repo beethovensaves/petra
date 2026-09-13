@@ -171,6 +171,33 @@ export class CommunicationPlanClient {
           "The communication composition contract is not installed.",
         );
     }
+    // The plan schema pins profile.origins to the installed immutable payload.
+    // Check supplied metadata against it; never infer families from prose or
+    // reorder, reclassify, or repair segments before exposing them to a renderer.
+    const statements = call.content.output.statements;
+    if (
+      content.segments.length !== statements.length + (invocation ? 1 : 0) ||
+      content.segments.some((segment, index) => {
+        if (segment.order !== index + 1) return true;
+        const statement = statements[index];
+        if (statement)
+          return (
+            !same(segment.original_statement, statement) ||
+            segment.segment_key !== statement.statement_key ||
+            segment.family !== content.profile.profile.origins[statement.origin]
+          );
+        return (
+          invocation === null ||
+          segment.original_statement !== null ||
+          segment.family !== "action_report" ||
+          segment.segment_key !==
+            `command:${invocation.content.invocation.content.command_ref.command_id}`
+        );
+      })
+    )
+      throw new Error(
+        "The communication segment metadata contradicts the original statement sequence or exact invocation.",
+      );
     return plan;
   }
 }
