@@ -1233,3 +1233,46 @@
     border-style: dashed;
   }
 }
+
+.review-recovery {
+  grid-column: 1 / -1;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.review-recovery summary {
+  cursor: pointer;
+  min-block-size: 44px;
+  padding-block: var(--petra-space-3);
+}
+
+.review-recovery summary:focus-visible,
+.review-recovery [tabindex="-1"]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.review-recovery dl,
+.review-recovery dd {
+  margin-inline: 0;
+  min-inline-size: 0;
+}
+
+.review-recovery dt {
+  font-weight: 600;
+}
+
+.review-recovery li + li,
+.review-recovery dl > div + div {
+  margin-block-start: var(--petra-space-3);
+}
+
+.review-recovery__group {
+  border-block-start: 1px solid currentColor;
+  padding-block: var(--petra-space-4);
+}
+
+.review-recovery ol,
+.review-recovery ul {
+  padding-inline-start: var(--petra-space-4);
+}

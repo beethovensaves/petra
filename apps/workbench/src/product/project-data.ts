@@ -6461,3 +6461,17 @@ export const loadProjectObjectLocationRedirect = async ({
   }
   return redirect(semanticDestinationPath(view));
 };
+
+/** Read the entire exact Review; member selection never narrows this assessment. */
+export const getReviewRecoveryAssessment = async (review: ReviewSession) => {
+  const { ReviewRecoveryAssessmentClient } = await import("@petra/adapters");
+  return new ReviewRecoveryAssessmentClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+  }).assess({
+    project_id: review.projectId,
+    review_session_id: review.id,
+    expected_revision: review.exactRef.revision,
+    expected_content_hash: review.exactRef.contentHash,
+  });
+};

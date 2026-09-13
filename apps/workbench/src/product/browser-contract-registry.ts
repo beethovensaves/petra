@@ -14,7 +14,21 @@ import reviewSessionV11Schema from "../../../../packages/contracts/schemas/revie
 import workingCandidateSchema from "../../../../packages/contracts/schemas/working-candidate/1.0.0/schema.json";
 import workingRelationshipSchema from "../../../../packages/contracts/schemas/working-relationship/1.0.0/schema.json";
 
+import recoveryAssessmentSchema from "../../../../packages/contracts/schemas/review-recovery-assessment/1.0.0/schema.json";
+import reviewViewSchema from "../../../../packages/contracts/schemas/project-review-view/1.0.0/schema.json";
+import reviewViewV11Schema from "../../../../packages/contracts/schemas/project-review-view/1.1.0/schema.json";
+import reviewViewV12Schema from "../../../../packages/contracts/schemas/project-review-view/1.2.0/schema.json";
+import changeSetSchema from "../../../../packages/contracts/schemas/change-set/1.0.0/schema.json";
+import changeSetV11Schema from "../../../../packages/contracts/schemas/change-set/1.1.0/schema.json";
+import approvalSchema from "../../../../packages/contracts/schemas/approval/1.0.0/schema.json";
+import historyRecoverySchema from "../../../../packages/contracts/schemas/project-history-recovery-assessment-view/1.0.0/schema.json";
+import historyViewSchema from "../../../../packages/contracts/schemas/project-history-view/1.0.0/schema.json";
+import domainEventSchema from "../../../../packages/contracts/schemas/domain-event/1.0.0/schema.json";
+import historyImpactSchema from "../../../../packages/contracts/schemas/project-history-impact-view/1.0.0/schema.json";
+import historyImpactV12Schema from "../../../../packages/contracts/schemas/project-history-impact-view/1.2.0/schema.json";
+
 type BrowserContractName =
+  | "review-recovery-assessment@1.0.0"
   | "claim@1.0.0"
   | "review-candidate-basis-revision-receipt@1.0.0"
   | "review-candidate-correction-receipt@1.0.0"
@@ -38,6 +52,18 @@ const definitionDependency = <
 });
 
 const schemas = [
+  recoveryAssessmentSchema,
+  definitionDependency(reviewViewSchema),
+  definitionDependency(reviewViewV11Schema),
+  definitionDependency(reviewViewV12Schema),
+  changeSetSchema,
+  changeSetV11Schema,
+  approvalSchema,
+  definitionDependency(historyRecoverySchema),
+  definitionDependency(historyViewSchema),
+  definitionDependency(domainEventSchema),
+  definitionDependency(historyImpactSchema),
+  definitionDependency(historyImpactV12Schema),
   commonSchema,
   definitionDependency(commandEnvelopeSchema),
   definitionDependency(commandEnvelopeV18Schema),
@@ -53,6 +79,7 @@ const schemas = [
 ] as const;
 
 const contractIds: Record<BrowserContractName, string> = {
+  "review-recovery-assessment@1.0.0": recoveryAssessmentSchema.$id,
   "claim@1.0.0": claimSchema.$id,
   "review-candidate-basis-revision-receipt@1.0.0":
     basisRevisionReceiptSchema.$id,
@@ -75,7 +102,7 @@ export class ContractRegistryError extends Error {
 
 /**
  * Browser-only validator for the exact response contracts consumed by the
- * Review candidate correction, basis-revision, and member-separation clients.
+ * Review candidate correction, basis-revision, member-separation, and recovery-assessment clients.
  * Vite aliases the Node filesystem-backed registry to this bundled schema set;
  * server and package consumers keep the canonical registry implementation.
  */
