@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./project-brief-view": {
+      "types": "./dist/project-brief-view.d.ts",
+      "default": "./dist/project-brief-view.js"
     }
   },
   "scripts": {

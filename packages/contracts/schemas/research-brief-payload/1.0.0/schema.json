@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/research-brief-payload/1.0.0/schema.json",
+  "title": "PetraResearchBriefPayload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "sources",
+    "source_coverage",
+    "limitations"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.research-brief-payload"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "sources": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "../../project-source-view/1.0.0/schema.json"
+      }
+    },
+    "source_coverage": {
+      "enum": ["complete", "partial"]
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      }
+    }
+  }
+}

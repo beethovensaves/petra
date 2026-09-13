@@ -1,3 +1,7 @@
+import { projectBriefSnapshotMaterial } from "@petra/core";
+import { PetraContractRegistry } from "@petra/contracts/validator";
+import { ProjectBriefClient } from "@petra/adapters";
+import { PostgresProjectBriefViewReader } from "../src/project-brief-view-reader.js";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
@@ -3628,5 +3632,147 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       "uses_exact_composition_evidence",
       "selects_exact_composition_subject",
     ]);
+  });
+  it("composes exact current-Objective Work and result links through the existing SuggestedAction owner", async () => {
+    const terminal = await persistTerminal();
+    const response = await new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      terminal.packets,
+    ).register(terminal.input);
+    const contracts = new PetraContractRegistry();
+    const definition = readFixture<PetraProjectDefinition>(
+      "project-definition-scientific",
+    );
+    definition.revision = 2;
+    definition.created_at = "2026-09-13T14:00:00.000Z";
+    definition.content.registrations.push({
+      registration_kind: "extension",
+      semantic_key: "scientific.research-brief",
+      contract: {
+        name: "petra.research-brief-payload",
+        version: "1.0.0",
+        content_hash: contracts.entries.find(
+          (entry) => entry.name === "research-brief-payload",
+        )!.canonical_sha256,
+      },
+    });
+    definition.content_hash = canonicalHash(definition.content);
+    await definitions.registerDefinitionRevision(definition);
+    const definitionRef = {
+      project_definition_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+    };
+    const objective = readFixture<PetraProjectObjective>("project-objective");
+    objective.project_definition_ref = definitionRef;
+    await definitions.registerObjectiveRevision(objective);
+    await definitions.setCurrentObjectiveFocus({
+      project_id: definition.project_id,
+      objective_ref: {
+        objective_id: objective.objective_id,
+        revision: objective.revision,
+        content_hash: objective.content_hash,
+      },
+      changed_by: readFixture<PetraActor>("actor"),
+      changed_at: "2026-09-13T14:01:00.000Z",
+    });
+    const inquiries = new PostgresProjectInquiryAuthorityRepository(pool);
+    const role = readFixture<PetraProjectInquiryRole>("project-inquiry-role");
+    role.content.project_definition_ref = definitionRef;
+    role.content_hash = canonicalHash(role.content);
+    await inquiries.registerProjectInquiryRoleRevision(role);
+    const workLink = readFixture<PetraProjectInquiryLink>(
+      "project-inquiry-work-link",
+    );
+    const resultLink = readFixture<PetraProjectInquiryLink>(
+      "project-inquiry-result-link",
+    );
+    const work = terminal.input.workUnit;
+    const workRef = {
+      work_unit_id: work.work_unit_id,
+      revision: work.revision,
+      spec_hash: work.spec_hash,
+      record_hash: canonicalHash(work),
+    };
+    if (
+      workLink.content.target.target_kind !== "work" ||
+      resultLink.content.target.target_kind !== "result"
+    )
+      throw new Error("Expected link fixtures");
+    workLink.content.target.work_unit_ref = workRef;
+    resultLink.content.target.result_ref = {
+      schema_name: response.schema_name,
+      schema_version: response.schema_version,
+      record_id: response.grounded_response_id,
+      revision: response.revision,
+      content_hash: response.content_hash,
+      record_hash: canonicalHash(response),
+    };
+    resultLink.content.target.produced_by_work_ref = workRef;
+    for (const link of [workLink, resultLink]) {
+      link.content.project_definition_ref = definitionRef;
+      link.content.inquiry_role_ref = projectInquiryRoleRef(role);
+      link.content.inquiry_anchor = {
+        anchor_kind: "project_objective",
+        semantic_key: objective.content.objective_kind,
+        objective_ref: {
+          objective_id: objective.objective_id,
+          revision: objective.revision,
+          content_hash: objective.content_hash,
+          record_hash: canonicalHash(objective),
+        },
+      };
+      link.content_hash = canonicalHash(link.content);
+      await inquiries.registerProjectInquiryLink(link);
+    }
+    const reader = new PostgresProjectBriefViewReader(pool, contracts);
+    const brief = await reader.getProjectBriefView(definition.project_id);
+    expect(brief!.content.work).toHaveLength(1);
+    expect(brief!.content.inquiry_links).toEqual([workLink, resultLink]);
+    expect(
+      brief!.content.next_steps[0]!.content.action.basis.result_ref.record_id,
+    ).toBe(response.grounded_response_id);
+    expect(
+      brief!.content.next_steps[0]!.content.action.expected_result
+        .authority_effect,
+    ).toBe("none");
+    const client = new ProjectBriefClient({
+      registeredProfileSchemaHash: contracts.entries.find(
+        (entry) =>
+          entry.name === "research-brief-payload" && entry.version === "1.0.0",
+      )!.canonical_sha256,
+      baseUrl: "http://petra.test",
+      token: "brief-test",
+      contracts,
+      fetch: () => Promise.resolve(Response.json(brief)),
+    });
+    expect((await client.read(definition.project_id)).snapshot_hash).toBe(
+      brief!.snapshot_hash,
+    );
+    expect(
+      (await reader.getProjectBriefView(definition.project_id, {
+        expected_snapshot_hash: brief!.snapshot_hash,
+      }))!.snapshot_hash,
+    ).toBe(brief!.snapshot_hash);
+    for (const omitted of ["work", "next_steps"] as const) {
+      const incomplete = structuredClone(brief!);
+      incomplete.content[omitted] = [];
+      incomplete.content_hash = canonicalHash(incomplete.content);
+      incomplete.snapshot_hash = canonicalHash(
+        projectBriefSnapshotMaterial(incomplete.content),
+      );
+      const client = new ProjectBriefClient({
+        registeredProfileSchemaHash: contracts.entries.find(
+          (entry) =>
+            entry.name === "research-brief-payload" &&
+            entry.version === "1.0.0",
+        )!.canonical_sha256,
+        baseUrl: "http://petra.test",
+        token: "brief-test",
+        contracts,
+        fetch: () => Promise.resolve(Response.json(incomplete)),
+      });
+      await expect(client.read(definition.project_id)).rejects.toThrow();
+    }
   });
 });

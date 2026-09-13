@@ -1243,3 +1243,10 @@ export type { PetraReviewRecoveryAssessment } from "./generated/review-recovery-
 export type { PetraReviewSessionApplyCheckpoint } from "./generated/review-session-apply-checkpoint.js";
 export type { PetraReviewSessionApplyResult } from "./generated/review-session-apply-result.js";
 export type { PetraReviewSessionApplyRequest } from "./generated/review-session-apply-request.js";
+
+export type { PetraResearchBriefPayload } from "./generated/research-brief-payload.js";
+
+export type {
+  PetraProjectBriefView,
+  ProjectBriefContent,
+} from "./generated/project-brief-view.js";

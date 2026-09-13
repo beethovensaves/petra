@@ -554,15 +554,25 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
   async getRecentProjectHistoryView(
     projectId: string,
   ): Promise<PetraProjectHistoryView | undefined> {
-    return this.#readTransaction(async (client, readAt) => {
-      const exists = await client.query<{ exists: boolean }>(
-        "SELECT EXISTS (SELECT 1 FROM petra.projects WHERE project_id = $1) AS exists",
-        [projectId],
-      );
-      if (exists.rows[0]?.exists !== true) return undefined;
+    return this.#readTransaction((client, readAt) =>
+      this.readRecentHistoryInSnapshot(client, readAt, projectId),
+    );
+  }
 
-      const result = await client.query<HistoryRow>(
-        `SELECT event.payload AS event_payload,
+  /** Internal composition seam; caller owns a REPEATABLE READ READ ONLY transaction. */
+  async readRecentHistoryInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+  ): Promise<PetraProjectHistoryView | undefined> {
+    const exists = await client.query<{ exists: boolean }>(
+      "SELECT EXISTS (SELECT 1 FROM petra.projects WHERE project_id = $1) AS exists",
+      [projectId],
+    );
+    if (exists.rows[0]?.exists !== true) return undefined;
+
+    const result = await client.query<HistoryRow>(
+      `SELECT event.payload AS event_payload,
                 event.record_hash AS event_record_hash,
                 execution.envelope AS command_envelope,
                 execution.command_fingerprint,
@@ -581,33 +591,32 @@ export class PostgresProjectHistoryViewReader implements ProjectHistoryViewReade
           WHERE event.project_id = $1
           ORDER BY event.stream_revision DESC
           LIMIT $2`,
-        [projectId, HISTORY_LIMIT + 1],
-      );
-      const changes: ProjectHistoryRecentChange[] = [];
-      for (const row of result.rows.slice(0, HISTORY_LIMIT)) {
-        changes.push(await this.#change(client, row));
-      }
-      const authority = await this.#authority(client, projectId);
-      const content = {
-        view_kind: "recent_changes",
-        order: "newest_first",
-        quick_window_limit: HISTORY_LIMIT,
-        changes,
-        has_older: result.rows.length > HISTORY_LIMIT,
-        authority,
-        graph_navigation_history: "client_local_separate",
-      };
-      const view = {
-        schema_name: "petra.project-history-view",
-        schema_version: "1.0.0",
-        project_id: projectId,
-        content,
-        content_hash: canonicalHash(content),
-        read_at: readAt,
-      };
-      this.#contracts.assertValid("project-history-view", "1.0.0", view);
-      return structuredClone(view as unknown as PetraProjectHistoryView);
-    });
+      [projectId, HISTORY_LIMIT + 1],
+    );
+    const changes: ProjectHistoryRecentChange[] = [];
+    for (const row of result.rows.slice(0, HISTORY_LIMIT)) {
+      changes.push(await this.#change(client, row));
+    }
+    const authority = await this.#authority(client, projectId);
+    const content = {
+      view_kind: "recent_changes",
+      order: "newest_first",
+      quick_window_limit: HISTORY_LIMIT,
+      changes,
+      has_older: result.rows.length > HISTORY_LIMIT,
+      authority,
+      graph_navigation_history: "client_local_separate",
+    };
+    const view = {
+      schema_name: "petra.project-history-view",
+      schema_version: "1.0.0",
+      project_id: projectId,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: readAt,
+    };
+    this.#contracts.assertValid("project-history-view", "1.0.0", view);
+    return structuredClone(view as unknown as PetraProjectHistoryView);
   }
 
   async listRetainedProjectHistoryView(

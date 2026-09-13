@@ -1,3 +1,5 @@
+import { PostgresProjectBriefViewReader } from "@petra/postgres";
+import type { ProjectBriefViewReader } from "@petra/core";
 import {
   PostgresCapabilityGrantCommandAuthorizer,
   PostgresChangeControlAuthorityRepository,
@@ -62,6 +64,7 @@ import { parsePetraId } from "@petra/core";
 const { Pool } = pg;
 
 export interface ProjectShellPersistence {
+  readonly briefViews: ProjectBriefViewReader;
   readonly views: ProjectShellViewReader;
   readonly effectiveControls: ProjectEffectiveControlsViewReader;
   readonly historyViews: ProjectHistoryViewReader;
@@ -302,6 +305,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
       );
       return {
         views: new PostgresProjectShellViewReader(pool),
+        briefViews: new PostgresProjectBriefViewReader(pool, contracts),
         effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
         historyViews,
         historyCompensationExecution,
@@ -383,6 +387,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
 
   return {
     views: new PostgresProjectShellViewReader(pool),
+    briefViews: new PostgresProjectBriefViewReader(pool, contracts),
     effectiveControls: new PostgresProjectEffectiveControlsViewReader(pool),
     historyViews,
     historyCompensationExecution,

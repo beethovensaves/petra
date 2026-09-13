@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.84.0",
+  "registry_version": "1.85.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -1582,6 +1582,28 @@
       "canonical_sha256": "sha256:9b215bf6867aa2dd4e402687204bc3034b22487dd34aaa31f0d809f35e761860",
       "generate_typescript": true,
       "typescript_path": "src/generated/review-session-apply-result.ts"
+    },
+    {
+      "name": "research-brief-payload",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/research-brief-payload/1.0.0/schema.json",
+      "path": "schemas/research-brief-payload/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-brief",
+      "canonical_sha256": "sha256:c35f42c95d1b0b8829d1c2e5a187c7f324ff2b340823d4840623b07aff699839",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/research-brief-payload.ts"
+    },
+    {
+      "name": "project-brief-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-brief-view/1.0.0/schema.json",
+      "path": "schemas/project-brief-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-read-only-brief",
+      "canonical_sha256": "sha256:483afeb6aaaecfda60d60b5962bbf35a41b0ee6a21030857d97d250088f65421",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-brief-view.ts"
     }
   ]
 }

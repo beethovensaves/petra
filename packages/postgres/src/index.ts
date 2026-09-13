@@ -46,3 +46,5 @@ export const PETRA_POSTGRES_BOUNDARY = "petra-postgres" as const;
 
 export * from "./review-recovery-assessment-reader.js";
 export * from "./review-session-apply.js";
+
+export * from "./project-brief-view-reader.js";

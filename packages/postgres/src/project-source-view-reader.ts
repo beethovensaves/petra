@@ -106,16 +106,26 @@ export class PostgresProjectSourceViewReader implements ProjectSourceViewReader 
     projectId: string,
     projectSourceId: string,
   ): Promise<PetraProjectSourceView | undefined> {
-    return this.#readTransaction(async (client, readAt) => {
-      const rows = await this.#selectSourceRows(
-        client,
-        projectId,
-        projectSourceId,
-      );
-      return rows[0] === undefined
-        ? undefined
-        : await this.#compose(client, rows[0], readAt);
-    });
+    return this.#readTransaction((client, readAt) =>
+      this.readSourceInSnapshot(client, readAt, projectId, projectSourceId),
+    );
+  }
+
+  /** Internal composition seam; caller owns a REPEATABLE READ READ ONLY transaction. */
+  async readSourceInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    projectSourceId: string,
+  ): Promise<PetraProjectSourceView | undefined> {
+    const rows = await this.#selectSourceRows(
+      client,
+      projectId,
+      projectSourceId,
+    );
+    return rows[0] === undefined
+      ? undefined
+      : await this.#compose(client, rows[0], readAt);
   }
 
   async #selectSourceRows(

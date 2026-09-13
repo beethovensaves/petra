@@ -163,160 +163,168 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
         "A Work detail request requires a canonical WorkUnit identity.",
       );
     }
-    return this.#readTransaction(async (client, readAt) => {
-      const definition = await this.#definition(client, projectId);
-      if (definition === undefined) return undefined;
-      this.#assertWorkPlace(definition);
-      const row = (
-        await this.#selectWorkRows(client, projectId, {
-          limit: 1,
-          offset: 0,
-          workUnitId,
-        })
-      )[0];
-      if (row === undefined) return undefined;
-      const composed = this.#composeRow(row);
-      const authority = await this.#authority(client, projectId);
-      const location =
-        await this.#objectLocations.locateProjectObjectInSnapshot(
-          client,
-          {
-            project_id: projectId,
-            object_ref: {
-              semantic_key: "petra.work-unit",
-              object_id: workUnitId,
-              revision: composed.workUnit.revision,
-            },
-            task_intent: "continue_work",
-          },
-          readAt,
-        );
-      if (
-        location === undefined ||
-        location.content.resolution.state !== "current" ||
-        location.content.authority.event_position !==
-          authority.event_position ||
-        location.content.authority.stream_revision !== authority.stream_revision
-      ) {
-        throw this.#corrupt(
-          "The exact WorkUnit semantic destination could not be reproduced in the Work snapshot.",
-        );
-      }
-      const content: ProjectWorkDetailContent = {
-        view_kind: "detail",
-        project_definition_ref: this.#definitionRef(definition),
-        summary: this.#taskSummary(composed, definition, readAt),
-        specification: {
-          input_manifest_ref: {
-            record_id: composed.input.worker_input_manifest_id,
-            revision: composed.input.revision,
-            content_hash: composed.input.content_hash,
-            record_hash: composed.inputRecordHash,
-          },
-          task: clone(composed.input.content.task),
-          worker: clone(composed.input.content.worker),
-          inputs: clone(composed.input.content.inputs),
-          expected_outputs: clone(composed.input.content.expected_outputs),
-          network_policy: clone(composed.input.content.network_policy),
-          partial_result_policy: composed.input.content.partial_result_policy,
-          cache_mode: composed.workUnit.spec.cache.cache_mode,
-          cancellation_policy: composed.workUnit.spec.cancellation_policy,
-          checkpoint_policy: composed.workUnit.spec.checkpoint_policy,
-          ...(composed.workUnit.spec.deadline_at === undefined
-            ? {}
-            : { deadline_at: composed.workUnit.spec.deadline_at }),
+    return this.#readTransaction((client, readAt) =>
+      this.readWorkInSnapshot(client, readAt, projectId, workUnitId),
+    );
+  }
+
+  /** Internal composition seam; caller owns a REPEATABLE READ READ ONLY transaction. */
+  async readWorkInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    workUnitId: string,
+  ): Promise<PetraProjectWorkView | undefined> {
+    const definition = await this.#definition(client, projectId);
+    if (definition === undefined) return undefined;
+    this.#assertWorkPlace(definition);
+    const row = (
+      await this.#selectWorkRows(client, projectId, {
+        limit: 1,
+        offset: 0,
+        workUnitId,
+      })
+    )[0];
+    if (row === undefined) return undefined;
+    const composed = this.#composeRow(row);
+    const authority = await this.#authority(client, projectId);
+    const location = await this.#objectLocations.locateProjectObjectInSnapshot(
+      client,
+      {
+        project_id: projectId,
+        object_ref: {
+          semantic_key: "petra.work-unit",
+          object_id: workUnitId,
+          revision: composed.workUnit.revision,
         },
-        dependencies: await this.#dependencies(client, composed.workUnit),
-        stage_plan: {
-          state: "unavailable",
-          reason:
-            "This workflow has no registered stage-plan record; Petra does not reconstruct stages from execution prose.",
+        task_intent: "continue_work",
+      },
+      readAt,
+    );
+    if (
+      location === undefined ||
+      location.content.resolution.state !== "current" ||
+      location.content.authority.event_position !== authority.event_position ||
+      location.content.authority.stream_revision !== authority.stream_revision
+    ) {
+      throw this.#corrupt(
+        "The exact WorkUnit semantic destination could not be reproduced in the Work snapshot.",
+      );
+    }
+    const content: ProjectWorkDetailContent = {
+      view_kind: "detail",
+      project_definition_ref: this.#definitionRef(definition),
+      summary: this.#taskSummary(composed, definition, readAt),
+      specification: {
+        input_manifest_ref: {
+          record_id: composed.input.worker_input_manifest_id,
+          revision: composed.input.revision,
+          content_hash: composed.input.content_hash,
+          record_hash: composed.inputRecordHash,
         },
-        resources: {
-          limits: clone(composed.input.content.resource_limits),
-          usage:
-            composed.output === undefined ||
-            composed.outputRecordHash === undefined
-              ? {
-                  state: "unavailable",
-                  reason:
-                    "No current WorkerOutputManifest supplies measured resource use.",
-                }
-              : {
-                  state: "measured",
-                  output_manifest_ref: {
-                    record_id: composed.output.worker_output_manifest_id,
-                    revision: composed.output.revision,
-                    content_hash: composed.output.content_hash,
-                    record_hash: composed.outputRecordHash,
-                  },
-                  resource_usage: clone(composed.output.content.resource_usage),
+        task: clone(composed.input.content.task),
+        worker: clone(composed.input.content.worker),
+        inputs: clone(composed.input.content.inputs),
+        expected_outputs: clone(composed.input.content.expected_outputs),
+        network_policy: clone(composed.input.content.network_policy),
+        partial_result_policy: composed.input.content.partial_result_policy,
+        cache_mode: composed.workUnit.spec.cache.cache_mode,
+        cancellation_policy: composed.workUnit.spec.cancellation_policy,
+        checkpoint_policy: composed.workUnit.spec.checkpoint_policy,
+        ...(composed.workUnit.spec.deadline_at === undefined
+          ? {}
+          : { deadline_at: composed.workUnit.spec.deadline_at }),
+      },
+      dependencies: await this.#dependencies(client, composed.workUnit),
+      stage_plan: {
+        state: "unavailable",
+        reason:
+          "This workflow has no registered stage-plan record; Petra does not reconstruct stages from execution prose.",
+      },
+      resources: {
+        limits: clone(composed.input.content.resource_limits),
+        usage:
+          composed.output === undefined ||
+          composed.outputRecordHash === undefined
+            ? {
+                state: "unavailable",
+                reason:
+                  "No current WorkerOutputManifest supplies measured resource use.",
+              }
+            : {
+                state: "measured",
+                output_manifest_ref: {
+                  record_id: composed.output.worker_output_manifest_id,
+                  revision: composed.output.revision,
+                  content_hash: composed.output.content_hash,
+                  record_hash: composed.outputRecordHash,
                 },
-        },
-        outputs: this.#outputs(composed),
-        controls: this.#controls(composed),
-        inquiry_linkage: {
+                resource_usage: clone(composed.output.content.resource_usage),
+              },
+      },
+      outputs: this.#outputs(composed),
+      controls: this.#controls(composed),
+      inquiry_linkage: {
+        state: "unavailable",
+        reason:
+          "No ProjectDefinition-valid inquiry mapping is registered for this WorkUnit.",
+      },
+      review: {
+        state: "unavailable",
+        reason:
+          "No profile-neutral Review linkage is registered for this WorkUnit.",
+      },
+      semantic_location: clone(location.content),
+      coverage: [
+        { area: "identity", state: "complete" },
+        { area: "execution", state: "complete" },
+        { area: "inputs", state: "complete" },
+        { area: "dependencies", state: "complete" },
+        {
+          area: "stages",
           state: "unavailable",
-          reason:
-            "No ProjectDefinition-valid inquiry mapping is registered for this WorkUnit.",
+          limitation: "No registered workflow stage plan exists.",
         },
-        review: {
+        {
+          area: "resources",
+          state: composed.output === undefined ? "partial" : "complete",
+          ...(composed.output === undefined
+            ? { limitation: "Only authorized resource limits are available." }
+            : {}),
+        },
+        {
+          area: "outputs",
+          state: "partial",
+          limitation:
+            "Worker output handles are reported, but their Project-level usability and destination are not inferred.",
+        },
+        {
+          area: "controls",
+          state: "partial",
+          limitation:
+            "Policy eligibility is visible, but no actor-authorized Work command is exposed by this read.",
+        },
+        {
+          area: "inquiries",
           state: "unavailable",
-          reason:
-            "No profile-neutral Review linkage is registered for this WorkUnit.",
+          limitation: "Project inquiry mapping is not implemented.",
         },
-        semantic_location: clone(location.content),
-        coverage: [
-          { area: "identity", state: "complete" },
-          { area: "execution", state: "complete" },
-          { area: "inputs", state: "complete" },
-          { area: "dependencies", state: "complete" },
-          {
-            area: "stages",
-            state: "unavailable",
-            limitation: "No registered workflow stage plan exists.",
-          },
-          {
-            area: "resources",
-            state: composed.output === undefined ? "partial" : "complete",
-            ...(composed.output === undefined
-              ? { limitation: "Only authorized resource limits are available." }
-              : {}),
-          },
-          {
-            area: "outputs",
-            state: "partial",
-            limitation:
-              "Worker output handles are reported, but their Project-level usability and destination are not inferred.",
-          },
-          {
-            area: "controls",
-            state: "partial",
-            limitation:
-              "Policy eligibility is visible, but no actor-authorized Work command is exposed by this read.",
-          },
-          {
-            area: "inquiries",
-            state: "unavailable",
-            limitation: "Project inquiry mapping is not implemented.",
-          },
-          {
-            area: "review",
-            state: "unavailable",
-            limitation:
-              "Profile-neutral Work-to-Review linkage is not implemented.",
-          },
-          {
-            area: "recovery",
-            state: "partial",
-            limitation:
-              "Current attempt, policies, limits, and retained manifests are visible; cross-module reconciliation is not implemented.",
-          },
-        ],
-        authority,
-      };
-      return this.#view(projectId, content, readAt);
-    });
+        {
+          area: "review",
+          state: "unavailable",
+          limitation:
+            "Profile-neutral Work-to-Review linkage is not implemented.",
+        },
+        {
+          area: "recovery",
+          state: "partial",
+          limitation:
+            "Current attempt, policies, limits, and retained manifests are visible; cross-module reconciliation is not implemented.",
+        },
+      ],
+      authority,
+    };
+    return this.#view(projectId, content, readAt);
   }
 
   #collectionQuery(

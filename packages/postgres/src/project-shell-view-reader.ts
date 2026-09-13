@@ -100,13 +100,23 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     projectId: string,
     selection?: ProjectShellSelectionRequest,
   ): Promise<PetraProjectShellViewV11 | undefined> {
-    return this.#readTransaction(async (client, readAt) => {
-      const rows = await this.#selectShellRows(client, projectId);
-      const row = rows[0];
-      return row === undefined
-        ? undefined
-        : await this.#compose(client, row, readAt, selection);
-    });
+    return this.#readTransaction((client, readAt) =>
+      this.readShellInSnapshot(client, readAt, projectId, selection),
+    );
+  }
+
+  /** Internal composition seam; caller owns a REPEATABLE READ READ ONLY transaction. */
+  async readShellInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    selection?: ProjectShellSelectionRequest,
+  ): Promise<PetraProjectShellViewV11 | undefined> {
+    const rows = await this.#selectShellRows(client, projectId);
+    const row = rows[0];
+    return row === undefined
+      ? undefined
+      : await this.#compose(client, row, readAt, selection);
   }
 
   async #selectShellRows(

@@ -109,198 +109,213 @@ export class PostgresSuggestedActionViewReader implements SuggestedActionViewRea
         "A SuggestedAction preview requires a canonical ProjectInquiryLink identity.",
       );
     }
-    return this.#readTransaction(async (client, readAt) => {
-      const linkRow = await this.#actionLink(
+    return this.#readTransaction((client, readAt) =>
+      this.readActionInSnapshot(
         client,
+        readAt,
         projectId,
         projectInquiryLinkId,
-      );
-      if (linkRow === undefined) return undefined;
-      const link = this.#record<PetraProjectInquiryLink>(
-        "project-inquiry-link",
-        linkRow,
-      );
-      const target = link.content.target;
-      if (target.target_kind !== "result" || target.bearing !== "addresses") {
-        throw this.#corrupt(
-          "The initial SuggestedAction adapter requires one exact inquiry-addressing result link.",
-        );
-      }
-      const suggestedActionId = actionIdFor(link.project_inquiry_link_id);
+      ),
+    );
+  }
 
-      const definitionRow = await this.#exactDefinition(client, link);
-      const definition = this.#record<PetraProjectDefinition>(
-        "project-definition",
-        definitionRow,
+  /** Internal composition seam; caller owns a REPEATABLE READ READ ONLY transaction. */
+  async readActionInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    projectInquiryLinkId: string,
+  ): Promise<PetraSuggestedActionView | undefined> {
+    const linkRow = await this.#actionLink(
+      client,
+      projectId,
+      projectInquiryLinkId,
+    );
+    if (linkRow === undefined) return undefined;
+    const link = this.#record<PetraProjectInquiryLink>(
+      "project-inquiry-link",
+      linkRow,
+    );
+    const target = link.content.target;
+    if (target.target_kind !== "result" || target.bearing !== "addresses") {
+      throw this.#corrupt(
+        "The initial SuggestedAction adapter requires one exact inquiry-addressing result link.",
       );
-      const objectiveRow = await this.#exactObjective(client, link);
-      const objective = this.#record<PetraProjectObjective>(
-        "project-objective",
-        objectiveRow,
-      );
-      this.#assertLinkAuthority(link, definition, objective, projectId);
+    }
+    const suggestedActionId = actionIdFor(link.project_inquiry_link_id);
 
-      const responseRow = await this.#exactResponse(client, projectId, target);
-      const response = this.#record<PetraGroundedResponse>(
-        "grounded-response",
-        responseRow,
-      );
-      if (
-        response.project_id !== projectId ||
-        response.grounded_response_id !== target.result_ref.record_id ||
-        response.revision !== target.result_ref.revision ||
-        response.content_hash !== target.result_ref.content_hash
-      ) {
-        throw this.#corrupt(
-          "The linked GroundedResponse does not preserve its exact Project result identity.",
-        );
-      }
+    const definitionRow = await this.#exactDefinition(client, link);
+    const definition = this.#record<PetraProjectDefinition>(
+      "project-definition",
+      definitionRow,
+    );
+    const objectiveRow = await this.#exactObjective(client, link);
+    const objective = this.#record<PetraProjectObjective>(
+      "project-objective",
+      objectiveRow,
+    );
+    this.#assertLinkAuthority(link, definition, objective, projectId);
 
-      const backgroundWork = await this.#backgroundWork(
-        client,
-        projectId,
-        target.produced_by_work_ref,
-        response,
+    const responseRow = await this.#exactResponse(client, projectId, target);
+    const response = this.#record<PetraGroundedResponse>(
+      "grounded-response",
+      responseRow,
+    );
+    if (
+      response.project_id !== projectId ||
+      response.grounded_response_id !== target.result_ref.record_id ||
+      response.revision !== target.result_ref.revision ||
+      response.content_hash !== target.result_ref.content_hash
+    ) {
+      throw this.#corrupt(
+        "The linked GroundedResponse does not preserve its exact Project result identity.",
       );
-      const currentDefinitionRow = await this.#currentDefinition(
-        client,
-        projectId,
-      );
-      const currentObjectiveRow = await this.#currentObjective(
-        client,
-        projectId,
-        objective.objective_id,
-      );
-      const readiness = this.#readiness(
-        definition,
-        definitionRow.record_hash,
-        objective,
-        objectiveRow.record_hash,
-        response,
-        currentDefinitionRow,
-        currentObjectiveRow,
-      );
-      const resultRef = {
-        schema_name: "petra.grounded-response" as const,
-        schema_version: "1.0.0" as const,
-        record_id: target.result_ref.record_id,
-        revision: target.result_ref.revision,
-        content_hash: target.result_ref.content_hash,
-        record_hash: target.result_ref.record_hash,
-      };
-      const objectiveRef = clone(link.content.inquiry_anchor.objective_ref);
-      const action: SuggestedAction = {
-        action_kind: "inspect_existing_inquiry_result",
-        title: "Inspect existing inquiry result",
-        objective: {
-          objective_ref: objectiveRef,
-          semantic_key: link.content.inquiry_anchor.semantic_key,
-          statement: objective.content.statement,
+    }
+
+    const backgroundWork = await this.#backgroundWork(
+      client,
+      projectId,
+      target.produced_by_work_ref,
+      response,
+    );
+    const currentDefinitionRow = await this.#currentDefinition(
+      client,
+      projectId,
+    );
+    const currentObjectiveRow = await this.#currentObjective(
+      client,
+      projectId,
+      objective.objective_id,
+    );
+    const readiness = this.#readiness(
+      definition,
+      definitionRow.record_hash,
+      objective,
+      objectiveRow.record_hash,
+      response,
+      currentDefinitionRow,
+      currentObjectiveRow,
+    );
+    const resultRef = {
+      schema_name: "petra.grounded-response" as const,
+      schema_version: "1.0.0" as const,
+      record_id: target.result_ref.record_id,
+      revision: target.result_ref.revision,
+      content_hash: target.result_ref.content_hash,
+      record_hash: target.result_ref.record_hash,
+    };
+    const objectiveRef = clone(link.content.inquiry_anchor.objective_ref);
+    const action: SuggestedAction = {
+      action_kind: "inspect_existing_inquiry_result",
+      title: "Inspect existing inquiry result",
+      objective: {
+        objective_ref: objectiveRef,
+        semantic_key: link.content.inquiry_anchor.semantic_key,
+        statement: objective.content.statement,
+      },
+      reason:
+        "An exact GroundedResponse already addresses this inquiry. Inspect its recorded basis and limitations before deciding whether new Work is warranted.",
+      basis: {
+        derivation: "exact_immutable_inquiry_result_link",
+        project_definition_ref: {
+          project_definition_id: definition.project_definition_id,
+          revision: definition.revision,
+          content_hash: definition.content_hash,
+          record_hash: definitionRow.record_hash,
+          definition_family: definition.definition_family,
         },
-        reason:
-          "An exact GroundedResponse already addresses this inquiry. Inspect its recorded basis and limitations before deciding whether new Work is warranted.",
-        basis: {
-          derivation: "exact_immutable_inquiry_result_link",
-          project_definition_ref: {
-            project_definition_id: definition.project_definition_id,
-            revision: definition.revision,
-            content_hash: definition.content_hash,
-            record_hash: definitionRow.record_hash,
-            definition_family: definition.definition_family,
-          },
-          inquiry_result_link_ref: {
-            project_inquiry_link_id: link.project_inquiry_link_id,
-            content_hash: link.content_hash,
-            record_hash: linkRow.record_hash,
-          },
-          result_ref: resultRef,
-          snapshot_ref: clone(response.content.snapshot_ref),
-          ...(target.produced_by_work_ref === undefined
-            ? {}
-            : { produced_by_work_ref: clone(target.produced_by_work_ref) }),
+        inquiry_result_link_ref: {
+          project_inquiry_link_id: link.project_inquiry_link_id,
+          content_hash: link.content_hash,
+          record_hash: linkRow.record_hash,
         },
-        scope: {
-          scope_kind: "exact_existing_result",
-          included:
-            "Open the exact linked GroundedResponse in the current inquiry context.",
-          excluded: [
-            "No new retrieval, model call, or durable Work starts.",
-            "No result is promoted to inquiry resolution or scientific authority.",
-          ],
-        },
-        missing_information: [
-          "The linked result addresses the inquiry but is not registered as admissible inquiry basis or an accepted finding.",
+        result_ref: resultRef,
+        snapshot_ref: clone(response.content.snapshot_ref),
+        ...(target.produced_by_work_ref === undefined
+          ? {}
+          : { produced_by_work_ref: clone(target.produced_by_work_ref) }),
+      },
+      scope: {
+        scope_kind: "exact_existing_result",
+        included:
+          "Open the exact linked GroundedResponse in the current inquiry context.",
+        excluded: [
+          "No new retrieval, model call, or durable Work starts.",
+          "No result is promoted to inquiry resolution or scientific authority.",
         ],
-        response_depth: {
-          allowed: ["current_graph"],
-          recommended: "current_graph",
-          adjustable: false,
-        },
-        expected_result: {
-          state: "already_available",
-          result_kind: "grounded_response",
-          result_ref: clone(resultRef),
-          authority_effect: "none",
-          reusable: response.content.cache.state === "reusable",
-        },
-        resources: {
-          duration: "not_required",
-          cost: "not_required",
-          basis: "read_only_existing_result",
-        },
-        capability: {
-          capability_key: "petra.project-inquiry.read",
-          grant_status: "satisfied_by_authenticated_project_read",
-          approval: "not_required",
-        },
-        interrupt: { expectation: "none" },
-        cancellation: {
-          consequence: "not_applicable_no_work_started",
-        },
-        background_work: backgroundWork,
-        invocation: {
-          kind: "authenticated_read",
-          contract_name: "petra.project-inquiry-view",
-          contract_version: "1.0.0",
-          operation: "get_project_inquiry_detail",
-          project_id: projectId,
-          objective_ref: clone(objectiveRef),
-          place_role: "brief",
-          task_intent: "inspect",
-          idempotency: "safe_exact_read",
-        },
-      };
-      const content: PetraSuggestedActionView["content"] = {
-        view_kind: "preview",
-        action_ref: {
-          suggested_action_id: suggestedActionId,
-          revision: 1,
-          content_hash: canonicalHash(action),
-        },
-        action,
-        readiness,
-        operation: {
-          state: "read_only",
-          work_start: "not_performed",
-          authority_change: "none",
-        },
-        authority: await this.#authority(client, projectId),
-        limitations: [
-          "Version 1.0 derives only exact inspection actions for an existing linked GroundedResponse.",
-          "It does not recommend new Work, calculate cross-action priority, invoke a command, or apply a result.",
-        ],
-      };
-      const view: PetraSuggestedActionView = {
-        schema_name: "petra.suggested-action-view",
-        schema_version: "1.0.0",
+      },
+      missing_information: [
+        "The linked result addresses the inquiry but is not registered as admissible inquiry basis or an accepted finding.",
+      ],
+      response_depth: {
+        allowed: ["current_graph"],
+        recommended: "current_graph",
+        adjustable: false,
+      },
+      expected_result: {
+        state: "already_available",
+        result_kind: "grounded_response",
+        result_ref: clone(resultRef),
+        authority_effect: "none",
+        reusable: response.content.cache.state === "reusable",
+      },
+      resources: {
+        duration: "not_required",
+        cost: "not_required",
+        basis: "read_only_existing_result",
+      },
+      capability: {
+        capability_key: "petra.project-inquiry.read",
+        grant_status: "satisfied_by_authenticated_project_read",
+        approval: "not_required",
+      },
+      interrupt: { expectation: "none" },
+      cancellation: {
+        consequence: "not_applicable_no_work_started",
+      },
+      background_work: backgroundWork,
+      invocation: {
+        kind: "authenticated_read",
+        contract_name: "petra.project-inquiry-view",
+        contract_version: "1.0.0",
+        operation: "get_project_inquiry_detail",
         project_id: projectId,
-        content,
-        content_hash: canonicalHash(content),
-        read_at: readAt,
-      };
-      this.#contracts.assertValid("suggested-action-view", "1.0.0", view);
-      return view;
-    });
+        objective_ref: clone(objectiveRef),
+        place_role: "brief",
+        task_intent: "inspect",
+        idempotency: "safe_exact_read",
+      },
+    };
+    const content: PetraSuggestedActionView["content"] = {
+      view_kind: "preview",
+      action_ref: {
+        suggested_action_id: suggestedActionId,
+        revision: 1,
+        content_hash: canonicalHash(action),
+      },
+      action,
+      readiness,
+      operation: {
+        state: "read_only",
+        work_start: "not_performed",
+        authority_change: "none",
+      },
+      authority: await this.#authority(client, projectId),
+      limitations: [
+        "Version 1.0 derives only exact inspection actions for an existing linked GroundedResponse.",
+        "It does not recommend new Work, calculate cross-action priority, invoke a command, or apply a result.",
+      ],
+    };
+    const view: PetraSuggestedActionView = {
+      schema_name: "petra.suggested-action-view",
+      schema_version: "1.0.0",
+      project_id: projectId,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: readAt,
+    };
+    this.#contracts.assertValid("suggested-action-view", "1.0.0", view);
+    return view;
   }
 
   async getWorkStartingSuggestedActionViewForInquiryResult(

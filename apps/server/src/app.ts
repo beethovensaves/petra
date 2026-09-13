@@ -1,4 +1,9 @@
 import {
+  ProjectBriefError,
+  type ProjectBriefViewReader,
+  type ProjectBriefRequest,
+} from "@petra/core";
+import {
   ReviewSessionApplyError,
   type ReviewSessionApplyBoundary,
   type ReviewApplyAuthority,
@@ -116,6 +121,7 @@ export interface PetraAppOptions {
   publicDir?: string;
   codexProvider?: CodexSubscriptionProviderPort;
   codexWorkspaceRoot?: string;
+  projectBriefViews?: ProjectBriefViewReader;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
   projectHistoryViews?: ProjectHistoryViewReader;
@@ -1064,6 +1070,72 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         error instanceof Error
           ? error.message
           : "The Project shell collection is unavailable.",
+      );
+    }
+  });
+
+  app.get("/api/queries/projects/:projectId/brief", async (context) => {
+    if (options.projectBriefViews === undefined)
+      return jsonError(
+        context,
+        503,
+        "PROJECT_BRIEF_UNAVAILABLE",
+        "The authorized Brief reader is not configured.",
+      );
+    try {
+      const parameters = new URL(context.req.url).searchParams;
+      const allowed = [
+        "expected_snapshot_hash",
+        "baseline_event_id",
+        "baseline_record_hash",
+      ];
+      if (
+        [...parameters.keys()].some(
+          (key) =>
+            !allowed.includes(key) || parameters.getAll(key).length !== 1,
+        )
+      )
+        throw new ProjectBriefError(
+          "PROJECT_BRIEF_REQUEST_INVALID",
+          "Brief reads accept only one value per registered snapshot or baseline control.",
+        );
+      const request: ProjectBriefRequest = Object.fromEntries(parameters);
+      const projectId = context.req.param("projectId");
+      const view = await options.projectBriefViews.getProjectBriefView(
+        projectId,
+        request,
+      );
+      if (view === undefined)
+        return jsonError(
+          context,
+          404,
+          "PROJECT_NOT_FOUND",
+          "The requested Project is unavailable.",
+        );
+      contracts.assertValid("project-brief-view", "1.0.0", view);
+      if (view.project_id !== projectId)
+        throw new ProjectBriefError(
+          "PROJECT_BRIEF_CORRUPT",
+          "The Brief crossed a Project boundary.",
+        );
+      context.header("Cache-Control", "no-store");
+      return context.json(view);
+    } catch (error) {
+      return jsonError(
+        context,
+        error instanceof ProjectBriefError
+          ? error.code === "PROJECT_BRIEF_STALE"
+            ? 409
+            : error.code === "PROJECT_BRIEF_CORRUPT"
+              ? 503
+              : 422
+          : 503,
+        error instanceof ProjectBriefError
+          ? error.code
+          : "PROJECT_BRIEF_READ_FAILED",
+        error instanceof Error
+          ? error.message
+          : "The Brief read is unavailable.",
       );
     }
   });
