@@ -4,6 +4,8 @@ import type {
   PetraAssertion,
   PetraClaim,
   PetraProjectDefinition,
+  PetraProjectSource,
+  PetraReviewCandidateBasisRevisionReceipt,
   PetraReviewCandidateCorrectionReceipt,
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionRefreshReceipt,
@@ -17,9 +19,13 @@ import type {
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   ReviewCandidateCorrectionAuthorityError,
+  ReviewCandidateBasisRevisionAuthorityError,
   ReviewSessionLifecycleAuthorityError,
   ReviewSessionRefreshAuthorityError,
   derivePetraId,
+  type ReviewCandidateBasisRevisionAuthorityRepository,
+  type ReviewCandidateBasisRevisionCommandEnvelope,
+  type ReviewCandidateBasisRevisionCommandResult,
   type ReviewCandidateCorrectionAuthorityCommandEnvelope,
   type ReviewCandidateCorrectionAuthorityRepository,
   type ReviewCandidateCorrectionCommandResult,
@@ -95,6 +101,21 @@ interface CurrentDefinitionRow extends StoredRow {
   definition_family: string;
 }
 
+interface ProjectSourceRow extends StoredRow {
+  content_hash: string;
+  work_version_id: string;
+  artifact_manifest_id: string;
+  status: string;
+}
+
+interface SourceSpanRow extends StoredRow {
+  source_span_id: string;
+  work_version_id: string;
+  artifact_id: string;
+  structural_kind: string;
+  structural_payload: unknown;
+}
+
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
 
@@ -112,7 +133,8 @@ const commandFingerprint = (
   envelope:
     | ReviewSessionLifecycleCommandEnvelope
     | ReviewSessionRefreshCommandEnvelope
-    | ReviewCandidateCorrectionAuthorityCommandEnvelope,
+    | ReviewCandidateCorrectionAuthorityCommandEnvelope
+    | ReviewCandidateBasisRevisionCommandEnvelope,
 ): string => {
   const { correlation_id, submitted_at, ...governedCommand } = envelope;
   void correlation_id;
@@ -145,7 +167,8 @@ export class PostgresReviewSessionAuthorityRepository
     ReviewSessionAuthorityRepository,
     ReviewSessionLifecycleAuthorityRepository,
     ReviewSessionRefreshAuthorityRepository,
-    ReviewCandidateCorrectionAuthorityRepository
+    ReviewCandidateCorrectionAuthorityRepository,
+    ReviewCandidateBasisRevisionAuthorityRepository
 {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
@@ -994,6 +1017,364 @@ export class PostgresReviewSessionAuthorityRepository
     }
   }
 
+  async executeReviewCandidateBasisRevisionCommand(
+    envelope: ReviewCandidateBasisRevisionCommandEnvelope,
+  ): Promise<ReviewCandidateBasisRevisionCommandResult> {
+    this.#contracts.assertValid("command-envelope", "1.8.0", envelope);
+    if (envelope.command.command_name !== "ReviseReviewCandidateBasis") {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED",
+        "The Review candidate basis-revision boundary accepts only ReviseReviewCandidateBasis.",
+      );
+    }
+    const fingerprint = commandFingerprint(envelope);
+    const client = await this.#pool.connect();
+    try {
+      await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
+      await this.#lockBasisRevisionCommand(client, envelope);
+      if (
+        this.#commandAuthorizer === undefined ||
+        !(await this.#commandAuthorizer.authorize(
+          {
+            actor: envelope.actor,
+            capabilityGrantId: envelope.capability_grant_id,
+            commandName: "ReviseReviewCandidateBasis",
+            projectId: envelope.project_id,
+          },
+          client,
+        ))
+      ) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_NOT_AUTHORIZED",
+          `Capability ${envelope.capability_grant_id} does not authorize ReviseReviewCandidateBasis.`,
+        );
+      }
+      const replay = await this.#replayBasisRevisionCommand(
+        client,
+        envelope,
+        fingerprint,
+      );
+      if (replay !== undefined) {
+        await client.query("COMMIT");
+        return replay;
+      }
+      await this.#requireReviewCommandContext(
+        client,
+        envelope,
+        "basis_revision",
+      );
+
+      const currentRow = await this.#currentSessionForLifecycle(
+        client,
+        envelope.command.expected_review_session_ref.review_session_id,
+      );
+      if (currentRow === undefined) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_SESSION_NOT_FOUND",
+          "The requested ReviewSession is not registered.",
+        );
+      }
+      const current = this.#stored(currentRow);
+      if (current.project_id !== envelope.project_id) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_PROJECT_MISMATCH",
+          "The ReviewSession and basis-revision command must belong to the same Project.",
+        );
+      }
+      const expectedSession = envelope.command.expected_review_session_ref;
+      if (
+        current.review_session_id !== expectedSession.review_session_id ||
+        current.revision !== expectedSession.revision ||
+        current.content_hash !== expectedSession.content_hash ||
+        current.content.lifecycle !== expectedSession.lifecycle
+      ) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+          "Basis revision must name the exact current ReviewSession identity, revision, content hash, and lifecycle.",
+        );
+      }
+      if (current.content.lifecycle !== "open") {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_LIFECYCLE_INVALID",
+          "Basis revision requires an open ReviewSession.",
+        );
+      }
+      if (
+        current.schema_version !== "1.1.0" ||
+        current.content.members.length !== 1
+      ) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED",
+          "The first basis-revision adapter supports one working-state member in ReviewSession 1.1 only.",
+        );
+      }
+      const member = current.content.members[0];
+      if (
+        member === undefined ||
+        member.review_member_id !== envelope.command.review_member_id ||
+        member.working_state.relationship_refs.length !== 1 ||
+        member.candidate_bindings.length !== 2
+      ) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_MEMBER_MISMATCH",
+          "Basis revision must name the one exact scientific Review member.",
+        );
+      }
+      const expectedCandidate = envelope.command.expected_working_candidate_ref;
+      const expectedRelationship =
+        envelope.command.expected_working_relationship_ref;
+      const memberRelationship = member.working_state.relationship_refs[0];
+      if (
+        memberRelationship === undefined ||
+        canonicalize(member.working_state.candidate_ref) !==
+          canonicalize(expectedCandidate) ||
+        canonicalize(memberRelationship) !== canonicalize(expectedRelationship)
+      ) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+          "Basis revision must bind the Review member's exact current WorkingCandidate and WorkingRelationship revisions.",
+        );
+      }
+
+      const priorCandidateRow = await this.#correctionWorkingRecord(
+        client,
+        "candidate",
+        current.project_id,
+        expectedCandidate.working_candidate_id,
+        expectedCandidate.revision,
+      );
+      const priorRelationshipRow = await this.#correctionWorkingRecord(
+        client,
+        "relationship",
+        current.project_id,
+        expectedRelationship.working_relationship_id,
+        expectedRelationship.revision,
+      );
+      const priorCandidate = this.#storedCorrectionCandidate(priorCandidateRow);
+      const priorRelationship =
+        this.#storedCorrectionRelationship(priorRelationshipRow);
+      if (
+        priorCandidate.content_hash !== expectedCandidate.content_hash ||
+        priorRelationship.content_hash !== expectedRelationship.content_hash
+      ) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+          "The expected working references do not match their exact retained content.",
+        );
+      }
+
+      const priorProfile = await this.#correctionClaim(
+        client,
+        current.project_id,
+        priorCandidate.profile_object.object_record_ref,
+      );
+      const assertion = await this.#correctionAssertion(
+        client,
+        current.project_id,
+        priorRelationship.profile_relationship.relationship_record_ref,
+      );
+      const definition = await this.#basisRevisionDefinition(
+        client,
+        current,
+        envelope,
+      );
+      const source = await this.#basisRevisionSource(client, current, envelope);
+      const priorSpanRefs = this.#priorBasisSpanRefs(
+        priorCandidate,
+        priorProfile,
+      );
+      await this.#basisRevisionSourceSpans(
+        client,
+        source,
+        priorSpanRefs,
+        priorProfile.basis.basis_kind === "source"
+          ? priorProfile.basis.source_scope
+          : "full_text",
+      );
+      await this.#basisRevisionSourceSpans(
+        client,
+        source,
+        envelope.command.basis_revision_input.source_span_refs,
+        envelope.command.basis_revision_input.source_scope,
+      );
+      const prepared = this.#prepareBasisRevisionRecords(
+        envelope,
+        definition,
+        source,
+        priorCandidate,
+        priorCandidateRow.record_hash,
+        priorProfile,
+      );
+      this.#assertBasisRevisionInput(
+        envelope,
+        prepared.candidate,
+        prepared.profileRecord,
+        current,
+        member,
+        priorCandidate,
+        priorCandidateRow.record_hash,
+        priorRelationship,
+        priorProfile,
+        assertion,
+        source,
+        definition,
+      );
+
+      const candidate =
+        await this.#workingState.admitWorkingCandidateRevisionInTransaction(
+          client,
+          {
+            candidate: prepared.candidate,
+            profileRecord: prepared.profileRecord,
+          },
+        );
+      const recordedAt = this.#now();
+      const relationship = this.#correctedRelationship(
+        candidate,
+        priorRelationship,
+        priorRelationshipRow.record_hash,
+        recordedAt,
+        "basis_revision",
+      );
+      await this.#workingState.admitWorkingRelationshipRevisionInTransaction(
+        client,
+        { relationship, profileRecord: assertion },
+      );
+
+      const authority = await this.#correctionAuthorityPosition(
+        client,
+        current.project_id,
+      );
+      const next = clone(current);
+      next.revision += 1;
+      next.content.snapshot = { ...clone(authority), captured_at: recordedAt };
+      const nextMember = next.content.members[0];
+      if (nextMember === undefined) {
+        throw this.#basisRevisionCorrupt(
+          "The retained single-member ReviewSession lost its member.",
+        );
+      }
+      nextMember.working_state = {
+        candidate_ref: {
+          working_candidate_id: candidate.working_candidate_id,
+          revision: candidate.revision,
+          content_hash: candidate.content_hash,
+        },
+        relationship_refs: [
+          {
+            working_relationship_id: relationship.working_relationship_id,
+            revision: relationship.revision,
+            content_hash: relationship.content_hash,
+          },
+        ],
+      };
+      nextMember.candidate_bindings = nextMember.candidate_bindings.map(
+        (binding) =>
+          binding.binding_role === "candidate"
+            ? {
+                ...clone(binding),
+                record_ref: {
+                  record_id:
+                    candidate.profile_object.object_record_ref.record_id,
+                  revision: candidate.profile_object.object_record_ref.revision,
+                  record_hash:
+                    candidate.profile_object.object_record_ref.record_hash,
+                },
+              }
+            : clone(binding),
+      ) as ReviewSessionMemberV110["candidate_bindings"];
+      next.content_hash = canonicalHash(next.content);
+      next.updated_at = recordedAt;
+      this.#contracts.assertValid("review-session", "1.1.0", next);
+      this.#assertBindings(next);
+      const nextRecordHash = canonicalHash(next);
+      const receipt = this.#basisRevisionReceipt(
+        envelope,
+        fingerprint,
+        current,
+        currentRow.record_hash,
+        priorCandidate,
+        priorCandidateRow.record_hash,
+        candidate,
+        priorRelationship,
+        priorRelationshipRow.record_hash,
+        relationship,
+        priorProfile,
+        prepared.profileRecord,
+        definition,
+        source,
+        priorSpanRefs,
+        next,
+        nextRecordHash,
+        recordedAt,
+      );
+
+      await this.#insertRevision(client, next, nextRecordHash);
+      const advanced = await client.query(
+        `UPDATE petra.review_sessions
+            SET current_revision = $2
+          WHERE review_session_id = $1
+            AND project_id = $3
+            AND current_revision = $4`,
+        [
+          next.review_session_id,
+          next.revision,
+          next.project_id,
+          current.revision,
+        ],
+      );
+      if (advanced.rowCount !== 1) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+          "The ReviewSession head changed before basis revision could commit.",
+        );
+      }
+      await this.#insertBasisRevisionCommandExecution(
+        client,
+        envelope,
+        fingerprint,
+        receipt,
+        recordedAt,
+      );
+      await client.query("COMMIT");
+      return {
+        receipt: clone(receipt),
+        candidate: clone(candidate),
+        profileRecord: clone(prepared.profileRecord),
+        relationship: clone(relationship),
+        reviewSession: clone(next),
+        applied: true,
+      };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      if (error instanceof ReviewCandidateBasisRevisionAuthorityError)
+        throw error;
+      if (error instanceof ReviewCandidateCorrectionAuthorityError) {
+        throw this.#mappedCorrectionBasisRevisionError(error);
+      }
+      if (error instanceof PostgresWorkingStateError) {
+        throw this.#mappedWorkingBasisRevisionError(error);
+      }
+      const pgError = error as PgError;
+      if (pgError.code === "23514" || pgError.code === "23503") {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+          pgError.message ??
+            "The basis revision does not satisfy its exact registered source bindings.",
+        );
+      }
+      if (pgError.code === "40001" || pgError.code === "23505") {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+          pgError.message ?? "Basis revision conflicted with current state.",
+        );
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   async getReviewSessionLifecycleReceipt(
     commandId: string,
   ): Promise<PetraReviewSessionLifecycleReceipt | undefined> {
@@ -1154,6 +1535,145 @@ export class PostgresReviewSessionAuthorityRepository
         [key],
       );
     }
+  }
+
+  async #lockBasisRevisionCommand(
+    client: PoolClient,
+    envelope: ReviewCandidateBasisRevisionCommandEnvelope,
+  ): Promise<void> {
+    const keys = [
+      `command:${envelope.command_id}`,
+      `idempotency:${envelope.idempotency_key}`,
+      `project:${envelope.project_id}`,
+      `review-session:${envelope.command.expected_review_session_ref.review_session_id}`,
+      envelope.command.expected_working_candidate_ref.working_candidate_id,
+      envelope.command.expected_working_relationship_ref
+        .working_relationship_id,
+      envelope.command.expected_claim_ref.record_id,
+      envelope.command.basis_revision_input.project_source_ref
+        .project_source_id,
+      ...envelope.command.basis_revision_input.source_span_refs.map(
+        (ref) => ref.record_id,
+      ),
+    ].sort();
+    for (const key of keys) {
+      await client.query(
+        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+        [key],
+      );
+    }
+  }
+
+  async #replayBasisRevisionCommand(
+    client: PoolClient,
+    envelope: ReviewCandidateBasisRevisionCommandEnvelope,
+    fingerprint: string,
+  ): Promise<ReviewCandidateBasisRevisionCommandResult | undefined> {
+    const byIdempotency = await client.query<CommandExecutionRow>(
+      `SELECT command_id, command_fingerprint, result
+         FROM petra.command_executions
+        WHERE idempotency_key = $1`,
+      [envelope.idempotency_key],
+    );
+    const idempotent = byIdempotency.rows[0];
+    if (idempotent !== undefined) {
+      if (idempotent.command_fingerprint !== fingerprint) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_IDEMPOTENCY_KEY_REUSED",
+          "The idempotency key is already bound to different basis-revision content.",
+        );
+      }
+      return this.#replayedBasisRevisionResult(client, idempotent);
+    }
+    const byCommand = await client.query<CommandExecutionRow>(
+      `SELECT command_id, command_fingerprint, result
+         FROM petra.command_executions
+        WHERE command_id = $1`,
+      [envelope.command_id],
+    );
+    const command = byCommand.rows[0];
+    if (command === undefined) return undefined;
+    if (command.command_fingerprint !== fingerprint) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_ID_REUSED",
+        "The command identity is already bound to different basis-revision content.",
+      );
+    }
+    return this.#replayedBasisRevisionResult(client, command);
+  }
+
+  async #replayedBasisRevisionResult(
+    client: PoolClient,
+    row: CommandExecutionRow,
+  ): Promise<ReviewCandidateBasisRevisionCommandResult> {
+    const receipt = this.#storedBasisRevisionReceipt(row.result);
+    if (receipt.content.command_ref.command_id !== row.command_id) {
+      throw this.#basisRevisionCorrupt(
+        "A retained candidate basis-revision result has a different command identity.",
+      );
+    }
+    const sessionRef = receipt.content.resulting_review_session_ref;
+    const sessionRow = await this.#sessionRevision(
+      client,
+      sessionRef.review_session_id,
+      sessionRef.revision,
+    );
+    const candidateRef = receipt.content.resulting_candidate_ref;
+    const candidateRow = await this.#correctionWorkingRecord(
+      client,
+      "candidate",
+      receipt.project_id,
+      candidateRef.record_id,
+      candidateRef.revision,
+      false,
+    );
+    const relationshipRef = receipt.content.resulting_relationship_ref;
+    const relationshipRow = await this.#correctionWorkingRecord(
+      client,
+      "relationship",
+      receipt.project_id,
+      relationshipRef.record_id,
+      relationshipRef.revision,
+      false,
+    );
+    const profileRecord = await this.#correctionClaim(
+      client,
+      receipt.project_id,
+      receipt.content.resulting_profile_record_ref,
+      false,
+    );
+    if (sessionRow === undefined) {
+      throw this.#basisRevisionCorrupt(
+        "A persisted candidate basis revision lost its resulting ReviewSession revision.",
+      );
+    }
+    const reviewSession = this.#stored(sessionRow);
+    const candidate = this.#storedCorrectionCandidate(candidateRow);
+    const relationship = this.#storedCorrectionRelationship(relationshipRow);
+    if (
+      reviewSession.schema_version !== "1.1.0" ||
+      reviewSession.project_id !== receipt.project_id ||
+      reviewSession.content_hash !== sessionRef.content_hash ||
+      sessionRow.record_hash !== sessionRef.record_hash ||
+      candidate.content_hash !== candidateRef.content_hash ||
+      candidateRow.record_hash !== candidateRef.record_hash ||
+      relationship.content_hash !== relationshipRef.content_hash ||
+      relationshipRow.record_hash !== relationshipRef.record_hash ||
+      canonicalHash(profileRecord) !==
+        receipt.content.resulting_profile_record_ref.record_hash
+    ) {
+      throw this.#basisRevisionCorrupt(
+        "The retained basis-revision result no longer resolves its exact working and Review revisions.",
+      );
+    }
+    return {
+      receipt,
+      candidate,
+      profileRecord,
+      relationship,
+      reviewSession,
+      applied: false,
+    };
   }
 
   async #replayCorrectionCommand(
@@ -1445,6 +1965,760 @@ export class PostgresReviewSessionAuthorityRepository
       );
     }
     return assertion;
+  }
+
+  async #basisRevisionDefinition(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+    envelope: ReviewCandidateBasisRevisionCommandEnvelope,
+  ): Promise<PetraProjectDefinition> {
+    const ref = envelope.command.expected_project_definition_ref;
+    const result = await client.query<CurrentDefinitionRow>(
+      `SELECT revision.payload, revision.record_hash,
+              head.definition_family
+         FROM petra.project_definitions AS head
+         JOIN petra.project_definition_revisions AS revision
+           ON revision.project_definition_id = head.project_definition_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND head.project_definition_id = $2
+          AND head.current_revision = $3
+          AND revision.content_hash = $4
+        FOR SHARE OF head`,
+      [
+        session.project_id,
+        ref.project_definition_id,
+        ref.revision,
+        ref.content_hash,
+      ],
+    );
+    const row = result.rows[0];
+    if (
+      row === undefined ||
+      row.definition_family !== ref.definition_family ||
+      ref.project_definition_id !==
+        session.project_definition_ref.project_definition_id ||
+      ref.revision !== session.project_definition_ref.revision ||
+      ref.content_hash !== session.project_definition_ref.content_hash
+    ) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+        "Basis revision requires the ReviewSession's exact current ProjectDefinition revision, family, and content hash.",
+      );
+    }
+    if (row.definition_family !== "petra.scientific-evidence") {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED",
+        "The first basis-revision adapter supports only the registered scientific-evidence profile.",
+      );
+    }
+    this.#contracts.assertValid("project-definition", "1.0.0", row.payload);
+    const definition = clone(row.payload as PetraProjectDefinition);
+    if (
+      row.record_hash !== canonicalHash(definition) ||
+      definition.content_hash !== canonicalHash(definition.content) ||
+      definition.project_id !== session.project_id ||
+      definition.project_definition_id !== ref.project_definition_id ||
+      definition.revision !== ref.revision ||
+      definition.content_hash !== ref.content_hash ||
+      definition.definition_family !== ref.definition_family
+    ) {
+      throw this.#basisRevisionCorrupt(
+        "The current ProjectDefinition does not match its exact basis-revision binding.",
+      );
+    }
+    return definition;
+  }
+
+  async #basisRevisionSource(
+    client: PoolClient,
+    session: PetraReviewSessionV110,
+    envelope: ReviewCandidateBasisRevisionCommandEnvelope,
+  ): Promise<{ record: PetraProjectSource; row: ProjectSourceRow }> {
+    const ref = envelope.command.basis_revision_input.project_source_ref;
+    const result = await client.query<ProjectSourceRow>(
+      `SELECT revision.payload, revision.record_hash,
+              revision.content_hash, revision.work_version_id,
+              revision.artifact_manifest_id, revision.status
+         FROM petra.project_sources AS head
+         JOIN petra.project_source_revisions AS revision
+           ON revision.project_source_id = head.project_source_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND head.project_source_id = $2
+          AND head.current_revision = $3
+          AND revision.content_hash = $4
+          AND revision.record_hash = $5
+          AND revision.status = 'active'
+        FOR SHARE OF head`,
+      [
+        session.project_id,
+        ref.project_source_id,
+        ref.revision,
+        ref.content_hash,
+        ref.record_hash,
+      ],
+    );
+    const row = result.rows[0];
+    if (row === undefined || row.status !== ref.status) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+        "The replacement basis must name one exact current active ProjectSource under the Review's ProjectDefinition.",
+      );
+    }
+    this.#contracts.assertValid("project-source", "1.0.0", row.payload);
+    const record = clone(row.payload as PetraProjectSource);
+    if (
+      row.record_hash !== canonicalHash(record) ||
+      record.content_hash !== canonicalHash(record.content) ||
+      record.project_id !== session.project_id ||
+      record.project_source_id !== ref.project_source_id ||
+      record.revision !== ref.revision ||
+      record.content_hash !== ref.content_hash ||
+      record.content.status !== "active"
+    ) {
+      throw this.#basisRevisionCorrupt(
+        "The current ProjectSource does not match its exact basis-revision hashes and identity.",
+      );
+    }
+    return { record, row };
+  }
+
+  async #basisRevisionSourceSpans(
+    client: PoolClient,
+    source: { record: PetraProjectSource; row: ProjectSourceRow },
+    refs: readonly [
+      {
+        schema_name: "petra.source-span";
+        schema_version: "1.0.0";
+        record_id: string;
+        revision: 1;
+        record_hash: string;
+      },
+      ...Array<{
+        schema_name: "petra.source-span";
+        schema_version: "1.0.0";
+        record_id: string;
+        revision: 1;
+        record_hash: string;
+      }>,
+    ],
+    sourceScope: "full_text" | "abstract_only",
+  ): Promise<void> {
+    const seen = new Set<string>();
+    for (const ref of refs) {
+      if (seen.has(ref.record_id)) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+          "A scientific basis revision cannot repeat a SourceSpan identity.",
+        );
+      }
+      seen.add(ref.record_id);
+      const result = await client.query<SourceSpanRow>(
+        `SELECT span.source_span_id, span.payload, span.record_hash,
+                document.work_version_id, span.artifact_id,
+                block.block_kind AS structural_kind,
+                block.payload AS structural_payload
+           FROM petra.source_spans AS span
+           JOIN petra.parsed_documents AS document
+             ON document.parsed_document_id = span.parsed_document_id
+           JOIN petra.structural_blocks AS block
+             ON block.parsed_document_id = span.parsed_document_id
+            AND block.structural_block_id = span.structural_block_id
+           JOIN petra.artifact_manifests AS manifest
+             ON manifest.artifact_manifest_id = $4
+            AND manifest.artifact_id = span.artifact_id
+          WHERE span.source_span_id = $1
+            AND span.revision = $2
+            AND span.record_hash = $3
+            AND document.work_version_id = $5`,
+        [
+          ref.record_id,
+          ref.revision,
+          ref.record_hash,
+          source.row.artifact_manifest_id,
+          source.row.work_version_id,
+        ],
+      );
+      const row = result.rows[0];
+      if (
+        row === undefined ||
+        row.source_span_id !== ref.record_id ||
+        row.work_version_id !== source.row.work_version_id
+      ) {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+          "Every replacement SourceSpan must resolve exactly inside the selected ProjectSource artifact and WorkVersion.",
+        );
+      }
+      this.#contracts.assertValid("source-span", "1.0.0", row.payload);
+      if (row.record_hash !== canonicalHash(row.payload)) {
+        throw this.#basisRevisionCorrupt(
+          "A selected SourceSpan no longer matches its canonical record hash.",
+        );
+      }
+      if (sourceScope === "abstract_only") {
+        const payload = row.structural_payload as { structural_path?: unknown };
+        const path = Array.isArray(payload.structural_path)
+          ? payload.structural_path
+          : [];
+        if (
+          !path.some(
+            (segment) =>
+              typeof segment === "string" &&
+              segment.toLocaleLowerCase("en-US").includes("abstract"),
+          )
+        ) {
+          throw this.#basisRevisionError(
+            "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+            "An abstract-only basis may contain only SourceSpans whose retained structural path identifies the abstract.",
+          );
+        }
+      }
+    }
+  }
+
+  #priorBasisSpanRefs(
+    candidate: PetraWorkingCandidate,
+    profile: PetraClaim,
+  ): [
+    {
+      schema_name: "petra.source-span";
+      schema_version: "1.0.0";
+      record_id: string;
+      revision: 1;
+      record_hash: string;
+    },
+    ...Array<{
+      schema_name: "petra.source-span";
+      schema_version: "1.0.0";
+      record_id: string;
+      revision: 1;
+      record_hash: string;
+    }>,
+  ] {
+    if (profile.basis.basis_kind !== "source") {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED",
+        "Material basis revision supports source-grounded scientific Claims only.",
+      );
+    }
+    const refs = candidate.basis
+      .filter(
+        (item) =>
+          item.basis_role === "source" &&
+          item.record_ref.schema_name === "petra.source-span" &&
+          item.record_ref.schema_version === "1.0.0" &&
+          item.record_ref.revision === 1,
+      )
+      .map((item) => ({
+        schema_name: "petra.source-span" as const,
+        schema_version: "1.0.0" as const,
+        record_id: item.record_ref.record_id,
+        revision: 1 as const,
+        record_hash: item.record_ref.record_hash,
+      }));
+    if (
+      canonicalize(refs.map((ref) => ref.record_id)) !==
+        canonicalize(profile.basis.source_span_ids) ||
+      new Set(refs.map((ref) => ref.record_id)).size !== refs.length
+    ) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+        "The current WorkingCandidate must retain the Claim's exact ordered SourceSpan basis before it can be revised.",
+      );
+    }
+    const first = refs[0];
+    if (first === undefined) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+        "The current source-grounded Claim has no exact WorkingCandidate SourceSpan basis.",
+      );
+    }
+    return [first, ...refs.slice(1)];
+  }
+
+  #prepareBasisRevisionRecords(
+    envelope: ReviewCandidateBasisRevisionCommandEnvelope,
+    definition: PetraProjectDefinition,
+    source: { record: PetraProjectSource; row: ProjectSourceRow },
+    priorCandidate: PetraWorkingCandidate,
+    priorCandidateRecordHash: string,
+    priorProfile: PetraClaim,
+  ): { candidate: PetraWorkingCandidate; profileRecord: PetraClaim } {
+    if (envelope.actor.actor_kind !== "human") {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_PROVENANCE_INVALID",
+        "Server-composed scientific basis revision requires an authenticated human Actor.",
+      );
+    }
+    if (priorProfile.basis.basis_kind !== "source") {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED",
+        "Server-composed basis revision supports source-grounded scientific Claims only.",
+      );
+    }
+    const input = envelope.command.basis_revision_input;
+    const validators = definition.content.registrations.filter(
+      (registration) => registration.registration_kind === "validator",
+    );
+    if (validators.length === 0) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED",
+        "The exact ProjectDefinition must register at least one validator for basis revision.",
+      );
+    }
+    const firstValidator = validators[0];
+    const firstSourceSpan = input.source_span_refs[0];
+    if (firstValidator === undefined || firstSourceSpan === undefined) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED",
+        "Basis revision requires at least one registered validator and one exact SourceSpan.",
+      );
+    }
+    const sourceSpanIds = [
+      firstSourceSpan.record_id,
+      ...input.source_span_refs.slice(1).map((ref) => ref.record_id),
+    ] as [string, ...string[]];
+    const pendingValidatorResult = (registration: typeof firstValidator) => ({
+      validator_name: registration.contract.name,
+      validator_version: registration.contract.version,
+      outcome: "warning" as const,
+      code: "REVALIDATION_REQUIRED",
+      message:
+        "This registered validator has not evaluated the revised source basis.",
+    });
+
+    const profileRecord = clone(priorProfile);
+    profileRecord.revision += 1;
+    profileRecord.basis = {
+      basis_kind: "source",
+      work_version_id: source.row.work_version_id,
+      source_scope: input.source_scope,
+      detail_level: input.detail_level,
+      source_span_ids: sourceSpanIds,
+      source_stance: input.source_stance,
+      attribution: input.attribution,
+      modality: input.modality,
+      negated: input.negated,
+      ...(input.uncertainty === undefined
+        ? {}
+        : { uncertainty: input.uncertainty }),
+      derivation: {
+        derivation_kind: "human_extraction",
+        derivation_ref: envelope.command_id,
+      },
+      validator_results: [
+        pendingValidatorResult(firstValidator),
+        ...validators.slice(1).map(pendingValidatorResult),
+      ],
+      proposed_by: {
+        actor_id: envelope.actor.actor_id,
+        actor_kind: "human",
+      },
+      proposed_at: envelope.submitted_at,
+    };
+    profileRecord.authority = {
+      zone: "quarantine",
+      review_state: "unreviewed",
+    };
+    profileRecord.supersedes_claim_id = priorProfile.claim_id;
+    profileRecord.created_by = clone(envelope.actor);
+    profileRecord.created_at = envelope.submitted_at;
+    this.#contracts.assertValid("claim", "1.0.0", profileRecord);
+
+    const exactPriorCandidate = {
+      schema_name: "petra.working-candidate" as const,
+      schema_version: "1.0.0" as const,
+      record_id: priorCandidate.working_candidate_id,
+      revision: priorCandidate.revision,
+      record_hash: priorCandidateRecordHash,
+    };
+    const exactProjectSource = {
+      schema_name: "petra.project-source" as const,
+      schema_version: "1.0.0" as const,
+      record_id: source.record.project_source_id,
+      revision: source.record.revision,
+      record_hash: source.row.record_hash,
+    };
+    const sourceSpanRefs = input.source_span_refs.map((ref) => clone(ref));
+    const profileRecordHash = canonicalHash(profileRecord);
+    const candidate = clone(priorCandidate);
+    candidate.revision += 1;
+    candidate.profile_object.object_record_ref = {
+      schema_name: profileRecord.schema_name,
+      schema_version: profileRecord.schema_version,
+      record_id: profileRecord.claim_id,
+      revision: profileRecord.revision,
+      record_hash: profileRecordHash,
+    };
+    candidate.producer = {
+      producer_kind: "human",
+      actor: {
+        actor_id: envelope.actor.actor_id,
+        actor_kind: "human",
+      },
+      contribution_kind: "direct_edit",
+    };
+    candidate.input_snapshot.input_record_refs = [
+      ...clone(priorCandidate.input_snapshot.input_record_refs),
+      exactPriorCandidate,
+      exactProjectSource,
+      ...sourceSpanRefs,
+    ];
+    candidate.origin = {
+      origin_kind: "direct_edit",
+      source_record_refs: [
+        exactPriorCandidate,
+        exactProjectSource,
+        ...sourceSpanRefs,
+      ],
+      summary:
+        "The authenticated human author revised the candidate's exact scientific source basis during Review.",
+    };
+    candidate.basis = [
+      {
+        basis_role: "source",
+        record_ref: exactProjectSource,
+        summary: "The exact current ProjectSource bounds the revised basis.",
+      },
+      ...sourceSpanRefs.map((ref) => ({
+        basis_role: "source" as const,
+        record_ref: ref,
+        summary: "This exact SourceSpan is material to the revised basis.",
+      })),
+    ];
+    candidate.provenance = [
+      {
+        provenance_role: "prior_revision",
+        record_ref: exactPriorCandidate,
+        statement:
+          "This basis revision retains the exact prior WorkingCandidate and its provenance chain.",
+      },
+      {
+        provenance_role: "input",
+        record_ref: exactProjectSource,
+        statement:
+          "The revised basis resolves inside this exact current ProjectSource.",
+      },
+      ...sourceSpanRefs.map((ref) => ({
+        provenance_role: "input" as const,
+        record_ref: ref,
+        statement:
+          "This exact SourceSpan was supplied as material for the revised basis.",
+      })),
+    ];
+    candidate.qualifications =
+      input.uncertainty === undefined
+        ? { assessment_state: "none_recorded", statements: [] }
+        : {
+            assessment_state: "stated",
+            statements: [
+              {
+                qualification_kind: "uncertainty",
+                statement: input.uncertainty,
+                basis_ref: firstSourceSpan,
+              },
+            ],
+          };
+    candidate.validation = {
+      state: "pending",
+      target_record_hash: profileRecordHash,
+      results: [],
+    };
+    candidate.lineage = {
+      lineage_kind: "supersession",
+      supersedes: {
+        working_candidate_id: priorCandidate.working_candidate_id,
+        revision: priorCandidate.revision,
+        content_hash: priorCandidate.content_hash,
+      },
+      change_kind: "basis_revision",
+      reason: input.reason,
+    };
+    candidate.recorded_at = envelope.submitted_at;
+    candidate.content_hash = workingContentHash(candidate);
+    this.#contracts.assertValid("working-candidate", "1.0.0", candidate);
+    return { candidate, profileRecord };
+  }
+
+  #assertBasisRevisionInput(
+    envelope: ReviewCandidateBasisRevisionCommandEnvelope,
+    candidate: PetraWorkingCandidate,
+    profile: PetraClaim,
+    session: PetraReviewSessionV110,
+    member: ReviewSessionMemberV110,
+    priorCandidate: PetraWorkingCandidate,
+    priorCandidateRecordHash: string,
+    priorRelationship: PetraWorkingRelationship,
+    priorProfile: PetraClaim,
+    assertion: PetraAssertion,
+    source: { record: PetraProjectSource; row: ProjectSourceRow },
+    definition: PetraProjectDefinition,
+  ): void {
+    const input = envelope.command.basis_revision_input;
+    const expectedClaim = envelope.command.expected_claim_ref;
+    const exactPriorCandidate = {
+      schema_name: "petra.working-candidate",
+      schema_version: "1.0.0",
+      record_id: priorCandidate.working_candidate_id,
+      revision: priorCandidate.revision,
+      record_hash: priorCandidateRecordHash,
+    };
+    const expectedDefinition = envelope.command.expected_project_definition_ref;
+    const candidateBinding = member.candidate_bindings.find(
+      ({ binding_role }) => binding_role === "candidate",
+    );
+    const relationshipBinding = member.candidate_bindings.find(
+      ({ binding_role }) => binding_role === "relationship",
+    );
+    const relationshipEndpoint = priorRelationship.endpoints.object;
+    if (
+      envelope.actor.actor_kind !== "human" ||
+      candidate.project_id !== session.project_id ||
+      canonicalize(candidate.project_definition_ref) !==
+        canonicalize(expectedDefinition) ||
+      candidate.project_definition_ref.project_definition_id !==
+        session.project_definition_ref.project_definition_id ||
+      candidate.project_definition_ref.revision !==
+        session.project_definition_ref.revision ||
+      candidate.project_definition_ref.content_hash !==
+        session.project_definition_ref.content_hash ||
+      candidate.project_definition_ref.definition_family !==
+        "petra.scientific-evidence" ||
+      candidate.working_candidate_id !== priorCandidate.working_candidate_id ||
+      candidate.revision !== priorCandidate.revision + 1 ||
+      candidate.lineage.lineage_kind !== "supersession" ||
+      candidate.lineage.change_kind !== "basis_revision" ||
+      candidate.lineage.supersedes.working_candidate_id !==
+        priorCandidate.working_candidate_id ||
+      candidate.lineage.supersedes.revision !== priorCandidate.revision ||
+      candidate.lineage.supersedes.content_hash !==
+        priorCandidate.content_hash ||
+      candidate.disposition !== "available" ||
+      candidate.task_context.objective_ref.record_id !==
+        session.content.objective_ref.objective_id ||
+      candidate.task_context.objective_ref.revision !==
+        session.content.objective_ref.revision ||
+      canonicalize(candidate.profile_object.registration) !==
+        canonicalize(priorCandidate.profile_object.registration) ||
+      candidate.profile_object.candidate_operation !==
+        priorCandidate.profile_object.candidate_operation ||
+      canonicalize(candidate.profile_object.current_authoritative_ref) !==
+        canonicalize(priorCandidate.profile_object.current_authoritative_ref) ||
+      canonicalize(candidate.authority_boundary) !==
+        canonicalize(priorCandidate.authority_boundary) ||
+      canonicalize(candidate.task_context) !==
+        canonicalize(priorCandidate.task_context) ||
+      canonicalize(candidate.input_snapshot.snapshot_ref) !==
+        canonicalize(priorCandidate.input_snapshot.snapshot_ref) ||
+      profile.claim_id !== priorProfile.claim_id ||
+      profile.revision !== priorProfile.revision + 1 ||
+      profile.supersedes_claim_id !== priorProfile.claim_id ||
+      profile.authority.zone !== "quarantine" ||
+      profile.authority.review_state !== "unreviewed" ||
+      candidate.profile_object.object_record_ref.record_id !==
+        profile.claim_id ||
+      candidate.profile_object.object_record_ref.revision !==
+        profile.revision ||
+      candidate.profile_object.object_record_ref.record_hash !==
+        canonicalHash(profile) ||
+      candidate.validation.state !== "pending" ||
+      candidate.validation.results.length !== 0 ||
+      candidate.validation.target_record_hash !== canonicalHash(profile) ||
+      candidate.created_by.actor_id !== priorCandidate.created_by.actor_id ||
+      candidate.created_by.actor_kind !==
+        priorCandidate.created_by.actor_kind ||
+      candidate.created_at !== priorCandidate.created_at
+    ) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_PROVENANCE_INVALID",
+        "The basis revision must advance the same Claim and WorkingCandidate once without changing ProjectDefinition, profile, Objective, authority boundary, or immutable working identity fields.",
+      );
+    }
+    if (
+      expectedClaim.schema_name !== "petra.claim" ||
+      expectedClaim.schema_version !== "1.0.0" ||
+      expectedClaim.record_id !== priorProfile.claim_id ||
+      expectedClaim.revision !== priorProfile.revision ||
+      expectedClaim.record_hash !== canonicalHash(priorProfile) ||
+      canonicalize(priorCandidate.profile_object.object_record_ref) !==
+        canonicalize(expectedClaim)
+    ) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+        "Basis revision must name the exact current Claim retained by the WorkingCandidate.",
+      );
+    }
+    if (
+      candidateBinding === undefined ||
+      relationshipBinding === undefined ||
+      candidateBinding.semantic_key !==
+        priorCandidate.profile_object.registration.semantic_key ||
+      candidateBinding.record_ref.record_id !== priorProfile.claim_id ||
+      candidateBinding.record_ref.revision !== priorProfile.revision ||
+      candidateBinding.record_ref.record_hash !== canonicalHash(priorProfile) ||
+      relationshipBinding.semantic_key !==
+        priorRelationship.profile_relationship.registration.semantic_key ||
+      relationshipBinding.record_ref.record_id !==
+        priorRelationship.profile_relationship.relationship_record_ref
+          .record_id ||
+      relationshipBinding.record_ref.revision !==
+        priorRelationship.profile_relationship.relationship_record_ref
+          .revision ||
+      relationshipBinding.record_ref.record_hash !==
+        priorRelationship.profile_relationship.relationship_record_ref
+          .record_hash ||
+      relationshipEndpoint.endpoint_kind !== "working_candidate" ||
+      relationshipEndpoint.candidate_ref.working_candidate_id !==
+        priorCandidate.working_candidate_id ||
+      relationshipEndpoint.candidate_ref.revision !== priorCandidate.revision ||
+      relationshipEndpoint.candidate_ref.content_hash !==
+        priorCandidate.content_hash ||
+      priorRelationship.profile_relationship.predicate !== "ASSERTS"
+    ) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_MEMBER_MISMATCH",
+        "The Review member must retain the exact registered Claim, ASSERTS, WorkingCandidate, and WorkingRelationship composition.",
+      );
+    }
+    if (
+      priorProfile.basis.basis_kind !== "source" ||
+      profile.basis.basis_kind !== "source"
+    ) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED",
+        "The first basis-revision adapter supports source-grounded scientific Claims only.",
+      );
+    }
+    const sourceRef = input.project_source_ref;
+    const currentSourceRole = definition.content.registrations.find(
+      (registration) =>
+        registration.registration_kind === "source_role" &&
+        registration.semantic_key === source.record.content.source_role,
+    );
+    if (
+      sourceRef.project_source_id !== source.record.project_source_id ||
+      sourceRef.revision !== source.record.revision ||
+      sourceRef.content_hash !== source.record.content_hash ||
+      sourceRef.record_hash !== source.row.record_hash ||
+      sourceRef.status !== source.record.content.status ||
+      source.record.content.project_definition_ref.project_definition_id !==
+        expectedDefinition.project_definition_id ||
+      source.record.content.project_definition_ref.revision >
+        expectedDefinition.revision ||
+      currentSourceRole === undefined ||
+      source.row.work_version_id !== priorProfile.basis.work_version_id ||
+      source.record.content.work_version_ref.work_version_id !==
+        priorProfile.basis.work_version_id ||
+      assertion.predicate !== "ASSERTS"
+    ) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+        "The selected ProjectSource must belong to the Review's ProjectDefinition lineage, retain a currently registered source role, and preserve the current Claim and ASSERTS WorkVersion.",
+      );
+    }
+    if (assertion.subject_id !== priorProfile.basis.work_version_id) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+        "A source WorkVersion change requires a broader relationship revision and is not supported by this bounded operation.",
+      );
+    }
+    if (input.source_scope !== priorProfile.basis.source_scope) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+        "This bounded operation cannot change full-text versus abstract-only source semantics.",
+      );
+    }
+    const materialBasis = (basis: {
+      source_scope: string;
+      detail_level: string;
+      source_span_ids: readonly string[];
+      source_stance: string;
+      attribution: string;
+      modality: string;
+      negated: boolean;
+      uncertainty?: string;
+    }) => ({
+      source_scope: basis.source_scope,
+      detail_level: basis.detail_level,
+      source_span_ids: basis.source_span_ids,
+      source_stance: basis.source_stance,
+      attribution: basis.attribution,
+      modality: basis.modality,
+      negated: basis.negated,
+      uncertainty: basis.uncertainty,
+    });
+    if (
+      canonicalize(materialBasis(profile.basis)) ===
+      canonicalize(materialBasis(priorProfile.basis))
+    ) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_NO_MATERIAL_CHANGE",
+        "Basis revision must change at least one exact SourceSpan or scientific source-semantic field.",
+      );
+    }
+    const expectedBasisRefs = [
+      {
+        schema_name: "petra.project-source",
+        schema_version: "1.0.0",
+        record_id: source.record.project_source_id,
+        revision: source.record.revision,
+        record_hash: source.row.record_hash,
+      },
+      ...input.source_span_refs,
+    ];
+    const candidateBasisRefs = candidate.basis.map((item) => item.record_ref);
+    const hasPriorInput = candidate.input_snapshot.input_record_refs.some(
+      (ref) => canonicalize(ref) === canonicalize(exactPriorCandidate),
+    );
+    const hasPriorProvenance = candidate.provenance.some(
+      (item) =>
+        item.provenance_role === "prior_revision" &&
+        canonicalize(item.record_ref) === canonicalize(exactPriorCandidate),
+    );
+    if (
+      canonicalize(candidateBasisRefs) !== canonicalize(expectedBasisRefs) ||
+      !hasPriorInput ||
+      !hasPriorProvenance ||
+      candidate.producer.producer_kind !== "human" ||
+      candidate.producer.actor.actor_id !== envelope.actor.actor_id ||
+      candidate.producer.actor.actor_kind !== envelope.actor.actor_kind ||
+      candidate.origin.origin_kind !== "direct_edit" ||
+      profile.created_by.actor_id !== envelope.actor.actor_id ||
+      profile.created_by.actor_kind !== envelope.actor.actor_kind ||
+      profile.basis.proposed_by.actor_id !== envelope.actor.actor_id ||
+      profile.basis.proposed_by.actor_kind !== envelope.actor.actor_kind ||
+      profile.basis.validator_results.some(
+        (result) =>
+          result.outcome !== "warning" ||
+          result.code !== "REVALIDATION_REQUIRED",
+      )
+    ) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_PROVENANCE_INVALID",
+        "The revised basis must retain prior-revision provenance, exact source records, human authorship, and an explicit pending-validation boundary.",
+      );
+    }
+    const unchangedProfile = (claim: PetraClaim): unknown => {
+      const copy = clone(claim) as unknown as Record<string, unknown>;
+      delete copy.revision;
+      delete copy.basis;
+      delete copy.authority;
+      delete copy.supersedes_claim_id;
+      delete copy.created_by;
+      delete copy.created_at;
+      return copy;
+    };
+    if (
+      canonicalize(unchangedProfile(profile)) !==
+      canonicalize(unchangedProfile(priorProfile))
+    ) {
+      throw this.#basisRevisionError(
+        "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+        "Material basis revision cannot also change Claim text, kind, normalization, or scientific scope.",
+      );
+    }
   }
 
   #prepareCorrectionRecords(
@@ -1763,6 +3037,7 @@ export class PostgresReviewSessionAuthorityRepository
     prior: PetraWorkingRelationship,
     priorRecordHash: string,
     recordedAt: string,
+    operation: "correction" | "basis_revision" = "correction",
   ): PetraWorkingRelationship {
     const next = clone(prior);
     next.revision += 1;
@@ -1790,7 +3065,9 @@ export class PostgresReviewSessionAuthorityRepository
           record_hash: priorRecordHash,
         },
         statement:
-          "The relationship revision retains the exact prior working relationship while rebinding its object endpoint to the corrected candidate.",
+          operation === "basis_revision"
+            ? "The relationship revision retains the exact prior working relationship while rebinding its object endpoint to the basis-revised candidate."
+            : "The relationship revision retains the exact prior working relationship while rebinding its object endpoint to the corrected candidate.",
       },
     ];
     next.qualifications = clone(candidate.qualifications);
@@ -1818,9 +3095,14 @@ export class PostgresReviewSessionAuthorityRepository
         revision: prior.revision,
         content_hash: prior.content_hash,
       },
-      change_kind: "mechanical_correction",
+      change_kind:
+        operation === "basis_revision"
+          ? "basis_revision"
+          : "mechanical_correction",
       reason:
-        "Rebind the existing scientific working relationship to the corrected WorkingCandidate revision.",
+        operation === "basis_revision"
+          ? "Rebind the existing scientific working relationship to the basis-revised WorkingCandidate revision."
+          : "Rebind the existing scientific working relationship to the corrected WorkingCandidate revision.",
     };
     next.recorded_at = recordedAt;
     next.content_hash = workingContentHash(next);
@@ -2361,8 +3643,9 @@ export class PostgresReviewSessionAuthorityRepository
     envelope:
       | ReviewSessionLifecycleCommandEnvelope
       | ReviewSessionRefreshCommandEnvelope
-      | ReviewCandidateCorrectionAuthorityCommandEnvelope,
-    boundary: "lifecycle" | "refresh" | "correction",
+      | ReviewCandidateCorrectionAuthorityCommandEnvelope
+      | ReviewCandidateBasisRevisionCommandEnvelope,
+    boundary: "lifecycle" | "refresh" | "correction" | "basis_revision",
   ): Promise<void> {
     const result = await client.query<{ actor_kind: string }>(
       `SELECT actor.actor_kind
@@ -2372,6 +3655,12 @@ export class PostgresReviewSessionAuthorityRepository
       [envelope.project_id, envelope.actor.actor_id],
     );
     if (result.rows[0]?.actor_kind !== envelope.actor.actor_kind) {
+      if (boundary === "basis_revision") {
+        throw this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_PROJECT_MISMATCH",
+          "The basis-revision Project and Actor must resolve exactly in local authority.",
+        );
+      }
       if (boundary === "correction") {
         throw this.#correctionError(
           "REVIEW_CANDIDATE_CORRECTION_PROJECT_MISMATCH",
@@ -2420,6 +3709,262 @@ export class PostgresReviewSessionAuthorityRepository
       [reviewSessionId, revision],
     );
     return result.rows[0];
+  }
+
+  #basisRevisionReceipt(
+    envelope: ReviewCandidateBasisRevisionCommandEnvelope,
+    fingerprint: string,
+    priorSession: PetraReviewSessionV110,
+    priorSessionRecordHash: string,
+    priorCandidate: PetraWorkingCandidate,
+    priorCandidateRecordHash: string,
+    candidate: PetraWorkingCandidate,
+    priorRelationship: PetraWorkingRelationship,
+    priorRelationshipRecordHash: string,
+    relationship: PetraWorkingRelationship,
+    priorProfile: PetraClaim,
+    resultingProfile: PetraClaim,
+    definition: PetraProjectDefinition,
+    source: { record: PetraProjectSource; row: ProjectSourceRow },
+    priorSpanRefs: [
+      {
+        schema_name: "petra.source-span";
+        schema_version: "1.0.0";
+        record_id: string;
+        revision: 1;
+        record_hash: string;
+      },
+      ...Array<{
+        schema_name: "petra.source-span";
+        schema_version: "1.0.0";
+        record_id: string;
+        revision: 1;
+        record_hash: string;
+      }>,
+    ],
+    resultingSession: PetraReviewSessionV110,
+    resultingSessionRecordHash: string,
+    recordedAt: string,
+  ): PetraReviewCandidateBasisRevisionReceipt {
+    if (
+      priorProfile.basis.basis_kind !== "source" ||
+      resultingProfile.basis.basis_kind !== "source"
+    ) {
+      throw this.#basisRevisionCorrupt(
+        "The admitted basis revision lost its scientific source basis.",
+      );
+    }
+    const projectSourceRef = clone(
+      envelope.command.basis_revision_input.project_source_ref,
+    );
+    const basisSnapshot = (
+      profile: PetraClaim & { basis: { basis_kind: "source" } },
+      spanRefs: typeof priorSpanRefs,
+    ): PetraReviewCandidateBasisRevisionReceipt["content"]["prior_basis"] => ({
+      basis_kind: "source",
+      project_source_ref: projectSourceRef,
+      work_version_id: profile.basis.work_version_id,
+      source_span_refs: clone(spanRefs),
+      source_scope: profile.basis.source_scope,
+      detail_level: profile.basis.detail_level,
+      source_stance: profile.basis.source_stance,
+      attribution: profile.basis.attribution,
+      modality: profile.basis.modality,
+      negated: profile.basis.negated,
+      ...(profile.basis.uncertainty === undefined
+        ? {}
+        : { uncertainty: profile.basis.uncertainty }),
+    });
+    const validatorRefs = definition.content.registrations
+      .filter((registration) => registration.registration_kind === "validator")
+      .map((registration) => clone(registration.contract));
+    const firstValidatorRef = validatorRefs[0];
+    if (firstValidatorRef === undefined) {
+      throw this.#basisRevisionCorrupt(
+        "The admitted basis revision lost its required validator registrations.",
+      );
+    }
+    const requiredValidatorRefs = [
+      firstValidatorRef,
+      ...validatorRefs.slice(1),
+    ] as [typeof firstValidatorRef, ...typeof validatorRefs];
+    const content: PetraReviewCandidateBasisRevisionReceipt["content"] = {
+      command_ref: {
+        command_id: envelope.command_id,
+        idempotency_key: envelope.idempotency_key,
+        command_name: "ReviseReviewCandidateBasis",
+        command_fingerprint: fingerprint,
+        actor: clone(envelope.actor),
+        capability_grant_id: envelope.capability_grant_id,
+        correlation_id: envelope.correlation_id,
+      },
+      review_member_id: envelope.command.review_member_id,
+      project_definition_ref: clone(
+        envelope.command.expected_project_definition_ref,
+      ),
+      prior_review_session_ref: {
+        ...sessionRef(priorSession, priorSessionRecordHash),
+        lifecycle: "open",
+      },
+      resulting_review_session_ref: {
+        ...sessionRef(resultingSession, resultingSessionRecordHash),
+        lifecycle: "open",
+      },
+      prior_candidate_ref: {
+        schema_name: "petra.working-candidate",
+        schema_version: "1.0.0",
+        record_id: priorCandidate.working_candidate_id,
+        revision: priorCandidate.revision,
+        content_hash: priorCandidate.content_hash,
+        record_hash: priorCandidateRecordHash,
+      },
+      resulting_candidate_ref: {
+        schema_name: "petra.working-candidate",
+        schema_version: "1.0.0",
+        record_id: candidate.working_candidate_id,
+        revision: candidate.revision,
+        content_hash: candidate.content_hash,
+        record_hash: canonicalHash(candidate),
+      },
+      prior_relationship_ref: {
+        schema_name: "petra.working-relationship",
+        schema_version: "1.0.0",
+        record_id: priorRelationship.working_relationship_id,
+        revision: priorRelationship.revision,
+        content_hash: priorRelationship.content_hash,
+        record_hash: priorRelationshipRecordHash,
+      },
+      resulting_relationship_ref: {
+        schema_name: "petra.working-relationship",
+        schema_version: "1.0.0",
+        record_id: relationship.working_relationship_id,
+        revision: relationship.revision,
+        content_hash: relationship.content_hash,
+        record_hash: canonicalHash(relationship),
+      },
+      prior_profile_record_ref: {
+        schema_name: "petra.claim",
+        schema_version: "1.0.0",
+        record_id: priorProfile.claim_id,
+        revision: priorProfile.revision,
+        record_hash: canonicalHash(priorProfile),
+      },
+      resulting_profile_record_ref: {
+        schema_name: "petra.claim",
+        schema_version: "1.0.0",
+        record_id: resultingProfile.claim_id,
+        revision: resultingProfile.revision,
+        record_hash: canonicalHash(resultingProfile),
+      },
+      prior_basis: basisSnapshot(
+        priorProfile as PetraClaim & { basis: { basis_kind: "source" } },
+        priorSpanRefs,
+      ),
+      resulting_basis: basisSnapshot(
+        resultingProfile as PetraClaim & { basis: { basis_kind: "source" } },
+        clone(envelope.command.basis_revision_input.source_span_refs),
+      ),
+      basis_transition: "material_revision_within_exact_scientific_source",
+      validation_reset: {
+        state: "pending",
+        target_record_hash: candidate.validation.target_record_hash,
+        required_validator_refs: requiredValidatorRefs,
+        completed_validator_refs: [],
+      },
+      preservation: {
+        candidate_identity: "retained",
+        prior_candidate_revision: "retained",
+        relationship_identity: "retained",
+        prior_relationship_revision: "retained",
+        review_session_identity: "retained",
+        review_member_identity: "retained",
+        review_decision: "none",
+        change_sets: "unchanged",
+        approvals: "unchanged",
+        domain_events: "none",
+        projection: "unchanged",
+        history: "unchanged",
+      },
+      authority_boundary: {
+        candidate_authority: "working_only",
+        review_decision: "none",
+        domain_authority: "unchanged",
+        validation_authority: "none",
+        mutation_authority: "capability_command_only",
+        conversation_authority: "none",
+        model_output_authority: "none",
+      },
+    };
+    const receipt: PetraReviewCandidateBasisRevisionReceipt = {
+      schema_name: "petra.review-candidate-basis-revision-receipt",
+      schema_version: "1.0.0",
+      review_candidate_basis_revision_receipt_id: derivePetraId(
+        "review_basis_revision_receipt",
+        envelope.command_id,
+      ),
+      revision: 1,
+      project_id: envelope.project_id,
+      content,
+      content_hash: canonicalHash(content),
+      recorded_at: recordedAt,
+    };
+    this.#contracts.assertValid(
+      "review-candidate-basis-revision-receipt",
+      "1.0.0",
+      receipt,
+    );
+    return receipt;
+  }
+
+  async #insertBasisRevisionCommandExecution(
+    client: PoolClient,
+    envelope: ReviewCandidateBasisRevisionCommandEnvelope,
+    fingerprint: string,
+    receipt: PetraReviewCandidateBasisRevisionReceipt,
+    completedAt: string,
+  ): Promise<void> {
+    await client.query(
+      `INSERT INTO petra.command_executions (
+         command_id, idempotency_key, project_id, actor_id, actor_kind,
+         capability_grant_id, correlation_id, submitted_at, command_name,
+         command_fingerprint, envelope, outcome_kind, result, error_code,
+         error_message, completed_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9, $10,
+                 $11::jsonb, 'success', $12::jsonb, NULL, NULL,
+                 $13::timestamptz)`,
+      [
+        envelope.command_id,
+        envelope.idempotency_key,
+        envelope.project_id,
+        envelope.actor.actor_id,
+        envelope.actor.actor_kind,
+        envelope.capability_grant_id,
+        envelope.correlation_id,
+        envelope.submitted_at,
+        envelope.command.command_name,
+        fingerprint,
+        JSON.stringify(envelope),
+        JSON.stringify(receipt),
+        completedAt,
+      ],
+    );
+  }
+
+  #storedBasisRevisionReceipt(
+    value: unknown,
+  ): PetraReviewCandidateBasisRevisionReceipt {
+    this.#contracts.assertValid(
+      "review-candidate-basis-revision-receipt",
+      "1.0.0",
+      value,
+    );
+    const receipt = clone(value as PetraReviewCandidateBasisRevisionReceipt);
+    if (receipt.content_hash !== canonicalHash(receipt.content)) {
+      throw this.#basisRevisionCorrupt(
+        "A stored candidate basis-revision receipt does not match its canonical content hash.",
+      );
+    }
+    return receipt;
   }
 
   #correctionReceipt(
@@ -2637,6 +4182,99 @@ export class PostgresReviewSessionAuthorityRepository
       case "WORKING_STATE_RELATION_INVALID":
         return this.#correctionError(
           "REVIEW_CANDIDATE_CORRECTION_LINEAGE_INVALID",
+          error.message,
+        );
+    }
+  }
+
+  #mappedCorrectionBasisRevisionError(
+    error: ReviewCandidateCorrectionAuthorityError,
+  ): ReviewCandidateBasisRevisionAuthorityError {
+    switch (error.code) {
+      case "REVIEW_CANDIDATE_CORRECTION_COMMAND_NOT_AUTHORIZED":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_NOT_AUTHORIZED",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_COMMAND_ID_REUSED":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_ID_REUSED",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_IDEMPOTENCY_KEY_REUSED":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_IDEMPOTENCY_KEY_REUSED",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_PROJECT_MISMATCH":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_PROJECT_MISMATCH",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_SESSION_NOT_FOUND":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_SESSION_NOT_FOUND",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_STALE_REFERENCE":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_LIFECYCLE_INVALID":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_LIFECYCLE_INVALID",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_MEMBER_MISMATCH":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_MEMBER_MISMATCH",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_PROFILE_UNSUPPORTED":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_BASIS_INCOMPATIBLE":
+      case "REVIEW_CANDIDATE_CORRECTION_LINEAGE_INVALID":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_PROVENANCE_INVALID":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_PROVENANCE_INVALID",
+          error.message,
+        );
+      case "REVIEW_CANDIDATE_CORRECTION_STORED_RECORD_CORRUPT":
+        return this.#basisRevisionCorrupt(error.message);
+    }
+  }
+
+  #mappedWorkingBasisRevisionError(
+    error: PostgresWorkingStateError,
+  ): ReviewCandidateBasisRevisionAuthorityError {
+    switch (error.code) {
+      case "WORKING_STATE_PROFILE_UNSUPPORTED":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED",
+          error.message,
+        );
+      case "WORKING_STATE_STALE":
+      case "WORKING_STATE_CONFLICT":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_STALE_REFERENCE",
+          error.message,
+        );
+      case "WORKING_STATE_REFERENCE_MISSING":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_PROVENANCE_INVALID",
+          error.message,
+        );
+      case "WORKING_STATE_RELATION_INVALID":
+        return this.#basisRevisionError(
+          "REVIEW_CANDIDATE_BASIS_REVISION_SOURCE_INCOMPATIBLE",
           error.message,
         );
     }
@@ -3000,6 +4638,24 @@ export class PostgresReviewSessionAuthorityRepository
   #correctionCorrupt(message: string): ReviewCandidateCorrectionAuthorityError {
     return this.#correctionError(
       "REVIEW_CANDIDATE_CORRECTION_STORED_RECORD_CORRUPT",
+      message,
+    );
+  }
+
+  #basisRevisionError(
+    code: ConstructorParameters<
+      typeof ReviewCandidateBasisRevisionAuthorityError
+    >[0],
+    message: string,
+  ): ReviewCandidateBasisRevisionAuthorityError {
+    return new ReviewCandidateBasisRevisionAuthorityError(code, message);
+  }
+
+  #basisRevisionCorrupt(
+    message: string,
+  ): ReviewCandidateBasisRevisionAuthorityError {
+    return this.#basisRevisionError(
+      "REVIEW_CANDIDATE_BASIS_REVISION_STORED_RECORD_CORRUPT",
       message,
     );
   }

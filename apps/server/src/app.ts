@@ -39,6 +39,7 @@ import {
   ProjectHistoryViewRequestError,
   ProjectSourceLifecycleAuthorityError,
   ProjectSourceReplacementCommandError,
+  ReviewCandidateBasisRevisionAuthorityError,
   ReviewCandidateCorrectionAuthorityError,
   ReviewSessionLifecycleAuthorityError,
   ReviewSessionRefreshAuthorityError,
@@ -55,6 +56,8 @@ import {
   type ProjectRelationshipOverlayViewReader,
   type ProjectRelationshipViewReader,
   type ProjectReviewViewReader,
+  type ReviewCandidateBasisRevisionAuthorityRepository,
+  type ReviewCandidateBasisRevisionCommandEnvelope,
   type ReviewCandidateCorrectionAuthorityCommandEnvelope,
   type ReviewCandidateCorrectionAuthorityRepository,
   type ReviewSessionLifecycleAuthorityRepository,
@@ -107,6 +110,7 @@ export interface PetraAppOptions {
   projectReviewViews?: ProjectReviewViewReader;
   reviewSessionLifecycleAuthority?: ReviewSessionLifecycleAuthorityRepository;
   reviewSessionRefreshAuthority?: ReviewSessionRefreshAuthorityRepository;
+  reviewCandidateBasisRevisionAuthority?: ReviewCandidateBasisRevisionAuthorityRepository;
   reviewCandidateCorrectionAuthority?: ReviewCandidateCorrectionAuthorityRepository;
   projectWorkingStateSnapshots?: ProjectWorkingStateSnapshotReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
@@ -4493,6 +4497,353 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Review candidate-correction command failed.",
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-basis-revision",
+    async (context) => {
+      if (
+        options.commandPrincipalResolver === undefined ||
+        options.reviewCandidateBasisRevisionAuthority === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_UNAVAILABLE",
+          "The authenticated Review candidate basis-revision boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Review candidate basis revision does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const reviewSessionId = context.req.param("reviewSessionId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "Review candidate basis revision requires a canonical Project identity.",
+          );
+        }
+        if (!REVIEW_SESSION_ID_PATTERN.test(reviewSessionId)) {
+          throw new InteractionInputError(
+            "Review candidate basis revision requires a canonical ReviewSession identity.",
+          );
+        }
+        const body = await readBoundedJson(context, maxBodyBytes);
+        if (!isRecord(body)) {
+          throw new InteractionInputError(
+            "The Review candidate basis-revision command must be an object.",
+          );
+        }
+        assertExactKeys(
+          body,
+          new Set([
+            "command_id",
+            "idempotency_key",
+            "expected_review_session_ref",
+            "review_member_id",
+            "expected_project_definition_ref",
+            "expected_working_candidate_ref",
+            "expected_working_relationship_ref",
+            "expected_claim_ref",
+            "basis_revision_input",
+          ]),
+          "Review candidate basis-revision command",
+        );
+        const commandId = requiredString(body, "command_id");
+        const idempotencyKey = requiredString(body, "idempotency_key");
+        const reviewMemberId = requiredString(body, "review_member_id");
+        if (!COMMAND_ID_PATTERN.test(commandId)) {
+          throw new InteractionInputError(
+            "command_id must be a canonical command-prefixed Petra ID.",
+          );
+        }
+        if (!IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) {
+          throw new InteractionInputError(
+            "idempotency_key must satisfy Petra's registered command key format.",
+          );
+        }
+        if (!REVIEW_MEMBER_ID_PATTERN.test(reviewMemberId)) {
+          throw new InteractionInputError(
+            "review_member_id must be a canonical Review member identity.",
+          );
+        }
+        const expectedReviewSessionRef = reviewSessionLifecycleExpectedRef(
+          body.expected_review_session_ref,
+          reviewSessionId,
+          "open",
+        );
+        const expectedWorkingCandidateRef = reviewWorkingExpectedRef(
+          body.expected_working_candidate_ref,
+          "candidate",
+        );
+        const expectedWorkingRelationshipRef = reviewWorkingExpectedRef(
+          body.expected_working_relationship_ref,
+          "relationship",
+        );
+        const commandName = "ReviseReviewCandidateBasis" as const;
+        try {
+          contracts.assertValid("command-envelope", "1.8.0", {
+            schema_name: "petra.command-envelope",
+            schema_version: "1.8.0",
+            command_id: commandId,
+            idempotency_key: idempotencyKey,
+            project_id: projectId,
+            actor: {
+              actor_id: "actor_00000000000000000000000000",
+              actor_kind: "human",
+            },
+            capability_grant_id: "capability_grant_00000000000000000000000000",
+            correlation_id: "trace_00000000000000000000000000",
+            submitted_at: new Date().toISOString(),
+            command: {
+              command_name: commandName,
+              expected_review_session_ref: expectedReviewSessionRef,
+              review_member_id: reviewMemberId,
+              expected_project_definition_ref:
+                body.expected_project_definition_ref,
+              expected_working_candidate_ref: expectedWorkingCandidateRef,
+              expected_working_relationship_ref: expectedWorkingRelationshipRef,
+              expected_claim_ref: body.expected_claim_ref,
+              basis_revision_input: body.basis_revision_input,
+            },
+          });
+        } catch (error) {
+          if (error instanceof ContractRegistryError) {
+            throw new InteractionInputError(
+              "The Review candidate basis revision does not satisfy its registered exact-reference and source-basis contract.",
+              error.validationErrors.map((issue) => issue.instancePath),
+            );
+          }
+          throw error;
+        }
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName,
+          });
+        if (principal.state === "denied") {
+          if (principal.reason === "active_grant_not_found") {
+            return jsonError(
+              context,
+              403,
+              "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_FORBIDDEN",
+              "The authenticated principal has no active grant for Review candidate basis revision.",
+            );
+          }
+          return jsonError(
+            context,
+            503,
+            principal.reason === "actor_not_registered"
+              ? "AUTHENTICATED_ACTOR_UNAVAILABLE"
+              : "PROJECT_COMMAND_AUTHORITY_AMBIGUOUS",
+            principal.reason === "actor_not_registered"
+              ? "The configured authenticated Actor is not registered."
+              : "More than one active grant matches authenticated Review candidate basis revision.",
+          );
+        }
+        const envelope = {
+          schema_name: "petra.command-envelope",
+          schema_version: "1.8.0",
+          command_id: commandId,
+          idempotency_key: idempotencyKey,
+          project_id: projectId,
+          actor: principal.actor,
+          capability_grant_id: principal.capabilityGrantId,
+          correlation_id: derivePetraId(
+            "trace",
+            `${context.get("requestId")}:${randomUUID()}`,
+          ),
+          submitted_at: new Date().toISOString(),
+          command: {
+            command_name: commandName,
+            expected_review_session_ref: expectedReviewSessionRef,
+            review_member_id: reviewMemberId,
+            expected_project_definition_ref: structuredClone(
+              body.expected_project_definition_ref,
+            ),
+            expected_working_candidate_ref: expectedWorkingCandidateRef,
+            expected_working_relationship_ref: expectedWorkingRelationshipRef,
+            expected_claim_ref: structuredClone(body.expected_claim_ref),
+            basis_revision_input: structuredClone(body.basis_revision_input),
+          },
+        } as ReviewCandidateBasisRevisionCommandEnvelope;
+        try {
+          contracts.assertValid("command-envelope", "1.8.0", envelope);
+        } catch (error) {
+          if (error instanceof ContractRegistryError) {
+            throw new InteractionInputError(
+              "The Review candidate basis revision does not satisfy its registered exact-reference and source-basis contract.",
+              error.validationErrors.map((issue) => issue.instancePath),
+            );
+          }
+          throw error;
+        }
+        const result =
+          await options.reviewCandidateBasisRevisionAuthority.executeReviewCandidateBasisRevisionCommand(
+            envelope,
+          );
+        contracts.assertValid(
+          "review-candidate-basis-revision-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid("working-candidate", "1.0.0", result.candidate);
+        contracts.assertValid("claim", "1.0.0", result.profileRecord);
+        contracts.assertValid(
+          "working-relationship",
+          "1.0.0",
+          result.relationship,
+        );
+        contracts.assertValid(
+          "review-session",
+          result.reviewSession.schema_version,
+          result.reviewSession,
+        );
+        const receipt = result.receipt.content;
+        const resultingSessionRef = receipt.resulting_review_session_ref;
+        const resultingCandidateRef = receipt.resulting_candidate_ref;
+        const resultingRelationshipRef = receipt.resulting_relationship_ref;
+        const resultingProfileRef = receipt.resulting_profile_record_ref;
+        const resultingMember = result.reviewSession.content.members[0];
+        const input = envelope.command.basis_revision_input;
+        if (
+          result.receipt.project_id !== projectId ||
+          receipt.command_ref.command_id !== commandId ||
+          receipt.command_ref.idempotency_key !== idempotencyKey ||
+          receipt.command_ref.command_name !== commandName ||
+          receipt.command_ref.actor.actor_id !== principal.actor.actor_id ||
+          receipt.command_ref.actor.actor_kind !== principal.actor.actor_kind ||
+          receipt.command_ref.capability_grant_id !==
+            principal.capabilityGrantId ||
+          receipt.review_member_id !== reviewMemberId ||
+          canonicalize(receipt.project_definition_ref) !==
+            canonicalize(envelope.command.expected_project_definition_ref) ||
+          receipt.prior_review_session_ref.review_session_id !==
+            expectedReviewSessionRef.review_session_id ||
+          receipt.prior_review_session_ref.revision !==
+            expectedReviewSessionRef.revision ||
+          receipt.prior_review_session_ref.content_hash !==
+            expectedReviewSessionRef.content_hash ||
+          receipt.prior_candidate_ref.record_id !==
+            expectedWorkingCandidateRef.working_candidate_id ||
+          receipt.prior_candidate_ref.revision !==
+            expectedWorkingCandidateRef.revision ||
+          receipt.prior_candidate_ref.content_hash !==
+            expectedWorkingCandidateRef.content_hash ||
+          receipt.prior_relationship_ref.record_id !==
+            expectedWorkingRelationshipRef.working_relationship_id ||
+          receipt.prior_relationship_ref.revision !==
+            expectedWorkingRelationshipRef.revision ||
+          receipt.prior_relationship_ref.content_hash !==
+            expectedWorkingRelationshipRef.content_hash ||
+          canonicalize(receipt.prior_profile_record_ref) !==
+            canonicalize(envelope.command.expected_claim_ref) ||
+          canonicalize(receipt.resulting_basis.project_source_ref) !==
+            canonicalize(input.project_source_ref) ||
+          canonicalize(receipt.resulting_basis.source_span_refs) !==
+            canonicalize(input.source_span_refs) ||
+          receipt.validation_reset.state !== "pending" ||
+          receipt.validation_reset.completed_validator_refs.length !== 0 ||
+          result.profileRecord.basis.basis_kind !== "source" ||
+          canonicalize(result.profileRecord.basis.source_span_ids) !==
+            canonicalize(input.source_span_refs.map((ref) => ref.record_id)) ||
+          result.profileRecord.basis.source_scope !== input.source_scope ||
+          result.profileRecord.basis.detail_level !== input.detail_level ||
+          result.profileRecord.basis.source_stance !== input.source_stance ||
+          result.profileRecord.basis.attribution !== input.attribution ||
+          result.profileRecord.basis.modality !== input.modality ||
+          result.profileRecord.basis.negated !== input.negated ||
+          result.candidate.working_candidate_id !==
+            resultingCandidateRef.record_id ||
+          result.candidate.revision !== resultingCandidateRef.revision ||
+          result.candidate.content_hash !==
+            resultingCandidateRef.content_hash ||
+          result.profileRecord.claim_id !== resultingProfileRef.record_id ||
+          result.profileRecord.revision !== resultingProfileRef.revision ||
+          result.candidate.profile_object.object_record_ref.record_hash !==
+            resultingProfileRef.record_hash ||
+          result.relationship.working_relationship_id !==
+            resultingRelationshipRef.record_id ||
+          result.relationship.revision !== resultingRelationshipRef.revision ||
+          result.relationship.content_hash !==
+            resultingRelationshipRef.content_hash ||
+          result.reviewSession.schema_version !== "1.1.0" ||
+          result.reviewSession.review_session_id !== reviewSessionId ||
+          result.reviewSession.revision !== resultingSessionRef.revision ||
+          result.reviewSession.content_hash !==
+            resultingSessionRef.content_hash ||
+          result.reviewSession.content.lifecycle !== "open" ||
+          result.reviewSession.content.members.length !== 1 ||
+          resultingMember === undefined ||
+          !("working_state" in resultingMember) ||
+          resultingMember.review_member_id !== reviewMemberId ||
+          resultingMember.working_state.candidate_ref.working_candidate_id !==
+            result.candidate.working_candidate_id ||
+          resultingMember.working_state.candidate_ref.revision !==
+            result.candidate.revision ||
+          resultingMember.working_state.relationship_refs[0]
+            ?.working_relationship_id !==
+            result.relationship.working_relationship_id ||
+          resultingMember.working_state.relationship_refs[0]?.revision !==
+            result.relationship.revision ||
+          typeof result.applied !== "boolean"
+        ) {
+          throw new Error(
+            "The Review candidate basis-revision authority returned a different command, ProjectDefinition, source basis, Claim, working state, member, or ReviewSession.",
+          );
+        }
+        return context.json({
+          receipt: result.receipt,
+          candidate: result.candidate,
+          profile_record: result.profileRecord,
+          relationship: result.relationship,
+          review_session: result.reviewSession,
+          applied: result.applied,
+        });
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            422,
+            "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        if (error instanceof ReviewCandidateBasisRevisionAuthorityError) {
+          const status =
+            error.code ===
+            "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_NOT_AUTHORIZED"
+              ? 403
+              : error.code ===
+                  "REVIEW_CANDIDATE_BASIS_REVISION_SESSION_NOT_FOUND"
+                ? 404
+                : error.code ===
+                      "REVIEW_CANDIDATE_BASIS_REVISION_PROFILE_UNSUPPORTED" ||
+                    error.code ===
+                      "REVIEW_CANDIDATE_BASIS_REVISION_NO_MATERIAL_CHANGE"
+                  ? 422
+                  : error.code ===
+                      "REVIEW_CANDIDATE_BASIS_REVISION_STORED_RECORD_CORRUPT"
+                    ? 503
+                    : 409;
+          return jsonError(context, status, error.code, error.message);
+        }
+        return jsonError(
+          context,
+          503,
+          "REVIEW_CANDIDATE_BASIS_REVISION_COMMAND_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Review candidate basis-revision command failed.",
         );
       }
     },

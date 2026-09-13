@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/command-envelope/1.8.0/schema.json",
+  "title": "PetraCommandEnvelopeV180",
+  "description": "The adapter-neutral command envelope extended with one exact, human-authored scientific source-basis revision for an existing open Review member. The server composes additive non-authoritative Claim and working-state revisions; the operation grants no Review decision or domain authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "correlation_id",
+    "submitted_at",
+    "command"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.command-envelope" },
+    "schema_version": { "const": "1.8.0" },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+    "capability_grant_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+    },
+    "correlation_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/TraceId"
+    },
+    "causation_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "command": { "$ref": "#/$defs/Command" }
+  },
+  "$defs": {
+    "Command": {
+      "oneOf": [
+        { "$ref": "../../command-envelope/1.7.0/schema.json#/$defs/Command" },
+        { "$ref": "#/$defs/ReviseReviewCandidateBasis" }
+      ]
+    },
+    "ReviseReviewCandidateBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_name",
+        "expected_review_session_ref",
+        "review_member_id",
+        "expected_project_definition_ref",
+        "expected_working_candidate_ref",
+        "expected_working_relationship_ref",
+        "expected_claim_ref",
+        "basis_revision_input"
+      ],
+      "properties": {
+        "command_name": { "const": "ReviseReviewCandidateBasis" },
+        "expected_review_session_ref": {
+          "$ref": "../../command-envelope/1.5.0/schema.json#/$defs/ExactReviewSessionRef"
+        },
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "expected_project_definition_ref": {
+          "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ProjectDefinitionRef"
+        },
+        "expected_working_candidate_ref": {
+          "$ref": "../../command-envelope/1.6.0/schema.json#/$defs/ExactWorkingCandidateRef"
+        },
+        "expected_working_relationship_ref": {
+          "$ref": "../../command-envelope/1.6.0/schema.json#/$defs/ExactWorkingRelationshipRef"
+        },
+        "expected_claim_ref": { "$ref": "#/$defs/ExactClaimRef" },
+        "basis_revision_input": {
+          "$ref": "#/$defs/HumanScientificSourceBasisRevision"
+        }
+      }
+    },
+    "ExactClaimRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "record_id",
+        "revision",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_name": { "const": "petra.claim" },
+        "schema_version": { "const": "1.0.0" },
+        "record_id": {
+          "type": "string",
+          "pattern": "^claim_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ExactProjectSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "const": "active" }
+      }
+    },
+    "ExactSourceSpanRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "record_id",
+        "revision",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_name": { "const": "petra.source-span" },
+        "schema_version": { "const": "1.0.0" },
+        "record_id": {
+          "type": "string",
+          "pattern": "^source_span_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "HumanScientificSourceBasisRevision": {
+      "description": "Human-authored scientific source semantics and exact source material. Project scope, WorkVersion, Claim identity, derivation, validators, authorship, timestamps, lineage, provenance, validation reset, and hashes are resolved or composed by server authority.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_kind",
+        "project_source_ref",
+        "source_span_refs",
+        "source_scope",
+        "detail_level",
+        "source_stance",
+        "attribution",
+        "modality",
+        "negated",
+        "reason"
+      ],
+      "properties": {
+        "input_kind": {
+          "const": "human_scientific_source_basis_revision"
+        },
+        "project_source_ref": { "$ref": "#/$defs/ExactProjectSourceRef" },
+        "source_span_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/ExactSourceSpanRef" }
+        },
+        "source_scope": { "enum": ["full_text", "abstract_only"] },
+        "detail_level": { "enum": ["broad", "detailed"] },
+        "source_stance": {
+          "enum": ["states", "hypothesizes", "reports", "qualifies", "rejects"]
+        },
+        "attribution": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "\\S"
+        },
+        "modality": {
+          "enum": ["asserted", "hedged", "conditional", "speculative"]
+        },
+        "negated": { "type": "boolean" },
+        "uncertainty": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000,
+          "pattern": "\\S"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "\\S"
+        }
+      }
+    }
+  }
+}

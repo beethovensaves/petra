@@ -37,6 +37,7 @@ import type {
   ProjectRelationshipOverlayViewReader,
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
+  ReviewCandidateBasisRevisionAuthorityRepository,
   ReviewCandidateCorrectionAuthorityRepository,
   ReviewSessionLifecycleAuthorityRepository,
   ReviewSessionRefreshAuthorityRepository,
@@ -65,6 +66,7 @@ export interface ProjectShellPersistence {
   readonly reviewViews: ProjectReviewViewReader;
   readonly reviewSessionLifecycleAuthority: ReviewSessionLifecycleAuthorityRepository;
   readonly reviewSessionRefreshAuthority: ReviewSessionRefreshAuthorityRepository;
+  readonly reviewCandidateBasisRevisionAuthority: ReviewCandidateBasisRevisionAuthorityRepository;
   readonly reviewCandidateCorrectionAuthority: ReviewCandidateCorrectionAuthorityRepository;
   readonly workingStateSnapshots: ProjectWorkingStateSnapshotReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
@@ -237,19 +239,19 @@ export const createProjectShellPersistenceFromEnvironment = async (
             SELECT 1
             FROM pg_constraint
             WHERE conname = 'command_executions_command_name_check'
-              AND pg_get_constraintdef(oid) LIKE '%CorrectReviewCandidate%'
+              AND pg_get_constraintdef(oid) LIKE '%ReviseReviewCandidateBasis%'
           )
           AND EXISTS (
             SELECT 1
             FROM pg_constraint
             WHERE conname = 'command_executions_schema_version_check'
-              AND pg_get_constraintdef(oid) LIKE '%1.7.0%'
+              AND pg_get_constraintdef(oid) LIKE '%1.8.0%'
           )
           AS ready`,
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the V038 server-composed Review candidate-correction boundary is unavailable.",
+        "PostgreSQL is reachable, but the V039 Review candidate basis-revision boundary is unavailable.",
       );
     }
     const neo4jConfigured = [
@@ -295,6 +297,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         reviewViews: new PostgresProjectReviewViewReader(pool),
         reviewSessionLifecycleAuthority,
         reviewSessionRefreshAuthority: reviewSessionLifecycleAuthority,
+        reviewCandidateBasisRevisionAuthority: reviewSessionLifecycleAuthority,
         reviewCandidateCorrectionAuthority: reviewSessionLifecycleAuthority,
         workingStateSnapshots: new PostgresProjectWorkingStateSnapshotReader(
           pool,
@@ -366,6 +369,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     reviewViews: new PostgresProjectReviewViewReader(pool),
     reviewSessionLifecycleAuthority,
     reviewSessionRefreshAuthority: reviewSessionLifecycleAuthority,
+    reviewCandidateBasisRevisionAuthority: reviewSessionLifecycleAuthority,
     reviewCandidateCorrectionAuthority: reviewSessionLifecycleAuthority,
     workingStateSnapshots: new PostgresProjectWorkingStateSnapshotReader(
       pool,

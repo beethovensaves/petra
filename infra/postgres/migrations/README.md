@@ -197,3 +197,12 @@ human-authored scientific Claim text field while the existing serialized
 candidate-correction authority composes exact profile authorship, retained
 source basis, working provenance and lineage, validation reset, and hashes. It
 creates no preparation, candidate, Review, decision, or recovery ledger.
+
+`V039__review_candidate_basis_revision_authority.sql` admits command envelope
+1.8, CapabilityGrant 1.6, and `ReviseReviewCandidateBasis` in the existing
+canonical command ledger. One serialized operation advances the same
+source-grounded Claim, WorkingCandidate, ASSERTS WorkingRelationship, Review
+member, and open ReviewSession while retaining prior revisions and resetting
+registered validation to pending. It accepts only exact material inside the
+current active ProjectSource and WorkVersion and creates no decision,
+ChangeSet, Approval, event, projection, or second ledger.
