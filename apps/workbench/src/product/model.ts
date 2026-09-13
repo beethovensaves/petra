@@ -129,6 +129,9 @@ export type ReviewStatus = "needs_decision" | "waiting" | "completed";
 export type ReviewSessionLifecycle = "open" | "deferred" | "completed";
 export type ValidationState = "passed" | "needs_judgment" | "blocked";
 
+export type ReviewCommitmentAvailability =
+  { available: true } | { available: false; reason: string };
+
 export type ReviewSessionMember = Pick<
   ReviewSession,
   | "candidate"
@@ -138,6 +141,7 @@ export type ReviewSessionMember = Pick<
   | "validation"
   | "consequences"
   | "changeSet"
+  | "commitment"
 > & {
   reviewMemberId: string;
   role: "ordinary" | "exception";
@@ -245,6 +249,7 @@ export type ReviewSession = {
     recovery?: string;
   };
   consequences: string[];
+  commitment: ReviewCommitmentAvailability;
   changeSet?: {
     id: string;
     revision: string;

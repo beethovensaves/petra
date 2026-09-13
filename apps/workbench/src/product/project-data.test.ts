@@ -27,6 +27,7 @@ import type {
   PetraProjectReviewView,
   PetraProjectReviewViewV110,
   PetraProjectReviewViewV120,
+  PetraProjectReviewViewV130,
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionRefreshReceipt,
   PetraReviewSessionV110,
@@ -376,6 +377,207 @@ const reviewWorkingRelationship = JSON.parse(
     "utf8",
   ),
 ) as PetraWorkingRelationship;
+
+const controlledWritingReviewView = (): PetraProjectReviewViewV130 => {
+  const controlled = structuredClone(
+    reviewView,
+  ) as unknown as PetraProjectReviewViewV130;
+  const projectId = controlledWritingProject.project_id;
+  const definitionRef = {
+    project_definition_id: controlledWritingDefinition.project_definition_id,
+    revision: controlledWritingDefinition.revision,
+    content_hash: controlledWritingDefinition.content_hash,
+    definition_family: controlledWritingDefinition.definition_family,
+  };
+  const candidate = structuredClone(reviewWorkingCandidate);
+  candidate.working_candidate_id =
+    "working_candidate_01K4E000000000000000000007";
+  candidate.project_id = projectId;
+  candidate.project_definition_ref = definitionRef;
+  candidate.profile_object = {
+    registration: {
+      registration_kind: "object_schema",
+      semantic_key: "writing.requirement",
+      contract: {
+        name: "petra.controlled-writing-requirement",
+        version: "1.0.0",
+        content_hash:
+          "sha256:5a6d449b44078f2df1c2f29fe15164d22b0c4151a05c6f35dd8718964c3c3f1e",
+      },
+    },
+    object_record_ref: {
+      schema_name: "petra.controlled-writing-requirement",
+      schema_version: "1.0.0",
+      record_id: "requirement_01K4E000000000000000000004",
+      revision: 1,
+      record_hash:
+        "sha256:92d10794b8e04471dd1efc6ca6cf98aab8973bd2ad679dad04ab712eef067080",
+    },
+    candidate_operation: "create",
+  };
+  candidate.producer = {
+    producer_kind: "human",
+    actor: {
+      actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      actor_kind: "human",
+    },
+    contribution_kind: "direct_edit",
+  };
+  candidate.content_hash = `sha256:${"7".repeat(64)}`;
+
+  const relationship = structuredClone(reviewWorkingRelationship);
+  relationship.working_relationship_id =
+    "working_relationship_01K4E000000000000000000008";
+  relationship.project_id = projectId;
+  relationship.project_definition_ref = definitionRef;
+  relationship.profile_relationship = {
+    registration: {
+      registration_kind: "relationship_schema",
+      semantic_key: "writing.governs",
+      contract: {
+        name: "petra.controlled-writing-governing-relationship",
+        version: "1.0.0",
+        content_hash:
+          "sha256:8875324fac5a6911a90aaf833289d0cc5ae2141c10f023d087a1cd876bd9e896",
+      },
+    },
+    predicate: "GOVERNS",
+    relationship_record_ref: {
+      schema_name: "petra.controlled-writing-governing-relationship",
+      schema_version: "1.0.0",
+      record_id: "governing_relationship_01K4E000000000000000000005",
+      revision: 1,
+      record_hash: `sha256:${"8".repeat(64)}`,
+    },
+    candidate_operation: "create",
+  };
+  relationship.endpoints = {
+    subject: {
+      endpoint_kind: "profile_record",
+      record_ref: {
+        schema_name: "petra.project-source",
+        schema_version: "1.0.0",
+        record_id: "project_source_01K4E000000000000000000006",
+        revision: 1,
+        record_hash: `sha256:${"a".repeat(64)}`,
+      },
+    },
+    object: {
+      endpoint_kind: "working_candidate",
+      candidate_ref: {
+        working_candidate_id: candidate.working_candidate_id,
+        revision: candidate.revision,
+        content_hash: candidate.content_hash,
+      },
+    },
+  };
+  relationship.producer = structuredClone(candidate.producer);
+  relationship.content_hash = `sha256:${"9".repeat(64)}`;
+
+  controlled.schema_version = "1.3.0";
+  controlled.project_id = projectId;
+  controlled.review_session_id = "review_session_01K4E000000000000000000009";
+  controlled.content.session.lifecycle = "open";
+  controlled.content.session.title =
+    "Review the controlled-writing Requirement";
+  controlled.content.session.objective_summary =
+    "Inspect the exact Requirement and governing relationship without implying a writing Apply path.";
+  controlled.content.session.project_definition_ref = {
+    record_id: definitionRef.project_definition_id,
+    revision: definitionRef.revision,
+    content_hash: definitionRef.content_hash,
+  };
+  controlled.content.session.project_definition_label =
+    controlledWritingDefinition.content.label;
+  controlled.content.session.responsible = {
+    actor_id: candidate.producer.actor.actor_id,
+    display_name: "Project author",
+  };
+  controlled.content.session.return_context = {
+    place: "work",
+    object_ref: "work_unit_01K4E000000000000000000010",
+    label: "Requirement proposal work",
+  };
+  const member = controlled.content.members[0];
+  member.review_member_id = "review_member_01K4E000000000000000000011";
+  member.candidate = {
+    candidate_id: member.review_member_id,
+    revision_label:
+      "Requirement revision 1 · Governing relationship revision 1",
+    kind_label: "Requirement and governing link",
+    current: "No authoritative controlled-writing representation is installed",
+    proposed:
+      "The operating procedure must identify the exact authority source for each mandatory step.",
+    difference:
+      "Adds one non-authoritative Requirement and its exact GOVERNS relationship to Review. No controlled-writing mutation operation or Apply path is installed.",
+    origin_label: "Project author",
+    origin_detail: "Direct edit · exact human-authored working records",
+    profile_payload: {
+      payload_kind: "controlled_writing_requirement",
+      requirement_ref: {
+        schema_name: "petra.controlled-writing-requirement",
+        schema_version: "1.0.0",
+        record_id: candidate.profile_object.object_record_ref.record_id,
+        revision: candidate.profile_object.object_record_ref.revision,
+        record_hash: candidate.profile_object.object_record_ref.record_hash,
+      },
+      governing_relationship_ref: {
+        schema_name: "petra.controlled-writing-governing-relationship",
+        schema_version: "1.0.0",
+        record_id: "governing_relationship_01K4E000000000000000000005",
+        revision: 1,
+        record_hash: `sha256:${"8".repeat(64)}`,
+      },
+      authority_source_ref: {
+        schema_name: "petra.project-source",
+        schema_version: "1.0.0",
+        record_id: "project_source_01K4E000000000000000000006",
+        revision: 1,
+        record_hash: `sha256:${"a".repeat(64)}`,
+      },
+      requirement_kind: "constraint",
+      relationship_predicate: "GOVERNS",
+      apply_available: false,
+    },
+  };
+  member.working_state = {
+    candidate,
+    relationships: [relationship],
+    selection_basis: "exact_review_session_working_bindings",
+    authority_effect: "none",
+  };
+  member.basis = [
+    {
+      basis_id: "project_source_01K4E000000000000000000006",
+      label: "Authority source",
+      relation: "Governing link",
+      extent: "Constraint",
+      detail:
+        "The named authority source is the recorded basis for this proposed requirement.",
+      project_source_id: "project_source_01K4E000000000000000000006",
+      project_source_status: "active",
+    },
+  ];
+  member.validation = {
+    state: "needs_judgment",
+    label: "Validation pending",
+    detail:
+      "The exact controlled-writing working records remain pending validation. Review inclusion does not approve the Requirement or create an Apply path.",
+  };
+  member.consequences = [
+    "The exact Requirement remains non-authoritative working state.",
+    "No controlled-writing ChangeSet operation, Approval, or Apply path is installed.",
+    "Review composition leaves the authority source, producer provenance, and Project authority unchanged.",
+  ];
+  member.change_sets = [];
+  controlled.content.projection = {
+    state: "unavailable",
+    reason: "No controlled-writing projection instruction exists.",
+  };
+  controlled.content_hash = `sha256:${"b".repeat(64)}`;
+  controlled.read_at = "2026-09-13T15:30:00.000Z";
+  return controlled;
+};
 
 const relationshipView = JSON.parse(
   readFileSync(
@@ -3031,6 +3233,175 @@ describe("Project shell workbench adapter", () => {
     expect(workingView.content.members[0].working_state.authority_effect).toBe(
       "none",
     );
+  });
+
+  it("loads the registered controlled-writing Review without inventing scientific controls or Apply", async () => {
+    const controlledView = controlledWritingReviewView();
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(controlledView));
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.local/projects/${controlledView.project_id}/review/${controlledView.review_session_id}`,
+    );
+    const args: LoaderFunctionArgs = {
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/review/:reviewId",
+      params: {
+        projectId: controlledView.project_id,
+        reviewId: controlledView.review_session_id,
+      },
+      context: new RouterContextProvider(),
+    };
+
+    const review = await loadProjectReviewSession(args);
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch.mock.calls[0]?.[0]).toBe(
+      `/api/queries/projects/${controlledView.project_id}/reviews/${controlledView.review_session_id}`,
+    );
+    expect(
+      (fetch.mock.calls[0]?.[1]?.headers as Headers).get("authorization"),
+    ).toBe("Bearer petra-local-development");
+    expect(review).toMatchObject({
+      projectId: controlledView.project_id,
+      id: controlledView.review_session_id,
+      lifecycle: "open",
+      candidate: {
+        kind: "Requirement and governing link",
+        proposed:
+          "The operating procedure must identify the exact authority source for each mandatory step.",
+      },
+      basis: [
+        {
+          label: "Authority source",
+          relation: "Governing link",
+        },
+      ],
+      validation: { state: "needs_judgment" },
+      commitment: {
+        available: false,
+        reason:
+          "Petra has no controlled-writing ChangeSet operation, Approval, or Apply path.",
+      },
+    });
+    expect(review.changeSet).toBeUndefined();
+    expect(review.candidateCorrection).toBeUndefined();
+    expect(review.candidateBasisRevision).toBeUndefined();
+    expect(review.members?.[0]?.commitment.available).toBe(false);
+  });
+
+  it("rejects a controlled-writing Review that claims Apply or a ChangeSet", async () => {
+    const inventedApply = controlledWritingReviewView();
+    const payload = inventedApply.content.members[0].candidate.profile_payload;
+    if (payload.payload_kind !== "controlled_writing_requirement") {
+      throw new Error("Expected a controlled-writing presentation fixture.");
+    }
+    (payload as unknown as { apply_available: boolean }).apply_available = true;
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(inventedApply));
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.local/projects/${inventedApply.project_id}/review/${inventedApply.review_session_id}`,
+    );
+
+    await expect(
+      loadProjectReviewSession({
+        request: new Request(url),
+        url,
+        pattern: "/projects/:projectId/review/:reviewId",
+        params: {
+          projectId: inventedApply.project_id,
+          reviewId: inventedApply.review_session_id,
+        },
+        context: new RouterContextProvider(),
+      }),
+    ).rejects.toThrow("invalid Project Review view");
+
+    const inventedChangeSet = controlledWritingReviewView();
+    (inventedChangeSet.content.members[0].change_sets as unknown[]).push({});
+    fetch.mockResolvedValueOnce(Response.json(inventedChangeSet));
+    const changeSetUrl = new URL(
+      `http://petra.local/projects/${inventedChangeSet.project_id}/review/${inventedChangeSet.review_session_id}`,
+    );
+
+    await expect(
+      loadProjectReviewSession({
+        request: new Request(changeSetUrl),
+        url: changeSetUrl,
+        pattern: "/projects/:projectId/review/:reviewId",
+        params: {
+          projectId: inventedChangeSet.project_id,
+          reviewId: inventedChangeSet.review_session_id,
+        },
+        context: new RouterContextProvider(),
+      }),
+    ).rejects.toThrow("invalid Project Review view");
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses only generic display fallbacks when profile labels are absent", () => {
+    const controlledView = controlledWritingReviewView();
+    controlledView.content.members[0].candidate.kind_label = "";
+    controlledView.content.members[0].basis[0].label = "";
+    controlledView.content.members[0].basis[0].relation = "";
+    const review = reviewSessionFromView(controlledView);
+
+    expect(review.candidate.kind).toBe("Working candidate");
+    expect(review.basis[0]).toMatchObject({
+      label: "Basis item",
+      relation: "Relationship",
+    });
+
+    const overlay = structuredClone(relationshipOverlayGraphView);
+    const workingNode = overlay.content.nodes.find(
+      (node) => node.layer === "working",
+    );
+    const textNode = overlay.content.textual_peer.nodes.find(
+      (node) => node.node_key === workingNode?.node_key,
+    );
+    const workingRelationship = overlay.content.relationships.find(
+      (relationship) => relationship.layer === "working",
+    );
+    const textRelationship = overlay.content.textual_peer.relationships.find(
+      (relationship) =>
+        relationship.relationship_key === workingRelationship?.relationship_key,
+    );
+    if (
+      workingNode === undefined ||
+      textNode === undefined ||
+      workingRelationship === undefined ||
+      textRelationship === undefined
+    ) {
+      throw new Error("Expected complete overlay presentation fixtures.");
+    }
+    workingNode.object_term = "";
+    textNode.object_term = "";
+    workingRelationship.relationship_term = "";
+    workingRelationship.label = "";
+    textRelationship.label = "";
+    const graph = graphQuestionFromOverlayView(overlay);
+
+    expect(
+      graph.nodes.find((node) => node.id === workingNode.node_key)?.kind,
+    ).toBe("Item");
+    expect(
+      graph.textualPeer?.nodes.find((node) => node.id === workingNode.node_key)
+        ?.kind,
+    ).toBe("Item");
+    expect(
+      graph.edges.find(
+        (edge) => edge.id === workingRelationship.relationship_key,
+      )?.label,
+    ).toBe("Relationship");
+    expect(
+      graph.textualPeer?.relationships.find(
+        (relationship) =>
+          relationship.id === workingRelationship.relationship_key,
+      )?.label,
+    ).toBe("Relationship");
   });
 
   it("maps every exact Review member and delegates only compact separation input", async () => {

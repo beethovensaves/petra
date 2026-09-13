@@ -346,6 +346,7 @@ export const REFERENCE_REVIEWS: ReviewSession[] = [
       "Keep the control-adjustment branch accepted and unchanged.",
       "Update relationship projections after the authoritative event commits.",
     ],
+    commitment: { available: true },
     changeSet: {
       id: "changeset-service-link",
       revision: "Preview revision 2",

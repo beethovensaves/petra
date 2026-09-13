@@ -1346,6 +1346,7 @@ export const reviewSessionWithMember = (
   basis: member.basis,
   validation: member.validation,
   consequences: member.consequences,
+  commitment: member.commitment,
   ...(member.changeSet === undefined ? {} : { changeSet: member.changeSet }),
 });
 
@@ -1838,8 +1839,9 @@ const ReviewSessionMemberSurface = ({
         ? "The authenticated reads do not supply the exact active ProjectSource revision required for this basis operation."
         : undefined;
 
-  const lifecycleBoundary =
-    review.lifecycle === "deferred"
+  const lifecycleBoundary = !review.commitment.available
+    ? `${review.commitment.reason} Review inclusion and validation do not grant mutation authority.`
+    : review.lifecycle === "deferred"
       ? "This Review is deferred. Reopen review sends this exact Review revision to Petra. The server rechecks current lifecycle and authority; seeing Deferred here does not mean the command is eligible or authorized."
       : review.status === "needs_decision"
         ? "Apply requires the exact server-prepared commitment above and one explicit human decision. Reject remains unavailable. Decide later sends the exact Review revision to Petra; the server rechecks lifecycle and authority before changing coordination state."
@@ -2396,7 +2398,11 @@ const ReviewSessionMemberSurface = ({
           aria-labelledby="review-consequences-title"
         >
           <header>
-            <p className="reference-panel-kicker">If applied</p>
+            <p className="reference-panel-kicker">
+              {review.commitment.available
+                ? "If applied"
+                : "Proposed effect · no Apply path"}
+            </p>
             <h2 id="review-consequences-title">Consequences</h2>
           </header>
           <ul>
@@ -2414,15 +2420,26 @@ const ReviewSessionMemberSurface = ({
         <header>
           <div>
             <p className="reference-panel-kicker">Commitment preview</p>
-            <h2 id="review-changeset-title">Changes to apply</h2>
+            <h2 id="review-changeset-title">
+              {review.commitment.available
+                ? "Changes to apply"
+                : "Commitment unavailable"}
+            </h2>
           </div>
           <span>
-            {applyCheckpoint !== undefined
-              ? "One complete atomic ChangeSet"
-              : (review.changeSet?.atomicity ?? "No ChangeSet prepared")}
+            {!review.commitment.available
+              ? "No Apply path installed"
+              : applyCheckpoint !== undefined
+                ? "One complete atomic ChangeSet"
+                : (review.changeSet?.atomicity ?? "No ChangeSet prepared")}
           </span>
         </header>
-        {applyCheckpoint !== undefined ? (
+        {!review.commitment.available ? (
+          <p>
+            The candidate remains non-authoritative working state. Review does
+            not create a commitment or change Project authority.
+          </p>
+        ) : applyCheckpoint !== undefined ? (
           <ReviewApplyPreview
             checkpoint={applyCheckpoint}
             focus={applyState.kind === "ready"}
@@ -2464,9 +2481,17 @@ const ReviewSessionMemberSurface = ({
             </div>
           </>
         )}
-        {applyState.kind === "idle" ||
-        applyState.kind === "unavailable" ||
-        applyState.kind === "preparing" ? (
+        {!review.commitment.available ? (
+          <PetraButton
+            variant="secondary"
+            unavailable={{ reason: review.commitment.reason }}
+            aria-describedby="review-apply-scope"
+          >
+            Preparation unavailable
+          </PetraButton>
+        ) : applyState.kind === "idle" ||
+          applyState.kind === "unavailable" ||
+          applyState.kind === "preparing" ? (
           <PetraButton
             variant="secondary"
             busy={applyState.kind === "preparing"}
@@ -2494,10 +2519,9 @@ const ReviewSessionMemberSurface = ({
           </PetraButton>
         ) : null}
         <p id="review-apply-scope">
-          Preparation reads the exact commitment without approving it. This path
-          supports fresh candidates without an existing ChangeSet; the server
-          checks profile support and current authority. Targets already bound to
-          a ChangeSet require Recovery reconciliation.
+          {review.commitment.available
+            ? "Preparation reads the exact commitment without approving it. This path supports fresh candidates without an existing ChangeSet; the server checks profile support and current authority. Targets already bound to a ChangeSet require Recovery reconciliation."
+            : "No commitment can be prepared from this Review. Decide later remains a Review-coordination action; Recovery remains a read-only status check."}
         </p>
       </section>
 
@@ -2533,6 +2557,9 @@ const ReviewSessionMemberSurface = ({
           <PetraButton
             variant="primary"
             aria-disabled={applyState.kind !== "ready"}
+            {...(review.commitment.available
+              ? {}
+              : { unavailable: { reason: review.commitment.reason } })}
             busy={applyState.kind === "applying"}
             busyLabel="Applying commitment…"
             aria-describedby="review-decision-boundary review-apply-scope"

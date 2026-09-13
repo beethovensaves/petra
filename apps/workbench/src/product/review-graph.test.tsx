@@ -142,6 +142,7 @@ describe("reference Review and Graph packets", () => {
       basis: structuredClone(base.basis),
       validation: structuredClone(base.validation),
       consequences: structuredClone(base.consequences),
+      commitment: structuredClone(base.commitment),
       changeSet: structuredClone(base.changeSet),
     };
     const second = {
@@ -169,6 +170,57 @@ describe("reference Review and Graph packets", () => {
       memberOutcome: first.outcome,
       members: [first, second],
     };
+  };
+
+  const controlledWritingReview = (): ReviewSession => {
+    const controlled = structuredClone(review);
+    controlled.projectId = "project_01K4E000000000000000000001";
+    controlled.lifecycle = "open";
+    controlled.title = "Review the controlled-writing Requirement";
+    controlled.objective =
+      "Inspect the exact Requirement and governing relationship without implying a writing Apply path.";
+    controlled.candidate = {
+      id: "review_member_01K4E000000000000000000011",
+      revision: "Requirement revision 1 · Governing relationship revision 1",
+      kind: "Requirement and governing link",
+      current:
+        "No authoritative controlled-writing representation is installed",
+      proposed:
+        "The operating procedure must identify the exact authority source for each mandatory step.",
+      difference:
+        "Adds one non-authoritative Requirement and its exact GOVERNS relationship to Review. No controlled-writing mutation operation or Apply path is installed.",
+      origin: "Project author",
+      originDetail: "Direct edit · exact human-authored working records",
+    };
+    controlled.basis = [
+      {
+        id: "project_source_01K4E000000000000000000006",
+        label: "Authority source",
+        relation: "Governing link",
+        extent: "Constraint",
+        detail:
+          "The named authority source is the recorded basis for this proposed requirement.",
+        sourceId: "project_source_01K4E000000000000000000006",
+      },
+    ];
+    controlled.validation = {
+      state: "needs_judgment",
+      label: "Validation pending",
+      detail:
+        "The exact controlled-writing working records remain pending validation. Review inclusion does not approve the Requirement or create an Apply path.",
+    };
+    controlled.consequences = [
+      "The exact Requirement remains non-authoritative working state.",
+      "No controlled-writing ChangeSet operation, Approval, or Apply path is installed.",
+      "Review composition leaves the authority source, producer provenance, and Project authority unchanged.",
+    ];
+    controlled.commitment = {
+      available: false,
+      reason:
+        "Petra has no controlled-writing ChangeSet operation, Approval, or Apply path.",
+    };
+    delete controlled.changeSet;
+    return controlled;
   };
 
   it("keeps the Review queue exception-led and decision-sized", () => {
@@ -222,6 +274,55 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain(
       'href="/projects/inlet-cycle/brief#attention-source-depth"',
     );
+  });
+
+  it("preserves the shared Review hierarchy while making controlled-writing commitment unavailable", () => {
+    const controlled = controlledWritingReview();
+    const writingProject = {
+      ...project,
+      id: controlled.projectId,
+      title: "Controlled operating procedure",
+      profile: {
+        ...project.profile,
+        label: "Controlled writing",
+        terms: {
+          focus: "Document purpose",
+          focusPlural: "Document purposes",
+          finding: "Requirement",
+          findingPlural: "Requirements",
+          reference: "Authority source",
+          referencePlural: "Authority sources",
+        },
+      },
+    };
+    const markup = render(
+      <ReviewSessionSurface project={writingProject} review={controlled} />,
+    );
+
+    for (const sharedRole of [
+      "Current and Candidate",
+      "Origin",
+      "Basis",
+      "Consequences",
+      "Decision",
+      "Recovery",
+      "Validation pending",
+    ]) {
+      expect(markup).toContain(sharedRole);
+    }
+    expect(markup).toContain("Authority source");
+    expect(markup).toContain("Governing link");
+    expect(markup).toContain("Proposed effect · no Apply path");
+    expect(markup).toContain("Commitment unavailable");
+    expect(markup).toContain("No Apply path installed");
+    expect(markup).toContain("Preparation unavailable");
+    expect(markup).toContain("Apply unavailable");
+    expect(markup).toContain(
+      "The candidate remains non-authoritative working state",
+    );
+    expect(markup).not.toContain("Prepare changes to apply");
+    expect(markup).not.toContain("Edit working Claim text");
+    expect(markup).not.toContain("Apply requires the exact server-prepared");
   });
 
   it("keeps the frozen Edit candidate disclosure local and text-only", () => {

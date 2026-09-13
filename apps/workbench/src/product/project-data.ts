@@ -1458,19 +1458,63 @@ const reviewCandidateBasisRevisionSourceRef = (
   ) as ReviewCandidateBasisRevisionSourceRef;
 };
 
+const reviewV13ProfilesAreConsistent = (
+  content: Record<string, unknown>,
+): boolean => {
+  if (!Array.isArray(content.members) || content.members.length === 0) {
+    return false;
+  }
+  return content.members.every((member) => {
+    if (
+      !isRecord(member) ||
+      !isRecord(member.candidate) ||
+      !isRecord(member.candidate.profile_payload) ||
+      !Array.isArray(member.change_sets) ||
+      !isRecord(member.working_state) ||
+      member.working_state.authority_effect !== "none"
+    ) {
+      return false;
+    }
+    const payload = member.candidate.profile_payload;
+    if (payload.payload_kind === "scientific_evidence_pair") {
+      return (
+        isRecord(payload.claim_ref) &&
+        isRecord(payload.assertion_ref) &&
+        payload.assertion_predicate === "ASSERTS" &&
+        !("apply_available" in payload)
+      );
+    }
+    return (
+      payload.payload_kind === "controlled_writing_requirement" &&
+      payload.apply_available === false &&
+      payload.relationship_predicate === "GOVERNS" &&
+      isRecord(payload.requirement_ref) &&
+      payload.requirement_ref.schema_name ===
+        "petra.controlled-writing-requirement" &&
+      isRecord(payload.governing_relationship_ref) &&
+      payload.governing_relationship_ref.schema_name ===
+        "petra.controlled-writing-governing-relationship" &&
+      isRecord(payload.authority_source_ref) &&
+      payload.authority_source_ref.schema_name === "petra.project-source" &&
+      member.change_sets.length === 0
+    );
+  });
+};
+
 const reviewView = (value: unknown): PetraProjectReviewViewRecord => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-review-view" ||
     (value.schema_version !== "1.0.0" &&
       value.schema_version !== "1.1.0" &&
-      value.schema_version !== "1.2.0") ||
+      value.schema_version !== "1.2.0" &&
+      value.schema_version !== "1.3.0") ||
     typeof value.project_id !== "string" ||
     typeof value.review_session_id !== "string" ||
     !isRecord(value.content) ||
     typeof value.content_hash !== "string" ||
     typeof value.read_at !== "string" ||
-    (value.schema_version === "1.2.0" &&
+    ((value.schema_version === "1.2.0" || value.schema_version === "1.3.0") &&
       (!isRecord(value.content.session) ||
         !Number.isSafeInteger(value.content.session.revision) ||
         Number(value.content.session.revision) < 1 ||
@@ -1478,7 +1522,9 @@ const reviewView = (value: unknown): PetraProjectReviewViewRecord => {
         !CONTENT_HASH.test(value.content.session.content_hash) ||
         (value.content.session.lifecycle !== "open" &&
           value.content.session.lifecycle !== "deferred" &&
-          value.content.session.lifecycle !== "completed")))
+          value.content.session.lifecycle !== "completed"))) ||
+    (value.schema_version === "1.3.0" &&
+      !reviewV13ProfilesAreConsistent(value.content))
   ) {
     throw new ProjectDataError(
       "Petra returned an invalid Project Review view.",
@@ -2654,6 +2700,19 @@ const titleCase = (value: string): string =>
     .map((part) => `${part.slice(0, 1).toLocaleUpperCase()}${part.slice(1)}`)
     .join(" ");
 
+const displayLabel = (value: string, fallback: string): string =>
+  value.trim().length === 0 ? fallback : value;
+
+const overlayRelationshipLabel = (
+  relationship: PetraProjectRelationshipOverlayView["content"]["relationships"][number],
+): string =>
+  relationship.layer === "working"
+    ? displayLabel(
+        relationship.relationship_term,
+        displayLabel(relationship.label, "Relationship"),
+      )
+    : displayLabel(relationship.label, "Relationship");
+
 const durationLabel = (milliseconds: number): string => {
   if (milliseconds < 1000) return `${milliseconds} ms`;
   const seconds = milliseconds / 1000;
@@ -2998,10 +3057,20 @@ const reviewMemberFromView = (
     );
   }
   const changeSet = member.change_sets[0];
+  const commitment =
+    view.schema_version === "1.3.0" &&
+    member.candidate.profile_payload.payload_kind ===
+      "controlled_writing_requirement"
+      ? {
+          available: false as const,
+          reason:
+            "Petra has no controlled-writing ChangeSet operation, Approval, or Apply path.",
+        }
+      : { available: true as const };
   let candidateCorrection: ReviewSession["candidateCorrection"] | undefined;
   let candidateBasisRevision:
     ReviewSession["candidateBasisRevision"] | undefined;
-  if (view.schema_version === "1.2.0") {
+  if (view.schema_version === "1.2.0" || view.schema_version === "1.3.0") {
     const composedMember = view.content.members[memberIndex];
     const relationship = composedMember?.working_state.relationships[0];
     if (
@@ -3123,7 +3192,7 @@ const reviewMemberFromView = (
     candidate: {
       id: member.candidate.candidate_id,
       revision: member.candidate.revision_label,
-      kind: member.candidate.kind_label,
+      kind: displayLabel(member.candidate.kind_label, "Working candidate"),
       current: member.candidate.current,
       proposed: member.candidate.proposed,
       difference: member.candidate.difference,
@@ -3134,8 +3203,8 @@ const reviewMemberFromView = (
     ...(candidateBasisRevision === undefined ? {} : { candidateBasisRevision }),
     basis: member.basis.map((basis) => ({
       id: basis.basis_id,
-      label: basis.label,
-      relation: basis.relation,
+      label: displayLabel(basis.label, "Basis item"),
+      relation: displayLabel(basis.relation, "Relationship"),
       extent: basis.extent,
       detail: basis.detail,
       ...(basis.project_source_id === undefined
@@ -3151,6 +3220,7 @@ const reviewMemberFromView = (
         : { recovery: member.validation.recovery }),
     },
     consequences: [...member.consequences],
+    commitment,
     ...(changeSet === undefined
       ? {}
       : {
@@ -3186,7 +3256,7 @@ export const reviewSessionFromView = (
     objective: view.content.session.objective_summary,
     status: view.content.session.status,
     statusLabel: view.content.session.status_label,
-    ...(view.schema_version === "1.2.0"
+    ...(view.schema_version === "1.2.0" || view.schema_version === "1.3.0"
       ? { lifecycle: view.content.session.lifecycle }
       : {}),
     responsible: view.content.session.responsible.display_name,
@@ -3208,6 +3278,7 @@ export const reviewSessionFromView = (
     basis: member.basis,
     validation: member.validation,
     consequences: member.consequences,
+    commitment: member.commitment,
     ...(member.changeSet === undefined ? {} : { changeSet: member.changeSet }),
   };
 };
@@ -3529,7 +3600,7 @@ export const graphQuestionFromOverlayView = (
     nodes: view.content.nodes.map((node, index) => ({
       id: node.node_key,
       label: node.label,
-      kind: node.object_term,
+      kind: displayLabel(node.object_term, "Item"),
       summary: node.summary,
       basis: node.basis,
       ...(node.layer === "current" && node.source_destination !== undefined
@@ -3549,7 +3620,7 @@ export const graphQuestionFromOverlayView = (
       id: relationship.relationship_key,
       from: relationship.source_node_key,
       to: relationship.target_node_key,
-      label: relationship.label,
+      label: overlayRelationshipLabel(relationship),
       summary: relationship.summary,
       basis: relationship.basis,
       meaning: relationship.meaning,
@@ -3576,7 +3647,7 @@ export const graphQuestionFromOverlayView = (
         return {
           id: textNode.node_key,
           layer: textNode.layer,
-          kind: textNode.object_term,
+          kind: displayLabel(textNode.object_term, "Item"),
           label: textNode.label,
           summary: textNode.summary,
           basis: textNode.basis,
@@ -3599,7 +3670,7 @@ export const graphQuestionFromOverlayView = (
             from: textRelationship.source_node_key,
             fromLabel: textRelationship.source_label,
             direction: textRelationship.direction,
-            label: textRelationship.label,
+            label: overlayRelationshipLabel(relationship),
             to: textRelationship.target_node_key,
             toLabel: textRelationship.target_label,
             summary: textRelationship.summary,
@@ -5065,6 +5136,7 @@ export const loadProjectReviewSession = async ({
     basis: first.basis,
     validation: first.validation,
     consequences: first.consequences,
+    commitment: first.commitment,
     ...(first.changeSet === undefined ? {} : { changeSet: first.changeSet }),
   };
 };
