@@ -1,6 +1,8 @@
 import type {
   PetraAssertion,
   PetraClaim,
+  PetraControlledWritingGoverningRelationship,
+  PetraControlledWritingRequirement,
   PetraProjectWorkingStateSnapshot,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
@@ -16,17 +18,35 @@ export interface ScientificWorkingRelationshipAdmission {
   readonly profileRecord: PetraAssertion;
 }
 
+export interface ControlledWritingWorkingCandidateAdmission {
+  readonly candidate: PetraWorkingCandidate;
+  readonly profileRecord: PetraControlledWritingRequirement;
+}
+
+export interface ControlledWritingWorkingRelationshipAdmission {
+  readonly relationship: PetraWorkingRelationship;
+  readonly profileRecord: PetraControlledWritingGoverningRelationship;
+}
+
+export type WorkingCandidateAdmission =
+  | ScientificWorkingCandidateAdmission
+  | ControlledWritingWorkingCandidateAdmission;
+
+export type WorkingRelationshipAdmission =
+  | ScientificWorkingRelationshipAdmission
+  | ControlledWritingWorkingRelationshipAdmission;
+
 /**
- * Canonical durable working-state persistence. The supplied scientific profile
- * records continue to live in the existing evidence ledger; these methods add
- * only the shared, non-authoritative working revision and lineage boundary.
+ * Canonical durable working-state persistence. Supplied profile records remain
+ * in their installed profile-owned storage; these methods add only the shared,
+ * non-authoritative working revision and lineage boundary.
  */
 export interface WorkingStateAuthorityRepository {
   admitWorkingCandidateRevision(
-    input: ScientificWorkingCandidateAdmission,
+    input: WorkingCandidateAdmission,
   ): Promise<PetraWorkingCandidate>;
   admitWorkingRelationshipRevision(
-    input: ScientificWorkingRelationshipAdmission,
+    input: WorkingRelationshipAdmission,
   ): Promise<PetraWorkingRelationship>;
   getWorkingCandidate(
     projectId: string,

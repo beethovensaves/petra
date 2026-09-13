@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/controlled-writing-governing-relationship/1.0.0/schema.json",
+  "title": "PetraControlledWritingGoverningRelationship",
+  "description": "A non-authoritative controlled-writing relationship payload that records which exact authority source governs one exact proposed Requirement. It enters working state through WorkingRelationship and cannot authorize, approve, apply, or publish either endpoint.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "governing_relationship_id",
+    "revision",
+    "project_id",
+    "project_definition_ref",
+    "content",
+    "content_hash",
+    "authority_boundary",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.controlled-writing-governing-relationship"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "governing_relationship_id": {
+      "$ref": "#/$defs/GoverningRelationshipId"
+    },
+    "revision": { "const": 1 },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "project_definition_ref": {
+      "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ProjectDefinitionRef"
+    },
+    "content": { "$ref": "#/$defs/GoverningRelationshipContent" },
+    "content_hash": {
+      "description": "The RFC 8785 SHA-256 identity of content.",
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "authority_boundary": {
+      "$ref": "../../controlled-writing-requirement/1.0.0/schema.json#/$defs/AuthorityBoundary"
+    },
+    "created_by": {
+      "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "GoverningRelationshipId": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^governing_relationship_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "ExactRecordRef": {
+      "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/ExactTypedRecordRef"
+    },
+    "GoverningRelationshipContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "predicate",
+        "authority_source_ref",
+        "requirement_ref",
+        "rationale"
+      ],
+      "properties": {
+        "predicate": { "const": "GOVERNS" },
+        "authority_source_ref": { "$ref": "#/$defs/ExactRecordRef" },
+        "requirement_ref": { "$ref": "#/$defs/ExactRecordRef" },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 8000 }
+      }
+    }
+  }
+}

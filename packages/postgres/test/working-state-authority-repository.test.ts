@@ -8,6 +8,13 @@ import type {
   PetraAssertion,
   PetraAuthor,
   PetraClaim,
+  PetraContextPacket,
+  PetraControlledWritingGoverningRelationship,
+  PetraControlledWritingRequirement,
+  PetraEvidenceProposalBundle,
+  PetraModelCall,
+  PetraModelRequest,
+  PetraModelRoleCertification,
   PetraParsedDocument,
   PetraProject,
   PetraProjectDefinition,
@@ -35,6 +42,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
+import { PostgresModelExecutionRepository } from "../src/model-execution-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
 import type { PostgresProjectRelationshipOverlayViewError } from "../src/project-relationship-overlay-view-reader.js";
 import { PostgresProjectRelationshipOverlayViewReader } from "../src/project-relationship-overlay-view-reader.js";
@@ -75,6 +83,72 @@ const workingContentHash = (value: { content_hash: string }): string => {
   return canonicalHash(projection);
 };
 
+const modelProposal = (
+  claim: PetraClaim,
+  contextPacketHash: string,
+): PetraEvidenceProposalBundle => {
+  const proposal = readFixture<PetraEvidenceProposalBundle>(
+    "evidence-proposal-bundle",
+  );
+  proposal.evidence_proposal_bundle_id =
+    "evidence_proposal_bundle_01ARZ3NDEKTSV4RRFFQ69G5FD9";
+  proposal.content.extraction = {
+    extraction_kind: "model_extraction",
+    extraction_run_id: "extraction_run_01ARZ3NDEKTSV4RRFFQ69G5FD7",
+    extractor: {
+      name: "petra-source-grounded-extractor",
+      version: "1.0.0",
+    },
+    recipe_hash: `sha256:${"a".repeat(64)}`,
+    model_request_id: "model_request_01ARZ3NDEKTSV4RRFFQ69G5FD4",
+    model_call_id: "model_call_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+    model_deployment: "model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FD1",
+    prompt_profile: {
+      name: "petra-source-grounded-extractor",
+      version: "1.0.0",
+    },
+    prompt_hash: `sha256:${"e".repeat(64)}`,
+    parameters_hash:
+      "sha256:440b3886b2eb3fb543f46ad712e2108b83e753774300260ca165f5cbb0f295a9",
+    context_packet_ref: {
+      context_packet_id: "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+      content_hash: contextPacketHash,
+    },
+    started_at: "2026-09-02T18:31:00.000Z",
+    completed_at: "2026-09-02T18:31:00.004Z",
+  };
+  const candidate = proposal.content.candidates[0];
+  if (candidate === undefined) {
+    throw new Error("Expected one evidence proposal candidate.");
+  }
+  candidate.candidate_id = "evidence_candidate_01K4D000000000000000000014";
+  candidate.claim = structuredClone(claim);
+  candidate.assertion.assertion_id = "assertion_01K4D000000000000000000015";
+  candidate.assertion.object = {
+    object_kind: "entity",
+    entity_id: claim.claim_id,
+  };
+  candidate.assertion.provenance_refs = [
+    {
+      provenance_kind: "source_span",
+      source_span_id: "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+    },
+    {
+      provenance_kind: "record",
+      record_id: "model_call_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+      role: "model_call",
+    },
+  ];
+  candidate.assertion.created_by = {
+    actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+    actor_kind: "service",
+  };
+  proposal.created_by = structuredClone(candidate.assertion.created_by);
+  proposal.created_at = "2026-09-02T18:31:00.004Z";
+  proposal.content_hash = canonicalHash(proposal.content);
+  return proposal;
+};
+
 const expectWorkingCode = async (
   operation: () => Promise<unknown>,
   code: PostgresWorkingStateErrorCode,
@@ -105,6 +179,7 @@ describePostgres("PostgreSQL working-state authority", () => {
   );
   const documents = new PostgresDocumentAuthorityRepository(pool);
   const evidence = new PostgresEvidenceAuthorityRepository(pool);
+  const modelExecutions = new PostgresModelExecutionRepository(pool);
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const projectSources = new PostgresProjectSourceAuthorityRepository(pool);
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
@@ -623,6 +698,710 @@ describePostgres("PostgreSQL working-state authority", () => {
       relationships: "1",
       relationship_revisions: "1",
       correction_admissions: "1",
+      domain_events: "0",
+    });
+  });
+
+  it("admits exact controlled-writing Requirement and GOVERNS records without adding authority or reusing evidence semantics", async () => {
+    const scientific = await setupAuthority();
+    const modelActor = actor(
+      "actor_01K4D000000000000000000010",
+      "model",
+      "Registered evidence model",
+    );
+    await scopes.registerActor(modelActor);
+
+    const modelClaim = structuredClone(scientific.claim);
+    modelClaim.claim_id = "claim_01K4D000000000000000000016";
+    modelClaim.canonical_text =
+      "The model extracted the study's reported measurable improvement.";
+    if (modelClaim.basis.basis_kind !== "source") {
+      throw new Error("Expected a source-derived Claim fixture.");
+    }
+    modelClaim.basis.derivation = {
+      derivation_kind: "model_extraction",
+      derivation_ref: "model_call_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+    };
+    modelClaim.basis.proposed_by = {
+      actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+      actor_kind: "service",
+    };
+    modelClaim.basis.proposed_at = "2026-09-02T18:31:00.004Z";
+    modelClaim.created_by = structuredClone(modelClaim.basis.proposed_by);
+    modelClaim.created_at = "2026-09-02T18:31:00.004Z";
+    await evidence.proposeClaim(modelClaim);
+
+    const context = readFixture<PetraContextPacket>("context-packet");
+    context.snapshot_ref.event_position = 1;
+    context.compiled_by = {
+      actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+      actor_kind: "service",
+    };
+    const contextClaimRef = {
+      object_kind: "claim" as const,
+      object_id: modelClaim.claim_id,
+      object_revision: modelClaim.revision,
+      object_hash: canonicalHash(modelClaim),
+    };
+    context.content.objective.target_refs = [contextClaimRef];
+    const includedClaim = context.content.included_objects[0];
+    if (includedClaim === undefined) {
+      throw new Error("Expected one ContextPacket included object.");
+    }
+    includedClaim.object_ref = contextClaimRef;
+    includedClaim.authority = structuredClone(modelClaim.authority);
+    context.content.included_objects = [includedClaim];
+    context.content.budget.included_object_count = 1;
+    context.content.budget.included_source_span_count = 1;
+    context.content_hash = canonicalHash(context.content);
+    await pool.query(
+      "UPDATE petra.authority_positions SET event_position = 1 WHERE singleton",
+    );
+    await pool.query(
+      `INSERT INTO petra.context_packets (
+         context_packet_id, revision, project_id, snapshot_id,
+         snapshot_revision, snapshot_event_position, snapshot_hash,
+         content_hash, compiled_by_actor_id, compiled_by_actor_kind,
+         compiled_at, record_hash, payload
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+         $11::timestamptz, $12, $13::jsonb
+       )`,
+      [
+        context.context_packet_id,
+        context.revision,
+        context.project_id,
+        context.snapshot_ref.snapshot_id,
+        context.snapshot_ref.snapshot_revision,
+        context.snapshot_ref.event_position,
+        context.snapshot_ref.content_hash,
+        context.content_hash,
+        context.compiled_by.actor_id,
+        context.compiled_by.actor_kind,
+        context.compiled_at,
+        canonicalHash(context),
+        JSON.stringify(context),
+      ],
+    );
+
+    const modelRequest = readFixture<PetraModelRequest>("model-request");
+    modelRequest.content.context_packet_ref.content_hash = context.content_hash;
+    modelRequest.content_hash = canonicalHash(modelRequest.content);
+    const modelCall = readFixture<PetraModelCall>("model-call");
+    modelCall.content.input.context_packet_ref.content_hash =
+      context.content_hash;
+    modelCall.content_hash = canonicalHash(modelCall.content);
+    const proposal = modelProposal(modelClaim, context.content_hash);
+    await modelExecutions.registerCertification(
+      readFixture<PetraModelRoleCertification>("model-role-certification"),
+    );
+    await modelExecutions.persistExecution({
+      request: modelRequest,
+      calls: [modelCall],
+      proposal_bundle: proposal,
+    });
+
+    const modelCandidate = candidate(scientific);
+    modelCandidate.working_candidate_id =
+      "working_candidate_01K4D000000000000000000017";
+    modelCandidate.profile_object.object_record_ref = exactRef(
+      modelClaim.schema_name,
+      modelClaim.claim_id,
+      modelClaim.revision,
+      modelClaim,
+    );
+    const modelRole = scientific.definition.content.registrations.find(
+      (entry) => entry.registration_kind === "model_role",
+    );
+    if (modelRole === undefined) {
+      throw new Error("Expected the scientific model-role registration.");
+    }
+    modelCandidate.producer = {
+      producer_kind: "model",
+      actor: {
+        actor_id: modelActor.actor_id,
+        actor_kind: "model",
+      },
+      contribution_kind: "model_output",
+      model_role_ref: structuredClone(modelRole.contract),
+      model_call_ref: exactRef(
+        modelCall.schema_name,
+        modelCall.model_call_id,
+        modelCall.revision,
+        modelCall,
+      ),
+    };
+    modelCandidate.input_snapshot = {
+      snapshot_ref: {
+        snapshot_id: context.snapshot_ref.snapshot_id,
+        revision: context.snapshot_ref.snapshot_revision,
+        event_position: context.snapshot_ref.event_position,
+        content_hash: context.snapshot_ref.content_hash,
+      },
+      context_packet_ref: exactRef(
+        context.schema_name,
+        context.context_packet_id,
+        context.revision,
+        context,
+      ),
+      input_record_refs: [
+        exactRef(
+          proposal.schema_name,
+          proposal.evidence_proposal_bundle_id,
+          proposal.revision,
+          proposal,
+        ),
+      ],
+    };
+    modelCandidate.origin = {
+      origin_kind: "extraction",
+      source_record_refs: structuredClone(
+        modelCandidate.input_snapshot.input_record_refs,
+      ),
+      summary:
+        "The registered evidence model produced this exact scientific candidate.",
+    };
+    modelCandidate.basis = [
+      {
+        basis_role: "source",
+        record_ref: exactRef(
+          scientific.span.schema_name,
+          scientific.span.source_span_id,
+          scientific.span.revision,
+          scientific.span,
+        ),
+        summary: "The exact SourceSpan is the model candidate's basis.",
+      },
+    ];
+    modelCandidate.provenance = [
+      {
+        provenance_role: "model_call",
+        record_ref: structuredClone(modelCandidate.producer.model_call_ref),
+        statement: "The exact ModelCall remains producer provenance.",
+      },
+    ];
+    modelCandidate.validation.target_record_hash = canonicalHash(modelClaim);
+    modelCandidate.created_by = {
+      actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+      actor_kind: "service",
+    };
+    modelCandidate.created_at = "2026-09-02T18:31:00.004Z";
+    modelCandidate.recorded_at = "2026-09-13T14:01:00.000Z";
+    modelCandidate.content_hash = workingContentHash(modelCandidate);
+    await working.admitWorkingCandidateRevision({
+      candidate: modelCandidate,
+      profileRecord: modelClaim,
+    });
+
+    const project = readFixture<PetraProject>("project-controlled-writing");
+    const definition = readFixture<PetraProjectDefinition>(
+      "project-definition-controlled-writing",
+    );
+    const objective = readFixture<PetraProjectObjective>(
+      "project-objective-controlled-writing",
+    );
+    await scopes.registerProjectRevision(project);
+    await definitions.registerDefinitionRevision(definition);
+    await definitions.registerObjectiveRevision(objective);
+
+    const projectSource = readFixture<PetraProjectSource>("project-source");
+    projectSource.project_source_id =
+      "project_source_01K4E000000000000000000006";
+    projectSource.project_id = project.project_id;
+    projectSource.content.project_definition_ref = {
+      project_definition_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+    };
+    projectSource.content.source_role = "writing.authority-source";
+    projectSource.content.artifact_manifest_ref.record_hash = canonicalHash(
+      sourceArtifactInput().manifest,
+    );
+    projectSource.content_hash = canonicalHash(projectSource.content);
+    await projectSources.registerProjectSourceRevision(projectSource);
+
+    const inputManifest = readFixture<PetraWorkerInputManifest>(
+      "worker-input-manifest",
+    );
+    inputManifest.worker_input_manifest_id =
+      "worker_input_manifest_01K4E000000000000000000009";
+    inputManifest.work_unit_id = "work_unit_01K4E000000000000000000010";
+    inputManifest.project_id = project.project_id;
+    inputManifest.issued_by = {
+      actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+      actor_kind: "service",
+    };
+    inputManifest.content.task = {
+      task_family: "reasoning",
+      task_name: "petra.writing.requirement-proposal",
+      task_version: "1.0.0",
+    };
+    inputManifest.content.worker = {
+      executor_kind: "typescript_worker",
+      worker_name: "petra.writing",
+      worker_version: "1.0.0",
+      runtime_name: "node",
+      runtime_version: "24.20.0",
+      entrypoint: "petra.writing.propose-requirement",
+    };
+    inputManifest.content.inputs = [
+      {
+        binding_kind: "record",
+        name: "authority_source",
+        record_id: projectSource.project_source_id,
+        record_revision: projectSource.revision,
+        snapshot_hash: canonicalHash(projectSource),
+      },
+    ];
+    inputManifest.content.expected_outputs = [
+      {
+        output_name: "requirement_proposal",
+        output_role: "proposal",
+        required: true,
+        media_type: "application/json",
+        max_bytes: 100_000,
+        contract: {
+          schema_name: "petra.controlled-writing-requirement",
+          schema_version: "1.0.0",
+          schema_hash:
+            "sha256:5a6d449b44078f2df1c2f29fe15164d22b0c4151a05c6f35dd8718964c3c3f1e",
+        },
+      },
+    ];
+    inputManifest.content_hash = canonicalHash(inputManifest.content);
+    const workUnit = readFixture<PetraWorkUnit>("work-unit-requested");
+    workUnit.work_unit_id = inputManifest.work_unit_id;
+    workUnit.project_id = project.project_id;
+    workUnit.spec.workflow_name = "petra.writing.requirement-proposal";
+    workUnit.spec.workflow_version = "1.0.0";
+    workUnit.spec.objective =
+      "Propose one non-authoritative Requirement from the exact registered authority source.";
+    workUnit.spec.input_manifest_ref.worker_input_manifest_id =
+      inputManifest.worker_input_manifest_id;
+    workUnit.spec.input_manifest_ref.content_hash = inputManifest.content_hash;
+    workUnit.spec.idempotency_key =
+      "writing:requirement-proposal:authority-source-006:v1";
+    if (workUnit.spec.cache.cache_mode === "disabled") {
+      throw new Error("Expected a reusable WorkUnit cache fixture.");
+    }
+    workUnit.spec.cache.cache_key =
+      "writing:requirement-proposal:authority-source-006:v1";
+    workUnit.spec_hash = canonicalHash(workUnit.spec);
+    workUnit.created_by = structuredClone(inputManifest.issued_by);
+    const registeredWorkUnit = await workUnits.register({
+      workUnit,
+      inputManifest,
+    });
+
+    const requirement = readFixture<PetraControlledWritingRequirement>(
+      "controlled-writing-requirement",
+    );
+    const sourceRef = exactRef(
+      projectSource.schema_name,
+      projectSource.project_source_id,
+      projectSource.revision,
+      projectSource,
+    );
+    const requirementRef = exactRef(
+      requirement.schema_name,
+      requirement.requirement_id,
+      requirement.revision,
+      requirement,
+    );
+    const governing = readFixture<PetraControlledWritingGoverningRelationship>(
+      "controlled-writing-governing-relationship",
+    );
+    governing.content.authority_source_ref = structuredClone(sourceRef);
+    governing.content.requirement_ref = structuredClone(requirementRef);
+    governing.content_hash = canonicalHash(governing.content);
+
+    const candidateRecord =
+      readFixture<PetraWorkingCandidate>("working-candidate");
+    candidateRecord.working_candidate_id =
+      "working_candidate_01K4E000000000000000000007";
+    candidateRecord.project_id = project.project_id;
+    candidateRecord.project_definition_ref = {
+      project_definition_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+      definition_family: definition.definition_family,
+    };
+    candidateRecord.profile_object = {
+      registration: structuredClone(
+        definition.content.registrations.find(
+          (entry) => entry.semantic_key === "writing.requirement",
+        )!,
+      ) as PetraWorkingCandidate["profile_object"]["registration"],
+      object_record_ref: structuredClone(requirementRef),
+      candidate_operation: "create",
+    };
+    candidateRecord.producer = {
+      producer_kind: "human",
+      actor: {
+        actor_id: requirement.created_by.actor_id,
+        actor_kind: "human",
+      },
+      contribution_kind: "direct_edit",
+    };
+    candidateRecord.task_context = {
+      task_kind: "work_unit",
+      objective_ref: exactRef(
+        objective.schema_name,
+        objective.objective_id,
+        objective.revision,
+        objective,
+      ),
+      work_unit_ref: exactRef(
+        registeredWorkUnit.schema_name,
+        registeredWorkUnit.work_unit_id,
+        registeredWorkUnit.revision,
+        registeredWorkUnit,
+      ),
+    };
+    candidateRecord.input_snapshot = {
+      snapshot_ref: {
+        snapshot_id: "snapshot_01K4E000000000000000000011",
+        revision: 1,
+        event_position: 0,
+        content_hash: `sha256:${"1".repeat(64)}`,
+      },
+      input_record_refs: [sourceRef],
+    };
+    candidateRecord.origin = {
+      origin_kind: "direct_edit",
+      source_record_refs: [sourceRef],
+      summary:
+        "The human author proposed this Requirement from the exact authority source.",
+    };
+    candidateRecord.basis = [
+      {
+        basis_role: "source",
+        record_ref: sourceRef,
+        summary: "The exact ProjectSource is the Requirement basis.",
+      },
+    ];
+    candidateRecord.provenance = [
+      {
+        provenance_role: "input",
+        record_ref: sourceRef,
+        statement: "The authority-source revision remains exact provenance.",
+      },
+    ];
+    candidateRecord.qualifications = {
+      assessment_state: "none_recorded",
+      statements: [],
+    };
+    candidateRecord.validation = {
+      state: "pending",
+      target_record_hash: canonicalHash(requirement),
+      results: [],
+    };
+    candidateRecord.lineage = { lineage_kind: "root" };
+    candidateRecord.created_by = structuredClone(requirement.created_by);
+    candidateRecord.created_at = requirement.created_at;
+    candidateRecord.recorded_at = "2026-09-13T14:02:00.000Z";
+    candidateRecord.content_hash = workingContentHash(candidateRecord);
+
+    const governingRef = exactRef(
+      governing.schema_name,
+      governing.governing_relationship_id,
+      governing.revision,
+      governing,
+    );
+    const relationshipRecord = readFixture<PetraWorkingRelationship>(
+      "working-relationship",
+    );
+    relationshipRecord.working_relationship_id =
+      "working_relationship_01K4E000000000000000000008";
+    relationshipRecord.project_id = project.project_id;
+    relationshipRecord.project_definition_ref = structuredClone(
+      candidateRecord.project_definition_ref,
+    );
+    relationshipRecord.profile_relationship = {
+      registration: structuredClone(
+        definition.content.registrations.find(
+          (entry) => entry.semantic_key === "writing.governs",
+        )!,
+      ) as PetraWorkingRelationship["profile_relationship"]["registration"],
+      predicate: "GOVERNS",
+      relationship_record_ref: governingRef,
+      candidate_operation: "create",
+    };
+    relationshipRecord.endpoints = {
+      subject: {
+        endpoint_kind: "profile_record",
+        record_ref: sourceRef,
+      },
+      object: {
+        endpoint_kind: "working_candidate",
+        candidate_ref: {
+          working_candidate_id: candidateRecord.working_candidate_id,
+          revision: candidateRecord.revision,
+          content_hash: candidateRecord.content_hash,
+        },
+      },
+    };
+    relationshipRecord.producer = structuredClone(candidateRecord.producer);
+    relationshipRecord.task_context = structuredClone(
+      candidateRecord.task_context,
+    );
+    relationshipRecord.input_snapshot = structuredClone(
+      candidateRecord.input_snapshot,
+    );
+    relationshipRecord.origin = structuredClone(candidateRecord.origin);
+    relationshipRecord.basis = structuredClone(candidateRecord.basis);
+    relationshipRecord.provenance = structuredClone(candidateRecord.provenance);
+    relationshipRecord.qualifications = structuredClone(
+      candidateRecord.qualifications,
+    );
+    relationshipRecord.validation = {
+      state: "pending",
+      target_record_hash: canonicalHash(governing),
+      results: [],
+    };
+    relationshipRecord.lineage = { lineage_kind: "root" };
+    relationshipRecord.created_by = structuredClone(governing.created_by);
+    relationshipRecord.created_at = governing.created_at;
+    relationshipRecord.recorded_at = "2026-09-13T14:03:00.000Z";
+    relationshipRecord.content_hash = workingContentHash(relationshipRecord);
+
+    expect(
+      await working.admitWorkingCandidateRevision({
+        candidate: candidateRecord,
+        profileRecord: requirement,
+      }),
+    ).toEqual(candidateRecord);
+    expect(
+      await working.admitWorkingCandidateRevision({
+        candidate: structuredClone(candidateRecord),
+        profileRecord: structuredClone(requirement),
+      }),
+    ).toEqual(candidateRecord);
+    expect(
+      await working.admitWorkingRelationshipRevision({
+        relationship: relationshipRecord,
+        profileRecord: governing,
+      }),
+    ).toEqual(relationshipRecord);
+    expect(
+      await working.getWorkingCandidate(
+        project.project_id,
+        candidateRecord.working_candidate_id,
+      ),
+    ).toEqual(candidateRecord);
+    expect(
+      await working.getWorkingRelationship(
+        project.project_id,
+        relationshipRecord.working_relationship_id,
+      ),
+    ).toEqual(relationshipRecord);
+
+    const controlledPayloads = await pool.query<{ payload: unknown }>(
+      `SELECT payload
+         FROM (
+           SELECT 1 AS position, payload
+             FROM petra.controlled_writing_requirement_records
+            WHERE requirement_id = $1 AND revision = $2
+           UNION ALL
+           SELECT 2 AS position, payload
+             FROM petra.controlled_writing_governing_relationship_records
+            WHERE governing_relationship_id = $3 AND revision = $4
+         ) AS controlled
+        ORDER BY position`,
+      [
+        requirement.requirement_id,
+        requirement.revision,
+        governing.governing_relationship_id,
+        governing.revision,
+      ],
+    );
+    expect(controlledPayloads.rows.map((row) => row.payload)).toEqual([
+      requirement,
+      governing,
+    ]);
+
+    const directRead = await snapshots.getProjectWorkingStateSnapshot(
+      project.project_id,
+    );
+    const modelMediatedRead = await snapshots.getProjectWorkingStateSnapshot(
+      project.project_id,
+    );
+    expect(directRead?.content).toEqual(modelMediatedRead?.content);
+    expect(directRead?.content_hash).toBe(modelMediatedRead?.content_hash);
+    expect(directRead?.content.candidates).toEqual([candidateRecord]);
+    expect(directRead?.content.relationships).toEqual([relationshipRecord]);
+    expect(directRead?.content.candidates[0]?.producer.producer_kind).toBe(
+      "human",
+    );
+    const scientificDirect = await snapshots.getProjectWorkingStateSnapshot(
+      scientific.project.project_id,
+    );
+    const scientificModelMediated =
+      await snapshots.getProjectWorkingStateSnapshot(
+        scientific.project.project_id,
+      );
+    expect(scientificDirect?.content).toEqual(scientificModelMediated?.content);
+    expect(scientificDirect?.content_hash).toBe(
+      scientificModelMediated?.content_hash,
+    );
+    expect(scientificDirect?.content.candidates).toEqual([modelCandidate]);
+    expect(scientificDirect?.content.candidates[0]?.producer).toEqual(
+      modelCandidate.producer,
+    );
+    expect(
+      scientificDirect?.content.candidates[0]?.producer.actor.actor_id,
+    ).not.toBe(directRead?.content.candidates[0]?.producer.actor.actor_id);
+    expect(directRead?.content.selection_boundary).toEqual({
+      selection_kind: "current_working_heads",
+      historical_working_revisions_included: false,
+      authoritative_records_included: false,
+      graph_overlay_composed: false,
+    });
+
+    const unsupported = structuredClone(candidateRecord);
+    unsupported.working_candidate_id =
+      "working_candidate_01K4E000000000000000000012";
+    unsupported.profile_object.registration.contract.content_hash = `sha256:${"0".repeat(64)}`;
+    unsupported.content_hash = workingContentHash(unsupported);
+    await expectWorkingCode(
+      () =>
+        working.admitWorkingCandidateRevision({
+          candidate: unsupported,
+          profileRecord: requirement,
+        }),
+      "WORKING_STATE_PROFILE_UNSUPPORTED",
+    );
+
+    const staleDefinition = structuredClone(candidateRecord);
+    staleDefinition.working_candidate_id =
+      "working_candidate_01K4E000000000000000000018";
+    staleDefinition.project_definition_ref.content_hash = `sha256:${"0".repeat(64)}`;
+    staleDefinition.content_hash = workingContentHash(staleDefinition);
+    await expectWorkingCode(
+      () =>
+        working.admitWorkingCandidateRevision({
+          candidate: staleDefinition,
+          profileRecord: requirement,
+        }),
+      "WORKING_STATE_STALE",
+    );
+
+    const unknownProducer = structuredClone(candidateRecord);
+    unknownProducer.working_candidate_id =
+      "working_candidate_01K4E000000000000000000019";
+    unknownProducer.producer.actor.actor_id =
+      "actor_01K4E000000000000000000099";
+    unknownProducer.content_hash = workingContentHash(unknownProducer);
+    await expectWorkingCode(
+      () =>
+        working.admitWorkingCandidateRevision({
+          candidate: unknownProducer,
+          profileRecord: requirement,
+        }),
+      "WORKING_STATE_REFERENCE_MISSING",
+    );
+
+    const mismatchedGoverning = structuredClone(governing);
+    mismatchedGoverning.governing_relationship_id =
+      "governing_relationship_01K4E000000000000000000013";
+    mismatchedGoverning.content.authority_source_ref.record_hash = `sha256:${"9".repeat(64)}`;
+    mismatchedGoverning.content_hash = canonicalHash(
+      mismatchedGoverning.content,
+    );
+    const mismatchedRelationship = structuredClone(relationshipRecord);
+    mismatchedRelationship.working_relationship_id =
+      "working_relationship_01K4E000000000000000000013";
+    mismatchedRelationship.profile_relationship.relationship_record_ref =
+      exactRef(
+        mismatchedGoverning.schema_name,
+        mismatchedGoverning.governing_relationship_id,
+        mismatchedGoverning.revision,
+        mismatchedGoverning,
+      );
+    mismatchedRelationship.validation.target_record_hash =
+      canonicalHash(mismatchedGoverning);
+    mismatchedRelationship.content_hash = workingContentHash(
+      mismatchedRelationship,
+    );
+    await expectWorkingCode(
+      () =>
+        working.admitWorkingRelationshipRevision({
+          relationship: mismatchedRelationship,
+          profileRecord: mismatchedGoverning,
+        }),
+      "WORKING_STATE_REFERENCE_MISSING",
+    );
+
+    const wrongSourceType = structuredClone(governing);
+    wrongSourceType.governing_relationship_id =
+      "governing_relationship_01K4E000000000000000000020";
+    wrongSourceType.content.authority_source_ref = structuredClone(
+      wrongSourceType.content.requirement_ref,
+    );
+    wrongSourceType.content_hash = canonicalHash(wrongSourceType.content);
+    const wrongSourceRelationship = structuredClone(relationshipRecord);
+    wrongSourceRelationship.working_relationship_id =
+      "working_relationship_01K4E000000000000000000020";
+    wrongSourceRelationship.profile_relationship.relationship_record_ref =
+      exactRef(
+        wrongSourceType.schema_name,
+        wrongSourceType.governing_relationship_id,
+        wrongSourceType.revision,
+        wrongSourceType,
+      );
+    wrongSourceRelationship.endpoints.subject = {
+      endpoint_kind: "profile_record",
+      record_ref: structuredClone(wrongSourceType.content.requirement_ref),
+    };
+    wrongSourceRelationship.validation.target_record_hash =
+      canonicalHash(wrongSourceType);
+    wrongSourceRelationship.content_hash = workingContentHash(
+      wrongSourceRelationship,
+    );
+    await expectWorkingCode(
+      () =>
+        working.admitWorkingRelationshipRevision({
+          relationship: wrongSourceRelationship,
+          profileRecord: wrongSourceType,
+        }),
+      "WORKING_STATE_PROFILE_UNSUPPORTED",
+    );
+
+    const counts = await pool.query<{
+      requirements: string;
+      governing_relationships: string;
+      working_candidates: string;
+      working_relationships: string;
+      evidence_rows: string;
+      reviews: string;
+      domain_events: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.controlled_writing_requirement_records)::text AS requirements,
+         (SELECT count(*) FROM petra.controlled_writing_governing_relationship_records)::text AS governing_relationships,
+         (SELECT count(*) FROM petra.working_candidate_revisions
+           WHERE profile_record_schema_name = 'petra.controlled-writing-requirement')::text AS working_candidates,
+         (SELECT count(*) FROM petra.working_relationship_revisions
+           WHERE profile_record_schema_name = 'petra.controlled-writing-governing-relationship')::text AS working_relationships,
+         (SELECT count(*) FROM petra.evidence_entity_revisions
+           WHERE evidence_id IN ($1, $2))::text AS evidence_rows,
+         (SELECT count(*) FROM petra.review_sessions
+           WHERE project_id = $3)::text AS reviews,
+         (SELECT count(*) FROM petra.domain_events
+           WHERE project_id = $3)::text AS domain_events`,
+      [
+        requirement.requirement_id,
+        governing.governing_relationship_id,
+        project.project_id,
+      ],
+    );
+    expect(counts.rows[0]).toEqual({
+      requirements: "1",
+      governing_relationships: "1",
+      working_candidates: "1",
+      working_relationships: "1",
+      evidence_rows: "0",
+      reviews: "0",
       domain_events: "0",
     });
   });

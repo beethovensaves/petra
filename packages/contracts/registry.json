@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.86.0",
+  "registry_version": "1.88.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -604,6 +604,28 @@
       "canonical_sha256": "sha256:3e2dd5670478473f371d86ec955cf1167e87ba673ef7cc4e5131d97bc6e44c08",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-lifecycle-receipt.ts"
+    },
+    {
+      "name": "controlled-writing-requirement",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/controlled-writing-requirement/1.0.0/schema.json",
+      "path": "schemas/controlled-writing-requirement/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-non-authoritative-controlled-writing-requirement-payload",
+      "canonical_sha256": "sha256:5a6d449b44078f2df1c2f29fe15164d22b0c4151a05c6f35dd8718964c3c3f1e",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/controlled-writing-requirement.ts"
+    },
+    {
+      "name": "controlled-writing-governing-relationship",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/controlled-writing-governing-relationship/1.0.0/schema.json",
+      "path": "schemas/controlled-writing-governing-relationship/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-non-authoritative-controlled-writing-governing-relationship-payload",
+      "canonical_sha256": "sha256:8875324fac5a6911a90aaf833289d0cc5ae2141c10f023d087a1cd876bd9e896",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/controlled-writing-governing-relationship.ts"
     },
     {
       "name": "working-candidate",

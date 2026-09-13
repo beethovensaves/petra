@@ -510,6 +510,17 @@ export type {
   SnapshotContent as ProjectWorkingStateSnapshotContent,
 } from "./generated/project-working-state-snapshot.js";
 export type {
+  AuthorityBoundary as ControlledWritingRequirementAuthorityBoundary,
+  PetraControlledWritingRequirement,
+  RequirementContent as ControlledWritingRequirementContent,
+  RequirementId as ControlledWritingRequirementId,
+} from "./generated/controlled-writing-requirement.js";
+export type {
+  GoverningRelationshipContent as ControlledWritingGoverningRelationshipContent,
+  GoverningRelationshipId as ControlledWritingGoverningRelationshipId,
+  PetraControlledWritingGoverningRelationship,
+} from "./generated/controlled-writing-governing-relationship.js";
+export type {
   AuthorityPosition as ProjectSourceAuthorityPosition,
   BindingSummary as ProjectSourceBindingSummary,
   CopySummary as ProjectSourceCopySummary,
