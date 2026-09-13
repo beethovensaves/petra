@@ -107,6 +107,24 @@ function git(root, ...args) {
   return run("git", args, root);
 }
 
+function gitIsAncestor(root, ancestor, descendant) {
+  const result = spawnSync(
+    "git",
+    ["merge-base", "--is-ancestor", ancestor, descendant],
+    {
+      cwd: root,
+      encoding: "utf8",
+      env: pinnedEnvironment(),
+    },
+  );
+  if (result.error) throw result.error;
+  if (result.status === 0) return true;
+  if (result.status === 1) return false;
+  throw new Error(
+    `git merge-base --is-ancestor failed in ${root}:\n${result.stderr || result.stdout}`,
+  );
+}
+
 export function parsePorcelainZ(output) {
   if (output.length === 0) return [];
   const fields = output.split("\0");
@@ -331,7 +349,7 @@ export function buildWorkerPrompt({
   const roleBoundary =
     role === "backend"
       ? "You own backend runtime contracts, authority, persistence, APIs, typed clients, tests, and implementation reports on main. Do not modify frozen React components, CSS, or browser routes unless the design handoff explicitly authorizes one bounded integration. You may update renderer-neutral typed client code and its tests when required."
-      : "You own freeze-conformance reports and, only when the handoff explicitly requests integration, frozen frontend components, routes, fixtures, accessibility, and interaction tests on design/m1-ux. Do not edit backend contracts, server code, persistence, migrations, or backend authority. Leave the known untracked image and PDF untouched.";
+      : "You own freeze-conformance reports and, only when the handoff explicitly requests integration, frozen frontend components, routes, fixtures, accessibility, and interaction tests on design/m1-ux. The coordinator merges required backend history into design/m1-ux before your slice. Inherited backend files remain backend-owned; their presence in your branch is not a design edit, and you must not rewrite or revert them. Do not edit backend contracts, server code, persistence, migrations, or backend authority. Leave the known untracked image and PDF untouched.";
 
   return `You are Petra's unattended ${role} worker for Wave ${wave}.
 
@@ -554,6 +572,97 @@ async function claimTurn(wave, role) {
   });
 }
 
+async function integrateBackendForDesign(wave, claimedState) {
+  const design = repositorySnapshot("design");
+  const backend = repositorySnapshot("backend");
+  requireCleanAndPushed("design", design);
+  requireCleanAndPushed("backend", backend);
+
+  if (
+    design.head !== claimedState.commits.design ||
+    backend.head !== claimedState.commits.backend
+  ) {
+    throw new Error("Repository heads changed before design synchronization.");
+  }
+  if (gitIsAncestor(roles.design.root, backend.head, design.head)) {
+    return claimedState;
+  }
+
+  process.stdout.write(
+    `[design] Integrating backend ${backend.head} before the design slice.\n`,
+  );
+  try {
+    git(
+      roles.design.root,
+      "merge",
+      "--no-ff",
+      backend.head,
+      "-m",
+      `chore: integrate wave ${wave} backend for design`,
+    );
+  } catch (error) {
+    const mergeHead = spawnSync(
+      "git",
+      ["rev-parse", "--verify", "-q", "MERGE_HEAD"],
+      {
+        cwd: roles.design.root,
+        encoding: "utf8",
+        env: pinnedEnvironment(),
+      },
+    );
+    if (mergeHead.status === 0) {
+      git(roles.design.root, "merge", "--abort");
+    }
+    throw new Error(
+      `Design synchronization with backend ${backend.head} failed: ${error.message}`,
+      { cause: error },
+    );
+  }
+
+  git(
+    roles.design.root,
+    "push",
+    "origin",
+    `HEAD:refs/heads/${roles.design.branch}`,
+  );
+  const integrated = repositorySnapshot("design");
+  requireCleanAndPushed("design", integrated);
+  if (!gitIsAncestor(roles.design.root, backend.head, integrated.head)) {
+    throw new Error(
+      "Design synchronization did not contain the backend commit.",
+    );
+  }
+
+  return withStateLock(wave, () => {
+    const state = readState(wave);
+    if (
+      !state ||
+      state.status !== "running" ||
+      state.active?.pid !== process.pid ||
+      state.active?.role !== "design" ||
+      state.commits.design !== claimedState.commits.design ||
+      state.commits.backend !== claimedState.commits.backend
+    ) {
+      throw new Error(
+        "Handoff ownership changed during design synchronization.",
+      );
+    }
+    const timestamp = new Date().toISOString();
+    state.commits.design = integrated.head;
+    state.active.expected_commit = integrated.head;
+    state.updated_at = timestamp;
+    state.integrations ??= [];
+    state.integrations.push({
+      role: "design",
+      commit: integrated.head,
+      counterpart_commit: backend.head,
+      completed_at: timestamp,
+    });
+    writeJsonAtomic(statePath(wave), state);
+    return state;
+  });
+}
+
 async function markFailure(wave, role, error) {
   await withStateLock(wave, () => {
     const state = readState(wave);
@@ -698,7 +807,7 @@ async function workerLoop({ role, wave, maxSlices }) {
       continue;
     }
 
-    const claimed = await claimTurn(wave, role);
+    let claimed = await claimTurn(wave, role);
     if (!claimed) continue;
     announcedWait = false;
     process.stdout.write(
@@ -716,6 +825,9 @@ async function workerLoop({ role, wave, maxSlices }) {
         counterpart.head !== claimed.commits[otherRole]
       ) {
         throw new Error("Repository heads changed after the turn was claimed.");
+      }
+      if (role === "design") {
+        claimed = await integrateBackendForDesign(wave, claimed);
       }
       const execution = await runCodexWorker({ role, wave, state: claimed });
       await finalizeTurn(wave, role, claimed, execution);
@@ -741,13 +853,20 @@ function doctor(wave) {
   requireCleanAndPushed("backend", backend);
   requireCleanAndPushed("design", design);
   const version = run(codexExecutable(), ["--version"], backendRoot);
+  const state = readState(wave);
+  const nextWorker =
+    state?.status === "waiting"
+      ? state.next_role
+      : state
+        ? `none (${state.status})`
+        : "backend";
   process.stdout.write(
     [
       `Wave ${wave} handoff is ready.`,
       `Codex: ${version}`,
       `Backend: ${backend.head}`,
       `Design: ${design.head}`,
-      "Next worker: backend",
+      `Next worker: ${nextWorker}`,
     ].join("\n") + "\n",
   );
 }

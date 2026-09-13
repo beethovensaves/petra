@@ -170,6 +170,8 @@ test("worker prompt fixes one-slice, commit, role, and stop boundaries", () => {
   assert.match(prompt, /exactly ONE bounded slice/);
   assert.match(prompt, /commit and push/);
   assert.match(prompt, /unchanged clean and pushed commit/);
+  assert.match(prompt, /coordinator merges required backend history/);
+  assert.match(prompt, /presence in your branch is not a design edit/);
   assert.match(prompt, /Do not edit backend contracts/);
   assert.match(prompt, /return needs_user/);
   assert.match(prompt, /Map the exact backend slice/);
