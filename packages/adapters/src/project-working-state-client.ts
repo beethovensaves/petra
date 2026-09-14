@@ -73,13 +73,21 @@ export class ProjectWorkingStateClient {
       const relationshipIds = snapshot.content.relationships.map(
         (record) => record.working_relationship_id,
       );
+      const recordContentHashes = await Promise.all(
+        records.map(async (record) => {
+          const projection = structuredClone(record) as Record<string, unknown>;
+          delete projection.content_hash;
+          return hash(projection);
+        }),
+      );
       if (
         snapshot.project_id !== projectId ||
         snapshot.content_hash !== (await hash(snapshot.content)) ||
         new Set(candidateIds).size !== candidateIds.length ||
         new Set(relationshipIds).size !== relationshipIds.length ||
         records.some(
-          (record) =>
+          (record, index) =>
+            record.content_hash !== recordContentHashes[index] ||
             record.project_id !== projectId ||
             record.project_definition_ref.project_definition_id !==
               definition.project_definition_id ||

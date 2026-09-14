@@ -208,6 +208,22 @@ describePostgres("PostgreSQL working-state authority", () => {
     await pool.end();
   });
 
+  // Adversarial storage fixtures deliberately bypass append-only triggers in the disposable test database.
+  const corruptStoredRecord = async (sql: string, values: unknown[] = []) => {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("SET LOCAL session_replication_role = replica");
+      await client.query(sql, values);
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  };
+
   const actor = (
     actorId: string,
     actorKind: PetraActor["actor_kind"],
@@ -704,6 +720,35 @@ describePostgres("PostgreSQL working-state authority", () => {
       relationship_revisions: "1",
       correction_admissions: "1",
       domain_events: "0",
+    });
+  });
+
+  it("rejects a resealed stored working record whose nested provenance self-hash is stale", async () => {
+    const fixture = await setupAuthority();
+    const root = candidate(fixture);
+    await working.admitWorkingCandidateRevision({
+      candidate: root,
+      profileRecord: fixture.claim,
+    });
+    const tampered = structuredClone(root);
+    tampered.provenance[0].statement =
+      "Tampered provenance that was not included in the retained content hash.";
+    await corruptStoredRecord(
+      `UPDATE petra.working_candidate_revisions
+          SET payload = $1::jsonb, record_hash = $2
+        WHERE working_candidate_id = $3 AND revision = $4`,
+      [
+        JSON.stringify(tampered),
+        canonicalHash(tampered),
+        root.working_candidate_id,
+        root.revision,
+      ],
+    );
+
+    await expect(
+      snapshots.getProjectWorkingStateSnapshot(fixture.project.project_id),
+    ).rejects.toMatchObject({
+      code: "PROJECT_WORKING_STATE_STORED_RECORD_CORRUPT",
     });
   });
 

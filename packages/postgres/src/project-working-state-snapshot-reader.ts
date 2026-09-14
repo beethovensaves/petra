@@ -29,6 +29,7 @@ export class PostgresProjectWorkingStateSnapshotError extends Error {
 }
 
 interface DefinitionRow {
+  project_id: string;
   project_definition_id: string;
   revision: string;
   content_hash: string;
@@ -72,7 +73,7 @@ export class PostgresProjectWorkingStateSnapshotReader implements ProjectWorking
     try {
       await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
       const definition = await client.query<DefinitionRow>(
-        `SELECT revision.project_definition_id, revision.revision,
+        `SELECT revision.project_id, revision.project_definition_id, revision.revision,
                 revision.content_hash, revision.definition_family
            FROM petra.project_definitions AS head
            JOIN petra.project_definition_revisions AS revision
@@ -209,8 +210,18 @@ export class PostgresProjectWorkingStateSnapshotReader implements ProjectWorking
   ): RecordType {
     this.#contracts.assertValid(contractName, "1.0.0", row.payload);
     const record = row.payload as RecordType;
+    const contentProjection = clone(record) as Record<string, unknown>;
+    delete contentProjection.content_hash;
+    const definitionRef = record.project_definition_ref;
     if (
       row.record_hash !== canonicalHash(record) ||
+      record.content_hash !== canonicalHash(contentProjection) ||
+      record.project_id !== definition.project_id ||
+      definitionRef.project_definition_id !==
+        definition.project_definition_id ||
+      definitionRef.revision !== Number(definition.revision) ||
+      definitionRef.content_hash !== definition.content_hash ||
+      definitionRef.definition_family !== definition.definition_family ||
       row.project_definition_id !== definition.project_definition_id ||
       Number(row.project_definition_revision) !== Number(definition.revision) ||
       row.project_definition_content_hash !== definition.content_hash ||
@@ -219,7 +230,9 @@ export class PostgresProjectWorkingStateSnapshotReader implements ProjectWorking
       throw new PostgresProjectWorkingStateSnapshotError(
         row.record_hash !== canonicalHash(record)
           ? "PROJECT_WORKING_STATE_STORED_RECORD_CORRUPT"
-          : "PROJECT_WORKING_STATE_DEFINITION_STALE",
+          : record.content_hash !== canonicalHash(contentProjection)
+            ? "PROJECT_WORKING_STATE_STORED_RECORD_CORRUPT"
+            : "PROJECT_WORKING_STATE_DEFINITION_STALE",
         "The current working head is corrupt or no longer bound to the exact current ProjectDefinition.",
       );
     }
