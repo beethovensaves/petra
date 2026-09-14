@@ -107,7 +107,7 @@ describe("Project working-state client", () => {
     );
   });
 
-  it("rejects invalid Project input, transport failure, resealed cross-Project content, and duplicate current identities", async () => {
+  it("rejects invalid input, transport failure, lost nested integrity, cross-Project content, and duplicate current identities", async () => {
     const fixture = snapshotFixture();
     const transport = vi
       .fn<typeof fetch>()
@@ -129,6 +129,17 @@ describe("Project working-state client", () => {
     );
     await expect(client.read(fixture.project_id)).rejects.toMatchObject({
       status: 401,
+    });
+
+    const lostProvenance = structuredClone(fixture);
+    lostProvenance.content.candidates[0]!.provenance[0].statement =
+      "Changed provenance outside the retained working-record content hash.";
+    lostProvenance.content_hash = hash(lostProvenance.content);
+    transport.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(lostProvenance)),
+    );
+    await expect(client.read(fixture.project_id)).rejects.toMatchObject({
+      status: 200,
     });
 
     const crossProject = structuredClone(fixture);
