@@ -22,6 +22,7 @@ import {
   SuggestedActionPreview,
   SourceReaderSurface,
   SourcesSurface,
+  hashFocusTargetId,
 } from "./ReferenceWorkbench.js";
 import {
   SuggestedActionInvocationResult,
@@ -34,6 +35,15 @@ import { createSuggestedActionInvocationRequest } from "./project-data.js";
 
 const render = (node: React.ReactNode): string =>
   renderToStaticMarkup(<MemoryRouter>{node}</MemoryRouter>);
+
+describe("route focus restoration", () => {
+  it("accepts one encoded in-page target and rejects empty or malformed hashes", () => {
+    expect(hashFocusTargetId("#basis-source%3A1")).toBe("basis-source:1");
+    expect(hashFocusTargetId("#")).toBeUndefined();
+    expect(hashFocusTargetId("basis-source")).toBeUndefined();
+    expect(hashFocusTargetId("#%E0%A4%A")).toBeUndefined();
+  });
+});
 
 const suggestedActionView = JSON.parse(
   readFileSync(

@@ -255,7 +255,9 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain("Changes to apply");
     expect(markup).toContain("One atomic ChangeSet · 1 proposed change");
     expect(markup).toContain("No accepted finding is replaced or removed");
-    expect(markup).toContain("?from=review&amp;reviewId=review-service-link");
+    expect(markup).toContain(
+      "?from=review&amp;reviewId=review-service-link&amp;basisId=basis-maintenance-note",
+    );
   });
 
   it("enables only the exact defer command without implying other authority", () => {

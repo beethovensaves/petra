@@ -3938,6 +3938,33 @@ describe("Project shell workbench adapter", () => {
     expect(relationshipOverlayGraphView).toEqual(before);
   });
 
+  it("resolves an exact authoritative relationship focus to its target node", () => {
+    const relationshipFocus = structuredClone(relationshipOverlayGraphView);
+    const currentRelationship = relationshipFocus.content.relationships.find(
+      (relationship) => relationship.layer === "current",
+    );
+    if (
+      currentRelationship === undefined ||
+      currentRelationship.layer !== "current"
+    ) {
+      throw new Error("The overlay fixture requires a current relationship.");
+    }
+    relationshipFocus.content.query.authoritative_focus_ref = {
+      record_id: currentRelationship.owner.relationship_ref.element_id,
+      revision: currentRelationship.owner.relationship_ref.revision,
+      record_hash: currentRelationship.owner.relationship_ref.record_hash,
+    };
+
+    expect(graphQuestionFromOverlayView(relationshipFocus).focusNodeId).toBe(
+      currentRelationship.target_node_key,
+    );
+
+    relationshipFocus.content.query.authoritative_focus_ref.record_hash = `sha256:${"f".repeat(64)}`;
+    expect(() => graphQuestionFromOverlayView(relationshipFocus)).toThrow(
+      "rendered and textual members do not match",
+    );
+  });
+
   it("fails closed when overlay text or exact working endpoint posture diverges", () => {
     const textMismatch = structuredClone(relationshipOverlayGraphView);
     const textWorkingRelationship =

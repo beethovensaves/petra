@@ -2135,7 +2135,7 @@ const ReviewSessionMemberSurface = ({
                 {basis.sourceId === undefined ? null : (
                   <Link
                     className="reference-text-link"
-                    to={`/projects/${project.id}/sources/${basis.sourceId}?from=review&reviewId=${review.id}`}
+                    to={`/projects/${encodeURIComponent(project.id)}/sources/${encodeURIComponent(basis.sourceId)}?from=review&reviewId=${encodeURIComponent(review.id)}&basisId=${encodeURIComponent(basis.id)}`}
                   >
                     Inspect exact source
                   </Link>

@@ -17,11 +17,7 @@ import {
 
 import { PetraLockup, PetraMark } from "../design-system/brand.js";
 import { PetraButton, PetraTextField } from "../design-system/primitives.js";
-import {
-  REFERENCE_PROJECTS,
-  getProjectProfileTool,
-  getReferenceReview,
-} from "./fixtures.js";
+import { REFERENCE_PROJECTS, getProjectProfileTool } from "./fixtures.js";
 import type { ProjectBriefData } from "./project-data.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
 import type {
@@ -276,6 +272,16 @@ const placeFromPath = (pathname: string): ProjectPlace =>
                   ? "petra"
                   : "brief";
 
+export const hashFocusTargetId = (hash: string): string | undefined => {
+  if (!hash.startsWith("#") || hash.length === 1) return undefined;
+  try {
+    const target = decodeURIComponent(hash.slice(1));
+    return target.length === 0 ? undefined : target;
+  } catch {
+    return undefined;
+  }
+};
+
 export const ProjectShell = (): React.JSX.Element => {
   const project = useLoaderData<ProjectRecord>();
   const location = useLocation();
@@ -287,6 +293,18 @@ export const ProjectShell = (): React.JSX.Element => {
       ?.querySelector<HTMLElement>('a[aria-current="page"]')
       ?.scrollIntoView({ block: "nearest", inline: "center" });
   }, [currentPlace]);
+
+  useEffect(() => {
+    const targetId = hashFocusTargetId(location.hash);
+    if (targetId === undefined) return;
+    const frame = window.requestAnimationFrame(() => {
+      const target = document.getElementById(targetId);
+      if (target === null) return;
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ block: "nearest" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.hash, location.key]);
 
   return (
     <div className="reference-project-shell">
@@ -1228,13 +1246,8 @@ export const SourceReaderRoute = (): React.JSX.Element => {
   const source = useLoaderData<SourceRecord>();
   const [searchParams] = useSearchParams();
   const returnOrigin = searchParams.get("from");
-  const returnReview = getReferenceReview(
-    project.id,
-    searchParams.get("reviewId") ?? undefined,
-  );
-  const returnBasis = returnReview?.basis.find(
-    (basis) => basis.sourceId === source?.id,
-  );
+  const returnReviewId = searchParams.get("reviewId");
+  const returnBasisId = searchParams.get("basisId");
   const returnGraphNodeId = searchParams.get("graphNodeId");
   const requestedGraphLayer = searchParams.get("graphLayer");
   const returnGraphLayer =
@@ -1255,10 +1268,12 @@ export const SourceReaderRoute = (): React.JSX.Element => {
             label: "Return to Graph",
           }
         : returnOrigin === "review" &&
-            returnReview !== undefined &&
-            returnBasis !== undefined
+            returnReviewId !== null &&
+            returnReviewId.length > 0 &&
+            returnBasisId !== null &&
+            returnBasisId.length > 0
           ? {
-              path: `/projects/${project.id}/review/${returnReview.id}#basis-${returnBasis.id}`,
+              path: `/projects/${encodeURIComponent(project.id)}/review/${encodeURIComponent(returnReviewId)}#basis-${encodeURIComponent(returnBasisId)}`,
               label: "Return to Review",
             }
           : undefined;

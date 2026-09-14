@@ -3390,7 +3390,7 @@ export const graphQuestionFromOverlayView = (
       relationship,
     ]),
   );
-  const focusNode = view.content.nodes.find(
+  const focusNodeMatches = view.content.nodes.filter(
     (node) =>
       node.layer === "current" &&
       node.owner.record_ref.record_id ===
@@ -3400,6 +3400,24 @@ export const graphQuestionFromOverlayView = (
       node.owner.record_ref.record_hash ===
         view.content.query.authoritative_focus_ref.record_hash,
   );
+  const focusRelationshipMatches = view.content.relationships.filter(
+    (relationship) =>
+      relationship.layer === "current" &&
+      relationship.owner.relationship_ref.element_id ===
+        view.content.query.authoritative_focus_ref.record_id &&
+      relationship.owner.relationship_ref.revision ===
+        view.content.query.authoritative_focus_ref.revision &&
+      relationship.owner.relationship_ref.record_hash ===
+        view.content.query.authoritative_focus_ref.record_hash,
+  );
+  const focusNodeKey =
+    focusNodeMatches.length === 1 && focusRelationshipMatches.length === 0
+      ? focusNodeMatches[0]?.node_key
+      : focusNodeMatches.length === 0 && focusRelationshipMatches.length === 1
+        ? focusRelationshipMatches[0]?.target_node_key
+        : undefined;
+  const focusNode =
+    focusNodeKey === undefined ? undefined : nodeByKey.get(focusNodeKey);
   const boundary = view.content.authority_boundary;
   const hasExactMembers =
     nodeByKey.size === view.content.nodes.length &&
@@ -3431,7 +3449,12 @@ export const graphQuestionFromOverlayView = (
     boundary.comparison_selection_client_local === true &&
     boundary.navigation_history_client_local === true;
 
-  if (focusNode === undefined || !hasExactMembers || !hasExactBoundary) {
+  if (
+    focusNode === undefined ||
+    focusNode.layer !== "current" ||
+    !hasExactMembers ||
+    !hasExactBoundary
+  ) {
     throw overlayGraphError();
   }
 
