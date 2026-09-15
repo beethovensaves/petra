@@ -5,6 +5,11 @@ import type {
   FocusedGraphExactRef,
   FocusedGraphRegisteredAction,
   FocusedGraphResolvedSemantic,
+  FocusedGraphLimits,
+  FocusedGraphProjectDefinitionRef,
+  FocusedGraphProjectSnapshotRef,
+  FocusedGraphSemanticDestination,
+  FocusedGraphTask,
   FocusedGraphTerm,
   PetraFocusedGraphView,
   PetraProjectDefinition,
@@ -12,7 +17,10 @@ import type {
   ProjectDefinitionRegistration,
   ProjectDefinitionTerm,
 } from "@petra/contracts";
-import type { PetraContractRegistry } from "@petra/contracts/validator";
+import {
+  ContractRegistryError,
+  type PetraContractRegistry,
+} from "@petra/contracts/validator";
 import { canonicalize } from "json-canonicalize";
 
 export type FocusedGraphViewContractErrorCode =
@@ -36,6 +44,283 @@ export class FocusedGraphViewContractError extends Error {
     this.name = "FocusedGraphViewContractError";
   }
 }
+
+export type FocusedGraphQueryErrorCode =
+  | "FOCUSED_GRAPH_QUERY_INVALID"
+  | "FOCUSED_GRAPH_PROJECT_NOT_FOUND"
+  | "FOCUSED_GRAPH_DEFINITION_STALE"
+  | "FOCUSED_GRAPH_SNAPSHOT_STALE"
+  | "FOCUSED_GRAPH_PROJECTION_UNAVAILABLE"
+  | "FOCUSED_GRAPH_PROJECTION_INCOHERENT"
+  | "FOCUSED_GRAPH_FOCUS_NOT_FOUND"
+  | "FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED"
+  | "FOCUSED_GRAPH_STORED_RECORD_CORRUPT";
+
+export class FocusedGraphQueryError extends Error {
+  constructor(
+    readonly code: FocusedGraphQueryErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "FocusedGraphQueryError";
+  }
+}
+
+/**
+ * Exact, renderer-neutral input to the first production focused query owner.
+ * Version 1 supports only a current one-hop neighborhood. Later layers,
+ * expansion, comparison, and mutation entry remain separate bounded slices.
+ */
+export interface FocusedGraphViewRequest {
+  readonly request_id: string;
+  readonly task_kind: "neighborhood";
+  readonly task_semantic_key: string;
+  readonly question: string;
+  readonly focus_ref: FocusedGraphExactRef;
+  readonly origin: FocusedGraphTask["origin"];
+  readonly project_definition_ref: FocusedGraphProjectDefinitionRef;
+  readonly semantic_layer: "current";
+  readonly temporal_position: {
+    readonly position_kind: "current";
+    readonly dimension: "project_snapshot";
+  };
+  readonly object_semantic_key: string;
+  readonly relationship_semantic_key: string;
+  readonly return_action_semantic_key: string;
+  readonly return_destination: FocusedGraphSemanticDestination;
+  readonly limits: FocusedGraphLimits;
+  readonly expected_snapshot?: FocusedGraphProjectSnapshotRef;
+}
+
+export interface FocusedGraphViewReader {
+  queryFocusedGraph(
+    projectId: string,
+    request: FocusedGraphViewRequest,
+  ): Promise<PetraFocusedGraphView | undefined>;
+}
+
+const HASH_PATTERN = /^sha256:[0-9a-f]{64}$/u;
+const PETRA_ID_PATTERN = /^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const PROJECT_DEFINITION_ID_PATTERN =
+  /^project_definition_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const FOCUSED_REQUEST_ID_PATTERN =
+  /^focused_graph_request_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const SEMANTIC_KEY_PATTERN = /^[a-z][a-z0-9._/-]{1,199}$/u;
+const STABLE_KEY_PATTERN = /^[a-z][a-z0-9._:/-]{1,999}$/u;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const exactKeys = (
+  value: Record<string, unknown>,
+  required: readonly string[],
+  optional: readonly string[] = [],
+): boolean => {
+  const allowed = new Set([...required, ...optional]);
+  return (
+    required.every((key) => Object.hasOwn(value, key)) &&
+    Object.keys(value).every((key) => allowed.has(key))
+  );
+};
+
+const exactRefInput = (value: unknown): value is FocusedGraphExactRef =>
+  isRecord(value) &&
+  exactKeys(value, ["record_id", "revision", "record_hash"]) &&
+  typeof value.record_id === "string" &&
+  PETRA_ID_PATTERN.test(value.record_id) &&
+  Number.isSafeInteger(value.revision) &&
+  Number(value.revision) >= 1 &&
+  typeof value.record_hash === "string" &&
+  HASH_PATTERN.test(value.record_hash);
+
+const snapshotInput = (
+  value: unknown,
+): value is FocusedGraphProjectSnapshotRef =>
+  isRecord(value) &&
+  exactKeys(value, [
+    "snapshot_id",
+    "revision",
+    "event_position",
+    "content_hash",
+  ]) &&
+  typeof value.snapshot_id === "string" &&
+  /^snapshot_[0-9A-HJKMNP-TV-Z]{26}$/u.test(value.snapshot_id) &&
+  Number.isSafeInteger(value.revision) &&
+  Number(value.revision) >= 1 &&
+  Number.isSafeInteger(value.event_position) &&
+  Number(value.event_position) >= 0 &&
+  typeof value.content_hash === "string" &&
+  HASH_PATTERN.test(value.content_hash);
+
+const definitionRefInput = (
+  value: unknown,
+): value is FocusedGraphProjectDefinitionRef =>
+  isRecord(value) &&
+  exactKeys(value, [
+    "project_definition_id",
+    "revision",
+    "content_hash",
+    "record_hash",
+    "definition_family",
+  ]) &&
+  typeof value.project_definition_id === "string" &&
+  PROJECT_DEFINITION_ID_PATTERN.test(value.project_definition_id) &&
+  Number.isSafeInteger(value.revision) &&
+  Number(value.revision) >= 1 &&
+  typeof value.content_hash === "string" &&
+  HASH_PATTERN.test(value.content_hash) &&
+  typeof value.record_hash === "string" &&
+  HASH_PATTERN.test(value.record_hash) &&
+  typeof value.definition_family === "string" &&
+  /^[a-z][a-z0-9.-]{2,127}$/u.test(value.definition_family);
+
+const originInput = (value: unknown): value is FocusedGraphTask["origin"] => {
+  if (!isRecord(value) || !exactKeys(value, ["origin_kind"], ["origin_ref"]))
+    return false;
+  if (
+    typeof value.origin_kind !== "string" ||
+    ![
+      "brief",
+      "evidence",
+      "review",
+      "petra",
+      "history",
+      "direct",
+      "saved_question",
+    ].includes(value.origin_kind)
+  )
+    return false;
+  return value.origin_ref === undefined || exactRefInput(value.origin_ref);
+};
+
+const destinationInput = (
+  value: unknown,
+): value is FocusedGraphSemanticDestination => {
+  if (!isRecord(value)) return false;
+  const common =
+    typeof value.destination_key === "string" &&
+    STABLE_KEY_PATTERN.test(value.destination_key) &&
+    typeof value.destination_kind === "string" &&
+    [
+      "details",
+      "source_inspection",
+      "brief",
+      "evidence",
+      "review",
+      "history",
+      "work",
+    ].includes(value.destination_kind) &&
+    typeof value.owner === "string" &&
+    [
+      "project_object_location_view",
+      "project_source_view",
+      "project_brief_view",
+      "project_relationship_view",
+      "project_review_view",
+      "project_history_episode_view",
+      "project_work_view",
+    ].includes(value.owner) &&
+    typeof value.label === "string" &&
+    value.label.trim().length > 0 &&
+    value.label.length <= 240;
+  if (!common) return false;
+  return value.state === "available"
+    ? exactKeys(value, [
+        "destination_key",
+        "destination_kind",
+        "state",
+        "owner",
+        "label",
+        "target_ref",
+      ]) && exactRefInput(value.target_ref)
+    : value.state === "unavailable" &&
+        exactKeys(value, [
+          "destination_key",
+          "destination_kind",
+          "state",
+          "owner",
+          "label",
+          "reason",
+        ]) &&
+        typeof value.reason === "string" &&
+        value.reason.trim().length > 0 &&
+        value.reason.length <= 2000;
+};
+
+const limitsInput = (value: unknown): value is FocusedGraphLimits =>
+  isRecord(value) &&
+  exactKeys(value, [
+    "maximum_depth",
+    "maximum_nodes",
+    "maximum_relationships",
+    "maximum_paths",
+  ]) &&
+  value.maximum_depth === 1 &&
+  Number.isSafeInteger(value.maximum_nodes) &&
+  Number(value.maximum_nodes) >= 1 &&
+  Number(value.maximum_nodes) <= 100 &&
+  Number.isSafeInteger(value.maximum_relationships) &&
+  Number(value.maximum_relationships) >= 1 &&
+  Number(value.maximum_relationships) <= 99 &&
+  Number.isSafeInteger(value.maximum_paths) &&
+  Number(value.maximum_paths) >= 1 &&
+  Number(value.maximum_paths) <= 99;
+
+/** Parse an untrusted API body without accepting renderer or command fields. */
+export const parseFocusedGraphViewRequest = (
+  value: unknown,
+): FocusedGraphViewRequest => {
+  const required = [
+    "request_id",
+    "task_kind",
+    "task_semantic_key",
+    "question",
+    "focus_ref",
+    "origin",
+    "project_definition_ref",
+    "semantic_layer",
+    "temporal_position",
+    "object_semantic_key",
+    "relationship_semantic_key",
+    "return_action_semantic_key",
+    "return_destination",
+    "limits",
+  ] as const;
+  const semantic = (candidate: unknown): candidate is string =>
+    typeof candidate === "string" && SEMANTIC_KEY_PATTERN.test(candidate);
+  if (
+    !isRecord(value) ||
+    !exactKeys(value, required, ["expected_snapshot"]) ||
+    typeof value.request_id !== "string" ||
+    !FOCUSED_REQUEST_ID_PATTERN.test(value.request_id) ||
+    value.task_kind !== "neighborhood" ||
+    !semantic(value.task_semantic_key) ||
+    typeof value.question !== "string" ||
+    value.question.trim().length === 0 ||
+    value.question.length > 8000 ||
+    !exactRefInput(value.focus_ref) ||
+    !originInput(value.origin) ||
+    !definitionRefInput(value.project_definition_ref) ||
+    value.semantic_layer !== "current" ||
+    !isRecord(value.temporal_position) ||
+    !exactKeys(value.temporal_position, ["position_kind", "dimension"]) ||
+    value.temporal_position.position_kind !== "current" ||
+    value.temporal_position.dimension !== "project_snapshot" ||
+    !semantic(value.object_semantic_key) ||
+    !semantic(value.relationship_semantic_key) ||
+    !semantic(value.return_action_semantic_key) ||
+    !destinationInput(value.return_destination) ||
+    !limitsInput(value.limits) ||
+    (value.expected_snapshot !== undefined &&
+      !snapshotInput(value.expected_snapshot))
+  ) {
+    throw new FocusedGraphQueryError(
+      "FOCUSED_GRAPH_QUERY_INVALID",
+      "A focused graph query requires one exact registered current neighborhood request.",
+    );
+  }
+  return structuredClone(value) as unknown as FocusedGraphViewRequest;
+};
 
 const digest = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
@@ -256,10 +541,22 @@ export class FocusedGraphViewContractResolver {
     try {
       this.contracts.assertValid("project-definition", "1.0.0", definition);
       this.contracts.assertValid("focused-graph-view", "1.0.0", view);
-    } catch {
+    } catch (error) {
+      const detail =
+        error instanceof ContractRegistryError &&
+        error.validationErrors.length > 0
+          ? `: ${error.validationErrors
+              .map(
+                (failure) =>
+                  `${failure.instancePath || "/"} ${failure.message ?? "is invalid"}`,
+              )
+              .join("; ")}`
+          : error instanceof Error
+            ? `: ${error.message}`
+            : ".";
       this.fail(
         "FOCUSED_GRAPH_CONTRACT_INVALID",
-        "The ProjectDefinition or focused graph value is not contract-valid.",
+        `The ProjectDefinition or focused graph value is not contract-valid${detail}`,
       );
     }
 

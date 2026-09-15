@@ -22,6 +22,7 @@ import type {
   PetraWorkVersion,
   ProjectionIdentity,
 } from "@petra/contracts";
+import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   RepositoryAuthorityGraphProjectionSource,
   ScientificGraphProjector,
@@ -41,6 +42,7 @@ import {
   PostgresChangeControlAuthorityRepository,
   PostgresDocumentAuthorityRepository,
   PostgresEvidenceAuthorityRepository,
+  PostgresFocusedGraphViewReader,
   PostgresGraphProjectionAuthorityRepository,
   PostgresProjectDefinitionAuthorityRepository,
   PostgresProjectRelationshipViewReader,
@@ -273,6 +275,75 @@ const projection: ProjectionIdentity = {
   configuration_hash: `sha256:${"a".repeat(64)}`,
 };
 
+const graphContracts = new PetraContractRegistry();
+const registeredContract = (name: string) => {
+  const entry = graphContracts.entries.find(
+    (candidate) => candidate.name === name,
+  );
+  if (entry === undefined) throw new Error(`Missing contract ${name}.`);
+  return {
+    name: `petra.${name}`,
+    version: entry.version,
+    content_hash: entry.canonical_sha256,
+  };
+};
+
+const focusedDefinition = (): PetraProjectDefinition => {
+  const definition = readFixture<PetraProjectDefinition>(
+    "project-definition-scientific",
+  );
+  definition.content.registrations = [
+    {
+      registration_kind: "objective_schema",
+      semantic_key: "scientific.research-question",
+      contract: registeredContract("project-objective"),
+    },
+    {
+      registration_kind: "object_schema",
+      semantic_key: "scientific.claim",
+      contract: registeredContract("claim"),
+    },
+    {
+      registration_kind: "relationship_schema",
+      semantic_key: "scientific.assertion",
+      contract: registeredContract("assertion"),
+    },
+    {
+      registration_kind: "source_role",
+      semantic_key: "scientific.literature",
+      contract: registeredContract("rights-decision"),
+    },
+    {
+      registration_kind: "extension",
+      semantic_key: "petra.focused-graph",
+      contract: registeredContract("focused-graph-view"),
+    },
+    {
+      registration_kind: "extension",
+      semantic_key: "scientific.graph.return",
+      contract: registeredContract("focused-graph-view"),
+    },
+  ];
+  definition.content.terms.push(
+    {
+      semantic_key: "scientific.assertion",
+      singular: "Evidence relationship",
+      plural: "Evidence relationships",
+      definition: "A registered scientific relationship with exact basis.",
+      generic_family: "relationship",
+    },
+    {
+      semantic_key: "scientific.graph.return",
+      singular: "Return to evidence",
+      plural: "Return to evidence",
+      definition: "Return to the exact originating evidence object.",
+      generic_family: "task",
+    },
+  );
+  definition.content_hash = hash(definition.content);
+  return definition;
+};
+
 describe("Neo4j graph query bounds", () => {
   it("rejects an invalid neighborhood limit before opening a session", async () => {
     const offlineDriver = neo4j.driver(
@@ -348,6 +419,11 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
     pool,
     graph,
   );
+  const focusedGraphViews = new PostgresFocusedGraphViewReader(
+    pool,
+    graph,
+    graphContracts,
+  );
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -369,12 +445,13 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
     await scopes.registerActor(modelActor());
     await scopes.registerActor(serviceActor());
     await scopes.registerProjectRevision(readFixture<PetraProject>("project"));
-    await definitions.registerDefinitionRevision(
-      readFixture<PetraProjectDefinition>("project-definition-scientific"),
-    );
-    await definitions.registerObjectiveRevision(
-      readFixture<PetraProjectObjective>("project-objective"),
-    );
+    const projectDefinition = focusedDefinition();
+    await definitions.registerDefinitionRevision(projectDefinition);
+    const projectObjective =
+      readFixture<PetraProjectObjective>("project-objective");
+    projectObjective.project_definition_ref.content_hash =
+      projectDefinition.content_hash;
+    await definitions.registerObjectiveRevision(projectObjective);
     await identities.registerAuthorRevision(readFixture<PetraAuthor>("author"));
     await identities.registerWorkRevision(readFixture<PetraWork>("work"));
     await identities.registerWorkVersionRevision(
@@ -389,6 +466,8 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
       documentBundle(sourceArtifact.manifest.artifact_manifest_id),
     );
     const projectSource = readFixture<PetraProjectSource>("project-source");
+    projectSource.content.project_definition_ref.content_hash =
+      projectDefinition.content_hash;
     projectSource.content.artifact_manifest_ref.record_hash = hash(
       sourceArtifact.manifest,
     );
@@ -560,6 +639,75 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
         status: "active",
       }),
     );
+    const focusedGraph = await focusedGraphViews.queryFocusedGraph(
+      event.project_id,
+      {
+        request_id: "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAA",
+        task_kind: "neighborhood",
+        task_semantic_key: "scientific.research-question",
+        question: "Which accepted relationships touch this exact Claim?",
+        focus_ref: {
+          record_id: appliedPayload.claim.claim_id,
+          revision: appliedPayload.claim.revision,
+          record_hash: hash(
+            await evidence.getClaim(
+              appliedPayload.claim.claim_id,
+              appliedPayload.claim.revision,
+            ),
+          ),
+        },
+        origin: { origin_kind: "direct" },
+        project_definition_ref: {
+          project_definition_id: projectDefinition.project_definition_id,
+          revision: projectDefinition.revision,
+          content_hash: projectDefinition.content_hash,
+          record_hash: hash(projectDefinition),
+          definition_family: projectDefinition.definition_family,
+        },
+        semantic_layer: "current",
+        temporal_position: {
+          position_kind: "current",
+          dimension: "project_snapshot",
+        },
+        object_semantic_key: "scientific.claim",
+        relationship_semantic_key: "scientific.assertion",
+        return_action_semantic_key: "scientific.graph.return",
+        return_destination: {
+          destination_key: "destination:evidence",
+          destination_kind: "evidence",
+          state: "available",
+          owner: "project_relationship_view",
+          label: "Return to Evidence",
+          target_ref: {
+            record_id: appliedPayload.claim.claim_id,
+            revision: appliedPayload.claim.revision,
+            record_hash: hash(
+              await evidence.getClaim(
+                appliedPayload.claim.claim_id,
+                appliedPayload.claim.revision,
+              ),
+            ),
+          },
+        },
+        limits: {
+          maximum_depth: 1,
+          maximum_nodes: 20,
+          maximum_relationships: 19,
+          maximum_paths: 19,
+        },
+      },
+    );
+    expect(focusedGraph?.project_id).toBe(event.project_id);
+    expect(focusedGraph?.content.semantic_layer).toBe("current");
+    expect(focusedGraph?.content.nodes).toHaveLength(1);
+    expect(focusedGraph?.content.nodes[0]?.record_ref.record_id).toBe(
+      appliedPayload.claim.claim_id,
+    );
+    expect(focusedGraph?.content.relationships).toEqual([]);
+    expect(focusedGraph?.content.paths).toEqual([]);
+    expect(focusedGraph?.content.projection_position.state).toBe("current");
+    expect(focusedGraph?.content.projection_position.pending_records).toBe(0);
+    expect(focusedGraph?.content.scope.coverage).toBe("complete_for_scope");
     const neighborhood = await graph.getNeighborhood(
       event.project_id,
       appliedPayload.claim.claim_id,

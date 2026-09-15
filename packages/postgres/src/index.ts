@@ -6,6 +6,7 @@ export * from "./composition-aggregate-repository.js";
 export * from "./composition-authority-repository.js";
 export * from "./document-authority-repository.js";
 export * from "./evidence-authority-repository.js";
+export * from "./focused-graph-view-reader.js";
 export * from "./graph-projection-authority-repository.js";
 export * from "./grounded-response-authority-repository.js";
 export * from "./interaction-authority-repository.js";
