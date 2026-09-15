@@ -255,6 +255,52 @@ earlier implementation slice.
     pushed, the exact exit gate is live, and every remaining limitation belongs
     to later-wave scope rather than this wave.
 
+## Evidence closure sequence after the item 48 audit
+
+The item 48 audit at design
+`144b35d17db03d5b9c4de9caa8a29ad65ee146b0` correctly kept Wave 4 open. Finish
+the required evidence in this exact order. Do not relabel seeded records,
+caller-designated reads, focused component tests, synthetic transport, or CDP
+inspection as substitutes for the named live paths.
+
+49. **Backend — natural-conversation and external-model identity trace.** Through
+    the existing production interaction, working-state, Review, and command
+    owners, execute and retain a natural-conversation-created or revised
+    scientific candidate with exact producer, Actor/model role, ProjectThread
+    task, Work/run, snapshot, basis, provenance, and revision identity. Execute
+    an actual external model-mediated entry and prove that it resolves to the
+    same candidate, Review, explicit decision, typed command, and resulting
+    revisions as the direct path. Preserve the exact human manual Apply
+    checkpoint: conversation or model output grants no authority. Record exact
+    identities, durable cardinalities, provenance, restart replay, and absence
+    of duplicate effects on fresh stores. If model service access or credentials
+    prevent exact execution, return `blocked`; do not substitute a fixture or
+    caller label.
+50. **Design — remaining production recordings and assistive technology.** Use
+    the exact pushed item 49 evidence through production clients, controllers,
+    live server routes, and the frozen workbench. Record the paired-profile
+    natural-conversation path; every named ordinary, exception-heavy,
+    limited-basis, blocked, corrected, stale, and deferred Review state; the
+    complete governed failure and Revert scenarios; and a screen-reader or full
+    assistive-technology session. Preserve exact return/focus, complete textual
+    parity, keyboard, touch, 200% text, forced colors, reduced motion, and
+    non-color meaning. State physical-device, browser, server, and assistive-
+    technology boundaries precisely.
+51. **Backend — final evidence reconciliation and authority audit.** Inspect the
+    exact item 49 and item 50 evidence against `UX1.4-EV01`–`EV06`. Re-run the
+    adversarial checks for implicit authority, attribution, cross-Project
+    leakage, duplicate effects, stale replay, fixture fallback, caller-label
+    substitution, and unsupported completeness. Fix backend-owned findings
+    only, run the complete gate and fresh PostgreSQL integration, and hand off
+    an exact pushed closure assessment. Do not declare Wave 4 complete.
+52. **Design — repeated final UX, Felicity, and exit audit.** Re-run the material
+    production-browser and assistive-technology checks, inspect all Wave 4
+    reports and user-facing claims with Felicity, and assess every
+    `UX1.4-EV01`–`EV06` requirement against exact pushed evidence. Fix
+    design-owned findings only. Declare `wave_complete` only when both branches
+    are pushed, the exact exit gate is live, and every remaining limitation is
+    explicitly later-wave scope.
+
 If a slice finishes without changing its role-owned files, commit its required
 conformance or evidence report. The report must name exact commits, executed
 checks, and limits; it must not serve as a substitute for an unexecuted proof.
