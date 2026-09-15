@@ -5,6 +5,7 @@ import type { ProjectBriefViewReader } from "@petra/core";
 import {
   PostgresCapabilityGrantCommandAuthorizer,
   PostgresChangeControlAuthorityRepository,
+  PostgresFocusedGraphViewReader,
   PostgresReviewSessionApplyBoundary,
   PostgresProjectHistoryCompensationExecutor,
   PostgresProjectSourceLifecycleAuthorityRepository,
@@ -35,6 +36,7 @@ import pg from "pg";
 
 import type {
   AuthenticatedCommandPrincipalResolver,
+  FocusedGraphViewReader,
   ProjectEffectiveControlsViewReader,
   ProjectHistoryViewReader,
   ProjectHistoryCompensationExecutionBoundary,
@@ -84,6 +86,7 @@ export interface ProjectShellPersistence {
   readonly reviewCandidateCorrectionAuthority: ReviewCandidateCorrectionAuthorityRepository;
   readonly workingStateSnapshots: ProjectWorkingStateSnapshotReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
+  readonly focusedGraphViews?: FocusedGraphViewReader;
   readonly relationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
   readonly objectLocations: ProjectObjectLocationViewReader;
   readonly workViews: ProjectWorkViewReader;
@@ -306,6 +309,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
         graph,
         contracts,
       );
+      const focusedGraphViews = new PostgresFocusedGraphViewReader(
+        pool,
+        graph,
+        contracts,
+      );
       return {
         views: new PostgresProjectShellViewReader(pool),
         briefViews: new PostgresProjectBriefViewReader(pool, contracts),
@@ -373,6 +381,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
             new PostgresCapabilityGrantCommandAuthorizer(),
           ),
         relationshipViews,
+        focusedGraphViews,
         relationshipOverlayViews:
           new PostgresProjectRelationshipOverlayViewReader(
             pool,

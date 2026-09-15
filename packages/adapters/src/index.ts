@@ -1,5 +1,6 @@
 export * from "./ag-ui.js";
 export * from "./docker-model-runner.js";
+export * from "./focused-graph-client.js";
 export * from "./local-openai-compatible-extractor.js";
 export * from "./model-adapter-common.js";
 export * from "./openai-responses-extractor.js";

@@ -394,6 +394,14 @@ export const startPetraServer = async (
               projectRelationshipViews:
                 options.projectShellPersistence.relationshipViews,
             }),
+      ...(options.focusedGraphViews !== undefined
+        ? { focusedGraphViews: options.focusedGraphViews }
+        : options.projectShellPersistence?.focusedGraphViews === undefined
+          ? {}
+          : {
+              focusedGraphViews:
+                options.projectShellPersistence.focusedGraphViews,
+            }),
       ...(options.projectRelationshipOverlayViews !== undefined
         ? {
             projectRelationshipOverlayViews:

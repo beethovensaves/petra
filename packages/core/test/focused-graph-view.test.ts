@@ -14,6 +14,7 @@ import { focusedGraphFixture } from "../../contracts/test/fixtures/focused-graph
 import {
   FocusedGraphViewContractError,
   FocusedGraphViewContractResolver,
+  parseFocusedGraphViewRequest,
 } from "../src/focused-graph-view.js";
 
 const contracts = new PetraContractRegistry();
@@ -278,6 +279,52 @@ describe("FocusedGraphViewContractResolver", () => {
     expectCode(
       () => resolver.resolve(action.definition, action.view),
       "FOCUSED_GRAPH_ACTION_INCOMPATIBLE",
+    );
+  });
+});
+
+describe("focused graph query request boundary", () => {
+  it("accepts only the current finite one-hop request and rejects renderer controls", () => {
+    const { definition, view } = fixture();
+    const request = {
+      request_id: view.content.task.request_id,
+      task_kind: "neighborhood",
+      task_semantic_key: view.content.task.task_semantic_key,
+      question: view.content.task.question,
+      focus_ref: view.content.task.focus_refs[0],
+      origin: view.content.task.origin,
+      project_definition_ref: view.content.profile.project_definition_ref,
+      semantic_layer: "current",
+      temporal_position: {
+        position_kind: "current",
+        dimension: "project_snapshot",
+      },
+      object_semantic_key: "scientific.claim",
+      relationship_semantic_key: "scientific.assertion",
+      return_action_semantic_key: "scientific.graph.trace-sources",
+      return_destination: view.content.destinations[0],
+      limits: {
+        maximum_depth: 1,
+        maximum_nodes: 20,
+        maximum_relationships: 19,
+        maximum_paths: 19,
+      },
+    };
+    expect(parseFocusedGraphViewRequest(request)).toEqual(request);
+    expect(definition.content.supported_places).toContain("graph");
+
+    expect(() =>
+      parseFocusedGraphViewRequest({ ...request, layout: "force" }),
+    ).toThrowError(
+      expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
+    );
+    expect(() =>
+      parseFocusedGraphViewRequest({
+        ...request,
+        limits: { ...request.limits, maximum_depth: 2 },
+      }),
+    ).toThrowError(
+      expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
     );
   });
 });
