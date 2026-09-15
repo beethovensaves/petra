@@ -10,6 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 import Ajv2020 from "ajv/dist/2020.js";
 
@@ -492,11 +493,20 @@ test("Wave 5 packet fixes 32 alternating slices and the closure reserve", () => 
   assert.doesNotMatch(packet, /VoiceOver/);
 });
 
-test("Wave 5 backend launcher identifies its role and fixed budget", () => {
-  const path = new URL("../run-wave-5-backend.zsh", import.meta.url);
+test("Wave 5 worktree launcher identifies its role and fixed budget", () => {
+  const root = fileURLToPath(new URL("..", import.meta.url));
+  const branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
+    cwd: root,
+    encoding: "utf8",
+  }).trim();
+  const role = branch === "design/m1-ux" ? "design" : "backend";
+  const path = new URL(`../run-wave-5-${role}.zsh`, import.meta.url);
   const launcher = readFileSync(path, "utf8");
-  assert.match(launcher, /Petra Wave 5 Backend/);
-  assert.match(launcher, /--role backend --wave 5 --max-slices 32/);
+  assert.match(
+    launcher,
+    new RegExp(`Petra Wave 5 ${role === "backend" ? "Backend" : "Design"}`),
+  );
+  assert.match(launcher, new RegExp(`--role ${role} --wave 5 --max-slices 32`));
   assert.match(launcher, /doctor --wave 5 --max-slices 32/);
   assert.notEqual(statSync(path).mode & 0o111, 0);
 });
