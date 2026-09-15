@@ -27,6 +27,20 @@ export type FocusedGraphEvidenceRow = {
   source: FocusedGraphNode;
   target: FocusedGraphNode;
   paths: readonly FocusedGraphPath[];
+  destinations: readonly FocusedGraphSemanticDestination[];
+  actions: readonly FocusedGraphRegisteredAction[];
+};
+
+export type FocusedGraphResolvedPathStep = {
+  step: FocusedGraphPath["steps"][number];
+  source: FocusedGraphNode;
+  relationship: FocusedGraphRelationship;
+  target: FocusedGraphNode;
+};
+
+export type FocusedGraphResolvedPath = {
+  path: FocusedGraphPath;
+  steps: readonly FocusedGraphResolvedPathStep[];
 };
 
 export type FocusedGraphDetailTarget = {
@@ -70,6 +84,7 @@ export type FocusedGraphRegions = {
     nodes: readonly FocusedGraphNode[];
     relationships: readonly FocusedGraphRelationship[];
     paths: readonly FocusedGraphPath[];
+    resolvedPaths: readonly FocusedGraphResolvedPath[];
     selection: PetraFocusedGraphView["content"]["selection"];
     limitations: PetraFocusedGraphView["content"]["limitations"];
   };
@@ -78,6 +93,7 @@ export type FocusedGraphRegions = {
     nodes: readonly FocusedGraphNode[];
     relationships: readonly FocusedGraphRelationship[];
     paths: readonly FocusedGraphPath[];
+    resolvedPaths: readonly FocusedGraphResolvedPath[];
     selection: PetraFocusedGraphView["content"]["selection"];
     destinations: readonly FocusedGraphSemanticDestination[];
     actions: readonly FocusedGraphRegisteredAction[];
@@ -197,7 +213,10 @@ export const focusedGraphRegionsFromView = (
       relationship.target_node_key,
       "Relationship target node",
     );
-    exactDestinations(relationship.destination_keys, destinations);
+    const relationshipDestinations = exactDestinations(
+      relationship.destination_keys,
+      destinations,
+    );
     return {
       relationship,
       source,
@@ -207,24 +226,41 @@ export const focusedGraphRegionsFromView = (
           (step) => step.relationship_key === relationship.relationship_key,
         ),
       ),
+      destinations: relationshipDestinations,
+      actions: content.actions.filter((action) =>
+        action.target_keys.includes(relationship.relationship_key),
+      ),
     };
   });
 
   for (const node of content.nodes) {
     exactDestinations(node.destination_keys, destinations);
   }
-  for (const path of content.paths) {
+  const resolvedPaths = content.paths.map((path) => {
     if (path.steps.length > content.scope.limits.maximum_depth) {
       throw new FocusedGraphRegionError(
         `Path ${path.path_key} exceeds the exact finite depth limit.`,
       );
     }
-    for (const step of path.steps) {
-      requireMember(nodes, step.from_node_key, "Path source node");
-      requireMember(nodes, step.to_node_key, "Path target node");
-      requireMember(relationships, step.relationship_key, "Path relationship");
-    }
-  }
+    const steps = path.steps.map((step, index) => {
+      if (step.position !== index + 1) {
+        throw new FocusedGraphRegionError(
+          `Path ${path.path_key} has an inconsistent step position.`,
+        );
+      }
+      return {
+        step,
+        source: requireMember(nodes, step.from_node_key, "Path source node"),
+        relationship: requireMember(
+          relationships,
+          step.relationship_key,
+          "Path relationship",
+        ),
+        target: requireMember(nodes, step.to_node_key, "Path target node"),
+      };
+    });
+    return { path, steps };
+  });
 
   const memberKeys = new Set([
     ...nodes.keys(),
@@ -334,6 +370,7 @@ export const focusedGraphRegionsFromView = (
       nodes: content.nodes,
       relationships: content.relationships,
       paths: content.paths,
+      resolvedPaths,
       selection: content.selection,
       limitations: content.limitations,
     },
@@ -342,6 +379,7 @@ export const focusedGraphRegionsFromView = (
       nodes: content.nodes,
       relationships: content.relationships,
       paths: content.paths,
+      resolvedPaths,
       selection: content.selection,
       destinations: content.destinations,
       actions: content.actions,

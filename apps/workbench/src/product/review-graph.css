@@ -805,6 +805,300 @@
   min-width: 0;
 }
 
+.focused-graph-result {
+  padding: var(--petra-space-5);
+}
+
+.focused-graph-peer {
+  display: grid;
+  gap: var(--petra-space-5);
+}
+
+.focused-graph-peer h3,
+.focused-graph-peer h4,
+.focused-graph-peer p {
+  margin-top: 0;
+}
+
+.focused-graph-peer__boundary {
+  margin-bottom: 0;
+  padding: var(--petra-space-3) var(--petra-space-4);
+  border-left: 3px solid var(--petra-tone-information);
+  color: var(--petra-text-secondary);
+  background: var(--petra-tone-information-soft);
+}
+
+.focused-graph-production-canvas {
+  min-height: 30rem;
+  overflow: hidden;
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  background:
+    linear-gradient(var(--petra-border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--petra-border-subtle) 1px, transparent 1px),
+    var(--petra-surface-canvas);
+  background-size: 2rem 2rem;
+}
+
+.focused-graph-records,
+.focused-graph-matrix,
+.focused-graph-paths,
+.focused-graph-path-steps,
+.focused-graph-semantic-list {
+  display: grid;
+  gap: var(--petra-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.focused-graph-records > li,
+.focused-graph-matrix > li {
+  display: grid;
+  gap: var(--petra-space-3);
+}
+
+.focused-graph-record {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(11rem, 1.25fr) minmax(
+      9rem,
+      1fr
+    );
+  align-items: stretch;
+  gap: var(--petra-space-3);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-canvas);
+}
+
+.focused-graph-record__node,
+.focused-graph-record__edge {
+  display: grid;
+  min-width: 0;
+  place-content: center;
+  gap: var(--petra-space-1);
+  padding: var(--petra-space-3);
+  text-align: center;
+}
+
+.focused-graph-record__node {
+  min-height: 5rem;
+  border: 2px solid var(--petra-border-strong);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.focused-graph-record__node[data-selected="true"],
+.focused-graph-record__edge[data-selected="true"] {
+  outline: 3px solid var(--petra-action-primary);
+  outline-offset: 2px;
+  background: var(--petra-surface-selection);
+}
+
+.focused-graph-record__node > span,
+.focused-graph-record__edge > small {
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph-record__edge {
+  position: relative;
+  border-bottom: 4px solid var(--petra-border-strong);
+}
+
+.focused-graph-record__edge > span {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-self: center;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-weight: var(--petra-weight-semibold);
+}
+
+.focused-graph-record__edge[data-meaning="citation"] {
+  border-bottom-style: double;
+}
+
+.focused-graph-record__edge[data-meaning="contradiction"] {
+  border-bottom-style: dashed;
+}
+
+.focused-graph-record__edge[data-meaning="qualification"] {
+  border-bottom-style: dotted;
+}
+
+.focused-graph-record__edge[data-meaning="inference"] {
+  border-block: var(--petra-rule-thin) solid var(--petra-border-strong);
+}
+
+.focused-graph-facts {
+  display: grid;
+  gap: var(--petra-space-3);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-left: 5px solid var(--petra-border-strong);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-inset);
+}
+
+.focused-graph-facts[data-meaning="citation"] {
+  border-left-style: double;
+}
+
+.focused-graph-facts[data-meaning="contradiction"] {
+  border-left-style: dashed;
+}
+
+.focused-graph-facts[data-meaning="qualification"] {
+  border-left-style: dotted;
+}
+
+.focused-graph-facts[data-meaning="inference"] {
+  border-left-width: 9px;
+}
+
+.focused-graph-facts[data-selected="true"] {
+  outline: 3px solid var(--petra-action-primary);
+  outline-offset: 2px;
+}
+
+.focused-graph-facts > header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--petra-space-3);
+}
+
+.focused-graph-facts > header h4,
+.focused-graph-facts > header p,
+.focused-graph-facts > section > p,
+.focused-graph-facts > p {
+  margin-bottom: 0;
+}
+
+.focused-graph-facts > header p,
+.focused-graph-facts > header > strong,
+.focused-graph-facts__empty,
+.focused-graph-facts__refs,
+.focused-graph-facts__availability,
+.focused-graph-facts > section > ul {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph-facts__symbol {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-weight: var(--petra-weight-semibold);
+}
+
+.focused-graph-facts dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-2) var(--petra-space-4);
+  margin: 0;
+}
+
+.focused-graph-facts dl > div {
+  min-width: 0;
+  padding-top: var(--petra-space-2);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.focused-graph-facts dt {
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-medium);
+}
+
+.focused-graph-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.focused-graph-facts code,
+.focused-graph-paths > li > code,
+.focused-graph-semantic-list code {
+  overflow-wrap: anywhere;
+  font-family: var(--petra-font-mono);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph-facts__refs,
+.focused-graph-facts__availability,
+.focused-graph-facts > section > ul {
+  margin-bottom: 0;
+  padding-left: 1.25rem;
+}
+
+.focused-graph-paths > li,
+.focused-graph-path-steps > li,
+.focused-graph-semantic-list > li {
+  padding: var(--petra-space-3) var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-inset);
+}
+
+.focused-graph-paths > li[data-selected="true"] {
+  border: 3px solid var(--petra-action-primary);
+  background: var(--petra-surface-selection);
+}
+
+.focused-graph-paths > li > header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--petra-space-3);
+}
+
+.focused-graph-paths > li > header span,
+.focused-graph-path-steps > li > span,
+.focused-graph-path-steps > li > p,
+.focused-graph-semantic-list > li > span,
+.focused-graph-semantic-list > li > p {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph-paths > li > p,
+.focused-graph-path-steps > li > p,
+.focused-graph-semantic-list > li > p {
+  margin-bottom: 0;
+}
+
+.focused-graph-path-steps {
+  margin-top: var(--petra-space-3);
+}
+
+.focused-graph-semantic-access {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-5);
+}
+
+.focused-graph-semantic-list > li {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.focused-graph-semantic-list > li[data-availability="unavailable"] {
+  border-style: dashed;
+}
+
+.graph-controls > p {
+  max-width: 62ch;
+  margin: 0 0 0 auto;
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
 .graph-canvas {
   position: relative;
   min-height: 34rem;
@@ -1220,6 +1514,36 @@
     display: grid;
   }
 
+  .focused-graph-result {
+    padding: var(--petra-space-4);
+  }
+
+  .focused-graph-record,
+  .focused-graph-facts dl,
+  .focused-graph-semantic-access {
+    grid-template-columns: 1fr;
+  }
+
+  .focused-graph-record__edge {
+    min-height: 7rem;
+  }
+
+  .focused-graph-production-canvas {
+    min-height: 24rem;
+  }
+
+  .focused-graph-facts > header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .focused-graph-facts > header > strong {
+    grid-column: 1 / -1;
+  }
+
+  .graph-controls > p {
+    margin-left: 0;
+  }
+
   .graph-history {
     margin-left: 0;
   }
@@ -1269,6 +1593,18 @@
   }
 
   .graph-node[data-selected="true"] {
+    outline: 3px solid Highlight;
+  }
+
+  .focused-graph-record__edge,
+  .focused-graph-facts {
+    border-color: CanvasText;
+  }
+
+  .focused-graph-record__node[data-selected="true"],
+  .focused-graph-record__edge[data-selected="true"],
+  .focused-graph-facts[data-selected="true"],
+  .focused-graph-paths > li[data-selected="true"] {
     outline: 3px solid Highlight;
   }
 
