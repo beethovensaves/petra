@@ -271,7 +271,7 @@ A polished prototype is not integrated. Integrated code is not validated. A modu
 | `UX1.1` | `in_progress` | Profile-resolved Project shell, navigation, selection, Details, assistant frame, and responsive behavior | Project authors must remain oriented while moving among synchronized views | `M1.1`, `M1.2`, `M1.7` |
 | `UX1.2` | `in_progress` | Profile-resolved Project Brief, consequence-led attention, supported current state, snapshot comparison, relevant Work, next actions, and history | The default surface must support the next profile-valid decision without becoming a dashboard | `M1.3`, `M1.6`, `M1.7` |
 | `UX1.3` | `in_progress` | Profile-resolved Sources, reusable identity, immutable revisions, rights, inspection capability, processing, exact reading, provenance, and local-copy lifecycle | Project authors must know exactly what Petra can inspect, used, cannot use, and would change | `M1.2`, `M1.4`, `M1.7` |
-| `UX1.4` | `in_progress` | Conversation-derived working graph, basis and provenance, profile-resolved comparison, exception-led Review, exact change preview, decision, recovery, and reversal | Natural interaction needs quiet structuring and visible, reversible authority boundaries | `M1.5`, `M1.6`, `M1.7` |
+| `UX1.4` | `complete` | Conversation-derived working graph, basis and provenance, profile-resolved comparison, exception-led Review, exact change preview, decision, recovery, and reversal | Natural interaction needs quiet structuring and visible, reversible authority boundaries | `M1.5`, `M1.6`, `M1.7` |
 | `UX1.5` | `in_progress` | Focused graph, evidence paths, edge semantics, projection state, and textual equivalents | The graph must explain and control work rather than decorate it | `M1.3`, `M1.5`, `M1.6`, `M1.7` |
 | `UX1.6` | `in_progress` | Petra interaction system, contextual answers, SuggestedActions, durable Work, review, reconnect, branching, and governed reversal | Project authors need fast collaboration and recoverable exploration without surrendering domain authority | `M1.5`, `M1.6`, `M1.7` |
 | `UX1.7` | `in_progress` | DraftArtifact, provenance, revision, citations, BibTeX, and LaTeX | Scientific writing should be useful immediately and remain inspectable | `M1.8` |
@@ -799,7 +799,7 @@ This checkpoint did not itself record the later product-design freeze.
 
 ## `UX1.4` — basis, candidates, review, and trusted changes
 
-- **Status:** `in_progress`
+- **Status:** `complete`
 - **Builds:** the use-agnostic working-candidate and accountable-decision layer
   across natural conversation, optional graph inspection, profile validation,
   exact change preview, application, recovery, and Revert.
@@ -820,21 +820,21 @@ This checkpoint did not itself record the later product-design freeze.
 
 | ID | Status | Design specification | Why Petra needs it |
 | --- | --- | --- | --- |
-| `UX1.4-W01` | `in_progress` | Specify bounded conversation and Work as inputs to durable, profile-valid, non-authoritative working candidates and relationships with exact producer, task, snapshot, and revision lineage. | The model should perform semantic structuring without making the author operate graph fields or turning its output into authority. |
-| `UX1.4-W02` | `in_progress` | Distinguish candidate, technical proposal, validation finding, basis, provenance, Review session, ChangeSet, decision, event, and projection roles. | Similar-looking records answer different authorship and authority questions. |
-| `UX1.4-W03` | `in_progress` | Keep ambient working-graph updates quiet while exposing exact graph and textual inspection of origin, basis, uncertainty, validation, omissions, and current authority layer. | Inspectability should be available without becoming routine interface ceremony. |
-| `UX1.4-W04` | `in_progress` | Trigger Review only for accountable Project decisions and preserve one task-sized Review identity across contextual checkpoint, focus workspace, and main Review route presentations. | Generated information should not flood an inbox, and contextual entry must not create a second approval system. |
-| `UX1.4-W05` | `in_progress` | Use Current, Candidate, Origin, Basis, Difference, Consequences, and Decision as profile-neutral comparison roles with profile-owned object renderers and terminology. | Scientific and controlled-writing Projects need the same mechanics without semantic aliases. |
-| `UX1.4-W06` | `in_progress` | Present principal basis, counter-basis or limitation, and affected scope by default; retain exact revisions, locations, included and excluded context, lineage, and technical identifiers for inspection. | Review should be calm without hiding the material grounds of a decision. |
-| `UX1.4-W07` | `in_progress` | Separate automatic mechanical repair, findings that need judgment, and commitment-blocking validation; never present passed checks as truth or authority. | Validation should reduce effort without deciding substantive meaning. |
-| `UX1.4-W08` | `in_progress` | Lead sessions with unresolved exceptions and count, preserve, and expose every ordinary member and applicable check. | Exception-led review must not become selective evidence hiding. |
-| `UX1.4-W09` | `in_progress` | Let the active task model explain and revise exact working candidates conversationally while labeling explanation-only, candidate-updated, preview-updated, and unable-to-proceed outcomes. | Natural correction should remain primary without making conversation an authority channel. |
-| `UX1.4-W10` | `in_progress` | Compile **Changes to apply** only when commitment-ready and show exact operations, snapshot, dependencies, limitations, validator and policy effects, unchanged protected state, and projection consequence. | The commitment action must match the canonical ChangeSet rather than a friendly but incomplete summary. |
-| `UX1.4-W11` | `in_progress` | Specify Apply, Reject candidate, Decide later, Edit candidate, Change basis, Separate changes, Prepare reversal, and Revert change with exact revision, authority, and history behavior. | Correction and recovery require more than binary approval without multiplying governance systems. |
-| `UX1.4-W12` | `in_progress` | Distinguish one atomic ChangeSet from a Review session containing independently atomic ChangeSets; preflight known conflicts and expose every member outcome without silent partial success. | Accepted batch execution permits precise progress and retry but must not mislead authors about transaction boundaries. |
-| `UX1.4-W13` | `in_progress` | Design stale, conflict, deferred, blocked, applying, failed, partly completed, applied/projection-pending, current, rejected, superseded, and unauthorized states with bounded recovery and exact return. | Authority, command completion, and graph freshness can diverge without becoming ambiguous. |
-| `UX1.4-W14` | `in_progress` | Distinguish ten-state graph Back/Forward, working-revision restoration, recent-ten applied changes, full History, and compensating Revert. | Navigation and drafting recovery must not be mistaken for authoritative erasure. |
-| `UX1.4-W15` | `in_progress` | Preserve complete textual parity, reading order, keyboard and focus behavior, text scaling, touch access, panel resize, forced colors, reduced motion, non-drag actions, and non-color meaning. | Review must remain complete without a graph, wide screen, pointer, or visual-only encoding. |
+| `UX1.4-W01` | `complete` | Specify bounded conversation and Work as inputs to durable, profile-valid, non-authoritative working candidates and relationships with exact producer, task, snapshot, and revision lineage. | The model should perform semantic structuring without making the author operate graph fields or turning its output into authority. |
+| `UX1.4-W02` | `complete` | Distinguish candidate, technical proposal, validation finding, basis, provenance, Review session, ChangeSet, decision, event, and projection roles. | Similar-looking records answer different authorship and authority questions. |
+| `UX1.4-W03` | `complete` | Keep ambient working-graph updates quiet while exposing exact graph and textual inspection of origin, basis, uncertainty, validation, omissions, and current authority layer. | Inspectability should be available without becoming routine interface ceremony. |
+| `UX1.4-W04` | `complete` | Trigger Review only for accountable Project decisions and preserve one task-sized Review identity across contextual checkpoint, focus workspace, and main Review route presentations. | Generated information should not flood an inbox, and contextual entry must not create a second approval system. |
+| `UX1.4-W05` | `complete` | Use Current, Candidate, Origin, Basis, Difference, Consequences, and Decision as profile-neutral comparison roles with profile-owned object renderers and terminology. | Scientific and controlled-writing Projects need the same mechanics without semantic aliases. |
+| `UX1.4-W06` | `complete` | Present principal basis, counter-basis or limitation, and affected scope by default; retain exact revisions, locations, included and excluded context, lineage, and technical identifiers for inspection. | Review should be calm without hiding the material grounds of a decision. |
+| `UX1.4-W07` | `complete` | Separate automatic mechanical repair, findings that need judgment, and commitment-blocking validation; never present passed checks as truth or authority. | Validation should reduce effort without deciding substantive meaning. |
+| `UX1.4-W08` | `complete` | Lead sessions with unresolved exceptions and count, preserve, and expose every ordinary member and applicable check. | Exception-led review must not become selective evidence hiding. |
+| `UX1.4-W09` | `complete` | Let the active task model explain and revise exact working candidates conversationally while labeling explanation-only, candidate-updated, preview-updated, and unable-to-proceed outcomes. | Natural correction should remain primary without making conversation an authority channel. |
+| `UX1.4-W10` | `complete` | Compile **Changes to apply** only when commitment-ready and show exact operations, snapshot, dependencies, limitations, validator and policy effects, unchanged protected state, and projection consequence. | The commitment action must match the canonical ChangeSet rather than a friendly but incomplete summary. |
+| `UX1.4-W11` | `complete` | Specify Apply, Reject candidate, Decide later, Edit candidate, Change basis, Separate changes, Prepare reversal, and Revert change with exact revision, authority, and history behavior. | Correction and recovery require more than binary approval without multiplying governance systems. |
+| `UX1.4-W12` | `complete` | Distinguish one atomic ChangeSet from a Review session containing independently atomic ChangeSets; preflight known conflicts and expose every member outcome without silent partial success. | Accepted batch execution permits precise progress and retry but must not mislead authors about transaction boundaries. |
+| `UX1.4-W13` | `complete` | Design stale, conflict, deferred, blocked, applying, failed, partly completed, applied/projection-pending, current, rejected, superseded, and unauthorized states with bounded recovery and exact return. | Authority, command completion, and graph freshness can diverge without becoming ambiguous. |
+| `UX1.4-W14` | `complete` | Distinguish ten-state graph Back/Forward, working-revision restoration, recent-ten applied changes, full History, and compensating Revert. | Navigation and drafting recovery must not be mistaken for authoritative erasure. |
+| `UX1.4-W15` | `complete` | Preserve complete textual parity, reading order, keyboard and focus behavior, text scaling, touch access, panel resize, forced colors, reduced motion, non-drag actions, and non-color meaning. | Review must remain complete without a graph, wide screen, pointer, or visual-only encoding. |
 
 ### Acceptance
 
@@ -851,7 +851,21 @@ This checkpoint did not itself record the later product-design freeze.
 | `UX1.4-AC09` | Direct and model-mediated paths resolve to the same candidate, Review, decision, command, and resulting revisions. |
 | `UX1.4-AC10` | Independent batch members expose individual applied, rejected, failed, and unapplied outcomes and never present partial completion as whole success. |
 | `UX1.4-AC11` | Correction, stale refresh, projection lag, failure, and Revert preserve exact lineage and additive history. |
-| `UX1.4-AC12` | The entire comparison and decision works at supported viewports and text scales through keyboard, screen reader, touch, non-drag controls, and textual graph parity. |
+| `UX1.4-AC12` | The entire comparison and decision works at supported viewports and text scales through keyboard, browser semantic structure, touch, non-drag controls, and textual graph parity. Native screen-reader evaluation is outside the accepted Wave 4 boundary. |
+
+### Wave 4 runtime completion checkpoint
+
+Automated Wave 4 closed on 2026-09-15 at backend
+`abe1dc88fdb6081e48c288e80d0b2a4b689e6dac` and design
+`1395f49b03fb0511fecf52f44e5c1a32841bd110`. The final executed UX and
+Felicity audit in `reports/WAVE4-ITEM56-FINAL-EXECUTED-UX-FELICITY-AUDIT.md`
+records material coverage for every `UX1.4-EV01`–`EV06` row within the amended
+browser boundary. The working-candidate, Review, exact human Apply, Brief,
+History, recovery, profile, provenance, responsive, and adverse-state paths
+therefore pass `G-PROTOTYPE`, `G-CONTRACT`, `G-INTEGRATION`, and `G-VALIDATION`
+in addition to the accepted DB09 specification. Later physical-device,
+cross-browser, deployed-host, broad model-quality, and native assistive-
+technology evaluation does not reopen this module.
 
 ### Completion evidence
 
