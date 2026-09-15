@@ -7,6 +7,8 @@ import type {
   PetraProjectDefinition,
   PetraProjectionCheckpoint,
   PetraSourceSpan,
+  PetraWorkingCandidate,
+  PetraWorkingRelationship,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
@@ -160,6 +162,91 @@ describe("PostgreSQL focused graph query reader", () => {
       return assertion;
     });
     const sourceSpan = fixture<PetraSourceSpan>("source-span");
+    const workingClaim = trustedClaim(
+      "claim_01ARZ3NDEKTSV4RRFFQ69G5FE8",
+      "Working claim",
+    );
+    const workingAssertion = fixture<PetraAssertion>("assertion-trusted");
+    workingAssertion.assertion_id = "assertion_01ARZ3NDEKTSV4RRFFQ69G5FE9";
+    workingAssertion.subject_id = focus.claim_id;
+    workingAssertion.predicate = "SUPPORTS";
+    workingAssertion.object = {
+      object_kind: "entity",
+      entity_id: workingClaim.claim_id,
+    };
+    const workingCandidate =
+      fixture<PetraWorkingCandidate>("working-candidate");
+    workingCandidate.project_id = projectDefinition.project_id;
+    workingCandidate.project_definition_ref = {
+      project_definition_id: projectDefinition.project_definition_id,
+      revision: projectDefinition.revision,
+      content_hash: projectDefinition.content_hash,
+      definition_family: projectDefinition.definition_family,
+    };
+    workingCandidate.profile_object.registration = {
+      registration_kind: "object_schema",
+      semantic_key: "scientific.claim",
+      contract: contract("claim"),
+    };
+    workingCandidate.profile_object.object_record_ref = {
+      schema_name: "petra.claim",
+      schema_version: "1.0.0",
+      record_id: workingClaim.claim_id,
+      revision: workingClaim.revision,
+      record_hash: hash(workingClaim),
+    };
+    workingCandidate.validation.target_record_hash = hash(workingClaim);
+    const workingCandidateProjection = structuredClone(
+      workingCandidate,
+    ) as Record<string, unknown>;
+    delete workingCandidateProjection.content_hash;
+    workingCandidate.content_hash = hash(workingCandidateProjection);
+    const workingRelationship = fixture<PetraWorkingRelationship>(
+      "working-relationship",
+    );
+    workingRelationship.project_id = projectDefinition.project_id;
+    workingRelationship.project_definition_ref = structuredClone(
+      workingCandidate.project_definition_ref,
+    );
+    workingRelationship.profile_relationship.registration = {
+      registration_kind: "relationship_schema",
+      semantic_key: "scientific.assertion",
+      contract: contract("assertion"),
+    };
+    workingRelationship.profile_relationship.predicate = "SUPPORTS";
+    workingRelationship.profile_relationship.relationship_record_ref = {
+      schema_name: "petra.assertion",
+      schema_version: "1.0.0",
+      record_id: workingAssertion.assertion_id,
+      revision: workingAssertion.revision,
+      record_hash: hash(workingAssertion),
+    };
+    workingRelationship.endpoints = {
+      subject: {
+        endpoint_kind: "profile_record",
+        record_ref: {
+          schema_name: "petra.claim",
+          schema_version: "1.0.0",
+          record_id: focus.claim_id,
+          revision: focus.revision,
+          record_hash: hash(focus),
+        },
+      },
+      object: {
+        endpoint_kind: "working_candidate",
+        candidate_ref: {
+          working_candidate_id: workingCandidate.working_candidate_id,
+          revision: workingCandidate.revision,
+          content_hash: workingCandidate.content_hash,
+        },
+      },
+    };
+    workingRelationship.validation.target_record_hash = hash(workingAssertion);
+    const workingRelationshipProjection = structuredClone(
+      workingRelationship,
+    ) as Record<string, unknown>;
+    delete workingRelationshipProjection.content_hash;
+    workingRelationship.content_hash = hash(workingRelationshipProjection);
     const checkpoint = fixture<PetraProjectionCheckpoint>(
       "projection-checkpoint-current",
     );
@@ -190,6 +277,8 @@ describe("PostgreSQL focused graph query reader", () => {
       ...assertions.map(
         (assertion) => [assertion.assertion_id, assertion] as const,
       ),
+      [workingClaim.claim_id, workingClaim],
+      [workingAssertion.assertion_id, workingAssertion],
     ]);
     const queries: string[] = [];
     const client = {
@@ -208,6 +297,47 @@ describe("PostgreSQL focused graph query reader", () => {
         if (text.includes("transaction_timestamp()"))
           return result([
             { read_at: new Date("2026-09-15T20:00:00.000Z") } as unknown as Row,
+          ]);
+        if (text.includes("FROM petra.domain_events AS event"))
+          return result([
+            {
+              event_position: "3",
+              stream_revision: "3",
+              recorded_at: new Date("2026-09-15T19:00:00.000Z"),
+              target_sequence: "1",
+            } as unknown as Row,
+          ]);
+        if (text.includes("project_definition_history_bindings"))
+          return result([
+            {
+              project_id: projectDefinition.project_id,
+              definition_payload: structuredClone(projectDefinition),
+              definition_record_hash: hash(projectDefinition),
+            } as unknown as Row,
+          ]);
+        if (text.includes("WITH ranked AS"))
+          return result([
+            {
+              graph_element_kind: "node",
+              object_id: focus.claim_id,
+              object_revision: String(focus.revision),
+              operation: "upsert",
+            } as unknown as Row,
+            {
+              graph_element_kind: "node",
+              object_id: related.claim_id,
+              object_revision: String(related.revision),
+              operation: "upsert",
+            } as unknown as Row,
+            ...assertions.map(
+              (assertion) =>
+                ({
+                  graph_element_kind: "relationship",
+                  object_id: assertion.assertion_id,
+                  object_revision: String(assertion.revision),
+                  operation: "upsert",
+                }) as unknown as Row,
+            ),
           ]);
         if (text.includes("FROM petra.projects AS project"))
           return values[0] === projectDefinition.project_id
@@ -248,12 +378,30 @@ describe("PostgreSQL focused graph query reader", () => {
                 } as unknown as Row,
               ])
             : result([]);
+        if (text.includes("FROM petra.working_relationships AS head"))
+          return result([
+            {
+              payload: structuredClone(workingRelationship),
+              record_hash: hash(workingRelationship),
+            } as unknown as Row,
+          ]);
+        if (text.includes("FROM petra.working_candidate_revisions"))
+          return result([
+            {
+              payload: structuredClone(workingCandidate),
+              record_hash: hash(workingCandidate),
+            } as unknown as Row,
+          ]);
         if (text.includes("FROM petra.evidence_entity_revisions")) {
           const record = evidence.get(String(values[0]));
           return record === undefined
             ? result([])
             : result([
                 {
+                  evidence_kind:
+                    record.schema_name === "petra.claim"
+                      ? "claim"
+                      : "assertion",
                   payload: structuredClone(record),
                   record_hash: hash(record),
                 } as unknown as Row,
@@ -425,6 +573,78 @@ describe("PostgreSQL focused graph query reader", () => {
     expect(getFreshness).toHaveBeenCalledTimes(2);
     expect(queries.at(-1)).toBe("COMMIT");
     expect(client.release).toHaveBeenCalledOnce();
+
+    const workingView = await reader.queryFocusedGraph(
+      projectDefinition.project_id,
+      { ...structuredClone(request), semantic_layer: "working" },
+    );
+    expect(workingView?.content.semantic_layer).toBe("working");
+    expect(workingView?.content.scope.included_layers).toEqual([
+      "current",
+      "working",
+    ]);
+    expect(
+      workingView?.content.nodes.find((node) => node.layer === "working"),
+    ).toEqual(
+      expect.objectContaining({
+        authority_position: "working_non_authority",
+        label: "Working claim",
+      }),
+    );
+    expect(
+      workingView?.content.relationships.find(
+        (relationship) => relationship.layer === "working",
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        predicate: "SUPPORTS",
+        origin: "working_candidate",
+        authority_position: "working_non_authority",
+      }),
+    );
+    expect(
+      workingView?.content.relationships.filter(
+        (relationship) => relationship.layer === "current",
+      ),
+    ).toHaveLength(assertions.length);
+
+    const historicalView = await reader.queryFocusedGraph(
+      projectDefinition.project_id,
+      {
+        ...structuredClone(request),
+        semantic_layer: "historical",
+        temporal_position: {
+          position_kind: "historical",
+          dimension: "recorded_time",
+          at: { state: "exact", value: "2026-09-15T19:00:00.000Z" },
+        },
+        expected_snapshot: view!.content.requested_snapshot,
+      },
+    );
+    expect(historicalView?.content.semantic_layer).toBe("historical");
+    expect(historicalView?.content.scope.included_layers).toEqual([
+      "historical",
+    ]);
+    expect(historicalView?.content.projection_position.state).toBe(
+      "unavailable",
+    );
+    expect(
+      historicalView?.content.nodes.every(
+        (node) =>
+          node.layer === "historical" &&
+          node.authority_position === "historical_authority",
+      ),
+    ).toBe(true);
+    expect(
+      historicalView?.content.relationships.every(
+        (relationship) =>
+          relationship.layer === "historical" &&
+          relationship.authority_position === "historical_authority",
+      ),
+    ).toBe(true);
+    expect(historicalView?.content.limitations.join(" ")).toContain(
+      "read-only",
+    );
 
     const staleRequest: FocusedGraphViewRequest = {
       ...structuredClone(request),

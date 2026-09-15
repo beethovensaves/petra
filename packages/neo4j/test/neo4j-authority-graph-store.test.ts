@@ -34,6 +34,7 @@ import {
   type AuthorityGraphRelationship,
   type AuthorityGraphStoreError,
   type DomainRecordFactory,
+  type FocusedGraphViewRequest,
   type PersistDocumentBundleInput,
   type PersistVerifiedArtifactInput,
 } from "@petra/core";
@@ -639,14 +640,44 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
         status: "active",
       }),
     );
-    const focusedGraph = await focusedGraphViews.queryFocusedGraph(
-      event.project_id,
-      {
-        request_id: "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAA",
-        task_kind: "neighborhood",
-        task_semantic_key: "scientific.research-question",
-        question: "Which accepted relationships touch this exact Claim?",
-        focus_ref: {
+    const focusedRequest = {
+      request_id: "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAA",
+      task_kind: "neighborhood",
+      task_semantic_key: "scientific.research-question",
+      question: "Which accepted relationships touch this exact Claim?",
+      focus_ref: {
+        record_id: appliedPayload.claim.claim_id,
+        revision: appliedPayload.claim.revision,
+        record_hash: hash(
+          await evidence.getClaim(
+            appliedPayload.claim.claim_id,
+            appliedPayload.claim.revision,
+          ),
+        ),
+      },
+      origin: { origin_kind: "direct" },
+      project_definition_ref: {
+        project_definition_id: projectDefinition.project_definition_id,
+        revision: projectDefinition.revision,
+        content_hash: projectDefinition.content_hash,
+        record_hash: hash(projectDefinition),
+        definition_family: projectDefinition.definition_family,
+      },
+      semantic_layer: "current",
+      temporal_position: {
+        position_kind: "current",
+        dimension: "project_snapshot",
+      },
+      object_semantic_key: "scientific.claim",
+      relationship_semantic_key: "scientific.assertion",
+      return_action_semantic_key: "scientific.graph.return",
+      return_destination: {
+        destination_key: "destination:evidence",
+        destination_kind: "evidence",
+        state: "available",
+        owner: "project_relationship_view",
+        label: "Return to Evidence",
+        target_ref: {
           record_id: appliedPayload.claim.claim_id,
           revision: appliedPayload.claim.revision,
           record_hash: hash(
@@ -656,46 +687,17 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
             ),
           ),
         },
-        origin: { origin_kind: "direct" },
-        project_definition_ref: {
-          project_definition_id: projectDefinition.project_definition_id,
-          revision: projectDefinition.revision,
-          content_hash: projectDefinition.content_hash,
-          record_hash: hash(projectDefinition),
-          definition_family: projectDefinition.definition_family,
-        },
-        semantic_layer: "current",
-        temporal_position: {
-          position_kind: "current",
-          dimension: "project_snapshot",
-        },
-        object_semantic_key: "scientific.claim",
-        relationship_semantic_key: "scientific.assertion",
-        return_action_semantic_key: "scientific.graph.return",
-        return_destination: {
-          destination_key: "destination:evidence",
-          destination_kind: "evidence",
-          state: "available",
-          owner: "project_relationship_view",
-          label: "Return to Evidence",
-          target_ref: {
-            record_id: appliedPayload.claim.claim_id,
-            revision: appliedPayload.claim.revision,
-            record_hash: hash(
-              await evidence.getClaim(
-                appliedPayload.claim.claim_id,
-                appliedPayload.claim.revision,
-              ),
-            ),
-          },
-        },
-        limits: {
-          maximum_depth: 1,
-          maximum_nodes: 20,
-          maximum_relationships: 19,
-          maximum_paths: 19,
-        },
       },
+      limits: {
+        maximum_depth: 1,
+        maximum_nodes: 20,
+        maximum_relationships: 19,
+        maximum_paths: 19,
+      },
+    } satisfies FocusedGraphViewRequest;
+    const focusedGraph = await focusedGraphViews.queryFocusedGraph(
+      event.project_id,
+      focusedRequest,
     );
     expect(focusedGraph?.project_id).toBe(event.project_id);
     expect(focusedGraph?.content.semantic_layer).toBe("current");
@@ -708,6 +710,45 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
     expect(focusedGraph?.content.projection_position.state).toBe("current");
     expect(focusedGraph?.content.projection_position.pending_records).toBe(0);
     expect(focusedGraph?.content.scope.coverage).toBe("complete_for_scope");
+    const workingFocusedGraph = await focusedGraphViews.queryFocusedGraph(
+      event.project_id,
+      { ...structuredClone(focusedRequest), semantic_layer: "working" },
+    );
+    expect(workingFocusedGraph?.content.semantic_layer).toBe("working");
+    expect(workingFocusedGraph?.content.scope.included_layers).toEqual([
+      "current",
+      "working",
+    ]);
+    expect(
+      workingFocusedGraph?.content.nodes.every(
+        (node) => node.authority_position === "current_authority",
+      ),
+    ).toBe(true);
+    const historicalFocusedGraph = await focusedGraphViews.queryFocusedGraph(
+      event.project_id,
+      {
+        ...structuredClone(focusedRequest),
+        semantic_layer: "historical",
+        temporal_position: {
+          position_kind: "historical",
+          dimension: "recorded_time",
+          at: { state: "exact", value: event.recorded_at },
+        },
+        expected_snapshot: focusedGraph!.content.requested_snapshot,
+      },
+    );
+    expect(historicalFocusedGraph?.content.semantic_layer).toBe("historical");
+    expect(historicalFocusedGraph?.content.scope.included_layers).toEqual([
+      "historical",
+    ]);
+    expect(historicalFocusedGraph?.content.projection_position.state).toBe(
+      "unavailable",
+    );
+    expect(
+      historicalFocusedGraph?.content.nodes.every(
+        (node) => node.authority_position === "historical_authority",
+      ),
+    ).toBe(true);
     const neighborhood = await graph.getNeighborhood(
       event.project_id,
       appliedPayload.claim.claim_id,

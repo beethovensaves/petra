@@ -67,9 +67,10 @@ export class FocusedGraphQueryError extends Error {
 }
 
 /**
- * Exact, renderer-neutral input to the first production focused query owner.
- * Version 1 supports only a current one-hop neighborhood. Later layers,
- * expansion, comparison, and mutation entry remain separate bounded slices.
+ * Exact, renderer-neutral input to the production focused query owner. Current
+ * and working reads share the current Project position while an historical read
+ * requires one exact retained snapshot and recorded-time position. Expansion,
+ * comparison, and mutation entry remain separate bounded slices.
  */
 export interface FocusedGraphViewRequest {
   readonly request_id: string;
@@ -79,11 +80,17 @@ export interface FocusedGraphViewRequest {
   readonly focus_ref: FocusedGraphExactRef;
   readonly origin: FocusedGraphTask["origin"];
   readonly project_definition_ref: FocusedGraphProjectDefinitionRef;
-  readonly semantic_layer: "current";
-  readonly temporal_position: {
-    readonly position_kind: "current";
-    readonly dimension: "project_snapshot";
-  };
+  readonly semantic_layer: "current" | "working" | "historical";
+  readonly temporal_position:
+    | {
+        readonly position_kind: "current";
+        readonly dimension: "project_snapshot";
+      }
+    | {
+        readonly position_kind: "historical";
+        readonly dimension: "recorded_time";
+        readonly at: { readonly state: "exact"; readonly value: string };
+      };
   readonly object_semantic_key: string;
   readonly relationship_semantic_key: string;
   readonly return_action_semantic_key: string;
@@ -151,6 +158,33 @@ const snapshotInput = (
   Number(value.event_position) >= 0 &&
   typeof value.content_hash === "string" &&
   HASH_PATTERN.test(value.content_hash);
+
+const temporalPositionInput = (
+  value: unknown,
+): value is FocusedGraphViewRequest["temporal_position"] => {
+  if (!isRecord(value) || typeof value.position_kind !== "string") return false;
+  if (value.position_kind === "current") {
+    return (
+      exactKeys(value, ["position_kind", "dimension"]) &&
+      value.dimension === "project_snapshot"
+    );
+  }
+  if (
+    value.position_kind !== "historical" ||
+    !exactKeys(value, ["position_kind", "dimension", "at"]) ||
+    value.dimension !== "recorded_time" ||
+    !isRecord(value.at) ||
+    !exactKeys(value.at, ["state", "value"]) ||
+    value.at.state !== "exact" ||
+    typeof value.at.value !== "string"
+  ) {
+    return false;
+  }
+  const parsed = Date.parse(value.at.value);
+  return (
+    Number.isFinite(parsed) && new Date(parsed).toISOString() === value.at.value
+  );
+};
 
 const definitionRefInput = (
   value: unknown,
@@ -301,22 +335,28 @@ export const parseFocusedGraphViewRequest = (
     !exactRefInput(value.focus_ref) ||
     !originInput(value.origin) ||
     !definitionRefInput(value.project_definition_ref) ||
-    value.semantic_layer !== "current" ||
-    !isRecord(value.temporal_position) ||
-    !exactKeys(value.temporal_position, ["position_kind", "dimension"]) ||
-    value.temporal_position.position_kind !== "current" ||
-    value.temporal_position.dimension !== "project_snapshot" ||
+    !["current", "working", "historical"].includes(
+      String(value.semantic_layer),
+    ) ||
+    !temporalPositionInput(value.temporal_position) ||
+    ((value.semantic_layer === "current" ||
+      value.semantic_layer === "working") &&
+      value.temporal_position.position_kind !== "current") ||
+    (value.semantic_layer === "historical" &&
+      value.temporal_position.position_kind !== "historical") ||
     !semantic(value.object_semantic_key) ||
     !semantic(value.relationship_semantic_key) ||
     !semantic(value.return_action_semantic_key) ||
     !destinationInput(value.return_destination) ||
     !limitsInput(value.limits) ||
     (value.expected_snapshot !== undefined &&
-      !snapshotInput(value.expected_snapshot))
+      !snapshotInput(value.expected_snapshot)) ||
+    (value.semantic_layer === "historical" &&
+      value.expected_snapshot === undefined)
   ) {
     throw new FocusedGraphQueryError(
       "FOCUSED_GRAPH_QUERY_INVALID",
-      "A focused graph query requires one exact registered current neighborhood request.",
+      "A focused graph query requires one exact registered current, working, or retained historical neighborhood request.",
     );
   }
   return structuredClone(value) as unknown as FocusedGraphViewRequest;

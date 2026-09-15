@@ -284,7 +284,7 @@ describe("FocusedGraphViewContractResolver", () => {
 });
 
 describe("focused graph query request boundary", () => {
-  it("accepts only the current finite one-hop request and rejects renderer controls", () => {
+  it("accepts distinct current, working, and exact historical one-hop requests and rejects renderer controls", () => {
     const { definition, view } = fixture();
     const request = {
       request_id: view.content.task.request_id,
@@ -311,6 +311,23 @@ describe("focused graph query request boundary", () => {
       },
     };
     expect(parseFocusedGraphViewRequest(request)).toEqual(request);
+    expect(
+      parseFocusedGraphViewRequest({
+        ...request,
+        semantic_layer: "working",
+      }),
+    ).toEqual({ ...request, semantic_layer: "working" });
+    const historical = {
+      ...request,
+      semantic_layer: "historical",
+      temporal_position: {
+        position_kind: "historical",
+        dimension: "recorded_time",
+        at: { state: "exact", value: "2026-09-15T20:00:00.000Z" },
+      },
+      expected_snapshot: view.content.requested_snapshot,
+    };
+    expect(parseFocusedGraphViewRequest(historical)).toEqual(historical);
     expect(definition.content.supported_places).toContain("graph");
 
     expect(() =>
@@ -322,6 +339,23 @@ describe("focused graph query request boundary", () => {
       parseFocusedGraphViewRequest({
         ...request,
         limits: { ...request.limits, maximum_depth: 2 },
+      }),
+    ).toThrowError(
+      expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
+    );
+    expect(() =>
+      parseFocusedGraphViewRequest({
+        ...historical,
+        expected_snapshot: undefined,
+      }),
+    ).toThrowError(
+      expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
+    );
+    expect(() =>
+      parseFocusedGraphViewRequest({
+        ...request,
+        semantic_layer: "current",
+        temporal_position: historical.temporal_position,
       }),
     ).toThrowError(
       expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
