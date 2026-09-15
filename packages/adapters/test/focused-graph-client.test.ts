@@ -143,7 +143,17 @@ const setup = (): {
   view.content.task.origin = { origin_kind: "direct" };
   const destination = view.content.destinations[1]!;
   view.content.task.return_destination_key = destination.destination_key;
-  view.content.destinations = [destination];
+  view.content.destinations = [
+    destination,
+    {
+      destination_key: "destination:source-unavailable:node:claim-b",
+      destination_kind: "source_inspection",
+      state: "unavailable",
+      owner: "project_object_location_view",
+      label: "Source location unavailable",
+      reason: "No direct SourceSpan location is recorded for this Claim.",
+    },
+  ];
   view.content.actions = [
     {
       action_key: "action:scientific:graph:return",
@@ -245,6 +255,18 @@ describe("FocusedGraphClient", () => {
     corrupt.content.nodes[0]!.label = "Changed outside the content hash";
     transport.mockImplementationOnce(() =>
       Promise.resolve(Response.json(corrupt)),
+    );
+    await expect(client.read(definition.project_id, request)).rejects.toEqual(
+      expect.any(FocusedGraphClientError),
+    );
+
+    const duplicateReturn = structuredClone(view);
+    duplicateReturn.content.destinations.push(
+      structuredClone(request.return_destination),
+    );
+    duplicateReturn.content_hash = hash(duplicateReturn.content);
+    transport.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(duplicateReturn)),
     );
     await expect(client.read(definition.project_id, request)).rejects.toEqual(
       expect.any(FocusedGraphClientError),
