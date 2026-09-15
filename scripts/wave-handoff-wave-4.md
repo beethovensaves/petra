@@ -322,6 +322,11 @@ executed-evidence gaps in `UX1.4-EV01`, `UX1.4-EV02`, and `UX1.4-EV04`.
 Complete the following four slices in order. Do not reopen covered EV03, EV05,
 or amended EV06 work unless new exact evidence contradicts it.
 
+The frozen scenario inventory is
+`scripts/wave-handoff-wave-4.evidence.json`. Every slice must return its
+executed named records under the coordinator's evidence control. Slice 52 is
+the inventory audit and slices 53–56 are the reserved remediation sequence.
+
 The item-49 external-model execution remains the sole provider evidence. Do not
 repeat the provider call. A provider-free browser continuation may recreate the
 already-proven item-49 records as fresh-store test setup only when their stable
@@ -351,7 +356,9 @@ routes. Do not invoke VoiceOver or another screen reader.
     Preserve complete text, origin and model provenance, keyboard/focus,
     non-color meaning, and human-only authority. State that the external model
     ran only in item 49. Run the item-50 browser gate and complete repository
-    gate, then commit and push one coherent evidence slice.
+    gate, then commit and push one coherent evidence slice. Return one passed
+    coordinator evidence record for each of the six invoked sidecar scenarios;
+    a helper that exists but was not called remains missing.
 55. **Backend — final adversarial reconciliation.** Reconcile items 49, 53, and
     54 against the remaining EV01, EV02, and EV04 rows. Reject any caller-label,
     fixture-response, fabricated-provider, cross-Project, duplicate-effect,

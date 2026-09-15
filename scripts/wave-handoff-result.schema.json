@@ -30,6 +30,47 @@
         "type": "string"
       }
     },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scenario_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": ["passed"]
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact": {
+            "type": "string",
+            "minLength": 1
+          },
+          "boundary": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "evidence_id",
+          "scenario_id",
+          "status",
+          "command",
+          "artifact",
+          "boundary"
+        ],
+        "additionalProperties": false
+      }
+    },
     "next_safe_boundary": {
       "type": "string"
     },
@@ -51,6 +92,7 @@
     "commit",
     "counterpart_commit",
     "verification",
+    "evidence",
     "next_safe_boundary",
     "handoff_prompt",
     "wave_exit_assessment",

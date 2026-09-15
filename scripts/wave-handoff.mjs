@@ -243,8 +243,128 @@ function wavePlanPath(wave) {
   return join(backendRoot, `scripts/wave-handoff-wave-${wave}.md`);
 }
 
+function waveEvidencePlanPath(wave) {
+  return join(backendRoot, `scripts/wave-handoff-wave-${wave}.evidence.json`);
+}
+
 function planDigest(plan) {
   return `sha256:${createHash("sha256").update(plan).digest("hex")}`;
+}
+
+function nonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function evidenceKey(record) {
+  return `${record.evidence_id}::${record.scenario_id}`;
+}
+
+export function validateEvidencePlan(plan, { wave, maxSlices }) {
+  if (plan === null || typeof plan !== "object" || Array.isArray(plan)) {
+    throw new Error("Wave evidence plan must be an object.");
+  }
+  if (plan.schema_version !== 1 || plan.wave !== String(wave)) {
+    throw new Error(
+      `Wave ${wave} evidence plan has the wrong version or wave.`,
+    );
+  }
+  if (!Array.isArray(plan.required) || plan.required.length === 0) {
+    throw new Error(`Wave ${wave} evidence plan must name required scenarios.`);
+  }
+  const inventory = plan.inventory_audit;
+  if (
+    inventory === null ||
+    typeof inventory !== "object" ||
+    Array.isArray(inventory) ||
+    !Number.isSafeInteger(inventory.required_by_completed_slice) ||
+    inventory.required_by_completed_slice < 1 ||
+    !Number.isSafeInteger(plan.remediation_reserve_slices) ||
+    plan.remediation_reserve_slices < 2 ||
+    inventory.required_by_completed_slice + plan.remediation_reserve_slices >
+      maxSlices
+  ) {
+    throw new Error(
+      `Wave ${wave} evidence plan must reserve at least two slices after its inventory audit.`,
+    );
+  }
+
+  const requirements = [inventory, ...plan.required];
+  const keys = new Set();
+  for (const requirement of requirements) {
+    if (
+      !nonEmptyString(requirement.evidence_id) ||
+      !nonEmptyString(requirement.scenario_id) ||
+      !nonEmptyString(requirement.description) ||
+      !["backend", "design", "either"].includes(requirement.owner)
+    ) {
+      throw new Error(`Wave ${wave} has an invalid evidence requirement.`);
+    }
+    const key = evidenceKey(requirement);
+    if (keys.has(key)) {
+      throw new Error(`Wave ${wave} repeats evidence requirement ${key}.`);
+    }
+    keys.add(key);
+  }
+  return plan;
+}
+
+function readEvidencePlan(wave, maxSlices) {
+  const path = waveEvidencePlanPath(wave);
+  if (!existsSync(path)) {
+    if (Number.parseInt(wave, 10) >= 5) {
+      throw new Error(
+        `Wave ${wave} requires a scenario evidence plan before initialization: ${path}`,
+      );
+    }
+    return undefined;
+  }
+  return validateEvidencePlan(JSON.parse(readFileSync(path, "utf8")), {
+    wave,
+    maxSlices,
+  });
+}
+
+function evidenceRequirements(plan) {
+  return plan ? [plan.inventory_audit, ...plan.required] : [];
+}
+
+export function missingRequiredEvidence(plan, evidence = []) {
+  if (!plan) return [];
+  const passed = new Set(
+    evidence
+      .filter((record) => record.status === "passed")
+      .map((record) => evidenceKey(record)),
+  );
+  return evidenceRequirements(plan).filter(
+    (requirement) => !passed.has(evidenceKey(requirement)),
+  );
+}
+
+export function inventoryAuditOverdue(plan, evidence = [], sliceCount) {
+  if (!plan || sliceCount < plan.inventory_audit.required_by_completed_slice) {
+    return false;
+  }
+  return missingRequiredEvidence(plan, evidence).some(
+    (requirement) =>
+      evidenceKey(requirement) === evidenceKey(plan.inventory_audit),
+  );
+}
+
+export function enforceCompletionDisposition(disposition, plan, evidence = []) {
+  return disposition === "wave_complete" &&
+    missingRequiredEvidence(plan, evidence).length > 0
+    ? "handoff"
+    : disposition;
+}
+
+function mergeEvidence(existing = [], additions = [], metadata = {}) {
+  const merged = new Map(
+    existing.map((record) => [evidenceKey(record), record]),
+  );
+  for (const record of additions) {
+    merged.set(evidenceKey(record), { ...record, ...metadata });
+  }
+  return [...merged.values()];
 }
 
 export function initialHandoff(wave, backendCommit, designCommit) {
@@ -259,19 +379,24 @@ function createInitialState(wave, maxSlices) {
     );
   }
   const plan = readFileSync(planPath, "utf8");
+  const evidencePlan = readEvidencePlan(wave, maxSlices);
   const backend = repositorySnapshot("backend");
   const design = repositorySnapshot("design");
   requireCleanAndPushed("backend", backend);
   requireCleanAndPushed("design", design);
   const now = new Date().toISOString();
   return {
-    schema_version: 1,
+    schema_version: 2,
     wave,
     status: "waiting",
     next_role: "backend",
     slice_count: 0,
     max_slices: maxSlices,
     plan_digest: planDigest(plan),
+    evidence_plan_digest: evidencePlan
+      ? planDigest(JSON.stringify(evidencePlan))
+      : null,
+    evidence: [],
     commits: { backend: backend.head, design: design.head },
     handoff_prompt: initialHandoff(wave, backend.head, design.head),
     active: null,
@@ -317,6 +442,30 @@ export function validateWorkerResult(result, expected) {
   if (!Array.isArray(result.verification)) {
     throw new Error("Worker verification must be an array.");
   }
+  if (!Array.isArray(result.evidence)) {
+    throw new Error("Worker evidence must be an array.");
+  }
+  const evidenceKeys = new Set();
+  for (const record of result.evidence) {
+    if (
+      record === null ||
+      typeof record !== "object" ||
+      Array.isArray(record) ||
+      !nonEmptyString(record.evidence_id) ||
+      !nonEmptyString(record.scenario_id) ||
+      record.status !== "passed" ||
+      !nonEmptyString(record.command) ||
+      !nonEmptyString(record.artifact) ||
+      !nonEmptyString(record.boundary)
+    ) {
+      throw new Error("Worker evidence contains an invalid execution record.");
+    }
+    const key = evidenceKey(record);
+    if (evidenceKeys.has(key)) {
+      throw new Error(`Worker evidence repeats ${key}.`);
+    }
+    evidenceKeys.add(key);
+  }
   if (
     result.disposition === "handoff" &&
     result.handoff_prompt.trim().length === 0
@@ -345,11 +494,29 @@ export function buildWorkerPrompt({
   counterpartCommit,
   handoff,
   plan,
+  evidencePlan,
+  recordedEvidence = [],
 }) {
   const roleBoundary =
     role === "backend"
       ? "You own backend runtime contracts, authority, persistence, APIs, typed clients, tests, and implementation reports on main. Do not modify frozen React components, CSS, or browser routes unless the design handoff explicitly authorizes one bounded integration. You may update renderer-neutral typed client code and its tests when required."
       : "You own freeze-conformance reports and, only when the handoff explicitly requests integration, frozen frontend components, routes, fixtures, accessibility, and interaction tests on design/m1-ux. The coordinator merges required backend history into design/m1-ux before your slice. Inherited backend files remain backend-owned; their presence in your branch is not a design edit, and you must not rewrite or revert them. Do not edit backend contracts, server code, persistence, migrations, or backend authority. Leave the known untracked image and PDF untouched.";
+
+  const requirements = evidenceRequirements(evidencePlan);
+  const recorded = new Set(
+    recordedEvidence.map((record) => evidenceKey(record)),
+  );
+  const evidenceControl = evidencePlan
+    ? `\nEXECUTED EVIDENCE CONTROL\nThe frozen evidence plan requires ${requirements.length} scenario records. ${recorded.size} are currently recorded. The inventory audit is due by completed slice ${evidencePlan.inventory_audit.required_by_completed_slice}, leaving ${evidencePlan.remediation_reserve_slices} remediation slices. A helper, test case, route, fixture, report, or scenario definition that was not invoked is not evidence. Return an evidence entry only for a named scenario actually executed in this slice. Each entry must name its command, retained artifact, and honest boundary. A completion claim is rejected while any required scenario lacks a passed record.\n\nOutstanding records:\n${missingRequiredEvidence(
+        evidencePlan,
+        recordedEvidence,
+      )
+        .map(
+          (requirement) =>
+            `- ${requirement.evidence_id}/${requirement.scenario_id} (${requirement.owner}): ${requirement.description}`,
+        )
+        .join("\n")}\n`
+    : "";
 
   return `You are Petra's unattended ${role} worker for Wave ${wave}.
 
@@ -364,7 +531,9 @@ For a completed slice, run proportionate focused checks, the complete repository
 
 If a consequential product, architecture, authority, information-hierarchy, or freeze decision is unresolved, make no partial commit and return needs_user. If a required gate, service, authorization, push, branch, worktree, or usage limit prevents safe completion, return blocked. Never label partial or unverified work complete.
 
-Your final response must be only the JSON object required by the supplied output schema. Use the full 40-character HEAD in commit and the exact supplied counterpart commit in counterpart_commit. For handoff, write a complete next-turn prompt for the other role. For needs_user or blocked, explain the exact intervention in user_attention. Declare wave_complete only under the packet's full exit rule.
+Your final response must be only the JSON object required by the supplied output schema. Use the full 40-character HEAD in commit and the exact supplied counterpart commit in counterpart_commit. Return evidence as an array; use an empty array when this slice executed no named evidence-plan scenario. For handoff, write a complete next-turn prompt for the other role. For needs_user or blocked, explain the exact intervention in user_attention. Declare wave_complete only under the packet's full exit rule.
+
+${evidenceControl}
 
 COUNTERPART HANDOFF
 ${handoff}
@@ -446,6 +615,13 @@ async function runCodexWorker({ role, wave, state }) {
   if (planDigest(plan) !== state.plan_digest) {
     throw new Error("The Wave packet changed after initialization.");
   }
+  const evidencePlan = readEvidencePlan(wave, state.max_slices);
+  const evidencePlanDigest = evidencePlan
+    ? planDigest(JSON.stringify(evidencePlan))
+    : null;
+  if (evidencePlanDigest !== (state.evidence_plan_digest ?? null)) {
+    throw new Error("The Wave evidence plan changed after initialization.");
+  }
   const otherRole = role === "backend" ? "design" : "backend";
   const prompt = buildWorkerPrompt({
     role,
@@ -454,6 +630,8 @@ async function runCodexWorker({ role, wave, state }) {
     counterpartCommit: state.commits[otherRole],
     handoff: state.handoff_prompt,
     plan,
+    evidencePlan,
+    recordedEvidence: state.evidence ?? [],
   });
   writeFileSync(promptPath, `${prompt}\n`, "utf8");
 
@@ -526,6 +704,12 @@ function stateSummary(state) {
     );
   }
   if (state.stop_reason) lines.push(`Reason: ${state.stop_reason}`);
+  if (state.evidence_plan_digest) {
+    const evidencePlan = readEvidencePlan(state.wave, state.max_slices);
+    const total = evidenceRequirements(evidencePlan).length;
+    const missing = missingRequiredEvidence(evidencePlan, state.evidence ?? []);
+    lines.push(`Executed evidence: ${total - missing.length}/${total}`);
+  }
   const latest = state.history.at(-1);
   if (latest) {
     lines.push(`Last slice: ${latest.role}/${latest.slice_id}`);
@@ -551,6 +735,21 @@ async function claimTurn(wave, role) {
     const state = readState(wave);
     if (!state || state.status !== "waiting" || state.next_role !== role) {
       return undefined;
+    }
+    const evidencePlan = readEvidencePlan(wave, state.max_slices);
+    if (evidencePlan) {
+      if (
+        inventoryAuditOverdue(evidencePlan, state.evidence, state.slice_count)
+      ) {
+        state.status = "stopped";
+        state.stop_reason =
+          `Evidence inventory audit was not recorded by slice ` +
+          `${evidencePlan.inventory_audit.required_by_completed_slice}; ` +
+          `${evidencePlan.remediation_reserve_slices} remediation slices were reserved.`;
+        state.updated_at = new Date().toISOString();
+        writeJsonAtomic(statePath(wave), state);
+        return undefined;
+      }
     }
     if (state.slice_count >= state.max_slices) {
       state.status = "stopped";
@@ -678,6 +877,7 @@ async function markFailure(wave, role, error) {
 async function finalizeTurn(wave, role, claimedState, worker) {
   const otherRole = role === "backend" ? "design" : "backend";
   const result = worker.result;
+  const evidencePlan = readEvidencePlan(wave, claimedState.max_slices);
   const own = repositorySnapshot(role);
   const counterpart = repositorySnapshot(otherRole);
 
@@ -690,6 +890,30 @@ async function finalizeTurn(wave, role, claimedState, worker) {
     throw new Error(
       `Worker reported ${result.commit}, but ${role} HEAD is ${own.head}.`,
     );
+  }
+
+  if (evidencePlan) {
+    const requirements = new Map(
+      evidenceRequirements(evidencePlan).map((requirement) => [
+        evidenceKey(requirement),
+        requirement,
+      ]),
+    );
+    for (const record of result.evidence) {
+      const requirement = requirements.get(evidenceKey(record));
+      if (!requirement) {
+        throw new Error(
+          `Worker reported unplanned evidence ${evidenceKey(record)}.`,
+        );
+      }
+      if (requirement.owner !== "either" && requirement.owner !== role) {
+        throw new Error(
+          `${role} cannot satisfy ${evidenceKey(record)} owned by ${requirement.owner}.`,
+        );
+      }
+    }
+  } else if (result.evidence.length > 0) {
+    throw new Error("Worker reported evidence without a frozen evidence plan.");
   }
 
   const completed = ["handoff", "wave_complete"].includes(result.disposition);
@@ -710,18 +934,42 @@ async function finalizeTurn(wave, role, claimedState, worker) {
       throw new Error("Handoff ownership changed before completion.");
     }
     const timestamp = new Date().toISOString();
+    state.evidence = mergeEvidence(state.evidence, result.evidence, {
+      role,
+      commit: result.commit,
+      run_id: worker.runId,
+      completed_at: timestamp,
+    });
+    const missingEvidence = missingRequiredEvidence(
+      evidencePlan,
+      state.evidence,
+    );
+    const disposition = enforceCompletionDisposition(
+      result.disposition,
+      evidencePlan,
+      state.evidence,
+    );
+    const completionRejected = disposition !== result.disposition;
+    const evidenceRejection = completionRejected
+      ? `Coordinator rejected wave completion; missing executed evidence: ${missingEvidence
+          .map((requirement) => evidenceKey(requirement))
+          .join(", ")}.`
+      : "";
     state.active = null;
     state.updated_at = timestamp;
     state.history.push({
       role,
-      disposition: result.disposition,
+      disposition,
+      requested_disposition: result.disposition,
       slice_id: result.slice_id,
       summary: result.summary,
       commit: result.commit,
       counterpart_commit: result.counterpart_commit,
       verification: result.verification,
       next_safe_boundary: result.next_safe_boundary,
-      wave_exit_assessment: result.wave_exit_assessment,
+      wave_exit_assessment: evidenceRejection
+        ? `${result.wave_exit_assessment} ${evidenceRejection}`.trim()
+        : result.wave_exit_assessment,
       user_attention: result.user_attention,
       commit_changed: commitChanged,
       run_id: worker.runId,
@@ -732,12 +980,14 @@ async function finalizeTurn(wave, role, claimedState, worker) {
       state.commits[role] = own.head;
       state.slice_count += 1;
     }
-    if (result.disposition === "handoff") {
+    if (disposition === "handoff") {
       state.status = "waiting";
       state.next_role = otherRole;
-      state.handoff_prompt = result.handoff_prompt;
+      state.handoff_prompt = completionRejected
+        ? `${evidenceRejection} Execute only the outstanding frozen evidence-plan scenarios, then repeat the role-owned closure audit.`
+        : result.handoff_prompt;
       state.stop_reason = "";
-    } else if (result.disposition === "wave_complete") {
+    } else if (disposition === "wave_complete") {
       state.status = "complete";
       state.next_role = null;
       state.handoff_prompt = "";
@@ -838,7 +1088,7 @@ async function workerLoop({ role, wave, maxSlices }) {
   }
 }
 
-function doctor(wave) {
+function doctor(wave, maxSlices) {
   if (process.versions.node.split(".")[0] !== "24") {
     throw new Error(`Node 24 is required; found ${process.version}.`);
   }
@@ -848,12 +1098,19 @@ function doctor(wave) {
   if (!existsSync(wavePlanPath(wave))) {
     throw new Error(`Missing Wave ${wave} packet: ${wavePlanPath(wave)}`);
   }
+  const state = readState(wave);
+  const evidencePlan = readEvidencePlan(wave, state?.max_slices ?? maxSlices);
+  if (state && evidencePlan) {
+    const digest = planDigest(JSON.stringify(evidencePlan));
+    if (digest !== state.evidence_plan_digest) {
+      throw new Error("The Wave evidence plan differs from initialized state.");
+    }
+  }
   const backend = repositorySnapshot("backend");
   const design = repositorySnapshot("design");
   requireCleanAndPushed("backend", backend);
   requireCleanAndPushed("design", design);
   const version = run(codexExecutable(), ["--version"], backendRoot);
-  const state = readState(wave);
   const nextWorker =
     state?.status === "waiting"
       ? state.next_role
@@ -907,7 +1164,7 @@ async function main() {
   if (options.command === "worker") {
     process.exitCode = await workerLoop(options);
   } else if (options.command === "doctor") {
-    doctor(options.wave);
+    doctor(options.wave, options.maxSlices);
   } else if (options.command === "status") {
     process.stdout.write(`${stateSummary(readState(options.wave))}\n`);
   } else if (options.command === "stop") {

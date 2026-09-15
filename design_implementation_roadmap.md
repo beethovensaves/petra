@@ -1333,6 +1333,24 @@ Post-freeze fixtures use Petra's canonical IDs and runtime shapes. When a runtim
 
 Usability numbers describe observed behavior; they do not become universal product truths. Petra may later adopt quantitative exit thresholds after the pilot protocol defines the task, population, environment, and tolerance. Until then, a severe provenance, authority, accessibility, or lost-work failure blocks validation even if an average task metric looks favorable.
 
+### Automated wave execution evidence
+
+`UX1.5` through `UX1.8` and later automated design waves must translate every
+applicable completion-evidence row into the frozen scenario sidecar defined in
+`scripts/wave-evidence-policy.md` before a wave starts. Compound rows are split
+into independently executable scenarios, including their named ordinary,
+adverse, recovery, profile, provenance, authority, responsive, and
+accessibility conditions.
+
+A scenario counts only after its actual command runs and a retained artifact
+records the exact commit and honest boundary. The existence of a fixture,
+helper, route, test case, or report does not establish execution. An inventory
+audit must reconcile this roadmap, the wave packet, accepted scope changes,
+the invoked commands, and the retained artifacts before the remediation
+reserve begins. Later slices repair the identified gaps and repeat the
+adversarial and final design audits. The coordinator cannot close a wave while
+the frozen sidecar contains an unexecuted scenario.
+
 ## Cross-roadmap request path
 
 Design must not solve missing architecture inside a component. A request uses `UX-REQ-NNN` and records:

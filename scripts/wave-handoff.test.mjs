@@ -7,13 +7,47 @@ import Ajv2020 from "ajv/dist/2020.js";
 import {
   buildCodexExecArguments,
   buildWorkerPrompt,
+  enforceCompletionDisposition,
   initialHandoff,
+  inventoryAuditOverdue,
+  missingRequiredEvidence,
   parseArguments,
   parsePorcelainZ,
   unexpectedChanges,
+  validateEvidencePlan,
   validateCommitTransition,
   validateWorkerResult,
 } from "./wave-handoff.mjs";
+
+const evidencePlan = {
+  schema_version: 1,
+  wave: "5",
+  inventory_audit: {
+    evidence_id: "WAVE5-EVIDENCE-CONTROL",
+    scenario_id: "inventory-audit",
+    owner: "design",
+    description: "Reconcile planned and executed evidence.",
+    required_by_completed_slice: 6,
+  },
+  remediation_reserve_slices: 2,
+  required: [
+    {
+      evidence_id: "UX1.5-EV03",
+      scenario_id: "graph-keyboard-path",
+      owner: "design",
+      description: "Execute the keyboard graph path.",
+    },
+  ],
+};
+
+const evidenceRecord = {
+  evidence_id: "UX1.5-EV03",
+  scenario_id: "graph-keyboard-path",
+  status: "passed",
+  command: "npm run test:wave5:browser",
+  artifact: "reports/WAVE5-GRAPH-EVIDENCE.md",
+  boundary: "Headless Chrome with production clients and live routes.",
+};
 
 test("uses automatic approval review without a conflicting sandbox flag", () => {
   const args = buildCodexExecArguments({
@@ -84,6 +118,7 @@ test("rejects an incomplete or cross-commit worker handoff", () => {
     commit,
     counterpart_commit: counterpart,
     verification: ["npm run verify"],
+    evidence: [],
     next_safe_boundary: "Design mapping.",
     handoff_prompt: "Review the exact backend commit.",
     wave_exit_assessment: "Still open.",
@@ -146,6 +181,7 @@ test("the handoff output schema accepts the complete result", () => {
       commit: "a".repeat(40),
       counterpart_commit: "b".repeat(40),
       verification: ["npm run verify"],
+      evidence: [],
       next_safe_boundary: "Backend invocation slice.",
       handoff_prompt: "Implement the next bounded backend slice.",
       wave_exit_assessment: "The exit gate remains open.",
@@ -153,6 +189,94 @@ test("the handoff output schema accepts the complete result", () => {
     }),
     true,
     JSON.stringify(validate.errors),
+  );
+});
+
+test("validates the frozen evidence plan and enforces its audit reserve", () => {
+  assert.equal(
+    validateEvidencePlan(evidencePlan, { wave: "5", maxSlices: 8 }),
+    evidencePlan,
+  );
+  assert.throws(
+    () =>
+      validateEvidencePlan(
+        { ...evidencePlan, remediation_reserve_slices: 1 },
+        { wave: "5", maxSlices: 8 },
+      ),
+    /reserve at least two slices/,
+  );
+  assert.throws(
+    () => validateEvidencePlan(evidencePlan, { wave: "5", maxSlices: 7 }),
+    /reserve at least two slices/,
+  );
+});
+
+test("tracks scenario execution and rejects premature completion", () => {
+  assert.deepEqual(missingRequiredEvidence(evidencePlan, []), [
+    evidencePlan.inventory_audit,
+    evidencePlan.required[0],
+  ]);
+  assert.equal(inventoryAuditOverdue(evidencePlan, [], 5), false);
+  assert.equal(inventoryAuditOverdue(evidencePlan, [], 6), true);
+  assert.equal(
+    enforceCompletionDisposition("wave_complete", evidencePlan, [
+      evidenceRecord,
+    ]),
+    "handoff",
+  );
+  const completeEvidence = [
+    {
+      ...evidenceRecord,
+      evidence_id: "WAVE5-EVIDENCE-CONTROL",
+      scenario_id: "inventory-audit",
+    },
+    evidenceRecord,
+  ];
+  assert.equal(inventoryAuditOverdue(evidencePlan, completeEvidence, 6), false);
+  assert.equal(
+    enforceCompletionDisposition(
+      "wave_complete",
+      evidencePlan,
+      completeEvidence,
+    ),
+    "wave_complete",
+  );
+});
+
+test("worker evidence requires an invoked command, artifact, and boundary", () => {
+  const commit = "a".repeat(40);
+  const counterpart = "b".repeat(40);
+  const valid = {
+    role: "design",
+    disposition: "handoff",
+    slice_id: "wave5-graph-evidence",
+    summary: "Executed one planned scenario.",
+    commit,
+    counterpart_commit: counterpart,
+    verification: ["npm run verify"],
+    evidence: [evidenceRecord],
+    next_safe_boundary: "Reconcile the evidence inventory.",
+    handoff_prompt: "Run the evidence inventory audit.",
+    wave_exit_assessment: "One scenario remains.",
+    user_attention: "",
+  };
+  assert.equal(
+    validateWorkerResult(valid, {
+      role: "design",
+      counterpartCommit: counterpart,
+    }),
+    valid,
+  );
+  assert.throws(
+    () =>
+      validateWorkerResult(
+        {
+          ...valid,
+          evidence: [{ ...evidenceRecord, command: "" }],
+        },
+        { role: "design", counterpartCommit: counterpart },
+      ),
+    /invalid execution record/,
   );
 });
 
@@ -175,4 +299,21 @@ test("worker prompt fixes one-slice, commit, role, and stop boundaries", () => {
   assert.match(prompt, /Do not edit backend contracts/);
   assert.match(prompt, /return needs_user/);
   assert.match(prompt, /Map the exact backend slice/);
+});
+
+test("worker prompt distinguishes planned helpers from executed evidence", () => {
+  const prompt = buildWorkerPrompt({
+    role: "design",
+    wave: "5",
+    ownCommit: "a".repeat(40),
+    counterpartCommit: "b".repeat(40),
+    handoff: "Execute the graph keyboard path.",
+    plan: "Exit only with executed evidence.",
+    evidencePlan,
+    recordedEvidence: [],
+  });
+  assert.match(prompt, /EXECUTED EVIDENCE CONTROL/);
+  assert.match(prompt, /was not invoked is not evidence/);
+  assert.match(prompt, /UX1\.5-EV03\/graph-keyboard-path/);
+  assert.match(prompt, /completion claim is rejected/);
 });
