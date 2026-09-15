@@ -69,6 +69,14 @@ Allowed roadmap statuses are:
 
 Completion is evidence-based. “Code exists” is not a completion status unless the slice's acceptance criteria pass.
 
+Automated waves also follow `scripts/wave-evidence-policy.md`. Before a new
+wave initializes, its packet must have a frozen scenario sidecar that decomposes
+every named exit proof into executable records. Workers report only scenarios
+they actually invoked, with the command, retained artifact, exact commit, and
+evidence boundary. A mid-wave inventory audit is mandatory and leaves a
+remediation reserve; the coordinator stops at a missed audit and does not
+accept `wave_complete` while any planned scenario lacks a passed record.
+
 ## M1 at a glance
 
 | ID | Status | What Petra builds | Why Petra needs it now | Depends on | Completion evidence |

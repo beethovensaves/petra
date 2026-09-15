@@ -313,6 +313,67 @@ inspection as substitutes for the named live paths.
     when both branches are pushed, the exact exit gate is live, and every
     remaining limitation is explicitly later-wave scope.
 
+## Fixed evidence-remediation sequence after slice 52
+
+The verified anchors are backend
+`b570e6d6218e3b35760f3cdbd37c7fc5c5fbb013` and design
+`ec3bf18e316c209ccb318b60f3fcbe1f59a4c1a5`. The item-52 audit leaves only
+executed-evidence gaps in `UX1.4-EV01`, `UX1.4-EV02`, and `UX1.4-EV04`.
+Complete the following four slices in order. Do not reopen covered EV03, EV05,
+or amended EV06 work unless new exact evidence contradicts it.
+
+The frozen scenario inventory is
+`scripts/wave-handoff-wave-4.evidence.json`. Every slice must return its
+executed named records under the coordinator's evidence control. Slice 52 is
+the inventory audit and slices 53–56 are the reserved remediation sequence.
+
+The item-49 external-model execution remains the sole provider evidence. Do not
+repeat the provider call. A provider-free browser continuation may recreate the
+already-proven item-49 records as fresh-store test setup only when their stable
+candidate, Review, ModelCall, Actor, provenance, and revision identities match
+the published item-49 evidence. Label that setup as presentation continuation,
+never as a new provider execution or retained database. Send every demonstrated
+read and mutation through production clients, controllers, server routes, and
+canonical owners; do not substitute response fixtures or test-only product
+routes. Do not invoke VoiceOver or another screen reader.
+
+53. **Backend — exact continuation and adverse-state support.** Add the smallest
+    backend-owned fresh-store evidence support needed to continue the exact
+    item-49 candidate and Review identities without provider egress and to stage
+    limited-basis, projection-lag, and governed command-failure states through
+    existing production owners. Preserve the published model provenance and
+    human-only Apply authority. Do not invent a provider request, add a new
+    replay ledger, weaken integrity checks, or add test-only server behavior.
+    Prove cross-Project rejection, exact-current guards, idempotency, and failure
+    isolation. Run focused checks, the complete gate, and fresh PostgreSQL
+    integration; commit and push before handing off item 54. If the existing
+    owners cannot support an honest continuation, return the precise blocker.
+54. **Design — execute the missing browser recordings.** Use the exact item-53
+    support and existing item-50 helpers through the production workbench to
+    execute the paired-profile natural-conversation presentation, corrected and
+    blocked Review, stale Review before refresh, limited-basis Review,
+    projection lag, and a governed command failure with explicit recovery.
+    Preserve complete text, origin and model provenance, keyboard/focus,
+    non-color meaning, and human-only authority. State that the external model
+    ran only in item 49. Run the item-50 browser gate and complete repository
+    gate, then commit and push one coherent evidence slice. Return one passed
+    coordinator evidence record for each of the six invoked sidecar scenarios;
+    a helper that exists but was not called remains missing.
+55. **Backend — final adversarial reconciliation.** Reconcile items 49, 53, and
+    54 against the remaining EV01, EV02, and EV04 rows. Reject any caller-label,
+    fixture-response, fabricated-provider, cross-Project, duplicate-effect,
+    stale-replay, implicit-authority, or unsupported-completeness claim. Fix
+    backend-owned findings only, run the complete gate and fresh PostgreSQL
+    integration, and push the exact closure assessment. Do not declare Wave 4
+    complete.
+56. **Design — final executed UX and Felicity audit.** Re-run the material
+    provider-free production-browser recordings from item 54, inspect all Wave
+    4 reports and user-facing claims with Felicity, and assess every
+    `UX1.4-EV01`–`EV06` row only from exact pushed evidence. Do not invoke a
+    screen reader or external model. Fix design-owned findings, run the complete
+    gate, commit and push, and declare `wave_complete` only if every row is
+    materially covered within its stated boundary.
+
 If a slice finishes without changing its role-owned files, commit its required
 conformance or evidence report. The report must name exact commits, executed
 checks, and limits; it must not serve as a substitute for an unexecuted proof.

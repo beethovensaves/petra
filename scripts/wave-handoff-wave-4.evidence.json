@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "wave": "4",
+  "inventory_audit": {
+    "evidence_id": "WAVE4-EVIDENCE-CONTROL",
+    "scenario_id": "item52-executed-inventory-audit",
+    "owner": "design",
+    "description": "Reconcile every Wave 4 exit-evidence row against invoked commands and retained artifacts, and identify every named scenario that remains unexecuted.",
+    "required_by_completed_slice": 52
+  },
+  "remediation_reserve_slices": 4,
+  "required": [
+    {
+      "evidence_id": "UX1.4-EV01",
+      "scenario_id": "paired-profile-natural-conversation-browser",
+      "owner": "design",
+      "description": "Execute and retain the paired-profile natural-conversation presentation through production clients, controllers, live server routes, and the frozen workbench. Reuse the item-49 provider proof without another provider call."
+    },
+    {
+      "evidence_id": "UX1.4-EV02",
+      "scenario_id": "limited-basis-review-browser",
+      "owner": "design",
+      "description": "Execute and retain the limited-basis Review state in the production browser path with its basis, limitation, actions, and recovery visible."
+    },
+    {
+      "evidence_id": "UX1.4-EV02",
+      "scenario_id": "corrected-blocked-review-browser",
+      "owner": "design",
+      "description": "Invoke and retain the corrected and blocked Review browser scenario through production owners, including the exact blocked reason and safe next action."
+    },
+    {
+      "evidence_id": "UX1.4-EV02",
+      "scenario_id": "stale-review-before-refresh-browser",
+      "owner": "design",
+      "description": "Invoke and retain a stale Review before refresh, proving stale authority is unavailable and the exact refresh or revision recovery remains visible."
+    },
+    {
+      "evidence_id": "UX1.4-EV04",
+      "scenario_id": "projection-lag-browser",
+      "owner": "design",
+      "description": "Execute and retain PostgreSQL-current and projection-lagging browser behavior, including honest freshness language and recovery."
+    },
+    {
+      "evidence_id": "UX1.4-EV04",
+      "scenario_id": "governed-command-failure-recovery-browser",
+      "owner": "design",
+      "description": "Execute and retain a governed command failure in the production browser path with no false effect, explicit preserved state, and a safe recovery route."
+    }
+  ]
+}
