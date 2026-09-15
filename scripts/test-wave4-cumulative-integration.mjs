@@ -15,11 +15,14 @@ import {
 import { CodexSubscriptionExtractorAdapter } from "@petra/adapters/server";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
+  InMemoryContextPacketRegistry,
   ModelGateway,
   RepositoryAuthorityGraphProjectionSource,
   ScientificGraphProjector,
+  buildModelEvidenceProposalBundle,
   derivePetraId,
   extractorRoutingPolicyHash,
+  groundedResponseCacheKey,
   runExtractorRoleCertificationFixture,
 } from "@petra/core";
 import { Neo4jAuthorityGraphStore } from "@petra/neo4j";
@@ -31,6 +34,8 @@ import {
   PostgresDocumentAuthorityRepository,
   PostgresEvidenceAuthorityRepository,
   PostgresGraphProjectionAuthorityRepository,
+  PostgresGroundedResponseAuthorityRepository,
+  PostgresInteractionAuthorityRepository,
   PostgresModelExecutionRepository,
   PostgresProjectDefinitionAuthorityRepository,
   PostgresProjectSourceAuthorityRepository,
@@ -38,6 +43,7 @@ import {
   PostgresResearchScopeRepository,
   PostgresReviewSessionAuthorityRepository,
   PostgresScholarlyIdentityRepository,
+  PostgresSynthesistExecutionRepository,
   PostgresWorkingStateAuthorityRepository,
   PostgresWorkUnitAuthorityRepository,
 } from "@petra/postgres";
@@ -63,8 +69,28 @@ const serviceActorId = "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE";
 const graphActorId = "actor_01ARZ3NDEKTSV4RRFFQ69G5FBH";
 const scientificProjectId = "project_01ARZ3NDEKTSV4RRFFQ69G5FAW";
 const writingProjectId = "project_01K4E000000000000000000001";
-const item49Mode =
-  process.env.PETRA_WAVE4_TRACE === "conversation-model-identity";
+const traceMode = process.env.PETRA_WAVE4_TRACE;
+const item49Mode = traceMode === "conversation-model-identity";
+const item53Mode = traceMode === "evidence-remediation-support";
+const item49ProfileMode = item49Mode || item53Mode;
+const item49Published = Object.freeze({
+  projectThreadId: "project_thread_1TVS320FP5Z477P8NY46FXAZF9",
+  projectTurnId: "project_turn_7MH84CJ73Z12ZV2YTEP9S188QB",
+  interactionRunId: "interaction_run_525CDXC6KHKJEB9045XDXJTVBT",
+  workUnitId: "work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0",
+  contextPacketId: "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+  snapshotId: "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+  groundedResponseId: "grounded_response_0R812XV7Z34417E3M3F49QNE0A",
+  synthesistModelCallId: "model_call_34EMJF50M0NHVMQA3D6187NS4R",
+  extractorRoleCertificationId: "role_certification_10E9K7FHS4KN7YFASNNH9ERRDX",
+  extractorModelRequestId: "model_request_4P74X6DN937NDNTDZQRBXGF0TJ",
+  extractorModelCallId: "model_call_5VSBMFNNFMQ89Q9B77W9WAWA5W",
+  proposalBundleId: "evidence_proposal_bundle_17WF4DWBPWERF73DV0R9HS3FME",
+  modelActorId: "actor_5QACHV6W8A66X4J3Y5KFVGHCX8",
+  candidateId: "working_candidate_131W6GBBPYDG1CX0FSQKX1RJ10",
+  relationshipId: "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+  reviewSessionId: "review_session_01K4D000000000000000000004",
+});
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const readAccepted = (name) =>
@@ -160,6 +186,50 @@ const sourceArtifactInput = () => {
   artifact.created_by.actor_kind = "human";
   manifest.recorded_by.actor_kind = "human";
   rightsDecision.decision_maker.actor_kind = "human";
+  return { artifact, manifest, rightsDecision };
+};
+
+const continuationArtifactInput = ({
+  artifactId,
+  label,
+  contentHash,
+  byteSize,
+  mediaType,
+}) => {
+  const { artifact, manifest, rightsDecision } = sourceArtifactInput();
+  const idTail = derivePetraId("artifact_manifest", label).slice(
+    "artifact_manifest_".length,
+  );
+  artifact.artifact_id = artifactId;
+  artifact.artifact_kind = "structured_text";
+  artifact.media_type = mediaType;
+  artifact.content_hash = contentHash;
+  artifact.byte_size = byteSize;
+  artifact.created_by = { actor_id: serviceActorId, actor_kind: "service" };
+  artifact.created_at = "2026-09-15T04:00:00.000Z";
+  manifest.artifact_manifest_id = `artifact_manifest_${idTail}`;
+  manifest.artifact_id = artifactId;
+  manifest.rights_decision_id = `rights_decision_${idTail}`;
+  manifest.storage_ref.object_key = `sha256/${contentHash.slice(7, 9)}/${contentHash.slice(9)}`;
+  manifest.storage_ref.content_hash = contentHash;
+  manifest.storage_ref.verified_at = "2026-09-15T04:00:00.000Z";
+  manifest.integrity.checked_at = "2026-09-15T04:00:00.000Z";
+  manifest.recorded_by = {
+    actor_id: serviceActorId,
+    actor_kind: "service",
+  };
+  manifest.recorded_at = "2026-09-15T04:00:00.000Z";
+  assert(
+    manifest.origin.origin_kind === "acquired",
+    "Expected an acquired Artifact manifest for continuation setup.",
+  );
+  manifest.origin.response_metadata.content_type = mediaType;
+  manifest.origin.response_metadata.content_length = byteSize;
+  rightsDecision.rights_decision_id = manifest.rights_decision_id;
+  rightsDecision.artifact_manifest_id = manifest.artifact_manifest_id;
+  rightsDecision.decision_maker = clone(manifest.recorded_by);
+  rightsDecision.observed_at = "2026-09-15T04:00:00.000Z";
+  rightsDecision.created_at = "2026-09-15T04:00:00.000Z";
   return { artifact, manifest, rightsDecision };
 };
 
@@ -577,7 +647,7 @@ const seedScientific = async (pool, neo4jUri) => {
     contracts,
   );
   const projections = new PostgresGraphProjectionAuthorityRepository(pool);
-  const groundedCertification = item49Mode
+  const groundedCertification = item49ProfileMode
     ? readJson(
         resolve(
           root,
@@ -585,10 +655,10 @@ const seedScientific = async (pool, neo4jUri) => {
         ),
       )
     : undefined;
-  const human = item49Mode
+  const human = item49ProfileMode
     ? readAccepted("actor")
     : actor(humanActorId, "human", "Wave 4 Project author");
-  const service = item49Mode
+  const service = item49ProfileMode
     ? {
         ...readAccepted("actor"),
         actor_id: serviceActorId,
@@ -620,7 +690,7 @@ const seedScientific = async (pool, neo4jUri) => {
   await documents.registerDocumentBundle(bundle);
 
   const definition = readAccepted("project-definition-working-scientific");
-  if (item49Mode) {
+  if (item49ProfileMode) {
     const modelRole = definition.content.registrations.find(
       (entry) => entry.registration_kind === "model_role",
     );
@@ -716,7 +786,7 @@ const seedScientific = async (pool, neo4jUri) => {
     issued_by: { actor_id: humanActorId, actor_kind: "human" },
     issued_at: "2026-09-14T00:00:00.000Z",
   };
-  if (item49Mode) await grants.registerCapabilityGrant(correctionGrant);
+  if (item49ProfileMode) await grants.registerCapabilityGrant(correctionGrant);
   const refreshContent = {
     scope_kind: "project_commands",
     allowed_commands: ["RefreshReviewSession"],
@@ -739,7 +809,7 @@ const seedScientific = async (pool, neo4jUri) => {
     issued_by: { actor_id: humanActorId, actor_kind: "human" },
     issued_at: "2026-09-14T00:00:00.000Z",
   };
-  if (item49Mode) await grants.registerCapabilityGrant(refreshGrant);
+  if (item49ProfileMode) await grants.registerCapabilityGrant(refreshGrant);
   const changes = new PostgresChangeControlAuthorityRepository(
     pool,
     new PostgresCapabilityGrantCommandAuthorizer(contracts),
@@ -860,7 +930,7 @@ const seedScientific = async (pool, neo4jUri) => {
     label: "rejected-candidate",
     sequence: 2,
   });
-  for (const pair of item49Mode ? [selected] : [selected, rejected]) {
+  for (const pair of item49ProfileMode ? [selected] : [selected, rejected]) {
     await evidence.proposeClaim(pair.claim);
     await evidence.proposeAssertion(pair.assertion);
     await working.admitWorkingCandidateRevision({
@@ -881,7 +951,7 @@ const seedScientific = async (pool, neo4jUri) => {
     ) === canonicalize(selected.candidate),
     "Selected candidate admission retry diverged.",
   );
-  const rejectedCommands = item49Mode
+  const rejectedCommands = item49ProfileMode
     ? undefined
     : makeChangeCommands({
         label: "independent-rejection",
@@ -916,7 +986,7 @@ const seedScientific = async (pool, neo4jUri) => {
       selected,
       derivePetraId("review_member", "wave4-cumulative:selected"),
     ),
-    ...(item49Mode
+    ...(item49ProfileMode
       ? []
       : [
           reviewMember(
@@ -1375,6 +1445,22 @@ const rawHistory = async (baseUrl, projectId) => {
   );
   assert(view.project_id === projectId, "History route substituted a Project.");
   return view;
+};
+
+const item53Observer = async () => {
+  const modulePath = process.env.PETRA_WAVE4_EVIDENCE_OBSERVER?.trim();
+  if (modulePath === undefined || modulePath === "") return undefined;
+  const loaded = await import(new URL(modulePath, `file://${root}/`).href);
+  assert(
+    typeof loaded.createWave4EvidenceObserver === "function",
+    "The item 53 evidence observer must export createWave4EvidenceObserver.",
+  );
+  const observer = await loaded.createWave4EvidenceObserver({ root });
+  assert(
+    observer !== null && typeof observer?.record === "function",
+    "The item 53 evidence observer must expose record(stage, context).",
+  );
+  return observer;
 };
 
 const exerciseTrace = async (environment, pool, scientific, writing) => {
@@ -2240,6 +2326,1783 @@ const item49ProjectThread = async ({
   ).registerProjectThreadRevision(thread);
 };
 
+const item53WorkAndInteraction = async ({ pool, scientific }) => {
+  const artifacts = new PostgresArtifactAuthorityRepository(
+    pool,
+    availableArtifactStore,
+  );
+  const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
+  const interactions = new PostgresInteractionAuthorityRepository(pool);
+  const responseBytes = new TextEncoder().encode(
+    "Item 49 retained the external execution; item 53 reconstructs only its provider-free presentation records.",
+  );
+  const responseArtifact = continuationArtifactInput({
+    artifactId: derivePetraId(
+      "artifact",
+      "wave4-item53|item49-presentation-response",
+    ),
+    label: "wave4-item53|item49-presentation-response",
+    contentHash: `sha256:${createHash("sha256").update(responseBytes).digest("hex")}`,
+    byteSize: responseBytes.byteLength,
+    mediaType: "text/markdown; charset=utf-8",
+  });
+  responseArtifact.artifact.artifact_kind = "run_output";
+  await artifacts.registerVerifiedAcquisition(responseArtifact);
+  const interactionPayloadArtifact = continuationArtifactInput({
+    artifactId: derivePetraId(
+      "artifact",
+      "wave4-item53|item49-presentation-events",
+    ),
+    label: "wave4-item53|item49-presentation-events",
+    contentHash: hash({
+      events: ["RUN_STARTED", "RUN_FINISHED"],
+      authority_effect: "none",
+    }),
+    byteSize: 68,
+    mediaType: "application/json",
+  });
+  await artifacts.registerVerifiedAcquisition(interactionPayloadArtifact);
+
+  const inputManifest = readAccepted("worker-input-manifest");
+  inputManifest.worker_input_manifest_id = derivePetraId(
+    "worker_input_manifest",
+    "wave4-item53|item49-presentation-work",
+  );
+  inputManifest.work_unit_id = item49Published.workUnitId;
+  inputManifest.project_id = scientificProjectId;
+  inputManifest.issued_at = "2026-09-15T04:00:00.000Z";
+  inputManifest.issued_by = {
+    actor_id: serviceActorId,
+    actor_kind: "service",
+  };
+  inputManifest.content.task = {
+    task_family: "reasoning",
+    task_name: "petra.grounded-synthesis.presentation-continuation",
+    task_version: "1.0.0",
+  };
+  inputManifest.content.worker = {
+    executor_kind: "typescript_worker",
+    worker_name: "petra.grounded-synthesis",
+    worker_version: "1.0.0",
+    runtime_name: "node",
+    runtime_version: "24.20.0",
+    entrypoint: "petra.grounded-synthesis.retain-presentation",
+  };
+  inputManifest.content.inputs = [
+    {
+      binding_kind: "record",
+      name: "project_source",
+      record_id: scientific.projectSource.project_source_id,
+      record_revision: scientific.projectSource.revision,
+      snapshot_hash: hash(scientific.projectSource),
+    },
+  ];
+  inputManifest.content.expected_outputs = [
+    {
+      output_name: "grounded_response_presentation",
+      output_role: "result",
+      required: true,
+      media_type: "text/markdown",
+      max_bytes: 100_000,
+    },
+  ];
+  inputManifest.content_hash = hash(inputManifest.content);
+  const requested = readAccepted("work-unit-requested");
+  requested.work_unit_id = item49Published.workUnitId;
+  requested.project_id = scientificProjectId;
+  requested.spec.workflow_name = "petra.synthesis.grounded";
+  requested.spec.workflow_version = "1.0.0";
+  requested.spec.objective =
+    "Retain the exact item 49 presentation bindings without provider egress or authority effects.";
+  requested.spec.input_manifest_ref = {
+    worker_input_manifest_id: inputManifest.worker_input_manifest_id,
+    content_hash: inputManifest.content_hash,
+  };
+  requested.spec.idempotency_key = "wave4-item53:item49-presentation-work:v1";
+  requested.spec.cache = { cache_mode: "disabled" };
+  requested.spec_hash = hash(requested.spec);
+  requested.created_by = clone(inputManifest.issued_by);
+  requested.status.requested_at = "2026-09-15T04:00:00.000Z";
+  requested.created_at = "2026-09-15T04:00:00.000Z";
+  requested.updated_at = requested.created_at;
+  let work = await workUnits.register({ workUnit: requested, inputManifest });
+  work = await workUnits.queue(
+    work.work_unit_id,
+    work.revision,
+    "2026-09-15T04:00:01.000Z",
+  );
+  work = await workUnits.start(
+    work.work_unit_id,
+    work.revision,
+    1,
+    "2026-09-15T04:00:02.000Z",
+  );
+  const outputManifest = readAccepted("worker-output-manifest");
+  outputManifest.worker_output_manifest_id = derivePetraId(
+    "worker_output_manifest",
+    "wave4-item53|item49-presentation-work",
+  );
+  outputManifest.work_unit_id = work.work_unit_id;
+  outputManifest.project_id = scientificProjectId;
+  outputManifest.worker_input_manifest_id =
+    inputManifest.worker_input_manifest_id;
+  outputManifest.worker_input_manifest_hash = inputManifest.content_hash;
+  outputManifest.content.worker = clone(inputManifest.content.worker);
+  outputManifest.content.started_at = "2026-09-15T04:00:02.000Z";
+  outputManifest.content.completed_at = "2026-09-15T04:00:03.000Z";
+  outputManifest.content.outcome.produced_outputs = [
+    {
+      output_name: "grounded_response_presentation",
+      output_role: "result",
+      output_handle: "output:item49-presentation-response",
+      content_hash: responseArtifact.artifact.content_hash,
+      byte_size: responseArtifact.artifact.byte_size,
+      media_type: "text/markdown",
+    },
+  ];
+  outputManifest.content.resource_usage = {
+    wall_time_ms: 1000,
+    cpu_time_ms: 1,
+    peak_memory_bytes: 1,
+    input_bytes: 0,
+    output_bytes: responseArtifact.artifact.byte_size,
+    network_bytes: 0,
+  };
+  outputManifest.content_hash = hash(outputManifest.content);
+  outputManifest.reported_at = outputManifest.content.completed_at;
+  work = await workUnits.complete(outputManifest, work.revision);
+  assert(
+    work.work_unit_id === item49Published.workUnitId && work.revision === 4,
+    "The item 49 Work continuation lost its published stable identity or terminal revision.",
+  );
+
+  const feature = readAccepted("interaction-feature-manifest");
+  feature.compiled_by = { actor_id: serviceActorId, actor_kind: "service" };
+  feature.compiled_at = "2026-09-15T04:00:00.000Z";
+  await interactions.registerFeatureManifest(feature);
+  const synthesistRequestId = derivePetraId(
+    "model_request",
+    "wave4-item53|item49-synthesist-presentation",
+  );
+  const rootRun = readAccepted("interaction-run");
+  rootRun.interaction_run_id = item49Published.interactionRunId;
+  rootRun.project_id = scientificProjectId;
+  rootRun.feature_manifest_ref = {
+    interaction_feature_manifest_id: feature.interaction_feature_manifest_id,
+    revision: feature.revision,
+    content_hash: feature.content_hash,
+  };
+  rootRun.content.correlation = {
+    protocol_thread_id: "thread-wave4-item49-natural-conversation",
+    protocol_run_id: "run-wave4-item49-natural-conversation",
+    request_id: derivePetraId("request", "wave4-item53|item49-presentation"),
+    trace_id: derivePetraId("trace", "wave4-item53|item49-presentation"),
+    work_unit_ref: {
+      work_unit_id: work.work_unit_id,
+      revision: work.revision,
+      spec_hash: work.spec_hash,
+    },
+    model_request_id: synthesistRequestId,
+  };
+  rootRun.content.authority_context.actor = {
+    actor_id: humanActorId,
+    actor_kind: "human",
+  };
+  rootRun.content.input = {
+    input_hash: hash(M1_GROUNDED_SYNTHESIS_QUESTION),
+    source_message_id: "wave4-item49-natural-conversation-question",
+  };
+  rootRun.content.lifecycle = {
+    state: "running",
+    started_at: "2026-09-15T04:00:04.000Z",
+  };
+  rootRun.content.stream_head = { state: "empty", event_count: 0 };
+  rootRun.content_hash = hash(rootRun.content);
+  rootRun.created_by = { actor_id: humanActorId, actor_kind: "human" };
+  rootRun.created_at = "2026-09-15T04:00:04.000Z";
+  rootRun.updated_at = rootRun.created_at;
+  await interactions.registerRun(rootRun);
+
+  const eventArtifactRef = {
+    artifact_id: interactionPayloadArtifact.artifact.artifact_id,
+    content_sha256: interactionPayloadArtifact.artifact.content_hash,
+    byte_size: interactionPayloadArtifact.artifact.byte_size,
+    media_type: interactionPayloadArtifact.artifact.media_type,
+  };
+  const eventOne = readAccepted("interaction-event-record");
+  eventOne.interaction_event_record_id = derivePetraId(
+    "interaction_event_record",
+    "wave4-item53|item49-presentation|1",
+  );
+  eventOne.project_id = scientificProjectId;
+  eventOne.interaction_run_ref = {
+    interaction_run_id: rootRun.interaction_run_id,
+    revision: rootRun.revision,
+    content_hash: rootRun.content_hash,
+  };
+  eventOne.sequence = 1;
+  eventOne.lineage = { lineage_kind: "start" };
+  eventOne.content.protocol = {
+    protocol: "ag-ui",
+    event_type: "RUN_STARTED",
+    protocol_event_id: "wave4-item49-presentation-run-started",
+  };
+  eventOne.content.semantic_kind = "run_lifecycle";
+  eventOne.content.payload_artifact_ref = clone(eventArtifactRef);
+  eventOne.content.authority_effect = { effect_kind: "none" };
+  eventOne.content_hash = hash(eventOne.content);
+  eventOne.recorded_by = { actor_id: serviceActorId, actor_kind: "service" };
+  eventOne.recorded_at = "2026-09-15T04:00:05.000Z";
+  await interactions.appendEvent(eventOne);
+
+  const terminalRun = clone(rootRun);
+  terminalRun.revision = 2;
+  terminalRun.lineage = {
+    lineage_kind: "revision",
+    parent_revision: rootRun.revision,
+    parent_hash: rootRun.content_hash,
+  };
+  terminalRun.content.lifecycle = {
+    state: "completed",
+    started_at: rootRun.content.lifecycle.started_at,
+    ended_at: "2026-09-15T04:00:06.000Z",
+    outcome_code: "GROUNDED_RESPONSE_READY",
+  };
+  terminalRun.content.stream_head = {
+    state: "advanced",
+    event_count: 1,
+    latest_sequence: 1,
+    head_hash: eventOne.content_hash,
+  };
+  terminalRun.content_hash = hash(terminalRun.content);
+  terminalRun.updated_at = "2026-09-15T04:00:06.000Z";
+  await interactions.registerRun(terminalRun);
+
+  const eventTwo = clone(eventOne);
+  eventTwo.interaction_event_record_id = derivePetraId(
+    "interaction_event_record",
+    "wave4-item53|item49-presentation|2",
+  );
+  eventTwo.interaction_run_ref = {
+    interaction_run_id: terminalRun.interaction_run_id,
+    revision: terminalRun.revision,
+    content_hash: terminalRun.content_hash,
+  };
+  eventTwo.sequence = 2;
+  eventTwo.lineage = {
+    lineage_kind: "continuation",
+    previous_event_record_id: eventOne.interaction_event_record_id,
+    previous_sequence: eventOne.sequence,
+    previous_content_hash: eventOne.content_hash,
+  };
+  eventTwo.content.protocol = {
+    protocol: "ag-ui",
+    event_type: "RUN_FINISHED",
+    protocol_event_id: "wave4-item49-presentation-run-finished",
+  };
+  eventTwo.content_hash = hash(eventTwo.content);
+  eventTwo.recorded_at = "2026-09-15T04:00:07.000Z";
+  await interactions.appendEvent(eventTwo);
+
+  const deliveredRun = clone(terminalRun);
+  deliveredRun.revision = 3;
+  deliveredRun.lineage = {
+    lineage_kind: "revision",
+    parent_revision: terminalRun.revision,
+    parent_hash: terminalRun.content_hash,
+  };
+  deliveredRun.content.stream_head = {
+    state: "advanced",
+    event_count: 2,
+    latest_sequence: 2,
+    head_hash: eventTwo.content_hash,
+  };
+  deliveredRun.content_hash = hash(deliveredRun.content);
+  deliveredRun.updated_at = "2026-09-15T04:00:07.000Z";
+  await interactions.registerRun(deliveredRun);
+  return {
+    work,
+    responseArtifact,
+    responseBytes,
+    synthesistRequestId,
+    terminalRun,
+    deliveredRun,
+  };
+};
+
+const item53GroundedPresentation = async ({
+  pool,
+  scientific,
+  workAndInteraction,
+}) => {
+  const scopes = new PostgresResearchScopeRepository(pool);
+  const synthesistExecutions = new PostgresSynthesistExecutionRepository(pool);
+  const runtimeRecord = readJson(
+    resolve(
+      root,
+      "config/model-certifications/codex-terra-synthesist-1.1.0.json",
+    ),
+  );
+  const certification = clone(runtimeRecord.certification);
+  const certificationActor = actor(
+    certification.certified_by.actor_id,
+    "service",
+    "Petra certified synthesist evaluator",
+  );
+  certificationActor.created_at = certification.certified_at;
+  await scopes.registerActor(certificationActor);
+  await synthesistExecutions.registerCertification(certification);
+
+  const evidence = new PostgresEvidenceAuthorityRepository(pool);
+  const currentClaim = await evidence.getClaim(readAccepted("claim").claim_id);
+  const currentAssertion = await evidence.getAssertion(
+    readAccepted("assertion").assertion_id,
+  );
+  assert(
+    currentClaim !== undefined && currentAssertion !== undefined,
+    "The item 49 ContextPacket baseline authority is unavailable.",
+  );
+  const context = readAccepted("context-packet");
+  context.compiled_by = {
+    actor_id: serviceActorId,
+    actor_kind: "service",
+  };
+  context.compiled_at = "2026-09-15T04:00:08.000Z";
+  assert(
+    context.context_packet_id === item49Published.contextPacketId &&
+      context.snapshot_ref.snapshot_id === item49Published.snapshotId,
+    "The continuation ContextPacket lost the published item 49 identity.",
+  );
+  const contextRecords = [
+    currentClaim,
+    currentAssertion,
+    scientific.documentBundle.spans[0],
+  ];
+  for (const inclusion of context.content.included_objects) {
+    const record = contextRecords.find((candidate) =>
+      Object.values(candidate).includes(inclusion.object_ref.object_id),
+    );
+    assert(
+      record !== undefined,
+      `The continuation ContextPacket lost ${inclusion.object_ref.object_id}.`,
+    );
+    inclusion.object_ref.object_revision = record.revision;
+    inclusion.object_ref.object_hash = hash(record);
+  }
+  context.content.objective.target_refs =
+    context.content.objective.target_refs.map((target) =>
+      clone(
+        context.content.included_objects.find(
+          (inclusion) =>
+            inclusion.object_ref.object_kind === target.object_kind &&
+            inclusion.object_ref.object_id === target.object_id,
+        ).object_ref,
+      ),
+    );
+  context.content_hash = hash(context.content);
+  const evidencePacket = readAccepted("evidence-packet");
+  evidencePacket.content.context_packet_ref.content_hash = context.content_hash;
+  evidencePacket.content.selected_evidence =
+    evidencePacket.content.selected_evidence.map((selection) => ({
+      ...selection,
+      object_ref: clone(
+        context.content.included_objects.find(
+          (inclusion) =>
+            inclusion.selection_order === selection.context_selection_order,
+        ).object_ref,
+      ),
+    }));
+  evidencePacket.content_hash = hash(evidencePacket.content);
+  evidencePacket.compiled_by = clone(context.compiled_by);
+  evidencePacket.compiled_at = context.compiled_at;
+  const packets = new InMemoryContextPacketRegistry();
+  packets.registerContextPacket(context, contextRecords);
+  packets.registerEvidencePacket(evidencePacket);
+
+  const request = readAccepted("model-request-synthesist");
+  const call = readAccepted("model-call-synthesist");
+  request.model_request_id = workAndInteraction.synthesistRequestId;
+  request.content.project_id = scientificProjectId;
+  request.content.context_packet_ref = {
+    context_packet_id: context.context_packet_id,
+    content_hash: context.content_hash,
+  };
+  request.content.evidence_packet_ref = {
+    evidence_packet_id: evidencePacket.evidence_packet_id,
+    content_hash: evidencePacket.content_hash,
+  };
+  const deploymentObservation = {
+    model_deployment_id: certification.deployment.model_deployment_id,
+    provider_id: certification.deployment.provider_id,
+    provider_kind: certification.deployment.provider_kind,
+    provider_model: certification.deployment.provider_model,
+    observed_revision: certification.deployment.observed_revision,
+    replayability: certification.deployment.replayability,
+    endpoint_fingerprint: hash({
+      runtime: runtimeRecord.runtime.name,
+      codex_version: runtimeRecord.runtime.codex_version,
+      model: runtimeRecord.runtime.model,
+      presentation_continuation: "item49",
+    }),
+  };
+  call.model_call_id = item49Published.synthesistModelCallId;
+  call.content.model_request_id = request.model_request_id;
+  call.content.deployment = deploymentObservation;
+  call.content.input.context_packet_ref = clone(
+    request.content.context_packet_ref,
+  );
+  call.content.input.evidence_packet_ref = clone(
+    request.content.evidence_packet_ref,
+  );
+  call.content.input.context_selections =
+    call.content.input.context_selections.map((selection) => ({
+      ...selection,
+      object_ref: clone(
+        context.content.included_objects.find(
+          (inclusion) =>
+            inclusion.selection_order === selection.context_selection_order,
+        ).object_ref,
+      ),
+    }));
+  for (const statement of call.content.output.statements) {
+    for (const evidenceRef of statement.evidence_refs) {
+      const selection = context.content.included_objects.find(
+        (inclusion) =>
+          inclusion.selection_order === evidenceRef.context_selection_order,
+      );
+      evidenceRef.object_kind = selection.object_ref.object_kind;
+      evidenceRef.object_id = selection.object_ref.object_id;
+      evidenceRef.object_revision = selection.object_ref.object_revision;
+      evidenceRef.object_hash = selection.object_ref.object_hash;
+    }
+  }
+  const { content_hash: ignoredInputHash, ...synthesistInput } =
+    call.content.input;
+  void ignoredInputHash;
+  call.content.input.content_hash = hash(synthesistInput);
+  delete call.content.provider_request_id;
+  delete call.content.raw_output;
+  call.content.timing = { queue_ms: 0, total_ms: 0, validation_ms: 0 };
+  call.content.usage = {
+    accounting: "unavailable",
+    input_tokens: 0,
+    output_tokens: 0,
+  };
+  call.content.cost = {
+    amount: "0",
+    currency: "USD",
+    accounting: "unavailable",
+    pricing_source:
+      "Item 53 performs no provider request; item 49 retains the execution accounting.",
+  };
+  call.started_at = "2026-09-15T04:00:09.000Z";
+  call.completed_at = call.started_at;
+  call.content_hash = hash(call.content);
+  request.content.outbound_context.egress_class = "E1";
+  request.content.outbound_context.context_object_refs =
+    evidencePacket.content.selected_evidence.map((selection) =>
+      clone(selection.object_ref),
+    );
+  request.content.outbound_context.context_content_hash =
+    call.content.input.content_hash;
+  request.content.routing.eligible = [
+    {
+      model_deployment_id: certification.deployment.model_deployment_id,
+      role_certification_id: certification.role_certification_id,
+      expected_validated_cost_usd: "0",
+      expected_latency_ms: 0,
+    },
+  ];
+  request.content.routing.selected = {
+    model_deployment_id: certification.deployment.model_deployment_id,
+    role_certification_id: certification.role_certification_id,
+    reason:
+      "This provider-free setup recreates the exact published item 49 presentation identity; it performs no routing or invocation.",
+  };
+  request.content.terminal.model_call_ids = [call.model_call_id];
+  request.content.terminal.output_hash = hash(call.content.output);
+  request.created_at = call.started_at;
+  request.completed_at = call.completed_at;
+  request.content_hash = hash(request.content);
+  await synthesistExecutions.persistExecution({ request, calls: [call] });
+
+  const response = readAccepted("grounded-response");
+  response.grounded_response_id = item49Published.groundedResponseId;
+  response.content.response_artifact_ref = {
+    artifact_id: workAndInteraction.responseArtifact.artifact.artifact_id,
+    content_hash: workAndInteraction.responseArtifact.artifact.content_hash,
+    byte_size: workAndInteraction.responseArtifact.artifact.byte_size,
+    media_type: workAndInteraction.responseArtifact.artifact.media_type,
+  };
+  response.content.context_packet_ref = {
+    context_packet_id: context.context_packet_id,
+    revision: context.revision,
+    content_hash: context.content_hash,
+  };
+  response.content.evidence_packet_ref = {
+    evidence_packet_id: evidencePacket.evidence_packet_id,
+    revision: evidencePacket.revision,
+    content_hash: evidencePacket.content_hash,
+  };
+  response.content.snapshot_ref = clone(context.snapshot_ref);
+  response.content.execution_ref = {
+    model_request_id: request.model_request_id,
+    model_call_id: call.model_call_id,
+    model_deployment_id: certification.deployment.model_deployment_id,
+    role_certification_id: certification.role_certification_id,
+  };
+  response.content.interaction_ref = {
+    interaction_run_ref: {
+      interaction_run_id: workAndInteraction.terminalRun.interaction_run_id,
+      revision: workAndInteraction.terminalRun.revision,
+      content_hash: workAndInteraction.terminalRun.content_hash,
+    },
+    work_unit_ref: {
+      work_unit_id: workAndInteraction.work.work_unit_id,
+      revision: workAndInteraction.work.revision,
+      spec_hash: workAndInteraction.work.spec_hash,
+    },
+  };
+  response.content.dependencies = evidencePacket.content.selected_evidence.map(
+    (selection) => ({
+      dependency_role: "selected_evidence",
+      object_ref: clone(selection.object_ref),
+    }),
+  );
+  response.content.model_output_hash = hash(call.content.output);
+  response.content.cache = {
+    state: "reusable",
+    cache_key: groundedResponseCacheKey(request, evidencePacket),
+    checked_at: call.completed_at,
+  };
+  response.content.terminal = {
+    state: "completed",
+    persisted_at: call.completed_at,
+    authority_effect: "none",
+  };
+  response.content_hash = hash(response.content);
+  response.recorded_by = { actor_id: serviceActorId, actor_kind: "service" };
+  response.recorded_at = call.completed_at;
+  const responseRepository = new PostgresGroundedResponseAuthorityRepository(
+    pool,
+    packets,
+  );
+  await responseRepository.register({
+    response,
+    responseArtifact: workAndInteraction.responseArtifact.artifact,
+    responseBytes: workAndInteraction.responseBytes,
+    modelRequest: request,
+    modelCall: call,
+    interactionRun: workAndInteraction.terminalRun,
+    workUnit: workAndInteraction.work,
+  });
+  const projectThread = await item49ProjectThread({
+    pool,
+    scientific,
+    context,
+    run: workAndInteraction.terminalRun,
+    work: workAndInteraction.work,
+    response,
+  });
+  assert(
+    projectThread.project_thread_id === item49Published.projectThreadId &&
+      projectThread.content.turns[0]?.project_turn_id ===
+        item49Published.projectTurnId,
+    "The natural-conversation continuation lost its published thread or turn identity.",
+  );
+  return { context, evidencePacket, response, projectThread, call };
+};
+
+const item53ExtractorPresentation = async ({ pool, scientific, context }) => {
+  const contracts = new PetraContractRegistry();
+  const sourceBundle = readAccepted("document-parse-bundle");
+  const runtime = readJson(
+    resolve(
+      root,
+      "config/model-certifications/codex-terra-synthesist-1.1.0.json",
+    ),
+  ).runtime;
+  const roleProfile = item49ExtractorRoleProfile(contracts);
+  const deployment = {
+    model_deployment_id: derivePetraId(
+      "model_deployment",
+      `wave4-item49|${canonicalize({
+        provider: "codex_app_server",
+        model: runtime.model,
+        codexVersion: runtime.codex_version,
+        effort: "low",
+        contextCeiling: 8192,
+        providerSchemaHash: runtime.provider_schema_hash,
+      })}`,
+    ),
+    provider_id: derivePetraId(
+      "provider",
+      "wave4-item49|codex-managed-chatgpt",
+    ),
+    provider_kind: "codex_app_server",
+    provider_model: runtime.model,
+    observed_revision: runtime.model,
+    replayability: "best_effort",
+    execution_location: "remote",
+    structured_output: true,
+    max_context_tokens: 8192,
+  };
+  const certification = readAccepted("model-role-certification");
+  certification.role_certification_id =
+    item49Published.extractorRoleCertificationId;
+  certification.deployment = clone(deployment);
+  certification.role_profile = clone(roleProfile);
+  certification.evaluation.suite = {
+    name: "petra-wave4-item49-live-extractor",
+    version: "1.0.0",
+  };
+  certification.evaluation.dataset_snapshot_hash = hash({
+    source: scientific.documentBundle,
+    scenario: "natural-conversation-correction",
+  });
+  certification.evaluation.prompt_profile = {
+    name: "petra-wave4-natural-conversation-extractor",
+    version: "1.0.0",
+    content_hash: hash("item49-retained-provider-prompt"),
+  };
+  certification.evaluation.cases_total = 1;
+  certification.evaluation.cases_passed = 1;
+  certification.evaluation.metrics = [
+    {
+      name: "retained_item49_cases_passed",
+      value: 1,
+      unit: "count",
+      direction: "descriptive",
+    },
+  ];
+  certification.decision.reason =
+    "Item 49 retained this exact external-model certification identity; item 53 only reconstructs its presentation bindings.";
+  certification.decision.invalidation_conditions = [
+    "The published item 49 identity trace is unavailable or contradicted.",
+    "The deployment, role profile, or output contract identity changes.",
+  ];
+  certification.certified_by = {
+    actor_id: serviceActorId,
+    actor_kind: "service",
+  };
+  certification.certified_at = "2026-09-15T04:00:10.000Z";
+  certification.content_hash = hash({
+    deployment: certification.deployment,
+    role_profile: certification.role_profile,
+    scope: certification.scope,
+    evaluation: certification.evaluation,
+    decision: certification.decision,
+  });
+
+  const modelActor = actor(
+    item49Published.modelActorId,
+    "model",
+    "Wave 4 external evidence extractor",
+  );
+  modelActor.created_at = "2026-09-15T04:00:10.000Z";
+  await new PostgresResearchScopeRepository(pool).registerActor(modelActor);
+  const sourceSelection = item49SourceSelection(sourceBundle);
+  const output = {
+    schema_name: "petra.model-extractor-output",
+    schema_version: "1.0.0",
+    candidates: [
+      {
+        candidate_key: "narrowed_claim",
+        proposal_role: "primary",
+        source_quote: {
+          exact_text: sourceSelection.exact_text,
+          source_span_ids: [sourceSelection.source_span_id],
+        },
+        canonical_text:
+          "The study reports a measurable improvement on its defined evaluation task.",
+        claim_kind: "descriptive",
+        scope: {
+          task: {
+            description: "The study-defined evaluation task",
+            entity_refs: [],
+          },
+          outcome: {
+            description: "Measurable improvement in the reported metric",
+            entity_refs: [],
+          },
+          unreported_dimensions: [
+            "population",
+            "language",
+            "model_family",
+            "dataset",
+            "intervention_or_exposure",
+            "comparator",
+            "setting",
+            "temporal_boundary",
+          ],
+        },
+        detail_level: "detailed",
+        source_stance: "reports",
+        attribution: "The study authors",
+        modality: "asserted",
+        negated: false,
+        warnings: [],
+      },
+    ],
+    diagnostics: [],
+  };
+  contracts.assertValid("model-extractor-output", "1.0.0", output);
+  const call = readAccepted("model-call");
+  call.model_call_id = item49Published.extractorModelCallId;
+  call.content.model_request_id = item49Published.extractorModelRequestId;
+  call.content.deployment = {
+    model_deployment_id: deployment.model_deployment_id,
+    provider_id: deployment.provider_id,
+    provider_kind: deployment.provider_kind,
+    provider_model: deployment.provider_model,
+    observed_revision: deployment.observed_revision,
+    replayability: deployment.replayability,
+    endpoint_fingerprint: hash({
+      codex_version: runtime.codex_version,
+      model: runtime.model,
+      presentation_continuation: "item49",
+    }),
+  };
+  call.content.prompt_profile = clone(certification.evaluation.prompt_profile);
+  call.content.parameters_hash = hash({
+    temperature: 0,
+    max_output_tokens: 1600,
+  });
+  call.content.input.context_packet_ref = {
+    context_packet_id: context.context_packet_id,
+    content_hash: context.content_hash,
+  };
+  call.content.input.source_artifact_ref = {
+    artifact_id: scientific.source.artifact.artifact_id,
+    content_hash: scientific.source.artifact.content_hash,
+  };
+  call.content.input.source_selections = [sourceSelection];
+  call.content.input.messages = [
+    {
+      role: "system",
+      content:
+        "Retained item 49 source-grounded extraction context. This item 53 reconstruction performs no provider request.",
+    },
+    {
+      role: "user",
+      content:
+        "Narrow the working Claim to the exact scope reported by this passage while retaining its source basis.",
+    },
+  ];
+  const { content_hash: ignoredExtractorInputHash, ...extractorInput } =
+    call.content.input;
+  void ignoredExtractorInputHash;
+  call.content.input.content_hash = hash(extractorInput);
+  delete call.content.provider_request_id;
+  delete call.content.raw_output;
+  call.content.output = output;
+  call.content.validation = [
+    {
+      validator_name: "model-output-schema",
+      validator_version: "1.0.0",
+      outcome: "pass",
+      code: "SCHEMA_VALID",
+    },
+    {
+      validator_name: "source-span-grounding",
+      validator_version: "1.0.0",
+      outcome: "pass",
+      code: "SOURCE_SELECTIONS_RESOLVED",
+    },
+  ];
+  call.content.timing = { queue_ms: 0, total_ms: 0, validation_ms: 0 };
+  call.content.usage = {
+    accounting: "unavailable",
+    input_tokens: 0,
+    output_tokens: 0,
+  };
+  call.content.cost = {
+    amount: "0",
+    currency: "USD",
+    accounting: "unavailable",
+    pricing_source:
+      "Item 53 performs no provider request; item 49 retains the execution accounting.",
+  };
+  call.started_at = "2026-09-15T04:00:11.000Z";
+  call.completed_at = call.started_at;
+  call.content_hash = hash(call.content);
+  const proposal = buildModelEvidenceProposalBundle(sourceBundle, output, {
+    project_id: scientificProjectId,
+    model_request_id: item49Published.extractorModelRequestId,
+    model_call_id: item49Published.extractorModelCallId,
+    model_deployment: deployment.model_deployment_id,
+    prompt_profile: clone(call.content.prompt_profile),
+    parameters_hash: call.content.parameters_hash,
+    context_packet_ref: clone(call.content.input.context_packet_ref),
+    role_profile: {
+      name: "petra-source-grounded-extractor",
+      version: roleProfile.version,
+      content_hash: hash(roleProfile),
+    },
+    source_selections: [sourceSelection],
+    created_by: { actor_id: modelActor.actor_id, actor_kind: "model" },
+    started_at: call.started_at,
+    completed_at: call.completed_at,
+  });
+  proposal.evidence_proposal_bundle_id = item49Published.proposalBundleId;
+  const request = readAccepted("model-request");
+  request.model_request_id = item49Published.extractorModelRequestId;
+  request.content.project_id = scientificProjectId;
+  request.content.workflow.workflow_id =
+    proposal.content.extraction.extraction_run_id;
+  request.content.objective =
+    "Reconstruct the exact item 49 model provenance for provider-free presentation continuation only.";
+  request.content.context_packet_ref = {
+    context_packet_id: context.context_packet_id,
+    content_hash: context.content_hash,
+  };
+  request.content.outbound_context.egress_class = "E1";
+  request.content.outbound_context.source_artifact_refs = [
+    clone(call.content.input.source_artifact_ref),
+  ];
+  request.content.outbound_context.source_span_ids = [
+    sourceSelection.source_span_id,
+  ];
+  request.content.outbound_context.context_content_hash =
+    call.content.input.content_hash;
+  request.content.outbound_context.purpose =
+    "Provider-free presentation continuation of the external execution retained by item 49.";
+  request.content.prompt_profile = clone(call.content.prompt_profile);
+  request.content.parameters = {
+    temperature: 0,
+    max_output_tokens: 1600,
+    content_hash: call.content.parameters_hash,
+  };
+  request.content.routing.eligible = [
+    {
+      model_deployment_id: deployment.model_deployment_id,
+      role_certification_id: certification.role_certification_id,
+      expected_validated_cost_usd: "0",
+      expected_latency_ms: 0,
+    },
+  ];
+  request.content.routing.selected = {
+    model_deployment_id: deployment.model_deployment_id,
+    role_certification_id: certification.role_certification_id,
+    reason:
+      "The item 49 provider execution is retained externally to this provider-free setup.",
+  };
+  request.content.terminal.model_call_ids = [call.model_call_id];
+  request.content.terminal.proposal_bundle_ids = [
+    proposal.evidence_proposal_bundle_id,
+  ];
+  request.created_at = call.started_at;
+  request.completed_at = call.completed_at;
+  request.content_hash = hash(request.content);
+  const executions = new PostgresModelExecutionRepository(pool);
+  await executions.registerCertification(certification);
+  const stored = await executions.persistExecution({
+    request,
+    calls: [call],
+    proposal_bundle: proposal,
+  });
+  assert(
+    stored.calls[0]?.model_call_id === item49Published.extractorModelCallId &&
+      stored.proposal_bundle?.evidence_proposal_bundle_id ===
+        item49Published.proposalBundleId,
+    "The provider-free reconstruction lost the published extractor provenance identities.",
+  );
+  return {
+    request,
+    call,
+    proposal,
+    modelActor,
+    roleRef: item49ExtractorRoleRef(contracts),
+  };
+};
+
+const item53CorrectionRequest = ({
+  scientific,
+  grounded,
+  workAndInteraction,
+  extractor,
+}) => {
+  const prior = scientific.selected.candidate;
+  const correctedProfile = clone(
+    extractor.proposal.content.candidates[0].claim,
+  );
+  correctedProfile.claim_id = scientific.selected.claim.claim_id;
+  correctedProfile.revision = scientific.selected.claim.revision + 1;
+  correctedProfile.supersedes_claim_id = scientific.selected.claim.claim_id;
+  const priorCandidateRef = exactRef(prior, "working_candidate_id");
+  const modelCallRef = exactRef(extractor.call, "model_call_id");
+  const proposalRef = exactRef(
+    extractor.proposal,
+    "evidence_proposal_bundle_id",
+  );
+  const interactionRef = exactRef(
+    workAndInteraction.deliveredRun,
+    "interaction_run_id",
+  );
+  const workRef = exactRef(workAndInteraction.work, "work_unit_id");
+  const sourceRef = exactRef(
+    scientific.documentBundle.spans[0],
+    "source_span_id",
+  );
+  const corrected = clone(prior);
+  corrected.revision = prior.revision + 1;
+  corrected.profile_object.object_record_ref = exactRef(
+    correctedProfile,
+    "claim_id",
+  );
+  corrected.producer = {
+    producer_kind: "model",
+    actor: { actor_id: extractor.modelActor.actor_id, actor_kind: "model" },
+    contribution_kind: "model_output",
+    model_role_ref: clone(extractor.roleRef),
+    model_call_ref: modelCallRef,
+  };
+  corrected.task_context = {
+    task_kind: "interaction_work",
+    objective_ref: exactRef(scientific.objective, "objective_id"),
+    thread_binding: {
+      project_thread_ref: exactRef(grounded.projectThread, "project_thread_id"),
+      project_turn_id: grounded.projectThread.content.turns[0].project_turn_id,
+    },
+    work_unit_ref: workRef,
+    interaction_run_ref: interactionRef,
+  };
+  corrected.input_snapshot = {
+    snapshot_ref: {
+      snapshot_id: grounded.context.snapshot_ref.snapshot_id,
+      revision: grounded.context.snapshot_ref.snapshot_revision,
+      event_position: grounded.context.snapshot_ref.event_position,
+      content_hash: grounded.context.snapshot_ref.content_hash,
+    },
+    context_packet_ref: exactRef(grounded.context, "context_packet_id"),
+    input_record_refs: [
+      priorCandidateRef,
+      modelCallRef,
+      proposalRef,
+      interactionRef,
+      workRef,
+    ],
+  };
+  corrected.origin = {
+    origin_kind: "model_output",
+    source_record_refs: [modelCallRef, proposalRef, interactionRef],
+    summary:
+      "The item 49 external extractor proposed this correction inside the retained natural-conversation task; item 53 reuses that provenance without provider egress.",
+  };
+  corrected.basis = [
+    {
+      basis_role: "source",
+      record_ref: sourceRef,
+      summary: "The correction retains the exact source passage basis.",
+    },
+  ];
+  corrected.provenance = [
+    {
+      provenance_role: "prior_revision",
+      record_ref: priorCandidateRef,
+      statement: "The exact direct human candidate remains the prior revision.",
+    },
+    {
+      provenance_role: "model_call",
+      record_ref: modelCallRef,
+      statement:
+        "The published item 49 ModelCall identity produced the retained correction proposal.",
+    },
+    {
+      provenance_role: "output",
+      record_ref: proposalRef,
+      statement:
+        "The recreated EvidenceProposalBundle retains the published item 49 output identity for presentation continuation.",
+    },
+    {
+      provenance_role: "interaction",
+      record_ref: interactionRef,
+      statement:
+        "The exact natural-conversation InteractionRun identity retains the task origin.",
+    },
+    {
+      provenance_role: "work_result",
+      record_ref: workRef,
+      statement:
+        "The completed WorkUnit remains distinct operational provenance.",
+    },
+  ];
+  corrected.qualifications = {
+    assessment_state: "stated",
+    statements: [
+      {
+        qualification_kind: "limitation",
+        statement:
+          "The bounded passage does not establish whether the reported result generalizes beyond the study-defined task.",
+        basis_ref: sourceRef,
+      },
+    ],
+  };
+  corrected.validation = {
+    state: "completed",
+    target_record_hash: hash(correctedProfile),
+    results: prior.validation.results.map((result) => ({
+      ...clone(result),
+      validated_by: { actor_id: serviceActorId, actor_kind: "service" },
+      validated_at: "2026-09-15T04:00:12.000Z",
+    })),
+  };
+  corrected.lineage = {
+    lineage_kind: "supersession",
+    supersedes: {
+      working_candidate_id: prior.working_candidate_id,
+      revision: prior.revision,
+      content_hash: prior.content_hash,
+    },
+    change_kind: "material_revision",
+    reason:
+      "The item 49 source-grounded model narrowed the Claim inside the retained natural-conversation task.",
+  };
+  corrected.recorded_at = "2026-09-15T04:00:12.000Z";
+  corrected.content_hash = workingHash(corrected);
+  return {
+    command_id: derivePetraId(
+      "command",
+      "wave4-item49|model-candidate-correction",
+    ),
+    idempotency_key: "wave4-item49:model-candidate-correction:v1",
+    expected_review_session_ref: {
+      review_session_id: scientific.session.review_session_id,
+      revision: scientific.session.revision,
+      content_hash: scientific.session.content_hash,
+      lifecycle: "open",
+    },
+    review_member_id: scientific.session.content.members[0].review_member_id,
+    expected_working_candidate_ref: clone(
+      scientific.session.content.members[0].working_state.candidate_ref,
+    ),
+    expected_working_relationship_ref: clone(
+      scientific.session.content.members[0].working_state.relationship_refs[0],
+    ),
+    corrected_candidate: corrected,
+    corrected_profile_record: correctedProfile,
+  };
+};
+
+const item53ValidatedRelationship = (correction, scientific) => {
+  const relationship = clone(correction.relationship);
+  const priorRef = exactRef(relationship, "working_relationship_id");
+  relationship.revision += 1;
+  relationship.input_snapshot.input_record_refs.push(priorRef);
+  relationship.provenance.push({
+    provenance_role: "prior_revision",
+    record_ref: priorRef,
+    statement:
+      "Completed validation retains the exact model-produced relationship revision.",
+  });
+  relationship.validation = {
+    state: "completed",
+    target_record_hash:
+      scientific.selected.assertion === undefined
+        ? relationship.validation.target_record_hash
+        : hash(scientific.selected.assertion),
+    results: scientific.selected.relationship.validation.results.map(
+      (result) => ({
+        ...clone(result),
+        validated_by: { actor_id: serviceActorId, actor_kind: "service" },
+        validated_at: "2026-09-15T04:00:13.000Z",
+      }),
+    ),
+  };
+  relationship.lineage = {
+    lineage_kind: "supersession",
+    supersedes: {
+      working_relationship_id: correction.relationship.working_relationship_id,
+      revision: correction.relationship.revision,
+      content_hash: correction.relationship.content_hash,
+    },
+    change_kind: "mechanical_correction",
+    reason:
+      "The registered validators completed for the exact item 49 model-produced relationship revision.",
+  };
+  relationship.recorded_at = "2026-09-15T04:00:13.000Z";
+  relationship.content_hash = workingHash(relationship);
+  return relationship;
+};
+
+const item53FailureReview = async ({ pool, scientific, work }) => {
+  const evidence = new PostgresEvidenceAuthorityRepository(pool);
+  const working = new PostgresWorkingStateAuthorityRepository(pool);
+  const sessions = new PostgresReviewSessionAuthorityRepository(pool);
+  const failurePair = makeScientificPair({
+    definition: scientific.definition,
+    objective: scientific.objective,
+    workUnit: work,
+    sourceSpan: scientific.documentBundle.spans[0],
+    workVersion: scientific.workVersion,
+    label: "wave4-item53-failure-candidate",
+    sequence: 3,
+  });
+  failurePair.candidate.qualifications = {
+    assessment_state: "stated",
+    statements: [
+      {
+        qualification_kind: "limitation",
+        statement:
+          "This isolated adverse-state member exists only to demonstrate exact-current command failure and recovery.",
+        basis_ref: exactRef(
+          scientific.documentBundle.spans[0],
+          "source_span_id",
+        ),
+      },
+    ],
+  };
+  failurePair.candidate.content_hash = workingHash(failurePair.candidate);
+  failurePair.relationship.endpoints.object.candidate_ref = {
+    working_candidate_id: failurePair.candidate.working_candidate_id,
+    revision: failurePair.candidate.revision,
+    content_hash: failurePair.candidate.content_hash,
+  };
+  failurePair.relationship.qualifications = clone(
+    failurePair.candidate.qualifications,
+  );
+  failurePair.relationship.content_hash = workingHash(failurePair.relationship);
+  await evidence.proposeClaim(failurePair.claim);
+  await evidence.proposeAssertion(failurePair.assertion);
+  await working.admitWorkingCandidateRevision({
+    candidate: failurePair.candidate,
+    profileRecord: failurePair.claim,
+  });
+  await working.admitWorkingRelationshipRevision({
+    relationship: failurePair.relationship,
+    profileRecord: failurePair.assertion,
+  });
+  const position = await authorityPosition(pool, scientificProjectId);
+  const session = readAccepted("review-session-working-candidate");
+  session.review_session_id = derivePetraId(
+    "review_session",
+    "wave4-item53|governed-command-failure",
+  );
+  session.project_definition_ref = {
+    project_definition_id: scientific.definition.project_definition_id,
+    revision: scientific.definition.revision,
+    content_hash: scientific.definition.content_hash,
+  };
+  session.content.title = "Review isolated exact-current failure recovery";
+  session.content.objective_ref = {
+    objective_id: scientific.objective.objective_id,
+    revision: scientific.objective.revision,
+    content_hash: scientific.objective.content_hash,
+  };
+  session.content.snapshot = {
+    event_position: position.event_position,
+    stream_revision: position.stream_revision,
+    captured_at: "2026-09-15T04:00:20.000Z",
+  };
+  session.content.origin = {
+    origin_kind: "work_result",
+    record_refs: [work.work_unit_id],
+    summary:
+      "Opened from the exact provider-free continuation Work to exercise failure isolation.",
+  };
+  session.content.members = [
+    reviewMember(
+      failurePair,
+      derivePetraId("review_member", "wave4-item53|governed-command-failure"),
+    ),
+  ];
+  session.content.return_context = {
+    place: "work",
+    object_ref: work.work_unit_id,
+    label: "Item 49 presentation continuation",
+  };
+  session.content_hash = hash(session.content);
+  await sessions.registerReviewSessionRevision(session);
+  return { pair: failurePair, session };
+};
+
+const item53Counts = async (pool) => {
+  const result = await pool.query(
+    `SELECT
+       (SELECT count(*)::integer FROM petra.working_candidate_revisions WHERE project_id = $1) AS working_candidate_revisions,
+       (SELECT count(*)::integer FROM petra.review_session_revisions WHERE project_id = $1) AS review_revisions,
+       (SELECT count(*)::integer FROM petra.change_sets WHERE project_id = $1) AS change_sets,
+       (SELECT count(*)::integer FROM petra.command_executions WHERE project_id = $1) AS commands,
+       (SELECT count(*)::integer FROM petra.domain_events WHERE project_id = $1) AS events,
+       (SELECT count(*)::integer FROM petra.outbox_records WHERE partition_key = $1 AND target = 'neo4j_graph') AS graph_outboxes,
+       (SELECT count(*)::integer FROM petra.working_candidate_revisions WHERE project_id = $2) AS writing_candidate_revisions,
+       (SELECT count(*)::integer FROM petra.change_sets WHERE project_id = $2) AS writing_change_sets,
+       (SELECT count(*)::integer FROM petra.command_executions WHERE project_id = $2) AS writing_commands,
+       (SELECT count(*)::integer FROM petra.domain_events WHERE project_id = $2) AS writing_events`,
+    [scientificProjectId, writingProjectId],
+  );
+  return result.rows[0];
+};
+
+const item53ExpectedFailure = async (operation, label) => {
+  try {
+    await operation();
+  } catch (error) {
+    assert(
+      typeof error?.status === "number" &&
+        [403, 404, 409].includes(error.status),
+      `${label} returned an unexpected failure: ${error?.message ?? error}`,
+    );
+    return error;
+  }
+  throw new Error(`${label} unexpectedly succeeded.`);
+};
+
+const exerciseItem53Trace = async ({
+  environment,
+  pool,
+  scientific,
+  writing,
+  continuation,
+}) => {
+  let active;
+  let vite;
+  const observer = await item53Observer();
+  const nativeFetch = globalThis.fetch;
+  globalThis.fetch = (input, init) => {
+    const resolved =
+      typeof input === "string" && input.startsWith("/")
+        ? new URL(input, active?.url ?? "http://petra.invalid")
+        : input;
+    return nativeFetch(resolved, init);
+  };
+  const launch = async () => {
+    const persistence =
+      await createProjectShellPersistenceFromEnvironment(environment);
+    try {
+      return await startPetraServer({
+        port: 0,
+        authToken: token,
+        projectShellPersistence: persistence,
+      });
+    } catch (error) {
+      await persistence.close();
+      throw error;
+    }
+  };
+  const record = async (stage, context) => {
+    if (observer !== undefined)
+      return observer.record(stage, {
+        root,
+        backendUrl: active.url,
+        token,
+        scientificProjectId,
+        writingProjectId,
+        scientificReviewSessionId: scientific.session.review_session_id,
+        writingReviewSessionId: writing.session.review_session_id,
+        publishedItem49: clone(item49Published),
+        ...context,
+      });
+    return undefined;
+  };
+  try {
+    active = await launch();
+    vite = await createViteServer({
+      root,
+      appType: "custom",
+      logLevel: "silent",
+      server: { middlewareMode: true },
+    });
+    const projectData = await vite.ssrLoadModule(
+      "/apps/workbench/src/product/project-data.ts",
+    );
+    const directWorking = await new ProjectWorkingStateClient({
+      baseUrl: active.url,
+      token,
+    }).read(scientificProjectId);
+    const directReview = await rawReview(
+      active.url,
+      scientificProjectId,
+      scientific.session.review_session_id,
+    );
+    const thread = await projectData.loadProjectPetraThread({
+      params: { projectId: scientificProjectId },
+    });
+    assert(
+      directWorking.content.candidates[0]?.working_candidate_id ===
+        item49Published.candidateId &&
+        directWorking.content.relationships[0]?.working_relationship_id ===
+          item49Published.relationshipId &&
+        directReview.review_session_id === item49Published.reviewSessionId &&
+        directReview.content.session.revision === 1 &&
+        thread?.id === item49Published.projectThreadId,
+      "The provider-free continuation did not expose the exact item 49 starting identities through production reads.",
+    );
+    const crossProjectReview = await nativeFetch(
+      new URL(
+        `/api/queries/projects/${writingProjectId}/reviews/${scientific.session.review_session_id}`,
+        active.url,
+      ),
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+    assert(
+      crossProjectReview.status === 404,
+      "A cross-Project Review read disclosed the scientific session.",
+    );
+
+    const correctionRequest = item53CorrectionRequest({
+      scientific,
+      grounded: continuation.grounded,
+      workAndInteraction: continuation.workAndInteraction,
+      extractor: continuation.extractor,
+    });
+    const correctionClient = new ReviewCandidateCorrectionClient({
+      baseUrl: active.url,
+      token,
+      traceId: "trace-wave4-item53-model-correction",
+    });
+    const beforeCorrection = await item53Counts(pool);
+    await item53ExpectedFailure(
+      () => correctionClient.correct(writingProjectId, correctionRequest),
+      "cross-Project item 49 correction",
+    );
+    assert(
+      canonicalize(await item53Counts(pool)) === canonicalize(beforeCorrection),
+      "The cross-Project correction changed durable state.",
+    );
+    const correction = await correctionClient.correct(
+      scientificProjectId,
+      correctionRequest,
+    );
+    const correctionReplay = await correctionClient.correct(
+      scientificProjectId,
+      correctionRequest,
+    );
+    assert(
+      correction.applied === true &&
+        correctionReplay.applied === false &&
+        canonicalize(correction.candidate) ===
+          canonicalize(correctionReplay.candidate) &&
+        correction.candidate.working_candidate_id ===
+          item49Published.candidateId &&
+        correction.relationship.working_relationship_id ===
+          item49Published.relationshipId &&
+        correction.review_session.review_session_id ===
+          item49Published.reviewSessionId &&
+        correction.candidate.producer.producer_kind === "model" &&
+        correction.candidate.producer.model_call_ref.record_id ===
+          item49Published.extractorModelCallId &&
+        correction.candidate.qualifications.assessment_state === "stated",
+      "The provider-free correction lost exact identity, idempotency, model provenance, or limited basis.",
+    );
+    const staleCorrectionRequest = clone(correctionRequest);
+    staleCorrectionRequest.command_id = derivePetraId(
+      "command",
+      "wave4-item53|stale-correction",
+    );
+    staleCorrectionRequest.idempotency_key = "wave4-item53:stale-correction:v1";
+    await item53ExpectedFailure(
+      () =>
+        correctionClient.correct(scientificProjectId, staleCorrectionRequest),
+      "stale item 49 correction",
+    );
+    const correctedReview = await rawReview(
+      active.url,
+      scientificProjectId,
+      scientific.session.review_session_id,
+    );
+    assert(
+      correctedReview.content.session.revision === 2 &&
+        correctedReview.content.members[0]?.validation.state === "blocked" &&
+        correctedReview.content.members[0]?.working_state.candidate
+          .qualifications.assessment_state === "stated",
+      "The production Review read did not retain the corrected blocked limited-basis state.",
+    );
+    await record("corrected_blocked_limited_basis", {
+      projectThreadId: continuation.grounded.projectThread.project_thread_id,
+      projectTurnId:
+        continuation.grounded.projectThread.content.turns[0].project_turn_id,
+      workUnitId: continuation.workAndInteraction.work.work_unit_id,
+      interactionRunId:
+        continuation.workAndInteraction.deliveredRun.interaction_run_id,
+      correctedCandidateId: correction.candidate.working_candidate_id,
+      correctedCandidateRevision: correction.candidate.revision,
+      correctedCandidateText:
+        correctionRequest.corrected_profile_record.canonical_text,
+      modelActorId: continuation.extractor.modelActor.actor_id,
+      correctedReviewHash: correctedReview.content_hash,
+    });
+
+    const validatedRelationship = item53ValidatedRelationship(
+      correction,
+      scientific,
+    );
+    await new PostgresWorkingStateAuthorityRepository(
+      pool,
+    ).admitWorkingRelationshipRevision({
+      relationship: validatedRelationship,
+      profileRecord: scientific.selected.assertion,
+    });
+    const changes = new PostgresChangeControlAuthorityRepository(
+      pool,
+      new PostgresCapabilityGrantCommandAuthorizer(new PetraContractRegistry()),
+    );
+    const staleAuthorityPair = makeScientificPair({
+      definition: scientific.definition,
+      objective: scientific.objective,
+      workUnit: continuation.workAndInteraction.work,
+      sourceSpan: scientific.documentBundle.spans[0],
+      workVersion: scientific.workVersion,
+      label: "wave4-item53-stale-review-authority",
+      sequence: 5,
+    });
+    const staleEvidence = new PostgresEvidenceAuthorityRepository(pool);
+    await staleEvidence.proposeClaim(staleAuthorityPair.claim);
+    await staleEvidence.proposeAssertion(staleAuthorityPair.assertion);
+    const staleAuthorityCommands = makeChangeCommands({
+      label: "wave4-item53-stale-review-authority",
+      claim: staleAuthorityPair.claim,
+      assertion: staleAuthorityPair.assertion,
+      decision: "approved",
+      grant: scientific.applyGrant,
+    });
+    await executeChangeCommands(changes, staleAuthorityCommands);
+    const countsAfterStaleAuthority = await item53Counts(pool);
+    await executeChangeCommands(changes, staleAuthorityCommands);
+    assert(
+      canonicalize(await item53Counts(pool)) ===
+        canonicalize(countsAfterStaleAuthority),
+      "The stale-authority command retry duplicated effects.",
+    );
+    const staleReview = await rawReview(
+      active.url,
+      scientificProjectId,
+      scientific.session.review_session_id,
+    );
+    assert(
+      staleReview.content.session.snapshot_state === "stale" &&
+        staleReview.content.members[0]?.validation.state === "blocked" &&
+        staleReview.content.members[0]?.validation.label ===
+          "Review snapshot is stale" &&
+        staleReview.content.members[0]?.validation.recovery.includes(
+          "Refresh the Review",
+        ),
+      "The exact current working head did not make the unrefreshed Review stale.",
+    );
+    await record("stale_before_refresh", {
+      staleReviewHash: staleReview.content_hash,
+    });
+
+    const refreshClient = new ReviewSessionRefreshClient({
+      baseUrl: active.url,
+      token,
+      traceId: "trace-wave4-item53-refresh",
+    });
+    const refreshRequest = {
+      command_id: derivePetraId("command", "wave4-item49|refresh"),
+      idempotency_key: "wave4-item49:refresh:v1",
+      expected_review_session_ref: {
+        review_session_id: correction.review_session.review_session_id,
+        revision: correction.review_session.revision,
+        content_hash: correction.review_session.content_hash,
+        lifecycle: "open",
+      },
+    };
+    await item53ExpectedFailure(
+      () => refreshClient.refresh(writingProjectId, refreshRequest),
+      "cross-Project item 49 refresh",
+    );
+    const refreshed = await refreshClient.refresh(
+      scientificProjectId,
+      refreshRequest,
+    );
+    const refreshReplay = await refreshClient.refresh(
+      scientificProjectId,
+      refreshRequest,
+    );
+    assert(
+      refreshed.applied === true &&
+        refreshReplay.applied === false &&
+        canonicalize(refreshed.review_session) ===
+          canonicalize(refreshReplay.review_session) &&
+        refreshed.review_session.revision === 3 &&
+        refreshed.review_session.content.members[0].working_state.candidate_ref
+          .revision === correction.candidate.revision &&
+        refreshed.review_session.content.members[0].working_state
+          .relationship_refs[0].revision === validatedRelationship.revision,
+      "Refresh lost exact current heads or idempotent replay.",
+    );
+    const staleRefreshRequest = clone(refreshRequest);
+    staleRefreshRequest.command_id = derivePetraId(
+      "command",
+      "wave4-item53|stale-refresh",
+    );
+    staleRefreshRequest.idempotency_key = "wave4-item53:stale-refresh:v1";
+    await item53ExpectedFailure(
+      () => refreshClient.refresh(scientificProjectId, staleRefreshRequest),
+      "stale item 49 refresh",
+    );
+    await record("refreshed_paired_profile", {
+      refreshedRevision: refreshed.review_session.revision,
+    });
+
+    const applyClient = new ReviewSessionApplyClient({
+      baseUrl: active.url,
+      token,
+    });
+    let applyRequest;
+    let applied;
+    if (observer === undefined) {
+      const checkpoint = await applyClient.prepare({
+        project_id: scientificProjectId,
+        review_session_id: refreshed.review_session.review_session_id,
+        expected_revision: refreshed.review_session.revision,
+        expected_content_hash: refreshed.review_session.content_hash,
+        selected_review_member_id:
+          refreshed.review_session.content.members[0].review_member_id,
+      });
+      applyRequest = {
+        schema_name: "petra.review-session-apply-request",
+        schema_version: "1.0.0",
+        checkpoint,
+        decided_at: new Date().toISOString(),
+      };
+      applied = await applyClient.apply(applyRequest);
+    } else {
+      const observed = await record("projection_lag", {});
+      applyRequest = observed?.request;
+      applied = observed?.result;
+    }
+    assert(
+      applyRequest !== undefined && applied !== undefined,
+      "The projection-lag stage did not execute one explicit Apply action.",
+    );
+    new PetraContractRegistry().assertValid(
+      "review-session-apply-request",
+      "1.0.0",
+      applyRequest,
+    );
+    new PetraContractRegistry().assertValid(
+      "review-session-apply-result",
+      "1.0.0",
+      applied,
+    );
+    const checkpoint = applyRequest.checkpoint;
+    assert(
+      checkpoint.binding.authorization_basis.kind ===
+        "authenticated_human_checkpoint" &&
+        checkpoint.binding.authorization_basis.actor.actor_id ===
+          humanActorId &&
+        checkpoint.binding.review_policy.applicability === "not_applicable" &&
+        canonicalize(checkpoint).includes(item49Published.modelActorId),
+      "The provider-free continuation weakened the human-only Apply checkpoint.",
+    );
+    assert(
+      applied.outcome === "applied" &&
+        applied.steps.every((step) => step.observation === "executed") &&
+        applied.assessment.content.review.projection.state === "catching_up",
+      "The exact human Apply did not produce the honest projection-lag observation.",
+    );
+    const appliedReplay = await applyClient.apply(applyRequest);
+    assert(
+      appliedReplay.steps.every((step) => step.observation === "replayed"),
+      "The exact human Apply retry duplicated a command effect.",
+    );
+
+    const failure = await item53FailureReview({
+      pool,
+      scientific,
+      work: continuation.workAndInteraction.work,
+    });
+    const driftPair = makeScientificPair({
+      definition: scientific.definition,
+      objective: scientific.objective,
+      workUnit: continuation.workAndInteraction.work,
+      sourceSpan: scientific.documentBundle.spans[0],
+      workVersion: scientific.workVersion,
+      label: "wave4-item53-authority-drift",
+      sequence: 4,
+    });
+    const evidence = new PostgresEvidenceAuthorityRepository(pool);
+    await evidence.proposeClaim(driftPair.claim);
+    await evidence.proposeAssertion(driftPair.assertion);
+    const driftCommands = makeChangeCommands({
+      label: "wave4-item53-authority-drift",
+      claim: driftPair.claim,
+      assertion: driftPair.assertion,
+      decision: "approved",
+      grant: scientific.applyGrant,
+    });
+    let authorityAdvanced = false;
+    let countsAfterDrift;
+    const advanceAuthority = async () => {
+      assert(!authorityAdvanced, "The authority-drift control ran twice.");
+      await executeChangeCommands(changes, driftCommands);
+      authorityAdvanced = true;
+      countsAfterDrift = await item53Counts(pool);
+      await executeChangeCommands(changes, driftCommands);
+      assert(
+        canonicalize(await item53Counts(pool)) ===
+          canonicalize(countsAfterDrift),
+        "The authority-drift command replay duplicated effects.",
+      );
+    };
+    const directFailureCheckpoint =
+      observer === undefined
+        ? await applyClient.prepare({
+            project_id: scientificProjectId,
+            review_session_id: failure.session.review_session_id,
+            expected_revision: failure.session.revision,
+            expected_content_hash: failure.session.content_hash,
+            selected_review_member_id:
+              failure.session.content.members[0].review_member_id,
+          })
+        : undefined;
+    let failureRequest;
+    let failureResult;
+    if (observer === undefined) {
+      await advanceAuthority();
+      failureRequest = {
+        schema_name: "petra.review-session-apply-request",
+        schema_version: "1.0.0",
+        checkpoint: directFailureCheckpoint,
+        decided_at: new Date().toISOString(),
+      };
+      failureResult = await applyClient.apply(failureRequest);
+    } else {
+      const observed = await record("governed_command_failure", {
+        failureReviewSessionId: failure.session.review_session_id,
+        advanceAuthority,
+      });
+      failureRequest = observed?.request;
+      failureResult = observed?.result;
+    }
+    assert(
+      authorityAdvanced &&
+        failureRequest !== undefined &&
+        failureResult !== undefined,
+      "The governed failure stage did not execute its one bounded authority drift and Apply observation.",
+    );
+    new PetraContractRegistry().assertValid(
+      "review-session-apply-request",
+      "1.0.0",
+      failureRequest,
+    );
+    new PetraContractRegistry().assertValid(
+      "review-session-apply-result",
+      "1.0.0",
+      failureResult,
+    );
+    assert(
+      failureResult.outcome === "reconciliation_required" &&
+        failureResult.steps.every((step) => step.observation !== "executed") &&
+        failureResult.steps[0]?.error_code === "REVIEW_APPLY_STALE" &&
+        failureResult.assessment.content.preservation.length > 0,
+      "The governed stale-checkpoint failure did not preserve explicit no-effect recovery state.",
+    );
+    const failureReplay = await applyClient.apply(failureRequest);
+    assert(
+      failureReplay.outcome === "reconciliation_required" &&
+        failureReplay.steps.every((step) => step.observation !== "executed") &&
+        canonicalize(await item53Counts(pool)) ===
+          canonicalize(countsAfterDrift),
+      "The governed failure retry changed isolated Project state.",
+    );
+    await item53ExpectedFailure(
+      () =>
+        applyClient.prepare({
+          project_id: writingProjectId,
+          review_session_id: failure.session.review_session_id,
+          expected_revision: failure.session.revision,
+          expected_content_hash: failure.session.content_hash,
+          selected_review_member_id:
+            failure.session.content.members[0].review_member_id,
+        }),
+      "cross-Project failure Review preparation",
+    );
+    const failureReview = await rawReview(
+      active.url,
+      scientificProjectId,
+      failure.session.review_session_id,
+    );
+    assert(
+      failureReview.content.session.snapshot_state === "stale" &&
+        failureReview.content.members[0]?.outcome === "awaiting_decision" &&
+        failureReview.content.members[0]?.validation.state === "blocked",
+      "The governed failure did not retain the unapplied stale Review member.",
+    );
+
+    const preRestartCounts = await item53Counts(pool);
+    const preRestartWorking = await new ProjectWorkingStateClient({
+      baseUrl: active.url,
+      token,
+    }).read(scientificProjectId);
+    await active.shutdown();
+    active = await launch();
+    const postRestartWorking = await new ProjectWorkingStateClient({
+      baseUrl: active.url,
+      token,
+    }).read(scientificProjectId);
+    const postRestartReview = await rawReview(
+      active.url,
+      scientificProjectId,
+      scientific.session.review_session_id,
+    );
+    assert(
+      postRestartWorking.content_hash === preRestartWorking.content_hash &&
+        postRestartReview.review_session_id ===
+          item49Published.reviewSessionId &&
+        canonicalize(await item53Counts(pool)) ===
+          canonicalize(preRestartCounts),
+      `Restart changed the provider-free continuation identities or durable cardinalities: ${JSON.stringify(
+        {
+          working_before: preRestartWorking.content_hash,
+          working_after: postRestartWorking.content_hash,
+          review_after: postRestartReview.review_session_id,
+          counts_before: preRestartCounts,
+          counts_after: await item53Counts(pool),
+        },
+      )}`,
+    );
+    await record("restart_complete", {
+      item49ReviewHash: postRestartReview.content_hash,
+      failureReviewHash: failureReview.content_hash,
+    });
+    return {
+      ok: true,
+      boundary: {
+        setup_kind: "provider_free_item49_presentation_continuation",
+        external_model_call_executed: false,
+        provider_evidence_owner:
+          "reports/WAVE4-NATURAL-CONVERSATION-MODEL-IDENTITY-TRACE.md",
+        browser_scenarios_executed: observer !== undefined,
+      },
+      identities: {
+        ...item49Published,
+        directCandidateRevision: 1,
+        modelCandidateRevision: correction.candidate.revision,
+        blockedReviewRevision: correction.review_session.revision,
+        refreshedReviewRevision: refreshed.review_session.revision,
+        failureReviewSessionId: failure.session.review_session_id,
+      },
+      guards: {
+        cross_project_rejected: true,
+        stale_correction_rejected: true,
+        stale_refresh_rejected: true,
+        correction_replay_applied: correctionReplay.applied,
+        refresh_replay_applied: refreshReplay.applied,
+        apply_replay_observations: appliedReplay.steps.map(
+          (step) => step.observation,
+        ),
+        governed_failure_outcome: failureResult.outcome,
+        governed_failure_error: failureResult.steps[0]?.error_code,
+        governed_failure_effects: failureResult.steps.map(
+          (step) => step.observation,
+        ),
+      },
+      projection: {
+        state: applied.assessment.content.review.projection.state,
+        pending_records:
+          applied.assessment.content.review.projection.pending_records,
+      },
+      durable_counts: preRestartCounts,
+    };
+  } finally {
+    globalThis.fetch = nativeFetch;
+    await Promise.all([observer?.close?.(), vite?.close(), active?.shutdown()]);
+  }
+};
+
 const item49Counts = async (pool) => {
   const result = await pool.query(
     `SELECT
@@ -2987,11 +4850,40 @@ try {
         progress(
           "controlled-writing candidate and Review seeded without Apply",
         );
-        return exerciseTrace(environment, pool, scientific, writing);
+        if (!item53Mode)
+          return exerciseTrace(environment, pool, scientific, writing);
+        const workAndInteraction = await item53WorkAndInteraction({
+          pool,
+          scientific,
+        });
+        const grounded = await item53GroundedPresentation({
+          pool,
+          scientific,
+          workAndInteraction,
+        });
+        const extractor = await item53ExtractorPresentation({
+          pool,
+          scientific,
+          context: grounded.context,
+        });
+        progress(
+          "exact item 49 identities reconstructed for provider-free presentation continuation",
+        );
+        return exerciseItem53Trace({
+          environment,
+          pool,
+          scientific,
+          writing,
+          continuation: { workAndInteraction, grounded, extractor },
+        });
       })();
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 } catch (error) {
   failure = error;
+  if (Array.isArray(error?.validationErrors))
+    process.stderr.write(
+      `${JSON.stringify(error.validationErrors, null, 2)}\n`,
+    );
   const logs = await run("docker", composeArgs("logs", "--tail=160"));
   process.stderr.write(`${logs.stdout}\n${logs.stderr}`);
 } finally {
