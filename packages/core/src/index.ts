@@ -56,6 +56,7 @@ export * from "./review-session.js";
 export * from "./project-relationship-view.js";
 export * from "./project-relationship-overlay-view.js";
 export * from "./project-relationship-overlay-view.js";
+export * from "./focused-graph-view.js";
 export * from "./project-object-location-view.js";
 export * from "./interaction-record-registry.js";
 export * from "./interaction-authority-repository.js";
