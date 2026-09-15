@@ -9,11 +9,13 @@ import type {
   FocusedGraphProjectSnapshotRef,
   FocusedGraphRelationship,
   FocusedGraphResolvedSemantic,
+  FocusedGraphSemanticDestination,
   PetraAssertion,
   PetraClaim,
   PetraFocusedGraphView,
   PetraProjectDefinition,
   PetraProjectionCheckpoint,
+  PetraSourceSpan,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
@@ -40,6 +42,10 @@ interface ProjectContextRow {
 interface PayloadHashRow {
   payload: unknown;
   record_hash: string;
+}
+
+interface SourceSpanRow extends PayloadHashRow {
+  project_scoped: boolean;
 }
 
 interface AuthorityRow {
@@ -87,6 +93,8 @@ const meaningKind = (
   predicate: string,
 ): FocusedGraphRelationship["meaning_kind"] | undefined =>
   ({
+    CITES: "citation",
+    CITES_AS_BACKGROUND: "citation",
     SUPPORTS: "support",
     REPLICATES: "support",
     CONTRADICTS: "contradiction",
@@ -97,9 +105,52 @@ const meaningKind = (
     CRITIQUES_METHOD: "qualification",
     INTERPRETS: "qualification",
     ADOPTS: "inference",
+    ASSUMES: "inference",
     DIRECTLY_TESTS: "inference",
     EXTENDS: "inference",
+    PREDICTS: "inference",
+    TESTS: "inference",
+    TESTS_CAUSE: "inference",
   })[predicate] as FocusedGraphRelationship["meaning_kind"] | undefined;
+
+const MAX_SOURCE_LOCATIONS = 96;
+
+interface SourceLocation {
+  readonly ref: FocusedGraphExactRef;
+  readonly span: PetraSourceSpan;
+  readonly projectScoped: boolean;
+}
+
+const sourceSpanIdsForClaim = (claim: PetraClaim): readonly string[] =>
+  claim.basis.basis_kind === "source" ? claim.basis.source_span_ids : [];
+
+const sourceSpanIdsForAssertion = (
+  assertion: PetraAssertion,
+): readonly string[] =>
+  assertion.provenance_refs
+    .filter((ref) => ref.provenance_kind === "source_span")
+    .map((ref) => ref.source_span_id);
+
+const unique = (values: readonly string[]): string[] => [...new Set(values)];
+
+const titleCase = (value: string): string =>
+  value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
+const sourceLocationSummary = (location: SourceLocation): string => {
+  const selector = location.span.selector;
+  const selectorKinds =
+    selector.selector_type === "compound"
+      ? selector.components.map((component) => component.component_kind)
+      : [selector.selector_type];
+  return `${titleCase(location.span.verification.status)} ${selectorKinds
+    .map(titleCase)
+    .join(
+      ", ",
+    )} SourceSpan ${location.span.source_span_id} revision ${location.span.revision}`;
+};
 
 /**
  * Current, one-hop query composition over immutable PostgreSQL records and the
@@ -388,6 +439,124 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         );
       }
 
+      const requestedSourceSpanIds = unique([
+        ...[...claims.values()].flatMap(sourceSpanIdsForClaim),
+        ...selected.flatMap(({ assertion }) =>
+          sourceSpanIdsForAssertion(assertion),
+        ),
+      ]);
+      const representedSourceSpanIds = requestedSourceSpanIds.slice(
+        0,
+        MAX_SOURCE_LOCATIONS,
+      );
+      const sourceLocations = await this.#sourceLocations(
+        client,
+        projectId,
+        representedSourceSpanIds,
+      );
+      const sourceLocationsCapped =
+        requestedSourceSpanIds.length > representedSourceSpanIds.length;
+      const sourceDestinations = new Map<
+        string,
+        FocusedGraphSemanticDestination
+      >();
+      const sourceFacts = (
+        memberKey: string,
+        memberLabel: string,
+        sourceSpanIds: readonly string[],
+      ): {
+        destinationKeys: string[];
+        refs: FocusedGraphExactRef[];
+        summary: string;
+        limitations: string[];
+      } => {
+        const locations = unique(sourceSpanIds)
+          .map((sourceSpanId) => sourceLocations.get(sourceSpanId))
+          .filter(
+            (location): location is SourceLocation =>
+              location !== undefined && location.projectScoped,
+          );
+        const unavailableProjectLocations = unique(sourceSpanIds).filter(
+          (sourceSpanId) =>
+            sourceLocations.get(sourceSpanId)?.projectScoped === false,
+        );
+        const omittedLocations = unique(sourceSpanIds).filter(
+          (sourceSpanId) => !sourceLocations.has(sourceSpanId),
+        );
+        const destinationKeys: string[] = [];
+        for (const location of locations) {
+          const destinationKey = `destination:source:${location.span.source_span_id.toLowerCase()}`;
+          if (destinationKey === request.return_destination.destination_key) {
+            throw this.#error(
+              "FOCUSED_GRAPH_QUERY_INVALID",
+              "The return destination key collides with a server-composed source location.",
+            );
+          }
+          if (!sourceDestinations.has(destinationKey)) {
+            sourceDestinations.set(destinationKey, {
+              destination_key: destinationKey,
+              destination_kind: "source_inspection",
+              state: "available",
+              owner: "project_object_location_view",
+              label: "Inspect exact source location",
+              target_ref: location.ref,
+            });
+          }
+          destinationKeys.push(destinationKey);
+        }
+        const limitations: string[] = [];
+        if (sourceSpanIds.length === 0) {
+          limitations.push(
+            `No direct SourceSpan location is recorded for this ${memberLabel}.`,
+          );
+        }
+        if (unavailableProjectLocations.length > 0) {
+          limitations.push(
+            `${unavailableProjectLocations.length} recorded SourceSpan ${unavailableProjectLocations.length === 1 ? "location has" : "locations have"} no Project-scoped source-inspection destination at this snapshot.`,
+          );
+        }
+        if (omittedLocations.length > 0) {
+          limitations.push(
+            `${omittedLocations.length} additional recorded SourceSpan ${omittedLocations.length === 1 ? "location is" : "locations are"} outside the bounded source-location limit of ${MAX_SOURCE_LOCATIONS}.`,
+          );
+        }
+        if (limitations.length > 0) {
+          const destinationKey = `destination:source-unavailable:${memberKey}`;
+          if (destinationKey === request.return_destination.destination_key) {
+            throw this.#error(
+              "FOCUSED_GRAPH_QUERY_INVALID",
+              "The return destination key collides with a server-composed unavailable source fact.",
+            );
+          }
+          sourceDestinations.set(destinationKey, {
+            destination_key: destinationKey,
+            destination_kind: "source_inspection",
+            state: "unavailable",
+            owner: "project_object_location_view",
+            label: "Source location unavailable",
+            reason: limitations.join(" "),
+          });
+          destinationKeys.push(destinationKey);
+        }
+        const verificationStates = unique(
+          locations.map((location) => location.span.verification.status),
+        );
+        return {
+          destinationKeys,
+          refs: locations.map((location) => location.ref),
+          summary:
+            locations.length === 0
+              ? "No Project-scoped exact SourceSpan location is available."
+              : `${locations.length} Project-scoped exact SourceSpan ${locations.length === 1 ? "location" : "locations"}; verification ${verificationStates.join(", ")}. ${locations
+                  .slice(0, 3)
+                  .map(sourceLocationSummary)
+                  .join(
+                    "; ",
+                  )}${locations.length > 3 ? "; additional exact locations remain available through their typed destinations" : ""}.`,
+          limitations,
+        };
+      };
+
       const nodes: FocusedGraphNode[] = [...claims.entries()]
         .sort(([left], [right]) =>
           left === focusClaim.claim_id
@@ -403,8 +572,23 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
             revision: graphNode.authoritativeRevision,
             record_hash: graphNode.recordHash,
           };
+          const memberKey = nodeKey(claimId);
+          const sources = sourceFacts(
+            memberKey,
+            semantics.object.term.singular,
+            sourceSpanIdsForClaim(claim),
+          );
+          const validationSummary =
+            claim.basis.basis_kind === "source"
+              ? ` Validators ${claim.basis.validator_results
+                  .map(
+                    (result) =>
+                      `${result.validator_name}=${result.outcome}:${result.code}`,
+                  )
+                  .join(", ")}.`
+              : "";
           return {
-            node_key: nodeKey(claimId),
+            node_key: memberKey,
             record_ref: ref,
             semantic_key: semantics.object.semantic_key,
             term: semantics.object.term,
@@ -414,16 +598,16 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
             authority_position: "current_authority",
             lifecycle: "represented",
             basis: {
-              summary: `PostgreSQL canonical ${semantics.object.term.singular} with ${claim.basis.basis_kind} basis and ${claim.authority.zone} authority.`,
-              record_refs: [ref],
-              limitations: [
-                "Exact source locations are composed by the existing source owner in a later focused-query slice.",
-              ],
+              summary: `PostgreSQL canonical ${semantics.object.term.singular} with ${claim.basis.basis_kind} basis; recorded authority is ${claim.authority.zone}/${claim.authority.review_state}. ${sources.summary}${validationSummary}`,
+              record_refs: [ref, ...sources.refs],
+              limitations: sources.limitations,
             },
-            destination_keys:
+            destination_keys: [
+              ...sources.destinationKeys,
               returnTarget !== undefined && sameExactRef(returnTarget, ref)
-                ? [request.return_destination.destination_key]
-                : [],
+                ? request.return_destination.destination_key
+                : undefined,
+            ].filter((key): key is string => key !== undefined),
           };
         });
 
@@ -446,8 +630,14 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
             revision: graphRelationship.authoritativeRevision,
             record_hash: graphRelationship.recordHash,
           };
+          const memberKey = relationshipKey(graphRelationship.id);
+          const sources = sourceFacts(
+            memberKey,
+            semantics.relationship.term.singular,
+            sourceSpanIdsForAssertion(assertion),
+          );
           return {
-            relationship_key: relationshipKey(graphRelationship.id),
+            relationship_key: memberKey,
             relationship_ref: relationshipRef,
             semantic_key: semantics.relationship.semantic_key,
             term: semantics.relationship.term,
@@ -464,16 +654,16 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
             authority_position: "current_authority",
             summary: assertion.rationale,
             basis: {
-              summary: `Exact canonical Assertion revision ${assertion.revision}; its recorded predicate remains ${assertion.predicate}.`,
-              record_refs: [exactRef],
-              limitations: [
-                "This slice does not yet compose SourceSpan destinations into relationship Details.",
-              ],
+              summary: `Exact canonical Assertion revision ${assertion.revision}; predicate ${assertion.predicate}; origin ${assertion.assertion_kind}; recorded authority ${assertion.authority.zone}/${assertion.authority.review_state}. ${sources.summary}`,
+              record_refs: [exactRef, ...sources.refs],
+              limitations: sources.limitations,
             },
-            destination_keys:
+            destination_keys: [
+              ...sources.destinationKeys,
               returnTarget !== undefined && sameExactRef(returnTarget, exactRef)
-                ? [request.return_destination.destination_key]
-                : [],
+                ? request.return_destination.destination_key
+                : undefined,
+            ].filter((key): key is string => key !== undefined),
           };
         },
       );
@@ -493,7 +683,7 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
               relationship.source_node_key === relationship.target_node_key,
           },
         ],
-        limitations: [],
+        limitations: structuredClone(relationship.basis.limitations),
       }));
 
       const taskWithoutHash = {
@@ -519,13 +709,25 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         count: { state: "unknown" },
       };
       const omissions: [FocusedGraphOmission, ...FocusedGraphOmission[]] =
-        capped
+        capped || sourceLocationsCapped
           ? [
               {
                 omission_kind: "capped",
                 description:
-                  "Additional recorded one-hop relationships may exist beyond the caller-visible node, relationship, or path limit.",
-                count: { state: "unknown" },
+                  capped && sourceLocationsCapped
+                    ? `Additional recorded one-hop relationships may exist beyond the caller-visible membership limit, and ${requestedSourceSpanIds.length - representedSourceSpanIds.length} recorded SourceSpan locations are outside the bounded source-location limit.`
+                    : capped
+                      ? "Additional recorded one-hop relationships may exist beyond the caller-visible node, relationship, or path limit."
+                      : `${requestedSourceSpanIds.length - representedSourceSpanIds.length} recorded SourceSpan locations are outside the bounded source-location limit of ${MAX_SOURCE_LOCATIONS}.`,
+                count:
+                  sourceLocationsCapped && !capped
+                    ? {
+                        state: "exact",
+                        value:
+                          requestedSourceSpanIds.length -
+                          representedSourceSpanIds.length,
+                      }
+                    : { state: "unknown" },
               },
               outOfScopeOmission,
             ]
@@ -578,7 +780,8 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
           directions: ["outgoing", "incoming"],
           included_layers: ["current"],
           limits: structuredClone(request.limits),
-          coverage: capped ? "capped" : "complete_for_scope",
+          coverage:
+            capped || sourceLocationsCapped ? "capped" : "complete_for_scope",
           omissions,
         },
         nodes,
@@ -589,7 +792,14 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
           selection_kind: "node",
           selected_keys: [nodeKey(focusClaim.claim_id)],
         },
-        destinations: [structuredClone(request.return_destination)],
+        destinations: [
+          structuredClone(request.return_destination),
+          ...[...sourceDestinations.values()].filter(
+            (destination) =>
+              destination.destination_key !==
+              request.return_destination.destination_key,
+          ),
+        ],
         actions: [
           {
             action_key: `action:${semantics.action.semantic_key.replaceAll(".", ":")}`,
@@ -938,6 +1148,57 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         "A graph member is newer than the represented authority event.",
       );
     }
+  }
+
+  async #sourceLocations(
+    client: PoolClient,
+    projectId: string,
+    sourceSpanIds: readonly string[],
+  ): Promise<ReadonlyMap<string, SourceLocation>> {
+    const result = new Map<string, SourceLocation>();
+    for (const sourceSpanId of sourceSpanIds) {
+      const query = await client.query<SourceSpanRow>(
+        `SELECT span.payload, span.record_hash,
+                EXISTS (
+                  SELECT 1
+                    FROM petra.parsed_documents AS document
+                    JOIN petra.project_source_revisions AS binding
+                      ON binding.artifact_manifest_id =
+                           document.source_artifact_manifest_id
+                    JOIN petra.project_sources AS source
+                      ON source.project_source_id = binding.project_source_id
+                     AND source.current_revision = binding.revision
+                   WHERE document.parsed_document_id = span.parsed_document_id
+                     AND source.project_id = $1
+                ) AS project_scoped
+           FROM petra.source_spans AS span
+          WHERE span.source_span_id = $2 AND span.revision = 1`,
+        [projectId, sourceSpanId],
+      );
+      const row = query.rows[0];
+      if (row === undefined || row.record_hash !== canonicalHash(row.payload)) {
+        throw this.#corrupt(
+          "A focused graph member refers to a missing or corrupt SourceSpan.",
+        );
+      }
+      this.#contracts.assertValid("source-span", "1.0.0", row.payload);
+      const span = structuredClone(row.payload) as PetraSourceSpan;
+      if (span.source_span_id !== sourceSpanId || span.revision !== 1) {
+        throw this.#corrupt(
+          "A focused graph member refers to an incompatible SourceSpan revision.",
+        );
+      }
+      result.set(sourceSpanId, {
+        ref: {
+          record_id: span.source_span_id,
+          revision: span.revision,
+          record_hash: row.record_hash,
+        },
+        span,
+        projectScoped: row.project_scoped,
+      });
+    }
+    return result;
   }
 
   async #claim(

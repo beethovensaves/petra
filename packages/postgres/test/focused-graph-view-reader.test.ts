@@ -6,6 +6,7 @@ import type {
   PetraClaim,
   PetraProjectDefinition,
   PetraProjectionCheckpoint,
+  PetraSourceSpan,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
@@ -130,38 +131,65 @@ describe("PostgreSQL focused graph query reader", () => {
       "claim_01ARZ3NDEKTSV4RRFFQ69G5FD2",
       "Related claim",
     );
-    const assertion = fixture<PetraAssertion>("assertion-trusted");
-    assertion.assertion_id = "assertion_01ARZ3NDEKTSV4RRFFQ69G5FD3";
-    assertion.subject_id = focus.claim_id;
-    assertion.predicate = "SUPPORTS";
-    assertion.object = { object_kind: "entity", entity_id: related.claim_id };
-    assertion.rationale = "The exact accepted Assertion records support.";
+    related.basis = {
+      basis_kind: "researcher",
+      rationale:
+        "The researcher recorded this related Claim without a direct SourceSpan.",
+      proposed_by: structuredClone(related.created_by),
+      proposed_at: related.created_at,
+    };
+    const predicates = [
+      "CITES",
+      "SUPPORTS",
+      "CONTRADICTS",
+      "QUALIFIES",
+      "ADOPTS",
+    ] as const;
+    const assertions = predicates.map((predicate, index) => {
+      const assertion = fixture<PetraAssertion>("assertion-trusted");
+      assertion.assertion_id = `assertion_01ARZ3NDEKTSV4RRFFQ69G5FD${index + 3}`;
+      assertion.subject_id = focus.claim_id;
+      assertion.predicate = predicate;
+      assertion.object = {
+        object_kind: "entity",
+        entity_id: related.claim_id,
+      };
+      assertion.assertion_kind =
+        predicate === "ADOPTS" ? "model_inference" : "source_stated";
+      assertion.rationale = `The exact accepted Assertion records ${predicate}.`;
+      return assertion;
+    });
+    const sourceSpan = fixture<PetraSourceSpan>("source-span");
     const checkpoint = fixture<PetraProjectionCheckpoint>(
       "projection-checkpoint-current",
     );
     const focusNode = graphNode(focus);
     const relatedNode = graphNode(related);
-    const relationship: AuthorityGraphObjectView = {
-      elementKind: "relationship",
-      id: assertion.assertion_id,
-      kind: assertion.predicate,
-      authoritativeRevision: assertion.revision,
-      recordHash: hash(assertion),
-      projectId: projectDefinition.project_id,
-      sourceId: focus.claim_id,
-      targetId: related.claim_id,
-      assertionId: assertion.assertion_id,
-      relationClass: "scientific",
-      properties: {
-        target_sequence: 1,
-        stream_revision: 3,
-        event_position: 3,
-      },
-    };
+    const relationships: AuthorityGraphObjectView[] = assertions.map(
+      (assertion) => ({
+        elementKind: "relationship",
+        id: assertion.assertion_id,
+        kind: assertion.predicate,
+        authoritativeRevision: assertion.revision,
+        recordHash: hash(assertion),
+        projectId: projectDefinition.project_id,
+        sourceId: focus.claim_id,
+        targetId: related.claim_id,
+        assertionId: assertion.assertion_id,
+        relationClass: "scientific",
+        properties: {
+          target_sequence: 1,
+          stream_revision: 3,
+          event_position: 3,
+        },
+      }),
+    );
     const evidence = new Map<string, PetraClaim | PetraAssertion>([
       [focus.claim_id, focus],
       [related.claim_id, related],
-      [assertion.assertion_id, assertion],
+      ...assertions.map(
+        (assertion) => [assertion.assertion_id, assertion] as const,
+      ),
     ]);
     const queries: string[] = [];
     const client = {
@@ -210,6 +238,16 @@ describe("PostgreSQL focused graph query reader", () => {
               stream_revision: "3",
             } as unknown as Row,
           ]);
+        if (text.includes("FROM petra.source_spans AS span"))
+          return values[1] === sourceSpan.source_span_id
+            ? result([
+                {
+                  payload: structuredClone(sourceSpan),
+                  record_hash: hash(sourceSpan),
+                  project_scoped: true,
+                } as unknown as Row,
+              ])
+            : result([]);
         if (text.includes("FROM petra.evidence_entity_revisions")) {
           const record = evidence.get(String(values[0]));
           return record === undefined
@@ -250,7 +288,7 @@ describe("PostgreSQL focused graph query reader", () => {
               ? relatedNode
               : undefined,
         ),
-      getEvidenceRelations: () => Promise.resolve([relationship]),
+      getEvidenceRelations: () => Promise.resolve(relationships),
     } as unknown as AuthorityGraphStore;
     const request: FocusedGraphViewRequest = {
       request_id: "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAA",
@@ -293,8 +331,8 @@ describe("PostgreSQL focused graph query reader", () => {
       limits: {
         maximum_depth: 1,
         maximum_nodes: 5,
-        maximum_relationships: 4,
-        maximum_paths: 4,
+        maximum_relationships: 8,
+        maximum_paths: 8,
       },
     };
     const reader = new PostgresFocusedGraphViewReader(pool, graph, contracts);
@@ -322,15 +360,65 @@ describe("PostgreSQL focused graph query reader", () => {
     expect(
       view?.content.nodes.map((node) => node.record_ref.record_id),
     ).toEqual([focus.claim_id, related.claim_id]);
-    expect(view?.content.relationships).toEqual([
-      expect.objectContaining({
-        predicate: "SUPPORTS",
-        meaning_kind: "support",
-        source_node_key: `node:${focus.claim_id.toLowerCase()}`,
-        target_node_key: `node:${related.claim_id.toLowerCase()}`,
-      }),
+    expect(
+      view?.content.relationships.map((relationship) => ({
+        predicate: relationship.predicate,
+        meaning: relationship.meaning_kind,
+      })),
+    ).toEqual([
+      { predicate: "CITES", meaning: "citation" },
+      { predicate: "SUPPORTS", meaning: "support" },
+      { predicate: "CONTRADICTS", meaning: "contradiction" },
+      { predicate: "QUALIFIES", meaning: "qualification" },
+      { predicate: "ADOPTS", meaning: "inference" },
     ]);
-    expect(view?.content.paths[0]?.steps).toHaveLength(1);
+    expect(view?.content.relationships.at(-1)?.origin).toBe("model_inference");
+    expect(view?.content.paths).toHaveLength(5);
+    expect(
+      view?.content.paths.every(
+        (path) =>
+          path.steps.length === 1 &&
+          path.steps[0]?.traversal_direction === "outgoing",
+      ),
+    ).toBe(true);
+    const sourceDestination = view?.content.destinations.find(
+      (destination) => destination.destination_kind === "source_inspection",
+    );
+    expect(sourceDestination).toEqual(
+      expect.objectContaining({
+        state: "available",
+        owner: "project_object_location_view",
+        target_ref: {
+          record_id: sourceSpan.source_span_id,
+          revision: sourceSpan.revision,
+          record_hash: hash(sourceSpan),
+        },
+      }),
+    );
+    expect(
+      view?.content.nodes[0]?.basis.record_refs.some(
+        (ref) => ref.record_id === sourceSpan.source_span_id,
+      ),
+    ).toBe(true);
+    expect(view?.content.nodes[0]?.basis.limitations).toEqual([]);
+    expect(view?.content.nodes[0]?.basis.summary).toContain(
+      "source-span-resolution=pass:SPAN_RESOLVED",
+    );
+    expect(view?.content.relationships[0]?.basis.summary).toContain(
+      "trusted/human_accepted",
+    );
+    const unavailableSource = view?.content.destinations.find(
+      (destination) => destination.state === "unavailable",
+    );
+    expect(unavailableSource?.destination_kind).toBe("source_inspection");
+    expect(
+      unavailableSource?.state === "unavailable"
+        ? unavailableSource.reason
+        : undefined,
+    ).toContain("No direct SourceSpan location");
+    expect(view?.content.nodes[1]?.destination_keys).toContain(
+      unavailableSource?.destination_key,
+    );
     expect(view?.content.authority_boundary.renderer_queries_projection).toBe(
       false,
     );

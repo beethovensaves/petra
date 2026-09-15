@@ -130,6 +130,11 @@ export class FocusedGraphClient {
       const returnedSemanticKeys = view.content.profile.resolved_semantics.map(
         (semantic) => semantic.semantic_key,
       );
+      const returnDestinations = view.content.destinations.filter(
+        (destination) =>
+          destination.destination_key ===
+          request.return_destination.destination_key,
+      );
       if (
         view.project_id !== projectId ||
         definition.project_id !== projectId ||
@@ -157,7 +162,8 @@ export class FocusedGraphClient {
         view.content.semantic_layer !== request.semantic_layer ||
         !same(view.content.temporal_position, request.temporal_position) ||
         !same(view.content.scope.limits, request.limits) ||
-        !same(view.content.destinations, [request.return_destination]) ||
+        returnDestinations.length !== 1 ||
+        !same(returnDestinations[0], request.return_destination) ||
         (request.expected_snapshot !== undefined &&
           !same(view.content.requested_snapshot, request.expected_snapshot)) ||
         graphRegistration.length !== 1 ||
