@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import type {
   ExtractorAdapterRequest,
   ExtractorAdapterResponse,
@@ -109,6 +111,47 @@ describe("extractor provider-schema projection", () => {
     expect(strictCandidate.properties).toEqual({
       kind: { enum: ["descriptive", "comparative"], type: "string" },
     });
+  });
+
+  it("can require named canonical scope fields for a bounded strict extraction", () => {
+    const canonical = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../contracts/schemas/model-extractor-output/1.0.0/schema.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as Record<string, unknown>;
+    const common = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../contracts/schemas/common/1.0.0/schema.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as Record<string, unknown>;
+    const strict = projectExtractorOutputSchemaForProvider(canonical, common, {
+      strictObjectProperties: true,
+      strictRequiredPropertyNames: ["task", "outcome"],
+    });
+    const candidate = (
+      (strict.properties as Record<string, unknown>).candidates as Record<
+        string,
+        unknown
+      >
+    ).items as Record<string, unknown>;
+    const scope = (candidate.properties as Record<string, unknown>)
+      .scope as Record<string, unknown>;
+
+    expect(scope.required).toEqual([
+      "unreported_dimensions",
+      "task",
+      "outcome",
+    ]);
+    expect(scope.properties).toHaveProperty("task");
+    expect(scope.properties).toHaveProperty("outcome");
   });
 });
 

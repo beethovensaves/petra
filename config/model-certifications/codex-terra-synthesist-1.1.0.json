@@ -3,7 +3,7 @@
   "schema_version": "1.0.0",
   "runtime": {
     "name": "codex-app-server",
-    "codex_version": "codex-cli 0.151.0",
+    "codex_version": "codex-cli 0.154.0",
     "auth_mode": "chatgpt",
     "plan_type_observed": "prolite",
     "api_key_used": false,
@@ -36,10 +36,10 @@
   "certification": {
     "schema_name": "petra.model-role-certification",
     "schema_version": "1.1.0",
-    "role_certification_id": "role_certification_2Y0M9BRCDNMBMK55DXEMV31Q8Y",
+    "role_certification_id": "role_certification_2QNNWEG32XSDY4HWQW209N9T86",
     "revision": 1,
     "deployment": {
-      "model_deployment_id": "model_deployment_2GQKKQBMKS7BTZ6CCES42FNHV8",
+      "model_deployment_id": "model_deployment_1WKCAZEM2G2CQ4NZAAB2G68XGW",
       "provider_id": "provider_38X86GHP79R4HZDR2A72D7EJAW",
       "provider_kind": "codex_app_server",
       "provider_model": "gpt-5.6-terra",
@@ -117,19 +117,19 @@
     "decision": {
       "status": "active",
       "reason": "The deployment matched every exact expected outcome in the bounded synthesist role fixture.",
-      "valid_from": "2026-09-04T00:25:41.533Z",
+      "valid_from": "2026-09-15T02:34:10.059Z",
       "invalidation_conditions": [
         "The deployment identity changes.",
         "The prompt, packet contracts, output contract, or required validator changes.",
         "The certification fixture or its expected outcomes change."
       ]
     },
-    "content_hash": "sha256:dfdedf8432ea5fe5b634ba2ba7afb1cedef0295147df0d5538603beb25b1a09d",
+    "content_hash": "sha256:129da2f34cb87fef177783726a730b0f263a7c9c41ea8b8dbd634a259f240c45",
     "certified_by": {
       "actor_id": "actor_7RVPE6RBYWGY6B71FQGPHREE8Q",
       "actor_kind": "service"
     },
-    "certified_at": "2026-09-04T00:25:41.533Z"
+    "certified_at": "2026-09-15T02:34:10.059Z"
   },
   "cases": [
     {
@@ -152,11 +152,11 @@
     }
   ],
   "recorded_execution": {
-    "model_request_id": "model_request_1QWZYMTKYE2NT02DGX6Z6Y2NDR",
-    "model_call_id": "model_call_2BJFMW2M5Q2F7AZS52PZNWFQ6R",
-    "endpoint_fingerprint": "sha256:3bf520194b2b0411228a0e70a1e85b66f69588c75c0e49a235df7ea455f34c68",
-    "certification_latency_ms": 19859,
-    "gateway_latency_ms": 19173
+    "model_request_id": "model_request_0D75C9WJGVEBYRZF21K74S60BN",
+    "model_call_id": "model_call_44T1CGHAD5QBXF86T72GTPCPRM",
+    "endpoint_fingerprint": "sha256:2a6dfe48f745f6c661059747c99a17f08872a729d1a398c9cae17e179af7d054",
+    "certification_latency_ms": 19325,
+    "gateway_latency_ms": 17933
   },
   "gate": {
     "passed": true
