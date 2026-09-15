@@ -346,6 +346,20 @@ describe("focused graph renderer-neutral region conformance", () => {
       source,
       target,
       paths: [path],
+      destinations: [view.content.destinations[2]],
+      actions: [],
+    });
+    expect(regions.graph.resolvedPaths).toBe(regions.textualPeer.resolvedPaths);
+    expect(regions.graph.resolvedPaths[0]).toEqual({
+      path,
+      steps: [
+        {
+          step: path?.steps[0],
+          source,
+          relationship,
+          target,
+        },
+      ],
     });
 
     expect(regions.details.selectedMembers).toEqual([
@@ -477,6 +491,16 @@ describe("focused graph renderer-neutral region conformance", () => {
     missingReturn.content.task.return_destination_key = "destination:missing";
     expect(() => focusedGraphRegionsFromView(missingReturn)).toThrowError(
       /Return destination destination:missing is unavailable/u,
+    );
+
+    const reorderedPath = focusedGraphView();
+    const reorderedStep = reorderedPath.content.paths[0]?.steps[0];
+    if (reorderedStep === undefined) {
+      throw new Error("Expected one resolved path step.");
+    }
+    reorderedStep.position = 2;
+    expect(() => focusedGraphRegionsFromView(reorderedPath)).toThrowError(
+      /inconsistent step position/u,
     );
   });
 });

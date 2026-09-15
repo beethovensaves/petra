@@ -10,6 +10,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 
 import { focusedGraphRegionsFromView } from "./focused-graph-regions.js";
+import { FocusedGraphResult } from "./FocusedGraphResult.js";
 
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const REQUEST_ID = /^focused_graph_request_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -843,6 +844,8 @@ export const FocusedGraphOrientationSurface = ({
           </ul>
         </details>
       </section>
+
+      <FocusedGraphResult regions={regions} />
 
       <footer className="reference-reader-return">
         <p>
