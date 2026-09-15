@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -10,10 +16,12 @@ import Ajv2020 from "ajv/dist/2020.js";
 import {
   buildCodexExecArguments,
   buildWorkerPrompt,
+  canRetryUnchangedWorkerFailure,
   enforceCompletionDisposition,
   initialHandoff,
   inventoryAuditOverdue,
   isCompatiblePackageJsonConflictSet,
+  isRetryableWorkerError,
   mergePackageJsonDocuments,
   missingRequiredEvidence,
   parseArguments,
@@ -22,6 +30,7 @@ import {
   unexpectedChanges,
   validateEvidencePlan,
   validateCommitTransition,
+  validatePriorWaveState,
   validateWorkerResult,
 } from "./wave-handoff.mjs";
 
@@ -62,6 +71,54 @@ test("uses automatic approval review without a conflicting sandbox flag", () => 
   });
   assert.ok(args.includes("--approve-for-me"));
   assert.equal(args.includes("--sandbox"), false);
+});
+
+test("retries only unchanged transient worker failures with a bounded attempt count", () => {
+  const commit = "a".repeat(40);
+  const state = {
+    status: "running",
+    commits: { backend: commit, design: commit },
+    active: { role: "backend", attempt: 1 },
+  };
+  const clean = {
+    backend: { head: commit, remote: commit, unexpected: [] },
+    design: { head: commit, remote: commit, unexpected: [] },
+  };
+  assert.equal(
+    isRetryableWorkerError(
+      new Error("Codex backend worker exited with status 1. Logs: run.jsonl"),
+    ),
+    true,
+  );
+  assert.equal(
+    isRetryableWorkerError(new Error("Design synchronization failed.")),
+    false,
+  );
+  assert.equal(canRetryUnchangedWorkerFailure(state, clean), true);
+  assert.equal(
+    canRetryUnchangedWorkerFailure(
+      { ...state, active: { role: "backend", attempt: 3 } },
+      clean,
+    ),
+    false,
+  );
+  assert.equal(
+    canRetryUnchangedWorkerFailure(state, {
+      ...clean,
+      backend: { ...clean.backend, head: "b".repeat(40) },
+    }),
+    false,
+  );
+  assert.equal(
+    canRetryUnchangedWorkerFailure(state, {
+      ...clean,
+      design: {
+        ...clean.design,
+        unexpected: [{ status: " M", path: "package.json" }],
+      },
+    }),
+    false,
+  );
 });
 
 test("three-way merges compatible package.json changes", () => {
@@ -234,6 +291,21 @@ test("builds a wave-specific initial handoff without prior-wave instructions", (
   assert.doesNotMatch(handoff, /Wave 3|SuggestedAction|episode 1\.2/);
 });
 
+test("requires the preceding automated wave to be complete", () => {
+  assert.doesNotThrow(() => validatePriorWaveState("3", undefined));
+  assert.doesNotThrow(() =>
+    validatePriorWaveState("5", { wave: "4", status: "complete" }),
+  );
+  assert.throws(
+    () => validatePriorWaveState("5", { wave: "4", status: "waiting" }),
+    /Wave 4 is complete/,
+  );
+  assert.throws(
+    () => validatePriorWaveState("5", { wave: "3", status: "complete" }),
+    /Wave 4 is complete/,
+  );
+});
+
 test("permits only the two exact untracked design assets", () => {
   const entries = parsePorcelainZ(
     "?? ChatGPT Image Aug 29, 2026, 04_21_35 PM.png\0?? Claim Form BASIC.pdf\0 M reports/changed.md\0?? surprise.txt\0",
@@ -353,6 +425,80 @@ test("validates the frozen evidence plan and enforces its audit reserve", () => 
     () => validateEvidencePlan(evidencePlan, { wave: "5", maxSlices: 7 }),
     /reserve at least two slices/,
   );
+});
+
+test("Wave 5 freezes its complete inventory before the eight-slice reserve", () => {
+  const plan = JSON.parse(
+    readFileSync(
+      new URL("./wave-handoff-wave-5.evidence.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  assert.equal(validateEvidencePlan(plan, { wave: "5", maxSlices: 32 }), plan);
+  assert.equal(plan.inventory_audit.required_by_completed_slice, 24);
+  assert.equal(plan.remediation_reserve_slices, 8);
+  assert.equal(plan.required.length, 24);
+  assert.equal(
+    plan.required.filter(({ owner }) => owner === "backend").length,
+    7,
+  );
+  assert.equal(
+    plan.required.filter(({ owner }) => owner === "design").length,
+    17,
+  );
+  assert.deepEqual(
+    new Set(plan.required.map(({ evidence_id }) => evidence_id)),
+    new Set([
+      "M1.7-AC01",
+      "M1.7-AC02",
+      "M1.7-AC03",
+      "M1.7-AC04",
+      "M1.7-AC05",
+      "M1.7-AC06",
+      "M1.7-AC07",
+      "UX1.5-EV01",
+      "UX1.5-EV02",
+      "UX1.5-EV03",
+      "UX1.5-EV04",
+    ]),
+  );
+});
+
+test("Wave 5 packet fixes 32 alternating slices and the closure reserve", () => {
+  const packet = readFileSync(
+    new URL("./wave-handoff-wave-5.md", import.meta.url),
+    "utf8",
+  );
+  const slices = [...packet.matchAll(/^(\d+)\. \*\*(Backend|Design) —/gm)].map(
+    ([, number, role]) => ({ number: Number.parseInt(number, 10), role }),
+  );
+  assert.equal(slices.length, 32);
+  assert.deepEqual(
+    slices.map(({ number }) => number),
+    Array.from({ length: 32 }, (_, index) => index + 1),
+  );
+  for (const { number, role } of slices) {
+    assert.equal(role, number % 2 === 1 ? "Backend" : "Design");
+  }
+  assert.match(
+    packet,
+    /Slices 25–32: protected remediation and closure reserve/,
+  );
+  assert.match(
+    packet,
+    /Literal 3D,\n {2}Reagraph adoption, and yFiles evaluation are outside this wave/,
+  );
+  assert.match(packet, /Wave 5 requires no\n {2}external model call/);
+  assert.doesNotMatch(packet, /VoiceOver/);
+});
+
+test("Wave 5 backend launcher identifies its role and fixed budget", () => {
+  const path = new URL("../run-wave-5-backend.zsh", import.meta.url);
+  const launcher = readFileSync(path, "utf8");
+  assert.match(launcher, /Petra Wave 5 Backend/);
+  assert.match(launcher, /--role backend --wave 5 --max-slices 32/);
+  assert.match(launcher, /doctor --wave 5 --max-slices 32/);
+  assert.notEqual(statSync(path).mode & 0o111, 0);
 });
 
 test("tracks scenario execution and rejects premature completion", () => {

@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "wave": "5",
+  "inventory_audit": {
+    "evidence_id": "WAVE5-EVIDENCE-CONTROL",
+    "scenario_id": "executed-inventory-audit",
+    "owner": "design",
+    "description": "Reconcile every Wave 5 packet, roadmap, scope, command, and artifact against the frozen scenario inventory before remediation begins.",
+    "required_by_completed_slice": 24
+  },
+  "remediation_reserve_slices": 8,
+  "required": [
+    {
+      "evidence_id": "M1.7-AC01",
+      "scenario_id": "cross-view-identity-live",
+      "owner": "backend",
+      "description": "Execute a fresh-store production trace proving Work, Claim, Assertion, and SourceSpan identity across Brief, Evidence, Focused Graph, Details, and exact source inspection."
+    },
+    {
+      "evidence_id": "M1.7-AC02",
+      "scenario_id": "citation-support-separation-live",
+      "owner": "backend",
+      "description": "Execute a bounded production query proving citation, support, contradiction, qualification, and inference remain distinct registered relationship meanings."
+    },
+    {
+      "evidence_id": "M1.7-AC03",
+      "scenario_id": "review-correct-reverse-live",
+      "owner": "backend",
+      "description": "Execute the existing production Review path for inspect, correction, exact Apply, and governed Revert without a graph-specific command owner."
+    },
+    {
+      "evidence_id": "M1.7-AC04",
+      "scenario_id": "reload-reconnect-no-duplicate",
+      "owner": "backend",
+      "description": "Execute reload, restart, reconnect, and idempotent replay while proving no duplicate Work result, command, event, ChangeSet effect, or projection effect."
+    },
+    {
+      "evidence_id": "M1.7-AC05",
+      "scenario_id": "authority-projection-separation",
+      "owner": "backend",
+      "description": "Execute current, working, cached, running, proposed, stale, applied, and projection-catching-up reads without presenting derived or operational state as authority."
+    },
+    {
+      "evidence_id": "M1.7-AC06",
+      "scenario_id": "ag-ui-import-boundary-audit",
+      "owner": "backend",
+      "description": "Run and retain the source audit proving raw AG-UI event types remain confined to the interaction integration boundary."
+    },
+    {
+      "evidence_id": "M1.7-AC07",
+      "scenario_id": "abort-cancel-separation",
+      "owner": "backend",
+      "description": "Execute client delivery abort and authorized Work cancellation as separate production paths with exact restart-visible outcomes."
+    },
+    {
+      "evidence_id": "UX1.5-EV01",
+      "scenario_id": "paired-profile-bounded-graph-fixture",
+      "owner": "design",
+      "description": "Execute UX-FX24 for materially different registered profiles through one bounded renderer-neutral graph and textual-peer contract."
+    },
+    {
+      "evidence_id": "UX1.5-EV01",
+      "scenario_id": "dense-temporal-adverse-fixture",
+      "owner": "design",
+      "description": "Execute UX-FX25 with dense, cyclic, temporal, stale, partial, restricted, missing, offline, and projection-rebuild states."
+    },
+    {
+      "evidence_id": "UX1.5-EV02",
+      "scenario_id": "relation-identification-review",
+      "owner": "design",
+      "description": "Record a critic review of whether relation type, direction, origin, authority layer, and limitations remain identifiable without color or graph position alone."
+    },
+    {
+      "evidence_id": "UX1.5-EV02",
+      "scenario_id": "provenance-comprehension-review",
+      "owner": "design",
+      "description": "Record a critic review of whether exact basis, source location, derivation, snapshot, omissions, and projection position can be understood and inspected."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "contextual-entry-scope-selection-return-browser",
+      "owner": "design",
+      "description": "Execute contextual and direct graph entry with exact task, scope, selection, snapshot, origin, and return focus preserved."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "current-working-historical-browser",
+      "owner": "design",
+      "description": "Execute Current, Working changes, Historical, comparison, projection freshness, and Return to current without semantic overlap."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "graph-text-parity-browser",
+      "owner": "design",
+      "description": "Execute the same bounded relationship question through graph and complete textual peer with matching facts, limitations, destinations, and actions."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "keyboard-focus-browser",
+      "owner": "design",
+      "description": "Execute entry, graph alternative, Details, source inspection, actions, recovery, and return using keyboard with stable visible focus."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "non-color-relation-semantics-browser",
+      "owner": "design",
+      "description": "Execute citation, support, contradiction, qualification, inference, selection, warnings, and layers with redundant non-color meaning."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "named-expansion-omission-selection-browser",
+      "owner": "design",
+      "description": "Execute named expansion, filtering, caps, hidden/restricted/unknown paths, late response rejection, and selection preservation."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "correction-preview-shared-command-browser",
+      "owner": "design",
+      "description": "Execute pointer and non-drag correction entry to the existing candidate and Review preview, proving layout coordinates grant no authority."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "comparison-impact-time-browser",
+      "owner": "design",
+      "description": "Execute dedicated comparison, impact, and time views with exact positions, supplied consequences, dates or unknown dates, and textual parity."
+    },
+    {
+      "evidence_id": "UX1.5-EV04",
+      "scenario_id": "dense-cyclic-performance",
+      "owner": "design",
+      "description": "Measure and retain dense/cyclic fixture size, query/render timings, layout stability, labels, selection, and environment without inventing a universal threshold."
+    },
+    {
+      "evidence_id": "UX1.5-EV04",
+      "scenario_id": "stale-late-response-browser",
+      "owner": "design",
+      "description": "Execute stale snapshot and out-of-order response behavior with no replacement of newer state and an exact recovery path."
+    },
+    {
+      "evidence_id": "UX1.5-EV04",
+      "scenario_id": "disconnected-offline-recovery-browser",
+      "owner": "design",
+      "description": "Execute disconnect and offline graph behavior with preserved task, selection, cached-state labeling, retry, and no false currentness."
+    },
+    {
+      "evidence_id": "UX1.5-EV04",
+      "scenario_id": "projection-rebuild-browser",
+      "owner": "design",
+      "description": "Execute catching-up, unavailable, rebuilding, and current projection states while PostgreSQL authority and user actions remain accurate."
+    },
+    {
+      "evidence_id": "UX1.5-EV04",
+      "scenario_id": "responsive-text-motion-touch-browser",
+      "owner": "design",
+      "description": "Execute supported viewports, 200% text, touch/coarse pointer, forced colors, reduced motion, targets, overflow, and browser semantic structure without lost meaning or action."
+    }
+  ]
+}
