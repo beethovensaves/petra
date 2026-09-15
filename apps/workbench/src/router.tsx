@@ -26,6 +26,7 @@ import {
 import {
   CompositionArtifactRoute,
   CompositionCollectionRoute,
+  HistoryEventRoute,
   HistoryRoute,
   ProfileToolRoute,
   SettingsRoute,
@@ -34,6 +35,7 @@ import type { EngineState } from "./product/model.js";
 import {
   loadProjectCollection,
   loadProjectBrief,
+  loadProjectHistoryEvent,
   loadProjectObjectLocationRedirect,
   loadProjectPetra,
   loadProjectRelationshipOverlayGraph,
@@ -135,7 +137,11 @@ export const router = createBrowserRouter([
             loader: loadProjectSuggestedActionHistory,
             element: <HistoryRoute />,
           },
-          { path: "history/:episodeId", element: <HistoryRoute /> },
+          {
+            path: "history/:episodeId",
+            loader: loadProjectHistoryEvent,
+            element: <HistoryEventRoute />,
+          },
           { path: "tools/:toolId", element: <ProfileToolRoute /> },
         ],
       },

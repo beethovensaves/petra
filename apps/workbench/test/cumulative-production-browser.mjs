@@ -33,7 +33,8 @@ source = replaceOnce(
   source,
   'import { createServer as createViteServer } from "vite";',
   `import { createServer as createViteServer } from "vite";
-import { startCumulativeProductionBrowser } from "../apps/workbench/test/cumulative-production-browser-driver.mjs";`,
+import { startCumulativeProductionBrowser } from "../apps/workbench/test/cumulative-production-browser-driver.mjs";
+import { startItem50ProductionBrowser } from "../apps/workbench/test/item50-production-browser-driver.mjs";`,
 );
 source = replaceOnce(
   source,
@@ -43,7 +44,25 @@ source = replaceOnce(
   `  let active;
   let vite;
   let browserTrace;
+  let recoveryBrowserTrace;
   const nativeFetch = globalThis.fetch;`,
+);
+source = replaceOnce(
+  source,
+  `    const reopenInput = projectData.createReviewSessionReopenCommandInput(`,
+  `    await vite.close();
+    vite = undefined;
+    browserTrace = await startCumulativeProductionBrowser({
+      root,
+      getBackendUrl: () => active.url,
+      scientificProjectId,
+      writingProjectId,
+      scientific,
+      writing,
+    });
+    await browserTrace.exerciseLifecycleState("deferred");
+    progress("production browser recorded the exact deferred Review before reopen");
+    const reopenInput = projectData.createReviewSessionReopenCommandInput(`,
 );
 source = replaceOnce(
   source,
@@ -60,16 +79,6 @@ source = replaceOnce(
     const mappedGraph = projectData.graphQuestionFromOverlayView(liveOverlay);
     assert(mappedGraph !== undefined, "The workbench Graph mapper returned no live result.");
     progress("production shell and Graph loaders accepted the live cumulative response");
-    await vite.close();
-    vite = undefined;
-    browserTrace = await startCumulativeProductionBrowser({
-      root,
-      getBackendUrl: () => active.url,
-      scientificProjectId,
-      writingProjectId,
-      scientific,
-      writing,
-    });
     await browserTrace.exerciseBeforeApply();
     progress("production browser rendered live Graph, Review, source return, and initial Brief");`,
 );
@@ -101,8 +110,38 @@ source = replaceOnce(
 );
 source = replaceOnce(
   source,
+  `    progress("restart replay retained exact cardinalities without duplicates");
+    return {`,
+  `    progress("restart replay retained exact cardinalities without duplicates");
+    const appliedHistoryEvent = replayedHistory.content.changes.find(
+      (change) =>
+        appliedCommandIds.has(change.command_ref.command_id) &&
+        change.event_ref.event_type === "change_set.applied",
+    );
+    assert(appliedHistoryEvent !== undefined, "The applied ChangeSet History event was not retained.");
+    recoveryBrowserTrace = await startItem50ProductionBrowser({
+      root,
+      getBackendUrl: () => active.url,
+      scientificProjectId,
+      writingProjectId,
+      scientificReviewSessionId: scientific.session.review_session_id,
+      writingReviewSessionId: writing.session.review_session_id,
+    });
+    const governedRevert = await recoveryBrowserTrace.recordRestartedBriefAndRevert({
+      appliedEventId: appliedHistoryEvent.event_ref.event_id,
+    });
+    progress("production browser completed governed Revert and the already-compensated failure state");
+    return {
+      item50_browser: {
+        item49_model_evidence: "reports/WAVE4-NATURAL-CONVERSATION-MODEL-IDENTITY-TRACE.md",
+        repeated_external_model_call: false,
+        governed_revert: governedRevert,
+      },`,
+);
+source = replaceOnce(
+  source,
   "    await Promise.all([vite?.close(), active?.shutdown()]);",
-  "    await Promise.all([browserTrace?.close(), vite?.close(), active?.shutdown()]);",
+  "    await Promise.all([recoveryBrowserTrace?.close(), browserTrace?.close(), vite?.close(), active?.shutdown()]);",
 );
 
 const run = () =>

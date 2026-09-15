@@ -4255,6 +4255,30 @@ export const getProjectHistoryCompensationPreview = async (
   return view;
 };
 
+export interface ProjectHistoryEventData {
+  readonly episode: PetraProjectHistoryEpisodeViewV12;
+  readonly impact: PetraProjectHistoryImpactViewV14;
+  readonly recovery: PetraProjectHistoryRecoveryAssessmentView;
+}
+
+/**
+ * Reads one exact retained History event and its current impact/recovery
+ * assessments. Compensation remains separately previewed, confirmed, and
+ * executed by the owning production routes.
+ */
+export const loadProjectHistoryEvent = async ({
+  params,
+}: LoaderFunctionArgs): Promise<ProjectHistoryEventData> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const eventId = requiredRouteIdentity(params.episodeId, "A History event ID");
+  const [episode, impact, recovery] = await Promise.all([
+    getProjectHistoryEpisode(projectId, eventId),
+    getProjectHistoryImpact(projectId, eventId),
+    getProjectHistoryRecoveryAssessment(projectId, eventId),
+  ]);
+  return { episode, impact, recovery };
+};
+
 export interface ProjectHistoryCompensationPlanInput {
   readonly projectId: string;
   readonly eventId: string;

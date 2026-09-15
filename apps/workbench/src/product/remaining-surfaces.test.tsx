@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraProjectEffectiveControlsView,
+  PetraProjectHistoryEpisodeViewV12,
+  PetraProjectHistoryImpactViewV14,
+  PetraProjectHistoryRecoveryAssessmentView,
   PetraSuggestedActionInvocationView,
 } from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -18,6 +21,7 @@ import {
 import {
   CompositionArtifactSurface,
   CompositionCollectionSurface,
+  HistoryEventSurface,
   HistorySurface,
   ProfileToolSurface,
   SettingsSurface,
@@ -46,6 +50,36 @@ const suggestedActionInvocationView = JSON.parse(
     "utf8",
   ),
 ) as PetraSuggestedActionInvocationView;
+
+const historyEpisode = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-episode-view-v1-2.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryEpisodeViewV12;
+
+const historyImpact = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-4.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryImpactViewV14;
+
+const historyRecovery = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-recovery-assessment-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRecoveryAssessmentView;
 
 describe("remaining neutral reference packets", () => {
   const writingProject = getReferenceProject("field-guide");
@@ -160,6 +194,51 @@ describe("remaining neutral reference packets", () => {
     expect(markup).toContain(
       "The original action, decision, and events remain",
     );
+  });
+
+  it("maps an authenticated History event into a staged governed Revert boundary", () => {
+    const markup = render(
+      <HistoryEventSurface
+        project={inquiryProject}
+        data={{
+          episode: historyEpisode,
+          impact: historyImpact,
+          recovery: historyRecovery,
+        }}
+      />,
+    );
+
+    expect(markup).toContain('data-runtime-history="authenticated"');
+    expect(markup).toContain("Event and consequence");
+    expect(markup).toContain("Impact and recovery boundary");
+    expect(markup).toContain(
+      "Eligible for a revision-bound compensation preview",
+    );
+    expect(markup).toContain("Read governed Revert preview");
+    expect(markup).toContain("No compensation preview, plan, or execution");
+    expect(markup).toContain("does not erase this event");
+    expect(markup).not.toContain("Execute governed Revert");
+  });
+
+  it("keeps an ineligible governed Revert keyboard-discoverable without an execution control", () => {
+    const blocked = structuredClone(historyRecovery);
+    blocked.content.assessment.state = "already_compensated";
+    const markup = render(
+      <HistoryEventSurface
+        project={inquiryProject}
+        data={{
+          episode: historyEpisode,
+          impact: historyImpact,
+          recovery: blocked,
+        }}
+      />,
+    );
+
+    expect(markup).toContain("already compensated");
+    expect(markup).toContain("Revert unavailable");
+    expect(markup).toContain('aria-disabled="true"');
+    expect(markup).not.toContain("Read governed Revert preview");
+    expect(markup).not.toContain("Execute governed Revert");
   });
 
   it("maps authenticated SuggestedAction Work History without fixture fallback or recovery calculation", () => {

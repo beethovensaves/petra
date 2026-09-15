@@ -490,6 +490,50 @@
   background: var(--petra-tone-caution-soft);
 }
 
+.history-event__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+  gap: var(--petra-space-4);
+}
+
+.history-event__layout > article,
+.history-event__layout > aside,
+.history-event__revert {
+  padding: var(--petra-space-5);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  background: var(--petra-surface-raised);
+}
+
+.history-event__layout details,
+.history-event__revert details {
+  margin-top: var(--petra-space-4);
+}
+
+.history-event__revert {
+  margin-top: var(--petra-space-5);
+  border-top-width: var(--petra-rule-strong);
+}
+
+.history-event__revert-state,
+.history-event__preview,
+.history-event__confirmation,
+.history-event__plan {
+  max-width: 58rem;
+  margin-top: var(--petra-space-4);
+  padding-top: var(--petra-space-4);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.history-event__confirmation {
+  display: grid;
+  gap: var(--petra-space-4);
+}
+
+.history-event__confirmation .petra-action,
+.history-event__plan .petra-action {
+  justify-self: start;
+}
+
 .settings-surface {
   width: 100%;
   max-width: 76rem;
@@ -602,7 +646,8 @@
 
 @media (max-width: 54rem) {
   .composition-editor-layout,
-  .history-layout {
+  .history-layout,
+  .history-event__layout {
     grid-template-columns: 1fr;
   }
 
@@ -629,6 +674,9 @@
   .composition-provenance,
   .composition-outputs > ul > li,
   .history-detail,
+  .history-event__layout > article,
+  .history-event__layout > aside,
+  .history-event__revert,
   .settings-section,
   .profile-tool__task,
   .profile-tool__unavailable {
@@ -658,6 +706,14 @@
 }
 
 @media (forced-colors: active) {
+  .history-event__revert,
+  .history-event__revert-state,
+  .history-event__preview,
+  .history-event__confirmation,
+  .history-event__plan {
+    border-color: CanvasText;
+  }
+
   .profile-tool__unavailable > span {
     color: Canvas;
     background: CanvasText;

@@ -1,0 +1,753 @@
+import assert from "node:assert/strict";
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import {
+  createCdp,
+  startChrome,
+  startWorkbench,
+} from "./cumulative-production-browser-driver.mjs";
+
+const wait = (milliseconds) =>
+  new Promise((resolveWait) => setTimeout(resolveWait, milliseconds));
+const progress = (message) =>
+  process.stderr.write(`[wave4-item50-browser] ${message}\n`);
+const button = (label) =>
+  `[...document.querySelectorAll('button')].find((element) => element.textContent.trim() === ${JSON.stringify(label)})`;
+const closeChrome = async ({ chrome, cdp, profilePrefix }) => {
+  try {
+    if (cdp.socket.readyState === WebSocket.OPEN) {
+      await Promise.race([
+        cdp.send("Browser.close").catch(() => undefined),
+        wait(2_000),
+      ]);
+    }
+  } finally {
+    cdp.socket.close();
+    if (chrome.child.exitCode === null) {
+      chrome.child.kill("SIGTERM");
+      await Promise.race([
+        new Promise((resolveExit) =>
+          chrome.child.addListener("close", resolveExit),
+        ),
+        wait(5_000),
+      ]);
+    }
+    if (chrome.child.exitCode === null) chrome.child.kill("SIGKILL");
+    assert.ok(chrome.profile.startsWith(join(tmpdir(), profilePrefix)));
+    rmSync(chrome.profile, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 100,
+    });
+  }
+};
+
+export const startItem50ProductionBrowser = async ({
+  root,
+  getBackendUrl,
+  scientificProjectId,
+  writingProjectId,
+  scientificReviewSessionId,
+  writingReviewSessionId,
+}) => {
+  const calls = [];
+  const consoleErrors = [];
+  const workbench = await startWorkbench({ root, getBackendUrl, calls });
+  progress(`workbench listening at ${workbench.url}`);
+  const chrome = await startChrome({ profilePrefix: "petra-wave4-item50-" });
+  const cdp = await createCdp(chrome.socketUrl);
+  const { send, evaluate, until } = cdp;
+  let initialBriefSnapshot;
+  let closed = false;
+
+  cdp.socket.addEventListener("message", (event) => {
+    const message = JSON.parse(event.data);
+    if (
+      message.method === "Runtime.consoleAPICalled" &&
+      ["error", "assert"].includes(message.params?.type)
+    ) {
+      consoleErrors.push(message.params.args?.map((arg) => arg.value));
+    }
+    if (message.method === "Runtime.exceptionThrown") {
+      consoleErrors.push(message.params?.exceptionDetails);
+    }
+  });
+  await Promise.all([
+    send("Page.enable"),
+    send("Runtime.enable"),
+    send("Accessibility.enable"),
+    send("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    }),
+  ]);
+
+  const navigate = async (path, ready, label) => {
+    const navigation = await send("Page.navigate", {
+      url: new URL(path, workbench.url).href,
+    });
+    assert.equal(navigation.errorText, undefined);
+    try {
+      await until(ready, label);
+      await evaluate("document.fonts.ready");
+    } catch (error) {
+      throw new Error(
+        `${error instanceof Error ? error.message : String(error)}\nLocation: ${await evaluate("window.location.href")}\nBody: ${await evaluate("document.body.innerText")}\nAPI calls: ${JSON.stringify(calls)}\nConsole: ${JSON.stringify(consoleErrors)}`,
+        { cause: error },
+      );
+    }
+    progress(`${label} rendered`);
+  };
+  const key = async (keyValue, code, keyCode, text = undefined) => {
+    await send("Input.dispatchKeyEvent", {
+      type: "keyDown",
+      key: keyValue,
+      code,
+      windowsVirtualKeyCode: keyCode,
+      ...(text === undefined ? {} : { text }),
+    });
+    await send("Input.dispatchKeyEvent", {
+      type: "keyUp",
+      key: keyValue,
+      code,
+      windowsVirtualKeyCode: keyCode,
+    });
+  };
+  const latestCall = (predicate) => [...calls].reverse().find(predicate);
+  const reviewPath = `/projects/${scientificProjectId}/review/${scientificReviewSessionId}`;
+
+  const recordConversationAndBlockedCorrection = async ({
+    projectThreadId,
+    projectTurnId,
+    workUnitId,
+    interactionRunId,
+    correctedCandidateId,
+    correctedCandidateRevision,
+    correctedCandidateText,
+    modelActorId,
+  }) => {
+    await navigate(
+      `/projects/${scientificProjectId}/petra`,
+      'document.querySelector(".petra-thread") !== null',
+      "retained natural-conversation thread",
+    );
+    const threadDetail = latestCall((call) =>
+      call.path.endsWith(
+        `/projects/${scientificProjectId}/threads/${projectThreadId}`,
+      ),
+    );
+    assert.equal(threadDetail?.status, 200);
+    assert.equal(threadDetail?.authorization, "Bearer petra-local-development");
+    assert.equal(threadDetail?.json?.schema_name, "petra.project-thread-view");
+    assert.equal(
+      threadDetail?.json?.content?.summary?.thread_ref?.project_thread_id,
+      projectThreadId,
+    );
+    const turn = threadDetail.json.content.turns[0].turn;
+    assert.equal(turn.project_turn_id, projectTurnId);
+    assert.equal(turn.execution.work_unit_ref.work_unit_id, workUnitId);
+    assert.equal(
+      turn.execution.interaction_run_ref.interaction_run_id,
+      interactionRunId,
+    );
+    assert.equal(turn.response.force, "proposal");
+    assert.equal(turn.response.authority_effect, "none");
+    const threadText = await evaluate("document.body.innerText");
+    for (const text of [
+      projectThreadId,
+      "Proposal · Review still required",
+      "Explanation and task direction only",
+      "Open linked Work",
+      "The model response boundary is unavailable. No prompt will be sent.",
+    ]) {
+      assert.ok(
+        threadText.includes(text),
+        `Missing conversation boundary: ${text}`,
+      );
+    }
+
+    const graphCallStart = calls.length;
+    await navigate(
+      `/projects/${scientificProjectId}/graph?layer=working`,
+      'document.querySelector(".graph-surface") !== null',
+      "model-corrected live working Graph",
+    );
+    const overlay = latestCall((call) =>
+      call.path.includes("/relationship-overlay"),
+    );
+    assert.equal(overlay?.status, 200);
+    assert.equal(
+      overlay?.json?.schema_name,
+      "petra.project-relationship-overlay-view",
+    );
+    assert.equal(
+      calls
+        .slice(graphCallStart)
+        .some((call) => call.path.includes("/relationship-view")),
+      false,
+      "The item 50 working Graph used fixture/legacy fallback.",
+    );
+    assert.ok(
+      JSON.stringify(overlay.json).includes(correctedCandidateId) &&
+        JSON.stringify(overlay.json).includes(modelActorId),
+      "The live overlay lost corrected candidate or model-producer identity.",
+    );
+    const graphText = await evaluate("document.body.innerText");
+    for (const text of [
+      "Working — not authoritative",
+      "Current authority",
+      correctedCandidateText,
+      "Labels and arrows carry relationship meaning",
+    ]) {
+      assert.ok(
+        graphText.includes(text),
+        `Missing model Graph meaning: ${text}`,
+      );
+    }
+    const visualCounts = await evaluate(`({
+      nodes: document.querySelectorAll(".graph-node").length,
+      relationships: document.querySelectorAll(".graph-edge").length,
+    })`);
+    await evaluate(`${button("Text")}.focus()`);
+    await key("Enter", "Enter", 13, "\r");
+    await until('document.querySelector(".graph-text-view") !== null');
+    assert.equal(
+      await evaluate(`document.activeElement === ${button("Text")}`),
+      true,
+    );
+    assert.deepEqual(
+      await evaluate(`({
+        nodes: document.querySelectorAll(".graph-text-view__nodes > li").length,
+        relationships: document.querySelectorAll("section[aria-labelledby=graph-text-relationships-title] > ol > li").length,
+      })`),
+      visualCounts,
+    );
+
+    await navigate(
+      reviewPath,
+      'document.querySelector(".review-session") !== null',
+      "corrected blocked Review",
+    );
+    const reviewCall = latestCall((call) =>
+      call.path.endsWith(`/reviews/${scientificReviewSessionId}`),
+    );
+    assert.equal(reviewCall?.status, 200);
+    assert.equal(reviewCall?.json?.content?.session?.revision, 2);
+    const member = reviewCall.json.content.members[0];
+    assert.equal(
+      member.working_state.candidate_ref.working_candidate_id,
+      correctedCandidateId,
+    );
+    assert.equal(
+      member.working_state.candidate_ref.revision,
+      correctedCandidateRevision,
+    );
+    assert.equal(member.validation.state, "blocked");
+    const reviewJson = JSON.stringify(reviewCall.json);
+    assert.ok(reviewJson.includes(modelActorId));
+    const reviewText = await evaluate("document.body.innerText");
+    for (const text of [
+      correctedCandidateText,
+      "Material validation state",
+      "Blocked",
+      "Candidate · working",
+      "Current · authoritative",
+      "Apply unavailable",
+    ]) {
+      assert.ok(
+        reviewText.includes(text),
+        `Missing corrected/blocked state: ${text}`,
+      );
+    }
+    assert.ok(reviewText.toLocaleLowerCase().includes("generaliz"));
+    assert.equal(reviewText.includes("Apply displayed ChangeSet"), false);
+    return {
+      thread_view_hash: threadDetail.json.content_hash,
+      overlay_hash: overlay.json.content_hash,
+      corrected_review_hash: reviewCall.json.content_hash,
+    };
+  };
+
+  const recordStaleReview = async () => {
+    await navigate(
+      reviewPath,
+      'document.querySelector(".review-session") !== null',
+      "stale Review",
+    );
+    const reviewCall = latestCall((call) =>
+      call.path.endsWith(`/reviews/${scientificReviewSessionId}`),
+    );
+    assert.equal(reviewCall?.json?.content?.session?.snapshot_state, "stale");
+    const text = await evaluate("document.body.innerText");
+    for (const value of [
+      "stale",
+      "Refresh Review",
+      "does not approve, reject, apply",
+    ])
+      assert.ok(text.includes(value), `Missing stale Review meaning: ${value}`);
+    assert.equal(text.includes("Prepare changes to apply"), false);
+    return { stale_review_hash: reviewCall.json.content_hash };
+  };
+
+  const recordRefreshedAndWritingReview = async ({ refreshedRevision }) => {
+    await navigate(
+      reviewPath,
+      `${button("Prepare changes to apply")} !== undefined`,
+      "refreshed natural-conversation Review",
+    );
+    const reviewCall = latestCall((call) =>
+      call.path.endsWith(`/reviews/${scientificReviewSessionId}`),
+    );
+    assert.equal(
+      reviewCall?.json?.content?.session?.revision,
+      refreshedRevision,
+    );
+    assert.equal(reviewCall?.json?.content?.session?.snapshot_state, "current");
+    const scientificText = await evaluate("document.body.innerText");
+    for (const value of [
+      "Applicable checks passed",
+      "Prepare changes to apply",
+      "Apply unavailable",
+      "Review inclusion and validation do not grant mutation authority",
+    ]) {
+      assert.ok(
+        scientificText.includes(value),
+        `Missing refreshed Review meaning: ${value}`,
+      );
+    }
+
+    await navigate(
+      `/projects/${writingProjectId}/review/${writingReviewSessionId}`,
+      'document.querySelector(".review-session") !== null',
+      "paired controlled-writing Review",
+    );
+    const writingCall = latestCall((call) =>
+      call.path.endsWith(`/reviews/${writingReviewSessionId}`),
+    );
+    assert.equal(writingCall?.status, 200);
+    assert.equal(writingCall?.json?.schema_version, "1.3.0");
+    const writingText = await evaluate("document.body.innerText");
+    for (const value of [
+      "Requirement",
+      "Governing relationship",
+      "Commitment unavailable",
+      "Preparation unavailable",
+      "Apply unavailable",
+      "No controlled-writing ChangeSet operation, Approval, or Apply path",
+    ]) {
+      assert.ok(
+        writingText.includes(value),
+        `Missing paired-profile boundary: ${value}`,
+      );
+    }
+    assert.equal(writingText.includes("Prepare changes to apply"), false);
+
+    await navigate(
+      `/projects/${scientificProjectId}/brief`,
+      'document.querySelector(".live-project-brief") !== null',
+      "pre-Apply Brief",
+    );
+    const brief = latestCall(
+      (call) =>
+        call.path === `/api/queries/projects/${scientificProjectId}/brief`,
+    );
+    assert.equal(brief?.status, 200);
+    initialBriefSnapshot = brief.json.snapshot_hash;
+    await navigate(
+      reviewPath,
+      `${button("Prepare changes to apply")} !== undefined`,
+      "manual checkpoint Review",
+    );
+    return {
+      refreshed_review_hash: reviewCall.json.content_hash,
+      writing_review_hash: writingCall.json.content_hash,
+    };
+  };
+
+  const applyDisplayedChangeSet = async () => {
+    const postCount = calls.filter(
+      (call) => call.method === "POST" && call.path.endsWith("/apply"),
+    ).length;
+    await evaluate(`${button("Prepare changes to apply")}.focus()`);
+    await key("Enter", "Enter", 13, "\r");
+    await until('document.querySelector(".review-apply-preview") !== null');
+    assert.equal(
+      await evaluate(
+        'document.activeElement?.getAttribute("aria-label") === "Prepared commitment"',
+      ),
+      true,
+    );
+    assert.equal(
+      calls.filter(
+        (call) => call.method === "POST" && call.path.endsWith("/apply"),
+      ).length,
+      postCount,
+      "Preparing the model-produced change sent a decision.",
+    );
+    const prepared = await evaluate(
+      'document.querySelector(".review-apply-preview").innerText',
+    );
+    for (const value of [
+      "One complete atomic ChangeSet",
+      "ReviewPolicy: not applicable",
+      "Delegated and automatic Apply are unavailable",
+    ])
+      assert.ok(prepared.includes(value));
+
+    await send("Emulation.setDeviceMetricsOverride", {
+      width: 375,
+      height: 812,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    await send("Emulation.setEmulatedMedia", {
+      features: [
+        { name: "forced-colors", value: "active" },
+        { name: "prefers-reduced-motion", value: "reduce" },
+      ],
+    });
+    await send("Emulation.setTouchEmulationEnabled", {
+      enabled: true,
+      maxTouchPoints: 1,
+    });
+    await evaluate('document.documentElement.style.fontSize = "200%"');
+    await evaluate(
+      "new Promise((resolveFrame) => requestAnimationFrame(() => requestAnimationFrame(resolveFrame)))",
+    );
+    assert.equal(
+      await evaluate(
+        "document.documentElement.scrollWidth <= window.innerWidth",
+      ),
+      true,
+    );
+    assert.notEqual(
+      await evaluate(
+        'getComputedStyle(document.querySelector(".review-validation")).borderTopStyle',
+      ),
+      "none",
+    );
+    assert.ok(
+      ["0s", "0.01ms", "0.00001s", "1e-05s"].includes(
+        await evaluate(
+          `getComputedStyle(${button("Apply displayed ChangeSet")}).transitionDuration`,
+        ),
+      ),
+    );
+    const rect = await evaluate(`(() => {
+      const value = ${button("Apply displayed ChangeSet")}.getBoundingClientRect();
+      return { x: value.left + value.width / 2, y: value.top + value.height / 2,
+        height: value.height, left: value.left, right: value.right };
+    })()`);
+    assert.ok(rect.height >= 44 && rect.left >= 0 && rect.right <= 375);
+    await send("Input.synthesizeTapGesture", {
+      x: rect.x,
+      y: rect.y,
+      duration: 100,
+      gestureSourceType: "touch",
+    });
+    await until(
+      'document.body.innerText.includes("The displayed ChangeSet applied")',
+    );
+    const applyCall = latestCall(
+      (call) => call.method === "POST" && call.path.endsWith("/apply"),
+    );
+    assert.equal(applyCall?.status, 200);
+    assert.equal(
+      applyCall?.requestJson?.schema_name,
+      "petra.review-session-apply-request",
+    );
+    assert.equal(
+      applyCall?.json?.schema_name,
+      "petra.review-session-apply-result",
+    );
+    assert.equal(
+      calls.filter(
+        (call) => call.method === "POST" && call.path.endsWith("/apply"),
+      ).length,
+      postCount + 1,
+    );
+    const text = await evaluate("document.body.innerText");
+    for (const value of [
+      "This does not mean every Review member applied",
+      "Application effect confirmed",
+      "The original candidate, source basis, validation, model output, and Review history remain retained",
+    ])
+      assert.ok(text.includes(value), `Missing post-Apply meaning: ${value}`);
+    return { request: applyCall.requestJson, result: applyCall.json };
+  };
+
+  const recordRestartedBriefAndRevert = async ({ appliedEventId }) => {
+    await send("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await send("Emulation.setEmulatedMedia", { features: [] });
+    await send("Emulation.setTouchEmulationEnabled", { enabled: false });
+    await evaluate('document.documentElement.style.fontSize = ""');
+    await navigate(
+      `/projects/${scientificProjectId}/brief`,
+      'document.querySelector(".live-project-brief") !== null',
+      "restarted authoritative Brief",
+    );
+    const briefCall = latestCall(
+      (call) =>
+        call.path === `/api/queries/projects/${scientificProjectId}/brief`,
+    );
+    assert.equal(briefCall?.status, 200);
+    assert.notEqual(briefCall.json.snapshot_hash, initialBriefSnapshot);
+    assert.ok(
+      (await evaluate("document.body.innerText")).includes(
+        "Inspect History event",
+      ),
+    );
+
+    const eventPath = `/projects/${scientificProjectId}/history/${appliedEventId}`;
+    await navigate(
+      eventPath,
+      'document.querySelector(".history-event") !== null',
+      "governed Revert event",
+    );
+    const episodeCall = latestCall((call) =>
+      call.path.endsWith(`/history/events/${appliedEventId}`),
+    );
+    const recoveryCall = latestCall((call) =>
+      call.path.endsWith(`/history/events/${appliedEventId}/recovery`),
+    );
+    assert.equal(episodeCall?.status, 200);
+    assert.equal(
+      recoveryCall?.json?.content?.assessment?.state,
+      "eligible_for_preview",
+    );
+    let text = await evaluate("document.body.innerText");
+    for (const value of [
+      appliedEventId,
+      "Event and consequence",
+      "Impact and recovery boundary",
+      "Eligible for a revision-bound compensation preview",
+      "Revert is additive compensation",
+      "No compensation preview, plan, or execution has been requested",
+    ])
+      assert.ok(
+        text.includes(value),
+        `Missing governed Revert boundary: ${value}`,
+      );
+
+    const executeCount = calls.filter((call) =>
+      call.path.endsWith("/recovery/execute"),
+    ).length;
+    await evaluate(`${button("Read governed Revert preview")}.focus()`);
+    await key("Enter", "Enter", 13, "\r");
+    await until('document.querySelector(".history-event__preview") !== null');
+    assert.equal(
+      await evaluate(
+        'document.activeElement === document.querySelector(".history-event__revert-state")',
+      ),
+      true,
+    );
+    assert.equal(
+      calls.filter((call) => call.path.endsWith("/recovery/execute")).length,
+      executeCount,
+    );
+    text = await evaluate("document.body.innerText");
+    assert.ok(text.includes("Read-only compensation preview loaded"));
+    assert.ok(text.includes("Complete preview, results, and command sequence"));
+
+    await evaluate(`(() => {
+      const values = [
+        ["Reason for governed Revert", "The exact accepted pair must be compensated after the governed failure review."],
+        ["Approval rationale", "The complete revision-bound compensation plan is explicitly approved."],
+      ];
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
+      for (const [label, value] of values) {
+        const area = [...document.querySelectorAll("textarea")].find((candidate) =>
+          document.querySelector("label[for='" + candidate.id + "']")?.textContent.includes(label));
+        setter.call(area, value);
+        area.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    })()`);
+    await until(
+      `${button("Confirm and compose Revert plan")}.getAttribute("aria-disabled") !== "true"`,
+    );
+    await evaluate(`${button("Confirm and compose Revert plan")}.focus()`);
+    await key("Enter", "Enter", 13, "\r");
+    await until('document.querySelector(".history-event__plan") !== null');
+    const planCall = latestCall(
+      (call) => call.method === "POST" && call.path.endsWith("/recovery/plan"),
+    );
+    assert.equal(planCall?.status, 200);
+    assert.equal(planCall?.requestJson?.confirmation?.confirmed, true);
+    assert.equal(
+      calls.filter((call) => call.path.endsWith("/recovery/execute")).length,
+      executeCount,
+    );
+    assert.ok(
+      (await evaluate("document.body.innerText")).includes(
+        "Persistence and execution remain not performed",
+      ),
+    );
+
+    await send("Emulation.setDeviceMetricsOverride", {
+      width: 375,
+      height: 812,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    await send("Emulation.setEmulatedMedia", {
+      features: [
+        { name: "forced-colors", value: "active" },
+        { name: "prefers-reduced-motion", value: "reduce" },
+      ],
+    });
+    await send("Emulation.setTouchEmulationEnabled", {
+      enabled: true,
+      maxTouchPoints: 1,
+    });
+    await evaluate('document.documentElement.style.fontSize = "200%"');
+    await evaluate(
+      "new Promise((resolveFrame) => requestAnimationFrame(() => requestAnimationFrame(resolveFrame)))",
+    );
+    assert.equal(
+      await evaluate(
+        "document.documentElement.scrollWidth <= window.innerWidth",
+      ),
+      true,
+    );
+    const executeRect = await evaluate(`(() => {
+      const value = ${button("Execute governed Revert")}.getBoundingClientRect();
+      return { x: value.left + value.width / 2, y: value.top + value.height / 2,
+        height: value.height, left: value.left, right: value.right };
+    })()`);
+    assert.ok(
+      executeRect.height >= 44 &&
+        executeRect.left >= 0 &&
+        executeRect.right <= 375,
+    );
+    await evaluate(
+      `${button("Execute governed Revert")}.scrollIntoView({ block: "center", behavior: "instant" })`,
+    );
+    const centeredRect = await evaluate(`(() => {
+      const value = ${button("Execute governed Revert")}.getBoundingClientRect();
+      return { x: value.left + value.width / 2, y: value.top + value.height / 2 };
+    })()`);
+    await send("Input.synthesizeTapGesture", {
+      x: centeredRect.x,
+      y: centeredRect.y,
+      duration: 100,
+      gestureSourceType: "touch",
+    });
+    await until(
+      'document.body.innerText.includes("Governed Revert completed")',
+    );
+    const executeCall = latestCall(
+      (call) =>
+        call.method === "POST" && call.path.endsWith("/recovery/execute"),
+    );
+    assert.equal(executeCall?.status, 200);
+    assert.equal(
+      executeCall?.requestJson?.execution_confirmation?.confirmed,
+      true,
+    );
+    assert.equal(executeCall?.json?.content?.outcome, "completed");
+    assert.equal(executeCall?.json?.content?.completed_prefix, 3);
+    assert.ok(
+      executeCall.json.content.steps.every(
+        (step) => step.state === "retained_success",
+      ),
+    );
+    const executionText = await evaluate("document.body.innerText");
+    for (const value of [
+      "Governed Revert completed",
+      "Completed prefix: 3 of 3",
+      "The original action and this compensation both remain in History",
+      "Complete governed Revert execution record",
+    ])
+      assert.ok(
+        executionText.includes(value),
+        `Missing Revert outcome: ${value}`,
+      );
+
+    await send("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await send("Emulation.setEmulatedMedia", { features: [] });
+    await send("Emulation.setTouchEmulationEnabled", { enabled: false });
+    await evaluate('document.documentElement.style.fontSize = ""');
+    await navigate(
+      eventPath,
+      'document.querySelector(".history-event") !== null',
+      "already-compensated History event",
+    );
+    const finalRecovery = latestCall((call) =>
+      call.path.endsWith(`/history/events/${appliedEventId}/recovery`),
+    );
+    assert.equal(
+      finalRecovery?.json?.content?.assessment?.state,
+      "already_compensated",
+    );
+    const finalText = await evaluate("document.body.innerText");
+    for (const value of [
+      "This exact authoritative change is already compensated",
+      "Revert unavailable",
+      "A current eligible single-ChangeSet recovery assessment",
+    ])
+      assert.ok(
+        finalText.includes(value),
+        `Missing governed failure state: ${value}`,
+      );
+    assert.equal(
+      await evaluate(`${button("Execute governed Revert")} === undefined`),
+      true,
+    );
+    assert.equal(
+      calls.filter((call) => call.path.endsWith("/recovery/execute")).length,
+      executeCount + 1,
+    );
+    assert.deepEqual(consoleErrors, []);
+    return {
+      applied_event_id: appliedEventId,
+      episode_hash: episodeCall.json.content_hash,
+      recovery_before_hash: recoveryCall.json.content_hash,
+      compensation_plan_id: planCall.json.compensation_plan_id,
+      compensation_change_set_id:
+        planCall.json.content.change_set.change_set_id,
+      execution_hash: executeCall.json.content_hash,
+      compensation_event_ids: executeCall.json.content.steps.map(
+        (step) => step.event_ref?.event_id,
+      ),
+      recovery_after_hash: finalRecovery.json.content_hash,
+    };
+  };
+
+  const close = async () => {
+    if (closed) return;
+    closed = true;
+    try {
+      await closeChrome({
+        chrome,
+        cdp,
+        profilePrefix: "petra-wave4-item50-",
+      });
+    } finally {
+      await workbench.vite.close();
+    }
+  };
+
+  return {
+    recordConversationAndBlockedCorrection,
+    recordStaleReview,
+    recordRefreshedAndWritingReview,
+    applyDisplayedChangeSet,
+    recordRestartedBriefAndRevert,
+    close,
+  };
+};

@@ -24,7 +24,7 @@ const readRequestBody = (request) =>
     request.on("error", rejectBody);
   });
 
-const startWorkbench = async ({ root, getBackendUrl, calls }) => {
+export const startWorkbench = async ({ root, getBackendUrl, calls }) => {
   const liveRouteProxy = {
     name: "petra-wave4-live-route-proxy",
     enforce: "pre",
@@ -126,13 +126,17 @@ const startWorkbench = async ({ root, getBackendUrl, calls }) => {
   return { vite, url: `http://127.0.0.1:${address.port}` };
 };
 
-const startChrome = async () => {
+export const startChrome = async ({
+  headless = true,
+  initialUrl = "about:blank",
+  profilePrefix = "petra-wave4-browser-",
+} = {}) => {
   assert.ok(existsSync(chromePath), `Chrome is unavailable at ${chromePath}.`);
-  const profile = mkdtempSync(join(tmpdir(), "petra-wave4-browser-"));
+  const profile = mkdtempSync(join(tmpdir(), profilePrefix));
   const child = spawn(
     chromePath,
     [
-      "--headless=new",
+      ...(headless ? ["--headless=new"] : []),
       "--remote-debugging-address=127.0.0.1",
       "--remote-debugging-port=0",
       `--user-data-dir=${profile}`,
@@ -143,7 +147,7 @@ const startChrome = async () => {
       "--disable-sync",
       "--metrics-recording-only",
       "--no-first-run",
-      "about:blank",
+      initialUrl,
     ],
     { stdio: ["ignore", "ignore", "pipe"] },
   );
@@ -178,7 +182,7 @@ const startChrome = async () => {
   return { child, profile, socketUrl: page.webSocketDebuggerUrl };
 };
 
-const createCdp = async (socketUrl) => {
+export const createCdp = async (socketUrl) => {
   const socket = new WebSocket(socketUrl);
   await new Promise((resolveOpen, rejectOpen) => {
     socket.addEventListener("open", resolveOpen, { once: true });
@@ -313,6 +317,37 @@ export const startCumulativeProductionBrowser = async ({
   };
 
   const latestCall = (predicate) => [...calls].reverse().find(predicate);
+
+  const exerciseLifecycleState = async (expectedLifecycle) => {
+    await navigate(
+      `/projects/${scientificProjectId}/review/${scientific.session.review_session_id}`,
+      'document.querySelector(".review-session") !== null',
+      `live ${expectedLifecycle} Review lifecycle`,
+    );
+    const review = latestCall((call) =>
+      call.path.endsWith(
+        `/projects/${scientificProjectId}/reviews/${scientific.session.review_session_id}`,
+      ),
+    );
+    assert.equal(review?.status, 200);
+    assert.equal(review?.json?.content?.session?.lifecycle, expectedLifecycle);
+    const text = await evaluate("document.body.innerText");
+    if (expectedLifecycle === "deferred") {
+      for (const value of [
+        "This Review is deferred",
+        "Reopen review",
+        "Apply unavailable",
+      ]) {
+        assert.ok(text.includes(value), `Missing deferred meaning: ${value}`);
+      }
+      assert.equal(
+        await evaluate(
+          `${button("Prepare changes to apply")}.getAttribute("aria-disabled")`,
+        ),
+        "true",
+      );
+    }
+  };
 
   const exerciseBeforeApply = async () => {
     const graphCallStart = calls.length;
@@ -818,6 +853,7 @@ export const startCumulativeProductionBrowser = async ({
   };
 
   return {
+    exerciseLifecycleState,
     exerciseBeforeApply,
     applyDisplayedChangeSet,
     exerciseAfterApply,

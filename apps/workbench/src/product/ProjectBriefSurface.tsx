@@ -305,13 +305,19 @@ export const ProjectBriefSurface = ({
       <section aria-labelledby="brief-decisions">
         <h2 id="brief-decisions">Recent decisions</h2>
         <p>
-          Recent-ten canonical History window. Event-detail navigation and
-          Revert are unavailable from these Brief observations.
+          Recent-ten canonical History window. Open an exact event to inspect
+          its current impact, recovery assessment, and eligible governed Revert
+          path.
         </p>
         <ol>
           {c.recent_decisions.content.changes.map((change) => (
             <li key={change.event_ref.event_id}>
               <p>{change.observed_effect.summary}</p>
+              <Link
+                to={`/projects/${view.project_id}/history/${change.event_ref.event_id}`}
+              >
+                Inspect History event
+              </Link>
               <RecordDetails
                 label={`Exact decision ${change.event_ref.event_id}`}
                 value={change}

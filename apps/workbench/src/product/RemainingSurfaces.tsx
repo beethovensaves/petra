@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLoaderData, useParams } from "react-router";
 
-import type { PetraProjectEffectiveControlsView } from "@petra/contracts";
+import type {
+  PetraProjectEffectiveControlsView,
+  PetraProjectHistoryCompensationExecutionView,
+  PetraProjectHistoryCompensationPlanView,
+  PetraProjectHistoryCompensationPreviewView,
+} from "@petra/contracts";
 
 import { PetraMark } from "../design-system/brand.js";
 import {
@@ -25,9 +30,17 @@ import type {
 } from "./model.js";
 import type {
   ProjectSettingsData,
+  ProjectHistoryEventData,
   ProjectSuggestedActionHistoryData,
 } from "./project-data.js";
+import {
+  composeProjectHistoryCompensationPlan,
+  executeProjectHistoryCompensationPlan,
+  getProjectHistoryCompensationPreview,
+  ProjectDataError,
+} from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
+import { Observation } from "./ReviewRecovery.js";
 
 export const CompositionCollectionSurface = ({
   project,
@@ -608,6 +621,432 @@ export const HistorySurface = ({
       )}
     </main>
   );
+};
+
+type GovernedRevertState =
+  | { readonly kind: "idle" | "reading_preview" }
+  | {
+      readonly kind: "preview" | "composing_plan";
+      readonly preview: PetraProjectHistoryCompensationPreviewView;
+    }
+  | {
+      readonly kind: "plan" | "executing";
+      readonly preview: PetraProjectHistoryCompensationPreviewView;
+      readonly plan: PetraProjectHistoryCompensationPlanView;
+    }
+  | {
+      readonly kind: "result";
+      readonly result: PetraProjectHistoryCompensationExecutionView;
+    }
+  | { readonly kind: "failed"; readonly message: string };
+
+const governedRevertFailure = (error: unknown): string => {
+  if (error instanceof ProjectDataError) {
+    if (error.status === 401 || error.status === 403)
+      return "The authenticated actor is not authorized to continue this Revert. No compensation is shown as performed.";
+    if (error.status === 409)
+      return "Current authority no longer permits this exact Revert step. Reload the History event before deciding again; no effect is inferred from this failed request.";
+  }
+  return "The governed Revert result could not be verified. Do not repeat or reinterpret the request; reload this History event and reconcile current authority.";
+};
+
+export const HistoryEventSurface = ({
+  project,
+  data,
+}: {
+  project: ProjectRecord;
+  data: ProjectHistoryEventData;
+}): React.JSX.Element => {
+  const { episode, impact, recovery } = data;
+  const change = episode.content.change;
+  const assessment = recovery.content.assessment;
+  const [reason, setReason] = useState("");
+  const [approvalRationale, setApprovalRationale] = useState("");
+  const [revert, setRevert] = useState<GovernedRevertState>({ kind: "idle" });
+  const notice = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (revert.kind !== "idle") notice.current?.focus();
+  }, [revert.kind]);
+
+  const readPreview = async (): Promise<void> => {
+    if (revert.kind !== "idle" && revert.kind !== "failed") return;
+    setRevert({ kind: "reading_preview" });
+    try {
+      const preview = await getProjectHistoryCompensationPreview(
+        project.id,
+        episode.event_id,
+      );
+      setRevert({ kind: "preview", preview });
+    } catch (error) {
+      setRevert({ kind: "failed", message: governedRevertFailure(error) });
+    }
+  };
+
+  const composePlan = async (): Promise<void> => {
+    if (
+      revert.kind !== "preview" ||
+      reason.trim().length === 0 ||
+      approvalRationale.trim().length === 0
+    )
+      return;
+    const preview = revert.preview;
+    setRevert({ kind: "composing_plan", preview });
+    try {
+      const plan = await composeProjectHistoryCompensationPlan({
+        projectId: project.id,
+        eventId: episode.event_id,
+        preview,
+        reason,
+        approvalRationale,
+        explicitConfirmation: true,
+      });
+      setRevert({ kind: "plan", preview, plan });
+    } catch (error) {
+      setRevert({ kind: "failed", message: governedRevertFailure(error) });
+    }
+  };
+
+  const executePlan = async (): Promise<void> => {
+    if (revert.kind !== "plan") return;
+    const { preview, plan } = revert;
+    setRevert({ kind: "executing", preview, plan });
+    try {
+      const result = await executeProjectHistoryCompensationPlan({
+        projectId: project.id,
+        eventId: episode.event_id,
+        plan,
+        explicitExecutionConfirmation: true,
+      });
+      setRevert({ kind: "result", result });
+    } catch (error) {
+      setRevert({ kind: "failed", message: governedRevertFailure(error) });
+    }
+  };
+
+  const canPreview = assessment.state === "eligible_for_preview";
+  const statusText =
+    assessment.state === "eligible_for_preview"
+      ? "Eligible for a revision-bound compensation preview"
+      : assessment.state === "already_compensated"
+        ? "This exact authoritative change is already compensated"
+        : "Governed Revert is blocked by current authority";
+  const activePreview =
+    revert.kind === "preview" || revert.kind === "composing_plan"
+      ? revert.preview
+      : revert.kind === "plan" || revert.kind === "executing"
+        ? revert.preview
+        : undefined;
+  const activePlan =
+    revert.kind === "plan" || revert.kind === "executing"
+      ? revert.plan
+      : undefined;
+
+  return (
+    <main
+      className="reference-surface history-event"
+      id="reference-main"
+      data-runtime-history="authenticated"
+    >
+      <header className="reference-surface-heading">
+        <div>
+          <p className="reference-eyebrow">History · exact retained event</p>
+          <h1>{change.event_ref.event_type.replaceAll("_", " ")}</h1>
+          <p className="reference-lede">{change.observed_effect.summary}</p>
+        </div>
+        <Link
+          className="reference-context-back"
+          to={`/projects/${project.id}/brief`}
+        >
+          Return to current Brief
+        </Link>
+      </header>
+
+      <div className="history-event__layout">
+        <article aria-labelledby="history-event-record-title">
+          <p className="reference-panel-kicker">Recorded authority</p>
+          <h2 id="history-event-record-title">Event and consequence</h2>
+          <dl className="history-facts">
+            <div>
+              <dt>Event</dt>
+              <dd>
+                <code>{episode.event_id}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Command</dt>
+              <dd>
+                {change.command_ref.command_name} ·{" "}
+                <code>{change.command_ref.command_id}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Actor</dt>
+              <dd>
+                {change.actor.actor_kind} · <code>{change.actor.actor_id}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Authority effect</dt>
+              <dd>
+                {change.observed_effect.effect.replaceAll("_", " ")} ·{" "}
+                {change.observed_effect.outcome}
+              </dd>
+            </div>
+          </dl>
+          <h3>Exact targets</h3>
+          <ul>
+            {change.targets.map((target) => (
+              <li key={`${target.semantic_key}:${target.object_id}`}>
+                {target.role} · {target.semantic_key} ·{" "}
+                <code>{target.object_id}</code> revision {target.revision} ·{" "}
+                {target.authority_state}
+              </li>
+            ))}
+          </ul>
+          <details>
+            <summary>Complete retained event and causal record</summary>
+            <Observation value={episode} />
+          </details>
+        </article>
+
+        <aside aria-labelledby="history-impact-title">
+          <p className="reference-panel-kicker">Current read-only assessment</p>
+          <h2 id="history-impact-title">Impact and recovery boundary</h2>
+          <p>{statusText}.</p>
+          <ul>
+            <li>
+              Registered direct event and command dependents:{" "}
+              {impact.content.impact.summary.total_count} · coverage{" "}
+              {impact.content.impact.summary.coverage}
+            </li>
+            <li>
+              Registered semantic-target dependents:{" "}
+              {impact.content.semantic_target_impact.summary.total_count} ·
+              coverage {impact.content.semantic_target_impact.summary.coverage}
+            </li>
+            <li>
+              Recovery assessment: {assessment.state.replaceAll("_", " ")}
+            </li>
+          </ul>
+          <p>
+            Graph Back/Forward remains client-local. Revert is additive
+            compensation; it does not erase this event, its decision, or its
+            History.
+          </p>
+          <details>
+            <summary>Complete impact and recovery assessments</summary>
+            <Observation value={{ impact, recovery }} />
+          </details>
+        </aside>
+      </div>
+
+      <section
+        className="history-event__revert"
+        aria-labelledby="governed-revert-title"
+      >
+        <p className="reference-panel-kicker">Separate authority path</p>
+        <h2 id="governed-revert-title">Governed Revert</h2>
+        <p>
+          Read the exact preview first. A confirmed reason and Approval
+          rationale compose one new compensating ChangeSet. Execution is a
+          separate explicit action and rechecks authority at every command.
+        </p>
+        {canPreview ? (
+          <PetraButton
+            variant="secondary"
+            onClick={() => void readPreview()}
+            busy={revert.kind === "reading_preview"}
+            busyLabel="Reading governed Revert preview…"
+            aria-disabled={revert.kind !== "idle" && revert.kind !== "failed"}
+          >
+            Read governed Revert preview
+          </PetraButton>
+        ) : (
+          <PetraButton
+            variant="secondary"
+            unavailable={{
+              reason: statusText,
+              prerequisite:
+                "A current eligible single-ChangeSet recovery assessment.",
+            }}
+          >
+            Revert unavailable
+          </PetraButton>
+        )}
+
+        <section
+          ref={notice}
+          className="history-event__revert-state"
+          tabIndex={-1}
+          aria-live={revert.kind === "failed" ? "assertive" : "polite"}
+          role={revert.kind === "failed" ? "alert" : "status"}
+        >
+          {revert.kind === "idle" ? (
+            <p>
+              No compensation preview, plan, or execution has been requested.
+            </p>
+          ) : revert.kind === "reading_preview" ? (
+            <p>
+              Reading the exact current preview. No ChangeSet, Approval, or
+              command has been composed or executed.
+            </p>
+          ) : revert.kind === "failed" ? (
+            <p>{revert.message}</p>
+          ) : revert.kind === "composing_plan" ? (
+            <p>
+              Revalidating the preview and composing the confirmed command plan.
+              Nothing is shown as executed.
+            </p>
+          ) : revert.kind === "executing" ? (
+            <p>
+              Executing the exact confirmed plan. Completion and effects are not
+              yet established.
+            </p>
+          ) : revert.kind === "result" ? (
+            <>
+              <h3>
+                {revert.result.content.outcome === "completed"
+                  ? "Governed Revert completed"
+                  : "Governed Revert stopped"}
+              </h3>
+              <p>
+                Completed prefix: {revert.result.content.completed_prefix} of{" "}
+                {revert.result.content.steps.length}. Authority effect:{" "}
+                {revert.result.content.authoritative_effect.state.replaceAll(
+                  "_",
+                  " ",
+                )}
+                . The original action and this compensation both remain in
+                History.
+              </p>
+              <ol>
+                {revert.result.content.steps.map((step) => (
+                  <li key={step.command_ref.command_id}>
+                    {step.command_name}: {step.state.replaceAll("_", " ")} ·{" "}
+                    <code>{step.command_ref.command_id}</code>
+                    {!("event_ref" in step) ||
+                    step.event_ref === undefined ? null : (
+                      <>
+                        {" "}
+                        · <code>{step.event_ref.event_id}</code>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ol>
+              <details>
+                <summary>Complete governed Revert execution record</summary>
+                <Observation value={revert.result} />
+              </details>
+            </>
+          ) : (
+            <p>
+              {revert.kind === "preview"
+                ? "Read-only compensation preview loaded. No ChangeSet, Approval, or command has been composed or executed."
+                : "Confirmed compensation plan composed. It is not persisted or executed until the separate execution action."}
+            </p>
+          )}
+        </section>
+
+        {activePreview === undefined ? null : (
+          <div className="history-event__preview">
+            <h3>Read-only preview</h3>
+            <p>
+              {activePreview.content.operation_preview.length} operations ·{" "}
+              {activePreview.content.command_sequence.length} commands · valid
+              through {activePreview.content.freshness.valid_through}
+            </p>
+            <ol>
+              {activePreview.content.operation_preview.map((operation) => (
+                <li key={`${operation.operation_kind}:${operation.target_id}`}>
+                  {operation.operation_kind.replaceAll("_", " ")} ·{" "}
+                  <code>{operation.target_id}</code> · base revision{" "}
+                  {operation.base_revision}
+                </li>
+              ))}
+            </ol>
+            <details>
+              <summary>Complete preview, results, and command sequence</summary>
+              <Observation value={activePreview} />
+            </details>
+          </div>
+        )}
+
+        {revert.kind !== "preview" ? null : (
+          <div className="history-event__confirmation">
+            <PetraTextArea
+              label="Reason for governed Revert"
+              hint="Explain why this exact authoritative change should be compensated."
+              rows={3}
+              value={reason}
+              onChange={(event) => setReason(event.currentTarget.value)}
+            />
+            <PetraTextArea
+              label="Approval rationale"
+              hint="State why the complete compensating ChangeSet is approved."
+              rows={3}
+              value={approvalRationale}
+              onChange={(event) =>
+                setApprovalRationale(event.currentTarget.value)
+              }
+            />
+            <PetraButton
+              variant="primary"
+              onClick={() => void composePlan()}
+              aria-disabled={
+                reason.trim().length === 0 ||
+                approvalRationale.trim().length === 0
+              }
+            >
+              Confirm and compose Revert plan
+            </PetraButton>
+          </div>
+        )}
+
+        {activePlan === undefined ? null : (
+          <div className="history-event__plan">
+            <h3>Confirmed command plan</h3>
+            <p>
+              ChangeSet{" "}
+              <code>{activePlan.content.change_set.change_set_id}</code>{" "}
+              compensates{" "}
+              <code>
+                {
+                  activePlan.content.change_set.content
+                    .compensates_change_set_id
+                }
+              </code>
+              . Persistence and execution remain not performed.
+            </p>
+            <ol>
+              {activePlan.content.commands.map((step) => (
+                <li key={step.envelope.command_id}>
+                  {step.position}. {step.command_name} ·{" "}
+                  {step.state.replaceAll("_", " ")}
+                </li>
+              ))}
+            </ol>
+            <details>
+              <summary>Complete ChangeSet, Approval, and command plan</summary>
+              <Observation value={activePlan} />
+            </details>
+            {revert.kind === "plan" ? (
+              <PetraButton variant="primary" onClick={() => void executePlan()}>
+                Execute governed Revert
+              </PetraButton>
+            ) : null}
+          </div>
+        )}
+      </section>
+    </main>
+  );
+};
+
+export const HistoryEventRoute = (): React.JSX.Element => {
+  const project = useProjectRecord();
+  const data = useLoaderData<ProjectHistoryEventData>();
+  return <HistoryEventSurface project={project} data={data} />;
 };
 
 const runtimeHistoryLabel = (value: string): string =>
