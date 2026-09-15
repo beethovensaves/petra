@@ -67,9 +67,9 @@ try {
     typeof answer !== "string" ||
     answer.length === 0 ||
     terminal?.modelDeploymentId !==
-      "model_deployment_2GQKKQBMKS7BTZ6CCES42FNHV8" ||
+      "model_deployment_1WKCAZEM2G2CQ4NZAAB2G68XGW" ||
     terminal?.roleCertificationId !==
-      "role_certification_2Y0M9BRCDNMBMK55DXEMV31Q8Y" ||
+      "role_certification_2QNNWEG32XSDY4HWQW209N9T86" ||
     terminal?.authorityEffect !== "none" ||
     !["provider", "memory_cache", "durable_cache"].includes(
       terminal?.executionSource,

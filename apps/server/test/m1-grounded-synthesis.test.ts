@@ -27,7 +27,7 @@ const WORKSPACE_ROOT = new URL("../../..", import.meta.url).pathname.replace(
   /\/$/,
   "",
 );
-const CODEX_VERSION = "codex-cli 0.151.0";
+const CODEX_VERSION = "codex-cli 0.154.0";
 
 const output = JSON.parse(
   readFileSync(
@@ -250,8 +250,8 @@ describe("M1.6-W18 certified grounded server composition", () => {
           evidence_packet_id: "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
         },
         snapshotId: "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
-        modelDeploymentId: "model_deployment_2GQKKQBMKS7BTZ6CCES42FNHV8",
-        roleCertificationId: "role_certification_2Y0M9BRCDNMBMK55DXEMV31Q8Y",
+        modelDeploymentId: "model_deployment_1WKCAZEM2G2CQ4NZAAB2G68XGW",
+        roleCertificationId: "role_certification_2QNNWEG32XSDY4HWQW209N9T86",
         authorityEffect: "none",
         terminalBinding: {
           grounded_response_id: "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FEA",

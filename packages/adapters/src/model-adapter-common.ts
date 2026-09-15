@@ -31,11 +31,15 @@ export const projectExtractorOutputSchemaForProvider = (
     readonly commonDefinitionNames?: readonly string[];
     readonly requiredRootProperties?: readonly string[];
     readonly preserveAlternatives?: boolean;
+    readonly strictRequiredPropertyNames?: readonly string[];
   } = {},
 ): Record<string, unknown> => {
   const arrayItemLimit = options.arrayItemLimit ?? 10;
   const strictObjectProperties = options.strictObjectProperties ?? false;
   const preserveAlternatives = options.preserveAlternatives ?? false;
+  const strictRequiredPropertyNames = new Set(
+    options.strictRequiredPropertyNames ?? [],
+  );
   const commonDefinitionNames = options.commonDefinitionNames ?? [
     "PetraId",
     "SourceSpanId",
@@ -147,6 +151,12 @@ export const projectExtractorOutputSchemaForProvider = (
               ),
             )
           : new Set<string>();
+        if (strictObjectProperties) {
+          for (const name of Object.keys(member)) {
+            if (strictRequiredPropertyNames.has(name)) required.add(name);
+          }
+          if (required.size > 0) result.required = [...required];
+        }
         result.properties = Object.fromEntries(
           Object.entries(member)
             .filter(([name]) => !strictObjectProperties || required.has(name))
