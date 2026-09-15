@@ -154,12 +154,15 @@ All commands ran with the repository's pinned Node 24.20.0 toolchain:
 
 The report language received a consequential-claim review after the live
 evidence was recorded. Claims above distinguish the executed backend proof
-from the browser and assistive-technology evidence still required by item 50.
+from the production-browser evidence still required by item 50. The later user
+scope amendment removed native screen-reader evaluation from the Wave 4 exit
+criteria.
 
 ## Limits and next boundary
 
 This is backend runtime and persistence evidence for UX1.4-EV01 and
 UX1.4-EV03. It does not supply item 50’s production workbench recordings,
-named Review-state coverage, governed Revert recording, or full assistive-
-technology session. Wave 4 remains open. The next safe slice is exactly item
-50 on the design branch, followed by backend item 51 and design item 52.
+named Review-state coverage, or governed Revert recording. The later user scope
+amendment removed native screen-reader evaluation from the Wave 4 exit criteria.
+Wave 4 remains open for item 50's production-browser, named Review-state, and
+governed Revert evidence, followed by backend item 51 and design item 52.

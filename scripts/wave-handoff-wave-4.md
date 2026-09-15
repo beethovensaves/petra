@@ -186,6 +186,16 @@ report authority.
   complete textual parity, keyboard/focus behavior, text scaling, touch,
   forced colors, reduced motion, and non-color meaning.
 
+### User scope amendment — native screen readers
+
+Wave 4 does not require a native screen-reader or full assistive-technology
+session. Do not launch, toggle, automate, or otherwise invoke macOS VoiceOver or
+another screen reader. For `UX1.4-EV06`, use production-browser semantic and
+accessibility-tree inspection together with keyboard/focus behavior, complete
+textual parity, 200% text, touch emulation, forced colors, reduced motion, and
+non-color meaning. This amendment supersedes older Wave 4 roadmap, audit, and
+handoff text that treated a native screen-reader session as an exit condition.
+
 ## Fixed closure sequence after slice 39
 
 The verified anchors are backend `eb5cbbe0179d6b1b52069861a14498648e4fdb10`
@@ -276,16 +286,17 @@ inspection as substitutes for the named live paths.
     of duplicate effects on fresh stores. If model service access or credentials
     prevent exact execution, return `blocked`; do not substitute a fixture or
     caller label.
-50. **Design — remaining production recordings and assistive technology.** Use
+50. **Design — remaining production recordings and browser accessibility.** Use
     the exact pushed item 49 evidence through production clients, controllers,
     live server routes, and the frozen workbench. Record the paired-profile
     natural-conversation path; every named ordinary, exception-heavy,
     limited-basis, blocked, corrected, stale, and deferred Review state; the
-    complete governed failure and Revert scenarios; and a screen-reader or full
-    assistive-technology session. Preserve exact return/focus, complete textual
-    parity, keyboard, touch, 200% text, forced colors, reduced motion, and
-    non-color meaning. State physical-device, browser, server, and assistive-
-    technology boundaries precisely.
+    complete governed failure and Revert scenarios; and production-browser
+    semantic and accessibility-tree evidence. Preserve exact return/focus,
+    complete textual parity, keyboard, touch, 200% text, forced colors, reduced
+    motion, and non-color meaning. Reuse the exact pushed item 49 external-model
+    proof; do not repeat its provider call merely to obtain browser evidence.
+    State physical-device, browser, server, and automation boundaries precisely.
 51. **Backend — final evidence reconciliation and authority audit.** Inspect the
     exact item 49 and item 50 evidence against `UX1.4-EV01`–`EV06`. Re-run the
     adversarial checks for implicit authority, attribution, cross-Project
@@ -294,12 +305,13 @@ inspection as substitutes for the named live paths.
     only, run the complete gate and fresh PostgreSQL integration, and hand off
     an exact pushed closure assessment. Do not declare Wave 4 complete.
 52. **Design — repeated final UX, Felicity, and exit audit.** Re-run the material
-    production-browser and assistive-technology checks, inspect all Wave 4
-    reports and user-facing claims with Felicity, and assess every
+    production-browser and non-screen-reader accessibility checks, inspect all
+    Wave 4 reports and user-facing claims with Felicity, and assess every
     `UX1.4-EV01`–`EV06` requirement against exact pushed evidence. Fix
-    design-owned findings only. Declare `wave_complete` only when both branches
-    are pushed, the exact exit gate is live, and every remaining limitation is
-    explicitly later-wave scope.
+    design-owned findings only. Remove native screen-reader evaluation from the
+    Wave 4 exit audit and do not invoke VoiceOver. Declare `wave_complete` only
+    when both branches are pushed, the exact exit gate is live, and every
+    remaining limitation is explicitly later-wave scope.
 
 If a slice finishes without changing its role-owned files, commit its required
 conformance or evidence report. The report must name exact commits, executed
