@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 
 import Ajv2020 from "ajv/dist/2020.js";
@@ -10,9 +13,12 @@ import {
   enforceCompletionDisposition,
   initialHandoff,
   inventoryAuditOverdue,
+  isCompatiblePackageJsonConflictSet,
+  mergePackageJsonDocuments,
   missingRequiredEvidence,
   parseArguments,
   parsePorcelainZ,
+  resolveCompatiblePackageJsonConflict,
   unexpectedChanges,
   validateEvidencePlan,
   validateCommitTransition,
@@ -56,6 +62,144 @@ test("uses automatic approval review without a conflicting sandbox flag", () => 
   });
   assert.ok(args.includes("--approve-for-me"));
   assert.equal(args.includes("--sandbox"), false);
+});
+
+test("three-way merges compatible package.json changes", () => {
+  const base = {
+    name: "petra",
+    scripts: { verify: "npm test", shared: "base" },
+    devDependencies: { typescript: "6.0.3" },
+  };
+  const ours = {
+    ...base,
+    scripts: {
+      ...base.scripts,
+      "test:wave4:browser": "node browser.mjs",
+      "test:wave4:item50": "npm run test:wave4:browser",
+    },
+  };
+  const theirs = {
+    ...base,
+    scripts: {
+      ...base.scripts,
+      "test:wave4:evidence-support": "node evidence.mjs",
+    },
+  };
+  const merged = JSON.parse(
+    mergePackageJsonDocuments(
+      JSON.stringify(base),
+      JSON.stringify(ours),
+      JSON.stringify(theirs),
+    ),
+  );
+  assert.deepEqual(merged.scripts, {
+    verify: "npm test",
+    shared: "base",
+    "test:wave4:browser": "node browser.mjs",
+    "test:wave4:item50": "npm run test:wave4:browser",
+    "test:wave4:evidence-support": "node evidence.mjs",
+  });
+});
+
+test("three-way package merge preserves one-sided deletion and rejects competition", () => {
+  const base = { scripts: { keep: "same", remove: "old", collide: "base" } };
+  const ours = { scripts: { keep: "same", collide: "ours" } };
+  const compatibleTheirs = {
+    scripts: { keep: "same", remove: "old", collide: "base", add: "theirs" },
+  };
+  assert.deepEqual(
+    JSON.parse(
+      mergePackageJsonDocuments(
+        JSON.stringify(base),
+        JSON.stringify(ours),
+        JSON.stringify(compatibleTheirs),
+      ),
+    ),
+    { scripts: { keep: "same", collide: "ours", add: "theirs" } },
+  );
+  assert.throws(
+    () =>
+      mergePackageJsonDocuments(
+        JSON.stringify(base),
+        JSON.stringify(ours),
+        JSON.stringify({
+          scripts: { keep: "same", remove: "old", collide: "theirs" },
+        }),
+      ),
+    /Competing package.json edits at package.json.scripts.collide/,
+  );
+});
+
+test("automatic conflict recovery stays inside the package.json boundary", () => {
+  assert.equal(isCompatiblePackageJsonConflictSet(["package.json"]), true);
+  assert.equal(isCompatiblePackageJsonConflictSet(["README.md"]), false);
+  assert.equal(
+    isCompatiblePackageJsonConflictSet(["package.json", "package-lock.json"]),
+    false,
+  );
+  assert.throws(
+    () => mergePackageJsonDocuments("not json", "{}", "{}"),
+    /invalid JSON/,
+  );
+});
+
+test("resolves and commits a real additive package.json merge conflict", () => {
+  const root = mkdtempSync(join(tmpdir(), "petra-wave-merge-"));
+  const runGit = (...args) =>
+    execFileSync("git", args, { cwd: root, encoding: "utf8" });
+  const writePackage = (scripts) =>
+    writeFileSync(
+      join(root, "package.json"),
+      `${JSON.stringify({ name: "petra", scripts }, null, 2)}\n`,
+    );
+  try {
+    runGit("init", "--initial-branch=design/m1-ux");
+    runGit("config", "user.name", "Wave Test");
+    runGit("config", "user.email", "wave-test@example.invalid");
+    writePackage({ verify: "npm test" });
+    runGit("add", "package.json");
+    runGit("commit", "-m", "base");
+    runGit("branch", "backend");
+
+    writePackage({
+      verify: "npm test",
+      "test:wave4:browser": "node browser.mjs",
+    });
+    runGit("add", "package.json");
+    runGit("commit", "-m", "design command");
+
+    runGit("checkout", "backend");
+    writePackage({
+      verify: "npm test",
+      "test:wave4:evidence-support": "node evidence.mjs",
+    });
+    runGit("add", "package.json");
+    runGit("commit", "-m", "backend command");
+    runGit("checkout", "design/m1-ux");
+
+    const merge = spawnSync(
+      "git",
+      ["merge", "--no-ff", "backend", "-m", "integrate backend"],
+      { cwd: root, encoding: "utf8" },
+    );
+    assert.equal(merge.status, 1, merge.stderr || merge.stdout);
+    assert.equal(resolveCompatiblePackageJsonConflict(root), true);
+
+    const merged = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+    assert.deepEqual(merged.scripts, {
+      verify: "npm test",
+      "test:wave4:browser": "node browser.mjs",
+      "test:wave4:evidence-support": "node evidence.mjs",
+    });
+    assert.equal(runGit("diff", "--name-only", "--diff-filter=U").trim(), "");
+    assert.equal(
+      runGit("rev-list", "--parents", "-n", "1", "HEAD").trim().split(" ")
+        .length,
+      3,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("parses worker options with a bounded slice count", () => {

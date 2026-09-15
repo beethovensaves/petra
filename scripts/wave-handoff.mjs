@@ -12,6 +12,7 @@ import {
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isDeepStrictEqual } from "node:util";
 
 const scriptPath = fileURLToPath(import.meta.url);
 const backendRoot = resolve(dirname(scriptPath), "..");
@@ -105,6 +106,102 @@ function run(command, args, cwd, { trim = true } = {}) {
 
 function git(root, ...args) {
   return run("git", args, root);
+}
+
+const missingJsonValue = Symbol("missing-json-value");
+
+function isPlainObject(value) {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    value !== missingJsonValue
+  );
+}
+
+function mergeJsonValue(base, ours, theirs, location) {
+  if (isDeepStrictEqual(ours, theirs)) return ours;
+  if (isDeepStrictEqual(ours, base)) return theirs;
+  if (isDeepStrictEqual(theirs, base)) return ours;
+
+  const objectBase =
+    base === missingJsonValue && isPlainObject(ours) && isPlainObject(theirs)
+      ? {}
+      : base;
+  if (
+    isPlainObject(objectBase) &&
+    isPlainObject(ours) &&
+    isPlainObject(theirs)
+  ) {
+    const result = {};
+    const keys = new Set([
+      ...Object.keys(objectBase),
+      ...Object.keys(ours),
+      ...Object.keys(theirs),
+    ]);
+    for (const key of keys) {
+      const merged = mergeJsonValue(
+        Object.hasOwn(objectBase, key) ? objectBase[key] : missingJsonValue,
+        Object.hasOwn(ours, key) ? ours[key] : missingJsonValue,
+        Object.hasOwn(theirs, key) ? theirs[key] : missingJsonValue,
+        `${location}.${key}`,
+      );
+      if (merged !== missingJsonValue) result[key] = merged;
+    }
+    return result;
+  }
+
+  throw new Error(`Competing package.json edits at ${location}.`);
+}
+
+export function mergePackageJsonDocuments(baseText, oursText, theirsText) {
+  let base;
+  let ours;
+  let theirs;
+  try {
+    base = JSON.parse(baseText);
+    ours = JSON.parse(oursText);
+    theirs = JSON.parse(theirsText);
+  } catch (error) {
+    throw new Error(
+      "Cannot resolve a package.json conflict with invalid JSON.",
+      {
+        cause: error,
+      },
+    );
+  }
+  const merged = mergeJsonValue(base, ours, theirs, "package.json");
+  if (!isPlainObject(merged)) {
+    throw new Error("The merged package.json root must remain an object.");
+  }
+  return `${JSON.stringify(merged, null, 2)}\n`;
+}
+
+export function isCompatiblePackageJsonConflictSet(conflicted) {
+  return conflicted.length === 1 && conflicted[0] === "package.json";
+}
+
+export function resolveCompatiblePackageJsonConflict(root) {
+  const conflicted = git(root, "diff", "--name-only", "--diff-filter=U")
+    .split("\n")
+    .filter(Boolean);
+  if (!isCompatiblePackageJsonConflictSet(conflicted)) {
+    return false;
+  }
+
+  const merged = mergePackageJsonDocuments(
+    git(root, "show", ":1:package.json"),
+    git(root, "show", ":2:package.json"),
+    git(root, "show", ":3:package.json"),
+  );
+  writeFileSync(join(root, "package.json"), merged, "utf8");
+  git(root, "add", "package.json");
+  const remaining = git(root, "diff", "--name-only", "--diff-filter=U");
+  if (remaining.length > 0) {
+    throw new Error(`Unresolved merge paths remain: ${remaining}`);
+  }
+  git(root, "commit", "--no-edit");
+  return true;
 }
 
 function gitIsAncestor(root, ancestor, descendant) {
@@ -810,12 +907,30 @@ async function integrateBackendForDesign(wave, claimedState) {
       },
     );
     if (mergeHead.status === 0) {
-      git(roles.design.root, "merge", "--abort");
+      try {
+        if (resolveCompatiblePackageJsonConflict(roles.design.root)) {
+          process.stdout.write(
+            "[design] Resolved compatible package.json additions with a strict three-way merge.\n",
+          );
+        } else {
+          throw new Error(
+            "The merge includes conflicts outside the supported package.json boundary.",
+            { cause: error },
+          );
+        }
+      } catch (resolutionError) {
+        git(roles.design.root, "merge", "--abort");
+        throw new Error(
+          `Design synchronization with backend ${backend.head} failed: ${error.message}\nAutomatic package resolution was unavailable: ${resolutionError.message}`,
+          { cause: resolutionError },
+        );
+      }
+    } else {
+      throw new Error(
+        `Design synchronization with backend ${backend.head} failed before a merge was created: ${error.message}`,
+        { cause: error },
+      );
     }
-    throw new Error(
-      `Design synchronization with backend ${backend.head} failed: ${error.message}`,
-      { cause: error },
-    );
   }
 
   git(
