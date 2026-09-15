@@ -332,6 +332,7 @@ export const REFERENCE_REVIEWS: ReviewSession[] = [
         sourceId: "src-observation-log",
       },
     ],
+    qualifications: [],
     validation: {
       state: "blocked",
       label: "Commitment blocked",

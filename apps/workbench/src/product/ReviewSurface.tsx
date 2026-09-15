@@ -1344,6 +1344,7 @@ export const reviewSessionWithMember = (
     ? {}
     : { candidateBasisRevision: member.candidateBasisRevision }),
   basis: member.basis,
+  qualifications: member.qualifications,
   validation: member.validation,
   consequences: member.consequences,
   commitment: member.commitment,
@@ -2083,6 +2084,55 @@ const ReviewSessionMemberSurface = ({
             </dd>
           </div>
         </dl>
+        {review.candidate.workingOrigin === undefined ? null : (
+          <details className="review-origin-disclosure">
+            <summary>Exact working origin and provenance</summary>
+            <dl>
+              <div>
+                <dt>Working candidate</dt>
+                <dd>
+                  <code>{review.candidate.workingOrigin.recordId}</code> ·
+                  revision {review.candidate.workingOrigin.revision} ·{" "}
+                  <code>{review.candidate.workingOrigin.contentHash}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>Producer</dt>
+                <dd>
+                  {review.candidate.workingOrigin.producerActorKind} ·{" "}
+                  <code>{review.candidate.workingOrigin.producerActorId}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>Origin kind</dt>
+                <dd>{review.candidate.workingOrigin.originKind}</dd>
+              </div>
+              <div>
+                <dt>Origin summary</dt>
+                <dd>{review.candidate.workingOrigin.originSummary}</dd>
+              </div>
+            </dl>
+            <h3>Origin records</h3>
+            <ul>
+              {review.candidate.workingOrigin.originRecordIds.map(
+                (recordId) => (
+                  <li key={recordId}>
+                    <code>{recordId}</code>
+                  </li>
+                ),
+              )}
+            </ul>
+            <h3>Provenance records</h3>
+            <ol>
+              {review.candidate.workingOrigin.provenance.map((item, index) => (
+                <li key={`${item.role}:${item.recordId}:${index}`}>
+                  <strong>{item.role.replaceAll("_", " ")}</strong> ·{" "}
+                  <code>{item.recordId}</code> · {item.statement}
+                </li>
+              ))}
+            </ol>
+          </details>
+        )}
       </section>
 
       <div className="review-session__columns">
@@ -2143,6 +2193,56 @@ const ReviewSessionMemberSurface = ({
               </li>
             ))}
           </ol>
+          <section
+            className="review-qualifications"
+            aria-labelledby="review-qualifications-title"
+          >
+            <h3 id="review-qualifications-title">
+              Limitations and qualifications
+            </h3>
+            <p>
+              These statements come from the exact non-authoritative working
+              records. They remain separate from material validation and the
+              Review decision.
+            </p>
+            {review.qualifications.length === 0 ? (
+              <p>No working-state qualification record is available.</p>
+            ) : (
+              <ol>
+                {review.qualifications.map((qualification) => (
+                  <li
+                    key={`${qualification.recordKind}:${qualification.recordId}`}
+                  >
+                    <div>
+                      <span>{qualification.recordKind}</span>
+                      <strong>
+                        {qualification.assessmentState.replaceAll("_", " ")}
+                      </strong>
+                    </div>
+                    <code>{qualification.recordId}</code>
+                    {qualification.statements.length === 0 ? (
+                      <p>No qualification statement was recorded.</p>
+                    ) : (
+                      <ul>
+                        {qualification.statements.map((statement, index) => (
+                          <li key={`${statement.kind}:${index}`}>
+                            <strong>{statement.kind}</strong>:{" "}
+                            {statement.statement}
+                            {statement.basisRecordId === undefined ? null : (
+                              <>
+                                {" "}
+                                Basis: <code>{statement.basisRecordId}</code>
+                              </>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
           {basisRevisionContext === undefined ||
           !basisEditor.expanded ? null : (
             <section

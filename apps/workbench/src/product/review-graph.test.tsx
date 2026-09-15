@@ -140,6 +140,7 @@ describe("reference Review and Graph packets", () => {
       candidateCorrection: structuredClone(base.candidateCorrection),
       candidateBasisRevision: structuredClone(base.candidateBasisRevision),
       basis: structuredClone(base.basis),
+      qualifications: structuredClone(base.qualifications),
       validation: structuredClone(base.validation),
       consequences: structuredClone(base.consequences),
       commitment: structuredClone(base.commitment),
@@ -251,6 +252,10 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain("Candidate · working");
     expect(markup).toContain("Inquiry analyst");
     expect(markup).toContain("Actuator maintenance note");
+    expect(markup).toContain("Limitations and qualifications");
+    expect(markup).toContain(
+      "No working-state qualification record is available",
+    );
     expect(markup).toContain("Commitment blocked");
     expect(markup).toContain("Changes to apply");
     expect(markup).toContain("One atomic ChangeSet · 1 proposed change");
@@ -258,6 +263,56 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain(
       "?from=review&amp;reviewId=review-service-link&amp;basisId=basis-maintenance-note",
     );
+  });
+
+  it("keeps exact working limitations visible and separate from validation", () => {
+    const limited = structuredClone(review);
+    limited.candidate.workingOrigin = {
+      recordId: "working_candidate_01K4D000000000000000000701",
+      revision: 2,
+      contentHash: `sha256:${"7".repeat(64)}`,
+      producerActorId: "actor_01K4D000000000000000000702",
+      producerActorKind: "model",
+      originKind: "model_output",
+      originSummary: "The retained model output proposed this correction.",
+      originRecordIds: ["model_call_01K4D000000000000000000703"],
+      provenance: [
+        {
+          role: "model_call",
+          recordId: "model_call_01K4D000000000000000000703",
+          statement: "The exact model call produced the proposal.",
+        },
+      ],
+    };
+    limited.qualifications = [
+      {
+        recordKind: "candidate",
+        recordId: "working_candidate_01K4D000000000000000000701",
+        assessmentState: "stated",
+        statements: [
+          {
+            kind: "limitation",
+            statement:
+              "The bounded passage does not establish broader generalization.",
+            basisRecordId: "basis-observation-log",
+          },
+        ],
+      },
+    ];
+    const markup = render(
+      <ReviewSessionSurface project={project} review={limited} />,
+    );
+
+    expect(markup).toContain("Limitations and qualifications");
+    expect(markup).toContain("exact non-authoritative working records");
+    expect(markup).toContain(
+      "The bounded passage does not establish broader generalization",
+    );
+    expect(markup).toContain("Basis: <code>basis-observation-log</code>");
+    expect(markup).toContain("Exact working origin and provenance");
+    expect(markup).toContain("actor_01K4D000000000000000000702");
+    expect(markup).toContain("model_call_01K4D000000000000000000703");
+    expect(markup).toContain("Commitment blocked");
   });
 
   it("enables only the exact defer command without implying other authority", () => {

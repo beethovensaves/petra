@@ -86,6 +86,7 @@
     "services:reset": "docker compose --env-file .env -f infra/dev/compose.yaml down --volumes --remove-orphans",
     "test:wave4:browser": "npm run build:packages && node apps/workbench/test/cumulative-production-browser.mjs",
     "test:wave4:item50": "npm run test:wave4:browser",
+    "test:wave4:item54": "PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/item54-evidence-observer.mjs npm run test:wave4:evidence-support",
     "test:wave4:evidence-support": "npm run build:packages && PETRA_WAVE4_TRACE=evidence-remediation-support node scripts/test-wave4-cumulative-integration.mjs"
   },
   "devDependencies": {

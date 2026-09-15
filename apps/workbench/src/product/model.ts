@@ -138,6 +138,7 @@ export type ReviewSessionMember = Pick<
   | "candidateCorrection"
   | "candidateBasisRevision"
   | "basis"
+  | "qualifications"
   | "validation"
   | "consequences"
   | "changeSet"
@@ -179,6 +180,21 @@ export type ReviewSession = {
     difference: string;
     origin: string;
     originDetail: string;
+    workingOrigin?: {
+      recordId: string;
+      revision: number;
+      contentHash: string;
+      producerActorId: string;
+      producerActorKind: "human" | "service" | "model";
+      originKind: string;
+      originSummary: string;
+      originRecordIds: string[];
+      provenance: Array<{
+        role: string;
+        recordId: string;
+        statement: string;
+      }>;
+    };
   };
   candidateCorrection?: {
     reviewMemberId: string;
@@ -241,6 +257,16 @@ export type ReviewSession = {
     extent: string;
     detail: string;
     sourceId?: string;
+  }>;
+  qualifications: Array<{
+    recordKind: "candidate" | "relationship";
+    recordId: string;
+    assessmentState: "stated" | "none_recorded";
+    statements: Array<{
+      kind: "uncertainty" | "limitation";
+      statement: string;
+      basisRecordId?: string;
+    }>;
   }>;
   validation: {
     state: ValidationState;

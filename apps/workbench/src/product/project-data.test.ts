@@ -3182,6 +3182,7 @@ describe("Project shell workbench adapter", () => {
     expect(review.basis[0]?.sourceId).toBe(
       "project_source_01K4C000000000000000000007",
     );
+    expect(review.qualifications).toEqual([]);
     expect(
       createReviewSessionDeferCommandInput(review, {
         commandId: "command_01K4D000000000000000000061",
@@ -3205,7 +3206,7 @@ describe("Project shell workbench adapter", () => {
     expect(reviewView).toEqual(before);
   });
 
-  it("maps the additive working Review composition without changing the frozen Review model", () => {
+  it("maps exact working-state qualifications without changing Review authority", () => {
     const workingView = structuredClone(
       reviewView,
     ) as unknown as PetraProjectReviewViewV110;
@@ -3227,8 +3228,54 @@ describe("Project shell workbench adapter", () => {
       reason: "No projection receipt exists for the submitted ChangeSet.",
     };
 
-    expect(reviewSessionFromView(workingView)).toEqual(
-      reviewSessionFromView(reviewView),
+    const mapped = reviewSessionFromView(workingView);
+    expect(mapped.candidate.workingOrigin).toMatchObject({
+      recordId: reviewWorkingCandidate.working_candidate_id,
+      revision: reviewWorkingCandidate.revision,
+      producerActorId: reviewWorkingCandidate.producer.actor.actor_id,
+      producerActorKind: reviewWorkingCandidate.producer.actor.actor_kind,
+      originKind: reviewWorkingCandidate.origin.origin_kind,
+      originRecordIds: reviewWorkingCandidate.origin.source_record_refs.map(
+        (reference) => reference.record_id,
+      ),
+      provenance: reviewWorkingCandidate.provenance.map((item) => ({
+        role: item.provenance_role,
+        recordId: item.record_ref.record_id,
+        statement: item.statement,
+      })),
+    });
+    expect(mapped.qualifications).toEqual([
+      {
+        recordKind: "candidate",
+        recordId: reviewWorkingCandidate.working_candidate_id,
+        assessmentState: "stated",
+        statements: [
+          {
+            kind: "limitation",
+            statement:
+              "The candidate is limited to the study-defined task and does not establish broader generalization.",
+            basisRecordId: "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+          },
+        ],
+      },
+      {
+        recordKind: "relationship",
+        recordId: reviewWorkingRelationship.working_relationship_id,
+        assessmentState: "stated",
+        statements: [
+          {
+            kind: "limitation",
+            statement:
+              "ASSERTS records what the source states; it does not establish the Claim as true.",
+          },
+        ],
+      },
+    ]);
+    expect(mapped.validation).toEqual(
+      reviewSessionFromView(reviewView).validation,
+    );
+    expect(mapped.commitment).toEqual(
+      reviewSessionFromView(reviewView).commitment,
     );
     expect(workingView.content.members[0].working_state.authority_effect).toBe(
       "none",

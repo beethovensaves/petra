@@ -3070,6 +3070,62 @@ const reviewMemberFromView = (
   let candidateCorrection: ReviewSession["candidateCorrection"] | undefined;
   let candidateBasisRevision:
     ReviewSession["candidateBasisRevision"] | undefined;
+  let workingOrigin: ReviewSession["candidate"]["workingOrigin"];
+  const qualifications: ReviewSession["qualifications"] = [];
+  if (view.schema_version !== "1.0.0") {
+    const composedMember = view.content.members[memberIndex];
+    if (composedMember !== undefined) {
+      const candidate = composedMember.working_state.candidate;
+      workingOrigin = {
+        recordId: candidate.working_candidate_id,
+        revision: candidate.revision,
+        contentHash: candidate.content_hash,
+        producerActorId: candidate.producer.actor.actor_id,
+        producerActorKind: candidate.producer.actor.actor_kind,
+        originKind: candidate.origin.origin_kind,
+        originSummary: candidate.origin.summary,
+        originRecordIds: candidate.origin.source_record_refs.map(
+          (reference) => reference.record_id,
+        ),
+        provenance: candidate.provenance.map((item) => ({
+          role: item.provenance_role,
+          recordId: item.record_ref.record_id,
+          statement: item.statement,
+        })),
+      };
+      qualifications.push({
+        recordKind: "candidate",
+        recordId: composedMember.working_state.candidate.working_candidate_id,
+        assessmentState:
+          composedMember.working_state.candidate.qualifications
+            .assessment_state,
+        statements:
+          composedMember.working_state.candidate.qualifications.statements.map(
+            (statement) => ({
+              kind: statement.qualification_kind,
+              statement: statement.statement,
+              ...(statement.basis_ref === undefined
+                ? {}
+                : { basisRecordId: statement.basis_ref.record_id }),
+            }),
+          ),
+      });
+      qualifications.push(
+        ...composedMember.working_state.relationships.map((item) => ({
+          recordKind: "relationship" as const,
+          recordId: item.working_relationship_id,
+          assessmentState: item.qualifications.assessment_state,
+          statements: item.qualifications.statements.map((statement) => ({
+            kind: statement.qualification_kind,
+            statement: statement.statement,
+            ...(statement.basis_ref === undefined
+              ? {}
+              : { basisRecordId: statement.basis_ref.record_id }),
+          })),
+        })),
+      );
+    }
+  }
   if (view.schema_version === "1.2.0" || view.schema_version === "1.3.0") {
     const composedMember = view.content.members[memberIndex];
     const relationship = composedMember?.working_state.relationships[0];
@@ -3198,6 +3254,7 @@ const reviewMemberFromView = (
       difference: member.candidate.difference,
       origin: member.candidate.origin_label,
       originDetail: member.candidate.origin_detail,
+      ...(workingOrigin === undefined ? {} : { workingOrigin }),
     },
     ...(candidateCorrection === undefined ? {} : { candidateCorrection }),
     ...(candidateBasisRevision === undefined ? {} : { candidateBasisRevision }),
@@ -3211,6 +3268,7 @@ const reviewMemberFromView = (
         ? {}
         : { sourceId: basis.project_source_id }),
     })),
+    qualifications,
     validation: {
       state: member.validation.state,
       label: member.validation.label,
@@ -3276,6 +3334,7 @@ export const reviewSessionFromView = (
       ? {}
       : { candidateBasisRevision: member.candidateBasisRevision }),
     basis: member.basis,
+    qualifications: member.qualifications,
     validation: member.validation,
     consequences: member.consequences,
     commitment: member.commitment,
