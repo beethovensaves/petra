@@ -865,8 +865,9 @@ This checkpoint did not itself record the later product-design freeze.
   projection lag, failure, and Revert scenarios;
 - `UX1.4-EV05`: prohibited implicit-approval and misleading-attribution audit;
   and
-- `UX1.4-EV06`: responsive, keyboard, focus, screen-reader, touch, graph/text,
-  non-color, and panel-resize evaluation.
+- `UX1.4-EV06`: responsive, keyboard, focus, browser accessibility-tree, touch,
+  graph/text, non-color, and panel-resize evaluation. A native screen-reader
+  session is outside the Wave 4 exit criteria.
 
 ## `UX1.5` — focused graph and provenance inspection
 
