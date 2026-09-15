@@ -125,9 +125,11 @@ production-server restarts:
 - controlled-writing ChangeSets, commands, and events: 0, 0, and 0.
 
 The scientific Brief snapshot changed after Apply and remained byte-identical
-after restart. Direct and model-mediated scientific working and Review reads,
-and controlled-writing working and Review reads, converged on their exact
-content hashes.
+after restart. Caller-designated scientific working and Review reads, and
+controlled-writing working and Review reads, converged on their exact content
+hashes. Those repeated authenticated reads exercise one shared caller seam; they
+do not execute an external model, a natural-conversation candidate path, a
+model-mediated command, or that command's resulting revision.
 
 ## Verification and limits
 
@@ -163,10 +165,11 @@ Felicity review covered this report and the changed return behavior. The final
 pass found two material precision risks and corrected them: the draft collapsed
 the pre-Apply and post-Apply restart evidence into one claim, and it overstated
 which proxy headers are forwarded. The final language distinguishes live server
-evidence from setup records, Vite delivery, and browser emulation; separates
-Review outcomes from ChangeSet effects; names the controlled-writing and History
-limits; and makes no Wave-complete claim. No material meaning, reasoning,
-structure, audience-fit, or natural-voice issue remains.
+evidence from setup records, Vite delivery, and browser emulation; limits
+caller-designated read convergence to the tested seam; separates Review outcomes
+from ChangeSet effects; names the controlled-writing and History limits; and
+makes no Wave-complete claim. No material meaning, reasoning, structure,
+audience-fit, or natural-voice issue remains.
 
 ## Next safe boundary
 
