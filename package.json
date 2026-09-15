@@ -60,8 +60,6 @@
     "test:m1:recovery": "node scripts/test-m1-recovery-integration.mjs",
     "test:wave3:cumulative": "npm run build:packages && node scripts/test-wave3-cumulative-integration.mjs",
     "test:wave4:cumulative": "npm run build:packages && node scripts/test-wave4-cumulative-integration.mjs",
-    "test:wave4:browser": "npm run build:packages && node apps/workbench/test/cumulative-production-browser.mjs",
-    "test:wave4:item50": "npm run test:wave4:browser",
     "test:wave4:model-identity": "npm run build:packages && PETRA_WAVE4_TRACE=conversation-model-identity node scripts/test-wave4-cumulative-integration.mjs",
     "test:docling:integration": "node scripts/test-docling-integration.mjs",
     "test:codex-app-server:integration": "npm run build:packages && node scripts/test-codex-app-server-integration.mjs",
@@ -85,7 +83,10 @@
     "services:health": "docker compose --env-file .env -f infra/dev/compose.yaml ps",
     "services:logs": "docker compose --env-file .env -f infra/dev/compose.yaml logs --tail=200",
     "services:down": "docker compose --env-file .env -f infra/dev/compose.yaml down --remove-orphans",
-    "services:reset": "docker compose --env-file .env -f infra/dev/compose.yaml down --volumes --remove-orphans"
+    "services:reset": "docker compose --env-file .env -f infra/dev/compose.yaml down --volumes --remove-orphans",
+    "test:wave4:browser": "npm run build:packages && node apps/workbench/test/cumulative-production-browser.mjs",
+    "test:wave4:item50": "npm run test:wave4:browser",
+    "test:wave4:evidence-support": "npm run build:packages && PETRA_WAVE4_TRACE=evidence-remediation-support node scripts/test-wave4-cumulative-integration.mjs"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "3.1124.0",
