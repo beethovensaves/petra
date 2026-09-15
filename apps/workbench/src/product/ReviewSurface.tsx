@@ -43,6 +43,10 @@ import {
 } from "./ReviewApply.js";
 
 import { ReviewRecovery } from "./ReviewRecovery.js";
+import {
+  FocusedGraphEntryLink,
+  scientificFocusedGraphEntryDraft,
+} from "./focused-graph-entry.js";
 
 const ReviewState = ({ review }: { review: ReviewSession }) => (
   <span className="review-state" data-state={review.status}>
@@ -2759,6 +2763,32 @@ const ReviewSessionMemberSurface = ({
           onReload={onSeparationReload}
         />
         <div className="review-decision__alternatives">
+          {review.candidateBasisRevision === undefined ? null : (
+            <FocusedGraphEntryLink
+              entry={scientificFocusedGraphEntryDraft({
+                projectId: project.id,
+                question:
+                  "Which recorded current relationships concern this Claim?",
+                focusRef: {
+                  record_id:
+                    review.candidateBasisRevision.expectedClaimRef.record_id,
+                  revision:
+                    review.candidateBasisRevision.expectedClaimRef.revision,
+                  record_hash:
+                    review.candidateBasisRevision.expectedClaimRef.record_hash,
+                },
+                originKind: "review",
+                definitionRef:
+                  review.candidateBasisRevision.expectedProjectDefinitionRef,
+                returnDestinationKind: "review",
+                returnDestinationOwner: "project_review_view",
+                returnLabel: "Review",
+                returnFocusId: "review-decision-title",
+              })}
+            >
+              Inspect bounded current relationships
+            </FocusedGraphEntryLink>
+          )}
           <Link
             className="reference-text-link"
             to={`/projects/${project.id}/graph?layer=working`}

@@ -27,6 +27,12 @@ import type {
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
+import {
+  FocusedGraphEntryLink,
+  focusedGraphDefinitionRef,
+  scientificFocusedGraphEntryDraft,
+  scientificFocusedGraphSemantics,
+} from "./focused-graph-entry.js";
 
 const WorkState = ({ unit }: { unit: WorkUnit }) => (
   <span className="work-state" data-state={unit.execution}>
@@ -1268,6 +1274,17 @@ export const PetraSurface = ({
   communicationPlan?: PetraCommunicationPlan;
 }): React.JSX.Element => {
   const [draft, setDraft] = useState("");
+  const focusedDefinition = communicationPlan?.content.composition_definition;
+  const focusedSemantics =
+    focusedDefinition === undefined
+      ? undefined
+      : scientificFocusedGraphSemantics(focusedDefinition);
+  const focusedEvidence =
+    communicationPlan?.content.evidence_packet.content.selected_evidence.find(
+      (selection) => selection.object_ref.object_kind === "claim",
+    );
+  const focusedSnapshot =
+    communicationPlan?.content.evidence_packet.snapshot_ref;
 
   return (
     <main className="reference-surface petra-focus" id="reference-main">
@@ -1446,6 +1463,40 @@ export const PetraSurface = ({
               >
                 {thread.activeWorkLinkLabel ?? "Open required input"}
               </Link>
+            )}
+            {focusedDefinition === undefined ||
+            focusedSemantics === undefined ||
+            focusedEvidence === undefined ||
+            focusedSnapshot === undefined ||
+            focusedEvidence.object_ref.object_kind !== "claim" ? null : (
+              <p>
+                <FocusedGraphEntryLink
+                  entry={scientificFocusedGraphEntryDraft({
+                    projectId: project.id,
+                    question:
+                      "Which recorded relationships concern this Claim?",
+                    focusRef: {
+                      record_id: focusedEvidence.object_ref.object_id,
+                      revision: focusedEvidence.object_ref.object_revision,
+                      record_hash: focusedEvidence.object_ref.object_hash,
+                    },
+                    originKind: "petra",
+                    definitionRef: focusedGraphDefinitionRef(focusedDefinition),
+                    returnDestinationKind: "evidence",
+                    returnDestinationOwner: "project_relationship_view",
+                    returnLabel: "Petra response",
+                    returnFocusId: "petra-task-context-title",
+                    expectedSnapshot: {
+                      snapshot_id: focusedSnapshot.snapshot_id,
+                      revision: focusedSnapshot.snapshot_revision,
+                      event_position: focusedSnapshot.event_position,
+                      content_hash: focusedSnapshot.content_hash,
+                    },
+                  })}
+                >
+                  Inspect this exact evidence object in Graph
+                </FocusedGraphEntryLink>
+              </p>
             )}
             <dl>
               <div>

@@ -1,6 +1,7 @@
 export type ProjectProfile = {
   id: string;
   version: string;
+  definitionFamily?: string;
   label: string;
   description: string;
   compatibility: string;

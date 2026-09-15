@@ -12,6 +12,11 @@ import type {
   ProjectRecord,
 } from "./model.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
+import {
+  FocusedGraphOrientationSurface,
+  isFocusedGraphRouteData,
+  type FocusedGraphRouteData,
+} from "./focused-graph-entry.js";
 
 type GraphLayout = "neighborhood" | "dependency";
 
@@ -766,8 +771,13 @@ export const GraphSurface = ({
 
 export const GraphRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const graph = useLoaderData<GraphQuestion | undefined>();
+  const graph = useLoaderData<
+    GraphQuestion | FocusedGraphRouteData | undefined
+  >();
   const [searchParams] = useSearchParams();
+  if (isFocusedGraphRouteData(graph)) {
+    return <FocusedGraphOrientationSurface data={graph} />;
+  }
   if (graph === undefined) {
     return (
       <main className="reference-surface" id="reference-main">

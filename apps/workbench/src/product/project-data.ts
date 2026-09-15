@@ -1,4 +1,5 @@
 import { readProjectBrief } from "./brief-read.js";
+import { FocusedGraphClient, FocusedGraphClientError } from "@petra/adapters";
 import {
   PetraInteractionClient,
   type PetraInteractionResult,
@@ -31,6 +32,7 @@ import type {
   PetraCommunicationPlan,
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
+  PetraProjectDefinition,
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewViewRecord,
@@ -65,7 +67,14 @@ import type {
   ProjectWorkDetailContent,
   ProjectWorkTaskSummary,
 } from "@petra/contracts";
+import { canonicalize } from "json-canonicalize";
 import { redirect, type LoaderFunctionArgs } from "react-router";
+
+import {
+  focusedGraphEntryFromSearch,
+  type FocusedGraphEntry,
+  type FocusedGraphRouteData,
+} from "./focused-graph-entry.js";
 
 import type {
   AttentionItem,
@@ -2557,6 +2566,7 @@ const profileFrom = (view: ProjectShellView): ProjectProfile => {
   return {
     id: view.content.definition.project_definition_id,
     version: String(view.content.definition.revision),
+    definitionFamily: view.content.definition.definition_family,
     label: view.content.definition.label,
     description: view.content.definition.description,
     compatibility: view.content.definition.kernel_compatibility,
@@ -6690,6 +6700,105 @@ export const loadProjectRelationshipOverlayGraph = async ({
   return view === undefined
     ? loadProjectRelationshipView({ params, ...args })
     : graphQuestionFromOverlayView(view);
+};
+
+const canonicalHash = async (value: unknown): Promise<string> => {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(canonicalize(value)),
+  );
+  return `sha256:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+};
+
+export const focusedGraphRequestFromEntry = async (
+  entry: FocusedGraphEntry,
+  definition: PetraProjectDefinition,
+): Promise<Parameters<FocusedGraphClient["read"]>[1]> => {
+  const definitionContentHash = await canonicalHash(definition.content);
+  const definitionRecordHash = await canonicalHash(definition);
+  const expected = entry.project_definition_ref;
+  if (
+    definition.project_id !== entry.project_id ||
+    definition.project_definition_id !== expected.project_definition_id ||
+    definition.revision !== expected.revision ||
+    definition.definition_family !== expected.definition_family ||
+    definition.content_hash !== expected.content_hash ||
+    definition.content_hash !== definitionContentHash ||
+    (expected.record_hash !== undefined &&
+      expected.record_hash !== definitionRecordHash)
+  ) {
+    throw new ProjectDataError(
+      "The focused graph entry no longer matches the exact current ProjectDefinition. Return to the originating task and open a current question deliberately.",
+      409,
+    );
+  }
+  return {
+    request_id: entry.request_id,
+    task_kind: "neighborhood",
+    task_semantic_key: entry.task_semantic_key,
+    question: entry.question,
+    focus_ref: structuredClone(entry.focus_ref),
+    origin: structuredClone(entry.origin),
+    project_definition_ref: {
+      project_definition_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+      record_hash: definitionRecordHash,
+      definition_family: definition.definition_family,
+    },
+    semantic_layer: "current",
+    temporal_position: {
+      position_kind: "current",
+      dimension: "project_snapshot",
+    },
+    object_semantic_key: entry.object_semantic_key,
+    relationship_semantic_key: entry.relationship_semantic_key,
+    return_action_semantic_key: entry.return_action_semantic_key,
+    return_destination: structuredClone(entry.return_destination),
+    limits: structuredClone(entry.limits),
+    ...(entry.expected_snapshot === undefined
+      ? {}
+      : { expected_snapshot: structuredClone(entry.expected_snapshot) }),
+  };
+};
+
+export const loadProjectGraph = async (
+  args: LoaderFunctionArgs,
+): Promise<GraphQuestion | FocusedGraphRouteData | undefined> => {
+  const projectId = requiredRouteIdentity(
+    args.params.projectId,
+    "A Project ID",
+  );
+  const entry = focusedGraphEntryFromSearch(
+    projectId,
+    new URL(args.request.url).searchParams,
+  );
+  if (entry === undefined) return loadProjectRelationshipOverlayGraph(args);
+
+  const brief = await readProjectBrief({
+    projectId,
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    signal: args.request.signal,
+  });
+  const definition = brief.content.definition;
+  const request = await focusedGraphRequestFromEntry(entry, definition);
+  try {
+    const view = await new FocusedGraphClient({
+      baseUrl: apiBaseUrl(),
+      token: apiToken(),
+      projectDefinition: definition,
+    }).read(projectId, request);
+    return { kind: "focused_graph", entry, view };
+  } catch (error) {
+    if (error instanceof FocusedGraphClientError) {
+      throw new ProjectDataError(
+        "The exact focused graph result is unavailable or no longer matches this entry. Return to the originating task and retry from its current object.",
+        error.status,
+      );
+    }
+    throw error;
+  }
 };
 
 const exactSelection = (

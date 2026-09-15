@@ -1,6 +1,12 @@
 import type { PetraProjectBriefReadView } from "@petra/contracts";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import {
+  FocusedGraphEntryLink,
+  focusedGraphDefinitionRef,
+  scientificFocusedGraphEntryDraft,
+  scientificFocusedGraphSemantics,
+} from "./focused-graph-entry.js";
 import "./project-brief.css";
 
 const RecordDetails = ({ label, value }: { label: string; value: unknown }) => (
@@ -34,6 +40,10 @@ export const ProjectBriefSurface = ({
 }) => {
   const c = view.content;
   const payload = c.profile_payload;
+  const focusedGraphSemantics = scientificFocusedGraphSemantics(c.definition);
+  const claimTerm = c.definition.content.terms.find(
+    (term) => term.semantic_key === "scientific.claim",
+  );
   return (
     <main className="reference-surface live-project-brief" id="reference-main">
       <header>
@@ -200,23 +210,66 @@ export const ProjectBriefSurface = ({
                     }}
                   />
                   <ol className="brief-statements">
-                    {synthesis.output.statements.map((statement) => (
-                      <li key={statement.statement_key}>
-                        <h4>{originLabels[statement.origin]}</h4>
-                        <p>{statement.text}</p>
-                        <Limitations items={statement.limitations} />
-                        {statement.origin === "unresolved_inference" ? (
-                          <p>
-                            <strong>Resolution requirement: </strong>
-                            {statement.resolution_requirement}
-                          </p>
-                        ) : null}
-                        <RecordDetails
-                          label={`Exact evidence references for ${statement.statement_key}`}
-                          value={statement.evidence_refs}
-                        />
-                      </li>
-                    ))}
+                    {synthesis.output.statements.map((statement) => {
+                      const claimRefs = statement.evidence_refs.filter(
+                        (reference) => reference.object_kind === "claim",
+                      );
+                      return (
+                        <li key={statement.statement_key}>
+                          <h4>{originLabels[statement.origin]}</h4>
+                          <p>{statement.text}</p>
+                          <Limitations items={statement.limitations} />
+                          {statement.origin === "unresolved_inference" ? (
+                            <p>
+                              <strong>Resolution requirement: </strong>
+                              {statement.resolution_requirement}
+                            </p>
+                          ) : null}
+                          <RecordDetails
+                            label={`Exact evidence references for ${statement.statement_key}`}
+                            value={statement.evidence_refs}
+                          />
+                          {focusedGraphSemantics === undefined ||
+                          claimRefs.length === 0 ? null : (
+                            <ul>
+                              {claimRefs.map((reference) => {
+                                const focusRef = {
+                                  record_id: reference.object_id,
+                                  revision: reference.object_revision,
+                                  record_hash: reference.object_hash,
+                                };
+                                return (
+                                  <li
+                                    key={`${reference.object_id}:${reference.context_selection_order}`}
+                                  >
+                                    <FocusedGraphEntryLink
+                                      entry={scientificFocusedGraphEntryDraft({
+                                        projectId: view.project_id,
+                                        question: `Which recorded relationships concern this ${claimTerm?.singular ?? "Claim"}?`,
+                                        focusRef,
+                                        originKind: "brief",
+                                        definitionRef:
+                                          focusedGraphDefinitionRef(
+                                            c.definition,
+                                          ),
+                                        returnDestinationKind: "brief",
+                                        returnDestinationOwner:
+                                          "project_brief_view",
+                                        returnLabel: "Brief result",
+                                        returnFocusId: `brief-result-${index}`,
+                                      })}
+                                    >
+                                      Inspect bounded current relationships for
+                                      this {claimTerm?.singular ?? "Claim"}
+                                    </FocusedGraphEntryLink>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ol>
                   <p>{synthesis.output.coverage.statement}</p>
                   <RecordDetails

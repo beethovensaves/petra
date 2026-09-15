@@ -34,6 +34,10 @@ import type {
   ProjectSuggestedActionHistoryData,
 } from "./project-data.js";
 import {
+  FocusedGraphEntryLink,
+  scientificFocusedGraphEntryDraft,
+} from "./focused-graph-entry.js";
+import {
   composeProjectHistoryCompensationPlan,
   executeProjectHistoryCompensationPlan,
   getProjectHistoryCompensationPreview,
@@ -660,6 +664,13 @@ export const HistoryEventSurface = ({
   const { episode, impact, recovery } = data;
   const change = episode.content.change;
   const assessment = recovery.content.assessment;
+  const graphTarget = change.targets.find(
+    (target) =>
+      target.semantic_key === "scientific.claim" &&
+      target.revision !== undefined &&
+      target.record_hash !== undefined,
+  );
+  const graphDefinitionAuthority = episode.content.project_definition_authority;
   const [reason, setReason] = useState("");
   const [approvalRationale, setApprovalRationale] = useState("");
   const [revert, setRevert] = useState<GovernedRevertState>({ kind: "idle" });
@@ -804,6 +815,47 @@ export const HistoryEventSurface = ({
               </li>
             ))}
           </ul>
+          {graphTarget === undefined ||
+          graphTarget.revision === undefined ||
+          graphTarget.record_hash === undefined ||
+          project.profile.definitionFamily === undefined ||
+          graphDefinitionAuthority.state !== "available" ? null : (
+            <p>
+              <FocusedGraphEntryLink
+                entry={scientificFocusedGraphEntryDraft({
+                  projectId: project.id,
+                  question:
+                    "Which recorded current relationships concern the Claim named by this event?",
+                  focusRef: {
+                    record_id: graphTarget.object_id,
+                    revision: graphTarget.revision,
+                    record_hash: graphTarget.record_hash,
+                  },
+                  originKind: "history",
+                  definitionRef: {
+                    project_definition_id:
+                      graphDefinitionAuthority.project_definition_ref
+                        .project_definition_id,
+                    revision:
+                      graphDefinitionAuthority.project_definition_ref.revision,
+                    content_hash:
+                      graphDefinitionAuthority.project_definition_ref
+                        .content_hash,
+                    record_hash:
+                      graphDefinitionAuthority.project_definition_ref
+                        .record_hash,
+                    definition_family: project.profile.definitionFamily,
+                  },
+                  returnDestinationKind: "history",
+                  returnDestinationOwner: "project_history_episode_view",
+                  returnLabel: "History event",
+                  returnFocusId: "history-event-record-title",
+                })}
+              >
+                Inspect this exact Claim in the current bounded Graph
+              </FocusedGraphEntryLink>
+            </p>
+          )}
           <details>
             <summary>Complete retained event and causal record</summary>
             <Observation value={episode} />
