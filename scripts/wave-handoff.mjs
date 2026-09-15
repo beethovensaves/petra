@@ -243,6 +243,36 @@ export function unexpectedChanges(entries, allowedUntracked) {
   );
 }
 
+export function isRetryableWorkerError(error) {
+  const message = String(error?.message ?? error);
+  return (
+    /^Codex (backend|design) worker exited with status /.test(message) ||
+    /^Codex produced no structured result: /.test(message) ||
+    message === "The active worker process disappeared; inspect its run logs."
+  );
+}
+
+export function canRetryUnchangedWorkerFailure(state, snapshots) {
+  if (
+    !state ||
+    state.status !== "running" ||
+    !state.active ||
+    !Number.isSafeInteger(state.active.attempt) ||
+    state.active.attempt >= 3
+  ) {
+    return false;
+  }
+  return Object.keys(roles).every((role) => {
+    const snapshot = snapshots[role];
+    return (
+      snapshot &&
+      snapshot.unexpected.length === 0 &&
+      snapshot.head === snapshot.remote &&
+      snapshot.head === state.commits[role]
+    );
+  });
+}
+
 function repositorySnapshot(role) {
   const configuration = roles[role];
   if (!existsSync(configuration.root)) {
@@ -468,6 +498,21 @@ export function initialHandoff(wave, backendCommit, designCommit) {
   return `Resume after backend ${backendCommit} and design ${designCommit}. Review the Wave ${wave} packet and implement exactly the smallest coherent backend-owned slice from the first incomplete item in its default implementation order. Preserve the packet's dependency order, authority boundaries, and role ownership; do not pull later work into this slice. If repository evidence exposes a prerequisite or consequential unresolved architecture choice, stop with needs_user rather than inventing it.`;
 }
 
+export function validatePriorWaveState(wave, priorState) {
+  const waveNumber = Number.parseInt(wave, 10);
+  if (waveNumber <= 3) return;
+  const priorWave = String(waveNumber - 1);
+  if (
+    !priorState ||
+    priorState.wave !== priorWave ||
+    priorState.status !== "complete"
+  ) {
+    throw new Error(
+      `Wave ${wave} cannot start until Wave ${priorWave} is complete.`,
+    );
+  }
+}
+
 function createInitialState(wave, maxSlices) {
   const planPath = wavePlanPath(wave);
   if (!existsSync(planPath)) {
@@ -477,6 +522,10 @@ function createInitialState(wave, maxSlices) {
   }
   const plan = readFileSync(planPath, "utf8");
   const evidencePlan = readEvidencePlan(wave, maxSlices);
+  validatePriorWaveState(
+    wave,
+    readState(String(Number.parseInt(wave, 10) - 1)),
+  );
   const backend = repositorySnapshot("backend");
   const design = repositorySnapshot("design");
   requireCleanAndPushed("backend", backend);
@@ -856,9 +905,14 @@ async function claimTurn(wave, role) {
       return undefined;
     }
     state.status = "running";
+    state.retry_attempts ??= {};
+    const retryKey = `${state.slice_count + 1}:${role}`;
+    const attempt = (state.retry_attempts[retryKey] ?? 0) + 1;
+    state.retry_attempts[retryKey] = attempt;
     state.active = {
       role,
       pid: process.pid,
+      attempt,
       started_at: new Date().toISOString(),
       expected_commit: state.commits[role],
     };
@@ -989,6 +1043,40 @@ async function markFailure(wave, role, error) {
   });
 }
 
+async function retryUnchangedWorkerFailure(wave, error) {
+  let snapshots;
+  try {
+    snapshots = {
+      backend: repositorySnapshot("backend"),
+      design: repositorySnapshot("design"),
+    };
+  } catch {
+    return false;
+  }
+
+  return withStateLock(wave, () => {
+    const state = readState(wave);
+    if (!canRetryUnchangedWorkerFailure(state, snapshots)) return false;
+    const timestamp = new Date().toISOString();
+    const failed = state.active;
+    state.status = "waiting";
+    state.next_role = failed.role;
+    state.active = null;
+    state.stop_reason = "";
+    state.updated_at = timestamp;
+    state.transient_failures ??= [];
+    state.transient_failures.push({
+      role: failed.role,
+      slice: state.slice_count + 1,
+      attempt: failed.attempt,
+      error: String(error?.message ?? error),
+      recovered_at: timestamp,
+    });
+    writeJsonAtomic(statePath(wave), state);
+    return true;
+  });
+}
+
 async function finalizeTurn(wave, role, claimedState, worker) {
   const otherRole = role === "backend" ? "design" : "backend";
   const result = worker.result;
@@ -1094,6 +1182,9 @@ async function finalizeTurn(wave, role, claimedState, worker) {
     if (completed) {
       state.commits[role] = own.head;
       state.slice_count += 1;
+      if (state.retry_attempts) {
+        delete state.retry_attempts[`${state.slice_count}:${role}`];
+      }
     }
     if (disposition === "handoff") {
       state.status = "waiting";
@@ -1142,13 +1233,13 @@ async function workerLoop({ role, wave, maxSlices }) {
 
     if (state.status === "running") {
       if (!processExists(state.active?.pid)) {
-        await markFailure(
-          wave,
-          state.active?.role ?? "unknown",
-          new Error(
-            "The active worker process disappeared; inspect its run logs.",
-          ),
+        const error = new Error(
+          "The active worker process disappeared; inspect its run logs.",
         );
+        const recovered = await retryUnchangedWorkerFailure(wave, error);
+        if (!recovered) {
+          await markFailure(wave, state.active?.role ?? "unknown", error);
+        }
         continue;
       }
       if (!announcedWait) {
@@ -1197,8 +1288,18 @@ async function workerLoop({ role, wave, maxSlices }) {
       const execution = await runCodexWorker({ role, wave, state: claimed });
       await finalizeTurn(wave, role, claimed, execution);
     } catch (error) {
-      await markFailure(wave, role, error);
-      process.stderr.write(`[${role}] ${error.stack ?? error.message}\n`);
+      const recovered =
+        isRetryableWorkerError(error) &&
+        (await retryUnchangedWorkerFailure(wave, error));
+      if (recovered) {
+        process.stderr.write(
+          `[${role}] Transient unchanged worker failure; retrying the same slice. ${error.message}\n`,
+        );
+        await sleep(2_000);
+      } else {
+        await markFailure(wave, role, error);
+        process.stderr.write(`[${role}] ${error.stack ?? error.message}\n`);
+      }
     }
   }
 }
@@ -1214,6 +1315,10 @@ function doctor(wave, maxSlices) {
     throw new Error(`Missing Wave ${wave} packet: ${wavePlanPath(wave)}`);
   }
   const state = readState(wave);
+  validatePriorWaveState(
+    wave,
+    readState(String(Number.parseInt(wave, 10) - 1)),
+  );
   const evidencePlan = readEvidencePlan(wave, state?.max_slices ?? maxSlices);
   if (state && evidencePlan) {
     const digest = planDigest(JSON.stringify(evidencePlan));
