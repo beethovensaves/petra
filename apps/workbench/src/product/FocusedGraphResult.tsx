@@ -362,11 +362,13 @@ const PathSteps = ({
 
 const DestinationInventory = ({
   destinations,
+  idPrefix,
 }: {
   destinations: readonly FocusedGraphSemanticDestination[];
+  idPrefix: string;
 }): React.JSX.Element => (
-  <section aria-labelledby="focused-graph-destinations-title">
-    <h4 id="focused-graph-destinations-title">Semantic destinations</h4>
+  <section aria-labelledby={`${idPrefix}-destinations-title`}>
+    <h4 id={`${idPrefix}-destinations-title`}>Semantic destinations</h4>
     <ul className="focused-graph-semantic-list">
       {destinations.map((destination) => (
         <li
@@ -397,12 +399,14 @@ const DestinationInventory = ({
 const ActionInventory = ({
   actions,
   destinations,
+  idPrefix,
 }: {
   actions: readonly FocusedGraphRegisteredAction[];
   destinations: ReadonlyMap<string, FocusedGraphSemanticDestination>;
+  idPrefix: string;
 }): React.JSX.Element => (
-  <section aria-labelledby="focused-graph-actions-title">
-    <h4 id="focused-graph-actions-title">Registered actions</h4>
+  <section aria-labelledby={`${idPrefix}-actions-title`}>
+    <h4 id={`${idPrefix}-actions-title`}>Registered actions</h4>
     <ul className="focused-graph-semantic-list">
       {actions.map((action) => {
         const destination =
@@ -434,14 +438,20 @@ const ActionInventory = ({
 
 const SemanticAccess = ({
   regions,
+  idPrefix,
 }: {
   regions: FocusedGraphRegions;
+  idPrefix: string;
 }): React.JSX.Element => (
   <div className="focused-graph-semantic-access">
-    <DestinationInventory destinations={regions.textualPeer.destinations} />
+    <DestinationInventory
+      destinations={regions.textualPeer.destinations}
+      idPrefix={idPrefix}
+    />
     <ActionInventory
       actions={regions.textualPeer.actions}
       destinations={regions.destinations}
+      idPrefix={idPrefix}
     />
   </div>
 );
@@ -529,8 +539,10 @@ const FocusedGraphCanvas = ({
 
 const GraphPeer = ({
   regions,
+  idPrefix,
 }: {
   regions: FocusedGraphRegions;
+  idPrefix: string;
 }): React.JSX.Element => (
   <div className="focused-graph-peer" data-focused-peer="graph">
     <p className="focused-graph-peer__boundary">
@@ -591,30 +603,32 @@ const GraphPeer = ({
         </li>
       ))}
     </ol>
-    <section aria-labelledby="focused-graph-path-rationale-title">
-      <h3 id="focused-graph-path-rationale-title">Path rationale</h3>
+    <section aria-labelledby={`${idPrefix}-path-rationale-title`}>
+      <h3 id={`${idPrefix}-path-rationale-title`}>Path rationale</h3>
       <PathSummaries regions={regions} includeSteps={false} />
     </section>
-    <SemanticAccess regions={regions} />
+    <SemanticAccess regions={regions} idPrefix={idPrefix} />
   </div>
 );
 
 const TextPeer = ({
   regions,
+  idPrefix,
 }: {
   regions: FocusedGraphRegions;
+  idPrefix: string;
 }): React.JSX.Element => (
   <div className="focused-graph-peer" data-focused-peer="text">
     <p className="focused-graph-peer__boundary">
       This textual peer contains every returned path step and the same
       relationship facts, destinations, actions, and limitations as the graph.
     </p>
-    <section aria-labelledby="focused-graph-text-paths-title">
-      <h3 id="focused-graph-text-paths-title">Ordered paths</h3>
+    <section aria-labelledby={`${idPrefix}-text-paths-title`}>
+      <h3 id={`${idPrefix}-text-paths-title`}>Ordered paths</h3>
       <PathSummaries regions={regions} includeSteps />
     </section>
-    <section aria-labelledby="focused-graph-evidence-matrix-title">
-      <h3 id="focused-graph-evidence-matrix-title">
+    <section aria-labelledby={`${idPrefix}-evidence-matrix-title`}>
+      <h3 id={`${idPrefix}-evidence-matrix-title`}>
         Relationship evidence matrix
       </h3>
       <ol className="focused-graph-matrix">
@@ -632,25 +646,27 @@ const TextPeer = ({
         ))}
       </ol>
     </section>
-    <SemanticAccess regions={regions} />
+    <SemanticAccess regions={regions} idPrefix={idPrefix} />
   </div>
 );
 
 export const FocusedGraphResult = ({
   regions,
   initialRepresentation = "graph",
+  idPrefix = "focused-result",
 }: {
   regions: FocusedGraphRegions;
   initialRepresentation?: FocusedGraphRepresentation;
+  idPrefix?: string;
 }): React.JSX.Element => {
   const [representation, setRepresentation] =
     useState<FocusedGraphRepresentation>(initialRepresentation);
   return (
-    <section className="graph-task" aria-labelledby="focused-result-title">
+    <section className="graph-task" aria-labelledby={`${idPrefix}-title`}>
       <header className="graph-task__header">
         <div>
           <p className="reference-panel-kicker">Bounded result</p>
-          <h2 id="focused-result-title">Recorded relationship view</h2>
+          <h2 id={`${idPrefix}-title`}>Recorded relationship view</h2>
         </div>
         <span>
           {regions.graph.nodes.length} objects ·{" "}
@@ -679,9 +695,9 @@ export const FocusedGraphResult = ({
       </div>
       <div className="focused-graph-result">
         {representation === "graph" ? (
-          <GraphPeer regions={regions} />
+          <GraphPeer regions={regions} idPrefix={idPrefix} />
         ) : (
-          <TextPeer regions={regions} />
+          <TextPeer regions={regions} idPrefix={idPrefix} />
         )}
       </div>
       <footer className="graph-scope">

@@ -214,8 +214,111 @@ describe("focused graph bounded entry and orientation contract", () => {
     expect(request.origin).toEqual(entry.origin);
     expect(request.focus_ref).toEqual(entry.focus_ref);
     expect(request.limits).toEqual(entry.limits);
+    expect(request.semantic_layer).toBe("current");
+    expect(request.temporal_position).toEqual({
+      position_kind: "current",
+      dimension: "project_snapshot",
+    });
     expect(request).not.toHaveProperty("return_context");
     expect(request).not.toHaveProperty("layout");
     expect(request).not.toHaveProperty("command");
+  });
+
+  it("binds Working changes and exact Historical positions to distinct server reads", async () => {
+    const definition = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../../../packages/contracts/fixtures/accepted/project-definition-scientific.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as PetraProjectDefinition;
+    definition.content_hash = await hash(definition.content);
+    const historicalPosition = {
+      snapshot: {
+        snapshot_id: "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FAC",
+        revision: 1,
+        event_position: 12,
+        content_hash: `sha256:${"c".repeat(64)}`,
+      },
+      temporal_position: {
+        position_kind: "historical" as const,
+        dimension: "recorded_time" as const,
+        at: {
+          state: "exact" as const,
+          value: "2026-09-15T20:00:00.000Z",
+        },
+      },
+    };
+    const base = {
+      ...entryFor("history"),
+      project_id: definition.project_id,
+      project_definition_ref: focusedGraphDefinitionRef(definition),
+      historical_position: historicalPosition,
+      return_context: {
+        label: "History event",
+        path: `/projects/${definition.project_id}/history/event_01ARZ3NDEKTSV4RRFFQ69G5FAE#origin-control`,
+        focus_id: "origin-control",
+      },
+    };
+    const working = await focusedGraphRequestFromEntry(
+      { ...base, semantic_layer: "working" },
+      definition,
+    );
+    const historicalEntry = {
+      ...base,
+      semantic_layer: "historical" as const,
+    };
+    const historical = await focusedGraphRequestFromEntry(
+      historicalEntry,
+      definition,
+    );
+
+    expect(working.semantic_layer).toBe("working");
+    expect(working.temporal_position.position_kind).toBe("current");
+    expect(historical.semantic_layer).toBe("historical");
+    expect(historical.temporal_position).toEqual(
+      historicalPosition.temporal_position,
+    );
+    expect(historical.expected_snapshot).toEqual(historicalPosition.snapshot);
+
+    const path = focusedGraphEntryPath(historicalEntry);
+    const parsed = focusedGraphEntryFromSearch(
+      definition.project_id,
+      new URL(path, "https://petra.local").searchParams,
+    );
+    expect(parsed).toEqual(historicalEntry);
+    expect(path).toContain("semanticLayer=historical");
+    expect(path).toContain("historicalRecordedAt=2026-09-15T20%3A00%3A00.000Z");
+  });
+
+  it("rejects Historical or comparison entry state without its exact boundary", () => {
+    expect(() =>
+      focusedGraphEntryPath({
+        ...entryFor("history"),
+        semantic_layer: "historical",
+      }),
+    ).toThrow(/incomplete or incompatible/u);
+    expect(() =>
+      focusedGraphEntryPath({
+        ...entryFor("history"),
+        semantic_layer: "historical",
+        presentation: "current_working_comparison",
+        historical_position: {
+          snapshot: {
+            snapshot_id: "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FAC",
+            revision: 1,
+            event_position: 12,
+            content_hash: `sha256:${"c".repeat(64)}`,
+          },
+          temporal_position: {
+            position_kind: "historical",
+            dimension: "recorded_time",
+            at: { state: "exact", value: "2026-09-15T20:00:00.000Z" },
+          },
+        },
+      }),
+    ).toThrow(/incomplete or incompatible/u);
   });
 });

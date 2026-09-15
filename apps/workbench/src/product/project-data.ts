@@ -71,6 +71,7 @@ import { canonicalize } from "json-canonicalize";
 import { redirect, type LoaderFunctionArgs } from "react-router";
 
 import {
+  createFocusedGraphRequestId,
   focusedGraphEntryFromSearch,
   type FocusedGraphEntry,
   type FocusedGraphRouteData,
@@ -6713,6 +6714,10 @@ const canonicalHash = async (value: unknown): Promise<string> => {
 export const focusedGraphRequestFromEntry = async (
   entry: FocusedGraphEntry,
   definition: PetraProjectDefinition,
+  override?: {
+    readonly requestId?: string;
+    readonly semanticLayer?: FocusedGraphEntry["semantic_layer"];
+  },
 ): Promise<Parameters<FocusedGraphClient["read"]>[1]> => {
   const definitionContentHash = await canonicalHash(definition.content);
   const definitionRecordHash = await canonicalHash(definition);
@@ -6732,8 +6737,22 @@ export const focusedGraphRequestFromEntry = async (
       409,
     );
   }
+  const semanticLayer = override?.semanticLayer ?? entry.semantic_layer;
+  if (
+    semanticLayer === "historical" &&
+    entry.historical_position === undefined
+  ) {
+    throw new ProjectDataError(
+      "Historical Graph requires one exact retained snapshot and recorded-time position.",
+      400,
+    );
+  }
+  const expectedSnapshot =
+    semanticLayer === "historical"
+      ? entry.historical_position!.snapshot
+      : entry.expected_snapshot;
   return {
-    request_id: entry.request_id,
+    request_id: override?.requestId ?? entry.request_id,
     task_kind: "neighborhood",
     task_semantic_key: entry.task_semantic_key,
     question: entry.question,
@@ -6746,19 +6765,22 @@ export const focusedGraphRequestFromEntry = async (
       record_hash: definitionRecordHash,
       definition_family: definition.definition_family,
     },
-    semantic_layer: "current",
-    temporal_position: {
-      position_kind: "current",
-      dimension: "project_snapshot",
-    },
+    semantic_layer: semanticLayer,
+    temporal_position:
+      semanticLayer === "historical"
+        ? structuredClone(entry.historical_position!.temporal_position)
+        : {
+            position_kind: "current",
+            dimension: "project_snapshot",
+          },
     object_semantic_key: entry.object_semantic_key,
     relationship_semantic_key: entry.relationship_semantic_key,
     return_action_semantic_key: entry.return_action_semantic_key,
     return_destination: structuredClone(entry.return_destination),
     limits: structuredClone(entry.limits),
-    ...(entry.expected_snapshot === undefined
+    ...(expectedSnapshot === undefined
       ? {}
-      : { expected_snapshot: structuredClone(entry.expected_snapshot) }),
+      : { expected_snapshot: structuredClone(expectedSnapshot) }),
   };
 };
 
@@ -6782,13 +6804,49 @@ export const loadProjectGraph = async (
     signal: args.request.signal,
   });
   const definition = brief.content.definition;
-  const request = await focusedGraphRequestFromEntry(entry, definition);
+  const client = new FocusedGraphClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    projectDefinition: definition,
+  });
   try {
-    const view = await new FocusedGraphClient({
-      baseUrl: apiBaseUrl(),
-      token: apiToken(),
-      projectDefinition: definition,
-    }).read(projectId, request);
+    if (entry.presentation === "current_working_comparison") {
+      const comparisonRequestId = createFocusedGraphRequestId();
+      const currentRequest = await focusedGraphRequestFromEntry(
+        entry,
+        definition,
+        {
+          requestId:
+            entry.semantic_layer === "current"
+              ? entry.request_id
+              : comparisonRequestId,
+          semanticLayer: "current",
+        },
+      );
+      const workingRequest = await focusedGraphRequestFromEntry(
+        entry,
+        definition,
+        {
+          requestId:
+            entry.semantic_layer === "working"
+              ? entry.request_id
+              : comparisonRequestId,
+          semanticLayer: "working",
+        },
+      );
+      const [before, after] = await Promise.all([
+        client.read(projectId, currentRequest),
+        client.read(projectId, workingRequest),
+      ]);
+      return {
+        kind: "focused_graph",
+        entry,
+        view: entry.semantic_layer === "current" ? before : after,
+        comparison: { before, after },
+      };
+    }
+    const request = await focusedGraphRequestFromEntry(entry, definition);
+    const view = await client.read(projectId, request);
     return { kind: "focused_graph", entry, view };
   } catch (error) {
     if (error instanceof FocusedGraphClientError) {
