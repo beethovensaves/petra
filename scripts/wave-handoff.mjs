@@ -273,6 +273,69 @@ export function canRetryUnchangedWorkerFailure(state, snapshots) {
   });
 }
 
+export function canRetryWorkerFailure(state, snapshots) {
+  if (
+    !state ||
+    state.status !== "running" ||
+    !state.active ||
+    !Number.isSafeInteger(state.active.attempt) ||
+    state.active.attempt >= 3 ||
+    !roles[state.active.role]
+  ) {
+    return false;
+  }
+  const role = state.active.role;
+  const otherRole = role === "backend" ? "design" : "backend";
+  const own = snapshots[role];
+  const counterpart = snapshots[otherRole];
+  return Boolean(
+    own &&
+    counterpart &&
+    own.head === own.remote &&
+    own.head === state.commits[role] &&
+    counterpart.unexpected.length === 0 &&
+    counterpart.head === counterpart.remote &&
+    counterpart.head === state.commits[otherRole],
+  );
+}
+
+export function matchesRecoverySnapshot(recovery, role, snapshot) {
+  return Boolean(
+    recovery &&
+    recovery.role === role &&
+    snapshot &&
+    snapshot.head === recovery.expected_commit &&
+    snapshot.remote === recovery.expected_commit &&
+    snapshot.unexpected.length > 0 &&
+    snapshot.worktree_digest === recovery.worktree_digest,
+  );
+}
+
+export function worktreeDigest(root, entries) {
+  const hash = createHash("sha256");
+  for (const entry of [...entries].sort((left, right) =>
+    `${left.status}\0${left.path}`.localeCompare(
+      `${right.status}\0${right.path}`,
+    ),
+  )) {
+    hash.update(entry.status);
+    hash.update("\0");
+    hash.update(entry.path);
+    hash.update("\0");
+    if (entry.status === "??") {
+      hash.update(readFileSync(join(root, entry.path)));
+    } else {
+      hash.update(
+        run("git", ["diff", "--binary", "HEAD", "--", entry.path], root, {
+          trim: false,
+        }),
+      );
+    }
+    hash.update("\0");
+  }
+  return `sha256:${hash.digest("hex")}`;
+}
+
 function repositorySnapshot(role) {
   const configuration = roles[role];
   if (!existsSync(configuration.root)) {
@@ -296,7 +359,13 @@ function repositorySnapshot(role) {
     parsePorcelainZ(status),
     configuration.allowedUntracked,
   );
-  return { branch, head, remote, unexpected };
+  return {
+    branch,
+    head,
+    remote,
+    unexpected,
+    worktree_digest: worktreeDigest(configuration.root, unexpected),
+  };
 }
 
 function requireCleanAndPushed(role, snapshot) {
@@ -642,6 +711,7 @@ export function buildWorkerPrompt({
   plan,
   evidencePlan,
   recordedEvidence = [],
+  recovery,
 }) {
   const roleBoundary =
     role === "backend"
@@ -664,6 +734,10 @@ export function buildWorkerPrompt({
         .join("\n")}\n`
     : "";
 
+  const recoveryControl = recovery
+    ? `\nTRANSIENT SLICE RECOVERY\nA prior worker attempt for this same slice ended because of a transient Codex failure after writing files. The coordinator verified and fingerprinted the existing dirty worktree at ${recovery.worktree_digest}. Inspect the complete diff and prior run logs, preserve coherent partial work, correct or finish it, then run every required check, commit, and push. Do not reset, discard, or broaden the slice.\n`
+    : "";
+
   return `You are Petra's unattended ${role} worker for Wave ${wave}.
 
 Current ${role} commit: ${ownCommit}
@@ -679,7 +753,7 @@ If a consequential product, architecture, authority, information-hierarchy, or f
 
 Your final response must be only the JSON object required by the supplied output schema. Use the full 40-character HEAD in commit and the exact supplied counterpart commit in counterpart_commit. Return evidence as an array; use an empty array when this slice executed no named evidence-plan scenario. For handoff, write a complete next-turn prompt for the other role. For needs_user or blocked, explain the exact intervention in user_attention. Declare wave_complete only under the packet's full exit rule.
 
-${evidenceControl}
+${recoveryControl}${evidenceControl}
 
 COUNTERPART HANDOFF
 ${handoff}
@@ -778,6 +852,7 @@ async function runCodexWorker({ role, wave, state }) {
     plan,
     evidencePlan,
     recordedEvidence: state.evidence ?? [],
+    recovery: state.active?.recovery,
   });
   writeFileSync(promptPath, `${prompt}\n`, "utf8");
 
@@ -915,6 +990,9 @@ async function claimTurn(wave, role) {
       attempt,
       started_at: new Date().toISOString(),
       expected_commit: state.commits[role],
+      ...(state.recovery?.role === role
+        ? { recovery: structuredClone(state.recovery) }
+        : {}),
     };
     state.updated_at = new Date().toISOString();
     writeJsonAtomic(statePath(wave), state);
@@ -923,6 +1001,7 @@ async function claimTurn(wave, role) {
 }
 
 async function integrateBackendForDesign(wave, claimedState) {
+  if (claimedState.active?.recovery) return claimedState;
   const design = repositorySnapshot("design");
   const backend = repositorySnapshot("backend");
   requireCleanAndPushed("design", design);
@@ -1043,7 +1122,7 @@ async function markFailure(wave, role, error) {
   });
 }
 
-async function retryUnchangedWorkerFailure(wave, error) {
+async function retryWorkerFailure(wave, error) {
   let snapshots;
   try {
     snapshots = {
@@ -1056,9 +1135,10 @@ async function retryUnchangedWorkerFailure(wave, error) {
 
   return withStateLock(wave, () => {
     const state = readState(wave);
-    if (!canRetryUnchangedWorkerFailure(state, snapshots)) return false;
+    if (!canRetryWorkerFailure(state, snapshots)) return false;
     const timestamp = new Date().toISOString();
     const failed = state.active;
+    const own = snapshots[failed.role];
     state.status = "waiting";
     state.next_role = failed.role;
     state.active = null;
@@ -1072,6 +1152,18 @@ async function retryUnchangedWorkerFailure(wave, error) {
       error: String(error?.message ?? error),
       recovered_at: timestamp,
     });
+    if (own.unexpected.length > 0) {
+      state.recovery = {
+        role: failed.role,
+        expected_commit: state.commits[failed.role],
+        worktree_digest: own.worktree_digest,
+        changed_paths: own.unexpected,
+        failed_attempt: failed.attempt,
+        recovered_at: timestamp,
+      };
+    } else {
+      delete state.recovery;
+    }
     writeJsonAtomic(statePath(wave), state);
     return true;
   });
@@ -1159,6 +1251,7 @@ async function finalizeTurn(wave, role, claimedState, worker) {
           .join(", ")}.`
       : "";
     state.active = null;
+    delete state.recovery;
     state.updated_at = timestamp;
     state.history.push({
       role,
@@ -1236,7 +1329,7 @@ async function workerLoop({ role, wave, maxSlices }) {
         const error = new Error(
           "The active worker process disappeared; inspect its run logs.",
         );
-        const recovered = await retryUnchangedWorkerFailure(wave, error);
+        const recovered = await retryWorkerFailure(wave, error);
         if (!recovered) {
           await markFailure(wave, state.active?.role ?? "unknown", error);
         }
@@ -1274,8 +1367,17 @@ async function workerLoop({ role, wave, maxSlices }) {
       const own = repositorySnapshot(role);
       const otherRole = role === "backend" ? "design" : "backend";
       const counterpart = repositorySnapshot(otherRole);
-      requireCleanAndPushed(role, own);
       requireCleanAndPushed(otherRole, counterpart);
+      const recovery = claimed.active?.recovery;
+      if (recovery) {
+        if (!matchesRecoverySnapshot(recovery, role, own)) {
+          throw new Error(
+            "The partial worktree changed after transient-recovery fingerprinting.",
+          );
+        }
+      } else {
+        requireCleanAndPushed(role, own);
+      }
       if (
         own.head !== claimed.commits[role] ||
         counterpart.head !== claimed.commits[otherRole]
@@ -1290,10 +1392,10 @@ async function workerLoop({ role, wave, maxSlices }) {
     } catch (error) {
       const recovered =
         isRetryableWorkerError(error) &&
-        (await retryUnchangedWorkerFailure(wave, error));
+        (await retryWorkerFailure(wave, error));
       if (recovered) {
         process.stderr.write(
-          `[${role}] Transient unchanged worker failure; retrying the same slice. ${error.message}\n`,
+          `[${role}] Transient worker failure; retrying the same slice. ${error.message}\n`,
         );
         await sleep(2_000);
       } else {

@@ -18,12 +18,14 @@ import {
   buildCodexExecArguments,
   buildWorkerPrompt,
   canRetryUnchangedWorkerFailure,
+  canRetryWorkerFailure,
   enforceCompletionDisposition,
   initialHandoff,
   inventoryAuditOverdue,
   isCompatiblePackageJsonConflictSet,
   isRetryableWorkerError,
   mergePackageJsonDocuments,
+  matchesRecoverySnapshot,
   missingRequiredEvidence,
   parseArguments,
   parsePorcelainZ,
@@ -33,6 +35,7 @@ import {
   validateCommitTransition,
   validatePriorWaveState,
   validateWorkerResult,
+  worktreeDigest,
 } from "./wave-handoff.mjs";
 
 const evidencePlan = {
@@ -120,6 +123,95 @@ test("retries only unchanged transient worker failures with a bounded attempt co
     }),
     false,
   );
+});
+
+test("continues a transient failure from only the owning fingerprinted worktree", () => {
+  const backendCommit = "a".repeat(40);
+  const designCommit = "b".repeat(40);
+  const dirtyDigest = `sha256:${"c".repeat(64)}`;
+  const dirty = [{ status: " M", path: "packages/core/src/index.ts" }];
+  const state = {
+    status: "running",
+    commits: { backend: backendCommit, design: designCommit },
+    active: { role: "backend", attempt: 1 },
+  };
+  const snapshots = {
+    backend: {
+      head: backendCommit,
+      remote: backendCommit,
+      unexpected: dirty,
+      worktree_digest: dirtyDigest,
+    },
+    design: {
+      head: designCommit,
+      remote: designCommit,
+      unexpected: [],
+      worktree_digest: `sha256:${"d".repeat(64)}`,
+    },
+  };
+  assert.equal(canRetryWorkerFailure(state, snapshots), true);
+  assert.equal(
+    matchesRecoverySnapshot(
+      {
+        role: "backend",
+        expected_commit: backendCommit,
+        worktree_digest: dirtyDigest,
+      },
+      "backend",
+      snapshots.backend,
+    ),
+    true,
+  );
+  assert.equal(
+    matchesRecoverySnapshot(
+      {
+        role: "backend",
+        expected_commit: backendCommit,
+        worktree_digest: `sha256:${"e".repeat(64)}`,
+      },
+      "backend",
+      snapshots.backend,
+    ),
+    false,
+  );
+  assert.equal(
+    canRetryWorkerFailure(state, {
+      ...snapshots,
+      design: {
+        ...snapshots.design,
+        unexpected: [{ status: " M", path: "apps/workbench/src/App.tsx" }],
+      },
+    }),
+    false,
+  );
+});
+
+test("fingerprints exact tracked and untracked partial worktree bytes", () => {
+  const root = mkdtempSync(join(tmpdir(), "petra-wave-recovery-"));
+  const runGit = (...args) =>
+    execFileSync("git", args, { cwd: root, encoding: "utf8" });
+  try {
+    runGit("init", "--initial-branch=main");
+    runGit("config", "user.name", "Wave Test");
+    runGit("config", "user.email", "wave-test@example.invalid");
+    writeFileSync(join(root, "tracked.txt"), "base\n");
+    runGit("add", "tracked.txt");
+    runGit("commit", "-m", "base");
+
+    writeFileSync(join(root, "tracked.txt"), "partial one\n");
+    const tracked = [{ status: " M", path: "tracked.txt" }];
+    const first = worktreeDigest(root, tracked);
+    writeFileSync(join(root, "tracked.txt"), "partial two\n");
+    assert.notEqual(worktreeDigest(root, tracked), first);
+
+    writeFileSync(join(root, "new.txt"), "new one\n");
+    const untracked = [{ status: "??", path: "new.txt" }];
+    const second = worktreeDigest(root, untracked);
+    writeFileSync(join(root, "new.txt"), "new two\n");
+    assert.notEqual(worktreeDigest(root, untracked), second);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("three-way merges compatible package.json changes", () => {
@@ -616,4 +708,24 @@ test("worker prompt distinguishes planned helpers from executed evidence", () =>
   assert.match(prompt, /was not invoked is not evidence/);
   assert.match(prompt, /UX1\.5-EV03\/graph-keyboard-path/);
   assert.match(prompt, /completion claim is rejected/);
+});
+
+test("worker prompt preserves fingerprinted partial work after a transient failure", () => {
+  const worktreeDigest = `sha256:${"f".repeat(64)}`;
+  const prompt = buildWorkerPrompt({
+    role: "backend",
+    wave: "5",
+    ownCommit: "a".repeat(40),
+    counterpartCommit: "b".repeat(40),
+    handoff: "Finish the same contract slice.",
+    plan: "One bounded slice.",
+    recovery: {
+      role: "backend",
+      expected_commit: "a".repeat(40),
+      worktree_digest: worktreeDigest,
+    },
+  });
+  assert.match(prompt, /TRANSIENT SLICE RECOVERY/);
+  assert.match(prompt, new RegExp(worktreeDigest));
+  assert.match(prompt, /Do not reset, discard, or broaden the slice/);
 });
