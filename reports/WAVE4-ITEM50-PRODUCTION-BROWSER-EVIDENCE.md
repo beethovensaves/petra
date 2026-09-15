@@ -27,13 +27,15 @@ controllers, frozen React renderers, and two isolated headless Google Chrome
 ordinary and exception Review members, the controlled-writing no-Apply
 boundary, exact source return, manual Apply, independent applied and rejected
 outcomes, the changed Brief, restart replay, governed Revert, and the final
-already-compensated failure state.
+`already_compensated` unavailable state after successful compensation.
 
-The browser run reused the exact external-model evidence already established by
-item 49. It did not repeat the managed-provider call and did not represent the
-local human-produced cumulative seed as new model evidence. The item 49 report
-remains the authority for the retained natural conversation, external model
-call, corrected candidate, Review identities, and resulting revisions.
+The item 50 assessment considered the exact item 49 report alongside this
+browser run. The browser command did not load item 49's retained store or invoke
+its natural-conversation, corrected/blocked, or stale helpers. It did not repeat
+the managed-provider call and did not represent the local human-produced
+cumulative seed as model evidence. The item 49 report remains the authority for
+the retained natural conversation, external model call, corrected candidate,
+Review identities, and resulting revisions.
 
 ## Governed Revert evidence
 
@@ -70,6 +72,16 @@ No screen reader is required or invoked by the retained item-50 command. Touch,
 forced colors, and reduced motion remain browser-emulated; no physical touch
 device or cross-browser matrix is claimed.
 
+Item 52 adds a separate rerun of the retained post-freeze panel-resize check to
+the same command. That check uses the frozen shell fixture route, not a live
+Project route: keyboard ArrowRight changes the named Research map separator
+from 216 to 224 pixels, retains focus and selected-object identity, and remains
+a named separator in Chrome's accessibility tree. It is panel-accessibility
+evidence only, not a production Review-state recording or fixture fallback for
+the demonstrated live Project path. The item-52 rerun uses synthesized touch on
+Apply and keyboard Enter on Revert; it does not overwrite the exact historical
+item-50 touch recording and identities above.
+
 ## Verification
 
 - Pinned Node 24.20.0 was used.
@@ -85,7 +97,8 @@ device or cross-browser matrix is claimed.
 ## Remaining boundary
 
 Item 50 does not replace the exact external-model execution recorded by item 49
-and makes no new broad model-quality claim. Backend item 51 must reconcile the
-combined item 49 and item 50 evidence against `UX1.4-EV01`–`EV06`, including
-the exact limits above. Design item 52 remains responsible for the repeated
-Felicity and final UX exit audit.
+and makes no new broad model-quality claim. Its named command still lacks the
+paired-profile natural-conversation browser path, limited-basis Review,
+corrected/blocked Review, stale Review, projection-lag scenario, and governed
+command-failure scenario. Defined but uninvoked helpers and focused fixtures do
+not supply those named recordings.

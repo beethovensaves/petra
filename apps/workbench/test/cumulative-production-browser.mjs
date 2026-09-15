@@ -130,11 +130,14 @@ source = replaceOnce(
     const governedRevert = await recoveryBrowserTrace.recordRestartedBriefAndRevert({
       appliedEventId: appliedHistoryEvent.event_ref.event_id,
     });
-    progress("production browser completed governed Revert and the already-compensated failure state");
+    progress("production browser completed governed Revert and the post-compensation unavailable state");
+    const panelResize = await recoveryBrowserTrace.recordPanelResize();
+    progress("Chrome recorded the post-freeze frozen-shell panel-resize evaluation");
     return {
       item50_browser: {
         item49_model_evidence: "reports/WAVE4-NATURAL-CONVERSATION-MODEL-IDENTITY-TRACE.md",
         repeated_external_model_call: false,
+        panel_resize: panelResize,
         governed_revert: governedRevert,
       },`,
 );

@@ -369,6 +369,90 @@ export const startItem50ProductionBrowser = async ({
     };
   };
 
+  const recordPanelResize = async () => {
+    await send("Emulation.setDeviceMetricsOverride", {
+      width: 1440,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await send("Emulation.setEmulatedMedia", { features: [] });
+    await send("Emulation.setTouchEmulationEnabled", { enabled: false });
+    await navigate(
+      "/__fixtures/shell",
+      "document.querySelector('.shell-pane-resizer[aria-label=\"Resize Research map\"]') !== null",
+      "post-freeze frozen-shell panel resize",
+    );
+    const selector = '.shell-pane-resizer[aria-label="Resize Research map"]';
+    const initial = await evaluate(`(() => {
+      const handle = document.querySelector(${JSON.stringify(selector)});
+      const pane = document.getElementById(handle.getAttribute("aria-controls"));
+      return {
+        value: Number(handle.getAttribute("aria-valuenow")),
+        valueText: handle.getAttribute("aria-valuetext"),
+        minimum: Number(handle.getAttribute("aria-valuemin")),
+        maximum: Number(handle.getAttribute("aria-valuemax")),
+        orientation: handle.getAttribute("aria-orientation"),
+        paneWidth: pane.getBoundingClientRect().width,
+        selectedIdentity: document.body.innerText.includes(
+          "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB@1",
+        ),
+      };
+    })()`);
+    assert.equal(initial.value, 216);
+    assert.equal(initial.valueText, "216 pixels");
+    assert.equal(initial.minimum, 176);
+    assert.equal(initial.maximum, 320);
+    assert.equal(initial.orientation, "vertical");
+    assert.equal(initial.selectedIdentity, true);
+    await evaluate(
+      `document.querySelector(${JSON.stringify(selector)}).focus()`,
+    );
+    await key("ArrowRight", "ArrowRight", 39);
+    await until(
+      `document.querySelector(${JSON.stringify(selector)}).getAttribute("aria-valuenow") === "224"`,
+      "keyboard panel resize",
+    );
+    const resized = await evaluate(`(() => {
+      const handle = document.querySelector(${JSON.stringify(selector)});
+      const pane = document.getElementById(handle.getAttribute("aria-controls"));
+      return {
+        value: Number(handle.getAttribute("aria-valuenow")),
+        valueText: handle.getAttribute("aria-valuetext"),
+        paneWidth: pane.getBoundingClientRect().width,
+        focusRetained: document.activeElement === handle,
+        selectedIdentity: document.body.innerText.includes(
+          "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB@1",
+        ),
+      };
+    })()`);
+    assert.equal(resized.value, initial.value + 8);
+    assert.equal(resized.valueText, "224 pixels");
+    assert.equal(resized.paneWidth, initial.paneWidth + 8);
+    assert.equal(resized.focusRetained, true);
+    assert.equal(resized.selectedIdentity, true);
+    const accessibility = await send("Accessibility.getFullAXTree");
+    assert.ok(
+      accessibility.nodes.some(
+        (node) =>
+          node.role?.value === "separator" &&
+          node.name?.value === "Resize Research map",
+      ),
+      "The named pane separator is absent from Chrome's accessibility tree.",
+    );
+    assert.deepEqual(consoleErrors, []);
+    return {
+      route: "/__fixtures/shell",
+      browser_boundary: "frozen shell fixture in headless Google Chrome",
+      input: "keyboard ArrowRight",
+      initial_value: initial.value,
+      resulting_value: resized.value,
+      focus_retained: resized.focusRetained,
+      selected_identity_retained: resized.selectedIdentity,
+      accessibility_role: "separator",
+    };
+  };
+
   const applyDisplayedChangeSet = async () => {
     const postCount = calls.filter(
       (call) => call.method === "POST" && call.path.endsWith("/apply"),
@@ -561,7 +645,7 @@ export const startItem50ProductionBrowser = async ({
 
     await evaluate(`(() => {
       const values = [
-        ["Reason for governed Revert", "The exact accepted pair must be compensated after the governed failure review."],
+        ["Reason for governed Revert", "The exact accepted pair must be compensated after the governed recovery review."],
         ["Approval rationale", "The complete revision-bound compensation plan is explicitly approved."],
       ];
       const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
@@ -636,12 +720,25 @@ export const startItem50ProductionBrowser = async ({
       const value = ${button("Execute governed Revert")}.getBoundingClientRect();
       return { x: value.left + value.width / 2, y: value.top + value.height / 2 };
     })()`);
-    await send("Input.synthesizeTapGesture", {
-      x: centeredRect.x,
-      y: centeredRect.y,
-      duration: 100,
-      gestureSourceType: "touch",
-    });
+    assert.equal(
+      await evaluate(`(() => {
+        const target = ${button("Execute governed Revert")};
+        return target.contains(document.elementFromPoint(
+          ${JSON.stringify(centeredRect.x)},
+          ${JSON.stringify(centeredRect.y)},
+        ));
+      })()`),
+      true,
+      "The Revert control is not the hit-test target after scrolling.",
+    );
+    await evaluate(`${button("Execute governed Revert")}.focus()`);
+    assert.equal(
+      await evaluate(
+        `document.activeElement === ${button("Execute governed Revert")}`,
+      ),
+      true,
+    );
+    await key("Enter", "Enter", 13, "\r");
     await until(
       'document.body.innerText.includes("Governed Revert completed")',
     );
@@ -702,7 +799,7 @@ export const startItem50ProductionBrowser = async ({
     ])
       assert.ok(
         finalText.includes(value),
-        `Missing governed failure state: ${value}`,
+        `Missing post-compensation unavailable state: ${value}`,
       );
     assert.equal(
       await evaluate(`${button("Execute governed Revert")} === undefined`),
@@ -746,6 +843,7 @@ export const startItem50ProductionBrowser = async ({
     recordConversationAndBlockedCorrection,
     recordStaleReview,
     recordRefreshedAndWritingReview,
+    recordPanelResize,
     applyDisplayedChangeSet,
     recordRestartedBriefAndRevert,
     close,
