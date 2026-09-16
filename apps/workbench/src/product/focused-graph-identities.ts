@@ -10,8 +10,7 @@ const encodeTime = (value: number): string => {
   return result;
 };
 
-/** Creates a client request identity only; it grants no domain authority. */
-export const createFocusedGraphRequestId = (): string => {
+const createRequestId = (prefix: string): string => {
   const random = new Uint8Array(16);
   crypto.getRandomValues(random);
   let randomPart = "";
@@ -27,5 +26,13 @@ export const createFocusedGraphRequestId = (): string => {
     }
     if (randomPart.length === 16) break;
   }
-  return `focused_graph_request_${encodeTime(Date.now())}${randomPart}`;
+  return `${prefix}_${encodeTime(Date.now())}${randomPart}`;
 };
+
+/** Creates a client query identity only; it grants no domain authority. */
+export const createFocusedGraphRequestId = (): string =>
+  createRequestId("focused_graph_request");
+
+/** Creates a read-only Details request identity; it grants no domain authority. */
+export const createFocusedGraphDetailsRequestId = (): string =>
+  createRequestId("focused_graph_details_request");

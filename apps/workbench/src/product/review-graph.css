@@ -1956,6 +1956,202 @@
   background: var(--petra-tone-information-soft);
 }
 
+.focused-graph-details-controller {
+  display: grid;
+  gap: var(--petra-space-4);
+  margin-top: var(--petra-space-5);
+}
+
+.focused-graph-details-controller__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--petra-space-3);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-inset);
+}
+
+.focused-graph-details-controller__actions > p {
+  max-width: 76ch;
+  margin: 0;
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph-details {
+  display: grid;
+  gap: var(--petra-space-4);
+  padding: var(--petra-space-5);
+  border: var(--petra-rule-thin) solid var(--petra-border-strong);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.focused-graph-details__heading,
+.focused-graph-details__member > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--petra-space-4);
+}
+
+.focused-graph-details__heading :is(h2, p),
+.focused-graph-details__member > header :is(h3, p) {
+  margin-bottom: 0;
+}
+
+.focused-graph-details__heading h2:focus {
+  outline: 2px solid var(--petra-focus-ring);
+  outline-offset: 4px;
+}
+
+.focused-graph-details__identity,
+.focused-graph-details__member dl,
+.focused-graph-source-inspection dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-3);
+  margin: 0;
+}
+
+.focused-graph-details__identity > div,
+.focused-graph-details__member dl > div,
+.focused-graph-source-inspection dl > div {
+  min-width: 0;
+  padding-top: var(--petra-space-2);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.focused-graph-details :is(dt, dd) {
+  margin: 0;
+}
+
+.focused-graph-details dt {
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-medium);
+}
+
+.focused-graph-details dd,
+.focused-graph-details__member > p,
+.focused-graph-details__location > p,
+.focused-graph-details__footer,
+.focused-graph-source-inspection p {
+  color: var(--petra-text-secondary);
+}
+
+.focused-graph-details code {
+  overflow-wrap: anywhere;
+  font-family: var(--petra-font-mono);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph-details__member,
+.focused-graph-details__path,
+.focused-graph-details--recovery {
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-inset);
+}
+
+.focused-graph-details__member[data-lifecycle="restricted"],
+.focused-graph-details--recovery[data-recovery="restricted"] {
+  border-style: dashed;
+  border-color: var(--petra-tone-caution);
+}
+
+.focused-graph-details__member[data-selected="true"] {
+  border-color: var(--petra-action-primary);
+  box-shadow: inset 3px 0 0 var(--petra-action-primary);
+}
+
+.focused-graph-details__member > header > span {
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph-details__basis,
+.focused-graph-details__location ul,
+.focused-graph-details__footer ul,
+.focused-graph-details__path ol {
+  margin: var(--petra-space-2) 0 0;
+  padding-left: 1.25rem;
+}
+
+.focused-graph-details__location {
+  margin-top: var(--petra-space-4);
+  padding-top: var(--petra-space-3);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.focused-graph-details__location h4,
+.focused-graph-details__member h4 {
+  margin: 0 0 var(--petra-space-2);
+  font-size: var(--petra-font-size-body-large);
+}
+
+.focused-graph-details__location li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--petra-space-2);
+  margin-top: var(--petra-space-2);
+}
+
+.focused-graph-details__limitation,
+.focused-graph-source-inspection__unavailable {
+  padding: var(--petra-space-3);
+  border-left: 3px solid var(--petra-tone-caution);
+  background: var(--petra-tone-caution-soft);
+}
+
+.focused-graph-source-inspection {
+  margin-top: var(--petra-space-2);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-panel);
+}
+
+.focused-graph-source-inspection > summary {
+  min-height: var(--petra-target-min);
+  padding: var(--petra-space-3);
+  cursor: pointer;
+  font-weight: var(--petra-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.focused-graph-source-inspection > :not(summary) {
+  margin: 0;
+  padding: var(--petra-space-4);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.focused-graph-source-inspection h5 {
+  margin: var(--petra-space-1) 0 var(--petra-space-3);
+  font-size: var(--petra-font-size-body-large);
+}
+
+.focused-graph-source-inspection blockquote {
+  margin: var(--petra-space-4) 0 0;
+  padding: var(--petra-space-4);
+  border-left: 3px solid var(--petra-brand-accent);
+  background: var(--petra-surface-inset);
+}
+
+.focused-graph-details__recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--petra-space-3);
+}
+
+.focused-graph-details__footer {
+  padding-top: var(--petra-space-3);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-strong);
+}
+
 @media (max-width: 58rem) {
   .focused-graph-expansion-controls__filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1974,17 +2170,38 @@
   .focused-graph-expansion-controls__filters {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .focused-graph-details-controller__actions,
+  .focused-graph-details__heading,
+  .focused-graph-details__member > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .focused-graph-details__identity,
+  .focused-graph-details__member dl,
+  .focused-graph-source-inspection dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (forced-colors: active) {
   .focused-graph-expansion-controls,
   .focused-graph-saved-questions,
   .focused-graph-expansion-summary,
+  .focused-graph-details,
+  .focused-graph-details-controller__actions,
+  .focused-graph-source-inspection,
   .focused-graph-exploration select {
     border-color: CanvasText;
   }
 
   .focused-graph-exploration__status {
     border-color: Highlight;
+  }
+
+  .focused-graph-details__member[data-selected="true"] {
+    border-color: Highlight;
+    box-shadow: inset 3px 0 0 Highlight;
   }
 }

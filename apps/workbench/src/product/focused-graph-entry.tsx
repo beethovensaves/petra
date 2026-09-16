@@ -8,6 +8,7 @@ import type {
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
 } from "@petra/contracts";
+import type { FocusedGraphReadRequest } from "@petra/core";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 
@@ -117,6 +118,7 @@ export interface FocusedGraphRouteData {
   readonly kind: "focused_graph";
   readonly entry: FocusedGraphEntry;
   readonly definition: PetraProjectDefinition;
+  readonly request: FocusedGraphReadRequest;
   readonly view: PetraFocusedGraphView | PetraFocusedGraphViewV11;
   readonly comparison?: {
     readonly before: PetraFocusedGraphView;
@@ -1065,6 +1067,7 @@ export const FocusedGraphOrientationSurface = ({
           key={`${data.view.content.task.request_id}:${data.view.content_hash}`}
           entry={data.entry}
           definition={data.definition}
+          initialRequest={data.request}
           initialView={data.view}
         />
       ) : (

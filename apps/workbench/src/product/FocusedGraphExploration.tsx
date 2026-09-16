@@ -6,7 +6,10 @@ import type {
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
 } from "@petra/contracts";
-import type { FocusedGraphExplorationViewRequest } from "@petra/core";
+import type {
+  FocusedGraphExplorationViewRequest,
+  FocusedGraphReadRequest,
+} from "@petra/core";
 import { useMemo, useRef, useState } from "react";
 
 import { PetraButton, PetraButtonGroup } from "../design-system/primitives.js";
@@ -14,6 +17,7 @@ import type { FocusedGraphEntry } from "./focused-graph-entry.js";
 import { createFocusedGraphRequestId } from "./focused-graph-identities.js";
 import { focusedGraphRegionsFromView } from "./focused-graph-regions.js";
 import type { PetraFocusedGraphReadView } from "./focused-graph-regions.js";
+import { FocusedGraphDetails } from "./FocusedGraphDetails.js";
 import {
   FocusedGraphResult,
   type FocusedGraphLayout,
@@ -332,6 +336,7 @@ export const matchesActiveFocusedGraphExploration = (
 
 export interface FocusedGraphPresentationState {
   readonly stateId: number;
+  readonly request: FocusedGraphReadRequest;
   readonly view: PetraFocusedGraphReadView;
   readonly selectedKey: string;
   readonly pinnedNodeKeys: readonly string[];
@@ -449,11 +454,13 @@ interface SavedExactQuestion {
 export const FocusedGraphExploration = ({
   entry,
   definition,
+  initialRequest,
   initialView,
   read = readExpansion,
 }: {
   entry: FocusedGraphEntry;
   definition: PetraProjectDefinition;
+  initialRequest: FocusedGraphReadRequest;
   initialView: PetraFocusedGraphReadView;
   read?: (
     projectId: string,
@@ -466,6 +473,7 @@ export const FocusedGraphExploration = ({
   const baseline = useMemo<FocusedGraphPresentationState>(
     () => ({
       stateId: 1,
+      request: initialRequest,
       view: initialView,
       selectedKey: initialSelectedKey,
       pinnedNodeKeys: [],
@@ -473,7 +481,7 @@ export const FocusedGraphExploration = ({
       layout: "relationship",
       representation: "graph",
     }),
-    [initialSelectedKey, initialView],
+    [initialRequest, initialSelectedKey, initialView],
   );
   const [timeline, setTimeline] = useState(() =>
     createFocusedGraphPresentationTimeline(baseline),
@@ -620,6 +628,7 @@ export const FocusedGraphExploration = ({
         return appendFocusedGraphPresentationState(current, {
           ...currentState,
           stateId: stateSequence.current,
+          request,
           view: response,
         });
       });
@@ -1117,6 +1126,16 @@ export const FocusedGraphExploration = ({
           updatePresentation({ representation })
         }
         onSelect={(selectedKey) => updatePresentation({ selectedKey })}
+      />
+      <FocusedGraphDetails
+        key={`${state.stateId}:${state.selectedKey}`}
+        projectId={entry.project_id}
+        definition={definition}
+        request={state.request}
+        view={state.view}
+        selectedKey={state.selectedKey}
+        stateId={state.stateId}
+        returnContext={entry.return_context}
       />
     </section>
   );

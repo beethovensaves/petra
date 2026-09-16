@@ -6,6 +6,7 @@ import type {
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
 } from "@petra/contracts";
+import type { FocusedGraphReadRequest } from "@petra/core";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
@@ -376,6 +377,33 @@ const entryFixture = (): FocusedGraphEntry => {
   };
 };
 
+const baseRequestFixture = (): FocusedGraphReadRequest => {
+  const entry = entryFixture();
+  return {
+    request_id: entry.request_id,
+    task_kind: "neighborhood",
+    task_semantic_key: entry.task_semantic_key,
+    question: entry.question,
+    focus_ref: structuredClone(entry.focus_ref),
+    origin: structuredClone(entry.origin),
+    project_definition_ref: {
+      ...structuredClone(entry.project_definition_ref),
+      record_hash: entry.project_definition_ref.record_hash!,
+    },
+    semantic_layer: entry.semantic_layer,
+    temporal_position: {
+      position_kind: "current",
+      dimension: "project_snapshot",
+    },
+    object_semantic_key: entry.object_semantic_key,
+    relationship_semantic_key: entry.relationship_semantic_key,
+    return_action_semantic_key: entry.return_action_semantic_key,
+    return_destination: structuredClone(entry.return_destination),
+    limits: structuredClone(entry.limits),
+    expected_snapshot: structuredClone(entry.expected_snapshot!),
+  };
+};
+
 const alignedExpansionResponse = (
   request: ReturnType<typeof createFocusedGraphExplorationRequest>,
   projectId: string,
@@ -549,6 +577,7 @@ describe("focused graph exploration state", () => {
     const view = focusedGraphFixture();
     const state = (stateId: number): FocusedGraphPresentationState => ({
       stateId,
+      request: baseRequestFixture(),
       view,
       selectedKey: stateId % 2 === 0 ? "node:claim-b" : "node:claim-a",
       pinnedNodeKeys: stateId % 2 === 0 ? ["node:claim-b"] : [],
@@ -589,6 +618,7 @@ describe("focused graph exploration state", () => {
       <FocusedGraphExploration
         entry={entryFixture()}
         definition={definition}
+        initialRequest={baseRequestFixture()}
         initialView={view}
         read={() => Promise.reject(new Error("not invoked by static render"))}
       />,
@@ -611,12 +641,15 @@ describe("focused graph exploration state", () => {
       "Save exact question",
       "10-state limit",
       "grant no Project authority",
+      "Inspect selected Details",
+      "authenticated read retains this task, scope, snapshot, selection",
     ]) {
       expect(markup).toContain(text);
     }
     expect(markup).toContain('data-history-count="1"');
     expect(markup).toContain('aria-label="Exploration history"');
     expect(markup).toContain('aria-label="Selected object presentation"');
+    expect(markup).toContain('aria-controls="focused-graph-details-region"');
     expect(markup).not.toContain("Prepare correction");
     expect(markup).not.toContain("Start new Work");
   });

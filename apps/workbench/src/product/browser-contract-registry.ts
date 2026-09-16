@@ -19,6 +19,7 @@ import briefInteractionEventRecordV100Schema from "../../../../packages/contract
 import briefGroundedResponseV100Schema from "../../../../packages/contracts/schemas/grounded-response/1.0.0/schema.json";
 import focusedGraphViewV100Schema from "../../../../packages/contracts/schemas/focused-graph-view/1.0.0/schema.json";
 import focusedGraphViewV110Schema from "../../../../packages/contracts/schemas/focused-graph-view/1.1.0/schema.json";
+import focusedGraphDetailsViewV100Schema from "../../../../packages/contracts/schemas/focused-graph-details-view/1.0.0/schema.json";
 import briefEvidencePacketV100Schema from "../../../../packages/contracts/schemas/evidence-packet/1.0.0/schema.json";
 import briefContextPacketV100Schema from "../../../../packages/contracts/schemas/context-packet/1.0.0/schema.json";
 import actorSchema from "../../../../packages/contracts/schemas/actor/1.0.0/schema.json";
@@ -72,6 +73,7 @@ import historyImpactV12Schema from "../../../../packages/contracts/schemas/proje
 
 type BrowserContractName =
   | "communication-plan@1.0.0"
+  | "focused-graph-details-view@1.0.0"
   | "focused-graph-view@1.0.0"
   | "focused-graph-view@1.1.0"
   | "research-brief-payload@1.1.0"
@@ -121,6 +123,7 @@ const schemas = [
   briefContextPacketV100Schema,
   briefEvidencePacketV100Schema,
   briefGroundedResponseV100Schema,
+  focusedGraphDetailsViewV100Schema,
   focusedGraphViewV100Schema,
   focusedGraphViewV110Schema,
   briefInteractionEventRecordV100Schema,
@@ -176,6 +179,7 @@ const schemas = [
 
 const contractIds: Record<BrowserContractName, string> = {
   "communication-plan@1.0.0": communicationPlanSchema.$id,
+  "focused-graph-details-view@1.0.0": focusedGraphDetailsViewV100Schema.$id,
   "focused-graph-view@1.0.0": focusedGraphViewV100Schema.$id,
   "focused-graph-view@1.1.0": focusedGraphViewV110Schema.$id,
   "research-brief-payload@1.1.0": briefResearchBriefPayloadV110Schema.$id,
@@ -228,6 +232,12 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:93889738972355d70b7085472b0070a357e19bb459efc0bb6091e5d3d19ca066",
+    },
+    {
+      name: "focused-graph-details-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:5545761863811ffa19b465d9a37f61f82a5fb4a2aa2b9eaebe08949cadcae8ef",
     },
     {
       name: "focused-graph-view",
