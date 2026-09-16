@@ -3,12 +3,12 @@
   "schema_version": "1.0.0",
   "wave": 5,
   "status": "passed",
-  "audited_at": "2026-09-16T14:16:32.963Z",
+  "audited_at": "2026-09-16T14:19:28.657Z",
   "command": "npm run audit:wave5:evidence",
   "plan_sha256": "7c971a812333f3e3c11216e341feaef1879c1ee47c04df5181d224bb060dc251",
-  "state_sha256": "c23ccc2753d026bdd332c2605fda0bd0c40e677c6e647e51d245d08383c378bf",
+  "state_sha256": "5971432f000f588f35fa90ec8a5d07dfa9d2f34423ad5ab72c040e5e990800f0",
   "state_position": {
-    "slice_count": 25,
+    "slice_count": 26,
     "max_slices": 32,
     "recorded_scenarios": 25
   },
@@ -16,9 +16,9 @@
     "state": "recorded",
     "status": "passed",
     "command": "npm run audit:wave5:evidence",
-    "artifact": "reports/WAVE5-EXECUTED-EVIDENCE-INVENTORY.json (sha256 f1f98d5c568f5b4a061968635b77901c04bd4c9c4f771b0bcb0046340281cf45)",
-    "commit": "d9ef65929cf6e0d5e3dbd6a258abf935e77f17fe",
-    "boundary": "Reconciled the frozen Wave 5 packet, evidence plan, accepted scope, roadmaps, controller records, invoked commands, exact commits, retained artifact bytes, and scenario records. All 24 implementation scenarios passed with zero missing, duplicate, unexpected, failed, or hash-mismatched records; seven UX-FX25 artifact-boundary durability warnings and three honest live-versus-injected limitations are reserved for remediation."
+    "artifact": "reports/WAVE5-EXECUTED-EVIDENCE-INVENTORY.json (sha256 c0b9a29505c027952e9885d36a1bce32d25819e8d5f1a3150cfae3cd86595eb8)",
+    "commit": "d2e4734a3999743593af350771dec59dfa445dd2",
+    "boundary": "Reconciled the frozen packet, plan, scope, roadmaps, controller records, commands, exact commits, artifact bytes, and scenario records after UX-FX25 remediation. All 24 implementation scenarios and the inventory self-record pass with zero missing, duplicate, unexpected, failed, hash-mismatched, or warning records; documented live-versus-injected limitations remain explicit."
   },
   "summary": {
     "required_scenarios": 24,
