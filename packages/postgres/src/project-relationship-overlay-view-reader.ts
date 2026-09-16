@@ -82,6 +82,15 @@ const canonicalHash = (value: unknown): string =>
 
 const clone = <Value>(value: Value): Value => structuredClone(value);
 
+const REGISTERED_FOCUSED_SCIENTIFIC_PREDICATES = new Set<string>([
+  "ASSERTS",
+  "CITES",
+  "SUPPORTS",
+  "CONTRADICTS",
+  "QUALIFIES",
+  "ADOPTS",
+]);
+
 const sameAuthorityPosition = (
   left: { readonly event_position: number; readonly stream_revision: number },
   right: { readonly event_position: number; readonly stream_revision: number },
@@ -371,6 +380,10 @@ export class PostgresProjectRelationshipOverlayViewReader implements ProjectRela
       let excludedRelationships = 0;
       for (const relationship of currentRelationships) {
         const record = relationship.record;
+        if (record.profile_relationship.predicate !== "ASSERTS") {
+          excludedRelationships += 1;
+          continue;
+        }
         if (
           record.endpoints.subject.endpoint_kind !== "profile_record" ||
           record.endpoints.object.endpoint_kind !== "working_candidate"
@@ -574,6 +587,7 @@ export class PostgresProjectRelationshipOverlayViewReader implements ProjectRela
       const omissions: [string, ...string[]] = [
         "Historical authoritative state, whole-Project traversal, expansion, continuation, and comparison selection are not included.",
         "Working candidates that are not endpoints of a current working relationship on the selected authoritative path are counted but not returned.",
+        "Registered non-ASSERTS working relationship meanings are reported by the Focused Graph owner and are intentionally omitted from this legacy representation-only overlay.",
       ];
       const queryInput = {
         query_kind: "scientific_provenance_working_overlay" as const,
@@ -933,10 +947,14 @@ export class PostgresProjectRelationshipOverlayViewReader implements ProjectRela
       "scientific.assertion",
       "petra.assertion",
     );
-    if (record.profile_relationship.predicate !== "ASSERTS") {
+    if (
+      !REGISTERED_FOCUSED_SCIENTIFIC_PREDICATES.has(
+        record.profile_relationship.predicate,
+      )
+    ) {
       throw new PostgresProjectRelationshipOverlayViewError(
         "PROJECT_RELATIONSHIP_OVERLAY_PROFILE_UNSUPPORTED",
-        "The first overlay adapter supports only the registered ASSERTS predicate.",
+        "The relationship overlay encountered an unregistered scientific predicate.",
       );
     }
     const profile = await this.#evidenceRecord<PetraAssertion>(
@@ -952,11 +970,11 @@ export class PostgresProjectRelationshipOverlayViewReader implements ProjectRela
         record.profile_relationship.relationship_record_ref.revision ||
       record.validation.target_record_hash !==
         record.profile_relationship.relationship_record_ref.record_hash ||
-      profile.predicate !== "ASSERTS"
+      profile.predicate !== record.profile_relationship.predicate
     ) {
       throw new PostgresProjectRelationshipOverlayViewError(
         "PROJECT_RELATIONSHIP_OVERLAY_ENDPOINT_INVALID",
-        "A WorkingRelationship does not preserve its exact ASSERTS profile record and validation target.",
+        "A WorkingRelationship does not preserve its exact registered scientific profile record and validation target.",
       );
     }
     return { record, recordHash: row.record_hash, profile };

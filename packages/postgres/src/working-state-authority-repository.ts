@@ -86,6 +86,15 @@ const clone = <Value>(value: Value): Value => structuredClone(value);
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
 
+const SCIENTIFIC_WORKING_RELATIONSHIP_PREDICATES = new Set<string>([
+  "ASSERTS",
+  "CITES",
+  "SUPPORTS",
+  "CONTRADICTS",
+  "QUALIFIES",
+  "ADOPTS",
+]);
+
 const contentHash = (record: WorkingRecord): string => {
   const projection = clone(record) as unknown as Record<string, unknown>;
   delete projection.content_hash;
@@ -483,7 +492,9 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
             binding.registration.semantic_key === "scientific.assertion" &&
             contract.name === "petra.assertion" &&
             contract.version === "1.0.0" &&
-            record.profile_relationship.predicate === "ASSERTS") ||
+            SCIENTIFIC_WORKING_RELATIONSHIP_PREDICATES.has(
+              record.profile_relationship.predicate,
+            )) ||
           (definition.definition_family === "petra.controlled-writing" &&
             binding.registration.semantic_key === "writing.governs" &&
             contract.name ===
@@ -654,7 +665,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
       }
       return;
     }
-    const workVersionId =
+    let workVersionId =
       profileRecord.schema_name === "petra.claim"
         ? profileRecord.basis.basis_kind === "source"
           ? profileRecord.basis.work_version_id
@@ -662,10 +673,35 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
         : profileRecord.predicate === "ASSERTS"
           ? profileRecord.subject_id
           : undefined;
+    if (
+      workVersionId === undefined &&
+      profileRecord.schema_name === "petra.assertion" &&
+      SCIENTIFIC_WORKING_RELATIONSHIP_PREDICATES.has(profileRecord.predicate)
+    ) {
+      const subject = await client.query<StoredPayloadRow>(
+        `SELECT revision.payload, revision.record_hash
+           FROM petra.evidence_entities AS head
+           JOIN petra.evidence_entity_revisions AS revision
+             ON revision.evidence_id = head.evidence_id
+            AND revision.evidence_kind = head.evidence_kind
+            AND revision.revision = head.current_revision
+          WHERE head.evidence_id = $1 AND head.evidence_kind = 'claim'`,
+        [profileRecord.subject_id],
+      );
+      const payload = subject.rows[0]?.payload;
+      if (payload !== undefined) {
+        this.#contracts.assertValid("claim", "1.0.0", payload);
+        const claim = payload as PetraClaim;
+        workVersionId =
+          claim.basis.basis_kind === "source"
+            ? claim.basis.work_version_id
+            : undefined;
+      }
+    }
     if (workVersionId === undefined) {
       throw new PostgresWorkingStateError(
         "WORKING_STATE_PROFILE_UNSUPPORTED",
-        "The first scientific adapter accepts source-derived Claims and ASSERTS relationships only.",
+        "The scientific adapter requires a source-derived Claim or an allowlisted relationship whose exact Claim subject is source-grounded.",
       );
     }
     const result = await client.query(
@@ -1576,15 +1612,15 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     }
     const assertion = profileRecord;
     if (
-      relationship.profile_relationship.predicate !== "ASSERTS" ||
-      assertion.predicate !== "ASSERTS" ||
+      relationship.profile_relationship.predicate !== assertion.predicate ||
+      !SCIENTIFIC_WORKING_RELATIONSHIP_PREDICATES.has(assertion.predicate) ||
       assertion.object.object_kind !== "entity" ||
       relationship.endpoints.subject.endpoint_kind !== "profile_record" ||
       relationship.endpoints.object.endpoint_kind !== "working_candidate"
     ) {
       throw new PostgresWorkingStateError(
         "WORKING_STATE_RELATION_INVALID",
-        "The registered ASSERTS adapter requires a WorkVersion subject and WorkingCandidate object.",
+        "The registered scientific relationship adapter requires one allowlisted exact predicate, profile-record subject, and WorkingCandidate object.",
       );
     }
     await this.#requireExactRecordRef(
@@ -1608,9 +1644,11 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
       ],
     );
     const target = candidate.rows[0];
+    const expectedSubjectSchema =
+      assertion.predicate === "ASSERTS" ? "petra.work-version" : "petra.claim";
     if (
       relationship.endpoints.subject.record_ref.schema_name !==
-        "petra.work-version" ||
+        expectedSubjectSchema ||
       relationship.endpoints.subject.record_ref.record_id !==
         assertion.subject_id ||
       target === undefined ||

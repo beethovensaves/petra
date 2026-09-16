@@ -32,9 +32,10 @@ import type {
   PetraWorkUnit,
   PetraWorkVersion,
 } from "@petra/contracts";
-import type {
-  PersistDocumentBundleInput,
-  PersistVerifiedArtifactInput,
+import {
+  derivePetraId,
+  type PersistDocumentBundleInput,
+  type PersistVerifiedArtifactInput,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
@@ -721,6 +722,94 @@ describePostgres("PostgreSQL working-state authority", () => {
       correction_admissions: "1",
       domain_events: "0",
     });
+  });
+
+  it("admits the five registered scientific relationship meanings without promoting working state", async () => {
+    const fixture = await setupAuthority();
+    const root = candidate(fixture);
+    await working.admitWorkingCandidateRevision({
+      candidate: root,
+      profileRecord: fixture.claim,
+    });
+
+    const predicates = [
+      "CITES",
+      "SUPPORTS",
+      "CONTRADICTS",
+      "QUALIFIES",
+      "ADOPTS",
+    ] as const;
+    for (const predicate of predicates) {
+      const assertion = structuredClone(fixture.assertion);
+      assertion.assertion_id = derivePetraId(
+        "assertion",
+        `working-relationship-meaning:${predicate}`,
+      );
+      assertion.subject_id = fixture.claim.claim_id;
+      assertion.predicate = predicate;
+      assertion.object = {
+        object_kind: "entity",
+        entity_id: fixture.claim.claim_id,
+      };
+      assertion.assertion_kind =
+        predicate === "ADOPTS" ? "model_inference" : "source_stated";
+      assertion.rationale = `The exact working fixture retains ${predicate} as its own registered meaning.`;
+      if (predicate !== "CITES") {
+        assertion.scope_comparison = {
+          relation: "aligned",
+          rationale:
+            "Both endpoints use the same exact bounded scientific scope.",
+        };
+      }
+      await evidence.proposeAssertion(assertion);
+
+      const edge = relationship({ ...fixture, assertion }, root);
+      edge.working_relationship_id = derivePetraId(
+        "working_relationship",
+        `working-relationship-meaning:${predicate}`,
+      );
+      edge.profile_relationship.predicate = predicate;
+      edge.profile_relationship.relationship_record_ref = exactRef(
+        assertion.schema_name,
+        assertion.assertion_id,
+        assertion.revision,
+        assertion,
+      );
+      edge.endpoints.subject = {
+        endpoint_kind: "profile_record",
+        record_ref: exactRef(
+          fixture.claim.schema_name,
+          fixture.claim.claim_id,
+          fixture.claim.revision,
+          fixture.claim,
+        ),
+      };
+      edge.validation.target_record_hash = canonicalHash(assertion);
+      edge.content_hash = workingContentHash(edge);
+      await expect(
+        working.admitWorkingRelationshipRevision({
+          relationship: edge,
+          profileRecord: assertion,
+        }),
+      ).resolves.toEqual(edge);
+    }
+
+    const snapshot = await snapshots.getProjectWorkingStateSnapshot(
+      fixture.project.project_id,
+    );
+    expect(
+      snapshot?.content.relationships
+        .map((entry) => entry.profile_relationship.predicate)
+        .sort(),
+    ).toEqual([...predicates].sort());
+    expect(
+      snapshot?.content.relationships.every(
+        (entry) => entry.authority_boundary.domain_authority === false,
+      ),
+    ).toBe(true);
+    expect(
+      await pool.query("SELECT 1 FROM petra.domain_events"),
+    ).toHaveProperty("rowCount", 0);
   });
 
   it("rejects a resealed stored working record whose nested provenance self-hash is stale", async () => {
