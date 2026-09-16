@@ -1,6 +1,6 @@
 # Wave 5 pre-inventory adversarial audit
 
-Status: passed after one material backend fix. Wave 5 remains open pending the
+Status: passed after two material backend fixes. Wave 5 remains open pending the
 Slice 24 evidence inventory and the protected closure reserve.
 
 ## Finding fixed
@@ -11,8 +11,7 @@ fresh server process could no longer read the originating Review. The
 `petra.project-review-view@1.2.0` represents the outcome of the Review-owned
 promotion path and does not admit that later History-owned state. The reader
 copied `reverted` into the Review contract, which failed closed with
-`PROJECT_REVIEW_READ_FAILED`. Focused impact analysis then lost its canonical
-Review source and failed with `FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE`.
+`PROJECT_REVIEW_READ_FAILED`.
 
 `PostgresProjectReviewViewReader` now treats a compensated promotion as
 `applied` in the originating Review. This preserves the Review decision and
@@ -26,6 +25,21 @@ The Wave 5 trace now reads and validates that Review after restart and retains
 its content hash beside the Working and Focused Graph hashes and durable row
 counts. Route failures include their structured response in the test
 diagnostic so a future contract failure identifies the actual boundary.
+
+A stricter live-browser rerun then exposed a separate impact-binding defect.
+History event targets for Claim and Assertion revisions can omit
+`record_hash`; Project History supplies that hash through the registered
+semantic target assessment resolved from immutable PostgreSQL authority. The
+focused analysis composer required the hash directly on the event target and
+rejected this lawful production representation. It now accepts either a direct
+target hash or the matching registered `resolved_target_ref`, while still
+requiring exact object ID, revision, and record hash. A regression test proves
+that a mismatched resolved hash fails closed.
+
+The cumulative integration executable also retained an idle development
+dependency handle after every awaited shutdown and Docker-resource check. It
+now exits explicitly after successful verified cleanup, preventing a completed
+wave trace from leaving the controller waiting indefinitely.
 
 ## Critic checks
 
@@ -51,6 +65,10 @@ diagnostic so a future contract failure identifies the actual boundary.
 - The retained observation is
   `reports/WAVE5-PAIRED-PROFILE-CUMULATIVE-OBSERVATION.json`. Its restart record
   now contains `review_content_hash_after` and confirms no duplicate effect.
+- `npm run test:wave5:browser` subsequently passed the authenticated live
+  impact route in Chrome. It retained the exact event and response hashes,
+  dependency inventory, explicit consequence availability, and normal
+  post-cleanup process exit.
 - Native screen-reader evaluation was outside the accepted test boundary and
   was not run.
 
