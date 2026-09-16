@@ -34,6 +34,7 @@ import {
   type AuthorityGraphRelationship,
   type AuthorityGraphStoreError,
   type DomainRecordFactory,
+  type FocusedGraphExplorationViewRequest,
   type FocusedGraphViewRequest,
   type PersistDocumentBundleInput,
   type PersistVerifiedArtifactInput,
@@ -277,9 +278,11 @@ const projection: ProjectionIdentity = {
 };
 
 const graphContracts = new PetraContractRegistry();
-const registeredContract = (name: string) => {
+const registeredContract = (name: string, version?: string) => {
   const entry = graphContracts.entries.find(
-    (candidate) => candidate.name === name,
+    (candidate) =>
+      candidate.name === name &&
+      (version === undefined || candidate.version === version),
   );
   if (entry === undefined) throw new Error(`Missing contract ${name}.`);
   return {
@@ -324,6 +327,11 @@ const focusedDefinition = (): PetraProjectDefinition => {
       semantic_key: "scientific.graph.return",
       contract: registeredContract("focused-graph-view"),
     },
+    {
+      registration_kind: "extension",
+      semantic_key: "scientific.graph.show-downstream",
+      contract: registeredContract("focused-graph-view", "1.1.0"),
+    },
   ];
   definition.content.terms.push(
     {
@@ -338,6 +346,14 @@ const focusedDefinition = (): PetraProjectDefinition => {
       singular: "Return to evidence",
       plural: "Return to evidence",
       definition: "Return to the exact originating evidence object.",
+      generic_family: "task",
+    },
+    {
+      semantic_key: "scientific.graph.show-downstream",
+      singular: "Show downstream effects",
+      plural: "Show downstream effects",
+      definition:
+        "Reveal recorded downstream relationships within exact finite bounds.",
       generic_family: "task",
     },
   );
@@ -710,6 +726,60 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
     expect(focusedGraph?.content.projection_position.state).toBe("current");
     expect(focusedGraph?.content.projection_position.pending_records).toBe(0);
     expect(focusedGraph?.content.scope.coverage).toBe("complete_for_scope");
+    const expansionRequest = {
+      ...structuredClone(focusedRequest),
+      limits: {
+        maximum_depth: 2,
+        maximum_nodes: 20,
+        maximum_relationships: 19,
+        maximum_paths: 19,
+      },
+      expected_snapshot: focusedGraph!.content.requested_snapshot,
+      exploration: {
+        mode: "named_expansion",
+        expansion_key: "expansion:show-downstream:integration-focus",
+        recipe_semantic_key: "scientific.graph.show-downstream",
+        target_ref: structuredClone(focusedRequest.focus_ref),
+        maximum_depth: 2,
+        filters: {
+          meaning_kinds: ["support"],
+          directions: ["outgoing"],
+          origins: ["canonical_record", "model_inference"],
+        },
+      },
+    } satisfies FocusedGraphExplorationViewRequest;
+    const expandedFocusedGraph = await focusedGraphViews.queryFocusedGraph(
+      event.project_id,
+      expansionRequest,
+    );
+    expect(expandedFocusedGraph?.schema_version).toBe("1.1.0");
+    if (expandedFocusedGraph?.schema_version !== "1.1.0") {
+      throw new Error("Expected the additive named-expansion contract.");
+    }
+    expect(expandedFocusedGraph.content.exploration).toMatchObject({
+      mode: "named_expansion",
+      expansion_key: expansionRequest.exploration.expansion_key,
+      recipe_semantic_key: expansionRequest.exploration.recipe_semantic_key,
+      accounting: {
+        result_state: "complete_for_scope",
+        capped_members: { state: "exact", value: 0 },
+        hidden_relationships: { state: "exact", value: 0 },
+        restricted_paths: { state: "not_disclosed" },
+        cycle_paths: { state: "exact", value: 0 },
+        incomplete_paths: { state: "exact", value: 0 },
+        unknown_paths: { state: "unknown" },
+      },
+    });
+    expect(expandedFocusedGraph.content.groups).toEqual([
+      expect.objectContaining({
+        meaning_kind: "support",
+        count_unit: "relationships",
+        returned_count: 0,
+        total_count: { state: "exact", value: 0 },
+      }),
+    ]);
+    expect(expandedFocusedGraph.content.relationships).toEqual([]);
+    expect(expandedFocusedGraph.content.paths).toEqual([]);
     const workingFocusedGraph = await focusedGraphViews.queryFocusedGraph(
       event.project_id,
       { ...structuredClone(focusedRequest), semantic_layer: "working" },

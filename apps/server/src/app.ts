@@ -5648,7 +5648,16 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The focused graph query crossed its exact Project boundary.",
           );
         }
-        contracts.assertValid("focused-graph-view", "1.0.0", view);
+        if (
+          view.schema_version !== "1.0.0" &&
+          view.schema_version !== "1.1.0"
+        ) {
+          throw new FocusedGraphQueryError(
+            "FOCUSED_GRAPH_PROJECTION_INCOHERENT",
+            "The focused graph query returned an unsupported contract version.",
+          );
+        }
+        contracts.assertValid("focused-graph-view", view.schema_version, view);
         return context.json(view);
       } catch (error) {
         if (error instanceof InteractionInputError) {

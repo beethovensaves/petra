@@ -11,10 +11,11 @@ import type {
   PetraWorkingRelationship,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import type {
-  AuthorityGraphObjectView,
-  AuthorityGraphStore,
-  FocusedGraphViewRequest,
+import {
+  derivePetraId,
+  type AuthorityGraphObjectView,
+  type AuthorityGraphStore,
+  type FocusedGraphViewRequest,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, QueryResult } from "pg";
@@ -42,8 +43,12 @@ const result = <Row extends Record<string, unknown>>(
   ({ rows, rowCount: rows.length }) as unknown as QueryResult<Row>;
 
 const contracts = new PetraContractRegistry();
-const contract = (name: string) => {
-  const entry = contracts.entries.find((candidate) => candidate.name === name);
+const contract = (name: string, version?: string) => {
+  const entry = contracts.entries.find(
+    (candidate) =>
+      candidate.name === name &&
+      (version === undefined || candidate.version === version),
+  );
   if (entry === undefined) throw new Error(`Missing contract ${name}.`);
   return {
     name: `petra.${name}`,
@@ -661,5 +666,241 @@ describe("PostgreSQL focused graph query reader", () => {
       expect.objectContaining({ code: "FOCUSED_GRAPH_SNAPSHOT_STALE" }),
     );
     expect(queries.at(-1)).toBe("ROLLBACK");
+
+    const focusedV11 = contract("focused-graph-view", "1.1.0");
+    projectDefinition.content.registrations.push({
+      registration_kind: "extension",
+      semantic_key: "scientific.graph.show-downstream",
+      contract: focusedV11,
+    });
+    projectDefinition.content.terms.push({
+      semantic_key: "scientific.graph.show-downstream",
+      singular: "Show downstream effects",
+      plural: "Show downstream effects",
+      definition:
+        "Reveal recorded downstream relationships within an exact bounded query.",
+      generic_family: "task",
+    });
+    projectDefinition.content_hash = hash(projectDefinition.content);
+    const expansionDefinitionRef = {
+      project_definition_id: projectDefinition.project_definition_id,
+      revision: projectDefinition.revision,
+      content_hash: projectDefinition.content_hash,
+      record_hash: hash(projectDefinition),
+      definition_family: projectDefinition.definition_family,
+    };
+    workingCandidate.project_definition_ref = {
+      project_definition_id: expansionDefinitionRef.project_definition_id,
+      revision: expansionDefinitionRef.revision,
+      content_hash: expansionDefinitionRef.content_hash,
+      definition_family: expansionDefinitionRef.definition_family,
+    };
+    const expandedWorkingCandidateProjection = structuredClone(
+      workingCandidate,
+    ) as Record<string, unknown>;
+    delete expandedWorkingCandidateProjection.content_hash;
+    workingCandidate.content_hash = hash(expandedWorkingCandidateProjection);
+    workingRelationship.project_definition_ref = structuredClone(
+      workingCandidate.project_definition_ref,
+    );
+    if (
+      workingRelationship.endpoints.object.endpoint_kind !== "working_candidate"
+    ) {
+      throw new Error("Expected the WorkingCandidate object endpoint.");
+    }
+    workingRelationship.endpoints.object.candidate_ref.content_hash =
+      workingCandidate.content_hash;
+    const expandedWorkingRelationshipProjection = structuredClone(
+      workingRelationship,
+    ) as Record<string, unknown>;
+    delete expandedWorkingRelationshipProjection.content_hash;
+    workingRelationship.content_hash = hash(
+      expandedWorkingRelationshipProjection,
+    );
+    const snapshotMaterial = {
+      project_id: projectDefinition.project_id,
+      project_definition_ref: expansionDefinitionRef,
+      semantic_layer: "current",
+      event_position: 3,
+      stream_revision: 3,
+      graph_target_sequence: 1,
+      position_kind: "requested",
+    };
+    const expansionSnapshot = {
+      snapshot_id: derivePetraId("snapshot", canonicalize(snapshotMaterial)),
+      revision: 1,
+      event_position: 3,
+      content_hash: hash(snapshotMaterial),
+    };
+    const expansionRequest = {
+      ...structuredClone(request),
+      project_definition_ref: expansionDefinitionRef,
+      expected_snapshot: expansionSnapshot,
+      limits: {
+        maximum_depth: 2,
+        maximum_nodes: 5,
+        maximum_relationships: 8,
+        maximum_paths: 8,
+      },
+      exploration: {
+        mode: "named_expansion" as const,
+        expansion_key: "expansion:show-downstream:focused-claim",
+        recipe_semantic_key: "scientific.graph.show-downstream",
+        target_ref: structuredClone(request.focus_ref),
+        maximum_depth: 2,
+        filters: {
+          meaning_kinds: ["contradiction" as const, "qualification" as const],
+          directions: ["outgoing" as const],
+          origins: ["canonical_record" as const],
+        },
+      },
+    };
+    const expanded = await reader.queryFocusedGraph(
+      projectDefinition.project_id,
+      expansionRequest,
+    );
+    expect(expanded?.schema_version).toBe("1.1.0");
+    if (expanded?.schema_version !== "1.1.0") {
+      throw new Error("Expected the additive focused graph expansion view.");
+    }
+    expect(
+      expanded.content.relationships.map(
+        (relationship) => relationship.meaning_kind,
+      ),
+    ).toEqual(["contradiction", "qualification"]);
+    expect(expanded.content.groups).toEqual([
+      expect.objectContaining({
+        meaning_kind: "contradiction",
+        count_unit: "relationships",
+        returned_count: 1,
+        overlap: false,
+      }),
+      expect.objectContaining({
+        meaning_kind: "qualification",
+        count_unit: "relationships",
+        returned_count: 1,
+        overlap: false,
+      }),
+    ]);
+    expect(expanded.content.exploration.accounting).toEqual({
+      result_state: "complete_for_scope",
+      capped_members: { state: "exact", value: 0 },
+      hidden_relationships: { state: "exact", value: 3 },
+      restricted_paths: { state: "not_disclosed" },
+      cycle_paths: { state: "exact", value: 1 },
+      incomplete_paths: { state: "exact", value: 0 },
+      unknown_paths: { state: "unknown" },
+    });
+    expect(expanded.content.scope.omissions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          omission_kind: "filtered",
+          count: { state: "exact", value: 3 },
+        }),
+        expect.objectContaining({
+          omission_kind: "restricted",
+          count: { state: "not_disclosed" },
+        }),
+        expect.objectContaining({
+          omission_kind: "unknown",
+          count: { state: "unknown" },
+        }),
+      ]),
+    );
+    expect(
+      expanded.content.paths.some((path) =>
+        path.steps.some((step) => step.repeated_member),
+      ),
+    ).toBe(true);
+
+    const workingExpansion = await reader.queryFocusedGraph(
+      projectDefinition.project_id,
+      {
+        ...structuredClone(expansionRequest),
+        semantic_layer: "working",
+        exploration: {
+          ...structuredClone(expansionRequest.exploration),
+          filters: {
+            meaning_kinds: ["support"],
+            directions: ["outgoing"],
+            origins: ["working_candidate"],
+          },
+        },
+      },
+    );
+    if (workingExpansion?.schema_version !== "1.1.0") {
+      throw new Error("Expected an additive Working expansion view.");
+    }
+    expect(workingExpansion.content.scope.included_layers).toEqual([
+      "current",
+      "working",
+    ]);
+    expect(workingExpansion.content.groups).toEqual([
+      expect.objectContaining({
+        layer: "current",
+        meaning_kind: "support",
+        returned_count: 0,
+      }),
+      expect.objectContaining({
+        layer: "working",
+        meaning_kind: "support",
+        returned_count: 1,
+      }),
+    ]);
+    expect(workingExpansion.content.relationships).toEqual([
+      expect.objectContaining({
+        layer: "working",
+        origin: "working_candidate",
+        authority_position: "working_non_authority",
+      }),
+    ]);
+    expect(workingExpansion.content.paths[0]?.steps[0]).toEqual(
+      expect.objectContaining({
+        from_node_key: `node:${focus.claim_id.toLowerCase()}`,
+        traversal_direction: "outgoing",
+      }),
+    );
+    expect(
+      workingExpansion.content.exploration.accounting.hidden_relationships,
+    ).toEqual({ state: "exact", value: 5 });
+
+    const cappedExpansion = await reader.queryFocusedGraph(
+      projectDefinition.project_id,
+      {
+        ...structuredClone(expansionRequest),
+        limits: {
+          maximum_depth: 2,
+          maximum_nodes: 5,
+          maximum_relationships: 2,
+          maximum_paths: 2,
+        },
+        exploration: {
+          ...structuredClone(expansionRequest.exploration),
+          filters: {
+            meaning_kinds: [
+              "citation",
+              "support",
+              "contradiction",
+              "qualification",
+              "inference",
+              "provenance",
+            ],
+            directions: ["outgoing"],
+            origins: ["canonical_record", "model_inference"],
+          },
+        },
+      },
+    );
+    if (cappedExpansion?.schema_version !== "1.1.0") {
+      throw new Error("Expected a capped additive expansion view.");
+    }
+    expect(cappedExpansion.content.scope.coverage).toBe("capped");
+    expect(cappedExpansion.content.exploration.accounting).toMatchObject({
+      result_state: "capped",
+      capped_members: { state: "unknown" },
+      hidden_relationships: { state: "unknown" },
+      incomplete_paths: { state: "unknown" },
+    });
+    expect(cappedExpansion.content.relationships).toHaveLength(2);
   });
 });

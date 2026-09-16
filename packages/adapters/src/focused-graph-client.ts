@@ -1,9 +1,15 @@
 import type {
   PetraFocusedGraphView,
+  PetraFocusedGraphViewV11,
   PetraProjectDefinition,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import type { FocusedGraphViewRequest } from "@petra/core";
+import type {
+  FocusedGraphExplorationViewRequest,
+  FocusedGraphReadRequest,
+  FocusedGraphViewRequest,
+  PetraFocusedGraphReadView,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 
 export interface FocusedGraphClientOptions {
@@ -49,8 +55,16 @@ export class FocusedGraphClient {
 
   async read(
     projectId: string,
+    request: FocusedGraphExplorationViewRequest,
+  ): Promise<PetraFocusedGraphViewV11>;
+  async read(
+    projectId: string,
     request: FocusedGraphViewRequest,
-  ): Promise<PetraFocusedGraphView> {
+  ): Promise<PetraFocusedGraphView>;
+  async read(
+    projectId: string,
+    request: FocusedGraphReadRequest,
+  ): Promise<PetraFocusedGraphReadView> {
     if (
       !/^project_[0-9A-HJKMNP-TV-Z]{26}$/u.test(projectId) ||
       request.request_id.match(
@@ -86,8 +100,11 @@ export class FocusedGraphClient {
       throw new FocusedGraphClientError(response.status, body);
     }
     try {
-      this.#contracts.assertValid("focused-graph-view", "1.0.0", body);
-      const view = body as PetraFocusedGraphView;
+      const explorationRequest =
+        "exploration" in request && request.exploration !== undefined;
+      const expectedVersion = explorationRequest ? "1.1.0" : "1.0.0";
+      this.#contracts.assertValid("focused-graph-view", expectedVersion, body);
+      const view = body as PetraFocusedGraphReadView;
       const definition = this.options.projectDefinition;
       const definitionRef = view.content.profile.project_definition_ref;
       const expectedDefinitionRecordHash = await hash(definition);
@@ -106,6 +123,9 @@ export class FocusedGraphClient {
         [request.object_semantic_key, "object"],
         [request.relationship_semantic_key, "relationship"],
         [request.return_action_semantic_key, "action"],
+        ...(explorationRequest
+          ? ([[request.exploration.recipe_semantic_key, "action"]] as const)
+          : []),
       ] as const;
       const semanticMismatch = expectedRoles.some(([key, role]) => {
         const semantic = semantics.get(key);
@@ -137,6 +157,7 @@ export class FocusedGraphClient {
       );
       if (
         view.project_id !== projectId ||
+        view.schema_version !== expectedVersion ||
         definition.project_id !== projectId ||
         definition.content_hash !== (await hash(definition.content)) ||
         request.project_definition_ref.record_hash !==
@@ -182,12 +203,75 @@ export class FocusedGraphClient {
           (relationship) =>
             relationship.semantic_key !== request.relationship_semantic_key,
         ) ||
-        view.content.actions.length !== 1 ||
-        view.content.actions[0]?.semantic_key !==
-          request.return_action_semantic_key ||
+        view.content.actions.length !== (explorationRequest ? 2 : 1) ||
+        view.content.actions.filter(
+          (action) =>
+            action.action_kind === "return_to_origin" &&
+            action.semantic_key === request.return_action_semantic_key,
+        ).length !== 1 ||
         semanticMismatch
       ) {
         throw new Error("Mismatched focused graph identity.");
+      }
+      if (explorationRequest) {
+        if (view.schema_version !== "1.1.0") {
+          throw new Error("Mismatched focused graph expansion version.");
+        }
+        const expansionActions = view.content.actions.filter(
+          (action) =>
+            action.action_kind === "expand_recorded" &&
+            action.semantic_key === request.exploration.recipe_semantic_key,
+        );
+        const grouped = new Set(
+          view.content.groups.flatMap(
+            (group) => group.member_relationship_keys,
+          ),
+        );
+        if (
+          view.content.exploration.mode !== "named_expansion" ||
+          view.content.exploration.expansion_key !==
+            request.exploration.expansion_key ||
+          view.content.exploration.recipe_semantic_key !==
+            request.exploration.recipe_semantic_key ||
+          !same(
+            view.content.exploration.target_ref,
+            request.exploration.target_ref,
+          ) ||
+          view.content.exploration.maximum_depth !==
+            request.exploration.maximum_depth ||
+          !same(
+            view.content.exploration.filters,
+            request.exploration.filters,
+          ) ||
+          !same(
+            view.content.scope.directions,
+            request.exploration.filters.directions,
+          ) ||
+          expansionActions.length !== 1 ||
+          view.content.relationships.some(
+            (relationship) =>
+              !request.exploration.filters.meaning_kinds.includes(
+                relationship.meaning_kind,
+              ) ||
+              !request.exploration.filters.origins.includes(
+                relationship.origin,
+              ),
+          ) ||
+          view.content.paths.some((path) =>
+            path.steps.some(
+              (step) =>
+                !request.exploration.filters.directions.includes(
+                  step.traversal_direction,
+                ),
+            ),
+          ) ||
+          grouped.size !== view.content.relationships.length ||
+          view.content.relationships.some(
+            (relationship) => !grouped.has(relationship.relationship_key),
+          )
+        ) {
+          throw new Error("Mismatched focused graph expansion identity.");
+        }
       }
       return structuredClone(view);
     } catch {

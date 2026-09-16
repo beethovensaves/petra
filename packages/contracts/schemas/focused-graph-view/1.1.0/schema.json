@@ -1,0 +1,372 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/focused-graph-view/1.1.0/schema.json",
+  "title": "PetraFocusedGraphViewV110",
+  "description": "An additive focused-graph result for one snapshot-bound named expansion. It preserves the 1.0 authority and semantic membership boundary while making the registered recipe, normalized filters, groups, hidden membership, cycles, caps, restricted paths, incomplete state, and unknowns explicit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.focused-graph-view" },
+    "schema_version": { "const": "1.1.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ViewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "SemanticKey": {
+      "$ref": "../1.0.0/schema.json#/$defs/SemanticKey"
+    },
+    "StableKey": {
+      "$ref": "../1.0.0/schema.json#/$defs/StableKey"
+    },
+    "ExactRef": {
+      "$ref": "../1.0.0/schema.json#/$defs/ExactRef"
+    },
+    "DisclosureCount": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "value"],
+          "properties": {
+            "state": { "const": "exact" },
+            "value": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state"],
+          "properties": { "state": { "const": "unknown" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state"],
+          "properties": { "state": { "const": "not_disclosed" } }
+        }
+      ]
+    },
+    "ExplorationFilters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["meaning_kinds", "directions", "origins"],
+      "properties": {
+        "meaning_kinds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 9,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "citation",
+              "support",
+              "contradiction",
+              "qualification",
+              "inference",
+              "structural",
+              "provenance",
+              "governance",
+              "dependency"
+            ]
+          }
+        },
+        "directions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["outgoing", "incoming"] }
+        },
+        "origins": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "canonical_record",
+              "working_candidate",
+              "historical_record",
+              "model_inference"
+            ]
+          }
+        }
+      }
+    },
+    "ExplorationAccounting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result_state",
+        "capped_members",
+        "hidden_relationships",
+        "restricted_paths",
+        "cycle_paths",
+        "incomplete_paths",
+        "unknown_paths"
+      ],
+      "properties": {
+        "result_state": {
+          "enum": ["complete_for_scope", "partial", "capped", "unknown"]
+        },
+        "capped_members": { "$ref": "#/$defs/DisclosureCount" },
+        "hidden_relationships": { "$ref": "#/$defs/DisclosureCount" },
+        "restricted_paths": { "$ref": "#/$defs/DisclosureCount" },
+        "cycle_paths": { "$ref": "#/$defs/DisclosureCount" },
+        "incomplete_paths": { "$ref": "#/$defs/DisclosureCount" },
+        "unknown_paths": { "$ref": "#/$defs/DisclosureCount" }
+      }
+    },
+    "NamedExploration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "expansion_key",
+        "recipe_semantic_key",
+        "recipe_label",
+        "target_ref",
+        "target_node_key",
+        "maximum_depth",
+        "filters",
+        "accounting"
+      ],
+      "properties": {
+        "mode": { "const": "named_expansion" },
+        "expansion_key": { "$ref": "#/$defs/StableKey" },
+        "recipe_semantic_key": { "$ref": "#/$defs/SemanticKey" },
+        "recipe_label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "target_ref": { "$ref": "#/$defs/ExactRef" },
+        "target_node_key": { "$ref": "#/$defs/StableKey" },
+        "maximum_depth": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "filters": { "$ref": "#/$defs/ExplorationFilters" },
+        "accounting": { "$ref": "#/$defs/ExplorationAccounting" }
+      }
+    },
+    "Group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_key",
+        "facet",
+        "label",
+        "membership_rule",
+        "count_unit",
+        "layer",
+        "meaning_kind",
+        "member_relationship_keys",
+        "returned_count",
+        "total_count",
+        "filtered_count",
+        "hidden_count",
+        "coverage",
+        "overlap"
+      ],
+      "properties": {
+        "group_key": { "$ref": "#/$defs/StableKey" },
+        "facet": { "const": "relationship_meaning" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "membership_rule": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "count_unit": { "const": "relationships" },
+        "layer": { "enum": ["current", "working", "historical"] },
+        "meaning_kind": {
+          "enum": [
+            "citation",
+            "support",
+            "contradiction",
+            "qualification",
+            "inference",
+            "structural",
+            "provenance",
+            "governance",
+            "dependency"
+          ]
+        },
+        "member_relationship_keys": {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/StableKey" }
+        },
+        "returned_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "total_count": { "$ref": "#/$defs/DisclosureCount" },
+        "filtered_count": { "$ref": "#/$defs/DisclosureCount" },
+        "hidden_count": { "$ref": "#/$defs/DisclosureCount" },
+        "coverage": {
+          "enum": ["complete_for_scope", "partial", "capped", "unknown"]
+        },
+        "overlap": { "const": false }
+      }
+    },
+    "Scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "included_relationship_semantics",
+        "directions",
+        "included_layers",
+        "limits",
+        "coverage",
+        "omissions"
+      ],
+      "properties": {
+        "description": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "included_relationship_semantics": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/SemanticKey" }
+        },
+        "directions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "enum": ["outgoing", "incoming", "bidirectional"] }
+        },
+        "included_layers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "enum": ["current", "working", "historical"] }
+        },
+        "limits": { "$ref": "../1.0.0/schema.json#/$defs/Limits" },
+        "coverage": {
+          "enum": ["complete_for_scope", "partial", "capped", "unknown"]
+        },
+        "omissions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/Omission" }
+        }
+      }
+    },
+    "ViewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task",
+        "profile",
+        "source_views",
+        "requested_snapshot",
+        "represented_snapshot",
+        "semantic_layer",
+        "temporal_position",
+        "projection_position",
+        "scope",
+        "exploration",
+        "groups",
+        "nodes",
+        "relationships",
+        "paths",
+        "selection",
+        "destinations",
+        "actions",
+        "authority_boundary",
+        "limitations"
+      ],
+      "properties": {
+        "task": { "$ref": "../1.0.0/schema.json#/$defs/Task" },
+        "profile": { "$ref": "../1.0.0/schema.json#/$defs/Profile" },
+        "source_views": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/SourceViewRef" }
+        },
+        "requested_snapshot": {
+          "$ref": "../1.0.0/schema.json#/$defs/ProjectSnapshotRef"
+        },
+        "represented_snapshot": {
+          "$ref": "../1.0.0/schema.json#/$defs/ProjectSnapshotRef"
+        },
+        "semantic_layer": { "enum": ["current", "working", "historical"] },
+        "temporal_position": {
+          "$ref": "../1.0.0/schema.json#/$defs/TemporalPosition"
+        },
+        "projection_position": {
+          "$ref": "../1.0.0/schema.json#/$defs/ProjectionPosition"
+        },
+        "scope": { "$ref": "#/$defs/Scope" },
+        "exploration": { "$ref": "#/$defs/NamedExploration" },
+        "groups": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/Group" }
+        },
+        "nodes": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/Node" }
+        },
+        "relationships": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/Relationship" }
+        },
+        "paths": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/Path" }
+        },
+        "selection": { "$ref": "../1.0.0/schema.json#/$defs/Selection" },
+        "destinations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": {
+            "$ref": "../1.0.0/schema.json#/$defs/SemanticDestination"
+          }
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/RegisteredAction" }
+        },
+        "authority_boundary": {
+          "$ref": "../1.0.0/schema.json#/$defs/AuthorityBoundary"
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    }
+  }
+}

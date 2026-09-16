@@ -720,6 +720,15 @@ export type {
   ViewContent as FocusedGraphViewContent,
 } from "./generated/focused-graph-view.js";
 export type {
+  DisclosureCount as FocusedGraphDisclosureCountV11,
+  ExplorationAccounting as FocusedGraphExplorationAccountingV11,
+  ExplorationFilters as FocusedGraphExplorationFiltersV11,
+  Group as FocusedGraphGroupV11,
+  NamedExploration as FocusedGraphNamedExplorationV11,
+  PetraFocusedGraphViewV110 as PetraFocusedGraphViewV11,
+  ViewContent as FocusedGraphViewContentV11,
+} from "./generated/focused-graph-view-v1-1.js";
+export type {
   AuthorityPosition as ProjectObjectLocationAuthorityPosition,
   DefinitionRef as ProjectObjectLocationDefinitionRef,
   Destination as ProjectObjectDestination,
