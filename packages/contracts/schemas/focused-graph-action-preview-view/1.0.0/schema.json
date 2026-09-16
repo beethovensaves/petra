@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/focused-graph-action-preview-view/1.0.0/schema.json",
+  "title": "PetraFocusedGraphActionPreviewView",
+  "description": "A renderer-neutral, read-only composition that binds one exact focused-graph selection and return context to either an existing WorkingCandidate and Review preview or an existing SuggestedAction Work preview. It accepts no geometry or gesture state and performs no correction, command, Work start, Review decision, or authority change.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.focused-graph-action-preview-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ActionPreviewContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "StableKey": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/StableKey"
+    },
+    "ExactRef": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/ExactRef"
+    },
+    "InquiryResultLinkRef": {
+      "$ref": "../../suggested-action-view/1.1.0/schema.json#/$defs/InquiryLinkRef"
+    },
+    "GraphView": {
+      "oneOf": [
+        { "$ref": "../../focused-graph-view/1.0.0/schema.json" },
+        { "$ref": "../../focused-graph-view/1.1.0/schema.json" }
+      ]
+    },
+    "Selection": {
+      "$ref": "../../focused-graph-details-view/1.0.0/schema.json#/$defs/Selection"
+    },
+    "ReturnContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["graph_request_id", "selection", "origin", "destination"],
+      "properties": {
+        "graph_request_id": {
+          "type": "string",
+          "pattern": "^focused_graph_request_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "selection": { "$ref": "#/$defs/Selection" },
+        "origin": {
+          "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/Origin"
+        },
+        "destination": {
+          "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/SemanticDestination"
+        }
+      }
+    },
+    "ReviewSessionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_session_id",
+        "revision",
+        "content_hash",
+        "lifecycle"
+      ],
+      "properties": {
+        "review_session_id": {
+          "type": "string",
+          "pattern": "^review_session_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "lifecycle": { "const": "open" }
+      }
+    },
+    "ReviewView": {
+      "oneOf": [
+        { "$ref": "../../project-review-view/1.2.0/schema.json" },
+        { "$ref": "../../project-review-view/1.3.0/schema.json" }
+      ]
+    },
+    "GovernedCorrectionPreview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preview_kind",
+        "requested_change",
+        "selected_relationship",
+        "review_session_ref",
+        "review_member_id",
+        "working_candidate_ref",
+        "working_relationship_refs",
+        "review_view",
+        "affected_scope",
+        "unchanged",
+        "operation"
+      ],
+      "properties": {
+        "preview_kind": { "const": "governed_correction" },
+        "requested_change": {
+          "enum": ["edit_relationship", "relink", "split", "change_scope"]
+        },
+        "selected_relationship": {
+          "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/Relationship"
+        },
+        "review_session_ref": { "$ref": "#/$defs/ReviewSessionRef" },
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "working_candidate_ref": {
+          "$ref": "../../working-candidate/1.0.0/schema.json#/$defs/WorkingCandidateRef"
+        },
+        "working_relationship_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "../../working-relationship/1.0.0/schema.json#/$defs/WorkingRelationshipRef"
+          }
+        },
+        "review_view": { "$ref": "#/$defs/ReviewView" },
+        "affected_scope": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        },
+        "unchanged": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        },
+        "operation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "working_revision",
+            "review_decision",
+            "authority_change",
+            "cancellation"
+          ],
+          "properties": {
+            "state": { "const": "preview_only" },
+            "working_revision": {
+              "const": "only_after_canonical_correction_submission"
+            },
+            "review_decision": { "const": "not_performed" },
+            "authority_change": {
+              "const": "only_after_validated_review_apply"
+            },
+            "cancellation": {
+              "const": "closing_preview_leaves_domain_state_unchanged"
+            }
+          }
+        }
+      }
+    },
+    "NewWorkPreview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preview_kind",
+        "selected_member_keys",
+        "inquiry_result_link_ref",
+        "suggested_action_view",
+        "operation"
+      ],
+      "properties": {
+        "preview_kind": { "const": "new_work" },
+        "selected_member_keys": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/StableKey" }
+        },
+        "inquiry_result_link_ref": {
+          "$ref": "#/$defs/InquiryResultLinkRef"
+        },
+        "suggested_action_view": {
+          "$ref": "../../suggested-action-view/1.1.0/schema.json"
+        },
+        "operation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "work_start",
+            "authority_change",
+            "delivery_abort",
+            "work_cancellation"
+          ],
+          "properties": {
+            "state": { "const": "preview_only" },
+            "work_start": { "const": "only_after_exact_invocation" },
+            "authority_change": { "const": "none" },
+            "delivery_abort": { "const": "does_not_cancel_work" },
+            "work_cancellation": { "const": "separate_authorized_command" }
+          }
+        }
+      }
+    },
+    "ActionPreview": {
+      "oneOf": [
+        { "$ref": "#/$defs/GovernedCorrectionPreview" },
+        { "$ref": "#/$defs/NewWorkPreview" }
+      ]
+    },
+    "AuthorityBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "postgresql_authoritative",
+        "neo4j_projection_only",
+        "focused_graph_owner_reused",
+        "working_candidate_owner",
+        "review_owner",
+        "suggested_action_owner",
+        "work_preview_owner",
+        "preview_is_read_only",
+        "selection_grants_authority",
+        "renderer_state_accepted",
+        "command_issued",
+        "work_started"
+      ],
+      "properties": {
+        "postgresql_authoritative": { "const": true },
+        "neo4j_projection_only": { "const": true },
+        "focused_graph_owner_reused": { "const": true },
+        "working_candidate_owner": { "enum": ["reused", "not_applicable"] },
+        "review_owner": { "enum": ["reused", "not_applicable"] },
+        "suggested_action_owner": { "enum": ["reused", "not_applicable"] },
+        "work_preview_owner": { "enum": ["reused", "not_applicable"] },
+        "preview_is_read_only": { "const": true },
+        "selection_grants_authority": { "const": false },
+        "renderer_state_accepted": { "const": false },
+        "command_issued": { "const": false },
+        "work_started": { "const": false }
+      }
+    },
+    "ActionPreviewContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_request_id",
+        "request_hash",
+        "graph_view",
+        "selection",
+        "preview",
+        "return_context",
+        "authority_boundary",
+        "limitations"
+      ],
+      "properties": {
+        "action_request_id": {
+          "type": "string",
+          "pattern": "^focused_graph_action_request_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "request_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "graph_view": { "$ref": "#/$defs/GraphView" },
+        "selection": { "$ref": "#/$defs/Selection" },
+        "preview": { "$ref": "#/$defs/ActionPreview" },
+        "return_context": { "$ref": "#/$defs/ReturnContext" },
+        "authority_boundary": { "$ref": "#/$defs/AuthorityBoundary" },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        }
+      }
+    }
+  }
+}

@@ -402,6 +402,18 @@ export const startPetraServer = async (
               focusedGraphViews:
                 options.projectShellPersistence.focusedGraphViews,
             }),
+      ...(options.focusedGraphActionPreviewViews !== undefined
+        ? {
+            focusedGraphActionPreviewViews:
+              options.focusedGraphActionPreviewViews,
+          }
+        : options.projectShellPersistence?.focusedGraphActionPreviewViews ===
+            undefined
+          ? {}
+          : {
+              focusedGraphActionPreviewViews:
+                options.projectShellPersistence.focusedGraphActionPreviewViews,
+            }),
       ...(options.focusedGraphAnalysisViews !== undefined
         ? { focusedGraphAnalysisViews: options.focusedGraphAnalysisViews }
         : options.projectShellPersistence?.focusedGraphAnalysisViews ===

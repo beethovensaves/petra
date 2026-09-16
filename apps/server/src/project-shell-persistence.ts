@@ -36,6 +36,7 @@ import pg from "pg";
 
 import type {
   AuthenticatedCommandPrincipalResolver,
+  FocusedGraphActionPreviewViewReader,
   FocusedGraphAnalysisViewReader,
   FocusedGraphViewReader,
   ProjectEffectiveControlsViewReader,
@@ -64,7 +65,11 @@ import type {
   SuggestedActionViewReader,
   SuggestedActionInvocationAuthorityRepository,
 } from "@petra/core";
-import { FocusedGraphAnalysisViewComposer, parsePetraId } from "@petra/core";
+import {
+  FocusedGraphActionPreviewViewComposer,
+  FocusedGraphAnalysisViewComposer,
+  parsePetraId,
+} from "@petra/core";
 
 const { Pool } = pg;
 
@@ -88,6 +93,7 @@ export interface ProjectShellPersistence {
   readonly workingStateSnapshots: ProjectWorkingStateSnapshotReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
   readonly focusedGraphViews?: FocusedGraphViewReader;
+  readonly focusedGraphActionPreviewViews?: FocusedGraphActionPreviewViewReader;
   readonly focusedGraphAnalysisViews?: FocusedGraphAnalysisViewReader;
   readonly relationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
   readonly objectLocations: ProjectObjectLocationViewReader;
@@ -220,6 +226,13 @@ export const createProjectShellPersistenceFromEnvironment = async (
         }),
   });
   const reviewViews = new PostgresProjectReviewViewReader(pool, contracts);
+  const suggestedActionViews = new PostgresSuggestedActionViewReader(
+    pool,
+    contracts,
+    configuredActorId === undefined
+      ? {}
+      : { authenticatedActorId: configuredActorId },
+  );
   const changeControlAuthority = new PostgresChangeControlAuthorityRepository(
     pool,
     new PostgresCapabilityGrantCommandAuthorizer(),
@@ -323,6 +336,13 @@ export const createProjectShellPersistenceFromEnvironment = async (
         reviewViews,
         contracts,
       );
+      const focusedGraphActionPreviewViews =
+        new FocusedGraphActionPreviewViewComposer(
+          focusedGraphViews,
+          reviewViews,
+          suggestedActionViews,
+          contracts,
+        );
       return {
         views: new PostgresProjectShellViewReader(pool),
         briefViews: new PostgresProjectBriefViewReader(pool, contracts),
@@ -357,13 +377,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         workViews: new PostgresProjectWorkViewReader(pool),
         threadViews: new PostgresProjectThreadViewReader(pool),
         inquiryViews: new PostgresProjectInquiryViewReader(pool),
-        suggestedActionViews: new PostgresSuggestedActionViewReader(
-          pool,
-          contracts,
-          configuredActorId === undefined
-            ? {}
-            : { authenticatedActorId: configuredActorId },
-        ),
+        suggestedActionViews,
         suggestedActionInvocations:
           new PostgresSuggestedActionInvocationAuthorityRepository(
             pool,
@@ -391,6 +405,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           ),
         relationshipViews,
         focusedGraphViews,
+        focusedGraphActionPreviewViews,
         focusedGraphAnalysisViews,
         relationshipOverlayViews:
           new PostgresProjectRelationshipOverlayViewReader(
@@ -440,13 +455,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     workViews: new PostgresProjectWorkViewReader(pool),
     threadViews: new PostgresProjectThreadViewReader(pool),
     inquiryViews: new PostgresProjectInquiryViewReader(pool),
-    suggestedActionViews: new PostgresSuggestedActionViewReader(
-      pool,
-      contracts,
-      configuredActorId === undefined
-        ? {}
-        : { authenticatedActorId: configuredActorId },
-    ),
+    suggestedActionViews,
     suggestedActionInvocations:
       new PostgresSuggestedActionInvocationAuthorityRepository(
         pool,

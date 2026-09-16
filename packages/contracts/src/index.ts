@@ -729,6 +729,15 @@ export type {
   ViewContent as FocusedGraphViewContentV11,
 } from "./generated/focused-graph-view-v1-1.js";
 export type {
+  ActionPreview as FocusedGraphActionPreview,
+  ActionPreviewContent as FocusedGraphActionPreviewContent,
+  GovernedCorrectionPreview as FocusedGraphGovernedCorrectionPreview,
+  NewWorkPreview as FocusedGraphNewWorkPreview,
+  PetraFocusedGraphActionPreviewView,
+  ReturnContext as FocusedGraphActionReturnContext,
+  ReviewSessionRef as FocusedGraphActionReviewSessionRef,
+} from "./generated/focused-graph-action-preview-view.js";
+export type {
   AbsentMember as FocusedGraphAnalysisAbsentMember,
   Analysis as FocusedGraphAnalysis,
   AnalysisContent as FocusedGraphAnalysisContent,
