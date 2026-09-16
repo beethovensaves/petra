@@ -36,6 +36,7 @@ import pg from "pg";
 
 import type {
   AuthenticatedCommandPrincipalResolver,
+  FocusedGraphAnalysisViewReader,
   FocusedGraphViewReader,
   ProjectEffectiveControlsViewReader,
   ProjectHistoryViewReader,
@@ -63,7 +64,7 @@ import type {
   SuggestedActionViewReader,
   SuggestedActionInvocationAuthorityRepository,
 } from "@petra/core";
-import { parsePetraId } from "@petra/core";
+import { FocusedGraphAnalysisViewComposer, parsePetraId } from "@petra/core";
 
 const { Pool } = pg;
 
@@ -87,6 +88,7 @@ export interface ProjectShellPersistence {
   readonly workingStateSnapshots: ProjectWorkingStateSnapshotReader;
   readonly relationshipViews?: ProjectRelationshipViewReader;
   readonly focusedGraphViews?: FocusedGraphViewReader;
+  readonly focusedGraphAnalysisViews?: FocusedGraphAnalysisViewReader;
   readonly relationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
   readonly objectLocations: ProjectObjectLocationViewReader;
   readonly workViews: ProjectWorkViewReader;
@@ -217,6 +219,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           },
         }),
   });
+  const reviewViews = new PostgresProjectReviewViewReader(pool, contracts);
   const changeControlAuthority = new PostgresChangeControlAuthorityRepository(
     pool,
     new PostgresCapabilityGrantCommandAuthorizer(),
@@ -314,6 +317,12 @@ export const createProjectShellPersistenceFromEnvironment = async (
         graph,
         contracts,
       );
+      const focusedGraphAnalysisViews = new FocusedGraphAnalysisViewComposer(
+        focusedGraphViews,
+        historyViews,
+        reviewViews,
+        contracts,
+      );
       return {
         views: new PostgresProjectShellViewReader(pool),
         briefViews: new PostgresProjectBriefViewReader(pool, contracts),
@@ -328,7 +337,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(
           pool,
         ),
-        reviewViews: new PostgresProjectReviewViewReader(pool),
+        reviewViews,
         reviewRecoveryAssessments: new PostgresReviewRecoveryAssessmentReader(
           pool,
           contracts,
@@ -382,6 +391,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           ),
         relationshipViews,
         focusedGraphViews,
+        focusedGraphAnalysisViews,
         relationshipOverlayViews:
           new PostgresProjectRelationshipOverlayViewReader(
             pool,
@@ -410,7 +420,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     historyCompensationExecution,
     sourceViews: new PostgresProjectSourceViewReader(pool),
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
-    reviewViews: new PostgresProjectReviewViewReader(pool),
+    reviewViews,
     reviewRecoveryAssessments: new PostgresReviewRecoveryAssessmentReader(
       pool,
       contracts,

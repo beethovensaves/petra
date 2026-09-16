@@ -826,6 +826,17 @@
       "typescript_path": "src/generated/focused-graph-view-v1-1.ts"
     },
     {
+      "name": "focused-graph-analysis-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/focused-graph-analysis-view/1.0.0/schema.json",
+      "path": "schemas/focused-graph-analysis-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-comparison-impact-and-time-composition",
+      "canonical_sha256": "sha256:54e9c1d7d45b561a18d07ea7a8c2711c5909c969e0dab23578ca0f2c5955aa09",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/focused-graph-analysis-view.ts"
+    },
+    {
       "name": "focused-graph-details-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/focused-graph-details-view/1.0.0/schema.json",

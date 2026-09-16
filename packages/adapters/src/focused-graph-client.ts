@@ -1,4 +1,5 @@
 import type {
+  PetraFocusedGraphAnalysisView,
   PetraFocusedGraphDetailsView,
   PetraFocusedGraphView,
   PetraFocusedGraphViewV11,
@@ -6,6 +7,8 @@ import type {
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
+  FocusedGraphAnalysisPositionRequest,
+  FocusedGraphAnalysisViewRequest,
   FocusedGraphExplorationViewRequest,
   FocusedGraphDetailsViewRequest,
   FocusedGraphReadRequest,
@@ -42,6 +45,108 @@ const hash = async (value: unknown): Promise<string> => {
 
 const same = (left: unknown, right: unknown): boolean =>
   canonicalize(left) === canonicalize(right);
+
+const exactObjectKeys = (
+  value: unknown,
+  required: readonly string[],
+  optional: readonly string[] = [],
+): value is Record<string, unknown> => {
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return false;
+  const allowed = new Set([...required, ...optional]);
+  return (
+    required.every((key) => Object.hasOwn(value, key)) &&
+    Object.keys(value).every((key) => allowed.has(key))
+  );
+};
+
+const exactAnalysisRequest = (
+  value: FocusedGraphAnalysisViewRequest,
+): value is FocusedGraphAnalysisViewRequest => {
+  const graphKeys = [
+    "request_id",
+    "task_kind",
+    "task_semantic_key",
+    "question",
+    "focus_ref",
+    "origin",
+    "project_definition_ref",
+    "semantic_layer",
+    "temporal_position",
+    "object_semantic_key",
+    "relationship_semantic_key",
+    "return_action_semantic_key",
+    "return_destination",
+    "limits",
+  ] as const;
+  const position = (candidate: unknown): boolean =>
+    exactObjectKeys(candidate, ["position_key", "label", "graph_request"]) &&
+    typeof candidate.position_key === "string" &&
+    typeof candidate.label === "string" &&
+    exactObjectKeys(candidate.graph_request, graphKeys, [
+      "expected_snapshot",
+      "exploration",
+    ]) &&
+    candidate.graph_request.expected_snapshot !== undefined;
+  if (value.task_kind === "comparison") {
+    return (
+      exactObjectKeys(value, [
+        "analysis_request_id",
+        "task_kind",
+        "question",
+        "before",
+        "after",
+      ]) &&
+      position(value.before) &&
+      position(value.after)
+    );
+  }
+  if (value.task_kind === "impact") {
+    return (
+      exactObjectKeys(
+        value,
+        [
+          "analysis_request_id",
+          "task_kind",
+          "question",
+          "position",
+          "history_event_id",
+        ],
+        ["review_binding"],
+      ) && position(value.position)
+    );
+  }
+  return (
+    value.task_kind === "time" &&
+    exactObjectKeys(value, [
+      "analysis_request_id",
+      "task_kind",
+      "question",
+      "position",
+      "temporal_dimension",
+    ]) &&
+    position(value.position)
+  );
+};
+
+const analysisPositions = (
+  request: FocusedGraphAnalysisViewRequest,
+): readonly {
+  readonly request: FocusedGraphAnalysisPositionRequest;
+  readonly role: "before" | "after" | "context" | "time_position";
+}[] => {
+  switch (request.task_kind) {
+    case "comparison":
+      return [
+        { request: request.before, role: "before" },
+        { request: request.after, role: "after" },
+      ];
+    case "impact":
+      return [{ request: request.position, role: "context" }];
+    case "time":
+      return [{ request: request.position, role: "time_position" }];
+  }
+};
 
 /**
  * Renderer-neutral authenticated client. It sends no geometry or command and
@@ -274,6 +379,183 @@ export class FocusedGraphClient {
         ) {
           throw new Error("Mismatched focused graph expansion identity.");
         }
+      }
+      return structuredClone(view);
+    } catch {
+      throw new FocusedGraphClientError(response.status, body);
+    }
+  }
+
+  async readAnalysis(
+    projectId: string,
+    request: FocusedGraphAnalysisViewRequest,
+  ): Promise<PetraFocusedGraphAnalysisView> {
+    if (!exactAnalysisRequest(request)) {
+      throw new TypeError(
+        "A focused graph analysis requires one exact Project, task, and snapshot-bound position set.",
+      );
+    }
+    const parsed = structuredClone(request);
+    const expectedPositions = analysisPositions(parsed);
+    const definition = this.options.projectDefinition;
+    const expectedDefinitionRecordHash = await hash(definition);
+    if (
+      !/^project_[0-9A-HJKMNP-TV-Z]{26}$/u.test(projectId) ||
+      definition.project_id !== projectId ||
+      definition.content_hash !== (await hash(definition.content)) ||
+      expectedPositions.some(({ request: candidate }) => {
+        const reference = candidate.graph_request.project_definition_ref;
+        return (
+          reference.project_definition_id !==
+            definition.project_definition_id ||
+          reference.revision !== definition.revision ||
+          reference.content_hash !== definition.content_hash ||
+          reference.record_hash !== expectedDefinitionRecordHash ||
+          reference.definition_family !== definition.definition_family
+        );
+      })
+    ) {
+      throw new TypeError(
+        "A focused graph analysis requires the client's exact ProjectDefinition identity.",
+      );
+    }
+
+    const endpoint = new URL(
+      `/api/queries/projects/${projectId}/focused-graph/analysis`,
+      this.options.baseUrl,
+    );
+    const response = await (this.options.fetch ?? fetch)(endpoint, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${this.options.token}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(parsed),
+    });
+    const body: unknown = await response.json();
+    if (!response.ok) {
+      throw new FocusedGraphClientError(response.status, body);
+    }
+    try {
+      this.#contracts.assertValid("focused-graph-analysis-view", "1.0.0", body);
+      const view = body as PetraFocusedGraphAnalysisView;
+      const expectedFocusRefs = [
+        ...new Map(
+          expectedPositions.map(({ request: candidate }) => {
+            const reference = candidate.graph_request.focus_ref;
+            return [
+              `${reference.record_id}:${reference.revision}:${reference.record_hash}`,
+              reference,
+            ];
+          }),
+        ).values(),
+      ];
+      const expectedTaskWithoutHash = {
+        analysis_request_id: parsed.analysis_request_id,
+        task_kind: parsed.task_kind,
+        question: parsed.question,
+        question_hash: await hash(parsed.question),
+        focus_refs: expectedFocusRefs,
+        position_keys: expectedPositions.map(
+          ({ request: candidate }) => candidate.position_key,
+        ),
+      };
+      const returnedPositions = view.content.positions;
+      const positionMismatch = await Promise.all(
+        expectedPositions.map(async (expected, index) => {
+          const returned = returnedPositions[index];
+          if (returned === undefined) return true;
+          const graphRequest = expected.request.graph_request;
+          const graph = returned.graph_view;
+          const graphTaskWithoutHash = structuredClone(
+            graph.content.task,
+          ) as Partial<typeof graph.content.task>;
+          delete graphTaskWithoutHash.request_hash;
+          const expectedGraphVersion =
+            "exploration" in graphRequest &&
+            graphRequest.exploration !== undefined
+              ? "1.1.0"
+              : "1.0.0";
+          return (
+            returned.position_key !== expected.request.position_key ||
+            returned.label !== expected.request.label ||
+            returned.role !== expected.role ||
+            graph.schema_version !== expectedGraphVersion ||
+            graph.project_id !== projectId ||
+            graph.content_hash !== (await hash(graph.content)) ||
+            graph.content.task.request_hash !==
+              (await hash(graphTaskWithoutHash)) ||
+            graph.content.task.question_hash !==
+              (await hash(graph.content.task.question)) ||
+            graph.content.task.request_id !== graphRequest.request_id ||
+            graph.content.task.task_kind !== graphRequest.task_kind ||
+            graph.content.task.task_semantic_key !==
+              graphRequest.task_semantic_key ||
+            graph.content.task.question !== graphRequest.question ||
+            !same(graph.content.task.focus_refs, [graphRequest.focus_ref]) ||
+            !same(graph.content.task.origin, graphRequest.origin) ||
+            graph.content.semantic_layer !== graphRequest.semantic_layer ||
+            !same(
+              graph.content.temporal_position,
+              graphRequest.temporal_position,
+            ) ||
+            !same(
+              graph.content.requested_snapshot,
+              graphRequest.expected_snapshot,
+            ) ||
+            !same(graph.content.scope.limits, graphRequest.limits) ||
+            !same(
+              graph.content.profile.project_definition_ref,
+              graphRequest.project_definition_ref,
+            )
+          );
+        }),
+      );
+
+      let analysisMismatch = false;
+      const analysis = view.content.analysis;
+      if (parsed.task_kind === "comparison") {
+        analysisMismatch =
+          analysis.analysis_kind !== "comparison" ||
+          analysis.before_position_key !== parsed.before.position_key ||
+          analysis.after_position_key !== parsed.after.position_key;
+      } else if (parsed.task_kind === "impact") {
+        analysisMismatch =
+          analysis.analysis_kind !== "impact" ||
+          analysis.position_key !== parsed.position.position_key ||
+          analysis.dependency_source.project_id !== projectId ||
+          analysis.dependency_source.event_id !== parsed.history_event_id ||
+          (parsed.review_binding === undefined
+            ? analysis.assessed_consequences.state !== "unavailable"
+            : analysis.assessed_consequences.state !== "supplied" ||
+              analysis.assessed_consequences.items.some(
+                (item) =>
+                  item.source.review_session_id !==
+                    parsed.review_binding?.review_session_id ||
+                  !parsed.review_binding?.review_member_ids.includes(
+                    item.review_member_id,
+                  ),
+              ));
+      } else {
+        analysisMismatch =
+          analysis.analysis_kind !== "time" ||
+          analysis.position_key !== parsed.position.position_key ||
+          analysis.temporal_dimension !== parsed.temporal_dimension;
+      }
+
+      if (
+        view.project_id !== projectId ||
+        view.content_hash !== (await hash(view.content)) ||
+        view.content.task.analysis_request_id !== parsed.analysis_request_id ||
+        !same(view.content.task, {
+          ...expectedTaskWithoutHash,
+          request_hash: await hash(expectedTaskWithoutHash),
+        }) ||
+        returnedPositions.length !== expectedPositions.length ||
+        positionMismatch.some(Boolean) ||
+        analysisMismatch
+      ) {
+        throw new Error("Mismatched focused graph analysis identity.");
       }
       return structuredClone(view);
     } catch {

@@ -1,7 +1,11 @@
 import { focusedGraphFixture } from "../../../packages/contracts/test/fixtures/focused-graph-view.js";
 import { focusedGraphDetailsFixture } from "../../../packages/contracts/test/fixtures/focused-graph-details-view.js";
 import { focusedGraphV11Fixture } from "../../../packages/contracts/test/fixtures/focused-graph-view-v1-1.js";
+import { focusedGraphAnalysisFixture } from "../../../packages/contracts/test/fixtures/focused-graph-analysis-view.js";
+import type { PetraFocusedGraphAnalysisView } from "@petra/contracts";
 import {
+  type FocusedGraphAnalysisViewReader,
+  type FocusedGraphComparisonViewRequest,
   FocusedGraphQueryError,
   type FocusedGraphViewReader,
   type FocusedGraphViewRequest,
@@ -186,5 +190,56 @@ describe("focused graph query route", () => {
     );
     expect(rejected.status).toBe(422);
     expect(queryFocusedGraphDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it("forwards one exact comparison read and rejects renderer-owned analysis fields", async () => {
+    const analysis = focusedGraphAnalysisFixture();
+    const typedAnalysis = analysis as unknown as PetraFocusedGraphAnalysisView;
+    const graphRequest = {
+      ...request,
+      expected_snapshot: view.content.requested_snapshot,
+    };
+    const analysisRequest: FocusedGraphComparisonViewRequest = {
+      analysis_request_id:
+        "focused_graph_analysis_request_01ARZ3NDEKTSV4RRFFQ69G5FAY",
+      task_kind: "comparison",
+      question: "What differs between these exact positions?",
+      before: {
+        position_key: "position:before",
+        label: "Before",
+        graph_request: graphRequest,
+      },
+      after: {
+        position_key: "position:after",
+        label: "After",
+        graph_request: graphRequest,
+      },
+    };
+    const queryFocusedGraphAnalysis = vi.fn<
+      FocusedGraphAnalysisViewReader["queryFocusedGraphAnalysis"]
+    >(() => Promise.resolve(typedAnalysis));
+    const app = createPetraApp({
+      authToken: token,
+      focusedGraphAnalysisViews: { queryFocusedGraphAnalysis },
+    }).app;
+    const analysisPath = `${path}/analysis`;
+
+    const response = await app.request(
+      analysisPath,
+      authorized(analysisRequest),
+    );
+    expect(response.status).toBe(200);
+    expect(queryFocusedGraphAnalysis).toHaveBeenCalledWith(
+      view.project_id,
+      analysisRequest,
+    );
+    await expect(response.json()).resolves.toEqual(analysis);
+
+    const rejected = await app.request(
+      analysisPath,
+      authorized({ ...analysisRequest, importance: 0.95 }),
+    );
+    expect(rejected.status).toBe(422);
+    expect(queryFocusedGraphAnalysis).toHaveBeenCalledTimes(1);
   });
 });

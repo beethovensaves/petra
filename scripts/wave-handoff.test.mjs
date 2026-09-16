@@ -184,6 +184,39 @@ test("continues a transient failure from only the owning fingerprinted worktree"
     }),
     false,
   );
+
+  const integratedHead = "c".repeat(40);
+  const integrated = {
+    ...snapshots,
+    backend: {
+      head: integratedHead,
+      remote: backendCommit,
+      unexpected: [],
+      worktree_digest: `sha256:${"e".repeat(64)}`,
+      remote_is_ancestor: true,
+    },
+  };
+  assert.equal(canRetryWorkerFailure(state, integrated), true);
+  assert.equal(
+    matchesRecoverySnapshot(
+      {
+        role: "backend",
+        expected_head: integratedHead,
+        expected_remote: backendCommit,
+        worktree_digest: integrated.backend.worktree_digest,
+      },
+      "backend",
+      integrated.backend,
+    ),
+    true,
+  );
+  assert.equal(
+    canRetryWorkerFailure(state, {
+      ...integrated,
+      backend: { ...integrated.backend, remote_is_ancestor: false },
+    }),
+    false,
+  );
 });
 
 test("fingerprints exact tracked and untracked partial worktree bytes", () => {
