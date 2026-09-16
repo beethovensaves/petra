@@ -291,8 +291,8 @@ export function canRetryWorkerFailure(state, snapshots) {
   return Boolean(
     own &&
     counterpart &&
-    own.head === own.remote &&
-    own.head === state.commits[role] &&
+    own.remote === state.commits[role] &&
+    (own.head === state.commits[role] || own.remote_is_ancestor) &&
     counterpart.unexpected.length === 0 &&
     counterpart.head === counterpart.remote &&
     counterpart.head === state.commits[otherRole],
@@ -300,13 +300,15 @@ export function canRetryWorkerFailure(state, snapshots) {
 }
 
 export function matchesRecoverySnapshot(recovery, role, snapshot) {
+  const expectedHead = recovery?.expected_head ?? recovery?.expected_commit;
+  const expectedRemote = recovery?.expected_remote ?? recovery?.expected_commit;
   return Boolean(
     recovery &&
     recovery.role === role &&
     snapshot &&
-    snapshot.head === recovery.expected_commit &&
-    snapshot.remote === recovery.expected_commit &&
-    snapshot.unexpected.length > 0 &&
+    snapshot.head === expectedHead &&
+    snapshot.remote === expectedRemote &&
+    (snapshot.head !== snapshot.remote || snapshot.unexpected.length > 0) &&
     snapshot.worktree_digest === recovery.worktree_digest,
   );
 }
@@ -365,6 +367,7 @@ function repositorySnapshot(role) {
     remote,
     unexpected,
     worktree_digest: worktreeDigest(configuration.root, unexpected),
+    remote_is_ancestor: gitIsAncestor(configuration.root, remote, head),
   };
 }
 
@@ -735,7 +738,7 @@ export function buildWorkerPrompt({
     : "";
 
   const recoveryControl = recovery
-    ? `\nTRANSIENT SLICE RECOVERY\nA prior worker attempt for this same slice ended because of a transient Codex failure after writing files. The coordinator verified and fingerprinted the existing dirty worktree at ${recovery.worktree_digest}. Inspect the complete diff and prior run logs, preserve coherent partial work, correct or finish it, then run every required check, commit, and push. Do not reset, discard, or broaden the slice.\n`
+    ? `\nTRANSIENT SLICE RECOVERY\nA prior worker attempt for this same slice ended because of a transient Codex failure after advancing the local branch or writing files. The coordinator verified the unchanged remote at ${recovery.expected_remote ?? recovery.expected_commit}, the local head at ${recovery.expected_head ?? recovery.expected_commit}, and the worktree fingerprint ${recovery.worktree_digest}. Inspect the complete local commit range, diff, and prior run logs; preserve coherent partial work, correct or finish it, then run every required check, commit, and push. Do not reset, discard, or broaden the slice.\n`
     : "";
 
   return `You are Petra's unattended ${role} worker for Wave ${wave}.
@@ -846,7 +849,7 @@ async function runCodexWorker({ role, wave, state }) {
   const prompt = buildWorkerPrompt({
     role,
     wave,
-    ownCommit: state.commits[role],
+    ownCommit: state.active?.recovery?.expected_head ?? state.commits[role],
     counterpartCommit: state.commits[otherRole],
     handoff: state.handoff_prompt,
     plan,
@@ -1152,10 +1155,11 @@ async function retryWorkerFailure(wave, error) {
       error: String(error?.message ?? error),
       recovered_at: timestamp,
     });
-    if (own.unexpected.length > 0) {
+    if (own.head !== own.remote || own.unexpected.length > 0) {
       state.recovery = {
         role: failed.role,
-        expected_commit: state.commits[failed.role],
+        expected_head: own.head,
+        expected_remote: own.remote,
         worktree_digest: own.worktree_digest,
         changed_paths: own.unexpected,
         failed_attempt: failed.attempt,
@@ -1379,7 +1383,7 @@ async function workerLoop({ role, wave, maxSlices }) {
         requireCleanAndPushed(role, own);
       }
       if (
-        own.head !== claimed.commits[role] ||
+        (!recovery && own.head !== claimed.commits[role]) ||
         counterpart.head !== claimed.commits[otherRole]
       ) {
         throw new Error("Repository heads changed after the turn was claimed.");
