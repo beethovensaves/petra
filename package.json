@@ -91,7 +91,8 @@
     "test:wave5:adverse-support": "node --import tsx scripts/test-wave5-adverse-support.mjs",
     "test:wave5:adverse-browser": "npm run build:packages && node apps/workbench/test/wave5-adverse-browser.mjs",
     "test:wave5:browser": "npm run build:packages && node apps/workbench/test/wave5-cumulative-browser.mjs",
-    "test:wave5:cumulative": "npm run build:packages && node scripts/test-wave5-cumulative-integration.mjs"
+    "test:wave5:cumulative": "npm run build:packages && node scripts/test-wave5-cumulative-integration.mjs",
+    "audit:wave5:evidence": "node scripts/audit-wave5-evidence.mjs"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "3.1124.0",
