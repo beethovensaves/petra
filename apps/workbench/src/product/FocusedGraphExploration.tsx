@@ -23,6 +23,7 @@ import {
   FocusedGraphResult,
   type FocusedGraphLayout,
   type FocusedGraphRepresentation,
+  type FocusedGraphRendererFactory,
 } from "./FocusedGraphResult.js";
 
 type ExplorationMeaning =
@@ -445,6 +446,19 @@ const readExpansion = async (
   return client.read(projectId, request);
 };
 
+export type FocusedGraphExplorationRead = (
+  projectId: string,
+  definition: PetraProjectDefinition,
+  request: FocusedGraphExplorationViewRequest,
+) => Promise<PetraFocusedGraphViewV11>;
+
+const initialFocusedGraphRepresentation = (): FocusedGraphRepresentation =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(max-width: 40rem)").matches
+    ? "text"
+    : "graph";
+
 interface SavedExactQuestion {
   readonly key: string;
   readonly label: string;
@@ -458,16 +472,14 @@ export const FocusedGraphExploration = ({
   initialRequest,
   initialView,
   read = readExpansion,
+  rendererFactory,
 }: {
   entry: FocusedGraphEntry;
   definition: PetraProjectDefinition;
   initialRequest: FocusedGraphReadRequest;
   initialView: PetraFocusedGraphReadView;
-  read?: (
-    projectId: string,
-    definition: PetraProjectDefinition,
-    request: FocusedGraphExplorationViewRequest,
-  ) => Promise<PetraFocusedGraphViewV11>;
+  read?: FocusedGraphExplorationRead;
+  rendererFactory?: FocusedGraphRendererFactory | undefined;
 }): React.JSX.Element => {
   const initialSelectedKey = selectedKeyForView(initialView, entry.focus_ref);
   const stateSequence = useRef(1);
@@ -480,7 +492,7 @@ export const FocusedGraphExploration = ({
       pinnedNodeKeys: [],
       collapsedNodeKeys: [],
       layout: "relationship",
-      representation: "graph",
+      representation: initialFocusedGraphRepresentation(),
     }),
     [initialRequest, initialSelectedKey, initialView],
   );
@@ -511,12 +523,14 @@ export const FocusedGraphExploration = ({
   const [maximumDepth, setMaximumDepth] = useState(2);
   const [pendingRequestId, setPendingRequestId] = useState<string>();
   const [message, setMessage] = useState<string>();
+  const [retryAvailable, setRetryAvailable] = useState(false);
   const [saved, setSaved] = useState<readonly SavedExactQuestion[]>([]);
   const active = useRef<FocusedGraphActiveExploration | undefined>(undefined);
 
   const invalidatePending = (): void => {
     active.current = undefined;
     setPendingRequestId(undefined);
+    setRetryAvailable(false);
   };
   const nextState = (
     update: Omit<FocusedGraphPresentationState, "stateId">,
@@ -607,10 +621,11 @@ export const FocusedGraphExploration = ({
     active.current = intent;
     setPendingRequestId(requestId);
     setMessage(undefined);
+    setRetryAvailable(false);
     try {
       const response = await read(entry.project_id, definition, request);
+      if (active.current !== intent) return;
       if (
-        active.current !== intent ||
         !matchesActiveFocusedGraphExploration(
           response,
           intent,
@@ -618,6 +633,12 @@ export const FocusedGraphExploration = ({
         ) ||
         !focusedGraphViewPreservesSelection(response, state.selectedKey)
       ) {
+        active.current = undefined;
+        setPendingRequestId(undefined);
+        setRetryAvailable(true);
+        setMessage(
+          `Mismatched expansion ignored. The response did not match the active request, snapshot, scope, or selected object. The displayed cached ${words(state.view.content.semantic_layer)} result remains the retained response for snapshot ${state.view.content.requested_snapshot.snapshot_id}.`,
+        );
         return;
       }
       active.current = undefined;
@@ -634,6 +655,7 @@ export const FocusedGraphExploration = ({
         });
       });
       setDraftFilters(response.content.exploration.filters);
+      setRetryAvailable(false);
       setMessage(
         `Accepted ${response.content.exploration.recipe_label} for the exact active snapshot.`,
       );
@@ -641,10 +663,15 @@ export const FocusedGraphExploration = ({
       if (active.current !== intent) return;
       active.current = undefined;
       setPendingRequestId(undefined);
-      setMessage(
+      setRetryAvailable(true);
+      const failure =
         error instanceof Error
           ? error.message
-          : "The exact expansion result is unavailable.",
+          : "The exact expansion result is unavailable.";
+      const disconnected =
+        typeof navigator !== "undefined" && navigator.onLine === false;
+      setMessage(
+        `${disconnected ? "Connection unavailable" : "Expansion unavailable"}. The displayed cached ${words(state.view.content.semantic_layer)} result remains the retained response for snapshot ${state.view.content.requested_snapshot.snapshot_id}; Petra does not claim it is newer than that exact represented position. ${failure}`,
       );
     }
   };
@@ -1013,9 +1040,23 @@ export const FocusedGraphExploration = ({
       </section>
 
       {message === undefined ? null : (
-        <p className="focused-graph-exploration__status" aria-live="polite">
-          {message}
-        </p>
+        <div
+          className="focused-graph-exploration__status"
+          data-recovery={retryAvailable ? "retry_available" : "status"}
+          role={retryAvailable ? "alert" : "status"}
+          aria-live={retryAvailable ? "assertive" : "polite"}
+        >
+          <p>{message}</p>
+          {retryAvailable ? (
+            <PetraButton
+              density="compact"
+              variant="secondary"
+              onClick={() => void applyExpansion()}
+            >
+              Retry exact expansion
+            </PetraButton>
+          ) : null}
+        </div>
       )}
 
       {activeExpansion === undefined ? null : (
@@ -1127,6 +1168,7 @@ export const FocusedGraphExploration = ({
           updatePresentation({ representation })
         }
         onSelect={(selectedKey) => updatePresentation({ selectedKey })}
+        rendererFactory={rendererFactory}
       />
       <FocusedGraphDetails
         key={`${state.stateId}:${state.selectedKey}`}

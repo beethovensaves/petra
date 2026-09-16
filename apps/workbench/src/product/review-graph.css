@@ -2155,6 +2155,39 @@
   background: var(--petra-tone-information-soft);
 }
 
+.focused-graph-exploration__status[data-recovery="retry_available"] {
+  border-left-style: dashed;
+  border-left-color: var(--petra-tone-caution);
+  background: var(--petra-tone-caution-soft);
+}
+
+.focused-graph-exploration__status > p {
+  margin: 0 0 var(--petra-space-3);
+}
+
+.focused-graph-exploration__status > p:only-child {
+  margin-bottom: 0;
+}
+
+.focused-graph-renderer-region {
+  min-width: 0;
+}
+
+.focused-graph-renderer-recovery {
+  display: grid;
+  justify-items: start;
+  gap: var(--petra-space-3);
+  min-width: 0;
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) dashed var(--petra-tone-caution);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-tone-caution-soft);
+}
+
+.focused-graph-renderer-recovery :is(h3, p) {
+  margin: 0;
+}
+
 .focused-graph-actions,
 .focused-graph-action-preview {
   min-width: 0;

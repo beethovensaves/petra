@@ -1,0 +1,226 @@
+{
+  "schema_name": "petra.wave5-ux-fx25-browser-observation",
+  "schema_version": "1.0.0",
+  "slice": "wave5-slice20",
+  "status": "pass",
+  "recorded_at": "2026-09-16T06:49:16.869Z",
+  "environment": {
+    "node": "v24.20.0",
+    "browser": "Chrome/152.0.7977.84",
+    "browser_user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "protocol_version": "1.3",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "renderer": "Cytoscape production component in isolated headless Chrome"
+  },
+  "fixture": {
+    "id": "UX-FX25",
+    "source": "apps/workbench/test/wave5-adverse-browser.tsx",
+    "production_components": [
+      "FocusedGraphOrientationSurface",
+      "FocusedGraphExploration",
+      "FocusedGraphResult",
+      "FocusedGraphDetails",
+      "FocusedGraphAnalysisSurface"
+    ],
+    "synthetic_transport": true,
+    "backend_support_artifact": "reports/WAVE5-ADVERSE-STATE-PERFORMANCE-OBSERVATION.json"
+  },
+  "backend_support": {
+    "artifact": "reports/WAVE5-ADVERSE-STATE-PERFORMANCE-OBSERVATION.json",
+    "artifact_sha256": "sha256:51fbe21b8be7ade8df3d77b8facff178fbb581efedc660c7f0c5d094083cc70b",
+    "recorded_environment": {
+      "node": "v24.20.0",
+      "platform": "darwin",
+      "architecture": "arm64",
+      "stores": {
+        "postgresql": "fresh disposable PostgreSQL 18.6",
+        "neo4j": "fresh disposable Neo4j 2026.07.1"
+      }
+    },
+    "recorded_query_timings_ms": {
+      "focused_query_ms": 110.724,
+      "dense_query_ms": 7.154
+    },
+    "recorded_projection_timings_ms": {
+      "initial_apply_ms": 998.237,
+      "dense_apply_ms": 521.555,
+      "rebuild_ms": 187.805
+    },
+    "boundary": "Exact Slice 19 backend support consumed by this browser scenario; database and projection commands were not re-executed by Slice 20."
+  },
+  "observations": {
+    "dense": {
+      "objects": 32,
+      "relationships": 33,
+      "paths": 33,
+      "cycle_relationships": 2,
+      "hidden_working_relationships": 4,
+      "restricted_paths": 1,
+      "partial_paths": 1,
+      "missing_destinations": 1,
+      "first_ready_ms": 426.452,
+      "second_ready_ms": 138.9,
+      "layout_capture_sha256": "sha256:690acdf7e021e3bac52284fb9748d2d14d8b180fb5615f9a871c6cd755f4cf74",
+      "repeated_layout_capture_sha256": "sha256:690acdf7e021e3bac52284fb9748d2d14d8b180fb5615f9a871c6cd755f4cf74",
+      "layout_capture_stable": true
+    },
+    "renderer_recovery": {
+      "textual_relationships_retained": 33,
+      "exact_selection_retained": "node:claim-0",
+      "retry_succeeded": true,
+      "project_effect_created": false
+    },
+    "offline_recovery": {
+      "attempts": 2,
+      "first_outcome": "disconnected",
+      "second_outcome": "accepted_candidate",
+      "cached_state_label": "displayed cached current result",
+      "task_retained": "Which recorded relationships remain inspectable in this bounded adverse result?",
+      "selection_retained": "node:claim-0",
+      "retry_succeeded": true,
+      "false_currentness_claim": false
+    },
+    "stale_response": {
+      "mismatched_snapshot_event_position": 41,
+      "retained_snapshot_event_position": 42,
+      "mismatched_response_ignored": true,
+      "exact_selection_retained": "node:claim-0",
+      "retry_succeeded": true
+    },
+    "late_response": {
+      "completion_order": [
+        "focused_graph_request_01M2MFM38TJ2VWR6HQ7W9889FJ",
+        "focused_graph_request_01M2MFM36C6G00RZB9X5A8G0G1"
+      ],
+      "accepted_request_id": "focused_graph_request_01M2MFM38TJ2VWR6HQ7W9889FJ",
+      "older_request_rejected": true,
+      "exact_selection_retained": "node:claim-0"
+    },
+    "projection": {
+      "current": {
+        "position_text": "current · represented event 42 · observed event 42 · pending 0",
+        "notice": null,
+        "authority_source": "postgresql",
+        "projection_source": "neo4j_rebuildable_projection"
+      },
+      "catching_up": {
+        "position_text": "catching up · represented event 40 · observed event 42 · pending 2",
+        "notice": "Projection position · catching up",
+        "authority_source": "postgresql",
+        "projection_source": "neo4j_rebuildable_projection"
+      },
+      "unavailable": {
+        "position_text": "unavailable · represented event 40 · observed event 42 · pending 2",
+        "notice": "Projection position · unavailable",
+        "authority_source": "postgresql",
+        "projection_source": "neo4j_rebuildable_projection"
+      },
+      "rebuilding": {
+        "position_text": "rebuilding · represented event 40 · observed event 42 · pending 2",
+        "notice": "Projection position · rebuilding",
+        "authority_source": "postgresql",
+        "projection_source": "neo4j_rebuildable_projection"
+      }
+    },
+    "temporal_and_comparison": {
+      "historical_read_only": true,
+      "unknown_date_explicit": true,
+      "incomplete_comparison_explicit": true,
+      "stale_working_base_non_authoritative": true
+    },
+    "responsive_accessibility": {
+      "tested_viewports_css_pixels": [
+        {
+          "width": 1440,
+          "height": 1000,
+          "text_scale_percent": 100
+        },
+        {
+          "width": 390,
+          "height": 844,
+          "text_scale_percent": 200
+        },
+        {
+          "width": 320,
+          "height": 844,
+          "text_scale_percent": 200
+        }
+      ],
+      "text_scale_percent": 200,
+      "wide_no_horizontal_document_overflow": true,
+      "no_horizontal_document_overflow": true,
+      "high_zoom_no_horizontal_document_overflow": true,
+      "high_zoom_actions_retained": [
+        "Graph",
+        "Expand selected object",
+        "Inspect selected Details"
+      ],
+      "narrow_initial_representation": "text",
+      "touch_target_height_css_pixels": 44,
+      "touch_text_alternative_succeeded": true,
+      "keyboard_graph_alternative_succeeded": true,
+      "keyboard_focus_retained": true,
+      "forced_colors": true,
+      "reduced_motion": true,
+      "coarse_pointer": true,
+      "forced_color_relationship_border": "solid",
+      "reduced_transition_duration": "1e-05s",
+      "ten_state_history_cap": 10,
+      "saved_exact_question_reopened": true,
+      "semantic_headings_in_accessibility_tree": true,
+      "native_screen_reader_invoked": false
+    }
+  },
+  "scenario_records": [
+    {
+      "evidence_id": "UX1.5-EV01",
+      "scenario_id": "dense-temporal-adverse-fixture",
+      "status": "passed"
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "non-color-relation-semantics-browser",
+      "status": "passed"
+    },
+    {
+      "evidence_id": "UX1.5-EV04",
+      "scenario_id": "dense-cyclic-performance",
+      "status": "passed"
+    },
+    {
+      "evidence_id": "UX1.5-EV04",
+      "scenario_id": "stale-late-response-browser",
+      "status": "passed"
+    },
+    {
+      "evidence_id": "UX1.5-EV04",
+      "scenario_id": "disconnected-offline-recovery-browser",
+      "status": "passed"
+    },
+    {
+      "evidence_id": "UX1.5-EV04",
+      "scenario_id": "projection-rebuild-browser",
+      "status": "passed"
+    },
+    {
+      "evidence_id": "UX1.5-EV04",
+      "scenario_id": "responsive-text-motion-touch-browser",
+      "status": "passed"
+    }
+  ],
+  "authority_boundary": {
+    "postgresql_authoritative": true,
+    "neo4j_rebuildable_projection": true,
+    "renderer_neutral": true,
+    "renderer_or_layout_created_domain_effect": false,
+    "existing_review_and_work_owners_unchanged": true
+  },
+  "limitations": [
+    "Observed timings are one-environment browser measurements, not an SLA or universal threshold.",
+    "Chrome touch, coarse pointer, forced colors, and reduced motion are emulated; no physical touch device is claimed.",
+    "Chrome accessibility-tree structure was inspected; native screen-reader evaluation is outside Wave 5.",
+    "Synthetic transport isolates frontend adverse behavior; backend PostgreSQL and Neo4j outcomes remain in the exact Slice 19 support artifact.",
+    "This command does not execute the broader keyboard-focus scenario across source inspection, actions, and return."
+  ]
+}

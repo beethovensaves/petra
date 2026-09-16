@@ -4,12 +4,13 @@ import type {
 } from "@petra/contracts";
 import type {
   Core,
+  CytoscapeOptions,
   ElementDefinition,
   EventObjectEdge,
   EventObjectNode,
   StylesheetJson,
 } from "cytoscape";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { PetraButton, PetraButtonGroup } from "../design-system/primitives.js";
 import type {
@@ -20,6 +21,7 @@ import type {
 
 export type FocusedGraphRepresentation = "graph" | "text";
 export type FocusedGraphLayout = "relationship" | "radial";
+export type FocusedGraphRendererFactory = (options: CytoscapeOptions) => Core;
 
 const meaningSymbols = {
   citation: "C",
@@ -494,6 +496,7 @@ const FocusedGraphCanvas = ({
   homeNodeKey,
   layout,
   onSelect,
+  rendererFactory,
 }: {
   regions: FocusedGraphRegions;
   selectedKey?: string | undefined;
@@ -502,13 +505,20 @@ const FocusedGraphCanvas = ({
   homeNodeKey?: string | undefined;
   layout: FocusedGraphLayout;
   onSelect?: ((key: string) => void) | undefined;
+  rendererFactory?: FocusedGraphRendererFactory | undefined;
 }): React.JSX.Element => {
   const container = useRef<HTMLDivElement>(null);
   const graph = useRef<Core | null>(null);
+  const rendererRecoveryTitleId = useId();
+  const [rendererAttempt, setRendererAttempt] = useState(1);
+  const [rendererState, setRendererState] = useState<
+    "loading" | "ready" | "failed"
+  >("loading");
 
   useEffect(() => {
     const target = container.current;
     if (target === null) return undefined;
+    setRendererState("loading");
     const visibleNodeKeys = new Set(
       regions.graph.nodes.map((node) => node.node_key),
     );
@@ -567,48 +577,64 @@ const FocusedGraphCanvas = ({
     let disposed = false;
     let instance: Core | null = null;
     let resizeObserver: ResizeObserver | null = null;
-    void import("cytoscape").then(({ default: createGraph }) => {
-      if (disposed) return;
-      instance = createGraph({
-        container: target,
-        elements,
-        style: rendererStyles(target),
-        layout:
-          layout === "relationship"
-            ? {
-                name: "breadthfirst",
-                directed: true,
-                fit: true,
-                padding: 44,
-                spacingFactor: 1.3,
-              }
-            : {
-                name: "concentric",
-                fit: true,
-                padding: 44,
-                spacingFactor: 1.3,
-              },
-        minZoom: 0.4,
-        maxZoom: 2.4,
-        wheelSensitivity: 0.22,
-        boxSelectionEnabled: false,
-        autounselectify: onSelect === undefined,
+    const loadRenderer =
+      rendererFactory === undefined
+        ? import("cytoscape").then(({ default: createGraph }) => createGraph)
+        : Promise.resolve(rendererFactory);
+    void loadRenderer
+      .then((createGraph) => {
+        if (disposed) return;
+        try {
+          instance = createGraph({
+            container: target,
+            elements,
+            style: rendererStyles(target),
+            layout:
+              layout === "relationship"
+                ? {
+                    name: "breadthfirst",
+                    directed: true,
+                    fit: true,
+                    padding: 44,
+                    spacingFactor: 1.3,
+                  }
+                : {
+                    name: "concentric",
+                    fit: true,
+                    padding: 44,
+                    spacingFactor: 1.3,
+                  },
+            minZoom: 0.4,
+            maxZoom: 2.4,
+            wheelSensitivity: 0.22,
+            boxSelectionEnabled: false,
+            autounselectify: onSelect === undefined,
+          });
+          if (onSelect !== undefined) {
+            instance.on(
+              "tap",
+              "node, edge",
+              (event: EventObjectNode | EventObjectEdge) =>
+                onSelect(event.target.id()),
+            );
+          }
+          graph.current = instance;
+          resizeObserver = new ResizeObserver(() => {
+            instance?.resize();
+            instance?.fit(undefined, 44);
+          });
+          resizeObserver.observe(target);
+          setRendererState("ready");
+        } catch {
+          instance?.destroy();
+          instance = null;
+          graph.current = null;
+          setRendererState("failed");
+        }
+      })
+      .catch(() => {
+        if (!disposed) setRendererState("failed");
       });
-      if (onSelect !== undefined) {
-        instance.on(
-          "tap",
-          "node, edge",
-          (event: EventObjectNode | EventObjectEdge) =>
-            onSelect(event.target.id()),
-        );
-      }
-      graph.current = instance;
-      resizeObserver = new ResizeObserver(() => {
-        instance?.resize();
-        instance?.fit(undefined, 44);
-      });
-      resizeObserver.observe(target);
-    });
     return () => {
       disposed = true;
       resizeObserver?.disconnect();
@@ -622,16 +648,40 @@ const FocusedGraphCanvas = ({
     onSelect,
     pinnedNodeKeys,
     regions,
+    rendererAttempt,
+    rendererFactory,
     selectedKey,
   ]);
 
   return (
-    <div
-      ref={container}
-      className="focused-graph-production-canvas"
-      data-renderer="cytoscape"
-      aria-hidden="true"
-    />
+    <div className="focused-graph-renderer-region">
+      <div
+        ref={container}
+        className="focused-graph-production-canvas"
+        data-renderer="cytoscape"
+        data-renderer-state={rendererState}
+        aria-hidden="true"
+      />
+      {rendererState === "failed" ? (
+        <section
+          className="focused-graph-renderer-recovery"
+          aria-labelledby={rendererRecoveryTitleId}
+        >
+          <h3 id={rendererRecoveryTitleId}>Visual graph unavailable</h3>
+          <p>
+            The complete textual relationship records below remain available.
+            The renderer failure changed no Project data, selection, scope, or
+            authority position.
+          </p>
+          <PetraButton
+            density="compact"
+            onClick={() => setRendererAttempt((attempt) => attempt + 1)}
+          >
+            Retry visual graph
+          </PetraButton>
+        </section>
+      ) : null}
+    </div>
   );
 };
 
@@ -644,6 +694,7 @@ const GraphPeer = ({
   homeNodeKey,
   layout,
   onSelect,
+  rendererFactory,
 }: {
   regions: FocusedGraphRegions;
   idPrefix: string;
@@ -653,6 +704,7 @@ const GraphPeer = ({
   homeNodeKey?: string | undefined;
   layout: FocusedGraphLayout;
   onSelect?: ((key: string) => void) | undefined;
+  rendererFactory?: FocusedGraphRendererFactory | undefined;
 }): React.JSX.Element => (
   <div className="focused-graph-peer" data-focused-peer="graph">
     <p className="focused-graph-peer__boundary">
@@ -668,6 +720,7 @@ const GraphPeer = ({
       homeNodeKey={homeNodeKey}
       layout={layout}
       onSelect={onSelect}
+      rendererFactory={rendererFactory}
     />
     {collapsedNodeKeys.length === 0 ? null : (
       <p>
@@ -796,6 +849,7 @@ export const FocusedGraphResult = ({
   homeNodeKey,
   layout = "relationship",
   onSelect,
+  rendererFactory,
   idPrefix = "focused-result",
   showRepresentationControls = true,
 }: {
@@ -810,6 +864,7 @@ export const FocusedGraphResult = ({
   homeNodeKey?: string | undefined;
   layout?: FocusedGraphLayout;
   onSelect?: ((key: string) => void) | undefined;
+  rendererFactory?: FocusedGraphRendererFactory | undefined;
   idPrefix?: string;
   showRepresentationControls?: boolean;
 }): React.JSX.Element => {
@@ -867,6 +922,7 @@ export const FocusedGraphResult = ({
             homeNodeKey={homeNodeKey}
             layout={layout}
             onSelect={onSelect}
+            rendererFactory={rendererFactory}
           />
         ) : (
           <TextPeer

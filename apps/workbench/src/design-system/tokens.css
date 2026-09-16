@@ -402,3 +402,12 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+@media (pointer: coarse) {
+  :root {
+    --petra-control-height-compact: 44px;
+    --petra-control-height-default: 44px;
+    --petra-control-height-comfortable: 48px;
+    --petra-target-min: 44px;
+  }
+}

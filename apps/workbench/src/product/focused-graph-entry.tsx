@@ -22,8 +22,12 @@ import {
   createFocusedGraphRequestId,
 } from "./focused-graph-identities.js";
 import { FocusedGraphAnalysisSurface } from "./FocusedGraphAnalysis.js";
-import { FocusedGraphExploration } from "./FocusedGraphExploration.js";
+import {
+  FocusedGraphExploration,
+  type FocusedGraphExplorationRead,
+} from "./FocusedGraphExploration.js";
 import { FocusedGraphPositionNavigation } from "./FocusedGraphPositions.js";
+import type { FocusedGraphRendererFactory } from "./FocusedGraphResult.js";
 
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const REQUEST_ID = /^focused_graph_request_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -1158,8 +1162,12 @@ const layerSymbol: Record<FocusedGraphEntry["semantic_layer"], string> = {
 
 export const FocusedGraphOrientationSurface = ({
   data,
+  explorationRead,
+  rendererFactory,
 }: {
   data: FocusedGraphRouteData;
+  explorationRead?: FocusedGraphExplorationRead | undefined;
+  rendererFactory?: FocusedGraphRendererFactory | undefined;
 }): React.JSX.Element => {
   const regions = focusedGraphRegionsFromView(data.view);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -1357,7 +1365,16 @@ export const FocusedGraphOrientationSurface = ({
                 "historical" &&
               regions.orientation.temporalPosition.at.state === "exact"
                 ? ` · ${regions.orientation.temporalPosition.at.value}`
-                : ""}
+                : regions.orientation.temporalPosition.position_kind ===
+                      "historical" &&
+                    regions.orientation.temporalPosition.at.state === "unknown"
+                  ? " · date unknown"
+                  : regions.orientation.temporalPosition.position_kind ===
+                        "historical" &&
+                      regions.orientation.temporalPosition.at.state ===
+                        "unavailable"
+                    ? ` · date unavailable: ${regions.orientation.temporalPosition.at.reason}`
+                    : ""}
             </dd>
           </div>
           <div>
@@ -1416,6 +1433,8 @@ export const FocusedGraphOrientationSurface = ({
           definition={data.definition}
           initialRequest={data.request}
           initialView={data.view}
+          {...(explorationRead === undefined ? {} : { read: explorationRead })}
+          {...(rendererFactory === undefined ? {} : { rendererFactory })}
         />
       ) : (
         <FocusedGraphAnalysisSurface view={data.analysis} />
