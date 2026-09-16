@@ -31,7 +31,7 @@ The open live Review's exact WorkingRelationship was not a member of the availab
 
 The live impact request selected the recent-History event whose affected Claim object and revision matched the exact focused Claim. The production route composed the exact dependency inventory through the resolved-target binding fixed in backend commit `f1516eb` and explicitly reported consequences unavailable because no Review member assessed that exact focus. UX-FX25 separately exercised supplied, incomplete, and stale consequence presentation states with deterministic typed transport.
 
-The exact backend cumulative artifact is referenced only as backend support at `sha256:9b9a36b68170a4102cf1ab4b5ab4368985eb09d73d57487f6969f718b5a4b6af`. Fresh-store browser claims come from the live observer in this command, not from that earlier backend artifact. Chrome accessibility structure and focus were inspected; no native screen-reader result is claimed. Timings are observations from one environment, not product thresholds.
+The exact backend cumulative artifact is referenced only as backend support at `sha256:eef96148b69682104e2b8488f1c9f9c6911b6c74e962a3f1fbbcbfa38dc04b91`. Fresh-store browser claims come from the live observer in this command, not from that earlier backend artifact. Chrome accessibility structure and focus were inspected; no native screen-reader result is claimed. Timings are observations from one environment, not product thresholds.
 
 ## Executed frozen records
 
