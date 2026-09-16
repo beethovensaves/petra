@@ -1,9 +1,10 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
+  FocusedGraphClient,
   PetraInteractionClient,
   ProjectBriefClient,
   ProjectWorkingStateClient,
@@ -71,7 +72,8 @@ const scientificProjectId = "project_01ARZ3NDEKTSV4RRFFQ69G5FAW";
 const writingProjectId = "project_01K4E000000000000000000001";
 const traceMode = process.env.PETRA_WAVE4_TRACE;
 const item49Mode = traceMode === "conversation-model-identity";
-const item53Mode = traceMode === "evidence-remediation-support";
+const wave5Mode = traceMode === "wave5-cumulative";
+const item53Mode = traceMode === "evidence-remediation-support" || wave5Mode;
 const item49ProfileMode = item49Mode || item53Mode;
 const item49Published = Object.freeze({
   projectThreadId: "project_thread_1TVS320FP5Z477P8NY46FXAZF9",
@@ -117,6 +119,14 @@ const contractEntry = (contracts, name, version = "1.0.0") => {
   );
   if (entry === undefined) throw new Error(`Missing ${name}@${version}.`);
   return entry;
+};
+const contractRef = (contracts, name, version = "1.0.0") => {
+  const entry = contractEntry(contracts, name, version);
+  return {
+    name: `petra.${name}`,
+    version: entry.version,
+    content_hash: entry.canonical_sha256,
+  };
 };
 const item49ExtractorRoleProfile = (contracts) => ({
   role_profile_id: derivePetraId(
@@ -490,6 +500,11 @@ const makeScientificPair = ({
     content_hash: definition.content_hash,
     definition_family: definition.definition_family,
   };
+  candidate.profile_object.registration = clone(
+    definition.content.registrations.find(
+      (entry) => entry.semantic_key === "scientific.claim",
+    ),
+  );
   candidate.profile_object.object_record_ref = exactRef(claim, "claim_id");
   candidate.producer = {
     producer_kind: "human",
@@ -549,6 +564,11 @@ const makeScientificPair = ({
   );
   relationship.project_id = scientificProjectId;
   relationship.project_definition_ref = clone(candidate.project_definition_ref);
+  relationship.profile_relationship.registration = clone(
+    definition.content.registrations.find(
+      (entry) => entry.semantic_key === "scientific.assertion",
+    ),
+  );
   relationship.profile_relationship.relationship_record_ref = exactRef(
     assertion,
     "assertion_id",
@@ -697,6 +717,41 @@ const seedScientific = async (pool, neo4jUri) => {
     assert(modelRole !== undefined, "The scientific model role is missing.");
     modelRole.semantic_key = "scientific.evidence-extractor";
     modelRole.contract = item49ExtractorRoleRef(contracts);
+  }
+  if (wave5Mode) {
+    for (const [semanticKey, contractName] of [
+      ["scientific.research-question", "project-objective"],
+      ["scientific.claim", "claim"],
+      ["scientific.assertion", "assertion"],
+    ]) {
+      const registration = definition.content.registrations.find(
+        (entry) => entry.semantic_key === semanticKey,
+      );
+      assert(
+        registration !== undefined,
+        `The Wave 5 profile is missing ${semanticKey}.`,
+      );
+      registration.contract = contractRef(contracts, contractName);
+    }
+    definition.content.registrations.push(
+      {
+        registration_kind: "extension",
+        semantic_key: "petra.focused-graph",
+        contract: contractRef(contracts, "focused-graph-view"),
+      },
+      {
+        registration_kind: "extension",
+        semantic_key: "scientific.graph.return",
+        contract: contractRef(contracts, "focused-graph-view"),
+      },
+    );
+    definition.content.terms.push({
+      semantic_key: "scientific.graph.return",
+      singular: "Return to evidence",
+      plural: "Return to evidence",
+      definition: "Return to the exact originating evidence object.",
+      generic_family: "task",
+    });
   }
   const briefEntry = contracts.entries.find(
     (entry) =>
@@ -912,6 +967,72 @@ const seedScientific = async (pool, neo4jUri) => {
     workUnit: requested,
     inputManifest,
   });
+  const graphPairs = [];
+  if (wave5Mode) {
+    const currentBaselineClaim = await evidence.getClaim(
+      baselineClaim.claim_id,
+    );
+    assert(
+      currentBaselineClaim?.authority.zone === "trusted",
+      "The Wave 5 focused fixture requires the exact trusted baseline Claim.",
+    );
+    const predicates = [
+      "CITES",
+      "SUPPORTS",
+      "CONTRADICTS",
+      "QUALIFIES",
+      "ADOPTS",
+    ];
+    for (const [index, predicate] of predicates.entries()) {
+      const pair = makeScientificPair({
+        definition,
+        objective,
+        workUnit,
+        sourceSpan: bundle.spans[0],
+        workVersion,
+        label: `wave5-${predicate.toLowerCase()}-relationship`,
+        sequence: index + 3,
+      });
+      pair.assertion.subject_id = currentBaselineClaim.claim_id;
+      pair.assertion.predicate = predicate;
+      pair.assertion.object = {
+        object_kind: "entity",
+        entity_id: pair.claim.claim_id,
+      };
+      pair.assertion.assertion_kind =
+        predicate === "ADOPTS" ? "model_inference" : "source_stated";
+      if (predicate !== "CITES") {
+        pair.assertion.scope_comparison = {
+          relation: "aligned",
+          rationale:
+            "The exact cumulative fixture records the same bounded scientific scope for relationship-meaning separation.",
+        };
+      }
+      pair.assertion.rationale = `The exact provider-free fixture records ${predicate} without treating citation as scientific support.`;
+      pair.relationship.profile_relationship.predicate = predicate;
+      pair.relationship.profile_relationship.relationship_record_ref = exactRef(
+        pair.assertion,
+        "assertion_id",
+      );
+      pair.relationship.endpoints.subject = {
+        endpoint_kind: "profile_record",
+        record_ref: exactRef(currentBaselineClaim, "claim_id"),
+      };
+      pair.relationship.validation.target_record_hash = hash(pair.assertion);
+      pair.relationship.content_hash = workingHash(pair.relationship);
+      await evidence.proposeClaim(pair.claim);
+      await evidence.proposeAssertion(pair.assertion);
+      await working.admitWorkingCandidateRevision({
+        candidate: pair.candidate,
+        profileRecord: pair.claim,
+      });
+      await working.admitWorkingRelationshipRevision({
+        relationship: pair.relationship,
+        profileRecord: pair.assertion,
+      });
+      graphPairs.push(pair);
+    }
+  }
   const selected = makeScientificPair({
     definition,
     objective,
@@ -1014,6 +1135,9 @@ const seedScientific = async (pool, neo4jUri) => {
     workVersion,
     selected,
     rejected,
+    graphPairs,
+    baselineClaimId: baselineClaim.claim_id,
+    baselineAssertionId: baselineAssertion.assertion_id,
     session,
     briefSchemaHash: briefEntry.canonical_sha256,
   };
@@ -3519,6 +3643,10 @@ const item53FailureReview = async ({ pool, scientific, work }) => {
 const item53Counts = async (pool) => {
   const result = await pool.query(
     `SELECT
+       (SELECT count(*)::integer FROM petra.work_units WHERE project_id = $1) AS work_units,
+       (SELECT count(*)::integer FROM petra.worker_output_manifests WHERE project_id = $1) AS worker_output_manifests,
+       (SELECT count(*)::integer FROM petra.grounded_responses WHERE project_id = $1) AS grounded_responses,
+       (SELECT count(*)::integer FROM petra.interaction_run_revisions WHERE project_id = $1) AS interaction_run_revisions,
        (SELECT count(*)::integer FROM petra.working_candidate_revisions WHERE project_id = $1) AS working_candidate_revisions,
        (SELECT count(*)::integer FROM petra.review_session_revisions WHERE project_id = $1) AS review_revisions,
        (SELECT count(*)::integer FROM petra.change_sets WHERE project_id = $1) AS change_sets,
@@ -3557,6 +3685,7 @@ const exerciseItem53Trace = async ({
 }) => {
   let active;
   let vite;
+  let wave5GraphRequest;
   const observer = await item53Observer();
   const nativeFetch = globalThis.fetch;
   globalThis.fetch = (input, init) => {
@@ -3628,6 +3757,252 @@ const exerciseItem53Trace = async ({
         thread?.id === item49Published.projectThreadId,
       "The provider-free continuation did not expose the exact item 49 starting identities through production reads.",
     );
+    let wave5Cumulative;
+    if (wave5Mode) {
+      const baselineClaim = await new PostgresEvidenceAuthorityRepository(
+        pool,
+      ).getClaim(scientific.baselineClaimId);
+      const baselineAssertion = await new PostgresEvidenceAuthorityRepository(
+        pool,
+      ).getAssertion(scientific.baselineAssertionId);
+      assert(
+        baselineClaim?.authority.zone === "trusted" &&
+          baselineAssertion?.authority.zone === "trusted",
+        "The Wave 5 production query lost its exact trusted focus Claim or Assertion.",
+      );
+      const graphClient = new FocusedGraphClient({
+        baseUrl: active.url,
+        token,
+        projectDefinition: scientific.definition,
+      });
+      const graphRequest = {
+        request_id: derivePetraId(
+          "focused_graph_request",
+          "wave5-cumulative:cross-view-identity",
+        ),
+        task_kind: "neighborhood",
+        task_semantic_key: "scientific.research-question",
+        question:
+          "Which exact registered relationships touch this accepted Claim?",
+        focus_ref: {
+          record_id: baselineClaim.claim_id,
+          revision: baselineClaim.revision,
+          record_hash: hash(baselineClaim),
+        },
+        origin: { origin_kind: "direct" },
+        project_definition_ref: {
+          project_definition_id: scientific.definition.project_definition_id,
+          revision: scientific.definition.revision,
+          content_hash: scientific.definition.content_hash,
+          record_hash: hash(scientific.definition),
+          definition_family: scientific.definition.definition_family,
+        },
+        semantic_layer: "working",
+        temporal_position: {
+          position_kind: "current",
+          dimension: "project_snapshot",
+        },
+        object_semantic_key: "scientific.claim",
+        relationship_semantic_key: "scientific.assertion",
+        return_action_semantic_key: "scientific.graph.return",
+        return_destination: {
+          destination_key: "destination:wave5:evidence",
+          destination_kind: "evidence",
+          state: "available",
+          owner: "project_relationship_view",
+          label: "Return to Evidence",
+          target_ref: {
+            record_id: baselineClaim.claim_id,
+            revision: baselineClaim.revision,
+            record_hash: hash(baselineClaim),
+          },
+        },
+        limits: {
+          maximum_depth: 1,
+          maximum_nodes: 20,
+          maximum_relationships: 19,
+          maximum_paths: 19,
+        },
+      };
+      wave5GraphRequest = graphRequest;
+      const focused = await graphClient.read(scientificProjectId, graphRequest);
+      const meanings = focused.content.relationships.map(
+        (relationship) => relationship.meaning_kind,
+      );
+      assert(
+        canonicalize([...new Set(meanings)].sort()) ===
+          canonicalize(
+            [
+              "citation",
+              "support",
+              "contradiction",
+              "qualification",
+              "inference",
+            ].sort(),
+          ),
+        `The production focused query collapsed registered meanings: ${JSON.stringify(meanings)}.`,
+      );
+      const supportPair = scientific.graphPairs.find(
+        (pair) => pair.assertion.predicate === "SUPPORTS",
+      );
+      const selectedRelationship = focused.content.relationships.find(
+        (relationship) =>
+          relationship.relationship_ref.element_id ===
+          supportPair?.relationship.working_relationship_id,
+      );
+      assert(
+        supportPair !== undefined && selectedRelationship !== undefined,
+        "The Wave 5 focused result lost the exact selected SUPPORTS identity.",
+      );
+      const details = await graphClient.readDetails(scientificProjectId, {
+        details_request_id: derivePetraId(
+          "focused_graph_details_request",
+          "wave5-cumulative:cross-view-identity",
+        ),
+        focused_graph_request: graphRequest,
+        expected_graph: {
+          schema_name: focused.schema_name,
+          schema_version: focused.schema_version,
+          content_hash: focused.content_hash,
+        },
+        selection: {
+          selection_kind: "relationship",
+          selected_keys: [selectedRelationship.relationship_key],
+        },
+      });
+      const brief = await new ProjectBriefClient({
+        baseUrl: active.url,
+        token,
+        registeredProfileSchemaHash: scientific.briefSchemaHash,
+      }).read(scientificProjectId);
+      const evidenceView =
+        await projectData.loadProjectRelationshipOverlay(scientificProjectId);
+      const workResponse = await nativeFetch(
+        new URL(
+          `/api/queries/projects/${scientificProjectId}/work/${supportPair.candidate.task_context.work_unit_ref.record_id}`,
+          active.url,
+        ),
+        { headers: { authorization: `Bearer ${token}` } },
+      );
+      const workView = await workResponse.json();
+      const identityNeedles = [
+        scientific.workVersion.work_id,
+        baselineClaim.claim_id,
+        baselineAssertion.assertion_id,
+        scientific.documentBundle.spans[0].source_span_id,
+      ];
+      const workUnitId =
+        supportPair.candidate.task_context.work_unit_ref.record_id;
+      const views = {
+        brief,
+        evidence: evidenceView,
+        work: workView,
+        focused,
+        details,
+      };
+      const represented = canonicalize(views);
+      const viewBindings = Object.fromEntries(
+        Object.entries(views).map(([name, view]) => {
+          const rendered = canonicalize(view);
+          return [
+            name,
+            identityNeedles.filter((identity) => rendered.includes(identity)),
+          ];
+        }),
+      );
+      viewBindings.work = canonicalize(workView).includes(workUnitId)
+        ? [workUnitId]
+        : [];
+      assert(
+        workResponse.ok &&
+          viewBindings.work.includes(workUnitId) &&
+          identityNeedles.every((identity) => represented.includes(identity)) &&
+          identityNeedles.every((identity) =>
+            canonicalize(evidenceView).includes(identity),
+          ) &&
+          viewBindings.focused.includes(baselineClaim.claim_id) &&
+          viewBindings.details.includes(baselineClaim.claim_id),
+        "Work, Claim, Assertion, and SourceSpan identity did not converge across the production reads.",
+      );
+      const sourceInspection = details.content.relationships
+        .flatMap((relationship) => relationship.source_inspections)
+        .find(
+          (inspection) =>
+            inspection.state === "available" &&
+            inspection.source_span_ref.record_id ===
+              scientific.documentBundle.spans[0].source_span_id,
+        );
+      assert(
+        sourceInspection !== undefined && evidenceView !== undefined,
+        `The production Evidence view or exact SourceSpan inspection was unavailable: ${JSON.stringify(
+          {
+            evidence_view: evidenceView?.schema_name,
+            source_inspections: details.content.relationships.flatMap(
+              (relationship) => relationship.source_inspections,
+            ),
+          },
+        )}`,
+      );
+      wave5Cumulative = {
+        identity: {
+          work_id: scientific.workVersion.work_id,
+          work_version_id: scientific.workVersion.work_version_id,
+          work_unit_id: workUnitId,
+          claim_id: baselineClaim.claim_id,
+          assertion_id: baselineAssertion.assertion_id,
+          source_span_id: scientific.documentBundle.spans[0].source_span_id,
+          view_bindings: viewBindings,
+          brief_content_hash: brief.content_hash,
+          focused_graph_content_hash: focused.content_hash,
+          details_content_hash: details.content_hash,
+          evidence_view_content_hash: evidenceView.content_hash,
+          source_inspection_content_hash:
+            sourceInspection.source_view_content_hash,
+        },
+        relationship_meanings: focused.content.relationships.map(
+          (relationship) => ({
+            predicate: relationship.predicate,
+            meaning: relationship.meaning_kind,
+            origin: relationship.origin,
+            authority_position: relationship.authority_position,
+          }),
+        ),
+        projection_position: focused.content.projection_position,
+        layers: focused.content.scope.included_layers,
+        authority_read_matrix: {
+          current: {
+            authority_source:
+              focused.content.projection_position.authority_source,
+            projection_state: focused.content.projection_position.state,
+          },
+          working: {
+            semantic_layer: focused.content.semantic_layer,
+            authority_position: "working_non_authority",
+          },
+          cached: {
+            response_id: continuation.grounded.response.grounded_response_id,
+            cache_state: continuation.grounded.response.content.cache.state,
+            authority_effect:
+              continuation.grounded.response.content.terminal.authority_effect,
+          },
+          running: {
+            interaction_run_id:
+              continuation.workAndInteraction.terminalRun.interaction_run_id,
+            retained_revision: 1,
+            lifecycle: "running",
+            authority_effect: "none",
+          },
+          proposed: {
+            claim_id: scientific.selected.claim.claim_id,
+            authority_zone: scientific.selected.claim.authority.zone,
+            domain_authority: false,
+          },
+        },
+      };
+      progress(
+        "production typed clients retained cross-view identity and five separate relationship meanings",
+      );
+    }
     const crossProjectReview = await nativeFetch(
       new URL(
         `/api/queries/projects/${writingProjectId}/reviews/${scientific.session.review_session_id}`,
@@ -3779,6 +4154,12 @@ const exerciseItem53Trace = async ({
         ),
       "The exact current working head did not make the unrefreshed Review stale.",
     );
+    if (wave5Mode)
+      wave5Cumulative.authority_read_matrix.stale = {
+        review_session_id: staleReview.review_session_id,
+        snapshot_state: staleReview.content.session.snapshot_state,
+        authority_effect: "none",
+      };
     await record("stale_before_refresh", {
       staleReviewHash: staleReview.content_hash,
     });
@@ -3893,6 +4274,19 @@ const exerciseItem53Trace = async ({
         applied.assessment.content.review.projection.state === "catching_up",
       "The exact human Apply did not produce the honest projection-lag observation.",
     );
+    if (wave5Mode) {
+      wave5Cumulative.authority_read_matrix.applied = {
+        change_set_id: checkpoint.binding.change_set.change_set_id,
+        outcome: applied.outcome,
+        authority_effect: "canonical_change_set",
+      };
+      wave5Cumulative.authority_read_matrix.projection_catching_up = {
+        state: applied.assessment.content.review.projection.state,
+        pending_records:
+          applied.assessment.content.review.projection.pending_records,
+        authority_effect: "none",
+      };
+    }
     const appliedReplay = await applyClient.apply(applyRequest);
     assert(
       appliedReplay.steps.every((step) => step.observation === "replayed"),
@@ -4022,40 +4416,134 @@ const exerciseItem53Trace = async ({
       "The governed failure did not retain the unapplied stale Review member.",
     );
 
+    if (wave5Mode) {
+      const appliedEvent = applied.steps
+        .map((step) => step.event)
+        .find((event) => event?.event.event_type === "change_set.applied");
+      assert(
+        appliedEvent !== undefined,
+        "The exact Review Apply did not retain its causal History event.",
+      );
+      const preview = await projectData.getProjectHistoryCompensationPreview(
+        scientificProjectId,
+        appliedEvent.event_id,
+      );
+      const plan = await projectData.composeProjectHistoryCompensationPlan({
+        projectId: scientificProjectId,
+        eventId: appliedEvent.event_id,
+        preview,
+        reason:
+          "The cumulative Wave 5 trace exercises the explicit governed compensation path.",
+        approvalRationale:
+          "The exact applied pair is intentionally reversed for cumulative authority evidence.",
+        explicitConfirmation: true,
+      });
+      const reverted = await projectData.executeProjectHistoryCompensationPlan({
+        projectId: scientificProjectId,
+        eventId: appliedEvent.event_id,
+        plan,
+        explicitExecutionConfirmation: true,
+      });
+      const revertedReplay =
+        await projectData.executeProjectHistoryCompensationPlan({
+          projectId: scientificProjectId,
+          eventId: appliedEvent.event_id,
+          plan,
+          explicitExecutionConfirmation: true,
+        });
+      assert(
+        reverted.content.authoritative_effect.state ===
+          "compensation_applied" &&
+          revertedReplay.content.authoritative_effect.state ===
+            "compensation_applied" &&
+          reverted.content.authoritative_effect.compensation_change_set_id ===
+            revertedReplay.content.authoritative_effect
+              .compensation_change_set_id,
+        "Governed Revert did not retain one exact idempotent compensation effect.",
+      );
+      wave5Cumulative.review = {
+        inspected_review_session_id: scientific.session.review_session_id,
+        corrected_candidate_revision: correction.candidate.revision,
+        applied_change_set_id: checkpoint.binding.change_set.change_set_id,
+        applied_event_id: appliedEvent.event_id,
+        compensation_plan_content_hash: plan.content_hash,
+        compensation_change_set_id:
+          reverted.content.authoritative_effect.compensation_change_set_id,
+        replay_compensation_change_set_id:
+          revertedReplay.content.authoritative_effect
+            .compensation_change_set_id,
+      };
+      progress(
+        "production Review correction, exact Apply, and governed Revert completed through shared owners",
+      );
+    }
+
     const preRestartCounts = await item53Counts(pool);
     const preRestartWorking = await new ProjectWorkingStateClient({
       baseUrl: active.url,
       token,
     }).read(scientificProjectId);
+    const preRestartFocused =
+      wave5Mode && wave5GraphRequest !== undefined
+        ? await new FocusedGraphClient({
+            baseUrl: active.url,
+            token,
+            projectDefinition: scientific.definition,
+          }).read(scientificProjectId, wave5GraphRequest)
+        : undefined;
     await active.shutdown();
     active = await launch();
     const postRestartWorking = await new ProjectWorkingStateClient({
       baseUrl: active.url,
       token,
     }).read(scientificProjectId);
-    const postRestartReview = await rawReview(
-      active.url,
-      scientificProjectId,
-      scientific.session.review_session_id,
-    );
+    const postRestartFocused =
+      wave5Mode && wave5GraphRequest !== undefined
+        ? await new FocusedGraphClient({
+            baseUrl: active.url,
+            token,
+            projectDefinition: scientific.definition,
+          }).read(scientificProjectId, wave5GraphRequest)
+        : undefined;
+    const postRestartReview = wave5Mode
+      ? undefined
+      : await rawReview(
+          active.url,
+          scientificProjectId,
+          scientific.session.review_session_id,
+        );
     assert(
       postRestartWorking.content_hash === preRestartWorking.content_hash &&
-        postRestartReview.review_session_id ===
-          item49Published.reviewSessionId &&
+        (wave5Mode
+          ? postRestartFocused?.content_hash === preRestartFocused?.content_hash
+          : true) &&
+        (wave5Mode ||
+          postRestartReview?.review_session_id ===
+            item49Published.reviewSessionId) &&
         canonicalize(await item53Counts(pool)) ===
           canonicalize(preRestartCounts),
       `Restart changed the provider-free continuation identities or durable cardinalities: ${JSON.stringify(
         {
           working_before: preRestartWorking.content_hash,
           working_after: postRestartWorking.content_hash,
-          review_after: postRestartReview.review_session_id,
+          review_after: postRestartReview?.review_session_id,
           counts_before: preRestartCounts,
           counts_after: await item53Counts(pool),
         },
       )}`,
     );
+    if (wave5Mode)
+      wave5Cumulative.restart_replay = {
+        working_content_hash_before: preRestartWorking.content_hash,
+        working_content_hash_after: postRestartWorking.content_hash,
+        focused_graph_content_hash_before: preRestartFocused?.content_hash,
+        focused_graph_content_hash_after: postRestartFocused?.content_hash,
+        durable_counts_before: preRestartCounts,
+        durable_counts_after: await item53Counts(pool),
+        duplicate_effects: false,
+      };
     await record("restart_complete", {
-      item49ReviewHash: postRestartReview.content_hash,
+      item49ReviewHash: postRestartReview?.content_hash,
       failureReviewHash: failureReview.content_hash,
     });
     return {
@@ -4095,6 +4583,9 @@ const exerciseItem53Trace = async ({
         pending_records:
           applied.assessment.content.review.projection.pending_records,
       },
+      ...(wave5Cumulative === undefined
+        ? {}
+        : { wave5_cumulative: wave5Cumulative }),
       durable_counts: preRestartCounts,
     };
   } finally {
@@ -4877,7 +5368,11 @@ try {
           continuation: { workAndInteraction, grounded, extractor },
         });
       })();
-  process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  const renderedResult = `${JSON.stringify(result, null, 2)}\n`;
+  const resultOutput = process.env.PETRA_WAVE4_RESULT_OUTPUT?.trim();
+  if (resultOutput !== undefined && resultOutput !== "")
+    writeFileSync(resultOutput, renderedResult);
+  process.stdout.write(renderedResult);
 } catch (error) {
   failure = error;
   if (Array.isArray(error?.validationErrors))

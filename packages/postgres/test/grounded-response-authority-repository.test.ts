@@ -3510,7 +3510,14 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       ...cancellation,
       applied: false,
     });
-    const restored = await history.restore(
+    const restartedHistory = new DurableInteractionHistory({
+      serviceActor: serviceActor(),
+      artifactStore: store,
+      artifacts: new PostgresArtifactAuthorityRepository(pool, store),
+      interactions: new PostgresInteractionAuthorityRepository(pool),
+      workUnits: new PostgresWorkUnitAuthorityRepository(pool),
+    });
+    const restored = await restartedHistory.restore(
       interaction.protocol_thread_id,
       interaction.protocol_run_id,
     );

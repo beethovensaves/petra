@@ -1,0 +1,273 @@
+{
+  "schema_name": "petra.wave5-backend-cumulative-observation",
+  "schema_version": "1.0.0",
+  "wave": 5,
+  "slice": 21,
+  "status": "passed",
+  "executed_at": "2026-09-16T07:45:53.662Z",
+  "command": "npm run test:wave5:cumulative",
+  "runtime": {
+    "node": "24.20.0",
+    "fresh_stores": [
+      "PostgreSQL 18.6",
+      "Neo4j 2026.07.1",
+      "SeaweedFS 4.41 S3-compatible artifact store"
+    ],
+    "external_model_calls": 0,
+    "paired_profiles": ["scientific", "controlled_writing"]
+  },
+  "phase_commands": [
+    "PETRA_WAVE4_TRACE=wave5-cumulative node scripts/test-wave4-cumulative-integration.mjs",
+    "node scripts/test-m1-cumulative-integration.mjs",
+    "node scripts/test-postgres-integration.mjs",
+    "node scripts/test-neo4j-integration.mjs",
+    "Node source audit over apps/**/src and packages/**/src for @ag-ui/ imports"
+  ],
+  "scenario_records": [
+    {
+      "evidence_id": "M1.7-AC01",
+      "scenario_id": "cross-view-identity-live",
+      "status": "passed",
+      "observation": {
+        "work_id": "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+        "work_version_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+        "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        "claim_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "assertion_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+        "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+        "view_bindings": {
+          "brief": [
+            "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+            "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+            "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
+          ],
+          "evidence": [
+            "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+            "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+            "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
+          ],
+          "work": ["work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"],
+          "focused": [
+            "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
+          ],
+          "details": [
+            "work_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+            "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
+          ]
+        },
+        "brief_content_hash": "sha256:0dc74dca195e735e6fa5b837db1c19e24eb8ebb524a4116a9c7e98bd72a0046e",
+        "focused_graph_content_hash": "sha256:ea4bf150b64c129355febe6759b8747b9014f453588fbe88e3d95d945288ab81",
+        "details_content_hash": "sha256:114a69106cc1a74dea97f724db7c6e08343670c1ac64211c5952db00505a4af5",
+        "evidence_view_content_hash": "sha256:552741218664c9f8b8db3ad385b186e7d23183bf7e3542e1d06d17b9b7068c02",
+        "source_inspection_content_hash": "sha256:cfe4a28412343a110698ff8e23197495dd700ad8fcf607a659e3cdc93f5ce785"
+      },
+      "boundary": "Fresh-store authenticated production Brief, Evidence-owner relationship overlay, Work, Focused Graph, Details, and exact ProjectSource inspection reads; no browser claim."
+    },
+    {
+      "evidence_id": "M1.7-AC02",
+      "scenario_id": "citation-support-separation-live",
+      "status": "passed",
+      "observation": [
+        {
+          "predicate": "CITES",
+          "meaning": "citation",
+          "origin": "working_candidate",
+          "authority_position": "working_non_authority"
+        },
+        {
+          "predicate": "SUPPORTS",
+          "meaning": "support",
+          "origin": "working_candidate",
+          "authority_position": "working_non_authority"
+        },
+        {
+          "predicate": "CONTRADICTS",
+          "meaning": "contradiction",
+          "origin": "working_candidate",
+          "authority_position": "working_non_authority"
+        },
+        {
+          "predicate": "QUALIFIES",
+          "meaning": "qualification",
+          "origin": "working_candidate",
+          "authority_position": "working_non_authority"
+        },
+        {
+          "predicate": "ADOPTS",
+          "meaning": "inference",
+          "origin": "working_candidate",
+          "authority_position": "working_non_authority"
+        }
+      ],
+      "boundary": "One bounded profile-resolved production focused query; the five meanings remained separate working non-authority relationships."
+    },
+    {
+      "evidence_id": "M1.7-AC03",
+      "scenario_id": "review-correct-reverse-live",
+      "status": "passed",
+      "observation": {
+        "inspected_review_session_id": "review_session_01K4D000000000000000000004",
+        "corrected_candidate_revision": 2,
+        "applied_change_set_id": "change_set_2FGWKQ7910F4PRMNRR9V2ZA5HD",
+        "applied_event_id": "event_01M2MJRH4NV12DT25EDEQBC15D",
+        "compensation_plan_content_hash": "sha256:45e44c6bd640745fc9faaa4782b1e0016c0aa7437cef2baa45291b898de15d9a",
+        "compensation_change_set_id": "change_set_0204S7AVHHSJ684SHTKSB4T97F",
+        "replay_compensation_change_set_id": "change_set_0204S7AVHHSJ684SHTKSB4T97F"
+      },
+      "boundary": "Existing Review correction and Apply clients plus the existing History compensation controller; no graph-specific mutation owner."
+    },
+    {
+      "evidence_id": "M1.7-AC04",
+      "scenario_id": "reload-reconnect-no-duplicate",
+      "status": "passed",
+      "observation": {
+        "restart": {
+          "working_content_hash_before": "sha256:27322875322fee8433694220614cd120910748e200e152861fbc41facacb5a40",
+          "working_content_hash_after": "sha256:27322875322fee8433694220614cd120910748e200e152861fbc41facacb5a40",
+          "focused_graph_content_hash_before": "sha256:93d944a79d9d56f1d841e5f6f5c0cda4b2a5ba36d9ac794b8a6bc16cbd16eef9",
+          "focused_graph_content_hash_after": "sha256:93d944a79d9d56f1d841e5f6f5c0cda4b2a5ba36d9ac794b8a6bc16cbd16eef9",
+          "durable_counts_before": {
+            "work_units": 2,
+            "worker_output_manifests": 1,
+            "grounded_responses": 1,
+            "interaction_run_revisions": 3,
+            "working_candidate_revisions": 8,
+            "review_revisions": 4,
+            "change_sets": 5,
+            "commands": 17,
+            "events": 15,
+            "graph_outboxes": 5,
+            "writing_candidate_revisions": 1,
+            "writing_change_sets": 0,
+            "writing_commands": 0,
+            "writing_events": 0
+          },
+          "durable_counts_after": {
+            "work_units": 2,
+            "worker_output_manifests": 1,
+            "grounded_responses": 1,
+            "interaction_run_revisions": 3,
+            "working_candidate_revisions": 8,
+            "review_revisions": 4,
+            "change_sets": 5,
+            "commands": 17,
+            "events": 15,
+            "graph_outboxes": 5,
+            "writing_candidate_revisions": 1,
+            "writing_change_sets": 0,
+            "writing_commands": 0,
+            "writing_events": 0
+          },
+          "duplicate_effects": false
+        },
+        "reconnect_event_count": 5,
+        "duplicate_review_resolution_replayed": true,
+        "authority_history": {
+          "domain_events": 9,
+          "event_types": [
+            "change_set.submitted",
+            "approval.recorded",
+            "change_set.applied",
+            "change_set.submitted",
+            "approval.recorded",
+            "change_set.reverted",
+            "change_set.submitted",
+            "approval.recorded",
+            "change_set.applied"
+          ],
+          "graph_outboxes": 3,
+          "primary_revisions_retained": [1, 2, 3],
+          "primary_current_zone": "quarantine",
+          "qualification_current_zone": "trusted",
+          "replay_through_stream_revision": 6,
+          "rebuilt_graph_receipts": 2,
+          "final_projection_state": "current"
+        }
+      },
+      "boundary": "Server restart and exact replay on the paired-profile stores plus production AG-UI reconnect on a second fresh cumulative store; cardinalities cover Work output, grounded result, command, event, ChangeSet, and projection outbox effects."
+    },
+    {
+      "evidence_id": "M1.7-AC05",
+      "scenario_id": "authority-projection-separation",
+      "status": "passed",
+      "observation": {
+        "current": {
+          "authority_source": "postgresql",
+          "projection_state": "current"
+        },
+        "working": {
+          "semantic_layer": "working",
+          "authority_position": "working_non_authority"
+        },
+        "cached": {
+          "response_id": "grounded_response_0R812XV7Z34417E3M3F49QNE0A",
+          "cache_state": "reusable",
+          "authority_effect": "none"
+        },
+        "running": {
+          "interaction_run_id": "interaction_run_525CDXC6KHKJEB9045XDXJTVBT",
+          "retained_revision": 1,
+          "lifecycle": "running",
+          "authority_effect": "none"
+        },
+        "proposed": {
+          "claim_id": "claim_6X7AYPK94K95FGKER2JC6VZGEF",
+          "authority_zone": "quarantine",
+          "domain_authority": false
+        },
+        "stale": {
+          "review_session_id": "review_session_01K4D000000000000000000004",
+          "snapshot_state": "stale",
+          "authority_effect": "none"
+        },
+        "applied": {
+          "change_set_id": "change_set_2FGWKQ7910F4PRMNRR9V2ZA5HD",
+          "outcome": "applied",
+          "authority_effect": "canonical_change_set"
+        },
+        "projection_catching_up": {
+          "state": "catching_up",
+          "pending_records": 2,
+          "authority_effect": "none"
+        }
+      },
+      "boundary": "Current, working, reusable-cache, retained-running, proposed, stale, applied, and projection-catching-up states read without promoting operational or projection state to PostgreSQL domain authority."
+    },
+    {
+      "evidence_id": "M1.7-AC06",
+      "scenario_id": "ag-ui-import-boundary-audit",
+      "status": "passed",
+      "observation": {
+        "import_files": [
+          "packages/adapters/src/ag-ui.ts",
+          "packages/adapters/src/codex-app-server.ts"
+        ],
+        "matches": [
+          "packages/adapters/src/ag-ui.ts:1:import { HttpAgent } from \"@ag-ui/client\";",
+          "packages/adapters/src/ag-ui.ts:7:} from \"@ag-ui/core\";",
+          "packages/adapters/src/ag-ui.ts:8:import { EventEncoder } from \"@ag-ui/encoder\";",
+          "packages/adapters/src/codex-app-server.ts:7:import { EventType, type BaseEvent } from \"@ag-ui/core\";"
+        ]
+      },
+      "boundary": "Production source under apps/**/src and packages/**/src; tests and generated build output excluded."
+    },
+    {
+      "evidence_id": "M1.7-AC07",
+      "scenario_id": "abort-cancel-separation",
+      "status": "passed",
+      "observation": {
+        "delivery_abort": { "count": 1, "work_status": "completed" },
+        "authorized_cancellation": {
+          "work_status": "cancelled",
+          "terminal_code": "WORK_UNIT_CANCELLED",
+          "restart_restore_suite": "PostgreSQL grounded-response authority integration"
+        }
+      },
+      "boundary": "Production HTTP abort and cancellation routes were executed separately; a fresh PostgreSQL integration then restored the persisted cancelled terminal through newly constructed repository owners. No provider call."
+    }
+  ]
+}
