@@ -729,6 +729,17 @@ export type {
   ViewContent as FocusedGraphViewContentV11,
 } from "./generated/focused-graph-view-v1-1.js";
 export type {
+  DetailsContent as FocusedGraphDetailsContent,
+  GraphBinding as FocusedGraphDetailsGraphBinding,
+  NodeDetails as FocusedGraphNodeDetails,
+  PetraFocusedGraphDetailsView,
+  RelationshipDetails as FocusedGraphRelationshipDetails,
+  Selection as FocusedGraphDetailsSelection,
+  SourceInspection as FocusedGraphSourceInspection,
+  SourceInspectionAvailable as FocusedGraphSourceInspectionAvailable,
+  SourceInspectionUnavailable as FocusedGraphSourceInspectionUnavailable,
+} from "./generated/focused-graph-details-view.js";
+export type {
   AuthorityPosition as ProjectObjectLocationAuthorityPosition,
   DefinitionRef as ProjectObjectLocationDefinitionRef,
   Destination as ProjectObjectDestination,

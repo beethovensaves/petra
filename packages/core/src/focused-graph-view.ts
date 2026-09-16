@@ -12,6 +12,7 @@ import type {
   FocusedGraphSemanticDestination,
   FocusedGraphTask,
   FocusedGraphTerm,
+  PetraFocusedGraphDetailsView,
   PetraFocusedGraphView,
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
@@ -126,11 +127,29 @@ export type FocusedGraphReadRequest =
 export type PetraFocusedGraphReadView =
   PetraFocusedGraphView | PetraFocusedGraphViewV11;
 
+export interface FocusedGraphDetailsViewRequest {
+  readonly details_request_id: string;
+  readonly focused_graph_request: FocusedGraphReadRequest;
+  readonly expected_graph: {
+    readonly schema_name: "petra.focused-graph-view";
+    readonly schema_version: "1.0.0" | "1.1.0";
+    readonly content_hash: string;
+  };
+  readonly selection: {
+    readonly selection_kind: "node" | "relationship" | "path";
+    readonly selected_keys: readonly [string, ...string[]];
+  };
+}
+
 export interface FocusedGraphViewReader {
   queryFocusedGraph(
     projectId: string,
     request: FocusedGraphReadRequest,
   ): Promise<PetraFocusedGraphReadView | undefined>;
+  queryFocusedGraphDetails?(
+    projectId: string,
+    request: FocusedGraphDetailsViewRequest,
+  ): Promise<PetraFocusedGraphDetailsView | undefined>;
 }
 
 const HASH_PATTERN = /^sha256:[0-9a-f]{64}$/u;
@@ -139,6 +158,8 @@ const PROJECT_DEFINITION_ID_PATTERN =
   /^project_definition_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const FOCUSED_REQUEST_ID_PATTERN =
   /^focused_graph_request_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const FOCUSED_DETAILS_REQUEST_ID_PATTERN =
+  /^focused_graph_details_request_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const SEMANTIC_KEY_PATTERN = /^[a-z][a-z0-9._/-]{1,199}$/u;
 const STABLE_KEY_PATTERN = /^[a-z][a-z0-9._:/-]{1,999}$/u;
 
@@ -463,6 +484,64 @@ export const parseFocusedGraphViewRequest = (
     );
   }
   return structuredClone(value) as unknown as FocusedGraphReadRequest;
+};
+
+/** Parse a read-only selected Details request bound to one exact graph result. */
+export const parseFocusedGraphDetailsViewRequest = (
+  value: unknown,
+): FocusedGraphDetailsViewRequest => {
+  if (
+    !isRecord(value) ||
+    !exactKeys(value, [
+      "details_request_id",
+      "focused_graph_request",
+      "expected_graph",
+      "selection",
+    ]) ||
+    typeof value.details_request_id !== "string" ||
+    !FOCUSED_DETAILS_REQUEST_ID_PATTERN.test(value.details_request_id) ||
+    !isRecord(value.expected_graph) ||
+    !exactKeys(value.expected_graph, [
+      "schema_name",
+      "schema_version",
+      "content_hash",
+    ]) ||
+    value.expected_graph.schema_name !== "petra.focused-graph-view" ||
+    !["1.0.0", "1.1.0"].includes(String(value.expected_graph.schema_version)) ||
+    typeof value.expected_graph.content_hash !== "string" ||
+    !HASH_PATTERN.test(value.expected_graph.content_hash) ||
+    !isRecord(value.selection) ||
+    !exactKeys(value.selection, ["selection_kind", "selected_keys"]) ||
+    !["node", "relationship", "path"].includes(
+      String(value.selection.selection_kind),
+    ) ||
+    !Array.isArray(value.selection.selected_keys) ||
+    value.selection.selected_keys.length < 1 ||
+    value.selection.selected_keys.length > 100 ||
+    value.selection.selected_keys.some(
+      (key) => typeof key !== "string" || !STABLE_KEY_PATTERN.test(key),
+    ) ||
+    new Set(value.selection.selected_keys).size !==
+      value.selection.selected_keys.length
+  ) {
+    throw new FocusedGraphQueryError(
+      "FOCUSED_GRAPH_QUERY_INVALID",
+      "Focused graph Details requires one exact graph result and one bounded local selection.",
+    );
+  }
+  const parsedGraphRequest = parseFocusedGraphViewRequest(
+    value.focused_graph_request,
+  );
+  return {
+    details_request_id: value.details_request_id,
+    focused_graph_request: parsedGraphRequest,
+    expected_graph: structuredClone(
+      value.expected_graph,
+    ) as FocusedGraphDetailsViewRequest["expected_graph"],
+    selection: structuredClone(
+      value.selection,
+    ) as FocusedGraphDetailsViewRequest["selection"],
+  };
 };
 
 const digest = (value: unknown): string =>

@@ -826,6 +826,17 @@
       "typescript_path": "src/generated/focused-graph-view-v1-1.ts"
     },
     {
+      "name": "focused-graph-details-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/focused-graph-details-view/1.0.0/schema.json",
+      "path": "schemas/focused-graph-details-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-focused-selection-details-and-source-composition",
+      "canonical_sha256": "sha256:5545761863811ffa19b465d9a37f61f82a5fb4a2aa2b9eaebe08949cadcae8ef",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/focused-graph-details-view.ts"
+    },
+    {
       "name": "project-object-location-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-object-location-view/1.0.0/schema.json",

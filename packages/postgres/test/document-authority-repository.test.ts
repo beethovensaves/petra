@@ -417,6 +417,28 @@ describePostgres("PostgreSQL Document authority repository", () => {
     expect(view.content.representation.preview?.text).toBe(
       "The study reports a measurable improvement.",
     );
+    const snapshotClient = await pool.connect();
+    try {
+      await snapshotClient.query(
+        "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY",
+      );
+      const exactSourceSpanView = await sourceViews.readSourceInSnapshot(
+        snapshotClient,
+        view.read_at,
+        project.project_id,
+        projectSource.project_source_id,
+        bundle.spans[0]!.source_span_id,
+      );
+      await snapshotClient.query("COMMIT");
+      expect(
+        exactSourceSpanView?.content.representation.preview?.span_ref.record_id,
+      ).toBe(bundle.spans[0]!.source_span_id);
+    } catch (error) {
+      await snapshotClient.query("ROLLBACK");
+      throw error;
+    } finally {
+      snapshotClient.release();
+    }
     expect(view.content.authority.isolation).toBe("repeatable_read");
     const location = await objectLocations.locateProjectObject({
       project_id: project.project_id,

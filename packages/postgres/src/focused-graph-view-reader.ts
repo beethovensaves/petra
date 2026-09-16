@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import type {
+  FocusedGraphDetailsContent,
   FocusedGraphExactRef,
   FocusedGraphGroupV11,
   FocusedGraphNode,
@@ -11,8 +12,10 @@ import type {
   FocusedGraphRelationship,
   FocusedGraphResolvedSemantic,
   FocusedGraphSemanticDestination,
+  FocusedGraphSourceInspection,
   PetraAssertion,
   PetraClaim,
+  PetraFocusedGraphDetailsView,
   PetraFocusedGraphView,
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
@@ -27,11 +30,13 @@ import {
   FocusedGraphViewContractError,
   FocusedGraphViewContractResolver,
   derivePetraId,
+  parseFocusedGraphDetailsViewRequest,
   parseFocusedGraphViewRequest,
   type AuthorityGraphFreshness,
   type AuthorityGraphObjectView,
   type AuthorityGraphStore,
   type FocusedGraphExplorationViewRequest,
+  type FocusedGraphDetailsViewRequest,
   type FocusedGraphReadRequest,
   type FocusedGraphViewReader,
   type FocusedGraphViewRequest,
@@ -39,6 +44,9 @@ import {
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
+
+import { PostgresProjectObjectLocationViewReader } from "./project-object-location-view-reader.js";
+import { PostgresProjectSourceViewReader } from "./project-source-view-reader.js";
 
 interface ProjectContextRow {
   project_id: string;
@@ -53,6 +61,10 @@ interface PayloadHashRow {
 
 interface SourceSpanRow extends PayloadHashRow {
   project_scoped: boolean;
+}
+
+interface SourceBindingRow {
+  project_source_id: string;
 }
 
 interface AuthorityRow {
@@ -299,6 +311,8 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
   readonly #graph: AuthorityGraphStore;
   readonly #contracts: PetraContractRegistry;
   readonly #resolver: FocusedGraphViewContractResolver;
+  readonly #objectLocations: PostgresProjectObjectLocationViewReader;
+  readonly #sourceViews: PostgresProjectSourceViewReader;
 
   constructor(
     pool: Pool,
@@ -309,6 +323,246 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
     this.#graph = graph;
     this.#contracts = contracts;
     this.#resolver = new FocusedGraphViewContractResolver(contracts);
+    this.#objectLocations = new PostgresProjectObjectLocationViewReader(
+      pool,
+      contracts,
+    );
+    this.#sourceViews = new PostgresProjectSourceViewReader(pool, contracts);
+  }
+
+  async queryFocusedGraphDetails(
+    projectId: string,
+    request: FocusedGraphDetailsViewRequest,
+  ): Promise<PetraFocusedGraphDetailsView | undefined> {
+    request = parseFocusedGraphDetailsViewRequest(request);
+    const graph = await this.queryFocusedGraph(
+      projectId,
+      request.focused_graph_request,
+    );
+    if (graph === undefined) return undefined;
+    if (
+      graph.schema_name !== request.expected_graph.schema_name ||
+      graph.schema_version !== request.expected_graph.schema_version ||
+      graph.content_hash !== request.expected_graph.content_hash
+    ) {
+      throw this.#error(
+        "FOCUSED_GRAPH_SNAPSHOT_STALE",
+        "The selected Details request no longer matches the exact focused graph result.",
+      );
+    }
+
+    const nodes = new Map(
+      graph.content.nodes.map((node) => [node.node_key, node] as const),
+    );
+    const relationships = new Map(
+      graph.content.relationships.map(
+        (relationship) =>
+          [relationship.relationship_key, relationship] as const,
+      ),
+    );
+    const paths = new Map(
+      graph.content.paths.map((path) => [path.path_key, path] as const),
+    );
+    const selectedNodes = new Set<string>();
+    const selectedRelationships = new Set<string>();
+    const selectedPaths: FocusedGraphPath[] = [];
+    for (const key of request.selection.selected_keys) {
+      if (request.selection.selection_kind === "node") {
+        if (!nodes.has(key)) this.#selectionUnavailable(key);
+        selectedNodes.add(key);
+      } else if (request.selection.selection_kind === "relationship") {
+        if (!relationships.has(key)) this.#selectionUnavailable(key);
+        selectedRelationships.add(key);
+      } else {
+        const path = paths.get(key);
+        if (path === undefined) this.#selectionUnavailable(key);
+        selectedPaths.push(path);
+        for (const step of path.steps) {
+          selectedNodes.add(step.from_node_key);
+          selectedNodes.add(step.to_node_key);
+          selectedRelationships.add(step.relationship_key);
+        }
+      }
+    }
+
+    return this.#readTransaction(async (client, readAt) => {
+      const authority = await this.#authority(client, projectId);
+      if (
+        graph.content.semantic_layer !== "historical" &&
+        authority.eventPosition !==
+          graph.content.requested_snapshot.event_position
+      ) {
+        throw this.#error(
+          "FOCUSED_GRAPH_SNAPSHOT_STALE",
+          "Project authority advanced before the selected Details could be composed.",
+        );
+      }
+      const nodeDetails: FocusedGraphDetailsContent["nodes"] = [];
+      for (const key of selectedNodes) {
+        const node = nodes.get(key);
+        if (node === undefined) this.#selectionUnavailable(key);
+        const semanticLocation =
+          await this.#objectLocations.locateProjectObjectInSnapshot(
+            client,
+            {
+              project_id: projectId,
+              object_ref: {
+                semantic_key: this.#locationSemanticKey(
+                  node.record_ref.record_id,
+                  node.semantic_key,
+                ),
+                object_id: node.record_ref.record_id,
+                revision: node.record_ref.revision,
+              },
+              task_intent: "inspect",
+            },
+            readAt,
+          );
+        if (semanticLocation === undefined) {
+          throw this.#corrupt(
+            "A selected graph node lost its Project semantic-location owner.",
+          );
+        }
+        this.#assertLocationIdentity(semanticLocation.content, node.record_ref);
+        this.#assertLocationDefinition(
+          semanticLocation.content,
+          graph.content.profile.project_definition_ref,
+        );
+        nodeDetails.push({
+          member_kind: "node",
+          member_key: key,
+          member: structuredClone(node),
+          semantic_location: structuredClone(semanticLocation.content),
+          source_inspections: await this.#sourceInspections(
+            client,
+            readAt,
+            projectId,
+            node.basis.record_refs,
+            graph.content.profile.project_definition_ref,
+          ),
+        });
+      }
+
+      const relationshipDetails: FocusedGraphDetailsContent["relationships"] =
+        [];
+      for (const key of selectedRelationships) {
+        const relationship = relationships.get(key);
+        if (relationship === undefined) this.#selectionUnavailable(key);
+        const relationshipRef: FocusedGraphExactRef = {
+          record_id: relationship.relationship_ref.element_id,
+          revision: relationship.relationship_ref.revision,
+          record_hash: relationship.relationship_ref.record_hash,
+        };
+        const semanticLocation =
+          await this.#objectLocations.locateProjectObjectInSnapshot(
+            client,
+            {
+              project_id: projectId,
+              object_ref: {
+                semantic_key: this.#locationSemanticKey(
+                  relationshipRef.record_id,
+                  relationship.semantic_key,
+                ),
+                object_id: relationshipRef.record_id,
+                revision: relationshipRef.revision,
+              },
+              task_intent: "inspect",
+            },
+            readAt,
+          );
+        if (semanticLocation === undefined) {
+          throw this.#corrupt(
+            "A selected graph relationship lost its Project semantic-location owner.",
+          );
+        }
+        this.#assertLocationIdentity(semanticLocation.content, relationshipRef);
+        this.#assertLocationDefinition(
+          semanticLocation.content,
+          graph.content.profile.project_definition_ref,
+        );
+        relationshipDetails.push({
+          member_kind: "relationship",
+          member_key: key,
+          member: structuredClone(relationship),
+          semantic_location: structuredClone(semanticLocation.content),
+          source_inspections: await this.#sourceInspections(
+            client,
+            readAt,
+            projectId,
+            relationship.basis.record_refs,
+            graph.content.profile.project_definition_ref,
+          ),
+        });
+      }
+
+      const returnDestinations = graph.content.destinations.filter(
+        (destination) =>
+          destination.destination_key ===
+          graph.content.task.return_destination_key,
+      );
+      if (returnDestinations.length !== 1) {
+        throw this.#corrupt(
+          "The selected Details result lost its exact graph return destination.",
+        );
+      }
+      const content: FocusedGraphDetailsContent = {
+        details_request_id: request.details_request_id,
+        graph: {
+          schema_name: graph.schema_name,
+          schema_version: graph.schema_version,
+          content_hash: graph.content_hash,
+          task: structuredClone(graph.content.task),
+          profile: structuredClone(graph.content.profile),
+          requested_snapshot: structuredClone(graph.content.requested_snapshot),
+          represented_snapshot: structuredClone(
+            graph.content.represented_snapshot,
+          ),
+          semantic_layer: graph.content.semantic_layer,
+          temporal_position: structuredClone(graph.content.temporal_position),
+          projection_position: structuredClone(
+            graph.content.projection_position,
+          ),
+          scope: structuredClone(graph.content.scope),
+          return_destination: structuredClone(returnDestinations[0]!),
+        },
+        selection: {
+          selection_kind: request.selection.selection_kind,
+          selected_keys: [...request.selection.selected_keys] as [
+            string,
+            ...string[],
+          ],
+        },
+        nodes: nodeDetails,
+        relationships: relationshipDetails,
+        paths: structuredClone(selectedPaths),
+        limitations: [
+          ...new Set([
+            ...graph.content.limitations,
+            "Details re-executes the exact bounded graph request and resolves destinations without granting selection authority.",
+            "Source inspection is available only when the exact SourceSpan resolves through a current ProjectSource binding and an inspectable representation.",
+          ]),
+        ] as [string, ...string[]],
+        authority_boundary: {
+          postgresql_authoritative: true,
+          neo4j_projection_only: true,
+          selection_is_presentation_state: true,
+          details_are_read_only: true,
+          source_owner: "project_source_view",
+          semantic_location_owner: "project_object_location_view",
+          graph_specific_registry_added: false,
+        },
+      };
+      const view: PetraFocusedGraphDetailsView = {
+        schema_name: "petra.focused-graph-details-view",
+        schema_version: "1.0.0",
+        project_id: projectId,
+        content,
+        content_hash: canonicalHash(content),
+        read_at: readAt,
+      };
+      this.#contracts.assertValid("focused-graph-details-view", "1.0.0", view);
+      return view;
+    });
   }
 
   async queryFocusedGraph(
@@ -2925,6 +3179,175 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         "A graph member is newer than the represented authority event.",
       );
     }
+  }
+
+  #selectionUnavailable(key: string): never {
+    throw this.#error(
+      "FOCUSED_GRAPH_QUERY_INVALID",
+      `Selected graph member ${key} is outside the exact bounded result.`,
+    );
+  }
+
+  #locationSemanticKey(recordId: string, fallback: string): string {
+    if (recordId.startsWith("claim_")) {
+      return "scientific.claim";
+    }
+    if (recordId.startsWith("assertion_")) {
+      return "scientific.assertion";
+    }
+    if (recordId.startsWith("working_candidate_")) {
+      return "petra.working-candidate";
+    }
+    if (recordId.startsWith("working_relationship_")) {
+      return "petra.working-relationship";
+    }
+    return fallback;
+  }
+
+  #assertLocationIdentity(
+    location: FocusedGraphDetailsContent["nodes"][number]["semantic_location"],
+    expected: FocusedGraphExactRef,
+  ): void {
+    if ("failure" in location.resolution) {
+      return;
+    }
+    const resolved = location.resolution.resolved_ref;
+    if (
+      resolved.object_id !== expected.record_id ||
+      resolved.revision !== expected.revision ||
+      resolved.record_hash !== expected.record_hash
+    ) {
+      throw this.#corrupt(
+        "A selected graph member resolved to a substituted semantic location.",
+      );
+    }
+  }
+
+  #assertLocationDefinition(
+    location: FocusedGraphDetailsContent["nodes"][number]["semantic_location"],
+    expected: FocusedGraphDetailsContent["graph"]["profile"]["project_definition_ref"],
+  ): void {
+    if (
+      location.definition_ref.project_definition_id !==
+        expected.project_definition_id ||
+      location.definition_ref.revision !== expected.revision ||
+      location.definition_ref.content_hash !== expected.content_hash ||
+      location.definition_ref.definition_family !== expected.definition_family
+    ) {
+      throw this.#error(
+        "FOCUSED_GRAPH_DEFINITION_STALE",
+        "The semantic-location owner no longer represents the focused graph's exact ProjectDefinition.",
+      );
+    }
+  }
+
+  async #sourceInspections(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    basisRefs: readonly FocusedGraphExactRef[],
+    expectedDefinition: FocusedGraphDetailsContent["graph"]["profile"]["project_definition_ref"],
+  ): Promise<FocusedGraphSourceInspection[]> {
+    const sourceSpanRefs = uniqueRefs(
+      basisRefs.filter((ref) => ref.record_id.startsWith("source_span_")),
+    );
+    const inspections: FocusedGraphSourceInspection[] = [];
+    for (const sourceSpanRef of sourceSpanRefs) {
+      const bindings = await client.query<SourceBindingRow>(
+        `SELECT DISTINCT source.project_source_id
+           FROM petra.source_spans AS span
+           JOIN petra.parsed_documents AS document
+             ON document.parsed_document_id = span.parsed_document_id
+           JOIN petra.project_source_revisions AS binding
+             ON binding.artifact_manifest_id =
+                  document.source_artifact_manifest_id
+           JOIN petra.project_sources AS source
+             ON source.project_source_id = binding.project_source_id
+            AND source.current_revision = binding.revision
+          WHERE source.project_id = $1
+            AND span.source_span_id = $2
+            AND span.revision = $3
+            AND span.record_hash = $4
+          ORDER BY source.project_source_id`,
+        [
+          projectId,
+          sourceSpanRef.record_id,
+          sourceSpanRef.revision,
+          sourceSpanRef.record_hash,
+        ],
+      );
+      if (bindings.rows.length === 0) {
+        inspections.push({
+          state: "unavailable",
+          owner: "project_source_view",
+          source_span_ref: structuredClone(sourceSpanRef),
+          reason:
+            "The exact SourceSpan has no current Project-scoped ProjectSource inspection destination.",
+        });
+        continue;
+      }
+      for (const binding of bindings.rows) {
+        const source = await this.#sourceViews.readSourceInSnapshot(
+          client,
+          readAt,
+          projectId,
+          binding.project_source_id,
+          sourceSpanRef.record_id,
+        );
+        if (source === undefined) {
+          throw this.#corrupt(
+            "A SourceSpan Project binding lost its exact ProjectSource owner.",
+          );
+        }
+        const sourceDefinition = source.content.binding.project_definition_ref;
+        if (
+          sourceDefinition.record_id !==
+            expectedDefinition.project_definition_id ||
+          sourceDefinition.revision !== expectedDefinition.revision ||
+          sourceDefinition.content_hash !== expectedDefinition.content_hash
+        ) {
+          inspections.push({
+            state: "unavailable",
+            owner: "project_source_view",
+            source_span_ref: structuredClone(sourceSpanRef),
+            project_source_id: source.project_source_id,
+            reason:
+              "The exact SourceSpan is bound to a current ProjectSource under a different ProjectDefinition.",
+          });
+          continue;
+        }
+        const preview = source.content.representation.preview;
+        if (
+          preview === undefined ||
+          preview.span_ref.record_id !== sourceSpanRef.record_id ||
+          preview.span_ref.revision !== sourceSpanRef.revision ||
+          preview.span_ref.content_hash !== sourceSpanRef.record_hash
+        ) {
+          inspections.push({
+            state: "unavailable",
+            owner: "project_source_view",
+            source_span_ref: structuredClone(sourceSpanRef),
+            project_source_id: source.project_source_id,
+            reason:
+              source.content.representation.extent === "restricted"
+                ? "The exact ProjectSource is bound, but its rights do not permit SourceSpan inspection."
+                : "The exact ProjectSource is bound, but no inspectable representation reproduces this SourceSpan.",
+          });
+          continue;
+        }
+        inspections.push({
+          state: "available",
+          owner: "project_source_view",
+          source_span_ref: structuredClone(sourceSpanRef),
+          project_source_id: source.project_source_id,
+          binding_revision: source.content.binding.revision,
+          binding_content_hash: source.content.binding.content_hash,
+          source_view_content_hash: source.content_hash,
+          source_view: structuredClone(source.content),
+        });
+      }
+    }
+    return inspections;
   }
 
   async #sourceLocations(

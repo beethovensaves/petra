@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraAssertion,
+  PetraClaim,
   PetraChangeSet,
   PetraDraftArtifact,
   PetraProjectDefinition,
@@ -34,6 +35,7 @@ const definition = fixture<PetraProjectDefinition>(
 );
 const source = fixture<PetraProjectSource>("project-source");
 const assertion = fixture<PetraAssertion>("assertion-trusted");
+const claim = fixture<PetraClaim>("claim");
 const changeSet = fixture<PetraChangeSet>("change-set");
 const workCurrent = fixture<PetraWorkUnit>("work-unit-completed");
 const workRequested = fixture<PetraWorkUnit>("work-unit-requested");
@@ -56,6 +58,13 @@ const stored = new Map<string, Stored>([
     {
       current: assertion,
       currentLifecycle: `${assertion.authority.zone}_${assertion.authority.review_state}`,
+    },
+  ],
+  [
+    claim.claim_id,
+    {
+      current: claim,
+      currentLifecycle: `${claim.authority.zone}_${claim.authority.review_state}`,
     },
   ],
   [
@@ -174,7 +183,7 @@ const poolFor = (client: LocationClient): Pool =>
   ({ connect: () => Promise.resolve(client) }) as unknown as Pool;
 
 describe("PostgreSQL Project semantic destination reader", () => {
-  it("resolves the five M1 object kinds through one profile-aware registry", async () => {
+  it("resolves the six M1 object kinds through one profile-aware registry", async () => {
     const client = new LocationClient();
     const reader = new PostgresProjectObjectLocationViewReader(poolFor(client));
     const cases = [
@@ -184,6 +193,13 @@ describe("PostgreSQL Project semantic destination reader", () => {
         intent: "inspect" as const,
         role: "sources",
         family: "reference",
+      },
+      {
+        semanticKey: "scientific.claim",
+        objectId: claim.claim_id,
+        intent: "inspect" as const,
+        role: "graph",
+        family: "finding",
       },
       {
         semanticKey: "scientific.assertion",

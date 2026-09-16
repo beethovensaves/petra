@@ -14,6 +14,7 @@ import { focusedGraphFixture } from "../../contracts/test/fixtures/focused-graph
 import {
   FocusedGraphViewContractError,
   FocusedGraphViewContractResolver,
+  parseFocusedGraphDetailsViewRequest,
   parseFocusedGraphViewRequest,
 } from "../src/focused-graph-view.js";
 
@@ -356,6 +357,31 @@ describe("focused graph query request boundary", () => {
         ...request,
         semantic_layer: "current",
         temporal_position: historical.temporal_position,
+      }),
+    ).toThrowError(
+      expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
+    );
+
+    const details = {
+      details_request_id:
+        "focused_graph_details_request_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      focused_graph_request: request,
+      expected_graph: {
+        schema_name: "petra.focused-graph-view",
+        schema_version: "1.0.0",
+        content_hash: view.content_hash,
+      },
+      selection: {
+        selection_kind: "node",
+        selected_keys: [view.content.nodes[0]!.node_key],
+      },
+    };
+    expect(parseFocusedGraphDetailsViewRequest(details)).toEqual(details);
+    expect(() =>
+      parseFocusedGraphDetailsViewRequest({
+        ...details,
+        selection: { ...details.selection, selected_keys: ["node:missing"] },
+        layout: "radial",
       }),
     ).toThrowError(
       expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
