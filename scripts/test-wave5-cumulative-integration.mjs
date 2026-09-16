@@ -110,7 +110,11 @@ try {
   assert(
     paired.ok === true &&
       paired.boundary?.external_model_call_executed === false &&
-      paired.wave5_cumulative?.restart_replay?.duplicate_effects === false,
+      paired.wave5_cumulative?.restart_replay?.duplicate_effects === false &&
+      /^sha256:[0-9a-f]{64}$/u.test(
+        paired.wave5_cumulative?.restart_replay?.review_content_hash_after ??
+          "",
+      ),
     "The paired-profile trace did not retain its provider-free restart result.",
   );
 

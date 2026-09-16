@@ -1541,8 +1541,11 @@ const rawReview = async (baseUrl, projectId, reviewSessionId) => {
     ),
     { headers: { authorization: `Bearer ${token}` } },
   );
-  assert(response.ok, `Review route failed (${response.status}).`);
   const view = await response.json();
+  assert(
+    response.ok,
+    `Review route failed (${response.status}): ${JSON.stringify(view)}`,
+  );
   new PetraContractRegistry().assertValid(
     "project-review-view",
     view.schema_version,
@@ -4505,21 +4508,18 @@ const exerciseItem53Trace = async ({
             projectDefinition: scientific.definition,
           }).read(scientificProjectId, wave5GraphRequest)
         : undefined;
-    const postRestartReview = wave5Mode
-      ? undefined
-      : await rawReview(
-          active.url,
-          scientificProjectId,
-          scientific.session.review_session_id,
-        );
+    const postRestartReview = await rawReview(
+      active.url,
+      scientificProjectId,
+      scientific.session.review_session_id,
+    );
     assert(
       postRestartWorking.content_hash === preRestartWorking.content_hash &&
         (wave5Mode
           ? postRestartFocused?.content_hash === preRestartFocused?.content_hash
           : true) &&
-        (wave5Mode ||
-          postRestartReview?.review_session_id ===
-            item49Published.reviewSessionId) &&
+        postRestartReview.review_session_id ===
+          item49Published.reviewSessionId &&
         canonicalize(await item53Counts(pool)) ===
           canonicalize(preRestartCounts),
       `Restart changed the provider-free continuation identities or durable cardinalities: ${JSON.stringify(
@@ -4538,6 +4538,7 @@ const exerciseItem53Trace = async ({
         working_content_hash_after: postRestartWorking.content_hash,
         focused_graph_content_hash_before: preRestartFocused?.content_hash,
         focused_graph_content_hash_after: postRestartFocused?.content_hash,
+        review_content_hash_after: postRestartReview.content_hash,
         durable_counts_before: preRestartCounts,
         durable_counts_after: await item53Counts(pool),
         duplicate_effects: false,
