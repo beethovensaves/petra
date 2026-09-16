@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 
 import { focusedGraphFixture } from "./fixtures/focused-graph-view.js";
 import { focusedGraphV11Fixture } from "./fixtures/focused-graph-view-v1-1.js";
+import { focusedGraphAnalysisFixture } from "./fixtures/focused-graph-analysis-view.js";
 
 const registry = new PetraContractRegistry();
 const accepted = <Value>(name: string): Value =>
@@ -21,6 +22,25 @@ const accepted = <Value>(name: string): Value =>
   ) as Value;
 
 describe("Focused graph view contract", () => {
+  it("accepts server-owned comparison facts and rejects renderer-owned scores", () => {
+    const value = focusedGraphAnalysisFixture();
+    expect(() =>
+      registry.assertValid("focused-graph-analysis-view", "1.0.0", value),
+    ).not.toThrow();
+
+    const rendererAuthority = focusedGraphAnalysisFixture() as unknown as {
+      content: { importance: number };
+    };
+    rendererAuthority.content.importance = 0.92;
+    expect(() =>
+      registry.assertValid(
+        "focused-graph-analysis-view",
+        "1.0.0",
+        rendererAuthority,
+      ),
+    ).toThrow();
+  });
+
   it("accepts exact source-view inputs and renderer-neutral semantic regions", () => {
     const value = focusedGraphFixture();
     expect(() =>

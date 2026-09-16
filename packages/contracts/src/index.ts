@@ -729,6 +729,27 @@ export type {
   ViewContent as FocusedGraphViewContentV11,
 } from "./generated/focused-graph-view-v1-1.js";
 export type {
+  AbsentMember as FocusedGraphAnalysisAbsentMember,
+  Analysis as FocusedGraphAnalysis,
+  AnalysisContent as FocusedGraphAnalysisContent,
+  AnalysisTask as FocusedGraphAnalysisTask,
+  AssessedConsequence as FocusedGraphAssessedConsequence,
+  ComparisonAnalysis as FocusedGraphComparisonAnalysis,
+  ComparisonMember as FocusedGraphComparisonMember,
+  DateFact as FocusedGraphDateFact,
+  Difference as FocusedGraphDifference,
+  ExactMember as FocusedGraphAnalysisExactMember,
+  GraphPosition as FocusedGraphAnalysisPosition,
+  ImpactAnalysis as FocusedGraphImpactAnalysis,
+  PetraFocusedGraphAnalysisView,
+  ReviewSource as FocusedGraphAnalysisReviewSource,
+  SuppliedConsequences as FocusedGraphSuppliedConsequences,
+  TimeAnalysis as FocusedGraphTimeAnalysis,
+  TimelineEntry as FocusedGraphTimelineEntry,
+  UnavailableConsequences as FocusedGraphUnavailableConsequences,
+  UnavailableMember as FocusedGraphAnalysisUnavailableMember,
+} from "./generated/focused-graph-analysis-view.js";
+export type {
   DetailsContent as FocusedGraphDetailsContent,
   GraphBinding as FocusedGraphDetailsGraphBinding,
   NodeDetails as FocusedGraphNodeDetails,

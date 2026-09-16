@@ -1,0 +1,547 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/focused-graph-analysis-view/1.0.0/schema.json",
+  "title": "PetraFocusedGraphAnalysisView",
+  "description": "A renderer-neutral, read-only comparison, impact, or time composition over exact focused-graph positions and existing History and Review authority. It supplies bounded differences, recorded dependencies, separately assessed consequences, dates or explicit unknowns, snapshots, coverage, and limitations without calculating universal importance, maturity, confidence, or currentness.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.focused-graph-analysis-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/AnalysisContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "StableKey": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._:/-]{1,999}$"
+    },
+    "ExactRef": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/ExactRef"
+    },
+    "ProjectSnapshotRef": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/ProjectSnapshotRef"
+    },
+    "GraphView": {
+      "oneOf": [
+        { "$ref": "../../focused-graph-view/1.0.0/schema.json" },
+        { "$ref": "../../focused-graph-view/1.1.0/schema.json" }
+      ]
+    },
+    "GraphPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position_key", "label", "role", "graph_view"],
+      "properties": {
+        "position_key": { "$ref": "#/$defs/StableKey" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "role": {
+          "enum": ["before", "after", "context", "time_position"]
+        },
+        "graph_view": { "$ref": "#/$defs/GraphView" }
+      }
+    },
+    "AnalysisTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analysis_request_id",
+        "request_hash",
+        "task_kind",
+        "question",
+        "question_hash",
+        "focus_refs",
+        "position_keys"
+      ],
+      "properties": {
+        "analysis_request_id": {
+          "type": "string",
+          "pattern": "^focused_graph_analysis_request_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "request_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "task_kind": { "enum": ["comparison", "impact", "time"] },
+        "question": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "question_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "focus_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ExactRef" }
+        },
+        "position_keys": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/StableKey" }
+        }
+      }
+    },
+    "ExactMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "member_kind",
+        "member_key",
+        "record_ref",
+        "semantic_key",
+        "label",
+        "layer",
+        "authority_position"
+      ],
+      "properties": {
+        "state": { "const": "exact" },
+        "member_kind": { "enum": ["node", "relationship"] },
+        "member_key": { "$ref": "#/$defs/StableKey" },
+        "record_ref": { "$ref": "#/$defs/ExactRef" },
+        "semantic_key": {
+          "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/SemanticKey"
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "layer": { "enum": ["current", "working", "historical"] },
+        "authority_position": {
+          "enum": [
+            "current_authority",
+            "working_non_authority",
+            "historical_authority"
+          ]
+        }
+      }
+    },
+    "AbsentMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state"],
+      "properties": { "state": { "const": "absent_from_exact_position" } }
+    },
+    "UnavailableMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "ComparisonMember": {
+      "oneOf": [
+        { "$ref": "#/$defs/ExactMember" },
+        { "$ref": "#/$defs/AbsentMember" },
+        { "$ref": "#/$defs/UnavailableMember" }
+      ]
+    },
+    "Difference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "difference_key",
+        "difference_kind",
+        "before",
+        "after",
+        "basis",
+        "limitations"
+      ],
+      "properties": {
+        "difference_key": { "$ref": "#/$defs/StableKey" },
+        "difference_kind": {
+          "enum": [
+            "added",
+            "removed",
+            "changed",
+            "unchanged",
+            "not_comparable",
+            "unavailable"
+          ]
+        },
+        "before": { "$ref": "#/$defs/ComparisonMember" },
+        "after": { "$ref": "#/$defs/ComparisonMember" },
+        "basis": {
+          "const": "exact_server_comparison_of_returned_record_identity"
+        },
+        "limitations": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "ExactCommonBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "snapshot"],
+      "properties": {
+        "state": { "const": "exact" },
+        "snapshot": { "$ref": "#/$defs/ProjectSnapshotRef" }
+      }
+    },
+    "UnavailableCommonBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "ComparisonAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analysis_kind",
+        "before_position_key",
+        "after_position_key",
+        "common_base",
+        "differences",
+        "coverage",
+        "limitations"
+      ],
+      "properties": {
+        "analysis_kind": { "const": "comparison" },
+        "before_position_key": { "$ref": "#/$defs/StableKey" },
+        "after_position_key": { "$ref": "#/$defs/StableKey" },
+        "common_base": {
+          "oneOf": [
+            { "$ref": "#/$defs/ExactCommonBase" },
+            { "$ref": "#/$defs/UnavailableCommonBase" }
+          ]
+        },
+        "differences": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20000,
+          "items": { "$ref": "#/$defs/Difference" }
+        },
+        "coverage": {
+          "enum": ["complete_for_scope", "partial", "capped", "unknown"]
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "ReviewSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_name",
+        "schema_version",
+        "review_session_id",
+        "content_hash",
+        "read_at"
+      ],
+      "properties": {
+        "schema_name": { "const": "petra.project-review-view" },
+        "schema_version": { "enum": ["1.0.0", "1.1.0", "1.2.0", "1.3.0"] },
+        "review_session_id": {
+          "type": "string",
+          "pattern": "^review_session_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "read_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "AssessedConsequence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "consequence_key",
+        "source",
+        "review_member_id",
+        "source_kind",
+        "summary",
+        "target_refs",
+        "coverage",
+        "limitations"
+      ],
+      "properties": {
+        "consequence_key": { "$ref": "#/$defs/StableKey" },
+        "source": { "$ref": "#/$defs/ReviewSource" },
+        "review_member_id": {
+          "type": "string",
+          "pattern": "^review_member_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "source_kind": { "enum": ["review_member", "change_set_impact"] },
+        "source_ref": { "$ref": "#/$defs/ExactRef" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "target_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/ExactRef" }
+        },
+        "coverage": { "const": "exact_requested_review_member" },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "SuppliedConsequences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "items", "coverage", "limitations"],
+      "properties": {
+        "state": { "const": "supplied" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2000,
+          "items": { "$ref": "#/$defs/AssessedConsequence" }
+        },
+        "coverage": { "const": "exact_requested_review_members" },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "UnavailableConsequences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason", "coverage", "limitations"],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "coverage": { "const": "not_assessed" },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "ImpactAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analysis_kind",
+        "position_key",
+        "dependency_source",
+        "assessed_consequences",
+        "coverage",
+        "limitations"
+      ],
+      "properties": {
+        "analysis_kind": { "const": "impact" },
+        "position_key": { "$ref": "#/$defs/StableKey" },
+        "dependency_source": {
+          "$ref": "../../project-history-impact-view/1.4.0/schema.json"
+        },
+        "assessed_consequences": {
+          "oneOf": [
+            { "$ref": "#/$defs/SuppliedConsequences" },
+            { "$ref": "#/$defs/UnavailableConsequences" }
+          ]
+        },
+        "coverage": { "enum": ["complete", "truncated", "unknown"] },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "ExactTimestamp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "value"],
+      "properties": {
+        "state": { "const": "exact_timestamp" },
+        "value": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "UnknownDate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": { "const": "unknown" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "UnavailableDate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "DateFact": {
+      "oneOf": [
+        { "$ref": "#/$defs/ExactTimestamp" },
+        { "$ref": "#/$defs/UnknownDate" },
+        { "$ref": "#/$defs/UnavailableDate" }
+      ]
+    },
+    "TimelineEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position", "member", "date", "date_basis", "limitations"],
+      "properties": {
+        "position": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20000
+        },
+        "member": { "$ref": "#/$defs/ExactMember" },
+        "date": { "$ref": "#/$defs/DateFact" },
+        "date_basis": {
+          "enum": [
+            "focused_graph_member_fact",
+            "selected_project_snapshot_position"
+          ]
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "TimeAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analysis_kind",
+        "position_key",
+        "temporal_dimension",
+        "position_date",
+        "entries",
+        "ordering_rationale",
+        "coverage",
+        "limitations"
+      ],
+      "properties": {
+        "analysis_kind": { "const": "time" },
+        "position_key": { "$ref": "#/$defs/StableKey" },
+        "temporal_dimension": {
+          "enum": [
+            "recorded_time",
+            "occurred_time",
+            "publication_time",
+            "valid_time"
+          ]
+        },
+        "position_date": { "$ref": "#/$defs/DateFact" },
+        "entries": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20000,
+          "items": { "$ref": "#/$defs/TimelineEntry" }
+        },
+        "ordering_rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "coverage": {
+          "enum": ["complete_for_scope", "partial", "capped", "unknown"]
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "Analysis": {
+      "oneOf": [
+        { "$ref": "#/$defs/ComparisonAnalysis" },
+        { "$ref": "#/$defs/ImpactAnalysis" },
+        { "$ref": "#/$defs/TimeAnalysis" }
+      ]
+    },
+    "AuthorityBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "postgresql_authoritative",
+        "neo4j_projection_only",
+        "focused_graph_owner_reused",
+        "history_owner_reused",
+        "review_owner_reused_when_bound",
+        "analysis_is_read_only",
+        "renderer_calculates_domain_facts",
+        "universal_scores_calculated"
+      ],
+      "properties": {
+        "postgresql_authoritative": { "const": true },
+        "neo4j_projection_only": { "const": true },
+        "focused_graph_owner_reused": { "const": true },
+        "history_owner_reused": { "const": true },
+        "review_owner_reused_when_bound": { "const": true },
+        "analysis_is_read_only": { "const": true },
+        "renderer_calculates_domain_facts": { "const": false },
+        "universal_scores_calculated": { "const": false }
+      }
+    },
+    "AnalysisContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task",
+        "positions",
+        "analysis",
+        "authority_boundary",
+        "limitations"
+      ],
+      "properties": {
+        "task": { "$ref": "#/$defs/AnalysisTask" },
+        "positions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/GraphPosition" }
+        },
+        "analysis": { "$ref": "#/$defs/Analysis" },
+        "authority_boundary": { "$ref": "#/$defs/AuthorityBoundary" },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    }
+  }
+}

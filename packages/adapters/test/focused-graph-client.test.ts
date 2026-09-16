@@ -10,6 +10,7 @@ import type {
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
+  FocusedGraphComparisonViewRequest,
   FocusedGraphExplorationViewRequest,
   FocusedGraphDetailsViewRequest,
   FocusedGraphViewRequest,
@@ -18,6 +19,7 @@ import { canonicalize } from "json-canonicalize";
 import { describe, expect, it, vi } from "vitest";
 
 import { focusedGraphFixture } from "../../contracts/test/fixtures/focused-graph-view.js";
+import { focusedGraphAnalysisFixture } from "../../contracts/test/fixtures/focused-graph-analysis-view.js";
 import { focusedGraphDetailsFixture } from "../../contracts/test/fixtures/focused-graph-details-view.js";
 import {
   FocusedGraphClient,
@@ -422,6 +424,110 @@ const setupDetails = (): {
   return { definition: graph.definition, view, request };
 };
 
+const setupAnalysis = (): {
+  definition: PetraProjectDefinition;
+  view: ReturnType<typeof focusedGraphAnalysisFixture>;
+  request: FocusedGraphComparisonViewRequest;
+} => {
+  const graph = setup();
+  const graphRequest = {
+    ...structuredClone(graph.request),
+    expected_snapshot: structuredClone(graph.view.content.requested_snapshot),
+  };
+  const request: FocusedGraphComparisonViewRequest = {
+    analysis_request_id:
+      "focused_graph_analysis_request_01ARZ3NDEKTSV4RRFFQ69G5FAY",
+    task_kind: "comparison",
+    question: "What differs between these exact positions?",
+    before: {
+      position_key: "position:before",
+      label: "Before",
+      graph_request: structuredClone(graphRequest),
+    },
+    after: {
+      position_key: "position:after",
+      label: "After",
+      graph_request: structuredClone(graphRequest),
+    },
+  };
+  const view = focusedGraphAnalysisFixture();
+  view.project_id = graph.definition.project_id;
+  view.content.positions = [
+    {
+      position_key: request.before.position_key,
+      label: request.before.label,
+      role: "before",
+      graph_view: structuredClone(graph.view),
+    },
+    {
+      position_key: request.after.position_key,
+      label: request.after.label,
+      role: "after",
+      graph_view: structuredClone(graph.view),
+    },
+  ];
+  const member = graph.view.content.nodes[0]!;
+  view.content.analysis = {
+    analysis_kind: "comparison",
+    before_position_key: request.before.position_key,
+    after_position_key: request.after.position_key,
+    common_base: {
+      state: "exact",
+      snapshot: structuredClone(graph.view.content.requested_snapshot),
+    },
+    differences: [
+      {
+        difference_key: "difference:1:node:claim-a",
+        difference_kind: "unchanged",
+        before: {
+          state: "exact",
+          member_kind: "node",
+          member_key: member.node_key,
+          record_ref: structuredClone(member.record_ref),
+          semantic_key: member.semantic_key,
+          label: member.label,
+          layer: member.layer,
+          authority_position: member.authority_position,
+        },
+        after: {
+          state: "exact",
+          member_kind: "node",
+          member_key: member.node_key,
+          record_ref: structuredClone(member.record_ref),
+          semantic_key: member.semantic_key,
+          label: member.label,
+          layer: member.layer,
+          authority_position: member.authority_position,
+        },
+        basis: "exact_server_comparison_of_returned_record_identity",
+        limitations: [],
+      },
+    ],
+    coverage: "complete_for_scope",
+    limitations: ["Only exact returned record identities are compared."],
+  };
+  const focusRefs: [typeof graph.request.focus_ref] = [
+    structuredClone(graph.request.focus_ref),
+  ];
+  const taskWithoutHash = {
+    analysis_request_id: request.analysis_request_id,
+    task_kind: request.task_kind,
+    question: request.question,
+    question_hash: hash(request.question),
+    focus_refs: focusRefs,
+    position_keys: [
+      request.before.position_key,
+      request.after.position_key,
+    ] as [string, string],
+  };
+  view.content.task = {
+    ...taskWithoutHash,
+    request_hash: hash(taskWithoutHash),
+  };
+  view.content_hash = hash(view.content);
+  return { definition: graph.definition, view, request };
+};
+
 describe("FocusedGraphClient", () => {
   it("posts one authenticated renderer-neutral request and preserves exact response identity", async () => {
     const { definition, view, request } = setup();
@@ -532,6 +638,66 @@ describe("FocusedGraphClient", () => {
     await expect(client.read(definition.project_id, request)).rejects.toEqual(
       expect.any(FocusedGraphClientError),
     );
+  });
+
+  it("binds comparison reads to exact positions and rejects substituted analysis facts", async () => {
+    const { definition, view, request } = setupAnalysis();
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockImplementation(() => Promise.resolve(Response.json(view)));
+    const client = new FocusedGraphClient({
+      baseUrl: "http://petra.local",
+      token: "focused-token",
+      projectDefinition: definition,
+      fetch: transport,
+      contracts,
+    });
+
+    await expect(
+      client.readAnalysis(definition.project_id, request),
+    ).resolves.toEqual(view);
+    const [url, init] = transport.mock.calls[0]!;
+    expect((url as URL).pathname).toBe(
+      `/api/queries/projects/${definition.project_id}/focused-graph/analysis`,
+    );
+    expect(JSON.parse(init?.body as string)).toEqual(request);
+    expect(JSON.parse(init?.body as string)).not.toHaveProperty("layout");
+
+    const substituted = structuredClone(view);
+    substituted.content.positions[1]!.graph_view.content.requested_snapshot.revision += 1;
+    substituted.content.positions[1]!.graph_view.content_hash = hash(
+      substituted.content.positions[1]!.graph_view.content,
+    );
+    substituted.content_hash = hash(substituted.content);
+    transport.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(substituted)),
+    );
+    await expect(
+      client.readAnalysis(definition.project_id, request),
+    ).rejects.toEqual(expect.any(FocusedGraphClientError));
+
+    const scored = structuredClone(view) as unknown as {
+      content: { analysis: Record<string, unknown> };
+      content_hash: string;
+    };
+    scored.content.analysis.importance = 0.9;
+    scored.content_hash = hash(scored.content);
+    transport.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(scored)),
+    );
+    await expect(
+      client.readAnalysis(definition.project_id, request),
+    ).rejects.toEqual(expect.any(FocusedGraphClientError));
+
+    const callsBeforeRendererInput = transport.mock.calls.length;
+    const rendererInput = {
+      ...request,
+      layout: "force-directed",
+    } as unknown as FocusedGraphComparisonViewRequest;
+    await expect(
+      client.readAnalysis(definition.project_id, rendererInput),
+    ).rejects.toBeInstanceOf(TypeError);
+    expect(transport).toHaveBeenCalledTimes(callsBeforeRendererInput);
   });
 
   it("binds selected Details to the exact graph, member revisions, and owner results", async () => {

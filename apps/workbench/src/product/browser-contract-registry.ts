@@ -20,6 +20,7 @@ import briefGroundedResponseV100Schema from "../../../../packages/contracts/sche
 import focusedGraphViewV100Schema from "../../../../packages/contracts/schemas/focused-graph-view/1.0.0/schema.json";
 import focusedGraphViewV110Schema from "../../../../packages/contracts/schemas/focused-graph-view/1.1.0/schema.json";
 import focusedGraphDetailsViewV100Schema from "../../../../packages/contracts/schemas/focused-graph-details-view/1.0.0/schema.json";
+import focusedGraphAnalysisViewV100Schema from "../../../../packages/contracts/schemas/focused-graph-analysis-view/1.0.0/schema.json";
 import briefEvidencePacketV100Schema from "../../../../packages/contracts/schemas/evidence-packet/1.0.0/schema.json";
 import briefContextPacketV100Schema from "../../../../packages/contracts/schemas/context-packet/1.0.0/schema.json";
 import actorSchema from "../../../../packages/contracts/schemas/actor/1.0.0/schema.json";
@@ -70,9 +71,11 @@ import historyViewSchema from "../../../../packages/contracts/schemas/project-hi
 import domainEventSchema from "../../../../packages/contracts/schemas/domain-event/1.0.0/schema.json";
 import historyImpactSchema from "../../../../packages/contracts/schemas/project-history-impact-view/1.0.0/schema.json";
 import historyImpactV12Schema from "../../../../packages/contracts/schemas/project-history-impact-view/1.2.0/schema.json";
+import historyImpactV14Schema from "../../../../packages/contracts/schemas/project-history-impact-view/1.4.0/schema.json";
 
 type BrowserContractName =
   | "communication-plan@1.0.0"
+  | "focused-graph-analysis-view@1.0.0"
   | "focused-graph-details-view@1.0.0"
   | "focused-graph-view@1.0.0"
   | "focused-graph-view@1.1.0"
@@ -162,6 +165,8 @@ const schemas = [
   domainEventSchema,
   definitionDependency(historyImpactSchema),
   definitionDependency(historyImpactV12Schema),
+  historyImpactV14Schema,
+  focusedGraphAnalysisViewV100Schema,
   commonSchema,
   commandEnvelopeSchema,
   definitionDependency(commandEnvelopeV18Schema),
@@ -179,6 +184,7 @@ const schemas = [
 
 const contractIds: Record<BrowserContractName, string> = {
   "communication-plan@1.0.0": communicationPlanSchema.$id,
+  "focused-graph-analysis-view@1.0.0": focusedGraphAnalysisViewV100Schema.$id,
   "focused-graph-details-view@1.0.0": focusedGraphDetailsViewV100Schema.$id,
   "focused-graph-view@1.0.0": focusedGraphViewV100Schema.$id,
   "focused-graph-view@1.1.0": focusedGraphViewV110Schema.$id,
@@ -232,6 +238,12 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:93889738972355d70b7085472b0070a357e19bb459efc0bb6091e5d3d19ca066",
+    },
+    {
+      name: "focused-graph-analysis-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:54e9c1d7d45b561a18d07ea7a8c2711c5909c969e0dab23578ca0f2c5955aa09",
     },
     {
       name: "focused-graph-details-view",
