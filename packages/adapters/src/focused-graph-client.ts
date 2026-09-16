@@ -1,4 +1,5 @@
 import type {
+  PetraFocusedGraphActionPreviewView,
   PetraFocusedGraphAnalysisView,
   PetraFocusedGraphDetailsView,
   PetraFocusedGraphView,
@@ -6,7 +7,9 @@ import type {
   PetraProjectDefinition,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
+import { parseFocusedGraphActionPreviewViewRequest } from "@petra/core";
 import type {
+  FocusedGraphActionPreviewViewRequest,
   FocusedGraphAnalysisPositionRequest,
   FocusedGraphAnalysisViewRequest,
   FocusedGraphExplorationViewRequest,
@@ -379,6 +382,112 @@ export class FocusedGraphClient {
         ) {
           throw new Error("Mismatched focused graph expansion identity.");
         }
+      }
+      return structuredClone(view);
+    } catch {
+      throw new FocusedGraphClientError(response.status, body);
+    }
+  }
+
+  async readActionPreview(
+    projectId: string,
+    request: FocusedGraphActionPreviewViewRequest,
+  ): Promise<PetraFocusedGraphActionPreviewView> {
+    let parsed: FocusedGraphActionPreviewViewRequest;
+    try {
+      parsed = parseFocusedGraphActionPreviewViewRequest(request);
+    } catch {
+      throw new TypeError(
+        "A focused graph action preview requires one exact snapshot-bound selection and canonical Review or inquiry-result target.",
+      );
+    }
+    const definition = this.options.projectDefinition;
+    const definitionRef = parsed.focused_graph_request.project_definition_ref;
+    if (
+      !/^project_[0-9A-HJKMNP-TV-Z]{26}$/u.test(projectId) ||
+      definition.project_id !== projectId ||
+      definition.content_hash !== (await hash(definition.content)) ||
+      definitionRef.project_definition_id !==
+        definition.project_definition_id ||
+      definitionRef.revision !== definition.revision ||
+      definitionRef.content_hash !== definition.content_hash ||
+      definitionRef.record_hash !== (await hash(definition)) ||
+      definitionRef.definition_family !== definition.definition_family
+    ) {
+      throw new TypeError(
+        "A focused graph action preview requires one exact Project and ProjectDefinition identity.",
+      );
+    }
+    const endpoint = new URL(
+      `/api/queries/projects/${projectId}/focused-graph/action-preview`,
+      this.options.baseUrl,
+    );
+    const response = await (this.options.fetch ?? fetch)(endpoint, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${this.options.token}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(parsed),
+    });
+    const body: unknown = await response.json();
+    if (!response.ok) {
+      throw new FocusedGraphClientError(response.status, body);
+    }
+    try {
+      this.#contracts.assertValid(
+        "focused-graph-action-preview-view",
+        "1.0.0",
+        body,
+      );
+      const view = body as PetraFocusedGraphActionPreviewView;
+      const graph = view.content.graph_view;
+      const returnDestination = graph.content.destinations.find(
+        (destination) =>
+          destination.destination_key ===
+          graph.content.task.return_destination_key,
+      );
+      const preview = view.content.preview;
+      const targetMismatch =
+        parsed.target.action_kind === "governed_correction"
+          ? preview.preview_kind !== "governed_correction" ||
+            preview.requested_change !== parsed.target.requested_change ||
+            preview.review_session_ref.review_session_id !==
+              parsed.target.review_session_id ||
+            preview.review_member_id !== parsed.target.review_member_id
+          : preview.preview_kind !== "new_work" ||
+            !same(
+              preview.inquiry_result_link_ref,
+              parsed.target.inquiry_result_link_ref,
+            );
+      if (
+        view.project_id !== projectId ||
+        view.content_hash !== (await hash(view.content)) ||
+        view.content.action_request_id !== parsed.action_request_id ||
+        view.content.request_hash !== (await hash(parsed)) ||
+        graph.project_id !== projectId ||
+        graph.schema_name !== parsed.expected_graph.schema_name ||
+        graph.schema_version !== parsed.expected_graph.schema_version ||
+        graph.content_hash !== parsed.expected_graph.content_hash ||
+        graph.content.task.request_id !==
+          parsed.focused_graph_request.request_id ||
+        !same(
+          graph.content.requested_snapshot,
+          parsed.focused_graph_request.expected_snapshot,
+        ) ||
+        !same(view.content.selection, parsed.selection) ||
+        view.content.return_context.graph_request_id !==
+          parsed.focused_graph_request.request_id ||
+        !same(view.content.return_context.selection, parsed.selection) ||
+        !same(
+          view.content.return_context.origin,
+          parsed.focused_graph_request.origin,
+        ) ||
+        returnDestination === undefined ||
+        !same(view.content.return_context.destination, returnDestination) ||
+        targetMismatch
+      ) {
+        throw new Error("Mismatched focused graph action preview identity.");
       }
       return structuredClone(view);
     } catch {

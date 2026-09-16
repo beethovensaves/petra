@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import { focusedGraphFixture } from "./fixtures/focused-graph-view.js";
 import { focusedGraphV11Fixture } from "./fixtures/focused-graph-view-v1-1.js";
 import { focusedGraphAnalysisFixture } from "./fixtures/focused-graph-analysis-view.js";
+import { focusedGraphActionPreviewFixture } from "./fixtures/focused-graph-action-preview-view.js";
 
 const registry = new PetraContractRegistry();
 const accepted = <Value>(name: string): Value =>
@@ -22,6 +23,26 @@ const accepted = <Value>(name: string): Value =>
   ) as Value;
 
 describe("Focused graph view contract", () => {
+  it("accepts an exact existing Work preview and rejects renderer-owned command state", () => {
+    const value = focusedGraphActionPreviewFixture();
+    expect(() =>
+      registry.assertValid("focused-graph-action-preview-view", "1.0.0", value),
+    ).not.toThrow();
+
+    const rendererCommand = focusedGraphActionPreviewFixture() as unknown as {
+      content: { coordinates?: unknown; drag_command?: unknown };
+    };
+    rendererCommand.content.coordinates = { x: 12, y: 24 };
+    rendererCommand.content.drag_command = "relink";
+    expect(() =>
+      registry.assertValid(
+        "focused-graph-action-preview-view",
+        "1.0.0",
+        rendererCommand,
+      ),
+    ).toThrow();
+  });
+
   it("accepts server-owned comparison facts and rejects renderer-owned scores", () => {
     const value = focusedGraphAnalysisFixture();
     expect(() =>

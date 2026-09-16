@@ -2,8 +2,11 @@ import { focusedGraphFixture } from "../../../packages/contracts/test/fixtures/f
 import { focusedGraphDetailsFixture } from "../../../packages/contracts/test/fixtures/focused-graph-details-view.js";
 import { focusedGraphV11Fixture } from "../../../packages/contracts/test/fixtures/focused-graph-view-v1-1.js";
 import { focusedGraphAnalysisFixture } from "../../../packages/contracts/test/fixtures/focused-graph-analysis-view.js";
+import { focusedGraphActionPreviewFixture } from "../../../packages/contracts/test/fixtures/focused-graph-action-preview-view.js";
 import type { PetraFocusedGraphAnalysisView } from "@petra/contracts";
 import {
+  type FocusedGraphActionPreviewViewReader,
+  type FocusedGraphActionPreviewViewRequest,
   type FocusedGraphAnalysisViewReader,
   type FocusedGraphComparisonViewRequest,
   FocusedGraphQueryError,
@@ -190,6 +193,61 @@ describe("focused graph query route", () => {
     );
     expect(rejected.status).toBe(422);
     expect(queryFocusedGraphDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it("forwards one exact no-side-effect action preview and rejects coordinates or drag state", async () => {
+    const actionPreview = focusedGraphActionPreviewFixture();
+    if (actionPreview.content.preview.preview_kind !== "new_work") {
+      throw new Error("Expected the new-Work action preview fixture.");
+    }
+    const actionRequest: FocusedGraphActionPreviewViewRequest = {
+      action_request_id: actionPreview.content.action_request_id,
+      focused_graph_request: {
+        ...request,
+        expected_snapshot:
+          actionPreview.content.graph_view.content.requested_snapshot,
+      },
+      expected_graph: {
+        schema_name: actionPreview.content.graph_view.schema_name,
+        schema_version: actionPreview.content.graph_view.schema_version,
+        content_hash: actionPreview.content.graph_view.content_hash,
+      },
+      selection: actionPreview.content.selection,
+      target: {
+        action_kind: "new_work",
+        inquiry_result_link_ref:
+          actionPreview.content.preview.inquiry_result_link_ref,
+      },
+    };
+    const queryFocusedGraphActionPreview = vi.fn<
+      FocusedGraphActionPreviewViewReader["queryFocusedGraphActionPreview"]
+    >(() => Promise.resolve(actionPreview));
+    const app = createPetraApp({
+      authToken: token,
+      focusedGraphActionPreviewViews: {
+        queryFocusedGraphActionPreview,
+      },
+    }).app;
+    const actionPath = `${path}/action-preview`;
+
+    const response = await app.request(actionPath, authorized(actionRequest));
+    expect(response.status).toBe(200);
+    expect(queryFocusedGraphActionPreview).toHaveBeenCalledWith(
+      view.project_id,
+      actionRequest,
+    );
+    await expect(response.json()).resolves.toEqual(actionPreview);
+
+    const rejected = await app.request(
+      actionPath,
+      authorized({
+        ...actionRequest,
+        coordinates: { x: 10, y: 20 },
+        gesture: "drag",
+      }),
+    );
+    expect(rejected.status).toBe(422);
+    expect(queryFocusedGraphActionPreview).toHaveBeenCalledTimes(1);
   });
 
   it("forwards one exact comparison read and rejects renderer-owned analysis fields", async () => {

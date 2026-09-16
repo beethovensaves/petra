@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 import type {
   FocusedGraphResolvedSemantic,
+  PetraFocusedGraphActionPreviewView,
   PetraFocusedGraphDetailsView,
   PetraFocusedGraphView,
   PetraFocusedGraphViewV11,
@@ -10,6 +11,7 @@ import type {
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
+  FocusedGraphActionPreviewViewRequest,
   FocusedGraphComparisonViewRequest,
   FocusedGraphExplorationViewRequest,
   FocusedGraphDetailsViewRequest,
@@ -19,6 +21,7 @@ import { canonicalize } from "json-canonicalize";
 import { describe, expect, it, vi } from "vitest";
 
 import { focusedGraphFixture } from "../../contracts/test/fixtures/focused-graph-view.js";
+import { focusedGraphActionPreviewFixture } from "../../contracts/test/fixtures/focused-graph-action-preview-view.js";
 import { focusedGraphAnalysisFixture } from "../../contracts/test/fixtures/focused-graph-analysis-view.js";
 import { focusedGraphDetailsFixture } from "../../contracts/test/fixtures/focused-graph-details-view.js";
 import {
@@ -528,6 +531,68 @@ const setupAnalysis = (): {
   return { definition: graph.definition, view, request };
 };
 
+const setupActionPreview = (): {
+  definition: PetraProjectDefinition;
+  view: PetraFocusedGraphActionPreviewView;
+  request: FocusedGraphActionPreviewViewRequest;
+} => {
+  const graph = setup();
+  const view = focusedGraphActionPreviewFixture();
+  if (view.content.preview.preview_kind !== "new_work") {
+    throw new Error("Expected the new-Work action preview fixture.");
+  }
+  const graphRequest = {
+    ...structuredClone(graph.request),
+    expected_snapshot: structuredClone(graph.view.content.requested_snapshot),
+  };
+  const selection = {
+    selection_kind: "node" as const,
+    selected_keys: [graph.view.content.nodes[0]!.node_key] as [string],
+  };
+  const suggestedAction = view.content.preview.suggested_action_view;
+  suggestedAction.project_id = graph.definition.project_id;
+  suggestedAction.content.action.basis.project_definition_ref = structuredClone(
+    graph.request.project_definition_ref,
+  );
+  suggestedAction.content.action.objective.semantic_key =
+    graph.request.task_semantic_key;
+  suggestedAction.content_hash = hash(suggestedAction.content);
+  const request: FocusedGraphActionPreviewViewRequest = {
+    action_request_id: view.content.action_request_id,
+    focused_graph_request: graphRequest,
+    expected_graph: {
+      schema_name: graph.view.schema_name,
+      schema_version: graph.view.schema_version,
+      content_hash: graph.view.content_hash,
+    },
+    selection,
+    target: {
+      action_kind: "new_work",
+      inquiry_result_link_ref: structuredClone(
+        suggestedAction.content.action.basis.inquiry_result_link_ref,
+      ),
+    },
+  };
+  view.project_id = graph.definition.project_id;
+  view.content.graph_view = structuredClone(graph.view);
+  view.content.selection = selection;
+  view.content.preview.selected_member_keys = selection.selected_keys;
+  view.content.preview.inquiry_result_link_ref = structuredClone(
+    request.target.action_kind === "new_work"
+      ? request.target.inquiry_result_link_ref
+      : suggestedAction.content.action.basis.inquiry_result_link_ref,
+  );
+  view.content.return_context = {
+    graph_request_id: graph.view.content.task.request_id,
+    selection,
+    origin: structuredClone(graph.view.content.task.origin),
+    destination: structuredClone(graph.request.return_destination),
+  };
+  view.content.request_hash = hash(request);
+  view.content_hash = hash(view.content);
+  return { definition: graph.definition, view, request };
+};
+
 describe("FocusedGraphClient", () => {
   it("posts one authenticated renderer-neutral request and preserves exact response identity", async () => {
     const { definition, view, request } = setup();
@@ -696,6 +761,55 @@ describe("FocusedGraphClient", () => {
     } as unknown as FocusedGraphComparisonViewRequest;
     await expect(
       client.readAnalysis(definition.project_id, rendererInput),
+    ).rejects.toBeInstanceOf(TypeError);
+    expect(transport).toHaveBeenCalledTimes(callsBeforeRendererInput);
+  });
+
+  it("binds a no-side-effect action preview to the exact graph, selection, Work basis, and return context", async () => {
+    const { definition, view, request } = setupActionPreview();
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockImplementation(() => Promise.resolve(Response.json(view)));
+    const client = new FocusedGraphClient({
+      baseUrl: "http://petra.local",
+      token: "focused-token",
+      projectDefinition: definition,
+      fetch: transport,
+      contracts,
+    });
+
+    await expect(
+      client.readActionPreview(definition.project_id, request),
+    ).resolves.toEqual(view);
+    const [url, init] = transport.mock.calls[0]!;
+    expect((url as URL).pathname).toBe(
+      `/api/queries/projects/${definition.project_id}/focused-graph/action-preview`,
+    );
+    expect(JSON.parse(init?.body as string)).toEqual(request);
+    expect(JSON.parse(init?.body as string)).not.toHaveProperty("coordinates");
+    expect(JSON.parse(init?.body as string)).not.toHaveProperty("gesture");
+
+    const substituted = structuredClone(view);
+    if (substituted.content.preview.preview_kind !== "new_work") {
+      throw new Error("Expected a new-Work preview.");
+    }
+    substituted.content.preview.inquiry_result_link_ref.record_hash = `sha256:${"f".repeat(64)}`;
+    substituted.content_hash = hash(substituted.content);
+    transport.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(substituted)),
+    );
+    await expect(
+      client.readActionPreview(definition.project_id, request),
+    ).rejects.toEqual(expect.any(FocusedGraphClientError));
+
+    const callsBeforeRendererInput = transport.mock.calls.length;
+    const rendererInput = {
+      ...request,
+      coordinates: { x: 10, y: 20 },
+      gesture: "drag",
+    } as unknown as FocusedGraphActionPreviewViewRequest;
+    await expect(
+      client.readActionPreview(definition.project_id, rendererInput),
     ).rejects.toBeInstanceOf(TypeError);
     expect(transport).toHaveBeenCalledTimes(callsBeforeRendererInput);
   });

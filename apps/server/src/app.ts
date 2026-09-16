@@ -5,12 +5,15 @@ import {
   type CommunicationPlanRequest,
 } from "@petra/core";
 import {
+  FocusedGraphActionPreviewQueryError,
   FocusedGraphAnalysisQueryError,
   FocusedGraphQueryError,
   FocusedGraphViewContractError,
+  parseFocusedGraphActionPreviewViewRequest,
   parseFocusedGraphAnalysisViewRequest,
   parseFocusedGraphDetailsViewRequest,
   parseFocusedGraphViewRequest,
+  type FocusedGraphActionPreviewViewReader,
   type FocusedGraphAnalysisViewReader,
   type FocusedGraphViewReader,
 } from "@petra/core";
@@ -159,6 +162,7 @@ export interface PetraAppOptions {
   projectWorkingStateSnapshots?: ProjectWorkingStateSnapshotReader;
   projectRelationshipViews?: ProjectRelationshipViewReader;
   focusedGraphViews?: FocusedGraphViewReader;
+  focusedGraphActionPreviewViews?: FocusedGraphActionPreviewViewReader;
   focusedGraphAnalysisViews?: FocusedGraphAnalysisViewReader;
   projectRelationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
   projectObjectLocations?: ProjectObjectLocationViewReader;
@@ -5698,6 +5702,81 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The focused graph query failed.",
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/queries/projects/:projectId/focused-graph/action-preview",
+    async (context) => {
+      if (options.focusedGraphActionPreviewViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "FOCUSED_GRAPH_ACTION_PREVIEW_UNAVAILABLE",
+          "The exact governed correction and new-Work preview boundary is not configured.",
+        );
+      }
+      try {
+        const request = parseFocusedGraphActionPreviewViewRequest(
+          await readBoundedJson(context, maxBodyBytes),
+        );
+        const projectId = context.req.param("projectId");
+        const view =
+          await options.focusedGraphActionPreviewViews.queryFocusedGraphActionPreview(
+            projectId,
+            request,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "FOCUSED_GRAPH_ACTION_PREVIEW_NOT_FOUND",
+            "The exact Project, graph selection, Review binding, or SuggestedAction preview is unavailable.",
+          );
+        }
+        if (view.project_id !== projectId) {
+          throw new FocusedGraphActionPreviewQueryError(
+            "FOCUSED_GRAPH_ACTION_PREVIEW_SOURCE_INCOMPATIBLE",
+            "The focused graph action preview crossed its exact Project boundary.",
+          );
+        }
+        contracts.assertValid(
+          "focused-graph-action-preview-view",
+          "1.0.0",
+          view,
+        );
+        return context.json(view);
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            error.issues?.includes("body_too_large") === true ? 413 : 422,
+            "FOCUSED_GRAPH_ACTION_PREVIEW_QUERY_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        if (error instanceof FocusedGraphActionPreviewQueryError) {
+          const status =
+            error.code === "FOCUSED_GRAPH_ACTION_PREVIEW_QUERY_INVALID"
+              ? 422
+              : error.code === "FOCUSED_GRAPH_ACTION_PREVIEW_SOURCE_NOT_FOUND"
+                ? 404
+                : error.code ===
+                    "FOCUSED_GRAPH_ACTION_PREVIEW_SOURCE_INCOMPATIBLE"
+                  ? 409
+                  : 503;
+          return jsonError(context, status, error.code, error.message);
+        }
+        return jsonError(
+          context,
+          503,
+          "FOCUSED_GRAPH_ACTION_PREVIEW_QUERY_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The focused graph action preview is unavailable.",
         );
       }
     },
