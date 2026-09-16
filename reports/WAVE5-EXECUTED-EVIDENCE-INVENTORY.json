@@ -3,7 +3,7 @@
   "schema_version": "1.0.0",
   "wave": 5,
   "status": "passed",
-  "audited_at": "2026-09-16T14:04:18.283Z",
+  "audited_at": "2026-09-16T14:08:40.081Z",
   "command": "npm run audit:wave5:evidence",
   "plan_sha256": "7c971a812333f3e3c11216e341feaef1879c1ee47c04df5181d224bb060dc251",
   "state_sha256": "2c4c8971dcab60cbe439419c52724639d2bf0ac824b57e03ca674981442dcd59",
@@ -11,6 +11,9 @@
     "slice_count": 23,
     "max_slices": 32,
     "recorded_scenarios": 24
+  },
+  "inventory_audit_record": {
+    "state": "pending_self_record"
   },
   "summary": {
     "required_scenarios": 24,

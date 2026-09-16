@@ -64,10 +64,27 @@ for (const record of stateRecords) {
   recordsByKey.set(key, records);
 }
 
-const requiredKeys = new Set(plan.required.map(evidenceKey));
+const inventoryKey = evidenceKey(plan.inventory_audit);
+const requiredKeys = new Set([inventoryKey, ...plan.required.map(evidenceKey)]);
 for (const key of recordsByKey.keys()) {
   if (!requiredKeys.has(key))
     errors.push(`${key}: unexpected evidence record.`);
+}
+const inventoryMatches = recordsByKey.get(inventoryKey) ?? [];
+if (inventoryMatches.length > 1)
+  errors.push(
+    `${inventoryKey}: expected at most one self-record, found ${inventoryMatches.length}.`,
+  );
+const inventoryRecord = inventoryMatches[0];
+if (
+  inventoryRecord !== undefined &&
+  (inventoryRecord.status !== "passed" ||
+    inventoryRecord.role !== plan.inventory_audit.owner ||
+    typeof inventoryRecord.command !== "string" ||
+    inventoryRecord.command.trim() === "" ||
+    !/^[0-9a-f]{40}$/u.test(inventoryRecord.commit ?? ""))
+) {
+  errors.push(`${inventoryKey}: recorded self-audit metadata is invalid.`);
 }
 
 for (const requirement of plan.required) {
@@ -195,6 +212,17 @@ const result = {
     max_slices: state.max_slices,
     recorded_scenarios: stateRecords.length,
   },
+  inventory_audit_record:
+    inventoryRecord === undefined
+      ? { state: "pending_self_record" }
+      : {
+          state: "recorded",
+          status: inventoryRecord.status,
+          command: inventoryRecord.command,
+          artifact: inventoryRecord.artifact,
+          commit: inventoryRecord.commit,
+          boundary: inventoryRecord.boundary,
+        },
   summary: {
     required_scenarios: plan.required.length,
     passed_scenarios: checks.filter(({ status }) => status === "passed").length,
