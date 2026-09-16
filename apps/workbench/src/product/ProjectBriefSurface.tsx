@@ -214,6 +214,12 @@ export const ProjectBriefSurface = ({
                       const claimRefs = statement.evidence_refs.filter(
                         (reference) => reference.object_kind === "claim",
                       );
+                      const workPreviewTarget = c.next_steps.find(
+                        (action) =>
+                          action.content.action.basis.inquiry_result_link_ref
+                            .project_inquiry_link_id ===
+                          synthesis.project_inquiry_link_id,
+                      )?.content.action.basis.inquiry_result_link_ref;
                       return (
                         <li key={statement.statement_key}>
                           <h4>{originLabels[statement.origin]}</h4>
@@ -257,6 +263,17 @@ export const ProjectBriefSurface = ({
                                           "project_brief_view",
                                         returnLabel: "Brief result",
                                         returnFocusId: `brief-result-${index}`,
+                                        ...(workPreviewTarget === undefined
+                                          ? {}
+                                          : {
+                                              actionPreviewTarget: {
+                                                action_kind: "new_work",
+                                                inquiry_result_link_ref:
+                                                  structuredClone(
+                                                    workPreviewTarget,
+                                                  ),
+                                              },
+                                            }),
                                       })}
                                     >
                                       Inspect bounded current relationships for

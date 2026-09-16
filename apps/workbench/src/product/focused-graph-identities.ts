@@ -40,3 +40,7 @@ export const createFocusedGraphAnalysisRequestId = (): string =>
 /** Creates a read-only Details request identity; it grants no domain authority. */
 export const createFocusedGraphDetailsRequestId = (): string =>
   createRequestId("focused_graph_details_request");
+
+/** Creates a read-only action-preview request identity; it grants no command authority. */
+export const createFocusedGraphActionRequestId = (): string =>
+  createRequestId("focused_graph_action_request");

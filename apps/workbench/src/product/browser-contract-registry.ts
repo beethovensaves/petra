@@ -19,6 +19,7 @@ import briefInteractionEventRecordV100Schema from "../../../../packages/contract
 import briefGroundedResponseV100Schema from "../../../../packages/contracts/schemas/grounded-response/1.0.0/schema.json";
 import focusedGraphViewV100Schema from "../../../../packages/contracts/schemas/focused-graph-view/1.0.0/schema.json";
 import focusedGraphViewV110Schema from "../../../../packages/contracts/schemas/focused-graph-view/1.1.0/schema.json";
+import focusedGraphActionPreviewViewV100Schema from "../../../../packages/contracts/schemas/focused-graph-action-preview-view/1.0.0/schema.json";
 import focusedGraphDetailsViewV100Schema from "../../../../packages/contracts/schemas/focused-graph-details-view/1.0.0/schema.json";
 import focusedGraphAnalysisViewV100Schema from "../../../../packages/contracts/schemas/focused-graph-analysis-view/1.0.0/schema.json";
 import briefEvidencePacketV100Schema from "../../../../packages/contracts/schemas/evidence-packet/1.0.0/schema.json";
@@ -63,6 +64,7 @@ import recoveryAssessmentSchema from "../../../../packages/contracts/schemas/rev
 import reviewViewSchema from "../../../../packages/contracts/schemas/project-review-view/1.0.0/schema.json";
 import reviewViewV11Schema from "../../../../packages/contracts/schemas/project-review-view/1.1.0/schema.json";
 import reviewViewV12Schema from "../../../../packages/contracts/schemas/project-review-view/1.2.0/schema.json";
+import reviewViewV13Schema from "../../../../packages/contracts/schemas/project-review-view/1.3.0/schema.json";
 import changeSetSchema from "../../../../packages/contracts/schemas/change-set/1.0.0/schema.json";
 import changeSetV11Schema from "../../../../packages/contracts/schemas/change-set/1.1.0/schema.json";
 import approvalSchema from "../../../../packages/contracts/schemas/approval/1.0.0/schema.json";
@@ -76,6 +78,7 @@ import historyImpactV14Schema from "../../../../packages/contracts/schemas/proje
 type BrowserContractName =
   | "communication-plan@1.0.0"
   | "focused-graph-analysis-view@1.0.0"
+  | "focused-graph-action-preview-view@1.0.0"
   | "focused-graph-details-view@1.0.0"
   | "focused-graph-view@1.0.0"
   | "focused-graph-view@1.1.0"
@@ -129,6 +132,7 @@ const schemas = [
   focusedGraphDetailsViewV100Schema,
   focusedGraphViewV100Schema,
   focusedGraphViewV110Schema,
+  focusedGraphActionPreviewViewV100Schema,
   briefInteractionEventRecordV100Schema,
   briefInteractionRunV100Schema,
   briefModelSynthesistOutputV100Schema,
@@ -157,6 +161,7 @@ const schemas = [
   reviewViewSchema,
   reviewViewV11Schema,
   reviewViewV12Schema,
+  reviewViewV13Schema,
   changeSetSchema,
   changeSetV11Schema,
   approvalSchema,
@@ -185,6 +190,8 @@ const schemas = [
 const contractIds: Record<BrowserContractName, string> = {
   "communication-plan@1.0.0": communicationPlanSchema.$id,
   "focused-graph-analysis-view@1.0.0": focusedGraphAnalysisViewV100Schema.$id,
+  "focused-graph-action-preview-view@1.0.0":
+    focusedGraphActionPreviewViewV100Schema.$id,
   "focused-graph-details-view@1.0.0": focusedGraphDetailsViewV100Schema.$id,
   "focused-graph-view@1.0.0": focusedGraphViewV100Schema.$id,
   "focused-graph-view@1.1.0": focusedGraphViewV110Schema.$id,
@@ -238,6 +245,12 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:93889738972355d70b7085472b0070a357e19bb459efc0bb6091e5d3d19ca066",
+    },
+    {
+      name: "focused-graph-action-preview-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:7dd323776916eebab315123cf2ba52ba5cd60ca026571122a7b3d59980f663f4",
     },
     {
       name: "focused-graph-analysis-view",

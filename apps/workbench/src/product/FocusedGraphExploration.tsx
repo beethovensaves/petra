@@ -17,6 +17,7 @@ import type { FocusedGraphEntry } from "./focused-graph-entry.js";
 import { createFocusedGraphRequestId } from "./focused-graph-identities.js";
 import { focusedGraphRegionsFromView } from "./focused-graph-regions.js";
 import type { PetraFocusedGraphReadView } from "./focused-graph-regions.js";
+import { FocusedGraphActions } from "./FocusedGraphActions.js";
 import { FocusedGraphDetails } from "./FocusedGraphDetails.js";
 import {
   FocusedGraphResult,
@@ -1137,6 +1138,19 @@ export const FocusedGraphExploration = ({
         stateId={state.stateId}
         returnContext={entry.return_context}
       />
+      {entry.action_preview_target === undefined ? null : (
+        <FocusedGraphActions
+          key={`${state.stateId}:${state.selectedKey}:action-preview`}
+          projectId={entry.project_id}
+          definition={definition}
+          request={state.request}
+          view={state.view}
+          selectedKey={state.selectedKey}
+          stateId={state.stateId}
+          target={entry.action_preview_target}
+          returnContext={entry.return_context}
+        />
+      )}
     </section>
   );
 };

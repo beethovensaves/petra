@@ -9,7 +9,10 @@ import type {
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
 } from "@petra/contracts";
-import type { FocusedGraphReadRequest } from "@petra/core";
+import type {
+  FocusedGraphActionPreviewViewRequest,
+  FocusedGraphReadRequest,
+} from "@petra/core";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 
@@ -30,6 +33,7 @@ const DEFINITION_ID = /^project_definition_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const EVENT_ID = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const REVIEW_SESSION_ID = /^review_session_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const REVIEW_MEMBER_ID = /^review_member_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const INQUIRY_LINK_ID = /^project_inquiry_link_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PETRA_ID = /^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const HASH = /^sha256:[0-9a-f]{64}$/u;
 const SEMANTIC_KEY = /^[a-z][a-z0-9._/-]{1,199}$/u;
@@ -87,6 +91,9 @@ export interface FocusedGraphHistoricalPosition {
 
 export type FocusedGraphPresentation =
   "position" | "current_working_comparison" | "impact" | "time";
+
+export type FocusedGraphActionPreviewTarget =
+  FocusedGraphActionPreviewViewRequest["target"];
 
 export type FocusedGraphAnalysisEntry =
   | {
@@ -146,6 +153,7 @@ export interface FocusedGraphEntry {
   readonly analysis?: FocusedGraphAnalysisEntry;
   readonly expected_snapshot?: FocusedGraphProjectSnapshotRef;
   readonly historical_position?: FocusedGraphHistoricalPosition;
+  readonly action_preview_target?: FocusedGraphActionPreviewTarget;
   readonly return_context: FocusedGraphReturnContext;
 }
 
@@ -320,6 +328,21 @@ const validAnalysis = (entry: FocusedGraphEntry): boolean => {
   );
 };
 
+const validActionPreviewTarget = (
+  target: FocusedGraphActionPreviewTarget,
+): boolean =>
+  target.action_kind === "governed_correction"
+    ? ["edit_relationship", "relink", "split", "change_scope"].includes(
+        target.requested_change,
+      ) &&
+      REVIEW_SESSION_ID.test(target.review_session_id) &&
+      REVIEW_MEMBER_ID.test(target.review_member_id)
+    : INQUIRY_LINK_ID.test(
+        target.inquiry_result_link_ref.project_inquiry_link_id,
+      ) &&
+      HASH.test(target.inquiry_result_link_ref.content_hash) &&
+      HASH.test(target.inquiry_result_link_ref.record_hash);
+
 const assertEntry = (entry: FocusedGraphEntry): FocusedGraphEntry => {
   if (
     !PROJECT_ID.test(entry.project_id) ||
@@ -364,6 +387,10 @@ const assertEntry = (entry: FocusedGraphEntry): FocusedGraphEntry => {
       entry.historical_position === undefined) ||
     (entry.presentation === "current_working_comparison" &&
       entry.semantic_layer === "historical") ||
+    (entry.action_preview_target !== undefined &&
+      (entry.semantic_layer === "historical" ||
+        entry.presentation !== "position" ||
+        !validActionPreviewTarget(entry.action_preview_target))) ||
     entry.return_context.label.trim().length === 0 ||
     entry.return_context.label.length > 240 ||
     (entry.return_context.focus_id !== undefined &&
@@ -504,6 +531,28 @@ export const focusedGraphEntryPath = (entry: FocusedGraphEntry): string => {
       params.set("temporalDimension", entry.analysis.temporal_dimension);
     }
   }
+  if (entry.action_preview_target !== undefined) {
+    const target = entry.action_preview_target;
+    params.set("actionKind", target.action_kind);
+    if (target.action_kind === "governed_correction") {
+      params.set("actionRequestedChange", target.requested_change);
+      params.set("actionReviewSessionId", target.review_session_id);
+      params.set("actionReviewMemberId", target.review_member_id);
+    } else {
+      params.set(
+        "actionInquiryLinkId",
+        target.inquiry_result_link_ref.project_inquiry_link_id,
+      );
+      params.set(
+        "actionInquiryContentHash",
+        target.inquiry_result_link_ref.content_hash,
+      );
+      params.set(
+        "actionInquiryRecordHash",
+        target.inquiry_result_link_ref.record_hash,
+      );
+    }
+  }
   return `/projects/${encodeURIComponent(entry.project_id)}/graph?${params}`;
 };
 
@@ -560,6 +609,13 @@ const optionalKeys = new Set([
   "reviewSessionId",
   "reviewMemberIds",
   "temporalDimension",
+  "actionKind",
+  "actionRequestedChange",
+  "actionReviewSessionId",
+  "actionReviewMemberId",
+  "actionInquiryLinkId",
+  "actionInquiryContentHash",
+  "actionInquiryRecordHash",
 ]);
 
 export const focusedGraphEntryFromSearch = (
@@ -701,6 +757,19 @@ export const focusedGraphEntryFromSearch = (
   const reviewSessionId = optionalParam(params, "reviewSessionId");
   const reviewMemberIds = optionalParam(params, "reviewMemberIds");
   const temporalDimension = optionalParam(params, "temporalDimension");
+  const actionKind = optionalParam(params, "actionKind");
+  const actionRequestedChange = optionalParam(params, "actionRequestedChange");
+  const actionReviewSessionId = optionalParam(params, "actionReviewSessionId");
+  const actionReviewMemberId = optionalParam(params, "actionReviewMemberId");
+  const actionInquiryLinkId = optionalParam(params, "actionInquiryLinkId");
+  const actionInquiryContentHash = optionalParam(
+    params,
+    "actionInquiryContentHash",
+  );
+  const actionInquiryRecordHash = optionalParam(
+    params,
+    "actionInquiryRecordHash",
+  );
   const hasReviewBinding =
     reviewSessionId !== undefined || reviewMemberIds !== undefined;
   if (
@@ -765,6 +834,54 @@ export const focusedGraphEntryFromSearch = (
         { analysis_kind: "time" }
       >["temporal_dimension"],
     };
+  }
+  const correctionActionFields = [
+    actionRequestedChange,
+    actionReviewSessionId,
+    actionReviewMemberId,
+  ];
+  const workActionFields = [
+    actionInquiryLinkId,
+    actionInquiryContentHash,
+    actionInquiryRecordHash,
+  ];
+  let actionPreviewTarget: FocusedGraphActionPreviewTarget | undefined;
+  if (
+    actionKind === "governed_correction" &&
+    correctionActionFields.every((value) => value !== undefined) &&
+    workActionFields.every((value) => value === undefined)
+  ) {
+    actionPreviewTarget = {
+      action_kind: "governed_correction",
+      requested_change: actionRequestedChange as Extract<
+        FocusedGraphActionPreviewTarget,
+        { action_kind: "governed_correction" }
+      >["requested_change"],
+      review_session_id: actionReviewSessionId!,
+      review_member_id: actionReviewMemberId!,
+    };
+  } else if (
+    actionKind === "new_work" &&
+    workActionFields.every((value) => value !== undefined) &&
+    correctionActionFields.every((value) => value === undefined)
+  ) {
+    actionPreviewTarget = {
+      action_kind: "new_work",
+      inquiry_result_link_ref: {
+        project_inquiry_link_id: actionInquiryLinkId!,
+        content_hash: actionInquiryContentHash!,
+        record_hash: actionInquiryRecordHash!,
+      },
+    };
+  } else if (
+    actionKind !== undefined ||
+    [...correctionActionFields, ...workActionFields].some(
+      (value) => value !== undefined,
+    )
+  ) {
+    throw new FocusedGraphEntryError(
+      "The focused graph action-preview target is incomplete or incompatible.",
+    );
   }
   const entry: FocusedGraphEntry = {
     project_id: projectId,
@@ -839,6 +956,9 @@ export const focusedGraphEntryFromSearch = (
     ...(historicalPosition === undefined
       ? {}
       : { historical_position: historicalPosition }),
+    ...(actionPreviewTarget === undefined
+      ? {}
+      : { action_preview_target: actionPreviewTarget }),
     return_context: {
       path: safeReturnPath(projectId, requiredParam(params, "returnPath")),
       label: requiredParam(params, "returnLabel"),
@@ -910,6 +1030,7 @@ export const scientificFocusedGraphEntryDraft = (input: {
   readonly historicalPosition?: FocusedGraphHistoricalPosition;
   readonly semanticLayer?: FocusedGraphEntry["semantic_layer"];
   readonly analysis?: FocusedGraphAnalysisEntryDraft;
+  readonly actionPreviewTarget?: FocusedGraphActionPreviewTarget;
 }): FocusedGraphEntryDraft => ({
   project_id: input.projectId,
   question: input.question,
@@ -958,6 +1079,9 @@ export const scientificFocusedGraphEntryDraft = (input: {
   ...(input.historicalPosition === undefined
     ? {}
     : { historical_position: structuredClone(input.historicalPosition) }),
+  ...(input.actionPreviewTarget === undefined
+    ? {}
+    : { action_preview_target: structuredClone(input.actionPreviewTarget) }),
   return_context: {
     label: input.returnLabel,
     ...(input.returnFocusId === undefined
@@ -1067,13 +1191,22 @@ export const FocusedGraphOrientationSurface = ({
     presentation: FocusedGraphPresentation = "position",
     analysis?: FocusedGraphAnalysisEntry,
   ): string => {
-    const { analysis: priorAnalysis, ...entryWithoutAnalysis } = data.entry;
+    const {
+      analysis: priorAnalysis,
+      action_preview_target: actionPreviewTarget,
+      ...entryWithoutAnalysis
+    } = data.entry;
     void priorAnalysis;
     return focusedGraphEntryPath({
       ...entryWithoutAnalysis,
       request_id: requestId,
       semantic_layer: layer,
       presentation,
+      ...(layer === "historical" ||
+      presentation !== "position" ||
+      actionPreviewTarget === undefined
+        ? {}
+        : { action_preview_target: actionPreviewTarget }),
       ...(analysis === undefined ? {} : { analysis }),
     });
   };

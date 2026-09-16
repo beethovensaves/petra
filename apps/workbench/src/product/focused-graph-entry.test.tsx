@@ -157,6 +157,40 @@ describe("focused graph bounded entry and orientation contract", () => {
     expect(markup).toContain("returnFocus=brief-result-0");
   });
 
+  it("round-trips exact Review and inquiry-result action-preview targets without renderer state", () => {
+    const correction = {
+      ...entryFor("review"),
+      action_preview_target: {
+        action_kind: "governed_correction" as const,
+        requested_change: "edit_relationship" as const,
+        review_session_id: "review_session_01ARZ3NDEKTSV4RRFFQ69G5FAH",
+        review_member_id: "review_member_01ARZ3NDEKTSV4RRFFQ69G5FAJ",
+      },
+    };
+    const work = {
+      ...entryFor("brief"),
+      action_preview_target: {
+        action_kind: "new_work" as const,
+        inquiry_result_link_ref: {
+          project_inquiry_link_id:
+            "project_inquiry_link_01ARZ3NDEKTSV4RRFFQ69G5FAK",
+          content_hash: `sha256:${"d".repeat(64)}`,
+          record_hash: `sha256:${"e".repeat(64)}`,
+        },
+      },
+    };
+
+    for (const entry of [correction, work]) {
+      const url = new URL(focusedGraphEntryPath(entry), "https://petra.local");
+      expect(focusedGraphEntryFromSearch(projectId, url.searchParams)).toEqual(
+        entry,
+      );
+      expect(url.searchParams.has("coordinates")).toBe(false);
+      expect(url.searchParams.has("layout")).toBe(false);
+      expect(url.searchParams.has("gesture")).toBe(false);
+    }
+  });
+
   it("fails closed on extra fields, cross-Project return, or a contextual origin without its exact selected object", () => {
     const entry = entryFor("review");
     const url = new URL(focusedGraphEntryPath(entry), "https://petra.local");

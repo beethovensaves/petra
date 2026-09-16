@@ -1,5 +1,10 @@
 import { useEffect, useReducer, useRef, useState, type FormEvent } from "react";
-import { Link, useLoaderData, useRevalidator } from "react-router";
+import {
+  Link,
+  useLoaderData,
+  useRevalidator,
+  useSearchParams,
+} from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
 import {
@@ -46,7 +51,27 @@ import { ReviewRecovery } from "./ReviewRecovery.js";
 import {
   FocusedGraphEntryLink,
   scientificFocusedGraphEntryDraft,
+  type FocusedGraphActionPreviewTarget,
 } from "./focused-graph-entry.js";
+
+const REVIEW_SESSION_ID = /^review_session_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const REVIEW_MEMBER_ID = /^review_member_[0-9A-HJKMNP-TV-Z]{26}$/u;
+
+const graphCorrectionTarget = (
+  review: ReviewSession,
+): FocusedGraphActionPreviewTarget | undefined => {
+  const correction = review.candidateCorrection;
+  return correction !== undefined &&
+    REVIEW_SESSION_ID.test(review.id) &&
+    REVIEW_MEMBER_ID.test(correction.reviewMemberId)
+    ? {
+        action_kind: "governed_correction",
+        requested_change: "edit_relationship",
+        review_session_id: review.id,
+        review_member_id: correction.reviewMemberId,
+      }
+    : undefined;
+};
 
 const ReviewState = ({ review }: { review: ReviewSession }) => (
   <span className="review-state" data-state={review.status}>
@@ -1544,6 +1569,7 @@ const ReviewSessionMemberSurface = ({
     !refreshPending &&
     !correctionDraftIsLocked(candidateEditor.correction) &&
     !basisRevisionIsLocked(basisEditor.revision);
+  const graphActionTarget = graphCorrectionTarget(review);
 
   const basisDraftHasInput =
     basisEditor.draft.sourceScope !== "" ||
@@ -2784,6 +2810,11 @@ const ReviewSessionMemberSurface = ({
                 returnDestinationOwner: "project_review_view",
                 returnLabel: "Review",
                 returnFocusId: "review-decision-title",
+                ...(graphActionTarget === undefined
+                  ? {}
+                  : {
+                      actionPreviewTarget: graphActionTarget,
+                    }),
               })}
             >
               Inspect bounded current relationships
@@ -2810,12 +2841,14 @@ export const ReviewSessionSurface = ({
   onReviewChange,
   initialCandidateEditOpen = false,
   initialBasisEditOpen = false,
+  initialMemberId,
 }: {
   project: ProjectRecord;
   review: ReviewSession;
   onReviewChange?: (() => void | Promise<void>) | undefined;
   initialCandidateEditOpen?: boolean;
   initialBasisEditOpen?: boolean;
+  initialMemberId?: string;
 }): React.JSX.Element => {
   const [applyState, setApplyState] = useState<ReviewApplyState>({
     kind: "idle",
@@ -2835,7 +2868,10 @@ export const ReviewSessionSurface = ({
     ),
   );
   const [activeMemberId, setActiveMemberId] = useState(
-    review.reviewMemberId ?? review.members?.[0]?.reviewMemberId ?? "",
+    initialMemberId ??
+      review.reviewMemberId ??
+      review.members?.[0]?.reviewMemberId ??
+      "",
   );
   const [separation, setSeparation] =
     useState<ReviewSessionSeparationPresentationState>({ state: "idle" });
@@ -2953,11 +2989,19 @@ export const ReviewSessionRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
   const review = useLoaderData<ReviewSession>();
   const revalidator = useRevalidator();
+  const [searchParams] = useSearchParams();
+  const requestedMemberId = searchParams.get("reviewMemberId");
+  const initialMemberId = review.members?.some(
+    (member) => member.reviewMemberId === requestedMemberId,
+  )
+    ? (requestedMemberId ?? undefined)
+    : undefined;
   return (
     <ReviewSessionSurface
       key={`${project.id}:${review.id}`}
       project={project}
       review={review}
+      {...(initialMemberId === undefined ? {} : { initialMemberId })}
       onReviewChange={() => revalidator.revalidate()}
     />
   );
