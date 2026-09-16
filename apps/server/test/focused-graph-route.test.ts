@@ -1,4 +1,5 @@
 import { focusedGraphFixture } from "../../../packages/contracts/test/fixtures/focused-graph-view.js";
+import { focusedGraphV11Fixture } from "../../../packages/contracts/test/fixtures/focused-graph-view-v1-1.js";
 import {
   FocusedGraphQueryError,
   type FocusedGraphViewReader,
@@ -109,5 +110,40 @@ describe("focused graph query route", () => {
     await expect(stale.json()).resolves.toMatchObject({
       error: { code: "FOCUSED_GRAPH_SNAPSHOT_STALE" },
     });
+  });
+
+  it("forwards and validates an additive snapshot-bound named expansion", async () => {
+    const expansionView = focusedGraphV11Fixture();
+    const expansionRequest = {
+      ...request,
+      project_definition_ref:
+        expansionView.content.profile.project_definition_ref,
+      limits: expansionView.content.scope.limits,
+      expected_snapshot: expansionView.content.requested_snapshot,
+      exploration: {
+        mode: "named_expansion" as const,
+        expansion_key: expansionView.content.exploration.expansion_key,
+        recipe_semantic_key:
+          expansionView.content.exploration.recipe_semantic_key,
+        target_ref: expansionView.content.exploration.target_ref,
+        maximum_depth: expansionView.content.exploration.maximum_depth,
+        filters: expansionView.content.exploration.filters,
+      },
+    };
+    const queryFocusedGraph = vi.fn<
+      FocusedGraphViewReader["queryFocusedGraph"]
+    >(() => Promise.resolve(expansionView));
+    const app = createPetraApp({
+      authToken: token,
+      focusedGraphViews: { queryFocusedGraph },
+    }).app;
+
+    const response = await app.request(path, authorized(expansionRequest));
+    expect(response.status).toBe(200);
+    expect(queryFocusedGraph).toHaveBeenCalledWith(
+      view.project_id,
+      expansionRequest,
+    );
+    await expect(response.json()).resolves.toEqual(expansionView);
   });
 });

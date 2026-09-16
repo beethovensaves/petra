@@ -6,12 +6,14 @@ import type {
   FocusedGraphRegisteredAction,
   FocusedGraphResolvedSemantic,
   FocusedGraphLimits,
+  FocusedGraphExplorationFiltersV11,
   FocusedGraphProjectDefinitionRef,
   FocusedGraphProjectSnapshotRef,
   FocusedGraphSemanticDestination,
   FocusedGraphTask,
   FocusedGraphTerm,
   PetraFocusedGraphView,
+  PetraFocusedGraphViewV11,
   PetraProjectDefinition,
   ProjectDefinitionContractRef,
   ProjectDefinitionRegistration,
@@ -99,11 +101,36 @@ export interface FocusedGraphViewRequest {
   readonly expected_snapshot?: FocusedGraphProjectSnapshotRef;
 }
 
+export interface FocusedGraphNamedExpansionRequest {
+  readonly mode: "named_expansion";
+  readonly expansion_key: string;
+  readonly recipe_semantic_key: string;
+  readonly target_ref: FocusedGraphExactRef;
+  readonly maximum_depth: number;
+  readonly filters: FocusedGraphExplorationFiltersV11;
+}
+
+/**
+ * Opt-in additive query shape for one registered, snapshot-bound expansion.
+ * The recipe semantic is resolved from the exact ProjectDefinition; the client
+ * supplies no predicate, Cypher, renderer geometry, or completeness claim.
+ */
+export interface FocusedGraphExplorationViewRequest extends FocusedGraphViewRequest {
+  readonly exploration: FocusedGraphNamedExpansionRequest;
+  readonly expected_snapshot: FocusedGraphProjectSnapshotRef;
+}
+
+export type FocusedGraphReadRequest =
+  FocusedGraphViewRequest | FocusedGraphExplorationViewRequest;
+
+export type PetraFocusedGraphReadView =
+  PetraFocusedGraphView | PetraFocusedGraphViewV11;
+
 export interface FocusedGraphViewReader {
   queryFocusedGraph(
     projectId: string,
-    request: FocusedGraphViewRequest,
-  ): Promise<PetraFocusedGraphView | undefined>;
+    request: FocusedGraphReadRequest,
+  ): Promise<PetraFocusedGraphReadView | undefined>;
 }
 
 const HASH_PATTERN = /^sha256:[0-9a-f]{64}$/u;
@@ -281,7 +308,10 @@ const destinationInput = (
         value.reason.length <= 2000;
 };
 
-const limitsInput = (value: unknown): value is FocusedGraphLimits =>
+const limitsInput = (
+  value: unknown,
+  maximumDepth: number,
+): value is FocusedGraphLimits =>
   isRecord(value) &&
   exactKeys(value, [
     "maximum_depth",
@@ -289,7 +319,7 @@ const limitsInput = (value: unknown): value is FocusedGraphLimits =>
     "maximum_relationships",
     "maximum_paths",
   ]) &&
-  value.maximum_depth === 1 &&
+  value.maximum_depth === maximumDepth &&
   Number.isSafeInteger(value.maximum_nodes) &&
   Number(value.maximum_nodes) >= 1 &&
   Number(value.maximum_nodes) <= 100 &&
@@ -300,10 +330,77 @@ const limitsInput = (value: unknown): value is FocusedGraphLimits =>
   Number(value.maximum_paths) >= 1 &&
   Number(value.maximum_paths) <= 99;
 
+const uniqueStrings = (value: unknown): value is string[] =>
+  Array.isArray(value) &&
+  value.every((item): item is string => typeof item === "string") &&
+  new Set(value).size === value.length;
+
+const explorationInput = (
+  value: unknown,
+): value is FocusedGraphNamedExpansionRequest => {
+  if (
+    !isRecord(value) ||
+    !exactKeys(value, [
+      "mode",
+      "expansion_key",
+      "recipe_semantic_key",
+      "target_ref",
+      "maximum_depth",
+      "filters",
+    ]) ||
+    value.mode !== "named_expansion" ||
+    typeof value.expansion_key !== "string" ||
+    !STABLE_KEY_PATTERN.test(value.expansion_key) ||
+    typeof value.recipe_semantic_key !== "string" ||
+    !SEMANTIC_KEY_PATTERN.test(value.recipe_semantic_key) ||
+    !exactRefInput(value.target_ref) ||
+    !Number.isSafeInteger(value.maximum_depth) ||
+    Number(value.maximum_depth) < 1 ||
+    Number(value.maximum_depth) > 4 ||
+    !isRecord(value.filters) ||
+    !exactKeys(value.filters, ["meaning_kinds", "directions", "origins"]) ||
+    !uniqueStrings(value.filters.meaning_kinds) ||
+    value.filters.meaning_kinds.length === 0 ||
+    value.filters.meaning_kinds.some(
+      (item) =>
+        ![
+          "citation",
+          "support",
+          "contradiction",
+          "qualification",
+          "inference",
+          "structural",
+          "provenance",
+          "governance",
+          "dependency",
+        ].includes(item),
+    ) ||
+    !uniqueStrings(value.filters.directions) ||
+    value.filters.directions.length === 0 ||
+    value.filters.directions.some(
+      (item) => !["outgoing", "incoming"].includes(item),
+    ) ||
+    !uniqueStrings(value.filters.origins) ||
+    value.filters.origins.length === 0 ||
+    value.filters.origins.some(
+      (item) =>
+        ![
+          "canonical_record",
+          "working_candidate",
+          "historical_record",
+          "model_inference",
+        ].includes(item),
+    )
+  ) {
+    return false;
+  }
+  return true;
+};
+
 /** Parse an untrusted API body without accepting renderer or command fields. */
 export const parseFocusedGraphViewRequest = (
   value: unknown,
-): FocusedGraphViewRequest => {
+): FocusedGraphReadRequest => {
   const required = [
     "request_id",
     "task_kind",
@@ -324,7 +421,7 @@ export const parseFocusedGraphViewRequest = (
     typeof candidate === "string" && SEMANTIC_KEY_PATTERN.test(candidate);
   if (
     !isRecord(value) ||
-    !exactKeys(value, required, ["expected_snapshot"]) ||
+    !exactKeys(value, required, ["expected_snapshot", "exploration"]) ||
     typeof value.request_id !== "string" ||
     !FOCUSED_REQUEST_ID_PATTERN.test(value.request_id) ||
     value.task_kind !== "neighborhood" ||
@@ -348,18 +445,24 @@ export const parseFocusedGraphViewRequest = (
     !semantic(value.relationship_semantic_key) ||
     !semantic(value.return_action_semantic_key) ||
     !destinationInput(value.return_destination) ||
-    !limitsInput(value.limits) ||
+    (value.exploration === undefined
+      ? !limitsInput(value.limits, 1)
+      : !explorationInput(value.exploration) ||
+        !limitsInput(value.limits, value.exploration.maximum_depth)) ||
     (value.expected_snapshot !== undefined &&
       !snapshotInput(value.expected_snapshot)) ||
     (value.semantic_layer === "historical" &&
-      value.expected_snapshot === undefined)
+      value.expected_snapshot === undefined) ||
+    (value.exploration !== undefined &&
+      (value.expected_snapshot === undefined ||
+        value.semantic_layer === "historical"))
   ) {
     throw new FocusedGraphQueryError(
       "FOCUSED_GRAPH_QUERY_INVALID",
       "A focused graph query requires one exact registered current, working, or retained historical neighborhood request.",
     );
   }
-  return structuredClone(value) as unknown as FocusedGraphViewRequest;
+  return structuredClone(value) as unknown as FocusedGraphReadRequest;
 };
 
 const digest = (value: unknown): string =>
@@ -570,17 +673,21 @@ export class FocusedGraphViewContractResolver {
     this.installed(semantic.contract);
   }
 
-  resolve(
+  resolve<View extends PetraFocusedGraphReadView>(
     definition: PetraProjectDefinition,
-    view: PetraFocusedGraphView,
+    view: View,
   ): {
     state: "resolved";
     definition_family: string;
-    view: PetraFocusedGraphView;
+    view: View;
   } {
     try {
       this.contracts.assertValid("project-definition", "1.0.0", definition);
-      this.contracts.assertValid("focused-graph-view", "1.0.0", view);
+      this.contracts.assertValid(
+        "focused-graph-view",
+        view.schema_version,
+        view,
+      );
     } catch (error) {
       const detail =
         error instanceof ContractRegistryError &&
@@ -935,6 +1042,107 @@ export class FocusedGraphViewContractResolver {
         this.fail(
           "FOCUSED_GRAPH_ACTION_INCOMPATIBLE",
           "Historical focused graph positions cannot prepare current correction or Work actions.",
+        );
+    }
+
+    if (view.schema_version === "1.1.0") {
+      const exploration = view.content.exploration;
+      const expansionSemantic = requireSemantic(
+        exploration.recipe_semantic_key,
+        "action",
+      );
+      const expansionContract = this.contracts.entries.find(
+        (candidate) =>
+          candidate.name === "focused-graph-view" &&
+          candidate.version === "1.1.0",
+      );
+      const target = nodes.get(exploration.target_node_key);
+      const expansionActions = content.actions.filter(
+        (action) =>
+          action.action_kind === "expand_recorded" &&
+          action.semantic_key === expansionSemantic.semantic_key &&
+          action.target_keys.includes(exploration.target_node_key),
+      );
+      if (
+        target === undefined ||
+        expansionContract === undefined ||
+        expansionSemantic.contract.name !== "petra.focused-graph-view" ||
+        expansionSemantic.contract.version !== "1.1.0" ||
+        expansionSemantic.contract.content_hash !==
+          expansionContract.canonical_sha256 ||
+        !sameRef(target.record_ref, exploration.target_ref) ||
+        exploration.maximum_depth !== content.scope.limits.maximum_depth ||
+        canonicalize(content.scope.directions) !==
+          canonicalize(exploration.filters.directions) ||
+        expansionActions.length !== 1
+      )
+        this.fail(
+          "FOCUSED_GRAPH_REFERENCE_INCOMPATIBLE",
+          "The named expansion does not preserve one exact registered recipe, target, action, and finite depth.",
+        );
+
+      const grouped = new Set<string>();
+      for (const group of view.content.groups) {
+        if (
+          group.returned_count !== group.member_relationship_keys.length ||
+          group.overlap ||
+          group.member_relationship_keys.some((key) => grouped.has(key))
+        )
+          this.fail(
+            "FOCUSED_GRAPH_REFERENCE_INCOMPATIBLE",
+            `Group ${group.group_key} has incompatible count or overlap accounting.`,
+          );
+        for (const key of group.member_relationship_keys) {
+          const relationship = relationships.get(key);
+          if (
+            relationship === undefined ||
+            relationship.layer !== group.layer ||
+            relationship.meaning_kind !== group.meaning_kind
+          )
+            this.fail(
+              "FOCUSED_GRAPH_REFERENCE_INCOMPATIBLE",
+              `Group ${group.group_key} names a relationship outside its disclosed facet.`,
+            );
+          grouped.add(key);
+        }
+      }
+      if (
+        grouped.size !== relationships.size ||
+        [...relationships.keys()].some((key) => !grouped.has(key)) ||
+        [...relationships.values()].some(
+          (relationship) =>
+            !exploration.filters.meaning_kinds.includes(
+              relationship.meaning_kind,
+            ) || !exploration.filters.origins.includes(relationship.origin),
+        ) ||
+        [...paths.values()].some((path) =>
+          path.steps.some(
+            (step) =>
+              !exploration.filters.directions.includes(
+                step.traversal_direction,
+              ),
+          ),
+        )
+      )
+        this.fail(
+          "FOCUSED_GRAPH_REFERENCE_INCOMPATIBLE",
+          "The named expansion membership is outside its normalized filters or disclosed groups.",
+        );
+
+      const exactCycleCount =
+        exploration.accounting.cycle_paths.state === "exact"
+          ? exploration.accounting.cycle_paths.value
+          : undefined;
+      const representedCycleCount = content.paths.filter((path) =>
+        path.steps.some((step) => step.repeated_member),
+      ).length;
+      if (
+        exactCycleCount !== undefined &&
+        exactCycleCount !== representedCycleCount
+      )
+        this.fail(
+          "FOCUSED_GRAPH_REFERENCE_INCOMPATIBLE",
+          "The named expansion cycle accounting does not match its represented paths.",
         );
     }
 

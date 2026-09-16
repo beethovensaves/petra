@@ -4,10 +4,14 @@ import { readFileSync } from "node:fs";
 import type {
   FocusedGraphResolvedSemantic,
   PetraFocusedGraphView,
+  PetraFocusedGraphViewV11,
   PetraProjectDefinition,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import type { FocusedGraphViewRequest } from "@petra/core";
+import type {
+  FocusedGraphExplorationViewRequest,
+  FocusedGraphViewRequest,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import { describe, expect, it, vi } from "vitest";
 
@@ -20,8 +24,12 @@ import {
 const contracts = new PetraContractRegistry();
 const hash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
-const contract = (name: string) => {
-  const entry = contracts.entries.find((candidate) => candidate.name === name);
+const contract = (name: string, version?: string) => {
+  const entry = contracts.entries.find(
+    (candidate) =>
+      candidate.name === name &&
+      (version === undefined || candidate.version === version),
+  );
   if (entry === undefined) throw new Error(`Missing contract ${name}.`);
   return {
     name: `petra.${name}`,
@@ -197,6 +205,138 @@ const setup = (): {
   return { definition, view, request };
 };
 
+const setupExpansion = (): {
+  definition: PetraProjectDefinition;
+  view: PetraFocusedGraphViewV11;
+  request: FocusedGraphExplorationViewRequest;
+} => {
+  const base = setup();
+  const definition = base.definition;
+  const focusedV11 = contract("focused-graph-view", "1.1.0");
+  definition.content.registrations.push({
+    registration_kind: "extension",
+    semantic_key: "scientific.graph.show-downstream",
+    contract: focusedV11,
+  });
+  definition.content.terms.push({
+    semantic_key: "scientific.graph.show-downstream",
+    singular: "Show downstream effects",
+    plural: "Show downstream effects",
+    definition: "Reveal recorded downstream relationships within exact bounds.",
+    generic_family: "task",
+  });
+  definition.content_hash = hash(definition.content);
+  const definitionRef = {
+    project_definition_id: definition.project_definition_id,
+    revision: definition.revision,
+    content_hash: definition.content_hash,
+    record_hash: hash(definition),
+    definition_family: definition.definition_family,
+  };
+  const expansionSemantic: FocusedGraphResolvedSemantic = {
+    semantic_key: "scientific.graph.show-downstream",
+    role: "action",
+    registration_kind: "extension",
+    contract: focusedV11,
+    term: exactTerm(definition, "scientific.graph.show-downstream"),
+  };
+  const content: PetraFocusedGraphViewV11["content"] = {
+    ...base.view.content,
+    profile: {
+      ...base.view.content.profile,
+      project_definition_ref: definitionRef,
+      resolved_semantics: [
+        ...base.view.content.profile.resolved_semantics,
+        expansionSemantic,
+      ],
+    },
+    scope: {
+      ...base.view.content.scope,
+      directions: ["outgoing"],
+      limits: { ...base.view.content.scope.limits, maximum_depth: 2 },
+    },
+    exploration: {
+      mode: "named_expansion",
+      expansion_key: "expansion:show-downstream:claim-a",
+      recipe_semantic_key: expansionSemantic.semantic_key,
+      recipe_label: expansionSemantic.term.singular,
+      target_ref: structuredClone(base.request.focus_ref),
+      target_node_key: base.view.content.nodes[0]!.node_key,
+      maximum_depth: 2,
+      filters: {
+        meaning_kinds: ["support"],
+        directions: ["outgoing"],
+        origins: ["canonical_record"],
+      },
+      accounting: {
+        result_state: "complete_for_scope",
+        capped_members: { state: "exact", value: 0 },
+        hidden_relationships: { state: "exact", value: 0 },
+        restricted_paths: { state: "not_disclosed" },
+        cycle_paths: { state: "exact", value: 0 },
+        incomplete_paths: { state: "exact", value: 0 },
+        unknown_paths: { state: "unknown" },
+      },
+    },
+    groups: [
+      {
+        group_key: "group:relationship-meaning:current:support",
+        facet: "relationship_meaning",
+        label: "Support — Current",
+        membership_rule: "Exact Current support relationships.",
+        count_unit: "relationships",
+        layer: "current",
+        meaning_kind: "support",
+        member_relationship_keys: base.view.content.relationships.map(
+          (relationship) => relationship.relationship_key,
+        ),
+        returned_count: base.view.content.relationships.length,
+        total_count: {
+          state: "exact",
+          value: base.view.content.relationships.length,
+        },
+        filtered_count: { state: "exact", value: 0 },
+        hidden_count: { state: "exact", value: 0 },
+        coverage: "complete_for_scope",
+        overlap: false,
+      },
+    ],
+    actions: [
+      ...base.view.content.actions,
+      {
+        action_key: "action:scientific:graph:show-downstream",
+        action_kind: "expand_recorded",
+        semantic_key: expansionSemantic.semantic_key,
+        label: expansionSemantic.term.singular,
+        consequence: "read_only_expansion",
+        target_keys: [base.view.content.nodes[0]!.node_key],
+        availability: { state: "available" },
+      },
+    ],
+  };
+  const view: PetraFocusedGraphViewV11 = {
+    ...base.view,
+    schema_version: "1.1.0",
+    content,
+    content_hash: hash(content),
+  };
+  const request: FocusedGraphExplorationViewRequest = {
+    ...base.request,
+    project_definition_ref: definitionRef,
+    limits: structuredClone(content.scope.limits),
+    expected_snapshot: structuredClone(content.requested_snapshot),
+    exploration: {
+      mode: "named_expansion",
+      expansion_key: content.exploration.expansion_key,
+      recipe_semantic_key: content.exploration.recipe_semantic_key,
+      target_ref: structuredClone(content.exploration.target_ref),
+      maximum_depth: content.exploration.maximum_depth,
+      filters: structuredClone(content.exploration.filters),
+    },
+  };
+  return { definition, view, request };
+};
+
 describe("FocusedGraphClient", () => {
   it("posts one authenticated renderer-neutral request and preserves exact response identity", async () => {
     const { definition, view, request } = setup();
@@ -277,6 +417,35 @@ describe("FocusedGraphClient", () => {
     );
     await expect(client.read(definition.project_id, request)).rejects.toEqual(
       expect.objectContaining({ status: 409 }),
+    );
+  });
+
+  it("binds an additive named expansion to its exact recipe, snapshot, filters, groups, and action", async () => {
+    const { definition, view, request } = setupExpansion();
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockImplementation(() => Promise.resolve(Response.json(view)));
+    const client = new FocusedGraphClient({
+      baseUrl: "http://petra.local",
+      token: "focused-token",
+      projectDefinition: definition,
+      fetch: transport,
+      contracts,
+    });
+
+    await expect(client.read(definition.project_id, request)).resolves.toEqual(
+      view,
+    );
+
+    const substituted = structuredClone(view);
+    substituted.content.exploration.expansion_key =
+      "expansion:show-downstream:substituted";
+    substituted.content_hash = hash(substituted.content);
+    transport.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(substituted)),
+    );
+    await expect(client.read(definition.project_id, request)).rejects.toEqual(
+      expect.any(FocusedGraphClientError),
     );
   });
 });

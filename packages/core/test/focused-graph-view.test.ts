@@ -361,4 +361,70 @@ describe("focused graph query request boundary", () => {
       expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
     );
   });
+
+  it("accepts one exact snapshot-bound named expansion and rejects widened or renderer-authored input", () => {
+    const { view } = fixture();
+    const request = {
+      request_id: view.content.task.request_id,
+      task_kind: "neighborhood",
+      task_semantic_key: view.content.task.task_semantic_key,
+      question: view.content.task.question,
+      focus_ref: view.content.task.focus_refs[0],
+      origin: { origin_kind: "direct" },
+      project_definition_ref: view.content.profile.project_definition_ref,
+      semantic_layer: "current",
+      temporal_position: {
+        position_kind: "current",
+        dimension: "project_snapshot",
+      },
+      object_semantic_key: "scientific.claim",
+      relationship_semantic_key: "scientific.assertion",
+      return_action_semantic_key: "scientific.graph.trace-sources",
+      return_destination: view.content.destinations[1],
+      limits: {
+        maximum_depth: 2,
+        maximum_nodes: 20,
+        maximum_relationships: 19,
+        maximum_paths: 19,
+      },
+      expected_snapshot: view.content.requested_snapshot,
+      exploration: {
+        mode: "named_expansion",
+        expansion_key: "expansion:show-contrary:claim-a",
+        recipe_semantic_key: "scientific.graph.show-contrary",
+        target_ref: view.content.nodes[0]!.record_ref,
+        maximum_depth: 2,
+        filters: {
+          meaning_kinds: ["contradiction"],
+          directions: ["outgoing", "incoming"],
+          origins: ["canonical_record", "model_inference"],
+        },
+      },
+    };
+    expect(parseFocusedGraphViewRequest(request)).toEqual(request);
+    expect(() =>
+      parseFocusedGraphViewRequest({
+        ...request,
+        expected_snapshot: undefined,
+      }),
+    ).toThrowError(
+      expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
+    );
+    expect(() =>
+      parseFocusedGraphViewRequest({
+        ...request,
+        limits: { ...request.limits, maximum_depth: 3 },
+      }),
+    ).toThrowError(
+      expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
+    );
+    expect(() =>
+      parseFocusedGraphViewRequest({
+        ...request,
+        exploration: { ...request.exploration, cypher: "MATCH (n)" },
+      }),
+    ).toThrowError(
+      expect.objectContaining({ code: "FOCUSED_GRAPH_QUERY_INVALID" }),
+    );
+  });
 });

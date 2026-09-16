@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import type {
   FocusedGraphExactRef,
+  FocusedGraphGroupV11,
   FocusedGraphNode,
   FocusedGraphOmission,
   FocusedGraphPath,
@@ -13,6 +14,7 @@ import type {
   PetraAssertion,
   PetraClaim,
   PetraFocusedGraphView,
+  PetraFocusedGraphViewV11,
   PetraProjectDefinition,
   PetraProjectionCheckpoint,
   PetraSourceSpan,
@@ -29,8 +31,11 @@ import {
   type AuthorityGraphFreshness,
   type AuthorityGraphObjectView,
   type AuthorityGraphStore,
+  type FocusedGraphExplorationViewRequest,
+  type FocusedGraphReadRequest,
   type FocusedGraphViewReader,
   type FocusedGraphViewRequest,
+  type PetraFocusedGraphReadView,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
@@ -98,7 +103,82 @@ interface ResolvedFocusedGraphSemantics {
   object: FocusedGraphResolvedSemantic;
   relationship: FocusedGraphResolvedSemantic;
   action: FocusedGraphResolvedSemantic;
+  expansion?: FocusedGraphResolvedSemantic;
 }
+
+type FocusedGraphMeaning = FocusedGraphRelationship["meaning_kind"];
+type FocusedGraphOrigin = FocusedGraphRelationship["origin"];
+
+interface ExpansionRecipe {
+  readonly meaningKinds: ReadonlySet<FocusedGraphMeaning>;
+  readonly directions: ReadonlySet<"outgoing" | "incoming">;
+}
+
+const ALL_SCIENTIFIC_MEANINGS: readonly FocusedGraphMeaning[] = [
+  "citation",
+  "support",
+  "contradiction",
+  "qualification",
+  "inference",
+  "provenance",
+];
+
+const EXPANSION_RECIPES = new Map<string, ExpansionRecipe>([
+  [
+    "scientific.graph.trace-sources",
+    {
+      meaningKinds: new Set<FocusedGraphMeaning>(["citation", "provenance"]),
+      directions: new Set(["outgoing", "incoming"]),
+    },
+  ],
+  [
+    "scientific.graph.show-contrary",
+    {
+      meaningKinds: new Set<FocusedGraphMeaning>(["contradiction"]),
+      directions: new Set(["outgoing", "incoming"]),
+    },
+  ],
+  [
+    "scientific.graph.show-downstream",
+    {
+      meaningKinds: new Set<FocusedGraphMeaning>(ALL_SCIENTIFIC_MEANINGS),
+      directions: new Set(["outgoing"]),
+    },
+  ],
+]);
+
+interface TraversalStep {
+  readonly relationshipId: string;
+  readonly fromId: string;
+  readonly toId: string;
+  readonly traversalDirection: "outgoing" | "incoming";
+  readonly repeatedMember: boolean;
+}
+
+interface CurrentSelection {
+  readonly graph: AuthorityGraphObjectView;
+  readonly assertion: PetraAssertion;
+  readonly traversal: readonly TraversalStep[];
+}
+
+interface CurrentTraversalResult {
+  readonly claims: Map<string, PetraClaim>;
+  readonly graphClaims: Map<string, AuthorityGraphObjectView>;
+  readonly selected: CurrentSelection[];
+  readonly capped: boolean;
+  readonly filtered: number;
+  readonly unknownMembership: boolean;
+}
+
+const isExplorationRequest = (
+  request: FocusedGraphReadRequest,
+): request is FocusedGraphExplorationViewRequest =>
+  "exploration" in request && request.exploration !== undefined;
+
+const assertionOrigin = (assertion: PetraAssertion): FocusedGraphOrigin =>
+  assertion.assertion_kind === "model_inference"
+    ? "model_inference"
+    : "canonical_record";
 
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
@@ -233,8 +313,8 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
 
   async queryFocusedGraph(
     projectId: string,
-    request: FocusedGraphViewRequest,
-  ): Promise<PetraFocusedGraphView | undefined> {
+    request: FocusedGraphReadRequest,
+  ): Promise<PetraFocusedGraphReadView | undefined> {
     request = parseFocusedGraphViewRequest(request);
     if (!/^project_[0-9A-HJKMNP-TV-Z]{26}$/u.test(projectId)) {
       throw this.#error(
@@ -242,18 +322,21 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         "A focused graph query requires one exact Project identity.",
       );
     }
-    if (
-      request.task_kind !== "neighborhood" ||
-      request.limits.maximum_depth !== 1
-    ) {
+    if (request.task_kind !== "neighborhood") {
       throw this.#error(
         "FOCUSED_GRAPH_QUERY_INVALID",
-        "This focused query owner supports only one exact one-hop neighborhood.",
+        "This focused query owner supports only an exact bounded neighborhood.",
       );
     }
 
     return this.#readTransaction(async (client, readAt) => {
       if (request.semantic_layer === "historical") {
+        if (isExplorationRequest(request)) {
+          throw this.#error(
+            "FOCUSED_GRAPH_QUERY_INVALID",
+            "Named expansion is unavailable for a retained Historical position.",
+          );
+        }
         return this.#historicalView(client, readAt, projectId, request);
       }
       const context = await this.#projectContext(client, projectId);
@@ -382,72 +465,25 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
       }
       const focusClaim = await this.#claim(client, focusGraph);
 
-      const edgeBudget = Math.min(
-        request.limits.maximum_relationships,
-        request.limits.maximum_paths,
-        Math.max(0, request.limits.maximum_nodes - 1),
-      );
-      const candidateLimit = Math.min(100, Math.max(1, edgeBudget + 1));
-      const candidates = await this.#graph.getEvidenceRelations(
-        projectId,
-        focusClaim.claim_id,
-        candidateLimit,
-      );
-      const claims = new Map<string, PetraClaim>([
-        [focusClaim.claim_id, focusClaim],
-      ]);
-      const graphClaims = new Map<string, AuthorityGraphObjectView>([
-        [focusGraph.id, focusGraph],
-      ]);
-      const selected: Array<{
-        graph: AuthorityGraphObjectView;
-        assertion: PetraAssertion;
-      }> = [];
-      let capped = false;
-      for (const graphRelationship of candidates) {
-        if (
-          selected.length >= request.limits.maximum_relationships ||
-          selected.length >= request.limits.maximum_paths
-        ) {
-          capped = true;
-          break;
-        }
-        const exact = await this.#relationship(
-          client,
-          projectId,
-          graphRelationship,
-          checkpoint,
-        );
-        const endpointIds = [
-          graphRelationship.sourceId!,
-          graphRelationship.targetId!,
-        ];
-        const missingEndpointIds = endpointIds.filter((id) => !claims.has(id));
-        if (
-          claims.size + new Set(missingEndpointIds).size >
-          request.limits.maximum_nodes
-        ) {
-          capped = true;
-          break;
-        }
-        for (const endpointId of missingEndpointIds) {
-          const graphNode = await this.#graph.getObject(projectId, endpointId);
-          if (
-            graphNode === undefined ||
-            graphNode.elementKind !== "node" ||
-            graphNode.kind !== "Claim"
-          ) {
-            throw this.#projectionIncoherent(
-              "A projected scientific relationship has an unavailable or incompatible Claim endpoint.",
-            );
-          }
-          this.#assertProjectedAt(graphNode, checkpoint);
-          claims.set(endpointId, await this.#claim(client, graphNode));
-          graphClaims.set(endpointId, graphNode);
-        }
-        selected.push({ graph: graphRelationship, assertion: exact });
-      }
-      if (candidates.length > selected.length) capped = true;
+      const traversal = isExplorationRequest(request)
+        ? await this.#expandedSelections(
+            client,
+            projectId,
+            focusGraph,
+            focusClaim,
+            request,
+            checkpoint,
+          )
+        : await this.#oneHopSelections(
+            client,
+            projectId,
+            focusGraph,
+            focusClaim,
+            request,
+            checkpoint,
+          );
+      const { claims, graphClaims, selected } = traversal;
+      let capped = traversal.capped;
 
       await this.#guardProjection(
         checkpoint,
@@ -465,7 +501,7 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         relationship: PetraWorkingRelationship,
       ): string =>
         `relationship:working:${relationship.working_relationship_id.toLowerCase()}:${relationship.revision}`;
-      const workingResult =
+      const workingQueryResult =
         request.semantic_layer === "working"
           ? await this.#workingSelections(
               client,
@@ -495,6 +531,49 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
               },
             )
           : { selections: [], capped: false, hidden: 0 };
+      const workingDirection = (
+        selection: WorkingSelection,
+      ): "outgoing" | "incoming" =>
+        selection.currentIsSubject ? "outgoing" : "incoming";
+      const workingFilteredSelections = isExplorationRequest(request)
+        ? workingQueryResult.selections.filter((selection) => {
+            const meaning = meaningKind(
+              selection.relationship.profile_relationship.predicate,
+            );
+            return !(
+              meaning !== undefined &&
+              request.exploration.filters.meaning_kinds.includes(meaning) &&
+              request.exploration.filters.origins.includes(
+                "working_candidate",
+              ) &&
+              request.exploration.filters.directions.includes(
+                workingDirection(selection),
+              )
+            );
+          })
+        : [];
+      const workingResult = isExplorationRequest(request)
+        ? {
+            ...workingQueryResult,
+            selections: workingQueryResult.selections.filter((selection) => {
+              const meaning = meaningKind(
+                selection.relationship.profile_relationship.predicate,
+              );
+              return (
+                meaning !== undefined &&
+                request.exploration.filters.meaning_kinds.includes(meaning) &&
+                request.exploration.filters.origins.includes(
+                  "working_candidate",
+                ) &&
+                request.exploration.filters.directions.includes(
+                  workingDirection(selection),
+                )
+              );
+            }),
+            hidden:
+              workingQueryResult.hidden + workingFilteredSelections.length,
+          }
+        : workingQueryResult;
       if (workingResult.capped) capped = true;
       const returnTarget =
         request.return_destination.state === "available"
@@ -909,24 +988,65 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
           destination_keys: sources.destinationKeys,
         });
       }
-      const paths: FocusedGraphPath[] = relationships.map((relationship) => ({
-        path_key: `path:${relationship.relationship_ref.element_id.toLowerCase()}`,
+      const paths: FocusedGraphPath[] = selected.map((selection, index) => ({
+        path_key: `path:${selection.graph.id.toLowerCase()}:${index + 1}`,
         state: "complete",
-        ordering_rationale:
-          "One exact recorded relationship is the complete path within this one-hop result.",
-        steps: [
-          {
-            position: 1,
-            from_node_key: relationship.source_node_key,
-            relationship_key: relationship.relationship_key,
-            to_node_key: relationship.target_node_key,
-            traversal_direction: "outgoing",
-            repeated_member:
-              relationship.source_node_key === relationship.target_node_key,
-          },
-        ],
-        limitations: structuredClone(relationship.basis.limitations),
+        ordering_rationale: isExplorationRequest(request)
+          ? `Breadth-first traversal from the exact named-expansion target under registered recipe ${request.exploration.recipe_semantic_key}. This order is not evidence strength.`
+          : "One exact recorded relationship is the complete path within this one-hop result.",
+        steps: selection.traversal.map((step, stepIndex) => ({
+          position: stepIndex + 1,
+          from_node_key: nodeKey(step.fromId),
+          relationship_key: relationshipKey(step.relationshipId),
+          to_node_key: nodeKey(step.toId),
+          traversal_direction: step.traversalDirection,
+          repeated_member: step.repeatedMember,
+        })),
+        limitations: unique(
+          selection.traversal.flatMap((step) => {
+            const relationship = relationships.find(
+              (candidate) =>
+                candidate.relationship_key ===
+                relationshipKey(step.relationshipId),
+            );
+            return relationship?.basis.limitations ?? [];
+          }),
+        ),
       }));
+      paths.push(
+        ...workingResult.selections.map((selection) => {
+          const relationship = relationships.find(
+            (candidate) =>
+              candidate.relationship_key ===
+              workingRelationshipKey(selection.relationship),
+          );
+          if (relationship === undefined) {
+            throw this.#corrupt(
+              "A selected WorkingRelationship has no composed focused member.",
+            );
+          }
+          const currentKey = nodeKey(selection.currentNodeId);
+          const candidateKey = workingNodeKey(selection.candidate);
+          return {
+            path_key: `path:${relationship.relationship_ref.element_id.toLowerCase()}`,
+            state: "complete" as const,
+            ordering_rationale:
+              "One exact durable WorkingRelationship is represented separately from Current authority.",
+            steps: [
+              {
+                position: 1,
+                from_node_key: currentKey,
+                relationship_key: relationship.relationship_key,
+                to_node_key: candidateKey,
+                traversal_direction: workingDirection(selection),
+                repeated_member:
+                  relationship.source_node_key === relationship.target_node_key,
+              },
+            ],
+            limitations: structuredClone(relationship.basis.limitations),
+          };
+        }),
+      );
 
       const taskWithoutHash = {
         request_id: request.request_id,
@@ -948,8 +1068,12 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         omission_kind: "out_of_scope",
         description:
           request.semantic_layer === "working"
-            ? "Whole-Project traversal, Historical state, structural provenance, and expansion are outside this result. Current and Working members retain separate authority positions."
-            : "Whole-Project traversal, Working changes, Historical state, structural provenance, and expansion are outside this result.",
+            ? isExplorationRequest(request)
+              ? "Whole-Project traversal, Historical state, unregistered recipes, and records beyond this exact named expansion remain outside scope. Current and Working members retain separate authority positions."
+              : "Whole-Project traversal, Historical state, structural provenance, and expansion are outside this result. Current and Working members retain separate authority positions."
+            : isExplorationRequest(request)
+              ? "Whole-Project traversal, Working changes, Historical state, unregistered recipes, and records beyond this exact named expansion remain outside scope."
+              : "Whole-Project traversal, Working changes, Historical state, structural provenance, and expansion are outside this result.",
         count: { state: "unknown" },
       };
       const omissionList: FocusedGraphOmission[] = [];
@@ -958,9 +1082,9 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
           omission_kind: "capped",
           description:
             capped && sourceLocationsCapped
-              ? `Additional recorded one-hop relationships may exist beyond the caller-visible membership limit, and ${requestedSourceSpanIds.length - representedSourceSpanIds.length} recorded SourceSpan locations are outside the bounded source-location limit.`
+              ? `Additional recorded ${isExplorationRequest(request) ? "named-expansion" : "one-hop"} relationships may exist beyond the caller-visible membership limit, and ${requestedSourceSpanIds.length - representedSourceSpanIds.length} recorded SourceSpan locations are outside the bounded source-location limit.`
               : capped
-                ? "Additional recorded one-hop relationships may exist beyond the caller-visible node, relationship, or path limit."
+                ? `Additional recorded ${isExplorationRequest(request) ? "named-expansion" : "one-hop"} relationships may exist beyond the caller-visible node, relationship, or path limit.`
                 : `${requestedSourceSpanIds.length - representedSourceSpanIds.length} recorded SourceSpan locations are outside the bounded source-location limit of ${MAX_SOURCE_LOCATIONS}.`,
           count:
             sourceLocationsCapped && !capped
@@ -973,15 +1097,43 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
               : { state: "unknown" },
         });
       }
-      if (workingResult.hidden > 0) {
+      if (workingQueryResult.hidden > 0) {
         omissionList.push({
           omission_kind: "working_hidden",
           description:
             "Relevant WorkingRelationship heads with a stale/incompatible current base or beyond the finite result bound were not overlaid onto Current authority.",
-          count: workingResult.capped
+          count: workingQueryResult.capped
             ? { state: "unknown" }
-            : { state: "exact", value: workingResult.hidden },
+            : { state: "exact", value: workingQueryResult.hidden },
         });
+      }
+      if (isExplorationRequest(request)) {
+        const filteredRelationshipCount =
+          traversal.filtered + workingFilteredSelections.length;
+        if (filteredRelationshipCount > 0) {
+          omissionList.push({
+            omission_kind: "filtered",
+            description:
+              "Recorded candidate relationships outside the registered recipe or normalized filters are hidden from this returned membership; this does not assert absence.",
+            count: traversal.unknownMembership
+              ? { state: "unknown" }
+              : { state: "exact", value: filteredRelationshipCount },
+          });
+        }
+        omissionList.push(
+          {
+            omission_kind: "restricted",
+            description:
+              "Authorization is rechecked for this expansion. Restricted path names, identities, connections, and counts are not disclosed.",
+            count: { state: "not_disclosed" },
+          },
+          {
+            omission_kind: "unknown",
+            description:
+              "Paths outside the exact registered recipe, snapshot, layer, filters, and finite limits remain unknown and cannot be treated as absent.",
+            count: { state: "unknown" },
+          },
+        );
       }
       omissionList.push(outOfScopeOmission);
       const omissions = omissionList as [
@@ -1030,8 +1182,12 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         scope: {
           description:
             request.semantic_layer === "working"
-              ? "One exact current Claim neighborhood with relevant durable WorkingRelationship heads and their exact WorkingCandidate endpoints."
-              : "One exact current Claim neighborhood from the bounded scientific relationship projection.",
+              ? isExplorationRequest(request)
+                ? "One exact named expansion from a current Claim with relevant durable WorkingRelationship heads and their exact WorkingCandidate endpoints represented separately."
+                : "One exact current Claim neighborhood with relevant durable WorkingRelationship heads and their exact WorkingCandidate endpoints."
+              : isExplorationRequest(request)
+                ? "One exact named expansion from a current Claim through the bounded scientific relationship projection."
+                : "One exact current Claim neighborhood from the bounded scientific relationship projection.",
           included_relationship_semantics: [
             semantics.relationship.semantic_key,
           ],
@@ -1042,7 +1198,11 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
               : ["current"],
           limits: structuredClone(request.limits),
           coverage:
-            capped || sourceLocationsCapped ? "capped" : "complete_for_scope",
+            capped || sourceLocationsCapped
+              ? "capped"
+              : traversal.unknownMembership
+                ? "partial"
+                : "complete_for_scope",
           omissions,
         },
         nodes,
@@ -1095,10 +1255,140 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         limitations: [
           request.semantic_layer === "working"
             ? "Working changes are current durable heads relevant to returned Current endpoints; they remain non-authoritative and are not overlaid as Current."
-            : "This is a current one-hop Claim neighborhood; relevant Working changes require an explicit working-layer request.",
+            : isExplorationRequest(request)
+              ? "This named expansion reveals only recorded Current relationships admitted by its registered recipe and normalized filters; relevant Working changes require an explicit working-layer request."
+              : "This is a current one-hop Claim neighborhood; relevant Working changes require an explicit working-layer request.",
           "PostgreSQL supplies authority; Neo4j supplies rebuildable bounded membership and never domain authority.",
         ],
       };
+      if (isExplorationRequest(request)) {
+        const expansionSemantic = semantics.expansion;
+        if (expansionSemantic === undefined) {
+          throw this.#error(
+            "FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED",
+            "The named expansion recipe did not resolve through the exact ProjectDefinition.",
+          );
+        }
+        const resultState = capped
+          ? ("capped" as const)
+          : traversal.unknownMembership ||
+              sourceLocationsCapped ||
+              workingQueryResult.hidden > 0
+            ? ("partial" as const)
+            : ("complete_for_scope" as const);
+        const cycleCount = paths.filter((path) =>
+          path.steps.some((step) => step.repeated_member),
+        ).length;
+        const groupCoordinates: Array<{
+          layer: "current" | "working";
+          meaning: FocusedGraphMeaning;
+        }> = [];
+        for (const meaning of request.exploration.filters.meaning_kinds) {
+          groupCoordinates.push({ layer: "current", meaning });
+          if (request.semantic_layer === "working") {
+            groupCoordinates.push({ layer: "working", meaning });
+          }
+        }
+        const groups = groupCoordinates.map(({ layer, meaning }) => {
+          const keys = relationships
+            .filter(
+              (relationship) =>
+                relationship.layer === layer &&
+                relationship.meaning_kind === meaning,
+            )
+            .map((relationship) => relationship.relationship_key);
+          const group: FocusedGraphGroupV11 = {
+            group_key: `group:relationship-meaning:${layer}:${meaning}`,
+            facet: "relationship_meaning",
+            label: `${titleCase(meaning)} — ${titleCase(layer)}`,
+            membership_rule: `Exact returned ${layer} relationships whose renderer-neutral meaning is ${meaning}; the group is a presentation facet and not a domain assertion.`,
+            count_unit: "relationships",
+            layer,
+            meaning_kind: meaning,
+            member_relationship_keys: keys,
+            returned_count: keys.length,
+            total_count:
+              resultState === "complete_for_scope"
+                ? { state: "exact", value: keys.length }
+                : { state: "unknown" },
+            filtered_count: { state: "exact", value: 0 },
+            hidden_count:
+              resultState === "complete_for_scope"
+                ? { state: "exact", value: 0 }
+                : { state: "unknown" },
+            coverage: resultState,
+            overlap: false,
+          };
+          return group;
+        }) as [FocusedGraphGroupV11, ...FocusedGraphGroupV11[]];
+        const contentV11: PetraFocusedGraphViewV11["content"] = {
+          ...content,
+          profile: {
+            ...content.profile,
+            resolved_semantics: [
+              ...content.profile.resolved_semantics,
+              expansionSemantic,
+            ],
+          },
+          exploration: {
+            mode: "named_expansion",
+            expansion_key: request.exploration.expansion_key,
+            recipe_semantic_key: expansionSemantic.semantic_key,
+            recipe_label: expansionSemantic.term.singular,
+            target_ref: structuredClone(request.exploration.target_ref),
+            target_node_key: nodeKey(request.exploration.target_ref.record_id),
+            maximum_depth: request.exploration.maximum_depth,
+            filters: structuredClone(request.exploration.filters),
+            accounting: {
+              result_state: resultState,
+              capped_members: capped
+                ? { state: "unknown" }
+                : { state: "exact", value: 0 },
+              hidden_relationships:
+                capped || traversal.unknownMembership || workingResult.capped
+                  ? { state: "unknown" }
+                  : {
+                      state: "exact",
+                      value: traversal.filtered + workingResult.hidden,
+                    },
+              restricted_paths: { state: "not_disclosed" },
+              cycle_paths: { state: "exact", value: cycleCount },
+              incomplete_paths:
+                resultState === "complete_for_scope"
+                  ? { state: "exact", value: 0 }
+                  : { state: "unknown" },
+              unknown_paths: { state: "unknown" },
+            },
+          },
+          scope: {
+            ...content.scope,
+            directions: structuredClone(request.exploration.filters.directions),
+            coverage: resultState,
+          },
+          groups,
+          actions: [
+            ...content.actions,
+            {
+              action_key: `action:${expansionSemantic.semantic_key.replaceAll(".", ":")}:${request.exploration.expansion_key.replaceAll("/", ":")}`,
+              action_kind: "expand_recorded",
+              semantic_key: expansionSemantic.semantic_key,
+              label: expansionSemantic.term.singular,
+              consequence: "read_only_expansion",
+              target_keys: [nodeKey(request.exploration.target_ref.record_id)],
+              availability: { state: "available" },
+            },
+          ],
+        };
+        const view: PetraFocusedGraphViewV11 = {
+          schema_name: "petra.focused-graph-view",
+          schema_version: "1.1.0",
+          project_id: projectId,
+          content: contentV11,
+          content_hash: canonicalHash(contentV11),
+          read_at: readAt,
+        };
+        return this.#resolve(definition, view);
+      }
       const view: PetraFocusedGraphView = {
         schema_name: "petra.focused-graph-view",
         schema_version: "1.0.0",
@@ -1107,26 +1397,7 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         content_hash: canonicalHash(content),
         read_at: readAt,
       };
-      try {
-        return this.#resolver.resolve(definition, view).view;
-      } catch (error) {
-        if (error instanceof FocusedGraphViewContractError) {
-          if (
-            error.code === "FOCUSED_GRAPH_CONTRACT_INVALID" ||
-            error.code === "FOCUSED_GRAPH_DEFINITION_MISMATCH"
-          ) {
-            throw this.#corrupt(error.message);
-          }
-          if (error.code === "FOCUSED_GRAPH_REFERENCE_INCOMPATIBLE") {
-            throw this.#projectionIncoherent(error.message);
-          }
-          throw this.#error(
-            "FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED",
-            error.message,
-          );
-        }
-        throw error;
-      }
+      return this.#resolve(definition, view);
     });
   }
 
@@ -2036,9 +2307,320 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
     );
   }
 
+  async #oneHopSelections(
+    client: PoolClient,
+    projectId: string,
+    focusGraph: AuthorityGraphObjectView,
+    focusClaim: PetraClaim,
+    request: FocusedGraphViewRequest,
+    checkpoint: PetraProjectionCheckpoint,
+  ): Promise<CurrentTraversalResult> {
+    const edgeBudget = Math.min(
+      request.limits.maximum_relationships,
+      request.limits.maximum_paths,
+    );
+    const candidateLimit = Math.min(100, Math.max(1, edgeBudget + 1));
+    const candidates = await this.#graph.getEvidenceRelations(
+      projectId,
+      focusClaim.claim_id,
+      candidateLimit,
+    );
+    const claims = new Map<string, PetraClaim>([
+      [focusClaim.claim_id, focusClaim],
+    ]);
+    const graphClaims = new Map<string, AuthorityGraphObjectView>([
+      [focusGraph.id, focusGraph],
+    ]);
+    const selected: CurrentSelection[] = [];
+    let capped = false;
+    for (const graphRelationship of candidates) {
+      if (
+        selected.length >= request.limits.maximum_relationships ||
+        selected.length >= request.limits.maximum_paths
+      ) {
+        capped = true;
+        break;
+      }
+      const assertion = await this.#relationship(
+        client,
+        projectId,
+        graphRelationship,
+        checkpoint,
+      );
+      const sourceId = graphRelationship.sourceId;
+      const targetId = graphRelationship.targetId;
+      if (sourceId === undefined || targetId === undefined) {
+        throw this.#projectionIncoherent(
+          "A projected scientific relationship has no exact endpoints.",
+        );
+      }
+      const endpointIds = [sourceId, targetId];
+      const missingEndpointIds = endpointIds.filter((id) => !claims.has(id));
+      if (
+        claims.size + new Set(missingEndpointIds).size >
+        request.limits.maximum_nodes
+      ) {
+        capped = true;
+        break;
+      }
+      for (const endpointId of missingEndpointIds) {
+        const graphNode = await this.#graph.getObject(projectId, endpointId);
+        if (
+          graphNode === undefined ||
+          graphNode.elementKind !== "node" ||
+          graphNode.kind !== "Claim"
+        ) {
+          throw this.#projectionIncoherent(
+            "A projected scientific relationship has an unavailable or incompatible Claim endpoint.",
+          );
+        }
+        this.#assertProjectedAt(graphNode, checkpoint);
+        claims.set(endpointId, await this.#claim(client, graphNode));
+        graphClaims.set(endpointId, graphNode);
+      }
+      selected.push({
+        graph: graphRelationship,
+        assertion,
+        traversal: [
+          {
+            relationshipId: graphRelationship.id,
+            fromId: sourceId,
+            toId: targetId,
+            traversalDirection: "outgoing",
+            repeatedMember: sourceId === targetId,
+          },
+        ],
+      });
+    }
+    if (candidates.length > selected.length) capped = true;
+    return {
+      claims,
+      graphClaims,
+      selected,
+      capped,
+      filtered: 0,
+      unknownMembership: candidates.length === candidateLimit,
+    };
+  }
+
+  async #expandedSelections(
+    client: PoolClient,
+    projectId: string,
+    focusGraph: AuthorityGraphObjectView,
+    focusClaim: PetraClaim,
+    request: FocusedGraphExplorationViewRequest,
+    checkpoint: PetraProjectionCheckpoint,
+  ): Promise<CurrentTraversalResult> {
+    const recipe = EXPANSION_RECIPES.get(
+      request.exploration.recipe_semantic_key,
+    );
+    if (
+      recipe === undefined ||
+      request.exploration.filters.meaning_kinds.some(
+        (meaning) => !recipe.meaningKinds.has(meaning),
+      ) ||
+      request.exploration.filters.directions.some(
+        (direction) => !recipe.directions.has(direction),
+      )
+    ) {
+      throw this.#error(
+        "FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED",
+        "The named expansion recipe or its filters are not registered for this focused query owner.",
+      );
+    }
+
+    const targetGraph = sameExactRef(
+      request.exploration.target_ref,
+      request.focus_ref,
+    )
+      ? focusGraph
+      : await this.#graph.getObject(
+          projectId,
+          request.exploration.target_ref.record_id,
+        );
+    if (
+      targetGraph === undefined ||
+      targetGraph.elementKind !== "node" ||
+      targetGraph.kind !== "Claim"
+    ) {
+      throw this.#error(
+        "FOCUSED_GRAPH_FOCUS_NOT_FOUND",
+        "The exact named-expansion target is not represented as a Claim in this Project projection.",
+      );
+    }
+    this.#assertProjectedAt(targetGraph, checkpoint);
+    if (
+      targetGraph.authoritativeRevision !==
+        request.exploration.target_ref.revision ||
+      targetGraph.recordHash !== request.exploration.target_ref.record_hash
+    ) {
+      throw this.#error(
+        "FOCUSED_GRAPH_SNAPSHOT_STALE",
+        "The named-expansion target no longer matches its requested exact revision.",
+      );
+    }
+    const targetClaim = sameExactRef(
+      request.exploration.target_ref,
+      request.focus_ref,
+    )
+      ? focusClaim
+      : await this.#claim(client, targetGraph);
+    const claims = new Map<string, PetraClaim>([
+      [focusClaim.claim_id, focusClaim],
+      [targetClaim.claim_id, targetClaim],
+    ]);
+    const graphClaims = new Map<string, AuthorityGraphObjectView>([
+      [focusGraph.id, focusGraph],
+      [targetGraph.id, targetGraph],
+    ]);
+    if (claims.size > request.limits.maximum_nodes) {
+      throw this.#error(
+        "FOCUSED_GRAPH_QUERY_INVALID",
+        "The finite node limit cannot preserve both the exact question focus and named-expansion target.",
+      );
+    }
+
+    const selected: CurrentSelection[] = [];
+    const selectedIds = new Set<string>();
+    const examinedTraversals = new Set<string>();
+    const filteredIds = new Set<string>();
+    const queuedDepth = new Map<string, number>([[targetGraph.id, 0]]);
+    const queue: Array<{
+      nodeId: string;
+      traversal: readonly TraversalStep[];
+    }> = [{ nodeId: targetGraph.id, traversal: [] }];
+    let capped = false;
+    let unknownMembership = false;
+
+    traversal: while (queue.length > 0) {
+      const branch = queue.shift();
+      if (branch === undefined) break;
+      if (branch.traversal.length >= request.exploration.maximum_depth)
+        continue;
+      const candidates = await this.#graph.getEvidenceRelations(
+        projectId,
+        branch.nodeId,
+        100,
+      );
+      if (candidates.length === 100) unknownMembership = true;
+      for (const graphRelationship of candidates) {
+        if (selectedIds.has(graphRelationship.id)) continue;
+        if (
+          selected.length >= request.limits.maximum_relationships ||
+          selected.length >= request.limits.maximum_paths
+        ) {
+          capped = true;
+          break traversal;
+        }
+        const sourceId = graphRelationship.sourceId;
+        const targetId = graphRelationship.targetId;
+        if (sourceId === undefined || targetId === undefined) {
+          throw this.#projectionIncoherent(
+            "A projected expansion relationship has no exact endpoints.",
+          );
+        }
+        const traversalDirection =
+          sourceId === branch.nodeId
+            ? ("outgoing" as const)
+            : targetId === branch.nodeId
+              ? ("incoming" as const)
+              : undefined;
+        if (traversalDirection === undefined) {
+          throw this.#projectionIncoherent(
+            "Neo4j returned a relationship outside the requested expansion branch.",
+          );
+        }
+        const traversalKey = `${graphRelationship.id}:${branch.nodeId}`;
+        if (examinedTraversals.has(traversalKey)) continue;
+        examinedTraversals.add(traversalKey);
+        const assertion = await this.#relationship(
+          client,
+          projectId,
+          graphRelationship,
+          checkpoint,
+        );
+        const meaning = meaningKind(assertion.predicate);
+        if (meaning === undefined) {
+          throw this.#error(
+            "FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED",
+            `The registered focused query does not map predicate ${assertion.predicate} to a renderer-neutral relationship meaning.`,
+          );
+        }
+        const origin = assertionOrigin(assertion);
+        if (
+          !recipe.meaningKinds.has(meaning) ||
+          !recipe.directions.has(traversalDirection) ||
+          !request.exploration.filters.meaning_kinds.includes(meaning) ||
+          !request.exploration.filters.directions.includes(
+            traversalDirection,
+          ) ||
+          !request.exploration.filters.origins.includes(origin)
+        ) {
+          filteredIds.add(graphRelationship.id);
+          continue;
+        }
+
+        const otherId = traversalDirection === "outgoing" ? targetId : sourceId;
+        const represented = graphClaims.has(otherId);
+        const repeatedMember = represented;
+        if (!represented) {
+          if (claims.size >= request.limits.maximum_nodes) {
+            capped = true;
+            break traversal;
+          }
+          const graphNode = await this.#graph.getObject(projectId, otherId);
+          if (
+            graphNode === undefined ||
+            graphNode.elementKind !== "node" ||
+            graphNode.kind !== "Claim"
+          ) {
+            throw this.#projectionIncoherent(
+              "A projected named-expansion relationship has an unavailable or incompatible Claim endpoint.",
+            );
+          }
+          this.#assertProjectedAt(graphNode, checkpoint);
+          graphClaims.set(otherId, graphNode);
+          claims.set(otherId, await this.#claim(client, graphNode));
+        }
+        const step: TraversalStep = {
+          relationshipId: graphRelationship.id,
+          fromId: branch.nodeId,
+          toId: otherId,
+          traversalDirection,
+          repeatedMember,
+        };
+        const path = [...branch.traversal, step];
+        selected.push({
+          graph: graphRelationship,
+          assertion,
+          traversal: path,
+        });
+        selectedIds.add(graphRelationship.id);
+        filteredIds.delete(graphRelationship.id);
+        if (
+          !repeatedMember &&
+          path.length < request.exploration.maximum_depth &&
+          (queuedDepth.get(otherId) ?? Number.POSITIVE_INFINITY) > path.length
+        ) {
+          queuedDepth.set(otherId, path.length);
+          queue.push({ nodeId: otherId, traversal: path });
+        }
+      }
+    }
+
+    return {
+      claims,
+      graphClaims,
+      selected,
+      capped,
+      filtered: filteredIds.size,
+      unknownMembership,
+    };
+  }
+
   #resolveSemantics(
     definition: PetraProjectDefinition,
-    request: FocusedGraphViewRequest,
+    request: FocusedGraphReadRequest,
   ): ResolvedFocusedGraphSemantics {
     const exact = (
       semanticKey: string,
@@ -2091,13 +2673,25 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
       "relationship",
     );
     const action = exact(request.return_action_semantic_key, "action");
+    const expansion = isExplorationRequest(request)
+      ? exact(request.exploration.recipe_semantic_key, "action")
+      : undefined;
     if (
       task.registration_kind !== "objective_schema" ||
       object.registration_kind !== "object_schema" ||
       object.contract.name !== "petra.claim" ||
       relationship.registration_kind !== "relationship_schema" ||
       relationship.contract.name !== "petra.assertion" ||
-      action.registration_kind !== "extension"
+      action.registration_kind !== "extension" ||
+      (expansion !== undefined &&
+        expansion.registration_kind !== "extension") ||
+      focusedGraph.contract.name !== "petra.focused-graph-view" ||
+      focusedGraph.contract.version !== "1.0.0" ||
+      (expansion !== undefined &&
+        (expansion.contract.name !== "petra.focused-graph-view" ||
+          expansion.contract.version !== "1.1.0")) ||
+      EXPANSION_RECIPES.has(expansion?.semantic_key ?? "") !==
+        (expansion !== undefined)
     ) {
       throw this.#error(
         "FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED",
@@ -2114,7 +2708,31 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
       object,
       relationship,
       action,
+      ...(expansion === undefined ? {} : { expansion }),
     };
+  }
+
+  #resolve<View extends PetraFocusedGraphReadView>(
+    definition: PetraProjectDefinition,
+    view: View,
+  ): View {
+    try {
+      return this.#resolver.resolve(definition, view).view;
+    } catch (error) {
+      if (error instanceof FocusedGraphViewContractError) {
+        if (
+          error.code === "FOCUSED_GRAPH_CONTRACT_INVALID" ||
+          error.code === "FOCUSED_GRAPH_DEFINITION_MISMATCH"
+        ) {
+          throw this.#corrupt(error.message);
+        }
+        if (error.code === "FOCUSED_GRAPH_REFERENCE_INCOMPATIBLE") {
+          throw this.#projectionIncoherent(error.message);
+        }
+        throw this.#error("FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED", error.message);
+      }
+      throw error;
+    }
   }
 
   async #projectContext(

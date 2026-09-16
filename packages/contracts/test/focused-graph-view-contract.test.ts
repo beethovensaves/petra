@@ -2,6 +2,7 @@ import { PetraContractRegistry } from "../src/validator.js";
 import { describe, expect, it } from "vitest";
 
 import { focusedGraphFixture } from "./fixtures/focused-graph-view.js";
+import { focusedGraphV11Fixture } from "./fixtures/focused-graph-view-v1-1.js";
 
 const registry = new PetraContractRegistry();
 
@@ -55,6 +56,24 @@ describe("Focused graph view contract", () => {
     authority.content.authority_boundary.actions_issue_domain_mutation = true;
     expect(() =>
       registry.assertValid("focused-graph-view", "1.0.0", authority),
+    ).toThrow();
+  });
+
+  it("accepts additive named-expansion accounting and rejects concealed group overlap", () => {
+    const value = focusedGraphV11Fixture();
+    expect(() =>
+      registry.assertValid("focused-graph-view", "1.1.0", value),
+    ).not.toThrow();
+    expect(value.content.exploration.accounting).toMatchObject({
+      result_state: "complete_for_scope",
+      restricted_paths: { state: "not_disclosed" },
+      unknown_paths: { state: "unknown" },
+    });
+
+    const overlap = focusedGraphV11Fixture();
+    Reflect.set(overlap.content.groups[0], "overlap", true);
+    expect(() =>
+      registry.assertValid("focused-graph-view", "1.1.0", overlap),
     ).toThrow();
   });
 });
