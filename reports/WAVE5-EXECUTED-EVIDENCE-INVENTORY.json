@@ -3,10 +3,10 @@
   "schema_version": "1.0.0",
   "wave": 5,
   "status": "passed",
-  "audited_at": "2026-09-16T14:34:39.864Z",
+  "audited_at": "2026-09-16T14:37:42.296Z",
   "command": "npm run audit:wave5:evidence",
   "plan_sha256": "7c971a812333f3e3c11216e341feaef1879c1ee47c04df5181d224bb060dc251",
-  "state_sha256": "aee2c156257b37909f6293a3c5697627cfeceb1b141dd6dbba067ee9fe3c34e5",
+  "state_sha256": "f907db0576aafea22bdbb0f03b4422af4b308459e41599b0d4d506fc6b0859bf",
   "state_position": {
     "slice_count": 29,
     "max_slices": 32,
@@ -16,9 +16,9 @@
     "state": "recorded",
     "status": "passed",
     "command": "npm run audit:wave5:evidence",
-    "artifact": "reports/WAVE5-EXECUTED-EVIDENCE-INVENTORY.json (sha256 c0b9a29505c027952e9885d36a1bce32d25819e8d5f1a3150cfae3cd86595eb8)",
-    "commit": "d2e4734a3999743593af350771dec59dfa445dd2",
-    "boundary": "Reconciled the frozen packet, plan, scope, roadmaps, controller records, commands, exact commits, artifact bytes, and scenario records after UX-FX25 remediation. All 24 implementation scenarios and the inventory self-record pass with zero missing, duplicate, unexpected, failed, hash-mismatched, or warning records; documented live-versus-injected limitations remain explicit."
+    "artifact": "reports/WAVE5-EXECUTED-EVIDENCE-INVENTORY.json (sha256 0414f31e235b977236f76a622eaa46eef3642d6aaf9efa8932ee2ce7553bfe21)",
+    "commit": "1a8356af7bea473ac3ec2d4d9fce1367b6b33475",
+    "boundary": "Reconciled the frozen packet, plan, scope, roadmaps, controller records, exact commands and commits, committed artifact bytes, and scenario boundaries after the final cumulative browser recording. All 24 implementation scenarios pass with zero errors or warnings; live, deterministic, unavailable-feature, performance, device, and accessibility limits remain explicit."
   },
   "summary": {
     "required_scenarios": 24,
