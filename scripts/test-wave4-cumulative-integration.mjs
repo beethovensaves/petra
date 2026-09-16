@@ -5398,3 +5398,8 @@ try {
 }
 
 if (failure !== undefined) throw failure;
+
+// This executable has completed every awaited shutdown and verified that its
+// disposable Compose resources are gone. Exit explicitly so an idle handle in
+// a loaded development dependency cannot leave a wave worker waiting forever.
+process.exit(0);
