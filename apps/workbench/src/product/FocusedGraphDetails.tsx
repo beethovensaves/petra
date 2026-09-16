@@ -733,6 +733,7 @@ export const FocusedGraphDetails = ({
   const root = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const active = useRef<FocusedGraphActiveDetails | undefined>(undefined);
+  const restoreTriggerFocus = useRef(false);
   const [pending, setPending] = useState(false);
   const [details, setDetails] = useState<PetraFocusedGraphDetailsView>();
   const [recovery, setRecovery] = useState<FocusedGraphDetailsRecoveryKind>();
@@ -740,6 +741,11 @@ export const FocusedGraphDetails = ({
   useEffect(() => {
     if (details !== undefined || recovery !== undefined) {
       heading.current?.focus();
+    } else if (restoreTriggerFocus.current) {
+      restoreTriggerFocus.current = false;
+      root.current
+        ?.querySelector<HTMLButtonElement>("[data-focused-details-trigger]")
+        ?.focus();
     }
   }, [details, recovery]);
 
@@ -752,14 +758,10 @@ export const FocusedGraphDetails = ({
 
   const returnToSelection = (): void => {
     active.current = undefined;
+    restoreTriggerFocus.current = true;
     setPending(false);
     setDetails(undefined);
     setRecovery(undefined);
-    window.requestAnimationFrame(() =>
-      root.current
-        ?.querySelector<HTMLButtonElement>("[data-focused-details-trigger]")
-        ?.focus(),
-    );
   };
 
   const openDetails = async (): Promise<void> => {

@@ -17,7 +17,10 @@ import type { FocusedGraphEntry } from "./focused-graph-entry.js";
 import { createFocusedGraphRequestId } from "./focused-graph-identities.js";
 import { focusedGraphRegionsFromView } from "./focused-graph-regions.js";
 import type { PetraFocusedGraphReadView } from "./focused-graph-regions.js";
-import { FocusedGraphActions } from "./FocusedGraphActions.js";
+import {
+  FocusedGraphActions,
+  type FocusedGraphActionPreviewRead,
+} from "./FocusedGraphActions.js";
 import { FocusedGraphDetails } from "./FocusedGraphDetails.js";
 import {
   FocusedGraphResult,
@@ -472,6 +475,7 @@ export const FocusedGraphExploration = ({
   initialRequest,
   initialView,
   read = readExpansion,
+  actionPreviewRead,
   rendererFactory,
 }: {
   entry: FocusedGraphEntry;
@@ -479,6 +483,7 @@ export const FocusedGraphExploration = ({
   initialRequest: FocusedGraphReadRequest;
   initialView: PetraFocusedGraphReadView;
   read?: FocusedGraphExplorationRead;
+  actionPreviewRead?: FocusedGraphActionPreviewRead | undefined;
   rendererFactory?: FocusedGraphRendererFactory | undefined;
 }): React.JSX.Element => {
   const initialSelectedKey = selectedKeyForView(initialView, entry.focus_ref);
@@ -1191,6 +1196,9 @@ export const FocusedGraphExploration = ({
           stateId={state.stateId}
           target={entry.action_preview_target}
           returnContext={entry.return_context}
+          {...(actionPreviewRead === undefined
+            ? {}
+            : { read: actionPreviewRead })}
         />
       )}
     </section>

@@ -481,6 +481,11 @@ const ImpactFacts = ({
                   Review source · <code>{item.source.review_session_id}</code> ·{" "}
                   {item.source.schema_version}
                 </p>
+                <ul>
+                  {item.limitations.map((limitation) => (
+                    <li key={limitation}>{limitation}</li>
+                  ))}
+                </ul>
               </li>
             ))}
           </ol>

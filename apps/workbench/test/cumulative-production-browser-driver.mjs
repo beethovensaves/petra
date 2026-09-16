@@ -107,12 +107,29 @@ export const startWorkbench = async ({ root, getBackendUrl, calls }) => {
     logLevel: "silent",
     plugins: [liveRouteProxy, react()],
     resolve: {
-      alias: {
-        "@petra/contracts/validator": resolve(
-          root,
-          "apps/workbench/src/product/browser-contract-registry.ts",
-        ),
-      },
+      alias: [
+        {
+          find: "@petra/contracts/validator",
+          replacement: resolve(
+            root,
+            "apps/workbench/src/product/browser-contract-registry.ts",
+          ),
+        },
+        {
+          find: /^@petra\/core$/u,
+          replacement: resolve(
+            root,
+            "apps/workbench/test/wave5-browser-core-shim.ts",
+          ),
+        },
+        {
+          find: /^@petra\/adapters$/u,
+          replacement: resolve(
+            root,
+            "apps/workbench/test/wave5-browser-adapters-live.mjs",
+          ),
+        },
+      ],
     },
     server: {
       host: "127.0.0.1",

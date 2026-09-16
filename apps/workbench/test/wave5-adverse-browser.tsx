@@ -1,11 +1,14 @@
 // UX-FX25 browser harness: production components over a renderer-neutral fixture.
 import type {
+  FocusedGraphGovernedCorrectionPreview,
   FocusedGraphProjectionPosition,
+  PetraFocusedGraphActionPreviewView,
   PetraFocusedGraphAnalysisView,
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
 } from "@petra/contracts";
 import type {
+  FocusedGraphActionPreviewViewRequest,
   FocusedGraphExplorationViewRequest,
   FocusedGraphReadRequest,
 } from "@petra/core";
@@ -14,6 +17,7 @@ import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router";
 
 import scientificDefinitionFixture from "../../../packages/contracts/fixtures/accepted/project-definition-scientific.json";
+import impactSourceFixture from "../../../packages/contracts/fixtures/accepted/project-history-impact-view-v1-4.json";
 import "../src/design-system/tokens.css";
 import "../src/design-system/primitives.css";
 import "../src/styles.css";
@@ -25,12 +29,14 @@ import {
   FocusedGraphOrientationSurface,
 } from "../src/product/focused-graph-entry.js";
 import { FocusedGraphAnalysisSurface } from "../src/product/FocusedGraphAnalysis.js";
+import type { FocusedGraphActionPreviewRead } from "../src/product/FocusedGraphActions.js";
 import type { FocusedGraphExplorationRead } from "../src/product/FocusedGraphExploration.js";
 import type { FocusedGraphRendererFactory } from "../src/product/FocusedGraphResult.js";
 
 declare global {
   interface Window {
     wave5Calls: Array<{ requestId: string; settled: string }>;
+    wave5ActionRequests: FocusedGraphActionPreviewViewRequest[];
     wave5Online: boolean;
     wave5Mode: string;
   }
@@ -521,6 +527,16 @@ const entryFor = (
   semantic_layer: temporal === "current" ? "current" : "historical",
   presentation: "position",
   expected_snapshot: structuredClone(view.content.requested_snapshot),
+  ...(mode === "action"
+    ? {
+        action_preview_target: {
+          action_kind: "governed_correction" as const,
+          requested_change: "edit_relationship" as const,
+          review_session_id: "review_session_01ARZ3NDEKTSV4RRFFQ69G5FAP",
+          review_member_id: "review_member_01ARZ3NDEKTSV4RRFFQ69G5FAQ",
+        },
+      }
+    : {}),
   ...(temporal === "historical_unknown"
     ? {
         historical_position: {
@@ -705,6 +721,94 @@ const incompleteComparison = (): PetraFocusedGraphAnalysisView => {
   };
 };
 
+const suppliedImpact = (): PetraFocusedGraphAnalysisView => {
+  const graphView = denseView("current");
+  const member = graphView.content.nodes[0]!;
+  return {
+    schema_name: "petra.focused-graph-analysis-view",
+    schema_version: "1.0.0",
+    project_id: projectId,
+    content: {
+      task: {
+        analysis_request_id:
+          "focused_graph_analysis_request_01ARZ3NDEKTSV4RRFFQ69G5FAX",
+        request_hash: secondHash,
+        task_kind: "impact",
+        question:
+          "What recorded dependencies and supplied consequences concern this exact Claim?",
+        question_hash: secondHash,
+        focus_refs: [record(focusId)],
+        position_keys: ["position:impact"],
+      },
+      positions: [
+        {
+          position_key: "position:impact",
+          label: "Exact bounded position",
+          role: "context",
+          graph_view: graphView,
+        },
+      ],
+      analysis: {
+        analysis_kind: "impact",
+        position_key: "position:impact",
+        dependency_source: structuredClone(
+          impactSourceFixture,
+        ) as unknown as Extract<
+          PetraFocusedGraphAnalysisView["content"]["analysis"],
+          { analysis_kind: "impact" }
+        >["dependency_source"],
+        assessed_consequences: {
+          state: "supplied",
+          items: [
+            {
+              consequence_key: "consequence:review:dense-claim:1",
+              source: {
+                schema_name: "petra.project-review-view",
+                schema_version: "1.3.0",
+                review_session_id: "review_session_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+                content_hash: secondHash,
+                read_at: "2026-09-16T06:30:00.000Z",
+              },
+              review_member_id: "review_member_01ARZ3NDEKTSV4RRFFQ69G5FAX",
+              source_kind: "review_member",
+              summary:
+                "The supplied Review member identifies one exact affected Claim relationship.",
+              target_refs: [structuredClone(member.record_ref)],
+              coverage: "exact_requested_review_member",
+              limitations: [
+                "This supplied consequence is not inferred from graph topology.",
+              ],
+            },
+          ],
+          coverage: "exact_requested_review_members",
+          limitations: [
+            "Only the exact requested Review member is represented.",
+          ],
+        },
+        coverage: "complete",
+        limitations: [
+          "Recorded dependencies and supplied consequences remain separate facts.",
+        ],
+      },
+      authority_boundary: {
+        postgresql_authoritative: true,
+        neo4j_projection_only: true,
+        focused_graph_owner_reused: true,
+        history_owner_reused: true,
+        review_owner_reused_when_bound: true,
+        analysis_is_read_only: true,
+        renderer_calculates_domain_facts: false,
+        universal_scores_calculated: false,
+      },
+      limitations: [
+        "This deterministic impact fixture exercises the production presentation only.",
+      ],
+    },
+    content_hash: secondHash,
+    read_at: "2026-09-16T06:30:00.000Z",
+  };
+};
+
 const mode = new URLSearchParams(window.location.search).get("mode") ?? "dense";
 window.wave5Mode = mode;
 window.wave5Calls = [];
@@ -741,6 +845,118 @@ const adverseRead: FocusedGraphExplorationRead = async (
   return response;
 };
 
+const adverseActionRead: FocusedGraphActionPreviewRead = (
+  exactProjectId,
+  _definition,
+  actionRequest,
+) => {
+  window.wave5ActionRequests.push(structuredClone(actionRequest));
+  const selectedKey = actionRequest.selection.selected_keys[0];
+  const selectedRelationship = view.content.relationships.find(
+    (relationship) => relationship.relationship_key === selectedKey,
+  );
+  if (selectedRelationship === undefined) {
+    throw new Error("The deterministic correction target is unavailable.");
+  }
+  const reviewMemberId =
+    actionRequest.target.action_kind === "governed_correction"
+      ? actionRequest.target.review_member_id
+      : "review_member_01ARZ3NDEKTSV4RRFFQ69G5FAQ";
+  const reviewSessionId =
+    actionRequest.target.action_kind === "governed_correction"
+      ? actionRequest.target.review_session_id
+      : "review_session_01ARZ3NDEKTSV4RRFFQ69G5FAP";
+  return Promise.resolve<PetraFocusedGraphActionPreviewView>({
+    schema_name: "petra.focused-graph-action-preview-view",
+    schema_version: "1.0.0",
+    project_id: exactProjectId,
+    content: {
+      action_request_id: actionRequest.action_request_id,
+      request_hash: secondHash,
+      graph_view: structuredClone(view),
+      selection: structuredClone(actionRequest.selection),
+      preview: {
+        preview_kind: "governed_correction",
+        requested_change: "edit_relationship",
+        selected_relationship: structuredClone(selectedRelationship),
+        review_session_ref: {
+          review_session_id: reviewSessionId,
+          revision: 3,
+          content_hash: hash,
+          lifecycle: "open",
+        },
+        review_member_id: reviewMemberId,
+        working_candidate_ref: {
+          working_candidate_id: "working_candidate_01ARZ3NDEKTSV4RRFFQ69G5FAR",
+          revision: 2,
+          content_hash: hash,
+        },
+        working_relationship_refs: [
+          {
+            working_relationship_id:
+              "working_relationship_01ARZ3NDEKTSV4RRFFQ69G5FAS",
+            revision: 1,
+            content_hash: hash,
+          },
+        ],
+        review_view: {
+          content: {
+            members: [
+              {
+                review_member_id: reviewMemberId,
+                candidate: {
+                  kind_label: "Claim correction",
+                  current: "The retained Claim before correction.",
+                  proposed: "The exact candidate Claim under Review.",
+                  difference: "One bounded relationship correction.",
+                },
+              },
+            ],
+          },
+        } as unknown as FocusedGraphGovernedCorrectionPreview["review_view"],
+        affected_scope: [
+          "The selected relationship and its existing candidate/Review binding.",
+        ],
+        unchanged: [
+          "Project authority, Review decision, and graph layout remain unchanged.",
+        ],
+        operation: {
+          state: "preview_only",
+          working_revision: "only_after_canonical_correction_submission",
+          review_decision: "not_performed",
+          authority_change: "only_after_validated_review_apply",
+          cancellation: "closing_preview_leaves_domain_state_unchanged",
+        },
+      },
+      return_context: {
+        graph_request_id: view.content.task.request_id,
+        selection: structuredClone(actionRequest.selection),
+        origin: structuredClone(view.content.task.origin),
+        destination: structuredClone(view.content.destinations[0]),
+      },
+      authority_boundary: {
+        postgresql_authoritative: true,
+        neo4j_projection_only: true,
+        focused_graph_owner_reused: true,
+        working_candidate_owner: "reused",
+        review_owner: "reused",
+        suggested_action_owner: "not_applicable",
+        work_preview_owner: "not_applicable",
+        preview_is_read_only: true,
+        selection_grants_authority: false,
+        renderer_state_accepted: false,
+        command_issued: false,
+        work_started: false,
+      },
+      limitations: [
+        "Deterministic UX-FX25 transport exercises the production browser controller; it is not a live server response.",
+      ],
+    },
+    content_hash: secondHash,
+    read_at: "2026-09-16T06:30:00.000Z",
+  });
+};
+
 let rendererAttempts = 0;
 const adverseRenderer: FocusedGraphRendererFactory = (options) => {
   rendererAttempts += 1;
@@ -766,15 +982,22 @@ const data: FocusedGraphRouteData = {
   view,
 };
 
+window.wave5ActionRequests = [];
+
 const content =
   mode === "comparison" ? (
     <main className="reference-surface graph-surface" id="reference-main">
       <FocusedGraphAnalysisSurface view={incompleteComparison()} />
     </main>
+  ) : mode === "impact" ? (
+    <main className="reference-surface graph-surface" id="reference-main">
+      <FocusedGraphAnalysisSurface view={suppliedImpact()} />
+    </main>
   ) : (
     <FocusedGraphOrientationSurface
       data={data}
       explorationRead={adverseRead}
+      actionPreviewRead={adverseActionRead}
       rendererFactory={adverseRenderer}
     />
   );

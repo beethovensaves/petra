@@ -1,8 +1,7 @@
 /**
  * Browser-only test boundary for the one runtime parser imported by the
- * focused-graph HTTP client. The UX-FX25 harness injects every read and never
- * invokes an action-preview request; production server validation remains the
- * authority for that request.
+ * focused-graph HTTP client. Production server validation remains the
+ * authority for the request; browser harnesses retain the exact JSON payload.
  */
 export const parseFocusedGraphActionPreviewViewRequest = (
   value: unknown,

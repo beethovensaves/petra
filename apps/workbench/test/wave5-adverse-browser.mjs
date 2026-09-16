@@ -14,8 +14,8 @@ import {
 
 const root = resolve(import.meta.dirname, "../../..");
 const artifactPath = resolve(
-  root,
-  "reports/WAVE5-UX-FX25-BROWSER-OBSERVATION.json",
+  process.env.PETRA_WAVE5_ADVERSE_OUTPUT?.trim() ||
+    resolve(root, "reports/WAVE5-UX-FX25-BROWSER-OBSERVATION.json"),
 );
 const backendSupportPath = resolve(
   root,
@@ -39,6 +39,25 @@ const sha256 = (base64) =>
 const sha256Bytes = (value) =>
   `sha256:${createHash("sha256").update(value).digest("hex")}`;
 const round = (value) => Math.round(value * 1_000) / 1_000;
+const withoutRequestIdentity = (value) => {
+  if (Array.isArray(value)) return value.map(withoutRequestIdentity);
+  if (value === null || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !key.endsWith("_request_id"))
+      .map(([key, entry]) => [key, withoutRequestIdentity(entry)]),
+  );
+};
+const containsRendererAuthority = (value) => {
+  if (Array.isArray(value)) return value.some(containsRendererAuthority);
+  if (value === null || typeof value !== "object") return false;
+  return Object.entries(value).some(
+    ([key, entry]) =>
+      ["x", "y", "position", "coordinates", "pan", "zoom", "layout"].includes(
+        key,
+      ) || containsRendererAuthority(entry),
+  );
+};
 
 const backendSupportBytes = readFileSync(backendSupportPath);
 const backendSupport = JSON.parse(backendSupportBytes.toString("utf8"));
@@ -55,6 +74,7 @@ const consoleFailures = [];
 const networkFailures = [];
 const observations = {
   dense: {},
+  correction_preview: {},
   renderer_recovery: {},
   offline_recovery: {},
   stale_response: {},
@@ -284,6 +304,95 @@ try {
   };
 
   await navigate(
+    "action",
+    'document.querySelector(".focused-graph-production-canvas")?.dataset.rendererState === "ready"',
+    "governed correction fixture",
+  );
+  const correctionRelationshipKey = "relationship:dense-0";
+  assert.equal(
+    await evaluate(`(() => {
+      const container = document.querySelector(".focused-graph-production-canvas");
+      const edge = container?._cyreg?.cy?.getElementById(${JSON.stringify(correctionRelationshipKey)});
+      if (edge === undefined || edge.length !== 1) return false;
+      edge.emit("tap");
+      return true;
+    })()`),
+    true,
+  );
+  await until(
+    `document.querySelector(".focused-graph-exploration__selection select").value === ${JSON.stringify(correctionRelationshipKey)}`,
+    "Cytoscape pointer correction selection",
+  );
+  await evaluate(`${button("Preview edit relationship")}.focus()`);
+  await key("Enter", "Enter", 13, "\r");
+  await until(
+    'document.querySelector(".focused-graph-action-preview") !== null',
+    "pointer correction preview",
+  );
+  body = await evaluate("document.body.innerText");
+  const normalizedCorrectionBody = body.toLowerCase();
+  for (const text of [
+    "exact existing candidate",
+    "affected scope",
+    "unchanged by this preview",
+    "no command issued",
+    "open this exact candidate in review",
+    "renderer state was not accepted",
+  ]) {
+    assert.ok(
+      normalizedCorrectionBody.includes(text),
+      `Correction preview omitted ${text}:\n${body}`,
+    );
+  }
+  const pointerRequest = await evaluate(
+    "structuredClone(window.wave5ActionRequests[0])",
+  );
+  assert.equal(containsRendererAuthority(pointerRequest), false);
+  await evaluate(`${button("Close preview and keep selection")}.focus()`);
+  await key("Enter", "Enter", 13, "\r");
+  await until(
+    'document.querySelector(".focused-graph-action-preview") === null',
+    "closed pointer correction preview",
+  );
+  const previewTriggerFocus = await evaluate(
+    `document.activeElement === ${button("Preview edit relationship")}`,
+  );
+  assert.equal(previewTriggerFocus, true);
+  await evaluate(`${button("Home")}.click()`);
+  await evaluate(`(() => {
+    const control = document.querySelector(".focused-graph-exploration__selection select");
+    control.focus();
+    control.value = ${JSON.stringify(correctionRelationshipKey)};
+    control.dispatchEvent(new Event("change", { bubbles: true }));
+  })()`);
+  await until(
+    `document.querySelector(".focused-graph-exploration__selection select").value === ${JSON.stringify(correctionRelationshipKey)}`,
+    "non-drag correction selection",
+  );
+  await evaluate(`${button("Preview edit relationship")}.focus()`);
+  await key("Enter", "Enter", 13, "\r");
+  await until(
+    'document.querySelector(".focused-graph-action-preview") !== null && window.wave5ActionRequests.length === 2',
+    "non-drag correction preview",
+  );
+  const nonDragRequest = await evaluate(
+    "structuredClone(window.wave5ActionRequests[1])",
+  );
+  assert.deepEqual(
+    withoutRequestIdentity(nonDragRequest),
+    withoutRequestIdentity(pointerRequest),
+  );
+  observations.correction_preview = {
+    selected_relationship_key: correctionRelationshipKey,
+    pointer_boundary: "production Cytoscape tap event in isolated Chrome",
+    non_drag_boundary: "production selection control with keyboard activation",
+    pointer_and_non_drag_request_match: true,
+    renderer_fields_in_request: false,
+    preview_trigger_focus_restored: previewTriggerFocus,
+    command_issued: false,
+  };
+
+  await navigate(
     "renderer",
     'document.querySelector(".focused-graph-production-canvas")?.dataset.rendererState === "failed"',
     "renderer failure fallback",
@@ -496,11 +605,42 @@ try {
   ]) {
     assert.ok(body.includes(text), `Incomplete comparison omitted ${text}.`);
   }
+  await evaluate(`${button("Text")}.click()`);
+  await until(
+    'document.querySelector(".focused-graph-analysis__positions")?.dataset.focusedAnalysisPeer === "text"',
+    "comparison textual peer",
+  );
+  await navigate(
+    "impact",
+    'document.querySelector(".focused-graph-analysis")?.dataset.analysisKind === "impact"',
+    "supplied impact presentation",
+  );
+  body = await evaluate("document.body.innerText");
+  for (const text of [
+    "Impact and assessed consequences",
+    "Exact semantic-target records",
+    "Exact operational records",
+    "Assessed consequences",
+    "The supplied Review member identifies one exact affected Claim relationship.",
+    "This supplied consequence is not inferred from graph topology.",
+  ]) {
+    assert.ok(body.includes(text), `Impact presentation omitted ${text}.`);
+  }
+  await evaluate(`${button("Text")}.click()`);
+  await until(
+    'document.querySelector(".focused-graph-analysis__positions")?.dataset.focusedAnalysisPeer === "text"',
+    "impact textual peer",
+  );
   observations.temporal_and_comparison = {
     historical_read_only: true,
     unknown_date_explicit: true,
     incomplete_comparison_explicit: true,
     stale_working_base_non_authoritative: true,
+    comparison_textual_peer_executed: true,
+    supplied_impact_executed: true,
+    impact_textual_peer_executed: true,
+    impact_boundary:
+      "production presentation with deterministic injected typed view; no live impact route claimed",
   };
 
   await send("Emulation.setDeviceMetricsOverride", {
@@ -726,6 +866,7 @@ try {
         "FocusedGraphExploration",
         "FocusedGraphResult",
         "FocusedGraphDetails",
+        "FocusedGraphActions",
         "FocusedGraphAnalysisSurface",
       ],
       synthetic_transport: true,

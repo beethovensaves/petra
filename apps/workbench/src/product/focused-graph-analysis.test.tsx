@@ -476,6 +476,9 @@ describe("focused graph dedicated comparison, impact, and time views", () => {
       "The supplied Review member identifies one exact affected Claim relationship.",
     );
     expect(markup).toContain(
+      "This supplied consequence is not inferred from graph topology.",
+    );
+    expect(markup).toContain(
       "Recorded dependencies and assessed consequences remain separate facts.",
     );
     expect(markup).toContain("repeatable read");

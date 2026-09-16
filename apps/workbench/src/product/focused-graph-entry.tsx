@@ -22,6 +22,7 @@ import {
   createFocusedGraphRequestId,
 } from "./focused-graph-identities.js";
 import { FocusedGraphAnalysisSurface } from "./FocusedGraphAnalysis.js";
+import type { FocusedGraphActionPreviewRead } from "./FocusedGraphActions.js";
 import {
   FocusedGraphExploration,
   type FocusedGraphExplorationRead,
@@ -1163,10 +1164,12 @@ const layerSymbol: Record<FocusedGraphEntry["semantic_layer"], string> = {
 export const FocusedGraphOrientationSurface = ({
   data,
   explorationRead,
+  actionPreviewRead,
   rendererFactory,
 }: {
   data: FocusedGraphRouteData;
   explorationRead?: FocusedGraphExplorationRead | undefined;
+  actionPreviewRead?: FocusedGraphActionPreviewRead | undefined;
   rendererFactory?: FocusedGraphRendererFactory | undefined;
 }): React.JSX.Element => {
   const regions = focusedGraphRegionsFromView(data.view);
@@ -1434,6 +1437,7 @@ export const FocusedGraphOrientationSurface = ({
           initialRequest={data.request}
           initialView={data.view}
           {...(explorationRead === undefined ? {} : { read: explorationRead })}
+          {...(actionPreviewRead === undefined ? {} : { actionPreviewRead })}
           {...(rendererFactory === undefined ? {} : { rendererFactory })}
         />
       ) : (

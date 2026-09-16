@@ -2662,7 +2662,9 @@ const ReviewSessionMemberSurface = ({
       >
         <div>
           <p className="reference-panel-kicker">Accountable boundary</p>
-          <h2 id="review-decision-title">Decision</h2>
+          <h2 id="review-decision-title" tabIndex={-1}>
+            Decision
+          </h2>
           <p id="review-decision-boundary">
             {review.validation.state === "blocked"
               ? `${review.validation.detail} `

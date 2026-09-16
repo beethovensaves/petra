@@ -1,0 +1,568 @@
+{
+  "schema_name": "petra.wave5-cumulative-production-browser-observation",
+  "schema_version": "1.0.0",
+  "wave": 5,
+  "slice": 22,
+  "status": "passed",
+  "executed_at": "2026-09-16T09:35:09.800Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
+  "environment": {
+    "node": "24.20.0",
+    "browser": {
+      "product": "Chrome/152.0.7977.84",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+      "protocol_version": "1.3"
+    },
+    "platform": "darwin",
+    "architecture": "arm64",
+    "workbench": "production controllers and React Router loaders",
+    "renderer": "production Cytoscape renderer plus complete textual peer",
+    "live_stores": ["fresh PostgreSQL 18.6", "fresh Neo4j 2026.07.1"]
+  },
+  "phases": {
+    "ux_fx24": {
+      "command": "node apps/workbench/test/paired-profile-browser.mjs",
+      "result": {
+        "state": "passed",
+        "browser": "Chrome via CDP",
+        "transport": "synthetic only",
+        "checks": [
+          "production Project, relationship-overlay, and Review loaders",
+          "scientific and controlled-writing ProjectDefinition terminology",
+          "complete working Graph textual peer for both renderer scenarios",
+          "scientific Review capability retained",
+          "controlled-writing Review 1.3 with no commitment request path",
+          "shared selection, validation, status, decision, authority, and recovery meaning",
+          "keyboard activation and focus retention",
+          "375px viewport at 200% text scaling",
+          "44px touch disclosure",
+          "forced colors and reduced motion",
+          "non-color status and authority wording",
+          "accessibility-tree headings and unavailable controls"
+        ],
+        "limitation": "The controlled-writing Graph response is a renderer-only synthetic packet because the installed relationship-overlay contract and server route remain scientific-only."
+      },
+      "boundary": "Real isolated Chrome over production Project, relationship-overlay, Review loaders, renderers, and textual peers. Transport is deterministic synthetic fixture transport; controlled-writing focused-query HTTP is not claimed live."
+    },
+    "ux_fx25": {
+      "command": "node apps/workbench/test/wave5-adverse-browser.mjs",
+      "artifact_sha256": "sha256:cafd0327b44828d5251d8a3a3b6e4c134ce91b126bd315e3df4cc64d049a957f",
+      "browser": "Chrome/152.0.7977.84",
+      "boundary": "Real isolated Chrome over production focused-graph components with deterministic injected typed transport. Used for adverse ordering, omissions, correction-preview convergence, and supplied-impact presentation; not relabeled as a live backend trace."
+    },
+    "live_routes": {
+      "command": "PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave5-cumulative-evidence-observer.mjs node scripts/test-wave4-cumulative-integration.mjs",
+      "observation": {
+        "schema_name": "petra.wave5-live-browser-observation",
+        "schema_version": "1.0.0",
+        "status": "passed",
+        "route_boundary": "Production React Router loaders and controllers in isolated headless Chrome over authenticated live server routes backed by the disposable PostgreSQL and Neo4j stores.",
+        "pre_apply_review_target": {
+          "duration_ms": 351.994,
+          "action_target_sha256": "sha256:c867470a35cb6588e747497ecd2760d7264cfc37cd9cd688efa0de2a4e317bb1"
+        },
+        "focused_graph": {
+          "browser": {
+            "product": "Chrome/152.0.7977.84",
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+            "protocol_version": "1.3"
+          },
+          "route_transport": "live authenticated HTTP through the production server",
+          "timings_ms": {
+            "contextual_graph_ms": 1004.33,
+            "direct_graph_ms": 553.941,
+            "historical_ms": 568.708,
+            "impact_ms": 562.843
+          },
+          "calls": {
+            "focused_graph": 14,
+            "details": 1,
+            "action_preview": 0,
+            "analysis": 3
+          },
+          "contextual_entry": {
+            "origin": "review",
+            "question": "Which recorded relationships, including Working changes, concern this Claim at the represented projection position?",
+            "focus_ref": {
+              "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "revision": 2,
+              "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+            },
+            "limits": {
+              "maximum_depth": 1,
+              "maximum_nodes": 25,
+              "maximum_relationships": 24,
+              "maximum_paths": 24
+            },
+            "requested_snapshot": {
+              "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+              "revision": 1,
+              "event_position": 9,
+              "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+            },
+            "return_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/review/review_session_01K4D000000000000000000004#review-decision-title"
+          },
+          "direct_entry": {
+            "origin": "direct",
+            "content_hash": "sha256:6a5800c4a0a6be5665cfc5c993929a26c33efd01d9bb2820d6d024646d4901b9"
+          },
+          "relation_review": {
+            "relationship_count": 5,
+            "meaning_kinds": [
+              "citation",
+              "contradiction",
+              "inference",
+              "qualification",
+              "support"
+            ],
+            "non_color_fields": [
+              "term",
+              "predicate",
+              "direction",
+              "origin",
+              "authority_position",
+              "basis",
+              "limitations"
+            ]
+          },
+          "provenance_review": {
+            "details_content_hash": "sha256:28f9addb6dcf90d946502a8eb78b59b1bbd8e2535086b96106ae7102216e5954",
+            "exact_source_inspections": 1,
+            "inspected_source_state": "available",
+            "source_states": ["available"],
+            "requested_snapshot": {
+              "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+              "revision": 1,
+              "event_position": 9,
+              "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+            },
+            "projection_position": {
+              "authority_source": "postgresql",
+              "projection_source": "neo4j_rebuildable_projection",
+              "state": "catching_up",
+              "checkpoint_ref": {
+                "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+                "revision": 2,
+                "record_hash": "sha256:b0f97bc430e23da1f42bd8b912dee3c31f22e3b51d096c6eb1b97c3c0fbd4249"
+              },
+              "represented_event_position": 3,
+              "observed_event_position": 9,
+              "pending_records": 2,
+              "detail": "Neo4j safely represents Project stream revision 3; 2 graph records are pending through revision 9."
+            },
+            "omissions": 1
+          },
+          "graph_text_parity": {
+            "relationship_count": 5,
+            "normalized_facts_sha256": "sha256:b731f9798e6b98fa36e71413bfc7d77acc3ffcee764539e41c3dd1d21154eabb",
+            "exact_match": true
+          },
+          "focus": {
+            "contextual_heading": true,
+            "text_control": true,
+            "details_heading": true,
+            "source_summary": true,
+            "details_return": true,
+            "context_return": true
+          },
+          "correction_preview": {
+            "graph_duration_ms": 742.231,
+            "live_route_availability": "not_in_bounded_result",
+            "open_review_session_id": "review_session_01K4D000000000000000000004",
+            "review_relationship_ids": [
+              "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT"
+            ],
+            "returned_relationship_ids": [
+              "working_relationship_3VGZWGYA7TM6BY3MC96TTF24R3",
+              "working_relationship_1VPE3DSXKTKWAZ04XJY4HGDYJC",
+              "working_relationship_3FC7DS1773FAAWWSHNF463AHVN",
+              "working_relationship_74MKC22KTMH8WWJWW99J1ZE7EJ",
+              "working_relationship_6D6BQK0VACMEMKXDKB7JAWSXK5"
+            ],
+            "graph_content_hash": "sha256:912e46384e78cd192099a72118be64cb2d321f3881293e902236750770f5bb3e",
+            "executed_supplement": "UX-FX25 deterministic production-controller browser boundary"
+          },
+          "positions": {
+            "current": "sha256:2ba64030efd8f5331e74106aca21c279d94c957d8001f70d14c4f0a92b2c48df",
+            "working": "sha256:982fc21d4ec0c7570e144b55de1e6961190010d707362cce699bf62f108a3533",
+            "historical": "sha256:b3cc31d0915a3e117e989c69f8416cd548849d88429958695eef454303e83a5c",
+            "historical_recorded_at": "2026-09-16T09:34:12.751Z",
+            "comparison": "sha256:a653db7dcec21d5069275ad248adbf3730c6de2de6a8f9cdbc9a5a8016598766",
+            "impact": {
+              "live_route_state": "failed_closed",
+              "error_code": "FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE",
+              "event_id": "event_01M2MS258G89T2QPPMSTBBR6E4",
+              "executed_supplement": "UX-FX25 deterministic production-presentation browser boundary"
+            },
+            "impact_event_id": "event_01M2MS258G89T2QPPMSTBBR6E4",
+            "time": "sha256:8d8221e8c8113dc11dfffbbaf80f0756578c0abaff72d2c28ee9e4a2292d562a"
+          },
+          "expansion": {
+            "live_availability": "not_registered_for_exact_profile_and_layer",
+            "fail_closed_message": "No compatible named expansion is registered for this exact profile and semantic layer.",
+            "selection_preserved": true,
+            "executed_supplement": "UX-FX25 deterministic adverse browser boundary"
+          }
+        },
+        "projection_lag": {
+          "duration_ms": 560.616,
+          "content_hash": "sha256:982fc21d4ec0c7570e144b55de1e6961190010d707362cce699bf62f108a3533",
+          "requested_snapshot": {
+            "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+            "revision": 1,
+            "event_position": 9,
+            "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+          },
+          "projection_position": {
+            "authority_source": "postgresql",
+            "projection_source": "neo4j_rebuildable_projection",
+            "state": "catching_up",
+            "checkpoint_ref": {
+              "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+              "revision": 2,
+              "record_hash": "sha256:b0f97bc430e23da1f42bd8b912dee3c31f22e3b51d096c6eb1b97c3c0fbd4249"
+            },
+            "represented_event_position": 3,
+            "observed_event_position": 9,
+            "pending_records": 2,
+            "detail": "Neo4j safely represents Project stream revision 3; 2 graph records are pending through revision 9."
+          },
+          "authority_source": "postgresql"
+        },
+        "recorded_at": "2026-09-16T09:34:48.180Z"
+      },
+      "boundary": "Production React Router loaders and controllers in isolated headless Chrome over authenticated live server routes backed by the disposable PostgreSQL and Neo4j stores."
+    }
+  },
+  "support_only": {
+    "backend_cumulative_artifact": {
+      "path": "reports/WAVE5-PAIRED-PROFILE-CUMULATIVE-OBSERVATION.json",
+      "sha256": "sha256:f858a96c2b3216a367b39287422d0ba259f7ec67d09c6f400b9a07588cfdf712",
+      "boundary": "Backend evidence only. No browser record is inferred from this artifact."
+    },
+    "adverse_backend_artifact": {
+      "path": "reports/WAVE5-ADVERSE-STATE-PERFORMANCE-OBSERVATION.json",
+      "sha256": "sha256:51fbe21b8be7ade8df3d77b8facff178fbb581efedc660c7f0c5d094083cc70b",
+      "boundary": "Backend timing and store support only. No browser record is inferred from this artifact."
+    }
+  },
+  "scenario_records": [
+    {
+      "evidence_id": "UX1.5-EV01",
+      "scenario_id": "paired-profile-bounded-graph-fixture",
+      "status": "passed",
+      "observation": {
+        "fixture": "UX-FX24",
+        "checks": [
+          "production Project, relationship-overlay, and Review loaders",
+          "scientific and controlled-writing ProjectDefinition terminology",
+          "complete working Graph textual peer for both renderer scenarios",
+          "scientific Review capability retained",
+          "controlled-writing Review 1.3 with no commitment request path",
+          "shared selection, validation, status, decision, authority, and recovery meaning",
+          "keyboard activation and focus retention",
+          "375px viewport at 200% text scaling",
+          "44px touch disclosure",
+          "forced colors and reduced motion",
+          "non-color status and authority wording",
+          "accessibility-tree headings and unavailable controls"
+        ],
+        "limitation": "The controlled-writing Graph response is a renderer-only synthetic packet because the installed relationship-overlay contract and server route remain scientific-only."
+      },
+      "boundary": "Scientific and controlled-writing fixtures executed in Chrome through the same production overlay mapper, renderer, textual peer, Project shell, and Review controller. The controlled-writing response is synthetic fixture transport, not a live focused-query response."
+    },
+    {
+      "evidence_id": "UX1.5-EV02",
+      "scenario_id": "relation-identification-review",
+      "status": "passed",
+      "observation": {
+        "relationship_count": 5,
+        "meaning_kinds": [
+          "citation",
+          "contradiction",
+          "inference",
+          "qualification",
+          "support"
+        ],
+        "non_color_fields": [
+          "term",
+          "predicate",
+          "direction",
+          "origin",
+          "authority_position",
+          "basis",
+          "limitations"
+        ]
+      },
+      "boundary": "Critic inspection of every relationship fact in the live Working changes result and its exact graph/text renderings; color and position were not used as identifying facts."
+    },
+    {
+      "evidence_id": "UX1.5-EV02",
+      "scenario_id": "provenance-comprehension-review",
+      "status": "passed",
+      "observation": {
+        "details_content_hash": "sha256:28f9addb6dcf90d946502a8eb78b59b1bbd8e2535086b96106ae7102216e5954",
+        "exact_source_inspections": 1,
+        "inspected_source_state": "available",
+        "source_states": ["available"],
+        "requested_snapshot": {
+          "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+          "revision": 1,
+          "event_position": 9,
+          "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+        },
+        "projection_position": {
+          "authority_source": "postgresql",
+          "projection_source": "neo4j_rebuildable_projection",
+          "state": "catching_up",
+          "checkpoint_ref": {
+            "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+            "revision": 2,
+            "record_hash": "sha256:b0f97bc430e23da1f42bd8b912dee3c31f22e3b51d096c6eb1b97c3c0fbd4249"
+          },
+          "represented_event_position": 3,
+          "observed_event_position": 9,
+          "pending_records": 2,
+          "detail": "Neo4j safely represents Project stream revision 3; 2 graph records are pending through revision 9."
+        },
+        "omissions": 1
+      },
+      "boundary": "Critic inspection of live Details and exact source inspection for basis, SourceSpan, ProjectSource representation, rights, snapshot, omissions, and projection position."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "contextual-entry-scope-selection-return-browser",
+      "status": "passed",
+      "observation": {
+        "contextual": {
+          "origin": "review",
+          "question": "Which recorded relationships, including Working changes, concern this Claim at the represented projection position?",
+          "focus_ref": {
+            "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "revision": 2,
+            "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+          },
+          "limits": {
+            "maximum_depth": 1,
+            "maximum_nodes": 25,
+            "maximum_relationships": 24,
+            "maximum_paths": 24
+          },
+          "requested_snapshot": {
+            "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+            "revision": 1,
+            "event_position": 9,
+            "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+          },
+          "return_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/review/review_session_01K4D000000000000000000004#review-decision-title"
+        },
+        "direct": {
+          "origin": "direct",
+          "content_hash": "sha256:6a5800c4a0a6be5665cfc5c993929a26c33efd01d9bb2820d6d024646d4901b9"
+        },
+        "focus": { "contextual_heading": true, "exact_return": true },
+        "timings_ms": { "contextual": 1004.33, "direct": 553.941 }
+      },
+      "boundary": "The exact retained Review action target was composed with a projected baseline Claim because the post-Apply Claim had not reached Neo4j. That contextual Review URL and a separately parsed direct URL executed through the production loader and live focused-query route with exact return focus."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "current-working-historical-browser",
+      "status": "passed",
+      "observation": {
+        "positions": {
+          "current": "sha256:2ba64030efd8f5331e74106aca21c279d94c957d8001f70d14c4f0a92b2c48df",
+          "working": "sha256:982fc21d4ec0c7570e144b55de1e6961190010d707362cce699bf62f108a3533",
+          "historical": "sha256:b3cc31d0915a3e117e989c69f8416cd548849d88429958695eef454303e83a5c",
+          "historical_recorded_at": "2026-09-16T09:34:12.751Z",
+          "comparison": "sha256:a653db7dcec21d5069275ad248adbf3730c6de2de6a8f9cdbc9a5a8016598766",
+          "impact": {
+            "live_route_state": "failed_closed",
+            "error_code": "FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE",
+            "event_id": "event_01M2MS258G89T2QPPMSTBBR6E4",
+            "executed_supplement": "UX-FX25 deterministic production-presentation browser boundary"
+          },
+          "impact_event_id": "event_01M2MS258G89T2QPPMSTBBR6E4",
+          "time": "sha256:8d8221e8c8113dc11dfffbbaf80f0756578c0abaff72d2c28ee9e4a2292d562a"
+        },
+        "projection_lag": {
+          "duration_ms": 560.616,
+          "content_hash": "sha256:982fc21d4ec0c7570e144b55de1e6961190010d707362cce699bf62f108a3533",
+          "requested_snapshot": {
+            "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+            "revision": 1,
+            "event_position": 9,
+            "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+          },
+          "projection_position": {
+            "authority_source": "postgresql",
+            "projection_source": "neo4j_rebuildable_projection",
+            "state": "catching_up",
+            "checkpoint_ref": {
+              "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+              "revision": 2,
+              "record_hash": "sha256:b0f97bc430e23da1f42bd8b912dee3c31f22e3b51d096c6eb1b97c3c0fbd4249"
+            },
+            "represented_event_position": 3,
+            "observed_event_position": 9,
+            "pending_records": 2,
+            "detail": "Neo4j safely represents Project stream revision 3; 2 graph records are pending through revision 9."
+          },
+          "authority_source": "postgresql"
+        }
+      },
+      "boundary": "Live Current, Working changes, exact retained Historical, comparison navigation, projection catching-up, and Return to current. Historical time was bound to the retained event matching the exact snapshot position."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "graph-text-parity-browser",
+      "status": "passed",
+      "observation": {
+        "relationship_count": 5,
+        "normalized_facts_sha256": "sha256:b731f9798e6b98fa36e71413bfc7d77acc3ffcee764539e41c3dd1d21154eabb",
+        "exact_match": true
+      },
+      "boundary": "The same live response rendered graph and complete textual peers; normalized relationship facts matched exactly and both exposed scope, destinations, actions, and limitations."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "keyboard-focus-browser",
+      "status": "passed",
+      "observation": {
+        "focus": {
+          "contextual_heading": true,
+          "text_control": true,
+          "details_heading": true,
+          "source_summary": true,
+          "details_return": true,
+          "context_return": true
+        },
+        "action_preview_focus": true,
+        "renderer_recovery": {
+          "textual_relationships_retained": 33,
+          "exact_selection_retained": "node:claim-0",
+          "retry_succeeded": true,
+          "project_effect_created": false
+        }
+      },
+      "boundary": "Keyboard executed contextual entry, Graph/Text alternative, live Details, exact source disclosure, Details return, and exact Review return. UX-FX25 executed action-preview close/focus recovery and production renderer recovery; native screen-reader evaluation remains outside scope."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "named-expansion-omission-selection-browser",
+      "status": "passed",
+      "observation": {
+        "live_expansion": {
+          "live_availability": "not_registered_for_exact_profile_and_layer",
+          "fail_closed_message": "No compatible named expansion is registered for this exact profile and semantic layer.",
+          "selection_preserved": true,
+          "executed_supplement": "UX-FX25 deterministic adverse browser boundary"
+        },
+        "adverse_accounting": {
+          "objects": 32,
+          "relationships": 33,
+          "paths": 33,
+          "cycle_relationships": 2,
+          "hidden_working_relationships": 4,
+          "restricted_paths": 1,
+          "partial_paths": 1,
+          "missing_destinations": 1,
+          "first_ready_ms": 392.819,
+          "second_ready_ms": 140.027,
+          "layout_capture_sha256": "sha256:690acdf7e021e3bac52284fb9748d2d14d8b180fb5615f9a871c6cd755f4cf74",
+          "repeated_layout_capture_sha256": "sha256:690acdf7e021e3bac52284fb9748d2d14d8b180fb5615f9a871c6cd755f4cf74",
+          "layout_capture_stable": true
+        },
+        "late_response": {
+          "completion_order": [
+            "focused_graph_request_01M2MS1JCCVB1QYKTEHFT5D0Y9",
+            "focused_graph_request_01M2MS1JA4C1YZVM937Q3KQ7S1"
+          ],
+          "accepted_request_id": "focused_graph_request_01M2MS1JCCVB1QYKTEHFT5D0Y9",
+          "older_request_rejected": true,
+          "exact_selection_retained": "node:claim-0"
+        },
+        "stale_response": {
+          "mismatched_snapshot_event_position": 41,
+          "retained_snapshot_event_position": 42,
+          "mismatched_response_ignored": true,
+          "exact_selection_retained": "node:claim-0",
+          "retry_succeeded": true
+        }
+      },
+      "boundary": "The live profile correctly failed closed because it registers no compatible named-expansion recipe for this exact layer, preserving selection. UX-FX25 executed named filters, expansion, caps, hidden, restricted, unknown, stale, and out-of-order completion behavior through production controllers with deterministic injected transport; no live expansion-route claim is made."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "correction-preview-shared-command-browser",
+      "status": "passed",
+      "observation": {
+        "live_route": {
+          "graph_duration_ms": 742.231,
+          "live_route_availability": "not_in_bounded_result",
+          "open_review_session_id": "review_session_01K4D000000000000000000004",
+          "review_relationship_ids": [
+            "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT"
+          ],
+          "returned_relationship_ids": [
+            "working_relationship_3VGZWGYA7TM6BY3MC96TTF24R3",
+            "working_relationship_1VPE3DSXKTKWAZ04XJY4HGDYJC",
+            "working_relationship_3FC7DS1773FAAWWSHNF463AHVN",
+            "working_relationship_74MKC22KTMH8WWJWW99J1ZE7EJ",
+            "working_relationship_6D6BQK0VACMEMKXDKB7JAWSXK5"
+          ],
+          "graph_content_hash": "sha256:912e46384e78cd192099a72118be64cb2d321f3881293e902236750770f5bb3e",
+          "executed_supplement": "UX-FX25 deterministic production-controller browser boundary"
+        },
+        "executed_preview": {
+          "selected_relationship_key": "relationship:dense-0",
+          "pointer_boundary": "production Cytoscape tap event in isolated Chrome",
+          "non_drag_boundary": "production selection control with keyboard activation",
+          "pointer_and_non_drag_request_match": true,
+          "renderer_fields_in_request": false,
+          "preview_trigger_focus_restored": true,
+          "command_issued": false
+        }
+      },
+      "boundary": "UX-FX25 dispatched a Cytoscape tap inside real Chrome and used the non-drag selection control to open equivalent production-controller requests to an existing candidate/Review preview; geometry was absent and no command was issued. The live route was also inspected and honestly failed closed because the open Review's exact relationship was outside that bounded result; no live action-preview response is claimed."
+    },
+    {
+      "evidence_id": "UX1.5-EV03",
+      "scenario_id": "comparison-impact-time-browser",
+      "status": "passed",
+      "observation": {
+        "comparison_content_hash": "sha256:a653db7dcec21d5069275ad248adbf3730c6de2de6a8f9cdbc9a5a8016598766",
+        "live_impact_route": {
+          "live_route_state": "failed_closed",
+          "error_code": "FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE",
+          "event_id": "event_01M2MS258G89T2QPPMSTBBR6E4",
+          "executed_supplement": "UX-FX25 deterministic production-presentation browser boundary"
+        },
+        "time_content_hash": "sha256:8d8221e8c8113dc11dfffbbaf80f0756578c0abaff72d2c28ee9e4a2292d562a",
+        "supplement": {
+          "historical_read_only": true,
+          "unknown_date_explicit": true,
+          "incomplete_comparison_explicit": true,
+          "stale_working_base_non_authoritative": true,
+          "comparison_textual_peer_executed": true,
+          "supplied_impact_executed": true,
+          "impact_textual_peer_executed": true,
+          "impact_boundary": "production presentation with deterministic injected typed view; no live impact route claimed"
+        },
+        "graph_text_parity_executed": {
+          "comparison": true,
+          "impact": true,
+          "time": true
+        }
+      },
+      "boundary": "Dedicated comparison and recorded-time analyses executed through live production routes with exact positions, dates or unknown dates, limitations, and graph/text parity. The live impact route failed closed with FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE for the matching recent-History Claim target; UX-FX25 executed the production impact presentation with a deterministic typed view containing supplied consequences. No successful live impact response is claimed."
+    }
+  ],
+  "limitations": [
+    "The controlled-writing Graph response is a renderer-only synthetic packet because the installed relationship-overlay contract and server route remain scientific-only.",
+    "UX-FX25 uses deterministic injected frontend transport for adverse ordering and omission states; its fresh-store backend support remains a separate artifact.",
+    "Chrome accessibility structure and keyboard focus were inspected; native screen-reader evaluation is outside Wave 5.",
+    "Recorded route and renderer timings are one-environment observations, not an SLA or universal threshold.",
+    "The live impact route rejected the matching recent-History Claim target as incompatible with the exact focused record. Backend Slice 23 must audit that identity composition; the successful impact presentation here uses deterministic injected transport."
+  ]
+}

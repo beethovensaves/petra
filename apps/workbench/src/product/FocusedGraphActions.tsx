@@ -121,7 +121,13 @@ export const matchesActiveFocusedGraphActionPreview = (
   response.content.selection.selected_keys[0] ===
     active.request.selection.selected_keys[0];
 
-const readFocusedGraphActionPreview = (
+export type FocusedGraphActionPreviewRead = (
+  projectId: string,
+  definition: PetraProjectDefinition,
+  request: FocusedGraphActionPreviewViewRequest,
+) => Promise<PetraFocusedGraphActionPreviewView>;
+
+const readFocusedGraphActionPreview: FocusedGraphActionPreviewRead = (
   projectId: string,
   definition: PetraProjectDefinition,
   request: FocusedGraphActionPreviewViewRequest,
@@ -392,16 +398,13 @@ export const FocusedGraphActions = ({
   stateId: number;
   target: FocusedGraphActionPreviewTarget;
   returnContext: FocusedGraphReturnContext;
-  read?: (
-    projectId: string,
-    definition: PetraProjectDefinition,
-    request: FocusedGraphActionPreviewViewRequest,
-  ) => Promise<PetraFocusedGraphActionPreviewView>;
+  read?: FocusedGraphActionPreviewRead;
 }): React.JSX.Element => {
   const [preview, setPreview] = useState<PetraFocusedGraphActionPreviewView>();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string>();
   const active = useRef<FocusedGraphActiveActionPreview | undefined>(undefined);
+  const restoreTriggerFocus = useRef(false);
   const triggerId = useId();
 
   useEffect(() => {
@@ -410,6 +413,13 @@ export const FocusedGraphActions = ({
     setPending(false);
     setMessage(undefined);
   }, [selectedKey, stateId, target, view.content_hash]);
+
+  useEffect(() => {
+    if (preview === undefined && restoreTriggerFocus.current) {
+      restoreTriggerFocus.current = false;
+      document.getElementById(triggerId)?.focus();
+    }
+  }, [preview, triggerId]);
 
   const canPreview =
     view.content.semantic_layer !== "historical" &&
@@ -470,11 +480,11 @@ export const FocusedGraphActions = ({
   };
 
   const closePreview = (): void => {
+    restoreTriggerFocus.current = true;
     setPreview(undefined);
     setMessage(
       "Closed the preview. The exact graph selection and Project state are unchanged.",
     );
-    document.getElementById(triggerId)?.focus();
   };
 
   return (
