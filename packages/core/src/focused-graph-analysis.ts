@@ -14,6 +14,7 @@ import type {
   FocusedGraphSuppliedConsequences,
   FocusedGraphTimeAnalysis,
   PetraFocusedGraphAnalysisView,
+  PetraProjectHistoryImpactViewV14,
   PetraProjectReviewViewRecord,
 } from "@petra/contracts";
 import {
@@ -162,6 +163,34 @@ const uniqueRefs = (
   }
   return refs as [FocusedGraphExactRef, ...FocusedGraphExactRef[]];
 };
+
+const historyImpactBindsExactFocus = (
+  impact: PetraProjectHistoryImpactViewV14["content"],
+  graphFocus: readonly FocusedGraphExactRef[],
+): boolean =>
+  impact.selected_event.targets.some((target, targetIndex) => {
+    if (target.revision === undefined) return false;
+    const focus = graphFocus.find(
+      (candidate) =>
+        candidate.record_id === target.object_id &&
+        candidate.revision === target.revision,
+    );
+    if (focus === undefined) return false;
+    if (target.record_hash !== undefined) {
+      return target.record_hash === focus.record_hash;
+    }
+    const assessment = impact.semantic_target_impact.target_assessments.find(
+      (candidate) =>
+        candidate.target_index === targetIndex &&
+        candidate.adapter_state === "registered",
+    );
+    if (assessment?.adapter_state !== "registered") return false;
+    return (
+      assessment.resolved_target_ref.object_id === target.object_id &&
+      assessment.resolved_target_ref.revision === target.revision &&
+      assessment.resolved_target_ref.record_hash === focus.record_hash
+    );
+  });
 
 const parsePosition = (value: unknown): FocusedGraphAnalysisPositionRequest => {
   if (
@@ -809,16 +838,9 @@ export class FocusedGraphAnalysisViewComposer implements FocusedGraphAnalysisVie
       if (graph === undefined || impact === undefined) return undefined;
       assertPositionView(projectId, request.position, graph);
       const graphFocus = graph.content.task.focus_refs;
-      const exactTarget = impact.content.selected_event.targets.some(
-        (target) =>
-          target.revision !== undefined &&
-          target.record_hash !== undefined &&
-          graphFocus.some(
-            (focus) =>
-              focus.record_id === target.object_id &&
-              focus.revision === target.revision &&
-              focus.record_hash === target.record_hash,
-          ),
+      const exactTarget = historyImpactBindsExactFocus(
+        impact.content,
+        graphFocus,
       );
       if (
         impact.project_id !== projectId ||
