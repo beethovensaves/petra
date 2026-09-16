@@ -302,6 +302,21 @@ describe("focused graph comparison, impact, and time composition", () => {
       semantic_key: view.content.nodes[0]!.semantic_key,
       object_id: focus.record_id,
       revision: focus.revision,
+    };
+    const targetAssessment =
+      impact.content.semantic_target_impact.target_assessments[0];
+    if (targetAssessment?.adapter_state !== "registered") {
+      throw new Error("Expected a registered semantic target assessment.");
+    }
+    targetAssessment.target_ref = structuredClone(
+      impact.content.selected_event.targets[0],
+    );
+    targetAssessment.resolved_target_ref = {
+      semantic_key: "scientific.claim",
+      object_id: focus.record_id,
+      revision: focus.revision,
+      schema_name: "petra.claim",
+      schema_version: "1.0.0",
       record_hash: focus.record_hash,
     };
     const memberId = "review_member_01ARZ3NDEKTSV4RRFFQ69G5FAX";
@@ -386,6 +401,13 @@ describe("focused graph comparison, impact, and time composition", () => {
     expect(result.content.analysis.limitations.join(" ")).toContain(
       "never inferred from graph topology",
     );
+
+    targetAssessment.resolved_target_ref.record_hash = `sha256:${"d".repeat(64)}`;
+    await expect(
+      composer.queryFocusedGraphAnalysis(view.project_id, request),
+    ).rejects.toMatchObject({
+      code: "FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE",
+    });
   });
 
   it("returns an exact historical position date and explicit unknown member dates", async () => {
