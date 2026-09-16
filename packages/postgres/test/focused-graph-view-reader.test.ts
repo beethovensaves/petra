@@ -15,6 +15,7 @@ import {
   derivePetraId,
   type AuthorityGraphObjectView,
   type AuthorityGraphStore,
+  type FocusedGraphDetailsViewRequest,
   type FocusedGraphViewRequest,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -373,6 +374,8 @@ describe("PostgreSQL focused graph query reader", () => {
               stream_revision: "3",
             } as unknown as Row,
           ]);
+        if (text.includes("SELECT DISTINCT source.project_source_id"))
+          return result([]);
         if (text.includes("FROM petra.source_spans AS span"))
           return values[1] === sourceSpan.source_span_id
             ? result([
@@ -397,6 +400,23 @@ describe("PostgreSQL focused graph query reader", () => {
               record_hash: hash(workingCandidate),
             } as unknown as Row,
           ]);
+        if (text.includes("FROM petra.evidence_entities AS head")) {
+          const record = evidence.get(String(values[1]));
+          return record === undefined
+            ? result([])
+            : result([
+                {
+                  current_revision: String(record.revision),
+                  current_record_hash: hash(record),
+                  current_payload: structuredClone(record),
+                  current_lifecycle: `${record.authority.zone}_${record.authority.review_state}`,
+                  selected_revision: String(record.revision),
+                  selected_record_hash: hash(record),
+                  selected_payload: structuredClone(record),
+                  selected_lifecycle: `${record.authority.zone}_${record.authority.review_state}`,
+                } as unknown as Row,
+              ]);
+        }
         if (text.includes("FROM petra.evidence_entity_revisions")) {
           const record = evidence.get(String(values[0]));
           return record === undefined
@@ -612,6 +632,116 @@ describe("PostgreSQL focused graph query reader", () => {
         (relationship) => relationship.layer === "current",
       ),
     ).toHaveLength(assertions.length);
+
+    const relatedNodeKey = `node:${related.claim_id.toLowerCase()}`;
+    const detailsRequest: FocusedGraphDetailsViewRequest = {
+      details_request_id:
+        "focused_graph_details_request_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      focused_graph_request: request,
+      expected_graph: {
+        schema_name: "petra.focused-graph-view",
+        schema_version: "1.0.0",
+        content_hash: view!.content_hash,
+      },
+      selection: {
+        selection_kind: "node",
+        selected_keys: [relatedNodeKey],
+      },
+    };
+    const querySpy = vi
+      .spyOn(reader, "queryFocusedGraph")
+      .mockResolvedValueOnce(view);
+    const details = await reader.queryFocusedGraphDetails(
+      projectDefinition.project_id,
+      detailsRequest,
+    );
+    querySpy.mockRestore();
+    expect(details?.content.graph).toEqual(
+      expect.objectContaining({
+        content_hash: view?.content_hash,
+        task: view?.content.task,
+        requested_snapshot: view?.content.requested_snapshot,
+        represented_snapshot: view?.content.represented_snapshot,
+        semantic_layer: "current",
+        projection_position: view?.content.projection_position,
+        return_destination: request.return_destination,
+      }),
+    );
+    expect(details?.content.nodes).toHaveLength(1);
+    expect(details?.content.nodes[0]).toMatchObject({
+      member_kind: "node",
+      member_key: relatedNodeKey,
+      semantic_location: {
+        resolution: {
+          state: "current",
+          resolved_ref: {
+            semantic_key: "scientific.claim",
+            object_id: related.claim_id,
+            revision: related.revision,
+            record_hash: hash(related),
+          },
+        },
+      },
+      source_inspections: [],
+    });
+    expect(details?.content.authority_boundary).toMatchObject({
+      selection_is_presentation_state: true,
+      details_are_read_only: true,
+      source_owner: "project_source_view",
+      semantic_location_owner: "project_object_location_view",
+      graph_specific_registry_added: false,
+    });
+
+    const selectedRelationship = view!.content.relationships[0]!;
+    const relationshipDetailsRequest: FocusedGraphDetailsViewRequest = {
+      ...structuredClone(detailsRequest),
+      details_request_id:
+        "focused_graph_details_request_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      selection: {
+        selection_kind: "relationship",
+        selected_keys: [selectedRelationship.relationship_key],
+      },
+    };
+    const relationshipQuerySpy = vi
+      .spyOn(reader, "queryFocusedGraph")
+      .mockResolvedValueOnce(view);
+    const relationshipDetails = await reader.queryFocusedGraphDetails(
+      projectDefinition.project_id,
+      relationshipDetailsRequest,
+    );
+    relationshipQuerySpy.mockRestore();
+    expect(relationshipDetails?.content.details_request_id).toBe(
+      relationshipDetailsRequest.details_request_id,
+    );
+    expect(relationshipDetails?.content.relationships).toHaveLength(1);
+    expect(relationshipDetails?.content.relationships[0]).toMatchObject({
+      member_kind: "relationship",
+      member_key: selectedRelationship.relationship_key,
+      semantic_location: {
+        resolution: {
+          state: "current",
+          resolved_ref: {
+            semantic_key: "scientific.assertion",
+            object_id: selectedRelationship.relationship_ref.element_id,
+            revision: selectedRelationship.relationship_ref.revision,
+            record_hash: selectedRelationship.relationship_ref.record_hash,
+          },
+        },
+      },
+      source_inspections: [
+        {
+          state: "unavailable",
+          owner: "project_source_view",
+          source_span_ref: {
+            record_id: sourceSpan.source_span_id,
+            revision: sourceSpan.revision,
+            record_hash: hash(sourceSpan),
+          },
+          reason:
+            "The exact SourceSpan has no current Project-scoped ProjectSource inspection destination.",
+        },
+      ],
+    });
 
     const historicalView = await reader.queryFocusedGraph(
       projectDefinition.project_id,

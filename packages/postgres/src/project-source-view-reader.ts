@@ -117,6 +117,7 @@ export class PostgresProjectSourceViewReader implements ProjectSourceViewReader 
     readAt: string,
     projectId: string,
     projectSourceId: string,
+    sourceSpanId?: string,
   ): Promise<PetraProjectSourceView | undefined> {
     const rows = await this.#selectSourceRows(
       client,
@@ -125,7 +126,7 @@ export class PostgresProjectSourceViewReader implements ProjectSourceViewReader 
     );
     return rows[0] === undefined
       ? undefined
-      : await this.#compose(client, rows[0], readAt);
+      : await this.#compose(client, rows[0], readAt, sourceSpanId);
   }
 
   async #selectSourceRows(
@@ -187,6 +188,7 @@ export class PostgresProjectSourceViewReader implements ProjectSourceViewReader 
     client: PoolClient,
     row: SourceRow,
     readAt: string,
+    sourceSpanId?: string,
   ): Promise<PetraProjectSourceView> {
     const source = this.#record<PetraProjectSource>(
       "project-source",
@@ -229,7 +231,12 @@ export class PostgresProjectSourceViewReader implements ProjectSourceViewReader 
       client,
       manifest.artifact_manifest_id,
     );
-    const representation = await this.#representation(client, rights, document);
+    const representation = await this.#representation(
+      client,
+      rights,
+      document,
+      sourceSpanId,
+    );
     const role = definition.content.terms.find(
       (term) => term.semantic_key === source.content.source_role,
     );
@@ -465,6 +472,7 @@ export class PostgresProjectSourceViewReader implements ProjectSourceViewReader 
     client: PoolClient,
     rights: PetraRightsDecision,
     row: DocumentRow | undefined,
+    sourceSpanId?: string,
   ): Promise<{
     summary: ProjectSourceRepresentationSummary;
     claimCount: number;
@@ -495,7 +503,11 @@ export class PostgresProjectSourceViewReader implements ProjectSourceViewReader 
         "The selected ParsedDocument record hash is invalid.",
       );
     }
-    const preview = await this.#preview(client, document.parsed_document_id);
+    const preview = await this.#preview(
+      client,
+      document.parsed_document_id,
+      sourceSpanId,
+    );
     const complete = document.quality_state === "complete";
     return {
       summary: {
@@ -526,6 +538,7 @@ export class PostgresProjectSourceViewReader implements ProjectSourceViewReader 
   async #preview(
     client: PoolClient,
     parsedDocumentId: string,
+    sourceSpanId?: string,
   ): Promise<ProjectSourceRepresentationSummary["preview"]> {
     const result = await client.query<PreviewRow>(
       `SELECT block.payload AS block_payload,
@@ -543,9 +556,10 @@ export class PostgresProjectSourceViewReader implements ProjectSourceViewReader 
            ON span.source_span_id = span_declaration.source_span_id
         WHERE declaration.parsed_document_id = $1
           AND block.content_kind = 'text'
+          AND ($2::text IS NULL OR span.source_span_id = $2)
         ORDER BY declaration.reading_order, span_declaration.position
         LIMIT 1`,
-      [parsedDocumentId],
+      [parsedDocumentId, sourceSpanId ?? null],
     );
     const row = result.rows[0];
     if (row === undefined) return undefined;

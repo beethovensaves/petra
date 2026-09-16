@@ -1,4 +1,5 @@
 import { focusedGraphFixture } from "../../../packages/contracts/test/fixtures/focused-graph-view.js";
+import { focusedGraphDetailsFixture } from "../../../packages/contracts/test/fixtures/focused-graph-details-view.js";
 import { focusedGraphV11Fixture } from "../../../packages/contracts/test/fixtures/focused-graph-view-v1-1.js";
 import {
   FocusedGraphQueryError,
@@ -145,5 +146,45 @@ describe("focused graph query route", () => {
       expansionRequest,
     );
     await expect(response.json()).resolves.toEqual(expansionView);
+  });
+
+  it("forwards one exact selected Details request without accepting renderer state", async () => {
+    const detailsView = focusedGraphDetailsFixture();
+    const detailsRequest = {
+      details_request_id:
+        "focused_graph_details_request_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      focused_graph_request: request,
+      expected_graph: {
+        schema_name: "petra.focused-graph-view" as const,
+        schema_version: "1.0.0" as const,
+        content_hash: detailsView.content.graph.content_hash,
+      },
+      selection: detailsView.content.selection,
+    };
+    const queryFocusedGraphDetails = vi.fn<
+      NonNullable<FocusedGraphViewReader["queryFocusedGraphDetails"]>
+    >(() => Promise.resolve(detailsView));
+    const app = createPetraApp({
+      authToken: token,
+      focusedGraphViews: {
+        queryFocusedGraph: () => Promise.resolve(view),
+        queryFocusedGraphDetails,
+      },
+    }).app;
+    const detailsPath = `${path}/details`;
+    const response = await app.request(detailsPath, authorized(detailsRequest));
+    expect(response.status).toBe(200);
+    expect(queryFocusedGraphDetails).toHaveBeenCalledWith(
+      view.project_id,
+      detailsRequest,
+    );
+    await expect(response.json()).resolves.toEqual(detailsView);
+
+    const rejected = await app.request(
+      detailsPath,
+      authorized({ ...detailsRequest, layout: "radial" }),
+    );
+    expect(rejected.status).toBe(422);
+    expect(queryFocusedGraphDetails).toHaveBeenCalledTimes(1);
   });
 });

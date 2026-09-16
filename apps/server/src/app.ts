@@ -7,6 +7,7 @@ import {
 import {
   FocusedGraphQueryError,
   FocusedGraphViewContractError,
+  parseFocusedGraphDetailsViewRequest,
   parseFocusedGraphViewRequest,
   type FocusedGraphViewReader,
 } from "@petra/core";
@@ -5693,6 +5694,78 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The focused graph query failed.",
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/queries/projects/:projectId/focused-graph/details",
+    async (context) => {
+      if (options.focusedGraphViews?.queryFocusedGraphDetails === undefined) {
+        return jsonError(
+          context,
+          503,
+          "FOCUSED_GRAPH_DETAILS_UNAVAILABLE",
+          "The exact focused graph Details boundary is not configured.",
+        );
+      }
+      try {
+        const request = parseFocusedGraphDetailsViewRequest(
+          await readBoundedJson(context, maxBodyBytes),
+        );
+        const projectId = context.req.param("projectId");
+        const view = await options.focusedGraphViews.queryFocusedGraphDetails(
+          projectId,
+          request,
+        );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "FOCUSED_GRAPH_DETAILS_NOT_FOUND",
+            "The exact Project or selected focused graph Details are unavailable.",
+          );
+        }
+        if (view.project_id !== projectId) {
+          throw new FocusedGraphQueryError(
+            "FOCUSED_GRAPH_PROJECTION_INCOHERENT",
+            "The focused graph Details query crossed its exact Project boundary.",
+          );
+        }
+        contracts.assertValid("focused-graph-details-view", "1.0.0", view);
+        return context.json(view);
+      } catch (error) {
+        if (error instanceof InteractionInputError) {
+          return jsonError(
+            context,
+            error.issues?.includes("body_too_large") === true ? 413 : 422,
+            "FOCUSED_GRAPH_DETAILS_QUERY_INVALID",
+            error.message,
+            error.issues,
+          );
+        }
+        if (error instanceof FocusedGraphQueryError) {
+          const status =
+            error.code === "FOCUSED_GRAPH_PROJECT_NOT_FOUND" ||
+            error.code === "FOCUSED_GRAPH_FOCUS_NOT_FOUND"
+              ? 404
+              : error.code === "FOCUSED_GRAPH_DEFINITION_STALE" ||
+                  error.code === "FOCUSED_GRAPH_SNAPSHOT_STALE"
+                ? 409
+                : error.code === "FOCUSED_GRAPH_QUERY_INVALID" ||
+                    error.code === "FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED"
+                  ? 422
+                  : 503;
+          return jsonError(context, status, error.code, error.message);
+        }
+        return jsonError(
+          context,
+          503,
+          "FOCUSED_GRAPH_DETAILS_QUERY_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The focused graph Details query failed.",
         );
       }
     },

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 import type {
   FocusedGraphResolvedSemantic,
+  PetraFocusedGraphDetailsView,
   PetraFocusedGraphView,
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
@@ -10,12 +11,14 @@ import type {
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
   FocusedGraphExplorationViewRequest,
+  FocusedGraphDetailsViewRequest,
   FocusedGraphViewRequest,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import { describe, expect, it, vi } from "vitest";
 
 import { focusedGraphFixture } from "../../contracts/test/fixtures/focused-graph-view.js";
+import { focusedGraphDetailsFixture } from "../../contracts/test/fixtures/focused-graph-details-view.js";
 import {
   FocusedGraphClient,
   FocusedGraphClientError,
@@ -337,6 +340,88 @@ const setupExpansion = (): {
   return { definition, view, request };
 };
 
+const setupDetails = (): {
+  definition: PetraProjectDefinition;
+  view: PetraFocusedGraphDetailsView;
+  request: FocusedGraphDetailsViewRequest;
+} => {
+  const graph = setup();
+  const view = focusedGraphDetailsFixture();
+  const node = structuredClone(graph.view.content.nodes[0]!);
+  view.project_id = graph.definition.project_id;
+  view.content.graph = {
+    schema_name: graph.view.schema_name,
+    schema_version: graph.view.schema_version,
+    content_hash: graph.view.content_hash,
+    task: structuredClone(graph.view.content.task),
+    profile: structuredClone(graph.view.content.profile),
+    requested_snapshot: structuredClone(graph.view.content.requested_snapshot),
+    represented_snapshot: structuredClone(
+      graph.view.content.represented_snapshot,
+    ),
+    semantic_layer: graph.view.content.semantic_layer,
+    temporal_position: structuredClone(graph.view.content.temporal_position),
+    projection_position: structuredClone(
+      graph.view.content.projection_position,
+    ),
+    scope: structuredClone(graph.view.content.scope),
+    return_destination: structuredClone(graph.request.return_destination),
+  };
+  view.content.selection = {
+    selection_kind: "node",
+    selected_keys: [node.node_key],
+  };
+  view.content.nodes = [
+    {
+      ...view.content.nodes[0]!,
+      member_key: node.node_key,
+      member: node,
+      semantic_location: {
+        ...view.content.nodes[0]!.semantic_location,
+        request: {
+          object_ref: {
+            semantic_key: node.semantic_key,
+            object_id: node.record_ref.record_id,
+            revision: node.record_ref.revision,
+          },
+          task_intent: "inspect",
+        },
+        definition_ref: {
+          project_definition_id: graph.definition.project_definition_id,
+          revision: graph.definition.revision,
+          content_hash: graph.definition.content_hash,
+          definition_family: graph.definition.definition_family,
+        },
+        resolution: {
+          state: "unsupported",
+          requested_ref: {
+            semantic_key: node.semantic_key,
+            object_id: node.record_ref.record_id,
+            revision: node.record_ref.revision,
+          },
+          failure: {
+            code: "OBJECT_KIND_UNSUPPORTED",
+            message: "The exact semantic destination is unavailable.",
+          },
+        },
+      },
+    },
+  ];
+  view.content_hash = hash(view.content);
+  const request: FocusedGraphDetailsViewRequest = {
+    details_request_id:
+      "focused_graph_details_request_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    focused_graph_request: graph.request,
+    expected_graph: {
+      schema_name: graph.view.schema_name,
+      schema_version: graph.view.schema_version,
+      content_hash: graph.view.content_hash,
+    },
+    selection: view.content.selection,
+  };
+  return { definition: graph.definition, view, request };
+};
+
 describe("FocusedGraphClient", () => {
   it("posts one authenticated renderer-neutral request and preserves exact response identity", async () => {
     const { definition, view, request } = setup();
@@ -447,5 +532,48 @@ describe("FocusedGraphClient", () => {
     await expect(client.read(definition.project_id, request)).rejects.toEqual(
       expect.any(FocusedGraphClientError),
     );
+  });
+
+  it("binds selected Details to the exact graph, member revisions, and owner results", async () => {
+    const { definition, view, request } = setupDetails();
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockImplementation(() => Promise.resolve(Response.json(view)));
+    const client = new FocusedGraphClient({
+      baseUrl: "http://petra.local",
+      token: "focused-token",
+      projectDefinition: definition,
+      fetch: transport,
+      contracts,
+    });
+
+    await expect(
+      client.readDetails(definition.project_id, request),
+    ).resolves.toEqual(view);
+    const [url, init] = transport.mock.calls[0]!;
+    expect((url as URL).pathname).toBe(
+      `/api/queries/projects/${definition.project_id}/focused-graph/details`,
+    );
+    expect(JSON.parse(init?.body as string)).toEqual(request);
+
+    const substituted = structuredClone(view);
+    substituted.content.nodes[0]!.member.record_ref.revision += 1;
+    substituted.content_hash = hash(substituted.content);
+    transport.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(substituted)),
+    );
+    await expect(
+      client.readDetails(definition.project_id, request),
+    ).rejects.toEqual(expect.any(FocusedGraphClientError));
+
+    const substitutedDefinition = structuredClone(view);
+    substitutedDefinition.content.nodes[0]!.semantic_location.definition_ref.revision += 1;
+    substitutedDefinition.content_hash = hash(substitutedDefinition.content);
+    transport.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(substitutedDefinition)),
+    );
+    await expect(
+      client.readDetails(definition.project_id, request),
+    ).rejects.toEqual(expect.any(FocusedGraphClientError));
   });
 });

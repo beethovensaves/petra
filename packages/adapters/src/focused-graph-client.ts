@@ -1,4 +1,5 @@
 import type {
+  PetraFocusedGraphDetailsView,
   PetraFocusedGraphView,
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
@@ -6,6 +7,7 @@ import type {
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
   FocusedGraphExplorationViewRequest,
+  FocusedGraphDetailsViewRequest,
   FocusedGraphReadRequest,
   FocusedGraphViewRequest,
   PetraFocusedGraphReadView,
@@ -272,6 +274,190 @@ export class FocusedGraphClient {
         ) {
           throw new Error("Mismatched focused graph expansion identity.");
         }
+      }
+      return structuredClone(view);
+    } catch {
+      throw new FocusedGraphClientError(response.status, body);
+    }
+  }
+
+  async readDetails(
+    projectId: string,
+    request: FocusedGraphDetailsViewRequest,
+  ): Promise<PetraFocusedGraphDetailsView> {
+    if (
+      !/^project_[0-9A-HJKMNP-TV-Z]{26}$/u.test(projectId) ||
+      !/^focused_graph_details_request_[0-9A-HJKMNP-TV-Z]{26}$/u.test(
+        request.details_request_id,
+      ) ||
+      request.selection.selected_keys.length < 1 ||
+      request.selection.selected_keys.length > 100 ||
+      new Set(request.selection.selected_keys).size !==
+        request.selection.selected_keys.length ||
+      request.focused_graph_request.project_definition_ref
+        .project_definition_id !==
+        this.options.projectDefinition.project_definition_id ||
+      request.focused_graph_request.project_definition_ref.revision !==
+        this.options.projectDefinition.revision ||
+      request.focused_graph_request.project_definition_ref.content_hash !==
+        this.options.projectDefinition.content_hash
+    ) {
+      throw new TypeError(
+        "Focused graph Details requires one exact Project, definition, graph result, and bounded selection.",
+      );
+    }
+    const endpoint = new URL(
+      `/api/queries/projects/${projectId}/focused-graph/details`,
+      this.options.baseUrl,
+    );
+    const response = await (this.options.fetch ?? fetch)(endpoint, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${this.options.token}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+    const body: unknown = await response.json();
+    if (!response.ok) {
+      throw new FocusedGraphClientError(response.status, body);
+    }
+    try {
+      this.#contracts.assertValid("focused-graph-details-view", "1.0.0", body);
+      const view = body as PetraFocusedGraphDetailsView;
+      const graph = view.content.graph;
+      const graphRequest = request.focused_graph_request;
+      const returnDestination = graph.return_destination;
+      const exactMembers = [
+        ...view.content.nodes.map((entry) => ({
+          kind: "node" as const,
+          key: entry.member_key,
+          ref: entry.member.record_ref,
+          basis: entry.member.basis.record_refs,
+          location: entry.semantic_location,
+          sources: entry.source_inspections,
+        })),
+        ...view.content.relationships.map((entry) => ({
+          kind: "relationship" as const,
+          key: entry.member_key,
+          ref: {
+            record_id: entry.member.relationship_ref.element_id,
+            revision: entry.member.relationship_ref.revision,
+            record_hash: entry.member.relationship_ref.record_hash,
+          },
+          basis: entry.member.basis.record_refs,
+          location: entry.semantic_location,
+          sources: entry.source_inspections,
+        })),
+      ];
+      const duplicateMembers = new Set(
+        exactMembers.map((member) => `${member.kind}:${member.key}`),
+      );
+      const pathKeys = view.content.paths.map((path) => path.path_key);
+      const returnedSelectionKeys =
+        request.selection.selection_kind === "node"
+          ? view.content.nodes.map((entry) => entry.member_key)
+          : request.selection.selection_kind === "relationship"
+            ? view.content.relationships.map((entry) => entry.member_key)
+            : pathKeys;
+      const invalidMember = exactMembers.some((member) => {
+        const resolution = member.location.resolution;
+        const locationDefinition = member.location.definition_ref;
+        const locationRequestMismatch =
+          member.location.request.object_ref.object_id !==
+            member.ref.record_id ||
+          member.location.request.object_ref.revision !== member.ref.revision;
+        const locationMismatch =
+          resolution.state === "current" ||
+          resolution.state === "historical" ||
+          resolution.state === "superseded"
+            ? resolution.resolved_ref.object_id !== member.ref.record_id ||
+              resolution.resolved_ref.revision !== member.ref.revision ||
+              resolution.resolved_ref.record_hash !== member.ref.record_hash
+            : false;
+        const definitionMismatch =
+          locationDefinition.project_definition_id !==
+            graph.profile.project_definition_ref.project_definition_id ||
+          locationDefinition.revision !==
+            graph.profile.project_definition_ref.revision ||
+          locationDefinition.content_hash !==
+            graph.profile.project_definition_ref.content_hash ||
+          locationDefinition.definition_family !==
+            graph.profile.project_definition_ref.definition_family;
+        const sourceRefs = new Map(
+          member.basis
+            .filter((ref) => ref.record_id.startsWith("source_span_"))
+            .map((ref) => [ref.record_id, ref]),
+        );
+        const sourceMismatch = member.sources.some((source) => {
+          const expected = sourceRefs.get(source.source_span_ref.record_id);
+          if (expected === undefined || !same(expected, source.source_span_ref))
+            return true;
+          if (source.state === "unavailable") return false;
+          const preview = source.source_view.representation.preview;
+          return (
+            source.project_source_id.length === 0 ||
+            source.source_view.binding.revision !== source.binding_revision ||
+            source.source_view.binding.content_hash !==
+              source.binding_content_hash ||
+            source.source_view.binding.project_definition_ref.record_id !==
+              graph.profile.project_definition_ref.project_definition_id ||
+            source.source_view.binding.project_definition_ref.revision !==
+              graph.profile.project_definition_ref.revision ||
+            source.source_view.binding.project_definition_ref.content_hash !==
+              graph.profile.project_definition_ref.content_hash ||
+            preview === undefined ||
+            preview.span_ref.record_id !== expected.record_id ||
+            preview.span_ref.revision !== expected.revision ||
+            preview.span_ref.content_hash !== expected.record_hash
+          );
+        });
+        return (
+          locationRequestMismatch ||
+          locationMismatch ||
+          definitionMismatch ||
+          sourceMismatch
+        );
+      });
+      const sourceContentHashMismatch = (
+        await Promise.all(
+          exactMembers.flatMap((member) =>
+            member.sources.map(
+              async (source) =>
+                source.state === "available" &&
+                source.source_view_content_hash !==
+                  (await hash(source.source_view)),
+            ),
+          ),
+        )
+      ).some(Boolean);
+      if (
+        view.project_id !== projectId ||
+        view.content.details_request_id !== request.details_request_id ||
+        view.content_hash !== (await hash(view.content)) ||
+        graph.schema_name !== request.expected_graph.schema_name ||
+        graph.schema_version !== request.expected_graph.schema_version ||
+        graph.content_hash !== request.expected_graph.content_hash ||
+        graph.task.request_id !== graphRequest.request_id ||
+        graph.task.task_kind !== graphRequest.task_kind ||
+        graph.task.task_semantic_key !== graphRequest.task_semantic_key ||
+        graph.task.question !== graphRequest.question ||
+        !same(graph.task.focus_refs, [graphRequest.focus_ref]) ||
+        !same(graph.task.origin, graphRequest.origin) ||
+        graph.semantic_layer !== graphRequest.semantic_layer ||
+        !same(graph.temporal_position, graphRequest.temporal_position) ||
+        !same(graph.scope.limits, graphRequest.limits) ||
+        !same(returnDestination, graphRequest.return_destination) ||
+        !same(view.content.selection, request.selection) ||
+        !same(
+          [...returnedSelectionKeys].sort(),
+          [...request.selection.selected_keys].sort(),
+        ) ||
+        duplicateMembers.size !== exactMembers.length ||
+        invalidMember ||
+        sourceContentHashMismatch
+      ) {
+        throw new Error("Mismatched focused graph Details identity.");
       }
       return structuredClone(view);
     } catch {

@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type {
   PetraAssertion,
   PetraChangeSetRecord,
+  PetraClaim,
   PetraDraftArtifact,
   PetraProjectDefinition,
   PetraProjectObjectLocationView,
@@ -320,6 +321,52 @@ const assertionLookup = async (
   return row === undefined ? undefined : rowRecord(row);
 };
 
+const claimLookup = async (
+  client: PoolClient,
+  projectId: string,
+  objectId: string,
+  revision: number | undefined,
+): Promise<LocatedRecord | undefined> => {
+  const result = await client.query<RevisionLookupRow>(
+    `SELECT head.current_revision::text,
+            current_revision.record_hash AS current_record_hash,
+            current_revision.payload AS current_payload,
+            concat(
+              current_revision.authority_zone,
+              '_',
+              current_revision.review_state
+            ) AS current_lifecycle,
+            selected_revision.revision::text AS selected_revision,
+            selected_revision.record_hash AS selected_record_hash,
+            selected_revision.payload AS selected_payload,
+            concat(
+              selected_revision.authority_zone,
+              '_',
+              selected_revision.review_state
+            ) AS selected_lifecycle
+       FROM petra.evidence_entities AS head
+       JOIN petra.evidence_entity_revisions AS current_revision
+         ON current_revision.evidence_id = head.evidence_id
+        AND current_revision.revision = head.current_revision
+       LEFT JOIN petra.evidence_entity_revisions AS selected_revision
+         ON selected_revision.evidence_id = head.evidence_id
+        AND selected_revision.revision = COALESCE($3, head.current_revision)
+      WHERE head.evidence_kind = 'claim'
+        AND head.evidence_id = $2
+        AND EXISTS (
+          SELECT 1
+            FROM petra.change_set_operations AS operation
+            JOIN petra.change_sets AS change_set
+              ON change_set.change_set_id = operation.change_set_id
+           WHERE operation.target_id = head.evidence_id
+             AND change_set.project_id = $1
+        )`,
+    [projectId, objectId, revision ?? null],
+  );
+  const row = result.rows[0];
+  return row === undefined ? undefined : rowRecord(row);
+};
+
 const changeSetLookup = async (
   client: PoolClient,
   projectId: string,
@@ -457,6 +504,43 @@ const DEFAULT_ADAPTERS: readonly ObjectLocationAdapter[] = [
           "Source",
         ),
         summary: `${source.content.source_role} · ${record.lifecycleState} Project source`,
+        lifecycle_state: record.lifecycleState,
+      };
+    },
+  },
+  {
+    semanticKey: "scientific.claim",
+    idPattern: /^claim_[0-9A-HJKMNP-TV-Z]{26}$/u,
+    schemaName: "claim",
+    registration: {
+      kind: "object_schema",
+      contractName: "petra.claim",
+    },
+    destinations: [
+      {
+        role: "graph",
+        purpose: "Inspect the exact Claim in its bounded relationship context.",
+        intents: ["orient", "inspect", "trace"],
+      },
+      {
+        role: "review",
+        purpose: "Inspect the Claim's Review context.",
+        intents: ["review"],
+      },
+      {
+        role: "history",
+        purpose: "Inspect retained Project history for this Claim revision.",
+        intents: ["view_history"],
+      },
+    ],
+    locate: claimLookup,
+    descriptor: (record, definition) => {
+      const claim = record.payload as PetraClaim;
+      return {
+        semantic_key: "scientific.claim",
+        generic_family: "finding",
+        label: term(definition, "scientific.claim", "finding", "Claim"),
+        summary: truncate(claim.canonical_text),
         lifecycle_state: record.lifecycleState,
       };
     },
