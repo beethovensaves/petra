@@ -3,12 +3,12 @@
   "schema_version": "1.0.0",
   "wave": 5,
   "status": "passed",
-  "audited_at": "2026-09-16T14:11:08.005Z",
+  "audited_at": "2026-09-16T14:16:32.963Z",
   "command": "npm run audit:wave5:evidence",
   "plan_sha256": "7c971a812333f3e3c11216e341feaef1879c1ee47c04df5181d224bb060dc251",
-  "state_sha256": "a712cf3f0a1efe524d73b2388ef1bdcf3342b574bbd091a47d69ebb042394850",
+  "state_sha256": "c23ccc2753d026bdd332c2605fda0bd0c40e677c6e647e51d245d08383c378bf",
   "state_position": {
-    "slice_count": 24,
+    "slice_count": 25,
     "max_slices": 32,
     "recorded_scenarios": 25
   },
@@ -25,7 +25,7 @@
     "passed_scenarios": 24,
     "failed_scenarios": 0,
     "duplicate_or_unexpected_records": 0,
-    "warning_records": 7
+    "warning_records": 0
   },
   "source_documents": [
     {
@@ -165,12 +165,11 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run test:wave5:adverse-browser",
       "artifact": "reports/WAVE5-UX-FX25-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "476bf886cff19cb22795164f0188582dcdbba38ee8f440bc2e613b1c74782286",
-      "commit": "a67493d274a84ee2aa49cfdff1a623ce0731ac94",
+      "artifact_sha256": "fc13a1a5ae5e189987d631bf0e423a36e69097754de198f01c5181963fea03b3",
+      "commit": "18d37deb17985753b9fee198e129b90cc0528641",
       "state_boundary": "Production orientation, exploration, result, Details, analysis, and Cytoscape components ran in isolated Chrome with deterministic renderer-neutral UX-FX25 reads. No live backend transport or model call was made; the exact Slice 19 PostgreSQL/Neo4j artifact was consumed only as support.",
-      "warnings": [
-        "artifact scenario relies on the controller-state boundary and shared artifact limitations"
-      ]
+      "artifact_boundary": "Production orientation, exploration, result, Details, analysis, and Cytoscape components ran in isolated Chrome with deterministic renderer-neutral UX-FX25 reads. No live backend transport or model call was made; the exact Slice 19 PostgreSQL/Neo4j artifact was consumed only as support.",
+      "warnings": []
     },
     {
       "evidence_id": "UX1.5-EV02",
@@ -257,12 +256,11 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run test:wave5:adverse-browser",
       "artifact": "reports/WAVE5-UX-FX25-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "476bf886cff19cb22795164f0188582dcdbba38ee8f440bc2e613b1c74782286",
-      "commit": "a67493d274a84ee2aa49cfdff1a623ce0731ac94",
+      "artifact_sha256": "fc13a1a5ae5e189987d631bf0e423a36e69097754de198f01c5181963fea03b3",
+      "commit": "18d37deb17985753b9fee198e129b90cc0528641",
       "state_boundary": "Chrome exercised citation, support, contradiction, qualification, inference, selection, warnings, and authority layers using text, symbols, direction, origin, line treatment, and limitations. This is not a native-screen-reader or cross-browser claim.",
-      "warnings": [
-        "artifact scenario relies on the controller-state boundary and shared artifact limitations"
-      ]
+      "artifact_boundary": "Chrome exercised citation, support, contradiction, qualification, inference, selection, warnings, and authority layers using text, symbols, direction, origin, line treatment, and limitations. This is not a native-screen-reader or cross-browser claim.",
+      "warnings": []
     },
     {
       "evidence_id": "UX1.5-EV03",
@@ -310,12 +308,11 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run test:wave5:adverse-browser",
       "artifact": "reports/WAVE5-UX-FX25-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "476bf886cff19cb22795164f0188582dcdbba38ee8f440bc2e613b1c74782286",
-      "commit": "a67493d274a84ee2aa49cfdff1a623ce0731ac94",
+      "artifact_sha256": "fc13a1a5ae5e189987d631bf0e423a36e69097754de198f01c5181963fea03b3",
+      "commit": "18d37deb17985753b9fee198e129b90cc0528641",
       "state_boundary": "Measured 32 objects, 33 relationships, 33 paths, a two-edge cycle, browser render timing, selection, environment, and identical repeated-layout screenshot hashes. Slice 19 query timings were retained as prior support, not rerun or promoted to an SLA.",
-      "warnings": [
-        "artifact scenario relies on the controller-state boundary and shared artifact limitations"
-      ]
+      "artifact_boundary": "Measured 32 objects, 33 relationships, 33 paths, a two-edge cycle, browser render timing, selection, environment, and identical repeated-layout screenshot hashes. Slice 19 query timings were retained as prior support, not rerun or promoted to an SLA.",
+      "warnings": []
     },
     {
       "evidence_id": "UX1.5-EV04",
@@ -324,12 +321,11 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run test:wave5:adverse-browser",
       "artifact": "reports/WAVE5-UX-FX25-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "476bf886cff19cb22795164f0188582dcdbba38ee8f440bc2e613b1c74782286",
-      "commit": "a67493d274a84ee2aa49cfdff1a623ce0731ac94",
+      "artifact_sha256": "fc13a1a5ae5e189987d631bf0e423a36e69097754de198f01c5181963fea03b3",
+      "commit": "18d37deb17985753b9fee198e129b90cc0528641",
       "state_boundary": "Injected snapshot event 41 was rejected while event 42 and its selection remained; exact retry succeeded. Deliberately out-of-order reads accepted only the newer request. Transport was deterministic and synthetic.",
-      "warnings": [
-        "artifact scenario relies on the controller-state boundary and shared artifact limitations"
-      ]
+      "artifact_boundary": "Injected snapshot event 41 was rejected while event 42 and its selection remained; exact retry succeeded. Deliberately out-of-order reads accepted only the newer request. Transport was deterministic and synthetic.",
+      "warnings": []
     },
     {
       "evidence_id": "UX1.5-EV04",
@@ -338,12 +334,11 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run test:wave5:adverse-browser",
       "artifact": "reports/WAVE5-UX-FX25-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "476bf886cff19cb22795164f0188582dcdbba38ee8f440bc2e613b1c74782286",
-      "commit": "a67493d274a84ee2aa49cfdff1a623ce0731ac94",
+      "artifact_sha256": "fc13a1a5ae5e189987d631bf0e423a36e69097754de198f01c5181963fea03b3",
+      "commit": "18d37deb17985753b9fee198e129b90cc0528641",
       "state_boundary": "Injected offline delivery retained the task, selection, snapshot, cached-state label, and non-currentness boundary; retry succeeded without a domain effect. No physical-network or live-backend reconnect claim is made.",
-      "warnings": [
-        "artifact scenario relies on the controller-state boundary and shared artifact limitations"
-      ]
+      "artifact_boundary": "Injected offline delivery retained the task, selection, snapshot, cached-state label, and non-currentness boundary; retry succeeded without a domain effect. No physical-network or live-backend reconnect claim is made.",
+      "warnings": []
     },
     {
       "evidence_id": "UX1.5-EV04",
@@ -352,12 +347,11 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run test:wave5:adverse-browser",
       "artifact": "reports/WAVE5-UX-FX25-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "476bf886cff19cb22795164f0188582dcdbba38ee8f440bc2e613b1c74782286",
-      "commit": "a67493d274a84ee2aa49cfdff1a623ce0731ac94",
+      "artifact_sha256": "fc13a1a5ae5e189987d631bf0e423a36e69097754de198f01c5181963fea03b3",
+      "commit": "18d37deb17985753b9fee198e129b90cc0528641",
       "state_boundary": "Production browser components rendered current, catching-up, unavailable, and rebuilding positions while preserving PostgreSQL authority and rebuildable Neo4j labeling. Database operations were not re-executed in this frontend command.",
-      "warnings": [
-        "artifact scenario relies on the controller-state boundary and shared artifact limitations"
-      ]
+      "artifact_boundary": "Production browser components rendered current, catching-up, unavailable, and rebuilding positions while preserving PostgreSQL authority and rebuildable Neo4j labeling. Database operations were not re-executed in this frontend command.",
+      "warnings": []
     },
     {
       "evidence_id": "UX1.5-EV04",
@@ -366,22 +360,13 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin npm run test:wave5:adverse-browser",
       "artifact": "reports/WAVE5-UX-FX25-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "476bf886cff19cb22795164f0188582dcdbba38ee8f440bc2e613b1c74782286",
-      "commit": "a67493d274a84ee2aa49cfdff1a623ce0731ac94",
+      "artifact_sha256": "fc13a1a5ae5e189987d631bf0e423a36e69097754de198f01c5181963fea03b3",
+      "commit": "18d37deb17985753b9fee198e129b90cc0528641",
       "state_boundary": "Chrome 152 exercised 1440px, 390px, and 320px viewports, 200% root text, textual-first narrow entry, keyboard focus, 44px synthesized touch, coarse pointer, forced colors, reduced motion, overflow, retained actions, and accessibility-tree headings. No physical-device, native-screen-reader, or cross-browser claim is made.",
-      "warnings": [
-        "artifact scenario relies on the controller-state boundary and shared artifact limitations"
-      ]
+      "artifact_boundary": "Chrome 152 exercised 1440px, 390px, and 320px viewports, 200% root text, textual-first narrow entry, keyboard focus, 44px synthesized touch, coarse pointer, forced colors, reduced motion, overflow, retained actions, and accessibility-tree headings. No physical-device, native-screen-reader, or cross-browser claim is made.",
+      "warnings": []
     }
   ],
   "errors": [],
-  "warnings": [
-    "UX1.5-EV01/dense-temporal-adverse-fixture: artifact scenario relies on the controller-state boundary and shared artifact limitations.",
-    "UX1.5-EV03/non-color-relation-semantics-browser: artifact scenario relies on the controller-state boundary and shared artifact limitations.",
-    "UX1.5-EV04/dense-cyclic-performance: artifact scenario relies on the controller-state boundary and shared artifact limitations.",
-    "UX1.5-EV04/stale-late-response-browser: artifact scenario relies on the controller-state boundary and shared artifact limitations.",
-    "UX1.5-EV04/disconnected-offline-recovery-browser: artifact scenario relies on the controller-state boundary and shared artifact limitations.",
-    "UX1.5-EV04/projection-rebuild-browser: artifact scenario relies on the controller-state boundary and shared artifact limitations.",
-    "UX1.5-EV04/responsive-text-motion-touch-browser: artifact scenario relies on the controller-state boundary and shared artifact limitations."
-  ]
+  "warnings": []
 }
