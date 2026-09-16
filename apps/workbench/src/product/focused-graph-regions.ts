@@ -5,7 +5,11 @@ import type {
   FocusedGraphRelationship,
   FocusedGraphSemanticDestination,
   PetraFocusedGraphView,
+  PetraFocusedGraphViewV11,
 } from "@petra/contracts";
+
+export type PetraFocusedGraphReadView =
+  PetraFocusedGraphView | PetraFocusedGraphViewV11;
 
 export class FocusedGraphRegionError extends Error {
   constructor(message: string) {
@@ -50,14 +54,15 @@ export type FocusedGraphDetailTarget = {
 
 /**
  * Renderer-neutral inputs for the frozen graph regions. Every semantic value is
- * an exact member of petra.focused-graph-view@1.0.0. A renderer may add local
- * geometry around these values, but this model supplies no position or domain
- * mutation API from which authority could be inferred.
+ * an exact member of the compatible petra.focused-graph-view@1.0.0 or additive
+ * @1.1.0 contract. A renderer may add local geometry around these values, but
+ * this model supplies no position or domain mutation API from which authority
+ * could be inferred.
  */
 export type FocusedGraphRegions = {
   contract: {
     schemaName: PetraFocusedGraphView["schema_name"];
-    schemaVersion: PetraFocusedGraphView["schema_version"];
+    schemaVersion: PetraFocusedGraphReadView["schema_version"];
     projectId: PetraFocusedGraphView["project_id"];
     contentHash: PetraFocusedGraphView["content_hash"];
     readAt: PetraFocusedGraphView["read_at"];
@@ -161,14 +166,14 @@ const exactDestinations = (
  * renderer layout, domain command, or authority calculation.
  */
 export const focusedGraphRegionsFromView = (
-  view: PetraFocusedGraphView,
+  view: PetraFocusedGraphReadView,
 ): FocusedGraphRegions => {
   if (
     view.schema_name !== "petra.focused-graph-view" ||
-    view.schema_version !== "1.0.0"
+    (view.schema_version !== "1.0.0" && view.schema_version !== "1.1.0")
   ) {
     throw new FocusedGraphRegionError(
-      "The focused graph region adapter requires petra.focused-graph-view@1.0.0.",
+      "The focused graph region adapter requires a compatible petra.focused-graph-view contract.",
     );
   }
 

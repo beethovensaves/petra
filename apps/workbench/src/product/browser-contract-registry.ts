@@ -17,6 +17,8 @@ import briefModelSynthesistOutputV100Schema from "../../../../packages/contracts
 import briefInteractionRunV100Schema from "../../../../packages/contracts/schemas/interaction-run/1.0.0/schema.json";
 import briefInteractionEventRecordV100Schema from "../../../../packages/contracts/schemas/interaction-event-record/1.0.0/schema.json";
 import briefGroundedResponseV100Schema from "../../../../packages/contracts/schemas/grounded-response/1.0.0/schema.json";
+import focusedGraphViewV100Schema from "../../../../packages/contracts/schemas/focused-graph-view/1.0.0/schema.json";
+import focusedGraphViewV110Schema from "../../../../packages/contracts/schemas/focused-graph-view/1.1.0/schema.json";
 import briefEvidencePacketV100Schema from "../../../../packages/contracts/schemas/evidence-packet/1.0.0/schema.json";
 import briefContextPacketV100Schema from "../../../../packages/contracts/schemas/context-packet/1.0.0/schema.json";
 import actorSchema from "../../../../packages/contracts/schemas/actor/1.0.0/schema.json";
@@ -70,6 +72,8 @@ import historyImpactV12Schema from "../../../../packages/contracts/schemas/proje
 
 type BrowserContractName =
   | "communication-plan@1.0.0"
+  | "focused-graph-view@1.0.0"
+  | "focused-graph-view@1.1.0"
   | "research-brief-payload@1.1.0"
   | "research-brief-payload@1.0.0"
   | "project-brief-view@1.1.0"
@@ -117,6 +121,8 @@ const schemas = [
   briefContextPacketV100Schema,
   briefEvidencePacketV100Schema,
   briefGroundedResponseV100Schema,
+  focusedGraphViewV100Schema,
+  focusedGraphViewV110Schema,
   briefInteractionEventRecordV100Schema,
   briefInteractionRunV100Schema,
   briefModelSynthesistOutputV100Schema,
@@ -170,6 +176,8 @@ const schemas = [
 
 const contractIds: Record<BrowserContractName, string> = {
   "communication-plan@1.0.0": communicationPlanSchema.$id,
+  "focused-graph-view@1.0.0": focusedGraphViewV100Schema.$id,
+  "focused-graph-view@1.1.0": focusedGraphViewV110Schema.$id,
   "research-brief-payload@1.1.0": briefResearchBriefPayloadV110Schema.$id,
   "research-brief-payload@1.0.0": briefResearchBriefPayloadV100Schema.$id,
   "project-brief-view@1.1.0": briefProjectBriefViewV110Schema.$id,
@@ -199,10 +207,11 @@ export class ContractRegistryError extends Error {
 }
 
 /**
- * Browser-only validator for the exact response contracts consumed by the
- * Brief and Review clients, including the complete Brief schema dependency closure.
- * Vite aliases the Node filesystem-backed registry to this bundled schema set;
- * server and package consumers keep the canonical registry implementation.
+ * Browser-only validator for the exact response contracts consumed by product
+ * clients, including the complete Brief dependency closure and both focused
+ * graph response versions. Vite aliases the Node filesystem-backed registry to
+ * this bundled schema set; server and package consumers keep the canonical
+ * registry implementation.
  */
 export class PetraContractRegistry {
   readonly #validators = new Map<BrowserContractName, ValidateFunction>();
@@ -219,6 +228,18 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:93889738972355d70b7085472b0070a357e19bb459efc0bb6091e5d3d19ca066",
+    },
+    {
+      name: "focused-graph-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:bc8e4cb6693778872d3d6806a0d809191cf039bec121069a2d940eba36f36ca6",
+    },
+    {
+      name: "focused-graph-view",
+      version: "1.1.0",
+      canonical_sha256:
+        "sha256:9074cdf0cb7eae9e5717808cd6cb69b554407b485d00d87f5f360f735d45c4a1",
     },
     {
       name: "scientific-communication-payload",

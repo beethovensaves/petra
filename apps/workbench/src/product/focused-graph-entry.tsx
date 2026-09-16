@@ -5,13 +5,15 @@ import type {
   FocusedGraphSemanticDestination,
   FocusedGraphTemporalPosition,
   PetraFocusedGraphView,
+  PetraFocusedGraphViewV11,
   PetraProjectDefinition,
 } from "@petra/contracts";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 
 import { focusedGraphRegionsFromView } from "./focused-graph-regions.js";
-import { FocusedGraphResult } from "./FocusedGraphResult.js";
+import { createFocusedGraphRequestId } from "./focused-graph-identities.js";
+import { FocusedGraphExploration } from "./FocusedGraphExploration.js";
 import {
   FocusedGraphComparison,
   FocusedGraphPositionNavigation,
@@ -44,7 +46,7 @@ const DESTINATION_OWNERS = new Set([
 ]);
 
 const ENTRY_VERSION = "1";
-const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+export { createFocusedGraphRequestId } from "./focused-graph-identities.js";
 
 export type FocusedGraphEntryOriginKind =
   "brief" | "review" | "petra" | "history" | "saved_question" | "direct";
@@ -114,7 +116,8 @@ export type FocusedGraphEntryDraft = Omit<
 export interface FocusedGraphRouteData {
   readonly kind: "focused_graph";
   readonly entry: FocusedGraphEntry;
-  readonly view: PetraFocusedGraphView;
+  readonly definition: PetraProjectDefinition;
+  readonly view: PetraFocusedGraphView | PetraFocusedGraphViewV11;
   readonly comparison?: {
     readonly before: PetraFocusedGraphView;
     readonly after: PetraFocusedGraphView;
@@ -328,36 +331,6 @@ const appendRef = (
   params.set(`${prefix}Id`, ref.record_id);
   params.set(`${prefix}Revision`, String(ref.revision));
   params.set(`${prefix}Hash`, ref.record_hash);
-};
-
-const encodeTime = (value: number): string => {
-  let remaining = value;
-  let result = "";
-  for (let index = 0; index < 10; index += 1) {
-    result = CROCKFORD[remaining % 32] + result;
-    remaining = Math.floor(remaining / 32);
-  }
-  return result;
-};
-
-/** Creates a client request identity only; it grants no domain authority. */
-export const createFocusedGraphRequestId = (): string => {
-  const random = new Uint8Array(16);
-  crypto.getRandomValues(random);
-  let randomPart = "";
-  let accumulator = 0;
-  let bits = 0;
-  for (const byte of random) {
-    accumulator = (accumulator << 8) | byte;
-    bits += 8;
-    while (bits >= 5 && randomPart.length < 16) {
-      bits -= 5;
-      randomPart += CROCKFORD[(accumulator >>> bits) & 31];
-      accumulator &= (1 << bits) - 1;
-    }
-    if (randomPart.length === 16) break;
-  }
-  return `focused_graph_request_${encodeTime(Date.now())}${randomPart}`;
 };
 
 export const focusedGraphEntryPath = (entry: FocusedGraphEntry): string => {
@@ -933,8 +906,8 @@ export const FocusedGraphOrientationSurface = ({
           </p>
           <p>
             Opened from {originLabel[data.entry.origin.origin_kind]}. This{" "}
-            {layerLabel[activeLayer].toLowerCase()}, one-hop result preserves
-            the exact selected object and return context.
+            {layerLabel[activeLayer].toLowerCase()}, snapshot-bound entry
+            preserves the exact selected object and return context.
           </p>
         </div>
         <span className="graph-state" data-layer={activeLayer}>
@@ -985,8 +958,8 @@ export const FocusedGraphOrientationSurface = ({
       )}
 
       <section aria-labelledby="focused-graph-orientation-title">
-        <p className="reference-panel-kicker">Exact orientation</p>
-        <h2 id="focused-graph-orientation-title">Scope and position</h2>
+        <p className="reference-panel-kicker">Exact entry orientation</p>
+        <h2 id="focused-graph-orientation-title">Entry scope and position</h2>
         <p>{regions.graph.scope.description}</p>
         <dl className="history-facts">
           <div>
@@ -1004,7 +977,7 @@ export const FocusedGraphOrientationSurface = ({
             </dd>
           </div>
           <div>
-            <dt>Bounded result</dt>
+            <dt>Entry result</dt>
             <dd>
               {regions.graph.nodes.length} objects ·{" "}
               {regions.graph.relationships.length} relationships ·{" "}
@@ -1049,7 +1022,7 @@ export const FocusedGraphOrientationSurface = ({
           </div>
         </dl>
         <details>
-          <summary>Exact request, finite limits, and omissions</summary>
+          <summary>Entry request, finite limits, and omissions</summary>
           <dl className="history-facts">
             <div>
               <dt>Request</dt>
@@ -1088,7 +1061,12 @@ export const FocusedGraphOrientationSurface = ({
       </section>
 
       {comparison === undefined ? (
-        <FocusedGraphResult regions={regions} />
+        <FocusedGraphExploration
+          key={`${data.view.content.task.request_id}:${data.view.content_hash}`}
+          entry={data.entry}
+          definition={data.definition}
+          initialView={data.view}
+        />
       ) : (
         <FocusedGraphComparison
           before={comparison.before}

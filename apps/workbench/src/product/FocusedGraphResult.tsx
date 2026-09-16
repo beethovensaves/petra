@@ -2,7 +2,13 @@ import type {
   FocusedGraphRegisteredAction,
   FocusedGraphSemanticDestination,
 } from "@petra/contracts";
-import type { Core, ElementDefinition, StylesheetJson } from "cytoscape";
+import type {
+  Core,
+  ElementDefinition,
+  EventObjectEdge,
+  EventObjectNode,
+  StylesheetJson,
+} from "cytoscape";
 import { useEffect, useRef, useState } from "react";
 
 import { PetraButton, PetraButtonGroup } from "../design-system/primitives.js";
@@ -12,7 +18,8 @@ import type {
   FocusedGraphResolvedPath,
 } from "./focused-graph-regions.js";
 
-type FocusedGraphRepresentation = "graph" | "text";
+export type FocusedGraphRepresentation = "graph" | "text";
+export type FocusedGraphLayout = "relationship" | "radial";
 
 const meaningSymbols = {
   citation: "C",
@@ -74,6 +81,19 @@ const rendererStyles = (container: HTMLElement): StylesheetJson => {
       },
     },
     {
+      selector: "node[pinned]",
+      style: {
+        "border-style": "double",
+        "border-width": 5,
+      },
+    },
+    {
+      selector: "node[collapsed]",
+      style: {
+        shape: "cut-rectangle",
+      },
+    },
+    {
       selector: "edge",
       style: {
         width: 2,
@@ -123,10 +143,13 @@ const isSelected = (
   regions: FocusedGraphRegions,
   kind: "node" | "relationship" | "path",
   key: string,
+  selectedKey?: string,
 ): boolean =>
-  regions.graph.selection.state === "selected" &&
-  regions.graph.selection.selection_kind === kind &&
-  regions.graph.selection.selected_keys.includes(key);
+  selectedKey === undefined
+    ? regions.graph.selection.state === "selected" &&
+      regions.graph.selection.selection_kind === kind &&
+      regions.graph.selection.selected_keys.includes(key)
+    : selectedKey === key;
 
 const ExactReferences = ({
   refs,
@@ -287,13 +310,20 @@ const RelationshipFacts = ({
 const PathSummaries = ({
   regions,
   includeSteps,
+  selectedKey,
 }: {
   regions: FocusedGraphRegions;
   includeSteps: boolean;
+  selectedKey?: string | undefined;
 }): React.JSX.Element => (
   <ol className="focused-graph-paths">
     {regions.textualPeer.resolvedPaths.map((resolvedPath, index) => {
-      const selected = isSelected(regions, "path", resolvedPath.path.path_key);
+      const selected = isSelected(
+        regions,
+        "path",
+        resolvedPath.path.path_key,
+        selectedKey,
+      );
       return (
         <li
           key={resolvedPath.path.path_key}
@@ -458,8 +488,20 @@ const SemanticAccess = ({
 
 const FocusedGraphCanvas = ({
   regions,
+  selectedKey,
+  pinnedNodeKeys,
+  collapsedNodeKeys,
+  homeNodeKey,
+  layout,
+  onSelect,
 }: {
   regions: FocusedGraphRegions;
+  selectedKey?: string | undefined;
+  pinnedNodeKeys: readonly string[];
+  collapsedNodeKeys: readonly string[];
+  homeNodeKey?: string | undefined;
+  layout: FocusedGraphLayout;
+  onSelect?: ((key: string) => void) | undefined;
 }): React.JSX.Element => {
   const container = useRef<HTMLDivElement>(null);
   const graph = useRef<Core | null>(null);
@@ -467,15 +509,46 @@ const FocusedGraphCanvas = ({
   useEffect(() => {
     const target = container.current;
     if (target === null) return undefined;
+    const visibleNodeKeys = new Set(
+      regions.graph.nodes.map((node) => node.node_key),
+    );
+    for (const collapsedKey of collapsedNodeKeys) {
+      for (const relationship of regions.graph.relationships) {
+        const neighbor =
+          relationship.source_node_key === collapsedKey
+            ? relationship.target_node_key
+            : relationship.target_node_key === collapsedKey
+              ? relationship.source_node_key
+              : undefined;
+        if (
+          neighbor !== undefined &&
+          neighbor !== selectedKey &&
+          neighbor !== homeNodeKey &&
+          !pinnedNodeKeys.includes(neighbor)
+        ) {
+          visibleNodeKeys.delete(neighbor);
+        }
+      }
+    }
+    const visibleNodes = regions.graph.nodes.filter((node) =>
+      visibleNodeKeys.has(node.node_key),
+    );
+    const visibleRelationships = regions.graph.relationships.filter(
+      (relationship) =>
+        visibleNodeKeys.has(relationship.source_node_key) &&
+        visibleNodeKeys.has(relationship.target_node_key),
+    );
     const elements: ElementDefinition[] = [
-      ...regions.graph.nodes.map((node) => ({
+      ...visibleNodes.map((node) => ({
         data: {
           id: node.node_key,
           label: `${node.term.singular}\n${node.label}`,
+          pinned: pinnedNodeKeys.includes(node.node_key),
+          collapsed: collapsedNodeKeys.includes(node.node_key),
         },
-        selected: isSelected(regions, "node", node.node_key),
+        selected: isSelected(regions, "node", node.node_key, selectedKey),
       })),
-      ...regions.graph.relationships.map((relationship) => ({
+      ...visibleRelationships.map((relationship) => ({
         data: {
           id: relationship.relationship_key,
           source: relationship.source_node_key,
@@ -487,6 +560,7 @@ const FocusedGraphCanvas = ({
           regions,
           "relationship",
           relationship.relationship_key,
+          selectedKey,
         ),
       })),
     ];
@@ -499,19 +573,35 @@ const FocusedGraphCanvas = ({
         container: target,
         elements,
         style: rendererStyles(target),
-        layout: {
-          name: "breadthfirst",
-          directed: true,
-          fit: true,
-          padding: 44,
-          spacingFactor: 1.3,
-        },
+        layout:
+          layout === "relationship"
+            ? {
+                name: "breadthfirst",
+                directed: true,
+                fit: true,
+                padding: 44,
+                spacingFactor: 1.3,
+              }
+            : {
+                name: "concentric",
+                fit: true,
+                padding: 44,
+                spacingFactor: 1.3,
+              },
         minZoom: 0.4,
         maxZoom: 2.4,
         wheelSensitivity: 0.22,
         boxSelectionEnabled: false,
-        autounselectify: true,
+        autounselectify: onSelect === undefined,
       });
+      if (onSelect !== undefined) {
+        instance.on(
+          "tap",
+          "node, edge",
+          (event: EventObjectNode | EventObjectEdge) =>
+            onSelect(event.target.id()),
+        );
+      }
       graph.current = instance;
       resizeObserver = new ResizeObserver(() => {
         instance?.resize();
@@ -525,7 +615,15 @@ const FocusedGraphCanvas = ({
       instance?.destroy();
       graph.current = null;
     };
-  }, [regions]);
+  }, [
+    collapsedNodeKeys,
+    homeNodeKey,
+    layout,
+    onSelect,
+    pinnedNodeKeys,
+    regions,
+    selectedKey,
+  ]);
 
   return (
     <div
@@ -540,9 +638,21 @@ const FocusedGraphCanvas = ({
 const GraphPeer = ({
   regions,
   idPrefix,
+  selectedKey,
+  pinnedNodeKeys,
+  collapsedNodeKeys,
+  homeNodeKey,
+  layout,
+  onSelect,
 }: {
   regions: FocusedGraphRegions;
   idPrefix: string;
+  selectedKey?: string | undefined;
+  pinnedNodeKeys: readonly string[];
+  collapsedNodeKeys: readonly string[];
+  homeNodeKey?: string | undefined;
+  layout: FocusedGraphLayout;
+  onSelect?: ((key: string) => void) | undefined;
 }): React.JSX.Element => (
   <div className="focused-graph-peer" data-focused-peer="graph">
     <p className="focused-graph-peer__boundary">
@@ -550,7 +660,21 @@ const GraphPeer = ({
       Their arrangement, spacing, and line length carry no authority or
       scientific force.
     </p>
-    <FocusedGraphCanvas regions={regions} />
+    <FocusedGraphCanvas
+      regions={regions}
+      selectedKey={selectedKey}
+      pinnedNodeKeys={pinnedNodeKeys}
+      collapsedNodeKeys={collapsedNodeKeys}
+      homeNodeKey={homeNodeKey}
+      layout={layout}
+      onSelect={onSelect}
+    />
+    {collapsedNodeKeys.length === 0 ? null : (
+      <p>
+        Neighbor collapse changes only the visual disclosure. The complete
+        textual peer and returned relationship records remain available.
+      </p>
+    )}
     <ol
       className="focused-graph-records"
       aria-label="Bounded relationship graph"
@@ -561,7 +685,8 @@ const GraphPeer = ({
             <div
               className="focused-graph-record__node"
               data-selected={
-                isSelected(regions, "node", row.source.node_key) || undefined
+                isSelected(regions, "node", row.source.node_key, selectedKey) ||
+                undefined
               }
             >
               <span>{row.source.term.singular}</span>
@@ -575,6 +700,7 @@ const GraphPeer = ({
                   regions,
                   "relationship",
                   row.relationship.relationship_key,
+                  selectedKey,
                 ) || undefined
               }
             >
@@ -585,7 +711,8 @@ const GraphPeer = ({
             <div
               className="focused-graph-record__node"
               data-selected={
-                isSelected(regions, "node", row.target.node_key) || undefined
+                isSelected(regions, "node", row.target.node_key, selectedKey) ||
+                undefined
               }
             >
               <span>{row.target.term.singular}</span>
@@ -598,6 +725,7 @@ const GraphPeer = ({
               regions,
               "relationship",
               row.relationship.relationship_key,
+              selectedKey,
             )}
           />
         </li>
@@ -605,7 +733,11 @@ const GraphPeer = ({
     </ol>
     <section aria-labelledby={`${idPrefix}-path-rationale-title`}>
       <h3 id={`${idPrefix}-path-rationale-title`}>Path rationale</h3>
-      <PathSummaries regions={regions} includeSteps={false} />
+      <PathSummaries
+        regions={regions}
+        includeSteps={false}
+        selectedKey={selectedKey}
+      />
     </section>
     <SemanticAccess regions={regions} idPrefix={idPrefix} />
   </div>
@@ -614,9 +746,11 @@ const GraphPeer = ({
 const TextPeer = ({
   regions,
   idPrefix,
+  selectedKey,
 }: {
   regions: FocusedGraphRegions;
   idPrefix: string;
+  selectedKey?: string | undefined;
 }): React.JSX.Element => (
   <div className="focused-graph-peer" data-focused-peer="text">
     <p className="focused-graph-peer__boundary">
@@ -625,7 +759,7 @@ const TextPeer = ({
     </p>
     <section aria-labelledby={`${idPrefix}-text-paths-title`}>
       <h3 id={`${idPrefix}-text-paths-title`}>Ordered paths</h3>
-      <PathSummaries regions={regions} includeSteps />
+      <PathSummaries regions={regions} includeSteps selectedKey={selectedKey} />
     </section>
     <section aria-labelledby={`${idPrefix}-evidence-matrix-title`}>
       <h3 id={`${idPrefix}-evidence-matrix-title`}>
@@ -640,6 +774,7 @@ const TextPeer = ({
                 regions,
                 "relationship",
                 row.relationship.relationship_key,
+                selectedKey,
               )}
             />
           </li>
@@ -653,14 +788,38 @@ const TextPeer = ({
 export const FocusedGraphResult = ({
   regions,
   initialRepresentation = "graph",
+  representation: controlledRepresentation,
+  onRepresentationChange,
+  selectedKey,
+  pinnedNodeKeys = [],
+  collapsedNodeKeys = [],
+  homeNodeKey,
+  layout = "relationship",
+  onSelect,
   idPrefix = "focused-result",
 }: {
   regions: FocusedGraphRegions;
   initialRepresentation?: FocusedGraphRepresentation;
+  representation?: FocusedGraphRepresentation | undefined;
+  onRepresentationChange?:
+    ((value: FocusedGraphRepresentation) => void) | undefined;
+  selectedKey?: string | undefined;
+  pinnedNodeKeys?: readonly string[];
+  collapsedNodeKeys?: readonly string[];
+  homeNodeKey?: string | undefined;
+  layout?: FocusedGraphLayout;
+  onSelect?: ((key: string) => void) | undefined;
   idPrefix?: string;
 }): React.JSX.Element => {
-  const [representation, setRepresentation] =
+  const [uncontrolledRepresentation, setUncontrolledRepresentation] =
     useState<FocusedGraphRepresentation>(initialRepresentation);
+  const representation = controlledRepresentation ?? uncontrolledRepresentation;
+  const setRepresentation = (value: FocusedGraphRepresentation): void => {
+    if (controlledRepresentation === undefined) {
+      setUncontrolledRepresentation(value);
+    }
+    onRepresentationChange?.(value);
+  };
   return (
     <section className="graph-task" aria-labelledby={`${idPrefix}-title`}>
       <header className="graph-task__header">
@@ -695,9 +854,22 @@ export const FocusedGraphResult = ({
       </div>
       <div className="focused-graph-result">
         {representation === "graph" ? (
-          <GraphPeer regions={regions} idPrefix={idPrefix} />
+          <GraphPeer
+            regions={regions}
+            idPrefix={idPrefix}
+            selectedKey={selectedKey}
+            pinnedNodeKeys={pinnedNodeKeys}
+            collapsedNodeKeys={collapsedNodeKeys}
+            homeNodeKey={homeNodeKey}
+            layout={layout}
+            onSelect={onSelect}
+          />
         ) : (
-          <TextPeer regions={regions} idPrefix={idPrefix} />
+          <TextPeer
+            regions={regions}
+            idPrefix={idPrefix}
+            selectedKey={selectedKey}
+          />
         )}
       </div>
       <footer className="graph-scope">

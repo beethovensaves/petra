@@ -6841,13 +6841,14 @@ export const loadProjectGraph = async (
       return {
         kind: "focused_graph",
         entry,
+        definition,
         view: entry.semantic_layer === "current" ? before : after,
         comparison: { before, after },
       };
     }
     const request = await focusedGraphRequestFromEntry(entry, definition);
     const view = await client.read(projectId, request);
-    return { kind: "focused_graph", entry, view };
+    return { kind: "focused_graph", entry, definition, view };
   } catch (error) {
     if (error instanceof FocusedGraphClientError) {
       throw new ProjectDataError(

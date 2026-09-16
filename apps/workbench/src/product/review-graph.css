@@ -1817,3 +1817,174 @@
 .review-apply-notice :is(ol, ul) {
   padding-inline-start: var(--petra-space-4);
 }
+
+.focused-graph-exploration {
+  display: grid;
+  min-width: 0;
+  gap: var(--petra-space-5);
+  padding-block: var(--petra-space-5);
+}
+
+.focused-graph-exploration__header,
+.focused-graph-expansion-controls > header,
+.focused-graph-saved-questions > header,
+.focused-graph-expansion-summary > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--petra-space-4);
+}
+
+.focused-graph-exploration__header :is(h2, p),
+.focused-graph-expansion-controls > header :is(h3, p),
+.focused-graph-expansion-summary > header :is(h3, p),
+.focused-graph-saved-questions > header h3 {
+  margin-block: 0;
+}
+
+.focused-graph-exploration__header > span,
+.focused-graph-expansion-controls > header > span,
+.focused-graph-expansion-summary > header > span {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph-exploration__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petra-space-3);
+}
+
+.focused-graph-exploration__toolbar .petra-button-group {
+  flex-wrap: wrap;
+}
+
+.focused-graph-exploration__selection,
+.focused-graph-expansion-controls > label,
+.focused-graph-expansion-controls__filters > label {
+  display: grid;
+  min-width: 0;
+  gap: var(--petra-space-2);
+  font-weight: var(--petra-weight-medium);
+}
+
+.focused-graph-exploration select {
+  width: 100%;
+  min-height: var(--petra-target-min);
+  padding: var(--petra-space-2) var(--petra-space-3);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  color: var(--petra-text-primary);
+  background: var(--petra-surface-panel);
+  font: inherit;
+}
+
+.focused-graph-expansion-controls,
+.focused-graph-saved-questions,
+.focused-graph-expansion-summary {
+  display: grid;
+  min-width: 0;
+  gap: var(--petra-space-4);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.focused-graph-expansion-controls__filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--petra-space-4);
+}
+
+.focused-graph-expansion-controls fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: var(--petra-space-3);
+  border: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.focused-graph-expansion-controls fieldset label {
+  display: flex;
+  min-height: var(--petra-target-min);
+  align-items: center;
+  gap: var(--petra-space-2);
+}
+
+.focused-graph-expansion-controls input {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+}
+
+.focused-graph-saved-questions ol,
+.focused-graph-expansion-summary__accounting,
+.focused-graph-expansion-summary__groups {
+  display: grid;
+  gap: var(--petra-space-3);
+  margin: 0;
+  padding-inline-start: var(--petra-space-5);
+}
+
+.focused-graph-saved-questions li,
+.focused-graph-expansion-summary__groups li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.focused-graph-saved-questions li,
+.focused-graph-expansion-summary__groups li {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.focused-graph-saved-questions code,
+.focused-graph-expansion-summary code {
+  overflow-wrap: anywhere;
+  font-family: var(--petra-font-mono);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph-expansion-summary__groups small,
+.focused-graph-expansion-summary__groups span {
+  color: var(--petra-text-secondary);
+}
+
+.focused-graph-exploration__status {
+  margin: 0;
+  padding: var(--petra-space-3) var(--petra-space-4);
+  border-left: 3px solid var(--petra-tone-information);
+  background: var(--petra-tone-information-soft);
+}
+
+@media (max-width: 58rem) {
+  .focused-graph-expansion-controls__filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .focused-graph-exploration__header,
+  .focused-graph-expansion-controls > header,
+  .focused-graph-saved-questions > header,
+  .focused-graph-expansion-summary > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .focused-graph-expansion-controls__filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (forced-colors: active) {
+  .focused-graph-expansion-controls,
+  .focused-graph-saved-questions,
+  .focused-graph-expansion-summary,
+  .focused-graph-exploration select {
+    border-color: CanvasText;
+  }
+
+  .focused-graph-exploration__status {
+    border-color: Highlight;
+  }
+}
