@@ -770,18 +770,35 @@ export const startWave5CumulativeBrowser = async ({
     });
     assert.equal(impactNavigation.errorText, undefined);
     await until(
-      'document.querySelector(".reference-route-error h1")?.textContent === "Petra could not open this place"',
-      "fail-closed live impact analysis",
+      'document.querySelector(".focused-graph-analysis")?.dataset.analysisKind === "impact"',
+      "dedicated impact analysis",
     );
     await evaluate("document.fonts.ready");
     timings.impact_ms = round(performance.now() - impactStarted);
     const impact = analysisCall();
-    assert.equal(impact.status, 409);
+    assert.equal(impact.status, 200);
     assert.equal(impact.requestJson.task_kind, "impact");
     assert.equal(
-      impact.json.error.code,
-      "FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE",
+      impact.json.content.analysis.assessed_consequences.state,
+      "unavailable",
     );
+    body = await evaluate("document.body.innerText");
+    for (const text of [
+      "Impact",
+      "Impact and assessed consequences",
+      "Exact dependency records",
+      "Assessed consequences",
+    ])
+      assert.ok(
+        body.toLowerCase().includes(text.toLowerCase()),
+        `Impact view omitted ${text}.`,
+      );
+    await activate(button("Text"));
+    await until(
+      'document.querySelector(".focused-graph-analysis__positions")?.dataset.focusedAnalysisPeer === "text"',
+      "impact textual parity",
+    );
+    assert.deepEqual(consoleFailures, []);
 
     return {
       browser: {
@@ -866,11 +883,15 @@ export const startWave5CumulativeBrowser = async ({
         historical_recorded_at: historicalChange.recorded_at,
         comparison: comparison.json.content_hash,
         impact: {
-          live_route_state: "failed_closed",
-          error_code: impact.json.error.code,
+          live_route_state: "passed",
+          content_hash: impact.json.content_hash,
           event_id: impactChange.event_ref.event_id,
-          executed_supplement:
-            "UX-FX25 deterministic production-presentation browser boundary",
+          assessed_consequences: {
+            state: impact.json.content.analysis.assessed_consequences.state,
+            coverage:
+              impact.json.content.analysis.assessed_consequences.coverage,
+            reason: impact.json.content.analysis.assessed_consequences.reason,
+          },
         },
         impact_event_id: impactChange.event_ref.event_id,
         time: time.json.content_hash,

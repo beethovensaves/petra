@@ -4,7 +4,7 @@
   "wave": 5,
   "slice": 22,
   "status": "passed",
-  "executed_at": "2026-09-16T09:35:09.800Z",
+  "executed_at": "2026-09-16T13:57:15.556Z",
   "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
   "environment": {
     "node": "24.20.0",
@@ -46,7 +46,7 @@
     },
     "ux_fx25": {
       "command": "node apps/workbench/test/wave5-adverse-browser.mjs",
-      "artifact_sha256": "sha256:cafd0327b44828d5251d8a3a3b6e4c134ce91b126bd315e3df4cc64d049a957f",
+      "artifact_sha256": "sha256:31fba225ebe68215efbcefb0568f817316fff475cc4dac6aeeceeaed7a3baea0",
       "browser": "Chrome/152.0.7977.84",
       "boundary": "Real isolated Chrome over production focused-graph components with deterministic injected typed transport. Used for adverse ordering, omissions, correction-preview convergence, and supplied-impact presentation; not relabeled as a live backend trace."
     },
@@ -58,8 +58,8 @@
         "status": "passed",
         "route_boundary": "Production React Router loaders and controllers in isolated headless Chrome over authenticated live server routes backed by the disposable PostgreSQL and Neo4j stores.",
         "pre_apply_review_target": {
-          "duration_ms": 351.994,
-          "action_target_sha256": "sha256:c867470a35cb6588e747497ecd2760d7264cfc37cd9cd688efa0de2a4e317bb1"
+          "duration_ms": 339.455,
+          "action_target_sha256": "sha256:ee162ffd4e3c162b4add57eb5d75cb963b773ed0049fa90538926f09345db4dd"
         },
         "focused_graph": {
           "browser": {
@@ -69,10 +69,10 @@
           },
           "route_transport": "live authenticated HTTP through the production server",
           "timings_ms": {
-            "contextual_graph_ms": 1004.33,
-            "direct_graph_ms": 553.941,
-            "historical_ms": 568.708,
-            "impact_ms": 562.843
+            "contextual_graph_ms": 580.626,
+            "direct_graph_ms": 559.788,
+            "historical_ms": 555.802,
+            "impact_ms": 580.123
           },
           "calls": {
             "focused_graph": 14,
@@ -104,7 +104,7 @@
           },
           "direct_entry": {
             "origin": "direct",
-            "content_hash": "sha256:6a5800c4a0a6be5665cfc5c993929a26c33efd01d9bb2820d6d024646d4901b9"
+            "content_hash": "sha256:a0be3ce0a6f9d62cd41672f24ad0a4c5d176000ca0483c2aecf46880e5f193c7"
           },
           "relation_review": {
             "relationship_count": 5,
@@ -126,7 +126,7 @@
             ]
           },
           "provenance_review": {
-            "details_content_hash": "sha256:28f9addb6dcf90d946502a8eb78b59b1bbd8e2535086b96106ae7102216e5954",
+            "details_content_hash": "sha256:b721ff6929f90d4c21e3e401b62ad6fa02fd8d9d3e380aa9d164e7156bfa19db",
             "exact_source_inspections": 1,
             "inspected_source_state": "available",
             "source_states": ["available"],
@@ -143,7 +143,7 @@
               "checkpoint_ref": {
                 "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
                 "revision": 2,
-                "record_hash": "sha256:b0f97bc430e23da1f42bd8b912dee3c31f22e3b51d096c6eb1b97c3c0fbd4249"
+                "record_hash": "sha256:38dc4941d2ea180dc390dab14132dec34133916242b22bc661de1435b9072a7a"
               },
               "represented_event_position": 3,
               "observed_event_position": 9,
@@ -166,7 +166,7 @@
             "context_return": true
           },
           "correction_preview": {
-            "graph_duration_ms": 742.231,
+            "graph_duration_ms": 745.356,
             "live_route_availability": "not_in_bounded_result",
             "open_review_session_id": "review_session_01K4D000000000000000000004",
             "review_relationship_ids": [
@@ -179,23 +179,27 @@
               "working_relationship_74MKC22KTMH8WWJWW99J1ZE7EJ",
               "working_relationship_6D6BQK0VACMEMKXDKB7JAWSXK5"
             ],
-            "graph_content_hash": "sha256:912e46384e78cd192099a72118be64cb2d321f3881293e902236750770f5bb3e",
+            "graph_content_hash": "sha256:be142965759a15228e425e20352ac7a3ed8befc4bb28c36895a6b7f8d675cdfb",
             "executed_supplement": "UX-FX25 deterministic production-controller browser boundary"
           },
           "positions": {
-            "current": "sha256:2ba64030efd8f5331e74106aca21c279d94c957d8001f70d14c4f0a92b2c48df",
-            "working": "sha256:982fc21d4ec0c7570e144b55de1e6961190010d707362cce699bf62f108a3533",
-            "historical": "sha256:b3cc31d0915a3e117e989c69f8416cd548849d88429958695eef454303e83a5c",
-            "historical_recorded_at": "2026-09-16T09:34:12.751Z",
-            "comparison": "sha256:a653db7dcec21d5069275ad248adbf3730c6de2de6a8f9cdbc9a5a8016598766",
+            "current": "sha256:5dbffcd5cb4ad83367e22b2b8844ceb901faaafd3d4f491dbc9273995df7c625",
+            "working": "sha256:1f06661c7d87f7676f836c280d57cf8e58a57202efa6e3cca73f0d9f2b7ef88d",
+            "historical": "sha256:ec34ef3957689f6a342d9fc1805c0de96dfed2db71215042ccb8719be967d9ba",
+            "historical_recorded_at": "2026-09-16T13:56:36.743Z",
+            "comparison": "sha256:407e3429ad3bd8da1c32beb3358f4ce38382a0c679d65458d67bbbcfd3546ef1",
             "impact": {
-              "live_route_state": "failed_closed",
-              "error_code": "FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE",
-              "event_id": "event_01M2MS258G89T2QPPMSTBBR6E4",
-              "executed_supplement": "UX-FX25 deterministic production-presentation browser boundary"
+              "live_route_state": "passed",
+              "content_hash": "sha256:ecf108871a5fff9f85ba863d61cfbbdc1ebf8bd1bcdc509a1eb2666abdbdc496",
+              "event_id": "event_01M2N82M881DT5NDVPPPWC5ZGX",
+              "assessed_consequences": {
+                "state": "unavailable",
+                "coverage": "not_assessed",
+                "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable."
+              }
             },
-            "impact_event_id": "event_01M2MS258G89T2QPPMSTBBR6E4",
-            "time": "sha256:8d8221e8c8113dc11dfffbbaf80f0756578c0abaff72d2c28ee9e4a2292d562a"
+            "impact_event_id": "event_01M2N82M881DT5NDVPPPWC5ZGX",
+            "time": "sha256:fc4b6553c3daaeab6a546e12e9b130e1fd93f2ce4a386f4cb591922a24df6c9e"
           },
           "expansion": {
             "live_availability": "not_registered_for_exact_profile_and_layer",
@@ -205,8 +209,8 @@
           }
         },
         "projection_lag": {
-          "duration_ms": 560.616,
-          "content_hash": "sha256:982fc21d4ec0c7570e144b55de1e6961190010d707362cce699bf62f108a3533",
+          "duration_ms": 571.266,
+          "content_hash": "sha256:1f06661c7d87f7676f836c280d57cf8e58a57202efa6e3cca73f0d9f2b7ef88d",
           "requested_snapshot": {
             "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
             "revision": 1,
@@ -220,7 +224,7 @@
             "checkpoint_ref": {
               "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
               "revision": 2,
-              "record_hash": "sha256:b0f97bc430e23da1f42bd8b912dee3c31f22e3b51d096c6eb1b97c3c0fbd4249"
+              "record_hash": "sha256:38dc4941d2ea180dc390dab14132dec34133916242b22bc661de1435b9072a7a"
             },
             "represented_event_position": 3,
             "observed_event_position": 9,
@@ -229,7 +233,7 @@
           },
           "authority_source": "postgresql"
         },
-        "recorded_at": "2026-09-16T09:34:48.180Z"
+        "recorded_at": "2026-09-16T13:57:12.084Z"
       },
       "boundary": "Production React Router loaders and controllers in isolated headless Chrome over authenticated live server routes backed by the disposable PostgreSQL and Neo4j stores."
     }
@@ -237,7 +241,7 @@
   "support_only": {
     "backend_cumulative_artifact": {
       "path": "reports/WAVE5-PAIRED-PROFILE-CUMULATIVE-OBSERVATION.json",
-      "sha256": "sha256:f858a96c2b3216a367b39287422d0ba259f7ec67d09c6f400b9a07588cfdf712",
+      "sha256": "sha256:9b9a36b68170a4102cf1ab4b5ab4368985eb09d73d57487f6969f718b5a4b6af",
       "boundary": "Backend evidence only. No browser record is inferred from this artifact."
     },
     "adverse_backend_artifact": {
@@ -301,7 +305,7 @@
       "scenario_id": "provenance-comprehension-review",
       "status": "passed",
       "observation": {
-        "details_content_hash": "sha256:28f9addb6dcf90d946502a8eb78b59b1bbd8e2535086b96106ae7102216e5954",
+        "details_content_hash": "sha256:b721ff6929f90d4c21e3e401b62ad6fa02fd8d9d3e380aa9d164e7156bfa19db",
         "exact_source_inspections": 1,
         "inspected_source_state": "available",
         "source_states": ["available"],
@@ -318,7 +322,7 @@
           "checkpoint_ref": {
             "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
             "revision": 2,
-            "record_hash": "sha256:b0f97bc430e23da1f42bd8b912dee3c31f22e3b51d096c6eb1b97c3c0fbd4249"
+            "record_hash": "sha256:38dc4941d2ea180dc390dab14132dec34133916242b22bc661de1435b9072a7a"
           },
           "represented_event_position": 3,
           "observed_event_position": 9,
@@ -358,10 +362,10 @@
         },
         "direct": {
           "origin": "direct",
-          "content_hash": "sha256:6a5800c4a0a6be5665cfc5c993929a26c33efd01d9bb2820d6d024646d4901b9"
+          "content_hash": "sha256:a0be3ce0a6f9d62cd41672f24ad0a4c5d176000ca0483c2aecf46880e5f193c7"
         },
         "focus": { "contextual_heading": true, "exact_return": true },
-        "timings_ms": { "contextual": 1004.33, "direct": 553.941 }
+        "timings_ms": { "contextual": 580.626, "direct": 559.788 }
       },
       "boundary": "The exact retained Review action target was composed with a projected baseline Claim because the post-Apply Claim had not reached Neo4j. That contextual Review URL and a separately parsed direct URL executed through the production loader and live focused-query route with exact return focus."
     },
@@ -371,23 +375,27 @@
       "status": "passed",
       "observation": {
         "positions": {
-          "current": "sha256:2ba64030efd8f5331e74106aca21c279d94c957d8001f70d14c4f0a92b2c48df",
-          "working": "sha256:982fc21d4ec0c7570e144b55de1e6961190010d707362cce699bf62f108a3533",
-          "historical": "sha256:b3cc31d0915a3e117e989c69f8416cd548849d88429958695eef454303e83a5c",
-          "historical_recorded_at": "2026-09-16T09:34:12.751Z",
-          "comparison": "sha256:a653db7dcec21d5069275ad248adbf3730c6de2de6a8f9cdbc9a5a8016598766",
+          "current": "sha256:5dbffcd5cb4ad83367e22b2b8844ceb901faaafd3d4f491dbc9273995df7c625",
+          "working": "sha256:1f06661c7d87f7676f836c280d57cf8e58a57202efa6e3cca73f0d9f2b7ef88d",
+          "historical": "sha256:ec34ef3957689f6a342d9fc1805c0de96dfed2db71215042ccb8719be967d9ba",
+          "historical_recorded_at": "2026-09-16T13:56:36.743Z",
+          "comparison": "sha256:407e3429ad3bd8da1c32beb3358f4ce38382a0c679d65458d67bbbcfd3546ef1",
           "impact": {
-            "live_route_state": "failed_closed",
-            "error_code": "FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE",
-            "event_id": "event_01M2MS258G89T2QPPMSTBBR6E4",
-            "executed_supplement": "UX-FX25 deterministic production-presentation browser boundary"
+            "live_route_state": "passed",
+            "content_hash": "sha256:ecf108871a5fff9f85ba863d61cfbbdc1ebf8bd1bcdc509a1eb2666abdbdc496",
+            "event_id": "event_01M2N82M881DT5NDVPPPWC5ZGX",
+            "assessed_consequences": {
+              "state": "unavailable",
+              "coverage": "not_assessed",
+              "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable."
+            }
           },
-          "impact_event_id": "event_01M2MS258G89T2QPPMSTBBR6E4",
-          "time": "sha256:8d8221e8c8113dc11dfffbbaf80f0756578c0abaff72d2c28ee9e4a2292d562a"
+          "impact_event_id": "event_01M2N82M881DT5NDVPPPWC5ZGX",
+          "time": "sha256:fc4b6553c3daaeab6a546e12e9b130e1fd93f2ce4a386f4cb591922a24df6c9e"
         },
         "projection_lag": {
-          "duration_ms": 560.616,
-          "content_hash": "sha256:982fc21d4ec0c7570e144b55de1e6961190010d707362cce699bf62f108a3533",
+          "duration_ms": 571.266,
+          "content_hash": "sha256:1f06661c7d87f7676f836c280d57cf8e58a57202efa6e3cca73f0d9f2b7ef88d",
           "requested_snapshot": {
             "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
             "revision": 1,
@@ -401,7 +409,7 @@
             "checkpoint_ref": {
               "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
               "revision": 2,
-              "record_hash": "sha256:b0f97bc430e23da1f42bd8b912dee3c31f22e3b51d096c6eb1b97c3c0fbd4249"
+              "record_hash": "sha256:38dc4941d2ea180dc390dab14132dec34133916242b22bc661de1435b9072a7a"
             },
             "represented_event_position": 3,
             "observed_event_position": 9,
@@ -467,18 +475,18 @@
           "restricted_paths": 1,
           "partial_paths": 1,
           "missing_destinations": 1,
-          "first_ready_ms": 392.819,
-          "second_ready_ms": 140.027,
+          "first_ready_ms": 407.746,
+          "second_ready_ms": 153.321,
           "layout_capture_sha256": "sha256:690acdf7e021e3bac52284fb9748d2d14d8b180fb5615f9a871c6cd755f4cf74",
           "repeated_layout_capture_sha256": "sha256:690acdf7e021e3bac52284fb9748d2d14d8b180fb5615f9a871c6cd755f4cf74",
           "layout_capture_stable": true
         },
         "late_response": {
           "completion_order": [
-            "focused_graph_request_01M2MS1JCCVB1QYKTEHFT5D0Y9",
-            "focused_graph_request_01M2MS1JA4C1YZVM937Q3KQ7S1"
+            "focused_graph_request_01M2N8225JEFBC09BAT60ZY7PD",
+            "focused_graph_request_01M2N82236CE32R5CWZTM98XHX"
           ],
-          "accepted_request_id": "focused_graph_request_01M2MS1JCCVB1QYKTEHFT5D0Y9",
+          "accepted_request_id": "focused_graph_request_01M2N8225JEFBC09BAT60ZY7PD",
           "older_request_rejected": true,
           "exact_selection_retained": "node:claim-0"
         },
@@ -498,7 +506,7 @@
       "status": "passed",
       "observation": {
         "live_route": {
-          "graph_duration_ms": 742.231,
+          "graph_duration_ms": 745.356,
           "live_route_availability": "not_in_bounded_result",
           "open_review_session_id": "review_session_01K4D000000000000000000004",
           "review_relationship_ids": [
@@ -511,7 +519,7 @@
             "working_relationship_74MKC22KTMH8WWJWW99J1ZE7EJ",
             "working_relationship_6D6BQK0VACMEMKXDKB7JAWSXK5"
           ],
-          "graph_content_hash": "sha256:912e46384e78cd192099a72118be64cb2d321f3881293e902236750770f5bb3e",
+          "graph_content_hash": "sha256:be142965759a15228e425e20352ac7a3ed8befc4bb28c36895a6b7f8d675cdfb",
           "executed_supplement": "UX-FX25 deterministic production-controller browser boundary"
         },
         "executed_preview": {
@@ -531,14 +539,18 @@
       "scenario_id": "comparison-impact-time-browser",
       "status": "passed",
       "observation": {
-        "comparison_content_hash": "sha256:a653db7dcec21d5069275ad248adbf3730c6de2de6a8f9cdbc9a5a8016598766",
+        "comparison_content_hash": "sha256:407e3429ad3bd8da1c32beb3358f4ce38382a0c679d65458d67bbbcfd3546ef1",
         "live_impact_route": {
-          "live_route_state": "failed_closed",
-          "error_code": "FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE",
-          "event_id": "event_01M2MS258G89T2QPPMSTBBR6E4",
-          "executed_supplement": "UX-FX25 deterministic production-presentation browser boundary"
+          "live_route_state": "passed",
+          "content_hash": "sha256:ecf108871a5fff9f85ba863d61cfbbdc1ebf8bd1bcdc509a1eb2666abdbdc496",
+          "event_id": "event_01M2N82M881DT5NDVPPPWC5ZGX",
+          "assessed_consequences": {
+            "state": "unavailable",
+            "coverage": "not_assessed",
+            "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable."
+          }
         },
-        "time_content_hash": "sha256:8d8221e8c8113dc11dfffbbaf80f0756578c0abaff72d2c28ee9e4a2292d562a",
+        "time_content_hash": "sha256:fc4b6553c3daaeab6a546e12e9b130e1fd93f2ce4a386f4cb591922a24df6c9e",
         "supplement": {
           "historical_read_only": true,
           "unknown_date_explicit": true,
@@ -555,14 +567,13 @@
           "time": true
         }
       },
-      "boundary": "Dedicated comparison and recorded-time analyses executed through live production routes with exact positions, dates or unknown dates, limitations, and graph/text parity. The live impact route failed closed with FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE for the matching recent-History Claim target; UX-FX25 executed the production impact presentation with a deterministic typed view containing supplied consequences. No successful live impact response is claimed."
+      "boundary": "Dedicated comparison, impact, and recorded-time analyses executed through live production routes with exact positions, supplied dependencies, explicit consequence unavailability, dates or unknown dates, limitations, and graph/text parity. UX-FX25 independently exercised supplied, incomplete, and stale consequence presentation states with deterministic typed transport."
     }
   ],
   "limitations": [
     "The controlled-writing Graph response is a renderer-only synthetic packet because the installed relationship-overlay contract and server route remain scientific-only.",
     "UX-FX25 uses deterministic injected frontend transport for adverse ordering and omission states; its fresh-store backend support remains a separate artifact.",
     "Chrome accessibility structure and keyboard focus were inspected; native screen-reader evaluation is outside Wave 5.",
-    "Recorded route and renderer timings are one-environment observations, not an SLA or universal threshold.",
-    "The live impact route rejected the matching recent-History Claim target as incompatible with the exact focused record. Backend Slice 23 must audit that identity composition; the successful impact presentation here uses deterministic injected transport."
+    "Recorded route and renderer timings are one-environment observations, not an SLA or universal threshold."
   ]
 }

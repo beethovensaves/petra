@@ -298,7 +298,7 @@ try {
           },
         },
         boundary:
-          "Dedicated comparison and recorded-time analyses executed through live production routes with exact positions, dates or unknown dates, limitations, and graph/text parity. The live impact route failed closed with FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE for the matching recent-History Claim target; UX-FX25 executed the production impact presentation with a deterministic typed view containing supplied consequences. No successful live impact response is claimed.",
+          "Dedicated comparison, impact, and recorded-time analyses executed through live production routes with exact positions, supplied dependencies, explicit consequence unavailability, dates or unknown dates, limitations, and graph/text parity. UX-FX25 independently exercised supplied, incomplete, and stale consequence presentation states with deterministic typed transport.",
       },
     ],
     limitations: [
@@ -306,7 +306,6 @@ try {
       "UX-FX25 uses deterministic injected frontend transport for adverse ordering and omission states; its fresh-store backend support remains a separate artifact.",
       "Chrome accessibility structure and keyboard focus were inspected; native screen-reader evaluation is outside Wave 5.",
       "Recorded route and renderer timings are one-environment observations, not an SLA or universal threshold.",
-      "The live impact route rejected the matching recent-History Claim target as incompatible with the exact focused record. Backend Slice 23 must audit that identity composition; the successful impact presentation here uses deterministic injected transport.",
     ],
   };
   writeFileSync(
@@ -318,9 +317,9 @@ try {
 
 Date: 2026-09-16
 
-Slice: Wave 5 Slice 22
+Original evidence slice: Wave 5 Slice 22; re-executed during Slice 24
 
-Backend counterpart: \`03ebddeb26dca4f16f637224296909a815e06b35\`
+Backend counterpart: \`3d50bea50724118272069c24c1a9da1c434c4001\`
 
 Status: executed and passed; mandatory evidence inventory and remediation remain open
 
@@ -328,7 +327,7 @@ Status: executed and passed; mandatory evidence inventory and remediation remain
 
 \`npm run test:wave5:browser\` executed the ten previously outstanding design-owned UX1.5 records through three explicit browser boundaries: UX-FX24 paired-profile fixture transport, UX-FX25 adverse fixture transport, and a fresh-store authenticated live-route trace. The retained machine-readable observation is \`reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json\`.
 
-The live phase used production React Router loaders, focused-graph controllers, the Cytoscape renderer, the complete textual peer, and authenticated server routes backed by fresh PostgreSQL and Neo4j stores. It exercised contextual and direct entry, Current, Working changes, an exact retained Historical position, comparison, time, synchronized Details, exact source inspection, Review return focus, projection catching up, and fail-closed expansion and impact responses. UX-FX25 executed named expansion, pointer and non-drag correction, and the supplied-impact presentation through production components with deterministic injected typed transport.
+The live phase used production React Router loaders, focused-graph controllers, the Cytoscape renderer, the complete textual peer, and authenticated server routes backed by fresh PostgreSQL and Neo4j stores. It exercised contextual and direct entry, Current, Working changes, an exact retained Historical position, comparison, impact, time, synchronized Details, exact source inspection, Review return focus, projection catching up, and fail-closed expansion. UX-FX25 executed named expansion, pointer and non-drag correction, and adverse impact presentation states through production components with deterministic injected typed transport.
 
 ## Critic findings
 
@@ -345,7 +344,7 @@ The live scientific ProjectDefinition does not register a compatible named-expan
 
 The open live Review's exact WorkingRelationship was not a member of the available bounded focused result, so the live workbench did not offer an invalid correction preview for another relationship. Pointer and non-drag request convergence was executed at the UX-FX25 production-controller boundary; no live action-preview response is claimed.
 
-The live impact request selected the recent-History event whose affected Claim object and revision matched the exact focused Claim, but the server rejected it with \`FOCUSED_GRAPH_ANALYSIS_SOURCE_INCOMPATIBLE\`. The UX-FX25 browser therefore executed the production impact surface with an injected typed dependency and supplied-consequence view; no successful live impact response is claimed. Backend Slice 23 must audit this exact identity boundary.
+The live impact request selected the recent-History event whose affected Claim object and revision matched the exact focused Claim. The production route composed the exact dependency inventory through the resolved-target binding fixed in backend commit \`f1516eb\` and explicitly reported consequences unavailable because no Review member assessed that exact focus. UX-FX25 separately exercised supplied, incomplete, and stale consequence presentation states with deterministic typed transport.
 
 The exact backend cumulative artifact is referenced only as backend support at \`${artifact.support_only.backend_cumulative_artifact.sha256}\`. Fresh-store browser claims come from the live observer in this command, not from that earlier backend artifact. Chrome accessibility structure and focus were inspected; no native screen-reader result is claimed. Timings are observations from one environment, not product thresholds.
 
@@ -355,7 +354,7 @@ ${artifact.scenario_records.map((record) => `- \`${record.evidence_id}/${record.
 
 ## Next safe boundary
 
-Backend Slice 23 may perform the pre-inventory adversarial audit. It must preserve these exact scenario and artifact boundaries and must not declare Wave 5 complete. Design Slice 24 still owes the mandatory executed-inventory audit before remediation begins.
+Design Slice 24 must finish the mandatory executed-inventory audit. The protected reserve remains available for any material inventory finding, and Wave 5 is not complete.
 `;
   writeFileSync(reportPath, report);
   process.stdout.write(
