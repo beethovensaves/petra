@@ -84,7 +84,7 @@ interface BasisRow {
 interface ChangeSetRow {
   payload: unknown;
   record_hash: string;
-  current_state: ProjectReviewChangeSetSummary["state"];
+  current_state: ProjectReviewChangeSetSummary["state"] | "reverted";
   approval_payload: unknown;
   approval_record_hash: string | null;
 }
@@ -1585,7 +1585,11 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
             revision: changeSet.revision,
             content_hash: changeSet.content_hash,
           },
-          state: row.current_state,
+          // Review records the outcome of its own promotion path. A later
+          // governed compensation belongs to Project History and must not
+          // rewrite the Review outcome or make the member actionable again.
+          state:
+            row.current_state === "reverted" ? "applied" : row.current_state,
           atomicity: `One atomic ChangeSet · ${changes.length} operations`,
           changes: changes as ProjectReviewChangeSetSummary["changes"],
           protected: [

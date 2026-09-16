@@ -4,7 +4,7 @@
   "wave": 5,
   "slice": 21,
   "status": "passed",
-  "executed_at": "2026-09-16T07:45:53.662Z",
+  "executed_at": "2026-09-16T13:19:59.274Z",
   "command": "npm run test:wave5:cumulative",
   "runtime": {
     "node": "24.20.0",
@@ -59,10 +59,10 @@
             "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
           ]
         },
-        "brief_content_hash": "sha256:0dc74dca195e735e6fa5b837db1c19e24eb8ebb524a4116a9c7e98bd72a0046e",
-        "focused_graph_content_hash": "sha256:ea4bf150b64c129355febe6759b8747b9014f453588fbe88e3d95d945288ab81",
-        "details_content_hash": "sha256:114a69106cc1a74dea97f724db7c6e08343670c1ac64211c5952db00505a4af5",
-        "evidence_view_content_hash": "sha256:552741218664c9f8b8db3ad385b186e7d23183bf7e3542e1d06d17b9b7068c02",
+        "brief_content_hash": "sha256:d54f1001c2730b0d6432de5a0fef3eb1783d47d8930a4cb5d040bcc3417a9aed",
+        "focused_graph_content_hash": "sha256:c8c2af3332bb3d3f951b1a6a348c8100aefff9cddac0b9b563dc9323e62f682f",
+        "details_content_hash": "sha256:a1d83ce9871e26149386f04e4407f9e7da8b68f6432104b96347bd24c0e4b0e4",
+        "evidence_view_content_hash": "sha256:e0c072770ad5a28e8241d31f5b60c352abdaf181cc6e9047e34f70647c42f241",
         "source_inspection_content_hash": "sha256:cfe4a28412343a110698ff8e23197495dd700ad8fcf607a659e3cdc93f5ce785"
       },
       "boundary": "Fresh-store authenticated production Brief, Evidence-owner relationship overlay, Work, Focused Graph, Details, and exact ProjectSource inspection reads; no browser claim."
@@ -112,11 +112,11 @@
       "observation": {
         "inspected_review_session_id": "review_session_01K4D000000000000000000004",
         "corrected_candidate_revision": 2,
-        "applied_change_set_id": "change_set_2FGWKQ7910F4PRMNRR9V2ZA5HD",
-        "applied_event_id": "event_01M2MJRH4NV12DT25EDEQBC15D",
-        "compensation_plan_content_hash": "sha256:45e44c6bd640745fc9faaa4782b1e0016c0aa7437cef2baa45291b898de15d9a",
-        "compensation_change_set_id": "change_set_0204S7AVHHSJ684SHTKSB4T97F",
-        "replay_compensation_change_set_id": "change_set_0204S7AVHHSJ684SHTKSB4T97F"
+        "applied_change_set_id": "change_set_515J6PGP3BMB1RNCSVH7Q8XXQX",
+        "applied_event_id": "event_01M2N5W6S8K14SQQEZW3GF9DRR",
+        "compensation_plan_content_hash": "sha256:6fa1a2bb969ac468cbe70b032feecfe7687f8337c7e0ce757dfaf0d80ca5ae3c",
+        "compensation_change_set_id": "change_set_33SWBJV81DABAHVY8F1H9YFK3A",
+        "replay_compensation_change_set_id": "change_set_33SWBJV81DABAHVY8F1H9YFK3A"
       },
       "boundary": "Existing Review correction and Apply clients plus the existing History compensation controller; no graph-specific mutation owner."
     },
@@ -126,10 +126,11 @@
       "status": "passed",
       "observation": {
         "restart": {
-          "working_content_hash_before": "sha256:27322875322fee8433694220614cd120910748e200e152861fbc41facacb5a40",
-          "working_content_hash_after": "sha256:27322875322fee8433694220614cd120910748e200e152861fbc41facacb5a40",
-          "focused_graph_content_hash_before": "sha256:93d944a79d9d56f1d841e5f6f5c0cda4b2a5ba36d9ac794b8a6bc16cbd16eef9",
-          "focused_graph_content_hash_after": "sha256:93d944a79d9d56f1d841e5f6f5c0cda4b2a5ba36d9ac794b8a6bc16cbd16eef9",
+          "working_content_hash_before": "sha256:d072b0079e9843daa3cb1d8b4228c4a8fa4c5b02b7d5dd491e9e9f9929026055",
+          "working_content_hash_after": "sha256:d072b0079e9843daa3cb1d8b4228c4a8fa4c5b02b7d5dd491e9e9f9929026055",
+          "focused_graph_content_hash_before": "sha256:5b34ebafb767cde2961c6652c5bec55759696e445626839b1437d3f431f4a455",
+          "focused_graph_content_hash_after": "sha256:5b34ebafb767cde2961c6652c5bec55759696e445626839b1437d3f431f4a455",
+          "review_content_hash_after": "sha256:121c309db1cf6fbe5149e7d5f3eef2b48daa7818f260443e31e28af38327e995",
           "durable_counts_before": {
             "work_units": 2,
             "worker_output_manifests": 1,
@@ -225,7 +226,7 @@
           "authority_effect": "none"
         },
         "applied": {
-          "change_set_id": "change_set_2FGWKQ7910F4PRMNRR9V2ZA5HD",
+          "change_set_id": "change_set_515J6PGP3BMB1RNCSVH7Q8XXQX",
           "outcome": "applied",
           "authority_effect": "canonical_change_set"
         },
