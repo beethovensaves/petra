@@ -628,6 +628,40 @@ describe("FocusedGraphClient", () => {
     expect(sent).not.toHaveProperty("command");
   });
 
+  it("keeps a disconnected delivery separate from an explicit exact read retry", async () => {
+    const { definition, view, request } = setup();
+    const exactRequest = structuredClone(request);
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockRejectedValueOnce(
+        new TypeError("focused graph transport disconnected"),
+      )
+      .mockResolvedValueOnce(Response.json(view));
+    const client = new FocusedGraphClient({
+      baseUrl: "http://petra.local",
+      token: "focused-token",
+      projectDefinition: definition,
+      fetch: transport,
+      contracts,
+    });
+
+    await expect(
+      client.read(definition.project_id, exactRequest),
+    ).rejects.toThrow("focused graph transport disconnected");
+    expect(transport).toHaveBeenCalledTimes(1);
+    expect(exactRequest).toEqual(request);
+
+    await expect(
+      client.read(definition.project_id, exactRequest),
+    ).resolves.toEqual(view);
+    expect(transport).toHaveBeenCalledTimes(2);
+    expect(transport.mock.calls.map(([, init]) => init?.body)).toEqual([
+      JSON.stringify(request),
+      JSON.stringify(request),
+    ]);
+    expect(exactRequest).toEqual(request);
+  });
+
   it("rejects definition substitution, response corruption, and transport failure", async () => {
     const { definition, view, request } = setup();
     const transport = vi

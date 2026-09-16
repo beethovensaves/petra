@@ -797,6 +797,33 @@ describe("PostgreSQL focused graph query reader", () => {
     );
     expect(queries.at(-1)).toBe("ROLLBACK");
 
+    const missingFocusRef = {
+      record_id: "claim_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+      revision: 1,
+      record_hash: `sha256:${"f".repeat(64)}`,
+    };
+    if (request.return_destination.state !== "available")
+      throw new Error(
+        "Expected an available focused-graph return destination.",
+      );
+    const missingFocusRequest: FocusedGraphViewRequest = {
+      ...structuredClone(request),
+      focus_ref: missingFocusRef,
+      return_destination: {
+        ...structuredClone(request.return_destination),
+        target_ref: missingFocusRef,
+      },
+    };
+    await expect(
+      reader.queryFocusedGraph(
+        projectDefinition.project_id,
+        missingFocusRequest,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({ code: "FOCUSED_GRAPH_FOCUS_NOT_FOUND" }),
+    );
+    expect(queries.at(-1)).toBe("ROLLBACK");
+
     const focusedV11 = contract("focused-graph-view", "1.1.0");
     projectDefinition.content.registrations.push({
       registration_kind: "extension",

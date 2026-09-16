@@ -118,6 +118,25 @@ describe("focused graph query route", () => {
     await expect(stale.json()).resolves.toMatchObject({
       error: { code: "FOCUSED_GRAPH_SNAPSHOT_STALE" },
     });
+
+    const missingReader = vi.fn<FocusedGraphViewReader["queryFocusedGraph"]>(
+      () =>
+        Promise.reject(
+          new FocusedGraphQueryError(
+            "FOCUSED_GRAPH_FOCUS_NOT_FOUND",
+            "The exact focused object is not represented.",
+          ),
+        ),
+    );
+    const missingApp = createPetraApp({
+      authToken: token,
+      focusedGraphViews: { queryFocusedGraph: missingReader },
+    }).app;
+    const missing = await missingApp.request(path, authorized(request));
+    expect(missing.status).toBe(404);
+    await expect(missing.json()).resolves.toMatchObject({
+      error: { code: "FOCUSED_GRAPH_FOCUS_NOT_FOUND" },
+    });
   });
 
   it("forwards and validates an additive snapshot-bound named expansion", async () => {
