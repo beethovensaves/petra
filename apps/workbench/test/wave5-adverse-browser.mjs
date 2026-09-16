@@ -893,36 +893,50 @@ try {
         evidence_id: "UX1.5-EV01",
         scenario_id: "dense-temporal-adverse-fixture",
         status: "passed",
+        boundary:
+          "Production orientation, exploration, result, Details, analysis, and Cytoscape components ran in isolated Chrome with deterministic renderer-neutral UX-FX25 reads. No live backend transport or model call was made; the exact Slice 19 PostgreSQL/Neo4j artifact was consumed only as support.",
       },
       {
         evidence_id: "UX1.5-EV03",
         scenario_id: "non-color-relation-semantics-browser",
         status: "passed",
+        boundary:
+          "Chrome exercised citation, support, contradiction, qualification, inference, selection, warnings, and authority layers using text, symbols, direction, origin, line treatment, and limitations. This is not a native-screen-reader or cross-browser claim.",
       },
       {
         evidence_id: "UX1.5-EV04",
         scenario_id: "dense-cyclic-performance",
         status: "passed",
+        boundary:
+          "Measured 32 objects, 33 relationships, 33 paths, a two-edge cycle, browser render timing, selection, environment, and identical repeated-layout screenshot hashes. Slice 19 query timings were retained as prior support, not rerun or promoted to an SLA.",
       },
       {
         evidence_id: "UX1.5-EV04",
         scenario_id: "stale-late-response-browser",
         status: "passed",
+        boundary:
+          "Injected snapshot event 41 was rejected while event 42 and its selection remained; exact retry succeeded. Deliberately out-of-order reads accepted only the newer request. Transport was deterministic and synthetic.",
       },
       {
         evidence_id: "UX1.5-EV04",
         scenario_id: "disconnected-offline-recovery-browser",
         status: "passed",
+        boundary:
+          "Injected offline delivery retained the task, selection, snapshot, cached-state label, and non-currentness boundary; retry succeeded without a domain effect. No physical-network or live-backend reconnect claim is made.",
       },
       {
         evidence_id: "UX1.5-EV04",
         scenario_id: "projection-rebuild-browser",
         status: "passed",
+        boundary:
+          "Production browser components rendered current, catching-up, unavailable, and rebuilding positions while preserving PostgreSQL authority and rebuildable Neo4j labeling. Database operations were not re-executed in this frontend command.",
       },
       {
         evidence_id: "UX1.5-EV04",
         scenario_id: "responsive-text-motion-touch-browser",
         status: "passed",
+        boundary:
+          "Chrome 152 exercised 1440px, 390px, and 320px viewports, 200% root text, textual-first narrow entry, keyboard focus, 44px synthesized touch, coarse pointer, forced colors, reduced motion, overflow, retained actions, and accessibility-tree headings. No physical-device, native-screen-reader, or cross-browser claim is made.",
       },
     ],
     authority_boundary: {
