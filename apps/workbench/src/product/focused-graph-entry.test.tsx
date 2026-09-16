@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   FocusedGraphEntryLink,
+  createFocusedGraphAnalysisRequestId,
   createFocusedGraphRequestId,
   focusedGraphDefinitionRef,
   focusedGraphEntryFromSearch,
@@ -16,7 +17,10 @@ import {
   type FocusedGraphEntry,
   type FocusedGraphEntryOriginKind,
 } from "./focused-graph-entry.js";
-import { focusedGraphRequestFromEntry } from "./project-data.js";
+import {
+  focusedGraphAnalysisRequestFromEntry,
+  focusedGraphRequestFromEntry,
+} from "./project-data.js";
 
 const projectId = "project_01ARZ3NDEKTSV4RRFFQ69G5FAW";
 const claimRef = {
@@ -320,5 +324,161 @@ describe("focused graph bounded entry and orientation contract", () => {
         },
       }),
     ).toThrow(/incomplete or incompatible/u);
+  });
+
+  it("round-trips dedicated comparison, impact, and time task identity without renderer authority", () => {
+    const analysisRequestId =
+      "focused_graph_analysis_request_01ARZ3NDEKTSV4RRFFQ69G5FAY";
+    const analyses = [
+      {
+        presentation: "current_working_comparison" as const,
+        analysis: {
+          analysis_request_id: analysisRequestId,
+          analysis_kind: "comparison" as const,
+        },
+      },
+      {
+        presentation: "impact" as const,
+        analysis: {
+          analysis_request_id: analysisRequestId,
+          analysis_kind: "impact" as const,
+          history_event_id: "event_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+          review_binding: {
+            review_session_id: "review_session_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+            review_member_ids: [
+              "review_member_01ARZ3NDEKTSV4RRFFQ69G5FAX",
+            ] as const,
+          },
+        },
+      },
+      {
+        presentation: "time" as const,
+        analysis: {
+          analysis_request_id: analysisRequestId,
+          analysis_kind: "time" as const,
+          temporal_dimension: "recorded_time" as const,
+        },
+      },
+    ];
+    for (const task of analyses) {
+      const entry = { ...entryFor("history"), ...task };
+      const url = new URL(focusedGraphEntryPath(entry), "https://petra.local");
+      expect(focusedGraphEntryFromSearch(projectId, url.searchParams)).toEqual(
+        entry,
+      );
+      expect(url.searchParams.has("layout")).toBe(false);
+      expect(url.searchParams.has("coordinates")).toBe(false);
+      expect(url.searchParams.has("importance")).toBe(false);
+    }
+    expect(createFocusedGraphAnalysisRequestId()).toMatch(
+      /^focused_graph_analysis_request_[0-9A-HJKMNP-TV-Z]{26}$/u,
+    );
+  });
+
+  it("maps exact entry state to typed analysis requests with stable snapshots and no derived scores", async () => {
+    const definition = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../../../packages/contracts/fixtures/accepted/project-definition-scientific.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as PetraProjectDefinition;
+    definition.content_hash = await hash(definition.content);
+    const snapshot = {
+      snapshot_id: "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FAC",
+      revision: 1,
+      event_position: 12,
+      content_hash: `sha256:${"c".repeat(64)}`,
+    };
+    const base = {
+      ...entryFor("history"),
+      project_id: definition.project_id,
+      project_definition_ref: focusedGraphDefinitionRef(definition),
+      expected_snapshot: snapshot,
+      return_context: {
+        label: "History event",
+        path: `/projects/${definition.project_id}/history/event_01ARZ3NDEKTSV4RRFFQ69G5FAZ#origin-control`,
+        focus_id: "origin-control",
+      },
+    };
+    const comparison = await focusedGraphAnalysisRequestFromEntry(
+      {
+        ...base,
+        presentation: "current_working_comparison",
+        analysis: {
+          analysis_request_id:
+            "focused_graph_analysis_request_01ARZ3NDEKTSV4RRFFQ69G5FAY",
+          analysis_kind: "comparison",
+        },
+      },
+      definition,
+      snapshot,
+      {
+        primary: "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAB",
+        secondary: "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAC",
+      },
+    );
+    expect(comparison).toMatchObject({
+      task_kind: "comparison",
+      before: {
+        position_key: "position:current",
+        graph_request: { semantic_layer: "current" },
+      },
+      after: {
+        position_key: "position:working",
+        graph_request: { semantic_layer: "working" },
+      },
+    });
+    if (comparison.task_kind !== "comparison") {
+      throw new Error("Expected comparison request.");
+    }
+    expect(comparison.before.graph_request.expected_snapshot).toEqual(snapshot);
+    expect(comparison.after.graph_request.expected_snapshot).toEqual(snapshot);
+    expect(comparison).not.toHaveProperty("layout");
+    expect(comparison).not.toHaveProperty("importance");
+
+    const impact = await focusedGraphAnalysisRequestFromEntry(
+      {
+        ...base,
+        presentation: "impact",
+        analysis: {
+          analysis_request_id:
+            "focused_graph_analysis_request_01ARZ3NDEKTSV4RRFFQ69G5FAY",
+          analysis_kind: "impact",
+          history_event_id: "event_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+        },
+      },
+      definition,
+      snapshot,
+      { primary: "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAD" },
+    );
+    expect(impact).toMatchObject({
+      task_kind: "impact",
+      history_event_id: "event_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+      position: { graph_request: { expected_snapshot: snapshot } },
+    });
+
+    const time = await focusedGraphAnalysisRequestFromEntry(
+      {
+        ...base,
+        presentation: "time",
+        analysis: {
+          analysis_request_id:
+            "focused_graph_analysis_request_01ARZ3NDEKTSV4RRFFQ69G5FAY",
+          analysis_kind: "time",
+          temporal_dimension: "publication_time",
+        },
+      },
+      definition,
+      snapshot,
+      { primary: "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAE" },
+    );
+    expect(time).toMatchObject({
+      task_kind: "time",
+      temporal_dimension: "publication_time",
+      position: { graph_request: { expected_snapshot: snapshot } },
+    });
   });
 });

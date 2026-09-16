@@ -54,6 +54,7 @@ import type {
   PetraSuggestedActionViewV11,
   PetraProjectThreadView,
   PetraProjectWorkView,
+  FocusedGraphProjectSnapshotRef,
   ProjectDefinitionTerm,
   CommandReviewSessionRef,
   ProjectSourceLifecycleExactSourceRef,
@@ -67,6 +68,10 @@ import type {
   ProjectWorkDetailContent,
   ProjectWorkTaskSummary,
 } from "@petra/contracts";
+import type {
+  FocusedGraphAnalysisViewRequest,
+  FocusedGraphReadRequest,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import { redirect, type LoaderFunctionArgs } from "react-router";
 
@@ -6784,6 +6789,92 @@ export const focusedGraphRequestFromEntry = async (
   };
 };
 
+const focusedGraphPositionLabel = (
+  layer: FocusedGraphEntry["semantic_layer"],
+): string =>
+  layer === "current"
+    ? "Current"
+    : layer === "working"
+      ? "Working changes"
+      : "Historical";
+
+export const focusedGraphAnalysisRequestFromEntry = async (
+  entry: FocusedGraphEntry,
+  definition: PetraProjectDefinition,
+  exactSnapshot: FocusedGraphProjectSnapshotRef,
+  requestIds: {
+    readonly primary: string;
+    readonly secondary?: string;
+  },
+): Promise<FocusedGraphAnalysisViewRequest> => {
+  const analysis = entry.analysis;
+  if (analysis === undefined || entry.presentation === "position") {
+    throw new ProjectDataError(
+      "A focused graph analysis entry requires one exact task-specific analysis identity.",
+      400,
+    );
+  }
+  const exactPosition = async (
+    layer: FocusedGraphEntry["semantic_layer"],
+    requestId: string,
+  ): Promise<{
+    readonly position_key: string;
+    readonly label: string;
+    readonly graph_request: FocusedGraphReadRequest;
+  }> => {
+    const graphRequest = await focusedGraphRequestFromEntry(entry, definition, {
+      requestId,
+      semanticLayer: layer,
+    });
+    return {
+      position_key: `position:${layer}`,
+      label: focusedGraphPositionLabel(layer),
+      graph_request: {
+        ...graphRequest,
+        expected_snapshot: structuredClone(exactSnapshot),
+      },
+    };
+  };
+  if (analysis.analysis_kind === "comparison") {
+    if (requestIds.secondary === undefined) {
+      throw new ProjectDataError(
+        "Focused graph comparison requires two exact position request identities.",
+        400,
+      );
+    }
+    return {
+      analysis_request_id: analysis.analysis_request_id,
+      task_kind: "comparison",
+      question: entry.question,
+      before: await exactPosition("current", requestIds.primary),
+      after: await exactPosition("working", requestIds.secondary),
+    };
+  }
+  const position = await exactPosition(
+    entry.semantic_layer,
+    requestIds.primary,
+  );
+  if (analysis.analysis_kind === "impact") {
+    return {
+      analysis_request_id: analysis.analysis_request_id,
+      task_kind: "impact",
+      question: entry.question,
+      position,
+      history_event_id: analysis.history_event_id,
+      ...(analysis.review_binding === undefined
+        ? {}
+        : { review_binding: structuredClone(analysis.review_binding) }),
+    };
+  }
+  return {
+    analysis_request_id: analysis.analysis_request_id,
+    task_kind: "time",
+    question: entry.question,
+    position,
+    temporal_dimension: analysis.temporal_dimension,
+  };
+};
+
 export const loadProjectGraph = async (
   args: LoaderFunctionArgs,
 ): Promise<GraphQuestion | FocusedGraphRouteData | undefined> => {
@@ -6810,42 +6901,56 @@ export const loadProjectGraph = async (
     projectDefinition: definition,
   });
   try {
-    if (entry.presentation === "current_working_comparison") {
-      const comparisonRequestId = createFocusedGraphRequestId();
-      const currentRequest = await focusedGraphRequestFromEntry(
+    if (entry.analysis !== undefined) {
+      const primingRequest = await focusedGraphRequestFromEntry(
         entry,
         definition,
-        {
-          requestId:
-            entry.semantic_layer === "current"
-              ? entry.request_id
-              : comparisonRequestId,
-          semanticLayer: "current",
-        },
       );
-      const workingRequest = await focusedGraphRequestFromEntry(
+      const primed = await client.read(projectId, primingRequest);
+      const primaryRequestId = createFocusedGraphRequestId();
+      const analysisRequest = await focusedGraphAnalysisRequestFromEntry(
         entry,
         definition,
+        primed.content.requested_snapshot,
         {
-          requestId:
-            entry.semantic_layer === "working"
-              ? entry.request_id
-              : comparisonRequestId,
-          semanticLayer: "working",
+          primary: primaryRequestId,
+          ...(entry.analysis.analysis_kind === "comparison"
+            ? { secondary: createFocusedGraphRequestId() }
+            : {}),
         },
       );
-      const [before, after] = await Promise.all([
-        client.read(projectId, currentRequest),
-        client.read(projectId, workingRequest),
-      ]);
+      const analysis = await client.readAnalysis(projectId, analysisRequest);
+      const preferredRole =
+        entry.analysis.analysis_kind === "comparison"
+          ? entry.semantic_layer === "working"
+            ? "after"
+            : "before"
+          : entry.analysis.analysis_kind === "time"
+            ? "time_position"
+            : "context";
+      const position =
+        analysis.content.positions.find(
+          (candidate) => candidate.role === preferredRole,
+        ) ?? analysis.content.positions[0];
+      if (position === undefined) {
+        throw new ProjectDataError(
+          "The focused graph analysis omitted its exact selected position.",
+          502,
+        );
+      }
+      const request =
+        analysisRequest.task_kind === "comparison"
+          ? entry.semantic_layer === "working"
+            ? analysisRequest.after.graph_request
+            : analysisRequest.before.graph_request
+          : analysisRequest.position.graph_request;
       return {
         kind: "focused_graph",
         entry,
         definition,
-        request:
-          entry.semantic_layer === "current" ? currentRequest : workingRequest,
-        view: entry.semantic_layer === "current" ? before : after,
-        comparison: { before, after },
+        request,
+        view: position.graph_view,
+        analysis,
       };
     }
     const request = await focusedGraphRequestFromEntry(entry, definition);

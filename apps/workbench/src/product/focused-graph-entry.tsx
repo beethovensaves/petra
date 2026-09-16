@@ -4,6 +4,7 @@ import type {
   FocusedGraphProjectSnapshotRef,
   FocusedGraphSemanticDestination,
   FocusedGraphTemporalPosition,
+  PetraFocusedGraphAnalysisView,
   PetraFocusedGraphView,
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
@@ -13,16 +14,22 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 
 import { focusedGraphRegionsFromView } from "./focused-graph-regions.js";
-import { createFocusedGraphRequestId } from "./focused-graph-identities.js";
-import { FocusedGraphExploration } from "./FocusedGraphExploration.js";
 import {
-  FocusedGraphComparison,
-  FocusedGraphPositionNavigation,
-} from "./FocusedGraphPositions.js";
+  createFocusedGraphAnalysisRequestId,
+  createFocusedGraphRequestId,
+} from "./focused-graph-identities.js";
+import { FocusedGraphAnalysisSurface } from "./FocusedGraphAnalysis.js";
+import { FocusedGraphExploration } from "./FocusedGraphExploration.js";
+import { FocusedGraphPositionNavigation } from "./FocusedGraphPositions.js";
 
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const REQUEST_ID = /^focused_graph_request_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const ANALYSIS_REQUEST_ID =
+  /^focused_graph_analysis_request_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const DEFINITION_ID = /^project_definition_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const EVENT_ID = /^event_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const REVIEW_SESSION_ID = /^review_session_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const REVIEW_MEMBER_ID = /^review_member_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PETRA_ID = /^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const HASH = /^sha256:[0-9a-f]{64}$/u;
 const SEMANTIC_KEY = /^[a-z][a-z0-9._/-]{1,199}$/u;
@@ -48,6 +55,7 @@ const DESTINATION_OWNERS = new Set([
 
 const ENTRY_VERSION = "1";
 export { createFocusedGraphRequestId } from "./focused-graph-identities.js";
+export { createFocusedGraphAnalysisRequestId } from "./focused-graph-identities.js";
 
 export type FocusedGraphEntryOriginKind =
   "brief" | "review" | "petra" | "history" | "saved_question" | "direct";
@@ -78,7 +86,42 @@ export interface FocusedGraphHistoricalPosition {
 }
 
 export type FocusedGraphPresentation =
-  "position" | "current_working_comparison";
+  "position" | "current_working_comparison" | "impact" | "time";
+
+export type FocusedGraphAnalysisEntry =
+  | {
+      readonly analysis_request_id: string;
+      readonly analysis_kind: "comparison";
+    }
+  | {
+      readonly analysis_request_id: string;
+      readonly analysis_kind: "impact";
+      readonly history_event_id: string;
+      readonly review_binding?: {
+        readonly review_session_id: string;
+        readonly review_member_ids: readonly [string, ...string[]];
+      };
+    }
+  | {
+      readonly analysis_request_id: string;
+      readonly analysis_kind: "time";
+      readonly temporal_dimension:
+        "recorded_time" | "occurred_time" | "publication_time" | "valid_time";
+    };
+
+export type FocusedGraphAnalysisEntryDraft =
+  | Omit<
+      Extract<FocusedGraphAnalysisEntry, { analysis_kind: "comparison" }>,
+      "analysis_request_id"
+    >
+  | Omit<
+      Extract<FocusedGraphAnalysisEntry, { analysis_kind: "impact" }>,
+      "analysis_request_id"
+    >
+  | Omit<
+      Extract<FocusedGraphAnalysisEntry, { analysis_kind: "time" }>,
+      "analysis_request_id"
+    >;
 
 export interface FocusedGraphEntry {
   readonly project_id: string;
@@ -100,6 +143,7 @@ export interface FocusedGraphEntry {
   readonly limits: FocusedGraphLimits;
   readonly semantic_layer: "current" | "working" | "historical";
   readonly presentation: FocusedGraphPresentation;
+  readonly analysis?: FocusedGraphAnalysisEntry;
   readonly expected_snapshot?: FocusedGraphProjectSnapshotRef;
   readonly historical_position?: FocusedGraphHistoricalPosition;
   readonly return_context: FocusedGraphReturnContext;
@@ -107,8 +151,9 @@ export interface FocusedGraphEntry {
 
 export type FocusedGraphEntryDraft = Omit<
   FocusedGraphEntry,
-  "request_id" | "return_context"
+  "request_id" | "return_context" | "analysis"
 > & {
+  readonly analysis?: FocusedGraphAnalysisEntry;
   readonly return_context: Omit<FocusedGraphReturnContext, "path"> & {
     readonly path?: string;
   };
@@ -120,10 +165,7 @@ export interface FocusedGraphRouteData {
   readonly definition: PetraProjectDefinition;
   readonly request: FocusedGraphReadRequest;
   readonly view: PetraFocusedGraphView | PetraFocusedGraphViewV11;
-  readonly comparison?: {
-    readonly before: PetraFocusedGraphView;
-    readonly after: PetraFocusedGraphView;
-  };
+  readonly analysis?: PetraFocusedGraphAnalysisView;
 }
 
 export class FocusedGraphEntryError extends Error {
@@ -237,6 +279,47 @@ const exactRecordedTime = (value: string): boolean => {
   return Number.isFinite(parsed) && new Date(parsed).toISOString() === value;
 };
 
+const validAnalysis = (entry: FocusedGraphEntry): boolean => {
+  const analysis = entry.analysis;
+  if (entry.presentation === "position") return analysis === undefined;
+  if (
+    analysis === undefined ||
+    !ANALYSIS_REQUEST_ID.test(analysis.analysis_request_id)
+  ) {
+    return false;
+  }
+  if (entry.presentation === "current_working_comparison") {
+    return analysis.analysis_kind === "comparison";
+  }
+  if (entry.presentation === "time") {
+    return (
+      analysis.analysis_kind === "time" &&
+      [
+        "recorded_time",
+        "occurred_time",
+        "publication_time",
+        "valid_time",
+      ].includes(analysis.temporal_dimension)
+    );
+  }
+  if (entry.presentation !== "impact" || analysis.analysis_kind !== "impact") {
+    return false;
+  }
+  const binding = analysis.review_binding;
+  return (
+    EVENT_ID.test(analysis.history_event_id) &&
+    (binding === undefined ||
+      (REVIEW_SESSION_ID.test(binding.review_session_id) &&
+        binding.review_member_ids.length >= 1 &&
+        binding.review_member_ids.length <= 100 &&
+        new Set(binding.review_member_ids).size ===
+          binding.review_member_ids.length &&
+        binding.review_member_ids.every((memberId) =>
+          REVIEW_MEMBER_ID.test(memberId),
+        )))
+  );
+};
+
 const assertEntry = (entry: FocusedGraphEntry): FocusedGraphEntry => {
   if (
     !PROJECT_ID.test(entry.project_id) ||
@@ -261,7 +344,10 @@ const assertEntry = (entry: FocusedGraphEntry): FocusedGraphEntry => {
     !DESTINATION_OWNERS.has(entry.return_destination.owner) ||
     entry.return_destination.state !== "available" ||
     !["current", "working", "historical"].includes(entry.semantic_layer) ||
-    !["position", "current_working_comparison"].includes(entry.presentation) ||
+    !["position", "current_working_comparison", "impact", "time"].includes(
+      entry.presentation,
+    ) ||
+    !validAnalysis(entry) ||
     (entry.expected_snapshot !== undefined &&
       !validSnapshot(entry.expected_snapshot)) ||
     (entry.historical_position !== undefined &&
@@ -400,6 +486,24 @@ export const focusedGraphEntryPath = (entry: FocusedGraphEntry): string => {
     params.set("historicalSnapshotHash", historical.snapshot.content_hash);
     params.set("historicalRecordedAt", historical.temporal_position.at.value);
   }
+  if (entry.analysis !== undefined) {
+    params.set("analysisRequestId", entry.analysis.analysis_request_id);
+    if (entry.analysis.analysis_kind === "impact") {
+      params.set("historyEventId", entry.analysis.history_event_id);
+      if (entry.analysis.review_binding !== undefined) {
+        params.set(
+          "reviewSessionId",
+          entry.analysis.review_binding.review_session_id,
+        );
+        params.set(
+          "reviewMemberIds",
+          entry.analysis.review_binding.review_member_ids.join(","),
+        );
+      }
+    } else if (entry.analysis.analysis_kind === "time") {
+      params.set("temporalDimension", entry.analysis.temporal_dimension);
+    }
+  }
   return `/projects/${encodeURIComponent(entry.project_id)}/graph?${params}`;
 };
 
@@ -451,6 +555,11 @@ const optionalKeys = new Set([
   "historicalSnapshotEventPosition",
   "historicalSnapshotHash",
   "historicalRecordedAt",
+  "analysisRequestId",
+  "historyEventId",
+  "reviewSessionId",
+  "reviewMemberIds",
+  "temporalDimension",
 ]);
 
 export const focusedGraphEntryFromSearch = (
@@ -587,6 +696,76 @@ export const focusedGraphEntryFromSearch = (
             },
           },
         };
+  const analysisRequestId = optionalParam(params, "analysisRequestId");
+  const historyEventId = optionalParam(params, "historyEventId");
+  const reviewSessionId = optionalParam(params, "reviewSessionId");
+  const reviewMemberIds = optionalParam(params, "reviewMemberIds");
+  const temporalDimension = optionalParam(params, "temporalDimension");
+  const hasReviewBinding =
+    reviewSessionId !== undefined || reviewMemberIds !== undefined;
+  if (
+    (reviewSessionId === undefined) !== (reviewMemberIds === undefined) ||
+    (presentation === "position" &&
+      [
+        analysisRequestId,
+        historyEventId,
+        reviewSessionId,
+        reviewMemberIds,
+        temporalDimension,
+      ].some((value) => value !== undefined))
+  ) {
+    throw new FocusedGraphEntryError(
+      "The focused graph analysis entry is incomplete or incompatible.",
+    );
+  }
+  let analysis: FocusedGraphAnalysisEntry | undefined;
+  if (
+    presentation === "current_working_comparison" &&
+    analysisRequestId !== undefined &&
+    historyEventId === undefined &&
+    !hasReviewBinding &&
+    temporalDimension === undefined
+  ) {
+    analysis = {
+      analysis_request_id: analysisRequestId,
+      analysis_kind: "comparison",
+    };
+  } else if (
+    presentation === "impact" &&
+    analysisRequestId !== undefined &&
+    historyEventId !== undefined &&
+    temporalDimension === undefined
+  ) {
+    const memberIds = reviewMemberIds?.split(",");
+    analysis = {
+      analysis_request_id: analysisRequestId,
+      analysis_kind: "impact",
+      history_event_id: historyEventId,
+      ...(reviewSessionId === undefined || memberIds === undefined
+        ? {}
+        : {
+            review_binding: {
+              review_session_id: reviewSessionId,
+              review_member_ids: memberIds as [string, ...string[]],
+            },
+          }),
+    };
+  } else if (
+    presentation === "time" &&
+    analysisRequestId !== undefined &&
+    historyEventId === undefined &&
+    !hasReviewBinding &&
+    temporalDimension !== undefined
+  ) {
+    analysis = {
+      analysis_request_id: analysisRequestId,
+      analysis_kind: "time",
+      temporal_dimension: temporalDimension as Extract<
+        FocusedGraphAnalysisEntry,
+        { analysis_kind: "time" }
+      >["temporal_dimension"],
+    };
+  }
   const entry: FocusedGraphEntry = {
     project_id: projectId,
     request_id: requiredParam(params, "requestId"),
@@ -653,6 +832,7 @@ export const focusedGraphEntryFromSearch = (
     },
     semantic_layer: semanticLayer as FocusedGraphEntry["semantic_layer"],
     presentation: presentation as FocusedGraphPresentation,
+    ...(analysis === undefined ? {} : { analysis }),
     ...(expectedSnapshot === undefined
       ? {}
       : { expected_snapshot: expectedSnapshot }),
@@ -729,6 +909,7 @@ export const scientificFocusedGraphEntryDraft = (input: {
   readonly expectedSnapshot?: FocusedGraphProjectSnapshotRef;
   readonly historicalPosition?: FocusedGraphHistoricalPosition;
   readonly semanticLayer?: FocusedGraphEntry["semantic_layer"];
+  readonly analysis?: FocusedGraphAnalysisEntryDraft;
 }): FocusedGraphEntryDraft => ({
   project_id: input.projectId,
   question: input.question,
@@ -759,7 +940,18 @@ export const scientificFocusedGraphEntryDraft = (input: {
     maximum_paths: 24,
   },
   semantic_layer: input.semanticLayer ?? "current",
-  presentation: "position",
+  presentation:
+    input.analysis?.analysis_kind === "comparison"
+      ? "current_working_comparison"
+      : (input.analysis?.analysis_kind ?? "position"),
+  ...(input.analysis === undefined
+    ? {}
+    : {
+        analysis: {
+          ...structuredClone(input.analysis),
+          analysis_request_id: createFocusedGraphAnalysisRequestId(),
+        },
+      }),
   ...(input.expectedSnapshot === undefined
     ? {}
     : { expected_snapshot: structuredClone(input.expectedSnapshot) }),
@@ -785,6 +977,7 @@ export const FocusedGraphEntryLink = ({
 }): React.JSX.Element | null => {
   const location = useLocation();
   const [requestId] = useState(createFocusedGraphRequestId);
+  const [analysisRequestId] = useState(createFocusedGraphAnalysisRequestId);
   const currentReturnPath = `${location.pathname}${location.search}${
     entry.return_context.focus_id === undefined
       ? location.hash
@@ -794,6 +987,14 @@ export const FocusedGraphEntryLink = ({
   const exactEntry: FocusedGraphEntry = {
     ...entry,
     request_id: requestId,
+    ...(entry.analysis === undefined
+      ? {}
+      : {
+          analysis: {
+            ...entry.analysis,
+            analysis_request_id: analysisRequestId,
+          },
+        }),
     return_context: { ...entry.return_context, path: returnPath },
   };
   let path: string;
@@ -842,7 +1043,10 @@ export const FocusedGraphOrientationSurface = ({
     current: createFocusedGraphRequestId(),
     working: createFocusedGraphRequestId(),
     historical: createFocusedGraphRequestId(),
-    comparison: createFocusedGraphRequestId(),
+    comparisonGraph: createFocusedGraphRequestId(),
+    comparisonAnalysis: createFocusedGraphAnalysisRequestId(),
+    timeGraph: createFocusedGraphRequestId(),
+    timeAnalysis: createFocusedGraphAnalysisRequestId(),
   }));
   useEffect(() => heading.current?.focus(), []);
   const focus = regions.graph.nodes.find((node) =>
@@ -861,13 +1065,18 @@ export const FocusedGraphOrientationSurface = ({
     layer: FocusedGraphEntry["semantic_layer"],
     requestId: string,
     presentation: FocusedGraphPresentation = "position",
-  ): string =>
-    focusedGraphEntryPath({
-      ...data.entry,
+    analysis?: FocusedGraphAnalysisEntry,
+  ): string => {
+    const { analysis: priorAnalysis, ...entryWithoutAnalysis } = data.entry;
+    void priorAnalysis;
+    return focusedGraphEntryPath({
+      ...entryWithoutAnalysis,
       request_id: requestId,
       semantic_layer: layer,
       presentation,
+      ...(analysis === undefined ? {} : { analysis }),
     });
+  };
   const positionPaths = {
     current: positionPath("current", navigationIds.current),
     working: positionPath("working", navigationIds.working),
@@ -878,17 +1087,20 @@ export const FocusedGraphOrientationSurface = ({
         }),
     comparison: positionPath(
       activeLayer === "historical" ? "working" : activeLayer,
-      navigationIds.comparison,
+      navigationIds.comparisonGraph,
       "current_working_comparison",
+      {
+        analysis_request_id: navigationIds.comparisonAnalysis,
+        analysis_kind: "comparison",
+      },
     ),
+    time: positionPath(activeLayer, navigationIds.timeGraph, "time", {
+      analysis_request_id: navigationIds.timeAnalysis,
+      analysis_kind: "time",
+      temporal_dimension: "recorded_time",
+    }),
   };
-  const comparison =
-    data.comparison === undefined
-      ? undefined
-      : {
-          before: focusedGraphRegionsFromView(data.comparison.before),
-          after: focusedGraphRegionsFromView(data.comparison.after),
-        };
+  const analysisKind = data.analysis?.content.analysis.analysis_kind;
   return (
     <main
       className="reference-surface graph-surface"
@@ -920,7 +1132,9 @@ export const FocusedGraphOrientationSurface = ({
 
       <FocusedGraphPositionNavigation
         activeLayer={activeLayer}
-        comparisonActive={comparison !== undefined}
+        comparisonActive={analysisKind === "comparison"}
+        timeActive={analysisKind === "time"}
+        analysisActive={analysisKind !== undefined}
         paths={positionPaths}
       />
 
@@ -1062,7 +1276,7 @@ export const FocusedGraphOrientationSurface = ({
         </details>
       </section>
 
-      {comparison === undefined ? (
+      {data.analysis === undefined ? (
         <FocusedGraphExploration
           key={`${data.view.content.task.request_id}:${data.view.content_hash}`}
           entry={data.entry}
@@ -1071,10 +1285,7 @@ export const FocusedGraphOrientationSurface = ({
           initialView={data.view}
         />
       ) : (
-        <FocusedGraphComparison
-          before={comparison.before}
-          after={comparison.after}
-        />
+        <FocusedGraphAnalysisSurface view={data.analysis} />
       )}
 
       <footer className="reference-reader-return">

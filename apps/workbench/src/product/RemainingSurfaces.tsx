@@ -820,41 +820,124 @@ export const HistoryEventSurface = ({
           graphTarget.record_hash === undefined ||
           project.profile.definitionFamily === undefined ||
           graphDefinitionAuthority.state !== "available" ? null : (
-            <p>
-              <FocusedGraphEntryLink
-                entry={scientificFocusedGraphEntryDraft({
-                  projectId: project.id,
-                  question:
-                    "Which recorded current relationships concern the Claim named by this event?",
-                  focusRef: {
-                    record_id: graphTarget.object_id,
-                    revision: graphTarget.revision,
-                    record_hash: graphTarget.record_hash,
-                  },
-                  originKind: "history",
-                  definitionRef: {
-                    project_definition_id:
-                      graphDefinitionAuthority.project_definition_ref
-                        .project_definition_id,
-                    revision:
-                      graphDefinitionAuthority.project_definition_ref.revision,
-                    content_hash:
-                      graphDefinitionAuthority.project_definition_ref
-                        .content_hash,
-                    record_hash:
-                      graphDefinitionAuthority.project_definition_ref
-                        .record_hash,
-                    definition_family: project.profile.definitionFamily,
-                  },
-                  returnDestinationKind: "history",
-                  returnDestinationOwner: "project_history_episode_view",
-                  returnLabel: "History event",
-                  returnFocusId: "history-event-record-title",
-                })}
-              >
-                Inspect this exact Claim in the current bounded Graph
-              </FocusedGraphEntryLink>
-            </p>
+            <ul>
+              <li>
+                <FocusedGraphEntryLink
+                  entry={scientificFocusedGraphEntryDraft({
+                    projectId: project.id,
+                    question:
+                      "Which recorded current relationships concern the Claim named by this event?",
+                    focusRef: {
+                      record_id: graphTarget.object_id,
+                      revision: graphTarget.revision,
+                      record_hash: graphTarget.record_hash,
+                    },
+                    originKind: "history",
+                    definitionRef: {
+                      project_definition_id:
+                        graphDefinitionAuthority.project_definition_ref
+                          .project_definition_id,
+                      revision:
+                        graphDefinitionAuthority.project_definition_ref
+                          .revision,
+                      content_hash:
+                        graphDefinitionAuthority.project_definition_ref
+                          .content_hash,
+                      record_hash:
+                        graphDefinitionAuthority.project_definition_ref
+                          .record_hash,
+                      definition_family: project.profile.definitionFamily,
+                    },
+                    returnDestinationKind: "history",
+                    returnDestinationOwner: "project_history_episode_view",
+                    returnLabel: "History event",
+                    returnFocusId: "history-event-record-title",
+                  })}
+                >
+                  Inspect this exact Claim in the current bounded Graph
+                </FocusedGraphEntryLink>
+              </li>
+              <li>
+                <FocusedGraphEntryLink
+                  entry={scientificFocusedGraphEntryDraft({
+                    projectId: project.id,
+                    question:
+                      "What recorded dependencies and assessed consequences concern this exact Claim and History event?",
+                    focusRef: {
+                      record_id: graphTarget.object_id,
+                      revision: graphTarget.revision,
+                      record_hash: graphTarget.record_hash,
+                    },
+                    originKind: "history",
+                    definitionRef: {
+                      project_definition_id:
+                        graphDefinitionAuthority.project_definition_ref
+                          .project_definition_id,
+                      revision:
+                        graphDefinitionAuthority.project_definition_ref
+                          .revision,
+                      content_hash:
+                        graphDefinitionAuthority.project_definition_ref
+                          .content_hash,
+                      record_hash:
+                        graphDefinitionAuthority.project_definition_ref
+                          .record_hash,
+                      definition_family: project.profile.definitionFamily,
+                    },
+                    returnDestinationKind: "history",
+                    returnDestinationOwner: "project_history_episode_view",
+                    returnLabel: "History event",
+                    returnFocusId: "history-event-record-title",
+                    analysis: {
+                      analysis_kind: "impact",
+                      history_event_id: episode.event_id,
+                    },
+                  })}
+                >
+                  Inspect exact impact in Graph
+                </FocusedGraphEntryLink>
+              </li>
+              <li>
+                <FocusedGraphEntryLink
+                  entry={scientificFocusedGraphEntryDraft({
+                    projectId: project.id,
+                    question:
+                      "What recorded-time facts are supplied for this exact Claim position?",
+                    focusRef: {
+                      record_id: graphTarget.object_id,
+                      revision: graphTarget.revision,
+                      record_hash: graphTarget.record_hash,
+                    },
+                    originKind: "history",
+                    definitionRef: {
+                      project_definition_id:
+                        graphDefinitionAuthority.project_definition_ref
+                          .project_definition_id,
+                      revision:
+                        graphDefinitionAuthority.project_definition_ref
+                          .revision,
+                      content_hash:
+                        graphDefinitionAuthority.project_definition_ref
+                          .content_hash,
+                      record_hash:
+                        graphDefinitionAuthority.project_definition_ref
+                          .record_hash,
+                      definition_family: project.profile.definitionFamily,
+                    },
+                    returnDestinationKind: "history",
+                    returnDestinationOwner: "project_history_episode_view",
+                    returnLabel: "History event",
+                    returnFocusId: "history-event-record-title",
+                    analysis: {
+                      analysis_kind: "time",
+                      temporal_dimension: "recorded_time",
+                    },
+                  })}
+                >
+                  Inspect supplied recorded-time facts in Graph
+                </FocusedGraphEntryLink>
+              </li>
+            </ul>
           )}
           <details>
             <summary>Complete retained event and causal record</summary>

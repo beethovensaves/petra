@@ -220,6 +220,49 @@ describe("remaining neutral reference packets", () => {
     expect(markup).not.toContain("Execute governed Revert");
   });
 
+  it("offers exact impact and time graph tasks only for an exact Claim event target", () => {
+    const claimEpisode = structuredClone(historyEpisode);
+    claimEpisode.content.change.targets[0] = {
+      role: "primary",
+      semantic_key: "scientific.claim",
+      object_id: "claim_01ARZ3NDEKTSV4RRFFQ69G5FAB",
+      revision: 1,
+      content_hash: `sha256:${"a".repeat(64)}`,
+      record_hash: `sha256:${"b".repeat(64)}`,
+      authority_state: "current",
+    };
+    const markup = renderToStaticMarkup(
+      <MemoryRouter
+        initialEntries={[
+          `/projects/${claimEpisode.project_id}/history/${claimEpisode.event_id}`,
+        ]}
+      >
+        <HistoryEventSurface
+          project={{
+            ...inquiryProject,
+            id: claimEpisode.project_id,
+            profile: {
+              ...inquiryProject.profile,
+              definitionFamily: "petra.scientific-evidence",
+            },
+          }}
+          data={{
+            episode: claimEpisode,
+            impact: historyImpact,
+            recovery: historyRecovery,
+          }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(markup).toContain("Inspect exact impact in Graph");
+    expect(markup).toContain("Inspect supplied recorded-time facts in Graph");
+    expect(markup).toContain("presentation=impact");
+    expect(markup).toContain("presentation=time");
+    expect(markup).toContain(`historyEventId=${claimEpisode.event_id}`);
+    expect(markup).not.toContain("layout=");
+  });
+
   it("keeps an ineligible governed Revert keyboard-discoverable without an execution control", () => {
     const blocked = structuredClone(historyRecovery);
     blocked.content.assessment.state = "already_compensated";

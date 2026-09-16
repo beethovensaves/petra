@@ -797,6 +797,7 @@ export const FocusedGraphResult = ({
   layout = "relationship",
   onSelect,
   idPrefix = "focused-result",
+  showRepresentationControls = true,
 }: {
   regions: FocusedGraphRegions;
   initialRepresentation?: FocusedGraphRepresentation;
@@ -810,6 +811,7 @@ export const FocusedGraphResult = ({
   layout?: FocusedGraphLayout;
   onSelect?: ((key: string) => void) | undefined;
   idPrefix?: string;
+  showRepresentationControls?: boolean;
 }): React.JSX.Element => {
   const [uncontrolledRepresentation, setUncontrolledRepresentation] =
     useState<FocusedGraphRepresentation>(initialRepresentation);
@@ -833,25 +835,27 @@ export const FocusedGraphResult = ({
           {regions.graph.paths.length} paths
         </span>
       </header>
-      <div className="graph-controls">
-        <PetraButtonGroup label="Representation">
-          {(["graph", "text"] as const).map((value) => (
-            <PetraButton
-              key={value}
-              density="compact"
-              variant={representation === value ? "secondary" : "quiet"}
-              aria-pressed={representation === value}
-              onClick={() => setRepresentation(value)}
-            >
-              {value === "graph" ? "Graph" : "Text"}
-            </PetraButton>
-          ))}
-        </PetraButtonGroup>
-        <p>
-          Labels, direction words, symbols, and line patterns carry meaning;
-          color and position do not stand alone.
-        </p>
-      </div>
+      {showRepresentationControls ? (
+        <div className="graph-controls">
+          <PetraButtonGroup label="Representation">
+            {(["graph", "text"] as const).map((value) => (
+              <PetraButton
+                key={value}
+                density="compact"
+                variant={representation === value ? "secondary" : "quiet"}
+                aria-pressed={representation === value}
+                onClick={() => setRepresentation(value)}
+              >
+                {value === "graph" ? "Graph" : "Text"}
+              </PetraButton>
+            ))}
+          </PetraButtonGroup>
+          <p>
+            Labels, direction words, symbols, and line patterns carry meaning;
+            color and position do not stand alone.
+          </p>
+        </div>
+      ) : null}
       <div className="focused-graph-result">
         {representation === "graph" ? (
           <GraphPeer

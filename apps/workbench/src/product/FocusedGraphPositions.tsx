@@ -24,15 +24,20 @@ export interface FocusedGraphPositionPaths {
   readonly working: string;
   readonly historical?: string;
   readonly comparison: string;
+  readonly time?: string;
 }
 
 export const FocusedGraphPositionNavigation = ({
   activeLayer,
   comparisonActive,
+  timeActive = false,
+  analysisActive = false,
   paths,
 }: {
   activeLayer: Layer;
   comparisonActive: boolean;
+  timeActive?: boolean;
+  analysisActive?: boolean;
   paths: FocusedGraphPositionPaths;
 }): React.JSX.Element => (
   <nav className="focused-graph-position-nav" aria-label="Graph position">
@@ -43,7 +48,11 @@ export const FocusedGraphPositionNavigation = ({
     >
       {(["current", "working", "historical"] as const).map((layer) => {
         const path = paths[layer];
-        const current = !comparisonActive && activeLayer === layer;
+        const current =
+          !analysisActive &&
+          !comparisonActive &&
+          !timeActive &&
+          activeLayer === layer;
         return path === undefined ? (
           <span
             key={layer}
@@ -90,6 +99,18 @@ export const FocusedGraphPositionNavigation = ({
           to={paths.comparison}
         >
           Compare Current / Working changes
+        </Link>
+      )}
+      {paths.time === undefined ? null : timeActive ? (
+        <span
+          className="focused-graph-position-nav__current"
+          aria-current="page"
+        >
+          Time · recorded
+        </span>
+      ) : (
+        <Link className="focused-graph-position-nav__link" to={paths.time}>
+          Time · recorded
         </Link>
       )}
     </div>
@@ -153,7 +174,7 @@ const samePositionTask = (
   );
 };
 
-const PositionFacts = ({
+export const FocusedGraphPositionFacts = ({
   label,
   regions,
 }: {
@@ -289,7 +310,7 @@ export const FocusedGraphComparison = ({
       <div className="focused-graph-comparison__positions">
         <article aria-labelledby="focused-graph-before-title">
           <h3 id="focused-graph-before-title">Before · Current</h3>
-          <PositionFacts label="Before" regions={before} />
+          <FocusedGraphPositionFacts label="Before" regions={before} />
           <FocusedGraphResult
             regions={before}
             initialRepresentation="text"
@@ -298,7 +319,7 @@ export const FocusedGraphComparison = ({
         </article>
         <article aria-labelledby="focused-graph-after-title">
           <h3 id="focused-graph-after-title">After · Working changes</h3>
-          <PositionFacts label="After" regions={after} />
+          <FocusedGraphPositionFacts label="After" regions={after} />
           <FocusedGraphResult
             regions={after}
             initialRepresentation="text"

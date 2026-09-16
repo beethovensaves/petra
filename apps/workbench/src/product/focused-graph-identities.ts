@@ -33,6 +33,10 @@ const createRequestId = (prefix: string): string => {
 export const createFocusedGraphRequestId = (): string =>
   createRequestId("focused_graph_request");
 
+/** Creates a read-only analysis request identity; it grants no domain authority. */
+export const createFocusedGraphAnalysisRequestId = (): string =>
+  createRequestId("focused_graph_analysis_request");
+
 /** Creates a read-only Details request identity; it grants no domain authority. */
 export const createFocusedGraphDetailsRequestId = (): string =>
   createRequestId("focused_graph_details_request");
