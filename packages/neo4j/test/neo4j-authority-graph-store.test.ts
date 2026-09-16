@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
+import { performance } from "node:perf_hooks";
 
 import type {
   PetraActor,
@@ -28,6 +29,7 @@ import {
   ScientificGraphProjector,
   buildCompensatingReversalCommandPlan,
   buildAuthorityGraphBatch,
+  derivePetraId,
   executeCompensatingReversalPlan,
   type ArtifactStore,
   type AuthorityGraphNode,
@@ -278,6 +280,19 @@ const projection: ProjectionIdentity = {
 };
 
 const graphContracts = new PetraContractRegistry();
+const slice19Observation = {
+  projection_apply_ms: 0,
+  focused_query_ms: 0,
+  dense_projection_apply_ms: 0,
+  dense_query_ms: 0,
+  projection_rebuild_ms: 0,
+  dense_claims: 0,
+  dense_relationships: 0,
+  bounded_relationships_returned: 0,
+  cycle_relationships_returned: 0,
+  disconnected_read_error: "",
+  retry_read_succeeded: false,
+};
 const registeredContract = (name: string, version?: string) => {
   const entry = graphContracts.entries.find(
     (candidate) =>
@@ -556,9 +571,13 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
       },
     });
 
+    const projectionApplyStarted = performance.now();
     const projected = await projector.project(
       checkpoint.projection_checkpoint_id,
       outbox,
+    );
+    slice19Observation.projection_apply_ms = Number(
+      (performance.now() - projectionApplyStarted).toFixed(3),
     );
     expect(projected.checkpoint.content.position.target_sequence).toBe(1);
     expect(projected.checkpoint.content.freshness.state).toBe("current");
@@ -711,9 +730,13 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
         maximum_paths: 19,
       },
     } satisfies FocusedGraphViewRequest;
+    const focusedQueryStarted = performance.now();
     const focusedGraph = await focusedGraphViews.queryFocusedGraph(
       event.project_id,
       focusedRequest,
+    );
+    slice19Observation.focused_query_ms = Number(
+      (performance.now() - focusedQueryStarted).toFixed(3),
     );
     expect(focusedGraph?.project_id).toBe(event.project_id);
     expect(focusedGraph?.content.semantic_layer).toBe("current");
@@ -873,6 +896,61 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
     support.rationale = "Test-only proposed scientific relation.";
     await evidence.proposeAssertion(support);
 
+    const denseClaims: PetraClaim[] = [];
+    const denseAssertions: PetraAssertion[] = [];
+    for (let index = 0; index < 32; index += 1) {
+      const claim = claimFixture();
+      claim.claim_id = derivePetraId(
+        "claim",
+        `wave5-slice19-dense-claim:${index}`,
+      );
+      claim.canonical_text = `Bounded dense-path Claim ${index + 1}.`;
+      await evidence.proposeClaim(claim);
+      denseClaims.push(claim);
+
+      const assertion = assertionFixture();
+      assertion.assertion_id = derivePetraId(
+        "assertion",
+        `wave5-slice19-dense-assertion:${index}`,
+      );
+      assertion.subject_id = appliedPayload.claim.claim_id;
+      assertion.predicate = "SUPPORTS";
+      assertion.object = {
+        object_kind: "entity",
+        entity_id: claim.claim_id,
+      };
+      assertion.assertion_kind = "model_inference";
+      assertion.scope_comparison = {
+        relation: "aligned",
+        rationale:
+          "This retained adverse-state member uses the same bounded fixture scope.",
+      };
+      assertion.rationale =
+        "Retained only to exercise dense finite production projection reads.";
+      await evidence.proposeAssertion(assertion);
+      denseAssertions.push(assertion);
+    }
+    const cycleAssertion = assertionFixture();
+    cycleAssertion.assertion_id = derivePetraId(
+      "assertion",
+      "wave5-slice19-cycle-assertion",
+    );
+    cycleAssertion.subject_id = denseClaims[0]!.claim_id;
+    cycleAssertion.predicate = "QUALIFIES";
+    cycleAssertion.object = {
+      object_kind: "entity",
+      entity_id: appliedPayload.claim.claim_id,
+    };
+    cycleAssertion.assertion_kind = "model_inference";
+    cycleAssertion.scope_comparison = {
+      relation: "aligned",
+      rationale:
+        "The cycle closes only within the exact adverse-state fixture scope.",
+    };
+    cycleAssertion.rationale =
+      "Retained only to exercise cyclic production projection reads.";
+    await evidence.proposeAssertion(cycleAssertion);
+
     const material = await source.load(outbox);
     const second = structuredClone(
       buildAuthorityGraphBatch(projection, outbox, material),
@@ -958,10 +1036,121 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
         },
       },
     ];
-    second.nodes = [...second.nodes, ...extraNodes];
-    second.relationships = [...second.relationships, ...extraRelationships];
+    const denseNodes: AuthorityGraphNode[] = denseClaims.map((claim) => ({
+      id: claim.claim_id,
+      kind: "Claim",
+      authoritativeRevision: claim.revision,
+      recordHash: hash(claim),
+      properties: {
+        canonical_text: claim.canonical_text,
+        claim_kind: claim.claim_kind,
+        authority_zone: claim.authority.zone,
+        review_state: claim.authority.review_state,
+      },
+    }));
+    const denseProjectRelationships: AuthorityGraphRelationship[] =
+      denseNodes.map((node) => ({
+        edgeId: `project:${event.project_id}:projects:${node.id}`,
+        predicate: "PROJECTS",
+        relationClass: "projection_scope",
+        sourceId: event.project_id,
+        targetId: node.id,
+        authoritativeRevision: second.outbox.streamRevision,
+        recordHash: hash({
+          projectId: event.project_id,
+          node: node.recordHash,
+        }),
+        properties: { project_id: event.project_id },
+      }));
+    const denseScientificRelationships: AuthorityGraphRelationship[] = [
+      ...denseAssertions.map((assertion) => ({
+        edgeId: assertion.assertion_id,
+        assertionId: assertion.assertion_id,
+        predicate: assertion.predicate,
+        relationClass: "scientific" as const,
+        sourceId: assertion.subject_id,
+        targetId:
+          assertion.object.object_kind === "entity"
+            ? assertion.object.entity_id
+            : assertion.subject_id,
+        authoritativeRevision: assertion.revision,
+        recordHash: hash(assertion),
+        properties: {
+          project_id: event.project_id,
+          authority_zone: assertion.authority.zone,
+          review_state: assertion.authority.review_state,
+          assertion_kind: assertion.assertion_kind,
+        },
+      })),
+      {
+        edgeId: cycleAssertion.assertion_id,
+        assertionId: cycleAssertion.assertion_id,
+        predicate: cycleAssertion.predicate,
+        relationClass: "scientific",
+        sourceId: cycleAssertion.subject_id,
+        targetId:
+          cycleAssertion.object.object_kind === "entity"
+            ? cycleAssertion.object.entity_id
+            : cycleAssertion.subject_id,
+        authoritativeRevision: cycleAssertion.revision,
+        recordHash: hash(cycleAssertion),
+        properties: {
+          project_id: event.project_id,
+          authority_zone: cycleAssertion.authority.zone,
+          review_state: cycleAssertion.authority.review_state,
+          assertion_kind: cycleAssertion.assertion_kind,
+        },
+      },
+    ];
+    second.nodes = [...second.nodes, ...extraNodes, ...denseNodes];
+    second.relationships = [
+      ...second.relationships,
+      ...extraRelationships,
+      ...denseProjectRelationships,
+      ...denseScientificRelationships,
+    ];
+    const denseProjectionStarted = performance.now();
     await expect(graph.apply(second)).resolves.toEqual(
       expect.objectContaining({ targetSequence: 2, duplicate: false }),
+    );
+    slice19Observation.dense_projection_apply_ms = Number(
+      (performance.now() - denseProjectionStarted).toFixed(3),
+    );
+    slice19Observation.dense_claims = denseClaims.length;
+    slice19Observation.dense_relationships =
+      denseScientificRelationships.length;
+
+    const denseQueryStarted = performance.now();
+    const boundedDenseRelationships = await graph.getEvidenceRelations(
+      event.project_id,
+      appliedPayload.claim.claim_id,
+      12,
+    );
+    slice19Observation.dense_query_ms = Number(
+      (performance.now() - denseQueryStarted).toFixed(3),
+    );
+    slice19Observation.bounded_relationships_returned =
+      boundedDenseRelationships.length;
+    expect(boundedDenseRelationships).toHaveLength(12);
+    const cycleRelationships = await graph.getEvidenceRelations(
+      event.project_id,
+      denseClaims[0]!.claim_id,
+      100,
+    );
+    slice19Observation.cycle_relationships_returned = cycleRelationships.length;
+    expect(cycleRelationships).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: denseAssertions[0]!.assertion_id,
+          sourceId: appliedPayload.claim.claim_id,
+          targetId: denseClaims[0]!.claim_id,
+        }),
+        expect.objectContaining({
+          id: cycleAssertion.assertion_id,
+          sourceId: denseClaims[0]!.claim_id,
+          targetId: appliedPayload.claim.claim_id,
+        }),
+      ]),
     );
 
     expect(
@@ -976,18 +1165,19 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
       assertionIds: [citation.assertion_id],
       predicates: ["CITES"],
     });
-    expect(
+    const retainedSupport = (
       await graph.getEvidenceRelations(
         event.project_id,
         appliedPayload.claim.claim_id,
-      ),
-    ).toEqual([
+      )
+    ).find((relationship) => relationship.assertionId === support.assertion_id);
+    expect(retainedSupport).toEqual(
       expect.objectContaining({
         kind: "SUPPORTS",
         assertionId: support.assertion_id,
         recordHash: hash(await evidence.getAssertion(support.assertion_id)),
       }),
-    ]);
+    );
     expect(
       await graph.getObject(event.project_id, citation.assertion_id),
     ).toEqual(
@@ -1030,11 +1220,15 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
         appliedPayload.assertion.assertion_id,
       )
     )?.assertion.assertionId;
+    const rebuildStarted = performance.now();
     await expect(
       projector.rebuild(event.project_id, projection, [outbox]),
     ).resolves.toEqual([
       expect.objectContaining({ targetSequence: 1, duplicate: false }),
     ]);
+    slice19Observation.projection_rebuild_ms = Number(
+      (performance.now() - rebuildStarted).toFixed(3),
+    );
     expect(
       (
         await graph.getProvenancePath(
@@ -1049,6 +1243,47 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
     expect(await graph.getFreshness(event.project_id, projection, 1)).toEqual(
       expect.objectContaining({ state: "current", pendingRecords: 0 }),
     );
+
+    const disconnectedDriver = neo4j.driver(
+      "bolt://127.0.0.1:1",
+      neo4j.auth.basic("neo4j", "unavailable"),
+      { connectionTimeout: 500, maxTransactionRetryTime: 0 },
+    );
+    const disconnectedGraph = new Neo4jAuthorityGraphStore({
+      driver: disconnectedDriver,
+    });
+    let disconnectedReadFailed = false;
+    try {
+      await disconnectedGraph.getObject(
+        event.project_id,
+        appliedPayload.claim.claim_id,
+      );
+    } catch (error) {
+      disconnectedReadFailed = true;
+      slice19Observation.disconnected_read_error =
+        error instanceof Error ? error.name : "unknown";
+    }
+    expect(disconnectedReadFailed).toBe(true);
+    await disconnectedDriver.close();
+    const retryDriver = neo4j.driver(
+      neo4jUri ?? "bolt://127.0.0.1:1",
+      neo4j.auth.basic(
+        process.env.PETRA_TEST_NEO4J_USER ?? "neo4j",
+        process.env.PETRA_TEST_NEO4J_PASSWORD ?? "petra-integration-only",
+      ),
+    );
+    try {
+      const retryGraph = new Neo4jAuthorityGraphStore({ driver: retryDriver });
+      await retryGraph.prepare();
+      slice19Observation.retry_read_succeeded =
+        (await retryGraph.getObject(
+          event.project_id,
+          appliedPayload.claim.claim_id,
+        )) !== undefined;
+      expect(slice19Observation.retry_read_succeeded).toBe(true);
+    } finally {
+      await retryDriver.close();
+    }
 
     const trustedClaim = await evidence.getClaim(appliedPayload.claim.claim_id);
     const trustedPairAssertion = await evidence.getAssertion(
@@ -1162,5 +1397,26 @@ describeServices("Neo4j authority graph with PostgreSQL traceability", () => {
     expect(records[1]?.content.outcome).toEqual(
       expect.objectContaining({ outcome_kind: "applied" }),
     );
-  });
+
+    const observationPath = process.env.PETRA_WAVE5_SLICE19_OBSERVATION;
+    if (observationPath !== undefined && observationPath.trim() !== "") {
+      writeFileSync(
+        observationPath,
+        `${JSON.stringify(
+          {
+            node: process.version,
+            stores: {
+              postgresql: "fresh disposable PostgreSQL 18.6",
+              neo4j: "fresh disposable Neo4j 2026.07.1",
+            },
+            ...slice19Observation,
+            timing_boundary:
+              "Observed on this disposable integration run; not a product threshold, SLA, authority fact, or universal performance claim.",
+          },
+          null,
+          2,
+        )}\n`,
+      );
+    }
+  }, 15_000);
 });

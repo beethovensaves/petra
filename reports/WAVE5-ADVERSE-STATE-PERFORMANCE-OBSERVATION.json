@@ -1,0 +1,100 @@
+{
+  "schema_name": "petra.wave5-adverse-state-performance-observation",
+  "schema_version": "1.0.0",
+  "slice": "wave5-slice19",
+  "status": "pass",
+  "recorded_at": "2026-09-16T06:02:17.804Z",
+  "environment": {
+    "node": "v24.20.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "stores": {
+      "postgresql": "fresh disposable PostgreSQL 18.6",
+      "neo4j": "fresh disposable Neo4j 2026.07.1"
+    }
+  },
+  "fixture": {
+    "dense_claims": 32,
+    "dense_relationships": 33,
+    "bounded_relationships_returned": 12,
+    "cycle_relationships_returned": 2,
+    "finite_relationship_limit": 12
+  },
+  "observations": {
+    "server": {
+      "production_http_server": true,
+      "older_response_ms": 49.852,
+      "newer_response_ms": 40.266,
+      "completion_order": ["newer", "older"],
+      "disconnected_error": "TypeError",
+      "exact_retry_ms": 46.279,
+      "exact_request_body_reused": true
+    },
+    "query": {
+      "focused_query_ms": 110.724,
+      "dense_query_ms": 7.154
+    },
+    "projection": {
+      "initial_apply_ms": 998.237,
+      "dense_apply_ms": 521.555,
+      "rebuild_ms": 187.805,
+      "disconnected_read_error": "Neo4jError",
+      "retry_read_succeeded": true
+    },
+    "phases": [
+      {
+        "id": "build",
+        "status": "passed",
+        "command": "npm run build:packages",
+        "process_wall_time_ms": 120.261
+      },
+      {
+        "id": "query-owner",
+        "status": "passed",
+        "command": "npm test --workspace @petra/postgres -- --run test/focused-graph-view-reader.test.ts",
+        "process_wall_time_ms": 675.702
+      },
+      {
+        "id": "server-route",
+        "status": "passed",
+        "command": "npm test --workspace @petra/server -- --run test/focused-graph-route.test.ts",
+        "process_wall_time_ms": 1206.718
+      },
+      {
+        "id": "typed-client-recovery",
+        "status": "passed",
+        "command": "npm test --workspace @petra/adapters -- --run test/focused-graph-client.test.ts",
+        "process_wall_time_ms": 777.864
+      },
+      {
+        "id": "late-response-controller",
+        "status": "passed",
+        "command": "npm test --workspace @petra/workbench -- --run src/product/focused-graph-exploration.test.tsx",
+        "process_wall_time_ms": 1120.306
+      },
+      {
+        "id": "postgres-neo4j-projection",
+        "status": "passed",
+        "command": "/opt/homebrew/Cellar/node@24/24.20.0/bin/node scripts/test-neo4j-integration.mjs",
+        "process_wall_time_ms": 18758.011
+      }
+    ]
+  },
+  "exercised_states": {
+    "dense_and_cyclic": "passed",
+    "finite_limits_and_caps": "passed",
+    "stale_snapshot": "passed",
+    "late_response": "passed",
+    "restricted_and_missing_targets": "passed",
+    "projection_lag_and_rebuild": "passed",
+    "disconnect_and_exact_retry": "passed"
+  },
+  "authority_boundary": {
+    "postgresql_authoritative": true,
+    "neo4j_rebuildable_projection": true,
+    "retry_is_a_read_delivery_retry": true,
+    "no_domain_command_or_effect_created_by_server_trace": true,
+    "timing_is_observation_not_product_truth": true
+  },
+  "evidence_boundary": "This backend support trace is verification for Slice 19. It is not the frozen UX1.5-EV04/dense-cyclic-performance browser record and does not supply render timing, layout stability, or browser accessibility evidence."
+}
