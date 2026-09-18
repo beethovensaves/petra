@@ -77,6 +77,7 @@
     "wave:doctor": "node scripts/wave-handoff.mjs doctor",
     "wave:status": "node scripts/wave-handoff.mjs status",
     "wave:stop": "node scripts/wave-handoff.mjs stop",
+    "wave:resume": "node scripts/wave-handoff.mjs resume",
     "verify": "npm run contracts:check-generated && npm run fixtures:check-generated && npm run benchmark:retrieval:m1-floor:check && npm run format:check && npm run lint && npm run typecheck && npm run build:workbench && npm test",
     "services:config": "docker compose --env-file .env -f infra/dev/compose.yaml config --quiet",
     "services:up": "docker compose --env-file .env -f infra/dev/compose.yaml up --detach --wait",

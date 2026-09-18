@@ -524,6 +524,32 @@ export function evidenceOwnerCanSatisfy(owner, role) {
   return owner === "either" || owner === role;
 }
 
+export function normalizePlannedEvidenceRecords(plan, records = []) {
+  if (!plan) return records;
+  const requirements = evidenceRequirements(plan);
+  const keys = new Set(
+    requirements.map((requirement) => evidenceKey(requirement)),
+  );
+  return records.map((record) => {
+    if (keys.has(evidenceKey(record))) return record;
+    if (record.evidence_id !== record.scenario_id) return record;
+    const requirement = requirements.find(
+      (candidate) =>
+        record.evidence_id ===
+          `${candidate.evidence_id}/${candidate.scenario_id}` ||
+        record.evidence_id ===
+          `${candidate.evidence_id}::${candidate.scenario_id}`,
+    );
+    return requirement
+      ? {
+          ...record,
+          evidence_id: requirement.evidence_id,
+          scenario_id: requirement.scenario_id,
+        }
+      : record;
+  });
+}
+
 function readEvidencePlan(wave, maxSlices) {
   const path = waveEvidencePlanPath(wave);
   if (!existsSync(path)) {
@@ -753,7 +779,7 @@ export function buildWorkerPrompt({
     recordedEvidence.map((record) => evidenceKey(record)),
   );
   const evidenceControl = evidencePlan
-    ? `\nEXECUTED EVIDENCE CONTROL\nThe frozen evidence plan requires ${requirements.length} scenario records. ${recorded.size} are currently recorded. The inventory audit is due by completed slice ${evidencePlan.inventory_audit.required_by_completed_slice}, leaving ${evidencePlan.remediation_reserve_slices} remediation slices. A helper, test case, route, fixture, report, or scenario definition that was not invoked is not evidence. Return an evidence entry only for a named scenario actually executed in this slice. Each entry must name its command, retained artifact, and honest boundary. A completion claim is rejected while any required scenario lacks a passed record.\n\nOutstanding records:\n${missingRequiredEvidence(
+    ? `\nEXECUTED EVIDENCE CONTROL\nThe frozen evidence plan requires ${requirements.length} scenario records. ${recorded.size} are currently recorded. The inventory audit is due by completed slice ${evidencePlan.inventory_audit.required_by_completed_slice}, leaving ${evidencePlan.remediation_reserve_slices} remediation slices. A helper, test case, route, fixture, report, or scenario definition that was not invoked is not evidence. Return an evidence entry only for a named scenario actually executed in this slice. Copy evidence_id and scenario_id into their separate JSON fields exactly as shown; never concatenate them. Each entry must name its command, retained artifact, and honest boundary. A completion claim is rejected while any required scenario lacks a passed record.\n\nOutstanding records:\n${missingRequiredEvidence(
         evidencePlan,
         recordedEvidence,
       )
@@ -1204,6 +1230,10 @@ async function finalizeTurn(wave, role, claimedState, worker) {
   const otherRole = role === "backend" ? "design" : "backend";
   const result = worker.result;
   const evidencePlan = readEvidencePlan(wave, claimedState.max_slices);
+  const resultEvidence = normalizePlannedEvidenceRecords(
+    evidencePlan,
+    result.evidence,
+  );
   const own = repositorySnapshot(role);
   const counterpart = repositorySnapshot(otherRole);
 
@@ -1225,7 +1255,7 @@ async function finalizeTurn(wave, role, claimedState, worker) {
         requirement,
       ]),
     );
-    for (const record of result.evidence) {
+    for (const record of resultEvidence) {
       const requirement = requirements.get(evidenceKey(record));
       if (!requirement) {
         throw new Error(
@@ -1238,13 +1268,13 @@ async function finalizeTurn(wave, role, claimedState, worker) {
         );
       }
     }
-  } else if (result.evidence.length > 0) {
+  } else if (resultEvidence.length > 0) {
     throw new Error("Worker reported evidence without a frozen evidence plan.");
   }
 
   const prospectiveEvidence = mergeEvidence(
     claimedState.evidence,
-    result.evidence,
+    resultEvidence,
   );
   const disposition = enforceCompletionDisposition(
     result.disposition,
@@ -1269,7 +1299,7 @@ async function finalizeTurn(wave, role, claimedState, worker) {
       throw new Error("Handoff ownership changed before completion.");
     }
     const timestamp = new Date().toISOString();
-    state.evidence = mergeEvidence(state.evidence, result.evidence, {
+    state.evidence = mergeEvidence(state.evidence, resultEvidence, {
       role,
       commit: result.commit,
       run_id: worker.runId,
@@ -1592,12 +1622,71 @@ async function stop(wave) {
   process.stdout.write(`Wave ${wave} handoff stopped.\n`);
 }
 
+async function resumeBlockedWave(wave, role) {
+  if (!roles[role]) {
+    throw new Error("resume requires --role backend or --role design.");
+  }
+  await withStateLock(wave, () => {
+    const state = readState(wave);
+    if (!state) throw new Error(`Wave ${wave} is not initialized.`);
+    if (state.status !== "blocked") {
+      throw new Error(
+        `Wave ${wave} must be blocked before resume; current status is ${state.status}.`,
+      );
+    }
+    if (state.active?.pid && processExists(state.active.pid)) {
+      throw new Error(
+        `A ${state.active.role} worker is still active at pid ${state.active.pid}.`,
+      );
+    }
+    const otherRole = role === "backend" ? "design" : "backend";
+    const own = repositorySnapshot(role);
+    const counterpart = repositorySnapshot(otherRole);
+    requireCleanAndPushed(role, own);
+    requireCleanAndPushed(otherRole, counterpart);
+    if (counterpart.head !== state.commits[otherRole]) {
+      throw new Error(
+        `${otherRole} advanced after the blocked slice; reconcile it before resume.`,
+      );
+    }
+    if (!gitIsAncestor(roles[role].root, state.commits[role], own.head)) {
+      throw new Error(
+        `${role} HEAD does not descend from the controller's recorded commit.`,
+      );
+    }
+    const previousCommit = state.commits[role];
+    const previousReason = state.stop_reason;
+    const timestamp = new Date().toISOString();
+    state.status = "waiting";
+    state.next_role = role;
+    state.active = null;
+    state.commits[role] = own.head;
+    state.stop_reason = "";
+    state.handoff_prompt =
+      `Recover Wave ${wave} slice ${state.slice_count + 1} after coordinator validation stopped the prior ${role} attempt. ` +
+      `The clean pushed ${role} branch advanced from ${previousCommit} to ${own.head}; inspect that exact commit range and the latest run logs before changing anything. ` +
+      `Preserve completed work, execute or correct only the rejected handoff/evidence boundary (${previousReason}), then return the same bounded slice. Do not duplicate implementation or begin the next slice.`;
+    state.updated_at = timestamp;
+    state.operator_recoveries ??= [];
+    state.operator_recoveries.push({
+      role,
+      previous_commit: previousCommit,
+      recovered_commit: own.head,
+      reason: previousReason,
+      recovered_at: timestamp,
+    });
+    writeJsonAtomic(statePath(wave), state);
+  });
+  process.stdout.write(`Wave ${wave}: resumed blocked ${role} slice.\n`);
+}
+
 function printHelp() {
   process.stdout.write(`Usage:
   node scripts/wave-handoff.mjs worker --role backend|design [--wave 4] [--max-slices 64]
   node scripts/wave-handoff.mjs doctor [--wave 4]
   node scripts/wave-handoff.mjs status [--wave 4]
   node scripts/wave-handoff.mjs stop [--wave 4]
+  node scripts/wave-handoff.mjs resume --wave N --role backend|design
   node scripts/wave-handoff.mjs accept --wave N --evidence-id ID --scenario-id ID
 
 The backend worker initializes missing state. Start one worker in each worktree.
@@ -1615,6 +1704,8 @@ async function main() {
     process.stdout.write(`${stateSummary(readState(options.wave))}\n`);
   } else if (options.command === "stop") {
     await stop(options.wave);
+  } else if (options.command === "resume") {
+    await resumeBlockedWave(options.wave, options.role);
   } else if (options.command === "accept") {
     await acceptUserEvidence(
       options.wave,

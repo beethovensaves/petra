@@ -109,6 +109,7 @@ checksum.
 | `npm run wave:doctor -- --wave 3` | Verify that the two Wave 3 worktrees, remotes, Node 24, and Codex CLI are ready for automated handoff. |
 | `npm run wave:backend -- --wave 3` | Start the waiting backend worker for the bounded Wave 3 handoff loop. |
 | `npm run wave:status -- --wave 3` | Inspect the local Wave 3 worker, commit, and stop state. |
+| `npm run wave:resume -- --wave N --role backend|design` | Resume the same bounded slice after inspecting a blocked worker's clean pushed commit. |
 | `npm run audit:ui-operations` | Validate the contract-backed inventory of all user operations and report the current live/partial/unavailable/missing baseline. |
 | `npm run gate:wave6:user-testable` | Require every core Wave 6 operation to be live and backed by executed evidence. |
 | `npm run gate:wave7:composition` | Require cumulative core and Composition operations to be live and evidenced. |
