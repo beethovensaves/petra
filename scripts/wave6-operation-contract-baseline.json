@@ -1,0 +1,969 @@
+{
+  "schema_name": "petra.wave6-operation-contract-baseline",
+  "schema_version": 1,
+  "baseline_commit": "869cae6aea9fdc4cccf197ed905d7c17160f5492",
+  "scope": "Every UI operation with milestone 6 in scripts/ui-operation-inventory.json",
+  "owner_status_definitions": {
+    "owned": "A production backend query or command owns the operation's server-side contract. This does not claim that its UI control or evidence is complete.",
+    "partial": "A named production boundary supplies only part of the operation; missing_owner states the remaining runtime owner.",
+    "missing": "No production owner supplies the operation; missing_owner names the boundary that must be introduced.",
+    "client_owned": "The accepted operation is intentionally browser-local and needs no backend authority or durable server persistence."
+  },
+  "owners": {
+    "project-shell-read": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader -> PostgresProjectShellViewReader",
+      "authorization": "Bearer-authenticated API; the reader binds the requested Project and exact ProjectDefinition, Objective, snapshot, projection, and optional semantic selection.",
+      "persistence": "PostgreSQL Project, ProjectDefinition, Objective, authority, projection, and task summary records under one composed read.",
+      "recovery": "Returns explicit unauthorized, not-found, invalid-selection, unavailable, or failed-read states; it never mutates or substitutes fixture data."
+    },
+    "project-resume-partial": {
+      "kind": "partial",
+      "production_owner": "GET /api/queries/projects -> ProjectShellViewReader -> PostgresProjectShellViewReader",
+      "authorization": "Bearer-authenticated Project collection read.",
+      "persistence": "PostgreSQL retains Project identity and current shell facts, but not a canonical last task, origin, and focus tuple.",
+      "recovery": "The collection can reopen the Project; exact retained-task recovery is unavailable."
+    },
+    "project-create-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No authenticated CreateProject command or grant resolution exists.",
+      "persistence": "ProjectDefinition and Objective repositories exist, but no atomic product-level creation owner composes them.",
+      "recovery": "No idempotent creation receipt, partial-outcome assessment, or exact return exists."
+    },
+    "project-import-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No authenticated import/reuse command owns Project ancestry admission.",
+      "persistence": "Lower-level document and artifact lineage exists; no Project import root or product command persists it.",
+      "recovery": "No import receipt or retained partial-result assessment exists."
+    },
+    "project-recovery-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No Project-entry recovery action is registered.",
+      "persistence": "Existing owning records remain authoritative; there is no composed Project-entry recovery record.",
+      "recovery": "No effect/preservation/eligible-action/return composition exists for an unresolved Project entry."
+    },
+    "client-task-return": {
+      "kind": "client",
+      "production_owner": "Browser route state bound to server-supplied Project and object identities",
+      "authorization": "The browser may retain origin, focus, and scroll only; it cannot invent a Project, semantic object, or command identity.",
+      "persistence": "Session-local browser navigation state; no server persistence is required by the accepted boundary.",
+      "recovery": "A missing or stale origin must fall back to a server-supplied safe destination without implying command success."
+    },
+    "project-taxonomy-read": {
+      "kind": "partial",
+      "production_owner": "GET /api/queries/projects/:projectId/shell and /effective-controls -> PostgresProjectShellViewReader and PostgresProjectEffectiveControlsViewReader",
+      "authorization": "Bearer-authenticated, Project-scoped reads bind an exact ProjectDefinition revision and current effective controls.",
+      "persistence": "PostgreSQL immutable ProjectDefinition revisions, current binding, terminology, registered object/relationship types, and supported places.",
+      "recovery": "Unknown or unsupported semantic registrations fail closed; no complete usable taxonomy read exposes every Wave 6 category yet."
+    },
+    "brief-read": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects/:projectId/brief -> ProjectBriefViewReader -> PostgresProjectBriefViewReader",
+      "authorization": "Bearer-authenticated Project-scoped read with exact snapshot and optional baseline controls.",
+      "persistence": "PostgreSQL composes ProjectDefinition, Objective, attention, changes, recent decisions, and suggested-action references.",
+      "recovery": "Distinguishes invalid, stale, corrupt, unavailable, not-found, and successful reads without mutation."
+    },
+    "objective-command-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No authenticated reviewed command resolves authority to frame or revise a Project Objective.",
+      "persistence": "ProjectDefinition authority can store objective focus changes, but no public product command composes review and persistence.",
+      "recovery": "No preview, idempotent receipt, conflict result, member outcome, or return owner exists."
+    },
+    "suggested-action-read": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects/:projectId/suggested-actions -> SuggestedActionViewReader -> PostgresSuggestedActionViewReader",
+      "authorization": "Bearer-authenticated Project read; server resolves current Actor-dependent readiness and exact immutable action basis.",
+      "persistence": "PostgreSQL Project inquiry, ProjectDefinition, Objective, snapshot, context/evidence, Work, and grant facts.",
+      "recovery": "Returns ready, stale, unavailable, invalid, not-found, or failed-read outcomes without client-derived readiness."
+    },
+    "suggested-action-invoke": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke -> SuggestedActionInvocationCoordinator -> PostgresSuggestedActionInvocationAuthorityRepository",
+      "authorization": "Bearer authentication plus server-resolved human principal and exact InvokeSuggestedAction capability grant; request-carried authority is rejected.",
+      "persistence": "PostgreSQL immutable idempotent invocation, command/event/outbox, WorkUnit, InteractionRun, and result bindings; artifacts use S3 where applicable.",
+      "recovery": "Stable command identity supports safe reread; unknown effect is reconciled through the invocation view, interaction replay, cancellation assessment, and exact destinations."
+    },
+    "source-read": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects/:projectId/sources[/:projectSourceId] -> ProjectSourceViewReader -> PostgresProjectSourceViewReader",
+      "authorization": "Bearer-authenticated Project-scoped collection/detail read with exact ProjectSource identity.",
+      "persistence": "PostgreSQL ProjectSource revisions, retained source/artifact identity, rights, parse coverage, preview spans, downstream use, and authority position.",
+      "recovery": "Returns not-found or unavailable states and never converts a retained copy into endorsed meaning."
+    },
+    "source-intake-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No authenticated source registration/reuse command owns bytes, identity, rights, and Project membership together.",
+      "persistence": "Artifact, document, ProjectSource, and ancestry repositories exist separately; no Wave 6 intake transaction composes them.",
+      "recovery": "No idempotent registration/reuse receipt or partial upload/admission recovery exists."
+    },
+    "source-processing-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No ProjectSource-scoped production command starts a registered processing Work family.",
+      "persistence": "WorkUnit and document processing foundations exist, but no source-to-Work command binding is public.",
+      "recovery": "No start receipt, required-input result, cancel/retry assessment, or source return exists."
+    },
+    "source-processing-read": {
+      "kind": "partial",
+      "production_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId and GET /api/queries/projects/:projectId/work/:workUnitId",
+      "authorization": "Bearer-authenticated exact source and Work reads.",
+      "persistence": "PostgreSQL exposes parse coverage, source limitations, Work stages, inputs, resources, and outputs where linked.",
+      "recovery": "The two reads expose failures independently; a composed source-processing identity and exact recovery/return are incomplete."
+    },
+    "source-replacement": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/source-replacements -> ProjectSourceReplacementCommandAuthorityRepository -> PostgresProjectSourceReplacementCommandAuthorityRepository",
+      "authorization": "Bearer authentication plus server-resolved human principal and exact CreateProjectSourceReplacement grant.",
+      "persistence": "PostgreSQL immutable replacement record, command execution, event, outbox, and receipt; source materials remain retained.",
+      "recovery": "Idempotent receipt and separate authorized retraction preserve active/retracted lineage; this does not register new source bytes."
+    },
+    "source-lifecycle": {
+      "kind": "command",
+      "production_owner": "GET and POST /api/{queries,commands}/projects/:projectId/sources/:projectSourceId/lifecycle -> PostgresProjectSourceLifecycleViewReader and PostgresProjectSourceLifecycleAuthorityRepository",
+      "authorization": "Bearer authentication plus server-resolved human principal and exact ExcludeProjectSource or RestoreProjectSource grant.",
+      "persistence": "PostgreSQL additive ProjectSource status revisions, immutable command/event/outbox records, and lifecycle receipt; source material is retained.",
+      "recovery": "Preview names blockers and retained dependents; idempotent exclude/restore receipts support reconciliation and compensating restore."
+    },
+    "source-delete-partial": {
+      "kind": "partial",
+      "production_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/lifecycle -> PostgresProjectSourceLifecycleViewReader",
+      "authorization": "Bearer-authenticated preview only; delete_local_copy is deliberately excluded from public lifecycle command actions.",
+      "persistence": "The view reads retained dependency groups and retention areas; no physical deletion receipt exists.",
+      "recovery": "Eligibility can be inspected, but deletion, unknown-effect reconciliation, and recovery are unavailable pending an accepted retention owner."
+    },
+    "review-read": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects/:projectId/reviews[/:reviewSessionId] -> ProjectReviewViewReader -> PostgresProjectReviewViewReader",
+      "authorization": "Bearer-authenticated Project-scoped read binds exact ReviewSession/member and current profile/working identities.",
+      "persistence": "PostgreSQL ReviewSession lifecycle, member, candidate, relationship, basis, validation, ChangeSet, Approval, command/event, projection, and outcome records.",
+      "recovery": "Returns exact lifecycle and member outcomes or explicit not-found/unavailable/corrupt states; selection remains client-local."
+    },
+    "review-correction": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-correction -> PostgresReviewSessionAuthorityRepository",
+      "authorization": "Bearer authentication plus server-resolved human principal and exact CorrectReviewCandidate grant.",
+      "persistence": "PostgreSQL additive Claim, WorkingCandidate, WorkingRelationship, Review member/session, command/event/outbox, and receipt revisions.",
+      "recovery": "Stable command identity, expected hashes, conflict errors, and exact resulting records support safe reread without deciding or applying the member."
+    },
+    "review-basis": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-basis-revision -> PostgresReviewSessionAuthorityRepository",
+      "authorization": "Bearer authentication plus server-resolved human principal and exact ReviseReviewCandidateBasis grant.",
+      "persistence": "PostgreSQL additive material source basis, Claim, WorkingCandidate, WorkingRelationship, Review member/session, command/event/outbox, and receipt revisions.",
+      "recovery": "Expected identities and hashes prevent stale rebinding; exact results permit reread while preserving correction and decision boundaries."
+    },
+    "review-separation": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/separation -> PostgresReviewSessionAuthorityRepository",
+      "authorization": "Bearer authentication plus server-resolved human principal and exact SeparateReviewSessionMember grant.",
+      "persistence": "PostgreSQL advances the source ReviewSession and creates one immutable single-member ReviewSession with an exact partition receipt.",
+      "recovery": "Idempotent command and partition receipt preserve retained members and reject stale, incompatible, or atomic ChangeSet splits."
+    },
+    "review-apply": {
+      "kind": "command",
+      "production_owner": "GET apply-checkpoint and POST /api/commands/projects/:projectId/reviews/:reviewSessionId/apply -> PostgresReviewSessionApplyBoundary",
+      "authorization": "Bearer authentication plus one server-resolved human holding current SubmitChangeSet, RecordApproval, and ApplyChangeSet grants.",
+      "persistence": "PostgreSQL canonical ChangeSet, Approval, command execution, domain event, authority revisions, projection checkpoint, and per-member Apply result.",
+      "recovery": "Checkpoint revalidation and exact result distinguish applied, conflicted, retained, unknown-effect, and reconciliation-required outcomes."
+    },
+    "review-reject-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "Lower-level review decision planning exists, but no authenticated public Review rejection owner is configured.",
+      "persistence": "No product-level rejection command/receipt is composed into ReviewSession state and History.",
+      "recovery": "No exact rejection result, independent member outcome, or safe retry/reread boundary exists."
+    },
+    "review-lifecycle": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/lifecycle -> PostgresReviewSessionAuthorityRepository",
+      "authorization": "Bearer authentication plus server-resolved human principal and exact DeferReviewSession or ReopenReviewSession grant.",
+      "persistence": "PostgreSQL additive ReviewSession lifecycle revision, command/event/outbox, and immutable lifecycle receipt.",
+      "recovery": "Expected revision/hash and idempotent command identity return current state on duplicate and explicit stale/not-authorized outcomes."
+    },
+    "review-refresh": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/refresh -> PostgresReviewSessionAuthorityRepository",
+      "authorization": "Bearer authentication plus server-resolved human principal and exact RefreshReviewSession grant.",
+      "persistence": "PostgreSQL additive ReviewSession revision rebinding compatible current working heads with command/event/outbox and receipt.",
+      "recovery": "Retains the stale revision, rejects incompatible current heads, and returns the exact refreshed session or explicit conflict."
+    },
+    "graph-read": {
+      "kind": "query",
+      "production_owner": "POST /api/queries/projects/:projectId/focused-graph[/analysis|/details|/action-preview] -> PostgresFocusedGraphViewReader and profile-neutral composers",
+      "authorization": "Bearer-authenticated exact Project, ProjectDefinition, snapshot, semantic focus, position, and task request.",
+      "persistence": "PostgreSQL authority/working/history records plus Neo4j authoritative relationship projection; selections and layout remain client-local.",
+      "recovery": "Explicit invalid, unsupported, not-found, stale-definition, stale-snapshot, source-incompatible, projection-incoherent, and unavailable states."
+    },
+    "graph-question-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "ProjectInquiry read authority exists, but no authenticated command saves an exact Graph question/inquiry.",
+      "persistence": "PostgreSQL ProjectInquiry persistence exists below the product boundary; no public command receipt links the graph request.",
+      "recovery": "No conflict/idempotency result or exact return to the originating graph context exists."
+    },
+    "work-read": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects/:projectId/work[/:workUnitId] -> ProjectWorkViewReader -> PostgresProjectWorkViewReader",
+      "authorization": "Bearer-authenticated Project and exact WorkUnit read with ProjectDefinition Work support.",
+      "persistence": "PostgreSQL WorkUnit revisions, WorkerInput/Output manifests, resources, interaction/replay records, result summaries, and destinations where registered.",
+      "recovery": "Returns exact state, stages, inputs, resources, results, limitations, or explicit unsupported/not-found/unavailable destinations."
+    },
+    "work-start": {
+      "kind": "partial",
+      "production_owner": "SuggestedAction invocation command -> SuggestedActionInvocationCoordinator -> PetraInteractionRuntime",
+      "authorization": "Server-resolved InvokeSuggestedAction authority for one bounded grounded-synthesis Work family.",
+      "persistence": "PostgreSQL SuggestedAction invocation, WorkUnit, InteractionRun, execution, response, replay, and result records; S3 artifacts where applicable.",
+      "recovery": "Idempotent invocation, reread, replay, and cancellation are bounded to the registered suggested action; no generic Work-family start owner exists."
+    },
+    "work-input-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No authenticated command validates and records required input against an exact WorkUnit/input manifest.",
+      "persistence": "WorkerInputManifest can describe input, but no response record or Work transition owner exists.",
+      "recovery": "No duplicate/conflict/expired-input result, preserved draft, or exact Work return exists."
+    },
+    "work-steering-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No registered Work steering command or capability grant exists.",
+      "persistence": "No immutable steering request, accepted plan transition, or refusal record exists.",
+      "recovery": "No eligibility, stale-plan, duplicate-effect, or resume assessment exists."
+    },
+    "work-priority-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No registered inquiry/branch priority command or capability grant exists.",
+      "persistence": "ProjectInquiry reads exist, but operational ordering is not durably owned.",
+      "recovery": "No accepted/refused priority result or exact Work/inquiry return exists."
+    },
+    "interaction-delivery": {
+      "kind": "query",
+      "production_owner": "GET /api/interactions/:runId and GET /api/queries/interactions/:runId -> PetraInteractionRuntime -> DurableInteractionHistory",
+      "authorization": "Bearer-authenticated exact run/thread/connection and replay checkpoint; the client cannot alter recorded event identities.",
+      "persistence": "PostgreSQL InteractionRun, delivery/replay records, WorkUnit state, grounded response/execution records, and S3 artifacts.",
+      "recovery": "Supports detach, restore, reconnect, resume-after-sequence, full replay, aborted/write-error delivery recording, and explicit unknown-run/invalid-checkpoint states."
+    },
+    "work-cancel-partial": {
+      "kind": "partial",
+      "production_owner": "POST /api/work-units/:runId/cancel -> PetraInteractionRuntime and PostgresWorkUnitAuthorityRepository",
+      "authorization": "Bearer-authenticated exact run plus stable cancellation command identity; current production UI eligibility is supplied only for SuggestedAction Work.",
+      "persistence": "PostgreSQL WorkUnit cancellation and interaction terminal records.",
+      "recovery": "Idempotent cancellation result is reread through owning Work/invocation state; general Project Work eligibility and return composition remain incomplete."
+    },
+    "work-retry-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No public retry command or grant owns a failed Work attempt; one internal registration retry is not a product operation.",
+      "persistence": "Failed Work remains durable, but no retry-attempt identity and linkage are persisted by a public owner.",
+      "recovery": "No retry eligibility, duplicate prevention, new/current attempt result, or exact return exists."
+    },
+    "work-resume-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No checkpoint-resume command or capability grant exists.",
+      "persistence": "Checkpoint facts may be read, but no resumed attempt/transition receipt is persisted.",
+      "recovery": "No stale-checkpoint or already-resumed reconciliation exists."
+    },
+    "work-start-again-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No command explicitly creates a new attempt from prior Work under current authority.",
+      "persistence": "No prior/new attempt linkage or start-again receipt exists.",
+      "recovery": "No duplicate-start assessment, preserved prior result, or exact new Work destination exists."
+    },
+    "thread-read": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects/:projectId/threads[/:projectThreadId] -> ProjectThreadViewReader -> PostgresProjectThreadViewReader",
+      "authorization": "Bearer-authenticated Project/thread-scoped read with exact ProjectDefinition and retained turn bindings.",
+      "persistence": "PostgreSQL durable ProjectThread revisions and immutable completed turn bindings.",
+      "recovery": "Returns retained hash-only limitations for legacy prompts and explicit not-found/unavailable states; append/branch commands are absent."
+    },
+    "petra-interaction-partial": {
+      "kind": "partial",
+      "production_owner": "POST /api/interactions/run -> PetraInteractionRuntime -> certified grounded-synthesis executor and durable terminal",
+      "authorization": "Bearer authentication; server chooses the grounded-synthesist role and keeps model/provider authority out of request prose.",
+      "persistence": "PostgreSQL WorkUnit, interaction, execution, grounded response, and replay/delivery records plus S3 artifacts.",
+      "recovery": "Streaming, terminal failure, reconnect, and replay exist, but the public request does not yet expose complete exact Project context/readiness and production Petra UI binding."
+    },
+    "communication-read": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects/:projectId/communication -> CommunicationPlanReader -> PostgresCommunicationPlanReader",
+      "authorization": "Bearer-authenticated exact grounded-response/command/definition/locale binding.",
+      "persistence": "PostgreSQL grounded response, ProjectDefinition communication metadata, references, force, limitations, action links, and validation facts.",
+      "recovery": "Returns exact not-found, invalid-binding, failed-read, and no-store outcomes without client-generated claims."
+    },
+    "petra-action-partial": {
+      "kind": "partial",
+      "production_owner": "SuggestedAction read/invocation owners and focused-graph action-preview query",
+      "authorization": "Server supplies exact action identity, readiness, and grant-derived availability; confirmation reaches the same command as direct invocation.",
+      "persistence": "PostgreSQL action basis and invocation/command/Work results for the currently registered families.",
+      "recovery": "Reread and exact destinations exist for bounded SuggestedActions; no general allowlisted Petra action composition covers every Wave 6 action family."
+    },
+    "review-interrupt-partial": {
+      "kind": "partial",
+      "production_owner": "POST /api/commands/reviews/resolve -> PetraInteractionRuntime -> DurableReviewInterrupt boundary",
+      "authorization": "Bearer authentication plus an injected authenticated ReviewResolutionContext; the production server currently does not configure that authority.",
+      "persistence": "Durable interrupt primitives exist, but no production ProjectThread/Review/Work response composition is wired at startup.",
+      "recovery": "The route rejects unavailable or unauthorized authority; product reread, duplicate response reconciliation, and exact return are incomplete."
+    },
+    "model-readiness-partial": {
+      "kind": "partial",
+      "production_owner": "GET /diagnostics, GET /api/providers/codex/account, GET /api/providers/codex/models, and server-owned grounded-synthesist profile/certification",
+      "authorization": "Bearer-authenticated provider reads; provider credentials remain in the Codex sidecar and certified role selection remains server-owned.",
+      "persistence": "Provider status is live; certification fixtures and execution records exist, but no Project-bound certified-role readiness view is persisted/exposed.",
+      "recovery": "Provider unavailable/login/failure states exist; exact selected role, certification, context, and safe model-use availability are not composed."
+    },
+    "taxonomy-binding-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No Project creation/reset command accepts a server-registered profile/version choice.",
+      "persistence": "Immutable ProjectDefinition binding exists after setup, but no supported product command selects it.",
+      "recovery": "No safe unknown-profile result, idempotent binding receipt, or representative reset outcome exists."
+    },
+    "history-read": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects/:projectId/history/{recent,events,...} -> ProjectHistoryViewReader -> PostgresProjectHistoryViewReader",
+      "authorization": "Bearer-authenticated Project/snapshot/event/filter/cursor read with signed cursor and optional current recovery principal.",
+      "persistence": "PostgreSQL canonical command/event/authority/Work/source/projection records; History stores no second ledger.",
+      "recovery": "Explicit invalid/binding-mismatch/snapshot-unavailable restart, unsupported target, unknown impact, unavailable action, and exact destination states."
+    },
+    "history-revert": {
+      "kind": "command",
+      "production_owner": "GET recovery/preview, POST recovery/plan, and POST recovery/execute -> PostgresProjectHistoryViewReader and PostgresProjectHistoryCompensationExecutor",
+      "authorization": "Bearer authentication; plan is read-only, execution re-resolves current human grants and revalidates the exact preview authority.",
+      "persistence": "Existing ChangeSet, Approval, command, event, and authority repositories record each compensation step; no generic undo ledger is added.",
+      "recovery": "Reports retained success, retained terminal failure, unretained attempt failure, not-attempted work, conflicts, and a fresh exact History/Brief return."
+    },
+    "details-read": {
+      "kind": "query",
+      "production_owner": "POST /api/queries/projects/:projectId/focused-graph/details and GET /api/queries/projects/:projectId/object-location",
+      "authorization": "Bearer-authenticated exact semantic identity, Project, snapshot/definition, selection, and task intent.",
+      "persistence": "PostgreSQL/Neo4j semantic detail and destination facts; origin/focus/scroll remain browser-local.",
+      "recovery": "Distinguishes invalid, missing, stale, unsupported, superseded, unavailable, and safe fallback destination states."
+    },
+    "feedback-partial": {
+      "kind": "partial",
+      "production_owner": "The originating registered query or command and its immutable request/receipt identity",
+      "authorization": "Feedback may invoke only the exact owning command or recovery action supplied by that owner; there is no generic confirm/retry authority.",
+      "persistence": "Outcomes remain in owning records; transient notices are browser-local.",
+      "recovery": "Some owners provide idempotent retry/reread, but no complete cross-operation result/return composition covers every Wave 6 operation."
+    },
+    "client-feedback": {
+      "kind": "client",
+      "production_owner": "Browser transient feedback and route/focus state over an owning server result",
+      "authorization": "Dismissal and focus return do not mutate domain authority.",
+      "persistence": "No durable server persistence; the originating result/receipt remains canonical.",
+      "recovery": "Dismissal cannot erase the canonical result, and failed return uses the owner's safe destination."
+    },
+    "client-preferences": {
+      "kind": "client",
+      "production_owner": "Browser/device-local personal preference store",
+      "authorization": "Personal appearance, layout, editor, accessibility, and technical-detail disclosure do not alter Project authority.",
+      "persistence": "Device-local persistence only; cross-device synchronization is explicitly outside the accepted Wave 6 backend boundary.",
+      "recovery": "Scoped reset returns to product defaults without changing Project controls or domain records."
+    },
+    "client-guide-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "The guide is browser-owned and may link only to supported routes/actions; no visible production owner currently exists.",
+      "persistence": "No server persistence is required for the guide itself.",
+      "recovery": "It must retain the stable URL, starting state, expected outcomes, safe mutations, reset action, and known limits."
+    },
+    "application-reset-missing": {
+      "kind": "missing",
+      "production_owner": "",
+      "authorization": "No authenticated, bounded reset/setup command for the representative Project exists.",
+      "persistence": "Current setup is test/developer seeding rather than a supported product reset transaction.",
+      "recovery": "No reset receipt, retained unrelated-Project guarantee, partial-reset assessment, or stable resulting Project destination exists."
+    }
+  },
+  "operations": [
+    {
+      "operation_id": "project.search",
+      "owner": "project-shell-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "project.open",
+      "owner": "project-shell-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "project.switch",
+      "owner": "project-shell-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "project.resume",
+      "owner": "project-resume-partial",
+      "owner_status": "partial",
+      "missing_owner": "A retained last-task/origin/focus read shared by Projects and the shell."
+    },
+    {
+      "operation_id": "project.create",
+      "owner": "project-create-missing",
+      "owner_status": "missing",
+      "missing_owner": "Authenticated atomic Project creation with registered profile selection."
+    },
+    {
+      "operation_id": "project.import",
+      "owner": "project-import-missing",
+      "owner_status": "missing",
+      "missing_owner": "Authenticated Project import/reuse with preserved ancestry and reviewed admission."
+    },
+    {
+      "operation_id": "project.recover",
+      "owner": "project-recovery-missing",
+      "owner_status": "missing",
+      "missing_owner": "Composed unresolved Project-entry recovery assessment and registered action."
+    },
+    {
+      "operation_id": "shell.navigate",
+      "owner": "project-shell-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "shell.return",
+      "owner": "client-task-return",
+      "owner_status": "client_owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "shell.inspect-context",
+      "owner": "project-shell-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "shell.project-map",
+      "owner": "project-taxonomy-read",
+      "owner_status": "partial",
+      "missing_owner": "A complete profile-owned taxonomy/map read including meanings, actions, supported places, and unavailable operations."
+    },
+    {
+      "operation_id": "shell.attention-work",
+      "owner": "project-shell-read",
+      "owner_status": "partial",
+      "missing_owner": "Exact attention-bearing Work references and destinations in ProjectShellView."
+    },
+    {
+      "operation_id": "brief.orient",
+      "owner": "brief-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "brief.frame-objective",
+      "owner": "objective-command-missing",
+      "owner_status": "missing",
+      "missing_owner": "Reviewed Objective framing/revision command with exact outcomes."
+    },
+    {
+      "operation_id": "brief.attention",
+      "owner": "brief-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "brief.change",
+      "owner": "brief-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "brief.suggested-preview",
+      "owner": "suggested-action-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "brief.suggested-invoke",
+      "owner": "suggested-action-invoke",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "brief.recent-decisions",
+      "owner": "history-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "source.find",
+      "owner": "source-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "source.open",
+      "owner": "source-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "source.register",
+      "owner": "source-intake-missing",
+      "owner_status": "missing",
+      "missing_owner": "Source registration command spanning bytes, rights, identity, ancestry, and Project membership."
+    },
+    {
+      "operation_id": "source.reuse",
+      "owner": "source-intake-missing",
+      "owner_status": "missing",
+      "missing_owner": "Source reuse/link command with retained global identity and new Project role."
+    },
+    {
+      "operation_id": "source.start-processing",
+      "owner": "source-processing-missing",
+      "owner_status": "missing",
+      "missing_owner": "ProjectSource-scoped registered processing Work start command."
+    },
+    {
+      "operation_id": "source.inspect-processing",
+      "owner": "source-processing-read",
+      "owner_status": "partial",
+      "missing_owner": "One composed source-processing read with exact Work identity, representations, limitations, outcomes, and return."
+    },
+    {
+      "operation_id": "source.inspect-exact",
+      "owner": "source-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "source.add-revision",
+      "owner": "source-replacement",
+      "owner_status": "partial",
+      "missing_owner": "Source intake owner for the new immutable bytes/revision before governed replacement links existing sources."
+    },
+    {
+      "operation_id": "source.remove-project-link",
+      "owner": "source-lifecycle",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "source.delete-local-copy",
+      "owner": "source-delete-partial",
+      "owner_status": "partial",
+      "missing_owner": "Accepted physical-retention policy plus authenticated deletion command and retained receipt."
+    },
+    {
+      "operation_id": "review.queue",
+      "owner": "review-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "review.open-session",
+      "owner": "review-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "review.select-member",
+      "owner": "review-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "review.correct-candidate",
+      "owner": "review-correction",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "review.revise-basis",
+      "owner": "review-basis",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "review.separate",
+      "owner": "review-separation",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "review.prepare-apply",
+      "owner": "review-apply",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "review.apply",
+      "owner": "review-apply",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "review.reject",
+      "owner": "review-reject-missing",
+      "owner_status": "missing",
+      "missing_owner": "Authenticated public rejection command composed into ReviewSession and History outcomes."
+    },
+    {
+      "operation_id": "review.defer",
+      "owner": "review-lifecycle",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "review.reopen",
+      "owner": "review-lifecycle",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "review.refresh",
+      "owner": "review-refresh",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.open",
+      "owner": "graph-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.return",
+      "owner": "client-task-return",
+      "owner_status": "client_owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.layer-position",
+      "owner": "graph-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.select",
+      "owner": "graph-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.open-details",
+      "owner": "details-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.open-source",
+      "owner": "details-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.expand",
+      "owner": "graph-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.filter",
+      "owner": "graph-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.save-question",
+      "owner": "graph-question-missing",
+      "owner_status": "missing",
+      "missing_owner": "Authenticated ProjectInquiry save command bound to the exact graph question."
+    },
+    {
+      "operation_id": "graph.compare",
+      "owner": "graph-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.impact",
+      "owner": "graph-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.time",
+      "owner": "graph-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "graph.correct-through-review",
+      "owner": "graph-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "work.list",
+      "owner": "work-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "work.open",
+      "owner": "work-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "work.start",
+      "owner": "work-start",
+      "owner_status": "partial",
+      "missing_owner": "Registered start command for Work families other than the bounded grounded-synthesis SuggestedAction."
+    },
+    {
+      "operation_id": "work.answer-input",
+      "owner": "work-input-missing",
+      "owner_status": "missing",
+      "missing_owner": "Authenticated required-input response command and durable result."
+    },
+    {
+      "operation_id": "work.steer",
+      "owner": "work-steering-missing",
+      "owner_status": "missing",
+      "missing_owner": "Registered direct Work steering command with plan-transition authority."
+    },
+    {
+      "operation_id": "work.prioritize",
+      "owner": "work-priority-missing",
+      "owner_status": "missing",
+      "missing_owner": "Registered Project inquiry/branch priority command."
+    },
+    {
+      "operation_id": "work.detach",
+      "owner": "client-task-return",
+      "owner_status": "client_owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "work.reconnect",
+      "owner": "interaction-delivery",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "work.replay",
+      "owner": "interaction-delivery",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "work.cancel",
+      "owner": "work-cancel-partial",
+      "owner_status": "partial",
+      "missing_owner": "General Project Work cancellation eligibility/result composition beyond SuggestedAction interaction Work."
+    },
+    {
+      "operation_id": "work.retry",
+      "owner": "work-retry-missing",
+      "owner_status": "missing",
+      "missing_owner": "Public eligible failed-Work retry command with distinct attempt identity."
+    },
+    {
+      "operation_id": "work.resume",
+      "owner": "work-resume-missing",
+      "owner_status": "missing",
+      "missing_owner": "Checkpoint-resume command with current eligibility and exact result."
+    },
+    {
+      "operation_id": "work.start-again",
+      "owner": "work-start-again-missing",
+      "owner_status": "missing",
+      "missing_owner": "New-attempt command linked to prior Work with duplicate-effect protection."
+    },
+    {
+      "operation_id": "work.open-result",
+      "owner": "work-read",
+      "owner_status": "partial",
+      "missing_owner": "Complete result destinations for every registered Work family and result kind."
+    },
+    {
+      "operation_id": "petra.open",
+      "owner": "thread-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "petra.resume-thread",
+      "owner": "thread-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "petra.ask",
+      "owner": "petra-interaction-partial",
+      "owner_status": "partial",
+      "missing_owner": "Exact Project-context and certified-role readiness composition accepted by the production Petra interaction command."
+    },
+    {
+      "operation_id": "petra.inspect-context",
+      "owner": "communication-read",
+      "owner_status": "partial",
+      "missing_owner": "PresentationContext binding among exact semantic result, visible scene/text peer, model input, and explanation."
+    },
+    {
+      "operation_id": "petra.inspect-references",
+      "owner": "communication-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "petra.preview-action",
+      "owner": "petra-action-partial",
+      "owner_status": "partial",
+      "missing_owner": "Server-owned action composition for every permitted Wave 6 direct command family."
+    },
+    {
+      "operation_id": "petra.invoke-action",
+      "owner": "petra-action-partial",
+      "owner_status": "partial",
+      "missing_owner": "Shared invocation adapters for every permitted direct command family."
+    },
+    {
+      "operation_id": "petra.respond-interrupt",
+      "owner": "review-interrupt-partial",
+      "owner_status": "partial",
+      "missing_owner": "Production-wired authenticated interrupt authority with ProjectThread/Review/Work reread and return."
+    },
+    {
+      "operation_id": "model.inspect-readiness",
+      "owner": "model-readiness-partial",
+      "owner_status": "partial",
+      "missing_owner": "Project-bound certified model-role readiness view with exact selected role and provider state."
+    },
+    {
+      "operation_id": "model.use",
+      "owner": "petra-interaction-partial",
+      "owner_status": "partial",
+      "missing_owner": "Production interaction request binding the ready certified role to exact Project context and retained result identity."
+    },
+    {
+      "operation_id": "taxonomy.inspect-profile",
+      "owner": "project-taxonomy-read",
+      "owner_status": "partial",
+      "missing_owner": "Complete versioned taxonomy read covering purpose, object/relationship/source roles, validators, Work/model/Review roles, terminology, places, and unavailable operations."
+    },
+    {
+      "operation_id": "taxonomy.bind-project",
+      "owner": "taxonomy-binding-missing",
+      "owner_status": "missing",
+      "missing_owner": "Project creation/reset profile selection and safe unknown-profile command result."
+    },
+    {
+      "operation_id": "history.list",
+      "owner": "history-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "history.filter",
+      "owner": "history-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "history.open",
+      "owner": "history-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "history.compare",
+      "owner": "history-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "history.impact",
+      "owner": "history-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "history.preview-revert",
+      "owner": "history-revert",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "history.execute-revert",
+      "owner": "history-revert",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "details.open",
+      "owner": "details-read",
+      "owner_status": "owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "details.return",
+      "owner": "client-task-return",
+      "owner_status": "client_owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "feedback.confirm",
+      "owner": "feedback-partial",
+      "owner_status": "partial",
+      "missing_owner": "Per-operation confirmation descriptors and exact results for all Wave 6 mutation families."
+    },
+    {
+      "operation_id": "feedback.retry",
+      "owner": "feedback-partial",
+      "owner_status": "partial",
+      "missing_owner": "Per-operation retry/reread eligibility and stable identity for all Wave 6 failure families."
+    },
+    {
+      "operation_id": "feedback.dismiss",
+      "owner": "client-feedback",
+      "owner_status": "client_owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "feedback.return",
+      "owner": "client-feedback",
+      "owner_status": "client_owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "settings.personal-change",
+      "owner": "client-preferences",
+      "owner_status": "client_owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "settings.personal-reset",
+      "owner": "client-preferences",
+      "owner_status": "client_owned",
+      "missing_owner": ""
+    },
+    {
+      "operation_id": "application.guide",
+      "owner": "client-guide-missing",
+      "owner_status": "missing",
+      "missing_owner": "Visible in-product guide owner on the stable production URL (design-owned; no backend contract required)."
+    },
+    {
+      "operation_id": "application.reset",
+      "owner": "application-reset-missing",
+      "owner_status": "missing",
+      "missing_owner": "Authenticated bounded representative-Project reset/setup command."
+    }
+  ]
+}

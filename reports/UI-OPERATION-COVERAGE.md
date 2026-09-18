@@ -36,6 +36,33 @@ steering, cancellation and each distinct recovery action, the Petra composer,
 durable interrupt responses, visible model readiness, usable profile-taxonomy
 inspection, personal-setting persistence, and an in-product test/reset path.
 
+## Wave 6 backend contract baseline
+
+`scripts/wave6-operation-contract-baseline.json` reconciles all 97 Wave 6
+operations against the production query or command, authorization boundary,
+persistence owner, and recovery behavior present at backend commit
+`869cae6aea9fdc4cccf197ed905d7c17160f5492`. The coverage audit now fails when
+an operation is omitted, duplicated, points at an undefined owner, omits one of
+those four contract dimensions, or loses the required `UX-REQ-001`–`016` and
+`020`–`023` scope.
+
+| Backend owner status | Operations | Baseline meaning |
+| --- | ---: | --- |
+| Owned | 52 | A named production query or command owns the server-side contract. UI completion and executed evidence remain separate gates. |
+| Partial | 19 | A production boundary exists but cannot yet supply the complete operation. Every row names the missing runtime owner. |
+| Missing | 18 | No production owner supplies the operation. Every row names the command, query, composition, or design owner still required. |
+| Client-owned | 8 | The accepted boundary is intentionally browser-local and must not gain domain authority or server persistence. |
+
+The 18 ownerless operations are Project create, import, and entry recovery;
+Objective framing; source registration, reuse, and processing start; Review
+rejection; saved Graph questions; Work input, steering, priority, retry, resume,
+and start-again; profile binding; the design-owned in-product guide; and the
+bounded representative-Project reset. The baseline deliberately does not fill
+the inventory's `runtime_owner` field for an incomplete operation, promote an
+operation to `live`, or attach unexecuted evidence. Subsequent delivery slices
+must close the recorded owner gap before the milestone gate may treat that row
+as complete.
+
 Wave 7 owns 15 atomic Composition operations. None is currently live:
 collection creation, durable editing and save, contextual Petra work,
 provenance inspection, revision comparison and restore, validation and render,

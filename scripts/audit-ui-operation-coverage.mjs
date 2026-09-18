@@ -6,6 +6,12 @@ const root = resolve(import.meta.dirname, "..");
 const inventory = JSON.parse(
   readFileSync(resolve(root, "scripts/ui-operation-inventory.json"), "utf8"),
 );
+const wave6BackendBaseline = JSON.parse(
+  readFileSync(
+    resolve(root, "scripts/wave6-operation-contract-baseline.json"),
+    "utf8",
+  ),
+);
 const args = new Set(process.argv.slice(2));
 const waveArgument = process.argv.indexOf("--require-wave");
 const requiredWave =
@@ -18,6 +24,19 @@ assert.equal(inventory.schema_version, 2);
 assert.ok(
   Array.isArray(inventory.operations) && inventory.operations.length > 0,
 );
+
+assert.equal(
+  wave6BackendBaseline.schema_name,
+  "petra.wave6-operation-contract-baseline",
+);
+assert.equal(wave6BackendBaseline.schema_version, 1);
+assert.match(wave6BackendBaseline.baseline_commit, /^[0-9a-f]{40}$/u);
+assert.ok(
+  wave6BackendBaseline.owners !== null &&
+    typeof wave6BackendBaseline.owners === "object" &&
+    !Array.isArray(wave6BackendBaseline.owners),
+);
+assert.ok(Array.isArray(wave6BackendBaseline.operations));
 
 const allowedStates = new Set([
   "live",
@@ -85,6 +104,119 @@ for (const operation of inventory.operations) {
     }
   }
 }
+
+const wave6Operations = inventory.operations.filter(
+  (operation) => operation.milestone === 6,
+);
+const wave6OperationIds = new Set(
+  wave6Operations.map((operation) => operation.id),
+);
+const baselineOperationIds = new Set();
+const allowedOwnerStatuses = new Set([
+  "owned",
+  "partial",
+  "missing",
+  "client_owned",
+]);
+const allowedOwnerKinds = new Set([
+  "query",
+  "command",
+  "partial",
+  "missing",
+  "client",
+]);
+
+assert.equal(
+  wave6BackendBaseline.operations.length,
+  wave6Operations.length,
+  "The Wave 6 backend baseline must reconcile every milestone-6 operation exactly once.",
+);
+assert.deepEqual(
+  new Set(wave6Operations.flatMap((operation) => operation.requests)),
+  new Set([
+    ...Array.from(
+      { length: 16 },
+      (_, index) => `UX-REQ-${String(index + 1).padStart(3, "0")}`,
+    ),
+    ...Array.from(
+      { length: 4 },
+      (_, index) => `UX-REQ-${String(index + 20).padStart(3, "0")}`,
+    ),
+  ]),
+  "The Wave 6 operation baseline must retain UX-REQ-001–016 and UX-REQ-020–023.",
+);
+
+for (const [ownerId, owner] of Object.entries(wave6BackendBaseline.owners)) {
+  assert.match(ownerId, /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u);
+  assert.ok(owner !== null && typeof owner === "object");
+  assert.ok(
+    allowedOwnerKinds.has(owner.kind),
+    `${ownerId} has invalid owner kind ${owner.kind}.`,
+  );
+  for (const field of [
+    "production_owner",
+    "authorization",
+    "persistence",
+    "recovery",
+  ]) {
+    assert.equal(
+      typeof owner[field],
+      "string",
+      `${ownerId} must describe ${field}.`,
+    );
+    if (field !== "production_owner" || owner.kind !== "missing") {
+      assert.ok(owner[field].length > 0, `${ownerId} must describe ${field}.`);
+    }
+  }
+  assert.equal(
+    owner.kind === "missing",
+    owner.production_owner.length === 0,
+    `${ownerId} must leave production_owner empty exactly when the owner is missing.`,
+  );
+}
+
+for (const operation of wave6BackendBaseline.operations) {
+  assert.ok(
+    wave6OperationIds.has(operation.operation_id),
+    `Unknown Wave 6 operation ${operation.operation_id}.`,
+  );
+  assert.ok(
+    !baselineOperationIds.has(operation.operation_id),
+    `Duplicate Wave 6 baseline operation ${operation.operation_id}.`,
+  );
+  baselineOperationIds.add(operation.operation_id);
+  assert.ok(
+    allowedOwnerStatuses.has(operation.owner_status),
+    `${operation.operation_id} has invalid owner status ${operation.owner_status}.`,
+  );
+  const owner = wave6BackendBaseline.owners[operation.owner];
+  assert.ok(
+    owner !== undefined,
+    `${operation.operation_id} has unknown owner.`,
+  );
+  assert.equal(typeof operation.missing_owner, "string");
+  assert.equal(
+    ["partial", "missing"].includes(operation.owner_status),
+    operation.missing_owner.length > 0,
+    `${operation.operation_id} must name a missing owner exactly when its baseline is partial or missing.`,
+  );
+  const expectedKinds = {
+    owned: new Set(["query", "command"]),
+    partial: new Set(["query", "command", "partial"]),
+    missing: new Set(["missing"]),
+    client_owned: new Set(["client"]),
+  };
+  assert.ok(
+    expectedKinds[operation.owner_status].has(owner.kind),
+    `${operation.operation_id} owner status does not match ${operation.owner}.`,
+  );
+}
+
+assert.deepEqual(
+  baselineOperationIds,
+  wave6OperationIds,
+  "The Wave 6 backend baseline must not omit an operation.",
+);
 
 const referenced = (field) =>
   new Set(inventory.operations.flatMap((operation) => operation[field]));
@@ -161,7 +293,15 @@ if (args.has("--require-wave")) {
     );
   }
 } else {
+  const ownerCounts = Object.fromEntries(
+    [...allowedOwnerStatuses].map((status) => [
+      status,
+      wave6BackendBaseline.operations.filter(
+        (operation) => operation.owner_status === status,
+      ).length,
+    ]),
+  );
   process.stdout.write(
-    `UI operation inventory valid: ${inventory.operations.length} operations; ${JSON.stringify(counts)}.\n`,
+    `UI operation inventory valid: ${inventory.operations.length} operations; ${JSON.stringify(counts)}; Wave 6 backend baseline ${JSON.stringify(ownerCounts)}.\n`,
   );
 }
