@@ -46,7 +46,14 @@ const sleep = (milliseconds) =>
 
 export function parseArguments(argv) {
   const [command = "help", ...rest] = argv;
-  const options = { command, wave: "4", role: undefined, maxSlices: 32 };
+  const options = {
+    command,
+    wave: "4",
+    role: undefined,
+    maxSlices: 64,
+    evidenceId: undefined,
+    scenarioId: undefined,
+  };
 
   for (let index = 0; index < rest.length; index += 1) {
     const argument = rest[index];
@@ -59,6 +66,12 @@ export function parseArguments(argv) {
       index += 1;
     } else if (argument === "--max-slices" && value !== undefined) {
       options.maxSlices = Number.parseInt(value, 10);
+      index += 1;
+    } else if (argument === "--evidence-id" && value !== undefined) {
+      options.evidenceId = value;
+      index += 1;
+    } else if (argument === "--scenario-id" && value !== undefined) {
+      options.scenarioId = value;
       index += 1;
     } else {
       throw new Error(`Unknown or incomplete argument: ${argument}`);
@@ -494,7 +507,7 @@ export function validateEvidencePlan(plan, { wave, maxSlices }) {
       !nonEmptyString(requirement.evidence_id) ||
       !nonEmptyString(requirement.scenario_id) ||
       !nonEmptyString(requirement.description) ||
-      !["backend", "design", "either"].includes(requirement.owner)
+      !["backend", "design", "either", "user"].includes(requirement.owner)
     ) {
       throw new Error(`Wave ${wave} has an invalid evidence requirement.`);
     }
@@ -505,6 +518,10 @@ export function validateEvidencePlan(plan, { wave, maxSlices }) {
     keys.add(key);
   }
   return plan;
+}
+
+export function evidenceOwnerCanSatisfy(owner, role) {
+  return owner === "either" || owner === role;
 }
 
 function readEvidencePlan(wave, maxSlices) {
@@ -550,10 +567,20 @@ export function inventoryAuditOverdue(plan, evidence = [], sliceCount) {
 }
 
 export function enforceCompletionDisposition(disposition, plan, evidence = []) {
-  return disposition === "wave_complete" &&
-    missingRequiredEvidence(plan, evidence).length > 0
-    ? "handoff"
-    : disposition;
+  const missing = missingRequiredEvidence(plan, evidence);
+  if (disposition === "wave_complete" && missing.length > 0) {
+    return "handoff";
+  }
+  if (disposition === "needs_user" && plan) {
+    const automatedEvidenceMissing = missing.some(
+      (requirement) => requirement.owner !== "user",
+    );
+    const userAcceptanceMissing = missing.some(
+      (requirement) => requirement.owner === "user",
+    );
+    if (automatedEvidenceMissing || !userAcceptanceMissing) return "handoff";
+  }
+  return disposition;
 }
 
 function mergeEvidence(existing = [], additions = [], metadata = {}) {
@@ -1205,7 +1232,7 @@ async function finalizeTurn(wave, role, claimedState, worker) {
           `Worker reported unplanned evidence ${evidenceKey(record)}.`,
         );
       }
-      if (requirement.owner !== "either" && requirement.owner !== role) {
+      if (!evidenceOwnerCanSatisfy(requirement.owner, role)) {
         throw new Error(
           `${role} cannot satisfy ${evidenceKey(record)} owned by ${requirement.owner}.`,
         );
@@ -1215,9 +1242,18 @@ async function finalizeTurn(wave, role, claimedState, worker) {
     throw new Error("Worker reported evidence without a frozen evidence plan.");
   }
 
-  const completed = ["handoff", "wave_complete"].includes(result.disposition);
-  const commitChanged = validateCommitTransition(
+  const prospectiveEvidence = mergeEvidence(
+    claimedState.evidence,
+    result.evidence,
+  );
+  const disposition = enforceCompletionDisposition(
     result.disposition,
+    evidencePlan,
+    prospectiveEvidence,
+  );
+  const completed = ["handoff", "wave_complete"].includes(disposition);
+  const commitChanged = validateCommitTransition(
+    disposition,
     claimedState.commits[role],
     own.head,
   );
@@ -1243,14 +1279,9 @@ async function finalizeTurn(wave, role, claimedState, worker) {
       evidencePlan,
       state.evidence,
     );
-    const disposition = enforceCompletionDisposition(
-      result.disposition,
-      evidencePlan,
-      state.evidence,
-    );
     const completionRejected = disposition !== result.disposition;
     const evidenceRejection = completionRejected
-      ? `Coordinator rejected wave completion; missing executed evidence: ${missingEvidence
+      ? `Coordinator rejected ${result.disposition}; missing executed evidence: ${missingEvidence
           .map((requirement) => evidenceKey(requirement))
           .join(", ")}.`
       : "";
@@ -1302,6 +1333,94 @@ async function finalizeTurn(wave, role, claimedState, worker) {
     }
     writeJsonAtomic(statePath(wave), state);
   });
+}
+
+async function acceptUserEvidence(wave, evidenceId, scenarioId) {
+  if (!nonEmptyString(evidenceId) || !nonEmptyString(scenarioId)) {
+    throw new Error(
+      "accept requires --evidence-id and --scenario-id from the Wave evidence plan.",
+    );
+  }
+  await withStateLock(wave, () => {
+    const state = readState(wave);
+    if (!state) throw new Error(`Wave ${wave} is not initialized.`);
+    if (state.status !== "needs_user") {
+      throw new Error(
+        `Wave ${wave} must be waiting for explicit user acceptance; current status is ${state.status}.`,
+      );
+    }
+    const evidencePlan = readEvidencePlan(wave, state.max_slices);
+    const requirement = evidenceRequirements(evidencePlan).find(
+      (candidate) =>
+        candidate.evidence_id === evidenceId &&
+        candidate.scenario_id === scenarioId,
+    );
+    if (requirement === undefined || requirement.owner !== "user") {
+      throw new Error(
+        `${evidenceId}::${scenarioId} is not a user-owned Wave ${wave} requirement.`,
+      );
+    }
+    const backend = repositorySnapshot("backend");
+    const design = repositorySnapshot("design");
+    requireCleanAndPushed("backend", backend);
+    requireCleanAndPushed("design", design);
+    const timestamp = new Date().toISOString();
+    state.evidence = mergeEvidence(
+      state.evidence,
+      [
+        {
+          evidence_id: evidenceId,
+          scenario_id: scenarioId,
+          status: "passed",
+          command: "explicit user acceptance",
+          artifact: `Wave ${wave} runtime acceptance record`,
+          boundary:
+            "The user accepted the guided, live application checkpoint; automated workers cannot create this record.",
+        },
+      ],
+      {
+        role: "user",
+        commit: backend.head,
+        counterpart_commit: design.head,
+        completed_at: timestamp,
+      },
+    );
+    const missing = missingRequiredEvidence(evidencePlan, state.evidence);
+    if (missing.length > 0) {
+      throw new Error(
+        `User acceptance cannot close Wave ${wave}; missing evidence: ${missing
+          .map((item) => evidenceKey(item))
+          .join(", ")}.`,
+      );
+    }
+    state.status = "complete";
+    state.next_role = null;
+    state.handoff_prompt = "";
+    state.stop_reason = `Explicit user acceptance recorded for ${evidenceId}::${scenarioId}.`;
+    state.updated_at = timestamp;
+    state.history.push({
+      role: "user",
+      disposition: "wave_complete",
+      requested_disposition: "user_acceptance",
+      slice_id: `${wave}-user-acceptance`,
+      summary: state.stop_reason,
+      commit: backend.head,
+      counterpart_commit: design.head,
+      verification: [
+        "Explicit user acceptance after the guided live checkpoint.",
+      ],
+      next_safe_boundary: `Wave ${Number.parseInt(wave, 10) + 1}`,
+      wave_exit_assessment: state.stop_reason,
+      user_attention: "",
+      commit_changed: false,
+      run_id: "user-acceptance",
+      completed_at: timestamp,
+    });
+    writeJsonAtomic(statePath(wave), state);
+  });
+  process.stdout.write(
+    `Wave ${wave}: explicit user acceptance recorded for ${evidenceId}::${scenarioId}.\n`,
+  );
 }
 
 async function workerLoop({ role, wave, maxSlices }) {
@@ -1475,10 +1594,11 @@ async function stop(wave) {
 
 function printHelp() {
   process.stdout.write(`Usage:
-  node scripts/wave-handoff.mjs worker --role backend|design [--wave 4] [--max-slices 32]
+  node scripts/wave-handoff.mjs worker --role backend|design [--wave 4] [--max-slices 64]
   node scripts/wave-handoff.mjs doctor [--wave 4]
   node scripts/wave-handoff.mjs status [--wave 4]
   node scripts/wave-handoff.mjs stop [--wave 4]
+  node scripts/wave-handoff.mjs accept --wave N --evidence-id ID --scenario-id ID
 
 The backend worker initializes missing state. Start one worker in each worktree.
 Runtime state and logs are written under .codex-wave-handoff/ and are ignored by Git.
@@ -1495,6 +1615,12 @@ async function main() {
     process.stdout.write(`${stateSummary(readState(options.wave))}\n`);
   } else if (options.command === "stop") {
     await stop(options.wave);
+  } else if (options.command === "accept") {
+    await acceptUserEvidence(
+      options.wave,
+      options.evidenceId,
+      options.scenarioId,
+    );
   } else if (options.command === "help") {
     printHelp();
   } else {

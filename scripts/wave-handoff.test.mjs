@@ -20,6 +20,7 @@ import {
   canRetryUnchangedWorkerFailure,
   canRetryWorkerFailure,
   enforceCompletionDisposition,
+  evidenceOwnerCanSatisfy,
   initialHandoff,
   inventoryAuditOverdue,
   isCompatiblePackageJsonConflictSet,
@@ -75,6 +76,31 @@ test("uses automatic approval review without a conflicting sandbox flag", () => 
   });
   assert.ok(args.includes("--approve-for-me"));
   assert.equal(args.includes("--sandbox"), false);
+});
+
+test("parses explicit user acceptance without treating it as worker authority", () => {
+  assert.deepEqual(
+    parseArguments([
+      "accept",
+      "--wave",
+      "6",
+      "--evidence-id",
+      "USER-TESTABLE-01",
+      "--scenario-id",
+      "explicit-product-acceptance",
+    ]),
+    {
+      command: "accept",
+      wave: "6",
+      role: undefined,
+      maxSlices: 64,
+      evidenceId: "USER-TESTABLE-01",
+      scenarioId: "explicit-product-acceptance",
+    },
+  );
+  assert.equal(evidenceOwnerCanSatisfy("user", "backend"), false);
+  assert.equal(evidenceOwnerCanSatisfy("user", "design"), false);
+  assert.equal(evidenceOwnerCanSatisfy("user", "user"), true);
 });
 
 test("retries only unchanged transient worker failures with a bounded attempt count", () => {
@@ -390,7 +416,9 @@ test("parses worker options with a bounded slice count", () => {
     command: "doctor",
     role: undefined,
     wave: "4",
-    maxSlices: 32,
+    maxSlices: 64,
+    evidenceId: undefined,
+    scenarioId: undefined,
   });
   assert.deepEqual(
     parseArguments([
@@ -402,7 +430,14 @@ test("parses worker options with a bounded slice count", () => {
       "--max-slices",
       "24",
     ]),
-    { command: "worker", role: "backend", wave: "3", maxSlices: 24 },
+    {
+      command: "worker",
+      role: "backend",
+      wave: "3",
+      maxSlices: 24,
+      evidenceId: undefined,
+      scenarioId: undefined,
+    },
   );
   assert.throws(
     () => parseArguments(["worker", "--max-slices", "0"]),
@@ -588,6 +623,59 @@ test("Wave 5 freezes its complete inventory before the eight-slice reserve", () 
       "UX1.5-EV04",
     ]),
   );
+});
+
+test("Waves 6 through 8 require operation gates and explicit user acceptance", () => {
+  const expectations = {
+    6: /gate:wave6:user-testable/,
+    7: /gate:wave7:composition/,
+    8: /gate:wave8:application/,
+  };
+  for (const [wave, gate] of Object.entries(expectations)) {
+    const plan = JSON.parse(
+      readFileSync(
+        new URL(`./wave-handoff-wave-${wave}.evidence.json`, import.meta.url),
+        "utf8",
+      ),
+    );
+    const packet = readFileSync(
+      new URL(`./wave-handoff-wave-${wave}.md`, import.meta.url),
+      "utf8",
+    );
+    assert.equal(validateEvidencePlan(plan, { wave, maxSlices: 64 }), plan);
+    assert.equal(plan.inventory_audit.required_by_completed_slice, 20);
+    assert.equal(plan.remediation_reserve_slices, 44);
+    assert.equal(
+      plan.required.filter(({ owner }) => owner === "user").length,
+      1,
+    );
+    assert.match(packet, gate);
+    assert.match(packet, /needs_user/);
+    assert.equal(
+      enforceCompletionDisposition("wave_complete", plan, []),
+      "handoff",
+    );
+    assert.equal(
+      enforceCompletionDisposition("needs_user", plan, []),
+      "handoff",
+    );
+    const automatedEvidence = [plan.inventory_audit, ...plan.required]
+      .filter(({ owner }) => owner !== "user")
+      .map((requirement) => ({ ...requirement, status: "passed" }));
+    assert.equal(
+      enforceCompletionDisposition("needs_user", plan, automatedEvidence),
+      "needs_user",
+    );
+  }
+});
+
+test("Wave 6 backend launcher identifies its role and extended remediation budget", () => {
+  const path = new URL("../run-wave-6-backend.zsh", import.meta.url);
+  const launcher = readFileSync(path, "utf8");
+  assert.match(launcher, /Petra Wave 6 Backend/);
+  assert.match(launcher, /--role backend --wave 6 --max-slices 64/);
+  assert.match(launcher, /doctor --wave 6 --max-slices 64/);
+  assert.notEqual(statSync(path).mode & 0o111, 0);
 });
 
 test("Wave 5 packet fixes 32 alternating slices and the closure reserve", () => {

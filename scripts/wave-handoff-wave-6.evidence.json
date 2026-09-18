@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "wave": "6",
+  "inventory_audit": {
+    "evidence_id": "WAVE6-OPERATION-CONTROL",
+    "scenario_id": "complete-ui-operation-audit",
+    "owner": "design",
+    "description": "Reconcile every Wave 6 operation with its visible control, production owner, material outcomes, exact return, executed evidence, and design disposition before remediation.",
+    "required_by_completed_slice": 20
+  },
+  "remediation_reserve_slices": 44,
+  "required": [
+    {
+      "evidence_id": "USER-TESTABLE-01",
+      "scenario_id": "stable-url-clean-start-reset",
+      "owner": "design",
+      "description": "Run the documented clean-start and reset path and retain a stable URL with an in-product guide and representative Project."
+    },
+    {
+      "evidence_id": "UX1.6-TAXONOMY",
+      "scenario_id": "registered-profile-runtime",
+      "owner": "backend",
+      "description": "Execute Project profile selection, versioned taxonomy reads, paired-profile behavior, and safe unknown-profile handling through production owners."
+    },
+    {
+      "evidence_id": "UX1.6-TAXONOMY",
+      "scenario_id": "usable-profile-ui",
+      "owner": "design",
+      "description": "Execute profile choice and taxonomy inspection and verify registered terms and actions across all core task surfaces."
+    },
+    {
+      "evidence_id": "UX1.6-MODEL",
+      "scenario_id": "actual-certified-model-ui-path",
+      "owner": "either",
+      "description": "Submit an actual prompt from the production Petra UI through a certified model role and retain context, streaming/result, references, limitations, and identity evidence."
+    },
+    {
+      "evidence_id": "UX1.6-MODEL",
+      "scenario_id": "failure-reconnect-draft-preservation",
+      "owner": "design",
+      "description": "Execute model failure and disconnect/replay from the Petra composer while preserving the draft, context, Work identity, and honest recovery."
+    },
+    {
+      "evidence_id": "UX1.6-WORK",
+      "scenario_id": "start-input-steer-cancel-retry",
+      "owner": "backend",
+      "description": "Execute Work start, required input, steering or priority, cancellation, retry/resume assessment, and exact results through production commands."
+    },
+    {
+      "evidence_id": "UX1.6-WORK",
+      "scenario_id": "usable-work-ui",
+      "owner": "design",
+      "description": "Complete the Work task from its visible controls with meaningful stages, inputs, activity, resources, outcomes, recovery, and exact destinations."
+    },
+    {
+      "evidence_id": "UX1.6-ACTIONS",
+      "scenario_id": "direct-petra-command-parity",
+      "owner": "backend",
+      "description": "Prove direct and Petra-mediated actions use the same registered identities, authorization, commands, idempotency, and outcomes."
+    },
+    {
+      "evidence_id": "UX1.6-ACTIONS",
+      "scenario_id": "suggested-action-interrupt-review",
+      "owner": "design",
+      "description": "Execute SuggestedAction preview/invocation, durable interrupt response, Review correction/decision, and exact return through the application UI."
+    },
+    {
+      "evidence_id": "UX1.6-SOURCES",
+      "scenario_id": "register-process-inspect-replace",
+      "owner": "either",
+      "description": "Execute source registration or reuse, processing Work, exact inspection, new-revision addition, Project-link removal, eligible local-copy deletion, and recovery through distinct visible controls."
+    },
+    {
+      "evidence_id": "UX1.6-REVIEW",
+      "scenario_id": "correct-reject-defer-apply",
+      "owner": "design",
+      "description": "Execute candidate/basis correction, reject, defer/reopen, refresh, separation, preparation, Apply, and member outcomes from Review."
+    },
+    {
+      "evidence_id": "UX1.6-GRAPH",
+      "scenario_id": "task-graph-details-return",
+      "owner": "design",
+      "description": "Execute contextual Graph, selection, Details, exact source, expansion/filter/save, textual peer, correction preview, and return without losing task context."
+    },
+    {
+      "evidence_id": "UX1.6-HISTORY",
+      "scenario_id": "effect-recovery-revert-return",
+      "owner": "either",
+      "description": "Execute History inspection, canonical effect, recovery assessment, governed Revert preview or result, and return to updated Brief."
+    },
+    {
+      "evidence_id": "UX1.6-UX",
+      "scenario_id": "guided-core-path-browser",
+      "owner": "design",
+      "description": "Run the complete in-product guided workflow through the stable production URL without repository reports, fixtures, or developer-only instructions."
+    },
+    {
+      "evidence_id": "UX1.6-UX",
+      "scenario_id": "visual-hierarchy-interaction-review",
+      "owner": "design",
+      "description": "Record and disposition a product-design review of hierarchy, navigation, typography, spacing, density, interaction, responsive behavior, and cross-surface coherence."
+    },
+    {
+      "evidence_id": "UX1.6-UX",
+      "scenario_id": "felicity-language-review",
+      "owner": "design",
+      "description": "Apply Felicity to all core labels, instructions, status, outcomes, errors, recovery, and the in-product guide without weakening contract meaning."
+    },
+    {
+      "evidence_id": "UX1.6-UX",
+      "scenario_id": "responsive-keyboard-focus-semantics",
+      "owner": "design",
+      "description": "Execute the guided path at supported widths and text scales with keyboard, visible focus, browser semantics, non-color meaning, reduced motion, and touch targets."
+    },
+    {
+      "evidence_id": "UX1.6-RECOVERY",
+      "scenario_id": "adverse-state-task-completion",
+      "owner": "either",
+      "description": "Execute stale, partial, failed, offline, reconnecting, projection-lag, permission-loss, and unknown-effect states without lost work or false success."
+    },
+    {
+      "evidence_id": "UX1.6-OPERATIONS",
+      "scenario_id": "wave6-operation-gate",
+      "owner": "either",
+      "description": "Run gate:wave6:user-testable with every milestone-6 operation live and bound to an executed evidence artifact."
+    },
+    {
+      "evidence_id": "UX1.6-CRITIC",
+      "scenario_id": "adversarial-product-engineering-audit",
+      "owner": "either",
+      "description": "Critique the final application for fake controls, fixture fallback, client/model authority, dead ends, hidden recovery, duplicate effects, slide-like presentation, and unsupported completion claims."
+    },
+    {
+      "evidence_id": "UX1.6-EXIT",
+      "scenario_id": "clean-pushed-complete-gate",
+      "owner": "backend",
+      "description": "Run the complete repository, fresh-store, model, restart/replay, and operation gates on clean pushed backend and design branches."
+    },
+    {
+      "evidence_id": "UX1.6-EXIT",
+      "scenario_id": "final-user-task-recording",
+      "owner": "design",
+      "description": "Record the final stable-URL guided workflow on the integrated tree and publish exact starting state, expected outcomes, reset, and known limits."
+    },
+    {
+      "evidence_id": "USER-TESTABLE-01",
+      "scenario_id": "explicit-product-acceptance",
+      "owner": "user",
+      "description": "The user completes the guided live workflow and explicitly accepts the application checkpoint; automated workers cannot satisfy this record."
+    }
+  ]
+}

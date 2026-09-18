@@ -40,7 +40,7 @@
     "models:docling:check": "node scripts/prepare-docling-models.mjs --check",
     "models:certify:local": "npm run build:packages && node experiments/model-certification/run-local.mjs",
     "typecheck": "tsc -b && tsc --noEmit --project packages/contracts/test/tsconfig.json && tsc --noEmit --project packages/core/test/tsconfig.json && tsc --noEmit --project packages/adapters/test/tsconfig.json && tsc --noEmit --project packages/neo4j/test/tsconfig.json && tsc --noEmit --project packages/postgres/test/tsconfig.json && tsc --noEmit --project packages/retrieval/test/tsconfig.json && tsc --noEmit --project packages/s3/test/tsconfig.json && tsc --noEmit --project apps/server/test/tsconfig.json && tsc --noEmit --project experiments/m1-boundary/tsconfig.json && npm run typecheck --workspace @petra/workbench && UV_CACHE_DIR=.cache/uv uv run --project workers/science mypy workers/science/src workers/science/tests",
-    "test": "npm run test:contracts && npm run test:core && npm run test:adapters && npm run test:retrieval && npm run test:neo4j && npm run test:s3 && npm run test:server && npm run test:workbench && npm run test:python && npm run test:wave-handoff",
+    "test": "npm run test:contracts && npm run test:core && npm run test:adapters && npm run test:retrieval && npm run test:neo4j && npm run test:s3 && npm run test:server && npm run test:workbench && npm run test:python && npm run test:wave-handoff && npm run audit:ui-operations",
     "test:adapters": "npm test --workspace @petra/adapters",
     "test:contracts": "npm test --workspace @petra/contracts",
     "test:core": "npm test --workspace @petra/core",
@@ -93,7 +93,12 @@
     "test:wave5:browser": "npm run build:packages && node apps/workbench/test/wave5-cumulative-browser.mjs",
     "test:wave5:cumulative": "npm run build:packages && node scripts/test-wave5-cumulative-integration.mjs",
     "inspect:wave5": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave5-cumulative-evidence-observer.mjs PETRA_WAVE5_BROWSER_OBSERVER_OUTPUT=/tmp/petra-wave5-inspection.json PETRA_WAVE5_INSPECT=1 node scripts/test-wave4-cumulative-integration.mjs",
-    "audit:wave5:evidence": "node scripts/audit-wave5-evidence.mjs"
+    "audit:wave5:evidence": "node scripts/audit-wave5-evidence.mjs",
+    "audit:ui-operations": "node scripts/audit-ui-operation-coverage.mjs",
+    "gate:wave6:user-testable": "node scripts/audit-ui-operation-coverage.mjs --require-wave 6",
+    "gate:wave7:composition": "node scripts/audit-ui-operation-coverage.mjs --require-wave 7",
+    "gate:wave8:application": "node scripts/audit-ui-operation-coverage.mjs --require-wave 8",
+    "wave:accept": "node scripts/wave-handoff.mjs accept"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "3.1124.0",

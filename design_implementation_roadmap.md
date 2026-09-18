@@ -174,6 +174,24 @@ the order in which the remaining product-brief sections are discussed.
 
 The order names dependencies, not calendar commitments. If implementation order changes, the design item keeps its identifier and updates its named handoff.
 
+### Binding automated milestones after Wave 5
+
+The earlier automated waves proved contracts, authority, persistence, and
+individual browser paths, but they did not deliver a user-testable application.
+Route availability, reference surfaces, fixture galleries, and isolated browser
+assertions no longer count as product completion.
+
+| Automated milestone | Required product result | Blocking exit gate |
+| --- | --- | --- |
+| Wave 6 | `UX1.6` plus an integrated, user-testable `UX1.1`–`UX1.6` core application | Every milestone-6 entry in `scripts/ui-operation-inventory.json` is live and evidenced; usable registered taxonomy; actual certified model through the Petra UI; stable URL, in-product guide, clean reset, product-design review, Felicity review, and explicit `USER-TESTABLE-01` user acceptance |
+| Wave 7 | `UX1.7` document-first Composition in the accepted Wave 6 application | Cumulative Wave 6 operations remain live; every milestone-7 operation is live and evidenced; actual scoped model use, durable editing, provenance, revision, validation, render, export, promotion, product-design/Felicity review, and explicit `USER-TESTABLE-02` user acceptance |
+| Wave 8 | `UX1.8` whole-workbench validation and M1 closure | All 116 atomic operations, 14 surfaces, 18 flows, four end-to-end paths, profile/control boundaries, visual and interaction validation, adverse recovery, and zero critical design debt pass; explicit `USER-TESTABLE-03` user acceptance |
+
+The automated controller treats each final acceptance record as user-owned.
+Backend and design workers cannot self-certify it. Each wave must reach
+`needs_user`, publish the stable URL and guided task, and remain incomplete until
+the user accepts that checkpoint.
+
 ## Discussion-first module loop
 
 The design terminal proceeds with the same collaborative cadence used for Petra's architecture decisions. It does not interpret the roadmap as permission to make every consequential UX decision alone.

@@ -4,6 +4,17 @@ Status: M1.9 and its scoped scientific evidence spine complete; UX design frozen
 Last updated: 2026-09-08
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
+Delivery correction, 2026-09-18: automated Waves 3–5 established substantial
+production authority and browser-path evidence but did not produce a coherent
+user-testable application. Waves 6–8 are now governed by the executable
+116-operation atomic inventory in `scripts/ui-operation-inventory.json`. Wave 6
+cannot close without a usable registered taxonomy, an actual certified model
+operated through the UI, a stable resettable application URL, a guided core
+workflow, product-design and Felicity reviews, and explicit user acceptance.
+Wave 7 adds complete Composition without regressing that core. Wave 8 requires
+every contracted operation and end-to-end path to pass as one application and
+requires final user acceptance.
+
 Companion documents:
 
 - [Product brief and founding design](PETRA.md)
