@@ -28,6 +28,7 @@ import {
   mergePackageJsonDocuments,
   matchesRecoverySnapshot,
   missingRequiredEvidence,
+  normalizePlannedEvidenceRecords,
   parseArguments,
   parsePorcelainZ,
   resolveCompatiblePackageJsonConflict,
@@ -101,6 +102,25 @@ test("parses explicit user acceptance without treating it as worker authority", 
   assert.equal(evidenceOwnerCanSatisfy("user", "backend"), false);
   assert.equal(evidenceOwnerCanSatisfy("user", "design"), false);
   assert.equal(evidenceOwnerCanSatisfy("user", "user"), true);
+});
+
+test("normalizes only an exact concatenated frozen evidence key", () => {
+  const malformed = {
+    ...evidenceRecord,
+    evidence_id: "UX1.5-EV03/graph-keyboard-path",
+    scenario_id: "UX1.5-EV03/graph-keyboard-path",
+  };
+  assert.deepEqual(normalizePlannedEvidenceRecords(evidencePlan, [malformed]), [
+    evidenceRecord,
+  ]);
+  const unknown = {
+    ...malformed,
+    evidence_id: "UNKNOWN/scenario",
+    scenario_id: "UNKNOWN/scenario",
+  };
+  assert.deepEqual(normalizePlannedEvidenceRecords(evidencePlan, [unknown]), [
+    unknown,
+  ]);
 });
 
 test("retries only unchanged transient worker failures with a bounded attempt count", () => {

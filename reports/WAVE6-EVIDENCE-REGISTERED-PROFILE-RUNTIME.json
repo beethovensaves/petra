@@ -1,0 +1,54 @@
+{
+  "scenario_id": "UX1.6-TAXONOMY/registered-profile-runtime",
+  "status": "passed",
+  "executed_at": "2026-09-18T17:00:00.000Z",
+  "production_owners": [
+    "PostgresProjectProfileRuntime.executeProjectProfileCommand",
+    "PostgresProjectProfileRuntime.getProjectProfileTaxonomy"
+  ],
+  "database": "fresh PostgreSQL 18.6 with Flyway V001-V044",
+  "observations": {
+    "registered_profiles": [
+      {
+        "profile_id": "project_template_01K6P000000000000000000001",
+        "profile_version": "1.0.0",
+        "definition_family": "petra.scientific-evidence",
+        "project_id": "project_5ASBER1J6SHEE3HZRDBJ33XARS",
+        "definition_revision": 1,
+        "finding_term": "Claim",
+        "model_roles": "available"
+      },
+      {
+        "profile_id": "project_template_01K6P000000000000000000002",
+        "profile_version": "1.0.0",
+        "definition_family": "petra.controlled-writing",
+        "project_id": "project_2R63WNSYKX47YAEZXCYGVZPQH7",
+        "definition_revision": 1,
+        "finding_term": "Requirement",
+        "model_roles": "unavailable"
+      }
+    ],
+    "reset": {
+      "prior_project": {
+        "project_id": "project_5ASBER1J6SHEE3HZRDBJ33XARS",
+        "revision": 2,
+        "resulting_status": "archived"
+      },
+      "resulting_project": {
+        "project_id": "project_5DECB1ATZHV9DEB00YACG39QQP",
+        "revision": 1
+      },
+      "resulting_profile": {
+        "profile_id": "project_template_01K6P000000000000000000002",
+        "profile_version": "1.0.0",
+        "content_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd"
+      }
+    },
+    "unsupported_profile": {
+      "result_code": "PROJECT_PROFILE_NOT_REGISTERED",
+      "project_count_after_rejection": 3,
+      "fallback_profile_used": false
+    }
+  },
+  "boundary": "Exercises registered selection, atomic Project-owned definition/objective creation, exact versioned taxonomy reads, paired scientific/controlled-writing semantics, additive reset, and unknown-profile rejection through PostgreSQL production owners. It does not exercise the design-owned profile UI."
+}

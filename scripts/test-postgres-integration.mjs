@@ -100,6 +100,14 @@ try {
     {
       env: {
         PETRA_TEST_POSTGRES_URL: `postgresql://petra:petra-m12-integration-only@127.0.0.1:${port}/petra`,
+        ...(process.env.PETRA_WAVE6_EVIDENCE_OUTPUT === undefined
+          ? {}
+          : {
+              PETRA_WAVE6_EVIDENCE_OUTPUT: resolve(
+                root,
+                process.env.PETRA_WAVE6_EVIDENCE_OUTPUT,
+              ),
+            }),
       },
     },
   );

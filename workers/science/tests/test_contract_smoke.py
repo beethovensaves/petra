@@ -327,6 +327,76 @@ class PetraProjectDefinition(PetraModel):
     created_at: str
 
 
+class RegisteredTaxonomyItem(PetraModel):
+    semantic_key: str
+    label: str
+    meaning: str
+    availability: Literal["available", "unavailable"]
+    contract: ProjectDefinitionContractRef | None = None
+    unavailable_reason: str | None = None
+
+
+class RegisteredTaxonomySection(PetraModel):
+    state: Literal["available", "partially_available", "unavailable"]
+    items: list[RegisteredTaxonomyItem]
+    limitation: str | None = None
+
+
+class RegisteredUnavailableOperation(PetraModel):
+    operation_id: str
+    label: str
+    reason: str
+
+
+class RegisteredProjectTaxonomy(PetraModel):
+    object_kinds: RegisteredTaxonomySection
+    relationship_meanings: RegisteredTaxonomySection
+    source_roles: RegisteredTaxonomySection
+    validators: RegisteredTaxonomySection
+    work_families: RegisteredTaxonomySection
+    model_roles: RegisteredTaxonomySection
+    review_destinations: RegisteredTaxonomySection
+    terminology: list[ProjectDefinitionTerm]
+    supported_places: list[
+        Literal[
+            "brief",
+            "sources",
+            "review",
+            "graph",
+            "work",
+            "petra",
+            "composition",
+            "history",
+            "settings",
+            "profile_tool",
+        ]
+    ]
+    unavailable_operations: list[RegisteredUnavailableOperation]
+
+
+class RegisteredProjectProfileContent(PetraModel):
+    label: str
+    purpose: str
+    enabled_evidence_namespaces: list[
+        Literal["scholarly", "operational", "personal", "discovery"]
+    ]
+    objective_kind: str
+    definition: ProjectDefinitionContent
+    taxonomy: RegisteredProjectTaxonomy
+
+
+class PetraRegisteredProjectProfile(PetraModel):
+    schema_name: Literal["petra.registered-project-profile"]
+    schema_version: Literal["1.0.0"]
+    profile_id: str
+    profile_version: str
+    definition_family: str
+    status: Literal["active"]
+    content: RegisteredProjectProfileContent
+    content_hash: str
+    registered_at: str
+
+
 class ProjectObjectiveRef(PetraModel):
     objective_id: str
     revision: int
@@ -11048,6 +11118,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "capability-grant-revocation": PetraCapabilityGrantRevocation,
     "project": PetraProject,
     "project-definition": PetraProjectDefinition,
+    "registered-project-profile": PetraRegisteredProjectProfile,
     "project-objective": PetraProjectObjective,
     "project-shell-view": PetraProjectShellView,
     "project-history-view": PetraProjectHistoryView,

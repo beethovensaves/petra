@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-profile-command-request/1.0.0/schema.json",
+  "title": "PetraProjectProfileCommandRequest",
+  "description": "A client request to create a Project or safely reset one by creating a replacement from one exact registered profile. Actor and authority are server-owned.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "operation",
+    "profile_ref",
+    "project",
+    "objective"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-profile-command-request" },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "operation": { "enum": ["create", "reset"] },
+    "profile_ref": {
+      "$ref": "../../registered-project-profile/1.0.0/schema.json#/$defs/ProfileRef"
+    },
+    "expected_project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "revision"],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "revision": { "$ref": "../../common/1.0.0/schema.json#/$defs/Revision" }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statement"],
+      "properties": {
+        "statement": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "operation": { "const": "reset" } } },
+      "then": {
+        "properties": { "expected_project": {} },
+        "required": ["expected_project"]
+      },
+      "else": {
+        "not": {
+          "properties": { "expected_project": {} },
+          "required": ["expected_project"]
+        }
+      }
+    }
+  ]
+}

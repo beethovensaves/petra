@@ -1,0 +1,252 @@
+{
+  "schema_name": "petra.registered-project-profile",
+  "schema_version": "1.0.0",
+  "profile_id": "project_template_01K6P000000000000000000002",
+  "profile_version": "1.0.0",
+  "definition_family": "petra.controlled-writing",
+  "status": "active",
+  "content": {
+    "label": "Controlled writing",
+    "purpose": "Develop governed documents from exact authority sources and requirements while retaining review, revision, and output provenance.",
+    "enabled_evidence_namespaces": ["operational", "personal"],
+    "objective_kind": "writing.document-purpose",
+    "definition": {
+      "label": "Controlled writing",
+      "description": "Organizes document purposes, requirements, authority sources, governing relationships, Review, revisions, outputs, and provenance without changing Petra's shared authority rules.",
+      "kernel_compatibility": "petra.project-kernel@1.0.0",
+      "registrations": [
+        {
+          "registration_kind": "objective_schema",
+          "semantic_key": "writing.document-purpose",
+          "contract": {
+            "name": "petra.project-objective",
+            "version": "1.0.0",
+            "content_hash": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792"
+          }
+        },
+        {
+          "registration_kind": "object_schema",
+          "semantic_key": "writing.requirement",
+          "contract": {
+            "name": "petra.controlled-writing-requirement",
+            "version": "1.0.0",
+            "content_hash": "sha256:5a6d449b44078f2df1c2f29fe15164d22b0c4151a05c6f35dd8718964c3c3f1e"
+          }
+        },
+        {
+          "registration_kind": "relationship_schema",
+          "semantic_key": "writing.governs",
+          "contract": {
+            "name": "petra.controlled-writing-governing-relationship",
+            "version": "1.0.0",
+            "content_hash": "sha256:8875324fac5a6911a90aaf833289d0cc5ae2141c10f023d087a1cd876bd9e896"
+          }
+        },
+        {
+          "registration_kind": "source_role",
+          "semantic_key": "writing.authority-source",
+          "contract": {
+            "name": "petra.rights-decision",
+            "version": "1.0.0",
+            "content_hash": "sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94"
+          }
+        },
+        {
+          "registration_kind": "workflow",
+          "semantic_key": "writing.requirement-review",
+          "contract": {
+            "name": "petra.review-session",
+            "version": "1.1.0",
+            "content_hash": "sha256:e563139dcc0b87024354900e709e96bd749b5550e1a1c1a2661f71ddd7fab627"
+          }
+        }
+      ],
+      "terms": [
+        {
+          "semantic_key": "writing.document-purpose",
+          "singular": "Document purpose",
+          "plural": "Document purposes",
+          "definition": "A bounded outcome the controlled document is intended to achieve.",
+          "generic_family": "focus"
+        },
+        {
+          "semantic_key": "writing.requirement",
+          "singular": "Requirement",
+          "plural": "Requirements",
+          "definition": "An obligation or constraint whose origin, interpretation, and treatment remain inspectable.",
+          "generic_family": "finding"
+        },
+        {
+          "semantic_key": "writing.authority-source",
+          "singular": "Authority source",
+          "plural": "Authority sources",
+          "definition": "A versioned basis that governs or informs the controlled document.",
+          "generic_family": "reference"
+        },
+        {
+          "semantic_key": "writing.governs",
+          "singular": "Governing link",
+          "plural": "Governing links",
+          "definition": "A relationship connecting an authority source or requirement to the content it governs.",
+          "generic_family": "relationship"
+        }
+      ],
+      "supported_places": [
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings"
+      ],
+      "omitted_flows": [
+        "External filesystem editing",
+        "Multi-user collaboration"
+      ]
+    },
+    "taxonomy": {
+      "object_kinds": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "writing.requirement",
+            "label": "Requirement",
+            "meaning": "An exact obligation or constraint with retained origin, interpretation, revision, and authority state.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.controlled-writing-requirement",
+              "version": "1.0.0",
+              "content_hash": "sha256:5a6d449b44078f2df1c2f29fe15164d22b0c4151a05c6f35dd8718964c3c3f1e"
+            }
+          }
+        ]
+      },
+      "relationship_meanings": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "writing.governs",
+            "label": "Governing link",
+            "meaning": "Connects an authority source or requirement to the exact content it governs without implying compliance by itself.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.controlled-writing-governing-relationship",
+              "version": "1.0.0",
+              "content_hash": "sha256:8875324fac5a6911a90aaf833289d0cc5ae2141c10f023d087a1cd876bd9e896"
+            }
+          }
+        ]
+      },
+      "source_roles": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "writing.authority-source",
+            "label": "Authority source",
+            "meaning": "A versioned basis that governs or informs the controlled document.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.rights-decision",
+              "version": "1.0.0",
+              "content_hash": "sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94"
+            }
+          }
+        ]
+      },
+      "validators": {
+        "state": "unavailable",
+        "items": [],
+        "limitation": "No controlled-writing validation command is registered yet."
+      },
+      "work_families": {
+        "state": "unavailable",
+        "items": [],
+        "limitation": "Controlled-writing Work families are not registered yet."
+      },
+      "model_roles": {
+        "state": "unavailable",
+        "items": [],
+        "limitation": "No certified controlled-writing model role is registered yet."
+      },
+      "review_destinations": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "writing.requirement-review",
+            "label": "Requirement Review",
+            "meaning": "The governed destination for correcting, deciding, and applying exact Requirement candidates.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.review-session",
+              "version": "1.1.0",
+              "content_hash": "sha256:e563139dcc0b87024354900e709e96bd749b5550e1a1c1a2661f71ddd7fab627"
+            }
+          }
+        ]
+      },
+      "terminology": [
+        {
+          "semantic_key": "writing.document-purpose",
+          "singular": "Document purpose",
+          "plural": "Document purposes",
+          "definition": "A bounded outcome the controlled document is intended to achieve.",
+          "generic_family": "focus"
+        },
+        {
+          "semantic_key": "writing.requirement",
+          "singular": "Requirement",
+          "plural": "Requirements",
+          "definition": "An obligation or constraint whose origin, interpretation, and treatment remain inspectable.",
+          "generic_family": "finding"
+        },
+        {
+          "semantic_key": "writing.authority-source",
+          "singular": "Authority source",
+          "plural": "Authority sources",
+          "definition": "A versioned basis that governs or informs the controlled document.",
+          "generic_family": "reference"
+        },
+        {
+          "semantic_key": "writing.governs",
+          "singular": "Governing link",
+          "plural": "Governing links",
+          "definition": "A relationship connecting an authority source or requirement to the content it governs.",
+          "generic_family": "relationship"
+        }
+      ],
+      "supported_places": [
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings"
+      ],
+      "unavailable_operations": [
+        {
+          "operation_id": "model.use",
+          "label": "Ask a controlled-writing model",
+          "reason": "No certified controlled-writing model role is registered yet."
+        },
+        {
+          "operation_id": "work.start",
+          "label": "Start controlled-writing Work",
+          "reason": "No controlled-writing Work family is registered yet."
+        },
+        {
+          "operation_id": "source.delete-local-copy",
+          "label": "Delete local copy",
+          "reason": "Physical deletion has no accepted retention owner."
+        }
+      ]
+    }
+  },
+  "content_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd",
+  "registered_at": "2026-09-18T16:00:00.000Z"
+}

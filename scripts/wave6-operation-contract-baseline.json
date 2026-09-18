@@ -24,12 +24,12 @@
       "persistence": "PostgreSQL retains Project identity and current shell facts, but not a canonical last task, origin, and focus tuple.",
       "recovery": "The collection can reopen the Project; exact retained-task recovery is unavailable."
     },
-    "project-create-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No authenticated CreateProject command or grant resolution exists.",
-      "persistence": "ProjectDefinition and Objective repositories exist, but no atomic product-level creation owner composes them.",
-      "recovery": "No idempotent creation receipt, partial-outcome assessment, or exact return exists."
+    "project-profile-command": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects and POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
+      "authorization": "Bearer authentication plus one server-configured registered human; requests cannot carry Actor or grant identity, and reset additionally requires exact current revision plus Project ownership.",
+      "persistence": "PostgreSQL V044 atomically stores an immutable command receipt with a new Project, copied Project-owned ProjectDefinition, active Objective/focus, and exact registered-profile origin. Reset archives the prior Project additively and never deletes retained or unrelated authority.",
+      "recovery": "Stable command and idempotency identities return the exact retained receipt; stale reset, denied principal, unknown profile/version/hash, and conflicting identity fail without partial Project creation or profile fallback."
     },
     "project-import-missing": {
       "kind": "missing",
@@ -53,11 +53,11 @@
       "recovery": "A missing or stale origin must fall back to a server-supplied safe destination without implying command success."
     },
     "project-taxonomy-read": {
-      "kind": "partial",
-      "production_owner": "GET /api/queries/projects/:projectId/shell and /effective-controls -> PostgresProjectShellViewReader and PostgresProjectEffectiveControlsViewReader",
-      "authorization": "Bearer-authenticated, Project-scoped reads bind an exact ProjectDefinition revision and current effective controls.",
-      "persistence": "PostgreSQL immutable ProjectDefinition revisions, current binding, terminology, registered object/relationship types, and supported places.",
-      "recovery": "Unknown or unsupported semantic registrations fail closed; no complete usable taxonomy read exposes every Wave 6 category yet."
+      "kind": "query",
+      "production_owner": "GET /api/queries/project-profiles[/:profileId] and GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
+      "authorization": "Bearer-authenticated registry and Project-scoped reads; Project taxonomy binds the exact retained ProjectDefinition revision and exact template profile identity/version/hash when present.",
+      "persistence": "PostgreSQL immutable registered profile versions plus Project-owned immutable ProjectDefinition revisions expose purpose, object/relationship/source roles, validators, Work/model/Review roles, terminology, supported places, and unavailable operations.",
+      "recovery": "Unknown profile, unavailable version, hash mismatch, and definition-binding mismatch return a typed unsupported-profile state or command error with Projects as the safe destination; no nearby profile supplies fallback semantics."
     },
     "brief-read": {
       "kind": "query",
@@ -318,13 +318,6 @@
       "persistence": "Provider status is live; certification fixtures and execution records exist, but no Project-bound certified-role readiness view is persisted/exposed.",
       "recovery": "Provider unavailable/login/failure states exist; exact selected role, certification, context, and safe model-use availability are not composed."
     },
-    "taxonomy-binding-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No Project creation/reset command accepts a server-registered profile/version choice.",
-      "persistence": "Immutable ProjectDefinition binding exists after setup, but no supported product command selects it.",
-      "recovery": "No safe unknown-profile result, idempotent binding receipt, or representative reset outcome exists."
-    },
     "history-read": {
       "kind": "query",
       "production_owner": "GET /api/queries/projects/:projectId/history/{recent,events,...} -> ProjectHistoryViewReader -> PostgresProjectHistoryViewReader",
@@ -374,12 +367,12 @@
       "persistence": "No server persistence is required for the guide itself.",
       "recovery": "It must retain the stable URL, starting state, expected outcomes, safe mutations, reset action, and known limits."
     },
-    "application-reset-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No authenticated, bounded reset/setup command for the representative Project exists.",
-      "persistence": "Current setup is test/developer seeding rather than a supported product reset transaction.",
-      "recovery": "No reset receipt, retained unrelated-Project guarantee, partial-reset assessment, or stable resulting Project destination exists."
+    "application-reset-partial": {
+      "kind": "partial",
+      "production_owner": "POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
+      "authorization": "Bearer authentication plus the server-configured registered human, exact current Project revision, and creator ownership.",
+      "persistence": "Reset atomically archives the selected Project and creates a new Project/definition/objective from one exact registered profile while preserving unrelated Projects.",
+      "recovery": "An immutable idempotent receipt supplies the resulting Brief destination; the design-owned representative-data setup and stable-URL reset control remain incomplete."
     }
   },
   "operations": [
@@ -409,9 +402,9 @@
     },
     {
       "operation_id": "project.create",
-      "owner": "project-create-missing",
-      "owner_status": "missing",
-      "missing_owner": "Authenticated atomic Project creation with registered profile selection."
+      "owner": "project-profile-command",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "project.import",
@@ -446,8 +439,8 @@
     {
       "operation_id": "shell.project-map",
       "owner": "project-taxonomy-read",
-      "owner_status": "partial",
-      "missing_owner": "A complete profile-owned taxonomy/map read including meanings, actions, supported places, and unavailable operations."
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "shell.attention-work",
@@ -854,14 +847,14 @@
     {
       "operation_id": "taxonomy.inspect-profile",
       "owner": "project-taxonomy-read",
-      "owner_status": "partial",
-      "missing_owner": "Complete versioned taxonomy read covering purpose, object/relationship/source roles, validators, Work/model/Review roles, terminology, places, and unavailable operations."
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "taxonomy.bind-project",
-      "owner": "taxonomy-binding-missing",
-      "owner_status": "missing",
-      "missing_owner": "Project creation/reset profile selection and safe unknown-profile command result."
+      "owner": "project-profile-command",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "history.list",
@@ -961,9 +954,9 @@
     },
     {
       "operation_id": "application.reset",
-      "owner": "application-reset-missing",
-      "owner_status": "missing",
-      "missing_owner": "Authenticated bounded representative-Project reset/setup command."
+      "owner": "application-reset-partial",
+      "owner_status": "partial",
+      "missing_owner": "Representative-data setup plus the stable-URL reset control and exact guide return remain design/integration owned."
     }
   ]
 }

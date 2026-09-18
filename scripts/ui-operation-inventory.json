@@ -82,7 +82,7 @@
       "control": "New Project",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-03"]
     },
     {
@@ -172,7 +172,7 @@
       "control": "Project map",
       "interaction": "navigation",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1198,7 +1198,7 @@
       "control": "Project profile",
       "interaction": "query",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-03"]
     },
     {
@@ -1213,7 +1213,7 @@
       "control": "Choose profile",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects and POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-03"]
     },
     {
@@ -1753,7 +1753,7 @@
       "control": "Reset test Project",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     }
   ],

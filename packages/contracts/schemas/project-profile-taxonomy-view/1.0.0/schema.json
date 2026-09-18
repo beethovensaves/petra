@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-profile-taxonomy-view/1.0.0/schema.json",
+  "title": "PetraProjectProfileTaxonomyView",
+  "description": "A Project-scoped, exact-definition taxonomy read that either resolves a registered profile or fails closed without substitute semantics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "project_revision",
+    "project_definition_ref",
+    "resolution",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-profile-taxonomy-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "project_revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_definition_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_definition_id", "revision", "content_hash"],
+      "properties": {
+        "project_definition_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^project_definition_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "resolution": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "profile_ref", "label", "purpose", "taxonomy"],
+          "properties": {
+            "state": { "const": "registered" },
+            "profile_ref": {
+              "$ref": "../../registered-project-profile/1.0.0/schema.json#/$defs/ProfileRef"
+            },
+            "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+            "purpose": { "type": "string", "minLength": 1, "maxLength": 4000 },
+            "taxonomy": {
+              "$ref": "../../registered-project-profile/1.0.0/schema.json#/$defs/Taxonomy"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "profile_ref",
+            "reason",
+            "message",
+            "safe_destination"
+          ],
+          "properties": {
+            "state": { "const": "unsupported_profile" },
+            "profile_ref": {
+              "$ref": "../../registered-project-profile/1.0.0/schema.json#/$defs/ProfileRef"
+            },
+            "reason": {
+              "enum": [
+                "profile_not_registered",
+                "profile_version_unavailable",
+                "profile_hash_mismatch",
+                "definition_binding_mismatch"
+              ]
+            },
+            "message": { "type": "string", "minLength": 1, "maxLength": 1000 },
+            "safe_destination": { "const": "projects" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "label", "purpose", "taxonomy", "limitation"],
+          "properties": {
+            "state": { "const": "project_authored" },
+            "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+            "purpose": { "type": "string", "minLength": 1, "maxLength": 4000 },
+            "taxonomy": {
+              "$ref": "../../registered-project-profile/1.0.0/schema.json#/$defs/Taxonomy"
+            },
+            "limitation": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          }
+        }
+      ]
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  }
+}

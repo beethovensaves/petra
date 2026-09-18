@@ -1,4 +1,6 @@
 import { PostgresCommunicationPlanReader } from "@petra/postgres";
+import type { PetraRegisteredProjectProfile } from "@petra/contracts";
+import { readFile } from "node:fs/promises";
 import type { CommunicationPlanReader } from "@petra/core";
 import { PostgresProjectBriefViewReader } from "@petra/postgres";
 import type { ProjectBriefViewReader } from "@petra/core";
@@ -12,6 +14,7 @@ import {
   PostgresProjectSourceReplacementCommandAuthorityRepository,
   PostgresSingleUserCommandPrincipalResolver,
   PostgresProjectEffectiveControlsViewReader,
+  PostgresProjectProfileRuntime,
   PostgresProjectHistoryViewReader,
   PostgresProjectInquiryViewReader,
   PostgresProjectObjectLocationViewReader,
@@ -40,6 +43,8 @@ import type {
   FocusedGraphAnalysisViewReader,
   FocusedGraphViewReader,
   ProjectEffectiveControlsViewReader,
+  ProjectProfileCommandAuthority,
+  ProjectProfileRuntimeReader,
   ProjectHistoryViewReader,
   ProjectHistoryCompensationExecutionBoundary,
   ProjectInquiryViewReader,
@@ -73,7 +78,30 @@ import {
 
 const { Pool } = pg;
 
+const BUILT_IN_PROFILE_URLS = [
+  new URL(
+    "../../../packages/contracts/fixtures/accepted/registered-project-profile-scientific.json",
+    import.meta.url,
+  ),
+  new URL(
+    "../../../packages/contracts/fixtures/accepted/registered-project-profile-controlled-writing.json",
+    import.meta.url,
+  ),
+] as const;
+
+const readBuiltInProfiles = async (): Promise<
+  PetraRegisteredProjectProfile[]
+> =>
+  Promise.all(
+    BUILT_IN_PROFILE_URLS.map(async (url) => {
+      const parsed: unknown = JSON.parse(await readFile(url, "utf8"));
+      return parsed as PetraRegisteredProjectProfile;
+    }),
+  );
+
 export interface ProjectShellPersistence {
+  readonly profileReads: ProjectProfileRuntimeReader;
+  readonly profileCommands: ProjectProfileCommandAuthority;
   readonly communicationPlans?: CommunicationPlanReader;
   readonly briefViews: ProjectBriefViewReader;
   readonly views: ProjectShellViewReader;
@@ -214,6 +242,13 @@ export const createProjectShellPersistenceFromEnvironment = async (
     max: 5,
   });
   const contracts = new PetraContractRegistry();
+  const profileRuntime = new PostgresProjectProfileRuntime(
+    pool,
+    configuredActorId === undefined || configuredActorId === ""
+      ? undefined
+      : { actor_id: configuredActorId, actor_kind: "human" },
+    contracts,
+  );
   const historyViews = new PostgresProjectHistoryViewReader(pool, contracts, {
     cursorSecret: historyCursorSecret(environment),
     ...(configuredActorId === undefined || configuredActorId === ""
@@ -275,6 +310,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.suggested_action_invocations') IS NOT NULL
           AND to_regclass('petra.working_candidate_revisions') IS NOT NULL
           AND to_regclass('petra.review_session_lifecycle_receipts') IS NOT NULL
+          AND to_regclass('petra.registered_project_profiles') IS NOT NULL
+          AND to_regclass('petra.project_profile_command_receipts') IS NOT NULL
           AND EXISTS (
             SELECT 1
             FROM pg_constraint
@@ -291,8 +328,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the V040 ReviewSession separation boundary is unavailable.",
+        "PostgreSQL is reachable, but the V044 registered Project profile runtime is unavailable.",
       );
+    }
+    for (const profile of await readBuiltInProfiles()) {
+      await profileRuntime.registerProfile(profile);
     }
     const neo4jConfigured = [
       environment.PETRA_NEO4J_URI,
@@ -344,6 +384,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
           contracts,
         );
       return {
+        profileReads: profileRuntime,
+        profileCommands: profileRuntime,
         views: new PostgresProjectShellViewReader(pool),
         briefViews: new PostgresProjectBriefViewReader(pool, contracts),
         communicationPlans: new PostgresCommunicationPlanReader(
@@ -427,6 +469,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
   }
 
   return {
+    profileReads: profileRuntime,
+    profileCommands: profileRuntime,
     views: new PostgresProjectShellViewReader(pool),
     briefViews: new PostgresProjectBriefViewReader(pool, contracts),
     communicationPlans: new PostgresCommunicationPlanReader(pool, contracts),
