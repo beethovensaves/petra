@@ -781,6 +781,15 @@ describe("neutral Petra reference workbench", () => {
     expect(referenceWorkbenchCss).toContain("overflow-wrap: anywhere");
   });
 
+  it("keeps the Project workflow persistent and gives Petra one primary place", () => {
+    expect(referenceWorkbenchCss).toContain("position: sticky");
+    expect(referenceWorkbenchCss).toContain(
+      '.reference-project-nav nav a[data-primary="true"]',
+    );
+    expect(referenceWorkbenchCss).toContain(".reference-nav-attention");
+    expect(referenceWorkbenchCss).toContain("position: static");
+  });
+
   it("separates source identity, extent, rights, and downstream use", () => {
     const markup = render(<SourcesSurface project={inletProject} />);
 

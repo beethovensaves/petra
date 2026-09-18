@@ -87,7 +87,7 @@ export const ProductFrame = (): React.JSX.Element => {
         <Link to="/" className="reference-brand" aria-label="Petra Projects">
           <PetraLockup variant="compact" />
         </Link>
-        <p>Private project workbench</p>
+        <p>Projects</p>
         <div
           className="reference-global-status"
           role="status"
@@ -333,9 +333,6 @@ export const ProjectShell = (): React.JSX.Element => {
             <small>{project.snapshot.asOf}</small>
           </span>
           <ProjectionLabel project={project} />
-          <Link className="reference-context-action" to="petra">
-            Ask Petra
-          </Link>
           <Link
             className="reference-context-action"
             to={`/settings?project=${project.id}`}
@@ -347,17 +344,54 @@ export const ProjectShell = (): React.JSX.Element => {
 
       <div className="reference-project-layout">
         <aside className="reference-project-nav" id="project-navigation">
-          <p className="reference-nav-label">Project</p>
+          <p className="reference-nav-label">Project workflow</p>
           <nav ref={projectNav} aria-label={`${project.title} places`}>
-            <NavLink to="brief">Brief</NavLink>
-            <NavLink to="sources">
-              {project.profile.terms.referencePlural}
-            </NavLink>
-            <NavLink to="review">Review</NavLink>
-            <NavLink to="graph">Graph</NavLink>
-            <NavLink to="work">Work</NavLink>
-            <NavLink to="composition">Composition</NavLink>
-            <NavLink to="history">History</NavLink>
+            {[
+              { place: "brief" as const, to: "brief", label: "Brief" },
+              {
+                place: "petra" as const,
+                to: "petra",
+                label: "Ask Petra",
+                primary: true,
+              },
+              { place: "work" as const, to: "work", label: "Work" },
+              {
+                place: "sources" as const,
+                to: "sources",
+                label: project.profile.terms.referencePlural,
+              },
+              { place: "graph" as const, to: "graph", label: "Graph" },
+              { place: "review" as const, to: "review", label: "Review" },
+              { place: "history" as const, to: "history", label: "History" },
+              {
+                place: "composition" as const,
+                to: "composition",
+                label: "Composition",
+              },
+            ].map(({ place, to, label, primary = false }) => {
+              const summary = project.placeSummaries?.find(
+                (candidate) => candidate.role === place,
+              );
+              return (
+                <NavLink
+                  key={place}
+                  to={to}
+                  {...(primary ? { "data-primary": "true" } : {})}
+                >
+                  <span>{label}</span>
+                  {summary === undefined ||
+                  summary.attentionCount === 0 ? null : (
+                    <span
+                      className="reference-nav-attention"
+                      aria-label={`${summary.attentionCount} ${summary.attentionCount === 1 ? "item" : "items"} need attention`}
+                    >
+                      <span aria-hidden="true">!</span>
+                      {summary.attentionCount}
+                    </span>
+                  )}
+                </NavLink>
+              );
+            })}
           </nav>
           <details className="reference-profile-details">
             <summary>Profile terms</summary>

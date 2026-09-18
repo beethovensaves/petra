@@ -595,9 +595,11 @@ export const startCumulativeProductionBrowser = async ({
     assert.equal(initialBrief?.status, 200);
     initialBriefSnapshot = initialBrief.json.snapshot_hash;
     assert.ok(
-      (await evaluate("document.body.innerText")).includes(
-        initialBriefSnapshot,
-      ),
+      (
+        await evaluate(
+          'document.querySelector(".live-project-brief")?.textContent ?? ""',
+        )
+      ).includes(initialBriefSnapshot),
     );
 
     await navigate(
@@ -845,16 +847,19 @@ export const startCumulativeProductionBrowser = async ({
     assert.equal(resultingBrief?.status, 200);
     assert.notEqual(resultingBrief.json.snapshot_hash, initialBriefSnapshot);
     const briefText = await evaluate("document.body.innerText");
+    const completeBriefText = await evaluate(
+      'document.querySelector(".live-project-brief")?.textContent ?? ""',
+    );
     for (const text of [
       resultingBrief.json.snapshot_hash,
-      "Recent decisions",
-      "Complete returned History window and recovery boundaries",
+      "Technical History window and recovery boundaries",
     ]) {
       assert.ok(
-        briefText.includes(text),
+        completeBriefText.includes(text),
         `Missing live Brief/History text: ${text}`,
       );
     }
+    assert.ok(briefText.includes("Recent decisions"));
     const decisionSummaries =
       resultingBrief.json.content.recent_decisions.content.changes.map(
         (change) => change.observed_effect.summary,

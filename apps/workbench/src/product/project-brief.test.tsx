@@ -222,6 +222,22 @@ describe("Project Brief browser boundary", () => {
 });
 
 describe("DB07 retained synthesis mapping", () => {
+  it("leads with the task and keeps diagnostic records in progressive disclosure", () => {
+    const markup = render();
+
+    expect(markup).toContain("<h1>Brief</h1>");
+    expect(markup).toContain(
+      "The current focus, what needs attention, and where to continue.",
+    );
+    expect(markup).toContain('href="#brief-next"');
+    expect(markup).toContain("Review next step");
+    expect(markup).toContain('class="brief-position"');
+    expect(markup).toContain(
+      'class="brief-record brief-technical"><summary>Technical position and scope',
+    );
+    expect(markup).not.toContain("<h1>Competing explanations</h1>");
+  });
+
   it("preserves the seven-section hierarchy, origins, limitations, exact basis and disabled History navigation", () => {
     const markup = render();
     const headings = [
