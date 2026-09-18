@@ -29,8 +29,52 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       getBackendUrl: () => backendUrl,
       scientificProjectId: context.scientificProjectId,
       scientificReviewSessionId: context.scientificReviewSessionId,
+      writingProjectId: context.writingProjectId,
+      writingReviewSessionId: context.writingReviewSessionId,
     });
     return browser;
+  };
+
+  const waitForInspection = async () => {
+    if (
+      process.env.PETRA_WAVE5_INSPECT !== "1" ||
+      browser === undefined ||
+      observerFailure !== undefined
+    )
+      return;
+
+    const urls = browser.inspectionUrls();
+    process.stdout.write(
+      `\nWave 5 inspection environment is ready.\n\nOpen this inspection index:\n  ${browser.inspectionIndexUrl()}\n\nDirect links:\n\n${urls
+        .map(({ label, url }) => `${label}:\n  ${url}`)
+        .join(
+          "\n\n",
+        )}\n\nOpen any URL in your browser. Press Enter here when you are finished; Petra will then remove the disposable data and services.\n`,
+    );
+
+    await new Promise((resolveStop) => {
+      const canReadInput = process.stdin.isTTY === true;
+      const stop = () => {
+        process.removeListener("SIGINT", stop);
+        process.removeListener("SIGTERM", stop);
+        if (canReadInput) {
+          process.stdin.removeListener("data", stop);
+          process.stdin.pause();
+        }
+        resolveStop();
+      };
+      process.once("SIGINT", stop);
+      process.once("SIGTERM", stop);
+      if (canReadInput) {
+        process.stdin.setEncoding("utf8");
+        process.stdin.resume();
+        process.stdin.once("data", stop);
+      } else {
+        process.stdout.write(
+          "No interactive terminal is attached; send SIGINT or SIGTERM to stop inspection.\n",
+        );
+      }
+    });
   };
 
   const record = async (stage, context) => {
@@ -65,6 +109,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     closed = true;
     let failure = observerFailure;
     try {
+      await waitForInspection();
       await base.close?.();
     } catch (error) {
       failure = error;

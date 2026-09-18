@@ -486,6 +486,14 @@ React Router Data Mode for addressable project, question, Hypothesis, paper,
 evidence, graph, and WorkUnit views. It imports the official AG-UI client only
 through `PetraInteractionClient`; AG-UI and Hono types do not enter Petra core.
 
+The normal development database is not the retained Wave 5 fixture. To inspect
+the exact Wave 5 result, run `./run-wave-5-inspection.zsh` from the repository
+root. The launcher creates and migrates disposable stores, seeds both accepted
+profiles, exercises the verified production path, and then prints live links for
+the scientific Brief, focused Graph, Review, History, and controlled-writing
+Review on a clickable inspection index. It keeps those links active until you
+press Enter, then removes the disposable stores and services.
+
 The fixture demonstrates ordered run, state, activity, custom, tool, text, and
 terminal events; durable review interruption; replay; idempotent commands; explicit
 cancellation; trace correlation; stream abort; body and authentication limits;

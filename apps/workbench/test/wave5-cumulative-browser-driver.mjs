@@ -56,10 +56,17 @@ export const startWave5CumulativeBrowser = async ({
   getBackendUrl,
   scientificProjectId,
   scientificReviewSessionId,
+  writingProjectId,
+  writingReviewSessionId,
 }) => {
   const calls = [];
   const consoleFailures = [];
-  const workbench = await startWorkbench({ root, getBackendUrl, calls });
+  const workbench = await startWorkbench({
+    root,
+    getBackendUrl,
+    calls,
+    getInspectionLinks: () => inspectionUrls(),
+  });
   const chrome = await startChrome({ profilePrefix: "petra-wave5-live-" });
   const cdp = await createCdp(chrome.socketUrl);
   const { send, evaluate, until } = cdp;
@@ -928,6 +935,39 @@ export const startWave5CumulativeBrowser = async ({
     };
   };
 
+  const inspectionUrls = () => {
+    const route = (path) => new URL(path, workbench.url).href;
+    return [
+      {
+        label: "Scientific project brief",
+        url: route(`/projects/${scientificProjectId}/brief`),
+      },
+      {
+        label: "Scientific focused graph",
+        url: route(
+          contextualGraphPath ??
+            `/projects/${scientificProjectId}/graph?layer=working`,
+        ),
+      },
+      {
+        label: "Scientific review",
+        url: route(
+          `/projects/${scientificProjectId}/review/${scientificReviewSessionId}`,
+        ),
+      },
+      {
+        label: "Scientific history",
+        url: route(`/projects/${scientificProjectId}/history`),
+      },
+      {
+        label: "Controlled-writing review",
+        url: route(
+          `/projects/${writingProjectId}/review/${writingReviewSessionId}`,
+        ),
+      },
+    ];
+  };
+
   const close = async () => {
     if (closed) return;
     closed = true;
@@ -938,6 +978,9 @@ export const startWave5CumulativeBrowser = async ({
     prepareReviewActionTarget,
     recordFocusedGraph,
     recordProjectionLag,
+    inspectionUrls,
+    inspectionIndexUrl: () =>
+      new URL("/__wave5-inspection", workbench.url).href,
     close,
   };
 };

@@ -4591,7 +4591,16 @@ const exerciseItem53Trace = async ({
     };
   } finally {
     globalThis.fetch = nativeFetch;
-    await Promise.all([observer?.close?.(), vite?.close(), active?.shutdown()]);
+    if (process.env.PETRA_WAVE5_INSPECT === "1") {
+      await observer?.close?.();
+      await Promise.all([vite?.close(), active?.shutdown()]);
+    } else {
+      await Promise.all([
+        observer?.close?.(),
+        vite?.close(),
+        active?.shutdown(),
+      ]);
+    }
   }
 };
 
