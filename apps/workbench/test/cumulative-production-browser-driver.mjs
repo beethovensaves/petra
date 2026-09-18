@@ -24,13 +24,59 @@ const readRequestBody = (request) =>
     request.on("error", rejectBody);
   });
 
-export const startWorkbench = async ({ root, getBackendUrl, calls }) => {
+const escapeHtml = (value) =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+
+export const startWorkbench = async ({
+  root,
+  getBackendUrl,
+  calls,
+  getInspectionLinks,
+}) => {
   const liveRouteProxy = {
     name: "petra-wave4-live-route-proxy",
     enforce: "pre",
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
         const path = request.originalUrl ?? request.url ?? "/";
+        if (
+          path === "/__wave5-inspection" &&
+          getInspectionLinks !== undefined
+        ) {
+          const links = getInspectionLinks();
+          response.statusCode = 200;
+          response.setHeader("content-type", "text/html; charset=utf-8");
+          response.end(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Petra Wave 5 inspection</title>
+    <style>
+      body { max-width: 52rem; margin: 4rem auto; padding: 0 1.5rem; color: #17201c; background: #f5f2e9; font: 1rem/1.5 system-ui, sans-serif; }
+      h1 { font: 700 2rem/1.2 Georgia, serif; }
+      li { margin: 1rem 0; }
+      a { color: #185f46; font-weight: 700; }
+      code { font-size: 0.85rem; overflow-wrap: anywhere; }
+    </style>
+  </head>
+  <body>
+    <h1>Wave 5 inspection</h1>
+    <p>These views use the migrated, seeded, disposable Wave 5 stores. Return to Terminal and press Enter when you are finished.</p>
+    <ul>${links
+      .map(
+        ({ label, url }) =>
+          `<li><a href="${escapeHtml(url)}">${escapeHtml(label)}</a><br /><code>${escapeHtml(url)}</code></li>`,
+      )
+      .join("")}</ul>
+  </body>
+</html>`);
+          return;
+        }
         if (!path.startsWith("/api/") && !path.startsWith("/health")) {
           next();
           return;

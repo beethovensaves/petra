@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "wave": "7",
+  "inventory_audit": {
+    "evidence_id": "WAVE7-OPERATION-CONTROL",
+    "scenario_id": "composition-operation-audit",
+    "owner": "design",
+    "description": "Reconcile all Wave 6 and 7 operations, every Composition control and state, and all executed evidence before remediation.",
+    "required_by_completed_slice": 20
+  },
+  "remediation_reserve_slices": 44,
+  "required": [
+    {
+      "evidence_id": "UX1.7-EV01",
+      "scenario_id": "create-edit-save-restart",
+      "owner": "either",
+      "description": "Execute artifact creation, continuous editing, exact durable save, restart rehydration, and conflict preservation."
+    },
+    {
+      "evidence_id": "UX1.7-EV01",
+      "scenario_id": "span-source-provenance-ui",
+      "owner": "design",
+      "description": "Inspect statement-level origin, evidence, source location, inference, author language, and unsupported content from the document."
+    },
+    {
+      "evidence_id": "UX1.7-EV02",
+      "scenario_id": "actual-model-scoped-composition",
+      "owner": "either",
+      "description": "Execute an actual certified model request from exact passage or document context and retain revision, selection, evidence, and late-result binding."
+    },
+    {
+      "evidence_id": "UX1.7-EV02",
+      "scenario_id": "render-citation-parity",
+      "owner": "either",
+      "description": "Render in-app, Markdown, LaTeX, citations, and BibTeX from the same exact revision and WorkVersions."
+    },
+    {
+      "evidence_id": "UX1.7-EV03",
+      "scenario_id": "compare-restore-reconcile",
+      "owner": "design",
+      "description": "Execute revision comparison, stale finding handling, exact restore, and late-result reconciliation without overwriting author work."
+    },
+    {
+      "evidence_id": "UX1.7-EV04",
+      "scenario_id": "felicity-preservation-ui",
+      "owner": "design",
+      "description": "Execute Felicity revision and visible preservation failure through the document UI with force, scope, origin, and citation meaning retained."
+    },
+    {
+      "evidence_id": "UX1.7-EV05",
+      "scenario_id": "working-copy-export-delivery",
+      "owner": "either",
+      "description": "Execute exact capture, selected scope, marked status carriage, clipboard, download, partial delivery, retry, and cancellation outcomes."
+    },
+    {
+      "evidence_id": "UX1.7-EV05",
+      "scenario_id": "promotion-review-history-return",
+      "owner": "design",
+      "description": "Promote an exact artifact revision through Review, inspect History, and return to the same document context."
+    },
+    {
+      "evidence_id": "UX1.7-UX",
+      "scenario_id": "document-first-visual-interaction-review",
+      "owner": "design",
+      "description": "Review hierarchy, editor continuity, contextual panels, responsive behavior, feedback, and recovery as one usable writing task."
+    },
+    {
+      "evidence_id": "UX1.7-OPERATIONS",
+      "scenario_id": "wave7-operation-gate",
+      "owner": "either",
+      "description": "Run gate:wave7:composition with every Wave 6 and 7 operation live and bound to executed evidence."
+    },
+    {
+      "evidence_id": "UX1.7-REGRESSION",
+      "scenario_id": "wave6-core-path-retained",
+      "owner": "design",
+      "description": "Repeat the accepted Wave 6 guided path on the Wave 7 tree and show no lost core operation or visual regression."
+    },
+    {
+      "evidence_id": "UX1.7-CRITIC",
+      "scenario_id": "adversarial-writing-product-audit",
+      "owner": "either",
+      "description": "Challenge the final workflow for lost edits, false save/delivery, model overwrite, unsupported prose, provenance drift, dead controls, and slide-like presentation."
+    },
+    {
+      "evidence_id": "UX1.7-EXIT",
+      "scenario_id": "clean-pushed-complete-gate",
+      "owner": "backend",
+      "description": "Run complete repository, fresh-store, model, restart, renderer, delivery, and cumulative operation gates on clean pushed branches."
+    },
+    {
+      "evidence_id": "USER-TESTABLE-02",
+      "scenario_id": "explicit-composition-acceptance",
+      "owner": "user",
+      "description": "The user completes the guided live Composition workflow and explicitly accepts it; automated workers cannot satisfy this record."
+    }
+  ]
+}

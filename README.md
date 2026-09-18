@@ -109,6 +109,11 @@ checksum.
 | `npm run wave:doctor -- --wave 3` | Verify that the two Wave 3 worktrees, remotes, Node 24, and Codex CLI are ready for automated handoff. |
 | `npm run wave:backend -- --wave 3` | Start the waiting backend worker for the bounded Wave 3 handoff loop. |
 | `npm run wave:status -- --wave 3` | Inspect the local Wave 3 worker, commit, and stop state. |
+| `npm run audit:ui-operations` | Validate the contract-backed inventory of all user operations and report the current live/partial/unavailable/missing baseline. |
+| `npm run gate:wave6:user-testable` | Require every core Wave 6 operation to be live and backed by executed evidence. |
+| `npm run gate:wave7:composition` | Require cumulative core and Composition operations to be live and evidenced. |
+| `npm run gate:wave8:application` | Require every contracted application operation to be live and evidenced. |
+| `npm run wave:accept -- --wave N --evidence-id ID --scenario-id ID` | Record explicit user acceptance only after a wave has stopped at its user-owned checkpoint. |
 
 The optional two-worktree Codex coordinator is documented in
 [Petra wave handoff automation](WAVE_HANDOFF_AUTOMATION.md). It alternates one
@@ -485,6 +490,14 @@ does not depend on a remote font service.
 React Router Data Mode for addressable project, question, Hypothesis, paper,
 evidence, graph, and WorkUnit views. It imports the official AG-UI client only
 through `PetraInteractionClient`; AG-UI and Hono types do not enter Petra core.
+
+The normal development database is not the retained Wave 5 fixture. To inspect
+the exact Wave 5 result, run `./run-wave-5-inspection.zsh` from the repository
+root. The launcher creates and migrates disposable stores, seeds both accepted
+profiles, exercises the verified production path, and then prints live links for
+the scientific Brief, focused Graph, Review, History, and controlled-writing
+Review on a clickable inspection index. It keeps those links active until you
+press Enter, then removes the disposable stores and services.
 
 The fixture demonstrates ordered run, state, activity, custom, tool, text, and
 terminal events; durable review interruption; replay; idempotent commands; explicit
