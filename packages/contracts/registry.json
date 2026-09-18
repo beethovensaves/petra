@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.89.0",
+  "registry_version": "1.93.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -164,6 +164,50 @@
       "canonical_sha256": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-objective.ts"
+    },
+    {
+      "name": "registered-project-profile",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/registered-project-profile/1.0.0/schema.json",
+      "path": "schemas/registered-project-profile/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-immutable-optional-project-definition-template-profile",
+      "canonical_sha256": "sha256:c08a6749198248bf1cabba134e320dbe90d1d6b5307b045fa88fc3639295dcaa",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/registered-project-profile.ts"
+    },
+    {
+      "name": "project-profile-taxonomy-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-profile-taxonomy-view/1.0.0/schema.json",
+      "path": "schemas/project-profile-taxonomy-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-versioned-project-profile-taxonomy-read",
+      "canonical_sha256": "sha256:4176da336913b2eaf10679fb9f984e23c0ca8fbc3b03e14d1bc1b149402dd4a6",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-profile-taxonomy-view.ts"
+    },
+    {
+      "name": "project-profile-command-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-profile-command-request/1.0.0/schema.json",
+      "path": "schemas/project-profile-command-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-create-or-safe-reset-with-exact-registered-profile",
+      "canonical_sha256": "sha256:69e1df55b23578ffb0179d09995f81e9696f871d2d5a27d326e0ad26b85cf4f1",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-profile-command-request.ts"
+    },
+    {
+      "name": "project-profile-command-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-profile-command-receipt/1.0.0/schema.json",
+      "path": "schemas/project-profile-command-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-immutable-project-profile-command-result",
+      "canonical_sha256": "sha256:5131baf319411d989a9f14de7a30cda8fd4ea729370e19f440763a6140bb188b",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-profile-command-receipt.ts"
     },
     {
       "name": "project-inquiry-role",

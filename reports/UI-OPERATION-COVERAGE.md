@@ -63,6 +63,17 @@ operation to `live`, or attach unexecuted evidence. Subsequent delivery slices
 must close the recorded owner gap before the milestone gate may treat that row
 as complete.
 
+### Slice 3 registered-profile update
+
+The registered-profile runtime closes the backend owner gaps for Project
+creation, profile binding, complete taxonomy inspection, and the profile-owned
+Project map. The bounded reset transaction is now backend-owned but remains
+partial until the representative-data setup, stable-URL reset control, and
+guide are integrated. The current backend ledger is therefore 56 owned, 18
+partial, 15 missing, and 8 intentionally client-owned operations. No operation
+was promoted to `live`, and no design-control evidence was attached by this
+backend slice.
+
 Wave 7 owns 15 atomic Composition operations. None is currently live:
 collection creation, durable editing and save, contextual Petra work,
 provenance inspection, revision comparison and restore, validation and render,

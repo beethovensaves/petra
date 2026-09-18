@@ -216,6 +216,21 @@ export const startPetraServer = async (
         : options.projectShellPersistence === undefined
           ? {}
           : { projectBriefViews: options.projectShellPersistence.briefViews }),
+      ...(options.projectProfileReads !== undefined
+        ? { projectProfileReads: options.projectProfileReads }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectProfileReads: options.projectShellPersistence.profileReads,
+            }),
+      ...(options.projectProfileCommands !== undefined
+        ? { projectProfileCommands: options.projectProfileCommands }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectProfileCommands:
+                options.projectShellPersistence.profileCommands,
+            }),
       ...(options.projectShellViews !== undefined
         ? { projectShellViews: options.projectShellViews }
         : options.projectShellPersistence === undefined

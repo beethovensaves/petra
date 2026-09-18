@@ -57,6 +57,7 @@ import {
 } from "@petra/adapters/server";
 import type {
   PetraClaim,
+  PetraProjectProfileCommandRequest,
   PetraWorkingCandidate,
   PetraSuggestedActionInvocationRequest,
   PetraProjectHistoryCompensationExecutionRequest,
@@ -76,6 +77,7 @@ import {
   ProjectHistoryRetainedContinuationError,
   ProjectHistoryRecoveryPreviewUnavailableError,
   ProjectHistoryViewRequestError,
+  ProjectProfileRuntimeError,
   ProjectSourceLifecycleAuthorityError,
   ProjectSourceReplacementCommandError,
   ReviewCandidateBasisRevisionAuthorityError,
@@ -91,6 +93,8 @@ import {
   type ProjectHistoryViewReader,
   type ProjectHistoryCompensationExecutionBoundary,
   type ProjectInquiryAuthoredStatus,
+  type ProjectProfileCommandAuthority,
+  type ProjectProfileRuntimeReader,
   type ProjectInquiryViewReader,
   type ProjectObjectLocationViewReader,
   type ProjectRelationshipOverlayViewReader,
@@ -142,6 +146,8 @@ export interface PetraAppOptions {
   codexWorkspaceRoot?: string;
   communicationPlans?: CommunicationPlanReader;
   projectBriefViews?: ProjectBriefViewReader;
+  projectProfileReads?: ProjectProfileRuntimeReader;
+  projectProfileCommands?: ProjectProfileCommandAuthority;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
   projectHistoryViews?: ProjectHistoryViewReader;
@@ -186,6 +192,7 @@ export interface PetraApp {
 const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$/;
 const PETRA_ID_PATTERN = /^[a-z][a-z0-9_]{1,31}_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_ID_PATTERN = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const PROJECT_PROFILE_ID_PATTERN = /^project_template_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_SOURCE_ID_PATTERN = /^project_source_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_SOURCE_REPLACEMENT_ID_PATTERN =
   /^project_source_replacement_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -711,6 +718,48 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     if (view === undefined) return;
     contracts.assertValid("project-shell-view", view.schema_version, view);
   };
+  const projectProfileError = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ): Response => {
+    if (error instanceof ProjectProfileRuntimeError) {
+      const status =
+        error.code === "PROJECT_PROFILE_COMMAND_DENIED"
+          ? 403
+          : error.code === "PROJECT_PROFILE_PROJECT_NOT_FOUND"
+            ? 404
+            : error.code === "PROJECT_PROFILE_NOT_REGISTERED" ||
+                error.code === "PROJECT_PROFILE_VERSION_UNAVAILABLE" ||
+                error.code === "PROJECT_PROFILE_HASH_MISMATCH"
+              ? 422
+              : error.code === "PROJECT_PROFILE_RUNTIME_CORRUPT"
+                ? 503
+                : 409;
+      return jsonError(context, status, error.code, error.message);
+    }
+    if (
+      error instanceof ContractRegistryError ||
+      error instanceof InteractionInputError ||
+      error instanceof SyntaxError
+    ) {
+      return jsonError(
+        context,
+        422,
+        "PROJECT_PROFILE_REQUEST_INVALID",
+        error instanceof Error
+          ? error.message
+          : "The Project profile request is invalid.",
+      );
+    }
+    return jsonError(
+      context,
+      503,
+      "PROJECT_PROFILE_RUNTIME_FAILED",
+      error instanceof Error
+        ? error.message
+        : "The registered Project profile runtime is unavailable.",
+    );
+  };
 
   const interactionStreamResponse = (parameters: {
     runId: string;
@@ -1068,6 +1117,168 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     }),
   );
 
+  app.get("/api/queries/project-profiles", async (context) => {
+    if (options.projectProfileReads === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_PROFILE_RUNTIME_UNAVAILABLE",
+        "The registered Project profile read boundary is not configured.",
+      );
+    }
+    try {
+      if (new URL(context.req.url).searchParams.size !== 0) {
+        throw new InteractionInputError(
+          "The registered Project profile collection accepts no query overrides.",
+        );
+      }
+      const profiles =
+        await options.projectProfileReads.listRegisteredProfiles();
+      for (const profile of profiles) {
+        contracts.assertValid("registered-project-profile", "1.0.0", profile);
+      }
+      context.header("Cache-Control", "no-store");
+      return context.json({ profiles });
+    } catch (error) {
+      return projectProfileError(context, error);
+    }
+  });
+
+  app.get("/api/queries/project-profiles/:profileId", async (context) => {
+    if (options.projectProfileReads === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_PROFILE_RUNTIME_UNAVAILABLE",
+        "The registered Project profile read boundary is not configured.",
+      );
+    }
+    try {
+      const profileId = context.req.param("profileId");
+      const parameters = new URL(context.req.url).searchParams;
+      if (
+        !PROJECT_PROFILE_ID_PATTERN.test(profileId) ||
+        [...parameters.keys()].some(
+          (key) => key !== "version" || parameters.getAll(key).length !== 1,
+        )
+      ) {
+        throw new InteractionInputError(
+          "A profile read requires one canonical profile ID and at most one exact version.",
+        );
+      }
+      const version = parameters.get("version") ?? undefined;
+      if (version !== undefined && !/^[0-9]+\.[0-9]+\.[0-9]+$/u.test(version)) {
+        throw new InteractionInputError(
+          "A profile version must use an exact numeric major.minor.patch identity.",
+        );
+      }
+      const profile = await options.projectProfileReads.getRegisteredProfile(
+        profileId,
+        version,
+      );
+      if (profile === undefined) {
+        return jsonError(
+          context,
+          404,
+          "PROJECT_PROFILE_NOT_REGISTERED",
+          "The exact registered Project profile is unavailable.",
+        );
+      }
+      contracts.assertValid("registered-project-profile", "1.0.0", profile);
+      context.header("Cache-Control", "no-store");
+      return context.json(profile);
+    } catch (error) {
+      return projectProfileError(context, error);
+    }
+  });
+
+  app.post("/api/commands/projects", async (context) => {
+    if (options.projectProfileCommands === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_PROFILE_RUNTIME_UNAVAILABLE",
+        "The Project creation boundary is not configured.",
+      );
+    }
+    try {
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectProfileCommandRequest;
+      contracts.assertValid(
+        "project-profile-command-request",
+        "1.0.0",
+        request,
+      );
+      if (request.operation !== "create") {
+        throw new InteractionInputError(
+          "The Project collection command accepts only create requests.",
+        );
+      }
+      const receipt =
+        await options.projectProfileCommands.executeProjectProfileCommand(
+          request,
+        );
+      contracts.assertValid(
+        "project-profile-command-receipt",
+        "1.0.0",
+        receipt,
+      );
+      return context.json(receipt, 201);
+    } catch (error) {
+      return projectProfileError(context, error);
+    }
+  });
+
+  app.post("/api/commands/projects/:projectId/reset", async (context) => {
+    if (options.projectProfileCommands === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_PROFILE_RUNTIME_UNAVAILABLE",
+        "The Project reset boundary is not configured.",
+      );
+    }
+    try {
+      const projectId = context.req.param("projectId");
+      if (!PROJECT_ID_PATTERN.test(projectId)) {
+        throw new InteractionInputError(
+          "Project reset requires a canonical Project ID.",
+        );
+      }
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectProfileCommandRequest;
+      contracts.assertValid(
+        "project-profile-command-request",
+        "1.0.0",
+        request,
+      );
+      if (
+        request.operation !== "reset" ||
+        request.expected_project?.project_id !== projectId
+      ) {
+        throw new InteractionInputError(
+          "The reset route and exact expected Project must identify the same Project.",
+        );
+      }
+      const receipt =
+        await options.projectProfileCommands.executeProjectProfileCommand(
+          request,
+        );
+      contracts.assertValid(
+        "project-profile-command-receipt",
+        "1.0.0",
+        receipt,
+      );
+      return context.json(receipt);
+    } catch (error) {
+      return projectProfileError(context, error);
+    }
+  });
+
   app.get("/api/queries/projects", async (context) => {
     if (options.projectShellViews === undefined) {
       return jsonError(
@@ -1159,6 +1370,62 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           ? error.message
           : "Communication is unavailable.",
       );
+    }
+  });
+
+  app.get("/api/queries/projects/:projectId/taxonomy", async (context) => {
+    if (options.projectProfileReads === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_PROFILE_RUNTIME_UNAVAILABLE",
+        "The Project taxonomy read boundary is not configured.",
+      );
+    }
+    try {
+      const projectId = context.req.param("projectId");
+      const parameters = new URL(context.req.url).searchParams;
+      if (
+        !PROJECT_ID_PATTERN.test(projectId) ||
+        [...parameters.keys()].some(
+          (key) =>
+            key !== "definition_revision" ||
+            parameters.getAll(key).length !== 1,
+        )
+      ) {
+        throw new InteractionInputError(
+          "A Project taxonomy read accepts one canonical Project and at most one exact definition revision.",
+        );
+      }
+      const revisionText = parameters.get("definition_revision");
+      const definitionRevision =
+        revisionText === null ? undefined : Number(revisionText);
+      if (
+        definitionRevision !== undefined &&
+        (!Number.isSafeInteger(definitionRevision) || definitionRevision < 1)
+      ) {
+        throw new InteractionInputError(
+          "The ProjectDefinition revision must be a positive safe integer.",
+        );
+      }
+      const taxonomy =
+        await options.projectProfileReads.getProjectProfileTaxonomy(
+          projectId,
+          definitionRevision,
+        );
+      if (taxonomy === undefined) {
+        return jsonError(
+          context,
+          404,
+          "PROJECT_TAXONOMY_NOT_FOUND",
+          "The Project or exact ProjectDefinition revision is unavailable.",
+        );
+      }
+      contracts.assertValid("project-profile-taxonomy-view", "1.0.0", taxonomy);
+      context.header("Cache-Control", "no-store");
+      return context.json(taxonomy);
+    } catch (error) {
+      return projectProfileError(context, error);
     }
   });
 

@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.57.0",
+  "fixture_manifest_version": "1.59.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -62,6 +62,14 @@
     {
       "schema": "project-objective",
       "path": "fixtures/accepted/project-objective-controlled-writing.json"
+    },
+    {
+      "schema": "registered-project-profile",
+      "path": "fixtures/accepted/registered-project-profile-scientific.json"
+    },
+    {
+      "schema": "registered-project-profile",
+      "path": "fixtures/accepted/registered-project-profile-controlled-writing.json"
     },
     {
       "schema": "project-inquiry-role",

@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-profile-command-receipt/1.0.0/schema.json",
+  "title": "PetraProjectProfileCommandReceipt",
+  "description": "The immutable result of an authorized Project create or reset operation using one exact registered profile.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "operation",
+    "actor",
+    "profile_ref",
+    "project_ref",
+    "project_definition_ref",
+    "objective_ref",
+    "destination",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-profile-command-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^project_profile_receipt_" }
+      ]
+    },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "operation": { "enum": ["create", "reset"] },
+    "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+    "profile_ref": {
+      "$ref": "../../registered-project-profile/1.0.0/schema.json#/$defs/ProfileRef"
+    },
+    "prior_project_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "revision", "resulting_status"],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "resulting_status": { "const": "archived" }
+      }
+    },
+    "project_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "revision"],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "revision": { "$ref": "../../common/1.0.0/schema.json#/$defs/Revision" }
+      }
+    },
+    "project_definition_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_definition_id", "revision", "content_hash"],
+      "properties": {
+        "project_definition_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^project_definition_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "objective_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "revision", "content_hash"],
+      "properties": {
+        "objective_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^objective_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place_role", "project_id"],
+      "properties": {
+        "place_role": { "const": "brief" },
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        }
+      }
+    },
+    "recorded_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "operation": { "const": "reset" } } },
+      "then": {
+        "properties": { "prior_project_ref": {} },
+        "required": ["prior_project_ref"]
+      },
+      "else": {
+        "not": {
+          "properties": { "prior_project_ref": {} },
+          "required": ["prior_project_ref"]
+        }
+      }
+    }
+  ]
+}

@@ -75,6 +75,20 @@ export type {
   PetraProjectObjective,
 } from "./generated/project-objective.js";
 export type {
+  PetraRegisteredProjectProfile,
+  ProfileContent as RegisteredProjectProfileContent,
+  RegisteredTaxonomyItem,
+  Taxonomy as RegisteredProjectTaxonomy,
+  TaxonomySection as RegisteredProjectTaxonomySection,
+  UnavailableOperation as RegisteredProjectUnavailableOperation,
+} from "./generated/registered-project-profile.js";
+export type {
+  PetraProjectProfileTaxonomyView,
+  ProfileRef as ProjectProfileTaxonomyProfileRef,
+} from "./generated/project-profile-taxonomy-view.js";
+export type { PetraProjectProfileCommandRequest } from "./generated/project-profile-command-request.js";
+export type { PetraProjectProfileCommandReceipt } from "./generated/project-profile-command-receipt.js";
+export type {
   ObjectiveRepresentation as ProjectInquiryObjectiveRepresentation,
   PetraProjectInquiryRole,
   RoleContent as ProjectInquiryRoleContent,

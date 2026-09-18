@@ -15,5 +15,6 @@ export * from "./review-recovery-assessment-client.js";
 export * from "./review-session-apply-client.js";
 
 export * from "./project-brief-client.js";
+export * from "./project-profile-client.js";
 export * from "./communication-plan-client.js";
 export * from "./project-working-state-client.js";

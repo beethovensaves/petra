@@ -1,0 +1,293 @@
+{
+  "schema_name": "petra.registered-project-profile",
+  "schema_version": "1.0.0",
+  "profile_id": "project_template_01K6P000000000000000000001",
+  "profile_version": "1.0.0",
+  "definition_family": "petra.scientific-evidence",
+  "status": "active",
+  "content": {
+    "label": "Scientific evidence inquiry",
+    "purpose": "Compare bounded research questions and claims against exact, rights-governed sources while keeping proposals, review, and authority distinct.",
+    "enabled_evidence_namespaces": ["scholarly", "personal"],
+    "objective_kind": "scientific.research-question",
+    "definition": {
+      "label": "Scientific evidence inquiry",
+      "description": "Organizes research questions, claims, source relationships, grounded Work, Review, and provenance without changing Petra's shared authority rules.",
+      "kernel_compatibility": "petra.project-kernel@1.0.0",
+      "registrations": [
+        {
+          "registration_kind": "objective_schema",
+          "semantic_key": "scientific.research-question",
+          "contract": {
+            "name": "petra.project-objective",
+            "version": "1.0.0",
+            "content_hash": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792"
+          }
+        },
+        {
+          "registration_kind": "object_schema",
+          "semantic_key": "scientific.claim",
+          "contract": {
+            "name": "petra.claim",
+            "version": "1.0.0",
+            "content_hash": "sha256:1cb1f7910202af21e0f8e610c0dcab605db50f8c8466a9c38f0acf69778db196"
+          }
+        },
+        {
+          "registration_kind": "relationship_schema",
+          "semantic_key": "scientific.assertion",
+          "contract": {
+            "name": "petra.assertion",
+            "version": "1.0.0",
+            "content_hash": "sha256:2c58656a9a93052112b26a9080c37811e570000de35d0f9240180da1742c8c91"
+          }
+        },
+        {
+          "registration_kind": "source_role",
+          "semantic_key": "scientific.literature",
+          "contract": {
+            "name": "petra.rights-decision",
+            "version": "1.0.0",
+            "content_hash": "sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94"
+          }
+        },
+        {
+          "registration_kind": "workflow",
+          "semantic_key": "scientific.grounded-synthesis",
+          "contract": {
+            "name": "petra.work-unit",
+            "version": "1.0.0",
+            "content_hash": "sha256:6009a3c4ec45df4f7073189f8ef111e59428392a9c8fec1ee14508aeca04c316"
+          }
+        },
+        {
+          "registration_kind": "model_role",
+          "semantic_key": "scientific.grounded-synthesist",
+          "contract": {
+            "name": "petra.model-role-certification",
+            "version": "1.1.0",
+            "content_hash": "sha256:7bab65763e37fc2bec0b9fa64d178ae37e769882717a445bb2a5f0fb650a40f1"
+          }
+        },
+        {
+          "registration_kind": "workflow",
+          "semantic_key": "scientific.claim-review",
+          "contract": {
+            "name": "petra.review-session",
+            "version": "1.1.0",
+            "content_hash": "sha256:e563139dcc0b87024354900e709e96bd749b5550e1a1c1a2661f71ddd7fab627"
+          }
+        }
+      ],
+      "terms": [
+        {
+          "semantic_key": "scientific.research-question",
+          "singular": "Research question",
+          "plural": "Research questions",
+          "definition": "A bounded question the Project is trying to answer.",
+          "generic_family": "focus"
+        },
+        {
+          "semantic_key": "scientific.claim",
+          "singular": "Claim",
+          "plural": "Claims",
+          "definition": "A proposition with explicit scope, basis, and authority state.",
+          "generic_family": "finding"
+        },
+        {
+          "semantic_key": "scientific.literature",
+          "singular": "Source",
+          "plural": "Sources",
+          "definition": "A versioned and rights-governed basis available to the Project.",
+          "generic_family": "reference"
+        },
+        {
+          "semantic_key": "scientific.assertion",
+          "singular": "Evidence link",
+          "plural": "Evidence links",
+          "definition": "An exact relationship connecting a Claim to its retained source basis.",
+          "generic_family": "relationship"
+        }
+      ],
+      "supported_places": [
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings"
+      ],
+      "omitted_flows": [
+        "External filesystem editing",
+        "Multi-user collaboration"
+      ]
+    },
+    "taxonomy": {
+      "object_kinds": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.claim",
+            "label": "Claim",
+            "meaning": "A proposition whose exact wording, basis, revision, and authority state remain inspectable.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.claim",
+              "version": "1.0.0",
+              "content_hash": "sha256:1cb1f7910202af21e0f8e610c0dcab605db50f8c8466a9c38f0acf69778db196"
+            }
+          }
+        ]
+      },
+      "relationship_meanings": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.assertion",
+            "label": "Evidence link",
+            "meaning": "Connects one Claim revision to exact retained evidence and does not imply acceptance by itself.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.assertion",
+              "version": "1.0.0",
+              "content_hash": "sha256:2c58656a9a93052112b26a9080c37811e570000de35d0f9240180da1742c8c91"
+            }
+          }
+        ]
+      },
+      "source_roles": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.literature",
+            "label": "Source",
+            "meaning": "A versioned, rights-governed basis that may support or limit scientific claims.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.rights-decision",
+              "version": "1.0.0",
+              "content_hash": "sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94"
+            }
+          }
+        ]
+      },
+      "validators": {
+        "state": "unavailable",
+        "items": [],
+        "limitation": "No general Project-level scientific validator is registered; exact checks remain owned by their Work and Review records."
+      },
+      "work_families": {
+        "state": "partially_available",
+        "items": [
+          {
+            "semantic_key": "scientific.grounded-synthesis",
+            "label": "Grounded synthesis",
+            "meaning": "Produces a bounded response from exact Project context without applying scientific authority.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.work-unit",
+              "version": "1.0.0",
+              "content_hash": "sha256:6009a3c4ec45df4f7073189f8ef111e59428392a9c8fec1ee14508aeca04c316"
+            }
+          }
+        ],
+        "limitation": "Generic retry, checkpoint resume, and start-again commands are not registered."
+      },
+      "model_roles": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.grounded-synthesist",
+            "label": "Grounded synthesist",
+            "meaning": "A certified advisory model role bound to exact Project context; its output is not domain authority.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.model-role-certification",
+              "version": "1.1.0",
+              "content_hash": "sha256:7bab65763e37fc2bec0b9fa64d178ae37e769882717a445bb2a5f0fb650a40f1"
+            }
+          }
+        ]
+      },
+      "review_destinations": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.claim-review",
+            "label": "Claim Review",
+            "meaning": "The governed destination for correcting, deciding, and applying exact Claim candidates.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.review-session",
+              "version": "1.1.0",
+              "content_hash": "sha256:e563139dcc0b87024354900e709e96bd749b5550e1a1c1a2661f71ddd7fab627"
+            }
+          }
+        ]
+      },
+      "terminology": [
+        {
+          "semantic_key": "scientific.research-question",
+          "singular": "Research question",
+          "plural": "Research questions",
+          "definition": "A bounded question the Project is trying to answer.",
+          "generic_family": "focus"
+        },
+        {
+          "semantic_key": "scientific.claim",
+          "singular": "Claim",
+          "plural": "Claims",
+          "definition": "A proposition with explicit scope, basis, and authority state.",
+          "generic_family": "finding"
+        },
+        {
+          "semantic_key": "scientific.literature",
+          "singular": "Source",
+          "plural": "Sources",
+          "definition": "A versioned and rights-governed basis available to the Project.",
+          "generic_family": "reference"
+        },
+        {
+          "semantic_key": "scientific.assertion",
+          "singular": "Evidence link",
+          "plural": "Evidence links",
+          "definition": "An exact relationship connecting a Claim to its retained source basis.",
+          "generic_family": "relationship"
+        }
+      ],
+      "supported_places": [
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings"
+      ],
+      "unavailable_operations": [
+        {
+          "operation_id": "work.retry",
+          "label": "Retry Work",
+          "reason": "A public retry command is not registered yet."
+        },
+        {
+          "operation_id": "work.resume",
+          "label": "Resume Work",
+          "reason": "A checkpoint-resume command is not registered yet."
+        },
+        {
+          "operation_id": "source.delete-local-copy",
+          "label": "Delete local copy",
+          "reason": "Physical deletion has no accepted retention owner."
+        }
+      ]
+    }
+  },
+  "content_hash": "sha256:d0d84073ab2fc70a643890e002945f1f5bdc94a0c291c98b531cfedb5553b538",
+  "registered_at": "2026-09-18T16:00:00.000Z"
+}
