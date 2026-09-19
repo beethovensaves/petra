@@ -2,9 +2,10 @@
   "evidence_id": "UX1.6-WORK",
   "scenario_id": "usable-work-ui",
   "status": "blocked",
-  "executed_at": "2026-09-19T23:08:41Z",
-  "command": "./run-wave-6-checkpoint.zsh with pinned Node 24.20.0 and the repository Chrome DevTools driver; replay started at /guide and used visible Work controls",
+  "executed_at": "2026-09-19T23:35:45Z",
+  "command": "./run-wave-6-checkpoint.zsh with pinned Node 24.20.0 and the repository Chrome DevTools driver; replay started at /guide and used the visible Open Work, Reconnect, and Replay delivery controls",
   "stable_url": "http://127.0.0.1:4311/guide",
+  "latest_execution_scope": "Re-executed the completed task's reconnect and replay paths after the checkpoint restart. The earlier requested-task command observations remain retained below and were not repeated in this slice.",
   "production_boundary": {
     "client": "production React Work routes served by the documented Wave 6 checkpoint",
     "server": "startPetraServer through the checkpoint proxy",
@@ -51,13 +52,18 @@
     },
     "completed_task": {
       "work_unit_id": "work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0",
+      "interaction_run_id": "interaction_run_525CDXC6KHKJEB9045XDXJTVBT",
+      "protocol_thread_id": "thread-wave4-item49-natural-conversation",
+      "protocol_run_id": "run-wave4-item49-natural-conversation",
       "work_revision": 4,
+      "work_revision_after_delivery_reads": 4,
       "measured_resources_visible": true,
       "registered_stage_count": 0,
       "server_assessed_reconnect": "query_only",
       "server_assessed_replay": "query_only",
-      "reconnect_result": "Unknown interaction run: run-wave4-item49-natural-conversation",
-      "replay_result": "RUN_NOT_FOUND: No available Artifact has content hash sha256:aed3cde5091547dd01217e001aaf8b42ad893f8acd88ced1d359bd388ba10b67.",
+      "reconnect_result": "Canonical Work delivery is completed with 2 retained events.",
+      "replay_result": "Replayed 2 retained events in exact RUN_STARTED then RUN_FINISHED order without starting another Work attempt.",
+      "work_command_requests_during_reconnect_and_replay": 0,
       "instruction_retention_recovery_presented": true,
       "false_delivery_success_presented": false
     },
@@ -83,13 +89,14 @@
   "resolved_since_prior_observation": [
     "The representative requested Work now exposes one pending registered parsing input.",
     "The visible input response, prioritize, steer, start, detach/return, and cancel paths execute with the authenticated human ManageProjectWork grant.",
-    "The Work command path no longer returns active_grant_not_found."
+    "The Work command path no longer returns active_grant_not_found.",
+    "After checkpoint restart, the completed Work task reconnects to run-wave4-item49-natural-conversation with two retained events.",
+    "Visible Replay delivery returns RUN_STARTED then RUN_FINISHED, keeps Work revision 4, and issues no Work command or new attempt."
   ],
   "required_intervention": [
     "Register a meaningful stage plan for the representative Work workflow so the task can expose and execute its actual stages.",
-    "Retain the completed task's durable InteractionRun and every content-addressed replay dependency, including Artifact sha256:aed3cde5091547dd01217e001aaf8b42ad893f8acd88ced1d359bd388ba10b67, across checkpoint restart so reconnect and replay both succeed.",
     "Make the grounded-response and worker-output-manifest Work destinations render their exact registered objects instead of resolving to Brief.",
     "Register the scientific Project definition's inquiry-role mapping if the checkpoint is intended to demonstrate linked inquiry paths."
   ],
-  "boundary": "This is a retained failed browser observation, not a passed evidence record. It proves that the pending input and authenticated command blocker were fixed and that the visible answer, scheduling, start, detach/return, and cancellation controls execute without false success. It does not satisfy UX1.6-WORK/usable-work-ui because meaningful stages, successful durable reconnect/replay, and exact result destinations remain unavailable."
+  "boundary": "This is a retained failed browser observation, not a passed evidence record. It proves that the pending input and authenticated command blocker were fixed; that the visible answer, scheduling, start, detach/return, and cancellation controls execute without false success; and that the completed task now reconnects and replays RUN_STARTED then RUN_FINISHED after restart without a Work command, another attempt, or a revision change. It does not satisfy UX1.6-WORK/usable-work-ui because meaningful stages, exact result destinations, and the scientific inquiry-role mapping remain unavailable."
 }
