@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/review-session-reject-request/1.0.0/schema.json",
+  "title": "PetraReviewSessionRejectRequest",
+  "description": "An exact human request to reject the complete ChangeSet previewed by one rejection checkpoint. Actor and command grants remain server-owned.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "checkpoint",
+    "rationale",
+    "decided_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.review-session-reject-request" },
+    "schema_version": { "const": "1.0.0" },
+    "checkpoint": {
+      "$ref": "../../review-session-reject-checkpoint/1.0.0/schema.json"
+    },
+    "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "decided_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

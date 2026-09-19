@@ -1401,6 +1401,9 @@ export type { PetraReviewRecoveryAssessment } from "./generated/review-recovery-
 export type { PetraReviewSessionApplyCheckpoint } from "./generated/review-session-apply-checkpoint.js";
 export type { PetraReviewSessionApplyResult } from "./generated/review-session-apply-result.js";
 export type { PetraReviewSessionApplyRequest } from "./generated/review-session-apply-request.js";
+export type { PetraReviewSessionRejectCheckpoint } from "./generated/review-session-reject-checkpoint.js";
+export type { PetraReviewSessionRejectRequest } from "./generated/review-session-reject-request.js";
+export type { PetraReviewSessionRejectResult } from "./generated/review-session-reject-result.js";
 
 export type { PetraResearchBriefPayload } from "./generated/research-brief-payload.js";
 

@@ -3,18 +3,21 @@ import { ProjectBriefClient } from "@petra/adapters";
 import { projectBriefSnapshotMaterial } from "@petra/core";
 import { PostgresProjectBriefViewReader } from "../src/project-brief-view-reader.js";
 import type { PostgresCommandAuthorizer } from "../src/command-authorizer.js";
-import type { ReviewApplyAuthority } from "@petra/core";
+import type { ReviewApplyAuthority, ReviewRejectAuthority } from "@petra/core";
 import type {
   PetraCapabilityGrant,
   PetraReviewSessionApplyCheckpoint,
   PetraReviewSessionApplyRequest,
+  PetraReviewSessionRejectRequest,
 } from "@petra/contracts";
 import { PostgresReviewSessionApplyBoundary } from "../src/review-session-apply.js";
 import { PostgresSingleUserCommandPrincipalResolver } from "../src/single-user-command-principal-resolver.js";
 import { createPetraApp } from "../../../apps/server/src/app.js";
 import {
   ReviewSessionApplyClient,
+  ReviewSessionRejectClient,
   validateReviewApplyResult,
+  validateReviewRejectResult,
 } from "@petra/adapters";
 import { PostgresReviewRecoveryAssessmentReader } from "../src/review-recovery-assessment-reader.js";
 import { createHash } from "node:crypto";
@@ -3909,6 +3912,140 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
         validateReviewApplyResult(changed, request),
       ).rejects.toThrow();
     }
+  });
+
+  it("rejects one complete manual checkpoint through the production route without Apply and replays the exact retained decision after restart", async () => {
+    const { boundary, authority, selection, actor } = await applySetup(true);
+    const rejectAuthority: ReviewRejectAuthority = {
+      authorization_basis: {
+        kind: "authenticated_human_checkpoint",
+        decision: "reject",
+        actor: structuredClone(authority.authorization_basis.actor),
+      },
+      capability_grants: {
+        SubmitChangeSet: authority.capability_grants.SubmitChangeSet,
+        RecordApproval: authority.capability_grants.RecordApproval,
+      },
+    };
+    const petra = createPetraApp({
+      authToken: "reject-test",
+      reviewSessionReject: boundary,
+      commandPrincipalResolver: new PostgresSingleUserCommandPrincipalResolver(
+        pool,
+        { actor_id: actor.actor_id, actor_kind: "human" },
+      ),
+    });
+    const client = new ReviewSessionRejectClient({
+      baseUrl: "http://petra.local",
+      token: "reject-test",
+      fetch: async (url, init) =>
+        petra.app.request(
+          new Request(url instanceof Request ? url : String(url), init),
+        ),
+    });
+    const checkpoint = await client.prepare(selection);
+    expect(checkpoint.binding.authorization_basis).toEqual(
+      rejectAuthority.authorization_basis,
+    );
+    expect(checkpoint.binding.capability_grants).toEqual(
+      rejectAuthority.capability_grants,
+    );
+    expect(checkpoint.binding.atomic_member_ids).toEqual([
+      selection.selected_review_member_id,
+    ]);
+    const request: PetraReviewSessionRejectRequest = {
+      schema_name: "petra.review-session-reject-request",
+      schema_version: "1.0.0",
+      checkpoint,
+      rationale: "The evidence does not support accepting this candidate.",
+      decided_at: new Date().toISOString(),
+    };
+    const plan = (await import("@petra/core")).buildReviewRejectPlan(request);
+    await expect(
+      new PostgresChangeControlAuthorityRepository(
+        pool,
+        new PostgresCapabilityGrantCommandAuthorizer(contracts),
+      ).executeCommand(plan.submit),
+    ).rejects.toMatchObject({ code: "COMMAND_NOT_AUTHORIZED" });
+
+    const result = await client.reject(request);
+    expect(result.outcome).toBe("rejected");
+    expect(result.steps.map((step) => step.observation)).toEqual([
+      "executed",
+      "executed",
+    ]);
+    expect(
+      result.steps.map((step) => step.envelope.command.command_name),
+    ).toEqual(["SubmitChangeSet", "RecordApproval"]);
+    expect(
+      result.assessment.content.review.members.map((m) => m.outcome),
+    ).toEqual(["rejected", "awaiting_decision"]);
+    expect(result.assessment.content.groups[0]).toMatchObject({
+      state: "rejected",
+      effect: "unknown",
+      next_step: "inspect",
+      member_ids: [selection.selected_review_member_id],
+      member_outcomes: [
+        {
+          review_member_id: selection.selected_review_member_id,
+          review_outcome: "rejected",
+        },
+      ],
+    });
+
+    const targetRevisions = await pool.query<{ current_revision: string }>(
+      `SELECT current_revision::text
+         FROM petra.evidence_entities
+        WHERE evidence_id = ANY($1::text[])
+        ORDER BY evidence_id`,
+      [
+        checkpoint.binding.change_set.content.operations.map(
+          (operation) => operation.target_id,
+        ),
+      ],
+    );
+    expect(targetRevisions.rows).toEqual([
+      { current_revision: "1" },
+      { current_revision: "1" },
+    ]);
+
+    const restarted = new PostgresReviewSessionApplyBoundary(
+      pool,
+      new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    );
+    const replay = await restarted.executeReviewReject(
+      request,
+      rejectAuthority,
+    );
+    await validateReviewRejectResult(replay, request);
+    expect(replay.steps.map((step) => step.observation)).toEqual([
+      "replayed",
+      "replayed",
+    ]);
+    const counts = await pool.query<{
+      commands: string;
+      approvals: string;
+      changes: string;
+      events: string;
+    }>(
+      "SELECT (SELECT count(*)::text FROM petra.command_executions) AS commands, (SELECT count(*)::text FROM petra.approvals) AS approvals, (SELECT count(*)::text FROM petra.change_sets) AS changes, (SELECT count(*)::text FROM petra.domain_events) AS events",
+    );
+    expect(counts.rows[0]).toEqual({
+      commands: "2",
+      approvals: "1",
+      changes: "1",
+      events: "2",
+    });
+    const retainedRequests = await pool.query<{
+      reject_request: unknown;
+      apply_request: unknown;
+    }>(
+      "SELECT review_reject_request AS reject_request, review_apply_request AS apply_request FROM petra.command_executions ORDER BY command_id",
+    );
+    expect(retainedRequests.rows).toEqual([
+      { reject_request: request, apply_request: null },
+      { reject_request: request, apply_request: null },
+    ]);
   });
 
   it("rejects unsupported Review profiles and denied manual authority before preparing or executing commands", async () => {

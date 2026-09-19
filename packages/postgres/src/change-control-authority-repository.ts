@@ -1,4 +1,7 @@
-import type { PetraReviewSessionApplyRequest } from "@petra/contracts";
+import type {
+  PetraReviewSessionApplyRequest,
+  PetraReviewSessionRejectRequest,
+} from "@petra/contracts";
 import { createHash, randomBytes } from "node:crypto";
 
 import type {
@@ -14,6 +17,7 @@ import type {
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   ChangeControlError,
+  buildReviewRejectPlan,
   createPetraId,
   petraIdKind,
   buildReviewApplyPlan,
@@ -180,7 +184,8 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
   async executeCommand(
     envelope: PetraCommandEnvelopeRecord,
     checkpointGuard?: {
-      readonly request: PetraReviewSessionApplyRequest;
+      readonly request:
+        PetraReviewSessionApplyRequest | PetraReviewSessionRejectRequest;
       readonly lockKeys: readonly string[];
       readonly recheck: (client: PoolClient) => Promise<void>;
       readonly onReplay?: () => void;
@@ -192,12 +197,19 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
       envelope,
     );
     if (checkpointGuard !== undefined) {
+      const reject =
+        checkpointGuard.request.schema_name ===
+        "petra.review-session-reject-request";
       this.#contracts.assertValid(
-        "review-session-apply-request",
+        reject
+          ? "review-session-reject-request"
+          : "review-session-apply-request",
         "1.0.0",
         checkpointGuard.request,
       );
-      const plan = buildReviewApplyPlan(checkpointGuard.request);
+      const plan = reject
+        ? buildReviewRejectPlan(checkpointGuard.request)
+        : buildReviewApplyPlan(checkpointGuard.request);
       if (
         ![plan.submit, plan.review, plan.apply].some(
           (step) =>
@@ -245,7 +257,8 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
 
       await this.#requireCommandContext(client, envelope);
       if (
-        envelope.idempotency_key.startsWith("review-checkpoint:") &&
+        (envelope.idempotency_key.startsWith("review-checkpoint:") ||
+          envelope.idempotency_key.startsWith("review-reject:")) &&
         checkpointGuard === undefined
       ) {
         throw new ChangeControlError(
@@ -1661,7 +1674,8 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
     fingerprint: string,
     plan: CommandPlan,
     completedAt: string,
-    reviewApplyRequest?: PetraReviewSessionApplyRequest,
+    checkpointRequest?:
+      PetraReviewSessionApplyRequest | PetraReviewSessionRejectRequest,
   ): Promise<void> {
     const failed = "failure" in plan;
     await client.query(
@@ -1669,10 +1683,11 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
          command_id, idempotency_key, project_id, actor_id, actor_kind,
          capability_grant_id, correlation_id, submitted_at, command_name,
          command_fingerprint, envelope, outcome_kind, result, error_code,
-         error_message, completed_at, review_apply_request
+         error_message, completed_at, review_apply_request,
+         review_reject_request
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz, $9, $10,
                  $11::jsonb, $12, $13::jsonb, $14, $15,
-                 $16::timestamptz, $17::jsonb)`,
+                 $16::timestamptz, $17::jsonb, $18::jsonb)`,
       [
         envelope.command_id,
         envelope.idempotency_key,
@@ -1690,9 +1705,12 @@ export class PostgresChangeControlAuthorityRepository implements ChangeControlAu
         failed ? plan.failure.code : null,
         failed ? plan.failure.message : null,
         completedAt,
-        reviewApplyRequest === undefined
-          ? null
-          : JSON.stringify(reviewApplyRequest),
+        checkpointRequest?.schema_name === "petra.review-session-apply-request"
+          ? JSON.stringify(checkpointRequest)
+          : null,
+        checkpointRequest?.schema_name === "petra.review-session-reject-request"
+          ? JSON.stringify(checkpointRequest)
+          : null,
       ],
     );
   }
