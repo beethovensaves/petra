@@ -18,6 +18,7 @@ import {
 import { createPetraApp, type PetraAppOptions } from "./app.js";
 import type { GroundedSynthesisPersistence } from "./grounded-synthesis-persistence.js";
 import type { ProjectShellPersistence } from "./project-shell-persistence.js";
+import { ProjectModelReadinessService } from "./project-model-readiness.js";
 import {
   createM1GroundedSynthesisRuntime,
   type M1GroundedSynthesisOptions,
@@ -155,6 +156,14 @@ export const startPetraServer = async (
               : { groundedSynthesisTerminal }),
             ...(interactionHistory === undefined ? {} : { interactionHistory }),
           });
+    const projectModelReadiness =
+      options.projectModelReadiness ??
+      (grounded === undefined || options.projectShellPersistence === undefined
+        ? undefined
+        : new ProjectModelReadinessService({
+            authority: options.projectShellPersistence.modelContexts,
+            runtime: grounded,
+          }));
     const suggestedActionInvocations =
       options.projectShellPersistence === undefined ||
       runtime === undefined ||
@@ -204,6 +213,7 @@ export const startPetraServer = async (
       ...(runtime === undefined ? {} : { runtime }),
       ...(codexProvider === undefined ? {} : { codexProvider }),
       ...(codexWorkspaceRoot === undefined ? {} : { codexWorkspaceRoot }),
+      ...(projectModelReadiness === undefined ? {} : { projectModelReadiness }),
       ...((options.communicationPlans ??
         options.projectShellPersistence?.communicationPlans) === undefined
         ? {}

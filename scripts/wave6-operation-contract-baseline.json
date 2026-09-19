@@ -283,12 +283,12 @@
       "persistence": "PostgreSQL durable ProjectThread revisions and immutable completed turn bindings.",
       "recovery": "Returns retained hash-only limitations for legacy prompts and explicit not-found/unavailable states; append/branch commands are absent."
     },
-    "petra-interaction-partial": {
-      "kind": "partial",
-      "production_owner": "POST /api/interactions/run -> PetraInteractionRuntime -> certified grounded-synthesis executor and durable terminal",
-      "authorization": "Bearer authentication; server chooses the grounded-synthesist role and keeps model/provider authority out of request prose.",
-      "persistence": "PostgreSQL WorkUnit, interaction, execution, grounded response, and replay/delivery records plus S3 artifacts.",
-      "recovery": "Streaming, terminal failure, reconnect, and replay exist, but the public request does not yet expose complete exact Project context/readiness and production Petra UI binding."
+    "petra-interaction": {
+      "kind": "command",
+      "production_owner": "GET /api/queries/projects/:projectId/model-readiness plus POST /api/interactions/run -> ProjectModelReadinessService -> PostgresProjectModelReadinessReader -> PetraInteractionRuntime -> certified grounded-synthesis executor and durable terminal",
+      "authorization": "Bearer authentication plus a server-reread exact Project, current ProjectDefinition, focused Objective, snapshot, ContextPacket, EvidencePacket, role certification, live managed-ChatGPT provider, and registered-prompt binding. Client prose cannot select a role, provider, permission, authority effect, or nearby context.",
+      "persistence": "PostgreSQL supplies current Project/definition/Objective authority and immutable context/evidence packets; accepted runs retain WorkUnit, interaction, execution, grounded response, replay/delivery, and S3 artifact records.",
+      "recovery": "Missing, stale, mismatched, unsupported, logged-out, model-unavailable, and certification-drift states fail before Work starts. Accepted runs retain streaming, terminal failure, disconnect, restart, and exact replay behavior without duplicate model execution."
     },
     "communication-read": {
       "kind": "query",
@@ -311,12 +311,12 @@
       "persistence": "Durable interrupt primitives exist, but no production ProjectThread/Review/Work response composition is wired at startup.",
       "recovery": "The route rejects unavailable or unauthorized authority; product reread, duplicate response reconciliation, and exact return are incomplete."
     },
-    "model-readiness-partial": {
-      "kind": "partial",
-      "production_owner": "GET /diagnostics, GET /api/providers/codex/account, GET /api/providers/codex/models, and server-owned grounded-synthesist profile/certification",
-      "authorization": "Bearer-authenticated provider reads; provider credentials remain in the Codex sidecar and certified role selection remains server-owned.",
-      "persistence": "Provider status is live; certification fixtures and execution records exist, but no Project-bound certified-role readiness view is persisted/exposed.",
-      "recovery": "Provider unavailable/login/failure states exist; exact selected role, certification, context, and safe model-use availability are not composed."
+    "model-readiness": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects/:projectId/model-readiness -> ProjectModelReadinessService -> PostgresProjectModelReadinessReader plus server-owned certified Codex runtime inspection",
+      "authorization": "Bearer-authenticated Project-scoped read; PostgreSQL supplies current Project authority, the server chooses the registered certified role, and provider credentials remain inside the Codex sidecar.",
+      "persistence": "PostgreSQL current Project, ProjectDefinition, focused Objective, immutable ContextPacket/EvidencePacket and their stored hashes are repeatable-read composed with the active recorded certification and live provider account/model status.",
+      "recovery": "Returns explicit role-not-registered, role-binding-mismatch, login-required, provider-unavailable, model-unavailable, configuration-drift, Objective-unavailable, context-not-compiled, stale-context, and profile-context-unsupported states without fallback selection."
     },
     "history-read": {
       "kind": "query",
@@ -798,9 +798,9 @@
     },
     {
       "operation_id": "petra.ask",
-      "owner": "petra-interaction-partial",
-      "owner_status": "partial",
-      "missing_owner": "Exact Project-context and certified-role readiness composition accepted by the production Petra interaction command."
+      "owner": "petra-interaction",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "petra.inspect-context",
@@ -834,15 +834,15 @@
     },
     {
       "operation_id": "model.inspect-readiness",
-      "owner": "model-readiness-partial",
-      "owner_status": "partial",
-      "missing_owner": "Project-bound certified model-role readiness view with exact selected role and provider state."
+      "owner": "model-readiness",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "model.use",
-      "owner": "petra-interaction-partial",
-      "owner_status": "partial",
-      "missing_owner": "Production interaction request binding the ready certified role to exact Project context and retained result identity."
+      "owner": "petra-interaction",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "taxonomy.inspect-profile",

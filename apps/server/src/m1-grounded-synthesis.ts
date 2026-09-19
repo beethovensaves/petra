@@ -17,11 +17,14 @@ import type {
   PetraEvidencePacket,
   PetraInteractionFeatureManifest,
   PetraProject,
+  ProjectModelReadyProvider,
+  ProjectModelUnavailableProvider,
   PetraSourceSpan,
   PetraSynthesistRoleCertification,
 } from "@petra/contracts";
 import {
   buildSynthesistExactInput,
+  type CertifiedProjectModelBinding,
   derivePetraId,
   GroundedSynthesisInteractionExecutor,
   InMemoryContextPacketRegistry,
@@ -82,6 +85,10 @@ export interface M1GroundedSynthesisRuntime {
   readonly contextPacketId: string;
   readonly evidencePacketId: string;
   readonly snapshotId: string;
+  readonly projectModelBinding: CertifiedProjectModelBinding;
+  readonly inspectProviderReadiness: (
+    signal?: AbortSignal,
+  ) => Promise<ProjectModelReadyProvider | ProjectModelUnavailableProvider>;
   readonly terminalContext: {
     readonly actors: readonly PetraActor[];
     readonly serviceActor: PetraActor;
@@ -325,26 +332,61 @@ export const createM1GroundedSynthesisRuntime = async (
   gateway.registerCertification(record.certification);
 
   const now = options.now ?? (() => new Date().toISOString());
-  const assertProviderCompatible = async (
+  const inspectProviderReadiness = async (
     signal: AbortSignal | undefined,
-  ): Promise<void> => {
-    assertNotCancelled(signal);
-    const account = await options.provider.readAccount();
-    assertNotCancelled(signal);
-    if (!account.authenticated || account.authMode !== "chatgpt") {
-      throw new M1GroundedSynthesisConfigurationError(
-        "A Codex-managed ChatGPT OAuth session is required; Petra will not use an API key.",
-      );
+  ): Promise<ProjectModelReadyProvider | ProjectModelUnavailableProvider> => {
+    let account;
+    try {
+      assertNotCancelled(signal);
+      account = await options.provider.readAccount();
+      assertNotCancelled(signal);
+    } catch (error) {
+      if (signal?.aborted === true) throw error;
+      return {
+        state: "unavailable",
+        provider_kind: "codex_app_server",
+        model: record.runtime.model,
+        message:
+          error instanceof Error
+            ? error.message
+            : "The Codex account status is unavailable.",
+      };
     }
-    const catalog = await options.provider.listModels();
-    assertNotCancelled(signal);
+    if (!account.authenticated || account.authMode !== "chatgpt") {
+      return {
+        state: "login_required",
+        provider_kind: "codex_app_server",
+        model: record.runtime.model,
+        message:
+          "A Codex-managed ChatGPT OAuth session is required; Petra will not use an API key.",
+      };
+    }
+    let catalog;
+    try {
+      catalog = await options.provider.listModels();
+      assertNotCancelled(signal);
+    } catch (error) {
+      if (signal?.aborted === true) throw error;
+      return {
+        state: "unavailable",
+        provider_kind: "codex_app_server",
+        model: record.runtime.model,
+        message:
+          error instanceof Error
+            ? error.message
+            : "The Codex model catalogue is unavailable.",
+      };
+    }
     const catalogEntry = catalog.find(
       (candidate) => candidate.model === record.runtime.model,
     );
     if (catalogEntry === undefined) {
-      throw new M1GroundedSynthesisConfigurationError(
-        `The managed ChatGPT entitlement does not expose ${record.runtime.model}.`,
-      );
+      return {
+        state: "model_unavailable",
+        provider_kind: "codex_app_server",
+        model: record.runtime.model,
+        message: `The managed ChatGPT entitlement does not expose ${record.runtime.model}.`,
+      };
     }
     const deploymentId = derivePetraId(
       "model_deployment",
@@ -372,21 +414,50 @@ export const createM1GroundedSynthesisRuntime = async (
       canonicalize(catalogEntry) !==
       canonicalize(record.runtime.model_catalog_entry)
     ) {
-      throw new M1GroundedSynthesisConfigurationError(
-        "The entitlement catalog has drifted from the active synthesist certification.",
-      );
+      return {
+        state: "configuration_drift",
+        provider_kind: "codex_app_server",
+        model: record.runtime.model,
+        message:
+          "The entitlement catalog has drifted from the active synthesist certification.",
+      };
     }
     if (deploymentId !== record.certification.deployment.model_deployment_id) {
-      throw new M1GroundedSynthesisConfigurationError(
-        "The model deployment identity has drifted from the active synthesist certification.",
-      );
+      return {
+        state: "configuration_drift",
+        provider_kind: "codex_app_server",
+        model: record.runtime.model,
+        message:
+          "The model deployment identity has drifted from the active synthesist certification.",
+      };
     }
     if (
       endpointFingerprint !== record.recorded_execution.endpoint_fingerprint
     ) {
-      throw new M1GroundedSynthesisConfigurationError(
-        "The provider endpoint fingerprint has drifted from the active synthesist certification.",
-      );
+      return {
+        state: "configuration_drift",
+        provider_kind: "codex_app_server",
+        model: record.runtime.model,
+        message:
+          "The provider endpoint fingerprint has drifted from the active synthesist certification.",
+      };
+    }
+    return {
+      state: "ready",
+      provider_kind: "codex_app_server",
+      auth_state: "authenticated",
+      auth_mode: "chatgpt",
+      model: record.runtime.model,
+      message:
+        "The certified model is available through Petra's managed ChatGPT session.",
+    };
+  };
+  const assertProviderCompatible = async (
+    signal: AbortSignal | undefined,
+  ): Promise<void> => {
+    const readiness = await inspectProviderReadiness(signal);
+    if (readiness.state !== "ready") {
+      throw new M1GroundedSynthesisConfigurationError(readiness.message);
     }
   };
 
@@ -514,6 +585,33 @@ export const createM1GroundedSynthesisRuntime = async (
     contextPacketId: context.context_packet_id,
     evidencePacketId: evidence.evidence_packet_id,
     snapshotId: context.snapshot_ref.snapshot_id,
+    projectModelBinding: {
+      project_id: context.project_id,
+      role_semantic_key: "scientific.grounded-synthesist",
+      role_contract: {
+        name: "petra.model-role-certification",
+        version: "1.1.0",
+        content_hash:
+          "sha256:7bab65763e37fc2bec0b9fa64d178ae37e769882717a445bb2a5f0fb650a40f1",
+      },
+      role_certification_ref: {
+        role_certification_id: record.certification.role_certification_id,
+        revision: record.certification.revision,
+        content_hash: record.certification.content_hash,
+      },
+      snapshot_ref: structuredClone(context.snapshot_ref),
+      context_packet_ref: {
+        record_id: context.context_packet_id,
+        revision: context.revision,
+        content_hash: context.content_hash,
+      },
+      evidence_packet_ref: {
+        record_id: evidence.evidence_packet_id,
+        revision: evidence.revision,
+        content_hash: evidence.content_hash,
+      },
+    },
+    inspectProviderReadiness,
     terminalContext: {
       actors: [actor, serviceActor],
       serviceActor,

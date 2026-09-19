@@ -14,6 +14,7 @@ import {
   PostgresProjectSourceReplacementCommandAuthorityRepository,
   PostgresSingleUserCommandPrincipalResolver,
   PostgresProjectEffectiveControlsViewReader,
+  PostgresProjectModelReadinessReader,
   PostgresProjectProfileRuntime,
   PostgresProjectHistoryViewReader,
   PostgresProjectInquiryViewReader,
@@ -43,6 +44,7 @@ import type {
   FocusedGraphAnalysisViewReader,
   FocusedGraphViewReader,
   ProjectEffectiveControlsViewReader,
+  ProjectModelAuthorityReader,
   ProjectProfileCommandAuthority,
   ProjectProfileRuntimeReader,
   ProjectHistoryViewReader,
@@ -100,6 +102,7 @@ const readBuiltInProfiles = async (): Promise<
   );
 
 export interface ProjectShellPersistence {
+  readonly modelContexts: ProjectModelAuthorityReader;
   readonly profileReads: ProjectProfileRuntimeReader;
   readonly profileCommands: ProjectProfileCommandAuthority;
   readonly communicationPlans?: CommunicationPlanReader;
@@ -384,6 +387,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           contracts,
         );
       return {
+        modelContexts: new PostgresProjectModelReadinessReader(pool, contracts),
         profileReads: profileRuntime,
         profileCommands: profileRuntime,
         views: new PostgresProjectShellViewReader(pool),
@@ -469,6 +473,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
   }
 
   return {
+    modelContexts: new PostgresProjectModelReadinessReader(pool, contracts),
     profileReads: profileRuntime,
     profileCommands: profileRuntime,
     views: new PostgresProjectShellViewReader(pool),
