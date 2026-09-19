@@ -53,6 +53,9 @@ import projectWorkOperationsViewSchema from "../../../../packages/contracts/sche
 import applyResultSchema from "../../../../packages/contracts/schemas/review-session-apply-result/1.0.0/schema.json";
 import applyRequestSchema from "../../../../packages/contracts/schemas/review-session-apply-request/1.0.0/schema.json";
 import applyCheckpointSchema from "../../../../packages/contracts/schemas/review-session-apply-checkpoint/1.0.0/schema.json";
+import rejectCheckpointSchema from "../../../../packages/contracts/schemas/review-session-reject-checkpoint/1.0.0/schema.json";
+import rejectRequestSchema from "../../../../packages/contracts/schemas/review-session-reject-request/1.0.0/schema.json";
+import rejectResultSchema from "../../../../packages/contracts/schemas/review-session-reject-result/1.0.0/schema.json";
 import Ajv2020, { type ValidateFunction } from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
@@ -98,6 +101,9 @@ type BrowserContractName =
   | "review-session-apply-checkpoint@1.0.0"
   | "review-session-apply-request@1.0.0"
   | "review-session-apply-result@1.0.0"
+  | "review-session-reject-checkpoint@1.0.0"
+  | "review-session-reject-request@1.0.0"
+  | "review-session-reject-result@1.0.0"
   | "review-recovery-assessment@1.0.0"
   | "claim@1.0.0"
   | "review-candidate-basis-revision-receipt@1.0.0"
@@ -172,6 +178,9 @@ const schemas = [
   applyCheckpointSchema,
   applyRequestSchema,
   applyResultSchema,
+  rejectCheckpointSchema,
+  rejectRequestSchema,
+  rejectResultSchema,
   projectDefinitionSchema,
   registeredProjectProfileSchema,
   projectProfileTaxonomyViewSchema,
@@ -229,6 +238,9 @@ const contractIds: Record<BrowserContractName, string> = {
   "review-session-apply-checkpoint@1.0.0": applyCheckpointSchema.$id,
   "review-session-apply-request@1.0.0": applyRequestSchema.$id,
   "review-session-apply-result@1.0.0": applyResultSchema.$id,
+  "review-session-reject-checkpoint@1.0.0": rejectCheckpointSchema.$id,
+  "review-session-reject-request@1.0.0": rejectRequestSchema.$id,
+  "review-session-reject-result@1.0.0": rejectResultSchema.$id,
   "review-recovery-assessment@1.0.0": recoveryAssessmentSchema.$id,
   "claim@1.0.0": claimSchema.$id,
   "review-candidate-basis-revision-receipt@1.0.0":

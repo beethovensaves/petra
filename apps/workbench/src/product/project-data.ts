@@ -52,6 +52,7 @@ import type {
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionRecord,
   PetraReviewSessionApplyRequest,
+  PetraReviewSessionRejectRequest,
   PetraReviewSessionV110,
   PetraProjectShellView,
   PetraProjectShellViewV11,
@@ -7594,4 +7595,31 @@ export const executeReviewApply = async (
     baseUrl: apiBaseUrl(),
     token: apiToken(),
   }).apply(request);
+};
+
+/** Preparation reads server-owned rejection authority without sending a decision. */
+export const prepareReviewReject = async (review: ReviewSession) => {
+  const { ReviewSessionRejectClient } = await import("@petra/adapters");
+  if (review.reviewMemberId === undefined)
+    throw new Error("No exact Review member supplied.");
+  return new ReviewSessionRejectClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+  }).prepare({
+    project_id: review.projectId,
+    review_session_id: review.id,
+    expected_revision: review.exactRef.revision,
+    expected_content_hash: review.exactRef.contentHash,
+    selected_review_member_id: review.reviewMemberId,
+  });
+};
+
+export const executeReviewReject = async (
+  request: PetraReviewSessionRejectRequest,
+) => {
+  const { ReviewSessionRejectClient } = await import("@petra/adapters");
+  return new ReviewSessionRejectClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+  }).reject(request);
 };

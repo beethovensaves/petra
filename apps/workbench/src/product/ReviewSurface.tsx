@@ -46,6 +46,11 @@ import {
   ReviewApplyPreview,
   type ReviewApplyState,
 } from "./ReviewApply.js";
+import {
+  createReviewRejectController,
+  ReviewRejectNotice,
+  type ReviewRejectState,
+} from "./ReviewReject.js";
 
 import { ReviewRecovery } from "./ReviewRecovery.js";
 import {
@@ -1451,9 +1456,13 @@ const ReviewSessionMemberSurface = ({
   project,
   review,
   applyState,
+  rejectState,
   onPrepareApply,
   onApply,
   onDiscardApply,
+  onPrepareReject,
+  onReject,
+  onDiscardReject,
   onReviewChange,
   memberNavigation,
   separation,
@@ -1467,9 +1476,13 @@ const ReviewSessionMemberSurface = ({
   project: ProjectRecord;
   review: ReviewSession;
   applyState: ReviewApplyState;
+  rejectState: ReviewRejectState;
   onPrepareApply: () => void;
   onApply: () => void;
   onDiscardApply: () => void;
+  onPrepareReject: () => void;
+  onReject: (rationale: string) => void;
+  onDiscardReject: () => void;
   onReviewChange?: (() => void | Promise<void>) | undefined;
   memberNavigation?: React.ReactNode;
   separation: ReviewSessionSeparationPresentationState;
@@ -1481,6 +1494,7 @@ const ReviewSessionMemberSurface = ({
   initialBasisEditOpen?: boolean;
 }): React.JSX.Element => {
   const [rationale, setRationale] = useState("");
+  const [rejectRationale, setRejectRationale] = useState("");
   const [lifecycle, setLifecycle] = useState<ReviewLifecyclePresentationState>({
     state: "idle",
   });
@@ -1519,6 +1533,19 @@ const ReviewSessionMemberSurface = ({
       : applyState.kind === "result"
         ? applyState.result.request.checkpoint
         : undefined;
+  const rejectBusy =
+    rejectState.kind === "preparing" || rejectState.kind === "rejecting";
+  const rejectLocked =
+    rejectBusy ||
+    rejectState.kind === "ready" ||
+    rejectState.kind === "uncertain" ||
+    rejectState.kind === "result";
+  const rejectRationaleError =
+    rejectRationale.trim().length === 0
+      ? "Enter the material reason for rejecting this ChangeSet."
+      : rejectRationale.length > 4_000
+        ? "Rejection rationale must contain no more than 4000 characters."
+        : undefined;
   const lifecyclePending = lifecycle.state === "pending";
   const refreshPending = refresh.state === "pending";
   const correctionPending = candidateEditor.correction.state === "pending";
@@ -1533,6 +1560,7 @@ const ReviewSessionMemberSurface = ({
     separation.state === "uncertain";
   const commandPending =
     applyLocked ||
+    rejectLocked ||
     lifecyclePending ||
     refreshPending ||
     correctionDraftIsLocked(candidateEditor.correction) ||
@@ -1550,6 +1578,7 @@ const ReviewSessionMemberSurface = ({
     (refresh.state === "idle" || refresh.state === "pending");
   const refreshAvailable =
     !applyLocked &&
+    !rejectLocked &&
     refresh.state === "idle" &&
     review.snapshotState === "stale" &&
     review.lifecycle === "open" &&
@@ -1563,6 +1592,7 @@ const ReviewSessionMemberSurface = ({
     (separation.state === "idle" || separation.state === "pending");
   const separationAvailable =
     !applyLocked &&
+    !rejectLocked &&
     separation.state === "idle" &&
     review.lifecycle === "open" &&
     !lifecyclePending &&
@@ -1875,7 +1905,7 @@ const ReviewSessionMemberSurface = ({
     : review.lifecycle === "deferred"
       ? "This Review is deferred. Reopen review sends this exact Review revision to Petra. The server rechecks current lifecycle and authority; seeing Deferred here does not mean the command is eligible or authorized."
       : review.status === "needs_decision"
-        ? "Apply requires the exact server-prepared commitment above and one explicit human decision. Reject remains unavailable. Decide later sends the exact Review revision to Petra; the server rechecks lifecycle and authority before changing coordination state."
+        ? "Apply and reject each require their own exact server-prepared commitment and one explicit human decision. Rejection records a rejected Approval for the complete ChangeSet; it does not apply the candidate or establish no effect. Decide later sends the exact Review revision to Petra; the server rechecks lifecycle and authority before changing coordination state."
         : review.status === "waiting"
           ? review.lifecycle === "open"
             ? "This Review is waiting for another reason; its exact lifecycle is open. Reopen is unavailable, and the client does not treat Waiting as Deferred."
@@ -2685,6 +2715,24 @@ const ReviewSessionMemberSurface = ({
             />
           </div>
         ) : null}
+        {rejectState.kind === "ready" ? (
+          <div className="review-decision__reject-input">
+            <PetraTextArea
+              label="Reason for rejection"
+              hint="Required. Petra retains this exact rationale with the rejected Approval for the complete displayed ChangeSet. Rejection does not Apply the ChangeSet or establish no effect."
+              rows={4}
+              maxLength={4000}
+              required
+              value={rejectRationale}
+              {...(rejectRationaleError === undefined
+                ? {}
+                : { error: rejectRationaleError })}
+              onChange={(event) =>
+                setRejectRationale(event.currentTarget.value)
+              }
+            />
+          </div>
+        ) : null}
         <PetraButtonGroup label="Review decision">
           <PetraButton
             variant="primary"
@@ -2701,12 +2749,53 @@ const ReviewSessionMemberSurface = ({
               ? "Apply displayed ChangeSet"
               : "Apply unavailable"}
           </PetraButton>
-          <PetraButton
-            aria-disabled="true"
-            aria-describedby="review-decision-boundary"
-          >
-            Reject candidate
-          </PetraButton>
+          {rejectState.kind === "ready" ? (
+            <>
+              <PetraButton
+                variant="danger"
+                aria-disabled={rejectRationaleError !== undefined}
+                aria-describedby="review-decision-boundary"
+                data-operation="reject_review_candidate"
+                onClick={() => onReject(rejectRationale)}
+              >
+                Reject displayed ChangeSet
+              </PetraButton>
+              <PetraButton
+                variant="quiet"
+                onClick={() => {
+                  setRejectRationale("");
+                  onDiscardReject();
+                }}
+              >
+                Discard rejection preview
+              </PetraButton>
+            </>
+          ) : rejectState.kind === "uncertain" ||
+            rejectState.kind === "result" ? null : (
+            <PetraButton
+              variant="danger"
+              busy={rejectState.kind === "preparing"}
+              busyLabel="Preparing rejection…"
+              aria-disabled={
+                commandPending ||
+                applyState.kind === "result" ||
+                !review.commitment.available ||
+                review.status !== "needs_decision" ||
+                review.lifecycle !== "open" ||
+                review.reviewMemberId === undefined ||
+                review.snapshotState !== "current" ||
+                candidateEditor.expanded ||
+                basisEditor.expanded ||
+                basisDraftHasInput ||
+                candidateEditor.draft !== review.candidate.proposed
+              }
+              aria-describedby="review-decision-boundary"
+              data-operation="reject_review_candidate"
+              onClick={onPrepareReject}
+            >
+              Reject candidate
+            </PetraButton>
+          )}
           <PetraButton
             variant="quiet"
             busy={lifecyclePending}
@@ -2715,6 +2804,7 @@ const ReviewSessionMemberSurface = ({
             }
             aria-disabled={
               applyLocked ||
+              rejectLocked ||
               refreshPending ||
               correctionDraftIsLocked(candidateEditor.correction) ||
               basisRevisionIsLocked(basisEditor.revision) ||
@@ -2765,10 +2855,15 @@ const ReviewSessionMemberSurface = ({
           ) : null}
         </PetraButtonGroup>
         <ReviewApplyNotice state={applyState} onReload={onReviewChange} />
-        <ReviewRecovery
-          key={`${review.projectId}:${review.id}:${review.exactRef.revision}:${review.exactRef.contentHash}:${lifecycle.state}:${refresh.state}:${candidateEditor.correction.state}:${basisEditor.revision.state}:${separation.state}:${applyState.kind}`}
+        <ReviewRejectNotice
           review={review}
-          disabled={applyBusy || (commandPending && !applyLocked)}
+          state={rejectState}
+          onReload={onReviewChange}
+        />
+        <ReviewRecovery
+          key={`${review.projectId}:${review.id}:${review.exactRef.revision}:${review.exactRef.contentHash}:${lifecycle.state}:${refresh.state}:${candidateEditor.correction.state}:${basisEditor.revision.state}:${separation.state}:${applyState.kind}:${rejectState.kind}`}
+          review={review}
+          disabled={applyBusy || rejectBusy || (commandPending && !applyLocked)}
           onReload={onReviewChange}
         />
         <ReviewLifecycleNotice
@@ -2855,17 +2950,30 @@ export const ReviewSessionSurface = ({
   const [applyState, setApplyState] = useState<ReviewApplyState>({
     kind: "idle",
   });
+  const [rejectState, setRejectState] = useState<ReviewRejectState>({
+    kind: "idle",
+  });
   useEffect(() => {
     if (["unavailable", "uncertain", "result"].includes(applyState.kind)) {
       document.getElementById("review-apply-observation")?.focus();
     }
   }, [applyState.kind]);
+  useEffect(() => {
+    if (["unavailable", "uncertain", "result"].includes(rejectState.kind)) {
+      document.getElementById("review-reject-observation")?.focus();
+    }
+  }, [rejectState.kind]);
   const reloadApplyRef = useRef(onReviewChange);
   useEffect(() => {
     reloadApplyRef.current = onReviewChange;
   }, [onReviewChange]);
   const [applyController] = useState(() =>
     createReviewApplyController(setApplyState, () =>
+      reloadApplyRef.current?.(),
+    ),
+  );
+  const [rejectController] = useState(() =>
+    createReviewRejectController(setRejectState, () =>
       reloadApplyRef.current?.(),
     ),
   );
@@ -2889,9 +2997,14 @@ export const ReviewSessionSurface = ({
       : reviewSessionWithMember(review, activeMember);
   useEffect(() => {
     applyController.invalidatePreparation();
-    return () => applyController.invalidatePreparation();
+    rejectController.invalidatePreparation();
+    return () => {
+      applyController.invalidatePreparation();
+      rejectController.invalidatePreparation();
+    };
   }, [
     applyController,
+    rejectController,
     review.projectId,
     review.id,
     review.exactRef.revision,
@@ -2902,6 +3015,11 @@ export const ReviewSessionSurface = ({
     applyState.kind === "preparing" ||
     applyState.kind === "ready" ||
     applyState.kind === "applying" ||
+    rejectState.kind === "preparing" ||
+    rejectState.kind === "ready" ||
+    rejectState.kind === "rejecting" ||
+    rejectState.kind === "uncertain" ||
+    rejectState.kind === "result" ||
     separation.state === "pending" ||
     separation.state === "success" ||
     separation.state === "stale" ||
@@ -2952,9 +3070,15 @@ export const ReviewSessionSurface = ({
       project={project}
       review={selectedReview}
       applyState={applyState}
+      rejectState={rejectState}
       onPrepareApply={() => void applyController.prepare(selectedReview)}
       onApply={() => void applyController.apply(selectedReview)}
       onDiscardApply={() => applyController.invalidatePreparation()}
+      onPrepareReject={() => void rejectController.prepare(selectedReview)}
+      onReject={(rationale) =>
+        void rejectController.reject(selectedReview, rationale)
+      }
+      onDiscardReject={() => rejectController.invalidatePreparation()}
       onReviewChange={onReviewChange}
       memberNavigation={
         members.length > 1 ? (

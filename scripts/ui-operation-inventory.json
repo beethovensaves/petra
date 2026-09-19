@@ -578,7 +578,7 @@
       "surfaces": ["SP05"],
       "flows": ["UX-FLOW-06", "UX-FLOW-12"],
       "requests": ["UX-REQ-012", "UX-REQ-021"],
-      "current_state": "unavailable",
+      "current_state": "live",
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Reject candidate",
       "interaction": "command",
