@@ -4,6 +4,7 @@ import type {
   PetraCommunicationPlan,
   PetraProjectInquiryView,
   PetraProjectShellView,
+  PetraProjectWorkOperationsView,
   PetraProjectThreadView,
   PetraProjectWorkView,
   PetraSuggestedActionInvocationView,
@@ -62,6 +63,16 @@ const communicationPlan = JSON.parse(
     "utf8",
   ),
 ) as PetraCommunicationPlan;
+
+const workOperations = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-operations-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkOperationsView;
 
 describe("reference Work and Petra packets", () => {
   const project = getReferenceProject("inlet-cycle");
@@ -142,6 +153,38 @@ describe("reference Work and Petra packets", () => {
     expect(markup).toContain("cost not supplied");
     expect(markup).toContain("No usable result has been recorded");
     expect(markup).toContain("Visible stage activity is not a result");
+  });
+
+  it("renders every server-assessed Work operation without inventing resume or start-again commands", () => {
+    const liveUnit = {
+      ...runningTask,
+      id: workOperations.work_unit_ref.work_unit_id,
+    };
+    const markup = render(
+      <WorkDetailSurface
+        project={project}
+        unit={liveUnit}
+        work={{ ...work, units: [liveUnit] }}
+        operations={workOperations}
+      />,
+    );
+
+    expect(markup).toContain(
+      "Availability comes from the current server-owned",
+    );
+    expect(markup).toContain("Start work");
+    expect(markup).toContain("Steer work");
+    expect(markup).toContain("Set priority");
+    expect(markup).toContain("Leave running");
+    expect(markup).toContain("Cancel work");
+    expect(markup).toContain("Retry failed work");
+    expect(markup).toContain("Resume work");
+    expect(markup).toContain("Start again");
+    expect(markup).toContain("No compatible registered checkpoint");
+    expect(markup).toContain(
+      "Fresh execution requires a workflow-specific input-rebinding command",
+    );
+    expect(markup).toContain("Project authority remains unchanged");
   });
 
   it("discloses Petra's exact context, omissions, and message force", () => {

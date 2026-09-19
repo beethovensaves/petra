@@ -1,6 +1,9 @@
 /** Browser-test entry that avoids evaluating server-only adapter exports. */
 export * from "../../../packages/adapters/src/focused-graph-client.js";
 export * from "../../../packages/adapters/src/project-brief-client.js";
+export * from "../../../packages/adapters/src/project-profile-client.js";
+export * from "../../../packages/adapters/src/project-model-client.js";
+export * from "../../../packages/adapters/src/project-work-client.js";
 export * from "../../../packages/adapters/src/review-session-apply-client.js";
 export * from "../../../packages/adapters/src/review-recovery-assessment-client.js";
 export * from "../../../packages/adapters/src/review-session-refresh-client.js";

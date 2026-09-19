@@ -116,6 +116,23 @@
   font-size: var(--petra-font-size-caption);
 }
 
+.reference-guide-link {
+  display: inline-flex;
+  min-height: var(--petra-control-height-compact);
+  align-items: center;
+  padding: 0 var(--petra-space-3);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-pill);
+  color: var(--petra-text-primary);
+  background: var(--petra-surface-panel);
+  font-weight: var(--petra-weight-semibold);
+  text-decoration: none;
+}
+
+.reference-guide-link:hover {
+  background: var(--petra-surface-hover);
+}
+
 .reference-scope,
 .reference-contract-label {
   display: inline-flex;
@@ -1308,6 +1325,10 @@
 
   .reference-global-status {
     font-size: var(--petra-font-size-caption);
+  }
+
+  .reference-guide-link {
+    padding-inline: var(--petra-space-2);
   }
 
   .reference-engine-prefix {

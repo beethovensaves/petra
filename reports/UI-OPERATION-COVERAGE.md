@@ -24,10 +24,10 @@ missing from that inventory.
 | State | Operations | Meaning |
 | --- | ---: | --- |
 | Live | 43 | A visible control appears to reach its production boundary. Exact runtime ownership and executed evidence still have to be attached before a milestone gate passes. |
-| Partial | 36 | Part of the operation works, but a required command, state, return, recovery path, or executed browser record is absent. |
-| Presentation only | 9 | The UI demonstrates presentation with local or fixture state. |
-| Unavailable | 19 | The accepted operation is shown as disabled or unavailable. |
-| Missing | 9 | The accepted operation has no discoverable control. |
+| Partial | 42 | Part of the operation works, but a required command, state, return, recovery path, or executed browser record is absent. |
+| Presentation only | 8 | The UI demonstrates presentation with local or fixture state. |
+| Unavailable | 17 | The accepted operation is shown as disabled or unavailable. |
+| Missing | 6 | The accepted operation has no discoverable control. |
 
 Wave 6 owns 97 core operations. Forty-three are currently live and 54 remain
 partial, presentational, unavailable, or missing. Project creation, profile
@@ -35,11 +35,11 @@ binding, taxonomy inspection, and additive profile reset now have production UI
 controls, but remain partial in this ledger until the usable-profile browser
 scenario records their exact commands, results, cross-surface terms, and return.
 Material gaps still include objective framing, source registration and removal,
-Review rejection, Work input and steering, cancellation and each distinct
-recovery action, durable interrupt responses, personal-setting persistence, and
-the stable in-product test/reset path. The Petra composer and certified-model
-readiness are now production-bound but remain partial until their required live
-browser evidence is recorded.
+Review rejection, unavailable Work resume and start-again transitions, durable
+interrupt responses, personal-setting persistence, and a complete executed
+test/reset record. The Petra composer, certified-model readiness, in-product
+guide, and remaining production-bound Work operations remain partial until
+their required live browser evidence is recorded.
 
 ## Wave 6 backend contract baseline
 
@@ -137,6 +137,35 @@ rebinding command is registered. The current backend ledger is 66 owned, 14
 partial, 9 missing, and 8 intentionally client-owned operations. Runtime-owner
 fields are populated for the Work rows, but their UI state and evidence remain
 unchanged for the design-owned checkpoint.
+
+### Slice 8 first user-testable checkpoint
+
+The production workbench now has one in-product `/guide` route with a global
+**Test guide** entry. It selects the server-backed scientific Project when one
+is present, names the starting state, walks all eight checkpoint tasks in
+order, links to the exact Project surfaces, describes expected outcomes and
+safe optional mutations, links to the registered additive reset control, and
+states the known unavailable and incomplete boundaries without claiming Wave
+completion. A clean empty Project store fails closed and directs the person to
+registered Project creation instead of substituting fixture state.
+
+The Work detail route now reads the server-owned operation assessment and
+renders the registered controls for start, required input, steering, priority,
+detach, reconnect, replay, cancellation, retry, resume assessment, and
+start-again assessment. Command identity is retained across an unchanged retry;
+success shows exact command outcome and destinations, failure preserves the
+entered instruction, and reconnect/replay validate exact Work and Interaction
+identity. Resume and Start again remain honestly unavailable because slice 7
+did not register their mutation commands.
+
+`./run-wave-6-checkpoint.zsh` uses pinned Node 24, creates fresh disposable
+stores through the supported paired-profile setup, and holds the integrated
+production workbench at `http://127.0.0.1:4311/guide` until the tester stops it.
+`application.guide`, `work.answer-input`, `work.steer`, `work.prioritize`,
+`work.cancel`, and `work.retry` move to partial. No operation moves to live and
+no evidence object is attached: this implementation slice does not substitute
+unit checks or the checkpoint launcher for the outstanding named guided-browser
+and Work scenarios.
 
 Wave 7 owns 15 atomic Composition operations. None is currently live:
 collection creation, durable editing and save, contextual Petra work,

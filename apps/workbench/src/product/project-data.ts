@@ -4,6 +4,7 @@ import {
   FocusedGraphClientError,
   ProjectModelClient,
   ProjectProfileClient,
+  ProjectWorkClient,
 } from "@petra/adapters";
 import {
   PetraInteractionClient,
@@ -64,6 +65,9 @@ import type {
   PetraSuggestedActionViewV11,
   PetraProjectThreadView,
   PetraProjectWorkView,
+  PetraProjectWorkOperationReceipt,
+  PetraProjectWorkOperationRequest,
+  PetraProjectWorkOperationsView,
   FocusedGraphProjectSnapshotRef,
   ProjectDefinitionTerm,
   CommandReviewSessionRef,
@@ -3805,6 +3809,7 @@ const projectProfileClient = (): ProjectProfileClient =>
   new ProjectProfileClient({
     baseUrl: apiBaseUrl(),
     token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
   });
 
 export interface ProjectCollectionData {
@@ -5448,6 +5453,7 @@ export const loadProjectWorkCollection = async ({
 export interface ProjectWorkDetailData {
   work: WorkProjectView;
   unit: WorkUnit;
+  operations: PetraProjectWorkOperationsView;
 }
 
 const CROCKFORD_BASE32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -5467,6 +5473,249 @@ const randomUlidPayload = (): string => {
     value >>= 5n;
   }
   return payload;
+};
+
+const projectWorkClient = (): ProjectWorkClient =>
+  new ProjectWorkClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
+  });
+
+export type ProjectWorkCommandOperation =
+  PetraProjectWorkOperationRequest["operation"];
+
+export interface ProjectWorkCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+  readonly inputRequestRef?: PetraProjectWorkOperationRequest["input_request_ref"];
+  readonly response?: string;
+  readonly instruction?: string;
+  readonly priority?: PetraProjectWorkOperationRequest["priority"];
+  readonly reason?: string;
+}
+
+export const createProjectWorkCommandIdentity = (
+  operation: ProjectWorkCommandOperation,
+): { commandId: string; idempotencyKey: string } => {
+  const identity = randomUlidPayload();
+  return {
+    commandId: `command_${identity}`,
+    idempotencyKey: `project-work:${identity}:${operation}`,
+  };
+};
+
+/**
+ * Builds caller-owned command identity and task input only. Actor and grant
+ * authority remain server-owned, and the exact assessment supplies the Work
+ * and plan references.
+ */
+export const createProjectWorkOperationRequest = (
+  view: PetraProjectWorkOperationsView,
+  operation: ProjectWorkCommandOperation,
+  options: ProjectWorkCommandOptions = {},
+): PetraProjectWorkOperationRequest => {
+  const control = view.controls.find(
+    (candidate) => candidate.operation === operation,
+  );
+  if (control?.state !== "available") {
+    throw new ProjectDataError(
+      control?.reason ?? "This Work operation is not registered.",
+      409,
+    );
+  }
+  const identity = createProjectWorkCommandIdentity(operation);
+  const common = {
+    schema_name: "petra.project-work-operation-request" as const,
+    schema_version: "1.0.0" as const,
+    command_id: options.commandId ?? identity.commandId,
+    idempotency_key: options.idempotencyKey ?? identity.idempotencyKey,
+    operation,
+    expected_work_unit_ref: structuredClone(view.work_unit_ref),
+    submitted_at: new Date().toISOString(),
+  };
+  if (operation === "answer_input") {
+    const response = options.response?.trim();
+    if (
+      options.inputRequestRef === undefined ||
+      response === undefined ||
+      response.length === 0
+    ) {
+      throw new ProjectDataError(
+        "Answering Work input requires the exact pending request and one registered response.",
+        400,
+      );
+    }
+    const pending = view.required_inputs.find(
+      (input) =>
+        input.state === "pending" &&
+        input.input_request_ref.input_request_id ===
+          options.inputRequestRef?.input_request_id &&
+        input.input_request_ref.revision === options.inputRequestRef.revision,
+    );
+    if (pending === undefined || !pending.response_options.includes(response)) {
+      throw new ProjectDataError(
+        "The selected Work input response is not registered for this exact pending request.",
+        409,
+      );
+    }
+    return {
+      ...common,
+      operation,
+      input_request_ref: structuredClone(options.inputRequestRef),
+      response,
+    };
+  }
+  if (operation === "steer") {
+    const instruction = options.instruction?.trim();
+    if (
+      instruction === undefined ||
+      instruction.length === 0 ||
+      options.priority === undefined
+    ) {
+      throw new ProjectDataError(
+        "Steering Work requires a clear instruction and the next scheduling priority.",
+        400,
+      );
+    }
+    return {
+      ...common,
+      operation,
+      expected_plan_revision: view.plan.revision,
+      instruction,
+      priority: options.priority,
+    };
+  }
+  if (operation === "prioritize") {
+    if (options.priority === undefined) {
+      throw new ProjectDataError(
+        "Prioritizing Work requires one registered scheduling priority.",
+        400,
+      );
+    }
+    return {
+      ...common,
+      operation,
+      expected_plan_revision: view.plan.revision,
+      priority: options.priority,
+    };
+  }
+  if (operation === "cancel") {
+    const reason = options.reason?.trim();
+    if (reason === undefined || reason.length === 0) {
+      throw new ProjectDataError(
+        "Cancelling Work requires a retained reason.",
+        400,
+      );
+    }
+    return { ...common, operation, reason };
+  }
+  return { ...common, operation };
+};
+
+export const readProjectWorkOperations = async (
+  projectId: string,
+  workUnitId: string,
+): Promise<PetraProjectWorkOperationsView> =>
+  projectWorkClient().readOperations(projectId, workUnitId);
+
+export const executeProjectWorkOperation = async (
+  projectId: string,
+  workUnitId: string,
+  request: PetraProjectWorkOperationRequest,
+): Promise<PetraProjectWorkOperationReceipt> =>
+  projectWorkClient().execute(projectId, workUnitId, request);
+
+export interface ProjectWorkDeliveryObservation {
+  readonly kind: "reconnected" | "replayed";
+  readonly interactionRunId: string;
+  readonly protocolRunId: string;
+  readonly eventCount: number;
+  readonly summary: string;
+}
+
+const durableProjectWorkDelivery = (
+  view: PetraProjectWorkOperationsView,
+): Extract<
+  PetraProjectWorkOperationsView["delivery"],
+  { state: "durable" }
+> => {
+  if (view.delivery.state !== "durable") {
+    throw new ProjectDataError(view.delivery.reason, 409);
+  }
+  return view.delivery;
+};
+
+export const reconnectProjectWorkDelivery = async (
+  view: PetraProjectWorkOperationsView,
+): Promise<ProjectWorkDeliveryObservation> => {
+  const delivery = durableProjectWorkDelivery(view);
+  const snapshot = await requestJson(delivery.reconnect_path);
+  if (
+    !isRecord(snapshot) ||
+    snapshot.runId !== delivery.protocol_run_id ||
+    snapshot.threadId !== delivery.protocol_thread_id ||
+    snapshot.workUnitId !== view.work_unit_ref.work_unit_id ||
+    !Number.isSafeInteger(snapshot.eventCount) ||
+    Number(snapshot.eventCount) < 0
+  ) {
+    throw new ProjectDataError(
+      "Petra reconnected to a different durable Work delivery.",
+      502,
+    );
+  }
+  return {
+    kind: "reconnected",
+    interactionRunId: delivery.interaction_run_id,
+    protocolRunId: delivery.protocol_run_id,
+    eventCount: Number(snapshot.eventCount),
+    summary: `Canonical Work delivery is ${String(snapshot.status).replaceAll("_", " ")} with ${Number(snapshot.eventCount)} retained ${Number(snapshot.eventCount) === 1 ? "event" : "events"}.`,
+  };
+};
+
+export const replayProjectWorkDelivery = async (
+  view: PetraProjectWorkOperationsView,
+): Promise<ProjectWorkDeliveryObservation> => {
+  const delivery = durableProjectWorkDelivery(view);
+  const client = new PetraInteractionClient({
+    endpoint: "/api/interactions/run",
+    token: apiToken(),
+  });
+  const replay = await client.replay({
+    threadId: delivery.protocol_thread_id,
+    runId: delivery.protocol_run_id,
+    connectionId: `interaction_connection_${randomUlidPayload()}`,
+    afterSequence: 0,
+  });
+  const crossedWork = replay.events.some((event) => {
+    const metadata = isRecord(event.payload.metadata)
+      ? event.payload.metadata
+      : undefined;
+    const petra = isRecord(metadata?.petra) ? metadata.petra : undefined;
+    return (
+      petra !== undefined &&
+      petra.workUnitId !== view.work_unit_ref.work_unit_id
+    );
+  });
+  const terminal = replay.events.at(-1);
+  if (
+    replay.events.length === 0 ||
+    crossedWork ||
+    (terminal?.type === "RUN_FINISHED" &&
+      terminal.payload.runId !== delivery.protocol_run_id)
+  ) {
+    throw new ProjectDataError(
+      "Petra replayed a different or empty durable Work delivery.",
+      502,
+    );
+  }
+  return {
+    kind: "replayed",
+    interactionRunId: delivery.interaction_run_id,
+    protocolRunId: delivery.protocol_run_id,
+    eventCount: replay.events.length,
+    summary: `Replayed ${replay.events.length} retained ${replay.events.length === 1 ? "event" : "events"} without starting another Work attempt.`,
+  };
 };
 
 export interface ReviewSessionLifecycleCommandOptions {
@@ -6404,13 +6653,14 @@ export const loadProjectWorkDetail = async ({
 }: LoaderFunctionArgs): Promise<ProjectWorkDetailData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const workUnitId = requiredRouteIdentity(params.workId, "A WorkUnit ID");
-  const [value, inquiryValue] = await Promise.all([
+  const [value, inquiryValue, operations] = await Promise.all([
     requestJson(
       `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
     ),
     requestJson(
       `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries?limit=100&work_unit_id=${encodeURIComponent(workUnitId)}`,
     ),
+    readProjectWorkOperations(projectId, workUnitId),
   ]);
   const view = projectWorkView(value);
   const inquiryView = projectInquiryView(inquiryValue);
@@ -6418,6 +6668,8 @@ export const loadProjectWorkDetail = async ({
     view.project_id !== projectId ||
     view.content.view_kind !== "detail" ||
     view.content.summary.work_unit_ref.work_unit_id !== workUnitId ||
+    operations.project_id !== projectId ||
+    operations.work_unit_ref.work_unit_id !== workUnitId ||
     inquiryView.project_id !== projectId ||
     inquiryView.content.view_kind !== "collection" ||
     inquiryView.content.query.work_unit_id !== workUnitId
@@ -6432,7 +6684,7 @@ export const loadProjectWorkDetail = async ({
   if (unit === undefined) {
     throw new ProjectDataError("Petra returned no exact Work task.", 502);
   }
-  return { work, unit };
+  return { work, unit, operations };
 };
 
 export const petraThreadFromView = (
@@ -6610,6 +6862,7 @@ const projectModelClient = (): ProjectModelClient =>
   new ProjectModelClient({
     baseUrl: apiBaseUrl(),
     token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
   });
 
 export const getProjectModelReadiness = async (

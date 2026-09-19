@@ -48,6 +48,9 @@ import type {
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionViewV11,
   PetraProjectThreadView,
+  PetraProjectWorkOperationReceipt,
+  PetraProjectWorkOperationRequest,
+  PetraProjectWorkOperationsView,
   PetraProjectWorkView,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
@@ -59,6 +62,7 @@ import { PetraContractRegistry as BrowserContractRegistry } from "./browser-cont
 import {
   cancelProjectSuggestedActionWork,
   composeProjectHistoryCompensationPlan,
+  createProjectWorkOperationRequest,
   createReviewCandidateBasisRevisionCommandInput,
   createReviewCandidateCorrectionCommandInput,
   createReviewSessionDeferCommandInput,
@@ -76,6 +80,7 @@ import {
   executeReviewSessionRefreshCommand,
   executeReviewSessionSeparationCommand,
   executeProjectHistoryCompensationPlan,
+  executeProjectWorkOperation,
   getRecentProjectHistory,
   getProjectSuggestedAction,
   getProjectHistoryEpisode,
@@ -1103,6 +1108,36 @@ const workDetailView = JSON.parse(
   ),
 ) as PetraProjectWorkView;
 
+const workOperationsView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-operations-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkOperationsView;
+
+const workOperationRequest = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-operation-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkOperationRequest;
+
+const workOperationReceipt = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-operation-receipt.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkOperationReceipt;
+
 const inquiryCollectionView = JSON.parse(
   readFileSync(
     new URL(
@@ -1358,7 +1393,7 @@ afterEach(() => {
 });
 
 describe("Project shell workbench adapter", () => {
-  it("bundles the exact Review-correction and basis response validators for the browser", () => {
+  it("bundles the exact mutable product response validators for the browser", () => {
     const contracts = new BrowserContractRegistry();
     expect(() =>
       contracts.assertValid(
@@ -1376,6 +1411,27 @@ describe("Project shell workbench adapter", () => {
     ).not.toThrow();
     expect(() =>
       contracts.assertValid("review-session", "1.1.0", reviewSessionRecord),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid(
+        "project-work-operations-view",
+        "1.0.0",
+        workOperationsView,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid(
+        "project-work-operation-request",
+        "1.0.0",
+        workOperationRequest,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid(
+        "project-work-operation-receipt",
+        "1.0.0",
+        workOperationReceipt,
+      ),
     ).not.toThrow();
     expect(() =>
       contracts.assertValid("working-candidate", "1.0.0", {
@@ -4308,6 +4364,100 @@ describe("Project shell workbench adapter", () => {
     expect(inquiryDetailView).toEqual(before);
   });
 
+  it("builds and executes exact Work commands without client-selected authority", async () => {
+    const request = createProjectWorkOperationRequest(
+      workOperationsView,
+      "start",
+      {
+        commandId: workOperationReceipt.command_id,
+        idempotencyKey: workOperationReceipt.idempotency_key,
+      },
+    );
+    expect(request).toEqual(
+      expect.objectContaining({
+        schema_name: "petra.project-work-operation-request",
+        operation: "start",
+        command_id: workOperationReceipt.command_id,
+        idempotency_key: workOperationReceipt.idempotency_key,
+        expected_work_unit_ref: workOperationsView.work_unit_ref,
+      }),
+    );
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capability_grant_id");
+
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(workOperationReceipt));
+    vi.stubGlobal("fetch", fetch);
+    await expect(
+      executeProjectWorkOperation(
+        workOperationsView.project_id,
+        workOperationsView.work_unit_ref.work_unit_id,
+        request,
+      ),
+    ).resolves.toEqual(workOperationReceipt);
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(
+      typeof url === "string" ? url : url instanceof URL ? url.href : url.url,
+    ).toBe(
+      `http://petra.local/api/commands/projects/${workOperationsView.project_id}/work/${workOperationsView.work_unit_ref.work_unit_id}`,
+    );
+    expect(new Headers(init?.headers).get("authorization")).toBe(
+      "Bearer petra-local-development",
+    );
+  });
+
+  it("binds required input and steering to the exact assessed input and plan", () => {
+    const inputView = structuredClone(workOperationsView);
+    inputView.required_inputs = [
+      {
+        input_request_ref: {
+          input_request_id: "work_input_request_01K6P000000000000000000702",
+          revision: 1,
+        },
+        kind: "clarification",
+        question: "Which bounded comparison should continue?",
+        response_options: ["Compare the registered primary endpoints"],
+        state: "pending",
+        consequence: "Work remains paused until one response is recorded.",
+      },
+    ];
+    inputView.controls.find(
+      (control) => control.operation === "answer_input",
+    )!.state = "available";
+    expect(
+      createProjectWorkOperationRequest(inputView, "answer_input", {
+        inputRequestRef: inputView.required_inputs[0]?.input_request_ref,
+        response: "Compare the registered primary endpoints",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        operation: "answer_input",
+        input_request_ref: inputView.required_inputs[0]?.input_request_ref,
+        response: "Compare the registered primary endpoints",
+      }),
+    );
+    expect(
+      createProjectWorkOperationRequest(inputView, "steer", {
+        instruction: "Stop after the registered primary comparison.",
+        priority: "user_visible",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        operation: "steer",
+        expected_plan_revision: inputView.plan.revision,
+        instruction: "Stop after the registered primary comparison.",
+        priority: "user_visible",
+      }),
+    );
+    expect(() =>
+      createProjectWorkOperationRequest(inputView, "answer_input", {
+        inputRequestRef: inputView.required_inputs[0]?.input_request_ref,
+        response: "Invent a different scope",
+      }),
+    ).toThrow("not registered for this exact pending request");
+  });
+
   it("loads exact Project Work identities from the authorized read routes", async () => {
     if (workDetailView.content.view_kind !== "detail") {
       throw new Error("Expected the Work detail fixture.");
@@ -4332,6 +4482,9 @@ describe("Project shell workbench adapter", () => {
             "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2";
         }
         return Promise.resolve(Response.json(inquiryCollection));
+      }
+      if (path.includes("/operations")) {
+        return Promise.resolve(Response.json(workOperationsView));
       }
       return Promise.resolve(
         Response.json(
@@ -4372,12 +4525,22 @@ describe("Project shell workbench adapter", () => {
     expect(detail.unit.branchIds).toEqual([
       "objective_01K4C000000000000000000005",
     ]);
-    expect(fetch.mock.calls.map((call) => call[0])).toEqual([
+    expect(detail.operations).toEqual(workOperationsView);
+    expect(
+      fetch.mock.calls.map(([input]) =>
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url,
+      ),
+    ).toEqual([
       `/api/queries/projects/${projectId}/work?limit=50`,
       `/api/queries/projects/${projectId}/inquiries?limit=100`,
       `/api/queries/projects/${projectId}/inquiries/objective_01K4C000000000000000000005`,
       `/api/queries/projects/${projectId}/work/${workUnitId}`,
       `/api/queries/projects/${projectId}/inquiries?limit=100&work_unit_id=${workUnitId}`,
+      `http://petra.local/api/queries/projects/${projectId}/work/${workUnitId}/operations`,
     ]);
   });
 

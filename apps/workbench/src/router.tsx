@@ -15,6 +15,7 @@ import {
 } from "./product/ReferenceWorkbench.js";
 import { GraphRoute } from "./product/GraphSurface.js";
 import { ProjectProfileRoute } from "./product/ProjectProfileSurface.js";
+import { CheckpointGuideRoute } from "./product/CheckpointGuide.js";
 import {
   ReviewCollectionRoute,
   ReviewSessionRoute,
@@ -73,6 +74,11 @@ export const router = createBrowserRouter([
         index: true,
         loader: loadProjectsHome,
         element: <ProjectsRoute />,
+      },
+      {
+        path: "guide",
+        loader: loadProjectsHome,
+        element: <CheckpointGuideRoute />,
       },
       {
         path: "projects/:projectId",

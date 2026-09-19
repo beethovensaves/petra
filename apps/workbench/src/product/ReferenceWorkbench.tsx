@@ -97,6 +97,9 @@ export const ProductFrame = (): React.JSX.Element => {
           role="status"
           aria-live="polite"
         >
+          <Link className="reference-guide-link" to="/guide">
+            Test guide
+          </Link>
           <span className="reference-scope">Local · private</span>
           <span>
             <span

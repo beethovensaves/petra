@@ -94,6 +94,7 @@
     "test:wave5:browser": "npm run build:packages && node apps/workbench/test/wave5-cumulative-browser.mjs",
     "test:wave5:cumulative": "npm run build:packages && node scripts/test-wave5-cumulative-integration.mjs",
     "inspect:wave5": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave5-cumulative-evidence-observer.mjs PETRA_WAVE5_BROWSER_OBSERVER_OUTPUT=/tmp/petra-wave5-inspection.json PETRA_WAVE5_INSPECT=1 node scripts/test-wave4-cumulative-integration.mjs",
+    "inspect:wave6": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-checkpoint-observer.mjs PETRA_WAVE5_INSPECT=1 node scripts/test-wave4-cumulative-integration.mjs",
     "audit:wave5:evidence": "node scripts/audit-wave5-evidence.mjs",
     "audit:ui-operations": "node scripts/audit-ui-operation-coverage.mjs",
     "gate:wave6:user-testable": "node scripts/audit-ui-operation-coverage.mjs --require-wave 6",

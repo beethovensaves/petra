@@ -36,6 +36,8 @@ export const startWorkbench = async ({
   getBackendUrl,
   calls,
   getInspectionLinks,
+  port = 0,
+  strictPort = false,
 }) => {
   const liveRouteProxy = {
     name: "petra-wave4-live-route-proxy",
@@ -179,8 +181,8 @@ export const startWorkbench = async ({
     },
     server: {
       host: "127.0.0.1",
-      port: 0,
-      strictPort: false,
+      port,
+      strictPort,
     },
   });
   await vite.listen();
