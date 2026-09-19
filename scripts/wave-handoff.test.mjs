@@ -19,6 +19,7 @@ import {
   buildWorkerPrompt,
   canRetryUnchangedWorkerFailure,
   canRetryWorkerFailure,
+  clearRetryAttempt,
   enforceCompletionDisposition,
   evidenceOwnerCanSatisfy,
   initialHandoff,
@@ -265,6 +266,20 @@ test("continues a transient failure from only the owning fingerprinted worktree"
     }),
     false,
   );
+});
+
+test("operator recovery restores the repaired slice retry budget", () => {
+  const state = {
+    slice_count: 7,
+    retry_attempts: {
+      "8:design": 2,
+      "9:backend": 1,
+    },
+  };
+
+  assert.equal(clearRetryAttempt(state, 8, "design"), true);
+  assert.deepEqual(state.retry_attempts, { "9:backend": 1 });
+  assert.equal(clearRetryAttempt(state, 8, "design"), false);
 });
 
 test("fingerprints exact tracked and untracked partial worktree bytes", () => {

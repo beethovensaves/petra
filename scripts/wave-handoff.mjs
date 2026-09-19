@@ -450,6 +450,14 @@ export function canRetryWorkerFailure(state, snapshots) {
   );
 }
 
+export function clearRetryAttempt(state, slice, role) {
+  if (!state?.retry_attempts) return false;
+  const key = `${slice}:${role}`;
+  if (!Object.hasOwn(state.retry_attempts, key)) return false;
+  delete state.retry_attempts[key];
+  return true;
+}
+
 export function matchesRecoverySnapshot(recovery, role, snapshot) {
   const expectedHead = recovery?.expected_head ?? recovery?.expected_commit;
   const expectedRemote = recovery?.expected_remote ?? recovery?.expected_commit;
@@ -1478,9 +1486,7 @@ async function finalizeTurn(wave, role, claimedState, worker) {
     if (completed) {
       state.commits[role] = own.head;
       state.slice_count += 1;
-      if (state.retry_attempts) {
-        delete state.retry_attempts[`${state.slice_count}:${role}`];
-      }
+      clearRetryAttempt(state, state.slice_count, role);
     }
     if (disposition === "handoff") {
       state.status = "waiting";
@@ -1861,6 +1867,7 @@ async function resumeBlockedWave(wave, role) {
     state.next_role = role;
     state.active = null;
     state.commits[role] = own.head;
+    clearRetryAttempt(state, state.slice_count + 1, role);
     state.stop_reason = "";
     state.handoff_prompt =
       `Recover Wave ${wave} slice ${state.slice_count + 1} after coordinator validation stopped the prior ${role} attempt. ` +
