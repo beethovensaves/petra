@@ -36,6 +36,7 @@ export const startWorkbench = async ({
   getBackendUrl,
   calls,
   getInspectionLinks,
+  shouldDisconnectResponse,
   port = 0,
   strictPort = false,
 }) => {
@@ -99,7 +100,7 @@ export const startWorkbench = async ({
               );
             }
           }
-          const upstream = await fetch(new URL(path, getBackendUrl()), {
+          const upstream = await fetch(new URL(path, getBackendUrl(path)), {
             method: request.method,
             headers,
             ...(requestBody.byteLength === 0 ? {} : { body: requestBody }),
@@ -114,7 +115,7 @@ export const startWorkbench = async ({
               json = undefined;
             }
           }
-          calls.push({
+          const call = {
             method: request.method ?? "GET",
             path,
             authorization: headers.get("authorization"),
@@ -124,7 +125,16 @@ export const startWorkbench = async ({
                 : JSON.parse(requestBody.toString("utf8")),
             status: upstream.status,
             json,
-          });
+          };
+          calls.push(call);
+          if (shouldDisconnectResponse?.(call) === true) {
+            response.statusCode = 502;
+            response.setHeader("content-type", "text/plain; charset=utf-8");
+            response.end(
+              "The browser delivery disconnected after the upstream terminal.",
+            );
+            return;
+          }
           response.statusCode = upstream.status;
           for (const [name, value] of upstream.headers) {
             if (

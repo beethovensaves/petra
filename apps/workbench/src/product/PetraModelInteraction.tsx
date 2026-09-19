@@ -693,6 +693,14 @@ export const PetraModelInteraction = ({
                 variant="quiet"
                 busy={activity === "submitting"}
                 busyLabel="Starting a new response…"
+                {...(promptMatches
+                  ? {}
+                  : {
+                      unavailable: {
+                        reason:
+                          "Restore the exact registered Project question before starting another run.",
+                      },
+                    })}
                 onClick={() => void submit(true)}
               >
                 Try in a new run
