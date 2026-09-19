@@ -18,6 +18,7 @@ import {
 import { CodexSubscriptionExtractorAdapter } from "@petra/adapters/server";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
+  DurableInteractionHistory,
   InMemoryContextPacketRegistry,
   ModelGateway,
   RepositoryAuthorityGraphProjectionSource,
@@ -38,7 +39,6 @@ import {
   PostgresEvidenceAuthorityRepository,
   PostgresGraphProjectionAuthorityRepository,
   PostgresGroundedResponseAuthorityRepository,
-  PostgresInteractionAuthorityRepository,
   PostgresModelExecutionRepository,
   PostgresProjectDefinitionAuthorityRepository,
   PostgresProjectSourceAuthorityRepository,
@@ -2673,13 +2673,10 @@ const item49ProjectThread = async ({
   ).registerProjectThreadRevision(thread);
 };
 
-const item53WorkAndInteraction = async ({ pool, scientific }) => {
-  const artifacts = new PostgresArtifactAuthorityRepository(
-    pool,
-    availableArtifactStore,
-  );
-  const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
-  const interactions = new PostgresInteractionAuthorityRepository(pool);
+const seedItem53WorkAndInteraction = async ({ persistence, scientific }) => {
+  const artifacts = persistence.artifacts;
+  const workUnits = persistence.workUnits;
+  const interactions = persistence.interactions;
   const responseBytes = new TextEncoder().encode(
     "Item 49 retained the external execution; item 53 reconstructs only its provider-free presentation records.",
   );
@@ -2694,21 +2691,35 @@ const item53WorkAndInteraction = async ({ pool, scientific }) => {
     mediaType: "text/markdown; charset=utf-8",
   });
   responseArtifact.artifact.artifact_kind = "run_output";
-  await artifacts.registerVerifiedAcquisition(responseArtifact);
-  const interactionPayloadArtifact = continuationArtifactInput({
-    artifactId: derivePetraId(
-      "artifact",
-      "wave4-item53|item49-presentation-events",
-    ),
-    label: "wave4-item53|item49-presentation-events",
-    contentHash: hash({
-      events: ["RUN_STARTED", "RUN_FINISHED"],
-      authority_effect: "none",
-    }),
-    byteSize: 68,
-    mediaType: "application/json",
+  const stagedResponse = await persistence.artifactStore.stage({
+    bytes: [responseBytes],
+    declaredByteSize: responseBytes.byteLength,
+    declaredMediaType: responseArtifact.artifact.media_type,
+    expectedContentHash: responseArtifact.artifact.content_hash,
   });
-  await artifacts.registerVerifiedAcquisition(interactionPayloadArtifact);
+  const availableResponse =
+    await persistence.artifactStore.makeAvailable(stagedResponse);
+  assert(
+    availableResponse.verification.status === "verified",
+    "The provider-free response Artifact was not exactly verified.",
+  );
+  responseArtifact.manifest.storage_ref = {
+    storage_kind: "content_addressed_object",
+    store_name: availableResponse.storeName,
+    object_key: availableResponse.objectKey,
+    content_hash: availableResponse.contentHash,
+    availability: "available",
+    verified_at: availableResponse.availableAt,
+  };
+  responseArtifact.manifest.integrity = {
+    status: "verified",
+    checked_at: availableResponse.availableAt,
+    problems: [],
+  };
+  responseArtifact.manifest.recorded_at = availableResponse.availableAt;
+  responseArtifact.rightsDecision.observed_at = availableResponse.availableAt;
+  responseArtifact.rightsDecision.created_at = availableResponse.availableAt;
+  await artifacts.registerVerifiedAcquisition(responseArtifact);
 
   const inputManifest = readAccepted("worker-input-manifest");
   inputManifest.worker_input_manifest_id = derivePetraId(
@@ -2870,103 +2881,64 @@ const item53WorkAndInteraction = async ({ pool, scientific }) => {
   rootRun.updated_at = rootRun.created_at;
   await interactions.registerRun(rootRun);
 
-  const eventArtifactRef = {
-    artifact_id: interactionPayloadArtifact.artifact.artifact_id,
-    content_sha256: interactionPayloadArtifact.artifact.content_hash,
-    byte_size: interactionPayloadArtifact.artifact.byte_size,
-    media_type: interactionPayloadArtifact.artifact.media_type,
+  const history = new DurableInteractionHistory({
+    serviceActor: actor(
+      serviceActorId,
+      "service",
+      "Petra grounded synthesis service",
+    ),
+    artifactStore: persistence.artifactStore,
+    artifacts,
+    interactions,
+    workUnits,
+  });
+  const eventEnvelope = {
+    threadId: rootRun.content.correlation.protocol_thread_id,
+    runId: rootRun.content.correlation.protocol_run_id,
+    workUnitId: work.work_unit_id,
+    modelRequestId: synthesistRequestId,
+    requestId: rootRun.content.correlation.request_id,
+    traceId: rootRun.content.correlation.trace_id,
   };
-  const eventOne = readAccepted("interaction-event-record");
-  eventOne.interaction_event_record_id = derivePetraId(
-    "interaction_event_record",
-    "wave4-item53|item49-presentation|1",
-  );
-  eventOne.project_id = scientificProjectId;
-  eventOne.interaction_run_ref = {
-    interaction_run_id: rootRun.interaction_run_id,
-    revision: rootRun.revision,
-    content_hash: rootRun.content_hash,
+  const eventOne = {
+    ...eventEnvelope,
+    sequence: 1,
+    timestamp: Date.parse("2026-09-15T04:00:05.000Z"),
+    kind: "run.started",
   };
-  eventOne.sequence = 1;
-  eventOne.lineage = { lineage_kind: "start" };
-  eventOne.content.protocol = {
-    protocol: "ag-ui",
-    event_type: "RUN_STARTED",
-    protocol_event_id: "wave4-item49-presentation-run-started",
-  };
-  eventOne.content.semantic_kind = "run_lifecycle";
-  eventOne.content.payload_artifact_ref = clone(eventArtifactRef);
-  eventOne.content.authority_effect = { effect_kind: "none" };
-  eventOne.content_hash = hash(eventOne.content);
-  eventOne.recorded_by = { actor_id: serviceActorId, actor_kind: "service" };
-  eventOne.recorded_at = "2026-09-15T04:00:05.000Z";
-  await interactions.appendEvent(eventOne);
+  const eventOneRecords = await history.persistEvents(rootRun, [eventOne]);
 
-  const terminalRun = clone(rootRun);
-  terminalRun.revision = 2;
-  terminalRun.lineage = {
-    lineage_kind: "revision",
-    parent_revision: rootRun.revision,
-    parent_hash: rootRun.content_hash,
-  };
-  terminalRun.content.lifecycle = {
+  const terminalLifecycle = {
     state: "completed",
     started_at: rootRun.content.lifecycle.started_at,
     ended_at: "2026-09-15T04:00:06.000Z",
     outcome_code: "GROUNDED_RESPONSE_READY",
   };
-  terminalRun.content.stream_head = {
-    state: "advanced",
-    event_count: 1,
-    latest_sequence: 1,
-    head_hash: eventOne.content_hash,
-  };
-  terminalRun.content_hash = hash(terminalRun.content);
-  terminalRun.updated_at = "2026-09-15T04:00:06.000Z";
-  await interactions.registerRun(terminalRun);
-
-  const eventTwo = clone(eventOne);
-  eventTwo.interaction_event_record_id = derivePetraId(
-    "interaction_event_record",
-    "wave4-item53|item49-presentation|2",
+  const terminalRun = await history.advanceRun(
+    rootRun,
+    eventOneRecords,
+    terminalLifecycle,
+    terminalLifecycle.ended_at,
   );
-  eventTwo.interaction_run_ref = {
-    interaction_run_id: terminalRun.interaction_run_id,
-    revision: terminalRun.revision,
-    content_hash: terminalRun.content_hash,
-  };
-  eventTwo.sequence = 2;
-  eventTwo.lineage = {
-    lineage_kind: "continuation",
-    previous_event_record_id: eventOne.interaction_event_record_id,
-    previous_sequence: eventOne.sequence,
-    previous_content_hash: eventOne.content_hash,
-  };
-  eventTwo.content.protocol = {
-    protocol: "ag-ui",
-    event_type: "RUN_FINISHED",
-    protocol_event_id: "wave4-item49-presentation-run-finished",
-  };
-  eventTwo.content_hash = hash(eventTwo.content);
-  eventTwo.recorded_at = "2026-09-15T04:00:07.000Z";
-  await interactions.appendEvent(eventTwo);
 
-  const deliveredRun = clone(terminalRun);
-  deliveredRun.revision = 3;
-  deliveredRun.lineage = {
-    lineage_kind: "revision",
-    parent_revision: terminalRun.revision,
-    parent_hash: terminalRun.content_hash,
+  const eventTwo = {
+    ...eventEnvelope,
+    sequence: 2,
+    timestamp: Date.parse("2026-09-15T04:00:07.000Z"),
+    kind: "run.finished",
+    result: {
+      executionSource: "provider_free_presentation_continuation",
+      groundedResponseId: item49Published.groundedResponseId,
+      authorityEffect: "none",
+    },
   };
-  deliveredRun.content.stream_head = {
-    state: "advanced",
-    event_count: 2,
-    latest_sequence: 2,
-    head_hash: eventTwo.content_hash,
-  };
-  deliveredRun.content_hash = hash(deliveredRun.content);
-  deliveredRun.updated_at = "2026-09-15T04:00:07.000Z";
-  await interactions.registerRun(deliveredRun);
+  const completeRecords = await history.persistEvents(terminalRun, [eventTwo]);
+  const deliveredRun = await history.advanceRun(
+    terminalRun,
+    completeRecords,
+    terminalLifecycle,
+    "2026-09-15T04:00:07.000Z",
+  );
   return {
     work,
     responseArtifact,
@@ -2975,6 +2947,16 @@ const item53WorkAndInteraction = async ({ pool, scientific }) => {
     terminalRun,
     deliveredRun,
   };
+};
+
+const item53WorkAndInteraction = async ({ environment, scientific }) => {
+  const persistence =
+    await createGroundedSynthesisPersistenceFromEnvironment(environment);
+  try {
+    return await seedItem53WorkAndInteraction({ persistence, scientific });
+  } finally {
+    await persistence.close?.();
+  }
 };
 
 const certifiedGroundedPacketRecords = () => {
@@ -4916,6 +4898,57 @@ const exerciseItem53Trace = async ({
       scientificProjectId,
       scientific.session.review_session_id,
     );
+    const retainedDelivery = await new ProjectWorkClient({
+      baseUrl: active.url,
+      token,
+    }).readOperations(
+      scientificProjectId,
+      continuation.workAndInteraction.work.work_unit_id,
+    );
+    assert(
+      retainedDelivery.delivery.state === "durable",
+      "Restart lost the completed Work delivery assessment.",
+    );
+    const expectedReconnectPath = `/api/queries/interactions/${encodeURIComponent(retainedDelivery.delivery.protocol_run_id)}?thread=${encodeURIComponent(retainedDelivery.delivery.protocol_thread_id)}`;
+    const expectedReplayPath = `/api/interactions/${encodeURIComponent(retainedDelivery.delivery.protocol_run_id)}?thread=${encodeURIComponent(retainedDelivery.delivery.protocol_thread_id)}&after=0`;
+    assert(
+      retainedDelivery.delivery.reconnect_path === expectedReconnectPath &&
+        retainedDelivery.delivery.replay_path === expectedReplayPath,
+      "The retained Work delivery paths lost their exact durable thread/run identity.",
+    );
+    const reconnectResponse = await nativeFetch(
+      new URL(retainedDelivery.delivery.reconnect_path, active.url),
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+    const reconnected = await reconnectResponse.json();
+    assert(
+      reconnectResponse.ok &&
+        reconnected.threadId === retainedDelivery.delivery.protocol_thread_id &&
+        reconnected.runId === retainedDelivery.delivery.protocol_run_id &&
+        reconnected.workUnitId ===
+          continuation.workAndInteraction.work.work_unit_id &&
+        reconnected.status === "completed" &&
+        reconnected.eventCount === 2,
+      `Restart could not reconnect the exact completed Work delivery: ${JSON.stringify(reconnected)}`,
+    );
+    const replayed = await new PetraInteractionClient({
+      endpoint: `${active.url}/api/interactions/run`,
+      token,
+    }).replay({
+      threadId: retainedDelivery.delivery.protocol_thread_id,
+      runId: retainedDelivery.delivery.protocol_run_id,
+      connectionId: derivePetraId(
+        "interaction_connection",
+        "wave6-checkpoint|post-restart-replay",
+      ),
+      afterSequence: 0,
+    });
+    assert(
+      replayed.events.length === 2 &&
+        replayed.events[0]?.type === "RUN_STARTED" &&
+        replayed.events[1]?.type === "RUN_FINISHED",
+      `Restart did not replay the exact completed Work delivery: ${JSON.stringify(replayed.events)}`,
+    );
     assert(
       postRestartWorking.content_hash === preRestartWorking.content_hash &&
         (wave5Mode
@@ -5777,7 +5810,7 @@ try {
           if (!item53Mode)
             return exerciseTrace(environment, pool, scientific, writing);
           const workAndInteraction = await item53WorkAndInteraction({
-            pool,
+            environment,
             scientific,
           });
           const grounded = await item53GroundedPresentation({
