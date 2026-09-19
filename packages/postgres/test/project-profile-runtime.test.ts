@@ -245,7 +245,16 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
       { project_id: created.project_ref.project_id, revision: 1 },
     );
 
+    const unknownReset =
+      await runtime.assessProjectProfileCommandRecovery(resetRequest);
+    expect(unknownReset.content.eligible_actions[0]).toMatchObject({
+      operation: "retry_exact_command",
+      path: `/api/commands/projects/${created.project_ref.project_id}/reset`,
+      identity_behavior: "reuse_command_and_idempotency",
+    });
     const reset = await runtime.executeProjectProfileCommand(resetRequest);
+    const recoveredReset =
+      await runtime.assessProjectProfileCommandRecovery(resetRequest);
     const prior = await scopes.getProject(created.project_ref.project_id);
     const replacement = await scopes.getProject(reset.project_ref.project_id);
     const taxonomy = await runtime.getProjectProfileTaxonomy(
@@ -256,6 +265,14 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
       project_id: created.project_ref.project_id,
       revision: 2,
       resulting_status: "archived",
+    });
+    expect(recoveredReset.content.effect.state).toBe("effect_confirmed");
+    expect(recoveredReset.content.preservation).toContainEqual({
+      item: "prior_project",
+      identity: created.project_ref.project_id,
+      revision: 2,
+      durability: "postgresql",
+      state: "archived",
     });
     expect(prior?.status).toBe("archived");
     expect(replacement?.status).toBe("active");
@@ -276,6 +293,71 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
         code: "PROJECT_PROFILE_RESET_STALE",
       }),
     );
+  });
+
+  it("reconciles unknown, confirmed, and conflicting Project command effects without a second mutation", async () => {
+    const request = commandRequest(
+      scientific,
+      "command_01K6P000000000000000000107",
+    );
+
+    const unknown = await runtime.assessProjectProfileCommandRecovery(request);
+    expect(unknown.content.effect.state).toBe("outcome_unknown");
+    expect(unknown.content.eligible_actions).toHaveLength(1);
+    expect(unknown.content.eligible_actions[0]).toMatchObject({
+      operation: "retry_exact_command",
+      owner: "project_profile_command",
+      path: "/api/commands/projects",
+      identity_behavior: "reuse_command_and_idempotency",
+      execution_recheck: true,
+    });
+    expect(unknown.content.return).toStrictEqual({
+      state: "safe_fallback",
+      destination: { place_role: "projects" },
+      reason:
+        "No retained receipt supplies an exact resulting Project yet. Return to Projects without implying command success.",
+    });
+
+    const receipt = await runtime.executeProjectProfileCommand(request);
+    const confirmed =
+      await runtime.assessProjectProfileCommandRecovery(request);
+    expect(confirmed.content.effect).toStrictEqual({
+      state: "effect_confirmed",
+      meaning:
+        "The exact Project-profile command receipt is retained. Repeating the same request returns this receipt without another effect.",
+      receipt,
+    });
+    expect(confirmed.content.eligible_actions[0]).toMatchObject({
+      operation: "open_resulting_project",
+      owner: "browser_navigation",
+      path: `/projects/${receipt.project_ref.project_id}`,
+      authority_effect:
+        "Navigation has no authority effect and uses the exact resulting Project identity from the retained receipt.",
+    });
+    expect(confirmed.content.return).toStrictEqual({
+      state: "exact",
+      destination: receipt.destination,
+      reason:
+        "The retained receipt supplies the resulting Project Brief destination.",
+    });
+
+    const conflicting = structuredClone(request);
+    conflicting.project.name = "A different request under reused identity";
+    const conflict =
+      await runtime.assessProjectProfileCommandRecovery(conflicting);
+    expect(conflict.content.effect).toMatchObject({
+      state: "unavailable_to_verify",
+      reason: "command_identity_conflict",
+    });
+    expect(conflict.content.eligible_actions).toStrictEqual([]);
+
+    const counts = await pool.query<{ projects: string; receipts: string }>(
+      `SELECT
+         (SELECT count(*)::text FROM petra.projects) AS projects,
+         (SELECT count(*)::text FROM petra.project_profile_command_receipts)
+           AS receipts`,
+    );
+    expect(counts.rows[0]).toStrictEqual({ projects: "1", receipts: "1" });
   });
 
   it("executes UX1.6-TAXONOMY/registered-profile-runtime through production owners", async () => {

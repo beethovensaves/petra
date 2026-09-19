@@ -38,12 +38,12 @@
       "persistence": "Lower-level document and artifact lineage exists; no Project import root or product command persists it.",
       "recovery": "No import receipt or retained partial-result assessment exists."
     },
-    "project-recovery-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No Project-entry recovery action is registered.",
-      "persistence": "Existing owning records remain authoritative; there is no composed Project-entry recovery record.",
-      "recovery": "No effect/preservation/eligible-action/return composition exists for an unresolved Project entry."
+    "project-profile-command-recovery": {
+      "kind": "query",
+      "production_owner": "POST /api/queries/project-profile-command-recovery -> PostgresProjectProfileRuntime.assessProjectProfileCommandRecovery; eligible retry delegates to the existing create/reset command owner",
+      "authorization": "Bearer authentication plus the server-configured registered human. The full exact create/reset request is validated and hashed server-side; another request or actor's retained receipt is never disclosed.",
+      "persistence": "PostgreSQL V044 immutable Project-profile command receipts remain the only durable result. The assessment is a content-hashed repeatable-read composition and creates no generic recovery record, event, mutation, or second ledger.",
+      "recovery": "Classifies effect_confirmed, outcome_unknown, or unavailable_to_verify; inventories retained request/receipt/Project records; offers only exact idempotent redelivery through the existing owner or exact navigation; and supplies a receipt-bound Brief return or safe Projects fallback."
     },
     "client-task-return": {
       "kind": "client",
@@ -373,9 +373,9 @@
     },
     {
       "operation_id": "project.recover",
-      "owner": "project-recovery-missing",
-      "owner_status": "missing",
-      "missing_owner": "Composed unresolved Project-entry recovery assessment and registered action."
+      "owner": "project-profile-command-recovery",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "shell.navigate",

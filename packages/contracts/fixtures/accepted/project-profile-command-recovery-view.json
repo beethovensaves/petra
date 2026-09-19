@@ -1,0 +1,58 @@
+{
+  "schema_name": "petra.project-profile-command-recovery-view",
+  "schema_version": "1.0.0",
+  "assessment_id": "project_profile_recovery_5HH02YEJ21HWH26SKMTFE4MHYE",
+  "content": {
+    "subject": {
+      "operation": "create",
+      "command_id": "command_01K6P000000000000000000401",
+      "idempotency_key": "wave6:recovery:create",
+      "request_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "effect": {
+      "state": "outcome_unknown",
+      "reason": "receipt_not_observed_at_cutoff",
+      "meaning": "No exact receipt was visible at the observation cutoff. Absence does not prove that no effect occurred after the cutoff."
+    },
+    "preservation": [
+      {
+        "item": "exact_request",
+        "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "durability": "client_session",
+        "state": "client_copy_required"
+      }
+    ],
+    "eligible_actions": [
+      {
+        "operation": "retry_exact_command",
+        "eligibility": "eligible",
+        "owner": "project_profile_command",
+        "method": "POST",
+        "path": "/api/commands/projects",
+        "input_behavior": "reuse_exact_request",
+        "identity_behavior": "reuse_command_and_idempotency",
+        "authority_effect": "The owning command may create one Project after rechecking the exact profile and authenticated actor.",
+        "history_effect": "The owning Project-profile receipt remains the only durable command result; this assessment creates no recovery event or second ledger.",
+        "reason": "Exact idempotent redelivery is safe because no conflicting command identity was observed; execution rechecks current authority.",
+        "success_destination": {
+          "place_role": "brief",
+          "project_id": "project_01K6P000000000000000000401"
+        },
+        "failure_destination": { "place_role": "projects" },
+        "execution_recheck": true
+      }
+    ],
+    "return": {
+      "state": "safe_fallback",
+      "destination": { "place_role": "projects" },
+      "reason": "No retained receipt supplies an exact resulting Project yet. Return to Projects without implying command success."
+    },
+    "observation_cutoff": "2026-09-19T18:00:00.000Z",
+    "limitations": [
+      "This assessment reads only the Project-profile command receipt authority.",
+      "A missing receipt at the observation cutoff is not proof that no later effect occurred."
+    ]
+  },
+  "content_hash": "sha256:0311ac384e0071c9acce66b9507cd2cf1acc60aa27e57e1c1db8e2bad9d34916",
+  "read_at": "2026-09-19T18:00:00.000Z"
+}

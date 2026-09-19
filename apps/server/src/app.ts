@@ -97,6 +97,7 @@ import {
   type ProjectHistoryCompensationExecutionBoundary,
   type ProjectInquiryAuthoredStatus,
   type ProjectProfileCommandAuthority,
+  type ProjectProfileCommandRecoveryReader,
   type ProjectProfileRuntimeReader,
   type ProjectModelReadinessReader,
   type ProjectInquiryViewReader,
@@ -154,6 +155,7 @@ export interface PetraAppOptions {
   projectBriefViews?: ProjectBriefViewReader;
   projectProfileReads?: ProjectProfileRuntimeReader;
   projectProfileCommands?: ProjectProfileCommandAuthority;
+  projectProfileRecovery?: ProjectProfileCommandRecoveryReader;
   projectModelReadiness?: ProjectModelReadinessReader;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
@@ -1196,6 +1198,41 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       contracts.assertValid("registered-project-profile", "1.0.0", profile);
       context.header("Cache-Control", "no-store");
       return context.json(profile);
+    } catch (error) {
+      return projectProfileError(context, error);
+    }
+  });
+
+  app.post("/api/queries/project-profile-command-recovery", async (context) => {
+    if (options.projectProfileRecovery === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_PROFILE_RUNTIME_UNAVAILABLE",
+        "The Project entry recovery boundary is not configured.",
+      );
+    }
+    try {
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectProfileCommandRequest;
+      contracts.assertValid(
+        "project-profile-command-request",
+        "1.0.0",
+        request,
+      );
+      const assessment =
+        await options.projectProfileRecovery.assessProjectProfileCommandRecovery(
+          request,
+        );
+      contracts.assertValid(
+        "project-profile-command-recovery-view",
+        "1.0.0",
+        assessment,
+      );
+      context.header("Cache-Control", "no-store");
+      return context.json(assessment);
     } catch (error) {
       return projectProfileError(context, error);
     }
