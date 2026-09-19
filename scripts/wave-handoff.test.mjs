@@ -622,7 +622,7 @@ test("rejects an incomplete or cross-commit worker handoff", () => {
   );
 });
 
-test("accepts verified no-change handoffs but rejects stopped work changes", () => {
+test("retains clean blocked work without accepting stopped work changes", () => {
   const before = "a".repeat(40);
   const after = "b".repeat(40);
   assert.equal(validateCommitTransition("handoff", before, before), false);
@@ -631,9 +631,10 @@ test("accepts verified no-change handoffs but rejects stopped work changes", () 
     validateCommitTransition("wave_complete", before, before),
     false,
   );
+  assert.equal(validateCommitTransition("blocked", before, after), true);
   assert.throws(
-    () => validateCommitTransition("blocked", before, after),
-    /despite blocked/,
+    () => validateCommitTransition("stopped", before, after),
+    /despite stopped/,
   );
 });
 
