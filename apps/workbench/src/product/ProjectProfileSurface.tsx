@@ -1,5 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import type {
+  PetraProjectProfileCommandRecoveryView,
+  PetraProjectProfileCommandRequest,
   PetraProjectProfileTaxonomyView,
   PetraRegisteredProjectProfile,
 } from "@petra/contracts";
@@ -12,9 +14,10 @@ import {
 } from "../design-system/primitives.js";
 import type { ProjectRecord } from "./model.js";
 import {
+  assessProjectProfileCommandRecovery,
+  createProjectProfileCommandRequest,
   createProjectProfileCommandIdentity,
-  createProjectWithProfile,
-  resetProjectWithProfile,
+  executeProjectProfileCommandRequest,
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 
@@ -238,6 +241,237 @@ const retainedCommandFor = (
   return retained.current;
 };
 
+const recoveryDestinationPath = (
+  destination: PetraProjectProfileCommandRecoveryView["content"]["return"]["destination"],
+): string =>
+  destination.place_role === "brief" && destination.project_id !== undefined
+    ? `/projects/${destination.project_id}/brief`
+    : "/";
+
+const recoveryStateLabel = (
+  state: PetraProjectProfileCommandRecoveryView["content"]["effect"]["state"],
+): string =>
+  state === "effect_confirmed"
+    ? "Effect confirmed"
+    : state === "outcome_unknown"
+      ? "Outcome still unknown"
+      : "Unable to verify";
+
+export const ProjectRecoveryPanel = ({
+  request,
+  failureTitle,
+  failureMessage,
+  initialAssessment,
+}: {
+  request: PetraProjectProfileCommandRequest;
+  failureTitle: string;
+  failureMessage: string;
+  initialAssessment?: PetraProjectProfileCommandRecoveryView;
+}): React.JSX.Element => {
+  const navigate = useNavigate();
+  const [assessment, setAssessment] = useState<
+    PetraProjectProfileCommandRecoveryView | undefined
+  >(initialAssessment);
+  const [assessing, setAssessing] = useState(false);
+  const [executing, setExecuting] = useState(false);
+  const [recoveryError, setRecoveryError] = useState<string>();
+
+  const assess = async (): Promise<void> => {
+    setAssessing(true);
+    setRecoveryError(undefined);
+    try {
+      setAssessment(await assessProjectProfileCommandRecovery(request));
+    } catch (caught) {
+      setRecoveryError(errorMessage(caught));
+    } finally {
+      setAssessing(false);
+    }
+  };
+
+  const invoke = async (): Promise<void> => {
+    const action = assessment?.content.eligible_actions[0];
+    if (action === undefined) return;
+    setExecuting(true);
+    setRecoveryError(undefined);
+    try {
+      if (action.operation === "retry_exact_command") {
+        const receipt = await executeProjectProfileCommandRequest(request);
+        await navigate(`/projects/${receipt.destination.project_id}/brief`);
+      } else {
+        await navigate(action.path);
+      }
+    } catch (caught) {
+      setRecoveryError(errorMessage(caught));
+    } finally {
+      setExecuting(false);
+    }
+  };
+
+  const content = assessment?.content;
+  const action = content?.eligible_actions[0];
+
+  return (
+    <section
+      className="project-recovery"
+      aria-labelledby={`project-recovery-${request.command_id}-title`}
+    >
+      <div className="project-profile-command__error" role="alert">
+        <strong id={`project-recovery-${request.command_id}-title`}>
+          {failureTitle}
+        </strong>{" "}
+        {failureMessage}
+        <span>
+          Petra kept this exact request in your browser session. Check its
+          effect before choosing any retry.
+        </span>
+      </div>
+      {content === undefined ? (
+        <div className="project-recovery__check">
+          <PetraButton
+            variant="secondary"
+            busy={assessing}
+            busyLabel="Checking Project"
+            onClick={() => void assess()}
+          >
+            Recover Project
+          </PetraButton>
+          <p>
+            Reconcile the retained command and idempotency identities without
+            sending the create or reset command again.
+          </p>
+        </div>
+      ) : (
+        <div className="project-recovery__result" aria-live="polite">
+          <header>
+            <p className="reference-panel-kicker">Recovery assessment</p>
+            <h3>{recoveryStateLabel(content.effect.state)}</h3>
+            <p>{content.effect.meaning}</p>
+            <p className="project-recovery__cutoff">
+              Observed through {content.observation_cutoff}
+            </p>
+          </header>
+
+          {content.effect.state !== "effect_confirmed" ? null : (
+            <details>
+              <summary>Inspect retained receipt</summary>
+              <dl className="project-recovery__details">
+                <div>
+                  <dt>Operation</dt>
+                  <dd>{titleCase(content.effect.receipt.operation)}</dd>
+                </div>
+                <div>
+                  <dt>Resulting Project</dt>
+                  <dd>{content.effect.receipt.project_ref.project_id}</dd>
+                </div>
+                <div>
+                  <dt>Recorded</dt>
+                  <dd>{content.effect.receipt.recorded_at}</dd>
+                </div>
+              </dl>
+            </details>
+          )}
+
+          <section aria-labelledby={`${request.command_id}-preserved`}>
+            <h4 id={`${request.command_id}-preserved`}>What was preserved</h4>
+            <ul className="project-recovery__preservation">
+              {content.preservation.map((item) => (
+                <li key={`${item.item}:${item.identity}`}>
+                  <strong>{titleCase(item.item)}</strong>
+                  <span>
+                    {titleCase(item.state)} · {titleCase(item.durability)}
+                  </span>
+                  <details>
+                    <summary>Technical identity</summary>
+                    <code>{item.identity}</code>
+                    {item.revision === undefined ? null : (
+                      <span>Revision {item.revision}</span>
+                    )}
+                    {item.content_hash === undefined ? null : (
+                      <code>{item.content_hash}</code>
+                    )}
+                  </details>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section aria-labelledby={`${request.command_id}-limits`}>
+            <h4 id={`${request.command_id}-limits`}>Limits of this check</h4>
+            <ul>
+              {content.limitations.map((limitation) => (
+                <li key={limitation}>{limitation}</li>
+              ))}
+            </ul>
+          </section>
+
+          {action === undefined ? null : (
+            <section
+              className="project-recovery__action"
+              aria-labelledby={`${request.command_id}-eligible-action`}
+            >
+              <h4 id={`${request.command_id}-eligible-action`}>
+                Eligible action
+              </h4>
+              <p>{action.reason}</p>
+              <dl className="project-recovery__details">
+                <div>
+                  <dt>Authority</dt>
+                  <dd>{action.authority_effect}</dd>
+                </div>
+                <div>
+                  <dt>History</dt>
+                  <dd>{action.history_effect}</dd>
+                </div>
+              </dl>
+              <PetraButton
+                variant={
+                  action.operation === "retry_exact_command"
+                    ? "primary"
+                    : "secondary"
+                }
+                busy={executing}
+                busyLabel={
+                  action.operation === "retry_exact_command"
+                    ? "Retrying exact command"
+                    : "Opening Project"
+                }
+                onClick={() => void invoke()}
+              >
+                {action.operation === "retry_exact_command"
+                  ? "Retry exact command"
+                  : "Open resulting Project"}
+              </PetraButton>
+            </section>
+          )}
+
+          <section
+            className="project-recovery__return"
+            aria-labelledby={`${request.command_id}-return`}
+          >
+            <h4 id={`${request.command_id}-return`}>
+              {content.return.state === "exact"
+                ? "Exact return"
+                : "Safe return"}
+            </h4>
+            <p>{content.return.reason}</p>
+            <Link to={recoveryDestinationPath(content.return.destination)}>
+              {content.return.destination.place_role === "brief"
+                ? "Return to resulting Brief"
+                : "Return to Projects"}
+            </Link>
+          </section>
+        </div>
+      )}
+      {recoveryError === undefined ? null : (
+        <p className="project-recovery__failure" role="alert">
+          <strong>Recovery did not finish.</strong> {recoveryError} The exact
+          request remains available for another assessment.
+        </p>
+      )}
+    </section>
+  );
+};
+
 export const ProjectCreationPanel = ({
   profiles,
   onCancel,
@@ -252,6 +486,8 @@ export const ProjectCreationPanel = ({
   const [objective, setObjective] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const [retainedRequest, setRetainedRequest] =
+    useState<PetraProjectProfileCommandRequest>();
   const retainedCommand = useRef<RetainedCommand | undefined>(undefined);
   const selected = profiles.find(
     (profile) => profile.profile_id === selectedId,
@@ -265,34 +501,36 @@ export const ProjectCreationPanel = ({
     if (selected === undefined || selectedFocusTerm === undefined) return;
     setBusy(true);
     setError(undefined);
-    try {
-      const profileRef = {
-        profileId: selected.profile_id,
-        profileVersion: selected.profile_version,
-        contentHash: selected.content_hash,
-      };
-      const command = retainedCommandFor(
-        retainedCommand,
-        "create",
-        JSON.stringify({
-          profileRef,
-          name: name.trim(),
-          description: description.trim(),
-          objective: objective.trim(),
-        }),
-      );
-      const receipt = await createProjectWithProfile({
-        profile: selected,
-        project: {
-          name: name.trim(),
-          ...(description.trim().length === 0
-            ? {}
-            : { description: description.trim() }),
-        },
+    const profileRef = {
+      profileId: selected.profile_id,
+      profileVersion: selected.profile_version,
+      contentHash: selected.content_hash,
+    };
+    const command = retainedCommandFor(
+      retainedCommand,
+      "create",
+      JSON.stringify({
+        profileRef,
+        name: name.trim(),
+        description: description.trim(),
         objective: objective.trim(),
-        commandId: command.commandId,
-        idempotencyKey: command.idempotencyKey,
-      });
+      }),
+    );
+    const request = createProjectProfileCommandRequest("create", {
+      profile: selected,
+      project: {
+        name: name.trim(),
+        ...(description.trim().length === 0
+          ? {}
+          : { description: description.trim() }),
+      },
+      objective: objective.trim(),
+      commandId: command.commandId,
+      idempotencyKey: command.idempotencyKey,
+    });
+    setRetainedRequest(request);
+    try {
+      const receipt = await executeProjectProfileCommandRequest(request);
       await navigate(`/projects/${receipt.destination.project_id}/brief`);
     } catch (caught) {
       setError(errorMessage(caught));
@@ -352,14 +590,13 @@ export const ProjectCreationPanel = ({
             onChange={(event) => setObjective(event.currentTarget.value)}
           />
         </div>
-        {error === undefined ? null : (
-          <p className="project-profile-command__error" role="alert">
-            <strong>Project not created.</strong> {error}
-            <span>
-              Your entries remain here. Trying again without changing them
-              reuses the same exact command.
-            </span>
-          </p>
+        {error === undefined || retainedRequest === undefined ? null : (
+          <ProjectRecoveryPanel
+            key={retainedRequest.command_id}
+            request={retainedRequest}
+            failureTitle="Project not created."
+            failureMessage={error}
+          />
         )}
         <div className="project-profile-command__actions">
           <PetraButton
@@ -413,6 +650,8 @@ export const ProjectResetPanel = ({
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const [retainedRequest, setRetainedRequest] =
+    useState<PetraProjectProfileCommandRequest>();
   const retainedCommand = useRef<RetainedCommand | undefined>(undefined);
   const selected = profiles.find(
     (profile) => profile.profile_id === selectedId,
@@ -430,31 +669,33 @@ export const ProjectResetPanel = ({
       return;
     setBusy(true);
     setError(undefined);
+    const command = retainedCommandFor(
+      retainedCommand,
+      "reset",
+      JSON.stringify({
+        projectId: project.id,
+        revision: project.revision,
+        profileId: selected.profile_id,
+        profileVersion: selected.profile_version,
+        contentHash: selected.content_hash,
+        name: name.trim(),
+        objective: objective.trim(),
+      }),
+    );
+    const request = createProjectProfileCommandRequest(
+      "reset",
+      {
+        profile: selected,
+        project: { name: name.trim() },
+        objective: objective.trim(),
+        commandId: command.commandId,
+        idempotencyKey: command.idempotencyKey,
+      },
+      { projectId: project.id, revision: project.revision },
+    );
+    setRetainedRequest(request);
     try {
-      const command = retainedCommandFor(
-        retainedCommand,
-        "reset",
-        JSON.stringify({
-          projectId: project.id,
-          revision: project.revision,
-          profileId: selected.profile_id,
-          profileVersion: selected.profile_version,
-          contentHash: selected.content_hash,
-          name: name.trim(),
-          objective: objective.trim(),
-        }),
-      );
-      const receipt = await resetProjectWithProfile(
-        project.id,
-        project.revision,
-        {
-          profile: selected,
-          project: { name: name.trim() },
-          objective: objective.trim(),
-          commandId: command.commandId,
-          idempotencyKey: command.idempotencyKey,
-        },
-      );
+      const receipt = await executeProjectProfileCommandRequest(request);
       await navigate(`/projects/${receipt.destination.project_id}/brief`);
     } catch (caught) {
       setError(errorMessage(caught));
@@ -521,14 +762,13 @@ export const ProjectResetPanel = ({
               replacement from the selected profile.
             </span>
           </label>
-          {error === undefined ? null : (
-            <p className="project-profile-command__error" role="alert">
-              <strong>Project not reset.</strong> {error}
-              <span>
-                Your entries remain here. Trying again without changing them
-                reuses the same exact command.
-              </span>
-            </p>
+          {error === undefined || retainedRequest === undefined ? null : (
+            <ProjectRecoveryPanel
+              key={retainedRequest.command_id}
+              request={retainedRequest}
+              failureTitle="Project not reset."
+              failureMessage={error}
+            />
           )}
           <div className="project-profile-command__actions">
             <PetraButton

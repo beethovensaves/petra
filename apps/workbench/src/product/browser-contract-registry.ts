@@ -46,6 +46,7 @@ import projectProfileTaxonomyViewSchema from "../../../../packages/contracts/sch
 import projectModelReadinessViewSchema from "../../../../packages/contracts/schemas/project-model-readiness-view/1.0.0/schema.json";
 import projectProfileCommandRequestSchema from "../../../../packages/contracts/schemas/project-profile-command-request/1.0.0/schema.json";
 import projectProfileCommandReceiptSchema from "../../../../packages/contracts/schemas/project-profile-command-receipt/1.0.0/schema.json";
+import projectProfileCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-profile-command-recovery-view/1.0.0/schema.json";
 import projectWorkOperationRequestSchema from "../../../../packages/contracts/schemas/project-work-operation-request/1.0.0/schema.json";
 import projectWorkOperationReceiptSchema from "../../../../packages/contracts/schemas/project-work-operation-receipt/1.0.0/schema.json";
 import projectWorkOperationsViewSchema from "../../../../packages/contracts/schemas/project-work-operations-view/1.0.0/schema.json";
@@ -108,6 +109,7 @@ type BrowserContractName =
   | "project-model-readiness-view@1.0.0"
   | "project-profile-command-request@1.0.0"
   | "project-profile-command-receipt@1.0.0"
+  | "project-profile-command-recovery-view@1.0.0"
   | "project-work-operation-request@1.0.0"
   | "project-work-operation-receipt@1.0.0"
   | "project-work-operations-view@1.0.0"
@@ -176,6 +178,7 @@ const schemas = [
   projectModelReadinessViewSchema,
   projectProfileCommandRequestSchema,
   projectProfileCommandReceiptSchema,
+  projectProfileCommandRecoveryViewSchema,
   projectWorkOperationRequestSchema,
   projectWorkOperationReceiptSchema,
   projectWorkOperationsViewSchema,
@@ -240,6 +243,8 @@ const contractIds: Record<BrowserContractName, string> = {
     projectProfileCommandRequestSchema.$id,
   "project-profile-command-receipt@1.0.0":
     projectProfileCommandReceiptSchema.$id,
+  "project-profile-command-recovery-view@1.0.0":
+    projectProfileCommandRecoveryViewSchema.$id,
   "project-work-operation-request@1.0.0": projectWorkOperationRequestSchema.$id,
   "project-work-operation-receipt@1.0.0": projectWorkOperationReceiptSchema.$id,
   "project-work-operations-view@1.0.0": projectWorkOperationsViewSchema.$id,
@@ -345,6 +350,12 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:5131baf319411d989a9f14de7a30cda8fd4ea729370e19f440763a6140bb188b",
+    },
+    {
+      name: "project-profile-command-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:77534795a71219fd9974160e547455966389f642f85c0e26fa3b44e2295c195e",
     },
     {
       name: "project-work-operation-request",

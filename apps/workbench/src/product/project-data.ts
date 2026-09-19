@@ -41,6 +41,7 @@ import type {
   PetraProjectObjectLocationView,
   PetraProjectDefinition,
   PetraProjectProfileCommandReceipt,
+  PetraProjectProfileCommandRecoveryView,
   PetraProjectProfileCommandRequest,
   PetraProjectProfileTaxonomyView,
   PetraRegisteredProjectProfile,
@@ -3862,7 +3863,7 @@ export const createProjectProfileCommandIdentity = (
   };
 };
 
-const createProjectProfileCommandRequest = (
+export const createProjectProfileCommandRequest = (
   operation: "create" | "reset",
   input: ProjectProfileCommandInput,
   expectedProject?: { readonly projectId: string; readonly revision: number },
@@ -3917,6 +3918,21 @@ export const resetProjectWithProfile = async (
       revision,
     }),
   );
+
+export const assessProjectProfileCommandRecovery = async (
+  request: PetraProjectProfileCommandRequest,
+): Promise<PetraProjectProfileCommandRecoveryView> =>
+  projectProfileClient().assessProjectRecovery(request);
+
+export const executeProjectProfileCommandRequest = async (
+  request: PetraProjectProfileCommandRequest,
+): Promise<PetraProjectProfileCommandReceipt> =>
+  request.operation === "create"
+    ? projectProfileClient().createProject(request)
+    : projectProfileClient().resetProject(
+        request.expected_project?.project_id ?? "",
+        request,
+      );
 
 export const loadProjectRecord = async ({
   params,
