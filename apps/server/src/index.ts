@@ -9,6 +9,7 @@ export * from "./app.js";
 export * from "./grounded-synthesis-persistence.js";
 export * from "./m1-grounded-synthesis.js";
 export * from "./project-shell-persistence.js";
+export * from "./project-model-readiness.js";
 export * from "./server.js";
 
 const isEntryPoint =

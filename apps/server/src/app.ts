@@ -78,6 +78,7 @@ import {
   ProjectHistoryRecoveryPreviewUnavailableError,
   ProjectHistoryViewRequestError,
   ProjectProfileRuntimeError,
+  ProjectModelReadinessError,
   ProjectSourceLifecycleAuthorityError,
   ProjectSourceReplacementCommandError,
   ReviewCandidateBasisRevisionAuthorityError,
@@ -95,6 +96,7 @@ import {
   type ProjectInquiryAuthoredStatus,
   type ProjectProfileCommandAuthority,
   type ProjectProfileRuntimeReader,
+  type ProjectModelReadinessReader,
   type ProjectInquiryViewReader,
   type ProjectObjectLocationViewReader,
   type ProjectRelationshipOverlayViewReader,
@@ -148,6 +150,7 @@ export interface PetraAppOptions {
   projectBriefViews?: ProjectBriefViewReader;
   projectProfileReads?: ProjectProfileRuntimeReader;
   projectProfileCommands?: ProjectProfileCommandAuthority;
+  projectModelReadiness?: ProjectModelReadinessReader;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
   projectHistoryViews?: ProjectHistoryViewReader;
@@ -1428,6 +1431,70 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       return projectProfileError(context, error);
     }
   });
+
+  app.get(
+    "/api/queries/projects/:projectId/model-readiness",
+    async (context) => {
+      if (options.projectModelReadiness === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_MODEL_READINESS_UNAVAILABLE",
+          "The Project-scoped certified model readiness boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          new URL(context.req.url).search !== ""
+        ) {
+          throw new InteractionInputError(
+            "Model readiness accepts one canonical Project identity and no query overrides.",
+          );
+        }
+        const readiness =
+          await options.projectModelReadiness.getProjectModelReadiness(
+            projectId,
+          );
+        if (readiness === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_MODEL_READINESS_NOT_FOUND",
+            "The requested Project or its exact ProjectDefinition is unavailable.",
+          );
+        }
+        contracts.assertValid(
+          "project-model-readiness-view",
+          "1.0.0",
+          readiness,
+        );
+        if (readiness.project_id !== projectId) {
+          throw new ProjectModelReadinessError(
+            "PROJECT_MODEL_READINESS_CORRUPT",
+            "The model readiness response crossed a Project boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(readiness);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_MODEL_READINESS_REQUEST_INVALID"
+            : error instanceof ProjectModelReadinessError
+              ? error.code
+              : "PROJECT_MODEL_READINESS_FAILED",
+          error instanceof Error
+            ? error.message
+            : "Certified model readiness is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
 
   app.get("/api/queries/projects/:projectId/brief", async (context) => {
     if (options.projectBriefViews === undefined)
@@ -6758,6 +6825,21 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         requestId: context.get("requestId"),
         traceId: context.get("traceId"),
       });
+      if (
+        parsed.request.workflow === "grounded_synthesis" &&
+        options.projectModelReadiness !== undefined
+      ) {
+        if (parsed.modelContext === undefined) {
+          throw new InteractionInputError(
+            "The production grounded-synthesis command requires the exact Project model context returned by readiness.",
+          );
+        }
+        await options.projectModelReadiness.authorizeProjectModelInteraction({
+          project_id: parsed.modelContext.project_id,
+          prompt: parsed.request.prompt,
+          request_context: parsed.modelContext,
+        });
+      }
       runId = parsed.request.runId;
       const restored = await runtime.restoreInteraction(
         parsed.request.threadId,
@@ -6793,10 +6875,20 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       ) {
         return jsonError(context, 413, "BODY_TOO_LARGE", error.message);
       }
+      const status =
+        error instanceof InteractionInputError
+          ? 422
+          : error instanceof ProjectModelReadinessError
+            ? error.code === "PROJECT_MODEL_INTERACTION_UNAVAILABLE"
+              ? 503
+              : 409
+            : 409;
       return jsonError(
         context,
-        error instanceof InteractionInputError ? 422 : 409,
-        "INTERACTION_REJECTED",
+        status,
+        error instanceof ProjectModelReadinessError
+          ? error.code
+          : "INTERACTION_REJECTED",
         error instanceof Error ? error.message : "Interaction rejected.",
         error instanceof InteractionInputError ? error.issues : undefined,
       );

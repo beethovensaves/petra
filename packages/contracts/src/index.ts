@@ -89,6 +89,23 @@ export type {
 export type { PetraProjectProfileCommandRequest } from "./generated/project-profile-command-request.js";
 export type { PetraProjectProfileCommandReceipt } from "./generated/project-profile-command-receipt.js";
 export type {
+  BoundContext as ProjectModelBoundContext,
+  CertificationRef as ProjectModelCertificationRef,
+  ContextBinding as ProjectModelContextBinding,
+  DefinitionRef as ProjectModelDefinitionRef,
+  ObjectiveRef as ProjectModelObjectiveRef,
+  PetraProjectModelReadinessView,
+  ReadyCommand as ProjectModelReadyCommand,
+  ReadyProvider as ProjectModelReadyProvider,
+  RecordRef as ProjectModelRecordRef,
+  SelectedRole as ProjectModelSelectedRole,
+  SnapshotRef as ProjectModelSnapshotRef,
+  UnavailableCommand as ProjectModelUnavailableCommand,
+  UnavailableContext as ProjectModelUnavailableContext,
+  UnavailableProvider as ProjectModelUnavailableProvider,
+  UnavailableRole as ProjectModelUnavailableRole,
+} from "./generated/project-model-readiness-view.js";
+export type {
   ObjectiveRepresentation as ProjectInquiryObjectiveRepresentation,
   PetraProjectInquiryRole,
   RoleContent as ProjectInquiryRoleContent,

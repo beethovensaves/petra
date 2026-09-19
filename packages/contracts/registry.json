@@ -188,6 +188,17 @@
       "typescript_path": "src/generated/project-profile-taxonomy-view.ts"
     },
     {
+      "name": "project-model-readiness-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-model-readiness-view/1.0.0/schema.json",
+      "path": "schemas/project-model-readiness-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-project-bound-certified-model-readiness",
+      "canonical_sha256": "sha256:6a9cacc35e9df3b73a4eaed2db936f8c2452cf07ebd0256523388c743eb2b22e",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-model-readiness-view.ts"
+    },
+    {
       "name": "project-profile-command-request",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-profile-command-request/1.0.0/schema.json",

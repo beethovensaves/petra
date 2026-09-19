@@ -45,6 +45,10 @@
     },
     {
       "schema": "project-definition",
+      "path": "fixtures/accepted/project-definition-certified-scientific.json"
+    },
+    {
+      "schema": "project-definition",
       "path": "fixtures/accepted/project-definition-controlled-writing.json"
     },
     {
@@ -58,6 +62,10 @@
     {
       "schema": "project-objective",
       "path": "fixtures/accepted/project-objective-working-scientific.json"
+    },
+    {
+      "schema": "project-objective",
+      "path": "fixtures/accepted/project-objective-certified-scientific.json"
     },
     {
       "schema": "project-objective",

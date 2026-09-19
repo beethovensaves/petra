@@ -9,6 +9,7 @@ import { EventEncoder } from "@ag-ui/encoder";
 import type {
   PetraInteractionCustomEvent,
   PetraReviewInterruptResponse,
+  ProjectModelContextBinding,
 } from "@petra/contracts";
 import type {
   PetraFixtureMode,
@@ -64,6 +65,7 @@ interface PetraForwardedProps {
   fixtureMode: PetraFixtureMode;
   afterSequence: number;
   connectionId?: string;
+  modelContext?: ProjectModelContextBinding;
 }
 
 export interface ParsedInteractionInput {
@@ -71,6 +73,7 @@ export interface ParsedInteractionInput {
   request: StartInteractionRequest;
   afterSequence: number;
   connectionId?: string;
+  modelContext?: ProjectModelContextBinding;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -106,7 +109,13 @@ const parseForwardedProps = (value: unknown): PetraForwardedProps => {
     throw new InteractionInputError("forwardedProps.petra must be an object.");
   assertAllowedKeys(
     petra,
-    new Set(["workflow", "fixtureMode", "afterSequence", "connectionId"]),
+    new Set([
+      "workflow",
+      "fixtureMode",
+      "afterSequence",
+      "connectionId",
+      "modelContext",
+    ]),
     "forwardedProps.petra",
   );
 
@@ -131,6 +140,15 @@ const parseForwardedProps = (value: unknown): PetraForwardedProps => {
       "fixtureMode cannot be combined with the grounded_synthesis workflow.",
     );
   }
+  const modelContext = petra.modelContext;
+  if (modelContext !== undefined && !isRecord(modelContext)) {
+    throw new InteractionInputError("modelContext must be an object.");
+  }
+  if (workflow !== "grounded_synthesis" && modelContext !== undefined) {
+    throw new InteractionInputError(
+      "modelContext can be used only with the grounded_synthesis workflow.",
+    );
+  }
   const afterSequence = petra.afterSequence ?? 0;
   if (!Number.isSafeInteger(afterSequence) || (afterSequence as number) < 0) {
     throw new InteractionInputError(
@@ -152,6 +170,11 @@ const parseForwardedProps = (value: unknown): PetraForwardedProps => {
     fixtureMode: fixtureMode as PetraFixtureMode,
     afterSequence: afterSequence as number,
     ...(connectionId === undefined ? {} : { connectionId }),
+    ...(modelContext === undefined
+      ? {}
+      : {
+          modelContext: modelContext as unknown as ProjectModelContextBinding,
+        }),
   };
 };
 
@@ -216,6 +239,9 @@ export const parseAgUiRunInput = (
     ...(forwarded.connectionId === undefined
       ? {}
       : { connectionId: forwarded.connectionId }),
+    ...(forwarded.modelContext === undefined
+      ? {}
+      : { modelContext: forwarded.modelContext }),
   };
 };
 
@@ -571,6 +597,7 @@ export class PetraInteractionClient {
     fixtureMode?: PetraFixtureMode;
     afterSequence?: number;
     connectionId?: string;
+    modelContext?: ProjectModelContextBinding;
     abortController?: AbortController;
   }): Promise<PetraInteractionResult> {
     const agent = new HttpAgent({
@@ -610,6 +637,9 @@ export class PetraInteractionClient {
           ...(parameters.connectionId === undefined
             ? {}
             : { connectionId: parameters.connectionId }),
+          ...(parameters.modelContext === undefined
+            ? {}
+            : { modelContext: parameters.modelContext }),
         },
       },
       ...(parameters.abortController === undefined
