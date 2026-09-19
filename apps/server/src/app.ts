@@ -7162,14 +7162,30 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     }
   });
 
-  app.get("/api/queries/interactions/:runId", (context) => {
+  app.get("/api/queries/interactions/:runId", async (context) => {
     try {
-      return context.json(runtime.snapshot(context.req.param("runId")));
+      const runId = context.req.param("runId");
+      try {
+        return context.json(runtime.snapshot(runId));
+      } catch {
+        const threadId = context.req.query("thread");
+        if (threadId === undefined || !ID_PATTERN.test(threadId)) {
+          throw new InteractionInputError(
+            "A valid thread query parameter is required to restore a durable interaction.",
+          );
+        }
+        const restored = await runtime.restoreInteraction(threadId, runId);
+        if (restored === undefined)
+          throw new Error(`Unknown interaction run: ${runId}`);
+        return context.json(restored);
+      }
     } catch (error: unknown) {
       return jsonError(
         context,
-        404,
-        "RUN_NOT_FOUND",
+        error instanceof InteractionInputError ? 422 : 404,
+        error instanceof InteractionInputError
+          ? "INVALID_RECONNECT_REQUEST"
+          : "RUN_NOT_FOUND",
         error instanceof Error ? error.message : "Interaction run not found.",
       );
     }

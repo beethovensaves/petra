@@ -1205,8 +1205,8 @@ export class PostgresProjectWorkOperations
       interaction_run_id: row.interaction_run_id,
       protocol_thread_id: row.protocol_thread_id,
       protocol_run_id: row.protocol_run_id,
-      reconnect_path: `/api/queries/interactions/${encodeURIComponent(row.protocol_run_id)}`,
-      replay_path: `/api/interactions/${encodeURIComponent(row.protocol_run_id)}?thread_id=${encodeURIComponent(row.protocol_thread_id)}&after=0`,
+      reconnect_path: `/api/queries/interactions/${encodeURIComponent(row.protocol_run_id)}?thread=${encodeURIComponent(row.protocol_thread_id)}`,
+      replay_path: `/api/interactions/${encodeURIComponent(row.protocol_run_id)}?thread=${encodeURIComponent(row.protocol_thread_id)}&after=0`,
     };
   }
 
