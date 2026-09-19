@@ -1,0 +1,80 @@
+{
+  "evidence_id": "UX1.6-WORK",
+  "scenario_id": "usable-work-ui",
+  "status": "blocked",
+  "executed_at": "2026-09-19T22:13:37Z",
+  "command": "./run-wave-6-checkpoint.zsh with pinned Node 24 and the repository Chrome DevTools driver",
+  "stable_url": "http://127.0.0.1:4311/guide",
+  "production_boundary": {
+    "client": "production React Work routes served by the documented Wave 6 checkpoint",
+    "server": "startPetraServer through the checkpoint proxy",
+    "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V046",
+    "browser": "isolated headless Google Chrome controlled through the repository CDP driver",
+    "fixtures": "the checkpoint's supported paired-profile setup; no browser response or Work state was mocked"
+  },
+  "observations": {
+    "guide": {
+      "rendered": true,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "work_url": "http://127.0.0.1:4311/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work"
+    },
+    "collection": {
+      "production_work_tasks": 2,
+      "initial_route_failure": "PROJECT_INQUIRY_READ_FAILED: The current ProjectDefinition has no active registered inquiry-role mapping.",
+      "frontend_recovery": "The exact Work collection and detail remain usable with an explicit inquiry-path limitation; no inquiry link is inferred.",
+      "rendered_after_recovery": true
+    },
+    "requested_task": {
+      "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "exact_inputs_visible": true,
+      "resource_limits_visible": true,
+      "registered_stage_count": 0,
+      "stage_boundary": "This workflow has no registered stage-plan record; Petra does not reconstruct stages from execution prose.",
+      "pending_required_input_count": 0,
+      "start_assessment": "available",
+      "steer_assessment": "available",
+      "priority_assessment": "available",
+      "cancel_assessment": "available",
+      "attempted_visible_control": "Steer work",
+      "result": "The authenticated Work command principal was denied: active_grant_not_found.",
+      "false_success_presented": false,
+      "instruction_retention_recovery_presented": true,
+      "start_detach_return_cancel_executed": false
+    },
+    "completed_task": {
+      "work_unit_id": "work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0",
+      "measured_resources_visible": true,
+      "registered_stage_count": 0,
+      "server_assessed_reconnect": "query_only",
+      "server_assessed_replay": "query_only",
+      "query_only_controls_enabled_after_frontend_recovery": true,
+      "attempted_visible_control": "Reconnect",
+      "result": "Unknown interaction run: run-wave4-item49-natural-conversation",
+      "false_reconnect_presented": false
+    },
+    "destinations": [
+      {
+        "result_kind": "grounded_response",
+        "record_id": "grounded_response_0R812XV7Z34417E3M3F49QNE0A",
+        "work_assessment": "available",
+        "semantic_location": "OBJECT_KIND_UNSUPPORTED",
+        "observed_route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief"
+      },
+      {
+        "result_kind": "worker_output_manifest",
+        "record_id": "worker_output_manifest_5SH8DMNBYZA54M275HC1587G8J",
+        "work_assessment": "available",
+        "semantic_location": "OBJECT_KIND_UNSUPPORTED",
+        "observed_route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief"
+      }
+    ]
+  },
+  "required_intervention": [
+    "Seed an active ManageProjectWork grant for the checkpoint's authenticated human principal before assessing direct Work commands as available.",
+    "Provide a representative Work task with a registered meaningful stage plan and pending required input reachable from /guide.",
+    "Restore the completed task's durable interaction run after checkpoint restart so query-only reconnect and replay resolve the recorded run.",
+    "Make each available Work result destination resolve its exact registered object instead of an unsupported-kind fallback to Brief.",
+    "Register the scientific Project definition's inquiry-role mapping if the checkpoint is intended to demonstrate linked inquiry paths."
+  ],
+  "boundary": "This is a retained failed browser observation, not a passed evidence record. It proves that the stable production routes were executed and that the UI did not report success for denied commands or missing replay. It does not satisfy UX1.6-WORK/usable-work-ui because required input, meaningful stages, mutation recovery, reconnect/replay, and exact result destinations could not be completed."
+}

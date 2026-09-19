@@ -484,6 +484,7 @@ export type WorkProjectView = {
   projectId: string;
   branches: InquiryBranch[];
   units: WorkUnit[];
+  inquiryLimitation?: string;
   query?: {
     limit: number;
     cursor?: string;

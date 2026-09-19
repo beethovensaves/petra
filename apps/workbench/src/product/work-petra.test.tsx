@@ -111,6 +111,27 @@ describe("reference Work and Petra packets", () => {
     expect(markup).toContain("Work tasks");
   });
 
+  it("keeps exact Work usable when the profile has no inquiry-path mapping", () => {
+    const markup = render(
+      <WorkCollectionSurface
+        project={project}
+        work={{
+          ...work,
+          branches: [],
+          inquiryLimitation:
+            "The current Project profile has no active inquiry-path mapping.",
+        }}
+      />,
+    );
+
+    expect(markup).toContain("Inquiry paths unavailable");
+    expect(markup).toContain(
+      "The current Project profile has no active inquiry-path mapping.",
+    );
+    expect(markup).toContain("Work tasks");
+    expect(markup).not.toContain("Parallel inquiry paths");
+  });
+
   it("explains the contextual recommendation and preserves other paths", () => {
     const markup = render(
       <WorkCollectionSurface project={project} work={work} />,
@@ -185,6 +206,46 @@ describe("reference Work and Petra packets", () => {
       "Fresh execution requires a workflow-specific input-rebinding command",
     );
     expect(markup).toContain("Project authority remains unchanged");
+  });
+
+  it("enables server-assessed query-only reconnect and replay controls", () => {
+    const queryOnly = structuredClone(workOperations);
+    for (const operation of ["reconnect", "replay"] as const) {
+      const control = queryOnly.controls.find(
+        (candidate) => candidate.operation === operation,
+      );
+      if (control === undefined) throw new Error(`${operation} is missing.`);
+      control.state = "query_only";
+      control.reason = `The exact ${operation} query is available.`;
+    }
+    const liveUnit = {
+      ...runningTask,
+      id: queryOnly.work_unit_ref.work_unit_id,
+    };
+    const markup = render(
+      <WorkDetailSurface
+        project={project}
+        unit={liveUnit}
+        work={{ ...work, units: [liveUnit] }}
+        operations={queryOnly}
+      />,
+    );
+    const buttonMarkup = (label: string): string | undefined => {
+      const labelIndex = markup.indexOf(`>${label}</span>`);
+      if (labelIndex < 0) return undefined;
+      const start = markup.lastIndexOf("<button", labelIndex);
+      const end = markup.indexOf("</button>", labelIndex);
+      return start < 0 || end < 0
+        ? undefined
+        : markup.slice(start, end + "</button>".length);
+    };
+    const reconnectButton = buttonMarkup("Reconnect");
+    const replayButton = buttonMarkup("Replay delivery");
+
+    expect(reconnectButton).toBeDefined();
+    expect(reconnectButton).not.toContain("aria-disabled");
+    expect(replayButton).toBeDefined();
+    expect(replayButton).not.toContain("aria-disabled");
   });
 
   it("discloses Petra's exact context, omissions, and message force", () => {

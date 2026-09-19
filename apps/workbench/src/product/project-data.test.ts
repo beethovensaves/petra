@@ -4544,6 +4544,78 @@ describe("Project shell workbench adapter", () => {
     ]);
   });
 
+  it("retains exact Work reads when the registered profile has no inquiry mapping", async () => {
+    if (workDetailView.content.view_kind !== "detail") {
+      throw new Error("Expected the Work detail fixture.");
+    }
+    const unavailableInquiry = () =>
+      Response.json(
+        {
+          error: {
+            code: "PROJECT_INQUIRY_READ_FAILED",
+            message:
+              "The current ProjectDefinition has no active registered inquiry-role mapping.",
+          },
+        },
+        { status: 503 },
+      );
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      if (path.includes("/inquiries?")) {
+        return Promise.resolve(unavailableInquiry());
+      }
+      if (path.includes("/operations")) {
+        return Promise.resolve(Response.json(workOperationsView));
+      }
+      return Promise.resolve(
+        Response.json(
+          path.includes("/work/") ? workDetailView : workCollectionView,
+        ),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const projectId = workCollectionView.project_id;
+    const workUnitId =
+      workDetailView.content.summary.work_unit_ref.work_unit_id;
+    const collectionUrl = new URL(
+      `http://petra.test/projects/${projectId}/work`,
+    );
+    const collection = await loadProjectWorkCollection({
+      request: new Request(collectionUrl),
+      url: collectionUrl,
+      pattern: "/projects/:projectId/work",
+      params: { projectId },
+      context: new RouterContextProvider(),
+    });
+    expect(collection.units[0]?.id).toBe(workUnitId);
+    expect(collection.branches).toEqual([]);
+    expect(collection.inquiryLimitation).toContain(
+      "Exact Work remains available",
+    );
+
+    const detailUrl = new URL(
+      `http://petra.test/projects/${projectId}/work/${workUnitId}`,
+    );
+    const detail = await loadProjectWorkDetail({
+      request: new Request(detailUrl),
+      url: detailUrl,
+      pattern: "/projects/:projectId/work/:workId",
+      params: { projectId, workId: workUnitId },
+      context: new RouterContextProvider(),
+    });
+    expect(detail.unit.id).toBe(workUnitId);
+    expect(detail.unit.branchIds).toEqual([]);
+    expect(detail.work.inquiryLimitation).toContain(
+      "cannot show how these tasks relate",
+    );
+    expect(detail.operations).toEqual(workOperationsView);
+  });
+
   it("previews, invokes, and rereads one exact Work-starting SuggestedAction", async () => {
     const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       void init;

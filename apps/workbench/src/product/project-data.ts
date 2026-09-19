@@ -5404,6 +5404,29 @@ export const loadProjectReviewSession = async ({
   };
 };
 
+const WORK_INQUIRY_MAPPING_UNAVAILABLE =
+  "The current Project profile has no active inquiry-path mapping. Exact Work remains available, but Petra cannot show how these tasks relate to authored inquiry paths.";
+
+const readOptionalWorkInquiry = async (
+  path: string,
+): Promise<
+  { readonly view: PetraProjectInquiryView } | { readonly limitation: string }
+> => {
+  try {
+    return { view: projectInquiryView(await requestJson(path)) };
+  } catch (caught) {
+    if (
+      caught instanceof ProjectDataError &&
+      caught.status === 503 &&
+      caught.message ===
+        "The current ProjectDefinition has no active registered inquiry-role mapping."
+    ) {
+      return { limitation: WORK_INQUIRY_MAPPING_UNAVAILABLE };
+    }
+    throw caught;
+  }
+};
+
 export const loadProjectWorkCollection = async ({
   params,
   request,
@@ -5422,35 +5445,48 @@ export const loadProjectWorkCollection = async ({
     for (const value of incoming.getAll(key)) query.append(key, value);
   }
   if (!query.has("limit")) query.set("limit", "50");
-  const [value, inquiryCollectionValue] = await Promise.all([
+  const [value, inquiryRead] = await Promise.all([
     requestJson(
       `/api/queries/projects/${encodeURIComponent(projectId)}/work?${query}`,
     ),
-    requestJson(
+    readOptionalWorkInquiry(
       `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries?limit=100`,
     ),
   ]);
   const view = projectWorkView(value);
-  const inquiryCollection = projectInquiryView(inquiryCollectionValue);
   if (
     view.project_id !== projectId ||
-    view.content.view_kind !== "collection" ||
+    view.content.view_kind !== "collection"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned Work for a different Project or view kind.",
+      502,
+    );
+  }
+  if ("limitation" in inquiryRead) {
+    return {
+      ...workProjectFromView(view),
+      inquiryLimitation: inquiryRead.limitation,
+    };
+  }
+  const inquiryCollection = inquiryRead.view;
+  if (
     inquiryCollection.project_id !== projectId ||
     inquiryCollection.content.view_kind !== "collection"
   ) {
     throw new ProjectDataError(
-      "Petra returned Work or inquiries for a different Project or view kind.",
+      "Petra returned inquiries for a different Project or view kind.",
       502,
     );
   }
-  const inquiryDetails = await Promise.all(
+  const inquiryReads = await Promise.all(
     inquiryCollection.content.inquiries.map(async (inquiry) => {
       const objectiveId = inquiry.inquiry_anchor_ref.objective_id;
-      const detail = projectInquiryView(
-        await requestJson(
-          `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries/${encodeURIComponent(objectiveId)}`,
-        ),
+      const detailRead = await readOptionalWorkInquiry(
+        `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries/${encodeURIComponent(objectiveId)}`,
       );
+      if ("limitation" in detailRead) return detailRead;
+      const detail = detailRead.view;
       if (
         detail.project_id !== projectId ||
         detail.content.view_kind !== "detail" ||
@@ -5461,9 +5497,25 @@ export const loadProjectWorkCollection = async ({
           502,
         );
       }
-      return detail;
+      return { view: detail } as const;
     }),
   );
+  const unavailable = inquiryReads.find((read) => "limitation" in read);
+  if (unavailable !== undefined && "limitation" in unavailable) {
+    return {
+      ...workProjectFromView(view),
+      inquiryLimitation: unavailable.limitation,
+    };
+  }
+  const inquiryDetails = inquiryReads.map((read) => {
+    if ("limitation" in read) {
+      throw new ProjectDataError(
+        "Petra could not resolve the Work inquiry-path boundary.",
+        502,
+      );
+    }
+    return read.view;
+  });
   return workProjectFromView(view, inquiryDetails);
 };
 
@@ -6670,33 +6722,48 @@ export const loadProjectWorkDetail = async ({
 }: LoaderFunctionArgs): Promise<ProjectWorkDetailData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const workUnitId = requiredRouteIdentity(params.workId, "A WorkUnit ID");
-  const [value, inquiryValue, operations] = await Promise.all([
+  const [value, inquiryRead, operations] = await Promise.all([
     requestJson(
       `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
     ),
-    requestJson(
+    readOptionalWorkInquiry(
       `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries?limit=100&work_unit_id=${encodeURIComponent(workUnitId)}`,
     ),
     readProjectWorkOperations(projectId, workUnitId),
   ]);
   const view = projectWorkView(value);
-  const inquiryView = projectInquiryView(inquiryValue);
   if (
     view.project_id !== projectId ||
     view.content.view_kind !== "detail" ||
     view.content.summary.work_unit_ref.work_unit_id !== workUnitId ||
     operations.project_id !== projectId ||
-    operations.work_unit_ref.work_unit_id !== workUnitId ||
-    inquiryView.project_id !== projectId ||
-    inquiryView.content.view_kind !== "collection" ||
-    inquiryView.content.query.work_unit_id !== workUnitId
+    operations.work_unit_ref.work_unit_id !== workUnitId
   ) {
     throw new ProjectDataError(
-      "Petra returned a different Project Work or inquiry-link identity.",
+      "Petra returned a different Project Work identity.",
       502,
     );
   }
-  const work = workProjectFromView(view, [inquiryView]);
+  let work: WorkProjectView;
+  if ("limitation" in inquiryRead) {
+    work = {
+      ...workProjectFromView(view),
+      inquiryLimitation: inquiryRead.limitation,
+    };
+  } else {
+    const inquiryView = inquiryRead.view;
+    if (
+      inquiryView.project_id !== projectId ||
+      inquiryView.content.view_kind !== "collection" ||
+      inquiryView.content.query.work_unit_id !== workUnitId
+    ) {
+      throw new ProjectDataError(
+        "Petra returned a different Project inquiry-link identity.",
+        502,
+      );
+    }
+    work = workProjectFromView(view, [inquiryView]);
+  }
   const unit = work.units[0];
   if (unit === undefined) {
     throw new ProjectDataError("Petra returned no exact Work task.", 502);

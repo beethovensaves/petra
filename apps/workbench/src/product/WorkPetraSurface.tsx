@@ -212,6 +212,17 @@ export const WorkCollectionSurface = ({
         </section>
       ) : (
         <>
+          {work.inquiryLimitation === undefined ? null : (
+            <StateNotice
+              notice={{
+                tone: "caution",
+                title: "Inquiry paths unavailable",
+                message: work.inquiryLimitation,
+                recovery:
+                  "You can still inspect and manage each exact Work task. Return later to inspect inquiry links after the Project profile registers that mapping.",
+              }}
+            />
+          )}
           {recommendedBranch === undefined ? null : (
             <section
               className="work-recommendation"
@@ -240,33 +251,35 @@ export const WorkCollectionSurface = ({
             </section>
           )}
 
-          <section
-            className="inquiry-branches"
-            aria-labelledby="inquiry-branches-title"
-          >
-            <header>
-              <div>
-                <p className="reference-panel-kicker">Project meaning</p>
-                <h2 id="inquiry-branches-title">Parallel inquiry paths</h2>
+          {work.branches.length === 0 ? null : (
+            <section
+              className="inquiry-branches"
+              aria-labelledby="inquiry-branches-title"
+            >
+              <header>
+                <div>
+                  <p className="reference-panel-kicker">Project meaning</p>
+                  <h2 id="inquiry-branches-title">Parallel inquiry paths</h2>
+                </div>
+                <span>{work.branches.length}</span>
+              </header>
+              <p className="inquiry-branches__explanation">
+                These paths organize the Project's open questions. They are not
+                hypotheses by default, and they are not Work execution stages. A
+                path may link to several tasks or none.
+              </p>
+              <div className="inquiry-branches__grid">
+                {work.branches.map((branch) => (
+                  <BranchCard
+                    key={branch.id}
+                    project={project}
+                    branch={branch}
+                    work={work}
+                  />
+                ))}
               </div>
-              <span>{work.branches.length}</span>
-            </header>
-            <p className="inquiry-branches__explanation">
-              These paths organize the Project's open questions. They are not
-              hypotheses by default, and they are not Work execution stages. A
-              path may link to several tasks or none.
-            </p>
-            <div className="inquiry-branches__grid">
-              {work.branches.map((branch) => (
-                <BranchCard
-                  key={branch.id}
-                  project={project}
-                  branch={branch}
-                  work={work}
-                />
-              ))}
-            </div>
-          </section>
+            </section>
+          )}
 
           <section className="work-units" aria-labelledby="work-units-title">
             <header>
@@ -395,7 +408,12 @@ const unavailableFor = (
   operation: PetraProjectWorkOperationsView["controls"][number]["operation"],
 ): { reason: string; prerequisite?: string } | undefined => {
   const control = workControl(view, operation);
-  return control?.state === "available" || control?.state === "client_owned"
+  const queryOnlyDelivery =
+    (operation === "reconnect" || operation === "replay") &&
+    control?.state === "query_only";
+  return control?.state === "available" ||
+    control?.state === "client_owned" ||
+    queryOnlyDelivery
     ? undefined
     : {
         reason: control?.reason ?? "This operation is not registered.",
@@ -938,6 +956,18 @@ export const WorkDetailSurface = ({
         </dl>
       </header>
 
+      {work.inquiryLimitation === undefined ? null : (
+        <StateNotice
+          notice={{
+            tone: "caution",
+            title: "Inquiry paths unavailable",
+            message: work.inquiryLimitation,
+            recovery:
+              "This exact task and its server-owned controls remain available. Inquiry status cannot be inferred from Work execution.",
+          }}
+        />
+      )}
+
       {operations !== undefined ? (
         <WorkOperationControls project={project} initialView={operations} />
       ) : unit.requiredInput === undefined ? null : (
@@ -1109,20 +1139,29 @@ export const WorkDetailSurface = ({
             <p className="reference-panel-kicker">Project meaning</p>
             <h2 id="work-links-title">Linked inquiry paths</h2>
           </header>
-          <ul>
-            {branches.map((branch) => (
-              <li key={branch.id}>
-                <strong>{branch.label}</strong>
-                <span>
-                  {branch.kind} · {branch.state}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p>
-            {unit.inquiryLimitation ??
-              "Work completion can supply a result to these paths. It does not resolve the inquiry or apply a candidate by itself."}
-          </p>
+          {branches.length === 0 ? (
+            <p>
+              {work.inquiryLimitation ??
+                "No exact inquiry path is linked to this task."}
+            </p>
+          ) : (
+            <>
+              <ul>
+                {branches.map((branch) => (
+                  <li key={branch.id}>
+                    <strong>{branch.label}</strong>
+                    <span>
+                      {branch.kind} · {branch.state}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p>
+                {unit.inquiryLimitation ??
+                  "Work completion can supply a result to these paths. It does not resolve the inquiry or apply a candidate by itself."}
+              </p>
+            </>
+          )}
         </section>
       </div>
 
