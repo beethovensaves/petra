@@ -74,6 +74,21 @@ partial, 15 missing, and 8 intentionally client-owned operations. No operation
 was promoted to `live`, and no design-control evidence was attached by this
 backend slice.
 
+### Slice 7 Work-operations update
+
+The composed Work boundary now owns exact operation reads plus authenticated,
+idempotent start, required-input response, steering, priority, cancellation,
+and eligible retry commands. It reuses canonical WorkUnit lifecycle authority,
+binds durable reconnect/replay paths where an InteractionRun exists, and
+returns exact GroundedResponse and WorkerOutputManifest destinations.
+
+Resume and start again now have explicit server-owned assessments but remain
+partial: no compatible-checkpoint transition or workflow-specific fresh-input
+rebinding command is registered. The current backend ledger is 66 owned, 14
+partial, 9 missing, and 8 intentionally client-owned operations. Runtime-owner
+fields are populated for the Work rows, but their UI state and evidence remain
+unchanged for the design-owned checkpoint.
+
 Wave 7 owns 15 atomic Composition operations. None is currently live:
 collection creation, durable editing and save, contextual Petra work,
 provenance inspection, revision comparison and restore, validation and render,

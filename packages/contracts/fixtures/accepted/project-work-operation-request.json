@@ -1,0 +1,13 @@
+{
+  "schema_name": "petra.project-work-operation-request",
+  "schema_version": "1.0.0",
+  "command_id": "command_01K6P000000000000000000701",
+  "idempotency_key": "wave6:work:start:001",
+  "operation": "start",
+  "expected_work_unit_ref": {
+    "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "revision": 1,
+    "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+  },
+  "submitted_at": "2026-09-19T12:00:00.000Z"
+}

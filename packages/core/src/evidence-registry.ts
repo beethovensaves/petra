@@ -160,7 +160,8 @@ export interface CommandAuthorizationRequest {
     | "RefreshReviewSession"
     | "CorrectReviewCandidate"
     | "ReviseReviewCandidateBasis"
-    | "SeparateReviewSessionMember";
+    | "SeparateReviewSessionMember"
+    | "ManageProjectWork";
   readonly projectId: string;
 }
 

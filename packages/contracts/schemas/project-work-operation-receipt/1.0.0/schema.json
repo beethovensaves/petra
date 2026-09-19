@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-work-operation-receipt/1.0.0/schema.json",
+  "title": "PetraProjectWorkOperationReceipt",
+  "description": "The immutable result of one authorized Project Work operation. Operational effects never imply domain authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "operation",
+    "outcome",
+    "actor",
+    "capability_grant_id",
+    "requested_work_unit_ref",
+    "resulting_work_unit_ref",
+    "effect",
+    "destination",
+    "recorded_at",
+    "record_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-work-operation-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^project_work_receipt_" }
+      ]
+    },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "operation": {
+      "enum": [
+        "start",
+        "answer_input",
+        "steer",
+        "prioritize",
+        "cancel",
+        "retry"
+      ]
+    },
+    "outcome": {
+      "enum": [
+        "started",
+        "input_answered",
+        "steered",
+        "prioritized",
+        "cancelled",
+        "retried"
+      ]
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId" },
+        "actor_kind": { "const": "human" }
+      }
+    },
+    "capability_grant_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^capability_grant_" }
+      ]
+    },
+    "requested_work_unit_ref": {
+      "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+    },
+    "resulting_work_unit_ref": {
+      "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+    },
+    "input_request_ref": {
+      "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/InputRequestRef"
+    },
+    "plan_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "summary",
+        "prior_attempts_preserved",
+        "domain_authority_changed"
+      ],
+      "properties": {
+        "kind": { "const": "operational_only" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "prior_attempts_preserved": { "const": true },
+        "domain_authority_changed": { "const": false }
+      }
+    },
+    "destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place_role", "work_unit_ref"],
+      "properties": {
+        "place_role": { "const": "work" },
+        "work_unit_ref": {
+          "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+        }
+      }
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "record_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  }
+}

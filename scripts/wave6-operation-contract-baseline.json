@@ -213,33 +213,20 @@
       "persistence": "PostgreSQL WorkUnit revisions, WorkerInput/Output manifests, resources, interaction/replay records, result summaries, and destinations where registered.",
       "recovery": "Returns exact state, stages, inputs, resources, results, limitations, or explicit unsupported/not-found/unavailable destinations."
     },
-    "work-start": {
+    "work-operations": {
+      "kind": "command",
+      "production_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations and POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations -> canonical WorkUnit authority and durable interaction delivery",
+      "authorization": "Bearer authentication plus a server-resolved human principal and exact active ManageProjectWork capability grant. Requests bind the exact Project, WorkUnit revision, specification hash, command identity, and any input or plan revision; they cannot carry Actor or grant authority.",
+      "persistence": "PostgreSQL V045 retains required-input requests/responses, immutable plan revisions, current plan heads, idempotent operation receipts, and canonical WorkUnit lifecycle revisions. Start, cancellation, and retry reuse the existing WorkUnit authority rather than adding a parallel lifecycle.",
+      "recovery": "Snapshot reads compose required input, plan, delivery, controls, retry eligibility, results, and exact destinations. Pending command reservations reconcile disconnects and unknown effects; exact command/idempotency replays return one receipt, while stale, conflicting, unauthorized, unavailable, and missing targets fail without duplicate execution."
+    },
+    "work-restart-assessment": {
       "kind": "partial",
-      "production_owner": "SuggestedAction invocation command -> SuggestedActionInvocationCoordinator -> PetraInteractionRuntime",
-      "authorization": "Server-resolved InvokeSuggestedAction authority for one bounded grounded-synthesis Work family.",
-      "persistence": "PostgreSQL SuggestedAction invocation, WorkUnit, InteractionRun, execution, response, replay, and result records; S3 artifacts where applicable.",
-      "recovery": "Idempotent invocation, reread, replay, and cancellation are bounded to the registered suggested action; no generic Work-family start owner exists."
-    },
-    "work-input-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No authenticated command validates and records required input against an exact WorkUnit/input manifest.",
-      "persistence": "WorkerInputManifest can describe input, but no response record or Work transition owner exists.",
-      "recovery": "No duplicate/conflict/expired-input result, preserved draft, or exact Work return exists."
-    },
-    "work-steering-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No registered Work steering command or capability grant exists.",
-      "persistence": "No immutable steering request, accepted plan transition, or refusal record exists.",
-      "recovery": "No eligibility, stale-plan, duplicate-effect, or resume assessment exists."
-    },
-    "work-priority-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No registered inquiry/branch priority command or capability grant exists.",
-      "persistence": "ProjectInquiry reads exist, but operational ordering is not durably owned.",
-      "recovery": "No accepted/refused priority result or exact Work/inquiry return exists."
+      "production_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations -> PostgresProjectWorkOperations",
+      "authorization": "Bearer-authenticated Project/Work read; no resume or start-again mutation is admitted without a registered compatible transition.",
+      "persistence": "Current Work/checkpoint/input facts remain canonical. The read records no invented continuation or cloned Work.",
+      "recovery": "Returns explicit unavailable reasons for resume when no compatible registered checkpoint transition exists and for start-again when no workflow-specific input-rebinding command exists.",
+      "missing_owner": "A registered workflow-specific resume or fresh-execution command, with compatibility validation and exact retained-attempt linkage, is still required before either operation is executable."
     },
     "interaction-delivery": {
       "kind": "query",
@@ -247,34 +234,6 @@
       "authorization": "Bearer-authenticated exact run/thread/connection and replay checkpoint; the client cannot alter recorded event identities.",
       "persistence": "PostgreSQL InteractionRun, delivery/replay records, WorkUnit state, grounded response/execution records, and S3 artifacts.",
       "recovery": "Supports detach, restore, reconnect, resume-after-sequence, full replay, aborted/write-error delivery recording, and explicit unknown-run/invalid-checkpoint states."
-    },
-    "work-cancel-partial": {
-      "kind": "partial",
-      "production_owner": "POST /api/work-units/:runId/cancel -> PetraInteractionRuntime and PostgresWorkUnitAuthorityRepository",
-      "authorization": "Bearer-authenticated exact run plus stable cancellation command identity; current production UI eligibility is supplied only for SuggestedAction Work.",
-      "persistence": "PostgreSQL WorkUnit cancellation and interaction terminal records.",
-      "recovery": "Idempotent cancellation result is reread through owning Work/invocation state; general Project Work eligibility and return composition remain incomplete."
-    },
-    "work-retry-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No public retry command or grant owns a failed Work attempt; one internal registration retry is not a product operation.",
-      "persistence": "Failed Work remains durable, but no retry-attempt identity and linkage are persisted by a public owner.",
-      "recovery": "No retry eligibility, duplicate prevention, new/current attempt result, or exact return exists."
-    },
-    "work-resume-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No checkpoint-resume command or capability grant exists.",
-      "persistence": "Checkpoint facts may be read, but no resumed attempt/transition receipt is persisted.",
-      "recovery": "No stale-checkpoint or already-resumed reconciliation exists."
-    },
-    "work-start-again-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No command explicitly creates a new attempt from prior Work under current authority.",
-      "persistence": "No prior/new attempt linkage or start-again receipt exists.",
-      "recovery": "No duplicate-start assessment, preserved prior result, or exact new Work destination exists."
     },
     "thread-read": {
       "kind": "query",
@@ -714,27 +673,27 @@
     },
     {
       "operation_id": "work.start",
-      "owner": "work-start",
-      "owner_status": "partial",
-      "missing_owner": "Registered start command for Work families other than the bounded grounded-synthesis SuggestedAction."
+      "owner": "work-operations",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "work.answer-input",
-      "owner": "work-input-missing",
-      "owner_status": "missing",
-      "missing_owner": "Authenticated required-input response command and durable result."
+      "owner": "work-operations",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "work.steer",
-      "owner": "work-steering-missing",
-      "owner_status": "missing",
-      "missing_owner": "Registered direct Work steering command with plan-transition authority."
+      "owner": "work-operations",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "work.prioritize",
-      "owner": "work-priority-missing",
-      "owner_status": "missing",
-      "missing_owner": "Registered Project inquiry/branch priority command."
+      "owner": "work-operations",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "work.detach",
@@ -756,33 +715,33 @@
     },
     {
       "operation_id": "work.cancel",
-      "owner": "work-cancel-partial",
-      "owner_status": "partial",
-      "missing_owner": "General Project Work cancellation eligibility/result composition beyond SuggestedAction interaction Work."
+      "owner": "work-operations",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "work.retry",
-      "owner": "work-retry-missing",
-      "owner_status": "missing",
-      "missing_owner": "Public eligible failed-Work retry command with distinct attempt identity."
+      "owner": "work-operations",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "work.resume",
-      "owner": "work-resume-missing",
-      "owner_status": "missing",
-      "missing_owner": "Checkpoint-resume command with current eligibility and exact result."
+      "owner": "work-restart-assessment",
+      "owner_status": "partial",
+      "missing_owner": "Registered compatible-checkpoint resume command and exact transition result."
     },
     {
       "operation_id": "work.start-again",
-      "owner": "work-start-again-missing",
-      "owner_status": "missing",
-      "missing_owner": "New-attempt command linked to prior Work with duplicate-effect protection."
+      "owner": "work-restart-assessment",
+      "owner_status": "partial",
+      "missing_owner": "Registered workflow-specific fresh-execution command with retained-attempt linkage."
     },
     {
       "operation_id": "work.open-result",
-      "owner": "work-read",
-      "owner_status": "partial",
-      "missing_owner": "Complete result destinations for every registered Work family and result kind."
+      "owner": "work-operations",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "petra.open",

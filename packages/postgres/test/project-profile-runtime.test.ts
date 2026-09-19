@@ -69,8 +69,11 @@ const commandRequest = (
 describePostgres("PostgreSQL registered Project profile runtime", () => {
   const pool = new Pool({ connectionString });
   const actor = readFixture<PetraActor>("actor");
-  const scientific = readFixture<PetraRegisteredProjectProfile>(
+  const scientificV1 = readFixture<PetraRegisteredProjectProfile>(
     "registered-project-profile-scientific",
+  );
+  const scientific = readFixture<PetraRegisteredProjectProfile>(
+    "registered-project-profile-scientific-v1-1",
   );
   const writing = readFixture<PetraRegisteredProjectProfile>(
     "registered-project-profile-controlled-writing",
@@ -108,6 +111,7 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
                 petra.actors CASCADE`,
     );
     await scopes.registerActor(actor);
+    await runtime.registerProfile(scientificV1);
     await runtime.registerProfile(scientific);
     await runtime.registerProfile(writing);
   });
@@ -117,6 +121,18 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
   });
 
   it("creates paired profile Projects and returns their exact versioned taxonomies", async () => {
+    const listed = await runtime.listRegisteredProfiles();
+    expect(listed).toHaveLength(2);
+    expect(
+      listed.find((profile) => profile.profile_id === scientific.profile_id)
+        ?.profile_version,
+    ).toBe("1.1.0");
+    await expect(
+      runtime.getRegisteredProfile(scientificV1.profile_id, "1.0.0"),
+    ).resolves.toStrictEqual(scientificV1);
+    await expect(
+      runtime.getRegisteredProfile(scientific.profile_id),
+    ).resolves.toStrictEqual(scientific);
     const scientificRequest = commandRequest(
       scientific,
       "command_01K6P000000000000000000101",

@@ -28,6 +28,7 @@ import {
   PostgresProjectSourceLifecycleViewReader,
   PostgresProjectSourceViewReader,
   PostgresProjectThreadViewReader,
+  PostgresProjectWorkOperations,
   PostgresProjectWorkViewReader,
   PostgresProjectWorkingStateSnapshotReader,
   PostgresSuggestedActionViewReader,
@@ -67,6 +68,8 @@ import type {
   ProjectSourceReplacementCommandAuthorityRepository,
   ProjectSourceViewReader,
   ProjectThreadViewReader,
+  ProjectWorkOperationAuthority,
+  ProjectWorkOperationsViewReader,
   ProjectWorkViewReader,
   ProjectWorkingStateSnapshotReader,
   SuggestedActionViewReader,
@@ -83,6 +86,10 @@ const { Pool } = pg;
 const BUILT_IN_PROFILE_URLS = [
   new URL(
     "../../../packages/contracts/fixtures/accepted/registered-project-profile-scientific.json",
+    import.meta.url,
+  ),
+  new URL(
+    "../../../packages/contracts/fixtures/accepted/registered-project-profile-scientific-v1-1.json",
     import.meta.url,
   ),
   new URL(
@@ -129,6 +136,8 @@ export interface ProjectShellPersistence {
   readonly relationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
   readonly objectLocations: ProjectObjectLocationViewReader;
   readonly workViews: ProjectWorkViewReader;
+  readonly workOperations: ProjectWorkOperationsViewReader;
+  readonly workOperationAuthority: ProjectWorkOperationAuthority;
   readonly threadViews: ProjectThreadViewReader;
   readonly inquiryViews: ProjectInquiryViewReader;
   readonly suggestedActionViews: SuggestedActionViewReader;
@@ -297,6 +306,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
       changeControlAuthority,
       contracts,
     );
+  const workOperations = new PostgresProjectWorkOperations(
+    pool,
+    new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    contracts,
+  );
   let driver: Driver | undefined;
   let closePromise: Promise<void> | undefined;
   const close = (): Promise<void> => {
@@ -315,6 +329,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.review_session_lifecycle_receipts') IS NOT NULL
           AND to_regclass('petra.registered_project_profiles') IS NOT NULL
           AND to_regclass('petra.project_profile_command_receipts') IS NOT NULL
+          AND to_regclass('petra.project_work_operation_receipts') IS NOT NULL
           AND EXISTS (
             SELECT 1
             FROM pg_constraint
@@ -331,7 +346,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the V044 registered Project profile runtime is unavailable.",
+        "PostgreSQL is reachable, but the V045 Project Work operation runtime is unavailable.",
       );
     }
     for (const profile of await readBuiltInProfiles()) {
@@ -421,6 +436,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
         ),
         objectLocations: new PostgresProjectObjectLocationViewReader(pool),
         workViews: new PostgresProjectWorkViewReader(pool),
+        workOperations,
+        workOperationAuthority: workOperations,
         threadViews: new PostgresProjectThreadViewReader(pool),
         inquiryViews: new PostgresProjectInquiryViewReader(pool),
         suggestedActionViews,
@@ -502,6 +519,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
     ),
     objectLocations: new PostgresProjectObjectLocationViewReader(pool),
     workViews: new PostgresProjectWorkViewReader(pool),
+    workOperations,
+    workOperationAuthority: workOperations,
     threadViews: new PostgresProjectThreadViewReader(pool),
     inquiryViews: new PostgresProjectInquiryViewReader(pool),
     suggestedActionViews,

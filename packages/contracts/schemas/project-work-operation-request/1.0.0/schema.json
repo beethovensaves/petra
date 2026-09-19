@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-work-operation-request/1.0.0/schema.json",
+  "title": "PetraProjectWorkOperationRequest",
+  "description": "An exact idempotent request to manage one Project WorkUnit. Actor and capability authority are resolved by the authenticated server.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "operation",
+    "expected_work_unit_ref",
+    "submitted_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-work-operation-request" },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "operation": {
+      "enum": [
+        "start",
+        "answer_input",
+        "steer",
+        "prioritize",
+        "cancel",
+        "retry"
+      ]
+    },
+    "expected_work_unit_ref": { "$ref": "#/$defs/WorkUnitRef" },
+    "input_request_ref": { "$ref": "#/$defs/InputRequestRef" },
+    "response": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "expected_plan_revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "instruction": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "priority": {
+      "enum": ["user_blocking", "user_visible", "normal", "opportunistic"]
+    },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "operation": { "const": "answer_input" } } },
+      "then": {
+        "properties": { "input_request_ref": {}, "response": {} },
+        "required": ["input_request_ref", "response"]
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "properties": { "input_request_ref": {} },
+              "required": ["input_request_ref"]
+            },
+            { "properties": { "response": {} }, "required": ["response"] }
+          ]
+        }
+      }
+    },
+    {
+      "if": { "properties": { "operation": { "const": "steer" } } },
+      "then": {
+        "properties": {
+          "expected_plan_revision": {},
+          "instruction": {},
+          "priority": {}
+        },
+        "required": ["expected_plan_revision", "instruction", "priority"]
+      },
+      "else": {
+        "if": { "properties": { "operation": { "const": "prioritize" } } },
+        "then": {
+          "properties": { "expected_plan_revision": {}, "priority": {} },
+          "required": ["expected_plan_revision", "priority"]
+        },
+        "else": {
+          "not": {
+            "anyOf": [
+              {
+                "properties": { "expected_plan_revision": {} },
+                "required": ["expected_plan_revision"]
+              },
+              {
+                "properties": { "instruction": {} },
+                "required": ["instruction"]
+              },
+              { "properties": { "priority": {} }, "required": ["priority"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "operation": { "const": "cancel" } } },
+      "then": { "properties": { "reason": {} }, "required": ["reason"] },
+      "else": {
+        "not": { "properties": { "reason": {} }, "required": ["reason"] }
+      }
+    }
+  ],
+  "$defs": {
+    "WorkUnitRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_unit_id", "revision", "spec_hash"],
+      "properties": {
+        "work_unit_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "spec_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "InputRequestRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_request_id", "revision"],
+      "properties": {
+        "input_request_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^work_input_request_" }
+          ]
+        },
+        "revision": { "$ref": "../../common/1.0.0/schema.json#/$defs/Revision" }
+      }
+    }
+  }
+}
