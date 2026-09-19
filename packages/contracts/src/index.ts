@@ -93,6 +93,15 @@ export type {
 export type { PetraProjectProfileCommandRequest } from "./generated/project-profile-command-request.js";
 export type { PetraProjectProfileCommandReceipt } from "./generated/project-profile-command-receipt.js";
 export type {
+  EffectConfirmed as ProjectProfileRecoveryEffectConfirmed,
+  OutcomeUnknown as ProjectProfileRecoveryOutcomeUnknown,
+  PetraProjectProfileCommandRecoveryView,
+  RecoveryAction as ProjectProfileRecoveryAction,
+  RecoveryContent as ProjectProfileRecoveryContent,
+  Subject as ProjectProfileRecoverySubject,
+  UnavailableToVerify as ProjectProfileRecoveryUnavailableToVerify,
+} from "./generated/project-profile-command-recovery-view.js";
+export type {
   BoundContext as ProjectModelBoundContext,
   CertificationRef as ProjectModelCertificationRef,
   ContextBinding as ProjectModelContextBinding,

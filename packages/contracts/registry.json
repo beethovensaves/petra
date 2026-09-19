@@ -232,6 +232,17 @@
       "typescript_path": "src/generated/project-profile-command-receipt.ts"
     },
     {
+      "name": "project-profile-command-recovery-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-profile-command-recovery-view/1.0.0/schema.json",
+      "path": "schemas/project-profile-command-recovery-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-profile-command-reconciliation",
+      "canonical_sha256": "sha256:77534795a71219fd9974160e547455966389f642f85c0e26fa3b44e2295c195e",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-profile-command-recovery-view.ts"
+    },
+    {
       "name": "project-inquiry-role",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-inquiry-role/1.0.0/schema.json",

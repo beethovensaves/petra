@@ -47,6 +47,7 @@ import type {
   ProjectEffectiveControlsViewReader,
   ProjectModelAuthorityReader,
   ProjectProfileCommandAuthority,
+  ProjectProfileCommandRecoveryReader,
   ProjectProfileRuntimeReader,
   ProjectHistoryViewReader,
   ProjectHistoryCompensationExecutionBoundary,
@@ -112,6 +113,7 @@ export interface ProjectShellPersistence {
   readonly modelContexts: ProjectModelAuthorityReader;
   readonly profileReads: ProjectProfileRuntimeReader;
   readonly profileCommands: ProjectProfileCommandAuthority;
+  readonly profileRecovery: ProjectProfileCommandRecoveryReader;
   readonly communicationPlans?: CommunicationPlanReader;
   readonly briefViews: ProjectBriefViewReader;
   readonly views: ProjectShellViewReader;
@@ -405,6 +407,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         modelContexts: new PostgresProjectModelReadinessReader(pool, contracts),
         profileReads: profileRuntime,
         profileCommands: profileRuntime,
+        profileRecovery: profileRuntime,
         views: new PostgresProjectShellViewReader(pool),
         briefViews: new PostgresProjectBriefViewReader(pool, contracts),
         communicationPlans: new PostgresCommunicationPlanReader(
@@ -493,6 +496,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     modelContexts: new PostgresProjectModelReadinessReader(pool, contracts),
     profileReads: profileRuntime,
     profileCommands: profileRuntime,
+    profileRecovery: profileRuntime,
     views: new PostgresProjectShellViewReader(pool),
     briefViews: new PostgresProjectBriefViewReader(pool, contracts),
     communicationPlans: new PostgresCommunicationPlanReader(pool, contracts),

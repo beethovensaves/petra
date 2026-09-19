@@ -6,6 +6,7 @@ import type {
   PetraProjectDefinition,
   PetraProjectObjective,
   PetraProjectProfileCommandReceipt,
+  PetraProjectProfileCommandRecoveryView,
   PetraProjectProfileCommandRequest,
   PetraProjectProfileTaxonomyView,
   PetraRegisteredProjectProfile,
@@ -17,6 +18,7 @@ import {
   ProjectProfileRuntimeError,
   derivePetraId,
   type ProjectProfileCommandAuthority,
+  type ProjectProfileCommandRecoveryReader,
   type ProjectProfileRuntimeReader,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -139,7 +141,10 @@ const projectAuthoredTaxonomy = (
  * Project-owned copies; profile rows are immutable template origins only.
  */
 export class PostgresProjectProfileRuntime
-  implements ProjectProfileRuntimeReader, ProjectProfileCommandAuthority
+  implements
+    ProjectProfileRuntimeReader,
+    ProjectProfileCommandAuthority,
+    ProjectProfileCommandRecoveryReader
 {
   readonly #pool: Pool;
   readonly #principal: ProjectProfileRuntimePrincipal | undefined;
@@ -578,6 +583,247 @@ export class PostgresProjectProfileRuntime
     });
   }
 
+  async assessProjectProfileCommandRecovery(
+    request: PetraProjectProfileCommandRequest,
+  ): Promise<PetraProjectProfileCommandRecoveryView> {
+    this.#contracts.assertValid(
+      "project-profile-command-request",
+      "1.0.0",
+      request,
+    );
+    const requestHash = canonicalHash(request);
+    return this.#readTransaction(async (client) => {
+      await this.#requirePrincipal(client);
+      const retained = await client.query<StoredReceiptRow>(
+        `SELECT request_hash, payload
+           FROM petra.project_profile_command_receipts
+          WHERE command_id = $1 OR idempotency_key = $2
+          ORDER BY command_id`,
+        [request.command_id, request.idempotency_key],
+      );
+      const exact =
+        retained.rows.length === 1 &&
+        retained.rows[0]?.request_hash === requestHash
+          ? this.#receiptFrom(retained.rows[0].payload)
+          : undefined;
+      const principal = this.#principal as ProjectProfileRuntimePrincipal;
+      const ownedExact =
+        exact !== undefined &&
+        exact.actor.actor_id === principal.actor_id &&
+        exact.actor.actor_kind === principal.actor_kind
+          ? exact
+          : undefined;
+      const observationCutoff = this.#now();
+      const subject = {
+        operation: request.operation,
+        command_id: request.command_id,
+        idempotency_key: request.idempotency_key,
+        request_hash: requestHash,
+        ...(request.expected_project === undefined
+          ? {}
+          : { expected_project: clone(request.expected_project) }),
+      };
+      const exactRequest = {
+        item: "exact_request" as const,
+        identity: requestHash,
+        durability: "client_session" as const,
+        state: "client_copy_required" as const,
+      };
+      let content: PetraProjectProfileCommandRecoveryView["content"];
+
+      if (ownedExact !== undefined) {
+        type PreservedItem =
+          PetraProjectProfileCommandRecoveryView["content"]["preservation"][number];
+        const basePreservation: [
+          PreservedItem,
+          PreservedItem,
+          PreservedItem,
+          PreservedItem,
+          PreservedItem,
+        ] = [
+          exactRequest,
+          {
+            item: "command_receipt",
+            identity: ownedExact.receipt_id,
+            durability: "postgresql",
+            state: "retained",
+          },
+          {
+            item: "project",
+            identity: ownedExact.project_ref.project_id,
+            revision: ownedExact.project_ref.revision,
+            durability: "postgresql",
+            state: "retained",
+          },
+          {
+            item: "project_definition",
+            identity: ownedExact.project_definition_ref.project_definition_id,
+            revision: ownedExact.project_definition_ref.revision,
+            content_hash: ownedExact.project_definition_ref.content_hash,
+            durability: "postgresql",
+            state: "retained",
+          },
+          {
+            item: "objective",
+            identity: ownedExact.objective_ref.objective_id,
+            revision: ownedExact.objective_ref.revision,
+            content_hash: ownedExact.objective_ref.content_hash,
+            durability: "postgresql",
+            state: "retained",
+          },
+        ];
+        const preservation: PetraProjectProfileCommandRecoveryView["content"]["preservation"] =
+          ownedExact.prior_project_ref === undefined
+            ? basePreservation
+            : [
+                ...basePreservation,
+                {
+                  item: "prior_project",
+                  identity: ownedExact.prior_project_ref.project_id,
+                  revision: ownedExact.prior_project_ref.revision,
+                  durability: "postgresql",
+                  state: "archived",
+                },
+              ];
+        content = {
+          subject,
+          effect: {
+            state: "effect_confirmed",
+            meaning:
+              "The exact Project-profile command receipt is retained. Repeating the same request returns this receipt without another effect.",
+            receipt: clone(ownedExact),
+          },
+          preservation,
+          eligible_actions: [
+            {
+              operation: "open_resulting_project",
+              eligibility: "eligible",
+              owner: "browser_navigation",
+              method: "GET",
+              path: `/projects/${ownedExact.project_ref.project_id}`,
+              input_behavior: "none",
+              identity_behavior: "no_command",
+              authority_effect:
+                "Navigation has no authority effect and uses the exact resulting Project identity from the retained receipt.",
+              history_effect:
+                "Navigation creates no domain History event and does not replay the Project-profile command.",
+              reason:
+                "The retained receipt supplies an exact resulting Project and Brief destination.",
+              success_destination: clone(ownedExact.destination),
+              failure_destination: { place_role: "projects" },
+              execution_recheck: true,
+            },
+          ],
+          return: {
+            state: "exact",
+            destination: clone(ownedExact.destination),
+            reason:
+              "The retained receipt supplies the resulting Project Brief destination.",
+          },
+          observation_cutoff: observationCutoff,
+          limitations: [
+            "This assessment reconciles only the exact Project-profile command receipt and does not infer downstream task state.",
+            "Opening the result re-reads current Project authority through the normal Project route.",
+          ],
+        };
+      } else if (retained.rows.length === 0) {
+        const resultingProjectId = derivePetraId("project", request.command_id);
+        const commandPath =
+          request.operation === "create"
+            ? "/api/commands/projects"
+            : `/api/commands/projects/${request.expected_project?.project_id}/reset`;
+        content = {
+          subject,
+          effect: {
+            state: "outcome_unknown",
+            reason: "receipt_not_observed_at_cutoff",
+            meaning:
+              "No exact receipt was visible at the observation cutoff. Absence does not prove that no effect occurred after the cutoff.",
+          },
+          preservation: [exactRequest],
+          eligible_actions: [
+            {
+              operation: "retry_exact_command",
+              eligibility: "eligible",
+              owner: "project_profile_command",
+              method: "POST",
+              path: commandPath,
+              input_behavior: "reuse_exact_request",
+              identity_behavior: "reuse_command_and_idempotency",
+              authority_effect:
+                request.operation === "create"
+                  ? "The owning command may create one Project after rechecking the exact profile and authenticated actor."
+                  : "The owning command may archive the exact expected Project revision and create one replacement after rechecking current authority.",
+              history_effect:
+                "The owning Project-profile receipt remains the only durable command result; this assessment creates no recovery event or second ledger.",
+              reason:
+                "Exact idempotent redelivery is safe because no conflicting command identity was observed; execution rechecks current authority.",
+              success_destination: {
+                place_role: "brief",
+                project_id: resultingProjectId,
+              },
+              failure_destination: { place_role: "projects" },
+              execution_recheck: true,
+            },
+          ],
+          return: {
+            state: "safe_fallback",
+            destination: { place_role: "projects" },
+            reason:
+              "No retained receipt supplies an exact resulting Project yet. Return to Projects without implying command success.",
+          },
+          observation_cutoff: observationCutoff,
+          limitations: [
+            "This assessment reads only the Project-profile command receipt authority.",
+            "A missing receipt at the observation cutoff is not proof that no later effect occurred.",
+          ],
+        };
+      } else {
+        content = {
+          subject,
+          effect: {
+            state: "unavailable_to_verify",
+            reason:
+              exact === undefined
+                ? "command_identity_conflict"
+                : "command_not_owned_by_authenticated_actor",
+            meaning:
+              "The command or idempotency identity cannot be reconciled to this exact authenticated request. Petra will not expose another request or retry with conflicting identity.",
+          },
+          preservation: [exactRequest],
+          eligible_actions: [],
+          return: {
+            state: "safe_fallback",
+            destination: { place_role: "projects" },
+            reason:
+              "Return to Projects without exposing or repeating a command bound to another exact request or actor.",
+          },
+          observation_cutoff: observationCutoff,
+          limitations: [
+            "Conflicting command contents and results are intentionally undisclosed.",
+            "Use a fresh command and idempotency identity only after reviewing the locally retained request.",
+          ],
+        };
+      }
+
+      const contentHash = canonicalHash(content);
+      const view: PetraProjectProfileCommandRecoveryView = {
+        schema_name: "petra.project-profile-command-recovery-view",
+        schema_version: "1.0.0",
+        assessment_id: derivePetraId("project_profile_recovery", contentHash),
+        content,
+        content_hash: contentHash,
+        read_at: observationCutoff,
+      };
+      this.#contracts.assertValid(
+        "project-profile-command-recovery-view",
+        "1.0.0",
+        view,
+      );
+      return clone(view);
+    });
+  }
+
   async #requireExactProfile(
     client: PoolClient,
     request: PetraProjectProfileCommandRequest,
@@ -950,6 +1196,23 @@ export class PostgresProjectProfileRuntime
     try {
       await client.query("BEGIN");
       await client.query("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+      const value = await operation(client);
+      await client.query("COMMIT");
+      return value;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async #readTransaction<Value>(
+    operation: (client: PoolClient) => Promise<Value>,
+  ): Promise<Value> {
+    const client = await this.#pool.connect();
+    try {
+      await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
       const value = await operation(client);
       await client.query("COMMIT");
       return value;

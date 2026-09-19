@@ -1,5 +1,6 @@
 import type {
   PetraProjectProfileCommandReceipt,
+  PetraProjectProfileCommandRecoveryView,
   PetraProjectProfileCommandRequest,
   PetraProjectProfileTaxonomyView,
   PetraRegisteredProjectProfile,
@@ -50,4 +51,15 @@ export interface ProjectProfileCommandAuthority {
   executeProjectProfileCommand(
     request: PetraProjectProfileCommandRequest,
   ): Promise<PetraProjectProfileCommandReceipt>;
+}
+
+/**
+ * Read-only recovery composition for one exact create/reset request. The
+ * implementation may describe an idempotent retry through the existing command
+ * owner, but this boundary never executes that retry itself.
+ */
+export interface ProjectProfileCommandRecoveryReader {
+  assessProjectProfileCommandRecovery(
+    request: PetraProjectProfileCommandRequest,
+  ): Promise<PetraProjectProfileCommandRecoveryView>;
 }

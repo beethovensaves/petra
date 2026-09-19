@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraProjectProfileCommandReceipt,
+  PetraProjectProfileCommandRecoveryView,
   PetraProjectProfileCommandRequest,
   PetraProjectProfileTaxonomyView,
   PetraRegisteredProjectProfile,
@@ -9,6 +10,7 @@ import type {
 import {
   ProjectProfileRuntimeError,
   type ProjectProfileCommandAuthority,
+  type ProjectProfileCommandRecoveryReader,
   type ProjectProfileRuntimeReader,
 } from "@petra/core";
 import { describe, expect, it, vi } from "vitest";
@@ -87,6 +89,16 @@ const taxonomy: PetraProjectProfileTaxonomyView = {
   },
   read_at: "2026-09-18T17:30:01.000Z",
 };
+
+const recoveryView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../packages/contracts/fixtures/accepted/project-profile-command-recovery-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectProfileCommandRecoveryView;
 
 const readers = (): ProjectProfileRuntimeReader => ({
   listRegisteredProfiles: vi.fn(() =>
@@ -179,6 +191,30 @@ describe("registered Project profile routes", () => {
     expect(commands.execute).toHaveBeenCalledWith(request);
   });
 
+  it("reconciles an exact Project command without executing its recovery action", async () => {
+    const assess = vi.fn(() => Promise.resolve(structuredClone(recoveryView)));
+    const recovery: ProjectProfileCommandRecoveryReader = {
+      assessProjectProfileCommandRecovery: assess,
+    };
+    const app = createPetraApp({
+      authToken: token,
+      projectProfileRecovery: recovery,
+    });
+
+    const response = await app.app.fetch(
+      authorized("/api/queries/project-profile-command-recovery", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(request),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.json()).toStrictEqual(recoveryView);
+    expect(assess).toHaveBeenCalledWith(request);
+  });
+
   it("maps unknown profiles to a safe typed client error without invoking fallback semantics", async () => {
     const commands: ProjectProfileCommandAuthority = {
       executeProjectProfileCommand: vi.fn(() =>
@@ -226,6 +262,7 @@ describe("registered Project profile routes", () => {
     for (const [path, method] of [
       ["/api/queries/project-profiles", "GET"],
       [`/api/queries/projects/${projectId}/taxonomy`, "GET"],
+      ["/api/queries/project-profile-command-recovery", "POST"],
       ["/api/commands/projects", "POST"],
       [`/api/commands/projects/${projectId}/reset`, "POST"],
     ] as const) {

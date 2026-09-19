@@ -112,7 +112,7 @@
       "control": "Recover Project",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/queries/project-profile-command-recovery -> PostgresProjectProfileRuntime; eligible retry delegates to the existing idempotent create/reset command owner",
       "paths": ["UX-PATH-03", "UX-PATH-04"]
     },
     {
