@@ -8,6 +8,7 @@ import {
   PetraInteractionClient,
   ProjectModelClient,
   ProjectBriefClient,
+  ProjectWorkClient,
   ProjectWorkingStateClient,
   ReviewCandidateCorrectionClient,
   ReviewSessionRefreshClient,
@@ -46,6 +47,7 @@ import {
   PostgresReviewSessionAuthorityRepository,
   PostgresScholarlyIdentityRepository,
   PostgresSynthesistExecutionRepository,
+  PostgresProjectWorkOperations,
   PostgresWorkingStateAuthorityRepository,
   PostgresWorkUnitAuthorityRepository,
 } from "@petra/postgres";
@@ -664,6 +666,11 @@ const seedScientific = async (pool, neo4jUri) => {
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const sources = new PostgresProjectSourceAuthorityRepository(pool);
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
+  const workOperations = new PostgresProjectWorkOperations(
+    pool,
+    new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    contracts,
+  );
   const working = new PostgresWorkingStateAuthorityRepository(pool);
   const sessions = new PostgresReviewSessionAuthorityRepository(pool);
   const grants = new PostgresCapabilityGrantAuthorityRepository(
@@ -885,6 +892,29 @@ const seedScientific = async (pool, neo4jUri) => {
     issued_at: "2026-09-14T00:00:00.000Z",
   };
   if (item49ProfileMode) await grants.registerCapabilityGrant(refreshGrant);
+  const workManagementContent = {
+    scope_kind: "project_commands",
+    allowed_commands: ["ManageProjectWork"],
+    valid_from: "2026-09-19T00:00:00.000Z",
+    reason:
+      "Allow the representative Project author to manage exact durable Work from the guided checkpoint.",
+  };
+  const workManagementGrant = {
+    schema_name: "petra.capability-grant",
+    schema_version: "1.8.0",
+    capability_grant_id: derivePetraId(
+      "capability_grant",
+      "wave6-checkpoint-manage-project-work",
+    ),
+    revision: 1,
+    project_id: scientificProjectId,
+    grantee: { actor_id: humanActorId, actor_kind: "human" },
+    content: workManagementContent,
+    content_hash: hash(workManagementContent),
+    issued_by: { actor_id: humanActorId, actor_kind: "human" },
+    issued_at: "2026-09-19T00:00:00.000Z",
+  };
+  if (wave5Mode) await grants.registerCapabilityGrant(workManagementGrant);
   const changes = new PostgresChangeControlAuthorityRepository(
     pool,
     new PostgresCapabilityGrantCommandAuthorizer(contracts),
@@ -987,6 +1017,19 @@ const seedScientific = async (pool, neo4jUri) => {
     workUnit: requested,
     inputManifest,
   });
+  if (wave5Mode)
+    await workOperations.registerRequiredInput({
+      inputRequestId: "work_input_request_01K6P000000000000000000810",
+      projectId: scientificProjectId,
+      workUnitId: workUnit.work_unit_id,
+      expectedWorkUnitRevision: workUnit.revision,
+      kind: "clarification",
+      question: "Which bounded parsing mode should Petra use?",
+      responseOptions: ["tables_and_text", "text_only"],
+      consequence:
+        "The selected mode constrains the first parsing attempt without changing source or Project authority.",
+      registeredAt: "2026-09-19T00:00:01.000Z",
+    });
   const graphPairs = [];
   if (wave5Mode) {
     const currentBaselineClaim = await evidence.getClaim(
@@ -4209,6 +4252,53 @@ const exerciseItem53Trace = async ({
       ];
       const workUnitId =
         supportPair.candidate.task_context.work_unit_ref.record_id;
+      const workClient = new ProjectWorkClient({
+        baseUrl: active.url,
+        token,
+      });
+      const checkpointOperations = await workClient.readOperations(
+        scientificProjectId,
+        workUnitId,
+      );
+      const checkpointPriorityRequest = {
+        schema_name: "petra.project-work-operation-request",
+        schema_version: "1.0.0",
+        command_id: derivePetraId(
+          "command",
+          "wave6-checkpoint|verify-manage-project-work",
+        ),
+        idempotency_key: "wave6:checkpoint:verify-manage-project-work:v1",
+        operation: "prioritize",
+        expected_work_unit_ref: clone(checkpointOperations.work_unit_ref),
+        expected_plan_revision: 0,
+        priority: "user_visible",
+        submitted_at: "2026-09-19T00:00:02.000Z",
+      };
+      const checkpointPriority = await workClient.execute(
+        scientificProjectId,
+        workUnitId,
+        checkpointPriorityRequest,
+      );
+      const checkpointPriorityReplay = await workClient.execute(
+        scientificProjectId,
+        workUnitId,
+        checkpointPriorityRequest,
+      );
+      assert(
+        checkpointOperations.required_inputs.length === 1 &&
+          checkpointOperations.required_inputs[0]?.state === "pending" &&
+          checkpointOperations.controls.find(
+            (control) => control.operation === "answer_input",
+          )?.state === "available" &&
+          checkpointOperations.controls.find(
+            (control) => control.operation === "start",
+          )?.state === "unavailable" &&
+          checkpointPriority.outcome === "prioritized" &&
+          checkpointPriority.effect.domain_authority_changed === false &&
+          canonicalize(checkpointPriorityReplay) ===
+            canonicalize(checkpointPriority),
+        "The representative Work checkpoint lost its pending input, authenticated command authority, or exact idempotent result.",
+      );
       const views = {
         brief,
         evidence: evidenceView,
