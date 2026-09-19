@@ -1,5 +1,9 @@
 import { readProjectBrief } from "./brief-read.js";
-import { FocusedGraphClient, FocusedGraphClientError } from "@petra/adapters";
+import {
+  FocusedGraphClient,
+  FocusedGraphClientError,
+  ProjectProfileClient,
+} from "@petra/adapters";
 import {
   PetraInteractionClient,
   type PetraInteractionResult,
@@ -33,6 +37,10 @@ import type {
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectDefinition,
+  PetraProjectProfileCommandReceipt,
+  PetraProjectProfileCommandRequest,
+  PetraProjectProfileTaxonomyView,
+  PetraRegisteredProjectProfile,
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewViewRecord,
@@ -2536,34 +2544,21 @@ const retractProjectSourceReplacementResponse = (
   return { receipt, replacement, retraction, applied: value.applied };
 };
 
-const fallbackTerm = (
-  family: ProjectDefinitionTerm["generic_family"],
-): ProjectDefinitionTerm => {
-  const labels = {
-    focus: ["Focus", "Focus items"],
-    finding: ["Material", "Material"],
-    reference: ["Reference", "References"],
-    relationship: ["Relationship", "Relationships"],
-    task: ["Task", "Tasks"],
-    output: ["Output", "Outputs"],
-    other: ["Item", "Items"],
-  } as const;
-  return {
-    semantic_key: `petra.generic-${family}`,
-    singular: labels[family][0],
-    plural: labels[family][1],
-    definition: `Petra's generic ${family} term.`,
-    generic_family: family,
-  };
-};
-
 const termFor = (
   view: ProjectShellView,
   family: "focus" | "finding" | "reference",
-): ProjectDefinitionTerm =>
-  view.content.definition.terms.find(
+): ProjectDefinitionTerm => {
+  const term = view.content.definition.terms.find(
     (term) => term.generic_family === family,
-  ) ?? fallbackTerm(family);
+  );
+  if (term === undefined) {
+    throw new ProjectDataError(
+      `Petra cannot open this Project because its exact definition supplies no ${family} terminology. No substitute term was applied.`,
+      503,
+    );
+  }
+  return term;
+};
 
 const profileFrom = (view: ProjectShellView): ProjectProfile => {
   const focus = termFor(view, "focus");
@@ -2612,6 +2607,7 @@ export const projectRecordFromShellView = (
   const hasAttention = view.content.attention.length > 0;
   return {
     id: view.project_id,
+    revision: view.content.project.revision,
     title: view.content.project.name,
     objective:
       objective?.statement ?? "No current Project focus has been selected.",
@@ -3803,6 +3799,118 @@ export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
   );
 };
 
+const projectProfileClient = (): ProjectProfileClient =>
+  new ProjectProfileClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+  });
+
+export interface ProjectCollectionData {
+  readonly projects: ProjectRecord[];
+  readonly profiles: PetraRegisteredProjectProfile[];
+}
+
+export const loadProjectProfiles = async (): Promise<
+  PetraRegisteredProjectProfile[]
+> => projectProfileClient().listProfiles();
+
+export const loadProjectsHome = async (): Promise<ProjectCollectionData> => {
+  const [projects, profiles] = await Promise.all([
+    loadProjectCollection(),
+    loadProjectProfiles(),
+  ]);
+  return { projects, profiles };
+};
+
+export const loadProjectTaxonomy = async ({
+  params,
+}: LoaderFunctionArgs): Promise<PetraProjectProfileTaxonomyView> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  return projectProfileClient().readProjectTaxonomy(projectId);
+};
+
+export interface ProjectProfileCommandInput {
+  readonly profile: PetraRegisteredProjectProfile;
+  readonly project: {
+    readonly name: string;
+    readonly description?: string;
+  };
+  readonly objective: string;
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+}
+
+export interface ProjectProfileCommandIdentity {
+  readonly commandId: string;
+  readonly idempotencyKey: string;
+}
+
+export const createProjectProfileCommandIdentity = (
+  operation: "create" | "reset",
+): ProjectProfileCommandIdentity => {
+  const identity = randomUlidPayload();
+  return {
+    commandId: `command_${identity}`,
+    idempotencyKey: `project-profile:${operation}:${identity}`,
+  };
+};
+
+const createProjectProfileCommandRequest = (
+  operation: "create" | "reset",
+  input: ProjectProfileCommandInput,
+  expectedProject?: { readonly projectId: string; readonly revision: number },
+): PetraProjectProfileCommandRequest => {
+  const identity = createProjectProfileCommandIdentity(operation);
+  return {
+    schema_name: "petra.project-profile-command-request",
+    schema_version: "1.0.0",
+    command_id: input.commandId ?? identity.commandId,
+    idempotency_key: input.idempotencyKey ?? identity.idempotencyKey,
+    operation,
+    profile_ref: {
+      profile_id: input.profile.profile_id,
+      profile_version: input.profile.profile_version,
+      content_hash: input.profile.content_hash,
+    },
+    ...(expectedProject === undefined
+      ? {}
+      : {
+          expected_project: {
+            project_id: expectedProject.projectId,
+            revision: expectedProject.revision,
+          },
+        }),
+    project: {
+      name: input.project.name,
+      ...(input.project.description === undefined ||
+      input.project.description.length === 0
+        ? {}
+        : { description: input.project.description }),
+    },
+    objective: { statement: input.objective },
+  };
+};
+
+export const createProjectWithProfile = async (
+  input: ProjectProfileCommandInput,
+): Promise<PetraProjectProfileCommandReceipt> =>
+  projectProfileClient().createProject(
+    createProjectProfileCommandRequest("create", input),
+  );
+
+export const resetProjectWithProfile = async (
+  projectId: string,
+  revision: number,
+  input: ProjectProfileCommandInput,
+): Promise<PetraProjectProfileCommandReceipt> =>
+  projectProfileClient().resetProject(
+    projectId,
+    createProjectProfileCommandRequest("reset", input, {
+      projectId,
+      revision,
+    }),
+  );
+
 export const loadProjectRecord = async ({
   params,
   request,
@@ -4149,6 +4257,8 @@ export const loadProjectBriefAction = async ({
 export interface ProjectSettingsData {
   selectedProject?: ProjectRecord;
   controls?: PetraProjectEffectiveControlsView;
+  profiles?: PetraRegisteredProjectProfile[];
+  taxonomy?: PetraProjectProfileTaxonomyView;
 }
 
 export const loadProjectSettings = async ({
@@ -4163,12 +4273,17 @@ export const loadProjectSettings = async ({
     );
   }
   const encoded = encodeURIComponent(target);
-  const [projectValue, controlsValue] = await Promise.all([
+  const [projectValue, controlsValue, profiles] = await Promise.all([
     requestJson(`/api/queries/projects/${encoded}/shell`),
     requestJson(`/api/queries/projects/${encoded}/effective-controls`),
+    loadProjectProfiles(),
   ]);
   const projectView = shellView(projectValue);
   const controls = effectiveControlsView(controlsValue);
+  const taxonomy = await projectProfileClient().readProjectTaxonomy(
+    target,
+    projectView.content.definition.revision,
+  );
   if (
     projectView.project_id !== target ||
     controls.project_id !== target ||
@@ -4190,6 +4305,8 @@ export const loadProjectSettings = async ({
   return {
     selectedProject: projectRecordFromShellView(projectView),
     controls,
+    profiles,
+    taxonomy,
   };
 };
 

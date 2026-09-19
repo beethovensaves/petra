@@ -24,17 +24,21 @@ missing from that inventory.
 | State | Operations | Meaning |
 | --- | ---: | --- |
 | Live | 43 | A visible control appears to reach its production boundary. Exact runtime ownership and executed evidence still have to be attached before a milestone gate passes. |
-| Partial | 31 | Part of the operation works, but a required command, state, return, or recovery path is absent. |
+| Partial | 34 | Part of the operation works, but a required command, state, return, recovery path, or executed browser record is absent. |
 | Presentation only | 9 | The UI demonstrates presentation with local or fixture state. |
-| Unavailable | 22 | The accepted operation is shown as disabled or unavailable. |
-| Missing | 11 | The accepted operation has no discoverable control. |
+| Unavailable | 21 | The accepted operation is shown as disabled or unavailable. |
+| Missing | 9 | The accepted operation has no discoverable control. |
 
-Wave 6 owns 97 core operations. Forty-three are currently live and 54 are not
-yet usable. Material gaps include Project creation, objective framing, profile
-binding, source registration and removal, Review rejection, Work input and
-steering, cancellation and each distinct recovery action, the Petra composer,
-durable interrupt responses, visible model readiness, usable profile-taxonomy
-inspection, personal-setting persistence, and an in-product test/reset path.
+Wave 6 owns 97 core operations. Forty-three are currently live and 54 remain
+partial, presentational, unavailable, or missing. Project creation, profile
+binding, taxonomy inspection, and additive profile reset now have production UI
+controls, but remain partial in this ledger until the usable-profile browser
+scenario records their exact commands, results, cross-surface terms, and return.
+Material gaps still include objective framing, source registration and removal,
+Review rejection, Work input and steering, cancellation and each distinct
+recovery action, the Petra composer, durable interrupt responses, visible model
+readiness, personal-setting persistence, and the stable in-product test/reset
+path.
 
 ## Wave 6 backend contract baseline
 
@@ -73,6 +77,29 @@ guide are integrated. The current backend ledger is therefore 56 owned, 18
 partial, 15 missing, and 8 intentionally client-owned operations. No operation
 was promoted to `live`, and no design-control evidence was attached by this
 backend slice.
+
+### Slice 4 usable-taxonomy UI update
+
+The production Projects route now reads the registered profile catalogue and
+offers explicit scientific-evidence and controlled-writing selection before
+creating a Project. The Project shell and Settings link to one exact taxonomy
+route, which presents purpose, terminology, object and relationship meanings,
+source roles, validators, Work families, model roles, Review destinations,
+supported places, and unavailable operations from the server response.
+Settings also exposes additive reset through the registered command owner and
+returns to the replacement Project's Brief.
+
+Unknown bindings fail closed on the supplied unsupported-profile state, while
+registered and Project-authored definitions remain visibly distinct. The shell
+no longer invents generic taxonomy terms when required exact definition terms
+are absent. Create and reset retain one command/idempotency identity across an
+unchanged retry attempt.
+
+`project.create`, `taxonomy.bind-project`, and `application.reset` moved from
+unavailable or missing to partial. `shell.project-map` and
+`taxonomy.inspect-profile` remain partial. No row was promoted to live and no
+evidence object was attached: the required named usable-profile scenario was
+not executed through a live browser in this implementation slice.
 
 Wave 7 owns 15 atomic Composition operations. None is currently live:
 collection creation, durable editing and save, contextual Petra work,

@@ -18,7 +18,11 @@ import {
 import { PetraLockup, PetraMark } from "../design-system/brand.js";
 import { PetraButton, PetraTextField } from "../design-system/primitives.js";
 import { REFERENCE_PROJECTS, getProjectProfileTool } from "./fixtures.js";
-import type { ProjectBriefData } from "./project-data.js";
+import { ProjectCreationPanel } from "./ProjectProfileSurface.js";
+import type {
+  ProjectBriefData,
+  ProjectCollectionData,
+} from "./project-data.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
 import type {
   EngineState,
@@ -116,10 +120,13 @@ export const ProductFrame = (): React.JSX.Element => {
 
 export const ProjectsSurface = ({
   projects = REFERENCE_PROJECTS,
+  profiles = [],
 }: {
   projects?: ProjectRecord[];
+  profiles?: ProjectCollectionData["profiles"];
 }): React.JSX.Element => {
   const [query, setQuery] = useState("");
+  const [creating, setCreating] = useState(false);
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const visibleProjects = useMemo(
     () =>
@@ -147,14 +154,26 @@ export const ProjectsSurface = ({
         </div>
         <PetraButton
           variant="primary"
-          unavailable={{
-            reason: "Project creation is unavailable in this workspace.",
-            prerequisite: "Project creation capability.",
-          }}
+          onClick={() => setCreating(true)}
+          {...(profiles.length === 0
+            ? {
+                unavailable: {
+                  reason: "No registered Project profile is available.",
+                  prerequisite: "A registered profile from Petra services.",
+                },
+              }
+            : {})}
         >
           New Project
         </PetraButton>
       </section>
+
+      {creating ? (
+        <ProjectCreationPanel
+          profiles={[...profiles]}
+          onCancel={() => setCreating(false)}
+        />
+      ) : null}
 
       <PetraTextField
         label="Find a Project"
@@ -243,7 +262,7 @@ export const ProjectsSurface = ({
 };
 
 export const ProjectsRoute = (): React.JSX.Element => (
-  <ProjectsSurface projects={useLoaderData<ProjectRecord[]>()} />
+  <ProjectsSurface {...useLoaderData<ProjectCollectionData>()} />
 );
 
 type ProjectOutletContext = { project: ProjectRecord };
@@ -254,23 +273,25 @@ export const useProjectRecord = (): ProjectRecord => {
 };
 
 const placeFromPath = (pathname: string): ProjectPlace =>
-  pathname.includes("/sources")
-    ? "sources"
-    : pathname.includes("/review")
-      ? "review"
-      : pathname.includes("/graph")
-        ? "graph"
-        : pathname.includes("/work")
-          ? "work"
-          : pathname.includes("/composition")
-            ? "composition"
-            : pathname.includes("/history")
-              ? "history"
-              : pathname.includes("/tools/")
-                ? "profile_tool"
-                : pathname.includes("/petra")
-                  ? "petra"
-                  : "brief";
+  pathname.includes("/profile")
+    ? "profile_tool"
+    : pathname.includes("/sources")
+      ? "sources"
+      : pathname.includes("/review")
+        ? "review"
+        : pathname.includes("/graph")
+          ? "graph"
+          : pathname.includes("/work")
+            ? "work"
+            : pathname.includes("/composition")
+              ? "composition"
+              : pathname.includes("/history")
+                ? "history"
+                : pathname.includes("/tools/")
+                  ? "profile_tool"
+                  : pathname.includes("/petra")
+                    ? "petra"
+                    : "brief";
 
 export const hashFocusTargetId = (hash: string): string | undefined => {
   if (!hash.startsWith("#") || hash.length === 1) return undefined;
@@ -324,7 +345,7 @@ export const ProjectShell = (): React.JSX.Element => {
           </Link>
           <div>
             <strong>{project.title}</strong>
-            <span>{project.profile.label}</span>
+            <Link to="profile">{project.profile.label}</Link>
           </div>
         </div>
         <div className="reference-context-bar__state">
@@ -410,6 +431,9 @@ export const ProjectShell = (): React.JSX.Element => {
                 <dd>{project.profile.terms.referencePlural}</dd>
               </div>
             </dl>
+            <Link className="reference-text-link" to="profile">
+              Inspect Project profile
+            </Link>
           </details>
         </aside>
 

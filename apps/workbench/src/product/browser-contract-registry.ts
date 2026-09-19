@@ -41,6 +41,10 @@ import workVersionSchema from "../../../../packages/contracts/schemas/work-versi
 import assertionSchema from "../../../../packages/contracts/schemas/assertion/1.0.0/schema.json";
 import projectSourceSchema from "../../../../packages/contracts/schemas/project-source/1.0.0/schema.json";
 import projectDefinitionSchema from "../../../../packages/contracts/schemas/project-definition/1.0.0/schema.json";
+import registeredProjectProfileSchema from "../../../../packages/contracts/schemas/registered-project-profile/1.0.0/schema.json";
+import projectProfileTaxonomyViewSchema from "../../../../packages/contracts/schemas/project-profile-taxonomy-view/1.0.0/schema.json";
+import projectProfileCommandRequestSchema from "../../../../packages/contracts/schemas/project-profile-command-request/1.0.0/schema.json";
+import projectProfileCommandReceiptSchema from "../../../../packages/contracts/schemas/project-profile-command-receipt/1.0.0/schema.json";
 import applyResultSchema from "../../../../packages/contracts/schemas/review-session-apply-result/1.0.0/schema.json";
 import applyRequestSchema from "../../../../packages/contracts/schemas/review-session-apply-request/1.0.0/schema.json";
 import applyCheckpointSchema from "../../../../packages/contracts/schemas/review-session-apply-checkpoint/1.0.0/schema.json";
@@ -95,6 +99,10 @@ type BrowserContractName =
   | "review-candidate-correction-receipt@1.0.0"
   | "review-session-separation-receipt@1.0.0"
   | "review-session@1.1.0"
+  | "registered-project-profile@1.0.0"
+  | "project-profile-taxonomy-view@1.0.0"
+  | "project-profile-command-request@1.0.0"
+  | "project-profile-command-receipt@1.0.0"
   | "working-candidate@1.0.0"
   | "working-relationship@1.0.0";
 
@@ -155,6 +163,10 @@ const schemas = [
   applyRequestSchema,
   applyResultSchema,
   projectDefinitionSchema,
+  registeredProjectProfileSchema,
+  projectProfileTaxonomyViewSchema,
+  projectProfileCommandRequestSchema,
+  projectProfileCommandReceiptSchema,
   projectSourceSchema,
   assertionSchema,
   recoveryAssessmentSchema,
@@ -209,6 +221,12 @@ const contractIds: Record<BrowserContractName, string> = {
   "review-candidate-correction-receipt@1.0.0": correctionReceiptSchema.$id,
   "review-session-separation-receipt@1.0.0": separationReceiptSchema.$id,
   "review-session@1.1.0": reviewSessionV11Schema.$id,
+  "registered-project-profile@1.0.0": registeredProjectProfileSchema.$id,
+  "project-profile-taxonomy-view@1.0.0": projectProfileTaxonomyViewSchema.$id,
+  "project-profile-command-request@1.0.0":
+    projectProfileCommandRequestSchema.$id,
+  "project-profile-command-receipt@1.0.0":
+    projectProfileCommandReceiptSchema.$id,
   "working-candidate@1.0.0": workingCandidateSchema.$id,
   "working-relationship@1.0.0": workingRelationshipSchema.$id,
 };
@@ -281,6 +299,30 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:c32fbcc062c28b100babf7ca372a62d9eeb25fb7446f49b6491d8fab61d4882a",
+    },
+    {
+      name: "registered-project-profile",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:c08a6749198248bf1cabba134e320dbe90d1d6b5307b045fa88fc3639295dcaa",
+    },
+    {
+      name: "project-profile-taxonomy-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:4176da336913b2eaf10679fb9f984e23c0ca8fbc3b03e14d1bc1b149402dd4a6",
+    },
+    {
+      name: "project-profile-command-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:69e1df55b23578ffb0179d09995f81e9696f871d2d5a27d326e0ad26b85cf4f1",
+    },
+    {
+      name: "project-profile-command-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:5131baf319411d989a9f14de7a30cda8fd4ea729370e19f440763a6140bb188b",
     },
   ] as const;
 

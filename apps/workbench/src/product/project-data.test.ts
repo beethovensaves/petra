@@ -22,6 +22,8 @@ import type {
   PetraProjectInquiryView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
+  PetraProjectProfileTaxonomyView,
+  PetraRegisteredProjectProfile,
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
@@ -127,6 +129,41 @@ const shellV11View = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectShellViewV11;
+
+const registeredScientificProfile = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/registered-project-profile-scientific.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraRegisteredProjectProfile;
+
+const registeredScientificTaxonomy: PetraProjectProfileTaxonomyView = {
+  schema_name: "petra.project-profile-taxonomy-view",
+  schema_version: "1.0.0",
+  project_id: shellV11View.project_id,
+  project_revision: shellV11View.content.project.revision,
+  project_definition_ref: {
+    project_definition_id:
+      shellV11View.content.definition.project_definition_id,
+    revision: shellV11View.content.definition.revision,
+    content_hash: shellV11View.content.definition.content_hash,
+  },
+  resolution: {
+    state: "registered",
+    profile_ref: {
+      profile_id: registeredScientificProfile.profile_id,
+      profile_version: registeredScientificProfile.profile_version,
+      content_hash: registeredScientificProfile.content_hash,
+    },
+    label: registeredScientificProfile.content.label,
+    purpose: registeredScientificProfile.content.purpose,
+    taxonomy: registeredScientificProfile.content.taxonomy,
+  },
+  read_at: "2026-09-19T12:00:00.000Z",
+};
 
 const controlledWritingProject = JSON.parse(
   readFileSync(
@@ -1398,6 +1435,18 @@ describe("Project shell workbench adapter", () => {
     ).toBe("Authority sources");
   });
 
+  it("fails closed when exact Project terminology is absent", () => {
+    const incomplete = structuredClone(view);
+    incomplete.content.definition.terms =
+      incomplete.content.definition.terms.filter(
+        (term) => term.generic_family !== "reference",
+      ) as typeof incomplete.content.definition.terms;
+
+    expect(() => projectRecordFromShellView(incomplete)).toThrow(
+      "its exact definition supplies no reference terminology. No substitute term was applied.",
+    );
+  });
+
   it("keeps a Project with no selected Objective explicit and usable", () => {
     const early = structuredClone(view);
     delete early.content.current_objective;
@@ -1511,7 +1560,13 @@ describe("Project shell workbench adapter", () => {
             : input.url;
       return Promise.resolve(
         Response.json(
-          path.endsWith("/effective-controls") ? controlsView : shellV11View,
+          path.endsWith("/effective-controls")
+            ? controlsView
+            : path.includes("/project-profiles")
+              ? { profiles: [registeredScientificProfile] }
+              : path.includes("/taxonomy")
+                ? registeredScientificTaxonomy
+                : shellV11View,
         ),
       );
     });
@@ -1532,7 +1587,9 @@ describe("Project shell workbench adapter", () => {
     expect(data.controls?.content.sections.capability.state).toBe(
       "unavailable",
     );
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(data.profiles).toEqual([registeredScientificProfile]);
+    expect(data.taxonomy?.resolution.state).toBe("registered");
+    expect(fetch).toHaveBeenCalledTimes(4);
 
     const noTarget = new URL("http://petra.test/settings");
     await expect(
@@ -1544,7 +1601,7 @@ describe("Project shell workbench adapter", () => {
         context: new RouterContextProvider(),
       }),
     ).resolves.toEqual({});
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(4);
   });
 
   it("reads one exact server-owned SuggestedAction without client authority", async () => {

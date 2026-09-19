@@ -56,6 +56,7 @@ export type AttentionItem = {
 
 export type ProjectRecord = {
   id: string;
+  revision?: number;
   title: string;
   objective: string;
   updatedAt: string;

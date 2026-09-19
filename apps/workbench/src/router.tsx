@@ -14,6 +14,7 @@ import {
   SourcesRoute,
 } from "./product/ReferenceWorkbench.js";
 import { GraphRoute } from "./product/GraphSurface.js";
+import { ProjectProfileRoute } from "./product/ProjectProfileSurface.js";
 import {
   ReviewCollectionRoute,
   ReviewSessionRoute,
@@ -33,13 +34,14 @@ import {
 } from "./product/RemainingSurfaces.js";
 import type { EngineState } from "./product/model.js";
 import {
-  loadProjectCollection,
+  loadProjectsHome,
   loadProjectBrief,
   loadProjectHistoryEvent,
   loadProjectObjectLocationRedirect,
   loadProjectPetra,
   loadProjectGraph,
   loadProjectRecord,
+  loadProjectTaxonomy,
   loadProjectReviewCollection,
   loadProjectReviewSession,
   loadProjectSettings,
@@ -69,7 +71,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        loader: loadProjectCollection,
+        loader: loadProjectsHome,
         element: <ProjectsRoute />,
       },
       {
@@ -126,6 +128,11 @@ export const router = createBrowserRouter([
             path: "petra",
             loader: loadProjectPetra,
             element: <PetraRoute />,
+          },
+          {
+            path: "profile",
+            loader: loadProjectTaxonomy,
+            element: <ProjectProfileRoute />,
           },
           { path: "composition", element: <CompositionCollectionRoute /> },
           {
