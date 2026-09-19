@@ -94,6 +94,28 @@ try {
       `Could not resolve the PostgreSQL port: ${portResult.stdout}`,
     );
   }
+  if (process.env.PETRA_WAVE6_WORK_EVIDENCE_OUTPUT !== undefined) {
+    const workEvidence = await requireRun(
+      "npm",
+      [
+        "test",
+        "--workspace",
+        "@petra/server",
+        "--",
+        "project-work-operation-integration.test.ts",
+      ],
+      {
+        env: {
+          PETRA_TEST_POSTGRES_URL: `postgresql://petra:petra-m12-integration-only@127.0.0.1:${port}/petra`,
+          PETRA_WAVE6_WORK_EVIDENCE_OUTPUT: resolve(
+            root,
+            process.env.PETRA_WAVE6_WORK_EVIDENCE_OUTPUT,
+          ),
+        },
+      },
+    );
+    process.stdout.write(workEvidence.stdout);
+  }
   const test = await requireRun(
     "npm",
     ["test", "--workspace", "@petra/postgres"],
