@@ -1559,7 +1559,7 @@ async function workerLoop({ role, wave, maxSlices }) {
   }
 }
 
-function doctor(wave, maxSlices) {
+async function doctor(wave, maxSlices) {
   if (process.versions.node.split(".")[0] !== "24") {
     throw new Error(`Node 24 is required; found ${process.version}.`);
   }
@@ -1569,7 +1569,7 @@ function doctor(wave, maxSlices) {
   if (!existsSync(wavePlanPath(wave))) {
     throw new Error(`Missing Wave ${wave} packet: ${wavePlanPath(wave)}`);
   }
-  const state = readState(wave);
+  let state = readState(wave);
   validatePriorWaveState(
     wave,
     readState(String(Number.parseInt(wave, 10) - 1)),
@@ -1581,10 +1581,72 @@ function doctor(wave, maxSlices) {
       throw new Error("The Wave evidence plan differs from initialized state.");
     }
   }
-  const backend = repositorySnapshot("backend");
-  const design = repositorySnapshot("design");
-  requireCleanAndPushed("backend", backend);
-  requireCleanAndPushed("design", design);
+  let snapshots = {
+    backend: repositorySnapshot("backend"),
+    design: repositorySnapshot("design"),
+  };
+  if (state?.status === "running" && !processExists(state.active?.pid)) {
+    const error = new Error(
+      "The active worker process disappeared; inspect its run logs.",
+    );
+    const recovered = await retryWorkerFailure(wave, error);
+    if (!recovered) {
+      await markFailure(wave, state.active?.role ?? "unknown", error);
+      throw error;
+    }
+    snapshots = {
+      backend: repositorySnapshot("backend"),
+      design: repositorySnapshot("design"),
+    };
+  }
+
+  await withStateLock(wave, () => {
+    const current = readState(wave);
+    let changed = false;
+    for (const role of Object.keys(roles)) {
+      const snapshot = snapshots[role];
+      const activeWorktree =
+        current?.status === "running" &&
+        current.active?.role === role &&
+        processExists(current.active.pid);
+      const recoveredWorktree = matchesRecoverySnapshot(
+        current?.recovery,
+        role,
+        snapshot,
+      );
+      if (activeWorktree || recoveredWorktree) continue;
+      requireCleanAndPushed(role, snapshot);
+      if (
+        current?.status === "waiting" &&
+        current.recovery &&
+        snapshot.head !== current.commits[role]
+      ) {
+        if (
+          !gitIsAncestor(roles[role].root, current.commits[role], snapshot.head)
+        ) {
+          throw new Error(
+            `${role} HEAD does not descend from the controller's recorded commit.`,
+          );
+        }
+        current.doctor_reconciliations ??= [];
+        current.doctor_reconciliations.push({
+          role,
+          previous_commit: current.commits[role],
+          reconciled_commit: snapshot.head,
+          reconciled_at: new Date().toISOString(),
+        });
+        current.commits[role] = snapshot.head;
+        changed = true;
+      }
+    }
+    if (changed) {
+      current.updated_at = new Date().toISOString();
+      writeJsonAtomic(statePath(wave), current);
+    }
+  });
+  state = readState(wave);
+  const backend = snapshots.backend;
+  const design = snapshots.design;
   const version = run(codexExecutable(), ["--version"], backendRoot);
   const nextWorker =
     state?.status === "waiting"
@@ -1699,7 +1761,7 @@ async function main() {
   if (options.command === "worker") {
     process.exitCode = await workerLoop(options);
   } else if (options.command === "doctor") {
-    doctor(options.wave, options.maxSlices);
+    await doctor(options.wave, options.maxSlices);
   } else if (options.command === "status") {
     process.stdout.write(`${stateSummary(readState(options.wave))}\n`);
   } else if (options.command === "stop") {
