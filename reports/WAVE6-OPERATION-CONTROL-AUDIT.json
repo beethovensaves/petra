@@ -1,0 +1,3632 @@
+{
+  "schema_name": "petra.wave6-operation-control-audit",
+  "schema_version": 1,
+  "evidence_id": "WAVE6-OPERATION-CONTROL",
+  "scenario_id": "complete-ui-operation-audit",
+  "status": "passed_with_findings",
+  "audited_on": "2026-09-19",
+  "target": {
+    "design_commit": "19c5ab8ccbe0986c0fa21b6567dcba00611a473a",
+    "counterpart_commit": "da6a24150180be6c020c1139149591e134e02f5d"
+  },
+  "command": "npm run audit:wave6:operation-control",
+  "sources": [
+    "scripts/ui-operation-inventory.json",
+    "scripts/wave6-operation-contract-baseline.json",
+    "apps/workbench/src/router.tsx",
+    "apps/workbench/src/product"
+  ],
+  "boundary": "Static source and ledger reconciliation of all 97 Wave 6 operations at the pinned design/counterpart commits. It verifies audit completeness and records missing controls, owners, outcomes, exact returns, and evidence; it does not execute or satisfy any product-path scenario.",
+  "summary": {
+    "operations": 97,
+    "inventory_states": {
+      "live": 43,
+      "missing": 4,
+      "partial": 41,
+      "presentation_only": 2,
+      "unavailable": 7
+    },
+    "backend_owner_states": {
+      "client_owned": 8,
+      "missing": 9,
+      "owned": 66,
+      "partial": 14
+    },
+    "runtime_owner_bindings_missing": 71,
+    "operations_without_executed_evidence": 97,
+    "non_live_operations": 54
+  },
+  "findings": [
+    "All 97 Wave 6 operations lack attached executed evidence, so no operation is closure-ready even where the ledger says live.",
+    "Fifty-four operations are not live: partial, presentation-only, unavailable, or missing controls still require remediation before their named scenarios can run.",
+    "Seventy-one operation rows omit the inventory runtime-owner binding required by the milestone gate; the backend baseline supplies contract context but does not satisfy that ledger field.",
+    "Nine baseline operations have no production owner and fourteen have only a partial owner; design must not invent those commands or authority.",
+    "application.guide now names a production React route in the inventory while the older backend baseline still classifies its design owner as missing; later reconciliation must preserve the implemented guide and update the authoritative ledger without rewriting backend authority in this design audit.",
+    "Resume and Start again remain honestly unavailable, personal settings remain presentation-only, and the guided source, Review, action, Graph, History, recovery, model, and Work scenarios remain unexecuted."
+  ],
+  "operations": [
+    {
+      "operation_id": "project.search",
+      "label": "Find a Project",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/",
+        "label": "Find a Project",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "project-shell-read",
+        "boundary": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader -> PostgresProjectShellViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Find a Project” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Keep the selected Project identity and either remain on Projects with an exact outcome or open its retained task and focus."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "project.open",
+      "label": "Open a Project",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/",
+        "label": "Open Brief",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "project-shell-read",
+        "boundary": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader -> PostgresProjectShellViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Open a Project” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Keep the selected Project identity and either remain on Projects with an exact outcome or open its retained task and focus."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "project.switch",
+      "label": "Switch Projects",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/",
+        "label": "Project switcher",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "project-shell-read",
+        "boundary": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader -> PostgresProjectShellViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Switch Projects” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Keep the selected Project identity and either remain on Projects with an exact outcome or open its retained task and focus."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "project.resume",
+      "label": "Resume a Project at its retained task",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/",
+        "label": "Resume Project",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "project-resume-partial",
+        "boundary": "GET /api/queries/projects -> ProjectShellViewReader -> PostgresProjectShellViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "A retained last-task/origin/focus read shared by Projects and the shell."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Resume a Project at its retained task” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Keep the selected Project identity and either remain on Projects with an exact outcome or open its retained task and focus."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "project.create",
+      "label": "Create a Project with a registered profile",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/",
+        "label": "New Project",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "project-profile-command",
+        "boundary": "POST /api/commands/projects and POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
+        "inventory_runtime_owner": "POST /api/commands/projects -> PostgresProjectProfileRuntime",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Create a Project with a registered profile” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Keep the selected Project identity and either remain on Projects with an exact outcome or open its retained task and focus."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "project.import",
+      "label": "Import or reuse a Project with preserved ancestry",
+      "inventory_state": "unavailable",
+      "visible_control": {
+        "route": "/",
+        "label": "Import Project",
+        "interaction": "command",
+        "audit_status": "declared_unavailable_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "missing",
+        "owner_id": "project-import-missing",
+        "boundary": "",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Authenticated Project import/reuse with preserved ancestry and reviewed admission."
+      },
+      "material_outcomes": {
+        "audit_status": "unavailable_and_unexecuted",
+        "required_boundary": "Render the material result of “Import or reuse a Project with preserved ancestry” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Keep the selected Project identity and either remain on Projects with an exact outcome or open its retained task and focus."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_owner_required",
+        "bind_inventory_runtime_owner",
+        "enable_registered_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "project.recover",
+      "label": "Recover an unresolved Project entry",
+      "inventory_state": "missing",
+      "visible_control": {
+        "route": "/",
+        "label": "Recover Project",
+        "interaction": "command",
+        "audit_status": "missing_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "missing",
+        "owner_id": "project-recovery-missing",
+        "boundary": "",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Composed unresolved Project-entry recovery assessment and registered action."
+      },
+      "material_outcomes": {
+        "audit_status": "missing_and_unexecuted",
+        "required_boundary": "Render the material result of “Recover an unresolved Project entry” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Keep the selected Project identity and either remain on Projects with an exact outcome or open its retained task and focus."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_owner_required",
+        "bind_inventory_runtime_owner",
+        "add_visible_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "shell.navigate",
+      "label": "Navigate to a Project place with context",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId",
+        "label": "Project navigation",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "project-shell-read",
+        "boundary": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader -> PostgresProjectShellViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Navigate to a Project place with context” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Preserve the Project, originating task, semantic selection, and keyboard focus across shell navigation."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "shell.return",
+      "label": "Return to the exact originating task and focus",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId",
+        "label": "Return to origin",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "client_owned",
+        "owner_id": "client-task-return",
+        "boundary": "Browser route state bound to server-supplied Project and object identities",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Return to the exact originating task and focus” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Preserve the Project, originating task, semantic selection, and keyboard focus across shell navigation."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "shell.inspect-context",
+      "label": "Inspect Project, profile, objective, snapshot, and projection context",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId",
+        "label": "Project context",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "project-shell-read",
+        "boundary": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader -> PostgresProjectShellViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Inspect Project, profile, objective, snapshot, and projection context” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Preserve the Project, originating task, semantic selection, and keyboard focus across shell navigation."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "shell.project-map",
+      "label": "Open and use the profile-owned Project map",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId",
+        "label": "Project map",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "project-taxonomy-read",
+        "boundary": "GET /api/queries/project-profiles[/:profileId] and GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Open and use the profile-owned Project map” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Preserve the Project, originating task, semantic selection, and keyboard focus across shell navigation."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "shell.attention-work",
+      "label": "Inspect attention-bearing Work from the shell",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId",
+        "label": "Attention Work",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "project-shell-read",
+        "boundary": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader -> PostgresProjectShellViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Exact attention-bearing Work references and destinations in ProjectShellView."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Inspect attention-bearing Work from the shell” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Preserve the Project, originating task, semantic selection, and keyboard focus across shell navigation."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "brief.orient",
+      "label": "Understand current focus, state, and limitations",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/brief",
+        "label": "Current focus",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ProjectBriefSurface.tsx",
+          "apps/workbench/src/product/SuggestedAction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "brief-read",
+        "boundary": "GET /api/queries/projects/:projectId/brief -> ProjectBriefViewReader -> PostgresProjectBriefViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Understand current focus, state, and limitations” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the originating Brief item and focus with the same Project and task context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "brief.frame-objective",
+      "label": "Frame or revise the Project objective through an exact reviewed command",
+      "inventory_state": "missing",
+      "visible_control": {
+        "route": "/projects/:projectId/brief",
+        "label": "Frame objective",
+        "interaction": "command",
+        "audit_status": "missing_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ProjectBriefSurface.tsx",
+          "apps/workbench/src/product/SuggestedAction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "missing",
+        "owner_id": "objective-command-missing",
+        "boundary": "",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Reviewed Objective framing/revision command with exact outcomes."
+      },
+      "material_outcomes": {
+        "audit_status": "missing_and_unexecuted",
+        "required_boundary": "Render the material result of “Frame or revise the Project objective through an exact reviewed command” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the originating Brief item and focus with the same Project and task context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_owner_required",
+        "bind_inventory_runtime_owner",
+        "add_visible_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "brief.attention",
+      "label": "Inspect and open a material attention item",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/brief",
+        "label": "Needs your attention",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ProjectBriefSurface.tsx",
+          "apps/workbench/src/product/SuggestedAction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "brief-read",
+        "boundary": "GET /api/queries/projects/:projectId/brief -> ProjectBriefViewReader -> PostgresProjectBriefViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Inspect and open a material attention item” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the originating Brief item and focus with the same Project and task context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "brief.change",
+      "label": "Inspect what changed from the selected baseline",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/brief",
+        "label": "What changed",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ProjectBriefSurface.tsx",
+          "apps/workbench/src/product/SuggestedAction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "brief-read",
+        "boundary": "GET /api/queries/projects/:projectId/brief -> ProjectBriefViewReader -> PostgresProjectBriefViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Inspect what changed from the selected baseline” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the originating Brief item and focus with the same Project and task context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "brief.suggested-preview",
+      "label": "Inspect a SuggestedAction and its basis",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/brief",
+        "label": "Suggested next action",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ProjectBriefSurface.tsx",
+          "apps/workbench/src/product/SuggestedAction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "suggested-action-read",
+        "boundary": "GET /api/queries/projects/:projectId/suggested-actions -> SuggestedActionViewReader -> PostgresSuggestedActionViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Inspect a SuggestedAction and its basis” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the originating Brief item and focus with the same Project and task context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "brief.suggested-invoke",
+      "label": "Invoke a SuggestedAction",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/brief",
+        "label": "Start suggested work",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ProjectBriefSurface.tsx",
+          "apps/workbench/src/product/SuggestedAction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "suggested-action-invoke",
+        "boundary": "POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke -> SuggestedActionInvocationCoordinator -> PostgresSuggestedActionInvocationAuthorityRepository",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Invoke a SuggestedAction” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the originating Brief item and focus with the same Project and task context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "brief.recent-decisions",
+      "label": "Inspect recent decisions and open History",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/brief",
+        "label": "Recent decisions",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ProjectBriefSurface.tsx",
+          "apps/workbench/src/product/SuggestedAction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "history-read",
+        "boundary": "GET /api/queries/projects/:projectId/history/{recent,events,...} -> ProjectHistoryViewReader -> PostgresProjectHistoryViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Inspect recent decisions and open History” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the originating Brief item and focus with the same Project and task context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "source.find",
+      "label": "Find a Project source",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/sources",
+        "label": "Find sources",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "source-read",
+        "boundary": "GET /api/queries/projects/:projectId/sources[/:projectSourceId] -> ProjectSourceViewReader -> PostgresProjectSourceViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Find a Project source” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact ProjectSource or source list selection and then to the originating task without losing context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "source.open",
+      "label": "Open a Project source",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/sources",
+        "label": "Open source",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "source-read",
+        "boundary": "GET /api/queries/projects/:projectId/sources[/:projectSourceId] -> ProjectSourceViewReader -> PostgresProjectSourceViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Open a Project source” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact ProjectSource or source list selection and then to the originating task without losing context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "source.register",
+      "label": "Register and link a new source revision",
+      "inventory_state": "unavailable",
+      "visible_control": {
+        "route": "/projects/:projectId/sources",
+        "label": "Add source",
+        "interaction": "command",
+        "audit_status": "declared_unavailable_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "missing",
+        "owner_id": "source-intake-missing",
+        "boundary": "",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Source registration command spanning bytes, rights, identity, ancestry, and Project membership."
+      },
+      "material_outcomes": {
+        "audit_status": "unavailable_and_unexecuted",
+        "required_boundary": "Render the material result of “Register and link a new source revision” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact ProjectSource or source list selection and then to the originating task without losing context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_owner_required",
+        "bind_inventory_runtime_owner",
+        "enable_registered_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "source.reuse",
+      "label": "Reuse an existing source identity or revision in the Project",
+      "inventory_state": "unavailable",
+      "visible_control": {
+        "route": "/projects/:projectId/sources",
+        "label": "Reuse source",
+        "interaction": "command",
+        "audit_status": "declared_unavailable_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "missing",
+        "owner_id": "source-intake-missing",
+        "boundary": "",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Source reuse/link command with retained global identity and new Project role."
+      },
+      "material_outcomes": {
+        "audit_status": "unavailable_and_unexecuted",
+        "required_boundary": "Render the material result of “Reuse an existing source identity or revision in the Project” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact ProjectSource or source list selection and then to the originating task without losing context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_owner_required",
+        "bind_inventory_runtime_owner",
+        "enable_registered_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "source.start-processing",
+      "label": "Start bounded source-processing Work",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/sources/:sourceId",
+        "label": "Process source",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "missing",
+        "owner_id": "source-processing-missing",
+        "boundary": "",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "ProjectSource-scoped registered processing Work start command."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Start bounded source-processing Work” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact ProjectSource or source list selection and then to the originating task without losing context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_owner_required",
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "source.inspect-processing",
+      "label": "Inspect processing state, representations, and limitations",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/sources/:sourceId",
+        "label": "Processing details",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "source-processing-read",
+        "boundary": "GET /api/queries/projects/:projectId/sources/:projectSourceId and GET /api/queries/projects/:projectId/work/:workUnitId",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "One composed source-processing read with exact Work identity, representations, limitations, outcomes, and return."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Inspect processing state, representations, and limitations” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact ProjectSource or source list selection and then to the originating task without losing context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "source.inspect-exact",
+      "label": "Inspect exact source content and location",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/sources/:sourceId",
+        "label": "Inspect exact source",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "source-read",
+        "boundary": "GET /api/queries/projects/:projectId/sources[/:projectSourceId] -> ProjectSourceViewReader -> PostgresProjectSourceViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Inspect exact source content and location” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact ProjectSource or source list selection and then to the originating task without losing context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "source.add-revision",
+      "label": "Add a new immutable source revision",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/sources/:sourceId",
+        "label": "Add new version",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "source-replacement",
+        "boundary": "POST /api/commands/projects/:projectId/source-replacements -> ProjectSourceReplacementCommandAuthorityRepository -> PostgresProjectSourceReplacementCommandAuthorityRepository",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Source intake owner for the new immutable bytes/revision before governed replacement links existing sources."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Add a new immutable source revision” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact ProjectSource or source list selection and then to the originating task without losing context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "source.remove-project-link",
+      "label": "Remove a source link from the Project",
+      "inventory_state": "unavailable",
+      "visible_control": {
+        "route": "/projects/:projectId/sources/:sourceId",
+        "label": "Remove from Project",
+        "interaction": "command",
+        "audit_status": "declared_unavailable_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "source-lifecycle",
+        "boundary": "GET and POST /api/{queries,commands}/projects/:projectId/sources/:projectSourceId/lifecycle -> PostgresProjectSourceLifecycleViewReader and PostgresProjectSourceLifecycleAuthorityRepository",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "unavailable_and_unexecuted",
+        "required_boundary": "Render the material result of “Remove a source link from the Project” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact ProjectSource or source list selection and then to the originating task without losing context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "enable_registered_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "source.delete-local-copy",
+      "label": "Delete an eligible local source copy with a retained receipt",
+      "inventory_state": "missing",
+      "visible_control": {
+        "route": "/projects/:projectId/sources/:sourceId",
+        "label": "Delete local copy",
+        "interaction": "command",
+        "audit_status": "missing_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "source-delete-partial",
+        "boundary": "GET /api/queries/projects/:projectId/sources/:projectSourceId/lifecycle -> PostgresProjectSourceLifecycleViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Accepted physical-retention policy plus authenticated deletion command and retained receipt."
+      },
+      "material_outcomes": {
+        "audit_status": "missing_and_unexecuted",
+        "required_boundary": "Render the material result of “Delete an eligible local source copy with a retained receipt” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact ProjectSource or source list selection and then to the originating task without losing context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "bind_inventory_runtime_owner",
+        "add_visible_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.queue",
+      "label": "Inspect the exception-led Review queue",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review",
+        "label": "Review queue",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-read",
+        "boundary": "GET /api/queries/projects/:projectId/reviews[/:reviewSessionId] -> ProjectReviewViewReader -> PostgresProjectReviewViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Inspect the exception-led Review queue” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.open-session",
+      "label": "Open a Review session",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review",
+        "label": "Open Review",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-read",
+        "boundary": "GET /api/queries/projects/:projectId/reviews[/:reviewSessionId] -> ProjectReviewViewReader -> PostgresProjectReviewViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Open a Review session” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.select-member",
+      "label": "Select an exact Review member",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review",
+        "label": "Review members",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-read",
+        "boundary": "GET /api/queries/projects/:projectId/reviews[/:reviewSessionId] -> ProjectReviewViewReader -> PostgresProjectReviewViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Select an exact Review member” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.correct-candidate",
+      "label": "Correct a Review candidate",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review/:reviewId",
+        "label": "Correct candidate",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-correction",
+        "boundary": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-correction -> PostgresReviewSessionAuthorityRepository",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Correct a Review candidate” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.revise-basis",
+      "label": "Revise the candidate basis",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review/:reviewId",
+        "label": "Revise basis",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-basis",
+        "boundary": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-basis-revision -> PostgresReviewSessionAuthorityRepository",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Revise the candidate basis” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.separate",
+      "label": "Separate independently decidable changes",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review/:reviewId",
+        "label": "Separate changes",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-separation",
+        "boundary": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/separation -> PostgresReviewSessionAuthorityRepository",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Separate independently decidable changes” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.prepare-apply",
+      "label": "Prepare and inspect the exact ChangeSet",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review/:reviewId",
+        "label": "Prepare changes to apply",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-apply",
+        "boundary": "GET apply-checkpoint and POST /api/commands/projects/:projectId/reviews/:reviewSessionId/apply -> PostgresReviewSessionApplyBoundary",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Prepare and inspect the exact ChangeSet” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.apply",
+      "label": "Apply the displayed ChangeSet",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review/:reviewId",
+        "label": "Apply displayed ChangeSet",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-apply",
+        "boundary": "GET apply-checkpoint and POST /api/commands/projects/:projectId/reviews/:reviewSessionId/apply -> PostgresReviewSessionApplyBoundary",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Apply the displayed ChangeSet” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.reject",
+      "label": "Reject a candidate",
+      "inventory_state": "unavailable",
+      "visible_control": {
+        "route": "/projects/:projectId/review/:reviewId",
+        "label": "Reject candidate",
+        "interaction": "command",
+        "audit_status": "declared_unavailable_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "missing",
+        "owner_id": "review-reject-missing",
+        "boundary": "",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Authenticated public rejection command composed into ReviewSession and History outcomes."
+      },
+      "material_outcomes": {
+        "audit_status": "unavailable_and_unexecuted",
+        "required_boundary": "Render the material result of “Reject a candidate” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_owner_required",
+        "bind_inventory_runtime_owner",
+        "enable_registered_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.defer",
+      "label": "Defer a Review decision",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review/:reviewId",
+        "label": "Decide later",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-lifecycle",
+        "boundary": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/lifecycle -> PostgresReviewSessionAuthorityRepository",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Defer a Review decision” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.reopen",
+      "label": "Reopen a deferred Review decision",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review/:reviewId",
+        "label": "Reopen review",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-lifecycle",
+        "boundary": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/lifecycle -> PostgresReviewSessionAuthorityRepository",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Reopen a deferred Review decision” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "review.refresh",
+      "label": "Refresh a stale Review",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/review/:reviewId",
+        "label": "Refresh Review",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/ReviewApply.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "review-refresh",
+        "boundary": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/refresh -> PostgresReviewSessionAuthorityRepository",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Refresh a stale Review” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Review session and member, then to its originating task, with decision and Apply outcomes retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.open",
+      "label": "Open a named relationship task in Graph",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Open Graph",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "graph-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph[/analysis|/details|/action-preview] -> PostgresFocusedGraphViewReader and profile-neutral composers",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Open a named relationship task in Graph” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.return",
+      "label": "Return from Graph to the originating question and focus",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Return to origin",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "client_owned",
+        "owner_id": "client-task-return",
+        "boundary": "Browser route state bound to server-supplied Project and object identities",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Return from Graph to the originating question and focus” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.layer-position",
+      "label": "Move among Current, Working, and Historical positions",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Semantic layer",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "graph-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph[/analysis|/details|/action-preview] -> PostgresFocusedGraphViewReader and profile-neutral composers",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Move among Current, Working, and Historical positions” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.select",
+      "label": "Select an exact graph object or relationship",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Select graph item",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "graph-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph[/analysis|/details|/action-preview] -> PostgresFocusedGraphViewReader and profile-neutral composers",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Select an exact graph object or relationship” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.open-details",
+      "label": "Open Details for the graph selection",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Open Details",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "details-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph/details and GET /api/queries/projects/:projectId/object-location",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Open Details for the graph selection” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.open-source",
+      "label": "Open exact source basis for the graph selection",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Open source basis",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "details-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph/details and GET /api/queries/projects/:projectId/object-location",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Open exact source basis for the graph selection” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.expand",
+      "label": "Expand a bounded graph question",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Expand selection",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "graph-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph[/analysis|/details|/action-preview] -> PostgresFocusedGraphViewReader and profile-neutral composers",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Expand a bounded graph question” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.filter",
+      "label": "Filter a bounded graph question",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Filter graph",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "graph-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph[/analysis|/details|/action-preview] -> PostgresFocusedGraphViewReader and profile-neutral composers",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Filter a bounded graph question” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.save-question",
+      "label": "Save an exact relationship question",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Save exact question",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "missing",
+        "owner_id": "graph-question-missing",
+        "boundary": "",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Authenticated ProjectInquiry save command bound to the exact graph question."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Save an exact relationship question” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_owner_required",
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.compare",
+      "label": "Compare exact graph positions",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Compare positions",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "graph-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph[/analysis|/details|/action-preview] -> PostgresFocusedGraphViewReader and profile-neutral composers",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Compare exact graph positions” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.impact",
+      "label": "Inspect graph impact",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Impact view",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "graph-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph[/analysis|/details|/action-preview] -> PostgresFocusedGraphViewReader and profile-neutral composers",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Inspect graph impact” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.time",
+      "label": "Inspect the graph at an exact historical time",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Time view",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "graph-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph[/analysis|/details|/action-preview] -> PostgresFocusedGraphViewReader and profile-neutral composers",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Inspect the graph at an exact historical time” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "graph.correct-through-review",
+      "label": "Preview a graph correction through Review",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/graph",
+        "label": "Preview correction",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/GraphSurface.tsx",
+          "apps/workbench/src/product/FocusedGraphExploration.tsx",
+          "apps/workbench/src/product/FocusedGraphDetails.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "graph-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph[/analysis|/details|/action-preview] -> PostgresFocusedGraphViewReader and profile-neutral composers",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Preview a graph correction through Review” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact graph question, layer, selection, textual peer, and originating task."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.list",
+      "label": "Inspect the Project Work collection",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/work",
+        "label": "Work list",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "work-read",
+        "boundary": "GET /api/queries/projects/:projectId/work[/:workUnitId] -> ProjectWorkViewReader -> PostgresProjectWorkViewReader",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/work -> PostgresProjectWorkViewReader",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Inspect the Project Work collection” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.open",
+      "label": "Open an exact Work task",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/work",
+        "label": "Open Work",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "work-read",
+        "boundary": "GET /api/queries/projects/:projectId/work[/:workUnitId] -> ProjectWorkViewReader -> PostgresProjectWorkViewReader",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId -> PostgresProjectWorkViewReader",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Open an exact Work task” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.start",
+      "label": "Start bounded Work",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/brief",
+        "label": "Start work",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "work-operations",
+        "boundary": "GET /api/queries/projects/:projectId/work/:workUnitId/operations and POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations -> canonical WorkUnit authority and durable interaction delivery",
+        "inventory_runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations; registered SuggestedAction starts retain their existing coordinator",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Start bounded Work” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.answer-input",
+      "label": "Answer required Work input",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Required input responses",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "work-operations",
+        "boundary": "GET /api/queries/projects/:projectId/work/:workUnitId/operations and POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations -> canonical WorkUnit authority and durable interaction delivery",
+        "inventory_runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations.answer_input",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Answer required Work input” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.steer",
+      "label": "Steer active Work within its declared boundary",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Steer Work",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "work-operations",
+        "boundary": "GET /api/queries/projects/:projectId/work/:workUnitId/operations and POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations -> canonical WorkUnit authority and durable interaction delivery",
+        "inventory_runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations.steer",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Steer active Work within its declared boundary” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.prioritize",
+      "label": "Prioritize an eligible Project line of inquiry",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Prioritize line",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "work-operations",
+        "boundary": "GET /api/queries/projects/:projectId/work/:workUnitId/operations and POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations -> canonical WorkUnit authority and durable interaction delivery",
+        "inventory_runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations.prioritize",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Prioritize an eligible Project line of inquiry” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.detach",
+      "label": "Detach from Work without cancelling it",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Leave running",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "client_owned",
+        "owner_id": "client-task-return",
+        "boundary": "Browser route state bound to server-supplied Project and object identities",
+        "inventory_runtime_owner": "Browser task return over GET /api/queries/projects/:projectId/work/:workUnitId/operations durable state",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Detach from Work without cancelling it” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.reconnect",
+      "label": "Reconnect to canonical Work state",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Reconnect",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "interaction-delivery",
+        "boundary": "GET /api/interactions/:runId and GET /api/queries/interactions/:runId -> PetraInteractionRuntime -> DurableInteractionHistory",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations plus GET /api/queries/interactions/:runId",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Reconnect to canonical Work state” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.replay",
+      "label": "Replay Work delivery without duplicate execution",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Replay delivery",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "interaction-delivery",
+        "boundary": "GET /api/interactions/:runId and GET /api/queries/interactions/:runId -> PetraInteractionRuntime -> DurableInteractionHistory",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations plus GET /api/interactions/:runId",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Replay Work delivery without duplicate execution” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.cancel",
+      "label": "Cancel running Work",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Cancel work",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "work-operations",
+        "boundary": "GET /api/queries/projects/:projectId/work/:workUnitId/operations and POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations -> canonical WorkUnit authority and durable interaction delivery",
+        "inventory_runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations.cancel",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Cancel running Work” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.retry",
+      "label": "Retry an eligible failed Work attempt",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Retry failed work",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "work-operations",
+        "boundary": "GET /api/queries/projects/:projectId/work/:workUnitId/operations and POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations -> canonical WorkUnit authority and durable interaction delivery",
+        "inventory_runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations.retry",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Retry an eligible failed Work attempt” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.resume",
+      "label": "Resume Work from an eligible checkpoint",
+      "inventory_state": "unavailable",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Resume work",
+        "interaction": "command",
+        "audit_status": "declared_unavailable_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "work-restart-assessment",
+        "boundary": "GET /api/queries/projects/:projectId/work/:workUnitId/operations -> PostgresProjectWorkOperations",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations eligibility assessment; mutation remains explicitly unavailable without a registered compatible checkpoint transition",
+        "inventory_binding_status": "present",
+        "missing_owner": "Registered compatible-checkpoint resume command and exact transition result."
+      },
+      "material_outcomes": {
+        "audit_status": "unavailable_and_unexecuted",
+        "required_boundary": "Render the material result of “Resume Work from an eligible checkpoint” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "enable_registered_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.start-again",
+      "label": "Start Work again as a new attempt",
+      "inventory_state": "unavailable",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Start again",
+        "interaction": "command",
+        "audit_status": "declared_unavailable_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "work-restart-assessment",
+        "boundary": "GET /api/queries/projects/:projectId/work/:workUnitId/operations -> PostgresProjectWorkOperations",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations eligibility assessment; mutation remains explicitly unavailable without workflow-specific input rebinding",
+        "inventory_binding_status": "present",
+        "missing_owner": "Registered workflow-specific fresh-execution command with retained-attempt linkage."
+      },
+      "material_outcomes": {
+        "audit_status": "unavailable_and_unexecuted",
+        "required_boundary": "Render the material result of “Start Work again as a new attempt” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "enable_registered_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "work.open-result",
+      "label": "Open a Work result at its exact destination",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/work/:workId",
+        "label": "Open result",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/WorkPetraSurface.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "work-operations",
+        "boundary": "GET /api/queries/projects/:projectId/work/:workUnitId/operations and POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations -> canonical WorkUnit authority and durable interaction delivery",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations -> exact GroundedResponse or WorkerOutputManifest destination",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Open a Work result at its exact destination” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact WorkUnit, stage or required input, and originating task with run identity and entered input retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "petra.open",
+      "label": "Open Petra in exact task context",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/petra",
+        "label": "Open Petra",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/WorkPetraSurface.tsx",
+          "apps/workbench/src/product/PetraModelInteraction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "thread-read",
+        "boundary": "GET /api/queries/projects/:projectId/threads[/:projectThreadId] -> ProjectThreadViewReader -> PostgresProjectThreadViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Open Petra in exact task context” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return to the exact Petra thread or originating task with Project, Work, Review, and draft context retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "petra.resume-thread",
+      "label": "Resume a retained Petra thread and draft",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/petra",
+        "label": "Resume thread",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/WorkPetraSurface.tsx",
+          "apps/workbench/src/product/PetraModelInteraction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "thread-read",
+        "boundary": "GET /api/queries/projects/:projectId/threads[/:projectThreadId] -> ProjectThreadViewReader -> PostgresProjectThreadViewReader",
+        "inventory_runtime_owner": "sessionStorage Project draft/run identity + GET /api/interactions/:runId -> PetraInteractionRuntime durable replay",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Resume a retained Petra thread and draft” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact Petra thread or originating task with Project, Work, Review, and draft context retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "petra.ask",
+      "label": "Ask Petra in exact Project context",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/petra",
+        "label": "Send",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/WorkPetraSurface.tsx",
+          "apps/workbench/src/product/PetraModelInteraction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "petra-interaction",
+        "boundary": "GET /api/queries/projects/:projectId/model-readiness plus POST /api/interactions/run -> ProjectModelReadinessService -> PostgresProjectModelReadinessReader -> PetraInteractionRuntime -> certified grounded-synthesis executor and durable terminal",
+        "inventory_runtime_owner": "POST /api/interactions/run -> ProjectModelClient + PetraInteractionRuntime guarded by PostgresProjectModelReadinessReader",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Ask Petra in exact Project context” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact Petra thread or originating task with Project, Work, Review, and draft context retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "petra.inspect-context",
+      "label": "Inspect Petra's exact Project and task context",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/petra",
+        "label": "Context disclosure",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/WorkPetraSurface.tsx",
+          "apps/workbench/src/product/PetraModelInteraction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "communication-read",
+        "boundary": "GET /api/queries/projects/:projectId/communication -> CommunicationPlanReader -> PostgresCommunicationPlanReader",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
+        "inventory_binding_status": "present",
+        "missing_owner": "PresentationContext binding among exact semantic result, visible scene/text peer, model input, and explanation."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Inspect Petra's exact Project and task context” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact Petra thread or originating task with Project, Work, Review, and draft context retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "petra.inspect-references",
+      "label": "Inspect Petra response origin, force, references, and limitations",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/petra",
+        "label": "Response basis",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/WorkPetraSurface.tsx",
+          "apps/workbench/src/product/PetraModelInteraction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "communication-read",
+        "boundary": "GET /api/queries/projects/:projectId/communication -> CommunicationPlanReader -> PostgresCommunicationPlanReader",
+        "inventory_runtime_owner": "POST /api/interactions/run terminal -> grounded ContextPacket, EvidencePacket, origin, coverage, Work, and authority bindings",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Inspect Petra response origin, force, references, and limitations” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact Petra thread or originating task with Project, Work, Review, and draft context retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "petra.preview-action",
+      "label": "Preview a Petra-mediated registered action",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/petra",
+        "label": "Preview action",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/WorkPetraSurface.tsx",
+          "apps/workbench/src/product/PetraModelInteraction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "petra-action-partial",
+        "boundary": "SuggestedAction read/invocation owners and focused-graph action-preview query",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Server-owned action composition for every permitted Wave 6 direct command family."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Preview a Petra-mediated registered action” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact Petra thread or originating task with Project, Work, Review, and draft context retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "petra.invoke-action",
+      "label": "Invoke the previewed action through its owning command",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/petra",
+        "label": "Confirm action",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/WorkPetraSurface.tsx",
+          "apps/workbench/src/product/PetraModelInteraction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "petra-action-partial",
+        "boundary": "SuggestedAction read/invocation owners and focused-graph action-preview query",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Shared invocation adapters for every permitted direct command family."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Invoke the previewed action through its owning command” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact Petra thread or originating task with Project, Work, Review, and draft context retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "petra.respond-interrupt",
+      "label": "Respond to a durable Review or Work interrupt",
+      "inventory_state": "missing",
+      "visible_control": {
+        "route": "/projects/:projectId/petra",
+        "label": "Respond",
+        "interaction": "command",
+        "audit_status": "missing_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/WorkPetraSurface.tsx",
+          "apps/workbench/src/product/PetraModelInteraction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "review-interrupt-partial",
+        "boundary": "POST /api/commands/reviews/resolve -> PetraInteractionRuntime -> DurableReviewInterrupt boundary",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Production-wired authenticated interrupt authority with ProjectThread/Review/Work reread and return."
+      },
+      "material_outcomes": {
+        "audit_status": "missing_and_unexecuted",
+        "required_boundary": "Render the material result of “Respond to a durable Review or Work interrupt” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact Petra thread or originating task with Project, Work, Review, and draft context retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "bind_inventory_runtime_owner",
+        "add_visible_control",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "model.inspect-readiness",
+      "label": "Inspect certified model-role readiness and provider status",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/petra",
+        "label": "Model status",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/WorkPetraSurface.tsx",
+          "apps/workbench/src/product/PetraModelInteraction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "model-readiness",
+        "boundary": "GET /api/queries/projects/:projectId/model-readiness -> ProjectModelReadinessService -> PostgresProjectModelReadinessReader plus server-owned certified Codex runtime inspection",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Inspect certified model-role readiness and provider status” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Remain in the exact Petra thread and composer context, preserving draft and run identity on failure."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "model.use",
+      "label": "Use a certified model role through the production Petra UI",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/petra",
+        "label": "Send",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/WorkPetraSurface.tsx",
+          "apps/workbench/src/product/PetraModelInteraction.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "petra-interaction",
+        "boundary": "GET /api/queries/projects/:projectId/model-readiness plus POST /api/interactions/run -> ProjectModelReadinessService -> PostgresProjectModelReadinessReader -> PetraInteractionRuntime -> certified grounded-synthesis executor and durable terminal",
+        "inventory_runtime_owner": "POST /api/interactions/run -> ProjectModelClient + certified Codex grounded-synthesis runtime",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Use a certified model role through the production Petra UI” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Remain in the exact Petra thread and composer context, preserving draft and run identity on failure."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "taxonomy.inspect-profile",
+      "label": "Inspect the registered profile taxonomy and terminology",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/projects/:projectId/profile",
+        "label": "Project profile",
+        "interaction": "query",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ProjectProfileSurface.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "project-taxonomy-read",
+        "boundary": "GET /api/queries/project-profiles[/:profileId] and GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
+        "inventory_runtime_owner": "GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Inspect the registered profile taxonomy and terminology” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to Projects, Settings, or the originating Project surface with the exact registered profile binding retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "taxonomy.bind-project",
+      "label": "Choose and bind a usable profile when creating a Project",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/",
+        "label": "Choose profile",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ProjectProfileSurface.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "project-profile-command",
+        "boundary": "POST /api/commands/projects and POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
+        "inventory_runtime_owner": "POST /api/commands/projects and POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
+        "inventory_binding_status": "present",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Choose and bind a usable profile when creating a Project” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to Projects, Settings, or the originating Project surface with the exact registered profile binding retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "history.list",
+      "label": "Inspect causal History episodes",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/history",
+        "label": "History episodes",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/RemainingSurfaces.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "history-read",
+        "boundary": "GET /api/queries/projects/:projectId/history/{recent,events,...} -> ProjectHistoryViewReader -> PostgresProjectHistoryViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Inspect causal History episodes” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return from the exact episode or recovery result to the updated Brief with the same Project context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "history.filter",
+      "label": "Filter History by exact scope",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/history",
+        "label": "History filters",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/RemainingSurfaces.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "history-read",
+        "boundary": "GET /api/queries/projects/:projectId/history/{recent,events,...} -> ProjectHistoryViewReader -> PostgresProjectHistoryViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Filter History by exact scope” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return from the exact episode or recovery result to the updated Brief with the same Project context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "history.open",
+      "label": "Open an exact History episode",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/history",
+        "label": "Open episode",
+        "interaction": "navigation",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/RemainingSurfaces.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "history-read",
+        "boundary": "GET /api/queries/projects/:projectId/history/{recent,events,...} -> ProjectHistoryViewReader -> PostgresProjectHistoryViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Open an exact History episode” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return from the exact episode or recovery result to the updated Brief with the same Project context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "history.compare",
+      "label": "Compare exact historical state",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/history/:eventId",
+        "label": "Compare state",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/RemainingSurfaces.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "history-read",
+        "boundary": "GET /api/queries/projects/:projectId/history/{recent,events,...} -> ProjectHistoryViewReader -> PostgresProjectHistoryViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Compare exact historical state” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return from the exact episode or recovery result to the updated Brief with the same Project context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "history.impact",
+      "label": "Inspect causal impact and recovery relationships",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/history/:eventId",
+        "label": "Impact",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/RemainingSurfaces.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "history-read",
+        "boundary": "GET /api/queries/projects/:projectId/history/{recent,events,...} -> ProjectHistoryViewReader -> PostgresProjectHistoryViewReader",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Inspect causal impact and recovery relationships” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return from the exact episode or recovery result to the updated Brief with the same Project context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "history.preview-revert",
+      "label": "Preview and reconcile a governed Revert",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/history/:eventId",
+        "label": "Preview Revert",
+        "interaction": "query",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/RemainingSurfaces.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "history-revert",
+        "boundary": "GET recovery/preview, POST recovery/plan, and POST recovery/execute -> PostgresProjectHistoryViewReader and PostgresProjectHistoryCompensationExecutor",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Preview and reconcile a governed Revert” without client-invented authority. Show exact, empty, partial or stale, unavailable, failed, and recoverable read states where the contract permits them."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return from the exact episode or recovery result to the updated Brief with the same Project context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "history.execute-revert",
+      "label": "Execute an eligible governed Revert",
+      "inventory_state": "live",
+      "visible_control": {
+        "route": "/projects/:projectId/history/:eventId",
+        "label": "Execute Revert",
+        "interaction": "command",
+        "audit_status": "declared_production_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/RemainingSurfaces.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "history-revert",
+        "boundary": "GET recovery/preview, POST recovery/plan, and POST recovery/execute -> PostgresProjectHistoryViewReader and PostgresProjectHistoryCompensationExecutor",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Render the material result of “Execute an eligible governed Revert” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "declared_but_unexecuted",
+        "required_boundary": "Return from the exact episode or recovery result to the updated Brief with the same Project context."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "details.open",
+      "label": "Open Details for the exact selection",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "contextual",
+        "label": "Open Details",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/FocusedGraphDetails.tsx",
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "owned",
+        "owner_id": "details-read",
+        "boundary": "POST /api/queries/projects/:projectId/focused-graph/details and GET /api/queries/projects/:projectId/object-location",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Open Details for the exact selection” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact selected object, relationship, source, and originating task focus."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "details.return",
+      "label": "Close Details and restore exact origin and focus",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "contextual",
+        "label": "Return to selection",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/FocusedGraphDetails.tsx",
+          "apps/workbench/src/product/ReferenceWorkbench.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "client_owned",
+        "owner_id": "client-task-return",
+        "boundary": "Browser route state bound to server-supplied Project and object identities",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Close Details and restore exact origin and focus” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the exact selected object, relationship, source, and originating task focus."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "feedback.confirm",
+      "label": "Confirm a consequential action after exact preview",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "contextual",
+        "label": "Confirm",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/WorkPetraSurface.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "feedback-partial",
+        "boundary": "The originating registered query or command and its immutable request/receipt identity",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Per-operation confirmation descriptors and exact results for all Wave 6 mutation families."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Confirm a consequential action after exact preview” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return focus to the control or task region that produced the feedback without losing input."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "feedback.retry",
+      "label": "Retry an eligible failed owning action",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "contextual",
+        "label": "Retry",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/WorkPetraSurface.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "feedback-partial",
+        "boundary": "The originating registered query or command and its immutable request/receipt identity",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": "Per-operation retry/reread eligibility and stable identity for all Wave 6 failure families."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Retry an eligible failed owning action” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return focus to the control or task region that produced the feedback without losing input."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "feedback.dismiss",
+      "label": "Dismiss transient feedback safely",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "contextual",
+        "label": "Dismiss",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/WorkPetraSurface.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "client_owned",
+        "owner_id": "client-feedback",
+        "boundary": "Browser transient feedback and route/focus state over an owning server result",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Dismiss transient feedback safely” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return focus to the control or task region that produced the feedback without losing input."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "feedback.return",
+      "label": "Return focus to the owning control",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "contextual",
+        "label": "Return focus",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/ReferenceWorkbench.tsx",
+          "apps/workbench/src/product/ReviewSurface.tsx",
+          "apps/workbench/src/product/WorkPetraSurface.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "client_owned",
+        "owner_id": "client-feedback",
+        "boundary": "Browser transient feedback and route/focus state over an owning server result",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Return focus to the owning control” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return focus to the control or task region that produced the feedback without losing input."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "settings.personal-change",
+      "label": "Change a personal appearance, layout, editor, or accessibility preference",
+      "inventory_state": "presentation_only",
+      "visible_control": {
+        "route": "/settings",
+        "label": "Personal preferences",
+        "interaction": "local_command",
+        "audit_status": "presentation_only_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/RemainingSurfaces.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "client_owned",
+        "owner_id": "client-preferences",
+        "boundary": "Browser/device-local personal preference store",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "presentation_only_and_unexecuted",
+        "required_boundary": "Render the material result of “Change a personal appearance, layout, editor, or accessibility preference” without client-invented authority. Show the exact local change or reset, retained context, and a safe recoverable failure state."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the same Project task or Settings control with the selected personal state retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_client_owned_product_behavior",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "settings.personal-reset",
+      "label": "Reset a scoped personal preference",
+      "inventory_state": "presentation_only",
+      "visible_control": {
+        "route": "/settings",
+        "label": "Reset preferences",
+        "interaction": "local_command",
+        "audit_status": "presentation_only_control",
+        "inspected_sources": [
+          "apps/workbench/src/product/RemainingSurfaces.tsx"
+        ]
+      },
+      "production_owner": {
+        "baseline_status": "client_owned",
+        "owner_id": "client-preferences",
+        "boundary": "Browser/device-local personal preference store",
+        "inventory_runtime_owner": "",
+        "inventory_binding_status": "missing_from_operation_ledger",
+        "missing_owner": ""
+      },
+      "material_outcomes": {
+        "audit_status": "presentation_only_and_unexecuted",
+        "required_boundary": "Render the material result of “Reset a scoped personal preference” without client-invented authority. Show the exact local change or reset, retained context, and a safe recoverable failure state."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Return to the same Project task or Settings control with the selected personal state retained."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "bind_inventory_runtime_owner",
+        "complete_client_owned_product_behavior",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "application.guide",
+      "label": "Follow the in-product guided test task",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/guide",
+        "label": "Test guide",
+        "interaction": "navigation",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/CheckpointGuide.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "missing",
+        "owner_id": "client-guide-missing",
+        "boundary": "",
+        "inventory_runtime_owner": "Production React /guide route over GET /api/queries/projects and GET /api/queries/project-profiles",
+        "inventory_binding_status": "present",
+        "missing_owner": "Visible in-product guide owner on the stable production URL (design-owned; no backend contract required)."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Follow the in-product guided test task” without client-invented authority. Show the exact destination or honest unavailability while preserving task context."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Keep the stable guide URL and selected representative Project while each task opens and returns."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_owner_required",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    },
+    {
+      "operation_id": "application.reset",
+      "label": "Reset the representative Project safely",
+      "inventory_state": "partial",
+      "visible_control": {
+        "route": "/settings?project=:projectId",
+        "label": "Choose replacement profile",
+        "interaction": "command",
+        "audit_status": "declared_partial_control",
+        "inspected_sources": ["apps/workbench/src/product/CheckpointGuide.tsx"]
+      },
+      "production_owner": {
+        "baseline_status": "partial",
+        "owner_id": "application-reset-partial",
+        "boundary": "POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
+        "inventory_runtime_owner": "POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
+        "inventory_binding_status": "present",
+        "missing_owner": "Representative-data setup plus the stable-URL reset control and exact guide return remain design/integration owned."
+      },
+      "material_outcomes": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Render the material result of “Reset the representative Project safely” without client-invented authority. Show pending, exact canonical receipt/effect, partial or unknown effect, failure, and eligible idempotent recovery."
+      },
+      "exact_return": {
+        "audit_status": "incomplete_and_unexecuted",
+        "required_boundary": "Open the replacement Project Brief and retain a discoverable return to the stable test guide."
+      },
+      "executed_evidence": [],
+      "design_disposition": [
+        "backend_contract_completion_required",
+        "complete_control_outcomes_recovery_and_return",
+        "execute_material_outcomes_and_exact_return",
+        "attach_named_executed_evidence"
+      ]
+    }
+  ]
+}
